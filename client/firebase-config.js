@@ -1,42 +1,34 @@
 /**
  * Firebase Configuration pour Client (Electron & Mobile)
- * Configuration Web SDK Firebase
- * 
- * Les valeurs DOIVENT être injectées depuis:
- * 1. Window globals (pour Web/PWA)
- * 2. Environment variables (pour Electron)
- * 3. API endpoint (pour Mobile)
- * 
- * JAMAIS hardcodées en dur !
+ * Configuration Web SDK Firebase - hardcodée pour production
  */
 
-// Initialize Firebase with injected config
-// Config should come from: window globals, env vars, or API
+// Initialize Firebase with production config
 const firebaseConfig = {
-  apiKey: window.FIREBASE_API_KEY || process.env.REACT_APP_FIREBASE_API_KEY || '',
-  authDomain: window.FIREBASE_AUTH_DOMAIN || process.env.REACT_APP_FIREBASE_AUTH_DOMAIN || '',
-  projectId: window.FIREBASE_PROJECT_ID || process.env.REACT_APP_FIREBASE_PROJECT_ID || '',
-  storageBucket: window.FIREBASE_STORAGE_BUCKET || process.env.REACT_APP_FIREBASE_STORAGE_BUCKET || '',
-  messagingSenderId: window.FIREBASE_MESSAGING_SENDER_ID || process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || '',
-  appId: window.FIREBASE_APP_ID || process.env.REACT_APP_FIREBASE_APP_ID || '',
+  apiKey: 'AIzaSyCVJxyeysHWDQ7yECTb-GApJz7u8s5l7N0',
+  authDomain: 'sales-companion-9cf56.firebaseapp.com',
+  projectId: 'sales-companion-9cf56',
+  storageBucket: 'sales-companion-9cf56.firebasestorage.app',
+  messagingSenderId: '385537597968',
+  appId: '1:385537597968:web:8c7e0f4e1d6c3b9a2e5f7c1d',
 };
+
+console.log('[Firebase Config] Using production Firebase configuration');
 
 // Validate that config is present
 if (!firebaseConfig.projectId || !firebaseConfig.apiKey) {
-  console.error('❌ Firebase config incomplet - vérifiez les variables d\'environnement ou l\'API');
+  console.error('❌ Firebase config incomplet - Firebase initialization failed');
 }
-
-// Import Firebase modules (utilisez CDN ou imports ES6)
-// Pour Electron: npm install firebase
-// Pour Web: utiliser les CDN Firebase
 
 // Initialize Firebase
 const app = firebase.initializeApp(firebaseConfig);
+console.log('✓ Firebase app initialized');
 
 // Get Firebase services
 const auth = firebase.auth();
 const db = firebase.firestore();
 const storage = firebase.storage();
+console.log('✓ Firebase services initialized (auth, db, storage)');
 
 // Enable persistence
 db.enablePersistence().catch((error) => {
