@@ -537,7 +537,7 @@ app.get('/auth/me', verifyToken, async (req, res) => {
 
 // ── START SERVER ────────────────────────────────────────────────
 
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`
 ╔════════════════════════════════════════════════════════╗
 ║  🏢 SALES COMPANION — Firebase Backend                 ║
