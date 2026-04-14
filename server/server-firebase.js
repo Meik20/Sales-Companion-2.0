@@ -450,19 +450,32 @@ app.post('/auth/register', async (req, res) => {
       uid: firebaseUser.uid
     });
     
-    // Generate ID token
-    const customToken = await auth.createCustomToken(firebaseUser.uid);
+    // Get ID token via Firebase REST API
+    const firebaseRes = await fetch(
+      `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${process.env.FIREBASE_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, returnSecureToken: true }),
+      }
+    );
+
+    const firebaseData = await firebaseRes.json();
+
+    if (firebaseData.error) {
+      return res.status(400).json({ error: 'Failed to generate token' });
+    }
     
     res.status(201).json({
-      token: customToken,
+      token: firebaseData.idToken,
       user: {
-        uid: user.uid,
+        uid: firebaseUser.uid,
         email: user.email,
         name: user.name,
-        plan: user.plan || 'free',
-        daily_limit: user.daily_limit || 10,
-        daily_used: user.daily_used || 0,
-        remaining: (user.daily_limit || 10) - (user.daily_used || 0),
+        plan: 'free',
+        daily_limit: 10,
+        daily_used: 0,
+        remaining: 10,
       },
       message: 'User created successfully'
     });
@@ -542,6 +555,8 @@ app.listen(PORT, "0.0.0.0", () => {
 ╚════════════════════════════════════════════════════════╝
   `);
 });
+
+
 
 
 
