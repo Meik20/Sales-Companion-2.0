@@ -4,7 +4,7 @@
  */
 
 const CLIENT_URLS = {
-  api: 'https://sales-companion-production.up.railway.app:3210/api',
+  api: 'https://sales-companion-production.up.railway.app/api',
   
   pages: {
     search: '/search',
@@ -20,7 +20,7 @@ const CLIENT_URLS = {
   
   // Get API endpoint
   getApi: (endpoint) => {
-    const base = 'https://sales-companion-production.up.railway.app:3210/api';
+    const base = 'https://sales-companion-production.up.railway.app/api';
     return `${base}/${endpoint}`;
   }
 };

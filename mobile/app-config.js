@@ -15,7 +15,7 @@ const APP_ENV = {
 // ── APP URLS ──────────────────────────────────────────────────
 const APP_URLS = {
   // Base endpoints
-  api: 'https://sales-companion-production.up.railway.app:3210/api',
+  api: 'https://sales-companion-production.up.railway.app/api',
   
   // App sections
   landing: `${APP_ENV.origin}/landing.html`,
