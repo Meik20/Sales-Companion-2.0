@@ -4,7 +4,7 @@
  */
 
 const CLIENT_URLS = {
-  api: process.env.REACT_APP_API_URL || 'http://localhost:3210/api',
+  api: 'https://sales-companion-production.up.railway.app:3210/api',
   
   pages: {
     search: '/search',
@@ -20,7 +20,7 @@ const CLIENT_URLS = {
   
   // Get API endpoint
   getApi: (endpoint) => {
-    const base = process.env.REACT_APP_API_URL || 'http://localhost:3210/api';
+    const base = 'https://sales-companion-production.up.railway.app:3210/api';
     return `${base}/${endpoint}`;
   }
 };

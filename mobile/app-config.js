@@ -6,26 +6,16 @@
 
 // ── ENVIRONMENT DETECTION ─────────────────────────────────────
 const APP_ENV = {
-  isLocal: window.location.hostname === 'localhost' || 
-           window.location.hostname.startsWith('192.168') ||
-           window.location.hostname === '127.0.0.1',
-  
-  isDev: window.location.hostname === 'localhost',
-  
-  isProduction: window.location.hostname !== 'localhost' && 
-                !window.location.hostname.startsWith('192.168'),
-  
-  hostname: window.location.hostname,
-  protocol: window.location.protocol,
-  origin: window.location.origin
+  isProduction: true,
+  hostname: 'sales-companion-production.up.railway.app',
+  protocol: 'https:',
+  origin: 'https://sales-companion-production.up.railway.app:3210'
 };
 
 // ── APP URLS ──────────────────────────────────────────────────
 const APP_URLS = {
   // Base endpoints
-  api: APP_ENV.isLocal ? 
-    'http://192.168.1.139:3210/api' : 
-    `${APP_ENV.origin}/api`,
+  api: 'https://sales-companion-production.up.railway.app:3210/api',
   
   // App sections
   landing: `${APP_ENV.origin}/landing.html`,

@@ -7,7 +7,7 @@ const fs = require('fs');
 let mainWindow;
 const TOKEN_FILE = path.join(app.getPath('userData'), 'auth_token.txt');
 const SERVER_FILE = path.join(app.getPath('userData'), 'server_url.txt');
-const DEFAULT_SERVER = process.env.API_SERVER || 'https://sales-companion-production.up.railway.app:3210';
+const DEFAULT_SERVER = 'https://sales-companion-production.up.railway.app:3210';
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -27,7 +27,7 @@ function createWindow() {
 ipcMain.handle('get-token', () => { try { return fs.existsSync(TOKEN_FILE) ? fs.readFileSync(TOKEN_FILE, 'utf8').trim() : ''; } catch { return ''; } });
 ipcMain.handle('save-token', (_, t) => { fs.writeFileSync(TOKEN_FILE, t, 'utf8'); return true; });
 ipcMain.handle('clear-token', () => { try { if (fs.existsSync(TOKEN_FILE)) fs.unlinkSync(TOKEN_FILE); } catch {} return true; });
-ipcMain.handle('get-server-url', () => { try { return fs.existsSync(SERVER_FILE) ? fs.readFileSync(SERVER_FILE, 'utf8').trim() : DEFAULT_SERVER; } catch { return DEFAULT_SERVER; } });
+ipcMain.handle('get-server-url', () => { return 'https://sales-companion-production.up.railway.app:3210'; });
 ipcMain.handle('save-server-url', (_, u) => { fs.writeFileSync(SERVER_FILE, u, 'utf8'); return true; });
 ipcMain.handle('open-external', (_, u) => { shell.openExternal(u); return true; });
 
@@ -55,7 +55,7 @@ function request(serverUrl, method, reqPath, body, token) {
 }
 
 function getServerUrl() {
-  try { return fs.existsSync(SERVER_FILE) ? fs.readFileSync(SERVER_FILE, 'utf8').trim() : DEFAULT_SERVER; } catch { return DEFAULT_SERVER; }
+  return 'https://sales-companion-production.up.railway.app:3210';
 }
 
 // ── Auth ─────────────────────────────────────────────────────────
