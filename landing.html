@@ -346,7 +346,7 @@ footer p{font-size:13px;color:var(--tx3);margin-bottom:4px}
       <div class="dl-icon desktop">🖥️</div>
       <div class="dl-platform">Windows / Mac</div>
       <p class="dl-desc">Application desktop complète avec 3 panneaux : recherche, pipeline et assistant IA côte à côte.</p>
-      <a class="dl-btn outline" href="http://192.168.1.139:3210/mobile" id="desktop-btn">
+      <a class="dl-btn outline" href="https://drive.google.com/file/d/1HiHqcYAF1KNh-5J1kNFmbBq1VAP9yrw5/view?usp=drive_link" id="desktop-btn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Télécharger .exe
       </a>
@@ -526,31 +526,30 @@ const devCta = document.getElementById('dev-cta');
 const hint = document.getElementById('device-hint');
 const navCta = document.getElementById('nav-cta-btn');
 
+// Nav CTA always goes to mobile app
+navCta.href = './mobile';
+
 if (isAndroid) {
   devIcon.textContent = '🤖';
   devText.innerHTML = '<strong>Android détecté</strong><br>Installez l\'app en un tap';
   devCta.href = APP_URL; devCta.textContent = 'Installer →';
   document.getElementById('android-card').style.order = '-1';
   hint.innerHTML = 'Après l\'ouverture, appuyez sur <strong style="color:var(--g)">⋮ → Ajouter à l\'écran d\'accueil</strong>';
-  navCta.href = APP_URL; navCta.textContent = 'Installer →';
 } else if (isIOS) {
   devIcon.textContent = '🍎';
   devText.innerHTML = '<strong>iPhone/iPad détecté</strong><br>Ouvrez dans Safari pour installer';
   devCta.href = APP_URL; devCta.textContent = 'Ouvrir →';
   document.getElementById('ios-card').style.order = '-1';
   hint.innerHTML = 'Dans Safari, appuyez sur <strong style="color:var(--g)">↑ Partager → Sur l\'écran d\'accueil</strong>';
-  navCta.href = APP_URL; navCta.textContent = 'Installer →';
 } else if (isWindows) {
   devIcon.textContent = '🖥️';
   devText.innerHTML = '<strong>Windows détecté</strong><br>Téléchargez l\'application desktop';
   devCta.href = APP_URL; devCta.textContent = 'Accéder →';
   document.getElementById('desktop-card').style.order = '-1';
-  navCta.href = APP_URL;
 } else if (isMac) {
   devIcon.textContent = '💻';
   devText.innerHTML = '<strong>Mac détecté</strong><br>Accédez à l\'application web';
   devCta.href = APP_URL; devCta.textContent = 'Ouvrir →';
-  navCta.href = APP_URL;
 } else {
   banner.classList.add('hidden');
 }
