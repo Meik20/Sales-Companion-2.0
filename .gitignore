@@ -1,0 +1,70 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Environment variables (NEVER commit these!)
+.env
+.env.*
+!.env.example
+.env.local
+.env.*.local
+
+# Firebase (NEVER commit credentials!)
+firebase-service-account.json
+firebase-key.json
+*firebase*.json
+*-firebase*.json
+.firebaserc
+functions/node_modules/
+.runtimeconfig.json
+
+# Build outputs
+dist/
+build/
+out/
+*.exe
+*.dmg
+*.AppImage
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# IDEs
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Electron
+electron/dist/
+electron/dist_electron/
+
+# Temporary files
+temp/
+tmp/
+*.tmp
+
+# Uploads
+server/uploads/
+
+# Auth tokens
+*.token
+auth_token.txt
+firebase_token.txt
+server_url.txt
+
+# Testing
+coverage/
+.nyc_output/
+
+# Development
+.sixth/

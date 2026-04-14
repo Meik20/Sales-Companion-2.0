@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Sales Companion — L'intelligence B2B du Cameroun. Prospectez, suivez vos clients et concluez plus de ventes.">
+<title>Sales Companion — Intelligence B2B Cameroun</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --g:#1B7A3E;--gm:#2ea05a;--gd:#0f4f27;--gl:#e8f5ee;
+  --gold:#FCD116;--red:#CE1126;
+  --dark:#0a0f0d;--dark2:#111a14;--dark3:#1a2a1f;
+  --tx:#f0f4f0;--tx2:#a8bfad;--tx3:#5a7a62;
+  --r:12px;--r2:20px;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Outfit',sans-serif;background:var(--dark);color:var(--tx);overflow-x:hidden;line-height:1.6}
+
+/* ── NAV ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:16px 40px;display:flex;align-items:center;justify-content:space-between;background:rgba(10,15,13,.85);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,.06)}
+.nav-logo{display:flex;align-items:center;gap:10px}
+.nav-logo-icon{width:34px;height:34px;background:var(--g);border-radius:9px;display:flex;align-items:center;justify-content:center}
+.nav-logo-text{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--tx);letter-spacing:-.2px}
+.nav-logo-text span{color:var(--g)}
+.nav-links{display:flex;align-items:center;gap:28px}
+.nav-links a{font-size:14px;color:var(--tx2);text-decoration:none;transition:color .2s}
+.nav-links a:hover{color:var(--tx)}
+.nav-cta{padding:9px 22px;background:var(--g);color:#fff;border-radius:var(--r);font-size:14px;font-weight:600;text-decoration:none;transition:all .2s}
+.nav-cta:hover{background:var(--gm);transform:translateY(-1px)}
+@media(max-width:640px){.nav-links{display:none}.nav-cta{padding:8px 16px;font-size:13px}}
+
+/* ── HERO ── */
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:120px 20px 80px;text-align:center;position:relative;overflow:hidden}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(27,122,62,.25) 0%,transparent 70%)}
+.hero-bg::after{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%231B7A3E' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")}
+.hero-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(27,122,62,.15);border:1px solid rgba(27,122,62,.35);padding:7px 16px;border-radius:30px;font-size:13px;font-weight:500;color:#6fcf8a;margin-bottom:28px;position:relative}
+.badge-dot{width:6px;height:6px;background:#6fcf8a;border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(42px,7vw,84px);font-weight:800;line-height:1.05;letter-spacing:-2px;position:relative;max-width:800px;margin-bottom:24px}
+.hero h1 .accent{color:var(--g);position:relative}
+.hero h1 .accent::after{content:'';position:absolute;bottom:-4px;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--g),var(--gold));border-radius:2px}
+.hero-sub{font-size:clamp(16px,2.5vw,20px);color:var(--tx2);max-width:560px;margin:0 auto 48px;line-height:1.7;font-weight:300}
+.hero-actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;position:relative}
+
+/* ── CTA BUTTONS ── */
+.btn-primary{display:inline-flex;align-items:center;gap:9px;padding:16px 32px;background:var(--g);color:#fff;border-radius:var(--r);font-size:16px;font-weight:600;text-decoration:none;transition:all .25s;border:none;cursor:pointer;font-family:'Outfit',sans-serif}
+.btn-primary:hover{background:var(--gm);transform:translateY(-2px);box-shadow:0 12px 32px rgba(27,122,62,.4)}
+.btn-primary:active{transform:translateY(0)}
+.btn-primary svg{width:18px;height:18px}
+.btn-secondary{display:inline-flex;align-items:center;gap:9px;padding:16px 32px;background:transparent;color:var(--tx);border:1.5px solid rgba(255,255,255,.15);border-radius:var(--r);font-size:16px;font-weight:500;text-decoration:none;transition:all .25s}
+.btn-secondary:hover{border-color:rgba(255,255,255,.35);background:rgba(255,255,255,.06)}
+
+/* Device hint */
+.device-hint{margin-top:16px;font-size:13px;color:var(--tx3);position:relative}
+.device-hint strong{color:var(--g)}
+
+/* ── PHONE MOCKUP ── */
+.mockup-wrap{margin-top:64px;position:relative;display:flex;justify-content:center;align-items:flex-end;gap:32px}
+.phone-outer{width:240px;background:linear-gradient(145deg,#1a2a1f,#0f1a12);border-radius:36px;padding:10px;border:1px solid rgba(27,122,62,.3);box-shadow:0 40px 80px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.05),inset 0 1px 0 rgba(255,255,255,.08);position:relative}
+.phone-outer.main{width:260px;transform:translateY(0)}
+.phone-outer.side{width:220px;transform:translateY(40px);opacity:.7}
+.phone-notch{width:80px;height:22px;background:#0a0f0d;border-radius:0 0 14px 14px;margin:0 auto 8px;position:relative}
+.phone-notch::before{content:'';position:absolute;top:6px;left:50%;transform:translateX(-50%);width:8px;height:8px;background:#333;border-radius:50%}
+.phone-screen{background:var(--dark2);border-radius:26px;overflow:hidden;aspect-ratio:9/19}
+.screen-topbar{background:var(--g);padding:10px 14px;display:flex;align-items:center;justify-content:space-between}
+.screen-tb-logo{display:flex;align-items:center;gap:6px}
+.screen-tb-logo div{width:18px;height:18px;background:rgba(255,255,255,.2);border-radius:4px}
+.screen-tb-text{color:#fff;font-size:9px;font-weight:700;font-family:'Syne',sans-serif}
+.screen-body{padding:10px}
+.screen-search{background:rgba(255,255,255,.06);border-radius:8px;padding:8px 10px;display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.screen-search-dot{width:8px;height:8px;background:var(--tx3);border-radius:50%;flex-shrink:0}
+.screen-search-bar{flex:1;height:6px;background:rgba(255,255,255,.08);border-radius:3px}
+.screen-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:8px;margin-bottom:6px}
+.sc-head{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.sc-av{width:22px;height:22px;border-radius:5px;background:rgba(27,122,62,.4);display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:#6fcf8a;flex-shrink:0}
+.sc-info{flex:1}
+.sc-name{height:5px;background:rgba(255,255,255,.2);border-radius:2px;width:70%;margin-bottom:3px}
+.sc-sub{height:4px;background:rgba(255,255,255,.08);border-radius:2px;width:50%}
+.sc-fields{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:6px}
+.sc-field{height:4px;background:rgba(255,255,255,.06);border-radius:2px}
+.sc-actions{display:flex;gap:4px}
+.sc-action{flex:1;height:16px;border-radius:4px;background:rgba(27,122,62,.25)}
+.sc-action.blue{background:rgba(26,115,232,.2)}
+.screen-nav{display:flex;border-top:1px solid rgba(255,255,255,.06);padding-top:6px;margin-top:4px}
+.screen-nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
+.snb-icon{width:12px;height:12px;background:rgba(255,255,255,.1);border-radius:2px}
+.screen-nav-btn.active .snb-icon{background:var(--g);opacity:.8}
+.snb-dot{width:20px;height:2px;background:var(--g);border-radius:1px;opacity:0}
+.screen-nav-btn.active .snb-dot{opacity:1}
+
+/* ── DOWNLOAD SECTION ── */
+.section{padding:100px 20px;max-width:1100px;margin:0 auto}
+.section-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--g);margin-bottom:12px}
+.section-title{font-family:'Syne',sans-serif;font-size:clamp(32px,5vw,52px);font-weight:800;letter-spacing:-1.5px;line-height:1.1;margin-bottom:16px}
+.section-sub{font-size:17px;color:var(--tx2);max-width:560px;line-height:1.7;margin-bottom:48px}
+
+/* Download cards */
+.download-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}
+.dl-card{background:var(--dark2);border:1px solid rgba(255,255,255,.08);border-radius:var(--r2);padding:32px;transition:all .25s;position:relative;overflow:hidden;text-decoration:none;display:block}
+.dl-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(27,122,62,.08),transparent);opacity:0;transition:opacity .25s}
+.dl-card:hover{border-color:rgba(27,122,62,.4);transform:translateY(-4px);box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.dl-card:hover::before{opacity:1}
+.dl-card.featured{border-color:rgba(27,122,62,.3);background:linear-gradient(135deg,rgba(27,122,62,.1),var(--dark2))}
+.dl-card.featured::after{content:'Recommandé';position:absolute;top:16px;right:16px;background:var(--g);color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:.04em}
+.dl-icon{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;margin-bottom:20px;font-size:26px}
+.dl-icon.android{background:rgba(61,220,132,.12)}
+.dl-icon.ios{background:rgba(255,255,255,.06)}
+.dl-icon.desktop{background:rgba(26,115,232,.1)}
+.dl-icon.web{background:rgba(252,209,22,.08)}
+.dl-platform{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;margin-bottom:6px}
+.dl-desc{font-size:14px;color:var(--tx2);line-height:1.6;margin-bottom:24px}
+.dl-btn{display:inline-flex;align-items:center;gap:8px;padding:12px 22px;background:var(--g);color:#fff;border-radius:var(--r);font-size:14px;font-weight:600;text-decoration:none;transition:all .2s;width:100%;justify-content:center}
+.dl-btn:hover{background:var(--gm)}
+.dl-btn.outline{background:transparent;border:1.5px solid rgba(255,255,255,.15);color:var(--tx)}
+.dl-btn.outline:hover{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.06)}
+.dl-steps{margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,.06)}
+.dl-step{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;font-size:13px;color:var(--tx2)}
+.dl-step:last-child{margin-bottom:0}
+.step-num{width:20px;height:20px;border-radius:50%;background:rgba(27,122,62,.2);color:#6fcf8a;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+
+/* ── FEATURES ── */
+.features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px}
+.feat-card{background:var(--dark2);border:1px solid rgba(255,255,255,.07);border-radius:var(--r2);padding:28px;transition:all .2s}
+.feat-card:hover{border-color:rgba(27,122,62,.25);transform:translateY(-2px)}
+.feat-icon{font-size:28px;margin-bottom:14px}
+.feat-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;margin-bottom:8px}
+.feat-desc{font-size:14px;color:var(--tx2);line-height:1.65}
+
+/* ── PLANS ── */
+.plans-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.plan-card{background:var(--dark2);border:1px solid rgba(255,255,255,.08);border-radius:var(--r2);padding:28px;transition:all .2s;text-align:center}
+.plan-card.popular{border-color:var(--g);background:linear-gradient(160deg,rgba(27,122,62,.12),var(--dark2));position:relative}
+.plan-card.popular::before{content:'⭐ Populaire';position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--g);color:#fff;font-size:11px;font-weight:700;padding:4px 14px;border-radius:20px;white-space:nowrap}
+.plan-icon{font-size:28px;margin-bottom:12px}
+.plan-name{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:6px}
+.plan-price{font-size:28px;font-weight:700;color:var(--g);margin-bottom:2px}
+.plan-price span{font-size:14px;color:var(--tx3);font-weight:400}
+.plan-limit{font-size:13px;color:var(--tx3);margin-bottom:16px}
+.plan-feature{font-size:13px;color:var(--tx2);padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05);display:flex;align-items:center;gap:7px;text-align:left}
+.plan-feature::before{content:'✓';color:var(--g);font-weight:700;flex-shrink:0}
+
+/* ── QR CODE SECTION ── */
+.qr-section{background:linear-gradient(135deg,var(--dark3),var(--dark2));border:1px solid rgba(27,122,62,.2);border-radius:var(--r2);padding:60px 40px;text-align:center;position:relative;overflow:hidden;margin-top:80px}
+.qr-section::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;background:radial-gradient(circle,rgba(27,122,62,.2),transparent);pointer-events:none}
+.qr-wrap{display:flex;align-items:center;justify-content:center;gap:60px;flex-wrap:wrap}
+.qr-code{width:160px;height:160px;background:#fff;border-radius:16px;padding:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.qr-code svg{width:100%;height:100%}
+.qr-info{text-align:left;max-width:440px}
+.qr-info h3{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;margin-bottom:10px;letter-spacing:-.5px}
+.qr-info p{font-size:15px;color:var(--tx2);margin-bottom:20px;line-height:1.6}
+.url-box{background:rgba(0,0,0,.3);border:1px solid rgba(27,122,62,.3);border-radius:10px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;font-family:monospace;font-size:14px;color:#6fcf8a}
+.copy-btn{padding:7px 14px;background:var(--g);color:#fff;border:none;border-radius:7px;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:'Outfit',sans-serif;transition:all .2s}
+.copy-btn:hover{background:var(--gm)}
+.copy-btn:active{transform:scale(.95)}
+
+/* ── FLAG STRIPE ── */
+.flag-bar{display:flex;width:100%;height:4px;flex-shrink:0}
+.fb{flex:1}
+
+/* ── FOOTER ── */
+footer{background:var(--dark2);border-top:1px solid rgba(255,255,255,.06);padding:40px;text-align:center}
+.footer-logo{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:8px}
+.footer-logo span{color:var(--g)}
+footer p{font-size:13px;color:var(--tx3);margin-bottom:4px}
+
+/* ── DIVIDER ── */
+.divider{width:100%;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);margin:0 auto}
+
+/* ── DEVICE DETECTION banner ── */
+.device-banner{background:linear-gradient(90deg,rgba(27,122,62,.15),rgba(27,122,62,.05));border:1px solid rgba(27,122,62,.25);border-radius:var(--r);padding:14px 20px;display:flex;align-items:center;gap:12px;margin-bottom:16px;max-width:600px;margin-left:auto;margin-right:auto}
+.device-banner.hidden{display:none}
+.dev-icon{font-size:22px}
+.dev-text{font-size:14px;color:var(--tx2)}
+.dev-text strong{color:var(--tx)}
+.dev-cta{margin-left:auto;flex-shrink:0;padding:8px 18px;background:var(--g);color:#fff;border-radius:8px;font-size:13.5px;font-weight:700;text-decoration:none;white-space:nowrap;transition:all .2s}
+.dev-cta:hover{background:var(--gm)}
+
+@media(max-width:640px){
+  .qr-wrap{gap:32px}
+  .qr-info{text-align:center}
+  .hero h1{letter-spacing:-1px}
+  nav{padding:14px 18px}
+  .section{padding:70px 18px}
+  .phone-outer.side{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- Flag stripe -->
+<div class="flag-bar">
+  <div class="fb" style="background:#007A5E"></div>
+  <div class="fb" style="background:#CE1126"></div>
+  <div class="fb" style="background:#FCD116"></div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    <div class="nav-logo-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="19" height="19">
+        <path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+      </svg>
+    </div>
+    <span class="nav-logo-text">SALES <span>COMPANION</span></span>
+  </div>
+  <div class="nav-links">
+    <a href="#telechargement">Téléchargement</a>
+    <a href="#fonctionnalites">Fonctionnalités</a>
+    <a href="#plans">Plans</a>
+  </div>
+  <a href="#telechargement" class="nav-cta" id="nav-cta-btn">Accéder →</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-badge">
+    <span class="badge-dot"></span>
+    Intelligence B2B · Cameroun
+  </div>
+  <h1>SALES <span class="accent">COMPANION</span></h1>
+  <p class="hero-sub">La base de données des entreprises camerounaises, enrichie par l'IA, accessible partout — mobile, desktop, web.</p>
+
+  <!-- Device-aware banner -->
+  <div class="device-banner" id="device-banner">
+    <span class="dev-icon" id="dev-icon">📱</span>
+    <span class="dev-text" id="dev-text"><strong>Appareil détecté</strong><br>Téléchargez la version adaptée</span>
+    <a href="#" class="dev-cta" id="dev-cta">Télécharger</a>
+  </div>
+
+  <div class="device-hint" id="device-hint"></div>
+
+  <div class="hero-actions">
+    <a href="#telechargement" class="btn-primary">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Télécharger
+    </a>
+    <a href="#fonctionnalites" class="btn-secondary">Voir les fonctionnalités →</a>
+  </div>
+
+  <!-- Phone mockups -->
+  <div class="mockup-wrap">
+    <div class="phone-outer side">
+      <div class="phone-notch"></div>
+      <div class="phone-screen">
+        <div class="screen-topbar">
+          <div class="screen-tb-logo"><div></div><span class="screen-tb-text">PIPELINE</span></div>
+        </div>
+        <div class="screen-body">
+          <div class="screen-card" style="border-left:3px solid #e65100">
+            <div class="sc-head"><div class="sc-av">CB</div><div class="sc-info"><div class="sc-name"></div><div class="sc-sub"></div></div></div>
+            <div class="sc-fields"><div class="sc-field"></div><div class="sc-field"></div><div class="sc-field"></div><div class="sc-field"></div></div>
+            <div class="sc-actions"><div class="sc-action"></div><div class="sc-action"></div></div>
+          </div>
+          <div class="screen-card" style="border-left:3px solid #1a73e8">
+            <div class="sc-head"><div class="sc-av">MT</div><div class="sc-info"><div class="sc-name"></div><div class="sc-sub"></div></div></div>
+            <div class="sc-actions"><div class="sc-action blue"></div></div>
+          </div>
+          <div class="screen-nav">
+            <div class="screen-nav-btn"><div class="snb-icon"></div></div>
+            <div class="screen-nav-btn active"><div class="snb-dot"></div><div class="snb-icon"></div></div>
+            <div class="screen-nav-btn"><div class="snb-icon"></div></div>
+            <div class="screen-nav-btn"><div class="snb-icon"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="phone-outer main">
+      <div class="phone-notch"></div>
+      <div class="phone-screen">
+        <div class="screen-topbar">
+          <div class="screen-tb-logo"><div></div><span class="screen-tb-text">SALES COMPANION</span></div>
+        </div>
+        <div class="screen-body">
+          <div class="screen-search"><div class="screen-search-dot"></div><div class="screen-search-bar"></div></div>
+          <div class="screen-card">
+            <div class="sc-head"><div class="sc-av">SC</div><div class="sc-info"><div class="sc-name"></div><div class="sc-sub"></div></div></div>
+            <div class="sc-fields"><div class="sc-field"></div><div class="sc-field"></div><div class="sc-field"></div><div class="sc-field"></div></div>
+            <div class="sc-actions"><div class="sc-action"></div><div class="sc-action blue"></div></div>
+          </div>
+          <div class="screen-card">
+            <div class="sc-head"><div class="sc-av">DT</div><div class="sc-info"><div class="sc-name"></div><div class="sc-sub"></div></div></div>
+            <div class="sc-fields"><div class="sc-field"></div><div class="sc-field"></div></div>
+            <div class="sc-actions"><div class="sc-action"></div><div class="sc-action blue"></div></div>
+          </div>
+          <div class="screen-nav">
+            <div class="screen-nav-btn active"><div class="snb-dot"></div><div class="snb-icon"></div></div>
+            <div class="screen-nav-btn"><div class="snb-icon"></div></div>
+            <div class="screen-nav-btn"><div class="snb-icon"></div></div>
+            <div class="screen-nav-btn"><div class="snb-icon"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- DOWNLOAD SECTION -->
+<section class="section" id="telechargement">
+  <div class="section-label">Téléchargement</div>
+  <h2 class="section-title">Choisissez votre plateforme</h2>
+  <p class="section-sub">Sales Companion fonctionne sur tous vos appareils. Même base de données, même compte.</p>
+
+  <div class="download-grid">
+
+    <!-- Android -->
+    <a class="dl-card featured" href="http://192.168.1.139:3210/mobile" id="android-card">
+      <div class="dl-icon android">🤖</div>
+      <div class="dl-platform">Android</div>
+      <p class="dl-desc">Installez l'application directement depuis votre navigateur Chrome. Aucune boutique requise.</p>
+      <div class="dl-btn" id="android-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        Ouvrir l'application
+      </div>
+      <div class="dl-steps">
+        <div class="dl-step"><span class="step-num">1</span><span>Ouvrez ce lien dans Chrome</span></div>
+        <div class="dl-step"><span class="step-num">2</span><span>Menu ⋮ → "Ajouter à l'écran d'accueil"</span></div>
+        <div class="dl-step"><span class="step-num">3</span><span>L'icône apparaît sur votre téléphone ✓</span></div>
+      </div>
+    </a>
+
+    <!-- iPhone -->
+    <a class="dl-card" href="http://192.168.1.139:3210/mobile" id="ios-card">
+      <div class="dl-icon ios">🍎</div>
+      <div class="dl-platform">iPhone / iPad</div>
+      <p class="dl-desc">Accédez via Safari et installez sur votre écran d'accueil en quelques secondes.</p>
+      <div class="dl-btn outline" id="ios-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        Ouvrir dans Safari
+      </div>
+      <div class="dl-steps">
+        <div class="dl-step"><span class="step-num">1</span><span>Ouvrez ce lien dans Safari</span></div>
+        <div class="dl-step"><span class="step-num">2</span><span>Bouton partage ↑ → "Sur l'écran d'accueil"</span></div>
+        <div class="dl-step"><span class="step-num">3</span><span>Sales Companion est installé ✓</span></div>
+      </div>
+    </a>
+
+    <!-- Desktop -->
+    <div class="dl-card" id="desktop-card">
+      <div class="dl-icon desktop">🖥️</div>
+      <div class="dl-platform">Windows / Mac</div>
+      <p class="dl-desc">Application desktop complète avec 3 panneaux : recherche, pipeline et assistant IA côte à côte.</p>
+      <a class="dl-btn outline" href="http://192.168.1.139:3210/mobile" id="desktop-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Télécharger .exe
+      </a>
+      <div class="dl-steps">
+        <div class="dl-step"><span class="step-num">1</span><span>Téléchargez et décompressez le package</span></div>
+        <div class="dl-step"><span class="step-num">2</span><span>Double-cliquez sur <code style="background:rgba(255,255,255,.08);padding:1px 5px;border-radius:4px">DEMARRER-SERVEUR.bat</code></span></div>
+        <div class="dl-step"><span class="step-num">3</span><span>Lancez l'app cliente depuis le dossier <code style="background:rgba(255,255,255,.08);padding:1px 5px;border-radius:4px">client/</code></span></div>
+      </div>
+    </div>
+
+    <!-- Web direct -->
+    <a class="dl-card" href="http://192.168.1.139:3210/mobile">
+      <div class="dl-icon web">🌐</div>
+      <div class="dl-platform">Accès web direct</div>
+      <p class="dl-desc">Aucune installation. Utilisez Sales Companion directement depuis n'importe quel navigateur.</p>
+      <div class="dl-btn outline">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Ouvrir dans le navigateur
+      </div>
+      <div class="dl-steps">
+        <div class="dl-step"><span class="step-num">1</span><span>Cliquez sur le bouton ci-dessus</span></div>
+        <div class="dl-step"><span class="step-num">2</span><span>Connectez-vous avec votre compte</span></div>
+        <div class="dl-step"><span class="step-num">3</span><span>Prêt à prospecter ✓</span></div>
+      </div>
+    </a>
+  </div>
+
+  <!-- QR Code -->
+  <div class="qr-section" id="qr-section">
+    <div class="qr-wrap">
+      <div class="qr-code" id="qr-container">
+        <!-- QR code généré dynamiquement -->
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" id="qr-svg"></svg>
+      </div>
+      <div class="qr-info">
+        <h3>Scannez pour installer</h3>
+        <p>Pointez l'appareil photo de votre téléphone sur ce QR code pour accéder instantanément à l'application mobile.</p>
+        <div class="url-box">
+          <span id="qr-url-text">http://192.168.1.139:3210/mobile</span>
+          <button class="copy-btn" onclick="copyUrl()">Copier</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- FEATURES -->
+<section class="section" id="fonctionnalites">
+  <div class="section-label">Fonctionnalités</div>
+  <h2 class="section-title">Tout ce dont votre équipe commerciale a besoin</h2>
+  <p class="section-sub">Une plateforme complète, construite pour la réalité du marché camerounais.</p>
+  <div class="features-grid">
+    <div class="feat-card">
+      <div class="feat-icon">🔍</div>
+      <div class="feat-title">Base de données officielle</div>
+      <p class="feat-desc">Accédez à des centaines de milliers d'entreprises camerounaises issues des registres officiels. Zéro donnée inventée.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">🗺️</div>
+      <div class="feat-title">Cartographie par localité</div>
+      <p class="feat-desc">Filtrez par région, ville et secteur d'activité. Chaque fiche inclut la localisation Google Maps.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">🎯</div>
+      <div class="feat-title">Pipeline commercial</div>
+      <p class="feat-desc">Suivez vos prospects de la première prise de contact jusqu'à la vente conclue. Prospection → Négociation → Conclu.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">💬</div>
+      <div class="feat-title">Assistant IA B2B</div>
+      <p class="feat-desc">Posez vos questions sur les stratégies de prospection, les secteurs et les pratiques commerciales au Cameroun.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">🔖</div>
+      <div class="feat-title">Recherches sauvegardées</div>
+      <p class="feat-desc">Enregistrez vos recherches fréquentes et retrouvez-les en un tap. Partagez les fiches par WhatsApp ou email.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">📱</div>
+      <div class="feat-title">Multi-plateforme</div>
+      <p class="feat-desc">Android, iPhone, Windows, Mac — même compte, même base de données. Travaillez depuis n'importe quel appareil.</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- PLANS -->
+<section class="section" id="plans">
+  <div class="section-label">Tarification</div>
+  <h2 class="section-title">Des plans pour chaque équipe</h2>
+  <p class="section-sub">Démarrez gratuitement, évoluez selon vos besoins. Contactez votre administrateur pour changer de plan.</p>
+  <div class="plans-grid">
+    <div class="plan-card">
+      <div class="plan-icon">🆓</div>
+      <div class="plan-name">Gratuit</div>
+      <div class="plan-price">— <span></span></div>
+      <div class="plan-limit">10 recherches / jour</div>
+      <div class="plan-feature">Accès à la base de données</div>
+      <div class="plan-feature">Pipeline commercial</div>
+      <div class="plan-feature">Assistant IA</div>
+    </div>
+    <div class="plan-card">
+      <div class="plan-icon">🚀</div>
+      <div class="plan-name">Starter</div>
+      <div class="plan-price">5 000 <span>FCFA/mois</span></div>
+      <div class="plan-limit">200 recherches / jour</div>
+      <div class="plan-feature">Accès à la base de données</div>
+      <div class="plan-feature">Pipeline commercial</div>
+      <div class="plan-feature">Recherches sauvegardées</div>
+      <div class="plan-feature">Assistant IA</div>
+    </div>
+    <div class="plan-card popular">
+      <div class="plan-icon">⭐</div>
+      <div class="plan-name">Pro</div>
+      <div class="plan-price">15 000 <span>FCFA/mois</span></div>
+      <div class="plan-limit">500 recherches / jour</div>
+      <div class="plan-feature">Tout Starter inclus</div>
+      <div class="plan-feature">Villes personnalisées</div>
+      <div class="plan-feature">Export des fiches</div>
+      <div class="plan-feature">Priorité support</div>
+    </div>
+    <div class="plan-card">
+      <div class="plan-icon">🏢</div>
+      <div class="plan-name">Entreprise</div>
+      <div class="plan-price">50 000 <span>FCFA/mois</span></div>
+      <div class="plan-limit">Recherches illimitées</div>
+      <div class="plan-feature">Tout Pro inclus</div>
+      <div class="plan-feature">Utilisateurs illimités</div>
+      <div class="plan-feature">Import Excel dédié</div>
+      <div class="plan-feature">Accès panel admin</div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<div class="divider"></div>
+<footer>
+  <div class="footer-logo">SALES <span>COMPANION</span></div>
+  <p>Intelligence B2B · Cameroun</p>
+  <p style="margin-top:8px;font-size:12px;color:var(--tx3)">© 2025 — Tous droits réservés</p>
+</footer>
+<div class="flag-bar">
+  <div class="fb" style="background:#007A5E"></div>
+  <div class="fb" style="background:#CE1126"></div>
+  <div class="fb" style="background:#FCD116"></div>
+</div>
+
+<script>
+// ── CONFIG — modifiez cette URL selon votre déploiement ──────────
+const APP_URL = 'http://192.168.1.139:3210/mobile';
+
+// ── DEVICE DETECTION ─────────────────────────────────────────────
+const ua = navigator.userAgent.toLowerCase();
+const isAndroid = /android/.test(ua);
+const isIOS = /iphone|ipad|ipod/.test(ua);
+const isMobile = isAndroid || isIOS;
+const isWindows = /windows/.test(ua);
+const isMac = /macintosh|mac os/.test(ua);
+
+const banner = document.getElementById('device-banner');
+const devIcon = document.getElementById('dev-icon');
+const devText = document.getElementById('dev-text');
+const devCta = document.getElementById('dev-cta');
+const hint = document.getElementById('device-hint');
+const navCta = document.getElementById('nav-cta-btn');
+
+if (isAndroid) {
+  devIcon.textContent = '🤖';
+  devText.innerHTML = '<strong>Android détecté</strong><br>Installez l\'app en un tap';
+  devCta.href = APP_URL; devCta.textContent = 'Installer →';
+  document.getElementById('android-card').style.order = '-1';
+  hint.innerHTML = 'Après l\'ouverture, appuyez sur <strong style="color:var(--g)">⋮ → Ajouter à l\'écran d\'accueil</strong>';
+  navCta.href = APP_URL; navCta.textContent = 'Installer →';
+} else if (isIOS) {
+  devIcon.textContent = '🍎';
+  devText.innerHTML = '<strong>iPhone/iPad détecté</strong><br>Ouvrez dans Safari pour installer';
+  devCta.href = APP_URL; devCta.textContent = 'Ouvrir →';
+  document.getElementById('ios-card').style.order = '-1';
+  hint.innerHTML = 'Dans Safari, appuyez sur <strong style="color:var(--g)">↑ Partager → Sur l\'écran d\'accueil</strong>';
+  navCta.href = APP_URL; navCta.textContent = 'Installer →';
+} else if (isWindows) {
+  devIcon.textContent = '🖥️';
+  devText.innerHTML = '<strong>Windows détecté</strong><br>Téléchargez l\'application desktop';
+  devCta.href = APP_URL; devCta.textContent = 'Accéder →';
+  document.getElementById('desktop-card').style.order = '-1';
+  navCta.href = APP_URL;
+} else if (isMac) {
+  devIcon.textContent = '💻';
+  devText.innerHTML = '<strong>Mac détecté</strong><br>Accédez à l\'application web';
+  devCta.href = APP_URL; devCta.textContent = 'Ouvrir →';
+  navCta.href = APP_URL;
+} else {
+  banner.classList.add('hidden');
+}
+
+// Set all mobile links
+document.querySelectorAll('[href*="192.168.1"]').forEach(el => el.href = APP_URL);
+
+// ── QR CODE GENERATOR (pur JS, sans lib externe) ─────────────────
+document.getElementById('qr-url-text').textContent = APP_URL;
+
+function copyUrl() {
+  navigator.clipboard.writeText(APP_URL).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = '✓ Copié !';
+    btn.style.background = '#2ea05a';
+    setTimeout(() => { btn.textContent = 'Copier'; btn.style.background = ''; }, 2000);
+  });
+}
+
+// Simple QR code using Google Charts API
+const qrSvg = document.getElementById('qr-svg');
+const qrImg = document.createElement('img');
+qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&format=svg&color=1B7A3E&bgcolor=ffffff&data=' + encodeURIComponent(APP_URL);
+qrImg.alt = 'QR Code Sales Companion';
+qrImg.style.cssText = 'width:100%;height:100%;border-radius:4px';
+qrImg.onerror = () => {
+  // Fallback si pas de réseau : affiche l'URL en texte
+  document.getElementById('qr-container').innerHTML = '<div style="width:160px;height:160px;display:flex;align-items:center;justify-content:center;text-align:center;padding:10px;font-size:10px;color:#333;word-break:break-all;line-height:1.4">' + APP_URL + '</div>';
+};
+document.getElementById('qr-container').innerHTML = '';
+document.getElementById('qr-container').appendChild(qrImg);
+
+// ── SMOOTH NAV ────────────────────────────────────────────────────
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const target = document.querySelector(a.getAttribute('href'));
+    if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth' }); }
+  });
+});
+
+// ── NAV SHADOW ON SCROLL ──────────────────────────────────────────
+window.addEventListener('scroll', () => {
+  document.querySelector('nav').style.boxShadow = window.scrollY > 10 ? '0 4px 24px rgba(0,0,0,.3)' : '';
+});
+</script>
+</body>
+</html>

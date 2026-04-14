@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # Sales Companion Backend
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    ports:
+      - "3210:3210"
+    environment:
+      - NODE_ENV=development
+      - PORT=3210
+      - FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID}
+      - FIREBASE_PRIVATE_KEY_ID=${FIREBASE_PRIVATE_KEY_ID}
+      - FIREBASE_PRIVATE_KEY=${FIREBASE_PRIVATE_KEY}
+      - FIREBASE_CLIENT_EMAIL=${FIREBASE_CLIENT_EMAIL}
+      - FIREBASE_CLIENT_ID=${FIREBASE_CLIENT_ID}
+      - FIREBASE_AUTH_URI=https://accounts.google.com/o/oauth2/auth
+      - FIREBASE_TOKEN_URI=https://oauth2.googleapis.com/token
+      - FIREBASE_AUTH_PROVIDER_X509_CERT_URL=https://www.googleapis.com/oauth2/v1/certs
+      - FIREBASE_CLIENT_X509_CERT_URL=${FIREBASE_CLIENT_X509_CERT_URL}
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+    volumes:
+      - ./server/uploads:/app/uploads
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3210/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Firebase Emulator (optional - for local development)
+  firebase-emulator:
+    image: node:18-alpine
+    working_dir: /app
+    volumes:
+      - ./firebase-emulator:/app
+    command: npm run emulator
+    ports:
+      - "4000:4000"
+      - "5000:5000"
+    environment:
+      - FIREBASE_CONFIG_PATH=/app/firebase.json
+    profiles:
+      - emulator
+
+volumes:
+  uploads:
+
+networks:
+  default:
+    name: sales-companion-network
