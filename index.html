@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sales Companion — Redirection</title>
+<style>
+  body { margin: 0; padding: 0; background: #0a0f0d; overflow: hidden; }
+  .load { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column; color: #fff; font-family: 'Outfit', sans-serif; gap: 20px; }
+  .spinner { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,.1); border-top-color: #1B7A3E; border-radius: 50%; animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="load">
+  <div class="spinner"></div>
+  <p>Chargement de Sales Companion...</p>
+</div>
+<script>
+  // Redirection automatique vers landing.html
+  window.location.replace('./landing.html');
+</script>
+</body>
+</html>

@@ -2,17 +2,45 @@
   "version": 2,
   "builds": [
     {
-      "src": "server/server-firebase.js",
+      "src": "index.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "landing.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "api/index.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
+      "src": "/api/(.*)",
+      "dest": "/api/index.js"
+    },
+    {
+      "src": "/landing.html",
+      "dest": "/landing.html"
+    },
+    {
+      "src": "/(.*\\.html)",
+      "dest": "/$1"
+    },
+    {
       "src": "/(.*)",
-      "dest": "server/server-firebase.js"
+      "dest": "/index.html"
     }
   ],
   "env": {
     "NODE_ENV": "production"
-  }
+  },
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store, must-revalidate" }
+      ]
+    }
+  ]
 }
