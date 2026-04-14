@@ -39,6 +39,7 @@
     "electron-builder": "^26.0.0"
   },
   "dependencies": {
-    "firebase": "^12.12.0"
+    "firebase": "^12.12.0",
+    "node-fetch": "^2.7.0"
   }
 }

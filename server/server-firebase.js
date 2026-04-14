@@ -10,6 +10,7 @@ const multer = require('multer');
 const XLSX = require('xlsx');
 const fs = require('fs');
 const os = require('os');
+const fetch = require('node-fetch');
 require('dotenv').config();
 
 // Firebase
@@ -472,55 +473,48 @@ app.post('/auth/register', async (req, res) => {
   }
 });
 
-// POST /auth/login - Sign in user
+// POST /auth/login - Sign in user via Firebase REST API
 app.post('/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password required' });
     }
-    
-    let firebaseUser;
-    try {
-      // Try to get user by email
-      firebaseUser = await auth.getUserByEmail(email);
-    } catch (e) {
-      return res.status(404).json({ error: 'User not found' });
+
+    // Verification via Firebase REST API
+    const firebaseRes = await fetch(
+      `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${process.env.FIREBASE_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, returnSecureToken: true }),
+      }
+    );
+
+    const firebaseData = await firebaseRes.json();
+
+    if (firebaseData.error) {
+      return res.status(401).json({ error: 'Email ou mot de passe incorrect' });
     }
-    
-    // Note: Firebase Admin SDK doesn't verify passwords directly.
-    // In production, you would use Firebase REST API or client SDK.
-    // For now, we create a custom token assuming password was verified on client
-    // or use a session-based approach.
-    
-    // Get user document from Firestore
-    const user = await getUser(firebaseUser.uid);
-    if (!user) {
-      return res.status(404).json({ error: 'User profile not found' });
-    }
-    
-    // Generate custom token
-    const customToken = await auth.createCustomToken(firebaseUser.uid);
-    
-    // Log usage
-    await logUsage(firebaseUser.uid, 'login');
-    
+
+    const user = await getUser(firebaseData.localId);
+    await logUsage(firebaseData.localId, 'login');
+
     res.json({
-      token: customToken,
+      token: firebaseData.idToken,
       user: {
-        uid: user.uid,
-        email: user.email,
-        name: user.name,
-        plan: user.plan || 'free',
-        daily_limit: user.daily_limit || 10,
-        daily_used: user.daily_used || 0,
-        remaining: (user.daily_limit || 10) - (user.daily_used || 0),
+        uid: firebaseData.localId,
+        email: firebaseData.email,
+        name: user?.name || email.split('@')[0],
+        plan: user?.plan || 'free',
+        daily_limit: user?.daily_limit || 10,
+        daily_used: user?.daily_used || 0,
+        remaining: (user?.daily_limit || 10) - (user?.daily_used || 0),
       },
-      message: 'Login successful'
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(400).json({ error: error.message || 'Login failed' });
+    res.status(500).json({ error: error.message });
   }
 });
 
@@ -548,3 +542,6 @@ app.listen(PORT, "0.0.0.0", () => {
 ╚════════════════════════════════════════════════════════╝
   `);
 });
+
+
+
