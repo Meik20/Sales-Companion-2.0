@@ -22,6 +22,10 @@
     getAuth,
     getFirestore,
     getStorage,
+    apps: [],
+    app: () => window.firebase._app,
+    auth: () => window._auth,
+    firestore: () => window._db
   };
 </script>
 <!-- App Configuration -->
@@ -321,7 +325,7 @@ body{font-family:'Outfit',sans-serif;color:var(--tx);display:flex;flex-direction
     <!-- Server URL is hardcoded to Railway production (hidden) -->
     <div class="srv-row" style="display:none">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/></svg>
-      <input type="url" id="server-url" placeholder="http://adresse-du-serveur:3210" inputmode="url">
+      <input type="url" id="server-url" placeholder="http://sales-companion-production.up.railway.app:3210" inputmode="url">
     </div>
     <div class="auth-tabs">
       <button class="auth-tab active" onclick="switchTab('login')">Connexion</button>
@@ -676,20 +680,24 @@ async function initializeFirebase(attempt = 0) {
   try {
     console.log('[Firebase Init] SDK loaded, checking apps...');
     
-    if (!firebase.apps.length) {
+    if (!window.firebase._app) {
       if (!firebaseConfig.projectId || !firebaseConfig.apiKey) {
         throw new Error('Firebase config incomplete - projectId or apiKey missing');
       }
       console.log('[Firebase Init] Initializing with projectId:', firebaseConfig.projectId);
       firebaseApp = firebase.initializeApp(firebaseConfig);
+      window.firebase._app = firebaseApp;
+      window.firebase.apps = [firebaseApp];
       console.log('✅ Firebase initialized');
     } else {
-      firebaseApp = firebase.app();
+      firebaseApp = window.firebase._app;
       console.log('✅ Firebase already initialized');
     }
-    
-    auth = firebase.auth();
-    db = firebase.firestore();
+
+    auth = firebase.getAuth(firebaseApp);
+    db = firebase.getFirestore(firebaseApp);
+    window._auth = auth;
+    window._db = db;
     auth.languageCode = 'fr';
     
     console.log('[Firebase Init] auth object:', typeof auth);
@@ -749,9 +757,13 @@ let addPipDefault = {};
 
 // ── UTILITIES ─────────────────────────────────────────────────────
 function showToast(message, type = 'info') {
-  console.log(`[${type.toUpperCase()}] ${message}`);
-  // Toast messages logged to console for PWA
-  // Can be enhanced with UI toast notifications if needed
+  const toast = document.getElementById('toast');
+  if (toast) {
+    toast.textContent = message;
+    toast.className = `toast show ${type}`;
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+  console.log(`[Toast ${type}]`, message);
 }
 
 // ── INIT ──────────────────────────────────────────────────────────
