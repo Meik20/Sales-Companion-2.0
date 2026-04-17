@@ -2,21 +2,19 @@ FROM node:20-slim
 
 WORKDIR /app
 
-# Installer dépendances
-COPY package*.json ./
-RUN npm install --omit=dev
+# Installer dépendances système minimales
+RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
 
-# Copier le reste du projet
+# Copier les fichiers de dépendances
+COPY package*.json ./
+
+# Installation optimisée Railway (faible RAM)
+RUN npm ci --omit=dev --no-audit --no-fund --prefer-offline
+
+# Copier le reste
 COPY . .
 
-# Railway utilise une variable PORT dynamique
 ENV PORT=3210
-
 EXPOSE 3210
 
-# Healthcheck (optionnel mais OK)
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:' + process.env.PORT + '/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
-
-# Démarrage (IMPORTANT : chemin corrigé)
 CMD ["node", "server/server-firebase.js"]
