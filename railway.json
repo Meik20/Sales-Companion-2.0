@@ -4,10 +4,6 @@
     "builder": "nixpacks"
   },
   "deploy": {
-    "startCommand": "node server/server-firebase.js"
-  }
-}
-  "deploy": {
     "startCommand": "node server/server-firebase.js",
     "restartPolicyType": "on_failure",
     "restartPolicyMaxRetries": 3,
