@@ -3,6 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <title>Sales Companion</title>
+<meta http-equiv="Content-Security-Policy" 
+      content="default-src 'self' https://sales-companion-production.up.railway.app https://fonts.googleapis.com https://maps.google.com; 
+               script-src 'self' 'unsafe-inline'; 
+               style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; 
+               font-src 'self' https://fonts.gstatic.com;">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -1121,6 +1126,25 @@ async function deletePipeline(id){
   toast('🗑️ Retiré du pipeline');
   loadPipeline();
 }
+
+// Test server connectivity
+async function testServer() {
+  console.log('[TEST] Testing server connection...');
+  try {
+    const response = await fetch(RAILWAY_SERVER + '/auth/me', {
+      method: 'GET',
+      headers: {'Content-Type': 'application/json'}
+    });
+    console.log('[TEST] Server response status:', response.status);
+    const data = await response.json();
+    console.log('[TEST] Server response:', data);
+  } catch(e) {
+    console.error('[TEST] Server unreachable:', e);
+  }
+}
+
+// Run test on load
+setTimeout(testServer, 2000);
 </script>
 </body>
 </html>

@@ -33,10 +33,12 @@ ipcMain.handle('open-external', (_, u) => { shell.openExternal(u); return true; 
 
 // ── HTTP Helper ──────────────────────────────────────────────────
 function request(serverUrl, method, reqPath, body, token) {
+  console.log(`[REQUEST] ${method} ${serverUrl}${reqPath}`);
   return new Promise((resolve, reject) => {
     const url = new URL(serverUrl + reqPath);
     const lib = url.protocol === 'https:' ? https : http;
     const bodyStr = body ? JSON.stringify(body) : '';
+    console.log('[REQUEST] Body:', bodyStr);
     const headers = {};
     if (bodyStr) { headers['Content-Type'] = 'application/json'; headers['Content-Length'] = Buffer.byteLength(bodyStr); }
     if (token) headers['Authorization'] = `Bearer ${token}`;
@@ -45,9 +47,15 @@ function request(serverUrl, method, reqPath, body, token) {
     const req = lib.request(opts, (res) => {
       let data = '';
       res.on('data', c => data += c);
-      res.on('end', () => { try { resolve({ status: res.statusCode, data: JSON.parse(data) }); } catch { reject(new Error('Réponse invalide')); } });
+      res.on('end', () => { 
+        console.log(`[RESPONSE] Status: ${res.statusCode}, Data: ${data}`);
+        try { resolve({ status: res.statusCode, data: JSON.parse(data) }); } catch { reject(new Error('Réponse invalide')); } 
+      });
     });
-    req.on('error', () => reject(new Error('Serveur inaccessible. Vérifiez que le serveur est démarré.')));
+    req.on('error', (err) => {
+      console.error('[REQUEST] Error:', err);
+      reject(new Error('Serveur inaccessible. Vérifiez que le serveur est démarré.'));
+    });
     req.setTimeout(60000, () => { req.destroy(); reject(new Error('Délai dépassé')); });
     if (bodyStr) req.write(bodyStr);
     req.end();
