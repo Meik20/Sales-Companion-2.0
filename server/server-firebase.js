@@ -5,6 +5,7 @@
 
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet'); // FIX [info-3]: ajout helmet
 const path = require('path');
 const multer = require('multer');
 const XLSX = require('xlsx');
@@ -18,7 +19,7 @@ const { auth } = require('./firebase-config');
 const {
   verifyToken,
   verifyAdmin,
-  createUser,
+  createUserDocument, // FIX [bug-1]: renommé pour créer uniquement le doc Firestore
   getUser,
   updateUserPlan,
   searchCompanies,
@@ -28,6 +29,15 @@ const {
   logUsage,
 } = require('./firestore-operations');
 
+// ── STARTUP VALIDATION ─────────────────────────────────────────
+// FIX [info-3]: vérifier les variables d'environnement avant de démarrer
+const REQUIRED_ENV = ['FIREBASE_API_KEY'];
+const missingEnv = REQUIRED_ENV.filter((k) => !process.env[k]);
+if (missingEnv.length > 0) {
+  console.error(`[FATAL] Variables d'environnement manquantes : ${missingEnv.join(', ')}`);
+  process.exit(1);
+}
+
 // ── SERVER SETUP ──────────────────────────────────────────────
 const app = express();
 const PORT = process.env.PORT || 3210;
@@ -35,11 +45,39 @@ const UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(__dirname, 'uploads');
 
 if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR);
 
-// Middleware
-app.use(cors());
+// FIX [info-2]: helmet pour les en-têtes HTTP de sécurité
+app.use(helmet());
+
+// FIX [warn-1]: CORS restreint aux origines connues
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'http://localhost:3210').split(',');
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Autoriser les requêtes sans origin (ex: Electron, Postman en dev)
+      if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Origine non autorisée par la politique CORS'));
+      }
+    },
+  })
+);
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'admin')));
 app.use('/mobile', express.static(path.join(__dirname, '..', 'mobile')));
+
+// ── RATE LIMITING ──────────────────────────────────────────────
+// FIX [critical-4]: rate limiting sur les routes d'authentification
+// Nécessite : npm install express-rate-limit
+const rateLimit = require('express-rate-limit');
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20,
+  message: { error: 'Trop de tentatives, réessayez dans 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // ── LOCAL IP DETECTION ──────────────────────────────────────────
 function getLocalIP() {
@@ -67,133 +105,72 @@ const upload = multer({
   },
 });
 
+// ── HELPERS ─────────────────────────────────────────────────────
+
+// FIX [warn-3]: helper pour ne pas exposer les erreurs internes
+function safeError(res, status, publicMsg, internalErr) {
+  console.error(`[ERROR] ${publicMsg}:`, internalErr?.message || internalErr);
+  return res.status(status).json({ error: publicMsg });
+}
+
+// FIX [warn-4]: validation du paramètre limit
+function parseLimit(value, defaultVal = 50, max = 200) {
+  const n = parseInt(value, 10);
+  if (isNaN(n) || n < 1) return defaultVal;
+  return Math.min(n, max);
+}
+
 // ── SECTOR DETECTION ────────────────────────────────────────────
 const SECTOR_KEYWORDS = {
   'BTP et construction': [
-    'btp',
-    'construction',
-    'bâtiment',
-    'travaux',
-    'immobilier',
-    'génie civil',
-    'architecture',
-    'maçonnerie',
+    'btp', 'construction', 'bâtiment', 'travaux', 'immobilier',
+    'génie civil', 'architecture', 'maçonnerie',
   ],
   'Commerce et distribution': [
-    'commerce',
-    'distribution',
-    'vente',
-    'négoce',
-    'trading',
-    'grossiste',
-    'détail',
-    'supermarché',
+    'commerce', 'distribution', 'vente', 'négoce', 'trading',
+    'grossiste', 'détail', 'supermarché',
   ],
   'Import-Export': ['import', 'export', 'transit', 'douane', 'fret', 'shipping', 'cargo', 'international'],
   Agroalimentaire: [
-    'agroalimentaire',
-    'alimentaire',
-    'agro',
-    'boulangerie',
-    'pâtisserie',
-    'restauration rapide',
-    'conserve',
-    'laiterie',
+    'agroalimentaire', 'alimentaire', 'agro', 'boulangerie', 'pâtisserie',
+    'restauration rapide', 'conserve', 'laiterie',
   ],
   'Agriculture et élevage': [
-    'agriculture',
-    'élevage',
-    'ferme',
-    'cultivat',
-    'plantation',
-    'pastoral',
-    'aviculture',
-    'pisciculture',
+    'agriculture', 'élevage', 'ferme', 'cultivat', 'plantation',
+    'pastoral', 'aviculture', 'pisciculture',
   ],
   'Technologies et numérique': [
-    'informatique',
-    'numérique',
-    'tech',
-    'digital',
-    'logiciel',
-    'software',
-    'internet',
-    'télécommunication',
-    'it ',
-    'telecom',
+    'informatique', 'numérique', 'tech', 'digital', 'logiciel', 'software',
+    'internet', 'télécommunication', 'it ', 'telecom',
   ],
   'Transport et logistique': [
-    'transport',
-    'logistique',
-    'fret',
-    'messagerie',
-    'déménagement',
-    'taxi',
-    'véhicule',
-    'transitaire',
+    'transport', 'logistique', 'fret', 'messagerie', 'déménagement',
+    'taxi', 'véhicule', 'transitaire',
   ],
   'Santé et pharmacie': ['santé', 'pharmacie', 'médical', 'clinique', 'hôpital', 'laboratoire', 'soins', 'médecin'],
   'Éducation et formation': [
-    'éducation',
-    'formation',
-    'école',
-    'lycée',
-    'université',
-    'enseignement',
-    'académie',
-    'apprentissage',
+    'éducation', 'formation', 'école', 'lycée', 'université',
+    'enseignement', 'académie', 'apprentissage',
   ],
   'Hôtellerie et restauration': [
-    'hôtel',
-    'restaurant',
-    'hébergement',
-    'auberge',
-    'café',
-    'bar',
-    'traiteur',
-    'tourisme',
+    'hôtel', 'restaurant', 'hébergement', 'auberge', 'café', 'bar', 'traiteur', 'tourisme',
   ],
   'Services financiers': [
-    'banque',
-    'finance',
-    'assurance',
-    'crédit',
-    'microfinance',
-    'investissement',
-    'capital',
-    'épargne',
+    'banque', 'finance', 'assurance', 'crédit', 'microfinance',
+    'investissement', 'capital', 'épargne',
   ],
   'Énergie et mines': ['énergie', 'mines', 'pétrole', 'gaz', 'électricité', 'solaire', 'hydraulique', 'extracti'],
   'Industrie et manufacturing': [
-    'industrie',
-    'manufactur',
-    'usine',
-    'production',
-    'fabrication',
-    'emballage',
-    'imprimerie',
-    'métallurgie',
+    'industrie', 'manufactur', 'usine', 'production', 'fabrication',
+    'emballage', 'imprimerie', 'métallurgie',
   ],
   'Médias et communication': [
-    'média',
-    'communication',
-    'presse',
-    'radio',
-    'télévision',
-    'publicité',
-    'événementiel',
-    'relations',
+    'média', 'communication', 'presse', 'radio', 'télévision',
+    'publicité', 'événementiel', 'relations',
   ],
   'Conseil et services B2B': [
-    'conseil',
-    'consulting',
-    'audit',
-    'expertise',
-    'comptabilité',
-    'juridique',
-    'ressources humaines',
-    'nettoyage',
-    'sécurité',
+    'conseil', 'consulting', 'audit', 'expertise', 'comptabilité',
+    'juridique', 'ressources humaines', 'nettoyage', 'sécurité',
   ],
 };
 
@@ -210,65 +187,37 @@ function detectSector(activite) {
 
 /**
  * POST /auth/sign-up
- * Inscription utilisateur
+ * Inscription utilisateur (route originale — conservée pour compatibilité)
  */
-app.post('/auth/sign-up', async (req, res) => {
+app.post('/auth/sign-up', authLimiter, async (req, res) => {
   try {
     const { email, password, name } = req.body;
-
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password required' });
     }
-
-    const user = await createUser(email, password, { name });
+    const user = await createUserDocument(email, password, { name });
     res.json({ uid: user.uid, email: user.email, message: 'User created successfully' });
   } catch (error) {
-    console.error('Sign-up error:', error);
-    res.status(400).json({ error: error.message });
+    return safeError(res, 400, 'Erreur lors de la création du compte', error);
   }
 });
 
-/**
- * POST /auth/sign-in
- * Authentification (retourne un formulaire de login côté client)
- */
-app.post('/auth/sign-in', async (req, res) => {
-  try {
-    const { email } = req.body;
-    if (!email) {
-      return res.status(400).json({ error: 'Email required' });
-    }
-
-    // Vérifier que l'utilisateur existe
-    const user = await auth.getUserByEmail(email).catch(() => null);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    res.json({
-      message: 'Use Firebase client SDK for sign-in with password',
-      email,
-      uid: user.uid,
-    });
-  } catch (error) {
-    console.error('Sign-in error:', error);
-    res.status(400).json({ error: error.message });
-  }
-});
+// FIX [warn-5]: /auth/sign-in supprimé — route inutile doublonnant /auth/login
 
 /**
- * GET /auth/user
- * Récupérer profil utilisateur
+ * GET /auth/me
+ * Récupérer profil utilisateur (route canonique)
  */
-app.get('/auth/user', verifyToken, async (req, res) => {
+app.get('/auth/me', verifyToken, async (req, res) => {
   try {
     const user = await getUser(req.userId);
     res.json(user);
   } catch (error) {
-    console.error('Get user error:', error);
-    res.status(500).json({ error: error.message });
+    return safeError(res, 500, 'Impossible de récupérer le profil', error);
   }
 });
+
+// FIX [info-1]: alias /auth/user supprimé — utiliser uniquement /auth/me
 
 // ── COMPANY ROUTES ──────────────────────────────────────────────
 
@@ -278,26 +227,23 @@ app.get('/auth/user', verifyToken, async (req, res) => {
  */
 app.get('/api/companies/search', verifyToken, async (req, res) => {
   try {
-    const { sector, region, city, limit } = req.query;
+    const { sector, region, city } = req.query;
+    // FIX [warn-4]: limit validé et plafonné
+    const limit = parseLimit(req.query.limit);
 
-    // Log usage
     await logUsage(req.userId, `search:${sector || 'all'}`, 1);
 
     const companies = await searchCompanies({
       sector: sector || null,
       region: region || null,
       city: city || null,
-      limit: parseInt(limit) || 50,
+      limit,
       active: true,
     });
 
-    res.json({
-      count: companies.length,
-      data: companies,
-    });
+    res.json({ count: companies.length, data: companies });
   } catch (error) {
-    console.error('Search error:', error);
-    res.status(500).json({ error: error.message });
+    return safeError(res, 500, 'Erreur lors de la recherche', error);
   }
 });
 
@@ -306,17 +252,19 @@ app.get('/api/companies/search', verifyToken, async (req, res) => {
  * Importer entreprises depuis Excel (admin only)
  */
 app.post('/api/companies/import', verifyAdmin, upload.single('file'), async (req, res) => {
+  const cleanup = () => {
+    if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+  };
+
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    // Lire le fichier Excel
     const workbook = XLSX.readFile(req.file.path);
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
     const data = XLSX.utils.sheet_to_json(worksheet);
 
-    // Transformer les données
     const companies = data.map((row) => ({
       raisonSociale: row.RAISON_SOCIALE || row['Raison Sociale'] || '',
       sigle: row.SIGLE || row['Sigle'] || '',
@@ -334,11 +282,8 @@ app.post('/api/companies/import', verifyAdmin, upload.single('file'), async (req
       sourceFile: req.file.originalname,
     }));
 
-    // Importer en batch
     const result = await importCompaniesBatch(companies);
-
-    // Nettoyer le fichier
-    fs.unlinkSync(req.file.path);
+    cleanup();
 
     res.json({
       message: 'Import successful',
@@ -346,11 +291,8 @@ app.post('/api/companies/import', verifyAdmin, upload.single('file'), async (req
       skipped: result.skippedCount,
     });
   } catch (error) {
-    console.error('Import error:', error);
-    if (req.file && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
-    }
-    res.status(500).json({ error: error.message });
+    cleanup();
+    return safeError(res, 500, "Erreur lors de l'import", error);
   }
 });
 
@@ -363,15 +305,14 @@ app.post('/api/companies/import', verifyAdmin, upload.single('file'), async (req
 app.post('/admin/config', verifyAdmin, async (req, res) => {
   try {
     const { key, value } = req.body;
-    if (!key) {
+    // FIX [warn-4]: validation basique de la clé de config
+    if (!key || typeof key !== 'string' || key.trim().length === 0) {
       return res.status(400).json({ error: 'Config key required' });
     }
-
-    await setConfig(key, value);
+    await setConfig(key.trim(), value);
     res.json({ message: `Config ${key} saved` });
   } catch (error) {
-    console.error('Config error:', error);
-    res.status(500).json({ error: error.message });
+    return safeError(res, 500, 'Erreur de configuration', error);
   }
 });
 
@@ -384,8 +325,7 @@ app.get('/admin/config/:key', verifyAdmin, async (req, res) => {
     const value = await getConfig(req.params.key);
     res.json({ key: req.params.key, value });
   } catch (error) {
-    console.error('Config retrieval error:', error);
-    res.status(500).json({ error: error.message });
+    return safeError(res, 500, 'Erreur de lecture de configuration', error);
   }
 });
 
@@ -399,12 +339,10 @@ app.post('/admin/users/:uid/plan', verifyAdmin, async (req, res) => {
     if (!plan) {
       return res.status(400).json({ error: 'Plan required' });
     }
-
     await updateUserPlan(req.params.uid, plan);
     res.json({ message: `User plan updated to ${plan}` });
   } catch (error) {
-    console.error('Plan update error:', error);
-    res.status(500).json({ error: error.message });
+    return safeError(res, 500, 'Erreur de mise à jour du plan', error);
   }
 });
 
@@ -419,20 +357,20 @@ app.get('/health', (req, res) => {
   });
 });
 
-// ── PUBLIC Firebase Config (for client initialization) ──────────
+// ── PUBLIC Firebase Config ──────────────────────────────────────
+// FIX [critical-2]: utiliser les variables d'environnement exclusivement
 app.get('/api/config/firebase', (req, res) => {
   try {
     res.json({
-      apiKey: 'AIzaSyCVJxyeysHWDQ7yECTb-GApJz7u8s5l7N0',
-      authDomain: 'sales-companion-9cf56.firebaseapp.com',
-      projectId: 'sales-companion-9cf56',
-      storageBucket: 'sales-companion-9cf56.firebasestorage.app',
-      messagingSenderId: '385537597968',
-      appId: '1:385537597968:web:8c7e0f4e1d6c3b9a2e5f7c1d',
+      apiKey: process.env.FIREBASE_API_KEY,
+      authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+      messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+      appId: process.env.FIREBASE_APP_ID,
     });
   } catch (error) {
-    console.error('Firebase config error:', error);
-    res.status(500).json({ error: 'Failed to retrieve Firebase config' });
+    return safeError(res, 500, 'Failed to retrieve Firebase config', error);
   }
 });
 
@@ -440,34 +378,42 @@ app.get('/mobile', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'mobile', 'index.html'));
 });
 
-// ── ENDPOINT ALIASES (Client Compatibility) ─────────────────────
-// Aliases pour compatibilité avec les appels du client Electron
+// ── CLIENT COMPATIBILITY ROUTES ─────────────────────────────────
 
-// POST /auth/register - Create user account
-app.post('/auth/register', async (req, res) => {
+/**
+ * POST /auth/register
+ * FIX [bug-1]: création Firebase Auth PUIS document Firestore avec rollback si échec
+ * FIX [bug-2]: rollback auth.deleteUser si createUserDocument échoue
+ * FIX [critical-3]: FIREBASE_API_KEY validée au démarrage (voir haut du fichier)
+ */
+app.post('/auth/register', authLimiter, async (req, res) => {
+  const { email, password, name } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email and password required' });
+  }
+  if (password.length < 6) {
+    return res.status(400).json({ error: 'Password must be at least 6 characters' });
+  }
+
+  let firebaseUser = null;
+
   try {
-    const { email, password, name } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password required' });
-    }
-    if (password.length < 6) {
-      return res.status(400).json({ error: 'Password must be at least 6 characters' });
-    }
-    
-    // Create user via Firebase Auth
-    const firebaseUser = await auth.createUser({
+    // Étape 1 : créer l'utilisateur dans Firebase Auth
+    firebaseUser = await auth.createUser({
       email,
       password,
       displayName: name || email.split('@')[0],
     });
-    
-    // Create user document in Firestore
-    const user = await createUser(email, password, { 
+
+    // Étape 2 : créer le document Firestore (sans recréer Firebase Auth)
+    // FIX [bug-1]: createUserDocument ne doit créer QUE le doc Firestore
+    await createUserDocument(firebaseUser.uid, {
+      email,
       name: name || email.split('@')[0],
-      uid: firebaseUser.uid
     });
-    
-    // Get ID token via Firebase REST API
+
+    // Étape 3 : obtenir un ID token via l'API REST Firebase
     const firebaseRes = await fetch(
       `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${process.env.FIREBASE_API_KEY}`,
       {
@@ -480,38 +426,48 @@ app.post('/auth/register', async (req, res) => {
     const firebaseData = await firebaseRes.json();
 
     if (firebaseData.error) {
-      return res.status(400).json({ error: 'Failed to generate token' });
+      // Rollback : supprimer l'utilisateur Firebase Auth créé à l'étape 1
+      await auth.deleteUser(firebaseUser.uid).catch((e) =>
+        console.error('[ROLLBACK FAILED] deleteUser:', e.message)
+      );
+      return res.status(400).json({ error: 'Échec de la génération du token' });
     }
-    
+
     res.status(201).json({
       token: firebaseData.idToken,
       user: {
         uid: firebaseUser.uid,
-        email: user.email,
-        name: user.name,
+        email,
+        name: name || email.split('@')[0],
         plan: 'free',
         daily_limit: 10,
         daily_used: 0,
         remaining: 10,
       },
-      message: 'User created successfully'
+      message: 'User created successfully',
     });
   } catch (error) {
-    console.error('Register error:', error);
-    const msg = error.message || 'Registration failed';
-    res.status(400).json({ error: msg });
+    // FIX [bug-2]: rollback si Firebase Auth a été créé mais Firestore a échoué
+    if (firebaseUser) {
+      await auth.deleteUser(firebaseUser.uid).catch((e) =>
+        console.error('[ROLLBACK FAILED] deleteUser:', e.message)
+      );
+    }
+    return safeError(res, 400, "Erreur lors de l'inscription", error);
   }
 });
 
-// POST /auth/login - Sign in user via Firebase REST API
-app.post('/auth/login', async (req, res) => {
+/**
+ * POST /auth/login
+ * Connexion via Firebase REST API
+ */
+app.post('/auth/login', authLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password required' });
     }
 
-    // Verification via Firebase REST API
     const firebaseRes = await fetch(
       `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${process.env.FIREBASE_API_KEY}`,
       {
@@ -524,6 +480,7 @@ app.post('/auth/login', async (req, res) => {
     const firebaseData = await firebaseRes.json();
 
     if (firebaseData.error) {
+      // FIX [warn-3]: ne pas transmettre l'erreur Firebase brute
       return res.status(401).json({ error: 'Email ou mot de passe incorrect' });
     }
 
@@ -543,25 +500,13 @@ app.post('/auth/login', async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Alias: GET /auth/me → /auth/user
-app.get('/auth/me', verifyToken, async (req, res) => {
-  try {
-    const user = await getUser(req.userId);
-    res.json(user);
-  } catch (error) {
-    console.error('Get me error:', error);
-    res.status(500).json({ error: error.message });
+    return safeError(res, 500, 'Erreur de connexion', error);
   }
 });
 
 // ── START SERVER ────────────────────────────────────────────────
 
-app.listen(PORT, "0.0.0.0", () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`
 ╔════════════════════════════════════════════════════════╗
 ║  🏢 SALES COMPANION — Firebase Backend                 ║
@@ -572,8 +517,3 @@ app.listen(PORT, "0.0.0.0", () => {
 ╚════════════════════════════════════════════════════════╝
   `);
 });
-
-
-
-
-

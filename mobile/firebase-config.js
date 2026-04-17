@@ -1,66 +1,51 @@
 /**
- * Firebase Configuration pour Mobile PWA
- * Utilise les modules ES6 Firebase
+ * Firebase Configuration pour Mobile PWA (v9 modulaire)
  */
 
-// Import Firebase modules (doivent être disponibles via le script principal index.html)
-// Vérifiez que index.html charge le script type="module" avec les imports Firebase
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getStorage } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
-(async function initializeFirebaseApp() {
-  try {
-    console.log('[Firebase Config] Waiting for Firebase SDK to load...');
-    
-    // Attendre que les fonctions Firebase soient disponibles
-    let attempts = 0;
-    while (!window.firebase && attempts < 100) {
-      await new Promise(r => setTimeout(r, 50));
-      attempts++;
+try {
+  console.log('[Firebase Config] Initializing...');
+
+  const firebaseConfig = {
+    apiKey: 'AIzaSyCVJxyeysHWDQ7yECTb-GApJz7u8s5l7N0',
+    authDomain: 'sales-companion-9cf56.firebaseapp.com',
+    projectId: 'sales-companion-9cf56',
+    storageBucket: 'sales-companion-9cf56.firebasestorage.app',
+    messagingSenderId: '385537597968',
+    appId: '1:385537597968:web:8c7e0f4e1d6c3b9a2e5f7c1d',
+  };
+
+  const app = initializeApp(firebaseConfig);
+  console.log('✓ Firebase app initialized');
+
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const storage = getStorage(app);
+
+  console.log('✓ Services initialized');
+
+  // Persistence offline
+  enableIndexedDbPersistence(db).catch((error) => {
+    if (error.code === 'failed-precondition') {
+      console.info('⚠️ Multiple tabs ouvertes');
+    } else if (error.code === 'unimplemented') {
+      console.warn('⚠️ Navigateur non supporté');
     }
-    
-    if (!window.firebase) {
-      console.error('❌ Firebase SDK not loaded. Verify index.html has ES6 module script.');
-      return;
-    }
+  });
 
-    // Configuration Firebase publique
-    const firebaseConfig = {
-      apiKey: 'AIzaSyCVJxyeysHWDQ7yECTb-GApJz7u8s5l7N0',
-      authDomain: 'sales-companion-9cf56.firebaseapp.com',
-      projectId: 'sales-companion-9cf56',
-      storageBucket: 'sales-companion-9cf56.firebasestorage.app',
-      messagingSenderId: '385537597968',
-      appId: '1:385537597968:web:8c7e0f4e1d6c3b9a2e5f7c1d',
-    };
+  auth.languageCode = 'fr';
 
-    console.log('[Firebase Config] Initializing with:', {
-      projectId: firebaseConfig.projectId,
-      authDomain: firebaseConfig.authDomain
-    });
+  // Exposer globalement (optionnel)
+  window.auth = auth;
+  window.db = db;
+  window.storage = storage;
 
-    // Initialize Firebase app
-    const app = window.firebase.initializeApp(firebaseConfig);
-    console.log('✓ Firebase app initialized');
+  console.log('✓ Firebase ready');
 
-    // Get Firebase services
-    window.auth = window.firebase.getAuth(app);
-    window.db = window.firebase.getFirestore(app);
-    window.storage = window.firebase.getStorage(app);
-    console.log('✓ Firebase Auth, Firestore, and Storage initialized');
-
-    // Enable persistence
-    window.db.enablePersistence().catch((error) => {
-      if (error.code === 'failed-precondition') {
-        console.info('⚠️ Multiple tabs, persistence disabled');
-      } else if (error.code === 'unimplemented') {
-        console.warn('⚠️ Browser does not support persistence');
-      }
-    });
-
-    window.auth.languageCode = 'fr';
-    console.log('✓ Firebase language set to French');
-    console.log('✓ Firebase initialization complete');
-    
-  } catch (error) {
-    console.error('❌ Firebase initialization error:', error);
-  }
-})();
+} catch (error) {
+  console.error('❌ Firebase init error:', error);
+}

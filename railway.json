@@ -8,16 +8,8 @@
   "deploy": {
     "startCommand": "node server/server-firebase.js",
     "restartPolicyType": "on_failure",
-    "restartPolicyMaxRetries": 0,
+    "restartPolicyMaxRetries": 3,
     "numReplicas": 1,
-    "sleepApplication": false,
-    "healthchecks": {
-      "cpu": {
-        "percentage": 80
-      },
-      "memory": {
-        "percentage": 80
-      }
-    }
+    "sleepApplication": false
   }
 }
