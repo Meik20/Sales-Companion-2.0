@@ -608,7 +608,12 @@ async function doLogin(){
     }
     
     console.log('[doLogin] Authenticating with server...');
+    console.log('[doLogin] Server URL:', RAILWAY_SERVER);
+    
     const res = await window.electronAPI.login({email, password, serverUrl: RAILWAY_SERVER});
+    
+    console.log('[doLogin] Response status:', res.status);
+    console.log('[doLogin] Response data:', res.data);
     
     if (res.status !== 200) {
       throw new Error(res.data?.error || 'Erreur lors de la connexion');
@@ -623,7 +628,7 @@ async function doLogin(){
     await window.electronAPI.saveToken(token);
     showApp();
   } catch (e) {
-    console.error('[doLogin] Error:', e.message);
+    console.error('[doLogin] Full error:', e);
     err.textContent = e.message || 'Erreur de connexion';
     err.style.display = 'block';
   }
