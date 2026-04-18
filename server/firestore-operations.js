@@ -7,33 +7,25 @@ const { db, auth } = require('./firebase-config');
 
 // ── USER OPERATIONS ──────────────────────────────────────────────
 
-/**
- * Créer un nouvel utilisateur Firebase
- */
 async function createUser(email, password, userData = {}) {
   try {
-    // 1. Créer utilisateur Firebase Auth
     const userRecord = await auth.createUser({
       email,
       password,
       displayName: userData.name || '',
     });
-
-    // 2. Créer document utilisateur dans Firestore
-    const userRef = db.collection('users').doc(userRecord.uid);
-    await userRef.set({
+    await db.collection('users').doc(userRecord.uid).set({
       uid: userRecord.uid,
       email,
       name: userData.name || '',
       plan: userData.plan || 'free',
-      dailyLimit: 10, // free plan
+      dailyLimit: 10,
       dailyUsed: 0,
       lastReset: new Date().toISOString(),
       active: true,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
-
     return { uid: userRecord.uid, email };
   } catch (error) {
     console.error('Error creating user:', error);
@@ -41,9 +33,6 @@ async function createUser(email, password, userData = {}) {
   }
 }
 
-/**
- * Récupérer un utilisateur
- */
 async function getUser(uid) {
   try {
     const userDoc = await db.collection('users').doc(uid).get();
@@ -55,17 +44,8 @@ async function getUser(uid) {
   }
 }
 
-/**
- * Mettre à jour plan utilisateur
- */
 async function updateUserPlan(uid, newPlan) {
-  const planLimits = {
-    free: 10,
-    starter: 200,
-    pro: 500,
-    enterprise: 9999,
-  };
-
+  const planLimits = { free:10, starter:200, pro:500, enterprise:9999 };
   try {
     await db.collection('users').doc(uid).update({
       plan: newPlan,
@@ -79,12 +59,6 @@ async function updateUserPlan(uid, newPlan) {
   }
 }
 
-// ── ADMIN OPERATIONS ────────────────────────────────────────────
-
-/**
- * Créer admin (doit être fait via Firebase Console)
- * Ou utiliser custom claims
- */
 async function setAdminClaims(uid) {
   try {
     await auth.setCustomUserClaims(uid, { admin: true });
@@ -97,9 +71,6 @@ async function setAdminClaims(uid) {
 
 // ── COMPANY OPERATIONS ──────────────────────────────────────────
 
-/**
- * Ajouter une entreprise à Firestore
- */
 async function addCompany(companyData) {
   try {
     const companyRef = db.collection('companies').doc();
@@ -116,53 +87,27 @@ async function addCompany(companyData) {
   }
 }
 
-/**
- * Rechercher des entreprises
- */
 async function searchCompanies(filters = {}) {
   try {
     let query = db.collection('companies');
-
-    if (filters.sector) {
-      query = query.where('sector', '==', filters.sector);
-    }
-    if (filters.region) {
-      query = query.where('region', '==', filters.region);
-    }
-    if (filters.city) {
-      query = query.where('city', '==', filters.city);
-    }
-    if (filters.active !== undefined) {
-      query = query.where('active', '==', filters.active);
-    }
+    if (filters.sector)  query = query.where('sector',  '==', filters.sector);
+    if (filters.region)  query = query.where('region',  '==', filters.region);
+    if (filters.city)    query = query.where('city',    '==', filters.city);
+    if (filters.active !== undefined) query = query.where('active', '==', filters.active);
 
     const requestedLimit = Math.min(Math.max(parseInt(filters.limit, 10) || 50, 1), 200);
     const snapshot = await query.limit(requestedLimit).get();
-    let companies = [];
-    snapshot.forEach((doc) => companies.push({ id: doc.id, ...doc.data() }));
+    let companies = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
     if (filters.query) {
-      const q = filters.query.toString().trim().toLowerCase();
+      const q = String(filters.query).trim().toLowerCase();
       if (q) {
-        companies = companies.filter((company) => {
-          const values = [
-            company.raison_sociale,
-            company.sigle,
-            company.activite_principale,
-            company.sector,
-            company.region,
-            company.city,
-            company.centre_rattachement,
-            company.dirigeant,
-            company.email,
-          ];
-          return values.some((value) =>
-            typeof value === 'string' && value.toLowerCase().includes(q)
-          );
-        });
+        companies = companies.filter(c =>
+          [c.raisonSociale, c.sigle, c.activitePrincipale, c.sector, c.region, c.city, c.dirigeant, c.email]
+            .some(v => typeof v === 'string' && v.toLowerCase().includes(q))
+        );
       }
     }
-
     return companies;
   } catch (error) {
     console.error('Error searching companies:', error);
@@ -171,8 +116,59 @@ async function searchCompanies(filters = {}) {
 }
 
 /**
- * Ajouter une recherche sauvegardée
+ * Import par chunks de 400 — évite la limite Firestore de 500 ops/batch
+ * Dédoublonnage par NIU (si présent) ou raisonSociale
  */
+async function importCompaniesBatch(companiesData) {
+  const CHUNK_SIZE = 400;
+  let importedCount = 0, skippedCount = 0, errorCount = 0;
+
+  try {
+    for (let i = 0; i < companiesData.length; i += CHUNK_SIZE) {
+      const chunk = companiesData.slice(i, i + CHUNK_SIZE);
+      const batch = db.batch();
+      let batchCount = 0;
+
+      for (const company of chunk) {
+        try {
+          if (!company.raisonSociale && !company.niu) { skippedCount++; continue; }
+
+          // Dédoublonnage : utilise NIU comme ID stable si disponible
+          const docId = company.niu
+            ? String(company.niu).replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 100)
+            : String(company.raisonSociale).replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 100) + '_' + i;
+
+          const ref = db.collection('companies').doc(docId);
+          batch.set(ref, {
+            ...company,
+            id: docId,
+            active: true,
+            updatedAt: new Date().toISOString(),
+          }, { merge: true });
+
+          importedCount++;
+          batchCount++;
+        } catch (e) {
+          console.error('[IMPORT] Erreur ligne:', e.message);
+          errorCount++;
+        }
+      }
+
+      if (batchCount > 0) {
+        await batch.commit();
+        console.log(`[IMPORT] Chunk ${Math.floor(i/CHUNK_SIZE)+1} commité — ${importedCount} total importées`);
+      }
+    }
+
+    return { importedCount, skippedCount, errorCount, updatedCount: 0 };
+  } catch (error) {
+    console.error('Error importing companies batch:', error);
+    throw error;
+  }
+}
+
+// ── SAVED SEARCHES ──────────────────────────────────────────────
+
 async function addSavedSearch(uid, searchData) {
   try {
     const searchRef = db.collection('saved_searches').doc();
@@ -192,29 +188,19 @@ async function addSavedSearch(uid, searchData) {
   }
 }
 
-/**
- * Récupérer les recherches sauvegardées d'un utilisateur
- */
 async function getSavedSearches(uid) {
   try {
-    const snapshot = await db
-      .collection('saved_searches')
+    const snapshot = await db.collection('saved_searches')
       .where('uid', '==', uid)
       .orderBy('createdAt', 'desc')
       .get();
-
-    const searches = [];
-    snapshot.forEach((doc) => searches.push({ id: doc.id, ...doc.data() }));
-    return searches;
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   } catch (error) {
     console.error('Error getting saved searches:', error);
     throw error;
   }
 }
 
-/**
- * Supprimer une recherche sauvegardée
- */
 async function deleteSavedSearch(uid, searchId) {
   try {
     const docRef = db.collection('saved_searches').doc(searchId);
@@ -229,42 +215,58 @@ async function deleteSavedSearch(uid, searchId) {
   }
 }
 
-/**
- * Mettre à jour un prospect dans le pipeline
- */
-async function updatePipelineProspect(userId, prospectId, updateData) {
-  try {
-    const prospectRef = db
-      .collection('users')
-      .doc(userId)
-      .collection('pipeline')
-      .doc(prospectId);
+// ── PIPELINE ────────────────────────────────────────────────────
 
-    await prospectRef.update({
-      ...updateData,
+async function addPipelineProspect(userId, prospectData) {
+  try {
+    const pipelineRef = db.collection('users').doc(userId).collection('pipeline');
+    let query = pipelineRef;
+    if (prospectData.company_id)   query = query.where('company_id',   '==', prospectData.company_id);
+    else if (prospectData.company_name) query = query.where('company_name', '==', prospectData.company_name);
+    const existing = await query.limit(1).get();
+    if (!existing.empty) throw new Error('Prospect already exists');
+    const prospectRef = pipelineRef.doc();
+    await prospectRef.set({
+      ...prospectData,
+      id: prospectRef.id,
+      status: prospectData.status || 'prospection',
+      createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
+    return { id: prospectRef.id, ...prospectData };
+  } catch (error) {
+    console.error('Error adding pipeline prospect:', error);
+    throw error;
+  }
+}
 
-    const updatedDoc = await prospectRef.get();
-    return { id: updatedDoc.id, ...updatedDoc.data() };
+async function getUserPipeline(userId, filters = {}) {
+  try {
+    let query = db.collection('users').doc(userId).collection('pipeline');
+    if (filters.status) query = query.where('status', '==', filters.status);
+    const snapshot = await query.orderBy('updatedAt', 'desc').get();
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    console.error('Error getting user pipeline:', error);
+    throw error;
+  }
+}
+
+async function updatePipelineProspect(userId, prospectId, updateData) {
+  try {
+    const ref = db.collection('users').doc(userId).collection('pipeline').doc(prospectId);
+    await ref.update({ ...updateData, updatedAt: new Date().toISOString() });
+    const updated = await ref.get();
+    return { id: updated.id, ...updated.data() };
   } catch (error) {
     console.error('Error updating pipeline prospect:', error);
     throw error;
   }
 }
 
-/**
- * Supprimer un prospect dans le pipeline
- */
 async function deletePipelineProspect(userId, prospectId) {
   try {
-    const prospectRef = db
-      .collection('users')
-      .doc(userId)
-      .collection('pipeline')
-      .doc(prospectId);
-
-    await prospectRef.delete();
+    await db.collection('users').doc(userId).collection('pipeline').doc(prospectId).delete();
     return true;
   } catch (error) {
     console.error('Error deleting pipeline prospect:', error);
@@ -272,66 +274,11 @@ async function deletePipelineProspect(userId, prospectId) {
   }
 }
 
-/**
- * Importer plusieurs entreprises (batch)
- */
-async function importCompaniesBatch(companiesData) {
-  try {
-    const batch = db.batch();
-    let importedCount = 0;
-    let skippedCount = 0;
+// ── CONFIG ───────────────────────────────────────────────────────
 
-    for (const company of companiesData) {
-      // Skip si NIU déjà existe
-      const existing = await db
-        .collection('companies')
-        .where('niu', '==', company.niu)
-        .limit(1)
-        .get();
-
-      if (existing.empty) {
-        const companyRef = db.collection('companies').doc();
-        batch.set(companyRef, {
-          ...company,
-          id: companyRef.id,
-          active: true,
-          importedAt: new Date().toISOString(),
-        });
-        importedCount++;
-      } else {
-        skippedCount++;
-      }
-
-      // Commit tous les 500 documents
-      if (importedCount % 500 === 0) {
-        await batch.commit();
-      }
-    }
-
-    // Commit les restants
-    await batch.commit();
-
-    return { importedCount, skippedCount };
-  } catch (error) {
-    console.error('Error importing companies batch:', error);
-    throw error;
-  }
-}
-
-// ── CONFIG OPERATIONS ──────────────────────────────────────────
-
-/**
- * Sauvegarder configuration
- */
 async function setConfig(key, value) {
   try {
-    await db.collection('config').doc(key).set(
-      {
-        value,
-        updatedAt: new Date().toISOString(),
-      },
-      { merge: true }
-    );
+    await db.collection('config').doc(key).set({ value, updatedAt: new Date().toISOString() }, { merge: true });
     return true;
   } catch (error) {
     console.error('Error setting config:', error);
@@ -339,9 +286,6 @@ async function setConfig(key, value) {
   }
 }
 
-/**
- * Récupérer configuration
- */
 async function getConfig(key) {
   try {
     const doc = await db.collection('config').doc(key).get();
@@ -353,162 +297,62 @@ async function getConfig(key) {
   }
 }
 
-// ── PIPELINE/DEALS OPERATIONS ──────────────────────────────────
+// ── USAGE LOGS ───────────────────────────────────────────────────
 
 /**
- * Créer prospect dans pipeline
+ * FIX : resultsCount défaut à 0 pour éviter undefined dans Firestore
  */
-async function addPipelineProspect(userId, prospectData) {
-  try {
-    const pipelineRef = db.collection('users').doc(userId).collection('pipeline');
-    let query = pipelineRef;
-
-    if (prospectData.company_id) {
-      query = query.where('company_id', '==', prospectData.company_id);
-    } else if (prospectData.company_name) {
-      query = query.where('company_name', '==', prospectData.company_name);
-    }
-
-    const existing = await query.limit(1).get();
-    if (!existing.empty) {
-      throw new Error('Prospect already exists');
-    }
-
-    const prospectRef = pipelineRef.doc();
-    await prospectRef.set({
-      ...prospectData,
-      id: prospectRef.id,
-      status: prospectData.status || 'prospection',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    });
-
-    return { id: prospectRef.id, ...prospectData };
-  } catch (error) {
-    console.error('Error adding pipeline prospect:', error);
-    throw error;
-  }
-}
-
-/**
- * Obtenir pipeline utilisateur
- */
-async function getUserPipeline(userId, filters = {}) {
-  try {
-    let query = db
-      .collection('users')
-      .doc(userId)
-      .collection('pipeline');
-
-    if (filters.status) {
-      query = query.where('status', '==', filters.status);
-    }
-
-    const snapshot = await query.orderBy('updatedAt', 'desc').get();
-    const prospects = [];
-    snapshot.forEach((doc) => prospects.push({ id: doc.id, ...doc.data() }));
-    return prospects;
-  } catch (error) {
-    console.error('Error getting user pipeline:', error);
-    throw error;
-  }
-}
-
-// ── USAGE LOGS ──────────────────────────────────────────────────
-
-/**
- * Enregistrer une requête utilisateur
- */
-async function logUsage(userId, query, resultsCount) {
+async function logUsage(userId, query, resultsCount = 0) {
   try {
     await db.collection('usage_logs').add({
       userId,
-      query,
-      resultsCount,
-      timestamp: new Date().toISOString(),
+      query:        query        ?? '',
+      resultsCount: resultsCount ?? 0,
+      timestamp:    new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Error logging usage:', error);
+    // Non bloquant — on logue juste l'erreur
+    console.error('Error logging usage:', error.message);
   }
 }
 
-// ── MIDDLEWARE ──────────────────────────────────────────────────
+// ── MIDDLEWARE ────────────────────────────────────────────────────
 
-/**
- * Middleware pour vérifier JWT Firebase
- */
 async function verifyToken(req, res, next) {
   const token = req.headers.authorization?.split('Bearer ')[1];
-  if (!token) {
-    return res.status(401).json({ error: 'No token provided' });
-  }
-
+  if (!token) return res.status(401).json({ error: 'No token provided' });
   try {
-    const decodedToken = await auth.verifyIdToken(token);
-    req.userId = decodedToken.uid;
-    req.userEmail = decodedToken.email;
+    const decoded = await auth.verifyIdToken(token);
+    req.userId    = decoded.uid;
+    req.userEmail = decoded.email;
     next();
   } catch (error) {
-    console.error('Token verification error:', error);
-    res.status(401).json({ error: 'Invalid token' });
+    console.error('Token verification error:', error.message);
+    return res.status(401).json({ error: 'Invalid or expired token' });
   }
 }
 
-/**
- * Middleware pour vérifier admin
- */
 async function verifyAdmin(req, res, next) {
+  const token = req.headers.authorization?.split('Bearer ')[1];
+  if (!token) return res.status(401).json({ error: 'No token provided' });
   try {
-    const token = req.headers.authorization?.split('Bearer ')[1];
-    if (!token) {
-      return res.status(401).json({ error: 'No token provided' });
-    }
-
-    const decodedToken = await auth.verifyIdToken(token);
-
-    if (!decodedToken.admin) {
-      return res.status(403).json({ error: 'Admin access required' });
-    }
-
-    req.userId = decodedToken.uid;
+    const decoded = await auth.verifyIdToken(token);
+    if (!decoded.admin) return res.status(403).json({ error: 'Admin access required' });
+    req.userId    = decoded.uid;
+    req.userEmail = decoded.email;
     next();
   } catch (error) {
-    console.error('Admin verification error:', error);
-    res.status(401).json({ error: 'Invalid token' });
+    console.error('Admin verification error:', error.message);
+    return res.status(401).json({ error: 'Invalid or expired token' });
   }
 }
 
 module.exports = {
-  // User
-  createUser,
-  getUser,
-  updateUserPlan,
-  setAdminClaims,
-
-  // Companies
-  addCompany,
-  searchCompanies,
-  importCompaniesBatch,
-
-  // Config
-  setConfig,
-  getConfig,
-
-  // Pipeline
-  addPipelineProspect,
-  getUserPipeline,
-  updatePipelineProspect,
-  deletePipelineProspect,
-
-  // Saved Searches
-  addSavedSearch,
-  getSavedSearches,
-  deleteSavedSearch,
-
-  // Usage
+  createUser, getUser, updateUserPlan, setAdminClaims,
+  addCompany, searchCompanies, importCompaniesBatch,
+  setConfig, getConfig,
+  addPipelineProspect, getUserPipeline, updatePipelineProspect, deletePipelineProspect,
+  addSavedSearch, getSavedSearches, deleteSavedSearch,
   logUsage,
-
-  // Middleware
-  verifyToken,
-  verifyAdmin,
+  verifyToken, verifyAdmin,
 };
