@@ -898,6 +898,78 @@ app.post('/init-admin', async (req, res) => {
   }
 });
 
+// ── ADMIN STATS ────────────────────────────────────────────────
+app.get('/admin/stats', verifyAdmin, async (req, res) => {
+  try {
+    const { getFirestore } = require('firebase-admin/firestore');
+    const adminDb = getFirestore();
+
+    const [usersSnap, companiesSnap] = await Promise.all([
+      adminDb.collection('users').count().get(),
+      adminDb.collection('companies').where('active', '==', true).count().get(),
+    ]);
+
+    // Recherches du jour
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const logsSnap = await adminDb
+      .collection('usage_logs')
+      .where('createdAt', '>=', today)
+      .count().get();
+
+    // Total recherches
+    const totalSnap = await adminDb.collection('usage_logs').count().get();
+
+    // Répartition par plan
+    const usersAll = await adminDb.collection('users').get();
+    const planMap  = {};
+    const regionMap = {}, secteurMap = {};
+    usersAll.forEach(doc => {
+      const plan = doc.data().plan || 'free';
+      planMap[plan] = (planMap[plan] || 0) + 1;
+    });
+
+    // Répartition entreprises par région / secteur
+    const cosSnap = await adminDb.collection('companies').where('active', '==', true).get();
+    cosSnap.forEach(doc => {
+      const d = doc.data();
+      if (d.region)  regionMap[d.region]   = (regionMap[d.region]   || 0) + 1;
+      if (d.sector)  secteurMap[d.sector]  = (secteurMap[d.sector]  || 0) + 1;
+    });
+
+    // Logs récents
+    const recentSnap = await adminDb
+      .collection('usage_logs')
+      .orderBy('createdAt', 'desc')
+      .limit(20)
+      .get();
+    const recentLogs = recentSnap.docs.map(doc => doc.data());
+
+    res.json({
+      totalUsers:         usersSnap.data().count,
+      totalCompanies:     companiesSnap.data().count,
+      activeToday:        logsSnap.data().count,
+      totalSearches:      totalSnap.data().count,
+      planCounts:         Object.entries(planMap).map(([plan,c]) => ({plan,c})),
+      companiesByRegion:  Object.entries(regionMap).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([region,c])=>({region,c})),
+      companiesBySecteur: Object.entries(secteurMap).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([secteur,c])=>({secteur,c})),
+      recentLogs,
+    });
+  } catch (error) {
+    return safeError(res, 500, 'Erreur stats', error);
+  }
+});
+
+// ── ADMIN CONFIG (GET global) ───────────────────────────────────
+app.get('/admin/config', verifyAdmin, async (req, res) => {
+  try {
+    const groq_api_key = await getConfig('groq_api_key');
+    res.json({ groq_api_key });
+  } catch (error) {
+    return safeError(res, 500, 'Erreur config', error);
+  }
+});
+
 // ── START SERVER ────────────────────────────────────────────────
 
 app.listen(PORT, '0.0.0.0', () => {
