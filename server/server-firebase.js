@@ -80,6 +80,7 @@ app.use(
           "https://*.googleapis.com",
           "https://*.google.com",
           "https://identitytoolkit.googleapis.com",
+          "https://www.gstatic.com",
         ],
         frameSrc: ["https://*.firebaseapp.com"],
       },
