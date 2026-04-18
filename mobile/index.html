@@ -678,20 +678,20 @@ async function initializeFirebase(attempt = 0) {
       console.log('✅ Firebase already initialized');
     }
 
-    auth = firebase.getAuth(firebaseApp);
-    db = firebase.getFirestore(firebaseApp);
+    auth = firebase.auth();          // ← compat
+    db = firebase.firestore();       // ← compat
     window._auth = auth;
     window._db = db;
     auth.languageCode = 'fr';
-    
+
     console.log('[Firebase Init] auth object:', typeof auth);
     console.log('[Firebase Init] db object:', typeof db);
-    
+
     if (!auth) throw new Error('auth is null after assignment');
     if (!db) throw new Error('db is null after assignment');
-    
+
     console.log('✅ Auth and Firestore ready for PWA');
-    
+
     // Verify we can access Firebase functions
     if (typeof auth.signInWithEmailAndPassword !== 'function') {
       throw new Error('auth.signInWithEmailAndPassword is not a function');
