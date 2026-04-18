@@ -237,6 +237,10 @@ ipcMain.handle('register', (_, p) => {
   return requestWithRetry(serverUrl, 'POST', '/auth/register', {
     name: p.name,
     email: p.email,
+    password: p.password,
+  });
+});
+
 ipcMain.handle('get-me', (_, token) =>
   requestWithRetry(getServerUrl(), 'GET', '/auth/me', null, token)
 );
