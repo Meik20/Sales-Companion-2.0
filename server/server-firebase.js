@@ -235,54 +235,12 @@ app.post('/auth/login', authLimiter, async (req, res) => {
   }
 });
 
-// ── ADMIN ROUTES ────────────────────────────────────────────────
-
-/**
- * POST /admin/import
- * Importer des entreprises via Excel/CSV
- */
-app.post('/admin/import', verifyAdmin, upload.single('file'), async (req, res) => {
-  const cleanup = () => {
-    if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
-  };
-
+app.get('/auth/me', verifyToken, async (req, res) => {
   try {
-    if (!req.file) return res.status(400).json({ error: 'Aucun fichier reçu' });
-
-    const workbook = XLSX.readFile(req.file.path);
-    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-    const data = XLSX.utils.sheet_to_json(worksheet);
-
-    const companies = data.map((row) => ({
-      raisonSociale: row.RAISON_SOCIALE || row['Raison Sociale'] || '',
-      sigle: row.SIGLE || '',
-      niu: row.NIU || null,
-      activitePrincipale: row.ACTIVITE_PRINCIPALE || row['Activité Principale'] || '',
-      centreRattachement: row.CENTRE_DE_RATTACHEMENT || row['CENTRE_DE_RATTACHEMENT'] || '',
-      sector: detectSector(row.ACTIVITE_PRINCIPALE || row['Activité Principale'] || ''),
-      region: (row.CENTRE_DE_RATTACHEMENT || row['CENTRE_DE_RATTACHEMENT'] || '').split('/')[0] || '',
-      city: (row.CENTRE_DE_RATTACHEMENT || row['CENTRE_DE_RATTACHEMENT'] || '').split('/')[1] || '',
-      telephone: row.TELEPHONE || row['Téléphone'] || '',
-      email: row.EMAIL || row['Email'] || '',
-      dirigeant: row.DIRIGEANT || row['Dirigeant'] || '',
-      active: true,
-      sourceFile: req.file.originalname,
-      createdAt: new Date(),
-    }));
-
-    const result = await importCompaniesBatch(companies);
-    cleanup();
-
-    res.json({
-      total: data.length,
-      imported: result.importedCount,
-      updated: result.updatedCount || 0,
-      skipped: result.skippedCount,
-      errors: result.errorCount || 0,
-    });
+    const user = await getUser(req.userId);
+    res.json(user);
   } catch (error) {
-    cleanup();
-    return safeError(res, 500, "Erreur lors de l'import", error);
+    return safeError(res, 500, 'Impossible de récupérer le profil', error);
   }
 });
 
@@ -397,66 +355,6 @@ app.get('/admin/config', verifyAdmin, async (req, res) => {
     res.json({ groq_api_key });
   } catch (error) {
     return safeError(res, 500, 'Erreur config', error);
-  }
-});
-
-// ── ADMIN COMPANIES ROUTES ─────────────────────────────────────
-app.get('/admin/companies', verifyAdmin, async (req, res) => {
-  try {
-    const { getFirestore } = require('firebase-admin/firestore');
-    const adminDb = getFirestore();
-    const { q, region, secteur, page = 1 } = req.query;
-    const limit = 50;
-
-    let query = adminDb.collection('companies');
-
-    if (region) query = query.where('region', '==', region);
-    if (secteur) query = query.where('sector', '==', secteur);
-
-    const snap = await query.get();
-    let companies = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-
-    if (q) {
-      const ql = q.toLowerCase();
-      companies = companies.filter((c) =>
-        (c.raisonSociale || '').toLowerCase().includes(ql) ||
-        (c.niu || '').toLowerCase().includes(ql) ||
-        (c.activitePrincipale || '').toLowerCase().includes(ql)
-      );
-    }
-
-    const total = companies.length;
-    const pages = Math.ceil(total / limit) || 1;
-    const start = (parseInt(page, 10) - 1) * limit;
-    const data = companies.slice(start, start + limit);
-
-    res.json({ companies: data, total, page: parseInt(page, 10), pages });
-  } catch (error) {
-    return safeError(res, 500, 'Erreur chargement entreprises', error);
-  }
-});
-
-app.delete('/admin/companies/:id', verifyAdmin, async (req, res) => {
-  try {
-    const { getFirestore } = require('firebase-admin/firestore');
-    await getFirestore().collection('companies').doc(req.params.id).delete();
-    res.json({ success: true });
-  } catch (error) {
-    return safeError(res, 500, 'Erreur suppression', error);
-  }
-});
-
-app.delete('/admin/companies/all', verifyAdmin, async (req, res) => {
-  try {
-    const { getFirestore } = require('firebase-admin/firestore');
-    const adminDb = getFirestore();
-    const snap = await adminDb.collection('companies').get();
-    const batch = adminDb.batch();
-    snap.docs.forEach((doc) => batch.delete(doc.ref));
-    await batch.commit();
-    res.json({ success: true, deleted: snap.size });
-  } catch (error) {
-    return safeError(res, 500, 'Erreur suppression totale', error);
   }
 });
 
