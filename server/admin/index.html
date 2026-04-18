@@ -793,7 +793,11 @@ async function loadConfig() {
 async function saveConfig() {
   const k = document.getElementById('cfg-key').value.trim();
   if (!k) { toast('Saisissez une clé'); return; }
-  const r = await fetch(`${API}/admin/config`, {method:'POST', headers: H(), body: JSON.stringify({groq_api_key: k})});
+  const r = await fetch(`${API}/admin/config`, {
+    method: 'POST',
+    headers: H(),
+    body: JSON.stringify({ key: 'groq_api_key', value: k }),
+  });
   const d = await r.json();
   if (r.ok) {
     document.getElementById('cfg-ok').style.display = 'block';

@@ -487,13 +487,23 @@ app.post('/api/config', verifyToken, async (req, res) => {
  */
 app.post('/admin/config', verifyAdmin, async (req, res) => {
   try {
-    const { key, value } = req.body;
+    let { key, value } = req.body;
+
+    // Allow both { key, value } and { groq_api_key: '...' } payloads
+    if (!key && req.body && typeof req.body === 'object') {
+      const payloadKeys = Object.keys(req.body).filter((k) => k !== 'value');
+      if (payloadKeys.length === 1) {
+        key = payloadKeys[0];
+        value = req.body[key];
+      }
+    }
+
     // FIX [warn-4]: validation basique de la clé de config
     if (!key || typeof key !== 'string' || key.trim().length === 0) {
       return res.status(400).json({ error: 'Config key required' });
     }
     await setConfig(key.trim(), value);
-    res.json({ message: `Config ${key} saved` });
+    res.json({ message: `Config ${key.trim()} saved` });
   } catch (error) {
     return safeError(res, 500, 'Erreur de configuration', error);
   }
