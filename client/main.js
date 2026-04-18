@@ -14,6 +14,10 @@ const DEFAULT_SERVER = 'https://sales-companion-production.up.railway.app';
    WINDOW
 ───────────────────────────────────────────── */
 function createWindow() {
+  console.log(`📡 Server URL: ${getServerUrl()}`);
+  console.log(`🌍 Default Server: ${DEFAULT_SERVER}`);
+  console.log(`💾 Config File: ${SERVER_FILE}`);
+  
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 780,
@@ -144,6 +148,10 @@ function request(serverUrl, method, reqPath, body, token) {
         path: url.pathname + url.search,
         method,
         headers,
+        // Tolérer les certificats non valides (nécessaire pour certains environnements)
+        rejectUnauthorized: false,
+        // Permettre les connexions Keep-Alive
+        agent: url.protocol === 'https:' ? new (require('https').Agent)({ keepAlive: true, rejectUnauthorized: false }) : undefined,
       };
 
       const req = lib.request(opts, (res) => {
@@ -174,18 +182,21 @@ function request(serverUrl, method, reqPath, body, token) {
       });
 
       req.on('error', (err) => {
-        console.error('Request error:', err.message);
-        reject(new Error('Serveur inaccessible'));
+        console.error('❌ Network error:', err.message, err.code);
+        // Retourner le vrai message d'erreur pour le diagnostic
+        reject(new Error(`Erreur réseau: ${err.message} (${err.code})`));
       });
 
       req.setTimeout(15000, () => {
         req.destroy();
-        reject(new Error('Timeout serveur'));
+        console.error('❌ Request timeout');
+        reject(new Error('Timeout serveur (15s)'));
       });
 
       if (bodyStr) req.write(bodyStr);
       req.end();
     } catch (err) {
+      console.error('❌ Request error:', err);
       reject(err);
     }
   });
@@ -197,7 +208,13 @@ async function requestWithRetry(...args) {
     try {
       return await request(...args);
     } catch (err) {
-      if (i === 2) throw err;
+      console.log(`⚠️  Tentative ${i + 1}/3 échouée:`, err.message);
+      if (i === 2) {
+        console.error('❌ Tous les essais ont échoué');
+        throw err;
+      }
+      // Attendre avant de réessayer
+      await new Promise(r => setTimeout(r, 500 * (i + 1)));
     }
   }
 }
@@ -205,21 +222,21 @@ async function requestWithRetry(...args) {
 /* ─────────────────────────────────────────────
    AUTH
 ───────────────────────────────────────────── */
-ipcMain.handle('login', (_, p) =>
-  requestWithRetry(getServerUrl(), 'POST', '/auth/login', {
+ipcMain.handle('login', (_, p) => {
+  const serverUrl = p.serverUrl || getServerUrl();
+  console.log(`🔐 Login attempt with server: ${serverUrl}`);
+  return requestWithRetry(serverUrl, 'POST', '/auth/login', {
     email: p.email,
     password: p.password,
-  })
-);
+  });
+});
 
-ipcMain.handle('register', (_, p) =>
-  requestWithRetry(getServerUrl(), 'POST', '/auth/register', {
+ipcMain.handle('register', (_, p) => {
+  const serverUrl = p.serverUrl || getServerUrl();
+  console.log(`📝 Register attempt with server: ${serverUrl}`);
+  return requestWithRetry(serverUrl, 'POST', '/auth/register', {
     name: p.name,
     email: p.email,
-    password: p.password,
-  })
-);
-
 ipcMain.handle('get-me', (_, token) =>
   requestWithRetry(getServerUrl(), 'GET', '/auth/me', null, token)
 );
@@ -227,9 +244,11 @@ ipcMain.handle('get-me', (_, token) =>
 /* ─────────────────────────────────────────────
    SEARCH & CHAT
 ───────────────────────────────────────────── */
-ipcMain.handle('search', (_, p) =>
-  requestWithRetry(
-    getServerUrl(),
+ipcMain.handle('search', (_, p) => {
+  const serverUrl = p.serverUrl || getServerUrl();
+  console.log(`🔍 Search with server: ${serverUrl}`);
+  return requestWithRetry(
+    serverUrl,
     'POST',
     '/api/search',
     {
@@ -238,18 +257,20 @@ ipcMain.handle('search', (_, p) =>
       use_ai: p.use_ai,
     },
     p.token
-  )
-);
+  );
+});
 
-ipcMain.handle('chat', (_, p) =>
-  requestWithRetry(
-    getServerUrl(),
+ipcMain.handle('chat', (_, p) => {
+  const serverUrl = p.serverUrl || getServerUrl();
+  console.log(`💬 Chat with server: ${serverUrl}`);
+  return requestWithRetry(
+    serverUrl,
     'POST',
     '/api/chat',
     { messages: p.messages },
     p.token
-  )
-);
+  );
+});
 
 /* ─────────────────────────────────────────────
    SAVED SEARCHES
@@ -277,6 +298,7 @@ ipcMain.handle('delete-saved-search', (_, token, id) =>
 ───────────────────────────────────────────── */
 ipcMain.handle('pipeline', (_, method, token, id, data) => {
   const url = getServerUrl();
+  console.log(`📋 Pipeline [${method}] with server: ${url}`);
 
   if (method === 'GET')
     return requestWithRetry(url, 'GET', '/api/pipeline', null, token);
