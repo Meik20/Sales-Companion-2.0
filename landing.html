@@ -212,7 +212,7 @@ footer p{font-size:13px;color:var(--tx3);margin-bottom:4px}
     <a href="#fonctionnalites">Fonctionnalités</a>
     <a href="#plans">Plans</a>
   </div>
-  <a href="#telechargement" class="nav-cta" id="nav-cta-btn">Accéder →</a>
+  <a href="https://sales-companion-production.up.railway.app/mobile" class="nav-cta" id="nav-cta-btn" target="_blank" rel="noopener">Accéder →</a>
 </nav>
 
 <!-- HERO -->
@@ -235,7 +235,7 @@ footer p{font-size:13px;color:var(--tx3);margin-bottom:4px}
   <div class="device-hint" id="device-hint"></div>
 
   <div class="hero-actions">
-    <a href="#telechargement" class="btn-primary">
+    <a href="https://drive.google.com/file/d/1HiHqcYAF1KNh-5J1kNFmbBq1VAP9yrw5/view?usp=drive_link" target="_blank" rel="noopener" class="btn-primary">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       Télécharger
     </a>
@@ -378,8 +378,10 @@ footer p{font-size:13px;color:var(--tx3);margin-bottom:4px}
   <div class="qr-section" id="qr-section">
     <div class="qr-wrap">
       <div class="qr-code" id="qr-container">
-        <!-- QR code généré dynamiquement -->
-        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" id="qr-svg"></svg>
+        <a href="./mobile" id="qr-link" target="_blank" rel="noopener noreferrer" aria-label="Ouvrir l'application mobile" style="display:block;width:100%;height:100%;">
+          <!-- QR code généré dynamiquement -->
+          <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" id="qr-svg"></svg>
+        </a>
       </div>
       <div class="qr-info">
         <h3>Scannez pour installer</h3>
@@ -561,16 +563,19 @@ function copyUrl() {
 
 // Simple QR code using Google Charts API
 const qrSvg = document.getElementById('qr-svg');
+const qrLink = document.getElementById('qr-link');
 const qrImg = document.createElement('img');
 qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&format=svg&color=1B7A3E&bgcolor=ffffff&data=' + encodeURIComponent(APP_URL);
 qrImg.alt = 'QR Code Sales Companion';
 qrImg.style.cssText = 'width:100%;height:100%;border-radius:4px';
+qrLink.href = APP_URL;
+qrLink.style.cursor = 'pointer';
 qrImg.onerror = () => {
   // Fallback si pas de réseau : affiche l'URL en texte
-  document.getElementById('qr-container').innerHTML = '<div style="width:160px;height:160px;display:flex;align-items:center;justify-content:center;text-align:center;padding:10px;font-size:10px;color:#333;word-break:break-all;line-height:1.4">' + APP_URL + '</div>';
+  qrLink.innerHTML = '<div style="width:160px;height:160px;display:flex;align-items:center;justify-content:center;text-align:center;padding:10px;font-size:10px;color:#333;word-break:break-all;line-height:1.4">' + APP_URL + '</div>';
 };
-document.getElementById('qr-container').innerHTML = '';
-document.getElementById('qr-container').appendChild(qrImg);
+qrLink.innerHTML = '';
+qrLink.appendChild(qrImg);
 
 // ── SMOOTH NAV ────────────────────────────────────────────────────
 document.querySelectorAll('a[href^="#"]').forEach(a => {
