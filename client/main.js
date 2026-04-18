@@ -24,6 +24,7 @@ function createWindow() {
     minWidth: 1000,
     minHeight: 640,
     title: 'Sales Companion',
+    icon: path.join(__dirname, 'assets', 'icon.png'),
     backgroundColor: '#f0f2f5',
     show: false,
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',

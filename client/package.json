@@ -24,14 +24,23 @@
       "assets/**"
     ],
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "icon": "assets/icon.ico"
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "B2B Cameroun"
+      "shortcutName": "Sales Companion",
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico"
+    },
+    "mac": {
+      "icon": "assets/icon.icns"
+    },
+    "linux": {
+      "icon": "assets/icon.png"
     }
   },
   "devDependencies": {

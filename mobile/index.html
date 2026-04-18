@@ -302,7 +302,7 @@ body{font-family:'Outfit',sans-serif;color:var(--tx);display:flex;flex-direction
 <div class="auth-screen" id="auth-screen">
   <div class="auth-sheet">
     <div class="auth-logo">
-      <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="30" height="30"><path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></div>
+      <div class="icon"><svg viewBox="0 0 100 100" width="30" height="30"><rect width="100" height="100" rx="20" fill="#1B7A3E"/><text x="50" y="65" font-family="Arial, sans-serif" font-size="60" font-weight="bold" fill="white" text-anchor="middle">SC</text></svg></div>
       <h1>SALES <em>COMPANION</em></h1>
       <p>Intelligence B2B · Cameroun</p>
     </div>
@@ -333,7 +333,7 @@ body{font-family:'Outfit',sans-serif;color:var(--tx);display:flex;flex-direction
 
 <!-- TOPBAR -->
 <div class="topbar" id="topbar" style="display:none">
-  <div class="tb-logo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></div>
+  <div class="tb-logo"><svg viewBox="0 0 100 100" width="17" height="17"><rect width="100" height="100" rx="20" fill="rgba(255,255,255,0.3)"/><text x="50" y="65" font-family="Arial, sans-serif" font-size="60" font-weight="bold" fill="white" text-anchor="middle">SC</text></svg></div>
   <div class="tb-title">SALES <em>COMPANION</em></div>
   <div class="tb-user-btn" onclick="openSheet('profile-sheet')">
     <div class="tb-uname" id="tb-name">—</div>
@@ -553,7 +553,6 @@ body{font-family:'Outfit',sans-serif;color:var(--tx);display:flex;flex-direction
     <div style="border-top:1px solid var(--bd);margin-top:16px;padding-top:16px">
       <div style="font-size:12px;font-weight:700;color:var(--tx3);text-transform:uppercase;margin-bottom:10px">Navigation</div>
       <button class="sheet-btn secondary" onclick="openLanding()" style="margin-bottom:8px">📍 Retour à l'accueil</button>
-      <button class="sheet-btn secondary" onclick="openAdmin()">⚙️ Tableau de bord admin</button>
     </div>
     <button class="lg-btn-m" onclick="doLogout()">Se déconnecter</button>
   </div>
@@ -738,6 +737,42 @@ let token = localStorage.getItem('sc_token') || '';
 let user = null, chatHistory = [], pipelineData = [], lastResults = [], lastFilters = {}, lastQuery = '';
 let isSearching = false, isChatting = false, currentPipTab = 'prospection';
 let addPipDefault = {};
+let isInitializing = true;
+
+// Check cached token before showing auth screen (prevent flash)
+async function checkCachedToken(){
+  try{
+    console.log('[App Init] Checking cached token...');
+    if(token){
+      // Token exists in localStorage, try to use it
+      console.log('[App Init] Found token in localStorage, validating...');
+      try{
+        // Make a test API call to verify token is still valid
+        const r=await api('GET','/auth/me',null,token);
+        if(r.ok){
+          console.log('[App Init] ✓ Token is valid, loading user data...');
+          const userData=await r.json();
+          user=userData;
+          localStorage.setItem('sc_token',token);
+          showApp();
+          return true;
+        }else if(r.status===401){
+          console.log('[App Init] Token expired, clearing...');
+          localStorage.removeItem('sc_token');
+          token='';
+        }
+      }catch(e){
+        console.log('[App Init] Token validation error:', e.message);
+        localStorage.removeItem('sc_token');
+        token='';
+      }
+    }
+  }catch(e){
+    console.log('[App Init] Error in checkCachedToken:', e.message);
+  }
+  isInitializing=false;
+  return false;
+}
 
 // ── UTILITIES ─────────────────────────────────────────────────────
 function showToast(message, type = 'info') {
@@ -761,15 +796,24 @@ function waitForFirebase(callback, attempts = 0) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // Server URL is hardcoded to Railway production
+  // Check cached token FIRST to prevent auth screen flash
+  const tokenIsValid=await checkCachedToken();
+  if(tokenIsValid){
+    console.log('[App Init] Using cached token, skipping Firebase auth listener');
+    updateCities();
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+    return;
+  }
   
-  // Wait for Firebase initialization, then listen to auth state
+  // If no cached token, set up Firebase auth listener
   waitForFirebase(() => {
     if (!auth) {
       console.error('✗ Firebase Auth not ready');
+      isInitializing=false;
       return;
     }
     auth.onAuthStateChanged(async (fbUser) => {
+      isInitializing=false;
       if(fbUser) {
         token = await fbUser.getIdToken();
         localStorage.setItem('sc_token', token);
@@ -811,6 +855,10 @@ function switchTab(t) {
   document.getElementById('register-form').style.display = t === 'register' ? '' : 'none';
 }
 async function doLogin() {
+  if(isInitializing){
+    showToast('L\'application initialise...');
+    return;
+  }
   const btn = document.getElementById('l-btn'); btn.disabled = true; btn.textContent = '...';
   const err = document.getElementById('l-err'); err.style.display = 'none';
   try {
@@ -848,6 +896,7 @@ async function doLogin() {
     }
   } catch (e) { err.textContent = e.message || 'Erreur de connexion'; err.style.display = 'block'; }
   btn.disabled = false; btn.textContent = 'Se connecter →';
+  isInitializing=false;
 }
 async function doRegister() {
   const btn = document.getElementById('r-btn'); btn.disabled = true; btn.textContent = '...';
@@ -895,6 +944,7 @@ async function doRegister() {
     showApp();
   } catch (e) { err.textContent = e.message || 'Erreur lors de l\'inscription'; err.style.display = 'block'; }
   btn.disabled = false; btn.textContent = 'Créer mon compte →';
+  isInitializing=false;
 }
 function showApp() {
   document.getElementById('auth-screen').style.display = 'none';

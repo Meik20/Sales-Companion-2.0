@@ -314,7 +314,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--tx);height
 <div class="auth-screen" id="auth-screen">
   <div class="auth-card">
     <div class="a-brand">
-      <div class="a-logo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="28" height="28"><path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></div>
+      <div class="a-logo"><svg viewBox="0 0 100 100" width="28" height="28"><rect width="100" height="100" rx="20" fill="#1B7A3E"/><text x="50" y="65" font-family="Arial, sans-serif" font-size="60" font-weight="bold" fill="white" text-anchor="middle">SC</text></svg></div>
       <h1>SALES <em>COMPANION</em></h1>
       <p>Intelligence B2B · Cameroun</p>
     </div>
@@ -341,7 +341,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--tx);height
 <!-- TITLEBAR -->
 <div class="tb" id="titlebar">
   <div class="tb-brand">
-    <div class="tb-logo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></div>
+    <div class="tb-logo"><svg viewBox="0 0 100 100" width="16" height="16"><rect width="100" height="100" rx="20" fill="rgba(255,255,255,0.3)"/><text x="50" y="65" font-family="Arial, sans-serif" font-size="60" font-weight="bold" fill="white" text-anchor="middle">SC</text></svg></div>
     <div class="tb-name">SALES <em>COMPANION</em></div>
   </div>
   <div class="tb-right">
@@ -586,15 +586,48 @@ const REGION_CITIES={
   'Sud-Ouest':['Buea','Limbé','Kumba','Mundemba','Mamfe'],
 };
 
-let token='',user=null,chatHistory=[],isSearching=false,isChatting=false;
+let token='',user=null,chatHistory=[],isSearching=false,isChatting=false,isInitializing=true;
+
+// Initialize app with cached token (prevent auth screen flash)
+async function initializeApp(){
+  try{
+    console.log('[App Init] Checking for cached token...');
+    const cachedToken=await window.electronAPI.getToken();
+    if(cachedToken){
+      console.log('[App Init] ✓ Cached token found, validating...');
+      try{
+        const r=await window.electronAPI.getMe(cachedToken);
+        if(r.status===200){
+          token=cachedToken;
+          user=r.data;
+          console.log('[App Init] ✓ Token is valid, showing app');
+          showApp();
+          isInitializing=false;
+          return;
+        }
+      }catch(e){
+        console.log('[App Init] ✗ Token validation failed:', e.message);
+        await window.electronAPI.clearToken();
+      }
+    }
+  }catch(e){
+    console.log('[App Init] Error checking token:', e.message);
+  }
+  isInitializing=false;
+  console.log('[App Init] Showing login screen');
+}
 let customCities={},lastResults=[],lastFilters={},lastQuery='';
 const RAILWAY_SERVER='https://sales-companion-production.up.railway.app';
 
-(async()=>{
-  token=await window.electronAPI.getToken();
-  if(token){const r=await window.electronAPI.getMe(token);if(r.status===200){user=r.data;showApp();}else await window.electronAPI.clearToken();}
+// Initialize app on page load
+document.addEventListener('DOMContentLoaded', async ()=>{
+  await initializeApp();
   updateCities();
-})();
+});
+// Also initialize immediately in case DOMContentLoaded already fired
+if(document.readyState==='interactive'||document.readyState==='complete'){
+  initializeApp().then(()=>updateCities());
+}
 
 function switchTab(t){
   document.querySelectorAll('.a-tab').forEach((el,i)=>el.classList.toggle('active',(i===0&&t==='login')||(i===1&&t==='register')));
@@ -603,6 +636,10 @@ function switchTab(t){
 }
 
 async function doLogin(){
+  if(isInitializing){
+    toast('L\'application initialise...');
+    return;
+  }
   const btn=document.getElementById('l-btn');btn.disabled=true;btn.textContent='Connexion...';
   const err=document.getElementById('l-err');err.style.display='none';
   try{
@@ -641,6 +678,10 @@ async function doLogin(){
   btn.textContent = 'Se connecter →';
 }
 async function doRegister(){
+  if(isInitializing){
+    toast('L\'application initialise...');
+    return;
+  }
   const btn=document.getElementById('r-btn');btn.disabled=true;btn.textContent='Création...';
   const err=document.getElementById('r-err');err.style.display='none';
   try{
@@ -673,6 +714,7 @@ async function doRegister(){
   }
   btn.disabled = false;
   btn.textContent = 'Créer mon compte →';
+  if(isInitializing) isInitializing=false;
 }
 
 function showApp(){
