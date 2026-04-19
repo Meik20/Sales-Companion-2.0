@@ -297,10 +297,26 @@ ipcMain.handle('register', (_, p) => {
   });
 });
 
-ipcMain.handle('get-me', (_, payload) => {
+ipcMain.handle('get-me', async (_, payload) => {
   const serverUrl = payload && payload.serverUrl ? payload.serverUrl : getServerUrl();
   const token = payload && typeof payload === 'object' ? payload.token : payload;
-  return requestWithRetry(serverUrl, 'GET', '/auth/me', null, token);
+  
+  try {
+    const res = await requestWithRetry(serverUrl, 'GET', '/auth/me', null, token);
+    
+    // Si 401 → token expiré, on ne peut pas le rafraîchir côté main process
+    // Retourner une erreur claire pour que le renderer redemande le login
+    if (res.status === 401) {
+      throw new Error('Token expiré — reconnexion requise');
+    }
+    
+    return res;
+  } catch (error) {
+    if (error.message.includes('Token expiré')) {
+      throw error;
+    }
+    throw new Error(`Impossible de récupérer le profil: ${error.message}`);
+  }
 });
 
 /* ─────────────────────────────────────────────

@@ -239,9 +239,34 @@ app.post('/auth/login', authLimiter, async (req, res) => {
 app.get('/auth/me', verifyToken, async (req, res) => {
   try {
     const user = await getUser(req.userId);
+    
+    // Si le document Firestore n'existe pas encore, retourner un profil minimal
+    if (!user) {
+      return res.json({
+        uid:         req.userId,
+        email:       req.userEmail,
+        name:        req.userEmail?.split('@')[0] || 'Utilisateur',
+        plan:        'free',
+        dailyLimit:  10,
+        dailyUsed:   0,
+        remaining:   10,
+        active:      true,
+      });
+    }
+    
     res.json(user);
   } catch (error) {
-    return safeError(res, 500, 'Impossible de récupérer le profil', error);
+    // Ne pas retourner 500 — retourner profil minimal
+    return res.json({
+      uid:        req.userId,
+      email:      req.userEmail,
+      name:       req.userEmail?.split('@')[0] || 'Utilisateur',
+      plan:       'free',
+      dailyLimit: 10,
+      dailyUsed:  0,
+      remaining:  10,
+      active:     true,
+    });
   }
 });
 

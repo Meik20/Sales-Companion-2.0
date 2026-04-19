@@ -418,7 +418,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--tx);height
     <div class="center-top">
       <div class="topsearch">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input id="top-input" type="text" placeholder="Rechercher par nom, NIU, activité, ville..." onkeydown="if(event.key==='Enter')searchFromTop()">
+        <input id="top-input" type="text" placeholder="Rechercher par nom, NIU, activité, ville, téléphone ou email..." onkeydown="if(event.key==='Enter')searchFromTop()">
       </div>
       <button class="gobtn" id="gobtn" onclick="searchFromTop()">Rechercher</button>
       <button class="savebtn" id="savebtn" onclick="openSaveModal()">💾 Sauvegarder</button>
@@ -607,7 +607,10 @@ async function initializeApp(){
         }
       }catch(e){
         console.log('[App Init] ✗ Token validation failed:', e.message);
-        await window.electronAPI.clearToken();
+        if (e.message.includes('expiré') || e.message.includes('401')) {
+          // Supprimer le token expiré et demander reconnexion
+          await window.electronAPI.clearToken();
+        }
       }
     }
   }catch(e){
@@ -739,7 +742,12 @@ async function refreshRemaining(){
   try{
     const r=await window.electronAPI.getMe({ token, serverUrl: RAILWAY_SERVER });
     if(r.status===200){user=r.data;document.getElementById('tb-rem').textContent=`${r.data.remaining} restantes`;}
-  }catch{}
+  }catch(e){
+    if (e.message.includes('expiré') || e.message.includes('401')) {
+      // Token expiré, déconnexion automatique
+      doLogout();
+    }
+  }
 }
 function doLogout(){
   document.getElementById('prof-overlay').classList.remove('open');
@@ -858,6 +866,9 @@ function renderResults(data){
     const mapSrc=`https://maps.google.com/maps?q=${mapQ}&output=embed&z=15`;
     const card=document.createElement('div');
     card.className='co-card';
+    const phone = co.telephone || co.tel || co.company_phone || '';
+    const email = co.email || co.contact_email || co.company_email || '';
+    const address = co.adresse || co.company_address || '';
     card.innerHTML=`
       <div class="co-head">
         <div class="co-av">${initials}</div>
@@ -878,10 +889,10 @@ function renderResults(data){
         ${co.activite_principale?`<div class="co-f full"><span class="co-fl">Activité principale</span><span class="co-fv full">${co.activite_principale}</span></div>`:''}
         ${co.dirigeant?`<div class="co-f"><span class="co-fl">👤 Dirigeant</span><span class="co-fv">${co.dirigeant}</span></div>`:''}
         ${co.rccm?`<div class="co-f"><span class="co-fl">📋 RCCM</span><span class="co-fv mono">${co.rccm}</span></div>`:''}
-        ${co.telephone?`<div class="co-f"><span class="co-fl">📞 Téléphone</span><span class="co-fv phone">${co.telephone}</span></div>`:''}
-        ${co.email?`<div class="co-f"><span class="co-fl">📧 Email</span><span class="co-fv">${co.email}</span></div>`:''}
+        ${phone?`<div class="co-f"><span class="co-fl">📞 Téléphone</span><span class="co-fv phone">${phone}</span></div>`:''}
+        ${email?`<div class="co-f"><span class="co-fl">📧 Email</span><span class="co-fv">${email}</span></div>`:''}
         ${co.site_web?`<div class="co-f"><span class="co-fl">🌐 Site web</span><span class="co-fv link" onclick="openLink('http://${co.site_web}')">${co.site_web}</span></div>`:''}
-        ${co.adresse?`<div class="co-f full"><span class="co-fl">🏠 Adresse</span><span class="co-fv">${co.adresse}</span></div>`:''}
+        ${address?`<div class="co-f full"><span class="co-fl">🏠 Adresse</span><span class="co-fv">${address}</span></div>`:''}
         ${co.centre_rattachement?`<div class="co-f"><span class="co-fl">Centre de rattachement</span><span class="co-fv">${co.centre_rattachement}</span></div>`:''}
       </div>
       <div class="co-footer">
@@ -932,9 +943,12 @@ function toggleMap(id,src){
 
 function shareCard(idx){
   const co=lastResults[idx];if(!co){toast('Erreur');return;}
+  const phone = co.telephone || co.tel || co.company_phone || '';
+  const email = co.email || co.contact_email || co.company_email || '';
+  const address = co.adresse || co.company_address || '';
   const txt=`🏢 *${co.raison_sociale||'—'}*${co.sigle?' ('+co.sigle+')':''}
 📂 ${co.secteur||'—'} | ${[co.ville,co.region].filter(Boolean).join(', ')||'—'}
-${co.activite_principale?'💼 '+co.activite_principale+'\n':''}${co.dirigeant?'👤 '+co.dirigeant+'\n':''}${co.telephone?'📞 '+co.telephone+'\n':''}${co.email?'📧 '+co.email+'\n':''}${co.site_web?'🌐 '+co.site_web+'\n':''}${co.rccm?'📋 RCCM: '+co.rccm+'\n':''}${co.niu?'🔑 NIU: '+co.niu+'\n':''}${co.adresse?'🏠 '+co.adresse+'\n':''}
+${co.activite_principale?'💼 '+co.activite_principale+'\n':''}${co.dirigeant?'👤 '+co.dirigeant+'\n':''}${phone?'📞 '+phone+'\n':''}${email?'📧 '+email+'\n':''}${co.site_web?'🌐 '+co.site_web+'\n':''}${co.rccm?'📋 RCCM: '+co.rccm+'\n':''}${co.niu?'🔑 NIU: '+co.niu+'\n':''}${address?'🏠 '+address+'\n':''}
 _Partagé via Sales Companion_`;
   navigator.clipboard.writeText(txt).then(()=>toast('✅ Fiche copiée — prête pour WhatsApp / email')).catch(()=>toast('Erreur de copie'));
 }
