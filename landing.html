@@ -522,8 +522,8 @@ const navCta  = document.getElementById('nav-cta-btn');
 const heroBtn = document.getElementById('hero-main-btn');
 const heroLbl = document.getElementById('hero-main-label');
 
-// Nav CTA : mobile → app web, desktop → téléchargement
-navCta.href = isDesktop ? DESKTOP_URL : APP_URL;
+// Nav CTA : toujours rediriger vers l'application mobile
+navCta.href = APP_URL;
 
 if (isAndroid) {
   devIcon.textContent = '🤖';
