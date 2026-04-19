@@ -415,63 +415,55 @@ tr:hover td{background:#fafafa}
 <script>
 const API = window.location.origin;
 const PLAN_INFO = {
-  free:       {label:'Gratuit',    badge:'b-free',       icon:'🆓'},
-  starter:    {label:'Starter',    badge:'b-starter',    icon:'🚀'},
-  pro:        {label:'Pro',        badge:'b-pro',        icon:'⭐'},
-  enterprise: {label:'Entreprise', badge:'b-enterprise', icon:'🏢'}
+  free:{label:'Gratuit',badge:'b-free',icon:'🆓'},
+  starter:{label:'Starter',badge:'b-starter',icon:'🚀'},
+  pro:{label:'Pro',badge:'b-pro',icon:'⭐'},
+  enterprise:{label:'Entreprise',badge:'b-enterprise',icon:'🏢'}
 };
 
 let adminToken        = localStorage.getItem('sc_admin_token');
 let adminRefreshToken = localStorage.getItem('sc_admin_refresh');
-let allUsers = [], coPage = 1, coSearchTimer = null;
+let allUsers=[], coPage=1, coSearchTimer=null;
 
 const H = () => ({'Content-Type':'application/json','Authorization':`Bearer ${adminToken}`});
 
-async function refreshAdminToken() {
+// ── REFRESH TOKEN AUTOMATIQUE ─────────────────────────────────
+async function refreshToken() {
   if (!adminRefreshToken) return false;
   try {
-    const res  = await fetch(`https://securetoken.googleapis.com/v1/token?key=${await getFirebaseApiKey()}`, {
-      method: 'POST',
-      headers: {'Content-Type':'application/x-www-form-urlencoded'},
-      body: `grant_type=refresh_token&refresh_token=${adminRefreshToken}`
-    });
+    const keyRes = await fetch(`${API}/api/config/firebase`);
+    const keyData = await keyRes.json();
+    const res = await fetch(
+      `https://securetoken.googleapis.com/v1/token?key=${keyData.apiKey}`,
+      { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'},
+        body:`grant_type=refresh_token&refresh_token=${adminRefreshToken}` }
+    );
     const data = await res.json();
     if (data.id_token) {
       adminToken = data.id_token;
       if (data.refresh_token) adminRefreshToken = data.refresh_token;
       localStorage.setItem('sc_admin_token',   adminToken);
       localStorage.setItem('sc_admin_refresh', adminRefreshToken);
-      console.log('[Auth] Token rafraîchi ✅');
+      console.log('[Auth] ✅ Token rafraîchi');
       return true;
     }
   } catch(e) { console.error('[Auth] Refresh échoué:', e); }
   return false;
 }
 
-async function getFirebaseApiKey() {
-  try {
-    const r = await fetch(`${API}/api/config/firebase`);
-    const d = await r.json();
-    return d.apiKey;
-  } catch(_) { return ''; }
-}
-
-async function apiFetch(url, options = {}) {
-  options.headers = { ...H(), ...(options.headers || {}) };
-  if (options.body instanceof FormData) {
-    delete options.headers['Content-Type'];
-    delete options.headers['content-type'];
-  }
+// ── FETCH AVEC RETRY AUTO ─────────────────────────────────────
+async function apiFetch(url, options={}) {
+  options.headers = {...H(), ...(options.headers||{})};
+  // Supprimer Content-Type si FormData
+  if (options.body instanceof FormData) delete options.headers['Content-Type'];
+  
   let res = await fetch(url, options);
   if (res.status === 401) {
-    console.log('[Auth] 401 reçu — tentative de refresh...');
-    const refreshed = await refreshAdminToken();
-    if (refreshed) {
-      options.headers = { ...H(), ...(options.headers || {}) };
-      if (options.body instanceof FormData) {
-        delete options.headers['Content-Type'];
-        delete options.headers['content-type'];
-      }
+    console.log('[Auth] Token expiré — refresh...');
+    const ok = await refreshToken();
+    if (ok) {
+      options.headers = {...H(), ...(options.headers||{})};
+      if (options.body instanceof FormData) delete options.headers['Content-Type'];
       res = await fetch(url, options);
     }
     if (res.status === 401) { logout(); return null; }
@@ -479,7 +471,13 @@ async function apiFetch(url, options = {}) {
   return res;
 }
 
-// Auto-login si token présent
+// ── REFRESH AUTO toutes les 50 minutes ───────────────────────
+setInterval(() => {
+  if (adminToken && adminRefreshToken) {
+    refreshToken().then(ok => ok && console.log('[Auth] Refresh périodique ✅'));
+  }
+}, 50 * 60 * 1000);
+
 if (adminToken) showApp();
 
 // ── AUTH ──────────────────────────────────────────────────────
@@ -489,35 +487,21 @@ async function doLogin() {
   const err = document.getElementById('login-err');
   err.style.display = 'none';
   try {
-    const email = u.includes('@') ? u : (u === 'admin' ? 'admin@sales-companion.local' : u + '@sales-companion.local');
-    
-    // Login direct Firebase pour récupérer le refresh token
-    const firebaseKey = await getFirebaseApiKey();
-    const fbRes  = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${firebaseKey}`, {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({email, password: p, returnSecureToken: true})
-    });
-    const fbData = await fbRes.json();
-    if (fbData.error) { err.textContent = 'Email ou mot de passe incorrect'; err.style.display='block'; return; }
-
-    // Vérifier le rôle admin via notre serveur
+    const email = u.includes('@') ? u : (u==='admin' ? 'admin@sales-companion.local' : u+'@sales-companion.local');
     const r = await fetch(`${API}/admin/login`, {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({email, password: p})
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({email, password:p})
     });
     const d = await r.json();
-    if (!r.ok) { err.textContent = d.error; err.style.display='block'; return; }
+    if (!r.ok) { err.textContent=d.error; err.style.display='block'; return; }
 
     adminToken        = d.token;
-    adminRefreshToken = fbData.refreshToken;
-    localStorage.setItem('sc_admin_token',   adminToken);
-    localStorage.setItem('sc_admin_refresh', adminRefreshToken);
+    adminRefreshToken = d.refreshToken || null; // ← sauvegarder
+    localStorage.setItem('sc_admin_token', adminToken);
+    if (adminRefreshToken) localStorage.setItem('sc_admin_refresh', adminRefreshToken);
     showApp();
-  } catch(e) {
-    err.textContent = 'Serveur inaccessible';
-    err.style.display = 'block';
+  } catch(e) { err.textContent='Serveur inaccessible'; err.style.display='block'; }
+}
   }
 }
 

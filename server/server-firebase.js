@@ -269,8 +269,10 @@ app.post('/admin/login', authLimiter, async (req, res) => {
     const user = await getUser(firebaseData.localId);
     await logUsage(firebaseData.localId, 'admin_login');
     res.json({
-      token: firebaseData.idToken,
-      user: { uid: firebaseData.localId, email: firebaseData.email, name: user?.name || identifier.split('@')[0], role: 'admin' },
+      token:        firebaseData.idToken,
+      refreshToken: firebaseData.refreshToken, // ← ajouter
+      user: { uid: firebaseData.localId, email: firebaseData.email,
+              name: user?.name || identifier.split('@')[0], role:'admin' },
     });
   } catch (error) {
     return safeError(res, 500, 'Erreur de connexion admin', error);
