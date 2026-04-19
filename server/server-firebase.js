@@ -351,10 +351,12 @@ app.get('/admin/stats', verifyAdmin, async (req, res) => {
 
 app.get('/admin/config', verifyAdmin, async (req, res) => {
   try {
-    const groq_api_key = await getConfig('groq_api_key');
-    res.json({ groq_api_key });
+    // getConfig peut retourner null si le doc n'existe pas — pas d'erreur
+    const groq_api_key = await getConfig('groq_api_key').catch(() => null);
+    res.json({ groq_api_key: groq_api_key || null });
   } catch (error) {
-    return safeError(res, 500, 'Erreur config', error);
+    // Ne pas retourner 500 — retourner un objet vide
+    res.json({ groq_api_key: null });
   }
 });
 

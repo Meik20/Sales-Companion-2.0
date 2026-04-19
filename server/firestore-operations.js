@@ -289,11 +289,11 @@ async function setConfig(key, value) {
 async function getConfig(key) {
   try {
     const doc = await db.collection('config').doc(key).get();
-    if (!doc.exists) return null;
+    if (!doc.exists) return null; // ← collection vide = null, pas d'erreur
     return doc.data().value;
   } catch (error) {
-    console.error('Error getting config:', error);
-    throw error;
+    console.error('Error getting config:', error.message);
+    return null; // ← retourne null au lieu de throw
   }
 }
 
