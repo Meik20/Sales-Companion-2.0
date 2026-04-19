@@ -763,15 +763,13 @@ async function checkCachedToken(){
         }
       }catch(e){
         console.log('[App Init] Token validation error:', e.message);
-        localStorage.removeItem('sc_token');
-        token='';
+        // Keep token if network error so Firebase auth state can still restore session
       }
     }
   }catch(e){
     console.log('[App Init] Error in checkCachedToken:', e.message);
   }
-  console.log('[App Init] No valid token found, will show auth screen');
-  isInitializing=false;
+  console.log('[App Init] No valid token found yet');
   return false;
 }
 
@@ -798,23 +796,23 @@ function waitForFirebase(callback, attempts = 0) {
 
 document.addEventListener('DOMContentLoaded', async () => {
   // Check cached token FIRST to prevent auth screen flash
-  const tokenIsValid=await checkCachedToken();
+  const tokenIsValid = await checkCachedToken();
   if(tokenIsValid){
     console.log('[App Init] Using cached token, skipping Firebase auth listener');
     updateCities();
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+    window.history.replaceState(null, '', '/mobile');
     return;
   }
-  
-  // No valid cached token, show auth screen
-  console.log('[App Init] No valid cached token, showing auth screen');
-  showAuth();
-  
-  // Set up Firebase auth listener for new logins
+
+  console.log('[App Init] No valid cached token, waiting for Firebase auth state');
+
+  // Set up Firebase auth listener for login persistence
   waitForFirebase(() => {
     if (!auth) {
       console.error('✗ Firebase Auth not ready');
       isInitializing=false;
+      showAuth();
       return;
     }
     auth.onAuthStateChanged(async (fbUser) => {
@@ -822,16 +820,20 @@ document.addEventListener('DOMContentLoaded', async () => {
       if(fbUser) {
         token = await fbUser.getIdToken();
         localStorage.setItem('sc_token', token);
-        
+
         // Get user profile from Firestore
         try {
           const userDoc = await db.collection('users').doc(fbUser.uid).get();
           if(userDoc.exists) {
             user = userDoc.data();
             showApp();
+            window.history.replaceState(null, '', '/mobile');
+          } else {
+            showAuth();
           }
         } catch(e) {
           console.error('Error getting user profile:', e);
+          showAuth();
         }
       } else {
         token = '';
@@ -840,7 +842,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
   });
-  
+
   updateCities();
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 });
