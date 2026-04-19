@@ -10,12 +10,12 @@ const { getFirestore } = require('firebase/firestore');
 
 // Load config from environment variables (set in preload.js or .env)
 const firebaseConfig = {
-  apiKey: process.env.REACT_APP_FIREBASE_API_KEY || 'AIzaSyCVJxyeysHWDQ7yECTb-GApJz7u8s5l7N0',
-  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN || 'sales-companion-9cf56.firebaseapp.com',
-  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID || 'sales-companion-9cf56',
-  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET || 'sales-companion-9cf56.firebasestorage.app',
-  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || '1058275289756',
-  appId: process.env.REACT_APP_FIREBASE_APP_ID || '1:1058275289756:web:8c3a2f9b4e1d7c6f5a4b9e8d7c6f5a4b'
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY || 'AIzaSyB4N62OBpJ9xYkV34VKsJrYbR6Z6_NpSPg',
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN || 'sales-companion-237.firebaseapp.com',
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID || 'sales-companion-237',
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET || 'sales-companion-237.firebasestorage.app',
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || '1075913757125',
+  appId: process.env.REACT_APP_FIREBASE_APP_ID || '1:1075913757125:web:71cc06fb7f55100c5fbbac'
 };
 
 console.log('[Firebase] Initializing Firebase with config:', firebaseConfig.projectId);
