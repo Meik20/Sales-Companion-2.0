@@ -1,5 +1,5 @@
 const CACHE = 'sc-v1';
-const ASSETS = ['/', '/index.html', '/manifest.json'];
+const ASSETS = ['/', '/index.html', '/mobile', '/mobile/index.html', '/landing.html', '/manifest.json'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
@@ -13,6 +13,13 @@ self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   if (e.request.url.includes('/api/') || e.request.url.includes('/auth/')) return;
   e.respondWith(
-    caches.match(e.request).then(cached => cached || fetch(e.request).catch(() => caches.match('/index.html')))
+    caches.match(e.request).then(cached => {
+      if (cached) return cached;
+      return fetch(e.request).catch(async () => {
+        if (e.request.destination === 'document' || (e.request.headers.get('accept') || '').includes('text/html')) {
+          return caches.match('/mobile') || caches.match('/mobile/index.html') || caches.match('/index.html');
+        }
+      });
+    })
   );
 });
