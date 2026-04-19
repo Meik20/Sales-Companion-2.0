@@ -1,9 +1,9 @@
 // delete-companies.js
 // Lancer : node server/delete-companies.js
 require('dotenv').config();
-const { db } = require('./server/firebase-config');
+const { db } = require('./firebase-config');
 
-async function deleteCollection(collectionName, batchSize = 300) {
+async function deleteCollection(collectionName, batchSize = 100) {
   console.log(`\n🗑️  Suppression de "${collectionName}"...`);
   let total = 0;
 
@@ -18,8 +18,8 @@ async function deleteCollection(collectionName, batchSize = 300) {
     total += snap.size;
     console.log(`   ${total} documents supprimés...`);
 
-    // Pause pour éviter de re-dépasser le quota
-    await new Promise(r => setTimeout(r, 1000));
+    // Pause plus longue pour éviter le quota
+    await new Promise(r => setTimeout(r, 2000));
   }
 
   console.log(`✅ "${collectionName}" vidée — ${total} documents supprimés`);
