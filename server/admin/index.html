@@ -499,10 +499,8 @@ async function doLogin() {
     adminRefreshToken = d.refreshToken || null; // ← sauvegarder
     localStorage.setItem('sc_admin_token', adminToken);
     if (adminRefreshToken) localStorage.setItem('sc_admin_refresh', adminRefreshToken);
-    showApp();
+   showApp();
   } catch(e) { err.textContent='Serveur inaccessible'; err.style.display='block'; }
-}
-  }
 }
 
 function logout() {
