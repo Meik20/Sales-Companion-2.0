@@ -1115,8 +1115,8 @@ function renderResults(data) {
       <div class="co-body">
         ${co.activite_principale ? `<div class="co-f full"><span class="co-fl">Activité</span><span class="co-fv full">${co.activite_principale}</span></div>` : ''}
         ${co.dirigeant ? `<div class="co-f"><span class="co-fl">👤 Dirigeant</span><span class="co-fv">${co.dirigeant}</span></div>` : ''}
-        ${co.telephone ? `<div class="co-f"><span class="co-fl">📞 Téléphone</span><span class="co-fv phone"><a href="tel:${co.telephone}">${co.telephone}</a></span></div>` : ''}
-        ${co.email ? `<div class="co-f"><span class="co-fl">📧 Email</span><span class="co-fv"><a href="mailto:${co.email}">${co.email}</a></span></div>` : ''}
+        <div class="co-f"><span class="co-fl">📞 Téléphone</span><span class="co-fv phone">${co.telephone ? `<a href="tel:${co.telephone}">${co.telephone}</a>` : '—'}</span></div>
+        <div class="co-f"><span class="co-fl">📧 Email</span><span class="co-fv">${co.email ? `<a href="mailto:${co.email}">${co.email}</a>` : '—'}</span></div>
         ${co.adresse ? `<div class="co-f full"><span class="co-fl">🏠 Adresse</span><span class="co-fv full">${co.adresse}</span></div>` : ''}
         ${co.rccm ? `<div class="co-f"><span class="co-fl">RCCM</span><span class="co-fv" style="font-size:11px">${co.rccm}</span></div>` : ''}
       </div>
