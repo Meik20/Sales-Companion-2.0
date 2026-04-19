@@ -46,6 +46,7 @@ if (missingEnv.length > 0) {
 
 // ── SERVER SETUP ──────────────────────────────────────────────
 const app = express();
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 3210;
 const UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(__dirname, 'uploads');
 
