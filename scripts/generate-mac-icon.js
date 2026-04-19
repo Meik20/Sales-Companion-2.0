@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Génère un fichier .icns pour macOS à partir du SVG
+ * Génère un fichier .icns pour macOS à partir de SVG, PNG ou ICO
  * Alternativement, utiliser iconutil (macOS seulement) ou ImageMagick
  */
 const sharp = require('sharp');
@@ -8,40 +8,48 @@ const path = require('path');
 const fs = require('fs');
 
 const rootDir = path.resolve(__dirname, '..');
-const svgFile = path.join(rootDir, 'client', 'assets', 'icon.svg');
 const clientAssetsDir = path.join(rootDir, 'client', 'assets');
+const svgFile = path.join(clientAssetsDir, 'icon.svg');
+const icoFile = path.join(clientAssetsDir, 'icon.ico');
+const pngFile = path.join(clientAssetsDir, 'icon.png');
 const icnsPath = path.join(clientAssetsDir, 'icon.icns');
+
+const sourceFile = fs.existsSync(svgFile)
+  ? svgFile
+  : fs.existsSync(pngFile)
+  ? pngFile
+  : fs.existsSync(icoFile)
+  ? icoFile
+  : null;
+
+if (!sourceFile) {
+  console.error('❌ Aucune source d\'icône trouvée. Placez icon.svg, icon.png ou icon.ico dans client/assets.');
+  process.exit(1);
+}
 
 async function generateMacIcon() {
   try {
-    console.log('🍎 Tentative de génération de l\'icône macOS (.icns)...');
-    console.log('Note: Cette étape nécessite imagemagick ou ImageMagick');
-    console.log('Alternativement, vous pouvez créer icon.icns via:');
-    console.log('  1. Utiliser un service en ligne: https://cloudconvert.com/svg-to-icns');
-    console.log('  2. Utiliser "iconutil" sur macOS: iconutil -c icns icon.iconset');
-    console.log('  3. Installer ImageMagick et utiliser convert');
+    console.log(`🍎 Génération du fichier .icns à partir de ${path.basename(sourceFile)}...`);
+    console.log('Note: Pour un .icns fiable, utiliser ImageMagick ou iconutil si disponible.');
     console.log('');
-    console.log('Pour Windows/Linux, créer une version PNG 256x256 comme fallback');
-    
-    // Vérifier si convert (ImageMagick) est disponible
+
     const { execSync } = require('child_process');
     try {
       execSync('convert --version', { stdio: 'ignore' });
       console.log('✅ ImageMagick détecté, génération en cours...');
-      
-      // Générer avec ImageMagick
-      execSync(`convert "${svgFile}" -define icon:auto-resize=256,128,96,64,48,32,16 "${icnsPath}"`, {
+      execSync(`convert "${sourceFile}" -define icon:auto-resize=256,128,96,64,48,32,16 "${icnsPath}"`, {
         stdio: 'inherit'
       });
       console.log(`✅ icon.icns généré avec succès!`);
     } catch (e) {
       console.log('⚠️ ImageMagick non trouvé. Fichier .icns non créé.');
-      console.log('Pour créer l\'icône macOS, voir instructions ci-dessus.');
+      console.log('Pour créer l\'icône macOS, voir les instructions du README ou utilisez iconutil sur macOS.');
       console.log('');
-      console.log('Pour l\'instant, macOS utilisera le PNG comme fallback.');
+      console.log('Pour l\'instant, macOS utilisera icon.png comme fallback si disponible.');
     }
   } catch (error) {
     console.error('Erreur:', error.message);
+    process.exit(1);
   }
 }
 

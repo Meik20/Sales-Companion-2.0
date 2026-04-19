@@ -2,20 +2,31 @@
 const sharp = require('sharp');
 const path = require('path');
 const fs = require('fs');
+const icojs = require('icojs');
 
 const rootDir = path.resolve(__dirname, '..');
-const svgFile = path.join(rootDir, 'client', 'assets', 'icon.svg');
 const clientAssetsDir = path.join(rootDir, 'client', 'assets');
 const mobileIconsDir = path.join(rootDir, 'mobile', 'icons');
+const icoSource = path.join(clientAssetsDir, 'icon.ico');
+const svgSource = path.join(clientAssetsDir, 'icon.svg');
+const pngSource = path.join(clientAssetsDir, 'icon.png');
 
-// Créer les dossiers
-[clientAssetsDir, mobileIconsDir].forEach(dir => {
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-});
+const sourceFile = fs.existsSync(icoSource)
+  ? icoSource
+  : fs.existsSync(svgSource)
+  ? svgSource
+  : fs.existsSync(pngSource)
+  ? pngSource
+  : null;
 
-// Définir les tailles à générer
+if (!sourceFile) {
+  console.error('❌ Aucune source d\'icône trouvée. Placez icon.ico, icon.svg ou icon.png dans client/assets.');
+  process.exit(1);
+}
+
+const sourceType = path.extname(sourceFile).toLowerCase();
+const iconSourceLabel = sourceType === '.ico' ? 'ICO' : sourceType === '.svg' ? 'SVG' : 'PNG';
+
 const sizes = [
   { size: 72, dir: mobileIconsDir, name: 'icon-72.png' },
   { size: 96, dir: mobileIconsDir, name: 'icon-96.png' },
@@ -28,69 +39,89 @@ const sizes = [
   { size: 512, dir: mobileIconsDir, name: 'icon-512.png' },
 ];
 
+function ensureDirectories() {
+  [clientAssetsDir, mobileIconsDir].forEach(dir => {
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+  });
+}
+
+async function loadIcoAsBuffer(filePath) {
+  const fileBuffer = fs.readFileSync(filePath);
+  const images = await icojs.decodeIco(fileBuffer, 'image/png');
+  if (!images.length) {
+    throw new Error('Aucune image trouvée dans le fichier ICO.');
+  }
+  return images.reduce((best, image) => {
+    return image.width > best.width ? image : best;
+  }, images[0]).buffer;
+}
+
+async function getSharpInput() {
+  if (sourceType === '.ico') {
+    return await loadIcoAsBuffer(sourceFile);
+  }
+  return sourceFile;
+}
+
 async function generateIcons() {
   try {
-    console.log('🎨 Génération des icônes "SC" à partir du SVG...');
-    
-    if (!fs.existsSync(svgFile)) {
-      console.error(`❌ SVG source non trouvé: ${svgFile}`);
-      process.exit(1);
-    }
+    ensureDirectories();
+    const sharpInput = await getSharpInput();
+    console.log(`🎨 Génération des icônes à partir de ${iconSourceLabel}: ${sourceFile}`);
 
     let count = 0;
     for (const { size, dir, name } of sizes) {
       const outputPath = path.join(dir, name);
-      await sharp(svgFile)
+      await sharp(sharpInput)
         .resize(size, size, {
           fit: 'contain',
           background: { r: 0, g: 0, b: 0, alpha: 0 }
         })
         .png()
         .toFile(outputPath);
-      
       console.log(`✅ ${name} (${size}x${size})`);
       count++;
     }
 
-    // Générer le fichier ICO Windows (256x256 -> 32x32, 64x64, 128x128, 256x256)
-    const icoSizes = [32, 64, 128, 256];
-    const icoBuffers = [];
-    
-    for (const size of icoSizes) {
-      const buffer = await sharp(svgFile)
-        .resize(size, size, { fit: 'contain', background: { r: 27, g: 122, b: 62, alpha: 255 } })
-        .png()
-        .toBuffer();
-      icoBuffers.push(buffer);
-    }
-
-    // Pour Windows .ico, on peut utiliser le format PNG pour simplifier
-    // Ou créer manuellement un fichier ICO basique
-    const icoPath = path.join(clientAssetsDir, 'icon.ico');
-    const pngPath = path.join(clientAssetsDir, 'icon.png');
-    
-    // Copier le PNG 256x256 comme fallback pour ICO
-    await sharp(svgFile)
+    const iconPngPath = path.join(clientAssetsDir, 'icon.png');
+    await sharp(sharpInput)
       .resize(256, 256, {
         fit: 'contain',
-        background: { r: 27, g: 122, b: 62, alpha: 255 }
+        background: { r: 0, g: 0, b: 0, alpha: 0 }
       })
       .png()
-      .toFile(pngPath);
-    
-    console.log(`✅ icon.png (256x256)`);
+      .toFile(iconPngPath);
+    console.log('✅ icon.png (256x256)');
 
-    // Créer un fichier ICO basique (en BMP format simplifié)
-    // Pour un vrai .ico, il faudrait une libraire, donc on crée juste une référence PNG
-    fs.copyFileSync(pngPath, icoPath);
-    console.log(`✅ icon.ico (généré à partir du PNG 256x256)`);
+    const icoPath = path.join(clientAssetsDir, 'icon.ico');
+    if (sourceType === '.ico') {
+      if (path.resolve(sourceFile) !== path.resolve(icoPath)) {
+        fs.copyFileSync(sourceFile, icoPath);
+        console.log('✅ icon.ico copié depuis la source ICO');
+      } else {
+        console.log('✅ icon.ico source déjà présent');
+      }
+    } else {
+      const tempPng = path.join(clientAssetsDir, 'icon-temp.png');
+      await sharp(sharpInput)
+        .resize(256, 256, {
+          fit: 'contain',
+          background: { r: 0, g: 0, b: 0, alpha: 0 }
+        })
+        .png()
+        .toFile(tempPng);
+      fs.copyFileSync(tempPng, icoPath);
+      fs.unlinkSync(tempPng);
+      console.log('✅ icon.ico généré en tant que fallback depuis PNG');
+    }
 
-    console.log(`\n✨ ${count} icônes générées avec succès!`);
+    console.log(`\n✨ ${count + 1} icônes générées avec succès !`);
     console.log(`📁 Client Assets: ${clientAssetsDir}`);
     console.log(`📁 Mobile Icons: ${mobileIconsDir}`);
-
   } catch (error) {
-    console.error('❌ Erreur lors de la génération des icônes:', error.message);
+    console.error('❌ Erreur lors de la génération des icônes :', error.message);
     process.exit(1);
   }
 }

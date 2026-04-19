@@ -866,9 +866,14 @@ function renderResults(data){
     const mapSrc=`https://maps.google.com/maps?q=${mapQ}&output=embed&z=15`;
     const card=document.createElement('div');
     card.className='co-card';
-    const phone = co.telephone || co.tel || co.company_phone || '';
+    const phone = co.telephone || co.tel || co.company_phone || co.contact_phone || '';
     const email = co.email || co.contact_email || co.company_email || '';
     const address = co.adresse || co.company_address || '';
+    const contactInfo = [
+      co.ville||co.region?`📍 ${[co.ville,co.region].filter(Boolean).join(', ')}`:'',
+      phone?`📞 ${phone}`:'',
+      email?`📧 ${email}`:''
+    ].filter(Boolean).join(' · ');
     card.innerHTML=`
       <div class="co-head">
         <div class="co-av">${initials}</div>
@@ -876,7 +881,7 @@ function renderResults(data){
           <div class="co-name" title="${co.raison_sociale||''}">${co.raison_sociale||'—'}${co.sigle?` <span style="font-size:12px;color:var(--tx3);font-weight:400">(${co.sigle})</span>`:''}</div>
           <div class="co-line2">
             ${co.secteur?`<span>📂 ${co.secteur}</span>`:''}
-            ${co.ville||co.region?`<span>📍 ${[co.ville,co.region].filter(Boolean).join(', ')}</span>`:''}
+            ${contactInfo?`<span>${contactInfo}</span>`:''}
           </div>
           <div class="co-badges">
             ${co.statut_juridique?`<span class="cbadge cb-type">${co.statut_juridique}</span>`:''}

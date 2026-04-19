@@ -103,8 +103,22 @@ async function searchCompanies(filters = {}) {
       const q = String(filters.query).trim().toLowerCase();
       if (q) {
         companies = companies.filter(c =>
-          [c.raisonSociale, c.sigle, c.activitePrincipale, c.sector, c.region, c.city, c.dirigeant, c.email]
-            .some(v => typeof v === 'string' && v.toLowerCase().includes(q))
+          [
+            c.raisonSociale,
+            c.sigle,
+            c.activitePrincipale,
+            c.sector,
+            c.region,
+            c.city,
+            c.dirigeant,
+            c.email,
+            c.company_email,
+            c.contact_email,
+            c.telephone,
+            c.company_phone,
+            c.adresse,
+            c.company_address
+          ].some(v => typeof v === 'string' && v.toLowerCase().includes(q))
         );
       }
     }

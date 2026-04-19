@@ -1101,6 +1101,9 @@ function renderResults(data) {
     const mapQ = encodeURIComponent(name + ' ' + (co.ville || '') + ' Cameroun');
     const card = document.createElement('div');
     card.className = 'co-card';
+    const phone = co.telephone || co.tel || co.company_phone || '';
+    const email = co.email || co.contact_email || co.company_email || '';
+    const address = co.adresse || co.company_address || '';
     card.innerHTML = `
       <div class="co-head">
         <div class="co-av">${initials}</div>
@@ -1117,9 +1120,9 @@ function renderResults(data) {
       <div class="co-body">
         ${co.activite_principale ? `<div class="co-f full"><span class="co-fl">Activité</span><span class="co-fv full">${co.activite_principale}</span></div>` : ''}
         ${co.dirigeant ? `<div class="co-f"><span class="co-fl">👤 Dirigeant</span><span class="co-fv">${co.dirigeant}</span></div>` : ''}
-        <div class="co-f"><span class="co-fl">📞 Téléphone</span><span class="co-fv phone">${co.telephone ? `<a href="tel:${co.telephone}">${co.telephone}</a>` : '—'}</span></div>
-        <div class="co-f"><span class="co-fl">📧 Email</span><span class="co-fv">${co.email ? `<a href="mailto:${co.email}">${co.email}</a>` : '—'}</span></div>
-        ${co.adresse ? `<div class="co-f full"><span class="co-fl">🏠 Adresse</span><span class="co-fv full">${co.adresse}</span></div>` : ''}
+        <div class="co-f"><span class="co-fl">📞 Téléphone</span><span class="co-fv phone">${phone ? `<a href="tel:${phone}">${phone}</a>` : '—'}</span></div>
+        <div class="co-f"><span class="co-fl">📧 Email</span><span class="co-fv">${email ? `<a href="mailto:${email}">${email}</a>` : '—'}</span></div>
+        ${address ? `<div class="co-f full"><span class="co-fl">🏠 Adresse</span><span class="co-fv full">${address}</span></div>` : ''}
         ${co.rccm ? `<div class="co-f"><span class="co-fl">RCCM</span><span class="co-fv" style="font-size:11px">${co.rccm}</span></div>` : ''}
       </div>
       <div class="co-footer">
@@ -1154,7 +1157,9 @@ function toggleMapM(id, query) {
 function shareCard(i) {
   const co = lastResults[i]; if (!co) return;
   const name = co.raison_sociale || co.company_name || co.nom || co.name || '—';
-  const txt = `🏢 *${name}*\n📂 ${co.secteur || '—'} · 📍 ${[co.ville, co.region].filter(Boolean).join(', ') || '—'}\n${co.dirigeant ? '👤 ' + co.dirigeant + '\n' : ''}${co.telephone ? '📞 ' + co.telephone + '\n' : ''}${co.email ? '📧 ' + co.email + '\n' : ''}${co.rccm ? '📋 RCCM: ' + co.rccm + '\n' : ''}${co.niu ? '🔑 NIU: ' + co.niu : ''}\n\n_Partagé via Sales Companion_`;
+  const phone = co.telephone || co.tel || co.company_phone || '';
+  const email = co.email || co.contact_email || co.company_email || '';
+  const txt = `🏢 *${name}*\n📂 ${co.secteur || '—'} · 📍 ${[co.ville, co.region].filter(Boolean).join(', ') || '—'}\n${co.dirigeant ? '👤 ' + co.dirigeant + '\n' : ''}${phone ? '📞 ' + phone + '\n' : ''}${email ? '📧 ' + email + '\n' : ''}${co.rccm ? '📋 RCCM: ' + co.rccm + '\n' : ''}${co.niu ? '🔑 NIU: ' + co.niu : ''}\n\n_Partagé via Sales Companion_`;
   if (navigator.share) {
     navigator.share({ title: name, text: txt }).catch(() => {});
   } else {
