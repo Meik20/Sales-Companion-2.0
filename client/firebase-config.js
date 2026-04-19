@@ -5,7 +5,7 @@
 
 // Initialize Firebase with production config
 const firebaseConfig = {
-  apiKey: 'AIzaSyB4N62OBpJ9xYkV34VKsJrYbR6Z6_NpSPg',
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY || '',  // Set in .env
   authDomain: 'sales-companion-237.firebaseapp.com',
   projectId: 'sales-companion-237',
   storageBucket: 'sales-companion-237.firebasestorage.app',

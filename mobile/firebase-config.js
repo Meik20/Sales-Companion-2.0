@@ -11,7 +11,7 @@ try {
   console.log('[Firebase Config] Initializing...');
 
   const firebaseConfig = {
-    apiKey: 'AIzaSyB4N62OBpJ9xYkV34VKsJrYbR6Z6_NpSPg',
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY || '',  // Set in .env
     authDomain: 'sales-companion-237.firebaseapp.com',
     projectId: 'sales-companion-237',
     storageBucket: 'sales-companion-237.firebasestorage.app',

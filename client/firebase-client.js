@@ -10,7 +10,7 @@ const { getFirestore } = require('firebase/firestore');
 
 // Load config from environment variables (set in preload.js or .env)
 const firebaseConfig = {
-  apiKey: process.env.REACT_APP_FIREBASE_API_KEY || 'AIzaSyB4N62OBpJ9xYkV34VKsJrYbR6Z6_NpSPg',
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY || '',  // Set in .env
   authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN || 'sales-companion-237.firebaseapp.com',
   projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID || 'sales-companion-237',
   storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET || 'sales-companion-237.firebasestorage.app',
