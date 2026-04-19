@@ -297,9 +297,11 @@ ipcMain.handle('register', (_, p) => {
   });
 });
 
-ipcMain.handle('get-me', (_, token) =>
-  requestWithRetry(getServerUrl(), 'GET', '/auth/me', null, token)
-);
+ipcMain.handle('get-me', (_, payload) => {
+  const serverUrl = payload && payload.serverUrl ? payload.serverUrl : getServerUrl();
+  const token = payload && typeof payload === 'object' ? payload.token : payload;
+  return requestWithRetry(serverUrl, 'GET', '/auth/me', null, token);
+});
 
 /* ─────────────────────────────────────────────
    SEARCH & CHAT

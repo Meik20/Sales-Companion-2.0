@@ -10,7 +10,7 @@ const path = require('path');
 
 const TOKEN_FILE = path.join(require('electron').app.getPath('userData'), 'firebase_token.txt');
 const SERVER_FILE = path.join(require('electron').app.getPath('userData'), 'server_url.txt');
-const DEFAULT_SERVER = 'http://localhost:3210';
+const DEFAULT_SERVER = 'https://sales-companion-production.up.railway.app';
 
 /**
  * Expose des APIs sécurisées au contexte renderer
