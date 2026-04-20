@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <style>
+      .badge { fill: #1B7A3E; }
+      .text { fill: white; font-family: Arial, sans-serif; font-size: 72px; font-weight: bold; text-anchor: middle; }
+    </style>
+  </defs>
+  <!-- Background -->
+  <rect class="badge" width="128" height="128" rx="24"/>
+  <!-- SC Text -->
+  <text class="text" x="64" y="96">SC</text>
+</svg>

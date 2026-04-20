@@ -1,9 +1,9 @@
 {
   "name": "Sales Companion",
-  "short_name": "SC",
+  "short_name": "SalesComp",
   "description": "Intelligence B2B Cameroun — Prospection & Pipeline commercial",
-  "start_url": "/mobile",
-  "scope": "/mobile/",
+  "start_url": "/mobile/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#1B7A3E",
