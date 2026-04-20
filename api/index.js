@@ -13,7 +13,7 @@ const os = require('os');
 require('dotenv').config();
 
 // Firebase
-const { auth } = require('../server/firebase-config');
+const { auth, db } = require('../server/firebase-config');
 const {
   verifyToken,
   verifyAdmin,
@@ -29,9 +29,16 @@ const {
   addPipelineProspect,
   updatePipelineProspect,
   deletePipelineProspect,
+  checkCompanyInPipeline,
   getConfig,
   setConfig,
   logUsage,
+  consumeCredit,
+  createSupportMessage,
+  getSupportMessages,
+  getSupportMessagesForUser,
+  replyToSupportMessage,
+  closeSupportMessage,
 } = require('../server/firestore-operations');
 
 // ── SERVER SETUP ──────────────────────────────────────────────
@@ -113,6 +120,34 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
+app.get('/auth/me', verifyToken, async (req, res) => {
+  try {
+    const user = await getUser(req.userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // Calculer remaining = dailyLimit - dailyUsed
+    const today = new Date().toISOString().split('T')[0];
+    const lastReset = user.lastReset ? user.lastReset.split('T')[0] : null;
+    
+    // Réinitialiser si c'est un nouveau jour
+    if (lastReset !== today) {
+      user.dailyUsed = 0;
+      await db.collection('users').doc(req.userId).update({
+        dailyUsed: 0,
+        lastReset: new Date().toISOString(),
+      });
+    }
+    
+    user.remaining = (user.dailyLimit || 10) - (user.dailyUsed || 0);
+    res.json(user);
+  } catch (error) {
+    console.error('Get me error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Admin Routes
 app.post('/api/admin/import-companies', verifyToken, verifyAdmin, async (req, res) => {
   try {
@@ -159,6 +194,17 @@ app.get('/api/companies/search', verifyToken, async (req, res) => {
 app.post('/api/search', verifyToken, async (req, res) => {
   try {
     const { query, filters = {} } = req.body;
+    
+    // Consommer 1 crédit pour la recherche
+    const creditResult = await consumeCredit(req.userId);
+    if (!creditResult.ok) {
+      return res.status(429).json({ 
+        error: creditResult.message || 'Limite quotidienne atteinte',
+        upgrade: true,
+        remaining: creditResult.remaining || 0
+      });
+    }
+    
     const companies = await searchCompanies({
       query,
       sector: filters.secteur || filters.sector,
@@ -167,7 +213,13 @@ app.post('/api/search', verifyToken, async (req, res) => {
       limit: filters.limit || 50,
       active: true,
     });
-    res.json({ count: companies.length, source: 'database', results: companies });
+    
+    res.json({ 
+      count: companies.length, 
+      source: 'database', 
+      results: companies,
+      remaining: creditResult.remaining 
+    });
   } catch (error) {
     console.error('Search error:', error);
     res.status(500).json({ error: error.message });
@@ -180,6 +232,18 @@ app.post('/api/chat', verifyToken, async (req, res) => {
     if (!Array.isArray(messages) || messages.length === 0) {
       return res.status(400).json({ error: 'Messages are required' });
     }
+
+    // Vérifier et consommer 1 crédit
+    const creditResult = await consumeCredit(req.userId);
+    if (!creditResult.ok) {
+      return res.status(429).json({ 
+        error: creditResult.message || 'Limite quotidienne atteinte',
+        upgrade: true,
+        remaining: creditResult.remaining || 0
+      });
+    }
+
+    // Réponse IA (à configurer avec Groq)
     res.json({
       choices: [
         {
@@ -189,6 +253,7 @@ app.post('/api/chat', verifyToken, async (req, res) => {
           },
         },
       ],
+      remaining: creditResult.remaining,
     });
   } catch (error) {
     console.error('Chat error:', error);
@@ -232,6 +297,17 @@ app.get('/api/pipeline', verifyToken, async (req, res) => {
     res.json({ data: pipeline });
   } catch (error) {
     console.error('Pipeline error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/pipeline/check', verifyToken, async (req, res) => {
+  try {
+    const { companyId, companyName } = req.query;
+    const result = await checkCompanyInPipeline(req.userId, companyId, companyName);
+    res.json({ data: result });
+  } catch (error) {
+    console.error('Pipeline check error:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -306,6 +382,66 @@ app.post('/api/usage/log', verifyToken, async (req, res) => {
     res.json({ success: true });
   } catch (error) {
     console.error('Usage log error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ── SUPPORT MESSAGING ─────────────────────────────────────────
+
+app.post('/api/support/messages', verifyToken, async (req, res) => {
+  try {
+    const { subject, message } = req.body;
+    if (!message || !message.trim()) {
+      return res.status(400).json({ error: 'Message is required' });
+    }
+    const result = await createSupportMessage(req.userId, { subject, message });
+    res.json({ success: true, data: result });
+  } catch (error) {
+    console.error('Support message error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/support/messages', verifyAdmin, async (req, res) => {
+  try {
+    const messages = await getSupportMessages(100);
+    res.json({ data: messages });
+  } catch (error) {
+    console.error('Get support messages error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/support/messages/user', verifyToken, async (req, res) => {
+  try {
+    const messages = await getSupportMessagesForUser(req.userId);
+    res.json({ data: messages });
+  } catch (error) {
+    console.error('Get user support messages error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.put('/api/support/messages/:id', verifyAdmin, async (req, res) => {
+  try {
+    const { reply } = req.body;
+    if (!reply || !reply.trim()) {
+      return res.status(400).json({ error: 'Reply is required' });
+    }
+    await replyToSupportMessage(req.params.id, reply, req.userEmail);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Reply support message error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.put('/api/support/messages/:id/close', verifyAdmin, async (req, res) => {
+  try {
+    await closeSupportMessage(req.params.id);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Close support message error:', error);
     res.status(500).json({ error: error.message });
   }
 });

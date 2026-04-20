@@ -288,6 +288,34 @@ async function deletePipelineProspect(userId, prospectId) {
   }
 }
 
+async function checkCompanyInPipeline(userId, companyId, companyName) {
+  try {
+    const pipelineRef = db.collection('users').doc(userId).collection('pipeline');
+    let query = pipelineRef;
+    
+    if (companyId) {
+      query = query.where('company_id', '==', companyId);
+    } else if (companyName) {
+      query = query.where('company_name', '==', companyName);
+    } else {
+      return null;
+    }
+    
+    const snapshot = await query.limit(1).get();
+    if (snapshot.empty) return null;
+    
+    const doc = snapshot.docs[0];
+    return {
+      prospectId: doc.id,
+      inPipeline: true,
+      status: doc.data().status || 'prospection'
+    };
+  } catch (error) {
+    console.error('Error checking company in pipeline:', error);
+    return null;
+  }
+}
+
 // ── CONFIG ───────────────────────────────────────────────────────
 
 async function setConfig(key, value) {
@@ -330,6 +358,140 @@ async function logUsage(userId, query, resultsCount = 0) {
   }
 }
 
+/**
+ * Consomme 1 crédit pour une action (chat, recherche, etc.)
+ * Retourne { ok: true } si suffisamment de crédits
+ * Retourne { ok: false, remaining: 0 } si limite atteinte
+ */
+async function consumeCredit(userId) {
+  try {
+    const userDoc = await db.collection('users').doc(userId).get();
+    if (!userDoc.exists) return { ok: false, message: 'Utilisateur non trouvé' };
+    
+    const userData = userDoc.data();
+    const today = new Date().toISOString().split('T')[0];
+    const lastReset = userData.lastReset ? userData.lastReset.split('T')[0] : null;
+    
+    let dailyUsed = userData.dailyUsed || 0;
+    
+    // Réinitialiser si c'est un nouveau jour
+    if (lastReset !== today) {
+      dailyUsed = 0;
+      await db.collection('users').doc(userId).update({
+        dailyUsed: 0,
+        lastReset: new Date().toISOString(),
+      });
+    }
+    
+    const dailyLimit = userData.dailyLimit || 10;
+    
+    if (dailyUsed >= dailyLimit) {
+      return { 
+        ok: false, 
+        remaining: 0,
+        message: `Limite quotidienne atteinte (${dailyLimit})`
+      };
+    }
+    
+    // Consommer 1 crédit
+    await db.collection('users').doc(userId).update({
+      dailyUsed: dailyUsed + 1,
+      updatedAt: new Date().toISOString(),
+    });
+    
+    return { 
+      ok: true,
+      remaining: dailyLimit - (dailyUsed + 1)
+    };
+  } catch (error) {
+    console.error('Error consuming credit:', error.message);
+    return { ok: false, message: 'Erreur lors de la consommation du crédit' };
+  }
+}
+
+// ── SUPPORT MESSAGING ────────────────────────────────────────────
+
+async function createSupportMessage(userId, data) {
+  try {
+    const user = await getUser(userId);
+    if (!user) return null;
+    
+    const message = {
+      userId,
+      userName: user.name || 'Utilisateur',
+      userEmail: user.email,
+      subject: data.subject || 'Support',
+      message: data.message || '',
+      status: 'open',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    
+    const docRef = await db.collection('support_messages').add(message);
+    return { id: docRef.id, ...message };
+  } catch (error) {
+    console.error('Error creating support message:', error.message);
+    throw error;
+  }
+}
+
+async function getSupportMessages(limit = 50) {
+  try {
+    const snapshot = await db.collection('support_messages')
+      .orderBy('created_at', 'desc')
+      .limit(limit)
+      .get();
+    
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    console.error('Error getting support messages:', error.message);
+    throw error;
+  }
+}
+
+async function getSupportMessagesForUser(userId) {
+  try {
+    const snapshot = await db.collection('support_messages')
+      .where('userId', '==', userId)
+      .orderBy('created_at', 'desc')
+      .get();
+    
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    console.error('Error getting user support messages:', error.message);
+    throw error;
+  }
+}
+
+async function replyToSupportMessage(messageId, reply, adminEmail) {
+  try {
+    await db.collection('support_messages').doc(messageId).update({
+      adminReply: reply,
+      adminReplyAt: new Date().toISOString(),
+      adminReplyBy: adminEmail,
+      status: 'answered',
+      updated_at: new Date().toISOString(),
+    });
+    return true;
+  } catch (error) {
+    console.error('Error replying to support message:', error.message);
+    throw error;
+  }
+}
+
+async function closeSupportMessage(messageId) {
+  try {
+    await db.collection('support_messages').doc(messageId).update({
+      status: 'closed',
+      updated_at: new Date().toISOString(),
+    });
+    return true;
+  } catch (error) {
+    console.error('Error closing support message:', error.message);
+    throw error;
+  }
+}
+
 // ── MIDDLEWARE ────────────────────────────────────────────────────
 
 async function verifyToken(req, res, next) {
@@ -365,8 +527,9 @@ module.exports = {
   createUser, getUser, updateUserPlan, setAdminClaims,
   addCompany, searchCompanies, importCompaniesBatch,
   setConfig, getConfig,
-  addPipelineProspect, getUserPipeline, updatePipelineProspect, deletePipelineProspect,
+  addPipelineProspect, getUserPipeline, updatePipelineProspect, deletePipelineProspect, checkCompanyInPipeline,
   addSavedSearch, getSavedSearches, deleteSavedSearch,
-  logUsage,
+  logUsage, consumeCredit,
+  createSupportMessage, getSupportMessages, getSupportMessagesForUser, replyToSupportMessage, closeSupportMessage,
   verifyToken, verifyAdmin,
 };

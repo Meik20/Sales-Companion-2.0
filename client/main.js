@@ -351,6 +351,29 @@ ipcMain.handle('chat', (_, p) => {
 });
 
 /* ─────────────────────────────────────────────
+   SUPPORT MESSAGING
+───────────────────────────────────────────── */
+ipcMain.handle('supportMessages', (_, method, token) => {
+  const serverUrl = getServerUrl();
+  console.log(`📧 Support messages [${method}] with server: ${serverUrl}`);
+  if (method === 'GET') {
+    return requestWithRetry(serverUrl, 'GET', '/api/support/messages/user', null, token);
+  }
+});
+
+ipcMain.handle('createSupportMessage', (_, p) => {
+  const serverUrl = getServerUrl();
+  console.log(`📨 Creating support message with server: ${serverUrl}`);
+  return requestWithRetry(
+    serverUrl,
+    'POST',
+    '/api/support/messages',
+    { subject: p.subject, message: p.message },
+    p.token
+  );
+});
+
+/* ─────────────────────────────────────────────
    SAVED SEARCHES
 ───────────────────────────────────────────── */
 ipcMain.handle('save-search', (_, token, data) =>

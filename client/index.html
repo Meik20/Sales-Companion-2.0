@@ -874,6 +874,8 @@ function renderResults(data){
       phone?`📞 ${phone}`:'',
       email?`📧 ${email}`:''
     ].filter(Boolean).join(' · ');
+    const inPipeline = pipelineCompanies[co.id];
+    const pipelineBadge = inPipeline ? `<span class="cbadge" style="background:var(--gl);color:var(--g);font-weight:600">📌 En pipeline</span>` : '';
     card.innerHTML=`
       <div class="co-head">
         <div class="co-av">${initials}</div>
@@ -884,6 +886,7 @@ function renderResults(data){
             ${contactInfo?`<span>${contactInfo}</span>`:''}
           </div>
           <div class="co-badges">
+            ${pipelineBadge}
             ${co.statut_juridique?`<span class="cbadge cb-type">${co.statut_juridique}</span>`:''}
             ${co.niu?`<span class="cbadge cb-niu">NIU: ${co.niu}</span>`:''}
             ${co.rccm?`<span class="cbadge cb-green">RCCM ✓</span>`:''}
@@ -1034,6 +1037,7 @@ async function sendChat(){
     loadEl.remove();
     if(r.status===429&&r.data.upgrade){
       addChatMsg('bot',`<div class="upgrade-banner" style="margin:0"><strong>⚠️ Limite atteinte</strong><p>${r.data.error}</p><button onclick="openProfile()">Voir les plans</button></div>`);
+      refreshRemaining();
     } else if(r.data.error){
       addChatMsg('bot',`Erreur : ${r.data.error}`);
     } else {
@@ -1065,12 +1069,16 @@ function fmtChat(t){
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
 
 // ── PIPELINE ────────────────────────────────────────────────────
-let currentPipelineTab='prospection', pipelineData=[], addPipelineDefault={};
+let currentPipelineTab='prospection', pipelineData=[], addPipelineDefault={}, pipelineCompanies={};
 
 async function loadPipeline(){
   try{
     const r=await window.electronAPI.pipeline('GET',token,null,null);
     pipelineData=r.data||[];
+    pipelineCompanies={};
+    pipelineData.forEach(p => {
+      if (p.company_id) pipelineCompanies[p.company_id] = p;
+    });
     updatePipelineCounts();
     renderPipeline();
   }catch{}
@@ -1219,8 +1227,186 @@ async function testServer() {
   }
 }
 
+// ── PULL-TO-REFRESH DESKTOP ──────────────────────────────────────
+let desktopPullStartY = 0;
+let desktopPullActive = false;
+let isDesktopRefreshing = false;
+
+// Touche F5 pour rafraîchir
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'F5') {
+    e.preventDefault();
+    performDesktopRefresh();
+  }
+});
+
+// Détecteur de swipe vers le bas pour rafraîchir (souris + touchpad)
+document.addEventListener('wheel', (e) => {
+  // Seulement si on scroll vers le bas ET on est en haut de la page
+  if (e.deltaY > 0) {
+    const scrollableEl = document.querySelector('.panel-center') || document.querySelector('.content');
+    if (scrollableEl && scrollableEl.scrollTop === 0 && !isDesktopRefreshing) {
+      if (e.deltaY > 50) { // Si le scroll est assez agressif
+        performDesktopRefresh();
+      }
+    }
+  }
+}, { passive: true });
+
+async function performDesktopRefresh() {
+  if (isDesktopRefreshing) return;
+  isDesktopRefreshing = true;
+  
+  toast('🔄 Actualisation...');
+  
+  try {
+    // Rafraîchir selon l'onglet actif
+    const activePanel = document.querySelector('.panel-center');
+    
+    // Chercher l'onglet actif
+    const tabs = document.querySelectorAll('[data-tab]');
+    let activeTab = null;
+    for (let tab of tabs) {
+      if (tab.querySelector('[data-visible="true"]')) {
+        activeTab = tab.dataset.tab;
+        break;
+      }
+    }
+    
+    // Vérifier via le display style
+    const searchPanel = document.getElementById('search-panel');
+    const chatPanel = document.getElementById('chat-panel');
+    const pipelinePanel = document.getElementById('pipeline-panel');
+    
+    if (searchPanel && searchPanel.style.display !== 'none') {
+      // Rafraîchir la recherche
+      if (lastQuery || Object.keys(lastFilters).length > 0) {
+        const r = await window.electronAPI.search({
+          query: lastQuery,
+          filters: lastFilters,
+          use_ai: false,
+          token
+        });
+        if (r.status === 200) {
+          renderResults(r.data);
+          toast('✅ Recherche actualisée');
+        }
+      }
+    } else if (chatPanel && chatPanel.style.display !== 'none') {
+      // Rafraîchir les données utilisateur
+      await refreshRemaining();
+      toast('✅ Données mises à jour');
+    } else if (pipelinePanel && pipelinePanel.style.display !== 'none') {
+      // Rafraîchir le pipeline
+      await loadPipeline();
+      toast('✅ Pipeline actualisé');
+    } else {
+      // Par défaut, rafraîchir les données utilisateur
+      await refreshRemaining();
+      toast('✅ Données mises à jour');
+    }
+  } catch (err) {
+    console.error('Desktop refresh error:', err);
+    toast('❌ Erreur d\'actualisation');
+  } finally {
+    isDesktopRefreshing = false;
+  }
+}
+
+// ── SUPPORT CHAT BUBBLE ──────────────────────────────────────────
+let isSupportOpen = false;
+let supportMessages = [];
+
+function openSupportChat() {
+  isSupportOpen = true;
+  document.getElementById('support-bubble-bubble').style.display = 'none';
+  document.getElementById('support-chat-window').style.display = 'flex';
+  loadSupportMessages();
+}
+
+function closeSupportChat() {
+  isSupportOpen = false;
+  document.getElementById('support-bubble-bubble').style.display = 'flex';
+  document.getElementById('support-chat-window').style.display = 'none';
+}
+
+async function loadSupportMessages() {
+  try {
+    const r = await window.electronAPI.supportMessages('GET', token);
+    if (r.status === 200) {
+      supportMessages = r.data;
+      renderSupportMessages();
+    }
+  } catch (e) {
+    console.error('Error loading support messages:', e);
+  }
+}
+
+function renderSupportMessages() {
+  const container = document.getElementById('support-msg-list');
+  container.innerHTML = '';
+  if (!supportMessages.length) {
+    container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--tx3)">Aucun message pour le moment</div>';
+    return;
+  }
+  supportMessages.forEach(msg => {
+    const div = document.createElement('div');
+    div.className = 'support-msg-item';
+    const date = new Date(msg.created_at).toLocaleDateString('fr-FR');
+    const hasReply = msg.adminReply ? `<div class="msg-reply"><strong>Réponse du support:</strong><p>${msg.adminReply}</p></div>` : '';
+    div.innerHTML = `
+      <div class="msg-subject">${msg.subject}</div>
+      <div class="msg-text">${msg.message}</div>
+      ${hasReply}
+      <div class="msg-date">${date} - ${msg.status === 'answered' ? '✅ Répondu' : msg.status === 'closed' ? '🔒 Fermé' : '⏳ En attente'}</div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+async function sendSupportMessage() {
+  const subj = document.getElementById('sup-subject').value.trim();
+  const msg = document.getElementById('sup-message').value.trim();
+  if (!msg) {
+    toast('Saisissez un message');
+    return;
+  }
+  try {
+    const r = await window.electronAPI.createSupportMessage({token, subject: subj || 'Support', message: msg});
+    if (r.status === 200) {
+      toast('✅ Message envoyé au support');
+      document.getElementById('sup-subject').value = '';
+      document.getElementById('sup-message').value = '';
+      await loadSupportMessages();
+    } else {
+      toast('Erreur: ' + (r.data.error || 'Erreur inconnue'));
+    }
+  } catch (e) {
+    toast('Erreur: ' + e.message);
+  }
+}
+
 // Run test on load
 setTimeout(testServer, 2000);
 </script>
+
+<!-- SUPPORT CHAT BUBBLE -->
+<div id="support-bubble-bubble" style="position:fixed;bottom:20px;right:20px;width:50px;height:50px;border-radius:50%;background:#1B7A3E;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:24px;z-index:999;box-shadow:0 4px 12px rgba(0,0,0,0.2)" onclick="openSupportChat()" title="Chat support">
+  💬
+</div>
+
+<div id="support-chat-window" style="display:none;position:fixed;bottom:20px;right:20px;width:380px;height:500px;background:#fff;border-radius:12px;box-shadow:0 5px 30px rgba(0,0,0,0.2);z-index:1000;flex-direction:column">
+  <div style="background:#1B7A3E;color:#fff;padding:16px;border-radius:12px 12px 0 0;display:flex;justify-content:space-between;align-items:center">
+    <div style="font-weight:600">Support</div>
+    <button style="background:none;border:none;color:#fff;font-size:18px;cursor:pointer" onclick="closeSupportChat()">×</button>
+  </div>
+  <div id="support-msg-list" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:8px"></div>
+  <div style="padding:14px;border-top:1px solid #eee">
+    <input id="sup-subject" type="text" placeholder="Sujet..." style="width:100%;padding:8px;margin-bottom:8px;border:1px solid #ddd;border-radius:6px;font-size:12px">
+    <textarea id="sup-message" placeholder="Décrivez votre problème..." style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:12px;resize:none;height:60px;font-family:inherit"></textarea>
+    <button onclick="sendSupportMessage()" style="width:100%;padding:10px;background:#1B7A3E;color:#fff;border:none;border-radius:6px;margin-top:8px;font-weight:600;cursor:pointer">Envoyer</button>
+  </div>
+</div>
+
 </body>
 </html>

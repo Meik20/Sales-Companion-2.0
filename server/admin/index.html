@@ -205,6 +205,10 @@ tr:hover td{background:#fafafa}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         Utilisateurs
       </div>
+      <div class="nav-item" onclick="showPage('support',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Support
+      </div>
       <div class="nav-item" onclick="showPage('logs',this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
         Activité
@@ -351,6 +355,21 @@ tr:hover td{background:#fafafa}
             <thead><tr><th>Nom</th><th>Email</th><th>Plan</th><th>Usage/jour</th><th>Statut</th><th>Inscription</th><th>Actions</th></tr></thead>
             <tbody id="users-body"></tbody>
           </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- SUPPORT -->
+    <div class="page" id="page-support">
+      <div class="page-title">Messages de Support</div>
+      <div class="grid-2">
+        <div class="card" style="grid-column:1;max-height:600px;overflow-y:auto">
+          <div class="card-title">Tickets <span class="card-sub" id="support-count">0</span></div>
+          <div id="support-list" style="display:flex;flex-direction:column;gap:8px"></div>
+        </div>
+        <div class="card" style="grid-column:2;max-height:600px;overflow-y:auto">
+          <div class="card-title">Détail du message</div>
+          <div id="support-detail" style="padding:12px;color:var(--tx3);text-align:center">Sélectionnez un message</div>
         </div>
       </div>
     </div>
@@ -527,6 +546,7 @@ function showPage(name, el) {
   if (name === 'config')    loadConfig();
   if (name === 'companies') loadCompanies(1);
   if (name === 'import')    loadImportLogs();
+  if (name === 'support')   loadSupportMessages();
 }
 
 // ── DASHBOARD ─────────────────────────────────────────────────
@@ -825,6 +845,81 @@ async function deleteUser(id, name) {
   if (!confirm(`Supprimer "${name}" ?`)) return;
   const r = await apiFetch(`${API}/admin/users/${id}`, {method:'DELETE', headers: H()});
   if (r && r.ok) { toast('🗑️ Supprimé'); loadUsers(); }
+}
+
+// ── SUPPORT ───────────────────────────────────────────────────
+async function loadSupportMessages() {
+  try {
+    const r = await apiFetch(`${API}/support/messages`, {method:'GET', headers: H()});
+    if (!r.ok) return;
+    const messages = await r.json();
+    const listEl = document.getElementById('support-list');
+    document.getElementById('support-count').textContent = messages.length;
+    listEl.innerHTML = '';
+    messages.forEach(msg => {
+      const statusIcon = msg.status === 'answered' ? '✅' : msg.status === 'closed' ? '🔒' : '⏳';
+      const item = document.createElement('div');
+      item.style.cssText = 'padding:10px;border:1px solid var(--bd1);border-radius:6px;cursor:pointer;background:var(--bg2);transition:background 0.2s';
+      item.innerHTML = `<div style="font-weight:600;font-size:13px">${statusIcon} ${msg.subject}</div><div style="font-size:11px;color:var(--tx3);margin-top:4px">${msg.userName}</div><div style="font-size:10px;color:var(--tx3);">${new Date(msg.created_at).toLocaleDateString()}</div>`;
+      item.onclick = () => showSupportDetail(msg);
+      listEl.appendChild(item);
+    });
+  } catch(e) { console.error(e); }
+}
+
+function showSupportDetail(msg) {
+  const detailEl = document.getElementById('support-detail');
+  const statusIcon = msg.status === 'answered' ? '✅ Répondu' : msg.status === 'closed' ? '🔒 Fermé' : '⏳ En attente';
+  detailEl.innerHTML = `
+    <div style="text-align:left;padding:12px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;font-size:12px">
+        <div><div style="color:var(--tx3);margin-bottom:4px">De</div><strong>${msg.userName}</strong><div style="color:var(--tx3);font-size:11px">${msg.userEmail}</div></div>
+        <div><div style="color:var(--tx3);margin-bottom:4px">Statut</div><strong>${statusIcon}</strong></div>
+      </div>
+      <div style="margin-bottom:12px;padding:12px;background:var(--bg1);border-radius:6px;border-left:3px solid var(--primary)">
+        <div style="font-weight:600;margin-bottom:4px">${msg.subject}</div>
+        <div style="font-size:13px;line-height:1.5">${msg.message}</div>
+        <div style="font-size:10px;color:var(--tx3);margin-top:8px">${new Date(msg.created_at).toLocaleString()}</div>
+      </div>
+      ${msg.adminReply ? `<div style="margin-bottom:12px;padding:12px;background:var(--success-light,rgba(76,175,80,0.1));border-radius:6px;border-left:3px solid var(--success,#4caf50)">
+        <div style="font-weight:600;margin-bottom:4px">Réponse admin (${msg.adminReplyBy})</div>
+        <div style="font-size:13px;line-height:1.5">${msg.adminReply}</div>
+        <div style="font-size:10px;color:var(--tx3);margin-top:8px">${new Date(msg.adminReplyAt).toLocaleString()}</div>
+      </div>` : ''}
+      <div style="display:flex;gap:8px">
+        ${msg.status !== 'closed' ? `<button onclick="replyToSupport('${msg.id}')" style="flex:1;padding:8px 12px;background:var(--primary);color:white;border:none;border-radius:6px;cursor:pointer;font-size:12px">Répondre</button>` : ''}
+        ${msg.status !== 'closed' ? `<button onclick="closeSupportMessage('${msg.id}')" style="flex:1;padding:8px 12px;background:var(--tx3);color:white;border:none;border-radius:6px;cursor:pointer;font-size:12px">Fermer</button>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function replyToSupport(messageId) {
+  const replyText = prompt('Votre réponse:');
+  if (!replyText || !replyText.trim()) return;
+  submitSupportReply(messageId, replyText);
+}
+
+async function submitSupportReply(messageId, reply) {
+  try {
+    const r = await apiFetch(`${API}/support/messages/${messageId}`, {
+      method:'PUT',
+      headers: H(),
+      body: JSON.stringify({reply})
+    });
+    if (r.ok) { toast('✅ Réponse envoyée'); loadSupportMessages(); }
+  } catch(e) { console.error(e); }
+}
+
+async function closeSupportMessage(messageId) {
+  if (!confirm('Fermer ce ticket ?')) return;
+  try {
+    const r = await apiFetch(`${API}/support/messages/${messageId}/close`, {
+      method:'PUT',
+      headers: H()
+    });
+    if (r.ok) { toast('🔒 Ticket fermé'); loadSupportMessages(); }
+  } catch(e) { console.error(e); }
 }
 
 // ── LOGS ──────────────────────────────────────────────────────

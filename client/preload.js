@@ -19,6 +19,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   search:            (p) => ipcRenderer.invoke('search', p),
   chat:              (p) => ipcRenderer.invoke('chat', p),
   
+  // Support Messaging
+  supportMessages:     (method, token) => ipcRenderer.invoke('supportMessages', method, token),
+  createSupportMessage: (p) => ipcRenderer.invoke('createSupportMessage', p),
+  
   // Saved Searches
   saveSearch:        (t, d) => ipcRenderer.invoke('save-search', t, d),
   loadSavedSearches: (t) => ipcRenderer.invoke('load-saved-searches', t),

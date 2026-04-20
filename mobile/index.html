@@ -202,6 +202,13 @@ body{font-family:'Outfit',sans-serif;color:var(--tx);display:flex;flex-direction
 .fab:active{transform:scale(.92);box-shadow:0 2px 8px rgba(27,122,62,.3)}
 .fab.show{display:flex}
 
+/* ── PULL-TO-REFRESH ── */
+.pull-to-refresh{position:absolute;top:0;left:0;right:0;height:60px;display:flex;align-items:center;justify-content:center;z-index:10;pointer-events:none}
+.ptr-indicator{width:32px;height:32px;border-radius:50%;border:3px solid transparent;border-top-color:var(--g);border-right-color:var(--g);opacity:0.3;transform:rotate(0deg);transition:transform 0.2s ease;display:flex;align-items:center;justify-content:center}
+.ptr-indicator.refreshing{animation:spin 1s linear infinite;opacity:1;border-color:var(--g)}
+.ptr-text{font-size:12px;color:var(--tx3);margin-left:8px;opacity:0}
+.ptr-text.visible{opacity:1}
+
 /* ── CHAT TAB ── */
 .chat-msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch}
 .chat-msgs::-webkit-scrollbar{display:none}
@@ -343,6 +350,11 @@ body{font-family:'Outfit',sans-serif;color:var(--tx);display:flex;flex-direction
 
 <!-- CONTENT -->
 <div class="content" id="content" style="display:none">
+  <!-- PULL-TO-REFRESH INDICATOR -->
+  <div class="pull-to-refresh" id="ptr">
+    <div class="ptr-indicator" id="ptr-indicator"></div>
+    <div class="ptr-text" id="ptr-text">Relâcher pour actualiser</div>
+  </div>
 
   <!-- SEARCH TAB -->
   <div class="tab-content active" id="tab-search">
@@ -406,6 +418,24 @@ body{font-family:'Outfit',sans-serif;color:var(--tx);display:flex;flex-direction
     <div class="saved-list" id="saved-list"></div>
   </div>
 
+  <!-- SUPPORT TAB -->
+  <div class="tab-content" id="tab-support">
+    <div class="support-header" style="padding:14px 16px;border-bottom:1px solid var(--bd)">
+      <h2 style="font-size:16px;margin-bottom:4px">Support</h2>
+      <p style="font-size:12px;color:var(--tx3)">Contactez notre équipe de support</p>
+    </div>
+    <div class="support-container" style="flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px">
+      <div id="support-messages-list" style="display:flex;flex-direction:column;gap:10px"></div>
+    </div>
+    <div class="support-footer" style="padding:12px 14px;border-top:1px solid var(--bd);background:var(--bg2);flex-shrink:0;padding-bottom:calc(12px + var(--safe-bottom))">
+      <input type="text" id="sup-subject-mobile" placeholder="Sujet..." style="width:100%;padding:10px 12px;border:1.5px solid var(--bd2);border-radius:var(--r);font-size:13px;font-family:'Outfit',sans-serif;margin-bottom:8px;color:var(--tx);background:var(--bg3);outline:none"/>
+      <div style="display:flex;gap:8px">
+        <textarea id="sup-message-mobile" placeholder="Décrivez votre question..." style="flex:1;padding:10px 12px;border:1.5px solid var(--bd2);border-radius:var(--r);font-size:13px;font-family:'Outfit',sans-serif;color:var(--tx);background:var(--bg3);resize:none;min-height:70px;outline:none;max-height:150px" onkeydown="if(event.key==='Enter'&&event.ctrlKey) sendSupportMessageMobile()"></textarea>
+        <button onclick="sendSupportMessageMobile()" style="padding:10px 14px;background:var(--g);color:#fff;border:none;border-radius:var(--r);cursor:pointer;font-weight:600;align-self:flex-end;white-space:nowrap;font-family:'Outfit',sans-serif">Envoyer</button>
+      </div>
+    </div>
+  </div>
+
   <!-- CHAT TAB -->
   <div class="tab-content" id="tab-chat">
     <div class="chat-msgs" id="chat-msgs">
@@ -437,6 +467,11 @@ body{font-family:'Outfit',sans-serif;color:var(--tx);display:flex;flex-direction
     <div class="nav-bar"></div>
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
     <span>Sauvegardés</span>
+  </button>
+  <button class="nav-btn" id="nav-support" onclick="switchTab2('support')">
+    <div class="nav-bar"></div>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    <span>Support</span>
   </button>
   <button class="nav-btn" id="nav-chat" onclick="switchTab2('chat')">
     <div class="nav-bar"></div>
@@ -734,7 +769,7 @@ const REGION_CITIES = {
 };
 
 let token = localStorage.getItem('sc_token') || '';
-let user = null, chatHistory = [], pipelineData = [], lastResults = [], lastFilters = {}, lastQuery = '';
+let user = null, chatHistory = [], pipelineData = [], pipelineCompanies = {}, lastResults = [], lastFilters = {}, lastQuery = '';
 let isSearching = false, isChatting = false, currentPipTab = 'prospection';
 let addPipDefault = {};
 let isInitializing = true;
@@ -995,6 +1030,7 @@ function switchTab2(name) {
   document.getElementById('tab-' + name).classList.add('active');
   document.getElementById('nav-' + name).classList.add('active');
   document.getElementById('fab').classList.toggle('show', name === 'pipeline');
+  if (name === 'support') loadSupportMessagesMobile();
 }
 
 // ── SHEETS ────────────────────────────────────────────────────────
@@ -1104,6 +1140,8 @@ function renderResults(data) {
     const phone = co.telephone || co.tel || co.company_phone || '';
     const email = co.email || co.contact_email || co.company_email || '';
     const address = co.adresse || co.company_address || '';
+    const inPipeline = pipelineCompanies[co.id];
+    const pipelineBadge = inPipeline ? `<span class="cbadge" style="background:var(--gl);color:var(--g);font-weight:600">📌 En pipeline</span>` : '';
     card.innerHTML = `
       <div class="co-head">
         <div class="co-av">${initials}</div>
@@ -1111,6 +1149,7 @@ function renderResults(data) {
           <div class="co-name">${name}${co.sigle ? ` <span style="font-size:11px;color:var(--tx3)">(${co.sigle})</span>` : ''}</div>
           <div class="co-sub">${co.secteur ? '📂 ' + co.secteur : ''}${co.ville ? ' · 📍 ' + co.ville : ''}</div>
           <div class="co-badges">
+            ${pipelineBadge}
             ${co.statut_juridique ? `<span class="cbadge cb-type">${co.statut_juridique}</span>` : ''}
             ${co.niu ? `<span class="cbadge cb-niu">NIU: ${co.niu}</span>` : ''}
             ${co.rccm ? '<span class="cbadge cb-green">RCCM ✓</span>' : ''}
@@ -1197,7 +1236,15 @@ function addToPipCard(i) {
 async function loadPipeline() {
   try {
     const r = await api('GET', '/api/pipeline', null, token);
-    if (r.ok) { pipelineData = await r.json(); updatePipCounts(); renderPipeline(); }
+    if (r.ok) {
+      pipelineData = await r.json();
+      pipelineCompanies = {};
+      pipelineData.forEach(p => {
+        if (p.company_id) pipelineCompanies[p.company_id] = p;
+      });
+      updatePipCounts();
+      renderPipeline();
+    }
   } catch {}
 }
 function updatePipCounts() {
@@ -1363,12 +1410,14 @@ async function sendChat() {
     loadEl.remove();
     if (r.status === 429 && data.upgrade) {
       addChatMsg('bot', `<div class="upgrade-card" style="margin:0"><strong>⚠️ Limite atteinte</strong><p>${data.error}</p><button onclick="openSheet('profile-sheet')">Voir les plans</button></div>`);
+      refreshMe();
     } else if (data.error) {
       addChatMsg('bot', 'Erreur : ' + data.error);
     } else {
       const reply = data.choices?.[0]?.message?.content || '—';
       chatHistory.push({ role: 'assistant', content: reply });
       addChatMsg('bot', fmtChat(reply));
+      refreshMe();
     }
   } catch (e) { loadEl.remove(); addChatMsg('bot', 'Erreur : ' + e.message); }
   isChatting = false; document.getElementById('chat-send').disabled = false;
@@ -1411,6 +1460,211 @@ function toast(msg) {
   t.textContent = msg; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 3000);
 }
+
+// ── PULL-TO-REFRESH ───────────────────────────────────────────────
+let ptrEnabled = false;
+let ptrStartY = 0;
+let ptrCurrentY = 0;
+let ptrStartTime = 0;
+let isRefreshing = false;
+
+function initPullToRefresh() {
+  const content = document.getElementById('content');
+  const ptr = document.getElementById('ptr');
+  const indicator = document.getElementById('ptr-indicator');
+  const text = document.getElementById('ptr-text');
+  
+  content.addEventListener('touchstart', (e) => {
+    const scrollEl = e.target.closest('.tab-content');
+    if (!scrollEl) return;
+    ptrEnabled = scrollEl.scrollTop === 0;
+    if (ptrEnabled) {
+      ptrStartY = e.touches[0].clientY;
+      ptrStartTime = Date.now();
+      ptr.style.transform = 'translateY(0)';
+      indicator.style.opacity = '0';
+      text.classList.remove('visible');
+    }
+  }, { passive: true });
+  
+  content.addEventListener('touchmove', (e) => {
+    if (!ptrEnabled || isRefreshing) return;
+    const scrollEl = e.target.closest('.tab-content');
+    if (!scrollEl || scrollEl.scrollTop > 0) return;
+    
+    ptrCurrentY = e.touches[0].clientY;
+    const diff = ptrCurrentY - ptrStartY;
+    
+    if (diff > 0) {
+      e.preventDefault();
+      const progress = Math.min(diff / 80, 1);
+      ptr.style.transform = `translateY(${diff * 0.5}px)`;
+      indicator.style.transform = `rotate(${progress * 360}deg)`;
+      indicator.style.opacity = Math.min(progress * 1.5, 1);
+      
+      if (progress >= 1) {
+        text.classList.add('visible');
+      } else {
+        text.classList.remove('visible');
+      }
+    }
+  }, { passive: false });
+  
+  content.addEventListener('touchend', (e) => {
+    if (!ptrEnabled || isRefreshing) return;
+    const diff = ptrCurrentY - ptrStartY;
+    const shouldRefresh = diff > 80;
+    
+    if (shouldRefresh) {
+      performRefresh();
+    } else {
+      ptr.style.transform = 'translateY(0)';
+      indicator.style.opacity = '0';
+      indicator.style.transform = 'rotate(0deg)';
+      text.classList.remove('visible');
+    }
+    ptrEnabled = false;
+  }, { passive: true });
+}
+
+async function performRefresh() {
+  isRefreshing = true;
+  const indicator = document.getElementById('ptr-indicator');
+  const text = document.getElementById('ptr-text');
+  const ptr = document.getElementById('ptr');
+  
+  indicator.classList.add('refreshing');
+  text.textContent = 'Actualisation...';
+  
+  // Actualiser les données selon l'onglet actif
+  try {
+    const activeTab = document.querySelector('.tab-content.active');
+    if (activeTab && activeTab.id === 'tab-search') {
+      // Actualiser la recherche
+      if (lastQuery || Object.keys(lastFilters).length > 0) {
+        await runSearch(lastQuery, lastFilters);
+      }
+    } else if (activeTab && activeTab.id === 'tab-pipeline') {
+      // Actualiser le pipeline
+      await loadPipeline();
+    } else if (activeTab && activeTab.id === 'tab-chat') {
+      // Actualiser le chat (rafraîchir juste les données utilisateur)
+      await refreshMe();
+    } else if (activeTab && activeTab.id === 'tab-saved') {
+      // Actualiser les recherches sauvegardées
+      await loadSaved();
+    }
+    
+    text.textContent = 'Actualisé ✓';
+    setTimeout(() => {
+      ptr.style.transform = 'translateY(0)';
+      indicator.classList.remove('refreshing');
+      indicator.style.opacity = '0';
+      indicator.style.transform = 'rotate(0deg)';
+      text.classList.remove('visible');
+      isRefreshing = false;
+    }, 500);
+  } catch (err) {
+    text.textContent = 'Erreur d\'actualisation';
+    console.error('Refresh error:', err);
+    setTimeout(() => {
+      ptr.style.transform = 'translateY(0)';
+      indicator.classList.remove('refreshing');
+      indicator.style.opacity = '0';
+      text.classList.remove('visible');
+      isRefreshing = false;
+    }, 1500);
+  }
+}
+
+// ── SUPPORT MESSAGING (MOBILE) ────────────────────────────────
+let supportMessagesList = [];
+
+async function loadSupportMessagesMobile() {
+  const serverUrl = API || 'http://localhost:3000';
+  try {
+    const token = localStorage.getItem('auth_token');
+    if (!token) return;
+    
+    const r = await fetch(`${serverUrl}/api/support/messages/user`, {
+      method: 'GET',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    
+    if (r.ok) {
+      supportMessagesList = await r.json();
+      renderSupportMessagesMobile();
+    }
+  } catch(e) { console.error(e); }
+}
+
+function renderSupportMessagesMobile() {
+  const container = document.getElementById('support-messages-list');
+  if (!supportMessagesList.length) {
+    container.innerHTML = '<div style="text-align:center;color:var(--tx3);padding:30px 0">Aucun message pour le moment</div>';
+    return;
+  }
+  
+  container.innerHTML = supportMessagesList.map(msg => {
+    const statusIcon = msg.status === 'answered' ? '✅' : msg.status === 'closed' ? '🔒' : '⏳';
+    return `
+      <div style="padding:12px;border:1px solid var(--bd);border-radius:var(--r);background:var(--bg2)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+          <div style="font-weight:600;font-size:14px;flex:1;margin-right:8px">${msg.subject}</div>
+          <div style="white-space:nowrap;font-size:12px">${statusIcon}</div>
+        </div>
+        <div style="font-size:13px;color:var(--tx2);margin-bottom:8px;line-height:1.4">${msg.message}</div>
+        ${msg.adminReply ? `<div style="padding:10px;background:rgba(27,122,62,0.1);border-radius:6px;border-left:3px solid var(--g);margin-bottom:8px;font-size:12px">
+          <div style="font-weight:600;margin-bottom:4px">Réponse:</div>
+          <div style="line-height:1.4">${msg.adminReply}</div>
+        </div>` : ''}
+        <div style="font-size:11px;color:var(--tx3)">${new Date(msg.created_at).toLocaleDateString()} ${new Date(msg.created_at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function sendSupportMessageMobile() {
+  const subject = document.getElementById('sup-subject-mobile').value.trim();
+  const message = document.getElementById('sup-message-mobile').value.trim();
+  
+  if (!subject || !message) {
+    alert('Remplissez le sujet et le message');
+    return;
+  }
+  
+  const serverUrl = API || 'http://localhost:3000';
+  try {
+    const token = localStorage.getItem('auth_token');
+    if (!token) return;
+    
+    const r = await fetch(`${serverUrl}/api/support/messages`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ subject, message })
+    });
+    
+    if (r.ok) {
+      document.getElementById('sup-subject-mobile').value = '';
+      document.getElementById('sup-message-mobile').value = '';
+      alert('✅ Message envoyé au support');
+      loadSupportMessagesMobile();
+    } else {
+      alert('Erreur lors de l\'envoi du message');
+    }
+  } catch(e) {
+    console.error(e);
+    alert('Erreur réseau');
+  }
+}
+
+// Initialize pull-to-refresh when app is ready
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(initPullToRefresh, 500);
+});
 </script>
 </body>
 </html>
