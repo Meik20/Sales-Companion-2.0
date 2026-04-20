@@ -58,7 +58,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--tx);height
 .tb-uname{color:#fff;font-size:12.5px;font-weight:500}
 .plan-b{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700;text-transform:uppercase}
 .pf{background:#e0e0e0;color:#555}.ps_{background:var(--bl);color:var(--blue)}.pp{background:var(--gdl);color:var(--gold)}.pe{background:var(--gl);color:var(--g)}
-.tb-rem{color:rgba(255,255,255,.65);font-size:11.5px}
+.tb-rem{color:rgba(255,255,255,.85);font-size:11.5px;display:flex;align-items:center;gap:8px;padding:0 12px}
 .flag{display:flex;border-radius:3px;overflow:hidden}
 .fs{width:10px;height:16px}
 
@@ -346,11 +346,10 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--tx);height
     <div class="tb-name">SALES <em>COMPANION</em></div>
   </div>
   <div class="tb-right">
-    <div class="tb-user" onclick="openProfile()">
-      <div class="tb-uname" id="tb-name">—</div>
-      <span class="plan-b" id="tb-plan">free</span>
+    <div class="tb-rem" id="tb-rem">
+      <span id="tb-status-name" style="font-weight:500">—</span>
+      <span class="plan-b" id="tb-status-plan" style="background:#e0e0e0;color:#555">free</span>
     </div>
-    <div class="tb-rem" id="tb-rem"></div>
     <div class="flag">
       <div class="fs" style="background:#007A5E"></div>
       <div class="fs" style="background:#CE1126;display:flex;align-items:center;justify-content:center"><span style="color:#FCD116;font-size:9px">★</span></div>
@@ -728,10 +727,10 @@ function showApp(){
   document.getElementById('titlebar').style.display='flex';
   document.getElementById('layout').style.display='flex';
   if(user){
-    document.getElementById('tb-name').textContent=user.name;
-    const pb=document.getElementById('tb-plan');
+    document.getElementById('tb-status-name').textContent=user.name;
+    const pb=document.getElementById('tb-status-plan');
     const pmap={free:'pf',starter:'ps_',pro:'pp',enterprise:'pe'};
-    pb.textContent=user.plan;pb.className=`plan-b ${pmap[user.plan]||'pf'}`;
+    pb.textContent=user.plan?.toUpperCase()||'FREE';pb.className=`plan-b ${pmap[user.plan]||'pf'}`;
     const isPro=['pro','enterprise'].includes(user.plan);
     document.getElementById('add-city-btn').style.display=isPro?'block':'none';
     refreshRemaining();
@@ -742,7 +741,14 @@ function showApp(){
 async function refreshRemaining(){
   try{
     const r=await window.electronAPI.getMe({ token, serverUrl: RAILWAY_SERVER });
-    if(r.status===200){user=r.data;document.getElementById('tb-rem').textContent=`${r.data.remaining} restantes`;}
+    if(r.status===200){
+      user=r.data;
+      document.getElementById('tb-status-name').textContent=user.name||'Utilisateur';
+      const planEl=document.getElementById('tb-status-plan');
+      planEl.textContent=user.plan?.toUpperCase()||'FREE';
+      // Update plan badge styling
+      planEl.className='plan-b '+(user.plan==='pro'?'pp':user.plan==='enterprise'?'pe':'pf');
+    }
   }catch(e){
     if (e.message.includes('expiré') || e.message.includes('401')) {
       // Token expiré, déconnexion automatique
