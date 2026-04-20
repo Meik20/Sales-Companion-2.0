@@ -194,17 +194,23 @@ app.get('/api/companies/search', verifyToken, async (req, res) => {
 app.post('/api/search', verifyToken, async (req, res) => {
   try {
     const { query, filters = {} } = req.body;
-    
+    console.log(`[SEARCH] User ${req.userId} searching: "${query}" with filters:`, filters);
+
     // Consommer 1 crédit pour la recherche
     const creditResult = await consumeCredit(req.userId);
+    console.log(`[SEARCH] Credit consumption result for user ${req.userId}:`, creditResult);
+
     if (!creditResult.ok) {
-      return res.status(429).json({ 
+      console.log(`[SEARCH] Credit limit reached for user ${req.userId}: ${creditResult.message}`);
+      return res.status(429).json({
         error: creditResult.message || 'Limite quotidienne atteinte',
         upgrade: true,
         remaining: creditResult.remaining || 0
       });
     }
-    
+
+    console.log(`[SEARCH] Credit consumed successfully for user ${req.userId}, remaining: ${creditResult.remaining}`);
+
     const companies = await searchCompanies({
       query,
       sector: filters.secteur || filters.sector,
@@ -213,15 +219,17 @@ app.post('/api/search', verifyToken, async (req, res) => {
       limit: filters.limit || 50,
       active: true,
     });
-    
-    res.json({ 
-      count: companies.length, 
-      source: 'database', 
+
+    console.log(`[SEARCH] Found ${companies.length} companies for user ${req.userId}`);
+
+    res.json({
+      count: companies.length,
+      source: 'database',
       results: companies,
-      remaining: creditResult.remaining 
+      remaining: creditResult.remaining
     });
   } catch (error) {
-    console.error('Search error:', error);
+    console.error('[SEARCH] Error for user', req.userId, ':', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -233,21 +241,40 @@ app.post('/api/chat', verifyToken, async (req, res) => {
       return res.status(400).json({ error: 'Messages are required' });
     }
 
+    console.log(`[CHAT] User ${req.userId} sending ${messages.length} messages`);
+
     // Vérifier et consommer 1 crédit
     const creditResult = await consumeCredit(req.userId);
+    console.log(`[CHAT] Credit consumption result for user ${req.userId}:`, creditResult);
+
     if (!creditResult.ok) {
-      return res.status(429).json({ 
+      console.log(`[CHAT] Credit limit reached for user ${req.userId}: ${creditResult.message}`);
+      return res.status(429).json({
         error: creditResult.message || 'Limite quotidienne atteinte',
         upgrade: true,
         remaining: creditResult.remaining || 0
       });
     }
 
+    console.log(`[CHAT] Credit consumed successfully for user ${req.userId}, remaining: ${creditResult.remaining}`);
+
     // Réponse IA (à configurer avec Groq)
     res.json({
       choices: [
         {
           message: {
+            content: "Je suis l'assistant IA de Sales Companion. Pour le moment, je suis en cours de configuration. Veuillez réessayer plus tard ou contactez le support.",
+            role: "assistant"
+          }
+        }
+      ],
+      remaining: creditResult.remaining
+    });
+  } catch (error) {
+    console.error('[CHAT] Error for user', req.userId, ':', error);
+    res.status(500).json({ error: error.message });
+  }
+});
             content:
               'Assistant IA non configuré. Veuillez définir la clé groq_api_key dans la configuration du serveur.',
           },
