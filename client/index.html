@@ -768,12 +768,25 @@ async function refreshRemaining(){
 }
 function doLogout(){
   document.getElementById('prof-overlay').classList.remove('open');
-  window.electronAPI.clearToken();
+  
+  // Clear Electron token (if available)
+  if(window.electronAPI) window.electronAPI.clearToken();
+  
+  // Firebase sign out
+  if(firebase && firebase.auth && firebase.auth().currentUser) {
+    firebase.auth().signOut().catch(err => console.error('Firebase signOut error:', err));
+  }
+  
+  // Clear authManager
+  if(window.authManager) window.authManager.cleanup();
+  
+  // Clear local state
   token='';user=null;chatHistory=[];
+  localStorage.removeItem('authToken');
   document.getElementById('titlebar').style.display='none';
   document.getElementById('layout').style.display='none';
   document.getElementById('auth-screen').style.display='flex';
-  console.log('✅ Logged out');
+  console.log('✅ Logged out (Firebase + local state cleared)');
 }
 
 // PROFILE
