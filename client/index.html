@@ -617,13 +617,26 @@ async function initializeApp(){
 let customCities={},lastResults=[],lastFilters={},lastQuery='';
 const RAILWAY_SERVER='https://sales-companion-production.up.railway.app';
 
+// Register Service Worker for PWA support
+function registerServiceWorker(){
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('/sw.js').then(reg=>{
+      console.log('✓ Service Worker registered:', reg.scope);
+    }).catch(err=>{
+      console.warn('⚠️ Service Worker registration failed:', err.message);
+    });
+  }
+}
+
 // Initialize app on page load
 document.addEventListener('DOMContentLoaded', async ()=>{
+  registerServiceWorker();
   await initializeApp();
   updateCities();
 });
 // Also initialize immediately in case DOMContentLoaded already fired
 if(document.readyState==='interactive'||document.readyState==='complete'){
+  registerServiceWorker();
   initializeApp().then(()=>updateCities());
 }
 
@@ -1478,8 +1491,12 @@ setTimeout(testServer, 2000);
 setTimeout(initDraggableSupport, 1000);
 </script>
 
-<!-- Firebase Storage SDK (compat) -->
+<!-- Firebase SDK (compat) - MUST BE IN THIS ORDER -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
+<script src="/firebase-config.js"></script>
 
 <!-- SUPPORT CHAT BUBBLE -->
 <div id="support-bubble-bubble" style="position:fixed;bottom:20px;right:20px;width:50px;height:50px;border-radius:50%;background:#1B7A3E;color:#fff;display:flex;align-items:center;justify-content:center;cursor:move;font-size:24px;z-index:999;box-shadow:0 4px 12px rgba(0,0,0,0.2);user-select:none" onclick="if(!isDragging) openSupportChat()" title="Chat support (déplaçable)">

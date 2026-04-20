@@ -93,7 +93,11 @@ app.use(
 );
 
 app.use(express.json({ limit: '10mb' }));
+// Serve static files: sw.js, manifest.json at root
+app.use(express.static(path.join(__dirname, '..')));
+// Admin panel
 app.use(express.static(path.join(__dirname, 'admin')));
+// Mobile PWA
 app.use('/mobile', express.static(path.join(__dirname, '..', 'mobile')));
 
 // ── RATE LIMITING ──────────────────────────────────────────────
