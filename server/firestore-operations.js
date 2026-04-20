@@ -2,11 +2,11 @@
  * Firestore Helper Functions
  * Gère les opérations spécifiques à Firestore
  */
-
+ 
 const { db, auth } = require('./firebase-config');
-
+ 
 // ── USER OPERATIONS ──────────────────────────────────────────────
-
+ 
 async function createUser(email, password, userData = {}) {
   try {
     const userRecord = await auth.createUser({
@@ -32,7 +32,7 @@ async function createUser(email, password, userData = {}) {
     throw error;
   }
 }
-
+ 
 async function getUser(uid) {
   try {
     const userDoc = await db.collection('users').doc(uid).get();
@@ -43,7 +43,7 @@ async function getUser(uid) {
     throw error;
   }
 }
-
+ 
 async function updateUserPlan(uid, newPlan) {
   const planLimits = { free:10, starter:200, pro:500, enterprise:9999 };
   try {
@@ -58,7 +58,7 @@ async function updateUserPlan(uid, newPlan) {
     throw error;
   }
 }
-
+ 
 async function setAdminClaims(uid) {
   try {
     await auth.setCustomUserClaims(uid, { admin: true });
@@ -68,9 +68,9 @@ async function setAdminClaims(uid) {
     throw error;
   }
 }
-
+ 
 // ── COMPANY OPERATIONS ──────────────────────────────────────────
-
+ 
 async function addCompany(companyData) {
   try {
     const companyRef = db.collection('companies').doc();
@@ -86,7 +86,7 @@ async function addCompany(companyData) {
     throw error;
   }
 }
-
+ 
 async function searchCompanies(filters = {}) {
   try {
     let query = db.collection('companies');
@@ -94,11 +94,11 @@ async function searchCompanies(filters = {}) {
     if (filters.region)  query = query.where('region',  '==', filters.region);
     if (filters.city)    query = query.where('city',    '==', filters.city);
     if (filters.active !== undefined) query = query.where('active', '==', filters.active);
-
+ 
     const requestedLimit = Math.min(Math.max(parseInt(filters.limit, 10) || 50, 1), 200);
     const snapshot = await query.limit(requestedLimit).get();
     let companies = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
+ 
     if (filters.query) {
       const q = String(filters.query).trim().toLowerCase();
       if (q) {
@@ -128,7 +128,7 @@ async function searchCompanies(filters = {}) {
     throw error;
   }
 }
-
+ 
 /**
  * Import par chunks de 400 — évite la limite Firestore de 500 ops/batch
  * Dédoublonnage par NIU (si présent) ou raisonSociale
@@ -136,22 +136,21 @@ async function searchCompanies(filters = {}) {
 async function importCompaniesBatch(companiesData) {
   const CHUNK_SIZE = 400;
   let importedCount = 0, skippedCount = 0, errorCount = 0;
-
+ 
   try {
     for (let i = 0; i < companiesData.length; i += CHUNK_SIZE) {
       const chunk = companiesData.slice(i, i + CHUNK_SIZE);
       const batch = db.batch();
       let batchCount = 0;
-
+ 
       for (const company of chunk) {
         try {
           if (!company.raisonSociale && !company.niu) { skippedCount++; continue; }
-
-          // Dédoublonnage : utilise NIU comme ID stable si disponible
+ 
           const docId = company.niu
             ? String(company.niu).replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 100)
             : String(company.raisonSociale).replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 100) + '_' + i;
-
+ 
           const ref = db.collection('companies').doc(docId);
           batch.set(ref, {
             ...company,
@@ -159,7 +158,7 @@ async function importCompaniesBatch(companiesData) {
             active: true,
             updatedAt: new Date().toISOString(),
           }, { merge: true });
-
+ 
           importedCount++;
           batchCount++;
         } catch (e) {
@@ -167,22 +166,22 @@ async function importCompaniesBatch(companiesData) {
           errorCount++;
         }
       }
-
+ 
       if (batchCount > 0) {
         await batch.commit();
         console.log(`[IMPORT] Chunk ${Math.floor(i/CHUNK_SIZE)+1} commité — ${importedCount} total importées`);
       }
     }
-
+ 
     return { importedCount, skippedCount, errorCount, updatedCount: 0 };
   } catch (error) {
     console.error('Error importing companies batch:', error);
     throw error;
   }
 }
-
+ 
 // ── SAVED SEARCHES ──────────────────────────────────────────────
-
+ 
 async function addSavedSearch(uid, searchData) {
   try {
     const searchRef = db.collection('saved_searches').doc();
@@ -201,7 +200,7 @@ async function addSavedSearch(uid, searchData) {
     throw error;
   }
 }
-
+ 
 async function getSavedSearches(uid) {
   try {
     const snapshot = await db.collection('saved_searches')
@@ -214,7 +213,7 @@ async function getSavedSearches(uid) {
     throw error;
   }
 }
-
+ 
 async function deleteSavedSearch(uid, searchId) {
   try {
     const docRef = db.collection('saved_searches').doc(searchId);
@@ -228,9 +227,9 @@ async function deleteSavedSearch(uid, searchId) {
     throw error;
   }
 }
-
+ 
 // ── PIPELINE ────────────────────────────────────────────────────
-
+ 
 async function addPipelineProspect(userId, prospectData) {
   try {
     const pipelineRef = db.collection('users').doc(userId).collection('pipeline');
@@ -253,7 +252,7 @@ async function addPipelineProspect(userId, prospectData) {
     throw error;
   }
 }
-
+ 
 async function getUserPipeline(userId, filters = {}) {
   try {
     let query = db.collection('users').doc(userId).collection('pipeline');
@@ -265,7 +264,7 @@ async function getUserPipeline(userId, filters = {}) {
     throw error;
   }
 }
-
+ 
 async function updatePipelineProspect(userId, prospectId, updateData) {
   try {
     const ref = db.collection('users').doc(userId).collection('pipeline').doc(prospectId);
@@ -277,7 +276,7 @@ async function updatePipelineProspect(userId, prospectId, updateData) {
     throw error;
   }
 }
-
+ 
 async function deletePipelineProspect(userId, prospectId) {
   try {
     await db.collection('users').doc(userId).collection('pipeline').doc(prospectId).delete();
@@ -287,12 +286,12 @@ async function deletePipelineProspect(userId, prospectId) {
     throw error;
   }
 }
-
+ 
 async function checkCompanyInPipeline(userId, companyId, companyName) {
   try {
     const pipelineRef = db.collection('users').doc(userId).collection('pipeline');
     let query = pipelineRef;
-    
+ 
     if (companyId) {
       query = query.where('company_id', '==', companyId);
     } else if (companyName) {
@@ -300,10 +299,10 @@ async function checkCompanyInPipeline(userId, companyId, companyName) {
     } else {
       return null;
     }
-    
+ 
     const snapshot = await query.limit(1).get();
     if (snapshot.empty) return null;
-    
+ 
     const doc = snapshot.docs[0];
     return {
       prospectId: doc.id,
@@ -315,9 +314,9 @@ async function checkCompanyInPipeline(userId, companyId, companyName) {
     return null;
   }
 }
-
+ 
 // ── CONFIG ───────────────────────────────────────────────────────
-
+ 
 async function setConfig(key, value) {
   try {
     await db.collection('config').doc(key).set({ value, updatedAt: new Date().toISOString() }, { merge: true });
@@ -327,23 +326,20 @@ async function setConfig(key, value) {
     throw error;
   }
 }
-
+ 
 async function getConfig(key) {
   try {
     const doc = await db.collection('config').doc(key).get();
-    if (!doc.exists) return null; // ← collection vide = null, pas d'erreur
+    if (!doc.exists) return null;
     return doc.data().value;
   } catch (error) {
     console.error('Error getting config:', error.message);
-    return null; // ← retourne null au lieu de throw
+    return null;
   }
 }
-
+ 
 // ── USAGE LOGS ───────────────────────────────────────────────────
-
-/**
- * FIX : resultsCount défaut à 0 pour éviter undefined dans Firestore
- */
+ 
 async function logUsage(userId, query, resultsCount = 0) {
   try {
     await db.collection('usage_logs').add({
@@ -353,28 +349,21 @@ async function logUsage(userId, query, resultsCount = 0) {
       timestamp:    new Date().toISOString(),
     });
   } catch (error) {
-    // Non bloquant — on logue juste l'erreur
     console.error('Error logging usage:', error.message);
   }
 }
-
-/**
- * Consomme 1 crédit pour une action (chat, recherche, etc.)
- * Retourne { ok: true } si suffisamment de crédits
- * Retourne { ok: false, remaining: 0 } si limite atteinte
- */
+ 
 async function consumeCredit(userId) {
   try {
     const userDoc = await db.collection('users').doc(userId).get();
     if (!userDoc.exists) return { ok: false, message: 'Utilisateur non trouvé' };
-    
+ 
     const userData = userDoc.data();
     const today = new Date().toISOString().split('T')[0];
     const lastReset = userData.lastReset ? userData.lastReset.split('T')[0] : null;
-    
+ 
     let dailyUsed = userData.dailyUsed || 0;
-    
-    // Réinitialiser si c'est un nouveau jour
+ 
     if (lastReset !== today) {
       dailyUsed = 0;
       await db.collection('users').doc(userId).update({
@@ -382,24 +371,23 @@ async function consumeCredit(userId) {
         lastReset: new Date().toISOString(),
       });
     }
-    
+ 
     const dailyLimit = userData.dailyLimit || 10;
-    
+ 
     if (dailyUsed >= dailyLimit) {
-      return { 
-        ok: false, 
+      return {
+        ok: false,
         remaining: 0,
         message: `Limite quotidienne atteinte (${dailyLimit})`
       };
     }
-    
-    // Consommer 1 crédit
+ 
     await db.collection('users').doc(userId).update({
       dailyUsed: dailyUsed + 1,
       updatedAt: new Date().toISOString(),
     });
-    
-    return { 
+ 
+    return {
       ok: true,
       remaining: dailyLimit - (dailyUsed + 1)
     };
@@ -408,14 +396,14 @@ async function consumeCredit(userId) {
     return { ok: false, message: 'Erreur lors de la consommation du crédit' };
   }
 }
-
+ 
 // ── SUPPORT MESSAGING ────────────────────────────────────────────
-
+ 
 async function createSupportMessage(userId, data) {
   try {
     const user = await getUser(userId);
     if (!user) return null;
-    
+ 
     const message = {
       userId,
       userName: user.name || 'Utilisateur',
@@ -426,7 +414,7 @@ async function createSupportMessage(userId, data) {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
-    
+ 
     const docRef = await db.collection('support_messages').add(message);
     return { id: docRef.id, ...message };
   } catch (error) {
@@ -434,35 +422,35 @@ async function createSupportMessage(userId, data) {
     throw error;
   }
 }
-
+ 
 async function getSupportMessages(limit = 50) {
   try {
     const snapshot = await db.collection('support_messages')
       .orderBy('created_at', 'desc')
       .limit(limit)
       .get();
-    
+ 
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   } catch (error) {
     console.error('Error getting support messages:', error.message);
     throw error;
   }
 }
-
+ 
 async function getSupportMessagesForUser(userId) {
   try {
     const snapshot = await db.collection('support_messages')
       .where('userId', '==', userId)
       .orderBy('created_at', 'desc')
       .get();
-    
+ 
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   } catch (error) {
     console.error('Error getting user support messages:', error.message);
     throw error;
   }
 }
-
+ 
 async function replyToSupportMessage(messageId, reply, adminEmail) {
   try {
     await db.collection('support_messages').doc(messageId).update({
@@ -478,7 +466,7 @@ async function replyToSupportMessage(messageId, reply, adminEmail) {
     throw error;
   }
 }
-
+ 
 async function closeSupportMessage(messageId) {
   try {
     await db.collection('support_messages').doc(messageId).update({
@@ -491,9 +479,9 @@ async function closeSupportMessage(messageId) {
     throw error;
   }
 }
-
+ 
 // ── MIDDLEWARE ────────────────────────────────────────────────────
-
+ 
 async function verifyToken(req, res, next) {
   const token = req.headers.authorization?.split('Bearer ')[1];
   if (!token) return res.status(401).json({ error: 'No token provided' });
@@ -504,10 +492,14 @@ async function verifyToken(req, res, next) {
     next();
   } catch (error) {
     console.error('Token verification error:', error.message);
+    // ✅ FIX: retourner un code clair pour que le client puisse rafraîchir le token
+    if (error.code === 'auth/id-token-expired') {
+      return res.status(401).json({ error: 'TOKEN_EXPIRED' });
+    }
     return res.status(401).json({ error: 'Invalid or expired token' });
   }
 }
-
+ 
 async function verifyAdmin(req, res, next) {
   const token = req.headers.authorization?.split('Bearer ')[1];
   if (!token) return res.status(401).json({ error: 'No token provided' });
@@ -519,10 +511,14 @@ async function verifyAdmin(req, res, next) {
     next();
   } catch (error) {
     console.error('Admin verification error:', error.message);
+    // ✅ FIX: retourner un code clair pour que le client puisse rafraîchir le token
+    if (error.code === 'auth/id-token-expired') {
+      return res.status(401).json({ error: 'TOKEN_EXPIRED' });
+    }
     return res.status(401).json({ error: 'Invalid or expired token' });
   }
 }
-
+ 
 module.exports = {
   createUser, getUser, updateUserPlan, setAdminClaims,
   addCompany, searchCompanies, importCompaniesBatch,
@@ -533,3 +529,4 @@ module.exports = {
   createSupportMessage, getSupportMessages, getSupportMessagesForUser, replyToSupportMessage, closeSupportMessage,
   verifyToken, verifyAdmin,
 };
+ 
