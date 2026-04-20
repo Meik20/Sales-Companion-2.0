@@ -9,6 +9,7 @@
                style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; 
                font-src 'self' https://fonts.gstatic.com;">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="manifest" href="/mobile/manifest.json">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -905,7 +906,7 @@ function renderResults(data){
       </div>
       <div class="co-footer">
         <button class="ca maps" onclick="toggleMap('${id}','${mapSrc}')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/></svg>
           Localiser
         </button>
         <button class="ca" style="background:var(--gl);color:var(--g)" onclick="addToPipelineFromCard(${i})">
@@ -935,8 +936,8 @@ function growCompanyForPipeline(co){
     name: co.raison_sociale || co.company_name || co.nom || co.name || '',
     sector: co.secteur || co.activite_principale || '',
     city: co.ville || co.region || '',
-    phone: co.telephone || co.tel || '',
-    email: co.email || co.contact_email || '',
+    phone: co.telephone || co.tel || co.company_phone || co.contact_phone || '',
+    email: co.email || co.contact_email || co.company_email || '',
     id: co.id || co.siren || co.niu || null,
     director: co.dirigeant || co.company_director || ''
   };
@@ -1335,63 +1336,63 @@ function closeSupportChat() {
 function initDraggableSupport() {
   const bubble = document.getElementById('support-bubble-bubble');
   const chatWindow = document.getElementById('support-chat-window');
+  let dragTarget = null;
+  let offsetX = 0, offsetY = 0;
 
-  // Make bubble draggable
-  bubble.addEventListener('mousedown', startDrag);
-  bubble.addEventListener('touchstart', startDrag, { passive: false });
-
-  // Make chat window draggable from header
-  const header = chatWindow.querySelector('div[style*="background:#1B7A3E"]');
-  header.style.cursor = 'move';
-  header.addEventListener('mousedown', startDrag);
-  header.addEventListener('touchstart', startDrag, { passive: false });
-
-  function startDrag(e) {
-    if (e.target.tagName === 'BUTTON' || e.target.onclick) return; // Don't drag if clicking buttons
-
-    isDragging = true;
-    const rect = e.currentTarget.getBoundingClientRect();
-    dragOffset.x = e.clientX - rect.left;
-    dragOffset.y = e.clientY - rect.top;
-
-    document.addEventListener('mousemove', drag);
-    document.addEventListener('touchmove', drag, { passive: false });
-    document.addEventListener('mouseup', endDrag);
-    document.addEventListener('touchend', endDrag);
-
+  function onMouseDown(e) {
+    dragTarget = bubble;
+    offsetX = e.clientX - bubble.getBoundingClientRect().left;
+    offsetY = e.clientY - bubble.getBoundingClientRect().top;
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
     e.preventDefault();
   }
-
-  function drag(e) {
-    if (!isDragging) return;
-
-    const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-    const clientY = e.clientY || (e.touches && e.touches[0].clientY);
-
-    if (clientX && clientY) {
-      const newX = clientX - dragOffset.x;
-      const newY = clientY - dragOffset.y;
-
-      // Keep within viewport bounds
-      const maxX = window.innerWidth - 50;
-      const maxY = window.innerHeight - 50;
-
-      e.currentTarget.style.left = Math.max(0, Math.min(newX, maxX)) + 'px';
-      e.currentTarget.style.top = Math.max(0, Math.min(newY, maxY)) + 'px';
-      e.currentTarget.style.right = 'auto';
-      e.currentTarget.style.bottom = 'auto';
-      e.currentTarget.style.position = 'fixed';
-    }
-
-    e.preventDefault();
+  function onMouseMove(e) {
+    if (!dragTarget) return;
+    let x = e.clientX - offsetX;
+    let y = e.clientY - offsetY;
+    x = Math.max(0, Math.min(window.innerWidth - bubble.offsetWidth, x));
+    y = Math.max(0, Math.min(window.innerHeight - bubble.offsetHeight, y));
+    bubble.style.left = x + 'px';
+    bubble.style.top = y + 'px';
+    bubble.style.right = 'auto';
+    bubble.style.bottom = 'auto';
+    bubble.style.position = 'fixed';
   }
+  function onMouseUp() {
+    dragTarget = null;
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', onMouseUp);
+  }
+  bubble.addEventListener('mousedown', onMouseDown);
 
-  function endDrag() {
-    isDragging = false;
-    document.removeEventListener('mousemove', drag);
-    document.removeEventListener('touchmove', drag);
-    document.removeEventListener('mouseup', endDrag);
-    document.removeEventListener('touchend', endDrag);
+  // Touch events for mobile
+  bubble.addEventListener('touchstart', function(e) {
+    dragTarget = bubble;
+    const touch = e.touches[0];
+    offsetX = touch.clientX - bubble.getBoundingClientRect().left;
+    offsetY = touch.clientY - bubble.getBoundingClientRect().top;
+    document.addEventListener('touchmove', onTouchMove, { passive: false });
+    document.addEventListener('touchend', onTouchEnd);
+    e.preventDefault();
+  });
+  function onTouchMove(e) {
+    if (!dragTarget) return;
+    const touch = e.touches[0];
+    let x = touch.clientX - offsetX;
+    let y = touch.clientY - offsetY;
+    x = Math.max(0, Math.min(window.innerWidth - bubble.offsetWidth, x));
+    y = Math.max(0, Math.min(window.innerHeight - bubble.offsetHeight, y));
+    bubble.style.left = x + 'px';
+    bubble.style.top = y + 'px';
+    bubble.style.right = 'auto';
+    bubble.style.bottom = 'auto';
+    bubble.style.position = 'fixed';
+  }
+  function onTouchEnd() {
+    dragTarget = null;
+    document.removeEventListener('touchmove', onTouchMove);
+    document.removeEventListener('touchend', onTouchEnd);
   }
 }
 
@@ -1468,6 +1469,9 @@ async function sendSupportMessage() {
 setTimeout(testServer, 2000);
 setTimeout(initDraggableSupport, 1000);
 </script>
+
+<!-- Firebase Storage SDK (compat) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 
 <!-- SUPPORT CHAT BUBBLE -->
 <div id="support-bubble-bubble" style="position:fixed;bottom:20px;right:20px;width:50px;height:50px;border-radius:50%;background:#1B7A3E;color:#fff;display:flex;align-items:center;justify-content:center;cursor:move;font-size:24px;z-index:999;box-shadow:0 4px 12px rgba(0,0,0,0.2);user-select:none" onclick="if(!isDragging) openSupportChat()" title="Chat support (déplaçable)">
