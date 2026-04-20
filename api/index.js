@@ -321,7 +321,7 @@ app.delete('/api/saved-searches/:id', verifyToken, async (req, res) => {
 app.get('/api/pipeline', verifyToken, async (req, res) => {
   try {
     const pipeline = await getUserPipeline(req.userId);
-    res.json({ data: pipeline });
+    res.json(pipeline);
   } catch (error) {
     console.error('Pipeline error:', error);
     res.status(500).json({ error: error.message });
