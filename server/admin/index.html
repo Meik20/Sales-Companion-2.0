@@ -160,8 +160,23 @@ tr:hover td{background:#fafafa}
 .page-btn.active{background:var(--g);color:#fff;border-color:var(--g)}
 .page-info{font-size:12.5px;color:var(--tx3)}
 
+/* ALERT BANNER — pour signaler les problèmes backend */
+.alert-banner{background:#fff3cd;border:1px solid #ffc107;border-radius:var(--r);padding:10px 14px;font-size:12.5px;color:#856404;margin-bottom:14px;display:flex;align-items:flex-start;gap:8px}
+.alert-banner svg{flex-shrink:0;margin-top:1px}
+
+/* REFRESH BTN */
+.refresh-btn{padding:5px 10px;background:var(--gl);color:var(--g);border:1px solid rgba(27,122,62,.2);border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.refresh-btn:hover{background:var(--g);color:#fff}
+.refresh-btn.spinning svg{animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
 .toast{position:fixed;bottom:20px;right:20px;background:#111;color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none}
 .toast.show{opacity:1}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:32px 16px;color:var(--tx3)}
+.empty-state .empty-icon{font-size:32px;margin-bottom:8px}
+.empty-state p{font-size:13px;line-height:1.6}
 </style>
 </head>
 <body>
@@ -228,7 +243,13 @@ tr:hover td{background:#fafafa}
 
     <!-- DASHBOARD -->
     <div class="page active" id="page-dashboard">
-      <div class="page-title">Tableau de bord</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div class="page-title" style="margin-bottom:0">Tableau de bord</div>
+        <button class="refresh-btn" id="dash-refresh-btn" onclick="refreshDashboard(this)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display:inline;vertical-align:middle;margin-right:4px"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          Actualiser
+        </button>
+      </div>
       <div class="stats-grid">
         <div class="stat-card"><div class="stat-lbl">Utilisateurs</div><div class="stat-val" id="s-users">—</div><div class="stat-sub">Comptes enregistrés</div></div>
         <div class="stat-card teal"><div class="stat-lbl">Entreprises</div><div class="stat-val" id="s-cos">—</div><div class="stat-sub">Dans la base</div></div>
@@ -253,8 +274,10 @@ tr:hover td{background:#fafafa}
         </div>
         <div class="card">
           <div class="card-title">Activité récente</div>
-          <table><thead><tr><th>Utilisateur</th><th>Requête</th><th>Résultats</th><th>Plan</th></tr></thead>
-          <tbody id="recent-logs"></tbody></table>
+          <table>
+            <thead><tr><th>Utilisateur</th><th>Requête</th><th>Résultats</th><th>Plan</th></tr></thead>
+            <tbody id="recent-logs"></tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -290,7 +313,16 @@ tr:hover td{background:#fafafa}
           <div class="result-box" id="result-box"></div>
         </div>
         <div class="card">
-          <div class="card-title">Historique des imports <span class="card-sub" id="import-count"></span></div>
+          <div class="card-title">
+            Historique des imports
+            <span style="display:flex;align-items:center;gap:8px">
+              <span class="card-sub" id="import-count"></span>
+              <button class="refresh-btn" onclick="loadImportLogs(true)">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display:inline;vertical-align:middle"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                Rafraîchir
+              </button>
+            </span>
+          </div>
           <div id="import-logs"></div>
         </div>
       </div>
@@ -304,7 +336,7 @@ tr:hover td{background:#fafafa}
           <span>Entreprises <span id="co-count" class="card-sub"></span></span>
           <div style="display:flex;align-items:center;gap:10px">
             <span id="co-total-badge" style="font-size:13px;color:var(--g);font-weight:700"></span>
-            <button class="btn btn-red btn-sm" onclick="deleteAllCompanies()" style="white-space:nowrap">🗑️ Vider la base</button>
+            <button class="btn btn-red btn-sm" id="del-all-btn" onclick="deleteAllCompanies()" style="white-space:nowrap">🗑️ Vider la base</button>
           </div>
         </div>
         <div class="filter-bar">
@@ -364,7 +396,13 @@ tr:hover td{background:#fafafa}
       <div class="page-title">Messages de Support</div>
       <div class="grid-2">
         <div class="card" style="grid-column:1;max-height:600px;overflow-y:auto">
-          <div class="card-title">Tickets <span class="card-sub" id="support-count">0</span></div>
+          <div class="card-title">
+            Tickets <span class="card-sub" id="support-count">0</span>
+            <button class="refresh-btn" onclick="loadSupportMessages()">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display:inline;vertical-align:middle"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              Rafraîchir
+            </button>
+          </div>
           <div id="support-list" style="display:flex;flex-direction:column;gap:8px"></div>
         </div>
         <div class="card" style="grid-column:2;max-height:600px;overflow-y:auto">
@@ -378,10 +416,19 @@ tr:hover td{background:#fafafa}
     <div class="page" id="page-logs">
       <div class="page-title">Journal d'activité</div>
       <div class="card">
-        <div class="card-title">Recherches récentes <span class="card-sub">20 dernières</span></div>
+        <div class="card-title">
+          Recherches récentes
+          <span style="display:flex;align-items:center;gap:8px">
+            <span class="card-sub">20 dernières</span>
+            <button class="refresh-btn" onclick="loadLogs()">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display:inline;vertical-align:middle"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              Rafraîchir
+            </button>
+          </span>
+        </div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Utilisateur</th><th>Requête</th><th>Résultats DB</th><th>Plan</th><th>Date</th></tr></thead>
+            <thead><tr><th>Utilisateur</th><th>Email</th><th>Requête</th><th>Résultats DB</th><th>Plan</th><th>Date</th></tr></thead>
             <tbody id="logs-body"></tbody>
           </table>
         </div>
@@ -399,8 +446,9 @@ tr:hover td{background:#fafafa}
             <input type="password" id="cfg-key" placeholder="gsk_...">
             <small>Obtenez votre clé gratuite sur <strong>console.groq.com/keys</strong><br>Utilisée uniquement pour l'assistant chat — les recherches utilisent la base de données locale.</small>
           </div>
+          <div id="cfg-key-status" style="font-size:12px;margin-bottom:10px;padding:8px 12px;border-radius:6px;display:none"></div>
           <button class="btn btn-g" onclick="saveConfig()">Enregistrer la clé</button>
-          <div class="ok-msg" id="cfg-ok">✅ Clé API enregistrée</div>
+          <div class="ok-msg" id="cfg-ok">✅ Clé API enregistrée — tableau de bord mis à jour</div>
         </div>
         <div class="card">
           <div class="card-title">Sécurité admin</div>
@@ -426,31 +474,37 @@ tr:hover td{background:#fafafa}
         </table>
       </div>
     </div>
-  </div>
-</div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
 
 <div class="toast" id="toast"></div>
 
 <script>
+/* ═══════════════════════════════════════════════════════════════
+   CONSTANTS & STATE
+═══════════════════════════════════════════════════════════════ */
 const API = window.location.origin;
 const PLAN_INFO = {
-  free:{label:'Gratuit',badge:'b-free',icon:'🆓'},
-  starter:{label:'Starter',badge:'b-starter',icon:'🚀'},
-  pro:{label:'Pro',badge:'b-pro',icon:'⭐'},
-  enterprise:{label:'Entreprise',badge:'b-enterprise',icon:'🏢'}
+  free:       {label:'Gratuit',   badge:'b-free',       icon:'🆓'},
+  starter:    {label:'Starter',   badge:'b-starter',    icon:'🚀'},
+  pro:        {label:'Pro',       badge:'b-pro',        icon:'⭐'},
+  enterprise: {label:'Entreprise',badge:'b-enterprise', icon:'🏢'}
 };
 
 let adminToken        = localStorage.getItem('sc_admin_token');
 let adminRefreshToken = localStorage.getItem('sc_admin_refresh');
-let allUsers=[], coPage=1, coSearchTimer=null;
+let allUsers = [], coPage = 1, coSearchTimer = null;
 
 const H = () => ({'Content-Type':'application/json','Authorization':`Bearer ${adminToken}`});
 
-// ── REFRESH TOKEN AUTOMATIQUE ─────────────────────────────────
+/* ═══════════════════════════════════════════════════════════════
+   TOKEN REFRESH
+═══════════════════════════════════════════════════════════════ */
 async function refreshToken() {
   if (!adminRefreshToken) return false;
   try {
-    const keyRes = await fetch(`${API}/api/config/firebase`);
+    const keyRes  = await fetch(`${API}/api/config/firebase`);
     const keyData = await keyRes.json();
     const res = await fetch(
       `https://securetoken.googleapis.com/v1/token?key=${keyData.apiKey}`,
@@ -470,12 +524,9 @@ async function refreshToken() {
   return false;
 }
 
-// ── FETCH AVEC RETRY AUTO ─────────────────────────────────────
 async function apiFetch(url, options={}) {
   options.headers = {...H(), ...(options.headers||{})};
-  // Supprimer Content-Type si FormData
   if (options.body instanceof FormData) delete options.headers['Content-Type'];
-  
   let res = await fetch(url, options);
   if (res.status === 401) {
     console.log('[Auth] Token expiré — refresh...');
@@ -490,20 +541,20 @@ async function apiFetch(url, options={}) {
   return res;
 }
 
-// ── REFRESH AUTO toutes les 50 minutes ───────────────────────
+// Refresh auto toutes les 50 min
 setInterval(() => {
-  if (adminToken && adminRefreshToken) {
-    refreshToken().then(ok => ok && console.log('[Auth] Refresh périodique ✅'));
-  }
+  if (adminToken && adminRefreshToken) refreshToken();
 }, 50 * 60 * 1000);
 
-// Ensure DOM ready before showing app so elements exist when we restore page
+// Restaurer session au chargement
 if (adminToken) {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', showApp);
   else showApp();
 }
 
-// ── AUTH ──────────────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════════════════
+   AUTH
+═══════════════════════════════════════════════════════════════ */
 async function doLogin() {
   const u   = document.getElementById('login-user').value;
   const p   = document.getElementById('login-pass').value;
@@ -516,43 +567,52 @@ async function doLogin() {
       body: JSON.stringify({email, password:p})
     });
     const d = await r.json();
-    if (!r.ok) { err.textContent=d.error; err.style.display='block'; return; }
-
+    if (!r.ok) { err.textContent = d.error; err.style.display = 'block'; return; }
     adminToken        = d.token;
-    adminRefreshToken = d.refreshToken || null; // ← sauvegarder
-    localStorage.setItem('sc_admin_token', adminToken);
+    adminRefreshToken = d.refreshToken || null;
+    localStorage.setItem('sc_admin_token',   adminToken);
     if (adminRefreshToken) localStorage.setItem('sc_admin_refresh', adminRefreshToken);
-   showApp();
-  } catch(e) { err.textContent='Serveur inaccessible'; err.style.display='block'; }
+    showApp();
+  } catch(e) { err.textContent = 'Serveur inaccessible'; err.style.display = 'block'; }
 }
 
 function logout() {
   localStorage.removeItem('sc_admin_token');
   localStorage.removeItem('sc_admin_refresh');
   adminToken = null; adminRefreshToken = null;
-  document.getElementById('app').style.display = 'none';
+  document.getElementById('app').style.display       = 'none';
   document.getElementById('auth-page').style.display = 'flex';
 }
 
 function showApp() {
   document.getElementById('auth-page').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  // Restore last opened page if present (persist across refreshes), otherwise show dashboard
+  document.getElementById('app').style.display       = 'block';
   const last = localStorage.getItem('admin_last_page') || 'dashboard';
   showPage(last);
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════════════════════════════ */
 function showPage(name, el) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById(`page-${name}`).classList.add('active');
-  if (el && el.classList) el.classList.add('active');
-  else {
-    // Try to find the nav item that triggers this page
-    const nav = Array.from(document.querySelectorAll('.nav-item')).find(n => (n.getAttribute('onclick')||'').includes(`showPage('${name}'`));
+
+  const pageEl = document.getElementById(`page-${name}`);
+  if (!pageEl) { showPage('dashboard'); return; }
+  pageEl.classList.add('active');
+
+  if (el && el.classList) {
+    el.classList.add('active');
+  } else {
+    const nav = Array.from(document.querySelectorAll('.nav-item'))
+      .find(n => (n.getAttribute('onclick')||'').includes(`showPage('${name}'`));
     if (nav) nav.classList.add('active');
   }
+
   localStorage.setItem('admin_last_page', name);
+
+  if (name === 'dashboard') loadDashboard();
   if (name === 'users')     loadUsers();
   if (name === 'logs')      loadLogs();
   if (name === 'config')    loadConfig();
@@ -561,11 +621,21 @@ function showPage(name, el) {
   if (name === 'support')   loadSupportMessages();
 }
 
-// ── DASHBOARD ─────────────────────────────────────────────────
+function refreshDashboard(btn) {
+  if (btn) {
+    btn.classList.add('spinning');
+    setTimeout(() => btn.classList.remove('spinning'), 1200);
+  }
+  loadDashboard();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DASHBOARD
+═══════════════════════════════════════════════════════════════ */
 async function loadDashboard() {
   try {
-    const r = await apiFetch(`${API}/admin/stats`, {headers: H()});
-    if (!r || r.status === 401) { return; }
+    const r = await apiFetch(`${API}/admin/stats`);
+    if (!r || r.status === 401) return;
     const d = await r.json();
 
     document.getElementById('s-users').textContent = d.totalUsers ?? '—';
@@ -573,23 +643,8 @@ async function loadDashboard() {
     document.getElementById('s-today').textContent = d.activeToday ?? '—';
     document.getElementById('s-total').textContent = d.totalSearches ?? '—';
 
-    // API Groq status
-    try {
-      const cr  = await apiFetch(`${API}/admin/config`, {headers: H()});
-      if (cr) {
-        const cfg = await cr.json();
-        const ae  = document.getElementById('s-api');
-        if (cfg.groq_api_key) {
-          ae.textContent = '✅ OK'; ae.style.color = 'var(--g)';
-          document.getElementById('s-api-sub').textContent = 'Chat IA actif';
-        } else {
-          ae.textContent = '❌ Manquante'; ae.style.color = 'var(--red)';
-          document.getElementById('s-api-sub').textContent = 'Chat IA inactif';
-        }
-      }
-    } catch(_) {}
+    await refreshApiKeyStatus();
 
-    // Region bars
     const maxR = (d.companiesByRegion || [])[0]?.c || 1;
     document.getElementById('region-bars').innerHTML =
       (d.companiesByRegion || []).map(r => `
@@ -598,9 +653,8 @@ async function loadDashboard() {
           <div class="bar-track"><div class="bar-fill" style="width:${Math.round(r.c/maxR*100)}%"></div></div>
           <div class="bar-count">${r.c.toLocaleString()}</div>
         </div>`).join('') ||
-      '<p style="color:var(--tx3);font-size:13px">Aucune donnée — importez des entreprises</p>';
+      '<div class="empty-state"><div class="empty-icon">🗂️</div><p>Aucune donnée — importez des entreprises</p></div>';
 
-    // Sector bars
     const maxS = (d.companiesBySecteur || [])[0]?.c || 1;
     document.getElementById('sector-bars').innerHTML =
       (d.companiesBySecteur || []).map(s => `
@@ -609,9 +663,8 @@ async function loadDashboard() {
           <div class="bar-track"><div class="bar-fill" style="width:${Math.round(s.c/maxS*100)}%"></div></div>
           <div class="bar-count">${s.c.toLocaleString()}</div>
         </div>`).join('') ||
-      '<p style="color:var(--tx3);font-size:13px">Aucune donnée</p>';
+      '<div class="empty-state"><div class="empty-icon">📊</div><p>Aucune donnée</p></div>';
 
-    // Plan summary
     const counts = {free:0, starter:0, pro:0, enterprise:0};
     (d.planCounts || []).forEach(p => { if (p.plan in counts) counts[p.plan] = p.c; });
     document.getElementById('plan-summary').innerHTML =
@@ -622,20 +675,60 @@ async function loadDashboard() {
           <div style="font-size:22px;font-weight:700;color:var(--g)">${counts[k]}</div>
         </div>`).join('');
 
-    // Recent logs
-    document.getElementById('recent-logs').innerHTML =
-      (d.recentLogs || []).slice(0,8).map(l => `
-        <tr>
-          <td class="td-bold" style="font-size:12.5px">${l.name||'—'}</td>
-          <td class="td-trunc td-sm">${l.query||'—'}</td>
-          <td style="font-size:12px;font-weight:600;color:var(--g)">${l.results_count||0}</td>
-          <td><span class="badge ${PLAN_INFO[l.plan]?.badge||'b-free'}">${l.plan||'free'}</span></td>
-        </tr>`).join('');
+    const logs = d.recentLogs || [];
+    document.getElementById('recent-logs').innerHTML = logs.length
+      ? logs.slice(0,8).map(l => `
+          <tr>
+            <td class="td-bold" style="font-size:12.5px">${l.name||'—'}</td>
+            <td class="td-trunc td-sm">${l.query||'—'}</td>
+            <td style="font-size:12px;font-weight:600;color:var(--g)">${l.results_count||0}</td>
+            <td><span class="badge ${PLAN_INFO[l.plan]?.badge||'b-free'}">${l.plan||'free'}</span></td>
+          </tr>`).join('')
+      : `<tr><td colspan="4" style="text-align:center;color:var(--tx3);padding:20px;font-size:12px">
+           Aucune activité récente — les recherches utilisateurs s'afficheront ici
+         </td></tr>`;
 
   } catch(e) { console.error('loadDashboard error:', e); }
 }
 
-// ── IMPORT ────────────────────────────────────────────────────
+async function refreshApiKeyStatus() {
+  try {
+    const cr  = await apiFetch(`${API}/admin/config`);
+    if (!cr) return;
+    const cfg = await cr.json();
+    const ae  = document.getElementById('s-api');
+    const sub = document.getElementById('s-api-sub');
+    if (cfg.groq_api_key) {
+      ae.textContent = '✅ OK';
+      ae.style.color = 'var(--g)';
+      sub.textContent = 'Chat IA actif';
+    } else {
+      ae.textContent = '❌ Manquante';
+      ae.style.color = 'var(--red)';
+      sub.textContent = 'Chat IA inactif';
+    }
+    const statusEl = document.getElementById('cfg-key-status');
+    if (statusEl) {
+      if (cfg.groq_api_key) {
+        statusEl.style.display = 'block';
+        statusEl.style.background = 'var(--gl)';
+        statusEl.style.color = 'var(--g)';
+        statusEl.textContent = '✅ Une clé API est actuellement enregistrée et active';
+        document.getElementById('cfg-key').placeholder = '••••••••••••••• (remplacer)';
+      } else {
+        statusEl.style.display = 'block';
+        statusEl.style.background = 'var(--rl)';
+        statusEl.style.color = 'var(--red)';
+        statusEl.textContent = '❌ Aucune clé API enregistrée — le chat IA est inactif';
+        document.getElementById('cfg-key').placeholder = 'gsk_...';
+      }
+    }
+  } catch(_) {}
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   IMPORT
+═══════════════════════════════════════════════════════════════ */
 function dragOver(e)  { e.preventDefault(); document.getElementById('import-zone').classList.add('drag-over'); }
 function dragLeave()  { document.getElementById('import-zone').classList.remove('drag-over'); }
 function dropFile(e)  { e.preventDefault(); dragLeave(); const f = e.dataTransfer.files[0]; if(f) processFile(f); }
@@ -646,66 +739,65 @@ async function processFile(file) {
   rb.style.display = 'none'; rb.className = 'result-box';
   document.getElementById('progress-wrap').style.display = 'block';
   document.getElementById('progress-fill').style.width   = '30%';
-  document.getElementById('progress-text').textContent   = 'Traitement de "' + file.name + '"...';
+  document.getElementById('progress-text').textContent   = `Traitement de "${file.name}"...`;
   const fd = new FormData(); fd.append('file', file);
   try {
     document.getElementById('progress-fill').style.width = '70%';
-    const r = await apiFetch(API + '/admin/import', {
-      method: 'POST',
-      body: fd
-    });
+    const r = await apiFetch(`${API}/admin/import`, { method:'POST', body:fd });
     document.getElementById('progress-fill').style.width = '100%';
     setTimeout(() => document.getElementById('progress-wrap').style.display = 'none', 500);
+
     const rawText = await r.text();
     let d;
-    try { d = JSON.parse(rawText); }
-    catch {
+    try { d = JSON.parse(rawText); } catch {
       rb.className = 'result-box err';
-      rb.innerHTML = '<strong>❌ Erreur serveur (code ' + r.status + ')</strong><br><br>'
-        + '<strong>Détail :</strong> ' + rawText.slice(0,300);
+      rb.innerHTML = `<strong>❌ Erreur serveur (code ${r.status})</strong><br><br><strong>Détail :</strong> ${rawText.slice(0,300)}`;
       rb.style.display = 'block';
       document.getElementById('file-input').value = '';
       return;
     }
     if (!r.ok) {
       rb.className = 'result-box err';
-      rb.innerHTML = '<strong>❌ ' + (d.error || 'Erreur import') + '</strong>';
+      rb.innerHTML = `<strong>❌ ${d.error || 'Erreur import'}</strong>`;
       rb.style.display = 'block';
-      document.getElementById('file-input').value = ''; return;
+      document.getElementById('file-input').value = '';
+      return;
     }
     rb.className = 'result-box ok';
-    const cols = Object.entries(d.columns_detected || {}).map(e => '<li><strong>' + e[0] + '</strong> → colonne "' + e[1] + '"</li>').join('');
-    rb.innerHTML = '<strong>✅ Import réussi — ' + file.name + '</strong>'
-      + '<div class="result-stats">'
-      + '<div class="rs-item"><div class="rs-val">' + (d.total||0)    + '</div><div class="rs-lbl">Lignes lues</div></div>'
-      + '<div class="rs-item"><div class="rs-val">' + (d.imported||0) + '</div><div class="rs-lbl">Nouvelles</div></div>'
-      + '<div class="rs-item"><div class="rs-val" style="color:var(--blue)">' + (d.updated||0)  + '</div><div class="rs-lbl">Mises à jour</div></div>'
-      + '<div class="rs-item"><div class="rs-val" style="color:var(--gold)">' + (d.skipped||0)  + '</div><div class="rs-lbl">Doublons ignorés</div></div>'
-      + '<div class="rs-item"><div class="rs-val" style="color:var(--red)">'  + (d.errors||0)   + '</div><div class="rs-lbl">Erreurs</div></div>'
-      + '</div>'
-      + (cols ? '<div style="margin-top:10px;font-size:12px"><strong>Colonnes mappées :</strong><ul style="padding-left:16px;margin-top:4px">' + cols + '</ul></div>' : '');
+    const cols = Object.entries(d.columns_detected || {})
+      .map(e => `<li><strong>${e[0]}</strong> → colonne "${e[1]}"</li>`).join('');
+    rb.innerHTML = `<strong>✅ Import réussi — ${file.name}</strong>
+      <div class="result-stats">
+        <div class="rs-item"><div class="rs-val">${d.total||0}</div><div class="rs-lbl">Lignes lues</div></div>
+        <div class="rs-item"><div class="rs-val">${d.imported||0}</div><div class="rs-lbl">Nouvelles</div></div>
+        <div class="rs-item"><div class="rs-val" style="color:var(--blue)">${d.updated||0}</div><div class="rs-lbl">Mises à jour</div></div>
+        <div class="rs-item"><div class="rs-val" style="color:var(--gold)">${d.skipped||0}</div><div class="rs-lbl">Doublons ignorés</div></div>
+        <div class="rs-item"><div class="rs-val" style="color:var(--red)">${d.errors||0}</div><div class="rs-lbl">Erreurs</div></div>
+      </div>
+      ${cols ? `<div style="margin-top:10px;font-size:12px"><strong>Colonnes mappées :</strong><ul style="padding-left:16px;margin-top:4px">${cols}</ul></div>` : ''}`;
     rb.style.display = 'block';
-    toast('✅ ' + (d.imported||0) + ' entreprises importées');
-    loadImportLogs(); loadDashboard();
+    toast(`✅ ${d.imported||0} entreprises importées`);
+    await loadImportLogs(true);
+    loadDashboard();
   } catch(e) {
     document.getElementById('progress-wrap').style.display = 'none';
     rb.className = 'result-box err';
-    rb.innerHTML = '<strong>❌ Impossible de joindre le serveur</strong><br>' + e.message;
+    rb.innerHTML = `<strong>❌ Impossible de joindre le serveur</strong><br>${e.message}`;
     rb.style.display = 'block';
   }
   document.getElementById('file-input').value = '';
 }
 
-// ── FIX : loadImportLogs gère tableau direct OU {data:[]} ─────
-async function loadImportLogs() {
+async function loadImportLogs(forceRefresh = false) {
+  const container = document.getElementById('import-logs');
+  if (forceRefresh) container.innerHTML = '<p style="color:var(--tx3);font-size:12px;padding:8px">Chargement...</p>';
   try {
-    const r    = await apiFetch(`${API}/admin/import-logs`, {headers: H()});
+    const r = await apiFetch(`${API}/admin/import-logs`);
     if (!r) return;
     const body = await r.json();
-    // Le serveur peut renvoyer un tableau direct ou {data:[...]}
     const logs = Array.isArray(body) ? body : (body.data || []);
     document.getElementById('import-count').textContent = `${logs.length} import${logs.length > 1 ? 's' : ''}`;
-    document.getElementById('import-logs').innerHTML = logs.length
+    container.innerHTML = logs.length
       ? logs.map(l => `
           <div class="ilog-row">
             <div class="ilog-filename" title="${l.filename||l.sourceFile||''}">📄 ${l.filename||l.sourceFile||'—'}</div>
@@ -713,18 +805,30 @@ async function loadImportLogs() {
             ${l.skipped ? `<span class="ilog-stat ilog-warn">${l.skipped} ign.</span>` : ''}
             <span class="td-sm">${(l.imported_at||l.createdAt||'').toString().replace('T',' ').slice(0,16)}</span>
           </div>`).join('')
-      : '<p style="color:var(--tx3);font-size:13px;padding:12px">Aucun import effectué</p>';
+      : `<div class="empty-state">
+           <div class="empty-icon">📂</div>
+           <p>Aucun import effectué</p>
+           <p style="font-size:11px;margin-top:6px">Si vous venez d'importer un fichier et que l'historique reste vide,<br>vérifiez que l'endpoint <strong>/admin/import-logs</strong> est bien implémenté côté serveur.</p>
+         </div>`;
   } catch(e) {
-    document.getElementById('import-logs').innerHTML =
-      '<p style="color:var(--tx3);font-size:13px;padding:12px">Impossible de charger l\'historique</p>';
+    container.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">⚠️</div>
+      <p>Impossible de charger l'historique</p>
+      <p style="font-size:11px;margin-top:4px">Erreur : ${e.message}</p>
+    </div>`;
   }
 }
 
-// ── COMPANIES ─────────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════════════════
+   COMPANIES — ✅ FIX PRINCIPAL : rechargement forcé après suppression
+═══════════════════════════════════════════════════════════════ */
 let coSearchVal = '';
 function debounceCoSearch() {
   clearTimeout(coSearchTimer);
-  coSearchTimer = setTimeout(() => { coSearchVal = document.getElementById('co-search').value; loadCompanies(1); }, 400);
+  coSearchTimer = setTimeout(() => {
+    coSearchVal = document.getElementById('co-search').value;
+    loadCompanies(1);
+  }, 400);
 }
 
 async function loadCompanies(page) {
@@ -737,7 +841,7 @@ async function loadCompanies(page) {
   if (region)  params.set('region', region);
   if (secteur) params.set('secteur', secteur);
   try {
-    const r = await apiFetch(`${API}/admin/companies?${params}`, {headers: H()});
+    const r = await apiFetch(`${API}/admin/companies?${params}`);
     if (!r) return;
     const d = await r.json();
     document.getElementById('co-count').textContent      = `${(d.total||0).toLocaleString()} résultats`;
@@ -757,7 +861,6 @@ async function loadCompanies(page) {
         <td><button class="btn btn-red btn-sm" onclick="delCompany('${c.id}','${(c.raisonSociale||c.raison_sociale||'').replace(/'/g,"\\'")}')">Retirer</button></td>
       </tr>`).join('');
     }
-    // Pagination
     const pages = d.pages || 1, current = d.page || 1;
     let pg = '';
     if (pages > 1) {
@@ -773,29 +876,81 @@ async function loadCompanies(page) {
 
 async function delCompany(id, name) {
   if (!confirm(`Retirer "${name}" de la base ?`)) return;
-  const r = await apiFetch(`${API}/admin/companies/${id}`, {method:'DELETE', headers: H()});
-  if (r && r.ok) { toast('✅ Entreprise retirée'); loadCompanies(coPage); }
+  const r = await apiFetch(`${API}/admin/companies/${id}`, {method:'DELETE'});
+  if (r && r.ok) { toast('✅ Entreprise retirée'); loadCompanies(coPage); loadDashboard(); }
 }
 
+/* ✅ FIX MAJEUR : rechargement COMPLET après suppression totale */
 async function deleteAllCompanies() {
-  const conf = prompt('Tapez SUPPRIMER pour vider toute la base de données entreprises :');
+  const btn = document.getElementById('del-all-btn');
+  const conf = prompt('⚠️ Cette action est IRRÉVERSIBLE.\n\nTapez exactement SUPPRIMER pour vider toute la base :');
   if (conf !== 'SUPPRIMER') { toast('Opération annulée'); return; }
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Suppression...';
+  
   try {
-    const r = await apiFetch(API + '/admin/companies/all', {
+    const r = await apiFetch(`${API}/admin/companies/all`, {
       method: 'DELETE',
-      headers: H(),
+      headers: {...H(), 'X-Confirm': 'SUPPRIMER'},
       body: JSON.stringify({confirm: 'SUPPRIMER'})
     });
+    
+    if (!r) { 
+      btn.disabled = false; 
+      btn.innerHTML = '🗑️ Vider la base'; 
+      return; 
+    }
+    
     const d = await r.json();
-    if (r.ok) { toast('✅ Base vidée — ' + d.deleted + ' entreprises supprimées'); loadCompanies(1); loadDashboard(); }
-    else toast('❌ ' + d.error);
-  } catch(e) { toast('Erreur: ' + e.message); }
+    
+    if (r.ok) {
+      toast(`✅ Base vidée — ${d.deleted} entreprises supprimées`);
+      
+      // ✅ RESET IMMÉDIAT DE L'AFFICHAGE (ne pas attendre le reload serveur)
+      document.getElementById('co-body').innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--tx3);padding:32px">
+        <div style="font-size:28px;margin-bottom:12px">🗑️</div>
+        <strong>Base de données vidée</strong><br>
+        <span style="font-size:12px;margin-top:6px;display:inline-block">Toutes les entreprises ont été supprimées</span>
+      </td></tr>`;
+      
+      document.getElementById('co-count').textContent = '0 résultats';
+      document.getElementById('co-total-badge').textContent = 'Total DB : 0 entreprises';
+      document.getElementById('co-pagination').innerHTML = '';
+      
+      // ✅ Reset des filtres
+      document.getElementById('co-search').value = '';
+      document.getElementById('co-region').value = '';
+      document.getElementById('co-secteur').value = '';
+      coSearchVal = '';
+      coPage = 1;
+      
+      // ✅ Recharger le dashboard pour mettre à jour les stats
+      setTimeout(() => {
+        loadDashboard();
+        // ✅ Force un reload de la page Companies pour vérifier Firestore
+        loadCompanies(1);
+      }, 500);
+      
+    } else {
+      toast(`❌ ${d.error || 'Erreur serveur'}`);
+      console.error('deleteAll response:', d);
+    }
+  } catch(e) {
+    toast(`Erreur : ${e.message}`);
+    console.error('deleteAll error:', e);
+  }
+  
+  btn.disabled = false;
+  btn.innerHTML = '🗑️ Vider la base';
 }
 
-// ── USERS ─────────────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════════════════
+   USERS
+═══════════════════════════════════════════════════════════════ */
 async function loadUsers() {
   try {
-    const r    = await apiFetch(`${API}/admin/users`, {headers: H()});
+    const r    = await apiFetch(`${API}/admin/users`);
     if (!r) return;
     const body = await r.json();
     allUsers   = Array.isArray(body) ? body : (body.data || []);
@@ -813,7 +968,7 @@ function filterUsers() {
 }
 
 function renderUsers(users) {
-  document.getElementById('user-count').textContent = `${users.length} utilisateur${users.length > 1 ? 's' : ''}`;
+  document.getElementById('user-count').textContent = `${users.length} utilisateur${users.length !== 1 ? 's' : ''}`;
   document.getElementById('users-body').innerHTML = users.length
     ? users.map(u => `<tr>
         <td class="td-bold">${u.name||'—'}</td>
@@ -835,40 +990,73 @@ function renderUsers(users) {
 }
 
 async function changePlan(id, plan) {
-  const r = await apiFetch(`${API}/admin/users/${id}/plan`, {method:'POST', headers: H(), body: JSON.stringify({plan})});
+  const r = await apiFetch(`${API}/admin/users/${id}/plan`, {method:'POST', body: JSON.stringify({plan})});
   if (r && r.ok) toast(`✅ Plan : ${PLAN_INFO[plan].label}`);
   loadUsers();
 }
 async function toggleUser(id) {
-  const r = await apiFetch(`${API}/admin/users/${id}/toggle`, {method:'POST', headers: H()});
+  const r = await apiFetch(`${API}/admin/users/${id}/toggle`, {method:'POST'});
   if (!r) return;
   const d = await r.json();
   if (r.ok) { toast(d.active ? '✅ Compte activé' : '⚠️ Compte désactivé'); loadUsers(); }
 }
 async function deleteUser(id, name) {
   if (!confirm(`Supprimer "${name}" ?`)) return;
-  const r = await apiFetch(`${API}/admin/users/${id}`, {method:'DELETE', headers: H()});
+  const r = await apiFetch(`${API}/admin/users/${id}`, {method:'DELETE'});
   if (r && r.ok) { toast('🗑️ Supprimé'); loadUsers(); }
 }
 
-// ── SUPPORT ───────────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════════════════
+   SUPPORT
+═══════════════════════════════════════════════════════════════ */
 async function loadSupportMessages() {
+  const listEl = document.getElementById('support-list');
+  listEl.innerHTML = '<p style="color:var(--tx3);font-size:12px;padding:8px">Chargement...</p>';
   try {
-    const r = await apiFetch(`${API}/support/messages`, {method:'GET', headers: H()});
-    if (!r.ok) return;
+    const r = await apiFetch(`${API}/support/messages`, {method:'GET'});
+    if (!r) return;
+    if (!r.ok) {
+      const errData = await r.json().catch(() => ({}));
+      listEl.innerHTML = `<div class="empty-state">
+        <div class="empty-icon">⚠️</div>
+        <p>Erreur ${r.status} : ${errData.error || 'Impossible de charger les messages'}</p>
+        <p style="font-size:11px;margin-top:6px">Vérifiez que <strong>GET /support/messages</strong> est implémenté côté serveur et que l'admin est autorisé.</p>
+      </div>`;
+      document.getElementById('support-count').textContent = '0';
+      return;
+    }
     const messages = await r.json();
-    const listEl = document.getElementById('support-list');
-    document.getElementById('support-count').textContent = messages.length;
+    const list = Array.isArray(messages) ? messages : (messages.data || []);
+    document.getElementById('support-count').textContent = list.length;
+    if (!list.length) {
+      listEl.innerHTML = `<div class="empty-state">
+        <div class="empty-icon">💬</div>
+        <p>Aucun message de support</p>
+        <p style="font-size:11px;margin-top:6px">Les messages envoyés par les utilisateurs apparaîtront ici.</p>
+      </div>`;
+      return;
+    }
     listEl.innerHTML = '';
-    messages.forEach(msg => {
+    list.forEach(msg => {
       const statusIcon = msg.status === 'answered' ? '✅' : msg.status === 'closed' ? '🔒' : '⏳';
       const item = document.createElement('div');
-      item.style.cssText = 'padding:10px;border:1px solid var(--bd1);border-radius:6px;cursor:pointer;background:var(--bg2);transition:background 0.2s';
-      item.innerHTML = `<div style="font-weight:600;font-size:13px">${statusIcon} ${msg.subject}</div><div style="font-size:11px;color:var(--tx3);margin-top:4px">${msg.userName}</div><div style="font-size:10px;color:var(--tx3);">${new Date(msg.created_at).toLocaleDateString()}</div>`;
+      item.style.cssText = 'padding:10px;border:1px solid var(--bd);border-radius:6px;cursor:pointer;background:var(--bg2);transition:background 0.2s';
+      item.onmouseenter = () => item.style.background = 'var(--bg3)';
+      item.onmouseleave = () => item.style.background = 'var(--bg2)';
+      item.innerHTML = `
+        <div style="font-weight:600;font-size:13px">${statusIcon} ${msg.subject||'(sans sujet)'}</div>
+        <div style="font-size:11px;color:var(--tx3);margin-top:4px">${msg.userName||msg.userEmail||'—'}</div>
+        <div style="font-size:10px;color:var(--tx3)">${new Date(msg.created_at||msg.createdAt).toLocaleDateString()}</div>`;
       item.onclick = () => showSupportDetail(msg);
       listEl.appendChild(item);
     });
-  } catch(e) { console.error(e); }
+  } catch(e) {
+    listEl.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">⚠️</div>
+      <p>Erreur réseau : ${e.message}</p>
+    </div>`;
+    console.error('loadSupportMessages:', e);
+  }
 }
 
 function showSupportDetail(msg) {
@@ -877,29 +1065,28 @@ function showSupportDetail(msg) {
   detailEl.innerHTML = `
     <div style="text-align:left;padding:12px">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;font-size:12px">
-        <div><div style="color:var(--tx3);margin-bottom:4px">De</div><strong>${msg.userName}</strong><div style="color:var(--tx3);font-size:11px">${msg.userEmail}</div></div>
+        <div><div style="color:var(--tx3);margin-bottom:4px">De</div><strong>${msg.userName||'—'}</strong><div style="color:var(--tx3);font-size:11px">${msg.userEmail||'—'}</div></div>
         <div><div style="color:var(--tx3);margin-bottom:4px">Statut</div><strong>${statusIcon}</strong></div>
       </div>
-      <div style="margin-bottom:12px;padding:12px;background:var(--bg1);border-radius:6px;border-left:3px solid var(--primary)">
-        <div style="font-weight:600;margin-bottom:4px">${msg.subject}</div>
-        <div style="font-size:13px;line-height:1.5">${msg.message}</div>
-        <div style="font-size:10px;color:var(--tx3);margin-top:8px">${new Date(msg.created_at).toLocaleString()}</div>
+      <div style="margin-bottom:12px;padding:12px;background:var(--bg3);border-radius:6px;border-left:3px solid var(--g)">
+        <div style="font-weight:600;margin-bottom:4px">${msg.subject||'(sans sujet)'}</div>
+        <div style="font-size:13px;line-height:1.5">${msg.message||'—'}</div>
+        <div style="font-size:10px;color:var(--tx3);margin-top:8px">${new Date(msg.created_at||msg.createdAt).toLocaleString()}</div>
       </div>
-      ${msg.adminReply ? `<div style="margin-bottom:12px;padding:12px;background:var(--success-light,rgba(76,175,80,0.1));border-radius:6px;border-left:3px solid var(--success,#4caf50)">
-        <div style="font-weight:600;margin-bottom:4px">Réponse admin (${msg.adminReplyBy})</div>
+      ${msg.adminReply ? `<div style="margin-bottom:12px;padding:12px;background:var(--gl);border-radius:6px;border-left:3px solid var(--g)">
+        <div style="font-weight:600;margin-bottom:4px">Réponse admin (${msg.adminReplyBy||'admin'})</div>
         <div style="font-size:13px;line-height:1.5">${msg.adminReply}</div>
         <div style="font-size:10px;color:var(--tx3);margin-top:8px">${new Date(msg.adminReplyAt).toLocaleString()}</div>
       </div>` : ''}
       <div style="display:flex;gap:8px">
-        ${msg.status !== 'closed' ? `<button onclick="replyToSupport('${msg.id}')" style="flex:1;padding:8px 12px;background:var(--primary);color:white;border:none;border-radius:6px;cursor:pointer;font-size:12px">Répondre</button>` : ''}
+        ${msg.status !== 'closed' ? `<button onclick="replyToSupport('${msg.id}')" style="flex:1;padding:8px 12px;background:var(--g);color:white;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600">Répondre</button>` : ''}
         ${msg.status !== 'closed' ? `<button onclick="closeSupportMessage('${msg.id}')" style="flex:1;padding:8px 12px;background:var(--tx3);color:white;border:none;border-radius:6px;cursor:pointer;font-size:12px">Fermer</button>` : ''}
       </div>
-    </div>
-  `;
+    </div>`;
 }
 
 function replyToSupport(messageId) {
-  const replyText = prompt('Votre réponse:');
+  const replyText = prompt('Votre réponse :');
   if (!replyText || !replyText.trim()) return;
   submitSupportReply(messageId, replyText);
 }
@@ -907,74 +1094,82 @@ function replyToSupport(messageId) {
 async function submitSupportReply(messageId, reply) {
   try {
     const r = await apiFetch(`${API}/support/messages/${messageId}`, {
-      method:'PUT',
-      headers: H(),
-      body: JSON.stringify({reply})
+      method:'PUT', body: JSON.stringify({reply})
     });
-    if (r.ok) { toast('✅ Réponse envoyée'); loadSupportMessages(); }
-  } catch(e) { console.error(e); }
+    if (r && r.ok) { toast('✅ Réponse envoyée'); loadSupportMessages(); }
+    else toast('❌ Erreur lors de l\'envoi');
+  } catch(e) { console.error(e); toast('Erreur réseau'); }
 }
 
 async function closeSupportMessage(messageId) {
   if (!confirm('Fermer ce ticket ?')) return;
   try {
-    const r = await apiFetch(`${API}/support/messages/${messageId}/close`, {
-      method:'PUT',
-      headers: H()
-    });
-    if (r.ok) { toast('🔒 Ticket fermé'); loadSupportMessages(); }
+    const r = await apiFetch(`${API}/support/messages/${messageId}/close`, {method:'PUT'});
+    if (r && r.ok) { toast('🔒 Ticket fermé'); loadSupportMessages(); }
   } catch(e) { console.error(e); }
 }
 
-// ── LOGS ──────────────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════════════════
+   LOGS
+═══════════════════════════════════════════════════════════════ */
 async function loadLogs() {
+  const tbody = document.getElementById('logs-body');
   try {
-    const r = await apiFetch(`${API}/admin/stats`, {headers: H()});
+    const r = await apiFetch(`${API}/admin/stats`);
     if (!r) return;
     const d = await r.json();
-    document.getElementById('logs-body').innerHTML =
-      (d.recentLogs || []).map(l => `<tr>
-        <td class="td-bold">${l.name||'—'}</td>
-        <td class="td-sm">${l.email||'—'}</td>
-        <td class="td-trunc td-sm">${l.query||'—'}</td>
-        <td style="font-weight:600;color:var(--g)">${l.results_count||0}</td>
-        <td><span class="badge ${PLAN_INFO[l.plan]?.badge||'b-free'}">${l.plan||'free'}</span></td>
-        <td class="td-sm">${(l.created_at||l.createdAt||'').toString().replace('T',' ').slice(0,16)}</td>
-      </tr>`).join('');
-  } catch(e) { console.error('loadLogs error:', e); }
+    const logs = d.recentLogs || [];
+    tbody.innerHTML = logs.length
+      ? logs.map(l => `<tr>
+          <td class="td-bold">${l.name||'—'}</td>
+          <td class="td-sm">${l.email||'—'}</td>
+          <td class="td-trunc td-sm">${l.query||'—'}</td>
+          <td style="font-weight:600;color:var(--g)">${l.results_count||0}</td>
+          <td><span class="badge ${PLAN_INFO[l.plan]?.badge||'b-free'}">${l.plan||'free'}</span></td>
+          <td class="td-sm">${(l.created_at||l.createdAt||'').toString().replace('T',' ').slice(0,16)}</td>
+        </tr>`).join('')
+      : `<tr><td colspan="6" style="text-align:center;color:var(--tx3);padding:24px">
+           <div style="font-size:20px;margin-bottom:8px">📋</div>
+           Aucune activité enregistrée<br>
+           <span style="font-size:11px">Les recherches des utilisateurs apparaîtront ici lorsque le serveur loggera les requêtes.</span>
+         </td></tr>`;
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--red);padding:20px">Erreur : ${e.message}</td></tr>`;
+  }
 }
 
-// ── CONFIG ────────────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════════════════
+   CONFIG
+═══════════════════════════════════════════════════════════════ */
 async function loadConfig() {
-  try {
-    const r = await apiFetch(`${API}/admin/config`, {headers: H()});
-    if (!r) return;
-    const d = await r.json();
-    if (d.groq_api_key) document.getElementById('cfg-key').placeholder = '••••••••••••••• (active)';
-  } catch(e) {}
+  await refreshApiKeyStatus();
 }
 
 async function saveConfig() {
   const k = document.getElementById('cfg-key').value.trim();
-  if (!k) { toast('Saisissez une clé'); return; }
+  if (!k) { toast('Saisissez une clé API'); return; }
   const r = await apiFetch(`${API}/admin/config`, {
     method: 'POST',
-    headers: H(),
-    body: JSON.stringify({ key: 'groq_api_key', value: k }),
+    body: JSON.stringify({key: 'groq_api_key', value: k}),
   });
+  if (!r) return;
   const d = await r.json();
   if (r.ok) {
     document.getElementById('cfg-ok').style.display = 'block';
     document.getElementById('cfg-key').value = '';
     toast('✅ Clé enregistrée');
     setTimeout(() => document.getElementById('cfg-ok').style.display = 'none', 4000);
-  } else toast('❌ ' + d.error);
+    await refreshApiKeyStatus();
+    loadDashboard();
+  } else {
+    toast('❌ ' + (d.error || 'Erreur'));
+  }
 }
 
 async function changePass() {
   const p = document.getElementById('new-pass').value;
   if (!p || p.length < 6) { toast('Minimum 6 caractères'); return; }
-  const r = await apiFetch(`${API}/admin/change-password`, {method:'POST', headers: H(), body: JSON.stringify({newPassword: p})});
+  const r = await apiFetch(`${API}/admin/change-password`, {method:'POST', body: JSON.stringify({newPassword: p})});
   if (!r) return;
   const d = await r.json();
   if (r.ok) {
@@ -985,7 +1180,9 @@ async function changePass() {
   } else toast('❌ ' + d.error);
 }
 
-// ── UTILS ─────────────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════════════════
+   UTILS
+═══════════════════════════════════════════════════════════════ */
 function toast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
