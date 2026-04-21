@@ -5,6 +5,7 @@
 
 const admin = require('firebase-admin');
 const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
 
 let firebaseApp = null;
@@ -18,8 +19,23 @@ const requiredEnvVars = [
 
 const missingVars = requiredEnvVars.filter(v => !process.env[v]);
 
-// ── INITIALISATION FIREBASE ────────────────────────────────────
-if (missingVars.length === 0) {
+// ── INITIALISATION FIREBASE ───────────────────────────────────
+// Prioriser le fichier local `firebase-service-account.json` en mode dev
+try {
+  const localPath = path.join(__dirname, 'firebase-service-account.json');
+  if (fs.existsSync(localPath) && (process.env.NODE_ENV === 'development' || !process.env.FORCE_USE_ENV_FIREBASE)) {
+    try {
+      const serviceAccount = require(localPath);
+      firebaseApp = admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+      console.log('✅ Firebase Admin SDK initialized (local service account file)');
+    } catch (err) {
+      console.error('❌ Firebase local file init error:', err.message || err);
+    }
+  }
+} catch (e) { /* ignore */ }
+
+// If not initialized from local file, attempt env-based (production) initialization
+if (!firebaseApp && missingVars.length === 0) {
   try {
     const serviceAccount = {
       type: 'service_account',
