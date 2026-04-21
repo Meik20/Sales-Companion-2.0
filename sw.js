@@ -39,7 +39,7 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Skip non-GET requests
+  // Skip non-GET requests - let them fail naturally
   if (event.request.method !== 'GET') {
     return;
   }
@@ -49,34 +49,72 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  event.respondWith(
-    caches
-      .match(event.request)
-      .then((response) => {
-        // Return cached response if found
-        if (response) {
-          return response;
-        }
+  // Enhanced fetch strategy: cache-first for static, network-first for API
+  const isApiRequest = event.request.url.includes('/api/');
 
-        // Try to fetch from network
-        return fetch(event.request).then((response) => {
-          // Don't cache non-successful responses
-          if (!response || response.status !== 200 || response.type === 'error') {
+  if (isApiRequest) {
+    // Network-first for API requests
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          // Cache successful responses
+          if (response && response.status === 200) {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseToCache);
+            });
+          }
+          return response;
+        })
+        .catch(() => {
+          // Try to return cached response, otherwise 503 Offline
+          return caches.match(event.request).then((cached) => {
+            if (cached) return cached;
+            console.log('[SW] Offline - no cached API response:', event.request.url);
+            return new Response('Offline - Service unavailable', { 
+              status: 503, 
+              statusText: 'Service Unavailable',
+              headers: new Headers({ 'Content-Type': 'text/plain' })
+            });
+          });
+        })
+    );
+  } else {
+    // Cache-first for static assets
+    event.respondWith(
+      caches
+        .match(event.request)
+        .then((response) => {
+          // Return cached response if found
+          if (response) {
             return response;
           }
 
-          // Cache successful responses
-          const responseToCache = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache);
-          });
+          // Try to fetch from network
+          return fetch(event.request).then((response) => {
+            // Don't cache non-successful responses
+            if (!response || response.status !== 200 || response.type === 'error') {
+              return response;
+            }
 
-          return response;
-        });
-      })
-      .catch(() => {
-        // Return cached response if offline
-        return caches.match(event.request);
-      })
-  );
+            // Cache successful responses
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseToCache);
+            });
+
+            return response;
+          });
+        })
+        .catch(() => {
+          // Return offline response
+          console.log('[SW] Offline - no cached response:', event.request.url);
+          return new Response('Offline', { 
+            status: 503, 
+            statusText: 'Service Unavailable',
+            headers: new Headers({ 'Content-Type': 'text/plain' })
+          });
+        })
+    );
+  }
 });

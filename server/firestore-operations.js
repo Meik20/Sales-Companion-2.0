@@ -487,8 +487,20 @@ async function verifyToken(req, res, next) {
   if (!token) return res.status(401).json({ error: 'No token provided' });
   try {
     const decoded = await auth.verifyIdToken(token);
+    
+    // Populate req.user with decoded token claims
+    req.user = {
+      uid: decoded.uid,
+      email: decoded.email,
+      emailVerified: decoded.email_verified || false,
+      isAdmin: decoded.admin === true,
+    };
+    
+    // Also set individual properties for backward compatibility
     req.userId    = decoded.uid;
     req.userEmail = decoded.email;
+    
+    console.log(`[Auth] Token verified for user: ${req.userEmail} (${req.userId})`);
     next();
   } catch (error) {
     console.error('Token verification error:', error.message);
@@ -506,8 +518,20 @@ async function verifyAdmin(req, res, next) {
   try {
     const decoded = await auth.verifyIdToken(token);
     if (!decoded.admin) return res.status(403).json({ error: 'Admin access required' });
+    
+    // Populate req.user with decoded token claims
+    req.user = {
+      uid: decoded.uid,
+      email: decoded.email,
+      emailVerified: decoded.email_verified || false,
+      isAdmin: true,
+    };
+    
+    // Also set individual properties for backward compatibility
     req.userId    = decoded.uid;
     req.userEmail = decoded.email;
+    
+    console.log(`[Auth] Admin token verified for user: ${req.userEmail} (${req.userId})`);
     next();
   } catch (error) {
     console.error('Admin verification error:', error.message);
