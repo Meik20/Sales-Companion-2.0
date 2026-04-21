@@ -497,7 +497,11 @@ setInterval(() => {
   }
 }, 50 * 60 * 1000);
 
-if (adminToken) showApp();
+// Ensure DOM ready before showing app so elements exist when we restore page
+if (adminToken) {
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', showApp);
+  else showApp();
+}
 
 // ── AUTH ──────────────────────────────────────────────────────
 async function doLogin() {
@@ -533,8 +537,8 @@ function logout() {
 function showApp() {
   document.getElementById('auth-page').style.display = 'none';
   document.getElementById('app').style.display = 'block';
-  // Restore last opened page if present, otherwise show dashboard
-  const last = sessionStorage.getItem('admin_last_page') || 'dashboard';
+  // Restore last opened page if present (persist across refreshes), otherwise show dashboard
+  const last = localStorage.getItem('admin_last_page') || 'dashboard';
   showPage(last);
 }
 
@@ -548,7 +552,7 @@ function showPage(name, el) {
     const nav = Array.from(document.querySelectorAll('.nav-item')).find(n => (n.getAttribute('onclick')||'').includes(`showPage('${name}'`));
     if (nav) nav.classList.add('active');
   }
-  sessionStorage.setItem('admin_last_page', name);
+  localStorage.setItem('admin_last_page', name);
   if (name === 'users')     loadUsers();
   if (name === 'logs')      loadLogs();
   if (name === 'config')    loadConfig();
