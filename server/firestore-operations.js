@@ -59,6 +59,52 @@ async function updateUserPlan(uid, newPlan) {
   }
 }
  
+function normalizeInt(value) {
+  const n = Number(String(value || '').replace(/[^0-9]/g, ''));
+  return Number.isInteger(n) ? n : null;
+}
+
+function extractEmployeeThreshold(query) {
+  if (!query || typeof query !== 'string') return null;
+  const match = query.match(/(\d{2,4})\s*(employ|salari|personne|effectif|staff)/i);
+  return match ? normalizeInt(match[1]) : null;
+}
+
+function computeLeadScore(company) {
+  let score = 45;
+  if (company.active === false) score -= 18;
+
+  const employees = normalizeInt(company.employees || company.employee_count || company.effectif || company.nb_employes || company.taille || company.taille_effectif);
+  if (employees !== null) {
+    if (employees >= 100) score += 22;
+    else if (employees >= 50) score += 16;
+    else if (employees >= 20) score += 10;
+    else if (employees >= 5) score += 4;
+  }
+
+  const jobOffers = normalizeInt(company.job_postings || company.offres_emploi || company.job_offers || company.offres || company.recrutement);
+  if (jobOffers !== null) {
+    if (jobOffers >= 5) score += 18;
+    else if (jobOffers >= 2) score += 10;
+    else if (jobOffers >= 1) score += 6;
+  }
+
+  if (company.sector || company.secteur || company.activite_principale || company.activitePrincipale) {
+    score += 6;
+  }
+
+  if (company.updatedAt) {
+    const updatedAt = new Date(company.updatedAt);
+    if (!Number.isNaN(updatedAt.getTime())) {
+      const ageDays = Math.floor((Date.now() - updatedAt.getTime()) / (1000 * 60 * 60 * 24));
+      if (ageDays <= 30) score += 8;
+      else if (ageDays <= 90) score += 4;
+    }
+  }
+
+  return Math.min(100, Math.max(1, score));
+}
+
 async function setAdminClaims(uid) {
   try {
     await auth.setCustomUserClaims(uid, { admin: true });
@@ -74,13 +120,15 @@ async function setAdminClaims(uid) {
 async function addCompany(companyData) {
   try {
     const companyRef = db.collection('companies').doc();
-    await companyRef.set({
+    const companyPayload = {
       ...companyData,
       id: companyRef.id,
+      leadScore: companyData.leadScore || companyData.lead_score || computeLeadScore(companyData),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-    });
-    return { id: companyRef.id, ...companyData };
+    };
+    await companyRef.set(companyPayload);
+    return { id: companyRef.id, ...companyPayload };
   } catch (error) {
     console.error('Error adding company:', error);
     throw error;
@@ -99,29 +147,48 @@ async function searchCompanies(filters = {}) {
     const snapshot = await query.limit(requestedLimit).get();
     let companies = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
  
-    if (filters.query) {
-      const q = String(filters.query).trim().toLowerCase();
-      if (q) {
-        companies = companies.filter(c =>
-          [
-            c.raisonSociale,
-            c.sigle,
-            c.activitePrincipale,
-            c.sector,
-            c.region,
-            c.city,
-            c.dirigeant,
-            c.email,
-            c.company_email,
-            c.contact_email,
-            c.telephone,
-            c.company_phone,
-            c.adresse,
-            c.company_address
-          ].some(v => typeof v === 'string' && v.toLowerCase().includes(q))
-        );
-      }
+    const q = String(filters.query || '').trim().toLowerCase();
+    const employeeThreshold = extractEmployeeThreshold(q);
+
+    if (q) {
+      companies = companies.filter(c =>
+        [
+          c.raisonSociale,
+          c.raison_sociale,
+          c.sigle,
+          c.activitePrincipale,
+          c.activite_principale,
+          c.sector,
+          c.secteur,
+          c.region,
+          c.city,
+          c.ville,
+          c.dirigeant,
+          c.email,
+          c.company_email,
+          c.contact_email,
+          c.telephone,
+          c.company_phone,
+          c.adresse,
+          c.company_address,
+          c.site_web,
+          c.website,
+        ].some(v => typeof v === 'string' && v.toLowerCase().includes(q))
+      );
     }
+
+    if (employeeThreshold !== null) {
+      companies = companies.filter(c => {
+        const employees = normalizeInt(c.employees || c.employee_count || c.effectif || c.nb_employes || c.taille || c.taille_effectif || c.staff_count);
+        return typeof employees === 'number' && employees >= employeeThreshold;
+      });
+    }
+
+    companies = companies.map(c => ({
+      ...c,
+      leadScore: c.leadScore || c.lead_score || computeLeadScore(c),
+    }));
+
     return companies;
   } catch (error) {
     console.error('Error searching companies:', error);
@@ -152,12 +219,14 @@ async function importCompaniesBatch(companiesData) {
             : String(company.raisonSociale).replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 100) + '_' + i;
  
           const ref = db.collection('companies').doc(docId);
-          batch.set(ref, {
+          const payload = {
             ...company,
             id: docId,
             active: true,
+            leadScore: company.leadScore || company.lead_score || computeLeadScore(company),
             updatedAt: new Date().toISOString(),
-          }, { merge: true });
+          };
+          batch.set(ref, payload, { merge: true });
  
           importedCount++;
           batchCount++;

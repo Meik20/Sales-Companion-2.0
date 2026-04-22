@@ -391,6 +391,10 @@ body{font-family:'Outfit',sans-serif;color:var(--tx);display:flex;flex-direction
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
         Filtres avancés <span id="filter-count" style="display:none;background:var(--g);color:#fff;border-radius:10px;font-size:10px;padding:1px 6px;font-weight:700"></span>
       </div>
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+        <button class="sheet-btn secondary" style="flex:1;min-width:120px" onclick="openMyLocationMap()">📍 Ma position</button>
+        <button class="sheet-btn secondary" style="flex:1;min-width:120px" onclick="openOfflineSheet()">📥 Hors ligne</button>
+      </div>
     </div>
     <div class="filter-scroll" id="sector-chips">
       <div class="fchip" onclick="quickSector('')">Tous</div>
@@ -587,6 +591,58 @@ body{font-family:'Outfit',sans-serif;color:var(--tx);display:flex;flex-direction
   <div class="sheet-body">
     <div class="sfield"><label>Titre</label><input type="text" id="save-title" placeholder="Ex: BTP Douala — Mai 2025"></div>
     <button class="sheet-btn" onclick="confirmSave()">Sauvegarder</button>
+  </div>
+</div>
+
+<div class="sheet-overlay" id="offline-overlay" onclick="closeSheet('offline-sheet')"></div>
+<div class="sheet" id="offline-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">Mode hors ligne</div>
+  <div class="sheet-body" id="offline-body">
+    <div style="font-size:13px;color:var(--tx3);margin-bottom:12px">
+      Votre application conserve les recherches et actions en attente. Elles seront synchronisées automatiquement dès que vous retrouverez la connexion.
+    </div>
+    <div class="sfield"><label>Statut réseau</label><div id="offline-status" style="padding:10px 12px;border:1.5px solid var(--bd2);border-radius:var(--r);background:var(--bg3);color:var(--tx)">...</div></div>
+    <div class="sfield"><label>Actions en attente</label><div id="offline-actions-list" style="padding:12px;border:1.5px solid var(--bd2);border-radius:var(--r);background:var(--bg3);min-height:80px;color:#7a7a7a">Aucune action en attente.</div></div>
+    <button class="sheet-btn" onclick="syncOfflineQueue()">Synchroniser maintenant</button>
+    <button class="sheet-btn secondary" onclick="loadCachedSearchResults()">Afficher les dernières recherches</button>
+  </div>
+</div>
+
+<div class="sheet-overlay" id="voice-overlay" onclick="closeSheet('voice-note-sheet')"></div>
+<div class="sheet" id="voice-note-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">Note vocale</div>
+  <div class="sheet-body">
+    <div class="sfield"><label>Entreprise</label><div id="voice-note-company" style="font-weight:700;color:var(--tx)"></div></div>
+    <div class="sfield"><label>Texte transcrit</label><textarea id="voice-note-text" placeholder="Appuyez sur le micro pour dicter..." rows="4"></textarea></div>
+    <div class="sfield"><label>État</label><div id="voice-note-status" style="padding:10px 12px;border:1.5px solid var(--bd2);border-radius:var(--r);background:var(--bg3);color:var(--tx3)">Prêt à enregistrer</div></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="sheet-btn" onclick="toggleVoiceRecognition()" style="flex:1;min-width:140px">🎙️ Démarrer / Arrêter</button>
+      <button class="sheet-btn secondary" onclick="saveVoiceNote()" style="flex:1;min-width:140px">Enregistrer la note</button>
+    </div>
+  </div>
+</div>
+
+<div class="sheet-overlay" id="crowd-overlay" onclick="closeSheet('crowd-sheet')"></div>
+<div class="sheet" id="crowd-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">Crowdsourcing / Signalement</div>
+  <div class="sheet-body">
+    <div class="sfield"><label>Entreprise</label><div id="crowd-company" style="font-weight:700;color:var(--tx)"></div></div>
+    <div class="sfield"><label>Sujet</label><input id="crowd-subject" type="text" placeholder="Signalement de fiche"></div>
+    <div class="sfield"><label>Détails</label><textarea id="crowd-message" rows="4" placeholder="Expliquez la correction ou le problème..."></textarea></div>
+    <button class="sheet-btn" onclick="sendCrowdReport()">Envoyer le signalement</button>
+  </div>
+</div>
+
+<div class="sheet-overlay" id="map-overlay" onclick="closeSheet('map-sheet')"></div>
+<div class="sheet" id="map-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">Carte & itinéraire</div>
+  <div class="sheet-body" style="padding:0">
+    <iframe id="map-frame" loading="lazy" allowfullscreen style="width:100%;height:320px;border:none;border-radius:16px;"></iframe>
+    <div id="map-caption" style="font-size:13px;color:var(--tx3);padding:12px 14px">Itinéraire et géolocalisation.</div>
   </div>
 </div>
 
@@ -816,6 +872,367 @@ async function api(method, path, body, tok) {
   return r;
 }
 
+// ── OFFLINE QUEUE HELPERS ─────────────────────────────────────────
+const OFFLINE_QUEUE_KEY = 'sc_offline_queue';
+const OFFLINE_SEARCH_KEY = 'sc_offline_search';
+let voiceRecognition = null;
+let voiceListening = false;
+let currentVoiceNoteIndex = null;
+
+function getOfflineQueue() {
+  try {
+    return JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || '[]');
+  } catch (e) {
+    return [];
+  }
+}
+
+function setOfflineQueue(queue) {
+  localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(queue));
+}
+
+function enqueueOfflineAction(action) {
+  const queue = getOfflineQueue();
+  const item = {
+    queueId: 'offline-' + Date.now() + '-' + Math.random().toString(36).slice(2, 5),
+    created_at: new Date().toISOString(),
+    ...action
+  };
+  queue.push(item);
+  setOfflineQueue(queue);
+  return queue;
+}
+
+function getOfflineSearchCache() {
+  try {
+    return JSON.parse(localStorage.getItem(OFFLINE_SEARCH_KEY) || 'null');
+  } catch (e) {
+    return null;
+  }
+}
+
+function saveOfflineSearchCache(data) {
+  try {
+    localStorage.setItem(OFFLINE_SEARCH_KEY, JSON.stringify({
+      query: lastQuery,
+      filters: lastFilters,
+      results: data.results || [],
+      ai_text: data.ai_text || '',
+      saved_at: new Date().toISOString()
+    }));
+  } catch (e) {
+    console.warn('Offline cache failed:', e.message);
+  }
+}
+
+function loadCachedSearchResults() {
+  const cache = getOfflineSearchCache();
+  if (!cache || !cache.results?.length) {
+    toast('Aucun cache hors ligne disponible');
+    return;
+  }
+  lastQuery = cache.query || '';
+  lastFilters = cache.filters || {};
+  renderResults(cache);
+  toast('Affichage des dernières données hors ligne');
+}
+
+function openOfflineSheet() {
+  renderOfflineSheet();
+  openSheet('offline-sheet');
+}
+
+function renderOfflineSheet() {
+  const queue = getOfflineQueue();
+  const status = navigator.onLine ? 'En ligne' : 'Hors ligne';
+  document.getElementById('offline-status').textContent = status;
+  const list = document.getElementById('offline-actions-list');
+  if (!queue.length) {
+    list.innerHTML = '<div>Aucune action en attente.</div>';
+    return;
+  }
+  list.innerHTML = queue.map((item) => {
+    const label = item.type === 'support-report' ? 'Signalement / note vocale' : item.type === 'pipeline-add' ? 'Ajout au pipeline' : item.type === 'pipeline-update' ? 'Mise à jour pipeline' : item.type;
+    const summary = item.payload?.company_name || item.payload?.subject || item.payload?.note || '—';
+    return `<div style="margin-bottom:10px;padding:10px;border:1px solid rgba(27,122,62,.15);border-radius:12px;background:var(--bg2)">
+      <strong style="display:block;margin-bottom:4px">${label}</strong>
+      <div style="font-size:13px;color:#7a7a7a;white-space:pre-wrap">${summary}</div>
+      <div style="font-size:11px;color:#999;margin-top:6px">${new Date(item.created_at).toLocaleString()}</div>
+    </div>`;
+  }).join('');
+}
+
+async function syncOfflineQueue() {
+  if (!navigator.onLine) {
+    toast('Connectez-vous pour synchroniser les actions hors ligne');
+    renderOfflineSheet();
+    return;
+  }
+  const queue = getOfflineQueue();
+  if (!queue.length) {
+    toast('Aucune action hors ligne à synchroniser');
+    renderOfflineSheet();
+    return;
+  }
+  const tokenValue = localStorage.getItem('sc_token') || token;
+  const remaining = [];
+  let syncedCount = 0;
+  for (const action of queue) {
+    try {
+      if (action.type === 'support-report') {
+        const r = await api('POST', '/api/support/messages', { subject: action.payload.subject, message: action.payload.message }, tokenValue);
+        if (!r.ok) throw new Error('Erreur de synchronisation support');
+        syncedCount++;
+        continue;
+      }
+      if (action.type === 'pipeline-add') {
+        const payload = { ...action.payload };
+        delete payload.localId;
+        const r = await api('POST', '/api/pipeline', payload, tokenValue);
+        if (!r.ok) throw new Error('Erreur de synchronisation pipeline');
+        const response = await r.json();
+        if (response && response.id && action.payload.localId) {
+          updateOfflinePipelineItemId(action.payload.localId, response.id);
+          queue.forEach((queuedAction) => {
+            if (queuedAction.payload?.localId === action.payload.localId) {
+              queuedAction.payload.localId = response.id;
+              if (queuedAction.type === 'pipeline-update') queuedAction.payload.id = response.id;
+            }
+          });
+        }
+        syncedCount++;
+        continue;
+      }
+      if (action.type === 'pipeline-update') {
+        const r = await api('PUT', '/api/pipeline/' + action.payload.id, {
+          note: action.payload.note,
+          next_action: action.payload.next_action,
+          next_date: action.payload.next_date
+        }, tokenValue);
+        if (!r.ok) throw new Error('Erreur de synchronisation mise à jour pipeline');
+        syncedCount++;
+        continue;
+      }
+      remaining.push(action);
+    } catch (e) {
+      remaining.push(action);
+      console.warn('Sync error for offline action', action, e.message);
+      break;
+    }
+  }
+  setOfflineQueue(remaining);
+  if (syncedCount) {
+    toast(`✅ ${syncedCount} action(s) hors ligne synchronisée(s)`);
+    loadPipeline();
+    loadSupportMessagesMobile();
+  } else {
+    toast('Aucune action synchronisée. Réessayez plus tard.');
+  }
+  renderOfflineSheet();
+}
+
+function updateOfflinePipelineItemId(localId, serverId) {
+  pipelineData.forEach((item) => {
+    if (item.id === localId) {
+      item.id = serverId;
+      item._offline = false;
+    }
+  });
+  const queue = getOfflineQueue().map((action) => {
+    if (action.type === 'pipeline-add' && action.payload.localId === localId) {
+      return { ...action, payload: { ...action.payload, localId: serverId } };
+    }
+    if (action.type === 'pipeline-update' && action.payload.localId === localId) {
+      return { ...action, payload: { ...action.payload, id: serverId, localId: undefined } };
+    }
+    return action;
+  });
+  setOfflineQueue(queue);
+}
+
+function removeOfflineQueueActionsForLocalId(localId) {
+  const queue = getOfflineQueue().filter((action) => {
+    if (action.payload?.localId === localId) return false;
+    if (action.type === 'pipeline-add' && action.payload?.localId === localId) return false;
+    return true;
+  });
+  setOfflineQueue(queue);
+}
+
+function openMyLocationMap() {
+  if (!navigator.geolocation) {
+    toast('Géolocalisation non supportée par votre navigateur');
+    return;
+  }
+  toast('📍 Recherche de votre position...');
+  navigator.geolocation.getCurrentPosition((pos) => {
+    const frame = document.getElementById('map-frame');
+    const lat = pos.coords.latitude.toFixed(5);
+    const lon = pos.coords.longitude.toFixed(5);
+    if (frame) {
+      frame.src = `https://maps.google.com/maps?q=${lat},${lon}&z=15&output=embed`;
+    }
+    document.getElementById('map-caption').textContent = `Vous êtes ici : ${lat}, ${lon}`;
+    openSheet('map-sheet');
+  }, (err) => {
+    toast('Erreur de localisation : ' + err.message);
+  }, { enableHighAccuracy: true, timeout: 10000 });
+}
+
+function openMapRoute(i) {
+  const co = lastResults[i];
+  if (!co) return;
+  if (!navigator.geolocation) {
+    toast('Géolocalisation non supportée par votre navigateur');
+    return;
+  }
+  const destination = encodeURIComponent(`${co.raison_sociale || co.company_name || co.nom || co.name || ''} ${co.adresse || co.ville || co.region || ''} Cameroun`);
+  toast('🧭 Recherche de l’itinéraire...');
+  navigator.geolocation.getCurrentPosition((pos) => {
+    const frame = document.getElementById('map-frame');
+    const origin = `${pos.coords.latitude.toFixed(5)},${pos.coords.longitude.toFixed(5)}`;
+    if (frame) {
+      frame.src = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}`;
+    }
+    document.getElementById('map-caption').textContent = `Itinéraire vers ${co.raison_sociale || co.company_name || co.nom || co.name || 'cette entreprise'}`;
+    openSheet('map-sheet');
+  }, (err) => {
+    toast('Impossible d’obtenir la position : ' + err.message);
+  }, { enableHighAccuracy: true, timeout: 10000 });
+}
+
+function openVoiceNoteSheet(i) {
+  const co = lastResults[i];
+  if (!co) return;
+  currentVoiceNoteIndex = i;
+  const name = co.raison_sociale || co.company_name || co.nom || co.name || 'Entreprise';
+  document.getElementById('voice-note-company').textContent = name;
+  document.getElementById('voice-note-text').value = '';
+  document.getElementById('voice-note-status').textContent = 'Prêt à enregistrer';
+  openSheet('voice-note-sheet');
+}
+
+function toggleVoiceRecognition() {
+  if (voiceListening) {
+    stopVoiceRecognition();
+    return;
+  }
+  startVoiceRecognition();
+}
+
+function startVoiceRecognition() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    toast('Reconnaissance vocale non supportée');
+    return;
+  }
+  if (!voiceRecognition) {
+    voiceRecognition = new SpeechRecognition();
+    voiceRecognition.lang = 'fr-FR';
+    voiceRecognition.interimResults = true;
+    voiceRecognition.continuous = true;
+    voiceRecognition.onresult = (event) => {
+      const transcript = Array.from(event.results).map((result) => result[0].transcript).join('');
+      document.getElementById('voice-note-text').value = transcript;
+      document.getElementById('voice-note-status').textContent = 'Dictée en cours…';
+    };
+    voiceRecognition.onerror = (event) => {
+      console.error('SpeechRecognition error', event.error);
+      document.getElementById('voice-note-status').textContent = 'Erreur de reconnaissance';
+      voiceListening = false;
+    };
+    voiceRecognition.onend = () => {
+      voiceListening = false;
+      document.getElementById('voice-note-status').textContent = 'Arrêté';
+    };
+  }
+  try {
+    voiceRecognition.start();
+    voiceListening = true;
+    document.getElementById('voice-note-status').textContent = 'Écoute en cours…';
+  } catch (e) {
+    console.warn('Voice start failed', e.message);
+    document.getElementById('voice-note-status').textContent = 'Impossible de démarrer l’écoute';
+  }
+}
+
+function stopVoiceRecognition() {
+  if (voiceRecognition) {
+    voiceRecognition.stop();
+  }
+  voiceListening = false;
+  document.getElementById('voice-note-status').textContent = 'Arrêté';
+}
+
+async function saveVoiceNote() {
+  const text = document.getElementById('voice-note-text').value.trim();
+  if (!text) {
+    toast('Dictez une note avant de l’enregistrer');
+    return;
+  }
+  const co = lastResults[currentVoiceNoteIndex] || {};
+  const name = co.raison_sociale || co.company_name || co.nom || co.name || 'Entreprise';
+  const subject = `Note vocale : ${name}`;
+  const message = `Note vocale pour ${name}\n\n${text}\n\n${co.ville ? 'Ville: ' + co.ville + '\n' : ''}${co.secteur ? 'Secteur: ' + co.secteur + '\n' : ''}`;
+  if (!navigator.onLine) {
+    enqueueOfflineAction({ type: 'support-report', payload: { subject, message } });
+    toast('Note vocale mise en file d’attente hors ligne');
+    closeSheet('voice-note-sheet');
+    loadSupportMessagesMobile();
+    return;
+  }
+  try {
+    const r = await api('POST', '/api/support/messages', { subject, message }, token);
+    if (!r.ok) throw new Error('Erreur lors de l’envoi');
+    toast('Note vocale envoyée au support');
+    closeSheet('voice-note-sheet');
+    loadSupportMessagesMobile();
+  } catch (e) {
+    enqueueOfflineAction({ type: 'support-report', payload: { subject, message } });
+    toast('En ligne indisponible, note sauvegardée hors ligne');
+    closeSheet('voice-note-sheet');
+    loadSupportMessagesMobile();
+  }
+}
+
+function openCrowdSheet(i) {
+  const co = lastResults[i];
+  if (!co) return;
+  const name = co.raison_sociale || co.company_name || co.nom || co.name || 'Entreprise';
+  document.getElementById('crowd-company').textContent = name;
+  document.getElementById('crowd-subject').value = `Signalement fiche : ${name}`;
+  document.getElementById('crowd-message').value = `Entreprise: ${name}\nSecteur: ${co.secteur || co.activite_principale || '—'}\nVille: ${co.ville || co.region || '—'}\nAdresse: ${co.adresse || '—'}\n\nCorrection proposée : `;
+  openSheet('crowd-sheet');
+}
+
+async function sendCrowdReport() {
+  const subject = document.getElementById('crowd-subject').value.trim();
+  const message = document.getElementById('crowd-message').value.trim();
+  if (!subject || !message) {
+    toast('Remplissez le sujet et les détails du signalement');
+    return;
+  }
+  if (!navigator.onLine) {
+    enqueueOfflineAction({ type: 'support-report', payload: { subject, message } });
+    toast('Signalement mis en file d’attente hors ligne');
+    closeSheet('crowd-sheet');
+    loadSupportMessagesMobile();
+    return;
+  }
+  try {
+    const r = await api('POST', '/api/support/messages', { subject, message }, token);
+    if (!r.ok) throw new Error('Erreur lors de l’envoi');
+    toast('Signalement envoyé au support');
+    closeSheet('crowd-sheet');
+    loadSupportMessagesMobile();
+  } catch (e) {
+    enqueueOfflineAction({ type: 'support-report', payload: { subject, message } });
+    toast('Envoi impossible, signalement sauvegardé hors ligne');
+    closeSheet('crowd-sheet');
+    loadSupportMessagesMobile();
+  }
+}
+
 // ── CHECK CACHED TOKEN ────────────────────────────────────────────
 async function checkCachedToken() {
   try {
@@ -1009,6 +1426,7 @@ function showApp() {
   updateTopbar();
   loadPipeline();
   loadSaved();
+  if (navigator.onLine) syncOfflineQueue();
 }
 
 async function refreshMe() {
@@ -1137,10 +1555,19 @@ async function runSearch(query, filters) {
     } else {
       lastResults = data.results || [];
       renderResults(data);
+      saveOfflineSearchCache(data);
       refreshMe();
     }
   } catch (e) {
-    document.getElementById('results-area').innerHTML = `<div class="empty-state"><div class="empty-icon">📡</div><h2>Connexion impossible</h2><p>${e.message}</p></div>`;
+    const cache = getOfflineSearchCache();
+    if (cache && cache.results && cache.results.length) {
+      lastQuery = cache.query || '';
+      lastFilters = cache.filters || {};
+      renderResults(cache);
+      toast('Mode hors ligne : affichage des derniers résultats');
+    } else {
+      document.getElementById('results-area').innerHTML = `<div class="empty-state"><div class="empty-icon">📡</div><h2>Connexion impossible</h2><p>${e.message}</p></div>`;
+    }
   }
   isSearching = false;
   document.getElementById('srch-btn').disabled = false;
@@ -1199,11 +1626,14 @@ function renderResults(data) {
         <button class="ca maps" onclick="toggleMapM('${id}','${mapQ}')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Maps
         </button>
-        <button class="ca pipeline" onclick="addToPipCard(${i})">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/></svg>Pipeline
+        <button class="ca nav" onclick="openMapRoute(${i})">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 20l-5-5 7-7 5 5-7 7z"/><path d="M14 9l5 5"/></svg>Itinéraire
         </button>
-        <button class="ca share" onclick="shareCard(${i})">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/></svg>Partager
+        <button class="ca note" onclick="openVoiceNoteSheet(${i})">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V4a3 3 0 0 1 3-3z"/><path d="M5 10a7 7 0 0 0 14 0"/><path d="M12 19v4"/><path d="M8 23h8"/></svg>Note
+        </button>
+        <button class="ca report" onclick="openCrowdSheet(${i})">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 3h4l1 7H9l1-7z"/><path d="M6 10h12"/><path d="M12 13v5"/><path d="M10 19h4"/></svg>Signaler
         </button>
       </div>
       <div class="map-panel" id="map-${id}">
@@ -1270,6 +1700,21 @@ async function loadPipeline() {
     if (r.ok) {
       const data = await r.json();
       pipelineData = data.data || data || [];
+      const offlineAdds = getOfflineQueue().filter(a => a.type === 'pipeline-add').map(a => ({
+        ...a.payload,
+        id: a.payload.localId,
+        _offline: true,
+        created_at: a.created_at
+      }));
+      pipelineData = [...pipelineData, ...offlineAdds];
+      getOfflineQueue().filter(a => a.type === 'pipeline-update').forEach((update) => {
+        const item = pipelineData.find(p => p.id === update.payload.id);
+        if (item) Object.assign(item, {
+          note: update.payload.note,
+          next_action: update.payload.next_action,
+          next_date: update.payload.next_date
+        });
+      });
       pipelineCompanies = {};
       pipelineData.forEach(p => { if (p.company_id) pipelineCompanies[p.company_id] = p; });
       updatePipCounts();
@@ -1306,7 +1751,7 @@ function renderPipeline() {
   }
   list.innerHTML = items.map(p => `
     <div class="pcard ${p.status}">
-      <div class="pcard-name">${p.company_name}</div>
+      <div class="pcard-name">${p.company_name}${p._offline ? ' <span style="font-size:12px;color:#f09;margin-left:6px">⚠️ Hors ligne</span>' : ''}</div>
       <div class="pcard-meta">
         ${p.company_sector ? '<span>📂 ' + p.company_sector + '</span>' : ''}
         ${p.company_city ? '<span>📍 ' + p.company_city + '</span>' : ''}
@@ -1327,18 +1772,35 @@ function renderPipeline() {
 async function confirmAddPipeline() {
   const name = document.getElementById('pip-name').value.trim();
   if (!name) { toast('Saisissez le nom de l\'entreprise'); return; }
+  const payload = {
+    company_name: name,
+    company_sector: document.getElementById('pip-sector').value,
+    company_city: document.getElementById('pip-city').value,
+    company_phone: document.getElementById('pip-phone').value,
+    company_email: document.getElementById('pip-email').value,
+    status: document.getElementById('pip-status').value,
+    note: document.getElementById('pip-note').value,
+    company_id: addPipDefault.id || addPipDefault.siren || addPipDefault.niu || null,
+    company_director: addPipDefault.dirigeant || addPipDefault.company_director || null
+  };
+  if (!navigator.onLine) {
+    const localId = 'offline-' + Date.now();
+    enqueueOfflineAction({ type: 'pipeline-add', payload: { ...payload, localId } });
+    pipelineData.unshift({
+      ...payload,
+      id: localId,
+      _offline: true,
+      created_at: new Date().toISOString()
+    });
+    updatePipCounts();
+    renderPipeline();
+    toast('Ajouté au pipeline hors ligne, synchronisation automatique au retour réseau');
+    closeSheet('add-pip-sheet');
+    if (document.getElementById('nav-pipeline').classList.contains('active')) switchTab2('pipeline');
+    return;
+  }
   try {
-    const r = await api('POST', '/api/pipeline', {
-      company_name: name,
-      company_sector: document.getElementById('pip-sector').value,
-      company_city: document.getElementById('pip-city').value,
-      company_phone: document.getElementById('pip-phone').value,
-      company_email: document.getElementById('pip-email').value,
-      status: document.getElementById('pip-status').value,
-      note: document.getElementById('pip-note').value,
-      company_id: addPipDefault.id || addPipDefault.siren || addPipDefault.niu || null,
-      company_director: addPipDefault.dirigeant || addPipDefault.company_director || null
-    }, token);
+    const r = await api('POST', '/api/pipeline', payload, token);
     const d = await r.json();
     if (r.status === 409) { toast('⚠️ Déjà dans le pipeline'); closeSheet('add-pip-sheet'); return; }
     if (!r.ok) { toast('Erreur: ' + (d.error || '')); return; }
@@ -1366,11 +1828,28 @@ function openNoteSheet(id, note, action, date) {
 
 async function saveNote() {
   const id = document.getElementById('note-id').value;
-  await api('PUT', '/api/pipeline/' + id, {
+  const notePayload = {
     note: document.getElementById('note-text').value,
     next_action: document.getElementById('note-action').value,
     next_date: document.getElementById('note-date').value
-  }, token);
+  };
+  const item = pipelineData.find(p => p.id === id);
+  if (item && item._offline) {
+    Object.assign(item, notePayload);
+    toast('Note enregistrée localement (hors ligne)');
+    closeSheet('note-sheet');
+    renderPipeline();
+    return;
+  }
+  if (!navigator.onLine) {
+    enqueueOfflineAction({ type: 'pipeline-update', payload: { id, localId: item?._offline ? id : undefined, ...notePayload } });
+    if (item) Object.assign(item, notePayload);
+    toast('Note enregistrée hors ligne, synchronisation automatique au retour réseau');
+    closeSheet('note-sheet');
+    renderPipeline();
+    return;
+  }
+  await api('PUT', '/api/pipeline/' + id, notePayload, token);
   toast('✅ Note enregistrée');
   closeSheet('note-sheet');
   loadPipeline();
@@ -1378,6 +1857,18 @@ async function saveNote() {
 
 async function deletePip(id) {
   if (!confirm('Retirer du pipeline ?')) return;
+  const item = pipelineData.find(p => p.id === id);
+  if (item && item._offline) {
+    pipelineData = pipelineData.filter(p => p.id !== id);
+    removeOfflineQueueActionsForLocalId(id);
+    toast('Entrée locale retirée');
+    renderPipeline();
+    return;
+  }
+  if (!navigator.onLine) {
+    toast('Impossible de supprimer hors connexion. Réessayez en ligne.');
+    return;
+  }
   await api('DELETE', '/api/pipeline/' + id, null, token);
   toast('🗑️ Retiré');
   loadPipeline();
@@ -1611,19 +2102,39 @@ let supportMessagesList = [];
 
 async function loadSupportMessagesMobile() {
   try {
-    // ✅ FIX: utiliser sc_token (pas auth_token)
     const currentToken = localStorage.getItem('sc_token');
-    if (!currentToken) return;
-    const r = await fetch(`${API}/api/support/messages/user`, {
-      method: 'GET',
-      headers: { 'Authorization': `Bearer ${currentToken}` }
-    });
-    if (r.ok) {
-      const data = await r.json();
-      supportMessagesList = data.data || data || [];
-      renderSupportMessagesMobile();
+    let serverMessages = [];
+    if (currentToken && navigator.onLine) {
+      const r = await fetch(`${API}/api/support/messages/user`, {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${currentToken}` }
+      });
+      if (r.ok) {
+        const data = await r.json();
+        serverMessages = data.data || data || [];
+      }
     }
-  } catch(e) { console.error(e); }
+    const offlineMessages = getOfflineQueue().filter(a => a.type === 'support-report').map((item) => ({
+      subject: item.payload.subject,
+      message: item.payload.message,
+      status: 'pending',
+      created_at: item.created_at,
+      _offline: true
+    }));
+    supportMessagesList = [...offlineMessages, ...serverMessages];
+    renderSupportMessagesMobile();
+  } catch (e) {
+    console.error(e);
+    const offlineMessages = getOfflineQueue().filter(a => a.type === 'support-report').map((item) => ({
+      subject: item.payload.subject,
+      message: item.payload.message,
+      status: 'pending',
+      created_at: item.created_at,
+      _offline: true
+    }));
+    supportMessagesList = offlineMessages;
+    renderSupportMessagesMobile();
+  }
 }
 
 function renderSupportMessagesMobile() {
@@ -1633,7 +2144,7 @@ function renderSupportMessagesMobile() {
     return;
   }
   container.innerHTML = supportMessagesList.map(msg => {
-    const statusIcon = msg.status === 'answered' ? '✅' : msg.status === 'closed' ? '🔒' : '⏳';
+    const statusIcon = msg._offline ? '🕓 En attente' : msg.status === 'answered' ? '✅ Répondu' : msg.status === 'closed' ? '🔒 Clos' : '⏳ En cours';
     return `
       <div style="padding:12px;border:1px solid var(--bd);border-radius:var(--r);background:var(--bg2)">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
@@ -1654,8 +2165,15 @@ async function sendSupportMessageMobile() {
   const subject = document.getElementById('sup-subject-mobile').value.trim();
   const message = document.getElementById('sup-message-mobile').value.trim();
   if (!subject || !message) { alert('Remplissez le sujet et le message'); return; }
+  if (!navigator.onLine) {
+    enqueueOfflineAction({ type: 'support-report', payload: { subject, message } });
+    toast('Support hors ligne : message mis en file d’attente');
+    document.getElementById('sup-subject-mobile').value = '';
+    document.getElementById('sup-message-mobile').value = '';
+    loadSupportMessagesMobile();
+    return;
+  }
   try {
-    // ✅ FIX: utiliser sc_token (pas auth_token)
     const currentToken = localStorage.getItem('sc_token');
     if (!currentToken) return;
     const r = await fetch(`${API}/api/support/messages`, {
@@ -1669,9 +2187,15 @@ async function sendSupportMessageMobile() {
       toast('✅ Message envoyé au support');
       loadSupportMessagesMobile();
     } else {
-      toast('Erreur lors de l\'envoi du message');
+      enqueueOfflineAction({ type: 'support-report', payload: { subject, message } });
+      toast('Erreur, message sauvegardé hors ligne');
+      loadSupportMessagesMobile();
     }
-  } catch(e) { console.error(e); toast('Erreur réseau'); }
+  } catch (e) {
+    enqueueOfflineAction({ type: 'support-report', payload: { subject, message } });
+    toast('Erreur réseau, message sauvegardé hors ligne');
+    loadSupportMessagesMobile();
+  }
 }
 
 // ── APP UPDATE MANAGEMENT ──────────────────────────────────────────
@@ -1766,6 +2290,13 @@ function initVersionDisplay() {
 document.addEventListener('DOMContentLoaded', () => {
   setTimeout(initPullToRefresh, 500);
   setTimeout(() => { initAppUpdate(); initVersionDisplay(); }, 1000);
+  window.addEventListener('online', () => {
+    toast('🔌 En ligne, synchronisation en cours...');
+    syncOfflineQueue();
+  });
+  window.addEventListener('offline', () => {
+    toast('⚠️ Hors ligne, actions stockées localement');
+  });
 });
 </script>
 </body>

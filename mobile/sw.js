@@ -1,5 +1,5 @@
 const CACHE = 'sc-v1.2.0'; // Version bump for update detection
-const ASSETS = ['/', '/index.html', '/mobile', '/mobile/index.html', '/landing.html', '/manifest.json'];
+const ASSETS = ['/', '/index.html', '/mobile', '/mobile/index.html', '/mobile/firebase-config.js', '/mobile/manifest.json', '/landing.html', '/manifest.json'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));

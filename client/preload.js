@@ -18,6 +18,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Search & Chat
   search:            (p) => ipcRenderer.invoke('search', p),
   chat:              (p) => ipcRenderer.invoke('chat', p),
+  pitch:             (p) => ipcRenderer.invoke('pitch', p),
   
   // Support Messaging
   supportMessages:     (method, token) => ipcRenderer.invoke('supportMessages', method, token),

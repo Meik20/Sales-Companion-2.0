@@ -338,6 +338,21 @@ ipcMain.handle('search', (_, p) => {
   );
 });
 
+ipcMain.handle('pitch', (_, p) => {
+  const serverUrl = p.serverUrl || getServerUrl();
+  console.log(`✉️ Pitch with server: ${serverUrl}`);
+  return requestWithRetry(
+    serverUrl,
+    'POST',
+    '/api/pitch',
+    {
+      companyId: p.companyId,
+      company: p.company,
+    },
+    p.token
+  );
+});
+
 ipcMain.handle('chat', (_, p) => {
   const serverUrl = p.serverUrl || getServerUrl();
   console.log(`💬 Chat with server: ${serverUrl}`);

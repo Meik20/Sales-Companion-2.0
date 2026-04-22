@@ -145,6 +145,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--tx);height
 .co-line2{font-size:12px;color:var(--tx3);display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px}
 .co-badges{display:flex;gap:4px;flex-wrap:wrap}
 .cbadge{font-size:10.5px;padding:2px 8px;border-radius:10px;font-weight:600}
+.cb-score{background:#0d6efd;color:#fff}
 .cb-type{background:var(--bg3);color:var(--tx2);border:1px solid var(--bd2)}
 .cb-green{background:var(--gl);color:var(--g)}
 .cb-niu{background:var(--bl);color:var(--blue);font-family:monospace}
@@ -415,7 +416,7 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--tx);height
     <div class="center-top">
       <div class="topsearch">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input id="top-input" type="text" placeholder="Rechercher par nom, NIU, activité, ville, téléphone ou email..." onkeydown="if(event.key==='Enter')searchFromTop()">
+        <input id="top-input" type="text" placeholder="Recherche libre : ex. 'logistique Douala Yaoundé >50 employés'" onkeydown="if(event.key==='Enter')searchFromTop()">
       </div>
       <button class="gobtn" id="gobtn" onclick="searchFromTop()">Rechercher</button>
       <button class="savebtn" id="savebtn" onclick="openSaveModal()">💾 Sauvegarder</button>
@@ -505,6 +506,14 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--tx);height
       <button class="btn-cancel" onclick="document.getElementById('save-overlay').classList.remove('open')">Annuler</button>
       <button class="btn-ok" onclick="confirmSave()">Sauvegarder</button>
     </div>
+  </div>
+</div>
+
+<div class="overlay" id="pitch-overlay" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="save-modal" onclick="event.stopPropagation()" style="width:500px;max-height:85vh;overflow:auto;position:relative">
+    <button class="btn-cancel" style="position:absolute;right:16px;top:16px" onclick="document.getElementById('pitch-overlay').classList.remove('open')">✕</button>
+    <h3 id="pitch-title">Générer une approche</h3>
+    <div id="pitch-body" style="white-space:pre-wrap;line-height:1.6;margin-top:8px;color:var(--tx);min-height:120px"></div>
   </div>
 </div>
 
@@ -936,6 +945,7 @@ function renderResults(data){
           </div>
           <div class="co-badges">
             ${pipelineBadge}
+            ${co.leadScore?`<span class="cbadge cb-score">Score: ${co.leadScore}</span>`:''}
             ${co.statut_juridique?`<span class="cbadge cb-type">${co.statut_juridique}</span>`:''}
             ${co.niu?`<span class="cbadge cb-niu">NIU: ${co.niu}</span>`:''}
             ${co.rccm?`<span class="cbadge cb-green">RCCM ✓</span>`:''}
@@ -960,6 +970,10 @@ function renderResults(data){
         <button class="ca" style="background:var(--gl);color:var(--g)" onclick="addToPipelineFromCard(${i})">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/></svg>
           Pipeline
+        </button>
+        <button class="ca blue" onclick="openPitchModal(${i})">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v10H5.5L4 16.5V4z"/><path d="M22 4l-9 7-9-7"/></svg>
+          Générer approche
         </button>
         <button class="ca share" onclick="shareCard(${i})">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
@@ -1055,6 +1069,26 @@ function openSaveModal(){
   document.getElementById('save-title').value=parts.length?parts.join(' · ')+` — ${today}`:'Recherche — '+today;
   document.getElementById('save-overlay').classList.add('open');
   setTimeout(()=>document.getElementById('save-title').select(),100);
+}
+
+async function openPitchModal(idx){
+  const co = lastResults[idx];
+  if(!co){toast('Entreprise introuvable');return;}
+  document.getElementById('pitch-title').textContent = `Générer une approche pour ${co.raison_sociale||co.company_name||co.sigle||'entreprise'}`;
+  document.getElementById('pitch-body').innerHTML = '<div class="loading-state"><div class="spinner"></div><span style="font-size:13px;color:var(--tx3)">Génération en cours...</span></div>';
+  document.getElementById('pitch-overlay').classList.add('open');
+  try {
+    const r = await window.electronAPI.pitch({ serverUrl: RAILWAY_SERVER, token, companyId: co.id, company: co });
+    if (r.data && r.data.pitch) {
+      document.getElementById('pitch-body').textContent = r.data.pitch;
+    } else if (r.data && r.data.error) {
+      document.getElementById('pitch-body').textContent = `Erreur : ${r.data.error}`;
+    } else {
+      document.getElementById('pitch-body').textContent = 'Aucune approche disponible pour cette entreprise.';
+    }
+  } catch (e) {
+    document.getElementById('pitch-body').textContent = `Erreur : ${e.message}`;
+  }
 }
 
 async function confirmSave(){

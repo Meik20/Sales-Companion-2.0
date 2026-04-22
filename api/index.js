@@ -7,6 +7,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const multer = require('multer');
+const fetch = require('node-fetch');
 const XLSX = require('xlsx');
 const fs = require('fs');
 const os = require('os');
@@ -40,6 +41,74 @@ const {
   replyToSupportMessage,
   closeSupportMessage,
 } = require('../server/firestore-operations');
+
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY || process.env.GROQ_API_KEY || '';
+const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-3.5-turbo';
+
+function formatCompanyForPrompt(company) {
+  const fields = [];
+  if (company.raisonSociale || company.raison_sociale) fields.push(`Nom : ${company.raisonSociale || company.raison_sociale}`);
+  if (company.sigle) fields.push(`Sigle : ${company.sigle}`);
+  if (company.sector || company.secteur) fields.push(`Secteur : ${company.sector || company.secteur}`);
+  if (company.activitePrincipale || company.activite_principale) fields.push(`Activité : ${company.activitePrincipale || company.activite_principale}`);
+  if (company.region) fields.push(`Région : ${company.region}`);
+  if (company.city || company.ville) fields.push(`Ville : ${company.city || company.ville}`);
+  if (company.email || company.company_email || company.contact_email) fields.push(`Email : ${company.email || company.company_email || company.contact_email}`);
+  if (company.telephone || company.tel || company.company_phone || company.contact_phone) fields.push(`Téléphone : ${company.telephone || company.tel || company.company_phone || company.contact_phone}`);
+  if (company.adresse || company.company_address) fields.push(`Adresse : ${company.adresse || company.company_address}`);
+  if (company.dirigeant) fields.push(`Dirigeant : ${company.dirigeant}`);
+  if (company.employees || company.employee_count || company.effectif || company.nb_employes) fields.push(`Effectif estimé : ${company.employees || company.employee_count || company.effectif || company.nb_employes}`);
+  if (company.site_web || company.website) fields.push(`Site web : ${company.site_web || company.website}`);
+  return fields.join('\n');
+}
+
+async function callOpenAI(messages) {
+  if (!OPENAI_API_KEY) {
+    throw new Error('OPENAI_API_KEY n\'est pas configurée.');
+  }
+
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${OPENAI_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: OPENAI_MODEL,
+      messages,
+      max_tokens: 450,
+      temperature: 0.85,
+    }),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    const message = data?.error?.message || data?.error || 'Erreur lors de l\'appel OpenAI';
+    throw new Error(message);
+  }
+  return data?.choices?.[0]?.message?.content?.trim() || '';
+}
+
+async function generatePitch(company) {
+  const prompt = `Tu es un assistant commercial pour un CRM B2B basé au Cameroun. Génère un message de prospection ultra-personnalisé en utilisant les informations ci-dessous. Ne fais pas de promesses factices, reste direct, professionnel et orienté gain client.`;
+  const companyDescription = formatCompanyForPrompt(company);
+
+  const messages = [
+    { role: 'system', content: 'Tu aides un commercial à rédiger des emails et des scripts d\'appel pour des entreprises camerounaises.' },
+    { role: 'user', content: `${prompt}\n\nInformations sur l\'entreprise :\n${companyDescription}` },
+  ];
+
+  return await callOpenAI(messages);
+}
+
+async function generateSearchSummary(query, filters, companies) {
+  if (!OPENAI_API_KEY) return null;
+  const messages = [
+    { role: 'system', content: 'Tu es un assistant capable de résumer des intentions de recherche commerciale en français.' },
+    { role: 'user', content: `Résume en une phrase la recherche suivante et indique si elle concerne la logistique, la taille, la localisation ou autre. Recherche : "${query}". Filtres : ${JSON.stringify(filters)}. Résultats trouvés : ${companies.length} entreprises.` },
+  ];
+  return await callOpenAI(messages);
+}
 
 // ── SERVER SETUP ──────────────────────────────────────────────
 const app = express();
@@ -193,8 +262,8 @@ app.get('/api/companies/search', verifyToken, async (req, res) => {
 
 app.post('/api/search', verifyToken, async (req, res) => {
   try {
-    const { query, filters = {} } = req.body;
-    console.log(`[SEARCH] User ${req.userId} searching: "${query}" with filters:`, filters);
+    const { query, filters = {}, use_ai = false } = req.body;
+    console.log(`[SEARCH] User ${req.userId} searching: "${query}" with filters:`, filters, 'use_ai:', use_ai);
 
     // Consommer 1 crédit pour la recherche
     const creditResult = await consumeCredit(req.userId);
@@ -222,14 +291,48 @@ app.post('/api/search', verifyToken, async (req, res) => {
 
     console.log(`[SEARCH] Found ${companies.length} companies for user ${req.userId}`);
 
+    let ai_text = null;
+    if (use_ai && query) {
+      try {
+        ai_text = await generateSearchSummary(query, filters, companies);
+      } catch (err) {
+        console.warn('[SEARCH] AI summary failed:', err.message);
+      }
+    }
+
     res.json({
       count: companies.length,
       source: 'database',
       results: companies,
+      ai_text,
       remaining: creditResult.remaining
     });
   } catch (error) {
     console.error('[SEARCH] Error for user', req.userId, ':', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/pitch', verifyToken, async (req, res) => {
+  try {
+    const { companyId, company } = req.body;
+    let companyData = company;
+
+    if (!companyData && companyId) {
+      const companyDoc = await db.collection('companies').doc(companyId).get();
+      if (companyDoc.exists) {
+        companyData = { id: companyDoc.id, ...companyDoc.data() };
+      }
+    }
+
+    if (!companyData) {
+      return res.status(400).json({ error: 'Aucune entreprise fournie pour générer une approche.' });
+    }
+
+    const pitch = await generatePitch(companyData);
+    res.json({ pitch });
+  } catch (error) {
+    console.error('[PITCH] Error for user', req.userId, ':', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -272,18 +375,6 @@ app.post('/api/chat', verifyToken, async (req, res) => {
     });
   } catch (error) {
     console.error('[CHAT] Error for user', req.userId, ':', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-            content:
-              'Assistant IA non configuré. Veuillez définir la clé groq_api_key dans la configuration du serveur.',
-          },
-        },
-      ],
-      remaining: creditResult.remaining,
-    });
-  } catch (error) {
-    console.error('Chat error:', error);
     res.status(500).json({ error: error.message });
   }
 });
