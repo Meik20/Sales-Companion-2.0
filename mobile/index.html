@@ -667,6 +667,19 @@ body{font-family:'Outfit',sans-serif;color:var(--tx);display:flex;flex-direction
     </div>
   </div>
 
+  <!-- MANAGER CREATE ASSIGN SHEET -->
+  <div class="sheet-overlay" id="assign-create-overlay" onclick="closeSheet('assign-create-sheet')"></div>
+  <div class="sheet" id="assign-create-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Créer assignation (manager)</div>
+    <div class="sheet-body">
+      <div style="font-size:13px;color:var(--tx3);margin-bottom:8px">Prospects sélectionnés: <span id="assign-count-m">0</span></div>
+      <div style="margin-bottom:8px"><select id="assign-assignee-m" style="width:100%;padding:9px;border:1px solid var(--bd);border-radius:8px"><option value="">Chargement…</option></select></div>
+      <div style="margin-bottom:8px"><input id="assign-note-m" placeholder="Note (optionnel)" style="width:100%;padding:9px;border:1px solid var(--bd);border-radius:8px"></div>
+      <div style="display:flex;gap:8px"><button class="sheet-btn" onclick="submitAssignmentMobile()">Créer assignation</button><button class="sheet-btn secondary" onclick="closeSheet('assign-create-sheet')">Annuler</button></div>
+    </div>
+  </div>
+
 <div class="sheet-overlay" id="map-overlay" onclick="closeSheet('map-sheet')"></div>
 <div class="sheet" id="map-sheet">
   <div class="sheet-handle"></div>
@@ -1040,22 +1053,11 @@ function renderOfflineSheet() {
 
 async function syncOfflineQueue() {
   if (!navigator.onLine) {
-
-  <!-- MANAGER CREATE ASSIGN SHEET -->
-  <div class="sheet-overlay" id="assign-create-overlay" onclick="closeSheet('assign-create-sheet')"></div>
-  <div class="sheet" id="assign-create-sheet">
-    <div class="sheet-handle"></div>
-    <div class="sheet-title">Créer assignation (manager)</div>
-    <div class="sheet-body">
-      <div style="font-size:13px;color:var(--tx3);margin-bottom:8px">Prospects sélectionnés: <span id="assign-count-m">0</span></div>
-      <div style="margin-bottom:8px"><select id="assign-assignee-m" style="width:100%;padding:9px;border:1px solid var(--bd);border-radius:8px"><option value="">Chargement…</option></select></div>
-      <div style="margin-bottom:8px"><input id="assign-note-m" placeholder="Note (optionnel)" style="width:100%;padding:9px;border:1px solid var(--bd);border-radius:8px"></div>
-      <div style="display:flex;gap:8px"><button class="sheet-btn" onclick="submitAssignmentMobile()">Créer assignation</button><button class="sheet-btn secondary" onclick="closeSheet('assign-create-sheet')">Annuler</button></div>
-    </div>
-  </div>
     toast('Connectez-vous pour synchroniser les actions hors ligne');
     renderOfflineSheet();
     return;
+  }
+    
   }
   const queue = getOfflineQueue();
   if (!queue.length) {
