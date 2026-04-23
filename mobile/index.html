@@ -49,6 +49,17 @@ body{font-family:'Outfit',sans-serif;color:var(--tx);display:flex;flex-direction
 .plan-b{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:700;text-transform:uppercase}
 .pf{background:#e0e0e0;color:#555}.ps_{background:var(--bl);color:var(--blue)}.pp{background:var(--gdl);color:var(--gold)}.pe{background:var(--gl);color:var(--g)}
 
+/* ── SIDEBAR / DRAWER ── */
+.side-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:800;display:none;opacity:0;transition:opacity .2s}
+.side-overlay.open{display:block;opacity:1}
+.side-menu{position:fixed;top:0;left:0;bottom:0;width:280px;background:var(--bg2);z-index:801;transform:translateX(-110%);transition:transform .25s cubic-bezier(.2,.8,0,1);box-shadow:0 20px 60px rgba(0,0,0,0.2);padding:calc(var(--safe-top) + 14px) 14px}
+.side-menu.open{transform:translateX(0)}
+.side-menu h3{font-size:16px;font-weight:800;color:var(--tx);margin-bottom:8px}
+.side-menu .sm-item{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;cursor:pointer;color:var(--tx2);font-weight:700}
+.side-menu .sm-item:active{background:var(--bg3);transform:scale(.995)}
+.menu-btn{width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,0.12);border:none;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;margin-right:8px}
+
+
 /* ── CONTENT ── */
 .content{flex:1;overflow:hidden;display:flex;flex-direction:column;position:relative}
 .tab-content{display:none;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;will-change:scroll-position}
@@ -361,6 +372,7 @@ body{font-family:'Outfit',sans-serif;color:var(--tx);display:flex;flex-direction
 
 <!-- TOPBAR -->
 <div class="topbar" id="topbar" style="display:none">
+  <button class="menu-btn" id="menu-btn" onclick="toggleSidebar()" aria-label="Menu">&#9776;</button>
   <div class="tb-logo"><svg viewBox="0 0 100 100" width="17" height="17"><rect width="100" height="100" rx="20" fill="rgba(255,255,255,0.3)"/><text x="50" y="65" font-family="Arial, sans-serif" font-size="60" font-weight="bold" fill="white" text-anchor="middle">SC</text></svg></div>
   <div class="tb-title">SALES <em>COMPANION</em></div>
   <div class="tb-user-btn" onclick="openSheet('profile-sheet')">
@@ -368,6 +380,16 @@ body{font-family:'Outfit',sans-serif;color:var(--tx);display:flex;flex-direction
     <span class="plan-b pf" id="tb-plan">free</span>
   </div>
 </div>
+
+<!-- SIDEBAR -->
+<div class="side-overlay" id="side-overlay" onclick="closeSidebar()"></div>
+<aside class="side-menu" id="side-menu" role="navigation">
+  <h3>Menu</h3>
+  <div class="sm-item" onclick="closeSidebar(); openProspectsAroundMe()">&#x1F9ED; Prospection autour de moi (rayon)</div>
+  <div class="sm-item" onclick="closeSidebar(); openMyLocationMap()">&#x1F4CD; Ma position</div>
+  <div class="sm-item" onclick="closeSidebar(); openAIListBuilder()">&#x1F916; Liste IA</div>
+  <div class="sm-item" onclick="closeSidebar(); openOfflineSheet()">&#x1F4E5; Hors ligne</div>
+</aside>
 
 <!-- CONTENT -->
 <div class="content" id="content" style="display:none">
@@ -413,15 +435,15 @@ body{font-family:'Outfit',sans-serif;color:var(--tx);display:flex;flex-direction
       </div>
     </div>
     <div class="filter-scroll" id="sector-chips">
-      <div class="fchip" onclick=\"quickSector(event,'')\">Tous</div>
-      <div class="fchip" onclick=\"quickSector(event,'BTP et construction')\">&#x1F3D7; BTP</div>
-      <div class="fchip" onclick=\"quickSector(event,'Commerce et distribution')\">&#x1F6D2; Commerce</div>
-      <div class="fchip" onclick=\"quickSector(event,'Technologies et numérique')\">&#x1F4BB; Tech</div>
-      <div class="fchip" onclick=\"quickSector(event,'Agroalimentaire')\">&#x1F33E; Agro</div>
-      <div class="fchip" onclick=\"quickSector(event,'Transport et logistique')\">&#x1F69B; Transport</div>
-      <div class="fchip" onclick=\"quickSector(event,'Santé et pharmacie')\">&#x1F3E5; Sant&eacute;</div>
-      <div class="fchip" onclick=\"quickSector(event,'Services financiers')\">&#x1F4B0; Finance</div>
-      <div class="fchip" onclick=\"quickSector(event,'Import-Export')\">&#x1F30D; Import/Export</div>
+      <div class="fchip" data-sector="" onclick="quickSector(event,'')">Tous</div>
+      <div class="fchip" data-sector="BTP et construction" onclick="quickSector(event,'BTP et construction')">&#x1F3D7; BTP</div>
+      <div class="fchip" data-sector="Commerce et distribution" onclick="quickSector(event,'Commerce et distribution')">&#x1F6D2; Commerce</div>
+      <div class="fchip" data-sector="Technologies et numérique" onclick="quickSector(event,'Technologies et numérique')">&#x1F4BB; Tech</div>
+      <div class="fchip" data-sector="Agroalimentaire" onclick="quickSector(event,'Agroalimentaire')">&#x1F33E; Agro</div>
+      <div class="fchip" data-sector="Transport et logistique" onclick="quickSector(event,'Transport et logistique')">&#x1F69B; Transport</div>
+      <div class="fchip" data-sector="Santé et pharmacie" onclick="quickSector(event,'Santé et pharmacie')">&#x1F3E5; Sant&eacute;</div>
+      <div class="fchip" data-sector="Services financiers" onclick="quickSector(event,'Services financiers')">&#x1F4B0; Finance</div>
+      <div class="fchip" data-sector="Import-Export" onclick="quickSector(event,'Import-Export')">&#x1F30D; Import/Export</div>
     </div>
     <div class="results-container" id="results-area">
       <div class="empty-state">
@@ -1534,10 +1556,31 @@ function updateCities() {
 // ── SEARCH ──
 function quickSector(evt, sector) {
   document.querySelectorAll('.fchip').forEach(function(c) { c.classList.remove('active'); });
-  if (evt && evt.target) evt.target.classList.add('active');
+  var el = null;
+  if (evt) {
+    el = evt.currentTarget || evt.target || null;
+    while (el && el.nodeType !== 1) el = el.parentNode;
+    if (el && !el.classList.contains('fchip') && el.closest) el = el.closest('.fchip');
+  }
+  if (!el) {
+    var chips = Array.from(document.querySelectorAll('.fchip'));
+    el = chips.find(function(ch){ return (ch.getAttribute('data-sector')||'') === (sector||''); }) || chips.find(function(ch){ return ch.textContent && ch.textContent.toLowerCase().indexOf((sector||'').toLowerCase()) !== -1; });
+  }
+  if (el) el.classList.add('active');
   document.getElementById('f-sector').value = sector;
   if (sector) runSearch('', { secteur: sector });
 }
+
+function toggleSidebar() {
+  var menu = document.getElementById('side-menu');
+  var overlay = document.getElementById('side-overlay');
+  if (!menu) return;
+  var open = menu.classList.contains('open');
+  if (open) { menu.classList.remove('open'); if (overlay) overlay.classList.remove('open'); }
+  else { menu.classList.add('open'); if (overlay) overlay.classList.add('open'); }
+}
+
+function closeSidebar() { var menu = document.getElementById('side-menu'); var overlay = document.getElementById('side-overlay'); if (menu) menu.classList.remove('open'); if (overlay) overlay.classList.remove('open'); }
 
 function quickSearch(sector, city, region) {
   document.getElementById('f-sector').value = sector;
