@@ -385,9 +385,18 @@ body{font-family:'Outfit',sans-serif;color:var(--tx);display:flex;flex-direction
 <div class="side-overlay" id="side-overlay" onclick="closeSidebar()"></div>
 <aside class="side-menu" id="side-menu" role="navigation">
   <h3>Menu</h3>
-  <div class="sm-item" onclick="closeSidebar(); openProspectsAroundMe()">&#x1F9ED; Prospection autour de moi (rayon)</div>
-  <div class="sm-item" onclick="closeSidebar(); openMyLocationMap()">&#x1F4CD; Ma position</div>
+  <div style="margin-bottom:12px">
+    <label for="prospect-radius" style="font-size:13px;color:var(--tx3);display:block;margin-bottom:6px">Rayon</label>
+    <select id="prospect-radius" style="width:100%;padding:10px 12px;border:1.5px solid var(--bd2);border-radius:12px;background:var(--bg3);font-family:'Outfit',sans-serif;color:var(--tx);">
+      <option value="5">5 km</option>
+      <option value="10" selected>10 km</option>
+      <option value="20">20 km</option>
+      <option value="50">50 km</option>
+    </select>
+  </div>
+  <div class="sm-item" onclick="closeSidebar(); openProspectsAroundMe()">&#x1F9ED; Prospects autour de moi</div>
   <div class="sm-item" onclick="closeSidebar(); openAIListBuilder()">&#x1F916; Liste IA</div>
+  <div class="sm-item" onclick="closeSidebar(); openMyLocationMap()">&#x1F4CD; Ma position</div>
   <div class="sm-item" onclick="closeSidebar(); openOfflineSheet()">&#x1F4E5; Hors ligne</div>
 </aside>
 
@@ -418,21 +427,7 @@ body{font-family:'Outfit',sans-serif;color:var(--tx);display:flex;flex-direction
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
         Filtres avanc&eacute;s <span id="filter-count" style="display:none;background:var(--g);color:#fff;border-radius:10px;font-size:10px;padding:1px 6px;font-weight:700"></span>
       </div>
-      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
-        <div style="display:flex;gap:8px;align-items:center;flex:1;min-width:180px">
-          <label for="prospect-radius" style="font-size:13px;color:var(--tx3);white-space:nowrap">Rayon</label>
-          <select id="prospect-radius" style="flex:1;padding:10px 12px;border:1.5px solid var(--bd2);border-radius:var(--r);background:var(--bg3);font-family:'Outfit',sans-serif;color:var(--tx);">
-            <option value="5">5 km</option>
-            <option value="10" selected>10 km</option>
-            <option value="20">20 km</option>
-            <option value="50">50 km</option>
-          </select>
-        </div>
-        <button class="sheet-btn secondary" style="flex:1;min-width:120px" onclick="openProspectsAroundMe()">&#x1F9ED; Prospects autour de moi</button>
-        <button class="sheet-btn secondary" style="flex:1;min-width:120px" onclick="openAIListBuilder()">&#x1F916; Liste IA</button>
-        <button class="sheet-btn secondary" style="flex:1;min-width:120px" onclick="openMyLocationMap()">&#x1F4CD; Ma position</button>
-        <button class="sheet-btn secondary" style="flex:1;min-width:120px" onclick="openOfflineSheet()">&#x1F4E5; Hors ligne</button>
-      </div>
+      <!-- Controls moved to sidebar menu -->
     </div>
     <div class="filter-scroll" id="sector-chips">
       <div class="fchip" data-sector="" onclick="quickSector(event,'')">Tous</div>
