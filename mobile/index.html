@@ -2127,11 +2127,27 @@ function initPullToRefresh() {
   var progressBar = document.getElementById('ptr-progress-bar');
   var text = document.getElementById('ptr-text');
   var currentTabContent = null;
+  var scrollableAncestor = null;
+
+  function getScrollableAncestor(el) {
+    while (el && el !== document.body) {
+      try {
+        var s = window.getComputedStyle(el);
+        var oy = s && (s.overflowY || s.getPropertyValue('overflow-y'));
+        if ((oy === 'auto' || oy === 'scroll') && el.scrollHeight > el.clientHeight) return el;
+      } catch (e) { }
+      el = el.parentElement;
+    }
+    return null;
+  }
 
   content.addEventListener('touchstart', function(e) {
     currentTabContent = e.target.closest('.tab-content');
     if (!currentTabContent) return;
-    ptrEnabled = currentTabContent.scrollTop === 0;
+    // Find the actual scrollable element under the touch target (results list, pip-list, chat-msgs, etc.)
+    scrollableAncestor = getScrollableAncestor(e.target) || currentTabContent;
+    // Only enable PTR when that scrollable container is scrolled to top
+    ptrEnabled = scrollableAncestor && scrollableAncestor.scrollTop === 0;
     if (ptrEnabled) {
       ptrStartY = e.touches[0].clientY;
       ptr.classList.add('active');
@@ -2144,8 +2160,8 @@ function initPullToRefresh() {
   }, { passive: true });
 
   content.addEventListener('touchmove', function(e) {
-    if (!ptrEnabled || isRefreshing || !currentTabContent) return;
-    if (currentTabContent.scrollTop > 0) { ptrEnabled = false; return; }
+    if (!ptrEnabled || isRefreshing || !currentTabContent || !scrollableAncestor) return;
+    if (scrollableAncestor.scrollTop > 0) { ptrEnabled = false; return; }
     ptrCurrentY = e.touches[0].clientY;
     var diff = ptrCurrentY - ptrStartY;
     if (diff > 0) {
@@ -2172,7 +2188,7 @@ function initPullToRefresh() {
       progress.classList.remove('active');
       text.classList.remove('visible');
     }
-    ptrEnabled = false;
+    ptrEnabled = false; scrollableAncestor = null; currentTabContent = null;
   }, { passive: true });
 }
 
