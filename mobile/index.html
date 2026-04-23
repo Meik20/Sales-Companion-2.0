@@ -1349,21 +1349,40 @@ async function checkCachedToken() {
   try {
     if (token) {
       try {
-        var r = await api('GET', '/auth/me', null, token);
-        if (r.ok) {
-          var userData = await r.json();
-          user = userData;
-          localStorage.setItem('sc_token', token);
-          showApp();
-          return true;
-        } else if (r.status === 401) {
-          localStorage.removeItem('sc_token');
-          token = '';
-        }
-      } catch(e) { console.log('Token validation error:', e.message); }
+        // Try a robust auth check that forces a fresh ID token when possible
+        var ok = await checkAuthMe();
+        if (ok) return true;
+        // if token invalid, clear
+        localStorage.removeItem('sc_token');
+        token = '';
+      } catch (e) { console.log('Token validation error:', e.message); }
     }
   } catch(e) { console.log('checkCachedToken error:', e.message); }
   return false;
+}
+
+// Force-refresh token and validate with server /auth/me
+async function checkAuthMe() {
+  try {
+    if (!auth || !auth.currentUser) return false;
+    // Force refresh to avoid using expired tokens
+    const fresh = await auth.currentUser.getIdToken(true);
+    if (!fresh) return false;
+    // Update local token and validate with server
+    token = fresh; localStorage.setItem('sc_token', token);
+    const r = await api('GET', '/auth/me', null, token);
+    if (!r || !r.ok) {
+      if (r && r.status === 401) {
+        localStorage.removeItem('sc_token'); token = '';
+      }
+      return false;
+    }
+    user = await r.json(); updateTopbar(); showApp();
+    return true;
+  } catch (e) {
+    console.error('checkAuthMe failed:', e.message || e);
+    return false;
+  }
 }
 
 // ── UTILITIES ──
@@ -1503,7 +1522,7 @@ function showApp() {
 }
 
 async function refreshMe() {
-  try { var r = await api('GET', '/auth/me', null, token); if (r.ok) { user = await r.json(); updateTopbar(); } } catch (e) {}
+  try { await checkAuthMe(); } catch (e) { console.warn('refreshMe failed:', e && e.message); }
 }
 
 function doLogout() {

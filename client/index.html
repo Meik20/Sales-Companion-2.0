@@ -1408,9 +1408,12 @@ async function deletePipeline(id){
 async function testServer() {
   console.log('[TEST] Testing server connection...');
   try {
+    const tok = localStorage.getItem('sc_token') || '';
+    const headers = { 'Content-Type': 'application/json' };
+    if (tok) headers['Authorization'] = 'Bearer ' + tok;
     const response = await fetch(RAILWAY_SERVER + '/auth/me', {
       method: 'GET',
-      headers: {'Content-Type': 'application/json'}
+      headers
     });
     console.log('[TEST] Server response status:', response.status);
     const data = await response.json();
