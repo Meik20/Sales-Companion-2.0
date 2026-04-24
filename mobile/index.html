@@ -382,7 +382,7 @@ body {
 .srch-btn:active{transform:scale(.96);box-shadow:0 2px 8px rgba(27,94,32,0.25)}
 .srch-btn:disabled{opacity:.5}
 
-.filter-scroll{display:flex;gap:8px;overflow-x:auto;padding:0 16px 14px;flex-shrink:0;scroll-behavior:smooth}
+.filter-scroll{display:flex;gap:8px;overflow-x:auto;padding:0 16px 14px;flex-shrink:0;scroll-behavior:smooth;min-height:48px;align-items:center}
 .filter-scroll::-webkit-scrollbar{display:none}
 .fchip{padding:8px 16px;border-radius:var(--r-full);border:1.5px solid var(--border-strong);font-size:13px;font-weight:500;color:var(--text-secondary);white-space:nowrap;cursor:pointer;background:var(--bg-card);font-family:'Inter',sans-serif;flex-shrink:0;transition:all var(--duration) var(--ease);box-shadow:var(--shadow-xs);display:flex;align-items:center;gap:6px}
 .fchip.active{border-color:var(--primary);color:var(--primary);background:var(--primary-light);font-weight:600;box-shadow:0 0 0 1px var(--primary),var(--shadow-xs)}
@@ -445,6 +445,14 @@ body {
   height: 160px;
   margin-bottom: 20px;
   position: relative;
+  overflow: hidden;
+}
+
+.empty-illustration svg {
+  width: 200px;
+  height: 160px;
+  display: block;
+  overflow: visible;
 }
 .empty-state h2{font-size:20px;font-weight:800;color:var(--text-primary);margin-bottom:8px;letter-spacing:-0.4px}
 .empty-state p{font-size:14px;color:var(--text-tertiary);line-height:1.6;max-width:280px;margin-bottom:8px}
@@ -866,7 +874,7 @@ body {
       <div class="empty-state">
         <!-- Custom SVG illustration: businessman with network -->
         <div class="empty-illustration">
-          <svg viewBox="0 0 200 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg viewBox="0 0 200 160" width="200" height="160" fill="none" xmlns="http://www.w3.org/2000/svg">
             <!-- Map of Cameroon (simplified) -->
             <path d="M85 20 L95 15 L110 18 L120 25 L125 40 L130 55 L128 70 L132 85 L125 100 L120 115 L110 125 L100 130 L90 128 L80 120 L75 110 L70 95 L68 80 L72 65 L75 50 L78 35 Z" fill="#E8F5E9" stroke="#1B5E20" stroke-width="1.5" opacity="0.6"/>
             <!-- Network dots -->
