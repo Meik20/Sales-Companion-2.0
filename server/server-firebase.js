@@ -759,9 +759,67 @@ app.post('/api/companies/import', verifyAdmin, upload.single('file'), async (req
   } catch (error) { cleanup(); return safeError(res, 500, "Erreur lors de l'import", error); }
 });
 
+// ══════════════════════════════════════════════════════════════
+// SIMPLE IN-MEMORY CACHE (1 min TTL)
+// Reduces duplicate API calls for same search params
+// ══════════════════════════════════════════════════════════════
+
+const searchCache = new Map();
+const CACHE_TTL = 60000; // 1 minute in ms
+
+function getCacheKey(query, filters) {
+  return JSON.stringify({ query, filters });
+}
+
+function getCachedResult(query, filters) {
+  const key = getCacheKey(query, filters);
+  const cached = searchCache.get(key);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.data;
+  }
+  searchCache.delete(key);
+  return null;
+}
+
+function setCachedResult(query, filters, data) {
+  const key = getCacheKey(query, filters);
+  searchCache.set(key, { data, timestamp: Date.now() });
+  
+  // Prevent memory leak: keep only 100 most recent searches
+  if (searchCache.size > 100) {
+    const firstKey = searchCache.keys().next().value;
+    searchCache.delete(firstKey);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// UNIFIED SEARCH API
+// ── Backend handles ALL logic: filters, geolocation, AI scoring ──
+// Params:
+//   - query (string): free text search
+//   - filters: { 
+//       sector/secteur (string), 
+//       region (string), 
+//       city/ville (string),
+//       around_me: { lat, lon, radius_km },
+//       limit (int, max 200)
+//     }
+//   - use_ai (bool): generate AI summary
+// ══════════════════════════════════════════════════════════════
+
 app.post('/api/search', verifyToken, async (req, res) => {
   try {
     const { query, filters = {}, use_ai } = req.body;
+    
+    // Check cache first (but not for around_me, as location changes)
+    if (!filters.around_me) {
+      const cached = getCachedResult(query, filters);
+      if (cached) {
+        console.log('[CACHE HIT]', { query: query?.slice(0,20), filters });
+        return res.json(cached);
+      }
+    }
+    
     const searchParams = {
       query,
       sector: filters.secteur || filters.sector || null,
@@ -797,7 +855,14 @@ app.post('/api/search', verifyToken, async (req, res) => {
       }
     }
 
-    res.json({ count: companies.length, source: 'database', results: companies, ai_text });
+    const response = { count: companies.length, source: 'database', results: companies, ai_text };
+    
+    // Cache result for 1 minute (not for around_me)
+    if (!filters.around_me) {
+      setCachedResult(query, filters, response);
+    }
+    
+    res.json(response);
   } catch (error) { return safeError(res, 500, 'Erreur lors de la recherche', error); }
 });
 

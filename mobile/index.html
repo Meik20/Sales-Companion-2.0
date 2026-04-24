@@ -543,6 +543,7 @@ svg[viewBox] { max-width: 100%; }
 .loading-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;gap:14px;flex:1}
 .spinner{width:36px;height:36px;border:3px solid var(--border-strong);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
 
 .pipeline-header{padding:16px 16px 0;flex-shrink:0}
 .pipeline-seg{display:flex;background:var(--bg-secondary);border-radius:var(--r);padding:3px;margin-bottom:14px;box-shadow:var(--shadow-xs)}
@@ -1488,48 +1489,80 @@ function openMyLocationMap() {
   }, function(err) { toast('Erreur de localisation : ' + err.message); }, { enableHighAccuracy: true, timeout: 10000 });
 }
 
+/**
+ * GEO-SEARCH: Get user location and search nearby companies
+ * Frontend: Gets GPS coords (only client can do this)
+ * Backend: Calculates distances, filters, scores
+ */
 async function openProspectsAroundMe() {
   if (!navigator.geolocation) { toast('Geolocalisation non supportee'); return; }
-  var radius = parseInt((document.getElementById('prospect-radius') || {}).value || '10', 10);
-  toast('Recherche des prospects dans un rayon de ' + radius + ' km...');
+  
+  const radius = parseInt((document.getElementById('prospect-radius') || {}).value || '10', 10);
+  toast('Localisation en cours...');
+  
   navigator.geolocation.getCurrentPosition(async function(pos) {
-    var lat = pos.coords.latitude.toFixed(5), lon = pos.coords.longitude.toFixed(5);
-    var caption = document.getElementById('prospect-map-caption');
-    var sub = document.getElementById('prospect-map-sub');
-    var aiEl = document.getElementById('prospect-map-ai');
-    var list = document.getElementById('prospect-map-list');
-    var iframe = document.getElementById('prospect-map-iframe');
-    caption.textContent = 'Prospects autour de vous \u2014 ' + radius + ' km';
+    const lat = pos.coords.latitude.toFixed(5);
+    const lon = pos.coords.longitude.toFixed(5);
+    
+    // Update map UI
+    const caption = document.getElementById('prospect-map-caption');
+    const sub = document.getElementById('prospect-map-sub');
+    const aiEl = document.getElementById('prospect-map-ai');
+    const list = document.getElementById('prospect-map-list');
+    const iframe = document.getElementById('prospect-map-iframe');
+    
+    caption.textContent = 'Prospects autour de vous — ' + radius + ' km';
     sub.textContent = lat + ', ' + lon;
     aiEl.textContent = 'Chargement des recommandations IA...';
     list.innerHTML = '';
+    
     if (iframe) {
-      var mapsKey2 = (window.MAPS_EMBED_API_KEY || '').trim();
-      if (mapsKey2) iframe.src = 'https://www.google.com/maps/embed/v1/search?key=' + encodeURIComponent(mapsKey2) + '&q=entreprises+cameroun&zoom=12';
-      else iframe.src = 'https://maps.google.com/maps?q=entreprises+' + lat + ',' + lon + '&z=12&output=embed';
+      const mapsKey = (window.MAPS_EMBED_API_KEY || '').trim();
+      if (mapsKey) {
+        iframe.src = 'https://www.google.com/maps/embed/v1/search?key=' + encodeURIComponent(mapsKey) + '&q=entreprises+cameroun&zoom=12';
+      } else {
+        iframe.src = 'https://maps.google.com/maps?q=entreprises+' + lat + ',' + lon + '&z=12&output=embed';
+      }
     }
+    
     openSheet('prospect-map-sheet');
+    
+    // Call backend - let it handle distance calculation and scoring
     try {
-      var r = await api('POST', '/api/search', { query: 'Prospects autour de moi dans un rayon de ' + radius + ' km', filters: { around_me: { lat: lat, lon: lon, radius: radius } }, use_ai: true }, token);
-      var data = await r.json();
-      if (r.status === 429 && data.upgrade) { aiEl.innerHTML = '<strong>Limite atteinte</strong><br>' + data.error; }
-      else if (data.error) { aiEl.textContent = 'Erreur IA : ' + data.error; }
-      else {
-        var results = data.results || [];
+      const payload = {
+        query: '',
+        filters: { around_me: { lat: parseFloat(lat), lon: parseFloat(lon), radius: radius } },
+        use_ai: true
+      };
+      const r = await api('POST', '/api/search', payload, token);
+      const data = await r.json();
+      
+      if (r.status === 429 && data.upgrade) {
+        aiEl.innerHTML = '<strong>Limite atteinte</strong><br>' + data.error;
+      } else if (data.error) {
+        aiEl.textContent = 'Erreur IA : ' + data.error;
+      } else {
+        const results = data.results || [];
         aiEl.innerHTML = data.ai_text ? '<strong>IA :</strong> ' + fmtChat(data.ai_text) : 'Recommandations generees pour votre zone.';
-        if (!results.length) { list.innerHTML = '<div class="empty-state" style="padding:20px"><div class="empty-icon" style="font-size:36px">&#x1F4CD;</div><h2>Aucun prospect</h2><p>Essayez un rayon plus large.</p></div>'; }
-        else {
+        
+        if (!results.length) {
+          list.innerHTML = '<div class="empty-state" style="padding:20px"><div class="empty-icon" style="font-size:36px">&#x1F4CD;</div><h2>Aucun prospect</h2><p>Essayez un rayon plus large.</p></div>';
+        } else {
           lastProspectResults = results;
           list.innerHTML = results.slice(0, 10).map(function(co, i) {
-            var name = co.raison_sociale || co.company_name || co.nom || co.name || '&mdash;';
-            var address = co.adresse || co.ville || co.region || '&mdash;';
-            var sector = co.secteur || co.activite_principale || 'Secteur inconnu';
-            return '<div class="co-card" style="padding:12px"><div class="co-head" style="gap:10px"><div class="co-av" style="background:var(--bg-secondary);color:var(--primary);min-width:40px">' + name.slice(0,2).toUpperCase() + '</div><div class="co-meta"><div class="co-name">' + name + '</div><div class="co-sub">' + sector + ' &middot; ' + address + '</div></div></div><div class="co-footer" style="gap:8px"><button class="ca nav" onclick="openProspectRoute(' + i + ')">Itin&eacute;raire</button><button class="ca share" onclick="copyProspectInfo(' + i + ')">Partager</button></div></div>';
+            const name = co.raison_sociale || co.company_name || co.nom || co.name || '&mdash;';
+            const address = co.adresse || co.ville || co.region || '&mdash;';
+            const sector = co.secteur || co.activite_principale || 'Secteur inconnu';
+            return '<div class="co-card" style="padding:12px"><div class="co-head" style="gap:10px"><div class="co-av" style="background:var(--bg-secondary);color:var(--primary);min-width:40px">' + name.slice(0,2).toUpperCase() + '</div><div class="co-meta"><div class="co-name">' + name + '</div><div class="co-sub">' + sector + ' &middot; ' + address + '</div></div></div><div class="co-footer" style="gap:8px"><button class="ca nav" onclick="openProspectRoute(' + i + ')">Itineraire</button><button class="ca share" onclick="copyProspectInfo(' + i + ')">Partager</button></div></div>';
           }).join('');
         }
       }
-    } catch (e) { aiEl.textContent = 'Erreur : ' + e.message; }
-  }, function(err) { toast('Erreur de localisation : ' + err.message); }, { enableHighAccuracy: true, timeout: 10000 });
+    } catch (e) {
+      aiEl.textContent = 'Erreur : ' + e.message;
+    }
+  }, function(err) {
+    toast('Erreur de localisation : ' + err.message);
+  }, { enableHighAccuracy: true, timeout: 10000 });
 }
 
 function openProspectRoute(i) {
@@ -1980,27 +2013,70 @@ function doSearch() {
   runSearch(q, {});
 }
 
+/**
+ * FRONTEND: Simplified search - delegates all logic to backend
+ * Backend handles: filters, geolocation distance calc, AI scoring
+ * Frontend responsibility: accept params, call API, display results
+ */
 async function runSearch(query, filters) {
   if (isSearching) return;
-  isSearching = true; lastQuery = query; lastFilters = filters || {};
+  isSearching = true;
+  lastQuery = query;
+  lastFilters = filters || {};
   document.getElementById('srch-btn').disabled = true;
-  document.getElementById('results-area').innerHTML = '<div class="loading-state"><div class="spinner"></div><span style="font-size:13px;color:var(--text-tertiary)">Recherche...</span></div>';
+  
+  // Show skeleton loaders instead of plain spinner
+  showSearchSkeletons();
+  
   try {
-    var r = await api('POST', '/api/search', { query: query, filters: filters, use_ai: true }, token);
-    var data = await r.json();
+    const payload = { query: query, filters: filters, use_ai: true };
+    const r = await api('POST', '/api/search', payload, token);
+    const data = await r.json();
+    
     if (r.status === 429 && data.upgrade) {
       document.getElementById('results-area').innerHTML = '<div style="padding:14px"><div class="upgrade-card"><strong>Limite atteinte</strong><p>' + data.error + '</p><button onclick="openSheet(\'profile-sheet\')">Voir les plans</button></div></div>';
     } else if (data.error) {
-      document.getElementById('results-area').innerHTML = '<div class="empty-state"><div class="empty-icon" style="font-size:36px">&#x274C;</div><h2>Erreur</h2><p>' + data.error + '</p></div>';
+      const errorMsg = (data.error || 'Erreur inconnue').toLowerCase().includes('auth') 
+        ? 'Authentification expirée. Reconnectez-vous.' 
+        : data.error;
+      document.getElementById('results-area').innerHTML = '<div class="empty-state"><div class="empty-icon" style="font-size:36px">⚠️</div><h2>Erreur de recherche</h2><p>' + errorMsg + '</p><button class="empty-cta" onclick="applyFilters()">← Retour aux filtres</button></div>';
     } else {
-      lastResults = data.results || []; renderResults(data); saveOfflineSearchCache(data); refreshMe();
+      lastResults = data.results || [];
+      renderResults(data);
+      saveOfflineSearchCache(data);
+      refreshMe();
     }
   } catch (e) {
-    var cache = getOfflineSearchCache();
-    if (cache && cache.results && cache.results.length) { lastQuery = cache.query || ''; lastFilters = cache.filters || {}; renderResults(cache); toast('Mode hors ligne : affichage des derniers resultats'); }
-    else { document.getElementById('results-area').innerHTML = '<div class="empty-state"><div class="empty-icon" style="font-size:36px">&#x1F4E1;</div><h2>Connexion impossible</h2><p>' + e.message + '</p></div>'; }
+    const cache = getOfflineSearchCache();
+    if (cache && cache.results && cache.results.length) {
+      lastQuery = cache.query || '';
+      lastFilters = cache.filters || {};
+      renderResults(cache);
+      toast('Mode hors ligne : affichage des derniers resultats');
+    } else {
+      document.getElementById('results-area').innerHTML = '<div class="empty-state"><div class="empty-icon" style="font-size:36px">📡</div><h2>Pas de connexion</h2><p>Vérifiez votre connexion internet et réessayez.</p><button class="empty-cta" onclick="doSearch()">🔄 Réessayer</button></div>';
+    }
   }
-  isSearching = false; document.getElementById('srch-btn').disabled = false;
+  isSearching = false;
+  document.getElementById('srch-btn').disabled = false;
+}
+
+function showSearchSkeletons() {
+  const area = document.getElementById('results-area');
+  area.innerHTML = '';
+  const hdr = document.createElement('div');
+  hdr.className = 'results-hdr';
+  hdr.innerHTML = '<span><strong style="color:var(--text-tertiary)">—</strong> résultats</span>';
+  area.appendChild(hdr);
+  
+  // Show 5 skeleton cards
+  for (let i = 0; i < 5; i++) {
+    const skeleton = document.createElement('div');
+    skeleton.className = 'co-card';
+    skeleton.style.opacity = '0.6';
+    skeleton.innerHTML = '<div class="co-head"><div class="co-av" style="background:var(--border);animation:pulse 2s infinite"></div><div class="co-meta" style="flex:1"><div class="co-name" style="background:var(--border);height:16px;width:70%;border-radius:4px;margin-bottom:8px;animation:pulse 2s infinite"></div><div class="co-sub" style="background:var(--border);height:12px;width:50%;border-radius:4px;animation:pulse 2s infinite"></div></div></div><div class="co-body"><div style="background:var(--border);height:12px;border-radius:4px;animation:pulse 2s infinite"></div></div>';
+    area.appendChild(skeleton);
+  }
 }
 
 function renderResults(data) {
@@ -2009,26 +2085,43 @@ function renderResults(data) {
   var companies = data.results || [];
   var hdr = document.createElement('div');
   hdr.className = 'results-hdr';
-  hdr.innerHTML = '<span><strong>' + companies.length + '</strong> r&eacute;sultat' + (companies.length > 1 ? 's' : '') + '</span><span class="src-badge src-db">&#x2713; Base officielle</span>';
+  hdr.innerHTML = '<span><strong>' + companies.length + '</strong> résultat' + (companies.length > 1 ? 's' : '') + '</span><span class="src-badge src-db">✓ Base officielle</span>';
   area.appendChild(hdr);
+  
   if (data.ai_text) {
     var aiSummary = document.createElement('div');
     aiSummary.className = 'results-ai';
-    aiSummary.innerHTML = '<strong>Recommandations IA :</strong> ' + fmtChat(data.ai_text);
+    aiSummary.innerHTML = '<strong>💡 Recommandations IA :</strong> ' + fmtChat(data.ai_text);
     area.appendChild(aiSummary);
   }
+  
   if (!companies.length) {
     var emptyDiv = document.createElement('div');
-    emptyDiv.className = 'empty-state'; emptyDiv.style.cssText = 'flex:none;padding:24px 0';
-    emptyDiv.innerHTML = '<div class="empty-icon" style="font-size:36px">&#x1F3E2;</div><h2 style="font-size:16px">Aucun r&eacute;sultat</h2><p>Aucune entreprise pour ces crit&egrave;res.</p>';
-    area.appendChild(emptyDiv); return;
+    emptyDiv.className = 'empty-state';
+    emptyDiv.style.cssText = 'flex:none;padding:24px 0';
+    
+    // Better empty state with suggestions
+    var suggestions = '';
+    if (lastFilters && lastFilters.secteur) {
+      suggestions += '<p style="font-size:12px;color:var(--text-tertiary);margin:16px 0">Essayez sans le filtre secteur ou cherchez un terme plus général.</p>';
+    } else if (lastQuery && lastQuery.length < 3) {
+      suggestions += '<p style="font-size:12px;color:var(--text-tertiary);margin:16px 0">Votre recherche est trop courte. Ajoutez plus de caractères.</p>';
+    } else {
+      suggestions += '<p style="font-size:12px;color:var(--text-tertiary);margin:16px 0">Essayez d\'autres filtres ou une recherche plus générale.</p>';
+    }
+    
+    emptyDiv.innerHTML = '<div class="empty-icon" style="font-size:36px">🏢</div><h2 style="font-size:16px">Aucun résultat</h2><p>Aucune entreprise trouvée pour ces critères.</p>' + suggestions + '<button class="empty-cta" onclick="resetFilters()">🔄 Réinitialiser les filtres</button>';
+    area.appendChild(emptyDiv);
+    return;
   }
+  
   var saveWrap = document.createElement('div');
-  saveWrap.innerHTML = '<button onclick="openSaveSheet()" style="width:100%;padding:10px;background:var(--primary-light);color:var(--primary);border:1.5px solid rgba(27,94,32,.3);border-radius:var(--r);font-family:\'Inter\',sans-serif;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:12px">&#x1F4BE; Sauvegarder cette recherche</button>';
+  saveWrap.innerHTML = '<button onclick="openSaveSheet()" style="width:100%;padding:10px;background:var(--primary-light);color:var(--primary);border:1.5px solid rgba(27,94,32,.3);border-radius:var(--r);font-family:\'Inter\',sans-serif;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:12px">💾 Sauvegarder cette recherche</button>';
   area.appendChild(saveWrap);
+  
   companies.forEach(function(co, i) {
     var cardId = 'co-' + i;
-    var name = co.raison_sociale || co.company_name || co.nom || co.name || '&mdash;';
+    var name = co.raison_sociale || co.company_name || co.nom || co.name || '—';
     var initials = name.split(' ').map(function(w) { return w[0] || ''; }).join('').slice(0,2).toUpperCase();
     var mapQ = encodeURIComponent(name + ' ' + (co.ville || '') + ' Cameroun');
     var phone = co.telephone || co.tel || co.company_phone || '';
@@ -2036,18 +2129,21 @@ function renderResults(data) {
     var address = co.adresse || co.company_address || '';
     var inPipeline = pipelineCompanies[co.id];
     var reliability = getCompanyReliability(co);
-    var pipelineBadge = inPipeline ? '<span class="cbadge cb-green">&#x1F4CC; En pipeline</span>' : '';
+    var pipelineBadge = inPipeline ? '<span class="cbadge cb-green">📌 En pipeline</span>' : '';
     var reliabilityBadge = '<span class="cbadge" style="background:' + reliability.color + ';color:#fff">' + reliability.label + '</span>';
-    var managerBtn = (user && user.role === 'manager') ? '<button class="ca" id="sel-btn-m-' + i + '" onclick="toggleSelectForAssignMobile(' + i + ')" style="border:1px dashed var(--border-strong);background:transparent">S&eacute;lectionner</button>' : '';
+    var scoreDisplay = (typeof co.leadScore === 'number') ? '<span class="cbadge" style="background:#f0f0f0;color:#555">Score: ' + co.leadScore + '</span>' : '';
+    var managerBtn = (user && user.role === 'manager') ? '<button class="ca" id="sel-btn-m-' + i + '" onclick="toggleSelectForAssignMobile(' + i + ')" style="border:1px dashed var(--border-strong);background:transparent">Sélectionner</button>' : '';
+    var distanceDisplay = (co._distance_km) ? '<div class="cbadge" style="background:var(--blue-light);color:var(--blue)">📍 ' + co._distance_km + ' km</div>' : '';
+    
     var card = document.createElement('div');
     card.className = 'co-card';
-    card.innerHTML = '<div class="co-head"><div class="co-av">' + initials + '</div><div class="co-meta"><div class="co-name">' + name + (co.sigle ? ' <span style="font-size:11px;color:var(--text-tertiary)">(' + co.sigle + ')</span>' : '') + '</div><div class="co-sub">' + (co.secteur ? '&#x1F4C2; ' + co.secteur : '') + (co.ville ? ' &middot; &#x1F4CD; ' + co.ville : '') + '</div><div class="co-badges">' + pipelineBadge + reliabilityBadge + (co.statut_juridique ? '<span class="cbadge cb-type">' + co.statut_juridique + '</span>' : '') + (co.niu ? '<span class="cbadge cb-niu">NIU: ' + co.niu + '</span>' : '') + (co.rccm ? '<span class="cbadge cb-green">RCCM &#x2713;</span>' : '') + '</div></div></div>'
+    card.innerHTML = '<div class="co-head"><div class="co-av">' + initials + '</div><div class="co-meta"><div class="co-name">' + name + (co.sigle ? ' <span style="font-size:11px;color:var(--text-tertiary)">(' + co.sigle + ')</span>' : '') + '</div><div class="co-sub">' + (co.secteur ? '📂 ' + co.secteur : '') + (co.ville ? ' · 📍 ' + co.ville : '') + '</div><div class="co-badges">' + pipelineBadge + reliabilityBadge + scoreDisplay + distanceDisplay + (co.statut_juridique ? '<span class="cbadge cb-type">' + co.statut_juridique + '</span>' : '') + (co.niu ? '<span class="cbadge cb-niu">NIU: ' + co.niu + '</span>' : '') + (co.rccm ? '<span class="cbadge cb-green">RCCM ✓</span>' : '') + '</div></div></div>'
       + '<div class="co-body">'
-      + (co.activite_principale ? '<div class="co-f full"><span class="co-fl">Activit&eacute;</span><span class="co-fv full">' + co.activite_principale + '</span></div>' : '')
-      + (co.dirigeant ? '<div class="co-f"><span class="co-fl">&#x1F464; Dirigeant</span><span class="co-fv">' + co.dirigeant + '</span></div>' : '')
-      + '<div class="co-f"><span class="co-fl">&#x1F4DE; T&eacute;l&eacute;phone</span><span class="co-fv phone">' + (phone ? '<a href="tel:' + phone + '">' + phone + '</a>' : '&mdash;') + '</span></div>'
-      + '<div class="co-f"><span class="co-fl">&#x1F4E7; Email</span><span class="co-fv">' + (email ? '<a href="mailto:' + email + '">' + email + '</a>' : '&mdash;') + '</span></div>'
-      + (address ? '<div class="co-f full"><span class="co-fl">&#x1F3E0; Adresse</span><span class="co-fv full">' + address + '</span></div>' : '')
+      + (co.activite_principale ? '<div class="co-f full"><span class="co-fl">Activité</span><span class="co-fv full">' + co.activite_principale + '</span></div>' : '')
+      + (co.dirigeant ? '<div class="co-f"><span class="co-fl">👤 Dirigeant</span><span class="co-fv">' + co.dirigeant + '</span></div>' : '')
+      + '<div class="co-f"><span class="co-fl">📞 Téléphone</span><span class="co-fv phone">' + (phone ? '<a href="tel:' + phone + '">' + phone + '</a>' : '—') + '</span></div>'
+      + '<div class="co-f"><span class="co-fl">📧 Email</span><span class="co-fv">' + (email ? '<a href="mailto:' + email + '">' + email + '</a>' : '—') + '</span></div>'
+      + (address ? '<div class="co-f full"><span class="co-fl">🏠 Adresse</span><span class="co-fv full">' + address + '</span></div>' : '')
       + '</div>'
       + '<div class="co-footer">'
       + '<button class="ca pipeline" onclick="addToPipCard(' + i + ')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Pipeline</button>'
