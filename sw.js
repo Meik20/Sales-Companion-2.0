@@ -48,20 +48,11 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(req.url);
 
-  // ❌ LAISSER PASSER SANS INTERCEPTION
-  // Fonts Google — évite CSP + TypeError Response
+  // Fonts Google — ne pas intercepter (laissez le navigateur gérer CORS/opaque)
   if (
     url.hostname === 'fonts.googleapis.com' ||
     url.hostname === 'fonts.gstatic.com'
   ) {
-    event.respondWith(
-      fetch(event.request).catch(() => {
-        return new Response('', {
-          status: 204,
-          headers: { 'Content-Type': 'text/plain' }
-        });
-      })
-    );
     return;
   }
 

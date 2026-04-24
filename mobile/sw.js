@@ -26,18 +26,10 @@ self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   if (e.request.url.includes('/api/') || e.request.url.includes('/auth/')) return;
 
-  // Handle Google Fonts separately: if fetch fails, return 204 empty response
+  // Do not intercept Google Fonts — let the browser fetch them (handles opaque CORS responses)
   try {
     const url = new URL(e.request.url);
     if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com') {
-      e.respondWith(
-        fetch(e.request).catch(() => {
-          return new Response('', {
-            status: 204,
-            headers: { 'Content-Type': 'text/plain' }
-          });
-        })
-      );
       return;
     }
   } catch (err) {
