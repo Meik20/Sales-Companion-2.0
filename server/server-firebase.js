@@ -151,8 +151,8 @@ app.use(express.static(path.join(__dirname, 'admin')));
 app.use('/mobile', express.static(path.join(__dirname, '..', 'mobile')));
 
 // ── RATE LIMITING ──────────────────────────────────────────────
-const rateLimit = require('express-rate-limit');
-const authLimiter = rateLimit({
+const expressRateLimit = require('express-rate-limit');
+const authLimiter = expressRateLimit({
   windowMs: 15 * 60 * 1000,
   max: 20,
   message: { error: 'Trop de tentatives, réessayez dans 15 minutes.' },
