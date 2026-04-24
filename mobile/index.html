@@ -384,10 +384,15 @@ body {
 
 .filter-scroll{display:flex;gap:8px;overflow-x:auto;padding:0 16px 14px;flex-shrink:0;scroll-behavior:smooth;min-height:48px;align-items:center}
 .filter-scroll::-webkit-scrollbar{display:none}
-.fchip{padding:8px 16px;border-radius:var(--r-full);border:1.5px solid var(--border-strong);font-size:13px;font-weight:500;color:var(--text-secondary);white-space:nowrap;cursor:pointer;background:var(--bg-card);font-family:'Inter',sans-serif;flex-shrink:0;transition:all var(--duration) var(--ease);box-shadow:var(--shadow-xs);display:flex;align-items:center;gap:6px}
+.fchip{padding:8px 16px;border-radius:var(--r-full);border:1.5px solid var(--border-strong);font-size:13px;font-weight:500;color:var(--text-secondary);white-space:nowrap;cursor:pointer;background:var(--bg-card);font-family:'Inter',sans-serif;flex-shrink:0;transition:all var(--duration) var(--ease);box-shadow:var(--shadow-xs);display:flex;align-items:center;gap:6px;height:36px;overflow:hidden}
 .fchip.active{border-color:var(--primary);color:var(--primary);background:var(--primary-light);font-weight:600;box-shadow:0 0 0 1px var(--primary),var(--shadow-xs)}
 .fchip:active{transform:scale(.95)}
-.fchip svg { width: 16px; height: 16px; flex-shrink: 0; }
+.fchip svg {
+  width: 16px !important;
+  height: 16px !important;
+  flex-shrink: 0;
+  display: block;
+}
 .filter-toggle{display:flex;align-items:center;gap:6px;padding:8px 16px 14px;font-size:13px;color:var(--primary);font-weight:600;cursor:pointer;flex-shrink:0;transition:opacity var(--duration) var(--ease)}
 .filter-toggle:active{opacity:.7}
 
@@ -449,10 +454,11 @@ body {
 }
 
 .empty-illustration svg {
-  width: 200px;
-  height: 160px;
+  width: 200px !important;
+  height: 160px !important;
   display: block;
-  overflow: visible;
+  max-width: 200px;
+  max-height: 160px;
 }
 .empty-state h2{font-size:20px;font-weight:800;color:var(--text-primary);margin-bottom:8px;letter-spacing:-0.4px}
 .empty-state p{font-size:14px;color:var(--text-tertiary);line-height:1.6;max-width:280px;margin-bottom:8px}
@@ -905,15 +911,9 @@ body {
             <circle cx="40" cy="40" r="14" fill="#E3F2FD" stroke="#42A5F5" stroke-width="1.5"/>
             <circle cx="40" cy="40" r="8" fill="none" stroke="#42A5F5" stroke-width="1.5"/>
             <line x1="46" y1="46" x2="54" y2="54" stroke="#42A5F5" stroke-width="2" stroke-linecap="round"/>
-            <!-- Pulse rings -->
-            <circle cx="105" cy="55" r="12" fill="none" stroke="#43A047" stroke-width="0.8" opacity="0.3">
-              <animate attributeName="r" values="8;18;8" dur="3s" repeatCount="indefinite"/>
-              <animate attributeName="opacity" values="0.4;0;0.4" dur="3s" repeatCount="indefinite"/>
-            </circle>
-            <circle cx="105" cy="55" r="8" fill="none" stroke="#43A047" stroke-width="0.5" opacity="0.2">
-              <animate attributeName="r" values="5;14;5" dur="3s" begin="0.5s" repeatCount="indefinite"/>
-              <animate attributeName="opacity" values="0.3;0;0.3" dur="3s" begin="0.5s" repeatCount="indefinite"/>
-            </circle>
+            <!-- Pulse rings (static for Chromium stability) -->
+            <circle cx="105" cy="55" r="10" fill="none" stroke="#43A047" stroke-width="1" opacity="0.25"/>
+            <circle cx="105" cy="55" r="14" fill="none" stroke="#43A047" stroke-width="0.6" opacity="0.15"/>
           </svg>
         </div>
         <h2>Trouvez vos prospects</h2>
