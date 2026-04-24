@@ -29,7 +29,7 @@
 <style>
 /* ═══════════════════════════════════════════════════
    SALES COMPANION — REDESIGNED MOBILE UI
-   Design System v2.0
+   Design System v2.1 — Brief Recommendations Applied
    ═══════════════════════════════════════════════════ */
 
 *, *::before, *::after {
@@ -121,6 +121,11 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* ═══════════════════════════════════════
+   HEADER — Simplified per brief
+   [☰]  SALES COMPANION  [👤 avatar]
+   ═══════════════════════════════════════ */
+
 .topbar {
   background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
   padding: calc(var(--safe-top) + 12px) 16px 14px;
@@ -151,43 +156,51 @@ body {
 }
 .menu-btn:active { background: rgba(255, 255, 255, 0.22); transform: scale(0.95); }
 
-.tb-logo {
-  width: 32px;
-  height: 32px;
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: var(--r-sm);
+.tb-title {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  flex: 1;
+}
+.tb-title em { opacity: 0.6; font-style: normal; font-weight: 400; }
+
+/* Avatar button — replaces name+badge */
+.tb-avatar-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.tb-title { color: #fff; font-size: 15px; font-weight: 700; letter-spacing: -0.3px; flex: 1; }
-.tb-title em { opacity: 0.6; font-style: normal; font-weight: 400; }
-
-.tb-user-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  padding: 6px 12px;
-  border-radius: var(--r-full);
   cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
   transition: all var(--duration) var(--ease);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+  letter-spacing: 0.5px;
 }
-.tb-user-btn:active { background: rgba(255,255,255,0.2); transform: scale(0.97); }
+.tb-avatar-btn:active { background: rgba(255,255,255,0.35); transform: scale(0.93); }
 
-.tb-uname { color: #fff; font-size: 12px; font-weight: 500; max-width: 70px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Hidden elements from old header */
+.tb-logo { display: none !important; }
+.tb-user-btn { display: none !important; }
 
+/* Plan badges (used in sidebar & profile now) */
 .plan-b { font-size: 9px; padding: 2px 8px; border-radius: var(--r-full); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
 .pf { background: rgba(255, 255, 255, 0.2); color: #fff; }
 .ps_ { background: var(--blue-light); color: var(--blue); }
 .pp { background: var(--accent-gold-light); color: var(--accent-gold-dark); }
 .pe { background: var(--primary-light); color: var(--primary); }
+
+/* ═══════════════════════════════════════
+   SIDEBAR — Redesigned per brief
+   ═══════════════════════════════════════ */
 
 .side-overlay {
   position: fixed; inset: 0; background: rgba(0, 0, 0, 0.4); z-index: 800;
@@ -200,13 +213,56 @@ body {
   position: fixed; top: 0; left: 0; bottom: 0; width: 300px;
   background: var(--bg-card); z-index: 801; transform: translateX(-110%);
   transition: transform var(--duration-slow) cubic-bezier(0.32, 0.72, 0, 1);
-  box-shadow: var(--shadow-xl); padding: calc(var(--safe-top) + 20px) 20px 20px;
+  box-shadow: var(--shadow-xl);
   display: flex; flex-direction: column; overflow-y: auto;
 }
 .side-menu.open { transform: translateX(0); }
 
-.side-menu h3 { font-size: 11px; font-weight: 700; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 16px; margin-top: 20px; }
-.side-menu h3:first-child { margin-top: 0; }
+/* Sidebar profile header */
+.side-profile {
+  background: linear-gradient(135deg, var(--primary-dark), var(--primary), var(--primary-medium));
+  padding: calc(var(--safe-top) + 24px) 20px 20px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+.side-profile-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  border: 2px solid rgba(255,255,255,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  flex-shrink: 0;
+  backdrop-filter: blur(8px);
+}
+.side-profile-info { flex: 1; min-width: 0; }
+.side-profile-name { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.side-profile-plan { display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; font-size: 12px; opacity: 0.85; }
+.side-profile-plan .plan-dot { width: 8px; height: 8px; border-radius: 50%; background: #4CAF50; flex-shrink: 0; }
+
+.side-menu-content {
+  padding: 8px 12px 20px;
+  flex: 1;
+}
+
+.side-menu h3 {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+  margin-top: 20px;
+  padding: 0 8px;
+}
+.side-menu h3:first-child { margin-top: 12px; }
 
 .side-menu .sm-item {
   display: flex; align-items: center; gap: 12px; padding: 12px 14px;
@@ -215,6 +271,56 @@ body {
 }
 .side-menu .sm-item:active { background: var(--primary-light); color: var(--primary); transform: scale(0.98); }
 .side-menu .sm-item:hover { background: var(--bg-secondary); }
+.side-menu .sm-item svg { width: 20px; height: 20px; flex-shrink: 0; stroke-width: 1.8; }
+
+.side-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 8px 14px;
+}
+
+/* Radius selector in sidebar */
+.side-radius {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  margin-bottom: 2px;
+}
+.side-radius svg { width: 20px; height: 20px; color: var(--text-secondary); flex-shrink: 0; }
+.side-radius label { font-size: 13px; color: var(--text-secondary); font-weight: 500; white-space: nowrap; }
+.side-radius select {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--r-sm);
+  background: var(--bg-secondary);
+  font-family: 'Inter', sans-serif;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  outline: none;
+}
+
+/* Sidebar footer stats */
+.side-stats {
+  padding: 12px 14px;
+  margin-top: 8px;
+}
+.side-stat-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin-bottom: 6px;
+}
+.side-stat-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
 
 .content { flex: 1; overflow: hidden; display: flex; flex-direction: column; position: relative; background: var(--bg); }
 
@@ -278,9 +384,10 @@ body {
 
 .filter-scroll{display:flex;gap:8px;overflow-x:auto;padding:0 16px 14px;flex-shrink:0;scroll-behavior:smooth}
 .filter-scroll::-webkit-scrollbar{display:none}
-.fchip{padding:8px 16px;border-radius:var(--r-full);border:1.5px solid var(--border-strong);font-size:13px;font-weight:500;color:var(--text-secondary);white-space:nowrap;cursor:pointer;background:var(--bg-card);font-family:'Inter',sans-serif;flex-shrink:0;transition:all var(--duration) var(--ease);box-shadow:var(--shadow-xs)}
+.fchip{padding:8px 16px;border-radius:var(--r-full);border:1.5px solid var(--border-strong);font-size:13px;font-weight:500;color:var(--text-secondary);white-space:nowrap;cursor:pointer;background:var(--bg-card);font-family:'Inter',sans-serif;flex-shrink:0;transition:all var(--duration) var(--ease);box-shadow:var(--shadow-xs);display:flex;align-items:center;gap:6px}
 .fchip.active{border-color:var(--primary);color:var(--primary);background:var(--primary-light);font-weight:600;box-shadow:0 0 0 1px var(--primary),var(--shadow-xs)}
 .fchip:active{transform:scale(.95)}
+.fchip svg { width: 16px; height: 16px; flex-shrink: 0; }
 .filter-toggle{display:flex;align-items:center;gap:6px;padding:8px 16px 14px;font-size:13px;color:var(--primary);font-weight:600;cursor:pointer;flex-shrink:0;transition:opacity var(--duration) var(--ease)}
 .filter-toggle:active{opacity:.7}
 
@@ -328,16 +435,79 @@ body {
 .map-panel.open{display:block}
 .map-close{width:100%;padding:8px;text-align:center;font-size:12px;color:var(--red);background:var(--red-light);border:none;font-family:'Inter',sans-serif;cursor:pointer;font-weight:600}
 
+/* ═══════════════════════════════════════
+   EMPTY STATE — Redesigned per brief
+   ═══════════════════════════════════════ */
+
 .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;text-align:center;flex:1}
-.empty-icon{font-size:48px;margin-bottom:16px;opacity:.3;filter:grayscale(30%)}
-.empty-state h2{font-size:18px;font-weight:700;color:var(--text-primary);margin-bottom:8px;letter-spacing:-0.3px}
-.empty-state p{font-size:14px;color:var(--text-tertiary);line-height:1.6;max-width:280px}
+.empty-illustration {
+  width: 200px;
+  height: 160px;
+  margin-bottom: 20px;
+  position: relative;
+}
+.empty-state h2{font-size:20px;font-weight:800;color:var(--text-primary);margin-bottom:8px;letter-spacing:-0.4px}
+.empty-state p{font-size:14px;color:var(--text-tertiary);line-height:1.6;max-width:280px;margin-bottom:8px}
+.empty-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-medium));
+  color: #fff;
+  border: none;
+  border-radius: var(--r-full);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  margin-top: 16px;
+  transition: all var(--duration) var(--ease);
+  box-shadow: var(--shadow-green);
+  letter-spacing: -0.2px;
+}
+.empty-cta:active { transform: scale(0.96); box-shadow: 0 2px 8px rgba(27,94,32,0.25); }
+.empty-cta svg { width: 18px; height: 18px; }
+
+/* ═══════════════════════════════════════
+   QUICK GRID — Sector cards redesigned
+   ═══════════════════════════════════════ */
+
 .quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:24px;width:100%;max-width:340px}
-.qcard{padding:16px;border:1.5px solid var(--border-strong);border-radius:var(--r-lg);cursor:pointer;background:var(--bg-card);text-align:left;font-family:'Inter',sans-serif;transition:all var(--duration) var(--ease);box-shadow:var(--shadow-xs)}
-.qcard:active{border-color:var(--primary);background:var(--primary-light);transform:scale(.97);box-shadow:0 0 0 1px var(--primary)}
-.qcard-icon{font-size:24px;margin-bottom:8px}
-.qcard-title{font-size:13.5px;font-weight:600;color:var(--text-primary);display:block}
-.qcard-sub{font-size:11.5px;color:var(--text-tertiary);margin-top:3px}
+.qcard{padding:16px;border:1.5px solid transparent;border-radius:var(--r-lg);cursor:pointer;text-align:left;font-family:'Inter',sans-serif;transition:all var(--duration) var(--ease);box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+.qcard:active{transform:scale(.97);box-shadow:var(--shadow-md)}
+
+/* Sector-specific card colors */
+.qcard[data-sector="btp"] { background: var(--sector-btp-bg); border-color: rgba(255, 112, 67, 0.2); }
+.qcard[data-sector="btp"]:active { border-color: var(--sector-btp); }
+.qcard[data-sector="btp"] .qcard-icon-wrap { background: rgba(255, 112, 67, 0.15); color: var(--sector-btp); }
+
+.qcard[data-sector="tech"] { background: var(--sector-tech-bg); border-color: rgba(66, 165, 245, 0.2); }
+.qcard[data-sector="tech"]:active { border-color: var(--sector-tech); }
+.qcard[data-sector="tech"] .qcard-icon-wrap { background: rgba(66, 165, 245, 0.15); color: var(--sector-tech); }
+
+.qcard[data-sector="agro"] { background: var(--sector-agro-bg); border-color: rgba(102, 187, 106, 0.2); }
+.qcard[data-sector="agro"]:active { border-color: var(--sector-agro); }
+.qcard[data-sector="agro"] .qcard-icon-wrap { background: rgba(102, 187, 106, 0.15); color: var(--sector-agro); }
+
+.qcard[data-sector="transport"] { background: var(--sector-transport-bg); border-color: rgba(171, 71, 188, 0.2); }
+.qcard[data-sector="transport"]:active { border-color: var(--sector-transport); }
+.qcard[data-sector="transport"] .qcard-icon-wrap { background: rgba(171, 71, 188, 0.15); color: var(--sector-transport); }
+
+.qcard-icon-wrap {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+.qcard-icon-wrap svg { width: 22px; height: 22px; }
+
+.qcard-title{font-size:13.5px;font-weight:700;color:var(--text-primary);display:block;letter-spacing:-0.2px}
+.qcard-sub{font-size:11.5px;color:var(--text-tertiary);margin-top:3px;display:block}
+
 .loading-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;gap:14px;flex:1}
 .spinner{width:36px;height:36px;border:3px solid var(--border-strong);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -529,52 +699,98 @@ body {
   </div>
 </div>
 
-<!-- TOPBAR -->
+<!-- ═══════════════════════════════════════
+     TOPBAR — Simplified: [☰] SALES COMPANION [👤]
+     Badge FREE removed, name replaced by avatar
+     ═══════════════════════════════════════ -->
 <div class="topbar" id="topbar" style="display:none">
   <button class="menu-btn" id="menu-btn" onclick="toggleSidebar()" aria-label="Menu">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
       <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
     </svg>
   </button>
-  <div class="tb-logo">
-    <svg viewBox="0 0 100 100" width="17" height="17">
-      <rect width="100" height="100" rx="20" fill="rgba(255,255,255,0.3)"/>
-      <text x="50" y="65" font-family="Inter, Arial, sans-serif" font-size="55" font-weight="bold" fill="white" text-anchor="middle">SC</text>
-    </svg>
-  </div>
   <div class="tb-title">SALES <em>COMPANION</em></div>
-  <div class="tb-user-btn" onclick="openSheet('profile-sheet')">
-    <div class="tb-uname" id="tb-name">&mdash;</div>
-    <span class="plan-b pf" id="tb-plan">free</span>
+  <div class="tb-avatar-btn" id="tb-avatar" onclick="openSheet('profile-sheet')">
+    <span id="tb-initials">&mdash;</span>
   </div>
 </div>
 
-<!-- SIDEBAR -->
+<!-- ═══════════════════════════════════════
+     SIDEBAR — Redesigned per brief
+     Profile + Plan + Position + Radius + Nav + Settings
+     ═══════════════════════════════════════ -->
 <div class="side-overlay" id="side-overlay" onclick="closeSidebar()"></div>
 <aside class="side-menu" id="side-menu" role="navigation">
-  <h3>Navigation</h3>
-  <div style="margin-bottom:16px">
-    <label for="prospect-radius" style="font-size:11px;font-weight:700;color:var(--text-tertiary);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px">Rayon de prospection</label>
-    <select id="prospect-radius" style="width:100%;padding:12px 14px;border:1.5px solid var(--border-strong);border-radius:var(--r);background:var(--bg-secondary);font-family:'Inter',sans-serif;color:var(--text-primary);font-size:14px;outline:none">
-      <option value="5">5 km</option>
-      <option value="10" selected>10 km</option>
-      <option value="20">20 km</option>
-      <option value="50">50 km</option>
-    </select>
-  </div>
-  <div class="sm-item" onclick="closeSidebar(); openProspectsAroundMe()"><span style="font-size:20px">&#x1F9ED;</span> Prospects autour de moi</div>
-  <div class="sm-item" onclick="closeSidebar(); openAIListBuilder()"><span style="font-size:20px">&#x1F916;</span> Liste IA</div>
-  <div class="sm-item" onclick="closeSidebar(); openMyLocationMap()"><span style="font-size:20px">&#x1F4CD;</span> Ma position</div>
-  <div class="sm-item" onclick="closeSidebar(); openOfflineSheet()"><span style="font-size:20px">&#x1F4E5;</span> Mode hors ligne</div>
-  <h3>Application</h3>
-  <div style="font-size:12px;color:var(--text-tertiary);padding:0 14px;line-height:1.6">
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-      <span style="width:8px;height:8px;border-radius:50%;background:var(--primary);display:inline-block"></span>
-      <span>2 669 entreprises index&eacute;es</span>
+  <!-- Profile Header -->
+  <div class="side-profile">
+    <div class="side-profile-avatar" id="side-avatar">?</div>
+    <div class="side-profile-info">
+      <div class="side-profile-name" id="side-name">&mdash;</div>
+      <div class="side-profile-plan">
+        <span class="plan-dot" id="side-plan-dot"></span>
+        Plan : <strong id="side-plan-label">Free</strong>
+      </div>
     </div>
-    <div style="display:flex;align-items:center;gap:8px">
-      <span style="width:8px;height:8px;border-radius:50%;background:var(--accent-gold);display:inline-block"></span>
-      <span>IA enrichie active</span>
+  </div>
+
+  <div class="side-menu-content">
+    <!-- Location & Radius -->
+    <h3>Localisation</h3>
+    <div class="sm-item" onclick="closeSidebar(); openMyLocationMap()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      Ma position
+    </div>
+    <div class="side-radius">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+      <label>Rayon :</label>
+      <select id="prospect-radius">
+        <option value="5">5 km</option>
+        <option value="10" selected>10 km</option>
+        <option value="20">20 km</option>
+        <option value="50">50 km</option>
+      </select>
+    </div>
+
+    <div class="side-divider"></div>
+
+    <!-- Main Navigation -->
+    <h3>Prospection</h3>
+    <div class="sm-item" onclick="closeSidebar(); openProspectsAroundMe()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+      Prospects autour de moi
+    </div>
+    <div class="sm-item" onclick="closeSidebar(); openAIListBuilder()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a4 4 0 0 1 4 4c0 1.95-1.4 3.58-3.25 3.93"/><path d="M8.56 13.44A4 4 0 0 0 12 22a4 4 0 0 0 3.44-8.56"/><line x1="12" y1="2" x2="12" y2="6"/><path d="M4.93 4.93l2.83 2.83"/><line x1="2" y1="12" x2="6" y2="12"/><path d="M4.93 19.07l2.83-2.83"/></svg>
+      Liste IA
+    </div>
+    <div class="sm-item" onclick="closeSidebar(); openOfflineSheet()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Mode hors ligne
+    </div>
+
+    <div class="side-divider"></div>
+
+    <!-- Settings -->
+    <h3>Application</h3>
+    <div class="sm-item" onclick="closeSidebar(); openSheet('profile-sheet')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Param&egrave;tres
+    </div>
+    <div class="sm-item" onclick="closeSidebar(); doLogout()" style="color:var(--red)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      D&eacute;connexion
+    </div>
+
+    <!-- Stats footer -->
+    <div class="side-stats">
+      <div class="side-stat-row">
+        <span class="side-stat-dot" style="background:var(--primary)"></span>
+        <span>2 669 entreprises index&eacute;es</span>
+      </div>
+      <div class="side-stat-row">
+        <span class="side-stat-dot" style="background:var(--accent-gold)"></span>
+        <span>IA enrichie active</span>
+      </div>
     </div>
   </div>
 </aside>
@@ -589,7 +805,10 @@ body {
     </div>
   </div>
 
-  <!-- SEARCH TAB -->
+  <!-- ═══════════════════════════════════════
+       SEARCH TAB — With redesigned empty state
+       SVG icons for filter chips, custom illustration
+       ═══════════════════════════════════════ -->
   <div class="tab-content active" id="tab-search">
     <div class="search-header">
       <div class="search-box">
@@ -604,27 +823,128 @@ body {
         Filtres avanc&eacute;s <span id="filter-count" style="display:none;background:var(--primary);color:#fff;border-radius:var(--r-full);font-size:10px;padding:1px 7px;font-weight:700"></span>
       </div>
     </div>
+
+    <!-- Filter chips with SVG icons instead of emojis -->
     <div class="filter-scroll" id="sector-chips">
       <div class="fchip" data-sector="" onclick="quickSector(event,'')">Tous</div>
-      <div class="fchip" data-sector="BTP et construction" onclick="quickSector(event,'BTP et construction')">&#x1F3D7; BTP</div>
-      <div class="fchip" data-sector="Commerce et distribution" onclick="quickSector(event,'Commerce et distribution')">&#x1F6D2; Commerce</div>
-      <div class="fchip" data-sector="Technologies et num&eacute;rique" onclick="quickSector(event,'Technologies et num\u00e9rique')">&#x1F4BB; Tech</div>
-      <div class="fchip" data-sector="Agroalimentaire" onclick="quickSector(event,'Agroalimentaire')">&#x1F33E; Agro</div>
-      <div class="fchip" data-sector="Transport et logistique" onclick="quickSector(event,'Transport et logistique')">&#x1F69B; Transport</div>
-      <div class="fchip" data-sector="Sant&eacute; et pharmacie" onclick="quickSector(event,'Sant\u00e9 et pharmacie')">&#x1F3E5; Sant&eacute;</div>
-      <div class="fchip" data-sector="Services financiers" onclick="quickSector(event,'Services financiers')">&#x1F4B0; Finance</div>
-      <div class="fchip" data-sector="Import-Export" onclick="quickSector(event,'Import-Export')">&#x1F30D; Import/Export</div>
+      <div class="fchip" data-sector="BTP et construction" onclick="quickSector(event,'BTP et construction')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--sector-btp)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20"/><path d="M5 20V8l7-5 7 5v12"/><path d="M9 20v-4h6v4"/></svg>
+        BTP
+      </div>
+      <div class="fchip" data-sector="Commerce et distribution" onclick="quickSector(event,'Commerce et distribution')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--sector-commerce)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        Commerce
+      </div>
+      <div class="fchip" data-sector="Technologies et num&eacute;rique" onclick="quickSector(event,'Technologies et num\u00e9rique')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--sector-tech)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        Tech
+      </div>
+      <div class="fchip" data-sector="Agroalimentaire" onclick="quickSector(event,'Agroalimentaire')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--sector-agro)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 0 1 4 19.32"/><path d="M12 2a10 10 0 0 0-4 19.32"/><path d="M12 2v20"/><path d="M2 12h20"/></svg>
+        Agro
+      </div>
+      <div class="fchip" data-sector="Transport et logistique" onclick="quickSector(event,'Transport et logistique')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--sector-transport)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        Transport
+      </div>
+      <div class="fchip" data-sector="Sant&eacute; et pharmacie" onclick="quickSector(event,'Sant\u00e9 et pharmacie')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--sector-sante)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        Sant&eacute;
+      </div>
+      <div class="fchip" data-sector="Services financiers" onclick="quickSector(event,'Services financiers')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--sector-finance)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        Finance
+      </div>
+      <div class="fchip" data-sector="Import-Export" onclick="quickSector(event,'Import-Export')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--sector-import)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        Import/Export
+      </div>
     </div>
+
+    <!-- Results area with redesigned empty state -->
     <div class="results-container" id="results-area">
       <div class="empty-state">
-        <div class="empty-icon">&#x1F50D;</div>
+        <!-- Custom SVG illustration: businessman with network -->
+        <div class="empty-illustration">
+          <svg viewBox="0 0 200 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Map of Cameroon (simplified) -->
+            <path d="M85 20 L95 15 L110 18 L120 25 L125 40 L130 55 L128 70 L132 85 L125 100 L120 115 L110 125 L100 130 L90 128 L80 120 L75 110 L70 95 L68 80 L72 65 L75 50 L78 35 Z" fill="#E8F5E9" stroke="#1B5E20" stroke-width="1.5" opacity="0.6"/>
+            <!-- Network dots -->
+            <circle cx="90" cy="45" r="4" fill="#1B5E20" opacity="0.8"/>
+            <circle cx="105" cy="55" r="5" fill="#43A047"/>
+            <circle cx="85" cy="75" r="3.5" fill="#1B5E20" opacity="0.7"/>
+            <circle cx="110" cy="80" r="4" fill="#43A047" opacity="0.8"/>
+            <circle cx="95" cy="100" r="3" fill="#1B5E20" opacity="0.6"/>
+            <circle cx="115" cy="65" r="3" fill="#66BB6A"/>
+            <!-- Network lines -->
+            <line x1="90" y1="45" x2="105" y2="55" stroke="#43A047" stroke-width="1" opacity="0.4"/>
+            <line x1="105" y1="55" x2="110" y2="80" stroke="#43A047" stroke-width="1" opacity="0.4"/>
+            <line x1="105" y1="55" x2="85" y2="75" stroke="#43A047" stroke-width="1" opacity="0.4"/>
+            <line x1="85" y1="75" x2="95" y2="100" stroke="#43A047" stroke-width="1" opacity="0.4"/>
+            <line x1="110" y1="80" x2="95" y2="100" stroke="#43A047" stroke-width="1" opacity="0.4"/>
+            <line x1="105" y1="55" x2="115" y2="65" stroke="#43A047" stroke-width="1" opacity="0.4"/>
+            <line x1="115" y1="65" x2="110" y2="80" stroke="#43A047" stroke-width="1" opacity="0.4"/>
+            <!-- Person icon -->
+            <circle cx="155" cy="50" r="12" fill="#E8F5E9" stroke="#1B5E20" stroke-width="1.5"/>
+            <circle cx="155" cy="46" r="4" fill="#1B5E20"/>
+            <path d="M147 58 C147 53 151 50 155 50 C159 50 163 53 163 58" stroke="#1B5E20" stroke-width="1.5" fill="none"/>
+            <!-- Briefcase -->
+            <rect x="148" y="70" width="14" height="11" rx="2" fill="#FFF3E0" stroke="#FB8C00" stroke-width="1.2"/>
+            <path d="M152 70 V68 C152 67 153 66 154 66 H156 C157 66 158 67 158 68 V70" stroke="#FB8C00" stroke-width="1.2" fill="none"/>
+            <!-- Connection from person to map -->
+            <path d="M145 55 Q130 50 115 65" stroke="#1B5E20" stroke-width="1" stroke-dasharray="3 3" opacity="0.4"/>
+            <!-- Magnifying glass -->
+            <circle cx="40" cy="40" r="14" fill="#E3F2FD" stroke="#42A5F5" stroke-width="1.5"/>
+            <circle cx="40" cy="40" r="8" fill="none" stroke="#42A5F5" stroke-width="1.5"/>
+            <line x1="46" y1="46" x2="54" y2="54" stroke="#42A5F5" stroke-width="2" stroke-linecap="round"/>
+            <!-- Pulse rings -->
+            <circle cx="105" cy="55" r="12" fill="none" stroke="#43A047" stroke-width="0.8" opacity="0.3">
+              <animate attributeName="r" values="8;18;8" dur="3s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values="0.4;0;0.4" dur="3s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="105" cy="55" r="8" fill="none" stroke="#43A047" stroke-width="0.5" opacity="0.2">
+              <animate attributeName="r" values="5;14;5" dur="3s" begin="0.5s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values="0.3;0;0.3" dur="3s" begin="0.5s" repeatCount="indefinite"/>
+            </circle>
+          </svg>
+        </div>
         <h2>Trouvez vos prospects</h2>
-        <p>Recherchez par nom, secteur, ville ou utilisez les filtres rapides.</p>
+        <p>Recherchez parmi 2 669 entreprises camerounaises par nom, secteur ou ville.</p>
+        <button class="empty-cta" onclick="document.getElementById('search-input').focus()">
+          Lancez votre premi&egrave;re recherche
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </button>
+
+        <!-- Quick cards with SVG icons and sector colors -->
         <div class="quick-grid">
-          <button class="qcard" onclick="quickSearch('BTP et construction','Douala','')"><div class="qcard-icon">&#x1F3D7;</div><span class="qcard-title">BTP Douala</span><span class="qcard-sub">Nouvelles entreprises</span></button>
-          <button class="qcard" onclick="quickSearch('Technologies et num\u00e9rique','Yaound\u00e9','')"><div class="qcard-icon">&#x1F4BB;</div><span class="qcard-title">Tech Yaound&eacute;</span><span class="qcard-sub">Startups &amp; PME</span></button>
-          <button class="qcard" onclick="quickSearch('Agroalimentaire','','')"><div class="qcard-icon">&#x1F33E;</div><span class="qcard-title">Agroalimentaire</span><span class="qcard-sub">Tout Cameroun</span></button>
-          <button class="qcard" onclick="quickSearch('Transport et logistique','','')"><div class="qcard-icon">&#x1F69B;</div><span class="qcard-title">Transport</span><span class="qcard-sub">Tout Cameroun</span></button>
+          <button class="qcard" data-sector="btp" onclick="quickSearch('BTP et construction','Douala','')">
+            <div class="qcard-icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20"/><path d="M5 20V8l7-5 7 5v12"/><path d="M9 20v-4h6v4"/></svg>
+            </div>
+            <span class="qcard-title">BTP Douala</span>
+            <span class="qcard-sub">Nouvelles entreprises</span>
+          </button>
+          <button class="qcard" data-sector="tech" onclick="quickSearch('Technologies et num\u00e9rique','Yaound\u00e9','')">
+            <div class="qcard-icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            </div>
+            <span class="qcard-title">Tech Yaound&eacute;</span>
+            <span class="qcard-sub">Startups &amp; PME</span>
+          </button>
+          <button class="qcard" data-sector="agro" onclick="quickSearch('Agroalimentaire','','')">
+            <div class="qcard-icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+            </div>
+            <span class="qcard-title">Agroalimentaire</span>
+            <span class="qcard-sub">Tout Cameroun</span>
+          </button>
+          <button class="qcard" data-sector="transport" onclick="quickSearch('Transport et logistique','','')">
+            <div class="qcard-icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            </div>
+            <span class="qcard-title">Transport</span>
+            <span class="qcard-sub">Tout Cameroun</span>
+          </button>
         </div>
       </div>
     </div>
@@ -956,7 +1276,6 @@ body {
 </div>
 
 <div class="toast" id="toast"></div>
-
 <script>
 let firebaseConfig = null;
 let firebaseApp, auth, db;
@@ -1206,7 +1525,7 @@ async function openProspectsAroundMe() {
       else {
         var results = data.results || [];
         aiEl.innerHTML = data.ai_text ? '<strong>IA :</strong> ' + fmtChat(data.ai_text) : 'Recommandations generees pour votre zone.';
-        if (!results.length) { list.innerHTML = '<div class="empty-state" style="padding:20px"><div class="empty-icon">&#x1F4CD;</div><h2>Aucun prospect</h2><p>Essayez un rayon plus large.</p></div>'; }
+        if (!results.length) { list.innerHTML = '<div class="empty-state" style="padding:20px"><div class="empty-icon" style="font-size:36px">&#x1F4CD;</div><h2>Aucun prospect</h2><p>Essayez un rayon plus large.</p></div>'; }
         else {
           lastProspectResults = results;
           list.innerHTML = results.slice(0, 10).map(function(co, i) {
@@ -1291,23 +1610,23 @@ async function openAssignmentsSheet() {
 async function refreshAssignments() {
   try {
     var r = await api('GET', '/api/assignments', null, token);
-    if (!r.ok) { document.getElementById('assignments-list').innerHTML = '<div class="empty-state"><div class="empty-icon">&#x274C;</div><h2>Erreur</h2></div>'; return; }
+    if (!r.ok) { document.getElementById('assignments-list').innerHTML = '<div class="empty-state"><div class="empty-icon" style="font-size:36px">&#x274C;</div><h2>Erreur</h2></div>'; return; }
     var data = await r.json();
     var list = data.data || [];
     var container = document.getElementById('assignments-list');
-    if (!list.length) { container.innerHTML = '<div class="empty-state"><div class="empty-icon">&#x1F5C2;</div><h2>Aucune t&acirc;che</h2></div>'; return; }
+    if (!list.length) { container.innerHTML = '<div class="empty-state"><div class="empty-icon" style="font-size:36px">&#x1F5C2;</div><h2>Aucune t&acirc;che</h2></div>'; return; }
     container.innerHTML = list.map(function(a) {
       var note = a.note ? '<div style="font-size:13px;color:var(--text-tertiary);margin-top:6px">' + a.note + '</div>' : '';
       return '<div class="co-card" style="padding:12px"><div style="display:flex;align-items:center;justify-content:space-between"><div style="font-weight:700">' + (a.company_id || '&mdash;') + '</div><div style="font-size:12px;color:var(--text-tertiary)">' + (a.status || 'assigned') + '</div></div>' + note + '<div style="display:flex;gap:8px;margin-top:8px"><button class="sheet-btn" onclick="markAssignmentDone(\'' + a.id + '\')">Marquer fait</button></div></div>';
     }).join('');
-  } catch (e) { document.getElementById('assignments-list').innerHTML = '<div class="empty-state"><div class="empty-icon">&#x1F4E1;</div><h2>Connexion impossible</h2></div>'; }
+  } catch (e) { document.getElementById('assignments-list').innerHTML = '<div class="empty-state"><div class="empty-icon" style="font-size:36px">&#x1F4E1;</div><h2>Connexion impossible</h2></div>'; }
 }
 
 async function markAssignmentDone(id) {
   try {
     var r = await api('PUT', '/api/assignments/' + id, { status: 'done' }, token);
     if (!r.ok) return toast('Erreur');
-    toast('T&acirc;che marqu&eacute;e comme faite');
+    toast('Tache marquee comme faite');
     await refreshAssignments();
   } catch (e) { toast('Erreur: ' + e.message); }
 }
@@ -1416,7 +1735,7 @@ async function checkAuthMe() {
     token = fresh; localStorage.setItem('sc_token', token);
     const r = await api('GET', '/auth/me', null, token);
     if (!r || !r.ok) { if (r && r.status === 401) { localStorage.removeItem('sc_token'); token = ''; } return false; }
-    user = await r.json(); updateTopbar(); showApp();
+    user = await r.json(); updateTopbar(); updateSidebar(); showApp();
     return true;
   } catch (e) { return false; }
 }
@@ -1512,13 +1831,46 @@ function showAuth() {
   document.getElementById('bottom-nav').style.display = 'none';
 }
 
+/* ═══════════════════════════════════════
+   KEY CHANGE: updateTopbar — Avatar with initials only
+   No more name, no more badge in header
+   ═══════════════════════════════════════ */
 function updateTopbar() {
   var name = (user && (user.name || (user.email && user.email.split('@')[0]))) || 'Utilisateur';
+  var initials = name.split(' ').map(function(w) { return w[0] || ''; }).join('').slice(0, 2).toUpperCase();
+  
+  // Update avatar initials in topbar
+  var tbInitials = document.getElementById('tb-initials');
+  if (tbInitials) tbInitials.textContent = initials;
+}
+
+/* ═══════════════════════════════════════
+   NEW: updateSidebar — Profile info in sidebar
+   Plan badge moved here from header
+   ═══════════════════════════════════════ */
+function updateSidebar() {
+  var name = (user && (user.name || (user.email && user.email.split('@')[0]))) || 'Utilisateur';
+  var initials = name.split(' ').map(function(w) { return w[0] || ''; }).join('').slice(0, 2).toUpperCase();
   var plan = ((user && user.plan) || 'free').toLowerCase();
-  document.getElementById('tb-name').textContent = name;
-  var planEl = document.getElementById('tb-plan');
-  planEl.textContent = plan;
-  planEl.className = 'plan-b ' + (plan === 'free' ? 'pf' : plan === 'starter' ? 'ps_' : plan === 'pro' ? 'pp' : 'pe');
+  
+  // Update sidebar profile
+  var sideAvatar = document.getElementById('side-avatar');
+  if (sideAvatar) sideAvatar.textContent = initials;
+  
+  var sideName = document.getElementById('side-name');
+  if (sideName) sideName.textContent = name;
+  
+  var sidePlanLabel = document.getElementById('side-plan-label');
+  if (sidePlanLabel) {
+    var planNames = { free: 'Free', starter: 'Starter', pro: 'Pro', enterprise: 'Enterprise' };
+    sidePlanLabel.textContent = planNames[plan] || 'Free';
+  }
+  
+  var sidePlanDot = document.getElementById('side-plan-dot');
+  if (sidePlanDot) {
+    var dotColors = { free: '#4CAF50', starter: '#1E88E5', pro: '#F9A825', enterprise: '#9C27B0' };
+    sidePlanDot.style.background = dotColors[plan] || '#4CAF50';
+  }
 }
 
 function showApp() {
@@ -1526,7 +1878,7 @@ function showApp() {
   document.getElementById('topbar').style.display = 'flex';
   document.getElementById('content').style.display = 'flex';
   document.getElementById('bottom-nav').style.display = 'flex';
-  updateTopbar(); loadPipeline(); loadSaved();
+  updateTopbar(); updateSidebar(); loadPipeline(); loadSaved();
   var mbtn = document.getElementById('manager-assign-btn-m');
   if (mbtn) mbtn.style.display = (user && user.role === 'manager') ? 'block' : 'none';
   if (navigator.onLine) syncOfflineQueue();
@@ -1647,14 +1999,14 @@ async function runSearch(query, filters) {
     if (r.status === 429 && data.upgrade) {
       document.getElementById('results-area').innerHTML = '<div style="padding:14px"><div class="upgrade-card"><strong>Limite atteinte</strong><p>' + data.error + '</p><button onclick="openSheet(\'profile-sheet\')">Voir les plans</button></div></div>';
     } else if (data.error) {
-      document.getElementById('results-area').innerHTML = '<div class="empty-state"><div class="empty-icon">&#x274C;</div><h2>Erreur</h2><p>' + data.error + '</p></div>';
+      document.getElementById('results-area').innerHTML = '<div class="empty-state"><div class="empty-icon" style="font-size:36px">&#x274C;</div><h2>Erreur</h2><p>' + data.error + '</p></div>';
     } else {
       lastResults = data.results || []; renderResults(data); saveOfflineSearchCache(data); refreshMe();
     }
   } catch (e) {
     var cache = getOfflineSearchCache();
     if (cache && cache.results && cache.results.length) { lastQuery = cache.query || ''; lastFilters = cache.filters || {}; renderResults(cache); toast('Mode hors ligne : affichage des derniers resultats'); }
-    else { document.getElementById('results-area').innerHTML = '<div class="empty-state"><div class="empty-icon">&#x1F4E1;</div><h2>Connexion impossible</h2><p>' + e.message + '</p></div>'; }
+    else { document.getElementById('results-area').innerHTML = '<div class="empty-state"><div class="empty-icon" style="font-size:36px">&#x1F4E1;</div><h2>Connexion impossible</h2><p>' + e.message + '</p></div>'; }
   }
   isSearching = false; document.getElementById('srch-btn').disabled = false;
 }
@@ -1750,6 +2102,8 @@ function toggleSelectForAssignMobile(i) {
 
 function openManagerAssignMobile() { document.getElementById('assign-count-m').textContent = selectedForAssignMobile.size; loadTeamMembersMobile(); openSheet('assign-create-sheet'); }
 
+async function submitAssignmentMobile() {
+  var assignee = document
 async function submitAssignmentMobile() {
   var assignee = document.getElementById('assign-assignee-m').value.trim();
   var note = document.getElementById('assign-note-m').value.trim();
@@ -1992,10 +2346,10 @@ function addChatMsg(role, html, loading) {
 
 function fmtChat(t) {
   if (!t) return '';
-  return t.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    .replace(/^#{1,3}\s+(.+)$/gm, '<strong style="display:block;margin-top:8px;margin-bottom:3px">$1</strong>')
-    .replace(/^- (.+)$/gm, '<li>$1</li>')
+  return t.replace(/\*\*(.+?)\*\*/g, '<strong>\$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>\$1</em>')
+    .replace(/^#{1,3}\s+(.+)$/gm, '<strong style="display:block;margin-top:8px;margin-bottom:3px">\$1</strong>')
+    .replace(/^- (.+)$/gm, '<li>\$1</li>')
     .replace(/(<li>.*<\/li>\n?)+/g, function(s) { return '<ul>' + s + '</ul>'; })
     .replace(/\n{2,}/g, '</p><p style="margin-top:5px">')
     .replace(/\n/g, '<br>');
