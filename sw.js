@@ -54,7 +54,14 @@ self.addEventListener('fetch', (event) => {
     url.hostname === 'fonts.googleapis.com' ||
     url.hostname === 'fonts.gstatic.com'
   ) {
-    // ⚠️ NE PAS appeler event.respondWith() — laisse le browser gérer
+    event.respondWith(
+      fetch(event.request).catch(() => {
+        return new Response('', {
+          status: 204,
+          headers: { 'Content-Type': 'text/plain' }
+        });
+      })
+    );
     return;
   }
 

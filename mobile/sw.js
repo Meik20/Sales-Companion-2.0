@@ -26,6 +26,24 @@ self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   if (e.request.url.includes('/api/') || e.request.url.includes('/auth/')) return;
 
+  // Handle Google Fonts separately: if fetch fails, return 204 empty response
+  try {
+    const url = new URL(e.request.url);
+    if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com') {
+      e.respondWith(
+        fetch(e.request).catch(() => {
+          return new Response('', {
+            status: 204,
+            headers: { 'Content-Type': 'text/plain' }
+          });
+        })
+      );
+      return;
+    }
+  } catch (err) {
+    // ignore URL parse errors and continue
+  }
+
   e.respondWith(
     caches.match(e.request).then(cached => {
       if (cached) return cached;
