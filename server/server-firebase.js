@@ -1,11 +1,13 @@
 /**
  * Sales Companion Server — Firebase Edition
  * Migration complète vers Firebase Admin SDK + Firestore
+ * v2.1: Optimisations performance, caching, rate limiting
  */
 
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const compression = require('compression');
 const path = require('path');
 const multer = require('multer');
 const XLSX = require('xlsx');
@@ -13,6 +15,11 @@ const fs = require('fs');
 const os = require('os');
 const fetch = require('node-fetch');
 require('dotenv').config();
+
+// Performance & Security
+const cache = require('./cache-service');
+const { rateLimit } = require('./rate-limit');
+const { perfMonitor } = require('./perf-monitor');
 
 // Firebase
 const { auth } = require('./firebase-config');
@@ -103,7 +110,7 @@ app.use(
           "https://*.googleapis.com",
           "https://*.google.com",
           "https://identitytoolkit.googleapis.com",
-          "https://www.gstatic.com", // ✅ AJOUT IMPORTANT
+          "https://www.gstatic.com",
         ],
 
         frameSrc: ["https://*.firebaseapp.com"],
@@ -111,6 +118,13 @@ app.use(
     },
   })
 );
+
+// ── PERFORMANCE ──────────────────────────────────────────────
+app.use(compression()); // Gzip compression automatique
+app.use(rateLimit(100, 60)); // 100 req/min par IP
+
+console.log('✅ Compression gzip activée');
+console.log('✅ Rate limiting activé (100 req/min)');
 // (debug endpoint removed)
 
 
@@ -425,8 +439,16 @@ app.post('/init-admin', async (req, res) => {
 // ══════════════════════════════════════════════════════════════
 
 app.get('/admin/stats', verifyAdmin, async (req, res) => {
+  // ✅ CHECK CACHE FIRST (5 minutes TTL)
+  const cacheKey = 'admin:stats';
+  const cached = cache.get(cacheKey);
+  if (cached) {
+    return res.json({ ...cached, _cached: true, _cacheTime: new Date().toISOString() });
+  }
+
   const { getFirestore } = require('firebase-admin/firestore');
   const adminDb = getFirestore();
+  const startTime = Date.now();
 
   const safeCount = async (query) => {
     try { return (await query.count().get()).data().count; } catch(_) { return 0; }
@@ -457,14 +479,24 @@ app.get('/admin/stats', verifyAdmin, async (req, res) => {
       if (c.sector) secteurMap[c.sector]  = (secteurMap[c.sector]  || 0) + 1;
     });
 
-    res.json({
+    const statsData = {
       totalUsers, totalCompanies, activeToday, totalSearches,
       planCounts:         Object.entries(planMap).map(([plan, c]) => ({ plan, c })),
       companiesByRegion:  Object.entries(regionMap).sort((a,b) => b[1]-a[1]).slice(0,8).map(([region, c]) => ({ region, c })),
       companiesBySecteur: Object.entries(secteurMap).sort((a,b) => b[1]-a[1]).slice(0,8).map(([secteur, c]) => ({ secteur, c })),
       recentLogs,
-    });
+    };
+
+    // ✅ STORE IN CACHE (5 min TTL)
+    cache.set(cacheKey, statsData, 300);
+    
+    const duration = Date.now() - startTime;
+    perfMonitor.record('admin:stats', duration, true);
+    if (duration > 500) console.warn(`⚠️ /admin/stats took ${duration}ms`);
+
+    res.json(statsData);
   } catch (error) {
+    perfMonitor.record('admin:stats', Date.now() - startTime, false);
     return safeError(res, 500, 'Erreur stats', error);
   }
 });

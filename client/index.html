@@ -2099,5 +2099,24 @@ function openAddPipeline(pref){document.getElementById('pip-overlay').classList.
 function confirmAddPipeline(){const name=document.getElementById('pip-name').value.trim();if(!name)return toast('Nom requis');const id='p-'+Date.now();pipelineCompanies[id]={name,sector:document.getElementById('pip-sector').value,city:document.getElementById('pip-city').value,phone:document.getElementById('pip-phone').value,email:document.getElementById('pip-email').value,status:document.getElementById('pip-status').value,note:document.getElementById('pip-note').value};savePipeline();document.getElementById('pip-overlay').classList.remove('open');}
 
 </script>
+
+<!-- ✅ v2.1: UX Enhancements Module -->
+<script>
+// Keyboard Shortcuts Handler
+document.addEventListener('keydown',(e)=>{
+  if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();const s=document.querySelector('input[placeholder*="Rechercher"]');if(s)s.focus();}
+  if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){const f=document.querySelector('form');if(f)f.submit();}
+  if(e.key==='Escape'){const m=document.querySelector('[role="dialog"].open');if(m)m.classList.remove('open');}
+});
+
+// Auto-Retry Network Helper
+async function fetchWithRetry(url,opts={},r=3){for(let i=1;i<=r;i++)try{const s=await fetch(url,opts);if(s.ok)return s;if(s.status>=400&&s.status<500)throw new Error(`HTTP ${s.status}`);}catch(e){if(i===r)throw e;const d=Math.pow(2,i-1)*1000;console.warn(`⚠️ Retry ${i}/${r} après ${d}ms`);await new Promise(t=>setTimeout(t,d));}}
+
+// Status Indicator
+let onLine=navigator.onLine;window.addEventListener('online',()=>{onLine=true;toast('🟢 Connexion rétablie');});window.addEventListener('offline',()=>{onLine=false;toast('🔴 Mode hors ligne');});setInterval(()=>{if(onLine)fetch('/api/health').catch(()=>{});},30000);
+
+console.log('✅ UX Enhancements v2.1 chargé — Keyboard: Ctrl+K, Ctrl+Enter, ESC');
+</script>
+
 </body>
 </html>
