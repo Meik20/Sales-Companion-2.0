@@ -19,6 +19,7 @@
 <!-- App Configuration -->
 <script src="firebase-config.js"></script>
 <script src="app-config.js"></script>
+<script src="team-manager.js"></script>
 
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -695,6 +696,86 @@ body {
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 *{scrollbar-width:none}
+
+/* ═══════════════════════════════════════════════════════════
+   TEAM MANAGEMENT STYLES
+   ═══════════════════════════════════════════════════════════ */
+
+.team-header{padding:14px 16px;border-bottom:1px solid var(--border);flex-shrink:0}
+.team-seg{display:flex;gap:8px;padding:8px;background:var(--bg-secondary);border-radius:var(--r-lg);width:100%}
+.tseg{flex:1;padding:10px 12px;background:transparent;border:none;border-radius:var(--r-sm);font-size:13px;font-weight:600;color:var(--text-tertiary);cursor:pointer;transition:all var(--duration) var(--ease);font-family:'Inter',sans-serif}
+.tseg.active{background:var(--primary);color:#fff}
+
+.team-view{padding:12px 0;overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch}
+.team-view::-webkit-scrollbar{display:none}
+
+.team-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;text-align:center;color:var(--text-tertiary)}
+.team-empty-icon{font-size:48px;margin-bottom:16px;opacity:.5}
+.team-empty h3{font-size:16px;font-weight:700;color:var(--text-primary);margin-bottom:8px}
+.team-empty p{font-size:13px;color:var(--text-tertiary)}
+
+.member-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);margin:0 12px 10px;overflow:hidden;transition:all var(--duration) var(--ease)}.member-card.expanded{box-shadow:var(--shadow-lg)}
+.member-head{padding:12px;display:flex;align-items:center;gap:12px;cursor:pointer;background:var(--bg-card)}
+.member-av{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-medium));color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.member-info{flex:1;min-width:0}
+.member-name{font-size:14px;font-weight:600;color:var(--text-primary)}
+.member-email{font-size:12px;color:var(--text-tertiary);margin-top:2px}
+.member-chevron{transition:transform var(--duration) var(--ease)}.member-card.expanded .member-chevron{transform:rotate(180deg)}
+
+.member-kpi{display:flex;gap:0;margin:12px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.mkpi{flex:1;padding:12px 0;text-align:center;border-right:1px solid var(--border)}.mkpi:last-child{border-right:none}
+.mkpi-val{font-size:16px;font-weight:700;color:var(--text-primary)}.mkpi-val.neg{color:var(--orange)}.mkpi-val.ok{color:var(--green)}
+.mkpi-lbl{font-size:11px;color:var(--text-tertiary);margin-top:4px;font-weight:500}
+
+.member-pipeline{display:none;padding:12px 14px;border-top:1px solid var(--border);background:var(--bg-secondary)}.member-card.expanded .member-pipeline{display:block}
+.mpip-title{font-size:11px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;margin-bottom:10px;letter-spacing:0.5px}
+.mpip-item{display:flex;gap:8px;margin-bottom:8px;padding:8px;background:var(--bg-card);border-radius:var(--r-sm);align-items:center}
+.mpip-item-name{flex:1;font-size:13px;color:var(--text-primary);font-weight:500}
+.mpip-item-status{font-size:11px;font-weight:700;padding:4px 8px;border-radius:4px;white-space:nowrap}
+.mpip-item-status.prospection{background:var(--blue-light);color:var(--blue)}
+.mpip-item-status.negociation{background:var(--orange-light);color:var(--orange)}
+.mpip-item-status.conclue{background:var(--green-light);color:var(--green)}
+
+.access-header{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border);gap:12px}
+.access-quota{text-align:center;padding:10px}
+.access-quota-num{font-size:20px;font-weight:700;color:var(--primary)}
+.access-quota-label{font-size:11px;color:var(--text-tertiary);margin-top:2px}
+
+.btn-primary{padding:10px 16px;background:linear-gradient(135deg,var(--primary),var(--primary-medium));color:#fff;border:none;border-radius:var(--r);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;white-space:nowrap;font-family:'Inter',sans-serif;transition:all var(--duration) var(--ease)}.btn-primary:disabled{opacity:.5;cursor:not-allowed}.btn-primary:active:not(:disabled){transform:scale(.95)}
+
+.access-list{padding:12px 0}
+.access-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);margin:0 12px 10px;overflow:hidden;padding:12px}
+.access-card.revoked{opacity:.6}
+.access-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;gap:8px}
+.access-card-id{font-size:14px;font-weight:700;color:var(--text-primary);font-family:monospace;word-break:break-all}
+.access-status-badge{font-size:11px;font-weight:700;padding:6px 10px;border-radius:4px;white-space:nowrap}
+.access-status-badge.pending{background:var(--orange-light);color:var(--orange)}
+.access-status-badge.active{background:var(--green-light);color:var(--green)}
+.access-status-badge.revoked{background:var(--red-light);color:var(--red)}
+
+.access-card-info{font-size:12px;color:var(--text-secondary);margin-bottom:12px}
+.access-info-row{margin-bottom:6px}
+.access-card-actions{display:flex;gap:8px}
+.access-btn{flex:1;padding:8px 12px;background:var(--bg-secondary);border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:12px;font-weight:600;color:var(--text-primary);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;transition:all var(--duration) var(--ease);font-family:'Inter',sans-serif}
+.access-btn svg{width:14px;height:14px}
+.access-btn.copy:active{background:var(--primary-light);border-color:var(--primary)}
+.access-btn.revoke:active{background:var(--red-light);border-color:var(--red);color:var(--red)}
+
+.activity-item{display:flex;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border)}
+.activity-item:last-child{border-bottom:none}
+.activity-dot-wrap{display:flex;align-items:flex-start;padding-top:4px;flex-shrink:0}
+.activity-dot{width:10px;height:10px;border-radius:50%;border:2px solid var(--primary)}
+.activity-dot.prospection{background:var(--blue)}
+.activity-dot.negociation{background:var(--orange)}
+.activity-dot.conclue{background:var(--green)}
+.activity-body{flex:1}
+.activity-text{font-size:13px;color:var(--text-primary);line-height:1.5}
+.activity-meta{font-size:11px;color:var(--text-tertiary);margin-top:6px}
+
+.sfield{margin-bottom:16px}
+.sfield label{display:block;font-size:11px;font-weight:700;color:var(--text-secondary);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px}
+
+.is-manager .manager-assign-btn-m{display:block !important}
 </style>
 </head>
 
@@ -1026,6 +1107,29 @@ body {
       </button>
     </div>
   </div>
+
+  <!-- TEAM TAB (Manager Only) -->
+  <div class="tab-content" id="tab-team" style="display:none">
+    <div class="team-header">
+      <div class="team-seg">
+        <button class="tseg active" onclick="switchTeamSeg('members', this)">👥 Commerciaux</button>
+        <button class="tseg" onclick="switchTeamSeg('activity', this)">⚡ Activité</button>
+        <button class="tseg" onclick="switchTeamSeg('access', this)">🔑 Accès</button>
+      </div>
+    </div>
+    
+    <div class="team-view" style="display:block">
+      <div id="team-loading" class="loading-state" style="display:none;padding:30px 0"><div class="spinner"></div></div>
+      <div id="team-members-view" style="padding:12px 0"></div>
+    </div>
+    
+    <div id="team-activity-view" class="team-view" style="display:none">
+      <div id="activity-loading" class="loading-state" style="display:none;padding:30px 0"><div class="spinner"></div></div>
+      <div style="padding:12px 0" id="team-activity-content"></div>
+    </div>
+    
+    <div id="team-access-view" class="team-view" style="display:none;padding:12px 0"></div>
+  </div>
 </div>
 
 <!-- BOTTOM NAV -->
@@ -1055,6 +1159,12 @@ body {
     <div class="nav-bar"></div>
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
     <span>Assistant</span>
+  </button>
+  <button class="nav-btn" id="nav-team" onclick="switchTab2('team')" style="display:none">
+    <div class="nav-bar"></div>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    <span>Équipe</span>
+    <span class="nav-badge" id="team-badge" style="display:none">0</span>
   </button>
 </div>
 
@@ -1297,6 +1407,57 @@ body {
       <button class="sheet-btn secondary" onclick="openAssignmentsSheet()" style="margin-top:8px">&#x1F5C2; Mes t&acirc;ches</button>
     </div>
     <button class="lg-btn-m" onclick="doLogout()">Se d&eacute;connecter</button>
+  </div>
+</div>
+
+<!-- CREATE ACCESS SHEET (Manager) -->
+<div class="sheet-overlay" id="create-access-overlay" onclick="closeSheet('create-access-sheet')"></div>
+<div class="sheet" id="create-access-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">Créer un accès membre</div>
+  <div class="sheet-body">
+    <div class="sfield">
+      <label>Prénom</label>
+      <input type="text" id="new-access-firstname" placeholder="Jean" oninput="updateAccessPreview()" style="width:100%;padding:10px 12px;border:1.5px solid var(--border-strong);border-radius:var(--r);font-size:14px;font-family:'Inter',sans-serif;color:var(--text-primary);background:var(--bg-secondary);outline:none">
+    </div>
+    <div class="sfield">
+      <label>Nom</label>
+      <input type="text" id="new-access-lastname" placeholder="Dupont" oninput="updateAccessPreview()" style="width:100%;padding:10px 12px;border:1.5px solid var(--border-strong);border-radius:var(--r);font-size:14px;font-family:'Inter',sans-serif;color:var(--text-primary);background:var(--bg-secondary);outline:none">
+    </div>
+    <div style="padding:12px;background:var(--primary-light);border-radius:var(--r);border:1.5px dashed var(--primary);margin-bottom:16px;text-align:center">
+      <div style="font-size:12px;color:var(--text-tertiary);margin-bottom:6px">Identifiant d'accès</div>
+      <div style="font-size:16px;font-weight:700;color:var(--primary);font-family:monospace" id="new-access-preview">@Entreprise</div>
+    </div>
+    <button class="sheet-btn" id="create-access-btn" onclick="submitCreateAccess()">Créer l'accès</button>
+  </div>
+</div>
+
+<!-- ACTIVATION FORM (Member First Login) -->
+<div id="activation-form" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:1000;padding:20px;display:flex;flex-direction:column;justify-content:center;align-items:center">
+  <div style="width:100%;max-width:360px;background:var(--bg-card);border-radius:20px;padding:30px;box-shadow:var(--shadow-lg)">
+    <div style="text-align:center;margin-bottom:30px">
+      <div style="font-size:48px;margin-bottom:12px">🔑</div>
+      <h1 style="font-size:20px;font-weight:700;color:var(--text-primary);margin-bottom:8px">Activation du compte</h1>
+      <p style="font-size:13px;color:var(--text-secondary)">Complétez l'activation de votre accès</p>
+    </div>
+    
+    <div class="sfield" style="margin-bottom:16px">
+      <label>ID d'accès (ex: Prénom/Nom@Entreprise)</label>
+      <input type="text" id="activation-access-id" placeholder="Jean/Dupont@Exemple" style="width:100%;padding:12px 14px;border:1.5px solid var(--border-strong);border-radius:var(--r);font-size:14px;font-family:'Inter',sans-serif;color:var(--text-primary);background:var(--bg-secondary);outline:none">
+    </div>
+    
+    <div class="sfield" style="margin-bottom:16px">
+      <label>Nouveau mot de passe (min. 8 caractères)</label>
+      <input type="password" id="activation-new-password" placeholder="••••••••" style="width:100%;padding:12px 14px;border:1.5px solid var(--border-strong);border-radius:var(--r);font-size:14px;font-family:'Inter',sans-serif;color:var(--text-primary);background:var(--bg-secondary);outline:none">
+    </div>
+    
+    <div class="sfield" style="margin-bottom:20px">
+      <label>Confirmer le mot de passe</label>
+      <input type="password" id="activation-confirm-password" placeholder="••••••••" style="width:100%;padding:12px 14px;border:1.5px solid var(--border-strong);border-radius:var(--r);font-size:14px;font-family:'Inter',sans-serif;color:var(--text-primary);background:var(--bg-secondary);outline:none">
+    </div>
+    
+    <button class="a-btn" id="activate-access-btn" onclick="activateMemberAccess()">Activer mon compte</button>
+    <button class="sheet-btn secondary" style="margin-top:10px" onclick="showMemberActivationFlow(); document.getElementById('login-form').style.display='block'; document.getElementById('activation-form').style.display='none'">Retour à la connexion</button>
   </div>
 </div>
 
@@ -1892,6 +2053,7 @@ function showApp() {
   var mbtn = document.getElementById('manager-assign-btn-m');
   if (mbtn) mbtn.style.display = (user && user.role === 'manager') ? 'block' : 'none';
   if (navigator.onLine) syncOfflineQueue();
+  if (typeof applyManagerRole !== 'undefined') applyManagerRole();
 }
 
 async function refreshMe() { try { await checkAuthMe(); } catch (e) {} }
@@ -1909,6 +2071,7 @@ function switchTab2(name) {
   document.getElementById('nav-' + name).classList.add('active');
   document.getElementById('fab').classList.toggle('show', name === 'pipeline');
   if (name === 'support') loadSupportMessagesMobile();
+  if (name === 'team' && typeof applyManagerRole !== 'undefined') applyManagerRole();
 }
 
 function openSheet(id) {
