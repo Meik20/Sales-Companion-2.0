@@ -264,6 +264,22 @@ canvas{max-height:250px}
           </button>
         </div>
       </div>
+
+      <!-- ✅ DEMO MODE ALERT BANNER -->
+      <div id="demo-alert-banner" style="display:none;background:#fff3cd;border:1px solid #ffc107;border-radius:var(--r);padding:12px 16px;font-size:13px;color:#856404;margin-bottom:16px;display:flex;align-items:center;gap:10px">
+        <span style="font-size:16px;flex-shrink:0">⚠️</span>
+        <div>
+          <strong>Mode démo activé</strong> — Le quota Firebase est temporairement dépassé. Les données affichées sont des exemples. 
+          <a href="#" onclick="checkFirestoreStatus()" style="color:#d39e00;text-decoration:underline;font-weight:600">Vérifier le statut Firestore</a>
+        </div>
+      </div>
+
+      <!-- ✅ FIRESTORE STATUS INDICATOR -->
+      <div id="firestore-status" style="display:none;background:#f0f0f0;border-radius:var(--r);padding:10px 14px;font-size:12px;margin-bottom:14px;display:flex;align-items:center;gap:8px">
+        <span id="firestore-status-icon">🔌</span>
+        <span id="firestore-status-text">Vérification Firestore...</span>
+      </div>
+
       <div class="stats-grid">
         <div class="stat-card"><div class="stat-lbl">Utilisateurs</div><div class="stat-val" id="s-users">—</div><div class="stat-sub">Comptes enregistrés</div></div>
         <div class="stat-card teal"><div class="stat-lbl">Entreprises</div><div class="stat-val" id="s-cos">—</div><div class="stat-sub">Dans la base</div></div>
@@ -657,6 +673,15 @@ async function loadDashboard() {
     if (!r || r.status === 401) return;
     const d = await r.json();
 
+    // ✅ CHECK DEMO MODE
+    const demoAlert = document.getElementById('demo-alert-banner');
+    if (d._demo) {
+      demoAlert.style.display = 'flex';
+      console.warn('⚠️ Demo mode active:', d._message);
+    } else {
+      demoAlert.style.display = 'none';
+    }
+
     // Update stat cards
     document.getElementById('s-users').textContent = d.totalUsers ?? '—';
     document.getElementById('s-cos').textContent   = (d.totalCompanies ?? 0).toLocaleString();
@@ -726,6 +751,46 @@ async function loadDashboard() {
          </td></tr>`;
 
   } catch(e) { console.error('loadDashboard error:', e); }
+}
+
+// ✅ NEW: Check Firestore connection status
+async function checkFirestoreStatus() {
+  const statusEl = document.getElementById('firestore-status');
+  const statusIcon = document.getElementById('firestore-status-icon');
+  const statusText = document.getElementById('firestore-status-text');
+  
+  statusEl.style.display = 'flex';
+  statusIcon.textContent = '⏳';
+  statusText.textContent = 'Vérification Firestore...';
+  
+  try {
+    const r = await fetch(`${API}/api/firestore-check`);
+    const data = await r.json();
+    
+    if (data.status === 'OK') {
+      statusIcon.textContent = '✅';
+      statusText.textContent = `Firestore connecté (${data.duration}ms)`;
+      statusEl.style.background = 'var(--gl)';
+      statusEl.style.color = 'var(--g)';
+    } else if (data.status === 'QUOTA_EXCEEDED') {
+      statusIcon.textContent = '⚠️';
+      statusText.textContent = `Quota dépassé — ${data.message}`;
+      statusEl.style.background = 'var(--gdl)';
+      statusEl.style.color = 'var(--gold)';
+    } else {
+      statusIcon.textContent = '❌';
+      statusText.textContent = `Erreur : ${data.message || 'Impossible de se connecter'}`;
+      statusEl.style.background = 'var(--rl)';
+      statusEl.style.color = 'var(--red)';
+    }
+    
+    console.log('Firestore check:', data);
+  } catch(e) {
+    statusIcon.textContent = '❌';
+    statusText.textContent = `Erreur réseau : ${e.message}`;
+    statusEl.style.background = 'var(--rl)';
+    statusEl.style.color = 'var(--red)';
+  }
 }
 
 function updateDashboardTime() {
