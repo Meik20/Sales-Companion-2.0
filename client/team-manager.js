@@ -3,7 +3,7 @@
    Nouvelles fonctionnalités :
    1. Génération jusqu'à 10 accès membres par Manager
    2. Comptes liés automatiquement au Manager
-   3. Activation par ID (format: Prénom/Nom@Entreprise)
+   3. Activation par ID (format: PrénomNom@Entreprise)
    4. Changement obligatoire du mot de passe à la première connexion
    ═══════════════════════════════════════════════════════════ */
 
@@ -242,7 +242,7 @@ function updateAccessPreview() {
   
   var preview = '';
   if (firstname || lastname) {
-    preview = (firstname || 'Prénom') + '/' + (lastname || 'Nom') + '@' + company;
+    preview = (firstname || 'Prénom') + (lastname || 'Nom') + '@' + company;
   } else {
     preview = '@' + company;
   }
@@ -260,7 +260,7 @@ async function submitCreateAccess() {
   }
   
   var company = user.company_name || 'Entreprise';
-  var accessId = firstname + '/' + lastname + '@' + company;
+  var accessId = firstname + lastname + '@' + company;
   
   var btn = document.getElementById('create-access-btn');
   if (btn) {

@@ -807,6 +807,7 @@ body {
       <div class="field"><label>Mot de passe</label><input type="password" id="l-pass" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" autocomplete="current-password"></div>
       <div class="a-err" id="l-err"></div>
       <button class="a-btn" id="l-btn" onclick="doLogin()">Se connecter &rarr;</button>
+      <button class="a-btn" style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);margin-top:12px" onclick="switchToActivationFlow()">🔑 Accès Entreprise</button>
     </div>
     <div id="register-form" style="display:none">
       <div class="field"><label>Nom complet</label><input type="text" id="r-name" placeholder="Jean Dupont" autocomplete="name"></div>
@@ -1442,8 +1443,8 @@ body {
     </div>
     
     <div class="sfield" style="margin-bottom:16px">
-      <label>ID d'accès (ex: Prénom/Nom@Entreprise)</label>
-      <input type="text" id="activation-access-id" placeholder="Jean/Dupont@Exemple" style="width:100%;padding:12px 14px;border:1.5px solid var(--border-strong);border-radius:var(--r);font-size:14px;font-family:'Inter',sans-serif;color:var(--text-primary);background:var(--bg-secondary);outline:none">
+      <label>ID d'accès (ex: PrénomNom@Entreprise)</label>
+      <input type="text" id="activation-access-id" placeholder="JeanDupont@Exemple" style="width:100%;padding:12px 14px;border:1.5px solid var(--border-strong);border-radius:var(--r);font-size:14px;font-family:'Inter',sans-serif;color:var(--text-primary);background:var(--bg-secondary);outline:none">
     </div>
     
     <div class="sfield" style="margin-bottom:16px">

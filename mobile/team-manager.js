@@ -3,7 +3,7 @@
    Nouvelles fonctionnalités :
    1. Génération jusqu'à 10 accès membres par Manager
    2. Comptes liés automatiquement au Manager
-   3. Activation par ID (format: Prénom/Nom@Entreprise)
+   3. Activation par ID (format: PrénomNom@Entreprise)
    4. Changement obligatoire du mot de passe à la première connexion
    ═══════════════════════════════════════════════════════════ */
 
@@ -47,9 +47,20 @@ async function refreshTeamData() {
   await loadGeneratedAccesses();
 }
 
+// Flag pour éviter les chargements multiples simultanés
+var isTeamDataLoading = false;
+
 async function loadTeamData() {
   if (!user || user.role !== 'manager') return;
+  if (isTeamDataLoading) return;
+  
+  isTeamDataLoading = true;
+  var memberView = document.querySelector('#tab-team .team-view:nth-of-type(1)');
+  var teamLoadingEl = document.getElementById('team-loading');
+  
   try {
+    if (teamLoadingEl) teamLoadingEl.style.display = 'flex';
+    
     var r = await api('GET', '/api/team', null, token);
     if (!r.ok) throw new Error('Team load failed');
     var d = await r.json();
@@ -72,7 +83,13 @@ async function loadTeamData() {
     var tb = document.getElementById('team-badge');
     if (tb) { tb.textContent = pendingCount; tb.style.display = pendingCount ? '' : 'none'; }
   } catch(e) {
-    document.getElementById('team-members-view').innerHTML = '<div class="team-empty"><div class="team-empty-icon">&#x1F4E1;</div><h3>Impossible de charger</h3><p>' + e.message + '</p></div>';
+    var container = document.getElementById('team-members-view');
+    if (container) {
+      container.innerHTML = '<div class="team-empty"><div class="team-empty-icon">&#x1F4E1;</div><h3>Impossible de charger</h3><p>' + e.message + '</p></div>';
+    }
+  } finally {
+    if (teamLoadingEl) teamLoadingEl.style.display = 'none';
+    isTeamDataLoading = false;
   }
 }
 
@@ -184,7 +201,7 @@ function updateAccessPreview() {
   
   var preview = '';
   if (firstname || lastname) {
-    preview = (firstname || 'Prénom') + '/' + (lastname || 'Nom') + '@' + company;
+    preview = (firstname || 'Prénom') + (lastname || 'Nom') + '@' + company;
   } else {
     preview = '@' + company;
   }
@@ -202,7 +219,7 @@ async function submitCreateAccess() {
   }
   
   var company = user.company_name || 'Entreprise';
-  var accessId = firstname + '/' + lastname + '@' + company;
+  var accessId = firstname + lastname + '@' + company;
   
   var btn = document.getElementById('create-access-btn');
   if (btn) {
@@ -366,12 +383,21 @@ function formatDate(dateStr) {
 
 function renderTeamMembers() {
   var container = document.getElementById('team-members-view');
-  document.getElementById('team-loading').style.display = 'none';
+  if (!container) return;
+  
+  var teamLoading = document.getElementById('team-loading');
+  if (teamLoading) teamLoading.style.display = 'none';
+  
   if (!teamMembers.length) {
     container.innerHTML = '<div class="team-empty"><div class="team-empty-icon">&#x1F465;</div><h3>Aucun commercial</h3><p>Créez des accès pour votre équipe dans l\'onglet "Accès".</p></div>';
     return;
   }
-  container.innerHTML = '';
+  
+  // Vider complètement le conteneur avant de rendre
+  while (container.firstChild) {
+    container.removeChild(container.firstChild);
+  }
+  
   teamMembers.forEach(function(member) {
     var pipeline = teamMembersPipeline[member.uid] || [];
     var cntP = pipeline.filter(function(p){ return p.status === 'prospection'; }).length;
@@ -473,14 +499,18 @@ document.addEventListener('DOMContentLoaded', function() {
   window.showApp = function() {
     _baseShowApp();
     applyManagerRole();
-    if (user && user.role === 'manager') setTimeout(loadTeamData, 1000);
+    // Ne pas charger les données d'équipe automatiquement à l'ouverture de l'app
+    // Elles seront chargées seulement quand l'utilisateur navigue vers l'onglet ÉQUIPE
   };
 
   var _baseSwitchTab2 = window.switchTab2;
   window.switchTab2 = function(name) {
     _baseSwitchTab2(name);
+    // Charger les données d'équipe uniquement quand on accède à l'onglet team
     if (name === 'team' && user && user.role === 'manager') {
-      if (!teamMembers.length) loadTeamData();
+      if (!teamMembers.length) {
+        loadTeamData();
+      }
     }
   };
 });
