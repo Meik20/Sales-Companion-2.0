@@ -774,7 +774,10 @@ async function verifyAdmin(req, res, next) {
     }
     
     // Check if user is admin
-    if (!decoded.admin) {
+    // For ID tokens, admin claim is at root level: decoded.admin
+    // For custom tokens, admin claim is in decoded.claims: decoded.claims.admin
+    const isAdmin = decoded.admin === true || decoded.claims?.admin === true;
+    if (!isAdmin) {
       return res.status(403).json({ error: 'Admin access required' });
     }
     

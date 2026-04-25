@@ -75,14 +75,16 @@ app.use(
           "'self'",
           "'unsafe-inline'",
           "https://www.gstatic.com",
-          "https://apis.google.com"
+          "https://apis.google.com",
+          "https://cdn.jsdelivr.net"
         ],
 
         scriptSrcElem: [
           "'self'",
           "'unsafe-inline'",
           "https://www.gstatic.com",
-          "https://apis.google.com"
+          "https://apis.google.com",
+          "https://cdn.jsdelivr.net"
         ],
 
         scriptSrcAttr: ["'unsafe-inline'"],
