@@ -169,8 +169,7 @@ function applyManagerRole() {
   var isManager = user && user.role === 'manager';
   var navTeam = document.getElementById('nav-team');
   if (navTeam) navTeam.style.display = isManager ? 'block' : 'none';
-  var tabTeam = document.getElementById('tab-team');
-  if (tabTeam) tabTeam.style.display = isManager ? 'flex' : 'none';
+  // N'utiliser pas style.display sur tab-team - laisser le CSS gérer l'affichage via la classe 'active'
 }
 
 function switchTeamSeg(seg, el) {
@@ -182,9 +181,10 @@ function switchTeamSeg(seg, el) {
   var activityView = document.querySelector('#tab-team #team-activity-view');
   var accessView = document.querySelector('#tab-team #team-access-view');
   
-  if (memberView) memberView.style.display = seg === 'members' ? 'block' : 'none';
-  if (activityView) activityView.style.display = seg === 'activity' ? 'block' : 'none';
-  if (accessView) accessView.style.display = seg === 'access' ? 'block' : 'none';
+  // Utiliser les classes CSS au lieu de forcer style.display
+  if (memberView) memberView.classList.toggle('active', seg === 'members');
+  if (activityView) activityView.classList.toggle('active', seg === 'activity');
+  if (accessView) accessView.classList.toggle('active', seg === 'access');
   
   if (seg === 'activity') renderActivityFeed();
   if (seg === 'access') renderAccessManagement();

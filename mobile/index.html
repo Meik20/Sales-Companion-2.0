@@ -706,7 +706,8 @@ body {
 .tseg{flex:1;padding:10px 12px;background:transparent;border:none;border-radius:var(--r-sm);font-size:13px;font-weight:600;color:var(--text-tertiary);cursor:pointer;transition:all var(--duration) var(--ease);font-family:'Inter',sans-serif}
 .tseg.active{background:var(--primary);color:#fff}
 
-.team-view{padding:12px 0;overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch}
+.team-view{display:none;padding:12px 0;overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch}
+.team-view.active{display:flex;flex-direction:column}
 .team-view::-webkit-scrollbar{display:none}
 
 .team-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;text-align:center;color:var(--text-tertiary)}
@@ -1110,7 +1111,7 @@ body {
   </div>
 
   <!-- TEAM TAB (Manager Only) -->
-  <div class="tab-content" id="tab-team" style="display:none">
+  <div class="tab-content" id="tab-team">
     <div class="team-header">
       <div class="team-seg">
         <button class="tseg active" onclick="switchTeamSeg('members', this)">👥 Commerciaux</button>
@@ -1119,17 +1120,17 @@ body {
       </div>
     </div>
     
-    <div class="team-view" style="display:block">
+    <div class="team-view active" id="team-members-view-container">
       <div id="team-loading" class="loading-state" style="display:none;padding:30px 0"><div class="spinner"></div></div>
       <div id="team-members-view" style="padding:12px 0"></div>
     </div>
     
-    <div id="team-activity-view" class="team-view" style="display:none">
+    <div id="team-activity-view" class="team-view">
       <div id="activity-loading" class="loading-state" style="display:none;padding:30px 0"><div class="spinner"></div></div>
       <div style="padding:12px 0" id="team-activity-content"></div>
     </div>
     
-    <div id="team-access-view" class="team-view" style="display:none;padding:12px 0"></div>
+    <div id="team-access-view" class="team-view" style="padding:12px 0"></div>
   </div>
 </div>
 
