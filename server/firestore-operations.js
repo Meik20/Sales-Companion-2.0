@@ -902,16 +902,21 @@ async function getTeamAccesses(managerId, limit = 100) {
  */
 async function revokeTeamAccess(accessId) {
   try {
-    const ref = db.collection('team_accesses').doc(accessId);
-    const doc = await ref.get();
-    if (!doc.exists) throw new Error('Access not found');
-
+    // Trouver l'accès par access_id (pas par doc ID)
+    const snapshot = await db.collection('team_accesses')
+      .where('access_id', '==', accessId)
+      .limit(1)
+      .get();
+    
+    if (snapshot.empty) throw new Error('Access not found');
+    
+    const ref = db.collection('team_accesses').doc(snapshot.docs[0].id);
     await ref.update({
       status: 'revoked',
       revoked_at: new Date().toISOString(),
     });
 
-    return { id: accessId, status: 'revoked' };
+    return { access_id: accessId, status: 'revoked' };
   } catch (error) {
     console.error('Error revoking team access:', error.message);
     throw error;
@@ -931,12 +936,18 @@ async function activateTeamAccess(accessId, newPassword) {
       throw new Error('Password must be at least 8 characters');
     }
 
-    // Récupérer l'accès
-    const accessRef = db.collection('team_accesses').doc(accessId);
-    const accessDoc = await accessRef.get();
-    if (!accessDoc.exists) throw new Error('Access ID not found');
-
+    // Trouver l'accès par access_id (pas par doc ID)
+    const snapshot = await db.collection('team_accesses')
+      .where('access_id', '==', accessId)
+      .limit(1)
+      .get();
+    
+    if (snapshot.empty) throw new Error('Access ID not found');
+    
+    const accessDoc = snapshot.docs[0];
+    const accessRef = db.collection('team_accesses').doc(accessDoc.id);
     const access = accessDoc.data();
+    
     if (access.status !== 'pending') {
       throw new Error('Access is not available for activation');
     }

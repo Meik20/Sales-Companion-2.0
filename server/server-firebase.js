@@ -1223,6 +1223,66 @@ app.put('/api/assignments/:id', verifyToken, async (req, res) => {
   } catch (error) { return safeError(res, 500, 'Impossible de mettre à jour l\'assignation', error); }
 });
 
+// ══════════════════════════════════════════════════════════════
+// TEAM ACCESS ROUTES
+// ══════════════════════════════════════════════════════════════
+
+// GET team accesses for manager
+app.get('/api/team/accesses', verifyToken, async (req, res) => {
+  try {
+    if (!req.user || req.user.role !== 'manager') {
+      return res.status(403).json({ error: 'Only managers can access team accesses' });
+    }
+    const accesses = await getTeamAccesses(req.userId, req.query.limit || 100);
+    res.json({ data: accesses });
+  } catch (error) { return safeError(res, 500, 'Impossible de charger les accès', error); }
+});
+
+// CREATE team access
+app.post('/api/team/accesses', verifyToken, async (req, res) => {
+  try {
+    if (!req.user || req.user.role !== 'manager') {
+      return res.status(403).json({ error: 'Only managers can create team accesses' });
+    }
+    const { member_name, access_id, company } = req.body;
+    if (!member_name || !access_id || !company) {
+      return res.status(400).json({ error: 'member_name, access_id, and company are required' });
+    }
+    const accessData = {
+      access_id,
+      member_name,
+      company,
+      status: 'pending',
+      created_at: new Date().toISOString(),
+    };
+    const result = await createTeamAccess(req.userId, accessData);
+    res.json({ data: result });
+  } catch (error) { return safeError(res, 500, 'Impossible de créer l\'accès', error); }
+});
+
+// REVOKE team access
+app.put('/api/team/accesses/:id', verifyToken, async (req, res) => {
+  try {
+    if (!req.user || req.user.role !== 'manager') {
+      return res.status(403).json({ error: 'Only managers can revoke accesses' });
+    }
+    const revoked = await revokeTeamAccess(req.params.id);
+    res.json({ data: revoked });
+  } catch (error) { return safeError(res, 500, 'Impossible de révoquer l\'accès', error); }
+});
+
+// ACTIVATE member access (public - no token required)
+app.post('/api/auth/activate-member', authLimiter, async (req, res) => {
+  try {
+    const { access_id, new_password } = req.body;
+    if (!access_id || !new_password) {
+      return res.status(400).json({ error: 'access_id and new_password are required' });
+    }
+    const result = await activateTeamAccess(access_id, new_password);
+    res.json({ data: result });
+  } catch (error) { return safeError(res, 500, 'Impossible d\'activer l\'accès', error); }
+});
+
 app.post('/api/config', verifyToken, async (req, res) => {
   try {
     const { key, value } = req.body;

@@ -3,7 +3,7 @@
    Nouvelles fonctionnalités :
    1. Génération jusqu'à 10 accès membres par Manager
    2. Comptes liés automatiquement au Manager
-   3. Activation par ID (format: Prénom/Nom@Entreprise)
+   3. Activation par ID (format: PrénomNom@Entreprise)
    4. Changement obligatoire du mot de passe à la première connexion
    ═══════════════════════════════════════════════════════════ */
 
@@ -354,47 +354,19 @@ function openCreateAccessSheet() {
   openSheet('create-access-sheet');
 }
 
-function updateAccessPreview() {
-  var firstname = document.getElementById('new-access-firstname').value.trim();
-  var lastname = document.getElementById('new-access-lastname').value.trim();
-  var company = user.company_name || 'Entreprise';
-  
-  var preview = '';
-  if (firstname || lastname) {
-    preview = (firstname || 'Prénom') + (lastname || 'Nom') + '@' + company;
-  } else {
-    preview = '@' + company;
-  }
-  
-  document.getElementById('new-access-preview').textContent = preview;
-}
 
-function updateAccessPreview() {
-  var firstname = document.getElementById('new-access-firstname').value.trim();
-  var lastname = document.getElementById('new-access-lastname').value.trim();
-  var company = user.company_name || 'Entreprise';
-  
-  var preview = '';
-  if (firstname || lastname) {
-    preview = (firstname || 'Prénom') + '/' + (lastname || 'Nom') + '@' + company;
-  } else {
-    preview = '@' + company;
-  }
-  
-  document.getElementById('new-access-preview').textContent = preview;
-}
 
 async function submitCreateAccess() {
   var firstname = document.getElementById('new-access-firstname').value.trim();
   var lastname = document.getElementById('new-access-lastname').value.trim();
+  var company = document.getElementById('new-access-company').value.trim();
   
-  if (!firstname || !lastname) {
-    toast('Veuillez renseigner le prénom et le nom');
+  if (!firstname || !lastname || !company) {
+    toast('Veuillez renseigner le prénom, le nom et l\'entreprise');
     return;
   }
   
-  var company = user.company_name || 'Entreprise';
-  var accessId = firstname + '/' + lastname + '@' + company;
+  var accessId = firstname + lastname + '@' + company;
   
   var btn = document.getElementById('create-access-btn');
   if (btn) {
@@ -406,8 +378,7 @@ async function submitCreateAccess() {
     var r = await api('POST', '/api/team/accesses', {
       member_name: firstname + ' ' + lastname,
       access_id: accessId,
-      manager_uid: user.uid,
-      company_name: company
+      company: company
     }, token);
     
     if (!r.ok) {
@@ -417,6 +388,11 @@ async function submitCreateAccess() {
     
     var data = await r.json();
     toast('✅ Accès créé avec succès');
+    
+    // Réinitialiser le formulaire
+    document.getElementById('new-access-firstname').value = '';
+    document.getElementById('new-access-lastname').value = '';
+    document.getElementById('new-access-company').value = '';
     
     closeSheet('create-access-sheet');
     await loadGeneratedAccesses();
@@ -434,6 +410,15 @@ async function submitCreateAccess() {
       btn.textContent = 'Créer l\'accès';
     }
   }
+}
+
+function updateAccessPreview() {
+  var firstname = document.getElementById('new-access-firstname').value.trim();
+  var lastname = document.getElementById('new-access-lastname').value.trim();
+  var company = document.getElementById('new-access-company').value.trim() || 'Entreprise';
+  var preview = (firstname && lastname) ? (firstname + lastname + '@' + company) : ('@' + company);
+  var previewEl = document.getElementById('new-access-preview');
+  if (previewEl) previewEl.textContent = preview;
 }
 
 async function copyAccessId(accessId) {
