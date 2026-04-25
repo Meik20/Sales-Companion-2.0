@@ -113,6 +113,7 @@ app.use(
           "https://*.google.com",
           "https://identitytoolkit.googleapis.com",
           "https://www.gstatic.com",
+          "https://cdn.jsdelivr.net"
         ],
 
         frameSrc: ["https://*.firebaseapp.com"],
