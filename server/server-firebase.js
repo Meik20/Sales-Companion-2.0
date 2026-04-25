@@ -473,7 +473,7 @@ app.get('/admin/stats', verifyAdmin, async (req, res) => {
   const startTime = Date.now();
 
   const safeCount = async (query) => {
-    try { return (await query.count().get()).data().count; } catch(_) { return 0; }
+    try { return (await query.get()).size; } catch(_) { return 0; }
   };
   const safeDocs = async (query) => {
     try { return (await query.get()).docs.map(d => d.data()); } catch(_) { return []; }
@@ -602,6 +602,10 @@ app.post('/admin/import', verifyAdmin, upload.single('file'), async (req, res) =
 
     const result = await importCompaniesBatch(companies);
     cleanup();
+    
+    // ✅ INVALIDATE CACHE after import so dashboard updates immediately
+    cache.delete('admin:stats');
+    
     // Enregistrer un journal d'import pour l'historique admin
     try {
       const { getFirestore } = require('firebase-admin/firestore');
@@ -695,6 +699,8 @@ app.delete('/admin/companies/all', verifyAdmin, async (req, res) => {
       await batch.commit();
       deleted += chunk.length;
     }
+    // ✅ INVALIDATE CACHE after deletion
+    cache.delete('admin:stats');
     res.json({ success: true, deleted });
   } catch (error) {
     return safeError(res, 500, 'Erreur suppression totale', error);
@@ -705,6 +711,8 @@ app.delete('/admin/companies/:id', verifyAdmin, async (req, res) => {
   try {
     const { getFirestore } = require('firebase-admin/firestore');
     await getFirestore().collection('companies').doc(req.params.id).delete();
+    // ✅ INVALIDATE CACHE after deletion
+    cache.delete('admin:stats');
     res.json({ success: true });
   } catch (error) {
     return safeError(res, 500, 'Erreur suppression', error);
@@ -731,6 +739,8 @@ app.post('/admin/users/:uid/plan', verifyAdmin, async (req, res) => {
     const { plan } = req.body;
     if (!plan) return res.status(400).json({ error: 'Plan required' });
     await updateUserPlan(req.params.uid, plan);
+    // ✅ INVALIDATE CACHE after update
+    cache.delete('admin:stats');
     res.json({ message: `User plan updated to ${plan}` });
   } catch (error) {
     return safeError(res, 500, 'Erreur de mise à jour du plan', error);
@@ -745,6 +755,8 @@ app.post('/admin/users/:uid/toggle', verifyAdmin, async (req, res) => {
     if (!snap.exists) return res.status(404).json({ error: 'Utilisateur non trouvé' });
     const active = !snap.data().active;
     await ref.update({ active });
+    // ✅ INVALIDATE CACHE after update
+    cache.delete('admin:stats');
     res.json({ success: true, active });
   } catch (error) {
     return safeError(res, 500, 'Erreur toggle utilisateur', error);
@@ -758,6 +770,8 @@ app.delete('/admin/users/:uid', verifyAdmin, async (req, res) => {
       auth.deleteUser(req.params.uid).catch(() => {}),
       getFirestore().collection('users').doc(req.params.uid).delete(),
     ]);
+    // ✅ INVALIDATE CACHE after deletion
+    cache.delete('admin:stats');
     res.json({ success: true });
   } catch (error) {
     return safeError(res, 500, 'Erreur suppression utilisateur', error);
