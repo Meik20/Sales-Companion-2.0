@@ -120,10 +120,14 @@ async function api(method, endpoint, data, token) {
 
 /* LOGIN / ACTIVATION */
 function switchToActivationFlow() {
+  var authScreen = document.getElementById('auth-screen');
   var loginForm = document.getElementById('login-form');
+  var registerForm = document.getElementById('register-form');
   var activationForm = document.getElementById('activation-form');
 
+  if (authScreen) authScreen.style.display = 'flex';
   if (loginForm) loginForm.style.display = 'none';
+  if (registerForm) registerForm.style.display = 'none';
   if (activationForm) activationForm.style.display = 'flex';
 
   var accessIdEl = document.getElementById('activation-access-id');
@@ -132,18 +136,24 @@ function switchToActivationFlow() {
 
   if (accessIdEl) {
     accessIdEl.value = '';
-    accessIdEl.focus();
+    setTimeout(function () {
+      accessIdEl.focus();
+    }, 50);
   }
   if (passwordEl) passwordEl.value = '';
   if (confirmPasswordEl) confirmPasswordEl.value = '';
 }
 
 function backToLoginForm() {
+  var authScreen = document.getElementById('auth-screen');
   var loginForm = document.getElementById('login-form');
+  var registerForm = document.getElementById('register-form');
   var activationForm = document.getElementById('activation-form');
 
-  if (loginForm) loginForm.style.display = 'block';
+  if (authScreen) authScreen.style.display = 'flex';
   if (activationForm) activationForm.style.display = 'none';
+  if (registerForm) registerForm.style.display = 'none';
+  if (loginForm) loginForm.style.display = 'block';
 
   var accessIdEl = document.getElementById('activation-access-id');
   var passwordEl = document.getElementById('activation-new-password');
@@ -192,7 +202,7 @@ async function activateMemberAccess() {
   } finally {
     if (btn) {
       btn.disabled = false;
-      btn.textContent = 'Activer mon compte →';
+      btn.textContent = 'Activer mon compte';
     }
   }
 }
@@ -215,7 +225,8 @@ function ensureMobileTeamTab() {
   var existing =
     document.getElementById('nav-team-mobile') ||
     document.querySelector('[data-tab="team"]') ||
-    document.querySelector('[data-nav="team"]');
+    document.querySelector('[data-nav="team"]') ||
+    document.getElementById('nav-team');
 
   if (existing) {
     existing.style.display = '';
@@ -228,30 +239,21 @@ function ensureMobileTeamTab() {
   var btn = document.createElement('button');
   btn.id = 'nav-team-mobile';
   btn.type = 'button';
-  btn.className = 'mobile-nav-item';
+  btn.className = 'nav-btn';
   btn.setAttribute('data-tab', 'team');
   btn.innerHTML =
-    '<span class="mobile-nav-icon">👥</span>' +
-    '<span class="mobile-nav-label">Équipe</span>';
+    '<div class="nav-bar"></div>' +
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>' +
+    '<span>Équipe</span>' +
+    '<span class="nav-badge" id="team-badge-mobile" style="display:none">0</span>';
 
   btn.addEventListener('click', function () {
-    if (typeof window.switchTab === 'function') {
-      window.switchTab('team');
+    if (typeof window.switchTab2 === 'function') {
+      window.switchTab2('team');
+    } else {
+      var tabTeam = document.getElementById('tab-team');
+      if (tabTeam) tabTeam.classList.add('active');
     }
-
-    var tabTeam = document.getElementById('tab-team');
-    if (tabTeam) tabTeam.style.display = '';
-
-    var allTabs = document.querySelectorAll('.tab-content');
-    allTabs.forEach(function (el) {
-      if (el.id === 'tab-team') {
-        el.classList.add('active');
-        el.style.display = '';
-      } else {
-        el.classList.remove('active');
-      }
-    });
-
     refreshTeamData();
   });
 
@@ -263,7 +265,8 @@ function setManagerMobileUI(isManager) {
   var mobileTeamBtn =
     document.getElementById('nav-team-mobile') ||
     document.querySelector('[data-tab="team"]') ||
-    document.querySelector('[data-nav="team"]');
+    document.querySelector('[data-nav="team"]') ||
+    document.getElementById('nav-team');
 
   if (isManager) {
     mobileTeamBtn = ensureMobileTeamTab();
@@ -726,6 +729,9 @@ function renderActivityFeed() {
 
 /* MONKEY PATCH / GLOBAL BRIDGE */
 function patchMobileFunctions() {
+  window.switchToActivationFlow = switchToActivationFlow;
+  window.backToLoginForm = backToLoginForm;
+  window.activateMemberAccess = activateMemberAccess;
   window.applyManagerRole = applyManagerRole;
   window.applyManagerRoleDesktop = applyManagerRoleDesktop;
   window.refreshTeamData = refreshTeamData;

@@ -2101,7 +2101,7 @@ async function doRegister() {
       throw new Error('Tous les champs requis (mot de passe min 6 caracteres)');
     }
 
-    var accountType = document.getElementById('r-account-type').value;
+    var accountType = (document.getElementById('r-account-type').value || '').toLowerCase().trim();
     var companyEl = document.getElementById('r-company');
     var companyId = companyEl ? companyEl.value.trim() : null;
 
@@ -2128,6 +2128,9 @@ async function doRegister() {
     var userDoc = await db.collection('users').doc(cred.user.uid).get();
     user = { uid: userDoc.id, ...userDoc.data() };
 
+    console.log('REGISTER USER DATA:', user);
+    console.log('REGISTER ROLE:', user.role);
+
     localStorage.setItem('sc_token', token);
     syncGlobalAuthState();
     showApp();
@@ -2146,10 +2149,17 @@ async function doRegister() {
 }
 
 function showAuth() {
-  document.getElementById('auth-screen').style.display = 'flex';
-  document.getElementById('topbar').style.display = 'none';
-  document.getElementById('content').style.display = 'none';
-  document.getElementById('bottom-nav').style.display = 'none';
+  var authScreen = document.getElementById('auth-screen');
+  var activationForm = document.getElementById('activation-form');
+  var topbar = document.getElementById('topbar');
+  var content = document.getElementById('content');
+  var bottomNav = document.getElementById('bottom-nav');
+
+  if (authScreen) authScreen.style.display = 'flex';
+  if (activationForm) activationForm.style.display = 'none';
+  if (topbar) topbar.style.display = 'none';
+  if (content) content.style.display = 'none';
+  if (bottomNav) bottomNav.style.display = 'none';
 }
 
 function updateTopbar() {
@@ -2180,13 +2190,28 @@ function updateSidebar() {
 }
 
 function showApp() {
-  document.getElementById('auth-screen').style.display = 'none';
-  document.getElementById('topbar').style.display = 'flex';
-  document.getElementById('content').style.display = 'flex';
-  document.getElementById('bottom-nav').style.display = 'flex';
-  updateTopbar(); updateSidebar(); loadPipeline(); loadSaved();
+  var authScreen = document.getElementById('auth-screen');
+  var activationForm = document.getElementById('activation-form');
+  var topbar = document.getElementById('topbar');
+  var content = document.getElementById('content');
+  var bottomNav = document.getElementById('bottom-nav');
+
+  if (authScreen) authScreen.style.display = 'none';
+  if (activationForm) activationForm.style.display = 'none';
+  if (topbar) topbar.style.display = 'flex';
+  if (content) content.style.display = 'flex';
+  if (bottomNav) bottomNav.style.display = 'flex';
+
+  updateTopbar();
+  updateSidebar();
+  loadPipeline();
+  loadSaved();
+
   var mbtn = document.getElementById('manager-assign-btn-m');
-  if (mbtn) mbtn.style.display = (window.user && window.user.role === 'manager') ? 'block' : 'none';
+  if (mbtn) {
+    mbtn.style.display = (window.user && String(window.user.role || '').toLowerCase().trim() === 'manager') ? 'block' : 'none';
+  }
+
   if (navigator.onLine) syncOfflineQueue();
   if (typeof applyManagerRole !== 'undefined') applyManagerRole();
 }
