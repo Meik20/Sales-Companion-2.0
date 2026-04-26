@@ -1439,36 +1439,44 @@ body {
 </div>
 
 <!-- ACTIVATION FORM (Member First Login) -->
-<button type="button" class="a-btn" style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);margin-top:12px" onclick="window.switchToActivationFlow && window.switchToActivationFlow()">🔑 Accès Entreprise</button>
-  <div style="width:100%;max-width:360px;background:var(--bg-card);border-radius:20px;padding:30px;box-shadow:var(--shadow-lg)">
-    <div style="text-align:center;margin-bottom:30px">
-      <div style="font-size:48px;margin-bottom:12px">🔑</div>
-      <h1 style="font-size:20px;font-weight:700;color:var(--text-primary);margin-bottom:8px">Activation du compte</h1>
-      <p style="font-size:13px;color:var(--text-secondary)">Complétez l'activation de votre accès</p>
-    </div>
-    
-    <div class="sfield" style="margin-bottom:16px">
-      <label>ID d'accès (ex: PrénomNom@Entreprise)</label>
-      <input type="text" id="activation-access-id" placeholder="JeanDupont@Exemple" style="width:100%;padding:12px 14px;border:1.5px solid var(--border-strong);border-radius:var(--r);font-size:14px;font-family:'Inter',sans-serif;color:var(--text-primary);background:var(--bg-secondary);outline:none">
-    </div>
-    
-    <div class="sfield" style="margin-bottom:16px">
-      <label>Nouveau mot de passe (min. 8 caractères)</label>
-      <input type="password" id="activation-new-password" placeholder="••••••••" style="width:100%;padding:12px 14px;border:1.5px solid var(--border-strong);border-radius:var(--r);font-size:14px;font-family:'Inter',sans-serif;color:var(--text-primary);background:var(--bg-secondary);outline:none">
-    </div>
-    
-    <div class="sfield" style="margin-bottom:20px">
-      <label>Confirmer le mot de passe</label>
-      <input type="password" id="activation-confirm-password" placeholder="••••••••" style="width:100%;padding:12px 14px;border:1.5px solid var(--border-strong);border-radius:var(--r);font-size:14px;font-family:'Inter',sans-serif;color:var(--text-primary);background:var(--bg-secondary);outline:none">
-    </div>
-    
-<button type="button" class="a-btn" id="activate-access-btn" onclick="window.activateMemberAccess && window.activateMemberAccess()">Activer mon compte</button>
-<button type="button" class="sheet-btn secondary" style="margin-top:10px" onclick="window.backToLoginForm && window.backToLoginForm()">Retour à la connexion</button>
+
+<!-- ACTIVATION FORM (Member First Login) -->
+<div id="activation-form" style="display:none;width:100%;max-width:360px;margin:0 auto;background:var(--bg-card);border-radius:20px;padding:30px;box-shadow:var(--shadow-lg)">
+  <div style="text-align:center;margin-bottom:30px">
+    <div style="font-size:48px;margin-bottom:12px">🔑</div>
+    <h1 style="font-size:20px;font-weight:700;color:var(--text-primary);margin-bottom:8px">Activation du compte</h1>
+    <p style="font-size:13px;color:var(--text-secondary)">Complétez l'activation de votre accès</p>
   </div>
+  <div class="sfield" style="margin-bottom:16px">
+    <label>ID d'accès (ex: PrénomNom@Entreprise)</label>
+    <input type="text" id="activation-access-id" placeholder="JeanDupont@Exemple" style="width:100%;padding:12px 14px;border:1.5px solid var(--border-strong);border-radius:var(--r);font-size:14px;font-family:'Inter',sans-serif;color:var(--text-primary);background:var(--bg-secondary);outline:none">
+  </div>
+  <div class="sfield" style="margin-bottom:16px">
+    <label>Nouveau mot de passe (min. 8 caractères)</label>
+    <input type="password" id="activation-new-password" placeholder="••••••••" style="width:100%;padding:12px 14px;border:1.5px solid var(--border-strong);border-radius:var(--r);font-size:14px;font-family:'Inter',sans-serif;color:var(--text-primary);background:var(--bg-secondary);outline:none">
+  </div>
+  <div class="sfield" style="margin-bottom:20px">
+    <label>Confirmer le mot de passe</label>
+    <input type="password" id="activation-confirm-password" placeholder="••••••••" style="width:100%;padding:12px 14px;border:1.5px solid var(--border-strong);border-radius:var(--r);font-size:14px;font-family:'Inter',sans-serif;color:var(--text-primary);background:var(--bg-secondary);outline:none">
+  </div>
+  <button type="button" class="a-btn" id="activate-access-btn" onclick="window.TeamManagerMobile && window.TeamManagerMobile.activateMemberAccess && window.TeamManagerMobile.activateMemberAccess()">Activer mon compte</button>
+  <button type="button" class="sheet-btn secondary" style="margin-top:10px" onclick="window.backToLoginForm && window.backToLoginForm()">Retour à la connexion</button>
 </div>
 
 <div class="toast" id="toast"></div>
+
 <script>
+// --- GLOBAL API FUNCTION (for inline scripts) ---
+function api(method, url, data, token) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  return fetch((url.startsWith('http') ? url : API_ENDPOINT + url), {
+    method: method,
+    headers,
+    body: method === 'GET' ? undefined : JSON.stringify(data)
+  });
+}
+
 let firebaseConfig = null;
 let firebaseApp, auth, db;
 
@@ -1553,7 +1561,6 @@ var REGION_CITIES = {
 };
 
 var token = localStorage.getItem('sc_token') || '';
-var token = localStorage.getItem('sc_token') || '';
 var user = null, chatHistory = [], pipelineData = [], pipelineCompanies = {}, lastResults = [], lastProspectResults = [], lastFilters = {}, lastQuery = '';
 var selectedForAssignMobile = new Set();
 var isSearching = false, isChatting = false, currentPipTab = 'prospection';
@@ -1572,48 +1579,7 @@ function syncGlobalAuthState() {
   window.token = token || '';
 }
 
-async function checkAuthMe() {
-  try {
-    if (!auth || !auth.currentUser) return false;
-
-    const fresh = await auth.currentUser.getIdToken(true);
-    if (!fresh) return false;
-
-    token = fresh;
-    localStorage.setItem('sc_token', token);
-
-    const r = await api('GET', '/auth/me', null, token);
-    if (!r || !r.ok) {
-      if (r && r.status === 401) {
-        localStorage.removeItem('sc_token');
-        token = '';
-        user = null;
-        syncGlobalAuthState();
-      }
-      return false;
-    }
-
-    const me = await r.json();
-    window.user = me.user || me || {};
-    if (!window.user.uid && auth.currentUser) {
-      window.user.uid = auth.currentUser.uid;
-    }
-    if (!window.user.email && auth.currentUser) {
-      window.user.email = auth.currentUser.email || '';
-    }
-    syncGlobalAuthState();
-    updateTopbar();
-    updateSidebar();
-    showApp();
-    if (window.TeamManagerMobile && typeof window.TeamManagerMobile.applyManagerRole === 'function') {
-      window.TeamManagerMobile.applyManagerRole();
-    }
-
-    return true;
-  } catch (e) {
-    return false;
-  }
-}
+// --- REMOVE DUPLICATE checkAuthMe (keep only one, harmonized below) ---
 var OFFLINE_QUEUE_KEY = 'sc_offline_queue';
 var OFFLINE_SEARCH_KEY = 'sc_offline_search';
 
@@ -1942,13 +1908,10 @@ async function checkCachedToken() {
 async function checkAuthMe() {
   try {
     if (!auth || !auth.currentUser) return false;
-
     const fresh = await auth.currentUser.getIdToken(true);
     if (!fresh) return false;
-
     token = fresh;
     localStorage.setItem('sc_token', token);
-
     const r = await api('GET', '/auth/me', null, token);
     if (!r || !r.ok) {
       if (r && r.status === 401) {
@@ -1959,26 +1922,21 @@ async function checkAuthMe() {
       }
       return false;
     }
-
     const me = await r.json();
     user = me.user || me || {};
-
     if (!user.uid && auth.currentUser) {
       user.uid = auth.currentUser.uid;
     }
     if (!user.email && auth.currentUser) {
       user.email = auth.currentUser.email || '';
     }
-
     syncGlobalAuthState();
     updateTopbar();
     updateSidebar();
     showApp();
-
     if (window.TeamManagerMobile && typeof window.TeamManagerMobile.applyManagerRole === 'function') {
       window.TeamManagerMobile.applyManagerRole();
     }
-
     return true;
   } catch (e) {
     return false;
