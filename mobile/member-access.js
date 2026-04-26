@@ -1,7 +1,13 @@
 /**
- * member-access.js — Sales Companion
+ * member-access.js — Sales Companion v2
  * Script classique (non-ESM), Firebase compat uniquement.
- * Toutes les fonctions sont exposées sur window.MemberAccessManager.
+ *
+ * CORRECTIONS :
+ *  - Activation : collecte email + password + confirm
+ *    → POST /api/team/activate (Railway crée le compte Firebase Auth)
+ *    → team_accesses/{accessId} mis à jour : { status:'active', firebaseUid, email, activatedAt }
+ *  - Création accès : structure Firestore enrichie (firebaseUid:null, email:null, managerEmail)
+ *  - Le manager n'apparaît jamais dans team_accesses (il est dans users)
  */
 
 (function () {
@@ -28,58 +34,74 @@
     return first + last + '@' + comp;
   }
 
-  function normalizeTextAccessId(accessId) {
+  function normalizeAccessId(accessId) {
     if (!accessId) return '';
-    var parts = accessId.split('@');
-    if (parts.length !== 2) return accessId.trim().toLowerCase();
-    return normalizeText(parts[0]) + '@' + normalizeText(parts[1]);
+    var s = accessId.trim();
+    var at = s.indexOf('@');
+    if (at < 0) return normalizeText(s);
+    return normalizeText(s.slice(0, at)) + '@' + normalizeText(s.slice(at + 1));
   }
 
-  function showToast(message) {
-    if (typeof window.toast === 'function') {
-      window.toast(message);
-    } else {
-      var el = document.getElementById('toast');
-      if (!el) return;
-      el.textContent = message;
-      el.className = 'toast show';
-      clearTimeout(showToast._t);
-      showToast._t = setTimeout(function () { el.className = 'toast'; }, 3000);
-    }
+  function getRailwayBase() {
+    if (typeof RAILWAY_SERVER !== 'undefined' && RAILWAY_SERVER) return RAILWAY_SERVER;
+    if (typeof API_ENDPOINT   !== 'undefined' && API_ENDPOINT)   return API_ENDPOINT;
+    return '';
   }
 
-  /* =========================================================
-     APERCU DYNAMIQUE (formulaire manager)
-  ========================================================= */
-
-  function updateAccessPreview() {
-    var firstname = (document.getElementById('new-access-firstname') || {}).value || '';
-    var lastname  = (document.getElementById('new-access-lastname')  || {}).value || '';
-    var company   = (document.getElementById('new-access-company')   || {}).value || 'Entreprise';
-    var preview   = document.getElementById('new-access-preview');
-    if (!preview) return;
-    if (!firstname && !lastname) {
-      preview.textContent = '@' + (normalizeText(company) || 'entreprise');
-    } else {
-      preview.textContent = buildAccessId(firstname, lastname, company);
-    }
+  function showToast(msg) {
+    if (typeof window.toast === 'function') { window.toast(msg); return; }
+    var el = document.getElementById('toast');
+    if (!el) return;
+    el.textContent = msg;
+    el.className   = 'toast show';
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(function () { el.className = 'toast'; }, 3500);
   }
 
   /* =========================================================
-     HELPERS FIRESTORE (compat)
+     HELPERS FIREBASE COMPAT
   ========================================================= */
 
   function getDb() {
-    return window._db || (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length ? firebase.firestore() : null);
+    if (window._db) return window._db;
+    try { return firebase.apps.length ? firebase.firestore() : null; } catch (e) { return null; }
+  }
+
+  function getServerTimestamp() {
+    try { return firebase.firestore.FieldValue.serverTimestamp(); } catch (e) { return new Date().toISOString(); }
   }
 
   function getCurrentManagerUid() {
-    var auth = window._auth || (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length ? firebase.auth() : null);
-    return auth && auth.currentUser ? auth.currentUser.uid : null;
+    if (window.user && window.user.uid) return window.user.uid;
+    try {
+      var u = firebase.auth().currentUser;
+      return u ? u.uid : null;
+    } catch (e) { return null; }
+  }
+
+  function getCurrentManagerEmail() {
+    if (window.user && window.user.email) return window.user.email;
+    try {
+      var u = firebase.auth().currentUser;
+      return u ? (u.email || '') : '';
+    } catch (e) { return ''; }
   }
 
   /* =========================================================
-     COMPTER LES ACCES DU MANAGER
+     APERÇU DYNAMIQUE (formulaire manager)
+  ========================================================= */
+
+  function updateAccessPreview() {
+    var fn = ((document.getElementById('new-access-firstname') || {}).value || '').trim();
+    var ln = ((document.getElementById('new-access-lastname')  || {}).value || '').trim();
+    var co = ((document.getElementById('new-access-company')   || {}).value || 'Entreprise').trim();
+    var el = document.getElementById('new-access-preview');
+    if (!el) return;
+    el.textContent = (fn || ln) ? buildAccessId(fn, ln, co) : '@' + (normalizeText(co) || 'entreprise');
+  }
+
+  /* =========================================================
+     COMPTER LES ACCÈS ACTIFS/EN ATTENTE DU MANAGER
   ========================================================= */
 
   async function countManagerAccesses(managerUid) {
@@ -87,12 +109,29 @@
     if (!db) return 0;
     var snap = await db.collection('team_accesses')
       .where('createdBy', '==', managerUid)
+      .where('status', 'in', ['pending', 'active'])
       .get();
     return snap.size;
   }
 
   /* =========================================================
-     CREATION D'UN ACCES MEMBRE
+     CRÉATION D'UN ACCÈS MEMBRE (par le manager)
+
+     Document Firestore créé : team_accesses/{accessId}
+     {
+       accessId       : string   — identifiant unique (ex: jeanduront@orange)
+       firstname      : string
+       lastname       : string
+       company        : string
+       role           : 'member'
+       status         : 'pending'   → 'active' après activation, 'revoked' si révoqué
+       activated      : false        → true après activation
+       firebaseUid    : null         → UID Firebase Auth créé lors de l'activation
+       email          : null         → email choisi par le membre lors de l'activation
+       createdBy      : string       — UID Firebase Auth du manager
+       managerEmail   : string       — email du manager
+       createdAt      : Timestamp
+     }
   ========================================================= */
 
   async function createMemberAccess() {
@@ -102,59 +141,55 @@
     var managerUid = getCurrentManagerUid();
     if (!managerUid) { showToast('Vous devez être connecté en tant que manager.'); return false; }
 
-    var firstname = ((document.getElementById('new-access-firstname') || {}).value || '').trim();
-    var lastname  = ((document.getElementById('new-access-lastname')  || {}).value || '').trim();
-    var company   = ((document.getElementById('new-access-company')   || {}).value || '').trim();
+    var fn = ((document.getElementById('new-access-firstname') || {}).value || '').trim();
+    var ln = ((document.getElementById('new-access-lastname')  || {}).value || '').trim();
+    var co = ((document.getElementById('new-access-company')   || {}).value || '').trim();
 
-    if (!firstname || !lastname || !company) {
-      showToast('Veuillez remplir prénom, nom et entreprise.');
-      return false;
-    }
+    if (!fn || !ln || !co) { showToast('Prénom, nom et entreprise requis.'); return false; }
 
-    var accessId = buildAccessId(firstname, lastname, company);
-    if (!accessId || accessId === '@entreprise') {
-      showToast('Impossible de générer un identifiant valide.');
-      return false;
-    }
+    var accessId = buildAccessId(fn, ln, co);
+    if (!accessId || accessId === '@entreprise') { showToast('Identifiant invalide.'); return false; }
 
     var btn = document.getElementById('create-access-btn');
     if (btn) { btn.disabled = true; btn.textContent = 'Création...'; }
 
     try {
       var count = await countManagerAccesses(managerUid);
-      if (count >= 10) { showToast('Limite de 10 accès atteinte.'); return false; }
+      if (count >= 10) { showToast('Limite de 10 accès actifs/en attente atteinte.'); return false; }
 
       var ref = db.collection('team_accesses').doc(accessId);
-      var existing = await ref.get();
-      if (existing.exists) { showToast('Cet identifiant existe déjà.'); return false; }
+      if ((await ref.get()).exists) {
+        showToast("Cet identifiant existe déjà. Modifiez le nom ou l'entreprise.");
+        return false;
+      }
 
       await ref.set({
-        accessId:          accessId,
-        firstname:         firstname,
-        lastname:          lastname,
-        company:           company,
-        role:              'member',
-        status:            'pending',
-        activated:         false,
-        passwordSet:       false,
-        mustChangePassword:true,
-        createdBy:         managerUid,
-        createdAt:         firebase.firestore.FieldValue.serverTimestamp()
+        accessId:     accessId,
+        firstname:    fn,
+        lastname:     ln,
+        company:      co,
+        role:         'member',
+        status:       'pending',
+        activated:    false,
+        firebaseUid:  null,
+        email:        null,
+        createdBy:    managerUid,
+        managerEmail: getCurrentManagerEmail(),
+        createdAt:    getServerTimestamp()
       });
 
       showToast('✅ Accès créé : ' + accessId);
       clearCreateAccessForm();
-
       if (typeof window.closeSheet === 'function') window.closeSheet('create-access-sheet');
-      if (window.TeamManagerMobile && typeof window.TeamManagerMobile.loadGeneratedAccesses === 'function') {
+      if (window.TeamManagerMobile) {
         await window.TeamManagerMobile.loadGeneratedAccesses();
         window.TeamManagerMobile.renderAccessManagement();
       }
       return true;
 
     } catch (e) {
-      console.error('createMemberAccess:', e);
-      showToast('Erreur lors de la création : ' + e.message);
+      console.error('[createMemberAccess]', e);
+      showToast('Erreur création : ' + e.message);
       return false;
     } finally {
       if (btn) { btn.disabled = false; btn.textContent = "Créer l'accès"; }
@@ -163,82 +198,97 @@
 
   /* =========================================================
      ACTIVATION DU COMPTE MEMBRE
+
+     Flux complet :
+     1. Membre saisit : accessId + email + password + confirm
+     2. Vérification dans Firestore : doit exister, être pending, non activé, non révoqué
+     3. Appel POST /api/team/activate (Railway — Admin SDK) :
+        → crée firebase.auth().createUser({ email, password, displayName })
+        → retourne { firebaseUid }
+     4. Mise à jour Firestore team_accesses/{accessId} :
+        { status:'active', activated:true, firebaseUid, email, activatedAt }
+     5. Le membre peut maintenant se connecter via email/password
   ========================================================= */
 
-  async function activateMemberAccount(accessId, password, confirmPassword) {
+  async function activateMemberAccount(accessId, email, password, confirmPassword) {
     var db = getDb();
     if (!db) return { success: false, message: 'Base de données non disponible.' };
 
-    var normalizedId = normalizeTextAccessId(accessId);
-
-    if (!normalizedId || !password || !confirmPassword)
-      return { success: false, message: 'Veuillez remplir tous les champs.' };
-
-    if (password.length < 8)
-      return { success: false, message: 'Le mot de passe doit contenir au moins 8 caractères.' };
-
-    if (password !== confirmPassword)
-      return { success: false, message: 'Les mots de passe ne correspondent pas.' };
+    var nid = normalizeAccessId(accessId);
+    if (!nid)                        return { success: false, message: "Identifiant d'accès requis." };
+    if (!email || !email.includes('@')) return { success: false, message: 'Adresse email invalide.' };
+    if (!password || password.length < 8) return { success: false, message: 'Mot de passe : 8 caractères minimum.' };
+    if (password !== confirmPassword) return { success: false, message: 'Les mots de passe ne correspondent pas.' };
 
     try {
-      var ref  = db.collection('team_accesses').doc(normalizedId);
+      var ref  = db.collection('team_accesses').doc(nid);
       var snap = await ref.get();
 
       if (!snap.exists)
-        return { success: false, message: "Identifiant d'accès introuvable." };
+        return { success: false, message: "Identifiant introuvable. Vérifiez auprès de votre manager." };
 
       var data = snap.data();
-
       if (data.status === 'revoked')
-        return { success: false, message: 'Cet accès a été révoqué.' };
-
+        return { success: false, message: 'Cet accès a été révoqué par votre manager.' };
       if (data.activated === true)
-        return { success: false, message: 'Ce compte est déjà activé.' };
+        return { success: false, message: "Compte déjà activé. Utilisez « S'identifier »." };
 
-      await ref.update({
-        activated:          true,
-        passwordSet:        true,
-        mustChangePassword: false,
-        status:             'active',
-        activatedAt:        firebase.firestore.FieldValue.serverTimestamp()
+      /* Appel Railway → création compte Firebase Auth via Admin SDK */
+      var res = await fetch(getRailwayBase() + '/api/team/activate', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          accessId:     nid,
+          email:        email.trim().toLowerCase(),
+          password:     password,
+          firstname:    data.firstname   || '',
+          lastname:     data.lastname    || '',
+          company:      data.company     || '',
+          managerUid:   data.createdBy   || '',
+          managerEmail: data.managerEmail || ''
+        })
       });
 
-      return { success: true };
+      var result = await res.json().catch(function () { return {}; });
+      if (!res.ok) return { success: false, message: result.error || result.message || 'Erreur serveur.' };
+
+      var firebaseUid = result.firebaseUid || result.uid || null;
+
+      /* Mise à jour Firestore */
+      await ref.update({
+        status:      'active',
+        activated:   true,
+        firebaseUid: firebaseUid,
+        email:       email.trim().toLowerCase(),
+        activatedAt: getServerTimestamp()
+      });
+
+      return { success: true, firebaseUid: firebaseUid };
 
     } catch (e) {
-      console.error('activateMemberAccount:', e);
-      return { success: false, message: "Erreur lors de l'activation : " + e.message };
+      console.error('[activateMemberAccount]', e);
+      return { success: false, message: 'Erreur réseau : ' + e.message };
     }
   }
 
   /* =========================================================
-     REVOCATION
+     RÉVOCATION
   ========================================================= */
 
   async function revokeMemberAccess(accessId) {
     var db = getDb();
     if (!db) { showToast('Base de données non disponible'); return false; }
-
     var managerUid = getCurrentManagerUid();
-    if (!managerUid) { showToast('Vous devez être connecté.'); return false; }
-
-    var normalizedId = normalizeTextAccessId(accessId);
+    if (!managerUid) { showToast('Non connecté.'); return false; }
 
     try {
-      var ref  = db.collection('team_accesses').doc(normalizedId);
+      var ref  = db.collection('team_accesses').doc(normalizeAccessId(accessId));
       var snap = await ref.get();
-
-      if (!snap.exists) { showToast('Accès introuvable.'); return false; }
-      if (snap.data().createdBy !== managerUid) { showToast("Non autorisé."); return false; }
-
-      await ref.update({
-        status:    'revoked',
-        revokedAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
-
+      if (!snap.exists)                         { showToast('Accès introuvable.'); return false; }
+      if (snap.data().createdBy !== managerUid) { showToast('Non autorisé.');      return false; }
+      await ref.update({ status: 'revoked', revokedAt: getServerTimestamp() });
       showToast('Accès révoqué.');
       return true;
-
     } catch (e) {
       showToast('Erreur révocation : ' + e.message);
       return false;
@@ -252,23 +302,17 @@
   async function deleteMemberAccess(accessId) {
     var db = getDb();
     if (!db) { showToast('Base de données non disponible'); return false; }
-
     var managerUid = getCurrentManagerUid();
-    if (!managerUid) { showToast('Vous devez être connecté.'); return false; }
-
-    var normalizedId = normalizeTextAccessId(accessId);
+    if (!managerUid) { showToast('Non connecté.'); return false; }
 
     try {
-      var ref  = db.collection('team_accesses').doc(normalizedId);
+      var ref  = db.collection('team_accesses').doc(normalizeAccessId(accessId));
       var snap = await ref.get();
-
-      if (!snap.exists) { showToast('Accès introuvable.'); return false; }
-      if (snap.data().createdBy !== managerUid) { showToast("Non autorisé."); return false; }
-
+      if (!snap.exists)                         { showToast('Accès introuvable.'); return false; }
+      if (snap.data().createdBy !== managerUid) { showToast('Non autorisé.');      return false; }
       await ref.delete();
       showToast('Accès supprimé.');
       return true;
-
     } catch (e) {
       showToast('Erreur suppression : ' + e.message);
       return false;
@@ -276,18 +320,16 @@
   }
 
   /* =========================================================
-     VERIFICATION
+     VÉRIFICATION
   ========================================================= */
 
   async function checkMemberAccessExists(accessId) {
     var db = getDb();
     if (!db) return { exists: false, data: null };
     try {
-      var snap = await db.collection('team_accesses').doc(normalizeTextAccessId(accessId)).get();
+      var snap = await db.collection('team_accesses').doc(normalizeAccessId(accessId)).get();
       return snap.exists ? { exists: true, data: snap.data() } : { exists: false, data: null };
-    } catch (e) {
-      return { exists: false, data: null };
-    }
+    } catch (e) { return { exists: false, data: null }; }
   }
 
   /* =========================================================
@@ -302,23 +344,17 @@
     updateAccessPreview();
   }
 
-  /* =========================================================
-     BIND EVENTS (appelé après DOMContentLoaded)
-  ========================================================= */
-
   function bindCreateAccessEvents() {
     ['new-access-firstname', 'new-access-lastname', 'new-access-company'].forEach(function (id) {
       var el = document.getElementById(id);
       if (el) el.addEventListener('input', updateAccessPreview);
     });
-
-    var createBtn = document.getElementById('create-access-btn');
-    if (createBtn) {
-      // Éviter les doublons de listener
-      createBtn.replaceWith(createBtn.cloneNode(true));
-      document.getElementById('create-access-btn').addEventListener('click', createMemberAccess);
+    var btn = document.getElementById('create-access-btn');
+    if (btn) {
+      var clone = btn.cloneNode(true);
+      btn.parentNode.replaceChild(clone, btn);
+      clone.addEventListener('click', createMemberAccess);
     }
-
     updateAccessPreview();
   }
 
@@ -327,22 +363,20 @@
   ========================================================= */
 
   window.MemberAccessManager = {
-    createMemberAccess:       createMemberAccess,
-    activateMemberAccount:    activateMemberAccount,
-    revokeMemberAccess:       revokeMemberAccess,
-    deleteMemberAccess:       deleteMemberAccess,
-    checkMemberAccessExists:  checkMemberAccessExists,
-    buildAccessId:            buildAccessId,
-    normalizeTextAccessId:    normalizeTextAccessId,
-    updateAccessPreview:      updateAccessPreview,
-    bindCreateAccessEvents:   bindCreateAccessEvents,
-    clearCreateAccessForm:    clearCreateAccessForm
+    createMemberAccess:      createMemberAccess,
+    activateMemberAccount:   activateMemberAccount,
+    revokeMemberAccess:      revokeMemberAccess,
+    deleteMemberAccess:      deleteMemberAccess,
+    checkMemberAccessExists: checkMemberAccessExists,
+    buildAccessId:           buildAccessId,
+    normalizeAccessId:       normalizeAccessId,
+    updateAccessPreview:     updateAccessPreview,
+    bindCreateAccessEvents:  bindCreateAccessEvents,
+    clearCreateAccessForm:   clearCreateAccessForm
   };
 
-  // Alias direct sur window pour les onclick inline
   window.updateAccessPreview = updateAccessPreview;
 
-  // Init au chargement
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', bindCreateAccessEvents);
   } else {

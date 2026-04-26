@@ -22,7 +22,7 @@ const { rateLimit } = require('./rate-limit');
 const { perfMonitor } = require('./perf-monitor');
 
 // Firebase
-const { auth } = require('./firebase-config');
+const { auth, admin } = require('./firebase-config');
 const {
   verifyToken,
   verifyAdmin,
@@ -1365,4 +1365,78 @@ app.listen(PORT, '0.0.0.0', () => {
 ║  🎛️  Admin: http://localhost:${PORT}/admin           ║
 ╚════════════════════════════════════════════════════════╝
   `);
+});
+
+// ─── POST /api/team/activate ─────────────────────────────────────────
+// Crée un compte Firebase Auth pour un membre dont l'accès (team_accesses)
+// a été créé par son manager.
+// Body : { accessId, email, password, firstname, lastname, company, managerUid }
+// ----------------------------------------------------------------------
+app.post('/api/team/activate', async (req, res) => {
+  try {
+    const { accessId, email, password, firstname, lastname, company, managerUid } = req.body;
+
+    if (!accessId || !email || !password) {
+      return res.status(400).json({ error: 'accessId, email et password sont requis.' });
+    }
+
+    // 1. Vérifier l'accès dans Firestore
+    const accessRef = admin.firestore().collection('team_accesses').doc(accessId);
+    const accessSnap = await accessRef.get();
+
+    if (!accessSnap.exists) {
+      return res.status(404).json({ error: "Identifiant d'accès introuvable." });
+    }
+    const accessData = accessSnap.data();
+    if (accessData.status === 'revoked')   return res.status(403).json({ error: 'Accès révoqué.' });
+    if (accessData.activated === true)     return res.status(409).json({ error: 'Compte déjà activé.' });
+
+    // 2. Vérifier disponibilité de l'email
+    try {
+      await admin.auth().getUserByEmail(email);
+      return res.status(409).json({ error: 'Cette adresse email est déjà utilisée.' });
+    } catch (e) {
+      if (e.code !== 'auth/user-not-found') throw e;
+    }
+
+    // 3. Créer le compte Firebase Auth
+    const displayName = [firstname, lastname].filter(Boolean).join(' ') || accessId;
+    const userRecord  = await admin.auth().createUser({
+      email, password, displayName, emailVerified: false, disabled: false
+    });
+
+    // 4. Créer le document users/{uid} pour l'identification du rôle après login
+    await admin.firestore().collection('users').doc(userRecord.uid).set({
+      uid:         userRecord.uid,
+      email:       email,
+      name:        displayName,
+      role:        'member',
+      accessId:    accessId,
+      managerUid:  accessData.createdBy || managerUid || null,
+      company:     company || accessData.company || '',
+      plan:        'free',
+      daily_limit: 50,
+      daily_used:  0,
+      last_reset:  new Date().toISOString(),
+      active:      true,
+      created_at:  new Date().toISOString(),
+      updated_at:  new Date().toISOString()
+    });
+
+    // 5. Retourner le firebaseUid au client
+    //    (le client met à jour team_accesses lui-même via member-access.js)
+    return res.status(200).json({
+      success:     true,
+      firebaseUid: userRecord.uid,
+      message:     'Compte créé avec succès.'
+    });
+
+  } catch (error) {
+    console.error('[POST /api/team/activate]', error);
+    if (error.code === 'auth/email-already-exists')
+      return res.status(409).json({ error: 'Email déjà utilisé.' });
+    if (error.code === 'auth/weak-password')
+      return res.status(400).json({ error: 'Mot de passe trop faible.' });
+    return res.status(500).json({ error: error.message || 'Erreur serveur.' });
+  }
 });

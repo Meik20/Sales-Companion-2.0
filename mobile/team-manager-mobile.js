@@ -1,7 +1,16 @@
 /**
- * team-manager-mobile.js — Sales Companion
+ * team-manager-mobile.js — Sales Companion v2
  * Script classique (non-ESM), Firebase compat uniquement.
- * Toutes les fonctions sont exposées sur window et window.TeamManagerMobile.
+ *
+ * CORRECTIONS :
+ *  - loadTeamData() : lit UNIQUEMENT team_accesses where createdBy==managerUid AND status=='active'
+ *    → exclut le manager lui-même (il n'est pas dans team_accesses)
+ *    → exclut les non-activés et les révoqués
+ *    → plus d'appel à GET /api/team (qui retournait tous les users)
+ *  - Pipeline de chaque membre : récupéré via GET /api/pipeline?memberUid={firebaseUid}
+ *    (le membre a un firebaseUid stocké dans team_accesses après activation)
+ *  - loadGeneratedAccesses() : tous statuts (pending/active/revoked) → pour l'onglet Accès
+ *  - Séparation claire : teamMembers (actifs) ≠ generatedAccesses (tous)
  */
 
 (function () {
@@ -10,23 +19,24 @@
   /* =========================================================
      ÉTAT LOCAL
   ========================================================= */
-  var teamMembers        = [];
-  var teamMembersPipeline = {};
-  var currentTeamSeg     = 'members';
-  var activityFeed       = [];
-  var generatedAccesses  = [];
-  var isTeamDataLoading  = false;
+  var teamMembers         = [];   // membres actifs uniquement (status:'active')
+  var teamMembersPipeline = {};   // { [firebaseUid]: [...] }
+  var currentTeamSeg      = 'members';
+  var activityFeed        = [];
+  var generatedAccesses   = [];   // tous les accès créés (pending + active + revoked)
+  var isTeamDataLoading   = false;
 
   /* =========================================================
      HELPERS DE BASE
   ========================================================= */
 
   function getDb() {
-    return window._db || (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length ? firebase.firestore() : null);
+    if (window._db) return window._db;
+    try { return firebase.apps.length ? firebase.firestore() : null; } catch (e) { return null; }
   }
 
-  function getAuth() {
-    return window._auth || (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length ? firebase.auth() : null);
+  function getServerTimestamp() {
+    try { return firebase.firestore.FieldValue.serverTimestamp(); } catch (e) { return new Date().toISOString(); }
   }
 
   function getAuthToken() {
@@ -38,35 +48,31 @@
   }
 
   function getCurrentManagerUid() {
-    var auth = getAuth();
-    if (auth && auth.currentUser) return auth.currentUser.uid;
-    return (window.user && window.user.uid) || null;
+    if (window.user && window.user.uid) return window.user.uid;
+    try {
+      var u = firebase.auth().currentUser;
+      return u ? u.uid : null;
+    } catch (e) { return null; }
   }
 
-  function toast(message) {
-    if (typeof window.toast === 'function' && window.toast !== toast) {
-      window.toast(message);
-      return;
-    }
+  function toast(msg) {
+    if (typeof window.toast === 'function' && window.toast !== toast) { window.toast(msg); return; }
     var el = document.getElementById('toast');
     if (!el) return;
-    el.textContent = message;
-    el.className = 'toast show';
+    el.textContent = msg;
+    el.className   = 'toast show';
     clearTimeout(toast._t);
     toast._t = setTimeout(function () { el.className = 'toast'; }, 3000);
   }
 
   function escapeHtml(str) {
     return String(str || '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
   }
 
   function formatDate(dateStr) {
-    if (!dateStr) return '';
+    if (!dateStr) return '—';
     try {
       return new Date(dateStr).toLocaleDateString('fr-FR', {
         day: '2-digit', month: 'short', year: 'numeric',
@@ -75,49 +81,49 @@
     } catch (e) { return dateStr; }
   }
 
-  function statusLabel(status) {
-    return { prospection: 'Prospect', negociation: 'Négo', conclue: 'Conclu' }[status] || status || 'Prospect';
+  function statusLabel(s) {
+    return { prospection: 'Prospect', negociation: 'Négo', conclue: 'Conclu' }[s] || s || '—';
+  }
+
+  function getRailwayBase() {
+    if (typeof RAILWAY_SERVER !== 'undefined' && RAILWAY_SERVER) return RAILWAY_SERVER;
+    if (typeof API_ENDPOINT   !== 'undefined' && API_ENDPOINT)   return API_ENDPOINT;
+    return '';
   }
 
   /* =========================================================
-     SHEET HELPERS (compat avec index.html)
+     SHEET HELPERS
   ========================================================= */
 
-  function openSheet(sheetId) {
-    // Déléguer à la fonction globale définie dans index.html
-    if (typeof window.openSheet === 'function' && window.openSheet !== openSheet) {
-      window.openSheet(sheetId); return;
-    }
-    var sheet   = document.getElementById(sheetId);
-    var overlay = document.getElementById(sheetId.replace('-sheet', '-overlay'));
+  function openSheet(id) {
+    if (typeof window.openSheet === 'function' && window.openSheet !== openSheet) { window.openSheet(id); return; }
+    var sheet   = document.getElementById(id);
+    var overlay = document.getElementById(id.replace('-sheet', '-overlay'));
     if (overlay) overlay.classList.add('open');
     if (sheet)   setTimeout(function () { sheet.classList.add('open'); }, 10);
   }
 
-  function closeSheet(sheetId) {
-    if (typeof window.closeSheet === 'function' && window.closeSheet !== closeSheet) {
-      window.closeSheet(sheetId); return;
-    }
-    var sheet   = document.getElementById(sheetId);
-    var overlay = document.getElementById(sheetId.replace('-sheet', '-overlay'));
+  function closeSheet(id) {
+    if (typeof window.closeSheet === 'function' && window.closeSheet !== closeSheet) { window.closeSheet(id); return; }
+    var sheet   = document.getElementById(id);
+    var overlay = document.getElementById(id.replace('-sheet', '-overlay'));
     if (sheet)   sheet.classList.remove('open');
     if (overlay) overlay.classList.remove('open');
   }
 
   /* =========================================================
-     APPEL API REST (Railway)
+     APPEL API REST (Railway) — uniquement pour le pipeline
   ========================================================= */
 
-  function apiCall(method, endpoint, data) {
-    var base = (typeof RAILWAY_SERVER !== 'undefined' ? RAILWAY_SERVER : '');
-    var options = {
-      method: method || 'GET',
-      headers: { 'Content-Type': 'application/json' }
-    };
+  function apiCall(method, endpoint) {
     var tok = getAuthToken();
-    if (tok) options.headers['Authorization'] = 'Bearer ' + tok;
-    if (data && (method === 'POST' || method === 'PUT')) options.body = JSON.stringify(data);
-    return fetch(base + endpoint, options);
+    return fetch(getRailwayBase() + endpoint, {
+      method:  method,
+      headers: {
+        'Content-Type':  'application/json',
+        'Authorization': tok ? 'Bearer ' + tok : ''
+      }
+    });
   }
 
   /* =========================================================
@@ -125,51 +131,54 @@
   ========================================================= */
 
   function switchToActivationFlow() {
-    var authScreen      = document.getElementById('auth-screen');
-    var loginForm       = document.getElementById('login-form');
-    var registerForm    = document.getElementById('register-form');
-    var activationForm  = document.getElementById('activation-form');
+    var ids = ['auth-screen', 'login-form', 'register-form', 'activation-form'];
+    var els = {};
+    ids.forEach(function (id) { els[id] = document.getElementById(id); });
 
-    if (authScreen)     authScreen.style.display    = 'flex';
-    if (loginForm)      loginForm.style.display      = 'none';
-    if (registerForm)   registerForm.style.display   = 'none';
-    if (activationForm) activationForm.style.display = 'flex';
+    if (els['auth-screen'])    els['auth-screen'].style.display    = 'flex';
+    if (els['login-form'])     els['login-form'].style.display      = 'none';
+    if (els['register-form'])  els['register-form'].style.display   = 'none';
+    if (els['activation-form'])els['activation-form'].style.display = 'flex';
 
-    var accessIdEl = document.getElementById('activation-access-id');
-    if (accessIdEl) { accessIdEl.value = ''; setTimeout(function () { accessIdEl.focus(); }, 50); }
-    var passEl = document.getElementById('activation-new-password');
-    var confEl = document.getElementById('activation-confirm-password');
-    if (passEl) passEl.value = '';
-    if (confEl) confEl.value = '';
-
+    ['activation-access-id', 'activation-email',
+     'activation-new-password', 'activation-confirm-password'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.value = '';
+    });
     setActivationError('');
+    var first = document.getElementById('activation-access-id');
+    if (first) setTimeout(function () { first.focus(); }, 50);
   }
 
   function backToLoginForm() {
-    var authScreen      = document.getElementById('auth-screen');
-    var loginForm       = document.getElementById('login-form');
-    var registerForm    = document.getElementById('register-form');
-    var activationForm  = document.getElementById('activation-form');
+    var authScreen     = document.getElementById('auth-screen');
+    var loginForm      = document.getElementById('login-form');
+    var registerForm   = document.getElementById('register-form');
+    var activationForm = document.getElementById('activation-form');
 
     if (authScreen)     authScreen.style.display    = 'flex';
     if (activationForm) activationForm.style.display = 'none';
-    if (registerForm)   registerForm.style.display  = 'none';
-    if (loginForm)      loginForm.style.display      = 'block';
-
+    if (registerForm)   registerForm.style.display   = 'none';
+    if (loginForm)      loginForm.style.display       = 'block';
     setActivationError('');
   }
 
-  function setActivationError(message) {
+  function setActivationError(msg) {
     var el = document.getElementById('activation-err');
     if (!el) return;
-    el.textContent = message || '';
-    el.style.display = message ? 'block' : 'none';
+    el.textContent    = msg || '';
+    el.style.display  = msg ? 'block' : 'none';
   }
 
+  /* =========================================================
+     ACTIVATION — orchestre member-access.js
+  ========================================================= */
+
   async function activateMemberAccess() {
-    var accessId  = (document.getElementById('activation-access-id')?.value || '').trim();
-    var password  = document.getElementById('activation-new-password')?.value  || '';
-    var confirm   = document.getElementById('activation-confirm-password')?.value || '';
+    var accessId  = (document.getElementById('activation-access-id')?.value        || '').trim();
+    var email     = (document.getElementById('activation-email')?.value             || '').trim();
+    var password  = (document.getElementById('activation-new-password')?.value      || '');
+    var confirm   = (document.getElementById('activation-confirm-password')?.value  || '');
     var btn       = document.getElementById('activate-access-btn');
 
     setActivationError('');
@@ -179,25 +188,27 @@
       return;
     }
 
-    if (btn) { btn.disabled = true; btn.textContent = 'Activation...'; }
+    if (btn) { btn.disabled = true; btn.textContent = 'Activation en cours...'; }
 
     try {
-      var result = await window.MemberAccessManager.activateMemberAccount(accessId, password, confirm);
+      var result = await window.MemberAccessManager.activateMemberAccount(
+        accessId, email, password, confirm
+      );
 
       if (!result.success) {
         setActivationError(result.message || "Erreur d'activation.");
       } else {
         setActivationError('');
-        toast('🎉 Compte activé ! Vous pouvez maintenant vous connecter.');
-        // Réinitialiser les champs
-        ['activation-access-id', 'activation-new-password', 'activation-confirm-password'].forEach(function (id) {
+        toast('🎉 Compte activé ! Connectez-vous avec votre email.');
+        ['activation-access-id', 'activation-email',
+         'activation-new-password', 'activation-confirm-password'].forEach(function (id) {
           var el = document.getElementById(id);
           if (el) el.value = '';
         });
-        setTimeout(backToLoginForm, 1500);
+        setTimeout(backToLoginForm, 1800);
       }
     } catch (e) {
-      setActivationError('Erreur : ' + e.message);
+      setActivationError('Erreur inattendue : ' + e.message);
     } finally {
       if (btn) { btn.disabled = false; btn.textContent = 'Activer mon compte →'; }
     }
@@ -210,21 +221,15 @@
   function applyManagerRole() {
     var isManager = getUserRole() === 'manager';
 
-    // Bouton nav Équipe
-    var navTeam = document.getElementById('nav-team');
-    if (navTeam) navTeam.style.display = isManager ? 'flex' : 'none';
+    var navTeam   = document.getElementById('nav-team');
+    var tabTeam   = document.getElementById('tab-team');
+    var badge     = document.getElementById('team-badge');
+    var assignBtn = document.getElementById('manager-assign-btn-m');
 
-    // Onglet tab-team
-    var tabTeam = document.getElementById('tab-team');
-    if (tabTeam) tabTeam.style.display = isManager ? '' : 'none';
-
-    // Badge équipe
-    var teamBadge = document.getElementById('team-badge');
-    if (teamBadge && !isManager) teamBadge.style.display = 'none';
-
-    // Bouton assignation dans profile sheet
-    var managerBtn = document.getElementById('manager-assign-btn-m');
-    if (managerBtn) managerBtn.style.display = isManager ? 'block' : 'none';
+    if (navTeam)   navTeam.style.display   = isManager ? 'flex'  : 'none';
+    if (tabTeam)   tabTeam.style.display   = isManager ? ''      : 'none';
+    if (badge && !isManager) badge.style.display = 'none';
+    if (assignBtn) assignBtn.style.display = isManager ? 'block' : 'none';
 
     if (isManager) {
       loadTeamData();
@@ -238,18 +243,17 @@
 
   function switchTeamSeg(seg, el) {
     currentTeamSeg = seg;
-
     document.querySelectorAll('.tseg').forEach(function (b) { b.classList.remove('active'); });
     if (el) el.classList.add('active');
 
-    var views = {
-      members:  document.getElementById('team-members-view-container'),
-      activity: document.getElementById('team-activity-view'),
-      access:   document.getElementById('team-access-view')
+    var map = {
+      members:  'team-members-view-container',
+      activity: 'team-activity-view',
+      access:   'team-access-view'
     };
-
-    Object.keys(views).forEach(function (key) {
-      if (views[key]) views[key].classList.toggle('active', key === seg);
+    Object.keys(map).forEach(function (k) {
+      var v = document.getElementById(map[k]);
+      if (v) v.classList.toggle('active', k === seg);
     });
 
     if (seg === 'activity') { buildActivityFeed(); renderActivityFeed(); }
@@ -258,43 +262,85 @@
   }
 
   /* =========================================================
-     CHARGEMENT DONNÉES ÉQUIPE
+     REFRESH GLOBAL
   ========================================================= */
 
   async function refreshTeamData() {
     if (getUserRole() !== 'manager') return;
-    var teamLoading    = document.getElementById('team-loading');
-    var activityLoading = document.getElementById('activity-loading');
-    if (teamLoading)    teamLoading.style.display    = 'flex';
-    if (activityLoading) activityLoading.style.display = 'flex';
+    var tl = document.getElementById('team-loading');
+    var al = document.getElementById('activity-loading');
+    if (tl) tl.style.display = 'flex';
+    if (al) al.style.display = 'flex';
     await loadTeamData();
     await loadGeneratedAccesses();
     if (currentTeamSeg === 'access') renderAccessManagement();
   }
 
+  /* =========================================================
+     CHARGEMENT DES MEMBRES — FIRESTORE UNIQUEMENT
+
+     Source : collection team_accesses
+     Filtres :
+       - createdBy == managerUid   → uniquement l'équipe de CE manager
+       - status    == 'active'     → uniquement les accès activés
+       - activated == true         → double sécurité
+
+     Résultat : teamMembers = [ { accessId, name, email, firebaseUid, ... } ]
+     Le manager lui-même n'est JAMAIS dans team_accesses → ne peut pas s'y retrouver.
+  ========================================================= */
+
   async function loadTeamData() {
     if (getUserRole() !== 'manager' || isTeamDataLoading) return;
     isTeamDataLoading = true;
 
-    var container     = document.getElementById('team-members-view');
-    var teamLoading   = document.getElementById('team-loading');
+    var db          = getDb();
+    var container   = document.getElementById('team-members-view');
+    var teamLoading = document.getElementById('team-loading');
 
     try {
       if (teamLoading) teamLoading.style.display = 'flex';
 
-      var r = await apiCall('GET', '/api/team');
-      if (!r.ok) throw new Error('Chargement équipe impossible');
+      if (!db) throw new Error('Firestore non disponible');
 
-      var d = await r.json();
-      teamMembers        = d.data || [];
+      var managerUid = getCurrentManagerUid();
+      if (!managerUid) throw new Error('Manager non identifié');
+
+      /* ── Lecture Firestore : membres actifs de CE manager uniquement ── */
+      var snap = await db.collection('team_accesses')
+        .where('createdBy', '==', managerUid)
+        .where('status',    '==', 'active')
+        .get();
+
+      teamMembers = snap.docs
+        .map(function (d) {
+          var data = d.data();
+          return {
+            accessId:    data.accessId    || d.id,
+            firebaseUid: data.firebaseUid || null,
+            name:        ((data.firstname || '') + ' ' + (data.lastname || '')).trim() || 'Sans nom',
+            email:       data.email       || '',
+            company:     data.company     || '',
+            activatedAt: data.activatedAt && data.activatedAt.toDate
+                           ? data.activatedAt.toDate().toISOString() : ''
+          };
+        })
+        /* Double sécurité : exclure tout doc qui n'aurait pas de firebaseUid
+           (ne devrait pas arriver avec le flux d'activation corrigé) */
+        .filter(function (m) { return m.firebaseUid; });
+
+      /* ── Pipeline de chaque membre via Railway (filtre par firebaseUid) ── */
       teamMembersPipeline = {};
-
       await Promise.all(teamMembers.map(async function (member) {
         try {
-          var pr = await apiCall('GET', '/api/pipeline?assignee=' + encodeURIComponent(member.uid));
-          teamMembersPipeline[member.uid] = pr.ok ? ((await pr.json()).data || []) : [];
+          var r = await apiCall('GET', '/api/pipeline?memberUid=' + encodeURIComponent(member.firebaseUid));
+          if (r.ok) {
+            var d = await r.json();
+            teamMembersPipeline[member.firebaseUid] = d.data || [];
+          } else {
+            teamMembersPipeline[member.firebaseUid] = [];
+          }
         } catch (e) {
-          teamMembersPipeline[member.uid] = [];
+          teamMembersPipeline[member.firebaseUid] = [];
         }
       }));
 
@@ -302,127 +348,221 @@
       buildActivityFeed();
       if (currentTeamSeg === 'activity') renderActivityFeed();
 
-      // Mise à jour badge
-      var pendingCount = teamMembers.reduce(function (acc, m) {
-        return acc + (teamMembersPipeline[m.uid] || []).filter(function (p) {
+      /* Badge */
+      var pending = teamMembers.reduce(function (acc, m) {
+        return acc + (teamMembersPipeline[m.firebaseUid] || []).filter(function (p) {
           return p.status === 'prospection' || p.status === 'negociation';
         }).length;
       }, 0);
-
-      var tb = document.getElementById('team-badge');
-      if (tb) { tb.textContent = pendingCount; tb.style.display = pendingCount ? '' : 'none'; }
+      var badge = document.getElementById('team-badge');
+      if (badge) { badge.textContent = pending; badge.style.display = pending ? '' : 'none'; }
 
     } catch (e) {
+      console.error('[loadTeamData]', e);
       if (container) {
-        container.innerHTML = "<div class='team-empty'><div class='team-empty-icon'>📡</div><h3>Impossible de charger</h3><p>" + escapeHtml(e.message) + "</p></div>";
+        container.innerHTML = "<div class='team-empty'>"
+          + "<div class='team-empty-icon'>📡</div>"
+          + "<h3>Impossible de charger l'équipe</h3>"
+          + "<p>" + escapeHtml(e.message) + "</p></div>";
       }
     } finally {
       if (teamLoading) teamLoading.style.display = 'none';
-      var activityLoading = document.getElementById('activity-loading');
-      if (activityLoading) activityLoading.style.display = 'none';
+      var al = document.getElementById('activity-loading');
+      if (al) al.style.display = 'none';
       isTeamDataLoading = false;
     }
   }
 
   /* =========================================================
-     ACCÈS MEMBRES — FIRESTORE COMPAT
+     CHARGEMENT DE TOUS LES ACCÈS (onglet Accès)
+     → tous statuts : pending + active + revoked
   ========================================================= */
 
   async function loadGeneratedAccesses() {
     if (getUserRole() !== 'manager') return;
     var db = getDb();
-    if (!db) { generatedAccesses = []; return; }
-
     var managerUid = getCurrentManagerUid();
-    if (!managerUid) { generatedAccesses = []; return; }
+    if (!db || !managerUid) { generatedAccesses = []; return; }
 
     try {
       var snap = await db.collection('team_accesses')
         .where('createdBy', '==', managerUid)
+        .orderBy('createdAt', 'desc')
         .get();
 
-      generatedAccesses = snap.docs.map(function (docSnap) {
-        var data = docSnap.data();
-        var createdAt  = data.createdAt  && data.createdAt.toDate  ? data.createdAt.toDate().toISOString()  : '';
-        var activatedAt = data.activatedAt && data.activatedAt.toDate ? data.activatedAt.toDate().toISOString() : '';
+      generatedAccesses = snap.docs.map(function (d) {
+        var data = d.data();
         return {
-          id:          docSnap.id,
-          access_id:   data.accessId || docSnap.id,
-          member_name: ((data.firstname || '') + ' ' + (data.lastname || '')).trim(),
-          company:     data.company || '',
-          status:      data.status  || 'pending',
-          created_at:  createdAt,
-          activated_at: activatedAt
+          id:           d.id,
+          access_id:    data.accessId     || d.id,
+          member_name:  ((data.firstname || '') + ' ' + (data.lastname || '')).trim(),
+          email:        data.email        || '',
+          company:      data.company      || '',
+          firebaseUid:  data.firebaseUid  || null,
+          status:       data.status       || 'pending',
+          created_at:   data.createdAt  && data.createdAt.toDate  ? data.createdAt.toDate().toISOString()  : '',
+          activated_at: data.activatedAt && data.activatedAt.toDate ? data.activatedAt.toDate().toISOString() : '',
+          revoked_at:   data.revokedAt  && data.revokedAt.toDate  ? data.revokedAt.toDate().toISOString()  : ''
         };
       });
     } catch (e) {
-      console.error('loadGeneratedAccesses:', e);
+      console.error('[loadGeneratedAccesses]', e);
       generatedAccesses = [];
     }
   }
 
   /* =========================================================
-     RENDU — GESTION DES ACCÈS
+     RENDU — ONGLET COMMERCIAUX
+  ========================================================= */
+
+  function renderTeamMembers() {
+    var container   = document.getElementById('team-members-view');
+    var teamLoading = document.getElementById('team-loading');
+    if (teamLoading) teamLoading.style.display = 'none';
+    if (!container) return;
+
+    if (!teamMembers.length) {
+      container.innerHTML = "<div class='team-empty'>"
+        + "<div class='team-empty-icon'>👥</div>"
+        + "<h3>Aucun commercial actif</h3>"
+        + "<p>Créez des accès dans l'onglet « Accès » et invitez vos commerciaux à les activer.</p>"
+        + "</div>";
+      return;
+    }
+
+    container.innerHTML = '';
+
+    teamMembers.forEach(function (member) {
+      var pipeline = teamMembersPipeline[member.firebaseUid] || [];
+      var cntP = pipeline.filter(function (p) { return p.status === 'prospection'; }).length;
+      var cntN = pipeline.filter(function (p) { return p.status === 'negociation'; }).length;
+      var cntC = pipeline.filter(function (p) { return p.status === 'conclue';     }).length;
+
+      var initials = member.name
+        .split(' ').map(function (w) { return w[0] || ''; }).join('').slice(0, 2).toUpperCase()
+        || '?';
+
+      var fidEsc = member.firebaseUid.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+
+      var pipelineHTML = pipeline.slice(0, 5).map(function (p) {
+        return '<div class="mpip-item">'
+          + '<span class="mpip-item-name">' + escapeHtml(p.company_name || '—') + '</span>'
+          + '<span class="mpip-item-status ' + escapeHtml(p.status || 'prospection') + '">'
+          + escapeHtml(statusLabel(p.status)) + '</span>'
+          + '</div>';
+      }).join('') || '<div style="font-size:12px;color:var(--text-tertiary);padding:4px 0">Aucun prospect assigné</div>';
+
+      var card = document.createElement('div');
+      card.className = 'member-card';
+      card.id        = 'member-' + member.firebaseUid;
+
+      card.innerHTML =
+        '<div class="member-head" onclick="window.TeamManagerMobile.toggleMemberCard(\'' + fidEsc + '\')">'
+        + '<div class="member-av">' + escapeHtml(initials) + '</div>'
+        + '<div class="member-info">'
+        +   '<div class="member-name">'  + escapeHtml(member.name)    + '</div>'
+        +   '<div class="member-email">' + escapeHtml(member.email)   + '</div>'
+        +   (member.company ? '<div style="font-size:11px;color:var(--text-tertiary)">' + escapeHtml(member.company) + '</div>' : '')
+        + '</div>'
+        + '<svg class="member-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><polyline points="6 9 12 15 18 9"/></svg>'
+        + '</div>'
+        + '<div class="member-kpi">'
+        +   '<div class="mkpi"><div class="mkpi-val">'     + cntP + '</div><div class="mkpi-lbl">Prosp.</div></div>'
+        +   '<div class="mkpi"><div class="mkpi-val neg">' + cntN + '</div><div class="mkpi-lbl">Négo.</div></div>'
+        +   '<div class="mkpi"><div class="mkpi-val ok">'  + cntC + '</div><div class="mkpi-lbl">Conclu</div></div>'
+        + '</div>'
+        + '<div class="member-pipeline">'
+        +   '<div class="mpip-title">Pipeline récent</div>'
+        +   pipelineHTML
+        + '</div>';
+
+      container.appendChild(card);
+    });
+  }
+
+  function toggleMemberCard(firebaseUid) {
+    var card = document.getElementById('member-' + firebaseUid);
+    if (card) card.classList.toggle('expanded');
+  }
+
+  /* =========================================================
+     RENDU — ONGLET ACCÈS
+     Affiche TOUS les accès (pending + active + revoked)
   ========================================================= */
 
   function renderAccessManagement() {
     var container = document.getElementById('team-access-view');
     if (!container) return;
 
-    var activeAccesses = generatedAccesses.filter(function (a) {
+    var activeCount = generatedAccesses.filter(function (a) {
       return a.status === 'active' || a.status === 'pending';
-    });
-    var canCreate = activeAccesses.length < 10;
+    }).length;
+    var canCreate = activeCount < 10;
 
     var html = '<div class="access-header">'
       + '<div class="access-quota">'
-      + '<div class="access-quota-num">' + activeAccesses.length + '/10</div>'
-      + '<div class="access-quota-label">Accès utilisés</div>'
+      +   '<div class="access-quota-num">' + activeCount + '/10</div>'
+      +   '<div class="access-quota-label">Accès actifs / en attente</div>'
       + '</div>'
-      + '<button class="btn-primary" type="button" onclick="window.TeamManagerMobile.openCreateAccessSheet()" ' + (canCreate ? '' : 'disabled') + '>'
-      + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'
-      + 'Créer un accès'
+      + '<button class="btn-primary" type="button" onclick="window.TeamManagerMobile.openCreateAccessSheet()" '
+      +   (canCreate ? '' : 'disabled') + '>'
+      +   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px">'
+      +     '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>'
+      +   '</svg> Créer un accès'
       + '</button>'
       + '</div>';
 
     if (!generatedAccesses.length) {
       html += '<div class="team-empty"><div class="team-empty-icon">🔑</div>'
         + '<h3>Aucun accès créé</h3>'
-        + '<p>Générez des accès pour votre équipe (max 10).</p></div>';
-    } else {
-      html += '<div class="access-list">';
-      var icons  = { pending: '⏳', active: '✅', revoked: '❌' };
-      var labels = { pending: 'En attente', active: 'Actif', revoked: 'Révoqué' };
-
-      generatedAccesses.forEach(function (access) {
-        var aId = escapeHtml(access.access_id || String(access.id));
-        var aIdRaw = (access.access_id || String(access.id)).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-
-        html += '<div class="access-card ' + escapeHtml(access.status) + '">'
-          + '<div class="access-card-header">'
-          + '<div class="access-card-id">' + aId + '</div>'
-          + '<div class="access-status-badge ' + escapeHtml(access.status) + '">'
-          + (icons[access.status] || '') + ' ' + (labels[access.status] || access.status)
-          + '</div></div>'
-          + '<div class="access-card-info">'
-          + '<div class="access-info-row"><strong>Nom :</strong> ' + escapeHtml(access.member_name || '—') + '</div>'
-          + '<div class="access-info-row"><strong>Entreprise :</strong> ' + escapeHtml(access.company || '—') + '</div>'
-          + '<div class="access-info-row"><strong>Créé le :</strong> ' + escapeHtml(formatDate(access.created_at)) + '</div>'
-          + (access.activated_at ? '<div class="access-info-row"><strong>Activé le :</strong> ' + escapeHtml(formatDate(access.activated_at)) + '</div>' : '')
-          + '</div>'
-          + '<div class="access-card-actions">';
-
-        if (access.status === 'pending') {
-          html += "<button class='access-btn copy' type='button' onclick=\"window.TeamManagerMobile.copyAccessId('" + aIdRaw + "')\">Copier l'ID</button>";
-        }
-        if (access.status !== 'revoked') {
-          html += "<button class='access-btn revoke' type='button' onclick=\"window.TeamManagerMobile.revokeAccess('" + aIdRaw + "')\">Révoquer</button>";
-        }
-
-        html += '</div></div>';
-      });
-      html += '</div>';
+        + '<p>Créez jusqu\'à 10 accès pour votre équipe.</p></div>';
+      container.innerHTML = html;
+      return;
     }
+
+    var icons  = { pending: '⏳', active: '✅', revoked: '❌' };
+    var labels = { pending: 'En attente', active: 'Actif', revoked: 'Révoqué' };
+
+    html += '<div class="access-list">';
+    generatedAccesses.forEach(function (acc) {
+      var aId    = escapeHtml(acc.access_id);
+      var aIdRaw = acc.access_id.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+
+      html += '<div class="access-card ' + escapeHtml(acc.status) + '">'
+
+        /* En-tête */
+        + '<div class="access-card-header">'
+        +   '<div class="access-card-id">' + aId + '</div>'
+        +   '<div class="access-status-badge ' + escapeHtml(acc.status) + '">'
+        +     (icons[acc.status] || '') + ' ' + (labels[acc.status] || acc.status)
+        +   '</div>'
+        + '</div>'
+
+        /* Infos */
+        + '<div class="access-card-info">'
+        +   '<div class="access-info-row"><strong>Nom :</strong> '     + escapeHtml(acc.member_name || '—') + '</div>'
+        +   '<div class="access-info-row"><strong>Entreprise :</strong> ' + escapeHtml(acc.company   || '—') + '</div>'
+        +   (acc.email ? '<div class="access-info-row"><strong>Email :</strong> ' + escapeHtml(acc.email) + '</div>' : '')
+        +   '<div class="access-info-row"><strong>Créé le :</strong> '  + escapeHtml(formatDate(acc.created_at))  + '</div>'
+        +   (acc.activated_at ? '<div class="access-info-row"><strong>Activé le :</strong> ' + escapeHtml(formatDate(acc.activated_at)) + '</div>' : '')
+        +   (acc.revoked_at   ? '<div class="access-info-row"><strong>Révoqué le :</strong> '+ escapeHtml(formatDate(acc.revoked_at))   + '</div>' : '')
+        + '</div>'
+
+        /* Actions */
+        + '<div class="access-card-actions">';
+
+      if (acc.status === 'pending') {
+        html += "<button class='access-btn copy' type='button' "
+          + "onclick=\"window.TeamManagerMobile.copyAccessId('" + aIdRaw + "')\">Copier l'ID</button>";
+      }
+      if (acc.status !== 'revoked') {
+        html += "<button class='access-btn revoke' type='button' "
+          + "onclick=\"window.TeamManagerMobile.revokeAccess('" + aIdRaw + "')\">Révoquer</button>";
+      }
+
+      html += '</div></div>';
+    });
+    html += '</div>';
 
     container.innerHTML = html;
   }
@@ -431,8 +571,7 @@
     var activeCount = generatedAccesses.filter(function (a) {
       return a.status === 'active' || a.status === 'pending';
     }).length;
-
-    if (activeCount >= 10) { toast('Limite atteinte : 10 accès maximum'); return; }
+    if (activeCount >= 10) { toast('Limite atteinte : 10 accès maximum.'); return; }
 
     var fields = {
       'new-access-firstname': '',
@@ -443,18 +582,15 @@
       var el = document.getElementById(id);
       if (el) el.value = fields[id];
     });
-
     var preview = document.getElementById('new-access-preview');
     if (preview) preview.textContent = '@' + (fields['new-access-company'] || 'Entreprise');
 
     var btn = document.getElementById('create-access-btn');
     if (btn) { btn.disabled = false; btn.textContent = "Créer l'accès"; }
 
-    // Rebind events via MemberAccessManager
     if (window.MemberAccessManager && typeof window.MemberAccessManager.bindCreateAccessEvents === 'function') {
       window.MemberAccessManager.bindCreateAccessEvents();
     }
-
     openSheet('create-access-sheet');
   }
 
@@ -474,92 +610,29 @@
   }
 
   async function revokeAccess(accessId) {
-    if (!confirm('Voulez-vous vraiment révoquer cet accès ?')) return;
+    if (!confirm('Voulez-vous vraiment révoquer cet accès ?\nLe membre ne pourra plus se connecter.')) return;
     if (!window.MemberAccessManager) { toast('Module non disponible'); return; }
     var ok = await window.MemberAccessManager.revokeMemberAccess(accessId);
     if (ok) {
       await loadGeneratedAccesses();
       renderAccessManagement();
+      /* Retirer de la liste des membres actifs si présent */
+      teamMembers = teamMembers.filter(function (m) { return m.accessId !== accessId; });
+      renderTeamMembers();
     }
   }
 
   /* =========================================================
-     RENDU — MEMBRES DE L'ÉQUIPE
-  ========================================================= */
-
-  function renderTeamMembers() {
-    var container  = document.getElementById('team-members-view');
-    var teamLoading = document.getElementById('team-loading');
-    if (teamLoading) teamLoading.style.display = 'none';
-    if (!container) return;
-
-    if (!teamMembers.length) {
-      container.innerHTML = "<div class='team-empty'><div class='team-empty-icon'>👥</div><h3>Aucun commercial</h3><p>Créez des accès dans l'onglet \"Accès\".</p></div>";
-      return;
-    }
-
-    container.innerHTML = '';
-
-    teamMembers.forEach(function (member) {
-      var pipeline = teamMembersPipeline[member.uid] || [];
-      var cntP = pipeline.filter(function (p) { return p.status === 'prospection'; }).length;
-      var cntN = pipeline.filter(function (p) { return p.status === 'negociation'; }).length;
-      var cntC = pipeline.filter(function (p) { return p.status === 'conclue'; }).length;
-
-      var initials = ((member.name || member.email || '?')
-        .split(' ').map(function (w) { return w[0] || ''; }).join('').slice(0, 2)).toUpperCase();
-
-      var uidEsc = member.uid.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-
-      var pipelineHTML = pipeline.slice(0, 5).map(function (p) {
-        return '<div class="mpip-item">'
-          + '<span class="mpip-item-name">' + escapeHtml(p.company_name || '—') + '</span>'
-          + '<span class="mpip-item-status ' + escapeHtml(p.status || 'prospection') + '">' + escapeHtml(statusLabel(p.status)) + '</span>'
-          + '</div>';
-      }).join('') || '<div style="font-size:12px;color:var(--text-tertiary)">Aucun prospect assigné</div>';
-
-      var card = document.createElement('div');
-      card.className = 'member-card';
-      card.id = 'member-' + member.uid;
-
-      card.innerHTML = '<div class="member-head" onclick="window.TeamManagerMobile.toggleMemberCard(\'' + uidEsc + '\')">'
-        + '<div class="member-av">' + escapeHtml(initials) + '</div>'
-        + '<div class="member-info">'
-        + '<div class="member-name">' + escapeHtml(member.name || 'Sans nom') + '</div>'
-        + '<div class="member-email">' + escapeHtml(member.email || '') + '</div>'
-        + '</div>'
-        + '<svg class="member-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><polyline points="6 9 12 15 18 9"/></svg>'
-        + '</div>'
-        + '<div class="member-kpi">'
-        + '<div class="mkpi"><div class="mkpi-val">' + cntP + '</div><div class="mkpi-lbl">Prosp.</div></div>'
-        + '<div class="mkpi"><div class="mkpi-val neg">' + cntN + '</div><div class="mkpi-lbl">Négo.</div></div>'
-        + '<div class="mkpi"><div class="mkpi-val ok">' + cntC + '</div><div class="mkpi-lbl">Conclu</div></div>'
-        + '</div>'
-        + '<div class="member-pipeline">'
-        + '<div class="mpip-title">Pipeline récent</div>'
-        + pipelineHTML
-        + '</div>';
-
-      container.appendChild(card);
-    });
-  }
-
-  function toggleMemberCard(uid) {
-    var card = document.getElementById('member-' + uid);
-    if (card) card.classList.toggle('expanded');
-  }
-
-  /* =========================================================
-     ACTIVITÉ
+     RENDU — ONGLET ACTIVITÉ
   ========================================================= */
 
   function buildActivityFeed() {
     activityFeed = [];
     teamMembers.forEach(function (member) {
-      (teamMembersPipeline[member.uid] || []).forEach(function (p) {
+      (teamMembersPipeline[member.firebaseUid] || []).forEach(function (p) {
         activityFeed.push({
-          memberName: member.name || member.email || 'Commercial',
-          memberUid:  member.uid,
+          memberName: member.name  || 'Commercial',
+          memberUid:  member.firebaseUid,
           company:    p.company_name || 'Entreprise',
           status:     p.status || 'prospection',
           date:       p.updated_at || p.created_at || new Date().toISOString(),
@@ -575,11 +648,11 @@
     var loader    = document.getElementById('activity-loading');
     if (loader)    loader.style.display = 'none';
     if (!container) return;
-
     container.innerHTML = '';
 
     if (!activityFeed.length) {
-      container.innerHTML = "<div class='team-empty'><div class='team-empty-icon'>⚡</div><h3>Aucune activité</h3><p>L'activité de votre équipe apparaît ici.</p></div>";
+      container.innerHTML = "<div class='team-empty'><div class='team-empty-icon'>⚡</div>"
+        + "<h3>Aucune activité</h3><p>L'activité de votre équipe apparaîtra ici.</p></div>";
       return;
     }
 
@@ -595,16 +668,18 @@
 
       var el = document.createElement('div');
       el.className = 'activity-item';
-      el.innerHTML = '<div class="activity-dot-wrap"><div class="activity-dot ' + escapeHtml(item.status) + '"></div></div>'
+      el.innerHTML =
+        '<div class="activity-dot-wrap"><div class="activity-dot ' + escapeHtml(item.status) + '"></div></div>'
         + '<div class="activity-body">'
-        + '<div class="activity-text"><strong>' + escapeHtml(item.memberName) + '</strong> — '
-        + (icons[item.status] || '') + ' <strong>' + escapeHtml(item.company) + '</strong> en '
-        + escapeHtml(statusLabel(item.status)) + '</div>'
-        + (item.note
+        +   '<div class="activity-text"><strong>' + escapeHtml(item.memberName) + '</strong> — '
+        +     (icons[item.status] || '') + ' <strong>' + escapeHtml(item.company) + '</strong>'
+        +     ' en ' + escapeHtml(statusLabel(item.status))
+        +   '</div>'
+        +   (item.note
           ? '<div style="font-size:12px;color:var(--text-secondary);margin-top:3px;font-style:italic">'
             + escapeHtml(item.note.slice(0, 80)) + (item.note.length > 80 ? '...' : '') + '</div>'
           : '')
-        + '<div class="activity-meta">' + escapeHtml(dateStr) + '</div>'
+        +   '<div class="activity-meta">' + escapeHtml(dateStr) + '</div>'
         + '</div>';
       container.appendChild(el);
     });
@@ -615,60 +690,45 @@
   ========================================================= */
 
   function init() {
-    // Bind bouton activate
-    var activateBtn = document.getElementById('activate-access-btn');
-    if (activateBtn) {
-      activateBtn.onclick = activateMemberAccess;
-    }
-
-    // Appliquer le rôle si user déjà chargé
-    if (window.user) {
-      applyManagerRole();
-    }
+    var btn = document.getElementById('activate-access-btn');
+    if (btn) btn.onclick = activateMemberAccess;
+    if (window.user) applyManagerRole();
   }
 
   /* =========================================================
-     EXPOSITION GLOBALE — UNE SEULE SOURCE DE VÉRITÉ
-     Toutes les fonctions appelées via onclick="..." dans le HTML
-     doivent être ici.
+     EXPOSITION GLOBALE
   ========================================================= */
 
-  var API = {
-    // Navigation / Auth
+  var PUBLIC_API = {
+    /* Auth / Activation */
     switchToActivationFlow: switchToActivationFlow,
     backToLoginForm:        backToLoginForm,
     activateMemberAccess:   activateMemberAccess,
-
-    // Rôle
+    /* Rôle */
     applyManagerRole:       applyManagerRole,
-
-    // Onglet Équipe
+    /* Équipe */
     switchTeamSeg:          switchTeamSeg,
     refreshTeamData:        refreshTeamData,
     loadTeamData:           loadTeamData,
     loadGeneratedAccesses:  loadGeneratedAccesses,
-
-    // Rendu
+    /* Rendu */
     renderTeamMembers:      renderTeamMembers,
     renderAccessManagement: renderAccessManagement,
     renderActivityFeed:     renderActivityFeed,
     buildActivityFeed:      buildActivityFeed,
     toggleMemberCard:       toggleMemberCard,
-
-    // Accès
+    /* Accès */
     openCreateAccessSheet:  openCreateAccessSheet,
     copyAccessId:           copyAccessId,
     revokeAccess:           revokeAccess,
-
-    // Helpers
+    /* Sheets */
     openSheet:              openSheet,
     closeSheet:             closeSheet
   };
 
-  // ① Exposer sur window.TeamManagerMobile
-  window.TeamManagerMobile = API;
+  window.TeamManagerMobile = PUBLIC_API;
 
-  // ② Exposer directement sur window (pour les onclick inline du HTML)
+  /* Exposition directe pour les onclick inline */
   window.switchToActivationFlow = switchToActivationFlow;
   window.backToLoginForm        = backToLoginForm;
   window.activateMemberAccess   = activateMemberAccess;
@@ -676,7 +736,6 @@
   window.switchTeamSeg          = switchTeamSeg;
   window.refreshTeamData        = refreshTeamData;
 
-  // ③ Init au bon moment
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {
