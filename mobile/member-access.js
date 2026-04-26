@@ -1,473 +1,352 @@
-import {
-  getFirestore,
-  doc,
-  getDoc,
-  setDoc,
-  updateDoc,
-  deleteDoc,
-  collection,
-  query,
-  where,
-  getDocs,
-  serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+/**
+ * member-access.js — Sales Companion
+ * Script classique (non-ESM), Firebase compat uniquement.
+ * Toutes les fonctions sont exposées sur window.MemberAccessManager.
+ */
 
-import {
-  getAuth
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+(function () {
+  'use strict';
 
-/* =========================================================
-   INITIALISATION
-========================================================= */
-const db = getFirestore();
-const auth = getAuth();
+  /* =========================================================
+     UTILITAIRES
+  ========================================================= */
 
-/* =========================================================
-   ELEMENTS DOM - CREATION ACCES
-========================================================= */
-const firstnameInput = document.getElementById("new-access-firstname");
-const lastnameInput = document.getElementById("new-access-lastname");
-const companyInput = document.getElementById("new-access-company");
-const preview = document.getElementById("new-access-preview");
-const createAccessBtn = document.getElementById("create-access-btn");
-const toast = document.getElementById("toast");
-
-/* =========================================================
-   ELEMENTS DOM - ACTIVATION
-========================================================= */
-const activationAccessIdInput = document.getElementById("activation-access-id");
-const activationPasswordInput = document.getElementById("activation-new-password");
-const activationConfirmPasswordInput = document.getElementById("activation-confirm-password");
-const activateAccessBtn = document.getElementById("activate-access-btn");
-const activationErr = document.getElementById("activation-err");
-
-/* =========================================================
-   TOAST
-========================================================= */
-function showToast(message, type = "info") {
-  if (!toast) {
-    console.log(`[${type.toUpperCase()}] ${message}`);
-    return;
+  function normalizeText(text) {
+    return (text || '')
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]/g, '');
   }
 
-  toast.textContent = message;
-  toast.className = "toast show";
-
-  if (type === "error") {
-    toast.style.background = "#d32f2f";
-    toast.style.color = "#fff";
-  } else if (type === "success") {
-    toast.style.background = "#2e7d32";
-    toast.style.color = "#fff";
-  } else {
-    toast.style.background = "#333";
-    toast.style.color = "#fff";
+  function buildAccessId(firstname, lastname, company) {
+    var first = normalizeText(firstname);
+    var last  = normalizeText(lastname);
+    var comp  = normalizeText(company);
+    if (!first && !last && !comp) return '@entreprise';
+    return first + last + '@' + comp;
   }
 
-  clearTimeout(showToast._timer);
-  showToast._timer = setTimeout(() => {
-    toast.className = "toast";
-  }, 3000);
-}
-
-/* =========================================================
-   AFFICHAGE ERREUR ACTIVATION
-========================================================= */
-function setActivationError(message = "") {
-  if (!activationErr) return;
-
-  activationErr.textContent = message;
-  activationErr.style.display = message ? "block" : "none";
-}
-
-/* =========================================================
-   UTILITAIRES
-========================================================= */
-function normalizeText(text) {
-  return (text || "")
-    .trim()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]/g, "");
-}
-
-function buildAccessId(firstname, lastname, company) {
-  const first = normalizeText(firstname);
-  const last = normalizeText(lastname);
-  const comp = normalizeText(company);
-
-  if (!first && !last && !comp) return "@entreprise";
-  return `${first}${last}@${comp}`;
-}
-
-function normalizeTextAccessId(accessId) {
-  if (!accessId) return "";
-
-  const parts = accessId.split("@");
-  if (parts.length !== 2) {
-    return accessId.trim().toLowerCase();
+  function normalizeTextAccessId(accessId) {
+    if (!accessId) return '';
+    var parts = accessId.split('@');
+    if (parts.length !== 2) return accessId.trim().toLowerCase();
+    return normalizeText(parts[0]) + '@' + normalizeText(parts[1]);
   }
 
-  const left = normalizeText(parts[0]);
-  const right = normalizeText(parts[1]);
-
-  return `${left}@${right}`;
-}
-
-function clearCreateAccessForm() {
-  if (firstnameInput) firstnameInput.value = "";
-  if (lastnameInput) lastnameInput.value = "";
-  if (companyInput) companyInput.value = "";
-  updateAccessPreview();
-}
-
-function clearActivationForm() {
-  if (activationAccessIdInput) activationAccessIdInput.value = "";
-  if (activationPasswordInput) activationPasswordInput.value = "";
-  if (activationConfirmPasswordInput) activationConfirmPasswordInput.value = "";
-}
-
-function getCurrentManagerUid() {
-  const user = auth.currentUser;
-  return user ? user.uid : null;
-}
-
-/* =========================================================
-   APERCU DYNAMIQUE
-========================================================= */
-function updateAccessPreview() {
-  if (!preview) return;
-
-  const firstname = firstnameInput?.value || "";
-  const lastname = lastnameInput?.value || "";
-  const company = companyInput?.value || "";
-
-  if (!firstname && !lastname && !company) {
-    preview.textContent = "@Entreprise";
-    return;
-  }
-
-  preview.textContent = buildAccessId(firstname, lastname, company);
-}
-
-/* =========================================================
-   COMPTER LES ACCES CREES PAR LE MANAGER
-========================================================= */
-async function countManagerAccesses(managerUid) {
-  const q = query(
-    collection(db, "team_accesses"),
-    where("createdBy", "==", managerUid)
-  );
-
-  const snap = await getDocs(q);
-  return snap.size;
-}
-
-/* =========================================================
-   CREATION D'UN ACCES MEMBRE
-========================================================= */
-async function createMemberAccess() {
-  try {
-    const managerUid = getCurrentManagerUid();
-
-    if (!managerUid) {
-      showToast("Vous devez être connecté en tant que manager.", "error");
-      return false;
+  function showToast(message) {
+    if (typeof window.toast === 'function') {
+      window.toast(message);
+    } else {
+      var el = document.getElementById('toast');
+      if (!el) return;
+      el.textContent = message;
+      el.className = 'toast show';
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(function () { el.className = 'toast'; }, 3000);
     }
+  }
 
-    const firstname = firstnameInput?.value.trim() || "";
-    const lastname = lastnameInput?.value.trim() || "";
-    const company = companyInput?.value.trim() || "";
+  /* =========================================================
+     APERCU DYNAMIQUE (formulaire manager)
+  ========================================================= */
+
+  function updateAccessPreview() {
+    var firstname = (document.getElementById('new-access-firstname') || {}).value || '';
+    var lastname  = (document.getElementById('new-access-lastname')  || {}).value || '';
+    var company   = (document.getElementById('new-access-company')   || {}).value || 'Entreprise';
+    var preview   = document.getElementById('new-access-preview');
+    if (!preview) return;
+    if (!firstname && !lastname) {
+      preview.textContent = '@' + (normalizeText(company) || 'entreprise');
+    } else {
+      preview.textContent = buildAccessId(firstname, lastname, company);
+    }
+  }
+
+  /* =========================================================
+     HELPERS FIRESTORE (compat)
+  ========================================================= */
+
+  function getDb() {
+    return window._db || (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length ? firebase.firestore() : null);
+  }
+
+  function getCurrentManagerUid() {
+    var auth = window._auth || (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length ? firebase.auth() : null);
+    return auth && auth.currentUser ? auth.currentUser.uid : null;
+  }
+
+  /* =========================================================
+     COMPTER LES ACCES DU MANAGER
+  ========================================================= */
+
+  async function countManagerAccesses(managerUid) {
+    var db = getDb();
+    if (!db) return 0;
+    var snap = await db.collection('team_accesses')
+      .where('createdBy', '==', managerUid)
+      .get();
+    return snap.size;
+  }
+
+  /* =========================================================
+     CREATION D'UN ACCES MEMBRE
+  ========================================================= */
+
+  async function createMemberAccess() {
+    var db = getDb();
+    if (!db) { showToast('Base de données non disponible'); return false; }
+
+    var managerUid = getCurrentManagerUid();
+    if (!managerUid) { showToast('Vous devez être connecté en tant que manager.'); return false; }
+
+    var firstname = ((document.getElementById('new-access-firstname') || {}).value || '').trim();
+    var lastname  = ((document.getElementById('new-access-lastname')  || {}).value || '').trim();
+    var company   = ((document.getElementById('new-access-company')   || {}).value || '').trim();
 
     if (!firstname || !lastname || !company) {
-      showToast("Veuillez remplir prénom, nom et entreprise.", "error");
+      showToast('Veuillez remplir prénom, nom et entreprise.');
       return false;
     }
 
-    const accessId = buildAccessId(firstname, lastname, company);
-
-    if (!accessId || accessId === "@entreprise") {
-      showToast("Impossible de générer un identifiant valide.", "error");
+    var accessId = buildAccessId(firstname, lastname, company);
+    if (!accessId || accessId === '@entreprise') {
+      showToast('Impossible de générer un identifiant valide.');
       return false;
     }
 
-    if (createAccessBtn) {
-      createAccessBtn.disabled = true;
-      createAccessBtn.textContent = "Création...";
-    }
+    var btn = document.getElementById('create-access-btn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Création...'; }
 
-    const accessCount = await countManagerAccesses(managerUid);
-    if (accessCount >= 10) {
-      showToast("Vous avez atteint la limite maximale de 10 accès.", "error");
+    try {
+      var count = await countManagerAccesses(managerUid);
+      if (count >= 10) { showToast('Limite de 10 accès atteinte.'); return false; }
+
+      var ref = db.collection('team_accesses').doc(accessId);
+      var existing = await ref.get();
+      if (existing.exists) { showToast('Cet identifiant existe déjà.'); return false; }
+
+      await ref.set({
+        accessId:          accessId,
+        firstname:         firstname,
+        lastname:          lastname,
+        company:           company,
+        role:              'member',
+        status:            'pending',
+        activated:         false,
+        passwordSet:       false,
+        mustChangePassword:true,
+        createdBy:         managerUid,
+        createdAt:         firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      showToast('✅ Accès créé : ' + accessId);
+      clearCreateAccessForm();
+
+      if (typeof window.closeSheet === 'function') window.closeSheet('create-access-sheet');
+      if (window.TeamManagerMobile && typeof window.TeamManagerMobile.loadGeneratedAccesses === 'function') {
+        await window.TeamManagerMobile.loadGeneratedAccesses();
+        window.TeamManagerMobile.renderAccessManagement();
+      }
+      return true;
+
+    } catch (e) {
+      console.error('createMemberAccess:', e);
+      showToast('Erreur lors de la création : ' + e.message);
       return false;
-    }
-
-    const memberRef = doc(db, "team_accesses", accessId);
-    const existing = await getDoc(memberRef);
-
-    if (existing.exists()) {
-      showToast("Cet identifiant d'accès existe déjà.", "error");
-      return false;
-    }
-
-    await setDoc(memberRef, {
-      accessId,
-      firstname,
-      lastname,
-      company,
-      role: "member",
-      status: "pending",
-      activated: false,
-      passwordSet: false,
-      mustChangePassword: true,
-      createdBy: managerUid,
-      createdAt: serverTimestamp()
-    });
-
-    showToast(`Accès créé avec succès : ${accessId}`, "success");
-    clearCreateAccessForm();
-
-    if (window.TeamManager && typeof window.TeamManager.closeSheet === "function") {
-      window.TeamManager.closeSheet("create-access-sheet");
-    }
-
-    return true;
-  } catch (error) {
-    console.error("Erreur lors de la création de l'accès :", error);
-    showToast("Erreur lors de la création de l'accès.", "error");
-    return false;
-  } finally {
-    if (createAccessBtn) {
-      createAccessBtn.disabled = false;
-      createAccessBtn.textContent = "Créer l'accès";
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = "Créer l'accès"; }
     }
   }
-}
 
-/* =========================================================
-   ACTIVATION DU COMPTE MEMBRE
-   IMPORTANT :
-   - cette version met seulement à jour Firestore
-   - ne stocke PAS le mot de passe en clair
-========================================================= */
-async function activateMemberAccount(accessId, password, confirmPassword) {
-  try {
-    const normalizedAccessId = normalizeTextAccessId(accessId);
+  /* =========================================================
+     ACTIVATION DU COMPTE MEMBRE
+  ========================================================= */
 
-    if (!normalizedAccessId || !password || !confirmPassword) {
-      showToast("Veuillez remplir tous les champs.", "error");
-      return { success: false, message: "Veuillez remplir tous les champs." };
+  async function activateMemberAccount(accessId, password, confirmPassword) {
+    var db = getDb();
+    if (!db) return { success: false, message: 'Base de données non disponible.' };
+
+    var normalizedId = normalizeTextAccessId(accessId);
+
+    if (!normalizedId || !password || !confirmPassword)
+      return { success: false, message: 'Veuillez remplir tous les champs.' };
+
+    if (password.length < 8)
+      return { success: false, message: 'Le mot de passe doit contenir au moins 8 caractères.' };
+
+    if (password !== confirmPassword)
+      return { success: false, message: 'Les mots de passe ne correspondent pas.' };
+
+    try {
+      var ref  = db.collection('team_accesses').doc(normalizedId);
+      var snap = await ref.get();
+
+      if (!snap.exists)
+        return { success: false, message: "Identifiant d'accès introuvable." };
+
+      var data = snap.data();
+
+      if (data.status === 'revoked')
+        return { success: false, message: 'Cet accès a été révoqué.' };
+
+      if (data.activated === true)
+        return { success: false, message: 'Ce compte est déjà activé.' };
+
+      await ref.update({
+        activated:          true,
+        passwordSet:        true,
+        mustChangePassword: false,
+        status:             'active',
+        activatedAt:        firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      return { success: true };
+
+    } catch (e) {
+      console.error('activateMemberAccount:', e);
+      return { success: false, message: "Erreur lors de l'activation : " + e.message };
     }
-
-    if (password.length < 8) {
-      showToast("Le mot de passe doit contenir au moins 8 caractères.", "error");
-      return { success: false, message: "Le mot de passe doit contenir au moins 8 caractères." };
-    }
-
-    if (password !== confirmPassword) {
-      showToast("Les mots de passe ne correspondent pas.", "error");
-      return { success: false, message: "Les mots de passe ne correspondent pas." };
-    }
-
-    const memberRef = doc(db, "team_accesses", normalizedAccessId);
-    const memberSnap = await getDoc(memberRef);
-
-    if (!memberSnap.exists()) {
-      showToast("Identifiant d'accès introuvable.", "error");
-      return { success: false, message: "Identifiant d'accès introuvable." };
-    }
-
-    const memberData = memberSnap.data();
-
-    if (memberData.status === "revoked") {
-      showToast("Cet accès a été révoqué.", "error");
-      return { success: false, message: "Cet accès a été révoqué." };
-    }
-
-    if (memberData.activated === true) {
-      showToast("Ce compte est déjà activé.", "error");
-      return { success: false, message: "Ce compte est déjà activé." };
-    }
-
-    await updateDoc(memberRef, {
-      activated: true,
-      passwordSet: true,
-      mustChangePassword: false,
-      status: "active",
-      activatedAt: serverTimestamp()
-    });
-
-    showToast("Compte activé avec succès.", "success");
-    return { success: true };
-  } catch (error) {
-    console.error("Erreur lors de l'activation du compte :", error);
-    showToast("Erreur lors de l'activation du compte.", "error");
-    return { success: false, message: "Erreur lors de l'activation du compte." };
   }
-}
 
-/* =========================================================
-   REVOCATION D'UN ACCES MEMBRE
-========================================================= */
-async function revokeMemberAccess(accessId) {
-  try {
-    const managerUid = getCurrentManagerUid();
+  /* =========================================================
+     REVOCATION
+  ========================================================= */
 
-    if (!managerUid) {
-      showToast("Vous devez être connecté.", "error");
+  async function revokeMemberAccess(accessId) {
+    var db = getDb();
+    if (!db) { showToast('Base de données non disponible'); return false; }
+
+    var managerUid = getCurrentManagerUid();
+    if (!managerUid) { showToast('Vous devez être connecté.'); return false; }
+
+    var normalizedId = normalizeTextAccessId(accessId);
+
+    try {
+      var ref  = db.collection('team_accesses').doc(normalizedId);
+      var snap = await ref.get();
+
+      if (!snap.exists) { showToast('Accès introuvable.'); return false; }
+      if (snap.data().createdBy !== managerUid) { showToast("Non autorisé."); return false; }
+
+      await ref.update({
+        status:    'revoked',
+        revokedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      showToast('Accès révoqué.');
+      return true;
+
+    } catch (e) {
+      showToast('Erreur révocation : ' + e.message);
       return false;
     }
-
-    const normalizedAccessId = normalizeTextAccessId(accessId);
-    const memberRef = doc(db, "team_accesses", normalizedAccessId);
-    const memberSnap = await getDoc(memberRef);
-
-    if (!memberSnap.exists()) {
-      showToast("Accès introuvable.", "error");
-      return false;
-    }
-
-    const data = memberSnap.data();
-
-    if (data.createdBy !== managerUid) {
-      showToast("Vous n'êtes pas autorisé à révoquer cet accès.", "error");
-      return false;
-    }
-
-    await updateDoc(memberRef, {
-      status: "revoked",
-      revokedAt: serverTimestamp()
-    });
-
-    showToast("Accès révoqué avec succès.", "success");
-    return true;
-  } catch (error) {
-    console.error("Erreur révocation accès :", error);
-    showToast("Erreur lors de la révocation.", "error");
-    return false;
   }
-}
 
-/* =========================================================
-   SUPPRESSION D'UN ACCES MEMBRE
-   (optionnel)
-========================================================= */
-async function deleteMemberAccess(accessId) {
-  try {
-    const managerUid = getCurrentManagerUid();
+  /* =========================================================
+     SUPPRESSION
+  ========================================================= */
 
-    if (!managerUid) {
-      showToast("Vous devez être connecté.", "error");
+  async function deleteMemberAccess(accessId) {
+    var db = getDb();
+    if (!db) { showToast('Base de données non disponible'); return false; }
+
+    var managerUid = getCurrentManagerUid();
+    if (!managerUid) { showToast('Vous devez être connecté.'); return false; }
+
+    var normalizedId = normalizeTextAccessId(accessId);
+
+    try {
+      var ref  = db.collection('team_accesses').doc(normalizedId);
+      var snap = await ref.get();
+
+      if (!snap.exists) { showToast('Accès introuvable.'); return false; }
+      if (snap.data().createdBy !== managerUid) { showToast("Non autorisé."); return false; }
+
+      await ref.delete();
+      showToast('Accès supprimé.');
+      return true;
+
+    } catch (e) {
+      showToast('Erreur suppression : ' + e.message);
       return false;
     }
-
-    const normalizedAccessId = normalizeTextAccessId(accessId);
-    const memberRef = doc(db, "team_accesses", normalizedAccessId);
-    const memberSnap = await getDoc(memberRef);
-
-    if (!memberSnap.exists()) {
-      showToast("Accès introuvable.", "error");
-      return false;
-    }
-
-    const data = memberSnap.data();
-
-    if (data.createdBy !== managerUid) {
-      showToast("Vous n'êtes pas autorisé à supprimer cet accès.", "error");
-      return false;
-    }
-
-    await deleteDoc(memberRef);
-    showToast("Accès supprimé avec succès.", "success");
-    return true;
-  } catch (error) {
-    console.error("Erreur suppression accès :", error);
-    showToast("Erreur lors de la suppression.", "error");
-    return false;
   }
-}
 
-/* =========================================================
-   VERIFIER SI UN ACCES EXISTE
-========================================================= */
-async function checkMemberAccessExists(accessId) {
-  try {
-    const normalizedAccessId = normalizeTextAccessId(accessId);
-    const memberRef = doc(db, "team_accesses", normalizedAccessId);
-    const snap = await getDoc(memberRef);
+  /* =========================================================
+     VERIFICATION
+  ========================================================= */
 
-    if (!snap.exists()) {
+  async function checkMemberAccessExists(accessId) {
+    var db = getDb();
+    if (!db) return { exists: false, data: null };
+    try {
+      var snap = await db.collection('team_accesses').doc(normalizeTextAccessId(accessId)).get();
+      return snap.exists ? { exists: true, data: snap.data() } : { exists: false, data: null };
+    } catch (e) {
       return { exists: false, data: null };
     }
-
-    return { exists: true, data: snap.data() };
-  } catch (error) {
-    console.error("Erreur vérification accès :", error);
-    return { exists: false, data: null };
   }
-}
 
-/* =========================================================
-   BIND EVENTS CREATION
-========================================================= */
-if (firstnameInput) firstnameInput.addEventListener("input", updateAccessPreview);
-if (lastnameInput) lastnameInput.addEventListener("input", updateAccessPreview);
-if (companyInput) companyInput.addEventListener("input", updateAccessPreview);
+  /* =========================================================
+     HELPERS FORMULAIRE
+  ========================================================= */
 
-if (createAccessBtn) {
-  createAccessBtn.addEventListener("click", createMemberAccess);
-}
+  function clearCreateAccessForm() {
+    ['new-access-firstname', 'new-access-lastname', 'new-access-company'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    updateAccessPreview();
+  }
 
-/* =========================================================
-   BIND EVENTS ACTIVATION
-========================================================= */
-if (activateAccessBtn) {
-  activateAccessBtn.addEventListener("click", async () => {
-    setActivationError("");
+  /* =========================================================
+     BIND EVENTS (appelé après DOMContentLoaded)
+  ========================================================= */
 
-    const accessId = activationAccessIdInput?.value || "";
-    const password = activationPasswordInput?.value || "";
-    const confirmPassword = activationConfirmPasswordInput?.value || "";
+  function bindCreateAccessEvents() {
+    ['new-access-firstname', 'new-access-lastname', 'new-access-company'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.addEventListener('input', updateAccessPreview);
+    });
 
-    if (activateAccessBtn) {
-      activateAccessBtn.disabled = true;
-      activateAccessBtn.textContent = "Activation...";
+    var createBtn = document.getElementById('create-access-btn');
+    if (createBtn) {
+      // Éviter les doublons de listener
+      createBtn.replaceWith(createBtn.cloneNode(true));
+      document.getElementById('create-access-btn').addEventListener('click', createMemberAccess);
     }
 
-    const result = await activateMemberAccount(accessId, password, confirmPassword);
+    updateAccessPreview();
+  }
 
-    if (!result.success) {
-      setActivationError(result.message || "Erreur lors de l'activation.");
-    } else {
-      setActivationError("");
-      clearActivationForm();
-      // Redirection optionnelle
-      // window.location.href = "/login";
-    }
+  /* =========================================================
+     EXPORT GLOBAL
+  ========================================================= */
 
-    if (activateAccessBtn) {
-      activateAccessBtn.disabled = false;
-      activateAccessBtn.textContent = "Activer mon compte →";
-    }
-  });
-}
+  window.MemberAccessManager = {
+    createMemberAccess:       createMemberAccess,
+    activateMemberAccount:    activateMemberAccount,
+    revokeMemberAccess:       revokeMemberAccess,
+    deleteMemberAccess:       deleteMemberAccess,
+    checkMemberAccessExists:  checkMemberAccessExists,
+    buildAccessId:            buildAccessId,
+    normalizeTextAccessId:    normalizeTextAccessId,
+    updateAccessPreview:      updateAccessPreview,
+    bindCreateAccessEvents:   bindCreateAccessEvents,
+    clearCreateAccessForm:    clearCreateAccessForm
+  };
 
-/* =========================================================
-   INIT
-========================================================= */
-updateAccessPreview();
-setActivationError("");
+  // Alias direct sur window pour les onclick inline
+  window.updateAccessPreview = updateAccessPreview;
 
-/* =========================================================
-   EXPORT GLOBAL
-========================================================= */
-window.MemberAccessManager = {
-  createMemberAccess,
-  activateMemberAccount,
-  revokeMemberAccess,
-  deleteMemberAccess,
-  checkMemberAccessExists,
-  buildAccessId,
-  normalizeTextAccessId
-};
+  // Init au chargement
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bindCreateAccessEvents);
+  } else {
+    bindCreateAccessEvents();
+  }
+
+})();
