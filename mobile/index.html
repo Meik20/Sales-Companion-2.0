@@ -19,7 +19,7 @@
 <!-- App Configuration -->
 <script src="firebase-config.js"></script>
 <script src="app-config.js"></script>
-<script src="team-manager.js"></script>
+<script src="team-manager-mobile.js"></script>
 
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -1553,6 +1553,7 @@ var REGION_CITIES = {
 };
 
 var token = localStorage.getItem('sc_token') || '';
+var token = localStorage.getItem('sc_token') || '';
 var user = null, chatHistory = [], pipelineData = [], pipelineCompanies = {}, lastResults = [], lastProspectResults = [], lastFilters = {}, lastQuery = '';
 var selectedForAssignMobile = new Set();
 var isSearching = false, isChatting = false, currentPipTab = 'prospection';
@@ -1562,38 +1563,57 @@ var voiceRecognition = null;
 var voiceListening = false;
 var currentVoiceNoteIndex = null;
 
-async function getFreshToken() {
-  var currentUser = auth && auth.currentUser;
-  if (currentUser) {
-    try {
-      var newToken = await currentUser.getIdToken(true);
-      token = newToken;
-      localStorage.setItem('sc_token', newToken);
-      return newToken;
-    } catch (e) {}
-  }
-  return token;
+function getUserRole() {
+  return ((window.user && window.user.role) || '').toLowerCase().trim();
 }
 
-function getServer() { return RAILWAY_SERVER; }
-
-async function api(method, path, body, tok) {
-  function buildOpts(t) {
-    var opts = { method: method, headers: { 'Content-Type': 'application/json' } };
-    if (t) opts.headers['Authorization'] = 'Bearer ' + t;
-    if (body) opts.body = JSON.stringify(body);
-    return opts;
-  }
-  var r = await fetch(getServer() + path, buildOpts(tok));
-  if (r.status === 401) {
-    var freshToken = await getFreshToken();
-    if (freshToken && freshToken !== tok) {
-      r = await fetch(getServer() + path, buildOpts(freshToken));
-    } else { doLogout(); }
-  }
-  return r;
+function syncGlobalAuthState() {
+  window.user = user || window.user || null;
+  window.token = token || '';
 }
 
+async function checkAuthMe() {
+  try {
+    if (!auth || !auth.currentUser) return false;
+
+    const fresh = await auth.currentUser.getIdToken(true);
+    if (!fresh) return false;
+
+    token = fresh;
+    localStorage.setItem('sc_token', token);
+
+    const r = await api('GET', '/auth/me', null, token);
+    if (!r || !r.ok) {
+      if (r && r.status === 401) {
+        localStorage.removeItem('sc_token');
+        token = '';
+        user = null;
+        syncGlobalAuthState();
+      }
+      return false;
+    }
+
+    const me = await r.json();
+    window.user = me.user || me || {};
+    if (!window.user.uid && auth.currentUser) {
+      window.user.uid = auth.currentUser.uid;
+    }
+    if (!window.user.email && auth.currentUser) {
+      window.user.email = auth.currentUser.email || '';
+    }
+    syncGlobalAuthState();
+    updateTopbar();
+    updateSidebar();
+    showApp();
+    if (window.TeamManagerMobile && typeof window.TeamManagerMobile.applyManagerRole === 'function') {
+      window.TeamManagerMobile.applyManagerRole();
+    }
+
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
 var OFFLINE_QUEUE_KEY = 'sc_offline_queue';
 var OFFLINE_SEARCH_KEY = 'sc_offline_search';
 
@@ -1922,17 +1942,47 @@ async function checkCachedToken() {
 async function checkAuthMe() {
   try {
     if (!auth || !auth.currentUser) return false;
+
     const fresh = await auth.currentUser.getIdToken(true);
     if (!fresh) return false;
-    token = fresh; localStorage.setItem('sc_token', token);
+
+    token = fresh;
+    localStorage.setItem('sc_token', token);
+
     const r = await api('GET', '/auth/me', null, token);
-    if (!r || !r.ok) { if (r && r.status === 401) { localStorage.removeItem('sc_token'); token = ''; } return false; }
-    user = await r.json();
-    window.user = user;
-    updateTopbar(); updateSidebar(); showApp();
-    if (typeof applyManagerRole !== 'undefined') applyManagerRole();
+    if (!r || !r.ok) {
+      if (r && r.status === 401) {
+        localStorage.removeItem('sc_token');
+        token = '';
+        user = null;
+        syncGlobalAuthState();
+      }
+      return false;
+    }
+
+    const me = await r.json();
+    user = me.user || me || {};
+
+    if (!user.uid && auth.currentUser) {
+      user.uid = auth.currentUser.uid;
+    }
+    if (!user.email && auth.currentUser) {
+      user.email = auth.currentUser.email || '';
+    }
+
+    syncGlobalAuthState();
+    updateTopbar();
+    updateSidebar();
+    showApp();
+
+    if (window.TeamManagerMobile && typeof window.TeamManagerMobile.applyManagerRole === 'function') {
+      window.TeamManagerMobile.applyManagerRole();
+    }
+
     return true;
-  } catch (e) { return false; }
+  } catch (e) {
+    return false;
+  }
 }
 
 function showToast(message) {
@@ -1982,54 +2032,116 @@ function switchTab(t) {
 
 async function doLogin() {
   if (isInitializing) { showToast('L application initialise...'); return; }
-  var btn = document.getElementById('l-btn'); btn.disabled = true; btn.textContent = '...';
-  var err = document.getElementById('l-err'); err.style.display = 'none';
+
+  var btn = document.getElementById('l-btn');
+  btn.disabled = true;
+  btn.textContent = '...';
+
+  var err = document.getElementById('l-err');
+  err.style.display = 'none';
+
   try {
     var attempts = 0;
-    while ((!auth || !db) && attempts < 50) { await new Promise(function(r) { setTimeout(r, 100); }); attempts++; }
+    while ((!auth || !db) && attempts < 50) {
+      await new Promise(function(r) { setTimeout(r, 100); });
+      attempts++;
+    }
+
     if (!auth) throw new Error('Firebase Auth non initialise.');
+
     var email = document.getElementById('l-email').value.trim();
     var password = document.getElementById('l-pass').value;
+
     if (!email || !password) throw new Error('Email et mot de passe requis');
+
     var cred = await auth.signInWithEmailAndPassword(email, password);
     var idToken = await cred.user.getIdToken();
+
     token = idToken;
+
     var userDoc = await db.collection('users').doc(cred.user.uid).get();
     if (userDoc.exists) {
-      user = userDoc.data();
-      window.user = user;
+      user = { uid: userDoc.id, ...userDoc.data() };
       localStorage.setItem('sc_token', token);
+      syncGlobalAuthState();
       showApp();
-      if (typeof applyManagerRole !== 'undefined') applyManagerRole();
-    } else { throw new Error('Profil utilisateur non trouve'); }
-  } catch (e) { err.textContent = e.message || 'Erreur de connexion'; err.style.display = 'block'; }
-  btn.disabled = false; btn.textContent = 'Se connecter';
+
+      if (window.TeamManagerMobile && typeof window.TeamManagerMobile.applyManagerRole === 'function') {
+        window.TeamManagerMobile.applyManagerRole();
+      }
+    } else {
+      throw new Error('Profil utilisateur non trouve');
+    }
+  } catch (e) {
+    err.textContent = e.message || 'Erreur de connexion';
+    err.style.display = 'block';
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Se connecter';
   isInitializing = false;
 }
 
 async function doRegister() {
-  var btn = document.getElementById('r-btn'); btn.disabled = true; btn.textContent = '...';
-  var err = document.getElementById('r-err'); err.style.display = 'none';
+  var btn = document.getElementById('r-btn');
+  btn.disabled = true;
+  btn.textContent = '...';
+
+  var err = document.getElementById('r-err');
+  err.style.display = 'none';
+
   try {
     if (!auth || !db) throw new Error('Firebase non initialise.');
+
     var name = document.getElementById('r-name').value.trim();
     var email = document.getElementById('r-email').value.trim();
     var password = document.getElementById('r-pass').value;
-    if (!name || !email || !password || password.length < 6) throw new Error('Tous les champs requis (mot de passe min 6 caracteres)');
+
+    if (!name || !email || !password || password.length < 6) {
+      throw new Error('Tous les champs requis (mot de passe min 6 caracteres)');
+    }
+
     var accountType = document.getElementById('r-account-type').value;
     var companyEl = document.getElementById('r-company');
     var companyId = companyEl ? companyEl.value.trim() : null;
+
     var cred = await auth.createUserWithEmailAndPassword(email, password);
     await cred.user.updateProfile({ displayName: name });
-    await db.collection('users').doc(cred.user.uid).set({ uid: cred.user.uid, email: cred.user.email, name: name, role: accountType === 'manager' ? 'manager' : 'independent', company_id: accountType === 'manager' ? (companyId || null) : null, plan: 'free', daily_limit: 10, daily_used: 0, last_reset: new Date().toISOString(), active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() });
+
+    await db.collection('users').doc(cred.user.uid).set({
+      uid: cred.user.uid,
+      email: cred.user.email,
+      name: name,
+      role: accountType === 'manager' ? 'manager' : 'independent',
+      company_id: accountType === 'manager' ? (companyId || null) : null,
+      plan: 'free',
+      daily_limit: 10,
+      daily_used: 0,
+      last_reset: new Date().toISOString(),
+      active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    });
+
     token = await cred.user.getIdToken();
+
     var userDoc = await db.collection('users').doc(cred.user.uid).get();
-    user = userDoc.data();
-    window.user = user;
+    user = { uid: userDoc.id, ...userDoc.data() };
+
     localStorage.setItem('sc_token', token);
+    syncGlobalAuthState();
     showApp();
-  } catch (e) { err.textContent = e.message || 'Erreur inscription'; err.style.display = 'block'; }
-  btn.disabled = false; btn.textContent = 'Creer mon compte';
+
+    if (window.TeamManagerMobile && typeof window.TeamManagerMobile.applyManagerRole === 'function') {
+      window.TeamManagerMobile.applyManagerRole();
+    }
+  } catch (e) {
+    err.textContent = e.message || 'Erreur inscription';
+    err.style.display = 'block';
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Creer mon compte';
   isInitializing = false;
 }
 
@@ -2041,16 +2153,16 @@ function showAuth() {
 }
 
 function updateTopbar() {
-  var name = (user && (user.name || (user.email && user.email.split('@')[0]))) || 'Utilisateur';
+  var name = (window.user && (window.user.name || (window.user.email && window.user.email.split('@')[0]))) || 'Utilisateur';
   var initials = name.split(' ').map(function(w) { return w[0] || ''; }).join('').slice(0, 2).toUpperCase();
   var tbInitials = document.getElementById('tb-initials');
   if (tbInitials) tbInitials.textContent = initials;
 }
 
 function updateSidebar() {
-  var name = (user && (user.name || (user.email && user.email.split('@')[0]))) || 'Utilisateur';
+  var name = (window.user && (window.user.name || (window.user.email && window.user.email.split('@')[0]))) || 'Utilisateur';
   var initials = name.split(' ').map(function(w) { return w[0] || ''; }).join('').slice(0, 2).toUpperCase();
-  var plan = ((user && user.plan) || 'free').toLowerCase();
+  var plan = ((window.user && window.user.plan) || 'free').toLowerCase();
   var sideAvatar = document.getElementById('side-avatar');
   if (sideAvatar) sideAvatar.textContent = initials;
   var sideName = document.getElementById('side-name');
@@ -2084,7 +2196,10 @@ async function refreshMe() { try { await checkAuthMe(); } catch (e) {} }
 function doLogout() {
   if (auth) auth.signOut().catch(function() {});
   localStorage.removeItem('sc_token');
-  token = ''; user = null; showAuth(); closeSheet('profile-sheet');
+  token = '';
+  window.user = null;
+  showAuth();
+  closeSheet('profile-sheet');
 }
 
 function switchTab2(name) {

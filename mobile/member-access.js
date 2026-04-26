@@ -320,7 +320,7 @@ async function revokeMemberAccess(accessId) {
     }
 
     const normalizedAccessId = normalizeTextAccessId(accessId);
-    const memberRef = doc(db, "member_access", normalizedAccessId);
+    const memberRef = doc(db, "team_accesses", normalizedAccessId);
     const memberSnap = await getDoc(memberRef);
 
     if (!memberSnap.exists()) {

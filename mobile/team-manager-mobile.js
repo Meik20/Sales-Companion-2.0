@@ -8,34 +8,33 @@ import {
 
 const db = getFirestore();
 
-/* ═══════════════════════════════════════════════════════════
-   VARIABLES GLOBALES
-═══════════════════════════════════════════════════════════ */
 if (typeof window.selectedForAssignMobile === 'undefined') {
   window.selectedForAssignMobile = new Set();
 }
 
 var teamMembers = [];
 var teamMembersPipeline = {};
-var selectedAssigneeMobile = null;
 var currentTeamSeg = 'members';
 var activityFeed = [];
 var generatedAccesses = [];
 var isTeamDataLoading = false;
 
-/* ═══════════════════════════════════════════════════════════
-   HELPERS
-═══════════════════════════════════════════════════════════ */
+function getUserRole() {
+  return ((window.user && window.user.role) || '').toLowerCase().trim();
+}
+
+function getAuthToken() {
+  return window.token || localStorage.getItem('sc_token') || '';
+}
+
 function toast(message) {
   const toastEl = document.getElementById('toast');
   if (!toastEl) {
     console.log(message);
     return;
   }
-
   toastEl.textContent = message;
   toastEl.classList.add('show');
-
   clearTimeout(toast._t);
   toast._t = setTimeout(() => {
     toastEl.classList.remove('show');
@@ -43,13 +42,25 @@ function toast(message) {
 }
 
 function openSheet(sheetId) {
+  if (typeof window.openSheet === 'function') {
+    window.openSheet(sheetId);
+    return;
+  }
   var sheet = document.getElementById(sheetId);
-  if (sheet) sheet.classList.add('open');
+  var overlay = document.getElementById(sheetId.replace('-sheet', '-overlay'));
+  if (overlay) overlay.classList.add('open');
+  if (sheet) setTimeout(function () { sheet.classList.add('open'); }, 10);
 }
 
 function closeSheet(sheetId) {
+  if (typeof window.closeSheet === 'function') {
+    window.closeSheet(sheetId);
+    return;
+  }
   var sheet = typeof sheetId === 'string' ? document.getElementById(sheetId) : sheetId;
+  var overlay = typeof sheetId === 'string' ? document.getElementById(sheetId.replace('-sheet', '-overlay')) : null;
   if (sheet) sheet.classList.remove('open');
+  if (overlay) overlay.classList.remove('open');
 }
 
 function formatDate(dateStr) {
@@ -85,24 +96,19 @@ function escapeHtml(str) {
     .replace(/'/g, '&#039;');
 }
 
-/* ═══════════════════════════════════════════════════════════
-   API WRAPPER
-═══════════════════════════════════════════════════════════ */
 async function api(method, endpoint, data, token) {
   if (typeof RAILWAY_SERVER === 'undefined') {
-    console.error('RAILWAY_SERVER not defined');
     throw new Error('Server not configured');
   }
 
   var options = {
     method: method || 'GET',
-    headers: {
-      'Content-Type': 'application/json'
-    }
+    headers: { 'Content-Type': 'application/json' }
   };
 
-  if (token) {
-    options.headers['Authorization'] = 'Bearer ' + token;
+  var finalToken = token || getAuthToken();
+  if (finalToken) {
+    options.headers['Authorization'] = 'Bearer ' + finalToken;
   }
 
   if (data && (method === 'POST' || method === 'PUT')) {
@@ -112,9 +118,7 @@ async function api(method, endpoint, data, token) {
   return fetch(RAILWAY_SERVER + endpoint, options);
 }
 
-/* ═══════════════════════════════════════════════════════════
-   LOGIN / ACTIVATION FLOW
-═══════════════════════════════════════════════════════════ */
+/* LOGIN / ACTIVATION */
 function switchToActivationFlow() {
   var loginForm = document.getElementById('login-form');
   var activationForm = document.getElementById('activation-form');
@@ -193,13 +197,23 @@ async function activateMemberAccess() {
   }
 }
 
-/* ═══════════════════════════════════════════════════════════
-   ROLE MANAGER / NAV
-═══════════════════════════════════════════════════════════ */
+/* ROLE MANAGER / NAV */
 function applyManagerRole() {
-  var isManager = window.user && window.user.role === 'manager';
+  var isManager = getUserRole() === 'manager';
+
   var navTeam = document.getElementById('nav-team');
-  if (navTeam) navTeam.style.display = isManager ? 'block' : 'none';
+  if (navTeam) navTeam.style.display = isManager ? 'flex' : 'none';
+
+  var managerBtn = document.getElementById('manager-assign-btn-m');
+  if (managerBtn) managerBtn.style.display = isManager ? 'block' : 'none';
+
+  var tabTeam = document.getElementById('tab-team');
+  if (tabTeam) tabTeam.style.display = isManager ? '' : 'none';
+
+  if (!isManager) {
+    var teamBadge = document.getElementById('team-badge');
+    if (teamBadge) teamBadge.style.display = 'none';
+  }
 }
 
 function switchTeamSeg(seg, el) {
@@ -210,28 +224,21 @@ function switchTeamSeg(seg, el) {
   });
   if (el) el.classList.add('active');
 
-  var memberView = document.getElementById('team-members-view');
+  var membersContainer = document.getElementById('team-members-view-container');
   var activityView = document.getElementById('team-activity-view');
   var accessView = document.getElementById('team-access-view');
 
-  if (memberView) memberView.style.display = seg === 'members' ? 'block' : 'none';
-  if (activityView) activityView.style.display = seg === 'activity' ? 'block' : 'none';
-  if (accessView) accessView.style.display = seg === 'access' ? 'block' : 'none';
+  if (membersContainer) membersContainer.classList.toggle('active', seg === 'members');
+  if (activityView) activityView.classList.toggle('active', seg === 'activity');
+  if (accessView) accessView.classList.toggle('active', seg === 'access');
 
   if (seg === 'activity') renderActivityFeed();
   if (seg === 'access') renderAccessManagement();
-
-  var createAccessBtnHeader = document.getElementById('create-access-btn-header');
-  if (createAccessBtnHeader) {
-    createAccessBtnHeader.style.display = seg === 'access' ? 'inline-flex' : 'none';
-  }
 }
 
-/* ═══════════════════════════════════════════════════════════
-   TEAM DATA
-═══════════════════════════════════════════════════════════ */
+/* TEAM DATA */
 async function refreshTeamData() {
-  if (!window.user || window.user.role !== 'manager') return;
+  if (getUserRole() !== 'manager') return;
 
   var teamLoading = document.getElementById('team-loading');
   var activityLoading = document.getElementById('activity-loading');
@@ -241,10 +248,12 @@ async function refreshTeamData() {
 
   await loadTeamData();
   await loadGeneratedAccesses();
+
+  if (currentTeamSeg === 'access') renderAccessManagement();
 }
 
 async function loadTeamData() {
-  if (!window.user || window.user.role !== 'manager') return;
+  if (getUserRole() !== 'manager') return;
   if (isTeamDataLoading) return;
 
   isTeamDataLoading = true;
@@ -254,7 +263,7 @@ async function loadTeamData() {
   try {
     if (teamLoadingEl) teamLoadingEl.style.display = 'flex';
 
-    var r = await api('GET', '/api/team', null, window.token);
+    var r = await api('GET', '/api/team', null, getAuthToken());
     if (!r.ok) throw new Error('Chargement équipe impossible');
 
     var d = await r.json();
@@ -263,7 +272,7 @@ async function loadTeamData() {
 
     var pipelinePromises = teamMembers.map(async function (member) {
       try {
-        var pr = await api('GET', '/api/pipeline?assignee=' + encodeURIComponent(member.uid), null, window.token);
+        var pr = await api('GET', '/api/pipeline?assignee=' + encodeURIComponent(member.uid), null, getAuthToken());
         if (pr.ok) {
           var pd = await pr.json();
           teamMembersPipeline[member.uid] = pd.data || pd || [];
@@ -306,16 +315,20 @@ async function loadTeamData() {
   }
 }
 
-/* ═══════════════════════════════════════════════════════════
-   ACCÈS MEMBRES — FIRESTORE
-═══════════════════════════════════════════════════════════ */
+/* ACCÈS MEMBRES */
 async function loadGeneratedAccesses() {
-  if (!window.user || window.user.role !== 'manager') return;
+  if (getUserRole() !== 'manager') return;
 
   try {
+    const managerUid = window.user && window.user.uid;
+    if (!managerUid) {
+      generatedAccesses = [];
+      return;
+    }
+
     const q = query(
       collection(db, "team_accesses"),
-      where("createdBy", "==", window.user.uid)
+      where("createdBy", "==", managerUid)
     );
 
     const snap = await getDocs(q);
@@ -389,15 +402,11 @@ function renderAccessManagement() {
         + '<div class="access-card-actions">';
 
       if (access.status === 'pending') {
-        html += '<button class="access-btn copy" type="button" onclick="window.TeamManagerMobile.copyAccessId(\'' + accessId.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + '\')">'
-          + 'Copier l\'ID'
-          + '</button>';
+        html += '<button class="access-btn copy" type="button" onclick="window.TeamManagerMobile.copyAccessId(\'' + accessId.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + '\')">Copier l\\'ID</button>';
       }
 
       if (access.status !== 'revoked') {
-        html += '<button class="access-btn revoke" type="button" onclick="window.TeamManagerMobile.revokeAccess(\'' + accessId.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + '\')">'
-          + 'Révoquer'
-          + '</button>';
+        html += '<button class="access-btn revoke" type="button" onclick="window.TeamManagerMobile.revokeAccess(\'' + accessId.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + '\')">Révoquer</button>';
       }
 
       html += '</div></div>';
@@ -426,8 +435,8 @@ function openCreateAccessSheet() {
 
   if (firstnameEl) firstnameEl.value = '';
   if (lastnameEl) lastnameEl.value = '';
-  if (companyEl) companyEl.value = window.user?.company_name || '';
-  if (previewEl) previewEl.textContent = '@' + (window.user?.company_name || 'Entreprise');
+  if (companyEl) companyEl.value = window.user?.company_name || window.user?.company_id || '';
+  if (previewEl) previewEl.textContent = '@' + (window.user?.company_name || window.user?.company_id || 'Entreprise');
   if (createBtnEl) {
     createBtnEl.disabled = false;
     createBtnEl.textContent = "Créer l'accès";
@@ -479,9 +488,7 @@ async function revokeAccess(accessId) {
   }
 }
 
-/* ═══════════════════════════════════════════════════════════
-   RENDU MEMBRES / ACTIVITÉ
-═══════════════════════════════════════════════════════════ */
+/* RENDU */
 function renderTeamMembers() {
   var container = document.getElementById('team-members-view');
   if (!container) return;
@@ -490,13 +497,11 @@ function renderTeamMembers() {
   if (teamLoading) teamLoading.style.display = 'none';
 
   if (!teamMembers.length) {
-    container.innerHTML = '<div class="team-empty"><div class="team-empty-icon">👥</div><h3>Aucun commercial</h3><p>Créez des accès pour votre équipe dans l\'onglet "Accès".</p></div>';
+    container.innerHTML = '<div class="team-empty"><div class="team-empty-icon">👥</div><h3>Aucun commercial</h3><p>Créez des accès pour votre équipe dans l\\'onglet "Accès".</p></div>';
     return;
   }
 
-  while (container.firstChild) {
-    container.removeChild(container.firstChild);
-  }
+  container.innerHTML = '';
 
   teamMembers.forEach(function (member) {
     var pipeline = teamMembersPipeline[member.uid] || [];
@@ -576,7 +581,7 @@ function buildActivityFeed() {
 }
 
 function renderActivityFeed() {
-  var container = document.getElementById('team-activity-view');
+  var container = document.getElementById('team-activity-content');
   var loader = document.getElementById('activity-loading');
 
   if (loader) loader.style.display = 'none';
@@ -585,7 +590,7 @@ function renderActivityFeed() {
   container.innerHTML = '';
 
   if (!activityFeed.length) {
-    container.innerHTML = '<div class="team-empty"><div class="team-empty-icon">⚡</div><h3>Aucune activité</h3><p>L\'activité de votre équipe apparaît ici en temps réel.</p></div>';
+    container.innerHTML = '<div class="team-empty"><div class="team-empty-icon">⚡</div><h3>Aucune activité</h3><p>L\\'activité de votre équipe apparaît ici en temps réel.</p></div>';
     return;
   }
 
@@ -619,18 +624,8 @@ function renderActivityFeed() {
   });
 }
 
-/* ═══════════════════════════════════════════════════════════
-   EVENTS
-═══════════════════════════════════════════════════════════ */
+/* INIT */
 document.addEventListener('DOMContentLoaded', function () {
-  var backToLoginLink = document.getElementById('back-to-login-link');
-  if (backToLoginLink) {
-    backToLoginLink.addEventListener('click', function (e) {
-      e.preventDefault();
-      backToLoginForm();
-    });
-  }
-
   var activateAccessBtn = document.getElementById('activate-access-btn');
   if (activateAccessBtn) {
     activateAccessBtn.addEventListener('click', activateMemberAccess);
@@ -644,38 +639,18 @@ document.addEventListener('DOMContentLoaded', function () {
   if (lastnameEl) lastnameEl.addEventListener('input', updateAccessPreview);
   if (companyEl) companyEl.addEventListener('input', updateAccessPreview);
 
-  var _baseShowApp = window.showApp;
-  if (typeof _baseShowApp === 'function') {
-    window.showApp = function () {
-      _baseShowApp();
-      applyManagerRole();
-      if (window.user && window.user.role === 'manager') {
-        setTimeout(async function () {
-          await loadTeamData();
-          await loadGeneratedAccesses();
-          if (currentTeamSeg === 'access') renderAccessManagement();
-        }, 800);
-      }
-    };
-  }
-
-  var _baseSwitchTab2 = window.switchTab2;
-  if (typeof _baseSwitchTab2 === 'function') {
-    window.switchTab2 = function (name) {
-      _baseSwitchTab2(name);
-      if (name === 'team' && window.user && window.user.role === 'manager') {
-        if (!teamMembers.length) loadTeamData();
-        loadGeneratedAccesses().then(function () {
-          if (currentTeamSeg === 'access') renderAccessManagement();
-        });
-      }
-    };
-  }
+  setTimeout(function () {
+    applyManagerRole();
+    if (getUserRole() === 'manager') {
+      loadTeamData();
+      loadGeneratedAccesses().then(function () {
+        if (currentTeamSeg === 'access') renderAccessManagement();
+      });
+    }
+  }, 800);
 });
 
-/* ═══════════════════════════════════════════════════════════
-   EXPORT GLOBAL
-═══════════════════════════════════════════════════════════ */
+/* EXPORT GLOBAL */
 window.TeamManagerMobile = {
   openSheet,
   closeSheet,
@@ -698,5 +673,7 @@ window.TeamManagerMobile = {
   buildActivityFeed,
   renderActivityFeed
 };
-// Rendre la fonction accessible globalement pour le bouton Accès Entreprise
+
 window.switchToActivationFlow = switchToActivationFlow;
+window.applyManagerRole = applyManagerRole;
+window.switchTeamSeg = switchTeamSeg;
