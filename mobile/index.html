@@ -1428,13 +1428,13 @@ body {
     </div>
     <div class="sfield">
       <label>Entreprise</label>
-      <input type="text" id="new-access-company" placeholder="Orange" oninput="updateAccessPreview()" style="width:100%;padding:10px 12px;border:1.5px solid var(--border-strong);border-radius:var(--r);font-size:14px;font-family:'Inter',sans-serif;color:var(--text-primary);background:var(--bg-secondary);outline:none">
+      <input type="text" id="new-access-company" placeholder="company" oninput="updateAccessPreview()" style="width:100%;padding:10px 12px;border:1.5px solid var(--border-strong);border-radius:var(--r);font-size:14px;font-family:'Inter',sans-serif;color:var(--text-primary);background:var(--bg-secondary);outline:none">
     </div>
     <div style="padding:12px;background:var(--primary-light);border-radius:var(--r);border:1.5px dashed var(--primary);margin-bottom:16px;text-align:center">
       <div style="font-size:12px;color:var(--text-tertiary);margin-bottom:6px">Identifiant d'accès</div>
-      <div style="font-size:16px;font-weight:700;color:var(--primary);font-family:monospace" id="new-access-preview">@Entreprise</div>
+      <div style="font-size:16px;font-weight:700;color:var(--primary);font-family:monospace" id="new-access-preview">@company</div>
     </div>
-    <button class="sheet-btn" id="create-access-btn" onclick="submitCreateAccess()">Créer l'accès</button>
+    <button class="sheet-btn" id="create-access-btn" onclick="window.MemberAccessManager && window.MemberAccessManager.createMemberAccess()">Créer l'accès</button>
   </div>
 </div>
 
@@ -1445,27 +1445,28 @@ body {
   <div style="text-align:center;margin-bottom:30px">
     <div style="font-size:48px;margin-bottom:12px">🔑</div>
     <h1 style="font-size:20px;font-weight:700;color:var(--text-primary);margin-bottom:8px">Activation du compte</h1>
-    <p style="font-size:13px;color:var(--text-secondary)">Complétez l'activation de votre accès</p>
+    <p style="font-size:13px;color:var(--text-secondary)">Choisissez votre email et mot de passe pour activer votre accès commercial.</p>
+  </div>
+   <div class="sfield" style="margin-bottom:16px">
+    <label>ID d'accès (ex: PrénomNom@Entreprise)</label>
+    <input type="text" id="activation-access-id" placeholder="jeandupont@company" style="width:100%;padding:12px 14px;border:1.5px solid var(--border-strong);border-radius:var(--r);font-size:14px;font-family:'Inter',sans-serif;color:var(--text-primary);background:var(--bg-secondary);outline:none">
   </div>
   <div class="sfield" style="margin-bottom:16px">
-    <label>ID d'accès (ex: PrénomNom@Entreprise)</label>
-    <input type="text" id="activation-access-id" placeholder="JeanDupont@Exemple" style="width:100%;padding:12px 14px;border:1.5px solid var(--border-strong);border-radius:var(--r);font-size:14px;font-family:'Inter',sans-serif;color:var(--text-primary);background:var(--bg-secondary);outline:none">
+    <label>Votre adresse email (pour la connexion)</label>
+    <input type="email" id="activation-email" placeholder="vous@exemple.com" inputmode="email" autocomplete="email" style="width:100%;padding:12px 14px;border:1.5px solid var(--border-strong);border-radius:var(--r);font-size:14px;font-family:'Inter',sans-serif;color:var(--text-primary);background:var(--bg-secondary);outline:none">
   </div>
   <div class="sfield" style="margin-bottom:16px">
     <label>Nouveau mot de passe (min. 8 caractères)</label>
-    <input type="password" id="activation-new-password" placeholder="••••••••" style="width:100%;padding:12px 14px;border:1.5px solid var(--border-strong);border-radius:var(--r);font-size:14px;font-family:'Inter',sans-serif;color:var(--text-primary);background:var(--bg-secondary);outline:none">
+    <input type="password" id="activation-new-password" placeholder="••••••••" autocomplete="new-password" style="width:100%;padding:12px 14px;border:1.5px solid var(--border-strong);border-radius:var(--r);font-size:14px;font-family:'Inter',sans-serif;color:var(--text-primary);background:var(--bg-secondary);outline:none">
   </div>
   <div class="sfield" style="margin-bottom:20px">
     <label>Confirmer le mot de passe</label>
-    <input type="password" id="activation-confirm-password" placeholder="••••••••" style="width:100%;padding:12px 14px;border:1.5px solid var(--border-strong);border-radius:var(--r);font-size:14px;font-family:'Inter',sans-serif;color:var(--text-primary);background:var(--bg-secondary);outline:none">
+    <input type="password" id="activation-confirm-password" placeholder="••••••••" autocomplete="new-password" style="width:100%;padding:12px 14px;border:1.5px solid var(--border-strong);border-radius:var(--r);font-size:14px;font-family:'Inter',sans-serif;color:var(--text-primary);background:var(--bg-secondary);outline:none">
   </div>
-  <div id="activation-err" style="display:none;color:var(--red);font-size:13px;margin-bottom:12px;padding:8px 12px;background:var(--red-light);border-radius:var(--r-sm);text-align:center"></div>
+  <div id="activation-err" style="display:none;color:var(--red);font-size:13px;margin-bottom:12px;padding:10px 12px;background:var(--red-light);border-radius:var(--r-sm);text-align:center;line-height:1.5"></div>
   <button type="button" class="a-btn" id="activate-access-btn" onclick="activateMemberAccess()">Activer mon compte</button>
-  <p style="text-align:center;margin-top:16px;font-size:13px;color:var(--text-tertiary)">
-    Déjà un accès activé ?
-    <span onclick="backToLoginForm()" style="color:var(--primary);font-weight:600;cursor:pointer;text-decoration:underline">
-      S'identifier
-    </span>
+  <p style="text-align:center;margin-top:18px;font-size:13px;color:var(--text-tertiary)">
+    Déjà un accès activé ?&nbsp;<span onclick="backToLoginForm()" style="color:var(--primary);font-weight:600;cursor:pointer;text-decoration:underline">S'identifier</span>
   </p>
 </div>
 
@@ -2874,7 +2875,7 @@ function onRegisterAccountTypeChangeMobile() {
 
 </script>
 
-<script type="module" src="/js/member-access.js"></script>
-<script type="module" src="/js/team-manager-mobile.js"></script>
+<script src="/js/member-access.js"></script>
+<script src="/js/team-manager-mobile.js"></script>
 </body>
 </html>

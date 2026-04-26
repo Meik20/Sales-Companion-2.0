@@ -97,7 +97,7 @@ function buildAccessId(firstname, lastname, company) {
   const last = normalizeText(lastname);
   const comp = normalizeText(company);
 
-  if (!first && !last && !comp) return "@entreprise";
+  if (!first && !last && !comp) return "@company";
   return `${first}${last}@${comp}`;
 }
 
@@ -144,7 +144,7 @@ function updateAccessPreview() {
   const company = companyInput?.value || "";
 
   if (!firstname && !lastname && !company) {
-    preview.textContent = "@Entreprise";
+    preview.textContent = "@company";
     return;
   }
 
@@ -187,7 +187,7 @@ async function createMemberAccess() {
 
     const accessId = buildAccessId(firstname, lastname, company);
 
-    if (!accessId || accessId === "@entreprise") {
+    if (!accessId || accessId === "@company") {
       showToast("Impossible de générer un identifiant valide.", "error");
       return;
     }
