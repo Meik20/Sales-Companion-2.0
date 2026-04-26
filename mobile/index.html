@@ -1958,7 +1958,13 @@ document.addEventListener('DOMContentLoaded', async function() {
         localStorage.setItem('sc_token', token);
         try {
           var userDoc = await db.collection('users').doc(fbUser.uid).get();
-          if (userDoc.exists) { user = userDoc.data(); showApp(); window.history.replaceState(null, '', '/mobile'); }
+          if (userDoc.exists) {
+            user = userDoc.data();
+            window.user = user;
+            showApp();
+            if (typeof applyManagerRole !== 'undefined') applyManagerRole();
+            window.history.replaceState(null, '', '/mobile');
+          }
           else { showAuth(); }
         } catch(e) { showAuth(); }
       } else { token = ''; localStorage.removeItem('sc_token'); showAuth(); }

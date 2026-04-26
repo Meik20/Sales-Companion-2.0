@@ -2480,11 +2480,13 @@
         if (res.status !== 200) throw new Error(res.data?.error || 'Erreur lors de la connexion');
         token = res.data.token;
         user  = res.data.user;
+        window.user = user;
         syncGlobals();
         localStorage.setItem('authToken', token);
         await window.electronAPI.saveToken(token);
         await window.electronAPI.saveServerUrl(RAILWAY_SERVER);
         showApp();
+        applyManagerRoleDesktop(user);
       } catch (e) {
         err.textContent   = e.message || 'Erreur de connexion';
         err.style.display = 'block';
@@ -2518,11 +2520,13 @@
           throw new Error(res.data?.error || 'Erreur lors de l\'inscription');
         token = res.data.token;
         user  = res.data.user;
+        window.user = user;
         syncGlobals();
         localStorage.setItem('authToken', token);
         await window.electronAPI.saveToken(token);
         await window.electronAPI.saveServerUrl(RAILWAY_SERVER);
         showApp();
+        applyManagerRoleDesktop(user);
       } catch (e) {
         err.textContent   = e.message || 'Erreur lors de l\'inscription';
         err.style.display = 'block';
@@ -2544,6 +2548,7 @@
       document.getElementById('layout').style.display      = 'flex';
 
       if (user) {
+        window.user = user;
         const isPro = ['pro','enterprise'].includes(user.plan);
         const addCityBtn = document.getElementById('add-city-btn');
         if (addCityBtn) addCityBtn.style.display = isPro ? 'block' : 'none';
