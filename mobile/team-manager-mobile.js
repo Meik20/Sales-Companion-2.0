@@ -698,3 +698,5 @@ window.TeamManagerMobile = {
   buildActivityFeed,
   renderActivityFeed
 };
+// Rendre la fonction accessible globalement pour le bouton Accès Entreprise
+window.switchToActivationFlow = switchToActivationFlow;

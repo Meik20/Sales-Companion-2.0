@@ -2024,7 +2024,10 @@ async function doRegister() {
     await db.collection('users').doc(cred.user.uid).set({ uid: cred.user.uid, email: cred.user.email, name: name, role: accountType === 'manager' ? 'manager' : 'independent', company_id: accountType === 'manager' ? (companyId || null) : null, plan: 'free', daily_limit: 10, daily_used: 0, last_reset: new Date().toISOString(), active: true, created_at: new Date().toISOString(), updated_at: new Date().toISOString() });
     token = await cred.user.getIdToken();
     var userDoc = await db.collection('users').doc(cred.user.uid).get();
-    user = userDoc.data(); localStorage.setItem('sc_token', token); showApp();
+    user = userDoc.data();
+    window.user = user;
+    localStorage.setItem('sc_token', token);
+    showApp();
   } catch (e) { err.textContent = e.message || 'Erreur inscription'; err.style.display = 'block'; }
   btn.disabled = false; btn.textContent = 'Creer mon compte';
   isInitializing = false;
