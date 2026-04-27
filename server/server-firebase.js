@@ -1342,6 +1342,9 @@ app.get('/api/config/firebase', (req, res) => {
   });
 });
 
+// Return 204 for favicon requests (avoid 404 noise)
+app.get('/favicon.ico', (req, res) => res.status(204).end());
+
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', server: 'Sales Companion v2.0 (Firebase)', ip: getLocalIP(), port: PORT });
 });

@@ -11,7 +11,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
 <!-- Config for client Firebase (served from /api/config/firebase) -->
-<script src="firebase-config.js"></script>
+<script src="/admin/firebase-config.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -626,8 +626,24 @@ function logout() {
 function showApp() {
   document.getElementById('auth-page').style.display = 'none';
   document.getElementById('app').style.display       = 'block';
-  const last = localStorage.getItem('admin_last_page') || 'dashboard';
-  showPage(last);
+  // ✅ Connecter Firebase Auth avec le custom token pour que
+  // les règles Firestore reconnaissent l'admin (si firebase initialisé)
+  (async function() {
+    try {
+      if (adminToken && window.firebase && firebase.apps && firebase.apps.length) {
+        var currentUser = firebase.auth().currentUser;
+        if (!currentUser) {
+          await firebase.auth().signInWithCustomToken(adminToken);
+          console.log('[Auth] Firebase Auth connecté avec custom token');
+        }
+      }
+    } catch (e) {
+      console.warn('[Auth] signInWithCustomToken échoué:', e && e.message ? e.message : e);
+    } finally {
+      const last = localStorage.getItem('admin_last_page') || 'dashboard';
+      showPage(last);
+    }
+  })();
 }
 
 /* ═══════════════════════════════════════════════════════════════
