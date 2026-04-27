@@ -399,7 +399,7 @@ app.post('/admin/login', authLimiter, async (req, res) => {
     const identifier = email || username;
     if (!identifier || !password) return res.status(400).json({ error: 'Email/ID et mot de passe requis' });
 
-    // 1️⃣  Find user by email in Firebase Auth
+    // 1. Find user by email
     let userRecord;
     try {
       userRecord = await auth.getUserByEmail(identifier);
@@ -407,37 +407,48 @@ app.post('/admin/login', authLimiter, async (req, res) => {
       return res.status(401).json({ error: 'Email ou mot de passe incorrect' });
     }
 
-    // 2️⃣ Verify admin status
-    const isAdmin = userRecord.customClaims?.admin === true;
-    if (!isAdmin) return res.status(403).json({ error: 'Accès refusé — admin uniquement' });
+    // 2. Verify admin claim
+    if (!userRecord.customClaims?.admin) return res.status(403).json({ error: 'Accès refusé — admin uniquement' });
 
-    // 3️⃣ Create custom token for admin session
+    // 3. Use Identity Toolkit to sign in with password and get a real idToken
     try {
-      console.log(`[Auth] Admin login attempt for ${identifier} (${userRecord.uid})`);
-      
-      const customToken = await auth.createCustomToken(userRecord.uid, { admin: true });
-      
-      // Return token immediately — Firestore profile load is non-critical
+      const key = process.env.FIREBASE_API_KEY;
+      if (!key) return res.status(500).json({ error: 'Firebase API key not configured' });
+
+      const firebaseRes = await fetch(
+        `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${key}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: identifier, password: password, returnSecureToken: true }),
+        }
+      );
+      const firebaseData = await firebaseRes.json();
+      if (firebaseData.error) {
+        return res.status(401).json({ error: 'Email ou mot de passe incorrect' });
+      }
+
+      // Log admin login async
+      logUsage(userRecord.uid, 'admin_login').catch(() => {});
+
       res.json({
-        token: customToken,
-        user: { 
-          uid: userRecord.uid, 
+        token:        firebaseData.idToken,
+        refreshToken: firebaseData.refreshToken,
+        user: {
+          uid:  userRecord.uid,
           email: userRecord.email,
-          name: userRecord.displayName || identifier.split('@')[0], 
+          name: userRecord.displayName || identifier.split('@')[0],
           role: 'admin',
-        },
+        }
       });
-      
-      // Log admin login in background (fire-and-forget)
-      logUsage(userRecord.uid, 'admin_login').catch(err => {
-        console.warn('[Admin Login] Could not log usage:', err.message);
-      });
-    } catch (authErr) {
-      console.error('[Admin Login] auth error:', authErr.message);
+
+    } catch (e) {
+      console.error('[Admin Login] signInWithPassword failed:', e && e.message ? e.message : e);
       return res.status(401).json({ error: 'Authentification échouée' });
     }
+
   } catch (error) {
-    console.error('Admin login error:', error.message);
+    console.error('Admin login error:', error && error.message ? error.message : error);
     return safeError(res, 500, 'Erreur de connexion admin', error);
   }
 });

@@ -611,6 +611,17 @@ async function doLogin() {
     adminRefreshToken = d.refreshToken || null;
     localStorage.setItem('sc_admin_token',   adminToken);
     if (adminRefreshToken) localStorage.setItem('sc_admin_refresh', adminRefreshToken);
+    // ✅ Connecter Firebase Auth client avec email/password pour obtenir
+    // un état auth valide côté client (permet la lecture Firestore avec rules)
+    try {
+      if (window.firebase && firebase.apps && firebase.apps.length) {
+        await firebase.auth().signInWithEmailAndPassword(email, p);
+        console.log('[Auth] Firebase Auth client connecté ✅');
+      }
+    } catch (fbErr) {
+      console.warn('[Auth] Firebase client auth (non bloquant):', fbErr && fbErr.message ? fbErr.message : fbErr);
+    }
+
     showApp();
   } catch(e) { err.textContent = 'Serveur inaccessible'; err.style.display = 'block'; }
 }
