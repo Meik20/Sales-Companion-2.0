@@ -2787,6 +2787,22 @@ function toast(msg) {
   setTimeout(function() { t.classList.remove('show'); }, 3000);
 }
 
+// Fonction pour afficher/masquer les erreurs d'activation
+function setActivationError(message) {
+  var errorEl = document.getElementById('activation-err');
+  if (!errorEl) {
+    console.warn('Element #activation-err introuvable');
+    return;
+  }
+  if (message) {
+    errorEl.textContent = message;
+    errorEl.style.display = 'block';
+  } else {
+    errorEl.textContent = '';
+    errorEl.style.display = 'none';
+  }
+}
+
 var ptrEnabled = false, ptrStartY = 0, ptrCurrentY = 0, isRefreshing = false;
 var ptrThreshold = 80, ptrMaxPull = 120;
 
