@@ -2010,11 +2010,29 @@ async function sendCrowdReport() {
 
 async function checkCachedToken() {
   try {
-    if (token) {
-      try { var ok = await checkAuthMe(); if (ok) return true; localStorage.removeItem('sc_token'); token = ''; }
-      catch (e) {}
+    if (!token) {
+      console.log('❌ Pas de token en cache');
+      return false;
     }
-  } catch(e) {}
+
+    console.log('🔍 Vérification token existant...');
+    try {
+      var ok = await checkAuthMe();
+      if (ok) {
+        console.log('✅ Token valide, affichage de l\'app');
+        return true;
+      }
+      console.warn('⚠️ Token invalide, nettoyage');
+      localStorage.removeItem('sc_token');
+      token = '';
+    } catch (e) {
+      console.error('❌ Erreur validation token:', e);
+      localStorage.removeItem('sc_token');
+      token = '';
+    }
+  } catch (e) {
+    console.error('❌ Erreur checkCachedToken:', e);
+  }
   return false;
 }
 
@@ -2068,12 +2086,34 @@ function waitForFirebase(callback, attempts) {
 }
 
 document.addEventListener('DOMContentLoaded', async function() {
+  console.log('🚀 App démarrage...');
+
+  // ✅ Vérifier d'abord si l'utilisateur est déjà connecté
   var tokenIsValid = await checkCachedToken();
-  if (tokenIsValid) { updateCities(); if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function() {}); window.history.replaceState(null, '', '/mobile'); return; }
+
+  if (tokenIsValid) {
+    console.log('✅ Token valide, affichage de l\'app');
+    updateCities(); 
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(function() {});
+    }
+    window.history.replaceState(null, '', '/mobile');
+    return; // ✅ Sortir ici pour éviter le double chargement
+  }
+
+  console.log('⏳ Attente Firebase...');
   waitForFirebase(function() {
-    if (!auth) { isInitializing = false; showAuth(); return; }
+    if (!auth) { 
+      console.warn('❌ Firebase Auth non disponible');
+      isInitializing = false; 
+      showAuth(); 
+      return; 
+    }
+    
     auth.onAuthStateChanged(async function(fbUser) {
+      console.log('🔐 État auth changé:', fbUser ? 'connecté' : 'déconnecté');
       isInitializing = false;
+      
       if (fbUser) {
         token = await fbUser.getIdToken();
         localStorage.setItem('sc_token', token);
@@ -2085,14 +2125,26 @@ document.addEventListener('DOMContentLoaded', async function() {
             showApp();
             if (typeof applyManagerRole !== 'undefined') applyManagerRole();
             window.history.replaceState(null, '', '/mobile');
+          } else { 
+            console.warn('⚠️ Document utilisateur non trouvé');
+            showAuth(); 
           }
-          else { showAuth(); }
-        } catch(e) { showAuth(); }
-      } else { token = ''; localStorage.removeItem('sc_token'); showAuth(); }
+        } catch(e) { 
+          console.error('❌ Erreur chargement user:', e);
+          showAuth(); 
+        }
+      } else { 
+        token = ''; 
+        localStorage.removeItem('sc_token'); 
+        showAuth(); 
+      }
     });
   });
+  
   updateCities();
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function() {});
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(function() {});
+  }
 });
 
 function switchTab(t) {
@@ -2220,6 +2272,7 @@ async function doRegister() {
 }
 
 function showAuth() {
+  console.log('📱 Affichage écran authentification');
   var authScreen = document.getElementById('auth-screen');
   var activationForm = document.getElementById('activation-form');
   var topbar = document.getElementById('topbar');
@@ -2272,19 +2325,64 @@ function showApp() {
   if (topbar) topbar.style.display = 'flex';
   if (content) content.style.display = 'flex';
   if (bottomNav) bottomNav.style.display = 'flex';
-
+  // Update UI pieces
   updateTopbar();
   updateSidebar();
-  loadPipeline();
-  loadSaved();
+
+  // Stop any loading indicators that might still be visible
+  try {
+    var allLoadingStates = document.querySelectorAll('.loading-state');
+    allLoadingStates.forEach(function(el) { el.style.display = 'none'; });
+  } catch (e) { console.warn('[showApp] cleanup loading-state failed', e); }
+
+  // Ensure the default tab (search) is active and show an empty state if no results
+  try {
+    var searchTab = document.getElementById('tab-search');
+    if (searchTab) {
+      searchTab.classList.add('active');
+      var resultsArea = document.getElementById('results-area');
+      if (resultsArea && !resultsArea.querySelector('.empty-state')) {
+        resultsArea.innerHTML = `\
+          <div class="empty-state">\
+            <div class="empty-illustration">\
+              <svg viewBox="0 0 200 160" width="200" height="160" fill="none" xmlns="http://www.w3.org/2000/svg">\
+                <path d="M85 20 L95 15 L110 18 L120 25 L125 40 L130 55 L128 70 L132 85 L125 100 L120 115 L110 125 L100 130 L90 128 L80 120 L75 110 L70 95 L68 80 L72 65 L75 50 L78 35 Z" fill="#E8F5E9" stroke="#1B5E20" stroke-width="1.5" opacity="0.6"/>\
+                <circle cx="90" cy="45" r="4" fill="#1B5E20" opacity="0.8"/>\
+                <circle cx="105" cy="55" r="5" fill="#43A047"/>\
+              </svg>\
+            </div>\
+            <h2>Trouvez vos prospects</h2>\
+            <p>Recherchez parmi 2 669 entreprises camerounaises par nom, secteur ou ville.</p>\
+            <button class="empty-cta" onclick="document.getElementById('search-input').focus()">\
+              Lancez votre première recherche\
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>\
+            </button>\
+          </div>`;
+      }
+    }
+  } catch (e) { console.warn('[showApp] set default search tab failed', e); }
+
+  // Load non-blocking data shortly after showing UI
+  setTimeout(function() {
+    loadPipeline().catch(function(e) { console.warn('Erreur chargement pipeline:', e); });
+    loadSaved().catch(function(e) { console.warn('Erreur chargement saved:', e); });
+  }, 100);
 
   var mbtn = document.getElementById('manager-assign-btn-m');
   if (mbtn) {
     mbtn.style.display = (window.user && String(window.user.role || '').toLowerCase().trim() === 'manager') ? 'block' : 'none';
   }
 
-  if (navigator.onLine) syncOfflineQueue();
-  if (typeof applyManagerRole !== 'undefined') applyManagerRole();
+  if (navigator.onLine) {
+    setTimeout(function() { syncOfflineQueue().catch(function(e) { console.warn('Erreur sync offline:', e); }); }, 500);
+  }
+
+  if (typeof applyManagerRole !== 'undefined') {
+    setTimeout(applyManagerRole, 200);
+  }
+
+  // Mark initialization complete
+  isInitializing = false;
 }
 
 async function refreshMe() { try { await checkAuthMe(); } catch (e) {} }
