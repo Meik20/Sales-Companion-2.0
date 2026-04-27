@@ -98,3 +98,6 @@ if (!firebaseConfig.apiKey) {
   console.error('❌ Firebase initialization error:', error.message);
   console.error('Vérifiez votre configuration Firebase.');
 }
+
+// End of file - close else block if necessary
+
