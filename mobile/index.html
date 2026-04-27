@@ -645,6 +645,31 @@ body {
 .no-saved{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;text-align:center;color:var(--text-tertiary);flex:1}
 .no-saved .ns-icon{font-size:40px;margin-bottom:12px;opacity:.3}
 
+.saved-cb {
+  width: 20px; height: 20px; border-radius: 5px;
+  border: 2px solid var(--border-strong);
+  background: var(--bg-secondary);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all var(--duration) var(--ease);
+  flex-shrink: 0;
+}
+.saved-cb.checked {
+  background: var(--primary); border-color: var(--primary);
+}
+.saved-cb.checked::after {
+  content: ''; display: block;
+  width: 5px; height: 9px;
+  border: 2px solid #fff; border-top: none; border-left: none;
+  transform: rotate(45deg) translateY(-1px);
+}
+.saved-card.selected {
+  border-color: var(--primary);
+  background: var(--primary-light);
+}
+.saved-card.edit-mode { cursor: default; }
+.saved-card.edit-mode:active { transform: none; background: var(--bg-card); }
+.saved-card.edit-mode.selected:active { background: var(--primary-light); }
+
 .sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:300;display:none;opacity:0;transition:opacity var(--duration-slow) var(--ease);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
 .sheet-overlay.open{display:block;opacity:1}
 .sheet{position:fixed;bottom:0;left:0;right:0;background:var(--bg-card);border-radius:24px 24px 0 0;z-index:301;transform:translateY(100%);transition:transform var(--duration-slow) cubic-bezier(0.32,0.72,0,1);padding-bottom:var(--safe-bottom);max-height:90vh;overflow-y:auto;box-shadow:0 -10px 40px rgba(0,0,0,0.15)}
@@ -1104,8 +1129,46 @@ body {
   <!-- SAVED TAB -->
   <div class="tab-content" id="tab-saved">
     <div class="saved-header">
-      <h2>Recherches sauvegard&eacute;es</h2>
-      <p>Vos recherches fr&eacute;quentes en un tap</p>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+        <h2>Recherches sauvegardées</h2>
+        <button id="saved-edit-btn" onclick="toggleSavedEditMode()"
+          style="padding:8px 14px;background:var(--bg-secondary);border:1.5px solid var(--border-strong);
+                 border-radius:var(--r-full);font-size:13px;font-weight:600;color:var(--text-secondary);
+                 cursor:pointer;font-family:'Inter',sans-serif;transition:all var(--duration) var(--ease)">
+          ✏️ Sélectionner
+        </button>
+      </div>
+      <p>Vos recherches fréquentes en un tap</p>
+
+      <!-- Barre d'actions (mode sélection) -->
+      <div id="saved-select-bar" style="display:none;margin-top:12px;padding:12px 14px;
+           background:var(--bg-card);border:1.5px solid var(--border-strong);border-radius:var(--r-lg);
+           box-shadow:var(--shadow-sm)">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;
+                        font-weight:600;color:var(--text-primary);user-select:none">
+            <div id="select-all-box" onclick="toggleSelectAll()"
+              style="width:20px;height:20px;border-radius:5px;border:2px solid var(--border-strong);
+                     background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;
+                     cursor:pointer;transition:all var(--duration) var(--ease);flex-shrink:0">
+            </div>
+            Tout sélectionner
+          </label>
+          <div style="display:flex;gap:8px;align-items:center">
+            <span id="saved-select-count"
+              style="font-size:12px;color:var(--text-tertiary);font-weight:500">
+              0 sélectionné(s)
+            </span>
+            <button id="saved-delete-btn" onclick="deleteSelectedSaved()"
+              style="padding:8px 16px;background:var(--red-light);color:var(--red);
+                     border:1.5px solid rgba(229,57,53,0.2);border-radius:var(--r-full);
+                     font-size:13px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;
+                     transition:all var(--duration) var(--ease);opacity:0.4;pointer-events:none">
+              🗑️ Supprimer
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="saved-list" id="saved-list"></div>
   </div>
@@ -1873,27 +1936,149 @@ async function openAssignmentsSheet() {
 }
 
 async function refreshAssignments() {
+  var container = document.getElementById('assignments-list');
+  container.innerHTML = '<div class="loading-state"><div class="spinner"></div><div>Chargement...</div></div>';
+
   try {
-    var r = await api('GET', '/api/assignments', null, token);
-    if (!r.ok) { document.getElementById('assignments-list').innerHTML = '<div class="empty-state"><div class="empty-icon" style="font-size:36px">&#x274C;</div><h2>Erreur</h2></div>'; return; }
-    var data = await r.json();
-    var list = data.data || [];
-    var container = document.getElementById('assignments-list');
-    if (!list.length) { container.innerHTML = '<div class="empty-state"><div class="empty-icon" style="font-size:36px">&#x1F5C2;</div><h2>Aucune t&acirc;che</h2></div>'; return; }
-    container.innerHTML = list.map(function(a) {
-      var note = a.note ? '<div style="font-size:13px;color:var(--text-tertiary);margin-top:6px">' + a.note + '</div>' : '';
-      return '<div class="co-card" style="padding:12px"><div style="display:flex;align-items:center;justify-content:space-between"><div style="font-weight:700">' + (a.company_id || '&mdash;') + '</div><div style="font-size:12px;color:var(--text-tertiary)">' + (a.status || 'assigned') + '</div></div>' + note + '<div style="display:flex;gap:8px;margin-top:8px"><button class="sheet-btn" onclick="markAssignmentDone(\'' + a.id + '\')">Marquer fait</button></div></div>';
-    }).join('');
-  } catch (e) { document.getElementById('assignments-list').innerHTML = '<div class="empty-state"><div class="empty-icon" style="font-size:36px">&#x1F4E1;</div><h2>Connexion impossible</h2></div>'; }
+    var db = window._db;
+    var currentUser = window.user;
+    if (!db || !currentUser) {
+      container.innerHTML = '<div class="pip-empty"><div class="ei">🔒</div><p>Non connecté</p></div>';
+      return;
+    }
+
+    // Lire les assignations Firestore où assigneeId == uid du membre connecté
+    var snap = await db.collection('assignments')
+      .where('assigneeId', '==', currentUser.uid)
+      .orderBy('createdAt', 'desc')
+      .get();
+
+    if (snap.empty) {
+      container.innerHTML = '<div class="pip-empty"><div class="ei">🗂️</div><p>Aucune tâche assignée</p></div>';
+      return;
+    }
+
+    container.innerHTML = '';
+    snap.docs.forEach(function(doc) {
+      var a = doc.data();
+      var assignmentId = doc.id;
+
+      // Récupérer les prospectIds (peut être un tableau ou un seul id)
+      var prospectIds = a.prospectIds || (a.prospectId ? [a.prospectId] : []);
+      var note = a.note || '';
+      var managerName = a.managerName || a.managerEmail || 'votre manager';
+      var dateStr = '';
+      try {
+        dateStr = a.createdAt && a.createdAt.toDate
+          ? a.createdAt.toDate().toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+          : '';
+      } catch(e) {}
+
+      prospectIds.forEach(function(prospectId, idx) {
+        var card = document.createElement('div');
+        card.className = 'co-card';
+        card.style.cssText = 'padding:14px;margin-bottom:10px';
+        card.innerHTML =
+          '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'
+          + '<div style="font-weight:700;font-size:14px">📋 Prospect assigné</div>'
+          + '<div style="font-size:11px;color:var(--text-tertiary)">' + dateStr + '</div>'
+          + '</div>'
+          + '<div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px">'
+          + '<strong>ID :</strong> ' + prospectId
+          + '</div>'
+          + (note ? '<div style="font-size:12px;color:var(--text-secondary);background:var(--bg-secondary);padding:8px 10px;border-radius:var(--r-sm);margin-bottom:10px;border-left:3px solid var(--primary-light)">'
+            + '📝 ' + note + '</div>' : '')
+          + '<div style="font-size:12px;color:var(--text-tertiary);margin-bottom:10px">Assigné par : ' + managerName + '</div>'
+          + '<div style="display:flex;gap:8px">'
+          + '<button class="sheet-btn" style="flex:1;padding:10px" '
+          + 'onclick="addAssignedToPipeline(\'' + assignmentId + '\',\'' + prospectId + '\',this)">➕ Ajouter au pipeline</button>'
+          + '<button class="sheet-btn secondary" style="flex:1;padding:10px" '
+          + 'onclick="dismissAssignment(\'' + assignmentId + '\',\'' + prospectId + '\',this)">✓ Traité</button>'
+          + '</div>';
+        container.appendChild(card);
+      });
+    });
+
+  } catch(e) {
+    console.error('[refreshAssignments]', e);
+    container.innerHTML = '<div class="pip-empty"><div class="ei">❌</div><p>Erreur : ' + e.message + '</p></div>';
+  }
 }
 
-async function markAssignmentDone(id) {
+async function addAssignedToPipeline(assignmentId, prospectId, btn) {
+  if (btn) { btn.disabled = true; btn.textContent = '...'; }
+
   try {
-    var r = await api('PUT', '/api/assignments/' + id, { status: 'done' }, token);
-    if (!r.ok) return toast('Erreur');
-    toast('Tache marquee comme faite');
+    var db = window._db;
+
+    // 1. Chercher les infos du prospect dans la base (lastResults ou Firestore)
+    var companyInfo = (window.lastResults || []).find(function(r) {
+      return (r.id || r.niu || r.siren || '') === prospectId;
+    });
+
+    // 2. Construire le payload pipeline
+    var payload = {
+      company_name:     (companyInfo && (companyInfo.raison_sociale || companyInfo.company_name || companyInfo.nom || companyInfo.name)) || prospectId,
+      company_sector:   (companyInfo && (companyInfo.secteur || companyInfo.activite_principale)) || '',
+      company_city:     (companyInfo && (companyInfo.ville || companyInfo.region)) || '',
+      company_phone:    (companyInfo && (companyInfo.telephone || companyInfo.tel)) || '',
+      company_email:    (companyInfo && (companyInfo.email || companyInfo.contact_email)) || '',
+      company_id:       prospectId,
+      status:           'prospection',
+      note:             'Assigné par manager',
+      assignment_id:    assignmentId,
+      assigned_from_manager: true
+    };
+
+    // 3. Ajouter au pipeline Railway
+    var r = await api('POST', '/api/pipeline', payload, token);
+    var d = await r.json().catch(function() { return {}; });
+
+    if (r.status === 409) {
+      toast('Déjà dans votre pipeline');
+    } else if (!r.ok) {
+      throw new Error(d.error || 'Erreur ajout pipeline');
+    } else {
+      // 4. Marquer l'assignation comme "in_pipeline" dans Firestore
+      if (db && assignmentId) {
+        await db.collection('assignments').doc(assignmentId).update({
+          status: 'in_pipeline',
+          addedToPipelineAt: firebase.firestore.FieldValue.serverTimestamp()
+        }).catch(function() {});
+      }
+      toast('✅ Prospect ajouté à votre pipeline !');
+      // Recharger le pipeline
+      if (typeof loadPipeline === 'function') loadPipeline();
+    }
+
+    if (btn) {
+      btn.textContent = '✅ Ajouté';
+      btn.style.background = 'var(--primary-light)';
+      btn.style.color = 'var(--primary)';
+    }
+
+  } catch(e) {
+    toast('Erreur : ' + e.message);
+    if (btn) { btn.disabled = false; btn.textContent = '➕ Ajouter au pipeline'; }
+  }
+}
+
+async function dismissAssignment(assignmentId, prospectId, btn) {
+  if (btn) { btn.disabled = true; btn.textContent = '...'; }
+  try {
+    var db = window._db;
+    if (db && assignmentId) {
+      await db.collection('assignments').doc(assignmentId).update({
+        status: 'done',
+        doneAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+    toast('Tâche marquée comme traitée');
     await refreshAssignments();
-  } catch (e) { toast('Erreur: ' + e.message); }
+  } catch(e) {
+    toast('Erreur : ' + e.message);
+    if (btn) { btn.disabled = false; btn.textContent = '✓ Traité'; }
+  }
 }
 
 function copyProspectInfo(i) {
@@ -2430,25 +2615,171 @@ function renderResults(data) {
     var managerBtn = (user && user.role === 'manager') ? '<button class="ca" id="sel-btn-m-' + i + '" onclick="toggleSelectForAssignMobile(' + i + ')" style="border:1px dashed var(--border-strong);background:transparent">S&eacute;lectionner</button>' : '';
     var card = document.createElement('div');
     card.className = 'co-card';
-    card.innerHTML = '<div class="co-head"><div class="co-av">' + initials + '</div><div class="co-meta"><div class="co-name">' + name + (co.sigle ? ' <span style="font-size:11px;color:var(--text-tertiary)">(' + co.sigle + ')</span>' : '') + '</div><div class="co-sub">' + (co.secteur ? '&#x1F4C2; ' + co.secteur : '') + (co.ville ? ' &middot; &#x1F4CD; ' + co.ville : '') + '</div><div class="co-badges">' + pipelineBadge + reliabilityBadge + (co.statut_juridique ? '<span class="cbadge cb-type">' + co.statut_juridique + '</span>' : '') + (co.niu ? '<span class="cbadge cb-niu">NIU: ' + co.niu + '</span>' : '') + (co.rccm ? '<span class="cbadge cb-green">RCCM &#x2713;</span>' : '') + '</div></div></div>'
-      + '<div class="co-body">'
-      + (co.activite_principale ? '<div class="co-f full"><span class="co-fl">Activit&eacute;</span><span class="co-fv full">' + co.activite_principale + '</span></div>' : '')
-      + (co.dirigeant ? '<div class="co-f"><span class="co-fl">&#x1F464; Dirigeant</span><span class="co-fv">' + co.dirigeant + '</span></div>' : '')
-      + '<div class="co-f"><span class="co-fl">&#x1F4DE; T&eacute;l&eacute;phone</span><span class="co-fv phone">' + (phone ? '<a href="tel:' + phone + '">' + phone + '</a>' : '&mdash;') + '</span></div>'
-      + '<div class="co-f"><span class="co-fl">&#x1F4E7; Email</span><span class="co-fv">' + (email ? '<a href="mailto:' + email + '">' + email + '</a>' : '&mdash;') + '</span></div>'
-      + (address ? '<div class="co-f full"><span class="co-fl">&#x1F3E0; Adresse</span><span class="co-fv full">' + address + '</span></div>' : '')
+    card.innerHTML =
+
+      /* ── EN-TÊTE : avatar + nom + sigle + badges ── */
+      '<div class="co-head>'
+      + '<div class="co-av">' + initials + '</div>'
+      + '<div class="co-meta">'
+
+      /* Nom principal */
+      + '<div class="co-name">' + name
+      + (sigle ? ' <span style="font-size:11px;color:var(--text-tertiary);font-weight:400">(' + sigle + ')</span>' : '')
       + '</div>'
+
+      /* Secteur en sous-titre */
+      + (sector
+        ? '<div class="co-sub" style="margin-bottom:6px">📂 ' + sector + '</div>'
+        : '<div style="height:4px"></div>')
+
+      /* Badges : pipeline, fiabilité, statut juridique */
+      + '<div class="co-badges">'
+      + (inPipeline  ? '<span class="cbadge cb-green">📌 Pipeline</span>' : '')
+      + '<span class="cbadge" style="background:' + reliability.color
+        + '20;color:' + reliability.color + ';border:1px solid ' + reliability.color + '40">'
+        + reliability.label + '</span>'
+      + (statut ? '<span class="cbadge cb-type">' + statut + '</span>' : '')
+      + (rccm   ? '<span class="cbadge cb-green">RCCM ✓</span>'       : '')
+      + '</div>'
+
+      + '</div>'  /* /.co-meta */
+      + '</div>'  /* /.co-head */
+
+      /* ── CORPS : grille d'informations structurées ── */
+      + '<div class="co-body" style="display:flex;flex-direction:column;gap:0;padding:0 16px 0">'
+
+      /* Ligne séparatrice */
+      + '<div style="height:1px;background:var(--border);margin-bottom:12px"></div>'
+
+      /* 1. Responsable */
+      + '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;'
+      + 'border-bottom:1px solid var(--border)">'
+      + '<span style="width:28px;height:28px;border-radius:50%;background:var(--bg-secondary);'
+      + 'display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">👤</span>'
+      + '<div style="flex:1;min-width:0">'
+      + '<div style="font-size:10px;font-weight:700;color:var(--text-tertiary);'
+      + 'text-transform:uppercase;letter-spacing:0.5px">Responsable</div>'
+      + '<div style="font-size:13px;font-weight:600;color:var(--text-primary);'
+      + 'white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'
+      + (director || '<span style="color:var(--text-tertiary);font-weight:400">—</span>')
+      + '</div></div></div>'
+
+      /* 2. Téléphone */
+      + '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;'
+      + 'border-bottom:1px solid var(--border)">'
+      + '<span style="width:28px;height:28px;border-radius:50%;background:var(--bg-secondary);'
+      + 'display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">📞</span>'
+      + '<div style="flex:1;min-width:0">'
+      + '<div style="font-size:10px;font-weight:700;color:var(--text-tertiary);'
+      + 'text-transform:uppercase;letter-spacing:0.5px">Téléphone</div>'
+      + '<div style="font-size:13px;font-weight:600">'
+      + (phone
+        ? '<a href="tel:' + phone + '" style="color:var(--primary);text-decoration:none">' + phone + '</a>'
+        : '<span style="color:var(--text-tertiary);font-weight:400">—</span>')
+      + '</div></div></div>'
+
+      /* 3. Email */
+      + '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;'
+      + 'border-bottom:1px solid var(--border)">'
+      + '<span style="width:28px;height:28px;border-radius:50%;background:var(--bg-secondary);'
+      + 'display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">📧</span>'
+      + '<div style="flex:1;min-width:0">'
+      + '<div style="font-size:10px;font-weight:700;color:var(--text-tertiary);'
+      + 'text-transform:uppercase;letter-spacing:0.5px">Email</div>'
+      + '<div style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'
+      + (email
+        ? '<a href="mailto:' + email + '" style="color:var(--blue);text-decoration:none">' + email + '</a>'
+        : '<span style="color:var(--text-tertiary)">—</span>')
+      + '</div></div></div>'
+
+      /* 4. Région + Ville (côte à côte) */
+      + '<div style="display:flex;gap:0;border-bottom:1px solid var(--border)">'
+
+      /* Région */
+      + '<div style="flex:1;display:flex;align-items:center;gap:8px;padding:8px 0;'
+      + 'border-right:1px solid var(--border);padding-right:12px">'
+      + '<span style="width:28px;height:28px;border-radius:50%;background:var(--bg-secondary);'
+      + 'display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">🗺️</span>'
+      + '<div style="min-width:0">'
+      + '<div style="font-size:10px;font-weight:700;color:var(--text-tertiary);'
+      + 'text-transform:uppercase;letter-spacing:0.5px">Région</div>'
+      + '<div style="font-size:13px;font-weight:500;color:var(--text-primary);'
+      + 'white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'
+      + (region || '<span style="color:var(--text-tertiary);font-weight:400">—</span>')
+      + '</div></div></div>'
+
+      /* Ville */
+      + '<div style="flex:1;display:flex;align-items:center;gap:8px;padding:8px 0 8px 12px">'
+      + '<span style="width:28px;height:28px;border-radius:50%;background:var(--bg-secondary);'
+      + 'display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">📍</span>'
+      + '<div style="min-width:0">'
+      + '<div style="font-size:10px;font-weight:700;color:var(--text-tertiary);'
+      + 'text-transform:uppercase;letter-spacing:0.5px">Ville</div>'
+      + '<div style="font-size:13px;font-weight:500;color:var(--text-primary);'
+      + 'white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'
+      + (city || '<span style="color:var(--text-tertiary);font-weight:400">—</span>')
+      + '</div></div></div>'
+
+      + '</div>'  /* /région+ville */
+
+      /* 5. NIU (si disponible) */
+      + (niu
+        ? '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;'
+          + 'border-bottom:1px solid var(--border)">'
+          + '<span style="width:28px;height:28px;border-radius:50%;background:var(--blue-light);'
+          + 'display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">🪪</span>'
+          + '<div style="flex:1;min-width:0">'
+          + '<div style="font-size:10px;font-weight:700;color:var(--text-tertiary);'
+          + 'text-transform:uppercase;letter-spacing:0.5px">NIU</div>'
+          + '<div style="font-size:12px;font-weight:700;color:var(--blue);'
+          + 'font-family:\'SF Mono\',\'Fira Code\',monospace;letter-spacing:0.5px">'
+          + niu + '</div></div></div>'
+        : '')
+
+      + '<div style="height:4px"></div>'
+      + '</div>'  /* /.co-body */
+
+      /* ── ACTIONS ── */
       + '<div class="co-footer">'
-      + '<button class="ca pipeline" onclick="addToPipCard(' + i + ')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Pipeline</button>'
-      + '<button class="ca maps" onclick="toggleMapM(\'' + cardId + '\',\'' + mapQ + '\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Maps</button>'
-      + '<button class="ca nav" onclick="openMapRoute(' + i + ')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>It.</button>'
-      + '<button class="ca pitch" onclick="openPitchSheet(' + i + ')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Pitch</button>'
-      + '<button class="ca note" onclick="openVoiceNoteSheet(' + i + ')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V4a3 3 0 0 1 3-3z"/><path d="M19 10a7 7 0 0 1-14 0"/><line x1="12" y1="19" x2="12" y2="23"/></svg>Note</button>'
-      + '<button class="ca report" onclick="openCrowdSheet(' + i + ')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Signaler</button>'
-      + '<button class="ca share" onclick="shareCard(' + i + ')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Share</button>'
+      + '<button class="ca pipeline" onclick="addToPipCard(' + i + ')">'
+      + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'
+      + '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>'
+      + '<circle cx="9" cy="7" r="4"/></svg>Pipeline</button>'
+      + '<button class="ca maps" onclick="toggleMapM(\'' + cardId + '\',\'' + mapQ + '\')">'
+      + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'
+      + '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>'
+      + '<circle cx="12" cy="10" r="3"/></svg>Maps</button>'
+      + '<button class="ca nav" onclick="openMapRoute(' + i + ')">'
+      + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'
+      + '<polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>It.</button>'
+      + '<button class="ca pitch" onclick="openPitchSheet(' + i + ')">'
+      + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'
+      + '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>'
+      + '</svg>Pitch</button>'
+      + '<button class="ca note" onclick="openVoiceNoteSheet(' + i + ')">'
+      + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'
+      + '<path d="M12 1a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V4a3 3 0 0 1 3-3z"/>'
+      + '<path d="M19 10a7 7 0 0 1-14 0"/>'
+      + '<line x1="12" y1="19" x2="12" y2="23"/></svg>Note</button>'
+      + '<button class="ca report" onclick="openCrowdSheet(' + i + ')">'
+      + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'
+      + '<circle cx="12" cy="12" r="10"/>'
+      + '<line x1="12" y1="8" x2="12" y2="12"/>'
+      + '<line x1="12" y1="16" x2="12.01" y2="16"/></svg>Signaler</button>'
+      + '<button class="ca share" onclick="shareCard(' + i + ')">'
+      + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'
+      + '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/>'
+      + '<circle cx="18" cy="19" r="3"/>'
+      + '<line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>'
+      + '<line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Share</button>'
       + managerBtn
       + '</div>'
-      + '<div class="map-panel" id="map-' + cardId + '"><button class="map-close" onclick="toggleMapM(\'' + cardId + '\',\'\')">&#x2715; Fermer la carte</button><iframe loading="lazy" allowfullscreen></iframe></div>';
+
+      /* Panel carte (masqué par défaut) */
+      + '<div class="map-panel" id="map-' + cardId + '">'
+      + '<button class="map-close" onclick="toggleMapM(\'' + cardId + '\',\'\')">✕ Fermer la carte</button>'
+      + '<iframe loading="lazy" allowfullscreen></iframe>'
+      + '</div>';
     area.appendChild(card);
   });
 }
@@ -2535,28 +2866,50 @@ async function submitAssignmentMobile() {
   var assignee = (document.getElementById('assign-assignee-m') || {}).value || '';
   assignee = assignee.trim();
   var note = ((document.getElementById('assign-note-m') || {}).value || '').trim();
- 
+
   if (!assignee) { toast('Sélectionnez un commercial'); return; }
   if (selectedForAssignMobile.size === 0) { toast('Aucun prospect sélectionné'); return; }
- 
-  try {
-    var r = await api('POST', '/api/assignments', {
-      assigneeId:   assignee,                             // firebaseUid du membre
-      prospectIds:  Array.from(selectedForAssignMobile),
-      note:         note,
-      // ✅ Ajout : fournir le managerUid pour validation côté Railway
-      managerUid:   (window.user && window.user.uid) || ''
-    }, token);
 
-    if (!r.ok) {
-      var d = await r.json().catch(function() { return {}; });
-      // Afficher le message d'erreur brut pour déboguer
-      return toast('Erreur ' + r.status + ' : ' + (d.error || d.message || 'Erreur serveur'));
+  var db = window._db;
+  var managerUid = window.user && window.user.uid;
+  var managerName = window.user && (window.user.name || window.user.email || 'Manager');
+
+  try {
+    var now = firebase.firestore.FieldValue.serverTimestamp();
+    var prospectIds = Array.from(selectedForAssignMobile);
+
+    // Écriture dans Firestore collection 'assignments'
+    if (db) {
+      await db.collection('assignments').add({
+        assigneeId:   assignee,
+        managerUid:   managerUid || '',
+        managerName:  managerName,
+        prospectIds:  prospectIds,
+        note:         note,
+        status:       'pending',
+        createdAt:    now,
+        updatedAt:    now
+      });
     }
+
+    // Appel Railway en parallèle (optionnel, ne bloque pas)
+    api('POST', '/api/assignments', {
+      assigneeId: assignee,
+      prospectIds: prospectIds,
+      note: note,
+      managerUid: managerUid || ''
+    }, token).catch(function() {});
 
     toast('✅ Assignation créée');
     selectedForAssignMobile.clear();
     closeSheet('assign-create-sheet');
+
+    // Réinitialiser les boutons de sélection
+    document.querySelectorAll('[id^="sel-btn-m-"]').forEach(function(b) {
+      b.style.background = 'transparent';
+      b.style.color = '';
+      b.textContent = 'Sélectionner';
+    });
 
   } catch(e) {
     toast('Erreur : ' + e.message);
@@ -2702,93 +3055,283 @@ async function deletePip(id) {
   toast('Retire'); loadPipeline();
 }
 
+/* ══════════════════════════════════════════════
+   RECHERCHES SAUVEGARDÉES — refonte complète
+══════════════════════════════════════════════ */
+var savedEditMode   = false;
+var selectedSavedIds = new Set();
+var savedSearches   = [];   // cache local
+
+/* ── Chargement ── */
 async function loadSaved() {
   try {
     var r = await api('GET', '/api/saved-searches', null, token);
-    if (r.ok) { var data = await r.json(); renderSaved(data.data || data || []); }
-  } catch (e) {}
+    if (r.ok) {
+      var data = await r.json();
+      savedSearches = data.data || data || [];
+      renderSaved(savedSearches);
+    }
+  } catch(e) {}
 }
 
+/* ── Rendu ── */
 function renderSaved(searches) {
   var list = document.getElementById('saved-list');
-  if (!searches.length) { list.innerHTML = '<div class="no-saved"><div class="ns-icon">&#x1F516;</div><p>Aucune recherche sauvegard&eacute;e</p></div>'; return; }
-  // Build DOM nodes to avoid HTML parsing issues and injection
+  if (!list) return;
+
+  if (!searches.length) {
+    list.innerHTML =
+      '<div class="no-saved">'
+      + '<div class="ns-icon">🔖</div>'
+      + '<p>Aucune recherche sauvegardée</p>'
+      + '</div>';
+    selectedSavedIds.clear();
+    updateSavedSelectBar();
+    return;
+  }
+
   list.innerHTML = '';
   searches.forEach(function(s) {
-    var card = document.createElement('div');
-    card.className = 'saved-card';
-    card.style.cursor = 'pointer';
-    card.addEventListener('click', function() { loadSavedSearch(s); });
+    var id = s.id || '';
+    var isSelected = selectedSavedIds.has(id);
 
+    var card = document.createElement('div');
+    card.className = 'saved-card'
+      + (savedEditMode  ? ' edit-mode'  : '')
+      + (isSelected     ? ' selected'   : '');
+    card.setAttribute('data-id', id);
+
+    /* Case à cocher (visible en mode édition) */
+    var cbWrap = document.createElement('div');
+    cbWrap.className = 'saved-cb' + (isSelected ? ' checked' : '');
+    cbWrap.style.display = savedEditMode ? 'flex' : 'none';
+    cbWrap.onclick = function(e) { e.stopPropagation(); toggleSavedItem(id); };
+
+    /* Icône */
     var icon = document.createElement('div');
     icon.className = 'saved-icon';
-    icon.innerHTML = '&#x1F50D;';
+    icon.innerHTML = '🔍';
 
+    /* Info */
     var info = document.createElement('div');
     info.className = 'saved-info';
     var title = document.createElement('div');
     title.className = 'saved-title';
-    title.textContent = s.title || '';
+    title.textContent = s.title || '(sans titre)';
     var date = document.createElement('div');
     date.className = 'saved-date';
-    date.textContent = ((s.createdAt || s.created_at || '') + '').replace('T',' ').slice(0,16);
+    date.textContent = ((s.createdAt || s.created_at || '') + '')
+      .replace('T', ' ').slice(0, 16);
     info.appendChild(title);
     info.appendChild(date);
 
+    /* Bouton ✕ individuel (masqué en mode édition) */
     var del = document.createElement('button');
     del.className = 'saved-del';
-    del.setAttribute('data-id', s.id || '');
-    del.innerHTML = '&#x2715;';
-    del.addEventListener('click', function(e) { e.stopPropagation(); handleDeleteSaved(this); });
+    del.innerHTML = '✕';
+    del.style.display = savedEditMode ? 'none' : 'flex';
+    del.onclick = function(e) {
+      e.stopPropagation();
+      deleteSavedOne(id);
+    };
 
+    card.appendChild(cbWrap);
     card.appendChild(icon);
     card.appendChild(info);
     card.appendChild(del);
+
+    /* Clic : sélection en mode édition, chargement sinon */
+    card.onclick = function() {
+      if (savedEditMode) { toggleSavedItem(id); }
+      else               { loadSavedSearch(s); }
+    };
+
     list.appendChild(card);
   });
 }
 
-function handleDeleteSaved(btn) {
-  var id = btn.getAttribute('data-id');
-  if (!id) { toast('ID introuvable'); return; }
-  deleteSaved(id);
+/* ── Toggle mode édition ── */
+function toggleSavedEditMode() {
+  savedEditMode = !savedEditMode;
+  selectedSavedIds.clear();
+
+  var btn = document.getElementById('saved-edit-btn');
+  var bar = document.getElementById('saved-select-bar');
+  if (btn) btn.textContent = savedEditMode ? '✕ Annuler' : '✏️ Sélectionner';
+  if (bar) bar.style.display = savedEditMode ? 'block' : 'none';
+
+  renderSaved(savedSearches);
+  updateSavedSelectBar();
 }
 
+/* ── Sélection d'un item ── */
+function toggleSavedItem(id) {
+  if (selectedSavedIds.has(id)) selectedSavedIds.delete(id);
+  else                           selectedSavedIds.add(id);
+  renderSaved(savedSearches);
+  updateSavedSelectBar();
+}
+
+/* ── Tout sélectionner / Tout désélectionner ── */
+function toggleSelectAll() {
+  var allSelected = selectedSavedIds.size === savedSearches.length && savedSearches.length > 0;
+  selectedSavedIds.clear();
+  if (!allSelected) {
+    savedSearches.forEach(function(s) { if (s.id) selectedSavedIds.add(s.id); });
+  }
+  renderSaved(savedSearches);
+  updateSavedSelectBar();
+}
+
+/* ── Mise à jour de la barre de sélection ── */
+function updateSavedSelectBar() {
+  var count     = selectedSavedIds.size;
+  var total     = savedSearches.length;
+  var countEl   = document.getElementById('saved-select-count');
+  var deleteBtn = document.getElementById('saved-delete-btn');
+  var allBox    = document.getElementById('select-all-box');
+
+  if (countEl)   countEl.textContent = count + ' sélectionné' + (count > 1 ? 's' : '');
+
+  /* Activer / désactiver le bouton supprimer */
+  if (deleteBtn) {
+    if (count > 0) {
+      deleteBtn.style.opacity       = '1';
+      deleteBtn.style.pointerEvents = 'auto';
+    } else {
+      deleteBtn.style.opacity       = '0.4';
+      deleteBtn.style.pointerEvents = 'none';
+    }
+  }
+
+  /* État de la case "Tout sélectionner" */
+  if (allBox) {
+    allBox.innerHTML = '';
+    allBox.style.background    = '';
+    allBox.style.borderColor   = '';
+    if (total > 0 && count === total) {
+      /* Tout coché */
+      allBox.style.background  = 'var(--primary)';
+      allBox.style.borderColor = 'var(--primary)';
+      var chk = document.createElement('div');
+      chk.style.cssText =
+        'width:5px;height:9px;border:2px solid #fff;'
+        + 'border-top:none;border-left:none;'
+        + 'transform:rotate(45deg) translateY(-1px)';
+      allBox.appendChild(chk);
+    } else if (count > 0) {
+      /* Partiellement coché */
+      allBox.style.background  = 'var(--primary-light)';
+      allBox.style.borderColor = 'var(--primary)';
+      var dash = document.createElement('div');
+      dash.style.cssText =
+        'width:10px;height:2px;background:var(--primary);border-radius:1px';
+      allBox.appendChild(dash);
+    }
+  }
+}
+
+/* ── Suppression groupée ── */
+async function deleteSelectedSaved() {
+  var ids = Array.from(selectedSavedIds);
+  if (!ids.length) return;
+
+  var msg = ids.length === 1
+    ? 'Supprimer cette recherche ?'
+    : 'Supprimer ' + ids.length + ' recherches ?';
+  if (!confirm(msg)) return;
+
+  var btn = document.getElementById('saved-delete-btn');
+  if (btn) { btn.textContent = '⏳ Suppression...'; btn.style.pointerEvents = 'none'; }
+
+  var errors = 0;
+  for (var i = 0; i < ids.length; i++) {
+    try {
+      var r = await api('DELETE', '/api/saved-searches/' + ids[i], null, token);
+      if (!r.ok) errors++;
+    } catch(e) { errors++; }
+  }
+
+  if (errors === 0) toast('✅ ' + ids.length + ' recherche(s) supprimée(s)');
+  else              toast('⚠️ ' + errors + ' erreur(s) lors de la suppression');
+
+  selectedSavedIds.clear();
+  savedEditMode = false;
+  var bar     = document.getElementById('saved-select-bar');
+  var editBtn = document.getElementById('saved-edit-btn');
+  if (bar)     bar.style.display  = 'none';
+  if (editBtn) editBtn.textContent = '✏️ Sélectionner';
+
+  await loadSaved();
+}
+
+/* ── Suppression individuelle (bouton ✕) ── */
+async function deleteSavedOne(id) {
+  if (!confirm('Supprimer cette recherche ?')) return;
+  try {
+    await api('DELETE', '/api/saved-searches/' + id, null, token);
+    savedSearches = savedSearches.filter(function(s) { return s.id !== id; });
+    renderSaved(savedSearches);
+    toast('Supprimée');
+  } catch(e) { toast('Erreur : ' + e.message); }
+}
+
+/* ── Compatibilité (anciens appels) ── */
+function deleteSaved(id) { deleteSavedOne(id); }
+
+/* ── Chargement d'une recherche sauvegardée ── */
 function loadSavedSearch(s) {
+  if (savedEditMode) return;
   switchTab2('search');
-  if (s.results && s.results.length) { lastResults = s.results; renderResults({ source: 'database', results: s.results }); }
-  else { runSearch(s.query || '', s.filters || {}); }
+  if (s.results && s.results.length) {
+    lastResults = s.results;
+    renderResults({ source: 'database', results: s.results });
+  } else {
+    runSearch(s.query || '', s.filters || {});
+  }
 }
 
-async function deleteSaved(id) { await api('DELETE', '/api/saved-searches/' + id, null, token); toast('Supprimee'); loadSaved(); }
-
+/* ── Sauvegarde avec déduplication stricte ── */
 function openSaveSheet() {
   var parts = [];
   if (lastFilters.secteur) parts.push(lastFilters.secteur);
-  if (lastFilters.ville) parts.push(lastFilters.ville);
+  if (lastFilters.ville)   parts.push(lastFilters.ville);
   else if (lastFilters.region) parts.push(lastFilters.region);
-  if (lastQuery) parts.push(lastQuery.slice(0, 25));
+  if (lastQuery) parts.push(lastQuery.slice(0,25));
   var today = new Date().toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' });
-  document.getElementById('save-title').value = parts.length ? parts.join(' - ') + ' - ' + today : 'Recherche - ' + today;
+  document.getElementById('save-title').value =
+    parts.length ? parts.join(' — ') + ' — ' + today : 'Recherche — ' + today;
   openSheet('save-sheet');
 }
 
 async function confirmSave() {
   var title = document.getElementById('save-title').value.trim();
   if (!title) { toast('Saisissez un titre'); return; }
+
+  /* Vérification doublon côté cache local (instantané) */
+  var dupLocal = savedSearches.find(function(s) {
+    return (s.title || '').toLowerCase() === title.toLowerCase();
+  });
+  if (dupLocal) { toast('Une recherche avec ce titre existe déjà'); return; }
+
   try {
-    // Vérifier les doublons avant de sauvegarder
-    var existing = await api('GET', '/api/saved-searches', null, token);
-    if (existing && existing.ok) {
-      var data = await existing.json();
-      var list = data.data || data || [];
-      var duplicate = list.find(function(s) { return s.title === title; });
-      if (duplicate) { toast('Une recherche avec ce titre existe d\u00E9j\u00E0'); return; }
+    var r = await api('POST', '/api/saved-searches', {
+      title:   title,
+      query:   lastQuery,
+      filters: lastFilters,
+      results: lastResults.slice(0,20)
+    }, token);
+
+    if (!r.ok) {
+      var err = await r.json().catch(function() { return {}; });
+      toast('Erreur : ' + (err.error || r.status));
+      return;
     }
 
-    await api('POST', '/api/saved-searches', { title: title, query: lastQuery, filters: lastFilters, results: lastResults.slice(0, 20) }, token);
-    toast('Sauvegardee'); closeSheet('save-sheet'); loadSaved();
-  } catch (e) { toast('Erreur: ' + e.message); }
+    toast('✅ Sauvegardée');
+    closeSheet('save-sheet');
+    await loadSaved();
+  } catch(e) { toast('Erreur : ' + e.message); }
 }
 
 function autoResizeChat(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 100) + 'px'; }

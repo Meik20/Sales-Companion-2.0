@@ -391,7 +391,7 @@ function backToLoginForm() {
            (ne devrait pas arriver avec le flux d'activation corrigé) */
         .filter(function (m) { return m.firebaseUid; });
 
-      /* ── Pipeline de chaque membre via Railway (filtre par firebaseUid) ── */
+      /* ── Pipeline de chaque membre : chargement initial via Railway ── */
       teamMembersPipeline = {};
       await Promise.all(teamMembers.map(async function (member) {
         try {
@@ -410,6 +410,27 @@ function backToLoginForm() {
       renderTeamMembers();
       buildActivityFeed();
       if (currentTeamSeg === 'activity') renderActivityFeed();
+
+      // ── Écoute temps réel Firestore pour les assignations (activité)
+      try {
+        if (db && managerUid) {
+          var unsubAssign = db.collection('assignments')
+            .where('managerUid', '==', managerUid)
+            .onSnapshot(function(snap) {
+              // Reconstruire l'activité
+              buildActivityFeedFromAssignments(snap.docs.map(function(d) {
+                return Object.assign({ id: d.id }, d.data());
+              }));
+              if (currentTeamSeg === 'activity') renderActivityFeed();
+            }, function(err) {
+              console.warn('[assignments listener]', err.message);
+            });
+          // Garder le listener pour nettoyage éventuel
+          window._assignmentsListener = unsubAssign;
+        }
+      } catch (e) {
+        console.warn('[loadTeamData assignments listener]', e.message || e);
+      }
 
       /* Badge */
       var pending = teamMembers.reduce(function (acc, m) {
@@ -704,6 +725,66 @@ function backToLoginForm() {
       });
     });
     activityFeed.sort(function (a, b) { return new Date(b.date) - new Date(a.date); });
+  }
+
+  function buildActivityFeedFromAssignments(assignments) {
+    activityFeed = [];
+
+    // Activité depuis les assignations Firestore
+    assignments.forEach(function(a) {
+      var memberObj = teamMembers.find(function(m) { return m.firebaseUid === a.assigneeId; });
+      var memberName = (memberObj && memberObj.name) || a.assigneeId || 'Commercial';
+      var dateStr = '';
+      try {
+        dateStr = a.createdAt && a.createdAt.toDate ? a.createdAt.toDate().toISOString() : '';
+      } catch(e) {}
+
+      var status = a.status || 'pending';
+      var statusMap = {
+        pending:     'prospection',
+        in_pipeline: 'negociation',
+        done:        'conclue'
+      };
+
+      (a.prospectIds || []).forEach(function(pid) {
+        activityFeed.push({
+          memberName: memberName,
+          memberUid:  a.assigneeId,
+          company:    pid,
+          status:     statusMap[status] || 'prospection',
+          date:       dateStr,
+          note:       a.note || '',
+          actionType: status === 'in_pipeline' ? 'Ajouté au pipeline'
+                    : status === 'done'        ? 'Traité'
+                    : 'Assigné'
+        });
+      });
+    });
+
+    // Activité depuis le pipeline des membres (existant)
+    teamMembers.forEach(function (member) {
+      (teamMembersPipeline[member.firebaseUid] || []).forEach(function(p) {
+        // Éviter les doublons avec les assignations
+        var alreadyIn = activityFeed.some(function(f) {
+          return f.memberUid === member.firebaseUid && f.company === (p.company_name || p.company_id);
+        });
+        if (!alreadyIn) {
+          activityFeed.push({
+            memberName: member.name,
+            memberUid:  member.firebaseUid,
+            company:    p.company_name || '—',
+            status:     p.status || 'prospection',
+            date:       p.updated_at || p.created_at || '',
+            note:       p.note || '',
+            actionType: p.status === 'conclue' ? 'Conclu'
+                      : p.status === 'negociation' ? 'En négociation'
+                      : 'En prospection'
+          });
+        }
+      });
+    });
+
+    activityFeed.sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
   }
 
   function renderActivityFeed() {

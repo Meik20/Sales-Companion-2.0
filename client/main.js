@@ -442,6 +442,26 @@ ipcMain.handle('pipeline', (_, method, token, id, data) => {
 });
 
 /* ─────────────────────────────────────────────
+   ASSIGNMENTS
+───────────────────────────────────────────── */
+ipcMain.handle('assignments', (_, method, token, id, data) => {
+  const url = getServerUrl();
+  console.log(`🗂️ Assignments [${method}] with server: ${url}`);
+
+  if (method === 'GET')
+    return requestWithRetry(url, 'GET', '/api/assignments', null, token);
+
+  if (method === 'POST')
+    return requestWithRetry(url, 'POST', '/api/assignments', data, token);
+
+  if (method === 'PUT')
+    return requestWithRetry(url, 'PUT', `/api/assignments/${id}`, data, token);
+
+  if (method === 'DELETE')
+    return requestWithRetry(url, 'DELETE', `/api/assignments/${id}`, null, token);
+});
+
+/* ─────────────────────────────────────────────
    MENU
 ───────────────────────────────────────────── */
 const menuTemplate = [

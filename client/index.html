@@ -141,77 +141,96 @@
       font-size: 11px;
       font-weight: 700;
       color: var(--tx2);
-      text-transform: uppercase;
-      letter-spacing: .04em;
-      margin-bottom: 4px;
-    }
+        card.innerHTML = `
+          <div class="co-head">
+            <div class="co-av">${escapeHtml(initials)}</div>
+            <div class="co-meta">
+              <div class="co-name" title="${raisonSociale}">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div style="display:flex;border-radius:3px;overflow:hidden;height:14px;flex-shrink:0">
+                    <div style="width:8px;background:#007A5E"></div>
+                    <div style="width:8px;background:#CE1126;display:flex;align-items:center;justify-content:center">
+                      <span style="color:#FCD116;font-size:8px">★</span>
+                    </div>
+                    <div style="width:8px;background:#FCD116"></div>
+                  </div>
+                  <span>${raisonSociale}${sigle ? ` <span style="font-size:11px;color:var(--tx3);font-weight:400">(${sigle})</span>` : ''}</span>
+                </div>
+              </div>
+              <div class="co-line2">
+                ${secteur    ? `<span>📂 ${secteur}</span>` : ''}
+                ${contactInfo? `<span>${contactInfo}</span>` : ''}
+              </div>
+              <div class="co-badges">
+                ${pipelineBadge}
+                ${leadScore       ? `<span class="cbadge cb-score">Score: ${leadScore}</span>`        : ''}
+                ${statutJuridique ? `<span class="cbadge cb-type">${statutJuridique}</span>`           : ''}
+                ${niu             ? `<span class="cbadge cb-niu">NIU: ${niu}</span>`                   : ''}
+                ${rccm            ? `<span class="cbadge cb-green">RCCM ✓</span>`                     : ''}
+              </div>
+            </div>
+          </div>
 
-    .fg input, .fg select, .fsel {
-      width: 100%;
-      padding: 9px 11px;
-      border: 1.5px solid var(--bd2);
-      border-radius: var(--r);
-      font-family: 'Inter', sans-serif;
-      font-size: 13px;
-      color: var(--tx);
-      background: var(--bg2);
-      outline: none;
-      transition: border-color var(--transition);
-    }
+          <div class="co-body" style="display:flex;flex-direction:column;gap:0;padding:0 16px 0">
+            <div style="height:1px;background:var(--border);margin-bottom:12px"></div>
 
-    .fg input:focus, .fg select:focus, .fsel:focus {
-      border-color: var(--g);
-    }
+            <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+              <span style="width:28px;height:28px;border-radius:50%;background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">👤</span>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:10px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.5px">Responsable</div>
+                <div style="font-size:13px;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${dirigeant || '<span style="color:var(--text-tertiary);font-weight:400">—</span>'}</div>
+              </div>
+            </div>
 
-    .a-err {
-      display: none;
-      color: var(--red);
-      font-size: 12px;
-      margin-bottom: 10px;
-      background: rgba(239,68,68,.08);
-      padding: 8px 10px;
-      border-radius: var(--r);
-    }
+            <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+              <span style="width:28px;height:28px;border-radius:50%;background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">📞</span>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:10px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.5px">Téléphone</div>
+                <div style="font-size:13px;font-weight:600">${phone ? `<a href="tel:${escapeHtml(phone)}" style="color:var(--primary);text-decoration:none">${escapeHtml(phone)}</a>` : '<span style="color:var(--text-tertiary);font-weight:400">—</span>'}</div>
+              </div>
+            </div>
 
-    .a-btn {
-      width: 100%;
-      padding: 11px;
-      background: var(--g);
-      color: #fff;
-      border: none;
-      border-radius: var(--r);
-      font-family: 'Inter', sans-serif;
-      font-size: 14px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: background var(--transition);
-    }
+            <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+              <span style="width:28px;height:28px;border-radius:50%;background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">📧</span>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:10px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.5px">Email</div>
+                <div style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${email ? `<a href="mailto:${escapeHtml(email)}" style="color:var(--blue);text-decoration:none">${escapeHtml(email)}</a>` : '<span style="color:var(--text-tertiary)">—</span>'}</div>
+              </div>
+            </div>
 
-    .a-btn:hover:not(:disabled) { background: var(--gm); }
-    .a-btn:disabled { opacity: .55; cursor: not-allowed; }
+            <div style="display:flex;gap:0;border-bottom:1px solid var(--border)">
+              <div style="flex:1;display:flex;align-items:center;gap:8px;padding:8px 0;border-right:1px solid var(--border);padding-right:12px">
+                <span style="width:28px;height:28px;border-radius:50%;background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">🗺️</span>
+                <div style="min-width:0"><div style="font-size:10px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.5px">Région</div><div style="font-size:13px;font-weight:500;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(co.region || '') || '<span style="color:var(--text-tertiary);font-weight:400">—</span>'}</div></div>
+              </div>
+              <div style="flex:1;display:flex;align-items:center;gap:8px;padding:8px 0 8px 12px">
+                <span style="width:28px;height:28px;border-radius:50%;background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">📍</span>
+                <div style="min-width:0"><div style="font-size:10px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.5px">Ville</div><div style="font-size:13px;font-weight:500;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(co.ville || '') || '<span style="color:var(--text-tertiary);font-weight:400">—</span>'}</div></div>
+              </div>
+            </div>
 
-    /* ─── TITLEBAR ────────────────────────────────────────────────────── */
-    .tb {
-      display: none; /* shown via JS */
-      align-items: center;
-      height: 48px;
-      background: var(--g);
-      padding: 0 16px;
-      gap: 12px;
-      flex-shrink: 0;
-      -webkit-app-region: drag;
-    }
+            ${niu ? `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)"><span style="width:28px;height:28px;border-radius:50%;background:var(--blue-light);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">🪪</span><div style="flex:1;min-width:0"><div style="font-size:10px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.5px">NIU</div><div style="font-size:12px;font-weight:700;color:var(--blue);font-family:'SF Mono','Fira Code',monospace;letter-spacing:0.5px">${niu}</div></div></div>` : ''}
 
-    .tb-brand { display: flex; align-items: center; gap: 8px; }
+            <div style="height:4px"></div>
+          </div>
 
-    .tb-logo {
-      display: flex;
-      align-items: center;
-      -webkit-app-region: no-drag;
-    }
-
-    .tb-name {
-      font-size: 13px;
+          <div class="co-footer">
+            <button class="ca maps" type="button" onclick="toggleMap('${id}','${mapSrc}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path></svg>
+              Localiser
+            </button>
+            <button class="ca" type="button" style="background:var(--gl);color:var(--g)" onclick="addToPipelineFromCard(${i})">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M12 5v14m-7-7h14"></path></svg>
+              Pipeline
+            </button>
+            <button class="ca" type="button" style="background:var(--accent-l);color:var(--accent)" onclick="openPitchModal(${i})">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M4 4h16v10H5.5L4 16.5V4z"></path></svg>
+              Approche
+            </button>
+            <button class="ca share" type="button" onclick="shareCard(${i})">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+              Partager
+            </button>`;
       font-weight: 800;
       color: #fff;
       letter-spacing: .06em;
@@ -3462,6 +3481,108 @@ _Partagé via Sales Companion_`;
     // ─────────────────────────────────────────────────────────────
     // BINDINGS GLOBAUX
     // ─────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────
+    // ASSIGNMENTS (desktop) — helpers adapted from mobile logic
+    // ─────────────────────────────────────────────────────────────
+    async function refreshAssignments() {
+      const container = document.getElementById('assignments-list');
+      if (!container) return;
+      container.innerHTML = '<div class="loading-state"><div class="spinner"></div><div>Chargement...</div></div>';
+      try {
+        // Ask main process for assignments
+        const res = await window.electronAPI.assignments('GET', token);
+        if (!res || !res.data) { container.innerHTML = '<div class="no-saved">Erreur de chargement</div>'; return; }
+        const list = Array.isArray(res.data) ? res.data : (res.data.data || []);
+        if (!list.length) { container.innerHTML = '<div class="no-saved"><div class="ns-icon">🗂️</div><p>Aucune tâche assignée</p></div>'; return; }
+
+        container.innerHTML = '';
+        list.forEach(function(a) {
+          const assignmentId = a.id || a._id || '';
+          const prospectIds = a.prospectIds || (a.prospectId ? [a.prospectId] : []);
+          const note = a.note || '';
+          const managerName = a.managerName || a.managerEmail || 'votre manager';
+          const dateStr = (a.createdAt || a.created_at || '') ? ('' + (a.createdAt || a.created_at)).replace('T',' ').slice(0,16) : '';
+
+          prospectIds.forEach(function(prospectId) {
+            const card = document.createElement('div');
+            card.className = 'saved-card';
+            card.style.padding = '12px';
+            card.style.marginBottom = '10px';
+            card.innerHTML =
+              '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'
+              + '<div style="font-weight:700">📋 Prospect assigné</div>'
+              + '<div style="font-size:12px;color:var(--tx3)">' + dateStr + '</div>'
+              + '</div>'
+              + '<div style="font-size:13px;color:var(--tx2);margin-bottom:6px"><strong>ID :</strong> ' + prospectId + '</div>'
+              + (note ? '<div style="font-size:13px;color:var(--tx2);margin-bottom:8px">📝 ' + note + '</div>' : '')
+              + '<div style="display:flex;gap:8px">'
+              + '<button class="btn-ok" style="flex:1" onclick="addAssignedToPipeline(\'' + assignmentId + '\',\'' + prospectId + '\',this)">➕ Ajouter au pipeline</button>'
+              + '<button class="btn-cancel" style="flex:1" onclick="dismissAssignment(\'' + assignmentId + '\',\'' + prospectId + '\',this)">✓ Traité</button>'
+              + '</div>';
+            container.appendChild(card);
+          });
+        });
+      } catch (e) {
+        console.error('[refreshAssignments]', e);
+        container.innerHTML = '<div class="no-saved">Erreur : ' + (e.message || e) + '</div>';
+      }
+    }
+
+    async function addAssignedToPipeline(assignmentId, prospectId, btn) {
+      if (btn) { btn.disabled = true; btn.textContent = '...'; }
+      try {
+        // try to enrich from lastResults
+        const companyInfo = (window.lastResults || []).find(r => (r.id || r.niu || r.siren || '') === prospectId) || {};
+        const payload = {
+          company_name: companyInfo.raison_sociale || companyInfo.company_name || companyInfo.nom || companyInfo.name || prospectId,
+          company_sector: companyInfo.secteur || companyInfo.activite_principale || '',
+          company_city: companyInfo.ville || companyInfo.region || '',
+          company_phone: companyInfo.telephone || companyInfo.tel || '',
+          company_email: companyInfo.email || companyInfo.contact_email || '',
+          company_id: prospectId,
+          status: 'prospection',
+          note: 'Assigné par manager',
+          assignment_id: assignmentId,
+          assigned_from_manager: true
+        };
+
+        const r = await fetch((RAILWAY_SERVER || '') + '/api/pipeline', {
+          method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': token ? 'Bearer ' + token : '' },
+          body: JSON.stringify(payload)
+        });
+        const d = await r.json().catch(() => ({}));
+        if (r.status === 409) { toast('Déjà dans votre pipeline'); }
+        else if (!r.ok) { throw new Error(d.error || 'Erreur ajout pipeline'); }
+        else {
+            // update assignment status via main process
+            if (assignmentId) {
+              try {
+                await window.electronAPI.assignments('PUT', token, assignmentId, { status: 'in_pipeline' });
+              } catch (e) { console.warn('Failed to update assignment status', e); }
+            }
+          toast('✅ Prospect ajouté à votre pipeline !');
+          if (typeof loadPipeline === 'function') loadPipeline();
+        }
+        if (btn) { btn.textContent = '✅ Ajouté'; btn.style.background = ''; btn.disabled = true; }
+      } catch (e) {
+        toast('Erreur : ' + (e.message || e));
+        if (btn) { btn.disabled = false; btn.textContent = '➕ Ajouter au pipeline'; }
+      }
+    }
+
+    async function dismissAssignment(assignmentId, prospectId, btn) {
+      if (btn) { btn.disabled = true; btn.textContent = '...'; }
+      try {
+        if (!assignmentId) throw new Error('ID introuvable');
+        const r = await window.electronAPI.assignments('PUT', token, assignmentId, { status: 'done' });
+        if (!r || r.status >= 400) throw new Error('Erreur mise à jour');
+        toast('Tâche marquée comme traitée');
+        if (typeof refreshAssignments === 'function') refreshAssignments();
+      } catch (e) {
+        toast('Erreur : ' + (e.message || e));
+        if (btn) { btn.disabled = false; btn.textContent = '✓ Traité'; }
+      }
+    }
     function bindGlobalUI() {
       // Fermer overlay au clic sur le fond
       document.querySelectorAll('.overlay').forEach(overlay => {

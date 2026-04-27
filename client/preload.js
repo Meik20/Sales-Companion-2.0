@@ -31,6 +31,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   
   // Pipeline
   pipeline:          (method, token, id, data) => ipcRenderer.invoke('pipeline', method, token, id, data),
+  // Assignments (GET, POST, PUT)
+  assignments:        (method, token, id, data) => ipcRenderer.invoke('assignments', method, token, id, data),
   
   // External
   openExternal:      (u) => ipcRenderer.invoke('open-external', u),
