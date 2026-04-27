@@ -1645,34 +1645,38 @@
         <div class="a-err" id="l-err"></div>
         <button class="a-btn" id="l-btn" type="button">Se connecter →</button>
         <button class="a-btn" id="enterprise-access-btn" type="button"
-          style="margin-top:10px;background:#1a1a2e;color:#fff">
-          ACCES ENTREPRISE
+          style="margin-top:10px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff"
+          onclick="window.TeamManager ? window.TeamManager.switchToActivationFlow() : switchToActivationFlow()">
+          🔑 Accès Entreprise
         </button>
       </div>
 
       <!-- Activation compte membre -->
-      <div id="activation-form" style="display:none">
+            <div id="activation-form" style="display:none">
         <div class="fg">
-          <label for="activation-access-id">ID d'accès</label>
-          <input type="text" id="activation-access-id" placeholder="Prenom/Nom@Entreprise" autocomplete="username">
+          <label for="activation-access-id">ID d'accès (ex: prenomnom@entreprise)</label>
+          <input type="text" id="activation-access-id" placeholder="jeandupont@orange" autocomplete="username">
         </div>
         <div class="fg">
-          <label for="activation-new-password">Nouveau mot de passe</label>
-          <input type="password" id="activation-new-password" placeholder="Minimum 8 caractères" autocomplete="new-password">
+          <label for="activation-email">Votre adresse email (pour la connexion)</label>
+          <input type="email" id="activation-email" placeholder="vous@exemple.com" inputmode="email" autocomplete="email">
         </div>
         <div class="fg">
-          <label for="activation-confirm-password">Confirmer mot de passe</label>
+          <label for="activation-new-password">Nouveau mot de passe (min. 8 caractères)</label>
+          <input type="password" id="activation-new-password" placeholder="••••••••" autocomplete="new-password">
+        </div>
+        <div class="fg">
+          <label for="activation-confirm-password">Confirmer le mot de passe</label>
           <input type="password" id="activation-confirm-password" placeholder="••••••••" autocomplete="new-password">
         </div>
-        <div class="a-err" id="activation-err"></div>
+        <div class="a-err" id="activation-err" style="display:none"></div>
         <button class="a-btn" id="activate-access-btn" type="button">Activer mon compte →</button>
-        <div style="margin-top:12px;font-size:12px;color:var(--tx3);text-align:center">
-          Vous avez déjà un compte ?
-          <a href="#" id="back-to-login-link"
-            style="color:var(--blue);text-decoration:none;font-weight:600">
-            Se connecter normalement
+        <p style="margin-top:14px;font-size:12px;color:var(--tx3);text-align:center">
+          Déjà un accès activé ?&nbsp;
+          <a href="#" id="back-to-login-link" style="color:var(--blue);text-decoration:none;font-weight:600">
+            S'identifier
           </a>
-        </div>
+        </p>
       </div>
 
       <!-- Connexion entreprise -->
@@ -3291,17 +3295,10 @@ _Partagé via Sales Companion_`;
     function closeAssignModal() { closeOverlayById('assign-modal'); }
 
     async function loadTeamMembersDesktop() {
-      const sel = document.getElementById('assign-assignee-select');
-      sel.innerHTML = '<option value="">Chargement…</option>';
-      try {
-        const r = await fetch(RAILWAY_SERVER+'/api/team', { headers:{ 'Authorization':'Bearer '+token } });
-        if (!r.ok) { sel.innerHTML='<option value="">Aucun membre</option>'; return; }
-        const d = await r.json();
-        const list = d.data || [];
-        sel.innerHTML = list.length
-          ? list.map(u=>`<option value="${escapeHtml(u.uid)}">${escapeHtml(u.name||u.email||u.uid)}</option>`).join('')
-          : '<option value="">Aucun membre</option>';
-      } catch(e) { sel.innerHTML='<option value="">Erreur</option>'; }
+      // Déléguer à TeamManager qui lit Firestore (membres activés uniquement)
+      if (window.TeamManager && typeof window.TeamManager.loadTeamMembersDesktop === 'function') {
+        await window.TeamManager.loadTeamMembersDesktop();
+      }
     }
 
     async function submitAssignmentDesktop() {
@@ -3368,21 +3365,16 @@ _Partagé via Sales Companion_`;
       document.getElementById('r-pass')?.addEventListener('keydown', e => { if(e.key==='Enter') doRegister(); });
       document.getElementById('r-account-type')?.addEventListener('change', onRegisterAccountTypeChange);
 
-      // Connexion entreprise
-      document.getElementById('enterprise-access-btn')?.addEventListener('click', showEnterpriseLoginForm);
+      // Connexion entreprise (classique electron)
+      // enterprise-access-btn : géré par team-manager.js (switchToActivationFlow)
       document.getElementById('enterprise-back-link')?.addEventListener('click', e => { e.preventDefault(); hideEnterpriseLoginForm(); });
       document.getElementById('e-btn')?.addEventListener('click', doEnterpriseLogin);
       document.getElementById('e-id')?.addEventListener('keydown',   e => { if(e.key==='Enter') doEnterpriseLogin(); });
       document.getElementById('e-pass')?.addEventListener('keydown', e => { if(e.key==='Enter') doEnterpriseLogin(); });
 
-      // Activation membre
-      document.getElementById('activate-access-btn')?.addEventListener('click', () => window.TeamManager?.activateMemberAccess());
+      // Activation membre : géré par team-manager.js (initialize())
       document.getElementById('activation-confirm-password')?.addEventListener('keydown', e => {
-        if(e.key==='Enter') window.TeamManager?.activateMemberAccess();
-      });
-      document.getElementById('back-to-login-link')?.addEventListener('click', e => {
-        e.preventDefault();
-        window.TeamManager?.backToLoginForm ? window.TeamManager.backToLoginForm() : switchTab('login');
+        if(e.key==='Enter') window.TeamManager?.activateMemberAccess?.();
       });
 
       // Recherche
@@ -3510,7 +3502,8 @@ _Partagé via Sales Companion_`;
   </script>
 
     <!-- Intégration du module member-access -->
-    <script type="module" src="/js/member-access.js"></script>
+    <script src="member-access.js"></script>
+    <script src="team-manager.js"></script>
 
 </body>
 </html>
