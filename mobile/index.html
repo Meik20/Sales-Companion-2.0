@@ -2656,11 +2656,40 @@ async function loadSaved() {
 function renderSaved(searches) {
   var list = document.getElementById('saved-list');
   if (!searches.length) { list.innerHTML = '<div class="no-saved"><div class="ns-icon">&#x1F516;</div><p>Aucune recherche sauvegard&eacute;e</p></div>'; return; }
-  list.innerHTML = searches.map(function(s) {
-    var safeJson = JSON.stringify(s).replace(/"/g, '&quot;');
-    var safeId = escapeHtml(s.id || '');
-    return '<div class="saved-card" onclick="loadSavedSearch(' + safeJson + ')'><div class="saved-icon">&#x1F50D;</div><div class="saved-info"><div class="saved-title">' + escapeHtml(s.title) + '</div><div class="saved-date">' + ((s.createdAt || s.created_at || '').replace('T',' ').slice(0,16)) + '</div></div><button class="saved-del" data-id="' + safeId + '" onclick="event.stopPropagation();handleDeleteSaved(this)">&#x2715;</button></div>';
-  }).join('');
+  // Build DOM nodes to avoid HTML parsing issues and injection
+  list.innerHTML = '';
+  searches.forEach(function(s) {
+    var card = document.createElement('div');
+    card.className = 'saved-card';
+    card.style.cursor = 'pointer';
+    card.addEventListener('click', function() { loadSavedSearch(s); });
+
+    var icon = document.createElement('div');
+    icon.className = 'saved-icon';
+    icon.innerHTML = '&#x1F50D;';
+
+    var info = document.createElement('div');
+    info.className = 'saved-info';
+    var title = document.createElement('div');
+    title.className = 'saved-title';
+    title.textContent = s.title || '';
+    var date = document.createElement('div');
+    date.className = 'saved-date';
+    date.textContent = ((s.createdAt || s.created_at || '') + '').replace('T',' ').slice(0,16);
+    info.appendChild(title);
+    info.appendChild(date);
+
+    var del = document.createElement('button');
+    del.className = 'saved-del';
+    del.setAttribute('data-id', s.id || '');
+    del.innerHTML = '&#x2715;';
+    del.addEventListener('click', function(e) { e.stopPropagation(); handleDeleteSaved(this); });
+
+    card.appendChild(icon);
+    card.appendChild(info);
+    card.appendChild(del);
+    list.appendChild(card);
+  });
 }
 
 function handleDeleteSaved(btn) {
