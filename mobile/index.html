@@ -1112,19 +1112,69 @@ body {
 
   <!-- SUPPORT TAB -->
   <div class="tab-content" id="tab-support">
-    <div class="support-header" style="padding:14px 16px;border-bottom:1px solid var(--border)">
-      <h2 style="font-size:16px;margin-bottom:4px">Support</h2>
-      <p style="font-size:12px;color:var(--text-tertiary)">Contactez notre &eacute;quipe de support</p>
-    </div>
-    <div class="support-container" style="flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px">
-      <div id="support-messages-list" style="display:flex;flex-direction:column;gap:10px"></div>
-    </div>
-    <div class="support-footer" style="padding:12px 14px;border-top:1px solid var(--border);background:var(--bg-card);flex-shrink:0;padding-bottom:calc(12px + var(--safe-bottom))">
-      <input type="text" id="sup-subject-mobile" placeholder="Sujet..." style="width:100%;padding:10px 12px;border:1.5px solid var(--border-strong);border-radius:var(--r);font-size:13px;font-family:'Inter',sans-serif;margin-bottom:8px;color:var(--text-primary);background:var(--bg-secondary);outline:none"/>
-      <div style="display:flex;gap:8px">
-        <textarea id="sup-message-mobile" placeholder="D&eacute;crivez votre question..." style="flex:1;padding:10px 12px;border:1.5px solid var(--border-strong);border-radius:var(--r);font-size:13px;font-family:'Inter',sans-serif;color:var(--text-primary);background:var(--bg-secondary);resize:none;min-height:70px;outline:none;max-height:150px"></textarea>
-        <button onclick="sendSupportMessageMobile()" style="padding:10px 14px;background:var(--primary);color:#fff;border:none;border-radius:var(--r);cursor:pointer;font-weight:600;align-self:flex-end;white-space:nowrap;font-family:'Inter',sans-serif">Envoyer</button>
+
+    <!-- VUE LISTE DES FILS -->
+    <div id="support-threads-view" style="display:flex;flex-direction:column;height:100%">
+      <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+        <div>
+          <h2 style="font-size:16px;font-weight:700;margin-bottom:2px">Support</h2>
+          <p style="font-size:12px;color:var(--text-tertiary)">Vos conversations avec notre équipe</p>
+        </div>
+        <button onclick="openNewThreadSheet()" style="padding:10px 16px;background:linear-gradient(135deg,var(--primary),var(--primary-medium));color:#fff;border:none;border-radius:var(--r);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">
+          + Nouveau
+        </button>
       </div>
+      <div id="support-threads-list" style="flex:1;overflow-y:auto;padding:12px 14px">
+        <div style="text-align:center;color:var(--text-tertiary);padding:40px 0">Chargement...</div>
+      </div>
+    </div>
+
+    <!-- VUE DETAIL D'UN FIL -->
+    <div id="support-thread-detail" style="display:none;flex-direction:column;height:100%">
+      <!-- Header fil -->
+      <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0;background:var(--bg-card)">
+        <button onclick="backToThreadsList()" style="width:34px;height:34px;border:none;background:var(--bg-secondary);border-radius:var(--r-sm);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center">←</button>
+        <div style="flex:1;min-width:0">
+          <div id="thread-detail-subject" style="font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
+          <div id="thread-detail-status" style="font-size:12px;color:var(--text-tertiary);margin-top:2px"></div>
+        </div>
+      </div>
+
+      <!-- Messages -->
+      <div id="thread-messages-list" style="flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:var(--bg)">
+      </div>
+
+      <!-- Réponse (bloquée si résolu) -->
+      <div id="thread-reply-footer" style="padding:12px 14px;border-top:1px solid var(--border);background:var(--bg-card);flex-shrink:0;padding-bottom:calc(12px + var(--safe-bottom))">
+        <div style="display:flex;gap:8px;align-items:flex-end">
+          <textarea id="thread-reply-input" placeholder="Votre message..." style="flex:1;padding:10px 12px;border:1.5px solid var(--border-strong);border-radius:var(--r);font-size:13px;font-family:'Inter',sans-serif;color:var(--text-primary);background:var(--bg-secondary);resize:none;min-height:44px;max-height:120px;outline:none"></textarea>
+          <button onclick="sendThreadReply()" style="padding:10px 16px;background:linear-gradient(135deg,var(--primary),var(--primary-medium));color:#fff;border:none;border-radius:var(--r);cursor:pointer;font-weight:600;font-family:'Inter',sans-serif;white-space:nowrap;align-self:flex-end">Envoyer</button>
+        </div>
+      </div>
+
+      <!-- Message si résolu -->
+      <div id="thread-resolved-footer" style="display:none;padding:14px 16px;background:var(--green-light);border-top:1px solid rgba(67,160,71,0.2);text-align:center;font-size:13px;color:var(--green);font-weight:600;flex-shrink:0">
+        ✅ Ce fil est résolu. Ouvrez un nouveau fil si besoin.
+      </div>
+    </div>
+  </div>
+
+  <!-- NEW THREAD SHEET -->
+  <div class="sheet-overlay" id="new-thread-overlay" onclick="closeSheet('new-thread-sheet')"></div>
+  <div class="sheet" id="new-thread-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Nouveau message au support</div>
+    <div class="sheet-body">
+      <div class="sfield">
+        <label>Sujet</label>
+        <input type="text" id="new-thread-subject" placeholder="Ex: Problème de connexion..." style="width:100%;padding:12px 14px;border:1.5px solid var(--border-strong);border-radius:var(--r);font-size:14px;font-family:'Inter',sans-serif;color:var(--text-primary);background:var(--bg-secondary);outline:none">
+      </div>
+      <div class="sfield">
+        <label>Message</label>
+        <textarea id="new-thread-message" placeholder="Décrivez votre question ou problème..." style="width:100%;padding:12px 14px;border:1.5px solid var(--border-strong);border-radius:var(--r);font-size:14px;font-family:'Inter',sans-serif;color:var(--text-primary);background:var(--bg-secondary);outline:none;resize:none;min-height:100px;line-height:1.5"></textarea>
+      </div>
+      <button class="sheet-btn" onclick="createSupportThread()">Envoyer</button>
+      <button class="sheet-btn secondary" onclick="closeSheet('new-thread-sheet')">Annuler</button>
     </div>
   </div>
 
@@ -1465,7 +1515,7 @@ body {
       <div style="font-size:12px;color:var(--text-tertiary);margin-bottom:6px">Identifiant d'accès</div>
       <div style="font-size:16px;font-weight:700;color:var(--primary);font-family:monospace" id="new-access-preview">@Entreprise</div>
     </div>
-    <button class="sheet-btn" id="create-access-btn" onclick="submitCreateAccess()">Créer l'accès</button>
+    <button class="sheet-btn" id="create-access-btn" onclick="window.MemberAccessManager.createMemberAccess()">Créer l'accès</button>
   </div>
 </div>
 
@@ -2228,7 +2278,7 @@ function switchTab2(name) {
   document.getElementById('tab-' + name).classList.add('active');
   document.getElementById('nav-' + name).classList.add('active');
   document.getElementById('fab').classList.toggle('show', name === 'pipeline');
-  if (name === 'support') loadSupportMessagesMobile();
+  if (name === 'support') loadSupportThreads();
   if (name === 'team' && typeof applyManagerRole !== 'undefined') applyManagerRole();
 }
 
@@ -2608,8 +2658,15 @@ function renderSaved(searches) {
   if (!searches.length) { list.innerHTML = '<div class="no-saved"><div class="ns-icon">&#x1F516;</div><p>Aucune recherche sauvegard&eacute;e</p></div>'; return; }
   list.innerHTML = searches.map(function(s) {
     var safeJson = JSON.stringify(s).replace(/"/g, '&quot;');
-    return '<div class="saved-card" onclick="loadSavedSearch(' + safeJson + ')"><div class="saved-icon">&#x1F50D;</div><div class="saved-info"><div class="saved-title">' + s.title + '</div><div class="saved-date">' + ((s.createdAt || s.created_at || '').replace('T',' ').slice(0,16)) + '</div></div><button class="saved-del" onclick="event.stopPropagation();deleteSaved(\'' + s.id + '\')">&#x2715;</button></div>';
+    var safeId = escapeHtml(s.id || '');
+    return '<div class="saved-card" onclick="loadSavedSearch(' + safeJson + ')'><div class="saved-icon">&#x1F50D;</div><div class="saved-info"><div class="saved-title">' + escapeHtml(s.title) + '</div><div class="saved-date">' + ((s.createdAt || s.created_at || '').replace('T',' ').slice(0,16)) + '</div></div><button class="saved-del" data-id="' + safeId + '" onclick="event.stopPropagation();handleDeleteSaved(this)">&#x2715;</button></div>';
   }).join('');
+}
+
+function handleDeleteSaved(btn) {
+  var id = btn.getAttribute('data-id');
+  if (!id) { toast('ID introuvable'); return; }
+  deleteSaved(id);
 }
 
 function loadSavedSearch(s) {
@@ -2634,8 +2691,19 @@ function openSaveSheet() {
 async function confirmSave() {
   var title = document.getElementById('save-title').value.trim();
   if (!title) { toast('Saisissez un titre'); return; }
-  try { await api('POST', '/api/saved-searches', { title: title, query: lastQuery, filters: lastFilters, results: lastResults.slice(0, 20) }, token); toast('Sauvegardee'); closeSheet('save-sheet'); loadSaved(); }
-  catch (e) { toast('Erreur: ' + e.message); }
+  try {
+    // Vérifier les doublons avant de sauvegarder
+    var existing = await api('GET', '/api/saved-searches', null, token);
+    if (existing && existing.ok) {
+      var data = await existing.json();
+      var list = data.data || data || [];
+      var duplicate = list.find(function(s) { return s.title === title; });
+      if (duplicate) { toast('Une recherche avec ce titre existe d\u00E9j\u00E0'); return; }
+    }
+
+    await api('POST', '/api/saved-searches', { title: title, query: lastQuery, filters: lastFilters, results: lastResults.slice(0, 20) }, token);
+    toast('Sauvegardee'); closeSheet('save-sheet'); loadSaved();
+  } catch (e) { toast('Erreur: ' + e.message); }
 }
 
 function autoResizeChat(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 100) + 'px'; }
@@ -2765,45 +2833,236 @@ async function performRefresh() {
   }
 }
 
-var supportMessagesList = [];
+var currentThreadId   = null;
+var threadsListener   = null;
+var messagesListener  = null;
 
-async function loadSupportMessagesMobile() {
+/* ── Chargement des fils (temps réel) ── */
+function loadSupportThreads() {
+  var db = window._db;
+  if (!db || !window.user) return;
+
+  // Détacher l'ancien listener si présent
+  if (threadsListener) { threadsListener(); threadsListener = null; }
+
+  var listEl = document.getElementById('support-threads-list');
+  listEl.innerHTML = '<div style="text-align:center;color:var(--text-tertiary);padding:40px 0">Chargement...</div>';
+
+  threadsListener = db.collection('support_threads')
+    .where('userId', '==', window.user.uid)
+    .orderBy('updatedAt', 'desc')
+    .onSnapshot(function(snap) {
+      if (snap.empty) {
+        listEl.innerHTML = '<div style="text-align:center;color:var(--text-tertiary);padding:40px 24px">'
+          + '<div style="font-size:36px;margin-bottom:12px;opacity:.3">💬</div>'
+          + '<div style="font-size:14px;font-weight:600;margin-bottom:6px">Aucun message</div>'
+          + '<div style="font-size:13px">Démarrez une conversation avec notre équipe.</div>'
+          + '</div>';
+        return;
+      }
+
+      listEl.innerHTML = '';
+      snap.docs.forEach(function(doc) {
+        var t = doc.data();
+        var statusIcon  = t.status === 'resolved' ? '✅' : t.status === 'closed' ? '🔒' : '💬';
+        var statusColor = t.status === 'resolved' ? 'var(--green)' : t.status === 'closed' ? 'var(--text-tertiary)' : 'var(--blue)';
+        var statusLabel = t.status === 'resolved' ? 'Résolu' : t.status === 'closed' ? 'Fermé' : 'En cours';
+        var unread      = t.unreadByUser ? '<span style="width:8px;height:8px;background:var(--red);border-radius:50%;display:inline-block;margin-left:6px"></span>' : '';
+        var date        = '';
+        try { date = t.updatedAt && t.updatedAt.toDate ? t.updatedAt.toDate().toLocaleDateString('fr-FR', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }) : ''; } catch(e) {}
+
+        var card = document.createElement('div');
+        card.style.cssText = 'background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px;margin-bottom:10px;cursor:pointer;transition:all .2s';
+        if (t.unreadByUser) card.style.borderColor = 'var(--primary)';
+        card.innerHTML =
+          '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">'
+          + '<div style="font-size:14px;font-weight:700;flex:1;margin-right:8px">' + escSup(t.subject || '—') + unread + '</div>'
+          + '<div style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px;background:' + statusColor + '20;color:' + statusColor + ';white-space:nowrap">' + statusIcon + ' ' + statusLabel + '</div>'
+          + '</div>'
+          + '<div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escSup(t.lastMessage || '') + '</div>'
+          + '<div style="font-size:11px;color:var(--text-tertiary)">' + date + '</div>';
+        card.onclick = function() { openThread(doc.id, t); };
+        listEl.appendChild(card);
+      });
+    }, function(err) {
+      listEl.innerHTML = '<div style="text-align:center;color:var(--red);padding:20px">Erreur : ' + err.message + '</div>';
+    });
+}
+
+/* ── Ouvrir un fil ── */
+function openThread(threadId, threadData) {
+  currentThreadId = threadId;
+
+  document.getElementById('support-threads-view').style.display = 'none';
+  document.getElementById('support-thread-detail').style.display = 'flex';
+  document.getElementById('thread-detail-subject').textContent = threadData.subject || '—';
+
+  var statusLabels = { open: '💬 En cours', resolved: '✅ Résolu', closed: '🔒 Fermé' };
+  document.getElementById('thread-detail-status').textContent = statusLabels[threadData.status] || threadData.status;
+
+  var isResolved = threadData.status === 'resolved' || threadData.status === 'closed';
+  document.getElementById('thread-reply-footer').style.display   = isResolved ? 'none'  : 'block';
+  document.getElementById('thread-resolved-footer').style.display = isResolved ? 'block' : 'none';
+
+  // Marquer comme lu par l'utilisateur
+  if (threadData.unreadByUser && window._db) {
+    window._db.collection('support_threads').doc(threadId)
+      .update({ unreadByUser: false }).catch(function() {});
+  }
+
+  loadThreadMessages(threadId);
+}
+
+/* ── Messages temps réel ── */
+function loadThreadMessages(threadId) {
+  var db = window._db;
+  if (!db) return;
+
+  if (messagesListener) { messagesListener(); messagesListener = null; }
+
+  var listEl = document.getElementById('thread-messages-list');
+  listEl.innerHTML = '<div style="text-align:center;color:var(--text-tertiary);padding:20px">Chargement...</div>';
+
+  messagesListener = db.collection('support_threads').doc(threadId)
+    .collection('messages')
+    .orderBy('createdAt', 'asc')
+    .onSnapshot(function(snap) {
+      listEl.innerHTML = '';
+      snap.docs.forEach(function(doc) {
+        var m      = doc.data();
+        var isUser = m.senderRole === 'user';
+        var date   = '';
+        try { date = m.createdAt && m.createdAt.toDate ? m.createdAt.toDate().toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' }) : ''; } catch(e) {}
+
+        var bubble = document.createElement('div');
+        bubble.style.cssText = 'display:flex;flex-direction:column;align-items:' + (isUser ? 'flex-end' : 'flex-start') + ';margin-bottom:4px';
+        bubble.innerHTML =
+          '<div style="max-width:80%;padding:10px 14px;border-radius:' + (isUser ? '16px 4px 16px 16px' : '4px 16px 16px 16px') + ';'
+          + 'background:' + (isUser ? 'linear-gradient(135deg,var(--primary),var(--primary-medium))' : 'var(--bg-card)') + ';'
+          + 'color:' + (isUser ? '#fff' : 'var(--text-primary)') + ';'
+          + 'border:' + (isUser ? 'none' : '1px solid var(--border)') + ';'
+          + 'font-size:13.5px;line-height:1.6;box-shadow:var(--shadow-xs)'>'
+          + escSup(m.content || '') + '</div>'
+          + '<div style="font-size:10px;color:var(--text-tertiary);margin-top:3px;padding:0 4px">'
+          + (isUser ? 'Vous' : '🎧 Support') + ' · ' + date + '</div>';
+        listEl.appendChild(bubble);
+      });
+      listEl.scrollTop = listEl.scrollHeight;
+    });
+}
+
+/* ── Retour à la liste ── */
+function backToThreadsList() {
+  if (messagesListener) { messagesListener(); messagesListener = null; }
+  currentThreadId = null;
+  document.getElementById('support-thread-detail').style.display = 'none';
+  document.getElementById('support-threads-view').style.display  = 'flex';
+}
+
+/* ── Nouveau fil ── */
+function openNewThreadSheet() {
+  document.getElementById('new-thread-subject').value = '';
+  document.getElementById('new-thread-message').value = '';
+  openSheet('new-thread-sheet');
+}
+
+async function createSupportThread() {
+  var subject = document.getElementById('new-thread-subject').value.trim();
+  var message = document.getElementById('new-thread-message').value.trim();
+
+  if (!subject) { toast('Saisissez un sujet'); return; }
+  if (!message) { toast('Saisissez un message'); return; }
+
+  var db = window._db;
+  if (!db || !window.user) { toast('Non connecté'); return; }
+
+  var btn = document.querySelector('#new-thread-sheet .sheet-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Envoi...'; }
+
   try {
-    var currentToken = localStorage.getItem('sc_token');
-    var serverMessages = [];
-    if (currentToken && navigator.onLine) {
-      var r = await fetch(API + '/api/support/messages/user', { method: 'GET', headers: { 'Authorization': 'Bearer ' + currentToken } });
-      if (r.ok) { var data = await r.json(); serverMessages = data.data || data || []; }
-    }
-    var offlineMessages = getOfflineQueue().filter(function(a) { return a.type === 'support-report'; }).map(function(item) { return { subject: item.payload.subject, message: item.payload.message, status: 'pending', created_at: item.created_at, _offline: true }; });
-    supportMessagesList = offlineMessages.concat(serverMessages);
-    renderSupportMessagesMobile();
-  } catch (e) {
-    supportMessagesList = getOfflineQueue().filter(function(a) { return a.type === 'support-report'; }).map(function(item) { return { subject: item.payload.subject, message: item.payload.message, status: 'pending', created_at: item.created_at, _offline: true }; });
-    renderSupportMessagesMobile();
+    var now = firebase.firestore.FieldValue.serverTimestamp();
+
+    // Créer le fil
+    var threadRef = await db.collection('support_threads').add({
+      userId:       window.user.uid,
+      userEmail:    window.user.email || '',
+      userName:     window.user.name  || '',
+      subject:      subject,
+      status:       'open',
+      lastMessage:  message.slice(0, 80),
+      unreadByUser: false,
+      unreadByAdmin: true,
+      createdAt:    now,
+      updatedAt:    now
+    });
+
+    // Ajouter le premier message
+    await threadRef.collection('messages').add({
+      content:    message,
+      senderId:   window.user.uid,
+      senderRole: 'user',
+      createdAt:  now
+    });
+
+    closeSheet('new-thread-sheet');
+    toast('Message envoyé ✅');
+
+    // Ouvrir directement le fil créé
+    openThread(threadRef.id, {
+      subject: subject,
+      status:  'open',
+      unreadByUser: false
+    });
+
+  } catch(e) {
+    toast('Erreur : ' + e.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Envoyer'; }
   }
 }
 
-function renderSupportMessagesMobile() {
-  var container = document.getElementById('support-messages-list');
-  if (!supportMessagesList.length) { container.innerHTML = '<div style="text-align:center;color:var(--text-tertiary);padding:30px 0">Aucun message pour le moment</div>'; return; }
-  container.innerHTML = supportMessagesList.map(function(msg) {
-    var statusIcon = msg._offline ? '&#x1F553; En attente' : msg.status === 'answered' ? '&#x2705; R&eacute;pondu' : msg.status === 'closed' ? '&#x1F512; Clos' : '&#x23F3; En cours';
-    return '<div style="padding:12px;border:1px solid var(--border);border-radius:var(--r);background:var(--bg-secondary)"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px"><div style="font-weight:600;font-size:14px;flex:1;margin-right:8px">' + msg.subject + '</div><div style="white-space:nowrap;font-size:12px">' + statusIcon + '</div></div><div style="font-size:13px;color:var(--text-secondary);margin-bottom:8px;line-height:1.4">' + msg.message + '</div>' + (msg.adminReply ? '<div style="padding:10px;background:var(--primary-light);border-radius:6px;border-left:3px solid var(--primary);margin-bottom:8px;font-size:12px"><div style="font-weight:600;margin-bottom:4px">R&eacute;ponse:</div><div>' + msg.adminReply + '</div></div>' : '') + '<div style="font-size:11px;color:var(--text-tertiary)">' + new Date(msg.created_at).toLocaleDateString() + '</div></div>';
-  }).join('');
+/* ── Répondre dans un fil ── */
+async function sendThreadReply() {
+  var input = document.getElementById('thread-reply-input');
+  var content = (input.value || '').trim();
+  if (!content) return;
+  if (!currentThreadId) { toast('Fil introuvable'); return; }
+
+  var db = window._db;
+  if (!db || !window.user) { toast('Non connecté'); return; }
+
+  input.value = '';
+  input.style.height = 'auto';
+
+  try {
+    var now = firebase.firestore.FieldValue.serverTimestamp();
+
+    await db.collection('support_threads').doc(currentThreadId)
+      .collection('messages').add({
+        content:    content,
+        senderId:   window.user.uid,
+        senderRole: 'user',
+        createdAt:  now
+      });
+
+    await db.collection('support_threads').doc(currentThreadId).update({
+      lastMessage:   content.slice(0, 80),
+      updatedAt:     now,
+      unreadByAdmin: true,
+      unreadByUser:  false
+    });
+
+  } catch(e) {
+    toast('Erreur envoi : ' + e.message);
+    input.value = content;
+  }
 }
 
-async function sendSupportMessageMobile() {
-  var subject = document.getElementById('sup-subject-mobile').value.trim();
-  var message = document.getElementById('sup-message-mobile').value.trim();
-  if (!subject || !message) { alert('Remplissez le sujet et le message'); return; }
-  if (!navigator.onLine) { enqueueOfflineAction({ type: 'support-report', payload: { subject: subject, message: message } }); toast('Message mis en file hors ligne'); document.getElementById('sup-subject-mobile').value = ''; document.getElementById('sup-message-mobile').value = ''; loadSupportMessagesMobile(); return; }
-  try {
-    var currentToken = localStorage.getItem('sc_token');
-    var r = await fetch(API + '/api/support/messages', { method: 'POST', headers: { 'Authorization': 'Bearer ' + currentToken, 'Content-Type': 'application/json' }, body: JSON.stringify({ subject: subject, message: message }) });
-    if (r.ok) { document.getElementById('sup-subject-mobile').value = ''; document.getElementById('sup-message-mobile').value = ''; toast('Message envoye'); loadSupportMessagesMobile(); }
-    else { enqueueOfflineAction({ type: 'support-report', payload: { subject: subject, message: message } }); toast('Sauvegarde hors ligne'); loadSupportMessagesMobile(); }
-  } catch (e) { enqueueOfflineAction({ type: 'support-report', payload: { subject: subject, message: message } }); toast('Sauvegarde hors ligne'); loadSupportMessagesMobile(); }
+/* ── Utilitaire escape ── */
+function escSup(str) {
+  return String(str || '')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/\n/g,'<br>');
 }
 
 var currentAppVersion = '1.2.0';

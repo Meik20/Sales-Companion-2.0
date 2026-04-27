@@ -544,12 +544,12 @@ function backToLoginForm() {
         + '<div class="access-card-actions">';
 
       if (acc.status === 'pending') {
-        html += "<button class='access-btn copy' type='button' "
-          + "onclick=\"window.TeamManagerMobile.copyAccessId('" + aIdRaw + "')\">Copier l'ID</button>";
+        html += "<button class='access-btn copy' data-access-id='" + escapeHtml(acc.access_id) + "' "
+          + "onclick='window.TeamManagerMobile.copyAccessId(this.getAttribute(\"data-access-id\"))'>Copier l'ID</button>";
       }
       if (acc.status !== 'revoked') {
-        html += "<button class='access-btn revoke' type='button' "
-          + "onclick=\"window.TeamManagerMobile.revokeAccess('" + aIdRaw + "')\">Révoquer</button>";
+        html += "<button class='access-btn revoke' data-access-id='" + escapeHtml(acc.access_id) + "' "
+          + "onclick='window.TeamManagerMobile.revokeAccess(this.getAttribute(\"data-access-id\"))'>Révoquer</button>";
       }
 
       html += '</div></div>';

@@ -579,13 +579,13 @@
         + '<div style="display:flex;gap:8px">';
 
       if (acc.status === 'pending') {
-        html += "<button onclick=\"window.TeamManager.copyAccessId('" + aIdRaw + "')\" "
+        html += "<button data-access-id='" + escapeHtml(acc.access_id) + "' onclick='window.TeamManager.copyAccessId(this.getAttribute(\"data-access-id\"))' "
           + "style=\"flex:1;padding:7px 12px;font-size:11.5px;font-weight:600;"
           + "border:1px solid rgba(67,160,71,.3);border-radius:6px;"
           + "background:rgba(67,160,71,.05);color:#43a047;cursor:pointer\">📋 Copier l'ID</button>";
       }
       if (acc.status !== 'revoked') {
-        html += "<button onclick=\"window.TeamManager.revokeAccess('" + aIdRaw + "')\" "
+        html += "<button data-access-id='" + escapeHtml(acc.access_id) + "' onclick='window.TeamManager.revokeAccess(this.getAttribute(\"data-access-id\"))' "
           + "style=\"" + (acc.status === 'pending' ? '' : 'flex:1;') + "padding:7px 12px;font-size:11.5px;font-weight:600;"
           + "border:1px solid rgba(229,57,53,.25);border-radius:6px;"
           + "background:rgba(229,57,53,.05);color:#e53935;cursor:pointer\">✕ Révoquer</button>";
