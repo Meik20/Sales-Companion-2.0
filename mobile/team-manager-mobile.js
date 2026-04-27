@@ -568,7 +568,7 @@ function backToLoginForm() {
     var fields = {
       'new-access-firstname': '',
       'new-access-lastname':  '',
-      'new-access-company':   (window.user && (window.user.company_name || window.user.company_id)) || ''
+      'new-access-company':   ''
     };
     Object.keys(fields).forEach(function (id) {
       var el = document.getElementById(id);
