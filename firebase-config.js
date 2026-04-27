@@ -49,40 +49,13 @@ if (!firebaseConfig.apiKey) {
   const auth = firebase.auth();
   const storage = firebase.storage ? firebase.storage() : null;
 
-  // ── Firestore — initialisation avec persistance moderne ────────
-  // Utiliser initializeFirestore + persistentLocalCache/persistentMultipleTabManager
-  // quand disponible, sinon retomber sur la compatibilité firebase.firestore().
-  let db;
+  // ── Firestore — simple compat initialization (avoid advanced persistence)
+  var db = null;
   try {
-    if (typeof firebase.initializeFirestore === 'function') {
-      // Si l'environnement expose les helpers modernes, utilisez-les.
-      try {
-        db = firebase.initializeFirestore(app, {
-          // Si persistentLocalCache/persistentMultipleTabManager sont exposés,
-          // construisez la configuration de cache locale multi-tab.
-          localCache: (typeof firebase.persistentLocalCache === 'function' && typeof firebase.persistentMultipleTabManager === 'function')
-            ? firebase.persistentLocalCache({ tabManager: firebase.persistentMultipleTabManager() })
-            : undefined
-        });
-      } catch (initErr) {
-        console.warn('⚠️ initializeFirestore failed, falling back to firestore():', initErr.message);
-        db = firebase.firestore();
-      }
-    } else {
-      db = firebase.firestore();
-    }
-
-    // Appliquer des settings compatibles si supportés
-    try {
-      if (db && typeof db.settings === 'function' && firebase.firestore && firebase.firestore.CACHE_SIZE_UNLIMITED) {
-        db.settings({ cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED });
-      }
-    } catch (settingsErr) {
-      console.warn('⚠️ Firestore settings déjà appliqués ou non supportés:', settingsErr.message);
-    }
+    db = firebase.firestore();
   } catch (e) {
-    console.error('❌ Firestore initialization error:', e.message || e);
-    db = firebase.firestore ? firebase.firestore() : null;
+    console.warn('⚠️ Firestore initialization failed, falling back to null:', e && e.message ? e.message : e);
+    db = null;
   }
 
   // ── Langue ───────────────────────────────────────────────────────

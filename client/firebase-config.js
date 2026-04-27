@@ -30,30 +30,12 @@ let db = null;
 const storage = (firebase.storage) ? firebase.storage() : null;
 console.log('✓ Firebase services initialized (auth, storage)');
 
-// Prefer modern persistence API (persistentLocalCache) when available
+// Initialize Firestore (compat) without enabling advanced persistence here
 try {
-  if (typeof firebase.initializeFirestore === 'function' && typeof firebase.persistentLocalCache === 'function') {
-    db = firebase.initializeFirestore(app, {
-      cache: firebase.persistentLocalCache({
-        tabManager: (typeof firebase.persistentMultipleTabManager === 'function') ? firebase.persistentMultipleTabManager() : undefined
-      })
-    });
-    console.log('✓ Firestore initialized with persistentLocalCache (multi-tab)');
-  } else {
-    db = firebase.firestore();
-    if (db && typeof db.enablePersistence === 'function') {
-      db.enablePersistence({ synchronizeTabs: true }).catch((error) => {
-        if (error.code === 'failed-precondition') {
-          console.warn('⚠️ Multiple tabs open, persistence disabled');
-        } else if (error.code === 'unimplemented') {
-          console.warn('⚠️ Browser does not support persistence');
-        }
-      });
-    }
-  }
+  db = firebase.firestore();
 } catch (e) {
-  console.warn('⚠️ Firestore persistence init failed, falling back to default. ' + (e && e.message));
-  try { db = db || firebase.firestore(); } catch (er) { console.warn('Unable to initialize firestore:', er && er.message); }
+  console.warn('⚠️ Firestore initialization failed:', e && e.message ? e.message : e);
+  db = null;
 }
 
 // Set auth language

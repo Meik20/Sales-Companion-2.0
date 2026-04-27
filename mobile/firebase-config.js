@@ -23,30 +23,12 @@ try {
 
   console.log('✓ Services initialized');
 
-  // Modern persistence: prefer persistentLocalCache when available
+  // Initialize Firestore (compat) simply
   try {
-    if (typeof firebase.initializeFirestore === 'function' && typeof firebase.persistentLocalCache === 'function') {
-      db = firebase.initializeFirestore(app, {
-        cache: firebase.persistentLocalCache({
-          tabManager: (typeof firebase.persistentMultipleTabManager === 'function') ? firebase.persistentMultipleTabManager() : undefined
-        })
-      });
-      console.log('✓ Firestore initialized with persistentLocalCache (multi-tab)');
-    } else {
-      db = firebase.firestore(app);
-      if (db && typeof db.enablePersistence === 'function') {
-        db.enablePersistence({ synchronizeTabs: true }).catch((error) => {
-          if (error.code === 'failed-precondition') {
-            console.info('⚠️ Multiple tabs ouvertes');
-          } else if (error.code === 'unimplemented') {
-            console.warn('⚠️ Navigateur non supporté');
-          }
-        });
-      }
-    }
+    db = firebase.firestore(app);
   } catch (e) {
-    console.warn('⚠️ Persistence init failed:', e && e.message);
-    try { db = db || firebase.firestore(app); } catch (er) { console.warn('Unable to init firestore', er && er.message); }
+    console.warn('⚠️ Firestore initialization failed:', e && e.message ? e.message : e);
+    db = null;
   }
 
   auth.languageCode = 'fr';
