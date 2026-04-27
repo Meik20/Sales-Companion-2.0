@@ -1,20 +1,44 @@
-  
-  --primary-hover: #2E7D32;
-  companies.forEach(function(co, i) {
-    /* ── Extraction des champs ── */
-    var cardId   = 'co-' + i;
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#1B5E20">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sales Companion">
+<title>Sales Companion</title>
 
-    // ── Extraction des champs ──
-    var name     = co.raison_sociale || co.company_name || co.nom || co.name || '—';
-    var sigle    = co.sigle          || '';
-    var sector   = co.secteur        || co.activite_principale || '';
-    var director = co.dirigeant      || co.responsable  || co.gerant || co.directeur || '';
-    var phone    = co.telephone      || co.tel          || co.company_phone || '';
-    var email    = co.email          || co.contact_email|| co.company_email || '';
-    var region   = co.region         || co.company_region|| '';
-    var city     = co.ville          || co.city         || co.company_city  || '';
-    var niu      = co.niu            || co.numero_niu   || '';
+<!-- Firebase SDK (compat) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 
+<!-- App Conf ,iguration -->
+<script src="firebase-config.js"></script>
+<script src="app-config.js"></script>
+
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+:root {
+  --primary: #1B5E20;
+  --primary-light: #E8F5E9;
+  --primary-medium: #43A047;
+  --primary-dark: #0D3311;
+}
 .co-fv.phone{color:var(--primary);font-weight:600}
 .co-fv.full{white-space:normal;line-height:1.4}
 .co-fv a{color:var(--blue);text-decoration:none}
@@ -2290,13 +2314,21 @@ function renderResults(data) {
   saveWrap.innerHTML = '<button onclick="openSaveSheet()" style="width:100%;padding:10px;background:var(--primary-light);color:var(--primary);border:1.5px solid rgba(27,94,32,.3);border-radius:var(--r);font-family:\'Inter\',sans-serif;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:12px">&#x1F4BE; Sauvegarder cette recherche</button>';
   area.appendChild(saveWrap);
   companies.forEach(function(co, i) {
-    var cardId = 'co-' + i;
-    var name = co.raison_sociale || co.company_name || co.nom || co.name || '&mdash;';
+    var cardId   = 'co-' + i;
+    var name     = co.raison_sociale || co.company_name || co.nom || co.name || '&mdash;';
+    var sigle    = co.sigle || '';
+    var sector   = co.secteur || co.activite_principale || '';
+    var director = co.dirigeant || co.responsable || co.gerant || co.directeur || '';
+    var phone    = co.telephone || co.tel || co.company_phone || '';
+    var email    = co.email || co.contact_email || co.company_email || '';
+    var region   = co.region || co.company_region || '';
+    var city     = co.ville || co.city || co.company_city || '';
+    var niu      = co.niu || co.numero_niu || '';
+    var statut   = co.statut_juridique || '';
+    var rccm     = co.rccm || '';
+    var mapQ     = encodeURIComponent(name + ' ' + city + ' Cameroun');
     var initials = name.split(' ').map(function(w) { return w[0] || ''; }).join('').slice(0,2).toUpperCase();
-    var mapQ = encodeURIComponent(name + ' ' + (co.ville || '') + ' Cameroun');
-    var phone = co.telephone || co.tel || co.company_phone || '';
-    var email = co.email || co.contact_email || co.company_email || '';
-    var address = co.adresse || co.company_address || '';
+    var address  = co.adresse || co.company_address || '';
     var inPipeline = pipelineCompanies[co.id];
     var reliability = getCompanyReliability(co);
     var pipelineBadge = inPipeline ? '<span class="cbadge cb-green">&#x1F4CC; En pipeline</span>' : '';
@@ -2307,7 +2339,7 @@ function renderResults(data) {
     card.innerHTML =
 
       /* ── EN-TÊTE : avatar + nom + sigle + badges ── */
-      '<div class="co-head>'
+      '<div class="co-head">'
       + '<div class="co-av">' + initials + '</div>'
       + '<div class="co-meta">'
 
