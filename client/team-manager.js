@@ -1181,7 +1181,7 @@
       }
 
       if (!Utils.validateAccessId(accessId)) {
-        UI.toast('Format d\'ID invalide (attendu: PrenomNom@company)');
+        UI.toast('Format d\'ID invalide (attendu: PrenomNom@Entreprise)');
         return;
       }
 

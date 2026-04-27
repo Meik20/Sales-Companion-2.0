@@ -1428,13 +1428,13 @@ body {
     </div>
     <div class="sfield">
       <label>Entreprise</label>
-      <input type="text" id="new-access-company" placeholder="company" oninput="updateAccessPreview()" style="width:100%;padding:10px 12px;border:1.5px solid var(--border-strong);border-radius:var(--r);font-size:14px;font-family:'Inter',sans-serif;color:var(--text-primary);background:var(--bg-secondary);outline:none">
+      <input type="text" id="new-access-company" placeholder="Orange" oninput="updateAccessPreview()" style="width:100%;padding:10px 12px;border:1.5px solid var(--border-strong);border-radius:var(--r);font-size:14px;font-family:'Inter',sans-serif;color:var(--text-primary);background:var(--bg-secondary);outline:none">
     </div>
     <div style="padding:12px;background:var(--primary-light);border-radius:var(--r);border:1.5px dashed var(--primary);margin-bottom:16px;text-align:center">
       <div style="font-size:12px;color:var(--text-tertiary);margin-bottom:6px">Identifiant d'accès</div>
-      <div style="font-size:16px;font-weight:700;color:var(--primary);font-family:monospace" id="new-access-preview">@company</div>
+      <div style="font-size:16px;font-weight:700;color:var(--primary);font-family:monospace" id="new-access-preview">@Entreprise</div>
     </div>
-    <button class="sheet-btn" id="create-access-btn" onclick="window.MemberAccessManager && window.MemberAccessManager.createMemberAccess()">Créer l'accès</button>
+    <button class="sheet-btn" id="create-access-btn" onclick="submitCreateAccess()">Créer l'accès</button>
   </div>
 </div>
 
@@ -1449,7 +1449,7 @@ body {
   </div>
    <div class="sfield" style="margin-bottom:16px">
     <label>ID d'accès (ex: PrénomNom@Entreprise)</label>
-    <input type="text" id="activation-access-id" placeholder="jeandupont@company" style="width:100%;padding:12px 14px;border:1.5px solid var(--border-strong);border-radius:var(--r);font-size:14px;font-family:'Inter',sans-serif;color:var(--text-primary);background:var(--bg-secondary);outline:none">
+    <input type="text" id="activation-access-id" placeholder="jeandupont@orange" style="width:100%;padding:12px 14px;border:1.5px solid var(--border-strong);border-radius:var(--r);font-size:14px;font-family:'Inter',sans-serif;color:var(--text-primary);background:var(--bg-secondary);outline:none">
   </div>
   <div class="sfield" style="margin-bottom:16px">
     <label>Votre adresse email (pour la connexion)</label>

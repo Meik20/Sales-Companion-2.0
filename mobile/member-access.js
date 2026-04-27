@@ -30,7 +30,7 @@
     var first = normalizeText(firstname);
     var last  = normalizeText(lastname);
     var comp  = normalizeText(company);
-    if (!first && !last && !comp) return '@company';
+    if (!first && !last && !comp) return '@entreprise';
     return first + last + '@' + comp;
   }
 
@@ -94,10 +94,10 @@
   function updateAccessPreview() {
     var fn = ((document.getElementById('new-access-firstname') || {}).value || '').trim();
     var ln = ((document.getElementById('new-access-lastname')  || {}).value || '').trim();
-    var co = ((document.getElementById('new-access-company')   || {}).value || 'company').trim();
+    var co = ((document.getElementById('new-access-company')   || {}).value || 'Entreprise').trim();
     var el = document.getElementById('new-access-preview');
     if (!el) return;
-    el.textContent = (fn || ln) ? buildAccessId(fn, ln, co) : '@' + (normalizeText(co) || 'company');
+    el.textContent = (fn || ln) ? buildAccessId(fn, ln, co) : '@' + (normalizeText(co) || 'entreprise');
   }
 
   /* =========================================================
@@ -119,7 +119,7 @@
 
      Document Firestore créé : team_accesses/{accessId}
      {
-      accessId       : string   — identifiant unique (ex: jeanduront@company)
+       accessId       : string   — identifiant unique (ex: jeanduront@orange)
        firstname      : string
        lastname       : string
        company        : string
@@ -148,7 +148,7 @@
     if (!fn || !ln || !co) { showToast('Prénom, nom et entreprise requis.'); return false; }
 
     var accessId = buildAccessId(fn, ln, co);
-    if (!accessId || accessId === '@company') { showToast('Identifiant invalide.'); return false; }
+    if (!accessId || accessId === '@entreprise') { showToast('Identifiant invalide.'); return false; }
 
     var btn = document.getElementById('create-access-btn');
     if (btn) { btn.disabled = true; btn.textContent = 'Création...'; }
