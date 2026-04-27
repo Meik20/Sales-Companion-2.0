@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin — Sales Companion</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<!-- Firebase SDK (compat) — added for admin UI Firestore reads -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+<!-- Config for client Firebase (served from /api/config/firebase) -->
+<script src="firebase-config.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -1135,115 +1142,190 @@ async function deleteUser(id, name) {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   SUPPORT
+   SUPPORT (Firestore client read + admin reply UI)
 ═══════════════════════════════════════════════════════════════ */
 async function loadSupportMessages() {
-  const listEl = document.getElementById('support-list');
-  listEl.innerHTML = '<p style="color:var(--tx3);font-size:12px;padding:8px">Chargement...</p>';
-  try {
-    const db = firebase.firestore();
+  var listEl = document.getElementById('support-list');
+  var countEl = document.getElementById('support-count');
+  if (!listEl) return;
 
-    // Charger tous les threads de support triés par mise à jour
-    const snapshot = await db.collection('support_threads')
+  listEl.innerHTML = '<div style="text-align:center;padding:20px;color:#888">Chargement...</div>';
+
+  var db = null;
+  try {
+    if (!firebase.apps.length) {
+      var cfgRes = await fetch('/api/config/firebase');
+      var cfg = await cfgRes.json();
+      firebase.initializeApp(cfg);
+    }
+    db = firebase.firestore();
+  } catch (e) {
+    listEl.innerHTML = '<div style="color:red;padding:20px">Erreur init Firebase : ' + e.message + '</div>';
+    return;
+  }
+
+  try {
+    var snap = await db.collection('support_threads')
       .orderBy('updatedAt', 'desc')
+      .limit(50)
       .get();
 
-    const threads = [];
-    snapshot.forEach(doc => {
-      const data = doc.data() || {};
-      threads.push({
-        id: doc.id,
-        subject: data.subject || '(sans sujet)',
-        userName: data.userName || data.userEmail || '—',
-        createdAt: data.createdAt && data.createdAt.toDate ? data.createdAt.toDate().toISOString() : (data.createdAt || ''),
-        updatedAt: data.updatedAt && data.updatedAt.toDate ? data.updatedAt.toDate().toISOString() : (data.updatedAt || ''),
-        status: data.status || 'open',
-        lastMessage: data.lastMessage || ''
-      });
-    });
+    if (countEl) countEl.textContent = snap.size;
 
-    document.getElementById('support-count').textContent = threads.length;
-    if (!threads.length) {
-      listEl.innerHTML = `<div class="empty-state">
-        <div class="empty-icon">💬</div>
-        <p>Aucun message de support</p>
-        <p style="font-size:11px;margin-top:6px">Les messages envoyés par les utilisateurs apparaîtront ici.</p>
-      </div>`;
+    if (snap.empty) {
+      listEl.innerHTML = '<div style="text-align:center;padding:40px;color:#888">Aucun ticket</div>';
       return;
     }
 
     listEl.innerHTML = '';
-    threads.forEach(msg => {
-      const statusIcon = msg.status === 'answered' ? '✅' : msg.status === 'closed' ? '🔒' : '⏳';
-      const item = document.createElement('div');
-      item.style.cssText = 'padding:10px;border:1px solid var(--bd);border-radius:6px;cursor:pointer;background:var(--bg2);transition:background 0.2s';
-      item.onmouseenter = () => item.style.background = 'var(--bg3)';
-      item.onmouseleave = () => item.style.background = 'var(--bg2)';
-      item.innerHTML = `
-        <div style="font-weight:600;font-size:13px">${statusIcon} ${escapeHtml(msg.subject)}</div>
-        <div style="font-size:11px;color:var(--tx3);margin-top:4px">${escapeHtml(msg.userName)}</div>
-        <div style="font-size:10px;color:var(--tx3)">${new Date(msg.createdAt || msg.updatedAt || Date.now()).toLocaleDateString()}</div>`;
-      item.onclick = () => showSupportDetail(msg);
-      listEl.appendChild(item);
+
+    snap.docs.forEach(function(doc) {
+      var t = doc.data() || {};
+      var statusColors = { open: '#1E88E5', resolved: '#43A047', closed: '#9E9E9E' };
+      var statusLabels = { open: 'En cours', resolved: 'Résolu', closed: 'Fermé' };
+      var color  = statusColors[t.status] || '#1E88E5';
+      var label  = statusLabels[t.status] || t.status;
+
+      var date = '';
+      try {
+        date = t.updatedAt && t.updatedAt.toDate
+          ? t.updatedAt.toDate().toLocaleDateString('fr-FR', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' })
+          : '';
+      } catch(e) {}
+
+      var unreadDot = t.unreadByAdmin
+        ? '<span style="width:8px;height:8px;background:#E53935;border-radius:50%;display:inline-block;margin-left:6px;vertical-align:middle"></span>'
+        : '';
+
+      var card = document.createElement('div');
+      card.style.cssText = 'padding:12px 16px;border-bottom:1px solid #eee;cursor:pointer;transition:background .15s';
+      if (t.unreadByAdmin) card.style.background = '#FFF8E1';
+
+      card.innerHTML =
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">'
+        + '<div style="font-weight:600;font-size:14px">' + escHtml(t.subject || '—') + unreadDot + '</div>'
+        + '<div style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;background:' + color + '20;color:' + color + '">' + label + '</div>'
+        + '</div>'
+        + '<div style="font-size:12px;color:#555;margin-bottom:4px">'
+        +   '👤 ' + escHtml(t.userName || t.userEmail || '—')
+        + '</div>'
+        + '<div style="font-size:12px;color:#999;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escHtml(t.lastMessage || '') + '</div>'
+        + '<div style="font-size:11px;color:#bbb;margin-top:4px">' + date + '</div>';
+
+      card.onmouseenter = function() { this.style.background = '#F5F5F5'; };
+      card.onmouseleave = function() { this.style.background = t.unreadByAdmin ? '#FFF8E1' : ''; };
+      card.onclick      = function() { openThreadAdmin(doc.id, t, db); };
+
+      listEl.appendChild(card);
     });
 
-  } catch(e) {
-    listEl.innerHTML = `<div class="empty-state">
-      <div class="empty-icon">⚠️</div>
-      <p>Erreur réseau : ${e.message}</p>
-    </div>`;
-    console.error('loadSupportMessages:', e);
+  } catch (e) {
+    listEl.innerHTML = '<div style="color:red;padding:20px">Erreur réseau : ' + e.message + '</div>';
   }
 }
 
-function showSupportDetail(msg) {
-  const detailEl = document.getElementById('support-detail');
-  const statusIcon = msg.status === 'answered' ? '✅ Répondu' : msg.status === 'closed' ? '🔒 Fermé' : '⏳ En attente';
-  detailEl.innerHTML = `
-    <div style="text-align:left;padding:12px">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;font-size:12px">
-        <div><div style="color:var(--tx3);margin-bottom:4px">De</div><strong>${msg.userName||'—'}</strong><div style="color:var(--tx3);font-size:11px">${msg.userEmail||'—'}</div></div>
-        <div><div style="color:var(--tx3);margin-bottom:4px">Statut</div><strong>${statusIcon}</strong></div>
-      </div>
-      <div style="margin-bottom:12px;padding:12px;background:var(--bg3);border-radius:6px;border-left:3px solid var(--g)">
-        <div style="font-weight:600;margin-bottom:4px">${msg.subject||'(sans sujet)'}</div>
-        <div style="font-size:13px;line-height:1.5">${msg.message||'—'}</div>
-        <div style="font-size:10px;color:var(--tx3);margin-top:8px">${new Date(msg.created_at||msg.createdAt).toLocaleString()}</div>
-      </div>
-      ${msg.adminReply ? `<div style="margin-bottom:12px;padding:12px;background:var(--gl);border-radius:6px;border-left:3px solid var(--g)">
-        <div style="font-weight:600;margin-bottom:4px">Réponse admin (${msg.adminReplyBy||'admin'})</div>
-        <div style="font-size:13px;line-height:1.5">${msg.adminReply}</div>
-        <div style="font-size:10px;color:var(--tx3);margin-top:8px">${new Date(msg.adminReplyAt).toLocaleString()}</div>
-      </div>` : ''}
-      <div style="display:flex;gap:8px">
-        ${msg.status !== 'closed' ? `<button onclick="replyToSupport('${msg.id}')" style="flex:1;padding:8px 12px;background:var(--g);color:white;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600">Répondre</button>` : ''}
-        ${msg.status !== 'closed' ? `<button onclick="closeSupportMessage('${msg.id}')" style="flex:1;padding:8px 12px;background:var(--tx3);color:white;border:none;border-radius:6px;cursor:pointer;font-size:12px">Fermer</button>` : ''}
-      </div>
-    </div>`;
-}
+function openThreadAdmin(threadId, threadData, db) {
+  var detailEl = document.getElementById('support-detail');
+  if (!detailEl) return;
 
-function replyToSupport(messageId) {
-  const replyText = prompt('Votre réponse :');
-  if (!replyText || !replyText.trim()) return;
-  submitSupportReply(messageId, replyText);
-}
+  // Marquer comme lu par l'admin
+  db.collection('support_threads').doc(threadId)
+    .update({ unreadByAdmin: false }).catch(function(){});
 
-async function submitSupportReply(messageId, reply) {
-  try {
-    const r = await apiFetch(`${API}/support/messages/${messageId}`, {
-      method:'PUT', body: JSON.stringify({reply})
+  var statusLabels = { open: 'En cours', resolved: 'Résolu', closed: 'Fermé' };
+
+  detailEl.innerHTML =
+    '<div style="padding:16px;border-bottom:1px solid #eee">'
+    + '<div style="font-size:16px;font-weight:700;margin-bottom:4px">' + escHtml(threadData.subject || '—') + '</div>'
+    + '<div style="font-size:12px;color:#888">De : ' + escHtml(threadData.userEmail || '—') + ' · ' + (statusLabels[threadData.status] || threadData.status) + '</div>'
+    + '</div>'
+    + '<div id="admin-messages-list" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:8px;min-height:200px;max-height:400px"></div>'
+    + '<div style="padding:12px 16px;border-top:1px solid #eee;display:flex;gap:8px">'
+    +   '<textarea id="admin-reply-input" placeholder="Votre réponse..." style="flex:1;padding:10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;resize:none;min-height:60px;font-family:inherit"></textarea>'
+    +   '<div style="display:flex;flex-direction:column;gap:6px">'
+    +     '<button onclick="sendAdminReply(\'' + threadId + '\')" style="padding:10px 16px;background:#1B5E20;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-family:inherit">Envoyer</button>'
+    +     (threadData.status !== 'resolved'
+          ? '<button onclick="resolveThread(\'' + threadId + '\')" style="padding:8px 12px;background:#E8F5E9;color:#1B5E20;border:1px solid #A5D6A7;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit">✅ Résoudre</button>'
+          : '')
+    +   '</div>'
+    + '</div>';
+
+  // Charger les messages du fil
+  db.collection('support_threads').doc(threadId)
+    .collection('messages')
+    .orderBy('createdAt', 'asc')
+    .get()
+    .then(function(snap) {
+      var listEl = document.getElementById('admin-messages-list');
+      if (!listEl) return;
+      listEl.innerHTML = '';
+      snap.docs.forEach(function(doc) {
+        var m      = doc.data();
+        var isUser = m.senderRole === 'user';
+        var date   = '';
+        try { date = m.createdAt && m.createdAt.toDate ? m.createdAt.toDate().toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' }) : ''; } catch(e){}
+
+        var bubble = document.createElement('div');
+        bubble.style.cssText = 'display:flex;flex-direction:column;align-items:' + (isUser ? 'flex-start' : 'flex-end');
+        bubble.innerHTML =
+          '<div style="max-width:75%;padding:10px 14px;border-radius:' + (isUser ? '4px 14px 14px 14px' : '14px 4px 14px 14px') + ';'
+          + 'background:' + (isUser ? '#F5F5F5' : '#1B5E20') + ';'
+          + 'color:' + (isUser ? '#333' : '#fff') + ';'
+          + 'font-size:13px;line-height:1.6">' + escHtml(m.content || '') + '</div>'
+          + '<div style="font-size:10px;color:#bbb;margin-top:2px">' + (isUser ? '👤 Utilisateur' : '🎧 Admin') + ' · ' + date + '</div>';
+        listEl.appendChild(bubble);
+      });
+      listEl.scrollTop = listEl.scrollHeight;
     });
-    if (r && r.ok) { toast('✅ Réponse envoyée'); loadSupportMessages(); }
-    else toast('❌ Erreur lors de l\'envoi');
-  } catch(e) { console.error(e); toast('Erreur réseau'); }
+
+  // Stocker le db actif pour les fonctions de réponse
+  window._adminDb         = db;
+  window._adminThreadId   = threadId;
 }
 
-async function closeSupportMessage(messageId) {
-  if (!confirm('Fermer ce ticket ?')) return;
-  try {
-    const r = await apiFetch(`${API}/support/messages/${messageId}/close`, {method:'PUT'});
-    if (r && r.ok) { toast('🔒 Ticket fermé'); loadSupportMessages(); }
-  } catch(e) { console.error(e); }
+async function sendAdminReply(threadId) {
+  var input   = document.getElementById('admin-reply-input');
+  var content = (input ? input.value : '').trim();
+  if (!content) return;
+
+  var db = window._adminDb;
+  if (!db) return;
+
+  input.value = '';
+  var now = firebase.firestore.FieldValue.serverTimestamp();
+
+  await db.collection('support_threads').doc(threadId)
+    .collection('messages').add({
+      content:    content,
+      senderId:   'admin',
+      senderRole: 'admin',
+      createdAt:  now
+    });
+
+  await db.collection('support_threads').doc(threadId).update({
+    lastMessage:   content.slice(0, 80),
+    updatedAt:     now,
+    unreadByUser:  true,
+    unreadByAdmin: false,
+    status:        'open'
+  });
+
+  // Rafraîchir l'affichage
+  openThreadAdmin(threadId, { subject: document.querySelector('#support-detail div')?.textContent || '' }, db);
+}
+
+async function resolveThread(threadId) {
+  var db = window._adminDb;
+  if (!db) return;
+  await db.collection('support_threads').doc(threadId).update({
+    status:    'resolved',
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  loadSupportMessages();
+}
+
+function escHtml(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
 /* ═══════════════════════════════════════════════════════════════
