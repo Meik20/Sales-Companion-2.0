@@ -824,8 +824,39 @@ body {
       <div class="a-err" id="r-err"></div>
       <button class="a-btn" id="r-btn" onclick="doRegister()">Cr&eacute;er mon compte &rarr;</button>
     </div>
-  </div>
-</div>
+  </div> <!-- /.auth-sheet -->
+
+  <!-- ✅ ACTIVATION FORM déplacé ici (sibling de .auth-sheet) -->
+  <div id="activation-form" style="display:none;width:100%;max-width:360px;margin:0 auto;background:var(--bg-card);border-radius:20px;padding:30px;box-shadow:var(--shadow-lg);overflow-y:auto;max-height:90vh">
+      <div style="text-align:center;margin-bottom:30px">
+        <div style="font-size:48px;margin-bottom:12px">🔑</div>
+        <h1 style="font-size:20px;font-weight:700;color:var(--text-primary);margin-bottom:8px">Activation du compte</h1>
+        <p style="font-size:13px;color:var(--text-secondary)">Choisissez votre email et mot de passe pour activer votre accès commercial.</p>
+      </div>
+       <div class="sfield" style="margin-bottom:16px">
+        <label>ID d'accès (ex: PrénomNom@Entreprise)</label>
+        <input type="text" id="activation-access-id" placeholder="jeandupont@orange" style="width:100%;padding:12px 14px;border:1.5px solid var(--border-strong);border-radius:var(--r);font-size:14px;font-family:'Inter',sans-serif;color:var(--text-primary);background:var(--bg-secondary);outline:none">
+      </div>
+      <div class="sfield" style="margin-bottom:16px">
+        <label>Votre adresse email (pour la connexion)</label>
+        <input type="email" id="activation-email" placeholder="vous@exemple.com" inputmode="email" autocomplete="email" style="width:100%;padding:12px 14px;border:1.5px solid var(--border-strong);border-radius:var(--r);font-size:14px;font-family:'Inter',sans-serif;color:var(--text-primary);background:var(--bg-secondary);outline:none">
+      </div>
+      <div class="sfield" style="margin-bottom:16px">
+        <label>Nouveau mot de passe (min. 8 caractères)</label>
+        <input type="password" id="activation-new-password" placeholder="••••••••" autocomplete="new-password" style="width:100%;padding:12px 14px;border:1.5px solid var(--border-strong);border-radius:var(--r);font-size:14px;font-family:'Inter',sans-serif;color:var(--text-primary);background:var(--bg-secondary);outline:none">
+      </div>
+      <div class="sfield" style="margin-bottom:20px">
+        <label>Confirmer le mot de passe</label>
+        <input type="password" id="activation-confirm-password" placeholder="••••••••" autocomplete="new-password" style="width:100%;padding:12px 14px;border:1.5px solid var(--border-strong);border-radius:var(--r);font-size:14px;font-family:'Inter',sans-serif;color:var(--text-primary);background:var(--bg-secondary);outline:none">
+      </div>
+      <div id="activation-err" style="display:none;color:var(--red);font-size:13px;margin-bottom:12px;padding:10px 12px;background:var(--red-light);border-radius:var(--r-sm);text-align:center;line-height:1.5"></div>
+      <button type="button" class="a-btn" id="activate-access-btn" onclick="activateMemberAccess()">Activer mon compte</button>
+      <p style="text-align:center;margin-top:18px;font-size:13px;color:var(--text-tertiary)">
+        Déjà un accès activé ?&nbsp;<span onclick="backToLoginForm()" style="color:var(--primary);font-weight:600;cursor:pointer;text-decoration:underline">S'identifier</span>
+      </p>
+    </div>
+
+</div> <!-- /.auth-screen -->
 
 <!-- TOPBAR -->
 <div class="topbar" id="topbar" style="display:none">
@@ -1436,38 +1467,6 @@ body {
     </div>
     <button class="sheet-btn" id="create-access-btn" onclick="submitCreateAccess()">Créer l'accès</button>
   </div>
-</div>
-
-<!-- ACTIVATION FORM (Member First Login) -->
-
-<!-- ACTIVATION FORM (Member First Login) -->
-<div id="activation-form" style="display:none;width:100%;max-width:360px;margin:0 auto;background:var(--bg-card);border-radius:20px;padding:30px;box-shadow:var(--shadow-lg)">
-  <div style="text-align:center;margin-bottom:30px">
-    <div style="font-size:48px;margin-bottom:12px">🔑</div>
-    <h1 style="font-size:20px;font-weight:700;color:var(--text-primary);margin-bottom:8px">Activation du compte</h1>
-    <p style="font-size:13px;color:var(--text-secondary)">Choisissez votre email et mot de passe pour activer votre accès commercial.</p>
-  </div>
-   <div class="sfield" style="margin-bottom:16px">
-    <label>ID d'accès (ex: PrénomNom@Entreprise)</label>
-    <input type="text" id="activation-access-id" placeholder="jeandupont@orange" style="width:100%;padding:12px 14px;border:1.5px solid var(--border-strong);border-radius:var(--r);font-size:14px;font-family:'Inter',sans-serif;color:var(--text-primary);background:var(--bg-secondary);outline:none">
-  </div>
-  <div class="sfield" style="margin-bottom:16px">
-    <label>Votre adresse email (pour la connexion)</label>
-    <input type="email" id="activation-email" placeholder="vous@exemple.com" inputmode="email" autocomplete="email" style="width:100%;padding:12px 14px;border:1.5px solid var(--border-strong);border-radius:var(--r);font-size:14px;font-family:'Inter',sans-serif;color:var(--text-primary);background:var(--bg-secondary);outline:none">
-  </div>
-  <div class="sfield" style="margin-bottom:16px">
-    <label>Nouveau mot de passe (min. 8 caractères)</label>
-    <input type="password" id="activation-new-password" placeholder="••••••••" autocomplete="new-password" style="width:100%;padding:12px 14px;border:1.5px solid var(--border-strong);border-radius:var(--r);font-size:14px;font-family:'Inter',sans-serif;color:var(--text-primary);background:var(--bg-secondary);outline:none">
-  </div>
-  <div class="sfield" style="margin-bottom:20px">
-    <label>Confirmer le mot de passe</label>
-    <input type="password" id="activation-confirm-password" placeholder="••••••••" autocomplete="new-password" style="width:100%;padding:12px 14px;border:1.5px solid var(--border-strong);border-radius:var(--r);font-size:14px;font-family:'Inter',sans-serif;color:var(--text-primary);background:var(--bg-secondary);outline:none">
-  </div>
-  <div id="activation-err" style="display:none;color:var(--red);font-size:13px;margin-bottom:12px;padding:10px 12px;background:var(--red-light);border-radius:var(--r-sm);text-align:center;line-height:1.5"></div>
-  <button type="button" class="a-btn" id="activate-access-btn" onclick="activateMemberAccess()">Activer mon compte</button>
-  <p style="text-align:center;margin-top:18px;font-size:13px;color:var(--text-tertiary)">
-    Déjà un accès activé ?&nbsp;<span onclick="backToLoginForm()" style="color:var(--primary);font-weight:600;cursor:pointer;text-decoration:underline">S'identifier</span>
-  </p>
 </div>
 
 <div class="toast" id="toast"></div>

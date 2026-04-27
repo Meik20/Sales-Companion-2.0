@@ -131,44 +131,36 @@
   ========================================================= */
 
   function switchToActivationFlow() {
-    var ids = ['auth-screen', 'login-form', 'register-form', 'activation-form'];
-    var els = {};
-    ids.forEach(function (id) { els[id] = document.getElementById(id); });
+  document.getElementById('auth-screen').style.display = 'flex';
+  
+  // ✅ Cacher la CARTE ENTIÈRE (pas juste login-form)
+  document.getElementById('auth-sheet').style.display = 'none';
+  
+  // ✅ Afficher le formulaire d'activation
+  document.getElementById('activation-form').style.display = 'block';
 
-    if (els['auth-screen'])    els['auth-screen'].style.display    = 'flex';
-    if (els['login-form'])     els['login-form'].style.display      = 'none';
-    if (els['register-form'])  els['register-form'].style.display   = 'none';
-    if (els['activation-form'])els['activation-form'].style.display = 'flex';
+  // Reset champs
+  ['activation-access-id', 'activation-email',
+   'activation-new-password', 'activation-confirm-password'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  setActivationError('');
+  setTimeout(function() {
+    var f = document.getElementById('activation-access-id');
+    if (f) f.focus();
+  }, 50);
+}
 
-    ['activation-access-id', 'activation-email',
-     'activation-new-password', 'activation-confirm-password'].forEach(function (id) {
-      var el = document.getElementById(id);
-      if (el) el.value = '';
-    });
-    setActivationError('');
-    var first = document.getElementById('activation-access-id');
-    if (first) setTimeout(function () { first.focus(); }, 50);
-  }
-
-  function backToLoginForm() {
-    var authScreen     = document.getElementById('auth-screen');
-    var loginForm      = document.getElementById('login-form');
-    var registerForm   = document.getElementById('register-form');
-    var activationForm = document.getElementById('activation-form');
-
-    if (authScreen)     authScreen.style.display    = 'flex';
-    if (activationForm) activationForm.style.display = 'none';
-    if (registerForm)   registerForm.style.display   = 'none';
-    if (loginForm)      loginForm.style.display       = 'block';
-    setActivationError('');
-  }
-
-  function setActivationError(msg) {
-    var el = document.getElementById('activation-err');
-    if (!el) return;
-    el.textContent    = msg || '';
-    el.style.display  = msg ? 'block' : 'none';
-  }
+function backToLoginForm() {
+  // ✅ Remettre la carte login
+  document.getElementById('auth-sheet').style.display = '';
+  
+  // ✅ Cacher activation
+  document.getElementById('activation-form').style.display = 'none';
+  
+  setActivationError('');
+}
 
   /* =========================================================
      ACTIVATION — orchestre member-access.js
