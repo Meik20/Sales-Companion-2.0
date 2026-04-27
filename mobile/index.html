@@ -2482,29 +2482,84 @@ function toggleSelectForAssignMobile(i) {
 }
 
 function openManagerAssignMobile() { document.getElementById('assign-count-m').textContent = selectedForAssignMobile.size; loadTeamMembersMobile(); openSheet('assign-create-sheet'); }
-
-async function submitAssignmentMobile() {
-  var assignee = document.getElementById('assign-assignee-m').value.trim();
-  var note = document.getElementById('assign-note-m').value.trim();
-  if (!assignee) { toast('Saisissez le commercial'); return; }
-  if (selectedForAssignMobile.size === 0) { toast('Aucun prospect selectionne'); return; }
-  try {
-    var r = await api('POST', '/api/assignments', { assigneeId: assignee, prospectIds: Array.from(selectedForAssignMobile), note: note }, token);
-    if (!r.ok) { var d = await r.json().catch(function() { return {}; }); return toast('Erreur: ' + (d.error || '')); }
-    toast('Assignation creee'); selectedForAssignMobile.clear(); closeSheet('assign-create-sheet');
-  } catch(e) { toast('Erreur: ' + e.message); }
-}
-
 async function loadTeamMembersMobile() {
   var sel = document.getElementById('assign-assignee-m');
+  if (!sel) return;
   sel.innerHTML = '<option value="">Chargement...</option>';
+ 
+  // Lire Firestore : uniquement les membres activés de CE manager
+  // team_accesses where createdBy==managerUid AND status=='active'
   try {
-    var r = await api('GET', '/api/team', null, token);
-    if (!r.ok) { sel.innerHTML = '<option value="">Aucun membre</option>'; return; }
-    var d = await r.json();
-    var list = d.data || [];
-    sel.innerHTML = list.length ? list.map(function(u) { return '<option value="' + u.uid + '">' + (u.name || u.email || u.uid) + '</option>'; }).join('') : '<option value="">Aucun membre</option>';
-  } catch(e) { sel.innerHTML = '<option value="">Erreur</option>'; }
+    var db = window._db || (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length ? firebase.firestore() : null);
+    var managerUid = (window.user && window.user.uid) || null;
+ 
+    if (!db || !managerUid) {
+      sel.innerHTML = '<option value="">Base de données non disponible</option>';
+      return;
+    }
+ 
+    var snap = await db.collection('team_accesses')
+      .where('createdBy', '==', managerUid)
+      .where('status',    '==', 'active')
+      .get();
+ 
+    // Garder uniquement ceux ayant un firebaseUid (activation complète)
+    var members = snap.docs
+      .map(function(d) {
+        var data = d.data();
+        return {
+          firebaseUid: data.firebaseUid || null,
+          name: ((data.firstname || '') + ' ' + (data.lastname || '')).trim() || 'Sans nom',
+          email: data.email || '',
+          company: data.company || ''
+        };
+      })
+      .filter(function(m) { return m.firebaseUid; });
+ 
+    sel.innerHTML = members.length
+      ? members.map(function(m) {
+          return '<option value="' + m.firebaseUid + '">'
+            + (m.name || m.email || m.firebaseUid)
+            + (m.company ? ' — ' + m.company : '')
+            + '</option>';
+        }).join('')
+      : '<option value="">Aucun membre actif dans votre équipe</option>';
+ 
+  } catch(e) {
+    console.error('[loadTeamMembersMobile]', e);
+    sel.innerHTML = '<option value="">Erreur : ' + e.message + '</option>';
+  }
+}
+
+async function submitAssignmentMobile() {
+  var assignee = (document.getElementById('assign-assignee-m') || {}).value || '';
+  assignee = assignee.trim();
+  var note = ((document.getElementById('assign-note-m') || {}).value || '').trim();
+ 
+  if (!assignee) { toast('Sélectionnez un commercial'); return; }
+  if (selectedForAssignMobile.size === 0) { toast('Aucun prospect sélectionné'); return; }
+ 
+  try {
+    var r = await api('POST', '/api/assignments', {
+      assigneeId:  assignee,                             // firebaseUid du membre
+      prospectIds: Array.from(selectedForAssignMobile),
+      note:        note
+    }, token);
+ 
+    if (!r.ok) {
+      var d = await r.json().catch(function() { return {}; });
+      if (r.status === 403) return toast('Accès refusé : ce membre ne fait pas partie de votre équipe.');
+      if (r.status === 404) return toast('Membre introuvable.');
+      return toast('Erreur : ' + (d.error || 'Erreur serveur'));
+    }
+ 
+    toast('✅ Assignation créée');
+    selectedForAssignMobile.clear();
+    closeSheet('assign-create-sheet');
+ 
+  } catch(e) {
+    toast('Erreur : ' + e.message);
+  }
 }
 
 function shareCard(i) {

@@ -1370,26 +1370,30 @@ app.listen(PORT, '0.0.0.0', () => {
 // ─── POST /api/team/activate ─────────────────────────────────────────
 // Crée un compte Firebase Auth pour un membre dont l'accès (team_accesses)
 // a été créé par son manager.
-// Body : { accessId, email, password, firstname, lastname, company, managerUid }
+// Body : { accessId, email, password }
 // ----------------------------------------------------------------------
 app.post('/api/team/activate', async (req, res) => {
   try {
-    const { accessId, email, password, firstname, lastname, company, managerUid } = req.body;
+    const { accessId, email, password } = req.body;
 
     if (!accessId || !email || !password) {
       return res.status(400).json({ error: 'accessId, email et password sont requis.' });
     }
 
-    // 1. Vérifier l'accès dans Firestore
-    const accessRef = admin.firestore().collection('team_accesses').doc(accessId);
+    // 1. Vérifier l'accès dans Firestore via Admin SDK
+    const accessRef  = admin.firestore().collection('team_accesses').doc(accessId);
     const accessSnap = await accessRef.get();
 
-    if (!accessSnap.exists) {
+    if (!accessSnap.exists)
       return res.status(404).json({ error: "Identifiant d'accès introuvable." });
-    }
+
     const accessData = accessSnap.data();
-    if (accessData.status === 'revoked')   return res.status(403).json({ error: 'Accès révoqué.' });
-    if (accessData.activated === true)     return res.status(409).json({ error: 'Compte déjà activé.' });
+
+    if (accessData.status === 'revoked')
+      return res.status(403).json({ error: 'Accès révoqué.' });
+
+    if (accessData.activated === true)
+      return res.status(409).json({ error: 'Compte déjà activé.' });
 
     // 2. Vérifier disponibilité de l'email
     try {
@@ -1400,21 +1404,25 @@ app.post('/api/team/activate', async (req, res) => {
     }
 
     // 3. Créer le compte Firebase Auth
-    const displayName = [firstname, lastname].filter(Boolean).join(' ') || accessId;
-    const userRecord  = await admin.auth().createUser({
-      email, password, displayName, emailVerified: false, disabled: false
+    const displayName = [accessData.firstname, accessData.lastname]
+      .filter(Boolean).join(' ') || accessId;
+
+    const userRecord = await admin.auth().createUser({
+      email, password, displayName,
+      emailVerified: false,
+      disabled:      false
     });
 
-    // 4. Créer le document users/{uid} pour l'identification du rôle après login
+    // 4. Créer le document users/{uid}
     await admin.firestore().collection('users').doc(userRecord.uid).set({
-      uid:         userRecord.uid,
-      email:       email,
-      name:        displayName,
-      role:        'member',
-      accessId:    accessId,
-      managerUid:  accessData.createdBy || managerUid || null,
-      company:     company || accessData.company || '',
-      plan:        'free',
+      uid:        userRecord.uid,
+      email:      email,
+      name:       displayName,
+      role:       'member',
+      accessId:   accessId,
+      managerUid: accessData.createdBy    || null,
+      company:    accessData.company      || '',
+      plan:       'free',
       daily_limit: 50,
       daily_used:  0,
       last_reset:  new Date().toISOString(),
@@ -1423,28 +1431,28 @@ app.post('/api/team/activate', async (req, res) => {
       updated_at:  new Date().toISOString()
     });
 
-    // 5. Mettre à jour team_accesses en mode privilégié (Admin SDK)
-    try {
-      await accessRef.update({
-        status: 'active',
-        activated: true,
-        firebaseUid: userRecord.uid,
-        email: email,
-        activatedAt: admin.firestore.FieldValue.serverTimestamp(),
-        activatedBy: accessData.createdBy || managerUid || null
-      });
-    } catch (updateErr) {
-      console.error('[POST /api/team/activate] Failed to update team_accesses, rolling back auth user', updateErr);
-      // Rollback: supprimer l'utilisateur Auth créé pour éviter orphelins
-      try { await admin.auth().deleteUser(userRecord.uid); } catch (dErr) { console.error('Failed to delete user after failed update', dErr); }
-      return res.status(500).json({ error: 'Impossible de finaliser l\'activation (erreur écriture Firestore).' });
-    }
+    // 5. Mettre à jour team_accesses via Admin SDK (pas de règles côté client)
+    await accessRef.update({
+      status:      'active',
+      activated:   true,
+      firebaseUid: userRecord.uid,
+      email:       email,
+      activatedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
 
-    // 6. Retourner le firebaseUid au client
+    // 6. Générer un Firebase Custom Token pour connexion directe côté client
+    //    → le client peut faire firebase.auth().signInWithCustomToken(customToken)
+    //    → session ouverte immédiatement, sans demander email/password une 2ème fois
+    const customToken = await admin.auth().createCustomToken(userRecord.uid, {
+      role:      'member',
+      managerUid: accessData.createdBy || null
+    });
+
     return res.status(200).json({
       success:     true,
       firebaseUid: userRecord.uid,
-      message:     'Compte créé et accès activé avec succès.'
+      customToken: customToken,   // ← pour signInWithCustomToken côté client
+      message:     'Compte créé et activé avec succès.'
     });
 
   } catch (error) {

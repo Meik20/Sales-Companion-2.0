@@ -3301,39 +3301,160 @@ _Partagé via Sales Companion_`;
       }
     }
 
-    async function submitAssignmentDesktop() {
-      const assignee = document.getElementById('assign-assignee-select').value;
-      const note     = document.getElementById('assign-note').value.trim();
-      if (!assignee)                   { toast('Saisissez l\'UID ou l\'email du commercial'); return; }
-      if (selectedForAssign.size === 0) { toast('Aucune fiche sélectionnée'); return; }
+      async function submitAssignmentDesktop() {
+      const assignee = (document.getElementById('assign-assignee-select')?.value || '').trim();
+      const note     = (document.getElementById('assign-note')?.value || '').trim();
+ 
+      if (!assignee) {
+        toast('Sélectionnez un commercial dans la liste');
+        return;
+      }
+      if (selectedForAssign.size === 0) {
+        toast('Sélectionnez au moins une fiche entreprise');
+        return;
+      }
+ 
+      const btn = document.getElementById('submit-assignment-desktop-btn');
+      if (btn) { btn.disabled = true; btn.textContent = 'Création…'; }
+ 
       try {
-        const r = await fetch(RAILWAY_SERVER+'/api/assignments', {
-          method:'POST',
-          headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+token },
-          body: JSON.stringify({ assigneeId:assignee, prospectIds:[...selectedForAssign], note })
+        const r = await fetch(RAILWAY_SERVER + '/api/assignments', {
+          method:  'POST',
+          headers: {
+            'Content-Type':  'application/json',
+            'Authorization': 'Bearer ' + token
+          },
+          body: JSON.stringify({
+            assigneeId:  assignee,                    // firebaseUid du membre
+            prospectIds: [...selectedForAssign],
+            note:        note
+          })
         });
-        const res = await r.json().catch(()=>({}));
+ 
+        const res = await r.json().catch(() => ({}));
+ 
         if (!r.ok) {
-          if (r.status===403) return toast((res.error||'Accès refusé')+' Invitez le commercial dans votre équipe.');
-          if (r.status===404) return toast('Utilisateur introuvable — vérifiez l\'email.');
-          return toast('Erreur: '+(res.error||''));
+          if (r.status === 403) return toast('Accès refusé : ' + (res.error || 'ce membre n\'appartient pas à votre équipe.'));
+          if (r.status === 404) return toast('Membre introuvable dans la base.');
+          if (r.status === 400) return toast('Données invalides : ' + (res.error || ''));
+          return toast('Erreur : ' + (res.error || 'Erreur serveur'));
         }
-        toast('✅ Assignation créée');
+ 
+        toast('✅ Assignation créée — ' + selectedForAssign.size + ' prospect(s) assigné(s)');
+ 
+        // Réinitialiser la sélection
         selectedForAssign.clear();
         document.querySelectorAll('[id^="sel-btn-"]').forEach(b => {
-          b.style.background='transparent'; b.style.color=''; b.textContent='Sélectionner'; b.style.border='1px dashed var(--bd2)';
+          b.style.background = 'transparent';
+          b.style.color      = '';
+          b.textContent      = 'Sélectionner';
+          b.style.border     = '1px dashed var(--bd2)';
         });
+        const countEl = document.getElementById('assign-count');
+        if (countEl) countEl.textContent = '0';
+ 
         closeAssignModal();
-      } catch(e) { toast('Erreur: '+e.message); }
+ 
+      } catch (e) {
+        toast('Erreur réseau : ' + e.message);
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = 'Créer assignation'; }
+      }
     }
 
-    function submitAssignmentMobile() {
-      toast('Version mobile d\'assignation à brancher selon le flux métier.');
+        async function submitAssignmentMobile() {
+      // Déléguer à TeamManager qui gère la logique d'assignation mobile
+      if (window.TeamManager && typeof window.TeamManager.submitAssignmentMobile === 'function') {
+        await window.TeamManager.submitAssignmentMobile();
+        return;
+      }
+ 
+      // Fallback : même logique que desktop sur le formulaire mobile
+      const assignee = (document.getElementById('assign-assignee-m')?.value || '').trim();
+      const note     = (document.getElementById('assign-note-m')?.value || '').trim();
+ 
+      if (!assignee) { toast('Sélectionnez un commercial'); return; }
+ 
+      const selectedIds = window.selectedForAssignMobile
+        ? Array.from(window.selectedForAssignMobile)
+        : [];
+ 
+      if (!selectedIds.length) { toast('Aucun prospect sélectionné'); return; }
+ 
+      try {
+        const r = await fetch(RAILWAY_SERVER + '/api/assignments', {
+          method:  'POST',
+          headers: {
+            'Content-Type':  'application/json',
+            'Authorization': 'Bearer ' + token
+          },
+          body: JSON.stringify({ assigneeId: assignee, prospectIds: selectedIds, note })
+        });
+ 
+        const res = await r.json().catch(() => ({}));
+        if (!r.ok) {
+          if (r.status === 403) return toast('Accès refusé : membre hors de votre équipe.');
+          if (r.status === 404) return toast('Membre introuvable.');
+          return toast('Erreur : ' + (res.error || 'Erreur serveur'));
+        }
+ 
+        toast('✅ Assignation créée');
+        if (window.selectedForAssignMobile) window.selectedForAssignMobile.clear();
+        if (typeof closeSheet === 'function') closeSheet('assign-create-sheet');
+ 
+      } catch (e) {
+        toast('Erreur réseau : ' + e.message);
+      }
     }
 
-    function saveNote() {
-      toast('Sauvegarde de note à brancher selon le flux pipeline.');
-      closeOverlayById('note-overlay');
+        async function saveNote() {
+      const id         = (document.getElementById('note-pip-id')?.value   || '').trim();
+      const note       = (document.getElementById('note-text')?.value      || '').trim();
+      const nextAction = (document.getElementById('note-action')?.value    || '').trim();
+      const nextDate   = (document.getElementById('note-date')?.value      || '').trim();
+ 
+      if (!id) { toast('Identifiant pipeline manquant'); return; }
+ 
+      // Pipeline stocké localement (localStorage) dans la version desktop
+      if (window.pipelineCompanies && window.pipelineCompanies[id]) {
+        window.pipelineCompanies[id].note        = note;
+        window.pipelineCompanies[id].next_action = nextAction;
+        window.pipelineCompanies[id].next_date   = nextDate;
+ 
+        try {
+          localStorage.setItem('sc_pipeline', JSON.stringify(window.pipelineCompanies));
+        } catch (e) {}
+ 
+        if (typeof renderPipeline === 'function') renderPipeline();
+        toast('✅ Note enregistrée');
+        closeOverlayById('note-overlay');
+        return;
+      }
+ 
+      // Fallback : mise à jour via API Railway
+      try {
+        const r = await fetch(RAILWAY_SERVER + '/api/pipeline/' + encodeURIComponent(id), {
+          method:  'PUT',
+          headers: {
+            'Content-Type':  'application/json',
+            'Authorization': 'Bearer ' + token
+          },
+          body: JSON.stringify({ note, next_action: nextAction, next_date: nextDate })
+        });
+ 
+        if (!r.ok) {
+          const res = await r.json().catch(() => ({}));
+          toast('Erreur : ' + (res.error || 'Erreur serveur'));
+          return;
+        }
+ 
+        toast('✅ Note enregistrée');
+        closeOverlayById('note-overlay');
+        if (typeof loadPipeline === 'function') loadPipeline();
+ 
+      } catch (e) {
+        toast('Erreur réseau : ' + e.message);
+      }
     }
 
     // ─────────────────────────────────────────────────────────────

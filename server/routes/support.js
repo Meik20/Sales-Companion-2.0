@@ -1,142 +1,129 @@
 /**
- * Support Routes - /api/support/*
- * Handle support message creation, retrieval, and admin replies
+ * Support admin routes — admin-only read/write via Admin SDK
  */
-
 const express = require('express');
 const router = express.Router();
-const {
-  verifyToken,
-  verifyAdmin,
-  createSupportMessage,
-  getSupportMessages,
-  getSupportMessagesForUser,
-  replyToSupportMessage,
-  closeSupportMessage,
-} = require('../firestore-operations');
+const admin = require('firebase-admin');
+const { verifyAdmin } = require('../firestore-operations');
 
 /**
  * GET /api/support/messages
- * Récupérer tous les messages de support (admin only)
+ * Récupère tous les fils de support (admin uniquement)
  */
 router.get('/messages', verifyAdmin, async (req, res) => {
   try {
-    const limit = Math.min(parseInt(req.query.limit || '50', 10), 200);
-    const messages = await getSupportMessages(limit);
-    res.json({ success: true, count: messages.length, messages });
-  } catch (error) {
-    console.error('Error fetching messages:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
+    // Récupérer tous les threads
+    const snapshot = await admin.firestore()
+      .collection('support_threads')
+      .orderBy('updatedAt', 'desc')
+      .get();
 
-/**
- * GET /api/support/messages/user
- * Récupérer les messages de l'utilisateur actuellement connecté
- */
-router.get('/messages/user', verifyToken, async (req, res) => {
-  try {
-    const messages = await getSupportMessagesForUser(req.userId);
-    res.json({
-      success: true,
-      userId: req.userId,
-      count: messages.length,
-      messages,
-    });
-  } catch (error) {
-    console.error('Error fetching user messages:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-/**
- * POST /api/support/messages
- * Créer un nouveau message de support
- */
-router.post('/messages', verifyToken, async (req, res) => {
-  try {
-    const { subject, message, priority } = req.body;
-
-    if (!subject || !message) {
-      return res.status(400).json({
-        success: false,
-        error: 'Subject and message are required',
+    const threads = [];
+    snapshot.forEach(doc => {
+      const data = doc.data() || {};
+      threads.push({
+        id: doc.id,
+        userId: data.userId || '',
+        userEmail: data.userEmail || '',
+        userName: data.userName || '',
+        subject: data.subject || '',
+        status: data.status || 'open',
+        lastMessage: data.lastMessage || '',
+        unreadByAdmin: !!data.unreadByAdmin,
+        unreadByUser: !!data.unreadByUser,
+        createdAt: data.createdAt && data.createdAt._seconds
+          ? new Date(data.createdAt._seconds * 1000).toISOString()
+          : '',
+        updatedAt: data.updatedAt && data.updatedAt._seconds
+          ? new Date(data.updatedAt._seconds * 1000).toISOString()
+          : ''
       });
+    });
+
+    res.json({ success: true, data: threads });
+  } catch (error) {
+    console.error('[GET /support/messages]', error);
+    res.status(500).json({ error: 'Erreur serveur : ' + error.message });
+  }
+});
+
+/**
+ * GET /api/support/threads/:threadId/messages
+ */
+router.get('/threads/:threadId/messages', verifyAdmin, async (req, res) => {
+  try {
+    const { threadId } = req.params;
+
+    const snapshot = await admin.firestore()
+      .collection('support_threads')
+      .doc(threadId)
+      .collection('messages')
+      .orderBy('createdAt', 'asc')
+      .get();
+
+    const messages = [];
+    snapshot.forEach(doc => {
+      const data = doc.data() || {};
+      messages.push({
+        id: doc.id,
+        content: data.content || '',
+        senderId: data.senderId || '',
+        senderRole: data.senderRole || 'user',
+        createdAt: data.createdAt && data.createdAt._seconds
+          ? new Date(data.createdAt._seconds * 1000).toISOString()
+          : ''
+      });
+    });
+
+    res.json({ success: true, data: messages });
+  } catch (error) {
+    console.error('[GET /support/threads/:threadId/messages]', error);
+    res.status(500).json({ error: 'Erreur serveur : ' + error.message });
+  }
+});
+
+/**
+ * POST /api/support/threads/:threadId/reply
+ * L'admin répond à un fil
+ */
+router.post('/threads/:threadId/reply', verifyAdmin, async (req, res) => {
+  try {
+    const { threadId } = req.params;
+    const { content } = req.body;
+
+    if (!content || !content.trim()) {
+      return res.status(400).json({ error: 'Message vide' });
     }
 
-    const messageData = {
-      subject,
-      message,
-      priority: priority || 'normal',
-    };
+    const now = admin.firestore.FieldValue.serverTimestamp();
 
-    const result = await createSupportMessage(req.userId, messageData);
-
-    if (!result) {
-      return res.status(400).json({
-        success: false,
-        error: 'Failed to create support message',
+    // Ajouter le message
+    await admin.firestore()
+      .collection('support_threads')
+      .doc(threadId)
+      .collection('messages')
+      .add({
+        content: content.trim(),
+        senderId: req.user.uid,
+        senderRole: 'admin',
+        createdAt: now
       });
-    }
 
-    res.status(201).json({
-      success: true,
-      message: 'Message de support créé avec succès',
-      messageId: result.id,
-      data: result,
-    });
-  } catch (error) {
-    console.error('Error creating message:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-/**
- * POST /api/support/messages/:id/reply
- * Admin reply to a support message
- */
-router.post('/messages/:id/reply', verifyAdmin, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { reply } = req.body;
-
-    if (!reply) {
-      return res.status(400).json({
-        success: false,
-        error: 'Reply text is required',
+    // Mettre à jour le thread
+    await admin.firestore()
+      .collection('support_threads')
+      .doc(threadId)
+      .update({
+        lastMessage: content.trim().slice(0, 80),
+        updatedAt: now,
+        unreadByUser: true,
+        unreadByAdmin: false
       });
-    }
 
-    const result = await replyToSupportMessage(id, reply, req.userEmail);
-
-    res.json({
-      success: true,
-      message: 'Reply added successfully',
-      messageId: id,
-    });
+    res.json({ success: true });
   } catch (error) {
-    console.error('Error replying to message:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-/**
- * POST /api/support/messages/:id/close
- * Close a support message (admin only)
- */
-router.post('/messages/:id/close', verifyAdmin, async (req, res) => {
-  try {
-    const { id } = req.params;
-    await closeSupportMessage(id);
-
-    res.json({
-      success: true,
-      message: 'Message closed successfully',
-      messageId: id,
-    });
-  } catch (error) {
-    console.error('Error closing message:', error);
-    res.status(500).json({ success: false, error: error.message });
+    console.error('[POST /support/threads/:threadId/reply]', error);
+    res.status(500).json({ error: 'Erreur serveur : ' + error.message });
   }
 });
 

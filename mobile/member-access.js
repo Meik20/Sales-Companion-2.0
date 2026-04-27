@@ -210,61 +210,68 @@
      5. Le membre peut maintenant se connecter via email/password
   ========================================================= */
 
-  async function activateMemberAccount(accessId, email, password, confirmPassword) {
-    var db = getDb();
-    if (!db) return { success: false, message: 'Base de données non disponible.' };
-
+    async function activateMemberAccount(accessId, email, password, confirmPassword) {
+    var db  = getDb();
     var nid = normalizeAccessId(accessId);
-    if (!nid)                        return { success: false, message: "Identifiant d'accès requis." };
-    if (!email || !email.includes('@')) return { success: false, message: 'Adresse email invalide.' };
+ 
+    // ── Validation locale ──────────────────────────────────────────
+    if (!nid)                             return { success: false, message: "Identifiant d'accès requis." };
+    if (!email || !email.includes('@'))   return { success: false, message: 'Adresse email invalide.' };
     if (!password || password.length < 8) return { success: false, message: 'Mot de passe : 8 caractères minimum.' };
-    if (password !== confirmPassword) return { success: false, message: 'Les mots de passe ne correspondent pas.' };
-
+    if (password !== confirmPassword)     return { success: false, message: 'Les mots de passe ne correspondent pas.' };
+ 
+    // ── Vérification Firestore (lecture 'pending' autorisée sans auth) ──
+    if (db) {
+      try {
+        var ref  = db.collection('team_accesses').doc(nid);
+        var snap = await ref.get();
+ 
+        if (!snap.exists)
+          return { success: false, message: "Identifiant introuvable. Vérifiez auprès de votre manager." };
+ 
+        var data = snap.data();
+ 
+        if (data.status === 'revoked')
+          return { success: false, message: 'Cet accès a été révoqué par votre manager.' };
+ 
+        if (data.activated === true)
+          return { success: false, message: "Compte déjà activé. Utilisez « S'identifier »." };
+ 
+      } catch (e) {
+        // Si Firestore refuse (ex: règle non encore déployée),
+        // continuer quand même — Railway vérifiera côté serveur
+        console.warn('[activateMemberAccount] Lecture Firestore échouée:', e.message);
+      }
+    }
+ 
+    // ── Appel Railway : création compte Firebase Auth + mise à jour Firestore ──
+    // Railway utilise Admin SDK → pas soumis aux Security Rules
+    // C'est Railway qui fait ref.update({status:'active', firebaseUid, email, activatedAt})
     try {
-      var ref  = db.collection('team_accesses').doc(nid);
-      var snap = await ref.get();
-
-      if (!snap.exists)
-        return { success: false, message: "Identifiant introuvable. Vérifiez auprès de votre manager." };
-
-      var data = snap.data();
-      if (data.status === 'revoked')
-        return { success: false, message: 'Cet accès a été révoqué par votre manager.' };
-      if (data.activated === true)
-        return { success: false, message: "Compte déjà activé. Utilisez « S'identifier »." };
-
-      /* Appel Railway → création compte Firebase Auth via Admin SDK */
       var res = await fetch(getRailwayBase() + '/api/team/activate', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          accessId:     nid,
-          email:        email.trim().toLowerCase(),
-          password:     password,
-          firstname:    data.firstname   || '',
-          lastname:     data.lastname    || '',
-          company:      data.company     || '',
-          managerUid:   data.createdBy   || '',
-          managerEmail: data.managerEmail || ''
+          accessId: nid,
+          email:    email.trim().toLowerCase(),
+          password: password
         })
       });
-
+ 
       var result = await res.json().catch(function () { return {}; });
-      if (!res.ok) return { success: false, message: result.error || result.message || 'Erreur serveur.' };
-
-      var firebaseUid = result.firebaseUid || result.uid || null;
-
-      /* Mise à jour Firestore */
-      await ref.update({
-        status:      'active',
-        activated:   true,
-        firebaseUid: firebaseUid,
-        email:       email.trim().toLowerCase(),
-        activatedAt: getServerTimestamp()
-      });
-
-      return { success: true, firebaseUid: firebaseUid };
-
+ 
+      if (!res.ok) {
+        return { success: false, message: result.error || result.message || 'Erreur serveur.' };
+      }
+ 
+      return {
+        success:     true,
+        firebaseUid: result.firebaseUid || result.uid || null,
+        token:       result.token       || null,
+        customToken: result.customToken || null,   // Firebase Custom Token pour signIn
+        email:       email.trim().toLowerCase()
+      };
+ 
     } catch (e) {
       console.error('[activateMemberAccount]', e);
       return { success: false, message: 'Erreur réseau : ' + e.message };

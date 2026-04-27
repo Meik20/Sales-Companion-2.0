@@ -187,18 +187,89 @@ function backToLoginForm() {
         accessId, email, password, confirm
       );
 
-      if (!result.success) {
-        setActivationError(result.message || "Erreur d'activation.");
-      } else {
-        setActivationError('');
-        toast('🎉 Compte activé ! Connectez-vous avec votre email.');
-        ['activation-access-id', 'activation-email',
-         'activation-new-password', 'activation-confirm-password'].forEach(function (id) {
-          var el = document.getElementById(id);
-          if (el) el.value = '';
-        });
-        setTimeout(backToLoginForm, 1800);
+        if (!result.success) {
+    setActivationError(result.message || "Erreur d'activation.");
+    return;
+  }
+ 
+  // ── Activation réussie : ouvrir la session directement ──────────
+  setActivationError('');
+  toast('🎉 Compte activé !');
+ 
+  var sessionOpened = false;
+ 
+  // Option A : Railway a retourné un Firebase Custom Token
+  // → connexion silencieuse directe sans redemander les credentials
+  if (result.customToken) {
+    try {
+      var auth = window._auth || firebase.auth();
+      var cred = await auth.signInWithCustomToken(result.customToken);
+      var idToken = await cred.user.getIdToken();
+      window.token = idToken;
+      localStorage.setItem('sc_token', idToken);
+ 
+      // Charger le profil utilisateur
+      var userSnap = await (window._db || firebase.firestore())
+        .collection('users').doc(cred.user.uid).get();
+      if (userSnap.exists) {
+        window.user = Object.assign({ uid: cred.user.uid }, userSnap.data());
+        if (typeof window.showApp === 'function') window.showApp();
+        sessionOpened = true;
       }
+    } catch (e) {
+      console.warn('[activateMemberAccess] Custom token login failed:', e.message);
+    }
+  }
+ 
+  // Option B : Connexion avec email + password (toujours disponible)
+  if (!sessionOpened && result.email) {
+    try {
+      var auth2  = window._auth || firebase.auth();
+      var email2 = result.email;
+      // Récupérer le password depuis le champ (encore présent avant reset)
+      var pass2  = document.getElementById('activation-new-password')?.value || '';
+ 
+      if (pass2) {
+        var cred2    = await auth2.signInWithEmailAndPassword(email2, pass2);
+        var idToken2 = await cred2.user.getIdToken();
+        window.token = idToken2;
+        localStorage.setItem('sc_token', idToken2);
+ 
+        var userSnap2 = await (window._db || firebase.firestore())
+          .collection('users').doc(cred2.user.uid).get();
+        if (userSnap2.exists) {
+          window.user = Object.assign({ uid: cred2.user.uid }, userSnap2.data());
+          if (typeof window.showApp === 'function') window.showApp();
+          sessionOpened = true;
+        }
+      }
+    } catch (e) {
+      console.warn('[activateMemberAccess] Email/pass login failed:', e.message);
+    }
+  }
+ 
+  // Option C (desktop Electron) : token JWT Railway retourné
+  if (!sessionOpened && result.token) {
+    window.token = result.token;
+    localStorage.setItem('authToken', result.token);
+    if (window.electronAPI && typeof window.electronAPI.saveToken === 'function') {
+      await window.electronAPI.saveToken(result.token);
+    }
+    if (typeof window.showApp === 'function') window.showApp();
+    sessionOpened = true;
+  }
+ 
+  // Option D : aucune session ouverte → rediriger vers login
+  if (!sessionOpened) {
+    toast('Compte activé. Connectez-vous avec votre email.');
+    // Vider les champs AVANT de revenir au login
+    ['activation-access-id','activation-email',
+     'activation-new-password','activation-confirm-password'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    setTimeout(backToLoginForm, 1200);
+  }
     } catch (e) {
       setActivationError('Erreur inattendue : ' + e.message);
     } finally {

@@ -1141,22 +1141,29 @@ async function loadSupportMessages() {
   const listEl = document.getElementById('support-list');
   listEl.innerHTML = '<p style="color:var(--tx3);font-size:12px;padding:8px">Chargement...</p>';
   try {
-    const r = await apiFetch(`${API}/support/messages`, {method:'GET'});
-    if (!r) return;
-    if (!r.ok) {
-      const errData = await r.json().catch(() => ({}));
-      listEl.innerHTML = `<div class="empty-state">
-        <div class="empty-icon">⚠️</div>
-        <p>Erreur ${r.status} : ${errData.error || 'Impossible de charger les messages'}</p>
-        <p style="font-size:11px;margin-top:6px">Vérifiez que <strong>GET /support/messages</strong> est implémenté côté serveur et que l'admin est autorisé.</p>
-      </div>`;
-      document.getElementById('support-count').textContent = '0';
-      return;
-    }
-    const messages = await r.json();
-    const list = Array.isArray(messages) ? messages : (messages.data || []);
-    document.getElementById('support-count').textContent = list.length;
-    if (!list.length) {
+    const db = firebase.firestore();
+
+    // Charger tous les threads de support triés par mise à jour
+    const snapshot = await db.collection('support_threads')
+      .orderBy('updatedAt', 'desc')
+      .get();
+
+    const threads = [];
+    snapshot.forEach(doc => {
+      const data = doc.data() || {};
+      threads.push({
+        id: doc.id,
+        subject: data.subject || '(sans sujet)',
+        userName: data.userName || data.userEmail || '—',
+        createdAt: data.createdAt && data.createdAt.toDate ? data.createdAt.toDate().toISOString() : (data.createdAt || ''),
+        updatedAt: data.updatedAt && data.updatedAt.toDate ? data.updatedAt.toDate().toISOString() : (data.updatedAt || ''),
+        status: data.status || 'open',
+        lastMessage: data.lastMessage || ''
+      });
+    });
+
+    document.getElementById('support-count').textContent = threads.length;
+    if (!threads.length) {
       listEl.innerHTML = `<div class="empty-state">
         <div class="empty-icon">💬</div>
         <p>Aucun message de support</p>
@@ -1164,20 +1171,22 @@ async function loadSupportMessages() {
       </div>`;
       return;
     }
+
     listEl.innerHTML = '';
-    list.forEach(msg => {
+    threads.forEach(msg => {
       const statusIcon = msg.status === 'answered' ? '✅' : msg.status === 'closed' ? '🔒' : '⏳';
       const item = document.createElement('div');
       item.style.cssText = 'padding:10px;border:1px solid var(--bd);border-radius:6px;cursor:pointer;background:var(--bg2);transition:background 0.2s';
       item.onmouseenter = () => item.style.background = 'var(--bg3)';
       item.onmouseleave = () => item.style.background = 'var(--bg2)';
       item.innerHTML = `
-        <div style="font-weight:600;font-size:13px">${statusIcon} ${msg.subject||'(sans sujet)'}</div>
-        <div style="font-size:11px;color:var(--tx3);margin-top:4px">${msg.userName||msg.userEmail||'—'}</div>
-        <div style="font-size:10px;color:var(--tx3)">${new Date(msg.created_at||msg.createdAt).toLocaleDateString()}</div>`;
+        <div style="font-weight:600;font-size:13px">${statusIcon} ${escapeHtml(msg.subject)}</div>
+        <div style="font-size:11px;color:var(--tx3);margin-top:4px">${escapeHtml(msg.userName)}</div>
+        <div style="font-size:10px;color:var(--tx3)">${new Date(msg.createdAt || msg.updatedAt || Date.now()).toLocaleDateString()}</div>`;
       item.onclick = () => showSupportDetail(msg);
       listEl.appendChild(item);
     });
+
   } catch(e) {
     listEl.innerHTML = `<div class="empty-state">
       <div class="empty-icon">⚠️</div>
