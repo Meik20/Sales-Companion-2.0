@@ -1357,6 +1357,25 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'landing.html'));
 });
 
+// ── FIREBASE CLIENT CONFIG (served dynamically for admin UI)
+// Must be placed BEFORE the SPA fallback for /admin*
+app.get('/admin/firebase-config.js', (req, res) => {
+  res.setHeader('Content-Type', 'application/javascript');
+  const cfg = {
+    apiKey:            process.env.FIREBASE_API_KEY            || '',
+    authDomain:        process.env.FIREBASE_AUTH_DOMAIN        || '',
+    projectId:         process.env.FIREBASE_PROJECT_ID         || '',
+    storageBucket:     process.env.FIREBASE_STORAGE_BUCKET     || '',
+    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID|| '',
+    appId:             process.env.FIREBASE_APP_ID             || '',
+  };
+  res.send(`if (!firebase.apps.length) {
+  firebase.initializeApp(${JSON.stringify(cfg)});
+  console.log('[Firebase] Initialisé ✅');
+}
+`);
+});
+
 // SPA fallback pour le panel admin (doit être en dernier)
 app.get('/admin*', (req, res) => {
   res.sendFile(path.join(__dirname, 'admin', 'index.html'));

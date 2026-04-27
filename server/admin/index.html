@@ -626,23 +626,29 @@ function logout() {
 function showApp() {
   document.getElementById('auth-page').style.display = 'none';
   document.getElementById('app').style.display       = 'block';
-  // ✅ Connecter Firebase Auth avec le custom token pour que
-  // les règles Firestore reconnaissent l'admin (si firebase initialisé)
+  // Attendre que Firebase soit initialisé (firebase-config.js est async)
   (async function() {
+    let attempts = 0;
+    while ((!window.firebase || !firebase.apps || !firebase.apps.length) && attempts < 20) {
+      await new Promise(r => setTimeout(r, 100));
+      attempts++;
+    }
+
+    // Connecter Firebase Auth avec le custom token admin
     try {
       if (adminToken && window.firebase && firebase.apps && firebase.apps.length) {
-        var currentUser = firebase.auth().currentUser;
+        const currentUser = firebase.auth().currentUser;
         if (!currentUser) {
           await firebase.auth().signInWithCustomToken(adminToken);
-          console.log('[Auth] Firebase Auth connecté avec custom token');
+          console.log('[Auth] Firebase Auth connecté ✅');
         }
       }
     } catch (e) {
-      console.warn('[Auth] signInWithCustomToken échoué:', e && e.message ? e.message : e);
-    } finally {
-      const last = localStorage.getItem('admin_last_page') || 'dashboard';
-      showPage(last);
+      console.warn('[Auth] signInWithCustomToken échoué :', e && e.message ? e.message : e);
     }
+
+    const last = localStorage.getItem('admin_last_page') || 'dashboard';
+    showPage(last);
   })();
 }
 
