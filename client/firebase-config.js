@@ -5,7 +5,7 @@
 
 // Initialize Firebase with production config
 const firebaseConfig = {
-  apiKey: process.env.REACT_APP_FIREBASE_API_KEY || '',  // Set in .env
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY || '', // Set in .env
   authDomain: 'sales-companion-237.firebaseapp.com',
   projectId: 'sales-companion-237',
   storageBucket: 'sales-companion-237.firebasestorage.app',
@@ -15,30 +15,45 @@ const firebaseConfig = {
 
 console.log('[Firebase Config] Using production Firebase configuration');
 
-// Validate that config is present
-if (!firebaseConfig.projectId || !firebaseConfig.apiKey) {
-  console.error('❌ Firebase config incomplet - Firebase initialization failed');
-}
-
-// Initialize Firebase
-const app = firebase.initializeApp(firebaseConfig);
-console.log('✓ Firebase app initialized');
-
-// Get Firebase services
-const auth = firebase.auth();
+let app = null;
+let auth = null;
 let db = null;
-const storage = (firebase.storage) ? firebase.storage() : null;
-console.log('✓ Firebase services initialized (auth, storage)');
+let storage = null;
 
-// Initialize Firestore (compat) without enabling advanced persistence here
 try {
-  db = firebase.firestore();
-} catch (e) {
-  console.warn('⚠️ Firestore initialization failed:', e && e.message ? e.message : e);
-  db = null;
-}
+  if (!firebase.apps.length) {
+    app = firebase.initializeApp(firebaseConfig);
+    console.log('✓ Firebase app initialized');
+  } else {
+    app = firebase.apps[0];
+    console.log('✓ Firebase app already initialized, reusing');
+  }
 
-// Set auth language
-auth.languageCode = 'fr';
+  auth = firebase.auth(app);
+  storage = (firebase.storage) ? firebase.storage(app) : null;
+
+  try {
+    db = firebase.firestore(app);
+  } catch (e) {
+    console.warn('⚠️ Firestore initialization failed:', e?.message || e);
+    db = null;
+  }
+
+  auth.languageCode = 'fr';
+
+  // Expose globals for older scripts expecting them
+  if (typeof window !== 'undefined') {
+    window.auth = auth;
+    window._auth = auth;
+    window.db = db;
+    window._db = db;
+    window.storage = storage;
+    if (typeof window.MAPS_EMBED_API_KEY === 'undefined') window.MAPS_EMBED_API_KEY = '';
+  }
+
+  console.log('✓ Firebase ready');
+} catch (error) {
+  console.error('❌ Firebase init error:', error);
+}
 
 export { app, auth, db, storage };

@@ -4,7 +4,16 @@ const CACHE_NAME = 'sales-companion-v3';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
+  '/mobile',
+  '/mobile/index.html',
+  '/mobile/firebase-config.js',
+  '/mobile/app-config.js',
+  '/mobile/member-access.js',
+  '/mobile/team-manager-mobile.js',
+  '/mobile/support.js',
+  '/mobile/manifest.json',
   '/manifest.json',
+  '/landing.html'
 ];
 
 // ================= INSTALL =================

@@ -48,15 +48,7 @@
     return '';
   }
 
-  function showToast(msg) {
-    if (typeof window.toast === 'function') { window.toast(msg); return; }
-    var el = document.getElementById('toast');
-    if (!el) return;
-    el.textContent = msg;
-    el.className   = 'toast show';
-    clearTimeout(showToast._t);
-    showToast._t = setTimeout(function () { el.className = 'toast'; }, 3500);
-  }
+  // Use global `window.showToast` / `window.toast`
 
   /* =========================================================
      HELPERS FIREBASE COMPAT

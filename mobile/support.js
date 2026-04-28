@@ -39,30 +39,7 @@
     return window.user || null;
   }
 
-  function toast(msg) {
-    if (typeof window.toast === 'function') { window.toast(msg); return; }
-    var el = document.getElementById('toast');
-    if (!el) return;
-    el.textContent = msg;
-    el.className = 'toast show';
-    setTimeout(function () { el.className = 'toast'; }, 3000);
-  }
-
-  function openSheet(id) {
-    if (typeof window.openSheet === 'function') { window.openSheet(id); return; }
-    var s = document.getElementById(id);
-    var o = document.getElementById(id.replace('-sheet', '-overlay'));
-    if (o) o.classList.add('open');
-    if (s) setTimeout(function () { s.classList.add('open'); }, 10);
-  }
-
-  function closeSheet(id) {
-    if (typeof window.closeSheet === 'function') { window.closeSheet(id); return; }
-    var s = document.getElementById(id);
-    var o = document.getElementById(id.replace('-sheet', '-overlay'));
-    if (s) s.classList.remove('open');
-    if (o) o.classList.remove('open');
-  }
+  // Use global helpers `window.toast`, `window.openSheet`, `window.closeSheet` (defined in index.html)
 
   /* ══════════════════════════════════════════════
      CHARGER LES FILS (temps réel)

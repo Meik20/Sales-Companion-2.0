@@ -6,6 +6,8 @@
 
 // ── ENVIRONMENT DETECTION ─────────────────────────────────────
 const APP_ENV = {
+  isLocal: false,
+  isDev: false,
   isProduction: true,
   hostname: 'sales-companion-production.up.railway.app',
   protocol: 'https:',

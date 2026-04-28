@@ -55,15 +55,7 @@
     } catch (e) { return null; }
   }
 
-  function toast(msg) {
-    if (typeof window.toast === 'function' && window.toast !== toast) { window.toast(msg); return; }
-    var el = document.getElementById('toast');
-    if (!el) return;
-    el.textContent = msg;
-    el.className   = 'toast show';
-    clearTimeout(toast._t);
-    toast._t = setTimeout(function () { el.className = 'toast'; }, 3000);
-  }
+  // Use global `toast` (defined in index.html) via `window.toast`
 
   function escapeHtml(str) {
     return String(str || '')
@@ -95,21 +87,9 @@
      SHEET HELPERS
   ========================================================= */
 
-  function openSheet(id) {
-    if (typeof window.openSheet === 'function' && window.openSheet !== openSheet) { window.openSheet(id); return; }
-    var sheet   = document.getElementById(id);
-    var overlay = document.getElementById(id.replace('-sheet', '-overlay'));
-    if (overlay) overlay.classList.add('open');
-    if (sheet)   setTimeout(function () { sheet.classList.add('open'); }, 10);
-  }
+  // Use global `openSheet` via `window.openSheet`
 
-  function closeSheet(id) {
-    if (typeof window.closeSheet === 'function' && window.closeSheet !== closeSheet) { window.closeSheet(id); return; }
-    var sheet   = document.getElementById(id);
-    var overlay = document.getElementById(id.replace('-sheet', '-overlay'));
-    if (sheet)   sheet.classList.remove('open');
-    if (overlay) overlay.classList.remove('open');
-  }
+  // Use global `closeSheet` via `window.closeSheet`
 
   /* =========================================================
      APPEL API REST (Railway) — uniquement pour le pipeline
@@ -413,6 +393,12 @@ function backToLoginForm() {
 
       // ── Écoute temps réel Firestore pour les assignations (activité)
       try {
+        // Détacher l'ancien listener s'il existe
+        if (window._assignmentsListener) {
+          try { window._assignmentsListener(); } catch (err) { /* ignore */ }
+          window._assignmentsListener = null;
+        }
+
         if (db && managerUid) {
           var unsubAssign = db.collection('assignments')
             .where('managerUid', '==', managerUid)
