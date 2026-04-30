@@ -1,13 +1,14 @@
 export async function PATCH(
   request: Request,
-  { params }: { params: { uid: string } }
+  { params }: { params: Promise<{ uid: string }> }
 ) {
   try {
+    const { uid } = await params;
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
     const token = request.headers.get('authorization')?.split(' ')[1] || ''
     const body = await request.json()
 
-    const response = await fetch(`${backendUrl}/api/admin/users/${params.uid}`, {
+    const response = await fetch(`${backendUrl}/api/admin/users/${uid}`, {
       method: 'PATCH',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -36,13 +37,14 @@ export async function PATCH(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { uid: string } }
+  { params }: { params: Promise<{ uid: string }> }
 ) {
   try {
+    const { uid } = await params;
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
     const token = request.headers.get('authorization')?.split(' ')[1] || ''
 
-    const response = await fetch(`${backendUrl}/api/admin/users/${params.uid}`, {
+    const response = await fetch(`${backendUrl}/api/admin/users/${uid}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`,
