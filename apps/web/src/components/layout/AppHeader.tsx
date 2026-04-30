@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/index'
 import { ScIcon } from '@/components/ui/ScIcon'
@@ -21,6 +22,7 @@ export function AppHeader() {
   const { user } = useCurrentUser()
   const { logout } = useAuthActions()
   const { pushToast } = useToast()
+  const router = useRouter()
 
   async function handleLogout() {
     try {
@@ -107,7 +109,7 @@ export function AppHeader() {
               >
                 Connexion
               </Link>
-              <Button variant="primary" size="sm" as="a" href={routes.register}>
+              <Button variant="primary" size="sm" onClick={() => router.push(routes.register)}>
                 Commencer
               </Button>
             </>

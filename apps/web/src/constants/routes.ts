@@ -15,4 +15,6 @@ export const routes = {
   adminUsers: '/admin/users',
   adminCompanies: '/admin/companies',
   adminImports: '/admin/imports',
+  adminSupport: '/admin/support',
+  adminConfig: '/admin/config',
 }

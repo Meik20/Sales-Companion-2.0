@@ -3,18 +3,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 
-type UserDoc = {
-  uid: string
-  email: string
-  name: string
-  role: 'admin' | 'manager' | 'member'
-  plan: 'free' | 'starter' | 'pro' | 'enterprise'
-  dailyUsed: number
-  dailyLimit: number
-  active: boolean
-  createdAt?: string
-  lastLogin?: string
-}
+import type { UserDoc } from '@sales-companion/shared'
 
 type AdminUsersResponse = {
   items: UserDoc[]

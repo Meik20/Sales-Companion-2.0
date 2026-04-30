@@ -9,7 +9,7 @@ export type CurrentUser = {
   uid: string
   email: string
   name: string
-  role: 'independent' | 'manager' | 'member'
+  role: 'independent' | 'manager' | 'member' | 'admin'
   companyId: string | null
   managerUid: string | null
   plan: string
