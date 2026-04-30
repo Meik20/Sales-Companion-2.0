@@ -1,6 +1,8 @@
+import type { PipelineDoc } from '@sales-companion/shared'
+
 export const useUserPipeline = () => {
   return {
-    data: [],
+    data: [] as (PipelineDoc & { id: string })[],
     isLoading: false,
     error: null,
   }

@@ -8,7 +8,7 @@ import { CreateCompanyForm } from '@/features/companies/components/CreateCompany
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { colors } from '@/styles/tokens'
 
-const planDetails: Record<string, { label: string; searches: number; features: string[] }> = {
+const planDetails = {
   free:       { label: 'Gratuit',      searches: 50,    features: ['Recherche basique', 'Pipeline personnel', '50 recherches/jour'] },
   starter:    { label: 'Starter',      searches: 200,   features: ['Recherche avancée', 'Pipeline personnel', '200 recherches/jour', 'Export Excel'] },
   pro:        { label: 'Pro',          searches: 1000,  features: ['Tout Starter', 'Gestion équipe', '1 000 recherches/jour', 'Assistant IA', 'Support prioritaire'] },
@@ -19,7 +19,7 @@ export default function SettingsPage() {
   const { user } = useCurrentUser()
 
   const plan = user?.plan ?? 'free'
-  const planInfo = planDetails[plan] ?? planDetails.free
+  const planInfo = planDetails[plan as keyof typeof planDetails] ?? planDetails.free
 
   return (
     <main>

@@ -21,7 +21,7 @@ import { colors } from '@/styles/tokens'
 
 export default function SupportPage() {
   const { user } = useCurrentUser()
-  const { threads } = useUserSupportThreads(user?.uid)
+  const { threads } = useUserSupportThreads(user?.uid ?? null)
   const { pushToast } = useToast()
 
   const [subject,          setSubject]          = useState('')
