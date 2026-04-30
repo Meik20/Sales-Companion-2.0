@@ -30,7 +30,7 @@ export default function SupportPage() {
   const [creating,         setCreating]         = useState(false)
   const [showNew,          setShowNew]          = useState(false)
 
-  const { messages } = useSupportMessages(selectedThreadId)
+  const { messages } = useSupportMessages(selectedThreadId ?? null)
 
   async function handleCreateThread() {
     if (!user || !subject.trim()) return

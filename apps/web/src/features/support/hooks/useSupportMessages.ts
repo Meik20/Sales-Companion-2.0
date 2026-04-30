@@ -10,8 +10,9 @@ import { db } from '@/lib/firebase' // adapte si besoin
 
 export interface SupportMessage {
   id: string
-  text: string
+  content: string
   senderId: string
+  senderRole?: string
   createdAt: Timestamp
 }
 

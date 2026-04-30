@@ -1,5 +1,5 @@
-export const sendSupportMessage = async (message: string) => {
-  console.log('Message envoyé:', message)
+export const sendSupportMessage = async (data: { threadId: string; senderId: string; senderRole: string; content: string }) => {
+  console.log('Message envoyé:', data)
 
   return {
     success: true,
