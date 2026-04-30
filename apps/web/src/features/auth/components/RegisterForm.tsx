@@ -1,0 +1,195 @@
+'use client'
+
+import { useState } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import { FormField } from '@/components/forms/FormField'
+import { ScIcon } from '@/components/ui/ScIcon'
+import { useAuthActions } from '../hooks/useAuthActions'
+import { routes } from '@/constants/routes'
+import { colors } from '@/styles/tokens'
+
+type RoleOption = 'independent' | 'manager'
+
+const roleOptions: { value: RoleOption; label: string; desc: string }[] = [
+  { value: 'independent', label: 'Indépendant', desc: 'Gérez votre propre pipeline' },
+  { value: 'manager', label: 'Manager', desc: 'Gérez une équipe de commerciaux' },
+]
+
+export function RegisterForm() {
+  const { registerWithEmail } = useAuthActions()
+  const router = useRouter()
+
+  const [name, setName] = useState('')
+  const [role, setRole] = useState<RoleOption>('independent')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!name || !email || !password) {
+      setError('Veuillez remplir tous les champs.')
+      return
+    }
+    if (password.length < 6) {
+      setError('Le mot de passe doit comporter au moins 6 caractères.')
+      return
+    }
+    setLoading(true)
+    setError(null)
+
+    try {
+      await registerWithEmail({ email, password, name, role })
+      router.replace(routes.search)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Inscription impossible.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div
+      style={{
+        background: colors.bg2,
+        border: `1px solid ${colors.border}`,
+        borderRadius: 20,
+        padding: 40,
+        width: '100%',
+        maxWidth: 460,
+        boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+      }}
+    >
+      {/* Header */}
+      <div style={{ textAlign: 'center', marginBottom: 32 }}>
+        <ScIcon size={48} interactive style={{ marginBottom: 16 }} />
+        <h1
+          style={{
+            margin: '0 0 8px',
+            fontSize: 22,
+            fontWeight: 800,
+            color: colors.text,
+            fontFamily: "'Syne',sans-serif",
+            letterSpacing: '-.03em',
+          }}
+        >
+          Créer un compte
+        </h1>
+        <p style={{ margin: 0, fontSize: 13, color: colors.textMid }}>
+          Rejoignez Sales Companion
+        </p>
+      </div>
+
+      <form
+        onSubmit={(e) => void handleSubmit(e)}
+        style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
+      >
+        <FormField label="Nom complet" required>
+          <Input
+            placeholder="Jean Dupont"
+            value={name}
+            autoComplete="name"
+            onChange={(e) => setName(e.target.value)}
+          />
+        </FormField>
+
+        <FormField label="Email" required>
+          <Input
+            type="email"
+            placeholder="vous@exemple.cm"
+            value={email}
+            autoComplete="email"
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </FormField>
+
+        <FormField label="Mot de passe" required hint="Minimum 6 caractères">
+          <Input
+            type="password"
+            placeholder="••••••••"
+            value={password}
+            autoComplete="new-password"
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </FormField>
+
+        {/* Rôle */}
+        <FormField label="Type de compte">
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+            {roleOptions.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setRole(opt.value)}
+                style={{
+                  padding: '12px 14px',
+                  borderRadius: 10,
+                  border: `1px solid ${
+                    role === opt.value ? 'rgba(46,160,90,0.5)' : colors.border
+                  }`,
+                  background:
+                    role === opt.value
+                      ? 'rgba(27,122,62,0.12)'
+                      : 'rgba(255,255,255,0.03)',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  transition: 'all 200ms ease',
+                  fontFamily: 'inherit',
+                }}
+              >
+                <div
+                  style={{
+                    fontWeight: 600,
+                    fontSize: 13,
+                    color: role === opt.value ? colors.greenMid : colors.text,
+                  }}
+                >
+                  {opt.label}
+                </div>
+                <div style={{ fontSize: 11, color: colors.textMid, marginTop: 2 }}>
+                  {opt.desc}
+                </div>
+              </button>
+            ))}
+          </div>
+        </FormField>
+
+        {error ? (
+          <div
+            style={{
+              padding: '10px 14px',
+              background: 'rgba(239,68,68,0.08)',
+              border: '1px solid rgba(239,68,68,0.25)',
+              borderRadius: 8,
+              fontSize: 13,
+              color: '#f87171',
+            }}
+          >
+            {error}
+          </div>
+        ) : null}
+
+        <Button
+          type="submit"
+          variant="primary"
+          size="lg"
+          loading={loading}
+          style={{ width: '100%', marginTop: 4 }}
+        >
+          Créer mon compte
+        </Button>
+      </form>
+
+      <p style={{ textAlign: 'center', marginTop: 24, fontSize: 13, color: colors.textMid }}>
+        Déjà un compte ?{' '}
+        <Link href={routes.login} style={{ color: colors.greenMid, fontWeight: 600 }}>
+          Se connecter
+        </Link>
+      </p>
+    </div>
+  )
+}

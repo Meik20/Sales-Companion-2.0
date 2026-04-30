@@ -1,0 +1,100 @@
+export async function GET(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
+    const token = request.headers.get('authorization')?.split(' ')[1] || ''
+
+    const response = await fetch(`${backendUrl}/api/pipeline/${params.id}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    })
+
+    if (!response.ok) {
+      return Response.json(
+        { error: 'Non trouvé' },
+        { status: 404 }
+      )
+    }
+
+    const data = await response.json()
+    return Response.json(data)
+  } catch (error) {
+    console.error('Pipeline detail error:', error)
+    return Response.json(
+      { error: 'Erreur interne' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function PUT(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
+    const token = request.headers.get('authorization')?.split(' ')[1] || ''
+    const body = await request.json()
+
+    const response = await fetch(`${backendUrl}/api/pipeline/${params.id}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    })
+
+    if (!response.ok) {
+      return Response.json(
+        { error: 'Erreur serveur' },
+        { status: response.status }
+      )
+    }
+
+    const data = await response.json()
+    return Response.json(data)
+  } catch (error) {
+    console.error('Update pipeline error:', error)
+    return Response.json(
+      { error: 'Erreur interne' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
+    const token = request.headers.get('authorization')?.split(' ')[1] || ''
+
+    const response = await fetch(`${backendUrl}/api/pipeline/${params.id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    })
+
+    if (!response.ok) {
+      return Response.json(
+        { error: 'Erreur serveur' },
+        { status: response.status }
+      )
+    }
+
+    const data = await response.json()
+    return Response.json(data)
+  } catch (error) {
+    console.error('Delete pipeline error:', error)
+    return Response.json(
+      { error: 'Erreur interne' },
+      { status: 500 }
+    )
+  }
+}

@@ -1,0 +1,47 @@
+'use client'
+
+import { useQuery } from '@tanstack/react-query'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
+
+type UserDoc = {
+  uid: string
+  email: string
+  name: string
+  role: 'admin' | 'manager' | 'member'
+  plan: 'free' | 'starter' | 'pro' | 'enterprise'
+  dailyUsed: number
+  dailyLimit: number
+  active: boolean
+  createdAt?: string
+  lastLogin?: string
+}
+
+type AdminUsersResponse = {
+  items: UserDoc[]
+  total: number
+}
+
+export function useAdminUsers() {
+  const { user } = useCurrentUser()
+
+  return useQuery({
+    queryKey: ['admin-users'],
+    queryFn: async () => {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
+      const token = await user?.getIdToken()
+
+      const response = await fetch(`${backendUrl}/api/admin/users`, {
+        headers: {
+          'Authorization': `Bearer ${token || ''}`,
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error('Impossible de charger les utilisateurs')
+      }
+
+      return response.json() as Promise<AdminUsersResponse>
+    },
+    enabled: !!user?.uid,
+  })
+}

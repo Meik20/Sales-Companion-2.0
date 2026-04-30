@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hors ligne — Sales Companion</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        height: 100%;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      }
+
+      body {
+        background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
+        color: #f0f6fc;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 500px;
+        padding: 24px;
+        text-align: center;
+      }
+
+      .icon {
+        font-size: 80px;
+        margin-bottom: 24px;
+        animation: float 3s ease-in-out infinite;
+      }
+
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0px);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+      }
+
+      h1 {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 12px;
+        letter-spacing: -0.03em;
+      }
+
+      p {
+        font-size: 15px;
+        color: #8b949e;
+        margin-bottom: 24px;
+        line-height: 1.5;
+      }
+
+      .info {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 24px;
+        text-align: left;
+      }
+
+      .info-title {
+        font-size: 12px;
+        font-weight: 600;
+        color: #8b949e;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 8px;
+      }
+
+      .info-text {
+        font-size: 13px;
+        color: #c9d1d9;
+      }
+
+      button {
+        background: #1b7a3e;
+        border: 1px solid #2ea05a;
+        color: #fff;
+        padding: 12px 24px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 300ms ease;
+        box-shadow: 0 0 20px rgba(27, 122, 62, 0.2);
+      }
+
+      button:hover {
+        background: #0d6436;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 24px rgba(27, 122, 62, 0.3);
+      }
+
+      button:active {
+        transform: translateY(0);
+      }
+
+      .actions {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      button.secondary {
+        background: transparent;
+        border: 1px solid rgba(46, 160, 90, 0.4);
+        color: #2ea05a;
+      }
+
+      button.secondary:hover {
+        background: rgba(46, 160, 90, 0.1);
+        border-color: rgba(46, 160, 90, 0.6);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="icon">📡</div>
+      <h1>Vous êtes hors ligne</h1>
+      <p>
+        Nous ne pouvons pas accéder à la plateforme actuellement. Vérifiez votre connexion internet et réessayez.
+      </p>
+
+      <div class="info">
+        <div class="info-title">Que pouvez-vous faire ?</div>
+        <div class="info-text">
+          • Vérifier votre connexion Wi-Fi ou données mobiles<br />
+          • Réessayer quand votre connexion sera rétablie<br />
+          • Consulter les données en cache
+        </div>
+      </div>
+
+      <div class="actions">
+        <button onclick="location.reload()">Réessayer</button>
+        <button class="secondary" onclick="history.back()">Retour</button>
+      </div>
+    </div>
+  </body>
+</html>

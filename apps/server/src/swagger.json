@@ -1,0 +1,451 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Sales Companion 2.0 API",
+    "description": "API pour la plateforme de vente Sales Companion - Cameroun",
+    "version": "2.0.0",
+    "contact": {
+      "name": "Support Sales Companion",
+      "url": "https://salescompanion.cm/support"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8000",
+      "description": "Développement"
+    },
+    {
+      "url": "https://api.salescompanion.cm",
+      "description": "Production"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "uid": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "name": { "type": "string" },
+          "role": { "type": "string", "enum": ["admin", "manager", "member", "independent"] },
+          "plan": { "type": "string", "enum": ["free", "starter", "pro", "enterprise"] },
+          "dailyLimit": { "type": "integer" },
+          "dailyUsed": { "type": "integer" },
+          "active": { "type": "boolean" }
+        }
+      },
+      "PipelineItem": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "userId": { "type": "string" },
+          "companyId": { "type": "string" },
+          "companyName": { "type": "string" },
+          "companySector": { "type": "string" },
+          "companyCity": { "type": "string" },
+          "status": { "type": "string", "enum": ["prospection", "negotiation", "conclusion", "lost"] },
+          "notes": { "type": "string" },
+          "nextFollowUp": { "type": "string", "format": "date-time" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Company": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "sector": { "type": "string" },
+          "city": { "type": "string" },
+          "phone": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "nseie": { "type": "string" },
+          "employees": { "type": "integer" }
+        }
+      },
+      "Stats": {
+        "type": "object",
+        "properties": {
+          "totalUsers": { "type": "integer" },
+          "totalCompanies": { "type": "integer" },
+          "totalPipelineItems": { "type": "integer" },
+          "totalSearchesToday": { "type": "integer" },
+          "activeUsers": { "type": "integer" },
+          "newUsersThisWeek": { "type": "integer" }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health Check",
+        "tags": ["Health"],
+        "responses": {
+          "200": {
+            "description": "API is running"
+          }
+        }
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "summary": "Register new user",
+        "tags": ["Auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string", "format": "email" },
+                  "password": { "type": "string" },
+                  "name": { "type": "string" },
+                  "role": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "User registered successfully" },
+          "400": { "description": "Invalid input" }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "Login user",
+        "tags": ["Auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string", "format": "email" },
+                  "password": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Login successful" },
+          "401": { "description": "Invalid credentials" }
+        }
+      }
+    },
+    "/pipeline": {
+      "get": {
+        "summary": "List user's pipeline items",
+        "tags": ["Pipeline"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "List of pipeline items",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/PipelineItem" }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create pipeline item",
+        "tags": ["Pipeline"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "companyId": { "type": "string" },
+                  "companyName": { "type": "string" },
+                  "companySector": { "type": "string" },
+                  "status": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Pipeline item created" }
+        }
+      }
+    },
+    "/pipeline/{id}": {
+      "get": {
+        "summary": "Get pipeline item",
+        "tags": ["Pipeline"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Pipeline item details" },
+          "404": { "description": "Not found" }
+        }
+      },
+      "put": {
+        "summary": "Update pipeline item",
+        "tags": ["Pipeline"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": { "type": "string" },
+                  "notes": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Pipeline item updated" }
+        }
+      },
+      "delete": {
+        "summary": "Delete pipeline item",
+        "tags": ["Pipeline"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Pipeline item deleted" }
+        }
+      }
+    },
+    "/pipeline/stats/summary": {
+      "get": {
+        "summary": "Get pipeline statistics",
+        "tags": ["Pipeline"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Pipeline stats",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "total": { "type": "integer" },
+                    "prospection": { "type": "integer" },
+                    "negotiation": { "type": "integer" },
+                    "conclusion": { "type": "integer" },
+                    "lost": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/stats": {
+      "get": {
+        "summary": "Get dashboard statistics",
+        "tags": ["Admin"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Dashboard stats",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Stats" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/users": {
+      "get": {
+        "summary": "List all users",
+        "tags": ["Admin"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "List of users",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/User" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/users/{uid}": {
+      "patch": {
+        "summary": "Update user",
+        "tags": ["Admin"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "active": { "type": "boolean" },
+                  "role": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "User updated" }
+        }
+      },
+      "delete": {
+        "summary": "Delete user",
+        "tags": ["Admin"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "User deleted" }
+        }
+      }
+    },
+    "/companies": {
+      "get": {
+        "summary": "Search companies",
+        "tags": ["Companies"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "sector",
+            "in": "query",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "city",
+            "in": "query",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of companies",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Company" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/team/members": {
+      "get": {
+        "summary": "List team members",
+        "tags": ["Team"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "List of team members" }
+        }
+      }
+    },
+    "/support/threads": {
+      "get": {
+        "summary": "List support tickets",
+        "tags": ["Support"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "List of support threads" }
+        }
+      },
+      "post": {
+        "summary": "Create support ticket",
+        "tags": ["Support"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "subject": { "type": "string" },
+                  "message": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Support ticket created" }
+        }
+      }
+    }
+  }
+}

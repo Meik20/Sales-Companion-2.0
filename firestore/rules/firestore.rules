@@ -1,0 +1,147 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function authUid() {
+      return request.auth.uid;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.role == 'admin';
+    }
+
+    function currentUserDoc() {
+      return get(/databases/$(database)/documents/users/$(authUid())).data;
+    }
+
+    function isManager() {
+      return isSignedIn() && currentUserDoc().role == 'manager';
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && authUid() == userId;
+    }
+
+    function isManagedUser(resourceManagerUid) {
+      return isManager() && resourceManagerUid == authUid();
+    }
+
+    match /users/{uid} {
+      allow read: if isAdmin()
+        || isOwner(uid)
+        || (isManager() && resource.data.managerUid == authUid());
+
+      allow create: if isOwner(uid) || isAdmin();
+
+      allow update: if isAdmin()
+        || isOwner(uid);
+
+      allow delete: if isAdmin();
+    }
+
+    match /companies/{companyId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /pipeline/{pipelineId} {
+      allow read: if isAdmin()
+        || (isSignedIn() && resource.data.userId == authUid())
+        || isManagedUser(resource.data.managerUid);
+
+      allow create: if isSignedIn()
+        && request.resource.data.userId == authUid()
+        && (
+          request.resource.data.managerUid == authUid()
+          || request.resource.data.managerUid == currentUserDoc().managerUid
+          || request.resource.data.managerUid == null
+        );
+
+      allow update, delete: if isAdmin()
+        || (isSignedIn() && resource.data.userId == authUid())
+        || isManagedUser(resource.data.managerUid);
+    }
+
+    match /saved_searches/{savedSearchId} {
+      allow read, create: if isSignedIn() && request.resource.data.userId == authUid();
+      allow update, delete: if isSignedIn() && resource.data.userId == authUid();
+    }
+
+    match /support_threads/{threadId} {
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == authUid());
+      allow create: if isSignedIn() && request.resource.data.userId == authUid();
+      allow update: if isAdmin() || (isSignedIn() && resource.data.userId == authUid());
+
+      match /messages/{messageId} {
+        allow read: if isAdmin() || (
+          isSignedIn() &&
+          get(/databases/$(database)/documents/support_threads/$(threadId)).data.userId == authUid()
+        );
+
+        allow create: if isAdmin() || (
+          isSignedIn() &&
+          get(/databases/$(database)/documents/support_threads/$(threadId)).data.userId == authUid()
+        );
+      }
+    }
+
+    match /team_accesses/{accessId} {
+      allow read: if isAdmin()
+        || (isManager() && resource.data.managerUid == authUid());
+
+      allow create: if isAdmin()
+        || (
+          isManager()
+          && request.resource.data.managerUid == authUid()
+          && request.resource.data.role == 'member'
+        );
+
+      allow update: if isAdmin()
+        || (isManager() && resource.data.managerUid == authUid());
+
+      allow delete: if isAdmin();
+    }
+
+    match /assignments/{assignmentId} {
+      allow read: if isAdmin()
+        || (isManager() && resource.data.managerUid == authUid())
+        || (isSignedIn() && resource.data.assigneeUid == authUid());
+
+      allow create: if isAdmin()
+        || (
+          isManager()
+          && request.resource.data.managerUid == authUid()
+        );
+
+      allow update: if isAdmin()
+        || (
+          isManager()
+          && resource.data.managerUid == authUid()
+        )
+        || (
+          isSignedIn()
+          && resource.data.assigneeUid == authUid()
+        );
+
+      allow delete: if isAdmin()
+        || (isManager() && resource.data.managerUid == authUid());
+    }
+
+    match /app_config/{key} {
+      allow read, write: if isAdmin();
+    }
+
+    match /usage_logs/{logId} {
+      allow create: if isSignedIn() && request.resource.data.userId == authUid();
+      allow read: if isAdmin();
+      allow update, delete: if false;
+    }
+
+    match /import_logs/{logId} {
+      allow read, write: if isAdmin();
+    }
+  }
+}

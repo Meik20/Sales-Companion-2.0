@@ -1,0 +1,18 @@
+export const routes = {
+  home: '/',
+  login: '/login',
+  register: '/register',
+  activate: '/activate',
+  search: '/search',
+  pipeline: '/pipeline',
+  profile: '/profile',
+  saved: '/saved',
+  settings: '/settings',
+  support: '/support',
+  team: '/team',
+  admin: '/admin',
+  adminDashboard: '/admin',
+  adminUsers: '/admin/users',
+  adminCompanies: '/admin/companies',
+  adminImports: '/admin/imports',
+}
