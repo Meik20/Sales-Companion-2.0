@@ -1,5 +1,5 @@
 import { getFirestore, Timestamp } from 'firebase-admin/firestore'
-import { logger } from '@/utils/logger'
+import { logger } from '../utils/logger'
 
 export const statsService = {
   async getTotalUsers(): Promise<number> {
