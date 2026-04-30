@@ -18,10 +18,10 @@ export default function SavedPage() {
 
   function handleRestore(filters: Record<string, unknown>) {
     const params = new URLSearchParams()
-    if (typeof filters.query  === 'string') params.set('query',  filters.query)
+    if (typeof filters.query === 'string') params.set('query', filters.query)
     if (typeof filters.sector === 'string') params.set('sector', filters.sector)
     if (typeof filters.region === 'string') params.set('region', filters.region)
-    if (typeof filters.city   === 'string') params.set('city',   filters.city)
+    if (typeof filters.city === 'string') params.set('city', filters.city)
     router.push(`/search?${params.toString()}`)
     pushToast({ type: 'success', title: 'Recherche restaurée' })
   }
@@ -59,7 +59,7 @@ export default function SavedPage() {
         {!savedSearchesQuery.isLoading && !savedSearchesQuery.isError && items.length === 0 ? (
           <EmptyState
             title="Aucune recherche sauvegardée"
-            description={'Utilisez le bouton "Sauvegarder" lors d\\'une recherche pour retrouver vos filtres ici.'}
+            description={`Utilisez le bouton "Sauvegarder" lors d'une recherche pour retrouver vos filtres ici.`}
             icon="🔖"
           />
         ) : null}
