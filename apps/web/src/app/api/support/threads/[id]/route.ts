@@ -1,12 +1,13 @@
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
     const token = request.headers.get('authorization')?.split(' ')[1] || ''
 
-    const response = await fetch(`${backendUrl}/api/support/threads/${params.id}`, {
+    const response = await fetch(`${backendUrl}/api/support/threads/${id}`, {
       headers: {
         'Authorization': `Bearer ${token}`,
       },
@@ -32,14 +33,15 @@ export async function GET(
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
     const token = request.headers.get('authorization')?.split(' ')[1] || ''
     const body = await request.json()
 
-    const response = await fetch(`${backendUrl}/api/support/threads/${params.id}/messages`, {
+    const response = await fetch(`${backendUrl}/api/support/threads/${id}/messages`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
