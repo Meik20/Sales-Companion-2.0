@@ -1,3 +1,5 @@
+import type { FirestoreTimestampLike } from './user'
+
 export type ImportLogDoc = {
   filename: string
   total: number
