@@ -116,6 +116,16 @@ export function LoginForm() {
         <Button type="submit" variant="primary" size="lg" loading={loading} style={{ width: '100%', marginTop: 4 }}>
           Se connecter
         </Button>
+
+        <Button
+          type="button"
+          variant="outline"
+          size="lg"
+          style={{ width: '100%' }}
+          onClick={() => router.push('/activate')}
+        >
+          Accès Entreprise
+        </Button>
       </form>
 
       <p style={{ textAlign: 'center', marginTop: 24, fontSize: 13, color: colors.textMid }}>
