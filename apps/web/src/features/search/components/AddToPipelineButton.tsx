@@ -36,8 +36,9 @@ export function AddToPipelineButton({ company }: Props) {
         companySector: company.sector,
         companyCity:   company.city ?? company.region,
         companyPhone:  company.telephone,
-        companyEmail:  company.email,
+        companyEmail:  company.email || undefined,
         status:        'prospection',
+        nextDate:      null,
         createdAt:     null,
         updatedAt:     null,
       })

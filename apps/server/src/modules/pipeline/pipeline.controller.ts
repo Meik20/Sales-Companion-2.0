@@ -44,7 +44,7 @@ export const pipelineController = {
     }
 
     try {
-      const item = await pipelineService.getPipelineItem(req.params.id, req.auth.uid)
+      const item = await pipelineService.getPipelineItem(req.params.id as string, req.auth.uid)
       return res.json(item)
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Erreur'
@@ -87,7 +87,7 @@ export const pipelineController = {
     try {
       const data = updatePipelineItemSchema.parse(req.body)
       const item = await pipelineService.updatePipelineItem({
-        id: req.params.id,
+        id: req.params.id as string,
         userId: req.auth.uid,
         data,
       })
@@ -105,7 +105,7 @@ export const pipelineController = {
     }
 
     try {
-      const result = await pipelineService.deletePipelineItem(req.params.id, req.auth.uid)
+      const result = await pipelineService.deletePipelineItem(req.params.id as string, req.auth.uid)
       return res.json(result)
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Erreur'

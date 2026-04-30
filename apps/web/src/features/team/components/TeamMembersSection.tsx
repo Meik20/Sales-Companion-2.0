@@ -62,7 +62,7 @@ function MemberCard({ member }: { member: TeamMember }) {
   return (
     <div
       style={{
-        background: colors.bg1,
+        background: colors.bg,
         border: `1px solid ${colors.border}`,
         borderRadius: 10,
         padding: 12,

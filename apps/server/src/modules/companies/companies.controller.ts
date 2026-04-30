@@ -17,7 +17,7 @@ export const companiesController = {
   },
 
   async deleteOne(req: Request, res: Response) {
-    return res.json(await companiesService.deleteOne(req.params.id))
+    return res.json(await companiesService.deleteOne(req.params.id as string))
   },
 
   async deleteAll(_req: Request, res: Response) {

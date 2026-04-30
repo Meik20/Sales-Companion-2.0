@@ -34,14 +34,14 @@ export const adminController = {
   async updateUser(req: Request, res: Response) {
     const data = updateUserSchema.parse(req.body)
     const result = await adminService.updateUser({
-      uid: req.params.uid,
+      uid: req.params.uid as string,
       data
     })
     return res.json(result)
   },
 
   async deleteUser(req: Request, res: Response) {
-    const result = await adminService.deleteUser(req.params.uid)
+    const result = await adminService.deleteUser(req.params.uid as string)
     return res.json(result)
   }
 }

@@ -75,7 +75,7 @@ export function CreateAssignmentForm() {
               padding: '10px 12px',
               borderRadius: 10,
               border: `1px solid ${colors.border}`,
-              background: colors.bg1,
+              background: colors.bg,
               color: colors.text,
               fontFamily: 'inherit',
               cursor: 'pointer',

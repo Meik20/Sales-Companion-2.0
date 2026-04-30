@@ -1,11 +1,11 @@
-import { getFirestore, collection, query, where, getDocs, Timestamp } from 'firebase-admin/firestore'
+import { getFirestore, Timestamp } from 'firebase-admin/firestore'
 import { logger } from '@/utils/logger'
 
 export const statsService = {
   async getTotalUsers(): Promise<number> {
     try {
       const db = getFirestore()
-      const snapshot = await getDocs(collection(db, 'users'))
+      const snapshot = await db.collection('users').get()
       return snapshot.size
     } catch (error) {
       logger.error('getTotalUsers error:', error)
@@ -16,7 +16,7 @@ export const statsService = {
   async getTotalCompanies(): Promise<number> {
     try {
       const db = getFirestore()
-      const snapshot = await getDocs(collection(db, 'companies'))
+      const snapshot = await db.collection('companies').get()
       return snapshot.size
     } catch (error) {
       logger.error('getTotalCompanies error:', error)
@@ -27,7 +27,7 @@ export const statsService = {
   async getTotalPipelineItems(): Promise<number> {
     try {
       const db = getFirestore()
-      const snapshot = await getDocs(collection(db, 'pipeline'))
+      const snapshot = await db.collection('pipeline').get()
       return snapshot.size
     } catch (error) {
       logger.error('getTotalPipelineItems error:', error)
@@ -42,12 +42,10 @@ export const statsService = {
       today.setHours(0, 0, 0, 0)
       const startOfDay = Timestamp.fromDate(today)
 
-      const q = query(
-        collection(db, 'usage_logs'),
-        where('type', '==', 'search'),
-        where('timestamp', '>=', startOfDay)
-      )
-      const snapshot = await getDocs(q)
+      const snapshot = await db.collection('usage_logs')
+        .where('type', '==', 'search')
+        .where('timestamp', '>=', startOfDay)
+        .get()
       return snapshot.size
     } catch (error) {
       logger.error('getTotalSearchesToday error:', error)
@@ -62,11 +60,9 @@ export const statsService = {
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
       const startDate = Timestamp.fromDate(sevenDaysAgo)
 
-      const q = query(
-        collection(db, 'users'),
-        where('lastLogin', '>=', startDate)
-      )
-      const snapshot = await getDocs(q)
+      const snapshot = await db.collection('users')
+        .where('lastLogin', '>=', startDate)
+        .get()
       return snapshot.size
     } catch (error) {
       logger.error('getActiveUsers error:', error)
@@ -81,11 +77,9 @@ export const statsService = {
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
       const startDate = Timestamp.fromDate(sevenDaysAgo)
 
-      const q = query(
-        collection(db, 'users'),
-        where('createdAt', '>=', startDate)
-      )
-      const snapshot = await getDocs(q)
+      const snapshot = await db.collection('users')
+        .where('createdAt', '>=', startDate)
+        .get()
       return snapshot.size
     } catch (error) {
       logger.error('getNewUsersThisWeek error:', error)
@@ -96,7 +90,7 @@ export const statsService = {
   async getPipelineMetrics() {
     try {
       const db = getFirestore()
-      const snapshot = await getDocs(collection(db, 'pipeline'))
+      const snapshot = await db.collection('pipeline').get()
 
       const metrics = {
         total: snapshot.size,
@@ -106,7 +100,7 @@ export const statsService = {
         lost: 0,
       }
 
-      snapshot.forEach((doc) => {
+      snapshot.forEach((doc: any) => {
         const status = doc.data().status as string
         if (status === 'prospection') metrics.prospection++
         else if (status === 'negotiation') metrics.negotiation++
@@ -124,18 +118,13 @@ export const statsService = {
   async getTeamPerformance(teamId?: string) {
     try {
       const db = getFirestore()
-      let q
+      let q: any = db.collection('pipeline')
 
       if (teamId) {
-        q = query(
-          collection(db, 'pipeline'),
-          where('managerUid', '==', teamId)
-        )
-      } else {
-        q = query(collection(db, 'pipeline'))
+        q = q.where('managerUid', '==', teamId)
       }
 
-      const snapshot = await getDocs(q)
+      const snapshot = await q.get()
 
       const performance = {
         totalItems: snapshot.size,
@@ -148,7 +137,7 @@ export const statsService = {
       oneWeekAgo.setDate(oneWeekAgo.getDate() - 7)
       const startDate = Timestamp.fromDate(oneWeekAgo)
 
-      snapshot.forEach((doc) => {
+      snapshot.forEach((doc: any) => {
         const data = doc.data()
         if (data.status === 'conclusion') performance.closed++
         if (data.createdAt >= startDate) performance.lastWeekItems++

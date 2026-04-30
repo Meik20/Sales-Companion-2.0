@@ -47,7 +47,7 @@ export const teamController = {
   },
 
   async getAccessInfo(req: Request, res: Response) {
-    const { accessId } = req.params
+    const { accessId } = req.params as { accessId: string }
     if (!accessId) {
       return res.status(400).json({ message: 'Access ID is required' })
     }
@@ -91,7 +91,7 @@ export const teamController = {
       return res.status(401).json({ message: 'Unauthorized' })
     }
 
-    const result = await teamService.getManagerMemberDetail(req.auth.uid, req.params.accessId)
+    const result = await teamService.getManagerMemberDetail(req.auth.uid, req.params.accessId as string)
     return res.json(result)
   }
 }

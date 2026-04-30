@@ -90,10 +90,7 @@ export const pipelineService = {
 
     await docRef.set(itemData)
 
-    return {
-      id: docRef.id,
-      ...itemData,
-    }
+    return itemData
   },
 
   async updatePipelineItem(input: UpdatePipelineItemInput) {

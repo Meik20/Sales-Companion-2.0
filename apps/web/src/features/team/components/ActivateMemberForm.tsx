@@ -83,7 +83,7 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
       onSubmit={handleSubmit}
       style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, background: colors.bg1, padding: 14, borderRadius: 10 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, background: colors.bg, padding: 14, borderRadius: 10 }}>
         <div>
           <div style={{ fontSize: 11, color: colors.textDim, letterSpacing: '.04em', textTransform: 'uppercase', marginBottom: 3 }}>
             Nom

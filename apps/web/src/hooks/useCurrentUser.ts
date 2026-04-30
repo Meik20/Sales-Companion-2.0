@@ -16,6 +16,7 @@ export type CurrentUser = {
   dailyLimit: number
   dailyUsed: number
   active: boolean
+  getIdToken: (forceRefresh?: boolean) => Promise<string>
 }
 
 export function useCurrentUser() {
@@ -33,7 +34,11 @@ export function useCurrentUser() {
       try {
         const userDoc = await getDoc(doc(firestore, 'users', firebaseUser.uid))
         if (userDoc.exists()) {
-          setUser({ uid: firebaseUser.uid, ...userDoc.data() } as CurrentUser)
+          setUser({
+            uid: firebaseUser.uid,
+            ...userDoc.data(),
+            getIdToken: (forceRefresh?: boolean) => firebaseUser.getIdToken(forceRefresh),
+          } as CurrentUser)
         } else {
           // If no user doc yet, create basic user from Firebase auth
           setUser({
@@ -47,6 +52,7 @@ export function useCurrentUser() {
             dailyLimit: 10,
             dailyUsed: 0,
             active: true,
+            getIdToken: (forceRefresh?: boolean) => firebaseUser.getIdToken(forceRefresh),
           })
         }
       } catch (error) {

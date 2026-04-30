@@ -8,7 +8,7 @@ export function parseCsv(content: string) {
     return []
   }
 
-  const headers = splitCsvLine(lines[0])
+  const headers = splitCsvLine(lines[0] || '')
 
   return lines.slice(1).map((line) => {
     const values = splitCsvLine(line)

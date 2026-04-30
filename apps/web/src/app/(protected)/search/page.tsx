@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { AppShell } from '@/components/layout/AppShell'
 import { PageHeader } from '@/components/layout/PageHeader'
@@ -13,7 +13,7 @@ import { SaveCurrentSearchButton } from '@/features/search/components/SaveCurren
 import { useCompaniesSearch } from '@/features/search/hooks/useCompaniesSearch'
 import { colors } from '@/styles/tokens'
 
-export default function SearchPage() {
+function SearchContent() {
   const searchParams = useSearchParams()
   const [filters, setFilters] = useState<{
     sector?: string
@@ -100,5 +100,13 @@ export default function SearchPage() {
         )}
       </div>
     </AppShell>
+  )
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: 20 }}>Chargement de la recherche...</div>}>
+      <SearchContent />
+    </Suspense>
   )
 }

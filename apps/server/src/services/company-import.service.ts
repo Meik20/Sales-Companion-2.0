@@ -49,7 +49,7 @@ async function parseSpreadsheet(input: ParseImportFileInput): Promise<ParsedRow[
   }
 
   const workbook = new ExcelJS.Workbook()
-  await workbook.xlsx.load(input.buffer)
+  await workbook.xlsx.load(input.buffer as any)
 
   const sheet = input.sheetName
     ? workbook.getWorksheet(input.sheetName)
@@ -147,7 +147,9 @@ export const companyImportService = {
     }> = []
 
     for (let index = 0; index < parsedRows.length; index += 1) {
-      const mapped = mapRowToCompany(parsedRows[index], mapping)
+      const row = parsedRows[index]
+      if (!row) continue
+      const mapped = mapRowToCompany(row, mapping)
 
       if (!mapped.raisonSociale) {
         skipped += 1
@@ -219,7 +221,9 @@ export const companyImportService = {
 
             imported += 1
           } else {
-            const existingRef = existingSnapshot.docs[0].ref
+            const firstDoc = existingSnapshot.docs[0]
+            if (!firstDoc) continue
+            const existingRef = firstDoc.ref
 
             await existingRef.set(
               {

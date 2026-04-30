@@ -8,7 +8,7 @@ type ServiceWorkerState = 'idle' | 'installing' | 'installed' | 'updating' | 'er
 export function usePWARegistration() {
   const [state, setState] = useState<ServiceWorkerState>('idle')
   const [registration, setRegistration] = useState<ServiceWorkerRegistration | null>(null)
-  const { showToast } = useToast()
+  const { pushToast } = useToast()
 
   useEffect(() => {
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
@@ -46,11 +46,10 @@ export function usePWARegistration() {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
               // New service worker is ready
               console.log('[PWA] New service worker ready to activate')
-              showToast({
+              pushToast({
                 type: 'info',
                 title: 'Mise à jour disponible',
                 description: 'Une nouvelle version est prête. Rechargez la page pour l\'activer.',
-                duration: 10000,
               })
               setState('installed')
             }
@@ -59,7 +58,7 @@ export function usePWARegistration() {
       } catch (error) {
         console.error('[PWA] Service Worker registration failed:', error)
         setState('error')
-        showToast({
+        pushToast({
           type: 'error',
           title: 'Erreur PWA',
           description: 'Impossible d\'enregistrer le service worker.',
@@ -68,7 +67,7 @@ export function usePWARegistration() {
     }
 
     registerServiceWorker()
-  }, [showToast])
+  }, [pushToast])
 
   // Listen for controller change (new service worker activated)
   useEffect(() => {
@@ -95,11 +94,11 @@ export function usePWARegistration() {
       return
     }
 
-    const handleMessage = (event: ExtendableMessageEvent) => {
+    const handleMessage = (event: MessageEvent) => {
       const { data } = event
       if (data?.type === 'SYNC_COMPLETE') {
         console.log('[PWA] Background sync completed:', data.count, 'actions')
-        showToast({
+        pushToast({
           type: 'success',
           title: 'Synchronisation',
           description: `${data.count} action${data.count > 1 ? 's' : ''} synchronisée${data.count > 1 ? 's' : ''}.`,
@@ -112,7 +111,7 @@ export function usePWARegistration() {
     return () => {
       navigator.serviceWorker?.removeEventListener('message', handleMessage)
     }
-  }, [showToast])
+  }, [pushToast])
 
   return {
     state,
@@ -151,18 +150,18 @@ export function triggerBackgroundSync(tag = 'sync-pending-actions') {
       return
     }
 
-    return registration.sync.register(tag)
+    return (registration as any).sync.register(tag)
   })
 }
 
 export function installPWA() {
   if (typeof window === 'undefined') return
 
-  let deferredPrompt: BeforeInstallPromptEvent | null = null
+  let deferredPrompt: any = null
 
   window.addEventListener('beforeinstallprompt', (e: Event) => {
     e.preventDefault()
-    deferredPrompt = e as BeforeInstallPromptEvent
+    deferredPrompt = e
   })
 
   return deferredPrompt

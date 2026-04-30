@@ -1,7 +1,7 @@
 'use client'
 
 import { useSearchParams, useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { ActivateMemberForm } from '@/features/team/components/ActivateMemberForm'
 import { ScIcon } from '@/components/ui/ScIcon'
 import { colors } from '@/styles/tokens'
@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { FormField } from '@/components/forms/FormField'
 
-export default function ActivatePage() {
+function ActivateContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const urlAccessId = searchParams.get('accessId') ?? ''
@@ -133,5 +133,13 @@ export default function ActivatePage() {
         <ActivateMemberForm accessId={accessId} onSuccess={() => setDone(true)} />
       </div>
     </main>
+  )
+}
+
+export default function ActivatePage() {
+  return (
+    <Suspense fallback={<div style={{ padding: 20 }}>Chargement...</div>}>
+      <ActivateContent />
+    </Suspense>
   )
 }

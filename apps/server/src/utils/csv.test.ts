@@ -10,8 +10,8 @@ Nova,Yaounde`
     const rows = parseCsv(content)
 
     expect(rows).toHaveLength(2)
-    expect(rows[0].name).toBe('Acme')
-    expect(rows[0].city).toBe('Douala')
-    expect(rows[1].name).toBe('Nova')
+    expect(rows[0]!.name).toBe('Acme')
+    expect(rows[0]!.city).toBe('Douala')
+    expect(rows[1]!.name).toBe('Nova')
   })
 })
