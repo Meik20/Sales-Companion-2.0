@@ -59,7 +59,7 @@ export default function SavedPage() {
         {!savedSearchesQuery.isLoading && !savedSearchesQuery.isError && items.length === 0 ? (
           <EmptyState
             title="Aucune recherche sauvegardée"
-            description='Utilisez le bouton "Sauvegarder" lors d\'une recherche pour retrouver vos filtres ici.'
+            description={'Utilisez le bouton "Sauvegarder" lors d\\'une recherche pour retrouver vos filtres ici.'}
             icon="🔖"
           />
         ) : null}
