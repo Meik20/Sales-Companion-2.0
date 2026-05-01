@@ -1,5 +1,8 @@
 FROM node:22-alpine AS builder
 
+# Update system packages to patch known vulnerabilities in the alpine base image
+RUN apk update && apk upgrade --no-cache
+
 WORKDIR /app
 
 # Copy package files for caching
