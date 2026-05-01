@@ -918,9 +918,9 @@
         role="img"
         aria-label="Code QR pour installer l'application"
       >
-        <!-- Placeholder - sera généré en JS -->
-        <rect width="41" height="41" fill="white"/>
+        <!-- L'image remplacera le SVG -->
       </svg>
+      <img id="qr-code-img" src="" alt="QR Code" width="120" height="120" style="display:none; border-radius: 4px; background: #fff; border: 1px solid var(--bd); padding: 8px;" />
       <span class="pwa-install-qr-label">Scannez pour installer</span>
     </div>
     
@@ -1618,10 +1618,15 @@
     }
   }
 
-  // Generate QR code for app URL
+  // Générer le QR Code avec une API fiable (api.qrserver.com)
   var appUrl = window.location.protocol + '//' + window.location.host + '/search';
-  var qrData = generateQRCode(appUrl, 41, 1);
-  renderQRCode(qrData);
+  var qrImg = document.getElementById('qr-code-img');
+  var qrSvg = document.getElementById('qr-code');
+  if (qrImg && qrSvg) {
+    qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + encodeURIComponent(appUrl);
+    qrImg.style.display = 'block';
+    qrSvg.style.display = 'none';
+  }
 
   /* ─── PWA Install Prompt ────────────────────────────────────────────────── */
   var deferredPrompt = null;

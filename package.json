@@ -4,9 +4,9 @@
   "workspaces": ["apps/*", "packages/*"],
   "scripts": {
     "generate:pwa-icons": "node scripts/generate-pwa-icons.js",
-    "dev:web": "npm run generate:pwa-icons && npm --workspace apps/web run dev",
+    "dev:web": "npm --workspace apps/web run dev",
     "dev:server": "npm --workspace apps/server run dev",
-    "build:web": "npm run generate:pwa-icons && npm --workspace apps/web run build",
+    "build:web": "npm --workspace apps/web run build",
     "build:server": "npm --workspace apps/server run build",
     "build:shared": "npm --workspace packages/shared run build",
     "build": "npm run build:shared && npm run build:web && npm run build:server",

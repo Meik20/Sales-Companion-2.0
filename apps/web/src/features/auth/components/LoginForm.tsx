@@ -18,11 +18,50 @@ export function LoginForm() {
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  
+  // Activation mode
+  const [isActivationMode, setIsActivationMode] = useState(false)
+  const [accessId, setAccessId] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    
+    if (isActivationMode) {
+      if (!accessId || !email || !password || !confirmPassword) {
+        setError('Veuillez remplir tous les champs.')
+        return
+      }
+      if (password !== confirmPassword) {
+        setError('Les mots de passe ne correspondent pas.')
+        return
+      }
+      setLoading(true)
+      setError(null)
+      try {
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '/api'
+        const res = await fetch(`${backendUrl.replace('/api', '')}/api/team/activate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ accessId, email, password })
+        })
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error || data.message || "Erreur d'activation")
+        
+        // Connexion automatique
+        await loginWithEmail(email, password)
+        router.replace(routes.search)
+      } catch (err: any) {
+        setError(err.message || 'Erreur réseau')
+      } finally {
+        setLoading(false)
+      }
+      return
+    }
+
     if (!email || !password) {
       setError('Veuillez remplir tous les champs.')
       return
@@ -65,14 +104,25 @@ export function LoginForm() {
             letterSpacing: '-.03em',
           }}
         >
-          Connexion
+          {isActivationMode ? 'Activer mon accès' : 'Connexion'}
         </h1>
         <p style={{ margin: 0, fontSize: 13, color: colors.textMid }}>
-          Bienvenue sur Sales Companion
+          {isActivationMode ? 'Renseignez l\'ID fourni par votre manager.' : 'Bienvenue sur Sales Companion'}
         </p>
       </div>
 
       <form onSubmit={(e) => void handleSubmit(e)} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        {isActivationMode && (
+          <FormField label="Identifiant d'accès (Access ID)" required>
+            <Input
+              type="text"
+              placeholder="Ex: jeandupont@entreprise"
+              value={accessId}
+              onChange={(e) => setAccessId(e.target.value)}
+            />
+          </FormField>
+        )}
+
         <FormField label="Email" required>
           <Input
             type="email"
@@ -83,15 +133,27 @@ export function LoginForm() {
           />
         </FormField>
 
-        <FormField label="Mot de passe" required>
+        <FormField label={isActivationMode ? "Nouveau mot de passe" : "Mot de passe"} required>
           <Input
             type="password"
             placeholder="••••••••"
             value={password}
-            autoComplete="current-password"
+            autoComplete={isActivationMode ? "new-password" : "current-password"}
             onChange={(e) => setPassword(e.target.value)}
           />
         </FormField>
+
+        {isActivationMode && (
+          <FormField label="Confirmer le mot de passe" required>
+            <Input
+              type="password"
+              placeholder="••••••••"
+              value={confirmPassword}
+              autoComplete="new-password"
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
+          </FormField>
+        )}
 
         {error ? (
           <div
@@ -109,7 +171,7 @@ export function LoginForm() {
         ) : null}
 
         <Button type="submit" variant="primary" size="lg" loading={loading} style={{ width: '100%', marginTop: 4 }}>
-          Se connecter
+          {isActivationMode ? 'Activer mon compte' : 'Se connecter'}
         </Button>
 
         <Button
@@ -117,21 +179,26 @@ export function LoginForm() {
           variant="outline"
           size="lg"
           style={{ width: '100%' }}
-          onClick={() => router.push('/activate')}
+          onClick={() => {
+            setIsActivationMode(!isActivationMode)
+            setError(null)
+          }}
         >
-          Accès Entreprise
+          {isActivationMode ? 'Retour à la connexion' : 'J\'ai un accès équipe à activer'}
         </Button>
       </form>
 
-      <p style={{ textAlign: 'center', marginTop: 24, fontSize: 13, color: colors.textMid }}>
-        Pas encore de compte ?{' '}
-        <Link
-          href={routes.register}
-          style={{ color: colors.greenMid, fontWeight: 600 }}
-        >
-          Créer un compte
-        </Link>
-      </p>
+      {!isActivationMode && (
+        <p style={{ textAlign: 'center', marginTop: 24, fontSize: 13, color: colors.textMid }}>
+          Pas encore de compte ?{' '}
+          <Link
+            href={routes.register}
+            style={{ color: colors.greenMid, fontWeight: 600 }}
+          >
+            Créer un compte
+          </Link>
+        </p>
+      )}
     </div>
   )
 }

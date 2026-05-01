@@ -250,18 +250,71 @@ function SearchContent() {
         </DataCard>
 
         {/* Assistant B2B */}
-        <DataCard title="🟢 Assistant B2B">
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div style={{ background: colors.greenLight, padding: 12, borderRadius: '0 12px 12px 12px', fontSize: 13, color: colors.greenDark }}>
-              Bonjour 👋 Je suis votre assistant commercial. Posez-moi vos questions sur la prospection B2B au Cameroun, les secteurs, les stratégies de vente.
+        <DataCard title="🟢 Assistant IA B2B">
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 16, minHeight: 350 }}>
+            {/* Zone de messages (scrollable) */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 12, overflowY: 'auto', paddingRight: 4 }}>
+              <div style={{ 
+                background: colors.greenLight, 
+                padding: '12px 16px', 
+                borderRadius: '16px 16px 16px 4px', 
+                fontSize: 13, 
+                color: colors.greenDark,
+                lineHeight: 1.5,
+                boxShadow: '0 2px 8px rgba(27,122,62,0.05)'
+              }}>
+                <strong>Bonjour 👋 Je suis votre Assistant IA B2B.</strong><br/>
+                Posez-moi vos questions sur la prospection au Cameroun, les secteurs d'activité, ou demandez-moi de rédiger un email d'approche.
+              </div>
             </div>
-            <div style={{ marginTop: 'auto', position: 'relative' }}>
-              <input 
-                type="text" 
-                placeholder="Posez une question..." 
-                style={{ width: '100%', padding: '10px 14px', borderRadius: 20, border: `1px solid ${colors.border2}`, outline: 'none' }} 
+
+            {/* Suggestions rapides */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              <button style={{ fontSize: 11, padding: '6px 10px', borderRadius: 999, border: `1px solid ${colors.border}`, background: '#fff', color: colors.textMid, cursor: 'pointer' }}>
+                Tendances BTP Douala
+              </button>
+              <button style={{ fontSize: 11, padding: '6px 10px', borderRadius: 999, border: `1px solid ${colors.border}`, background: '#fff', color: colors.textMid, cursor: 'pointer' }}>
+                Email d'approche Tech
+              </button>
+            </div>
+
+            {/* Zone de saisie */}
+            <div style={{ position: 'relative', marginTop: 'auto' }}>
+              <textarea 
+                placeholder="Ex: Comment aborder un DG dans l'Agroalimentaire ?" 
+                rows={2}
+                style={{ 
+                  width: '100%', 
+                  padding: '12px 48px 12px 16px', 
+                  borderRadius: 16, 
+                  border: `1px solid ${colors.border2}`, 
+                  outline: 'none',
+                  fontSize: 13,
+                  resize: 'none',
+                  fontFamily: 'inherit',
+                  boxShadow: '0 2px 12px rgba(0,0,0,0.03)'
+                }} 
               />
-              <button style={{ position: 'absolute', right: 4, top: 4, bottom: 4, width: 32, borderRadius: '50%', background: colors.green, color: '#fff', border: 'none', cursor: 'pointer' }}>
+              <button style={{ 
+                position: 'absolute', 
+                right: 8, 
+                bottom: 8, 
+                width: 32, 
+                height: 32,
+                borderRadius: '50%', 
+                background: colors.green, 
+                color: '#fff', 
+                border: 'none', 
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 4px 12px rgba(27,122,62,0.3)',
+                transition: 'transform 200ms'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+              onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+              >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
               </button>
             </div>
