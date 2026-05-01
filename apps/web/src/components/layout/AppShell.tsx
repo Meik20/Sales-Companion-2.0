@@ -10,6 +10,7 @@ import { colors } from '@/styles/tokens'
 export function AppShell({ children }: PropsWithChildren) {
   const isDesktop = useMediaQuery('(min-width: 1024px)')
   const [mounted, setMounted] = useState(false)
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
 
   useEffect(() => {
     setMounted(true)
@@ -17,20 +18,19 @@ export function AppShell({ children }: PropsWithChildren) {
 
   return (
     <div style={{ minHeight: '100vh', background: colors.bg }}>
-      <AppHeader />
+      <AppHeader onOpenMenu={() => setIsDrawerOpen(true)} />
+
+      {mounted && !isDesktop && isDrawerOpen && (
+        <AppSidebar isMobile={true} onClose={() => setIsDrawerOpen(false)} />
+      )}
 
       <div
         style={{
           maxWidth: 1440,
           margin: '0 auto',
-          padding: '0 16px 32px',
+          padding: '0 16px',
         }}
       >
-        {mounted && !isDesktop ? (
-          <div style={{ paddingTop: 12, marginBottom: 12 }}>
-            <MobileNav />
-          </div>
-        ) : null}
 
         <div
           style={{
@@ -38,6 +38,7 @@ export function AppShell({ children }: PropsWithChildren) {
             alignItems: 'stretch',
             minHeight: 'calc(100vh - 60px)',
             gap: 0,
+            paddingBottom: mounted && !isDesktop ? '72px' : '0', // Space for bottom nav
           }}
         >
           {mounted && isDesktop ? <AppSidebar /> : null}
@@ -52,6 +53,8 @@ export function AppShell({ children }: PropsWithChildren) {
             {children}
           </main>
         </div>
+        
+        {mounted && !isDesktop ? <MobileNav /> : null}
       </div>
     </div>
   )

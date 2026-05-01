@@ -2,33 +2,33 @@
 
 /* ─── CSS Variables ─────────────────────────────────────────────────── */
 :root {
-  --g:    #1B7A3E;
-  --gm:   #2ea05a;
-  --gd:   #145f2f;
-  --gl:   rgba(27,122,62,0.12);
+  --g:    #1B5E20;
+  --gm:   #43A047;
+  --gd:   #0D3311;
+  --gl:   #E8F5E9;
 
   --accent:  #00897B;
-  --gold:    #F5A623;
-  --goldd:   #c8841a;
+  --gold:    #F9A825;
+  --goldd:   #F57F17;
 
-  --dark:  #0D1117;
-  --dark2: #161B22;
-  --dark3: #21262D;
-  --dark4: #2D333B;
+  --bg:    #F5F7FA;
+  --bg2:   #FFFFFF;
+  --bg3:   #F0F2F5;
+  --bg4:   #E8EAED;
 
-  --tx:  #F0F6FC;
-  --tx2: #8B949E;
-  --tx3: #484F58;
+  --tx:  #1A1A2E;
+  --tx2: #4A5568;
+  --tx3: #9CA3AF;
 
-  --bd:  rgba(255,255,255,0.08);
-  --bd2: rgba(255,255,255,0.15);
+  --bd:  rgba(0, 0, 0, 0.06);
+  --bd2: rgba(0, 0, 0, 0.12);
 
   --r:  10px;
   --r2: 16px;
   --r3: 20px;
 
-  --sh:  0 4px 24px rgba(0,0,0,0.3);
-  --sh2: 0 20px 60px rgba(0,0,0,0.5);
+  --sh:  0 4px 6px -1px rgba(0, 0, 0, 0.07);
+  --sh2: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 
   --transition: 300ms ease;
   --transition-fast: 150ms ease;
@@ -52,7 +52,7 @@ html[data-scroll-behavior="smooth"] {
 
 body {
   font-family: 'Inter', 'DM Sans', sans-serif;
-  background: var(--dark);
+  background: var(--bg);
   color: var(--tx);
   min-height: 100vh;
   overflow-x: hidden;

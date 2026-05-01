@@ -3,35 +3,14 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
-import { Badge } from '@/components/ui/index'
 import { ScIcon } from '@/components/ui/ScIcon'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { routes } from '@/constants/routes'
-import { useAuthActions } from '@/features/auth/hooks/useAuthActions'
-import { useToast } from '@/hooks/useToast'
-import { colors } from '@/styles/tokens'
+import { colors, shadows } from '@/styles/tokens'
 
-const roleBadge: Record<string, 'success' | 'gold' | 'info' | 'default'> = {
-  admin: 'gold',
-  manager: 'success',
-  member: 'info',
-  independent: 'default',
-}
-
-export function AppHeader() {
+export function AppHeader({ onOpenMenu }: { onOpenMenu?: () => void }) {
   const { user } = useCurrentUser()
-  const { logout } = useAuthActions()
-  const { pushToast } = useToast()
   const router = useRouter()
-
-  async function handleLogout() {
-    try {
-      await logout()
-      pushToast({ type: 'success', title: 'Déconnexion réussie' })
-    } catch {
-      pushToast({ type: 'error', title: 'Erreur de déconnexion' })
-    }
-  }
 
   return (
     <header
@@ -39,10 +18,8 @@ export function AppHeader() {
         position: 'sticky',
         top: 0,
         zIndex: 100,
-        background: 'rgba(13,17,23,0.9)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        borderBottom: `1px solid ${colors.border}`,
+        background: `linear-gradient(135deg, ${colors.green} 0%, ${colors.greenDark} 100%)`,
+        boxShadow: shadows.sm,
         padding: '0 24px',
         height: 60,
         display: 'flex',
@@ -60,59 +37,84 @@ export function AppHeader() {
           gap: 16,
         }}
       >
-        {/* Brand */}
-        <Link
-          href={routes.home}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            textDecoration: 'none',
-          }}
-        >
-          <ScIcon size={32} interactive />
-          <span
+        {/* Left: Menu & Brand */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          {onOpenMenu && (
+            <button
+              onClick={onOpenMenu}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#fff',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: 4,
+              }}
+              aria-label="Ouvrir le menu"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+              </svg>
+            </button>
+          )}
+
+          <Link
+            href={routes.home}
             style={{
-              fontFamily: "'Syne',sans-serif",
-              fontWeight: 700,
-              fontSize: 15,
-              color: colors.text,
-              letterSpacing: '.02em',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              textDecoration: 'none',
             }}
           >
-            Sales{' '}
-            <em style={{ color: colors.greenMid, fontStyle: 'normal' }}>Companion</em>
-          </span>
-        </Link>
+            <div style={{ background: 'rgba(255,255,255,0.1)', padding: 4, borderRadius: 8 }}>
+              <ScIcon size={24} interactive />
+            </div>
+            <span
+              style={{
+                fontFamily: "'Syne',sans-serif",
+                fontWeight: 700,
+                fontSize: 16,
+                color: '#ffffff',
+                letterSpacing: '.02em',
+                textTransform: 'uppercase',
+              }}
+            >
+              Sales <em style={{ opacity: 0.9, fontStyle: 'normal', fontWeight: 400 }}>Companion</em>
+            </span>
+          </Link>
+        </div>
 
-        {/* Right */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        {/* Right: Avatar */}
+        <div style={{ display: 'flex', alignItems: 'center' }}>
           {user ? (
-            <>
-              <span style={{ fontSize: 13, color: colors.textMid }}>
-                {user.name || user.email || 'Utilisateur'}
-              </span>
-              {user.role ? (
-                <Badge variant={roleBadge[user.role] ?? 'default'}>
-                  {user.role}
-                </Badge>
-              ) : null}
-              <Button variant="ghost" size="sm" onClick={() => void handleLogout()}>
-                Déconnexion
-              </Button>
-            </>
+            <button
+              onClick={onOpenMenu}
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: '50%',
+                background: 'rgba(255,255,255,0.2)',
+                color: '#fff',
+                border: '1px solid rgba(255,255,255,0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 700,
+                fontSize: 15,
+                cursor: 'pointer',
+              }}
+            >
+              {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || '👤'}
+            </button>
           ) : (
-            <>
-              <Link
-                href={routes.login}
-                style={{ fontSize: 13, color: colors.textMid, fontWeight: 500 }}
-              >
-                Connexion
-              </Link>
-              <Button variant="primary" size="sm" onClick={() => router.push(routes.register)}>
-                Commencer
-              </Button>
-            </>
+            <Button variant="outline" size="sm" onClick={() => router.push(routes.login)} style={{ borderColor: 'rgba(255,255,255,0.3)', color: '#fff' }}>
+              Connexion
+            </Button>
           )}
         </div>
       </div>

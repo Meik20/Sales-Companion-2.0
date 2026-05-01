@@ -6,12 +6,14 @@ import { AppShell } from '@/components/layout/AppShell'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { LoadingState, EmptyState } from '@/components/feedback/index'
 import { ErrorState } from '@/components/feedback/index'
-import { DataCard } from '@/components/ui/index'
+import { DataCard, Badge } from '@/components/ui/index'
 import { SearchFiltersForm } from '@/features/search/components/SearchFiltersForm'
 import { CompaniesSearchResults } from '@/features/search/components/CompaniesSearchResults'
 import { SaveCurrentSearchButton } from '@/features/search/components/SaveCurrentSearchButton'
 import { useCompaniesSearch } from '@/features/search/hooks/useCompaniesSearch'
 import { colors } from '@/styles/tokens'
+import { ShortcutCard } from '@/components/ui/ShortcutCard'
+import { Button } from '@/components/ui/Button'
 
 function SearchContent() {
   const searchParams = useSearchParams()
@@ -45,7 +47,16 @@ function SearchContent() {
         actions={<SaveCurrentSearchButton filters={filters} results={results} />}
       />
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <div 
+        className="search-page-grid"
+        style={{ 
+          display: 'grid', 
+          gridTemplateColumns: '2fr 1fr', 
+          gap: 24, 
+          alignItems: 'start' 
+        }}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         {/* Filtres */}
         <DataCard title="Filtres de recherche">
           <SearchFiltersForm
@@ -86,18 +97,147 @@ function SearchContent() {
           <div
             style={{
               display: 'flex',
+              flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              padding: '60px 24px',
-              color: colors.textMid,
-              fontSize: 14,
-              gap: 10,
+              padding: '40px 16px',
+              textAlign: 'center',
+              gap: 32,
             }}
           >
-            <span style={{ fontSize: 24 }}>🔍</span>
-            Lancez une recherche pour afficher les entreprises
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+              {/* Illustration générique améliorée */}
+              <div 
+                style={{ 
+                  width: 80, 
+                  height: 80, 
+                  borderRadius: '50%', 
+                  background: colors.greenLight, 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  color: colors.green
+                }}
+              >
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                  <path d="M11 8v6"></path>
+                  <path d="M8 11h6"></path>
+                </svg>
+              </div>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <h2 style={{ fontSize: 24, fontWeight: 700, color: colors.text, margin: 0 }}>
+                  Trouvez vos prospects
+                </h2>
+                <p style={{ color: colors.textMid, fontSize: 15, maxWidth: 400, margin: '0 auto' }}>
+                  Recherchez par nom, secteur, ville ou utilisez les filtres rapides ci-dessous pour démarrer.
+                </p>
+              </div>
+
+              <Button 
+                variant="primary" 
+                size="md" 
+                onClick={() => {
+                  setHasSearched(true)
+                  setFilters({})
+                }}
+                style={{ marginTop: 8 }}
+              >
+                Lancez votre première recherche →
+              </Button>
+            </div>
+
+            {/* Grille de Raccourcis */}
+            <div 
+              style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+                gap: 16, 
+                width: '100%', 
+                maxWidth: 600 
+              }}
+            >
+              <ShortcutCard 
+                sector="btp" 
+                title="BTP Douala" 
+                subtitle="Nouvelles entreprises" 
+                onClick={() => { setFilters({ sector: 'BTP', city: 'Douala' }); setHasSearched(true) }} 
+              />
+              <ShortcutCard 
+                sector="tech" 
+                title="Tech Yaoundé" 
+                subtitle="Startups & PME" 
+                onClick={() => { setFilters({ sector: 'Tech', city: 'Yaoundé' }); setHasSearched(true) }} 
+              />
+              <ShortcutCard 
+                sector="agro" 
+                title="Agroalimentaire" 
+                subtitle="Tout Cameroun" 
+                onClick={() => { setFilters({ sector: 'Agroalimentaire' }); setHasSearched(true) }} 
+              />
+              <ShortcutCard 
+                sector="transport" 
+                title="Transport" 
+                subtitle="Tout Cameroun" 
+                onClick={() => { setFilters({ sector: 'Transport' }); setHasSearched(true) }} 
+              />
+            </div>
           </div>
         )}
+      </div>
+
+      {/* Colonne de Droite : Pipeline & Assistant (Desktop uniquement) */}
+      <div 
+        className="desktop-only-panels"
+        style={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          gap: 20,
+          minWidth: 300,
+        }}
+      >
+        <style dangerouslySetInnerHTML={{__html: \`
+          @media (max-width: 1024px) {
+            .desktop-only-panels { display: none !important; }
+            .search-page-grid { grid-template-columns: 1fr !important; }
+          }
+        \`}} />
+
+        {/* Pipeline commercial */}
+        <DataCard title="Pipeline commercial">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'center', background: '#FFF3E0', padding: 8, borderRadius: 20 }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: '#E65100' }}>🎯 Prospection <Badge variant="danger" style={{borderRadius: 10}}>0</Badge></span>
+            </div>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+              <span style={{ fontSize: 12, color: colors.textMid }}>🤝 Négociation <Badge variant="info">0</Badge></span>
+              <span style={{ fontSize: 12, color: colors.textMid }}>✅ Conclue <Badge variant="success">0</Badge></span>
+            </div>
+            <Button variant="primary" style={{ width: '100%', borderRadius: 8 }}>+ Ajouter une entreprise</Button>
+          </div>
+        </DataCard>
+
+        {/* Assistant B2B */}
+        <DataCard title="🟢 Assistant B2B" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ background: colors.greenLight, padding: 12, borderRadius: '0 12px 12px 12px', fontSize: 13, color: colors.greenDark }}>
+              Bonjour 👋 Je suis votre assistant commercial. Posez-moi vos questions sur la prospection B2B au Cameroun, les secteurs, les stratégies de vente.
+            </div>
+            <div style={{ marginTop: 'auto', position: 'relative' }}>
+              <input 
+                type="text" 
+                placeholder="Posez une question..." 
+                style={{ width: '100%', padding: '10px 14px', borderRadius: 20, border: \`1px solid \${colors.border2}\`, outline: 'none' }} 
+              />
+              <button style={{ position: 'absolute', right: 4, top: 4, bottom: 4, width: 32, borderRadius: '50%', background: colors.green, color: '#fff', border: 'none', cursor: 'pointer' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+              </button>
+            </div>
+          </div>
+        </DataCard>
+      </div>
       </div>
     </AppShell>
   )

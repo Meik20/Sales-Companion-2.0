@@ -1,4 +1,5 @@
 import { ButtonHTMLAttributes, CSSProperties } from 'react'
+import { colors } from '@/styles/tokens'
 
 type Variant = 'primary' | 'ghost' | 'danger' | 'outline'
 type Size = 'sm' | 'md' | 'lg'
@@ -26,25 +27,25 @@ const base: CSSProperties = {
 
 const variants: Record<Variant, CSSProperties> = {
   primary: {
-    background: '#1B7A3E',
+    background: colors.green,
     color: '#fff',
-    border: '1px solid #2ea05a',
-    boxShadow: '0 0 20px rgba(27,122,62,0.2)',
+    border: `1px solid ${colors.greenMid}`,
+    boxShadow: `0 0 20px ${colors.greenLight}`,
   },
   ghost: {
-    background: 'rgba(255,255,255,0.05)',
-    color: '#F0F6FC',
-    border: '1px solid rgba(255,255,255,0.08)',
+    background: 'transparent',
+    color: colors.textMid,
+    border: '1px solid transparent',
   },
   outline: {
     background: 'transparent',
-    color: '#2ea05a',
-    border: '1px solid rgba(46,160,90,0.4)',
+    color: colors.green,
+    border: `1px solid ${colors.greenMid}`,
   },
   danger: {
-    background: 'rgba(239,68,68,0.12)',
-    color: '#f87171',
-    border: '1px solid rgba(239,68,68,0.3)',
+    background: colors.dangerBg,
+    color: colors.danger,
+    border: `1px solid ${colors.dangerBorder}`,
   },
 }
 

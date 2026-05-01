@@ -3,52 +3,52 @@
 
 export const colors = {
   // Surfaces
-  bg:      '#0D1117',
-  bg2:     '#161B22',
-  bg3:     '#21262D',
-  bg4:     '#2D333B',
+  bg:      '#F5F7FA',
+  bg2:     '#FFFFFF',
+  bg3:     '#F0F2F5',
+  bg4:     '#E8EAED',
 
   // Primaire vert Cameroun
-  green:   '#1B7A3E',
-  greenMid:'#2ea05a',
-  greenDark:'#145f2f',
-  greenLight:'rgba(27,122,62,0.12)',
+  green:   '#1B5E20',
+  greenMid:'#43A047',
+  greenDark:'#0D3311',
+  greenLight:'#E8F5E9',
 
   // Accent
   accent:  '#00897B',
   accentLight:'#e0f2f1',
 
   // Or
-  gold:    '#F5A623',
-  goldDark:'#c8841a',
-  goldLight:'rgba(245,166,35,0.12)',
+  gold:    '#F9A825',
+  goldDark:'#F57F17',
+  goldLight:'#FFF8E1',
 
   // Texte
-  text:    '#F0F6FC',
-  textMid: '#8B949E',
-  textDim: '#484F58',
+  text:    '#1A1A2E',
+  textMid: '#4A5568',
+  textDim: '#9CA3AF',
 
   // Bordures
-  border:  'rgba(255,255,255,0.08)',
-  border2: 'rgba(255,255,255,0.15)',
+  border:  'rgba(0, 0, 0, 0.06)',
+  border2: 'rgba(0, 0, 0, 0.12)',
 
   // États
   success: '#166534',
-  successBg:'rgba(27,122,62,0.12)',
+  successBg:'#E8F5E9',
   successBorder:'rgba(27,122,62,0.3)',
-  warning: '#92400e',
-  warningBg:'#fffbeb',
+  warning: '#FB8C00',
+  warningBg:'#FFF3E0',
   warningBorder:'#fcd34d',
-  danger:  '#991b1b',
-  dangerBg:'rgba(239,68,68,0.1)',
+  danger:  '#E53935',
+  dangerBg:'#FFEBEE',
   dangerBorder:'rgba(239,68,68,0.3)',
-  info:    '#1d4ed8',
-  infoBg:  '#eff6ff',
+  info:    '#1E88E5',
+  infoBg:  '#E3F2FD',
   infoBorder:'#93c5fd',
 
-  // Compat (ancienne palette light — garder pour Badge variants)
-  surface: '#161B22',
-  border_compat: 'rgba(255,255,255,0.08)',
+  // Compat
+  surface: '#FFFFFF',
+  border_compat: 'rgba(0,0,0,0.06)',
 } as const
 
 export const spacing = {
