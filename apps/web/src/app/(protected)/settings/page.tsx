@@ -3,9 +3,11 @@
 import { useState, useEffect } from 'react'
 import { AppShell } from '@/components/layout/AppShell'
 import { PageHeader } from '@/components/layout/PageHeader'
-import { DataCard } from '@/components/ui/index'
+import { DataCard, Badge } from '@/components/ui/index'
 import { EmptyState } from '@/components/feedback/index'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { useToast } from '@/hooks/useToast'
+import { colors } from '@/styles/tokens'
 
 const planDetails = {
   free:       { label: 'Gratuit',      searches: 50,    features: ['Recherche basique', 'Pipeline personnel', '50 recherches/jour'] },
@@ -16,6 +18,7 @@ const planDetails = {
 
 export default function SettingsPage() {
   const { user } = useCurrentUser()
+  const { pushToast } = useToast()
 
   const plan = user?.plan ?? 'free'
   const planInfo = planDetails[plan as keyof typeof planDetails] ?? planDetails.free
