@@ -120,6 +120,9 @@ export function AppSidebar({ isMobile = false, onClose }: { isMobile?: boolean; 
 
       {/* ⚙️ Système */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2, padding: '8px 0', marginTop: 'auto' }}>
+        {user.role === 'manager' && (
+          <SidebarLink href={routes.team} label="Équipe" icon="👥" />
+        )}
         <SidebarLink href={routes.settings} label="Paramètres" icon="⚙️" />
         
         {user.role === 'admin' && (
