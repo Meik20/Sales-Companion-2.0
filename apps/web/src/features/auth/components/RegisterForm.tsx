@@ -27,6 +27,7 @@ export function RegisterForm() {
   const [role, setRole] = useState<RoleOption>('independent')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [companyName, setCompanyName] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -44,7 +45,13 @@ export function RegisterForm() {
     setError(null)
 
     try {
-      await registerWithEmail({ email, password, name, role })
+      await registerWithEmail({ 
+        email, 
+        password, 
+        name, 
+        role, 
+        companyName: role === 'manager' ? companyName : undefined 
+      })
       router.replace(routes.search)
     } catch (err) {
       setError(mapAuthError(err))
@@ -158,6 +165,17 @@ export function RegisterForm() {
             ))}
           </div>
         </FormField>
+
+        {/* Nom de l'entreprise (uniquement pour Manager) */}
+        {role === 'manager' && (
+          <FormField label="Nom de l'entreprise" required>
+            <Input
+              placeholder="Ex: Acme Corp"
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
+            />
+          </FormField>
+        )}
 
         {error ? (
           <div

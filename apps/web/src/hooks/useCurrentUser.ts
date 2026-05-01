@@ -11,6 +11,7 @@ export type CurrentUser = {
   name: string
   role: 'independent' | 'manager' | 'member' | 'admin'
   companyId: string | null
+  companyName?: string | null
   managerUid: string | null
   plan: string
   dailyLimit: number

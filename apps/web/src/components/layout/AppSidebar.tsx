@@ -109,7 +109,7 @@ export function AppSidebar({ isMobile = false, onClose }: { isMobile?: boolean; 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2, padding: '8px 0' }}>
         <SidebarLink href={routes.search}   label="Prospects autour"       icon="🎯" />
         <SidebarLink href={routes.pipeline} label="Pipeline commercial"    icon="📊" />
-        <SidebarLink href={routes.support}  label="Assistant B2B (IA)"     icon="🤖" />
+        <SidebarLink href={routes.support}  label="Support"                icon="💬" />
         <SidebarLink href={routes.saved}    label="Recherches sauvegardées" icon="🔖" />
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', fontSize: 13, color: colors.textMid, cursor: 'not-allowed', opacity: 0.7 }}>
           <span style={{ fontSize: 15 }}>📴</span> Mode hors ligne

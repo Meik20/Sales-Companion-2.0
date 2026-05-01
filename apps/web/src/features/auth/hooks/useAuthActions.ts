@@ -14,6 +14,7 @@ type RegisterInput = {
   password: string
   name: string
   role: string
+  companyName?: string
 }
 
 export function useAuthActions() {
@@ -37,6 +38,7 @@ export function useAuthActions() {
         updatedAt: Timestamp.now(),
         lastLogin: Timestamp.now(),
         photoURL: user.photoURL || null,
+        companyName: input.companyName || null,
         companyId: null,
         managerUid: null,
         preferences: {

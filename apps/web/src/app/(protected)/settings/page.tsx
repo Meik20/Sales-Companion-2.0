@@ -4,8 +4,10 @@ import { AppShell } from '@/components/layout/AppShell'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { DataCard, Badge } from '@/components/ui/index'
 import { EmptyState } from '@/components/feedback/index'
-import { CreateCompanyForm } from '@/features/companies/components/CreateCompanyForm'
+import { Input } from '@/components/ui/Input'
+import { Button } from '@/components/ui/Button'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { useToast } from '@/hooks/useToast'
 import { colors } from '@/styles/tokens'
 
 const planDetails = {
@@ -17,6 +19,7 @@ const planDetails = {
 
 export default function SettingsPage() {
   const { user } = useCurrentUser()
+  const { pushToast } = useToast()
 
   const plan = user?.plan ?? 'free'
   const planInfo = planDetails[plan as keyof typeof planDetails] ?? planDetails.free
@@ -57,8 +60,8 @@ export default function SettingsPage() {
               </div>
 
               {plan !== 'enterprise' ? (
-                <a
-                  href="mailto:contact@salescompanion.cm?subject=Upgrade plan"
+                <button
+                  onClick={() => pushToast({ type: 'info', title: 'Contactez votre Admin pour upgrade' })}
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
@@ -70,12 +73,12 @@ export default function SettingsPage() {
                     fontSize: 13,
                     fontWeight: 600,
                     border: '1px solid #2ea05a',
-                    textDecoration: 'none',
+                    cursor: 'pointer',
                     transition: 'all 200ms ease',
                   }}
                 >
                   ⬆️ Passer à un plan supérieur
-                </a>
+                </button>
               ) : null}
             </div>
 
@@ -103,10 +106,21 @@ export default function SettingsPage() {
           {/* Paramètres manager */}
           {user?.role === 'manager' ? (
             <DataCard
-              title="Configuration équipe"
-              subtitle="Paramètres de votre entreprise et de votre équipe commerciale."
+              title="Créer un accès"
+              subtitle={`Invitez des membres à rejoindre votre équipe : ${user.companyName || 'Votre entreprise'}`}
             >
-              <CreateCompanyForm />
+              <form 
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  pushToast({ type: 'success', title: 'Invitation envoyée' })
+                }}
+                style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}
+              >
+                <div style={{ flex: 1 }}>
+                  <Input placeholder="Adresse email du collaborateur" type="email" required />
+                </div>
+                <Button type="submit" variant="primary">Inviter</Button>
+              </form>
             </DataCard>
           ) : null}
 

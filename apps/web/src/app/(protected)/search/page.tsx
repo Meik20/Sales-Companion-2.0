@@ -106,30 +106,60 @@ function SearchContent() {
             }}
           >
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-              {/* Illustration générique améliorée */}
+              {/* Illustration SVG Custom (Cameroun + Réseau + Loupe + Pulse) */}
               <div 
                 style={{ 
-                  width: 80, 
-                  height: 80, 
-                  borderRadius: '50%', 
-                  background: colors.greenLight, 
+                  position: 'relative',
+                  width: 140, 
+                  height: 140, 
                   display: 'flex', 
                   alignItems: 'center', 
                   justifyContent: 'center',
-                  color: colors.green
                 }}
               >
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                  <path d="M11 8v6"></path>
-                  <path d="M8 11h6"></path>
+                <div style={{
+                  position: 'absolute',
+                  inset: 0,
+                  borderRadius: '50%',
+                  background: colors.greenLight,
+                  animation: 'pulse 2s infinite cubic-bezier(0.4, 0, 0.6, 1)',
+                  opacity: 0.5
+                }} />
+                <style dangerouslySetInnerHTML={{__html: `
+                  @keyframes pulse {
+                    0%, 100% { transform: scale(1); opacity: 0.5; }
+                    50% { transform: scale(1.1); opacity: 0.2; }
+                  }
+                `}} />
+                
+                <svg width="100" height="100" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ zIndex: 1 }}>
+                  {/* Carte abstraite Cameroun (forme stylisée) */}
+                  <path d="M70 40 L100 20 L130 50 L140 90 L120 140 L80 160 L50 120 L40 80 Z" fill={colors.border2} stroke={colors.border} strokeWidth="2" strokeLinejoin="round"/>
+                  
+                  {/* Nœuds réseau d'entreprises */}
+                  <circle cx="80" cy="60" r="6" fill={colors.green} />
+                  <circle cx="110" cy="80" r="8" fill={colors.greenDark} />
+                  <circle cx="90" cy="110" r="5" fill={colors.green} />
+                  <circle cx="120" cy="120" r="7" fill={colors.green} />
+                  <circle cx="60" cy="100" r="4" fill={colors.green} />
+                  
+                  {/* Lignes de connexion réseau */}
+                  <path d="M80 60 L110 80 L120 120 L90 110 Z" stroke={colors.green} strokeWidth="1.5" strokeDasharray="4 4" />
+                  <path d="M80 60 L60 100 L90 110" stroke={colors.green} strokeWidth="1.5" strokeDasharray="4 4" />
+                  
+                  {/* Loupe */}
+                  <circle cx="130" cy="140" r="24" fill="none" stroke={colors.text} strokeWidth="6" />
+                  <line x1="147" y1="157" x2="170" y2="180" stroke={colors.text} strokeWidth="8" strokeLinecap="round" />
+                  
+                  {/* Commercial (silhouette) dans la loupe */}
+                  <circle cx="130" cy="135" r="8" fill={colors.textMid} />
+                  <path d="M118 152 C118 145 142 145 142 152" stroke={colors.textMid} strokeWidth="4" strokeLinecap="round" />
                 </svg>
               </div>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <h2 style={{ fontSize: 24, fontWeight: 700, color: colors.text, margin: 0 }}>
-                  Trouvez vos prospects
+                  Trouvez vos prospects idéaux
                 </h2>
                 <p style={{ color: colors.textMid, fontSize: 15, maxWidth: 400, margin: '0 auto' }}>
                   Recherchez par nom, secteur, ville ou utilisez les filtres rapides ci-dessous pour démarrer.
@@ -140,8 +170,8 @@ function SearchContent() {
                 variant="primary" 
                 size="md" 
                 onClick={() => {
-                  setHasSearched(true)
-                  setFilters({})
+                  const input = document.getElementById('main-search-input')
+                  if (input) input.focus()
                 }}
                 style={{ marginTop: 8 }}
               >

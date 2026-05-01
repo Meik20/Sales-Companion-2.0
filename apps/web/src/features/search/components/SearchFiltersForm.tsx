@@ -76,6 +76,7 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
       {/* Recherche libre */}
       <FormField label="Recherche libre">
         <Input
+          id="main-search-input"
           placeholder="Nom d'entreprise, dirigeant, NIU…"
           value={query}
           onChange={(e) => setQuery(e.target.value)}

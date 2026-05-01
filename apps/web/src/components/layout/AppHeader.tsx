@@ -1,16 +1,30 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 import { ScIcon } from '@/components/ui/ScIcon'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { useAuthActions } from '@/features/auth/hooks/useAuthActions'
 import { routes } from '@/constants/routes'
 import { colors, shadows } from '@/styles/tokens'
 
 export function AppHeader({ onOpenMenu }: { onOpenMenu?: () => void }) {
   const { user } = useCurrentUser()
+  const { logout } = useAuthActions()
   const router = useRouter()
+  const [isProfileOpen, setIsProfileOpen] = useState(false)
+
+  const handleLogout = async () => {
+    try {
+      await logout()
+      setIsProfileOpen(false)
+      router.push(routes.login)
+    } catch (err) {
+      console.error(err)
+    }
+  }
 
   return (
     <header
@@ -89,28 +103,91 @@ export function AppHeader({ onOpenMenu }: { onOpenMenu?: () => void }) {
           </Link>
         </div>
 
-        {/* Right: Avatar */}
-        <div style={{ display: 'flex', alignItems: 'center' }}>
+        {/* Right: Avatar & Dropdown */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, position: 'relative' }}>
           {user ? (
-            <button
-              onClick={onOpenMenu}
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: '50%',
-                background: 'rgba(255,255,255,0.2)',
-                color: '#fff',
-                border: '1px solid rgba(255,255,255,0.3)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: 700,
-                fontSize: 15,
-                cursor: 'pointer',
-              }}
-            >
-              {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || '👤'}
-            </button>
+            <>
+              {user.role === 'manager' && (
+                <div style={{ 
+                  background: 'rgba(255,255,255,0.2)', 
+                  padding: '4px 10px', 
+                  borderRadius: 12, 
+                  fontSize: 11, 
+                  fontWeight: 700, 
+                  color: '#fff', 
+                  letterSpacing: '0.05em' 
+                }}>
+                  MANAGER
+                </div>
+              )}
+              
+              <button
+                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: '50%',
+                  background: 'rgba(255,255,255,0.2)',
+                  color: '#fff',
+                  border: '1px solid rgba(255,255,255,0.3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 700,
+                  fontSize: 15,
+                  cursor: 'pointer',
+                  transition: 'all 200ms ease',
+                }}
+              >
+                {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || '👤'}
+              </button>
+
+              {/* Menu Déroulant Profil */}
+              {isProfileOpen && (
+                <div 
+                  style={{
+                    position: 'absolute',
+                    top: 50,
+                    right: 0,
+                    width: 220,
+                    background: colors.bg,
+                    borderRadius: 12,
+                    boxShadow: shadows.md,
+                    border: `1px solid ${colors.border}`,
+                    overflow: 'hidden',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    zIndex: 200,
+                    animation: 'fadeIn 150ms ease'
+                  }}
+                >
+                  <div style={{ padding: '16px 16px 12px', borderBottom: `1px solid ${colors.border}` }}>
+                    <div style={{ fontWeight: 600, color: colors.text, fontSize: 14 }}>{user.name || 'Utilisateur'}</div>
+                    <div style={{ fontSize: 12, color: colors.textMid, marginTop: 2 }}>{user.email}</div>
+                  </div>
+                  <div style={{ padding: 8, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <button 
+                      onClick={() => { setIsProfileOpen(false); router.push(routes.profile) }}
+                      style={{ padding: '8px 12px', textAlign: 'left', background: 'transparent', border: 'none', borderRadius: 8, fontSize: 13, cursor: 'pointer', color: colors.text }}
+                    >
+                      👤 Mon Profil
+                    </button>
+                    <button 
+                      onClick={() => { setIsProfileOpen(false); router.push(routes.settings) }}
+                      style={{ padding: '8px 12px', textAlign: 'left', background: 'transparent', border: 'none', borderRadius: 8, fontSize: 13, cursor: 'pointer', color: colors.text }}
+                    >
+                      ⚙️ Paramètres
+                    </button>
+                    <button 
+                      onClick={handleLogout}
+                      style={{ padding: '8px 12px', textAlign: 'left', background: 'transparent', border: 'none', borderRadius: 8, fontSize: 13, cursor: 'pointer', color: colors.danger, fontWeight: 500, marginTop: 4 }}
+                    >
+                      🚪 Déconnexion
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
           ) : (
             <Button variant="outline" size="sm" onClick={() => router.push(routes.login)} style={{ borderColor: 'rgba(255,255,255,0.3)', color: '#fff' }}>
               Connexion
