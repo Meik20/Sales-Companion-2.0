@@ -41,7 +41,7 @@ export function TeamAccessManager() {
     if (!user || user.role !== 'manager') return;
     setLoadingAccesses(true)
     try {
-      const q = query(collection(db, 'team_accesses'), where('createdBy', '==', user.uid))
+      const q = query(collection(db, 'team_accesses'), where('managerUid', '==', user.uid))
       const snap = await getDocs(q)
       setAccesses(snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a: any, b: any) => b.createdAt?.toMillis() - a.createdAt?.toMillis()))
     } catch (e: any) {
@@ -74,7 +74,7 @@ export function TeamAccessManager() {
         activated: false,
         firebaseUid: null,
         email: null,
-        createdBy: user.uid,
+        managerUid: user.uid,
         managerEmail: user.email,
         createdAt: serverTimestamp()
       })

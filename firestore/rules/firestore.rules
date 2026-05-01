@@ -10,7 +10,10 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return isSignedIn() && request.auth.token.role == 'admin';
+      return isSignedIn() && (
+        request.auth.token.role == 'admin' ||
+        get(/databases/$(database)/documents/users/$(authUid())).data.role == 'admin'
+      );
     }
 
     function currentUserDoc() {
@@ -90,6 +93,8 @@ service cloud.firestore {
     }
 
     match /team_accesses/{accessId} {
+      allow get: if true;
+
       allow read: if isAdmin()
         || (isManager() && resource.data.managerUid == authUid());
 
