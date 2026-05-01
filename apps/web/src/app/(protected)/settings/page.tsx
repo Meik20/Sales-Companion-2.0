@@ -233,7 +233,7 @@ export default function SettingsPage() {
                     />
                   </div>
                   
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, background: colors.background, padding: '12px 16px', borderRadius: 8, border: `1px solid ${colors.border}` }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, background: colors.bg2, padding: '12px 16px', borderRadius: 8, border: `1px solid ${colors.border}` }}>
                     <div>
                       <span style={{ fontSize: 12, color: colors.textMid, display: 'block', marginBottom: 4 }}>Aperçu de l'Identifiant (Access ID) :</span>
                       <strong style={{ fontSize: 15, color: colors.green }}>{previewId}</strong>
@@ -254,7 +254,7 @@ export default function SettingsPage() {
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                     {accesses.map(acc => (
-                      <div key={acc.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 16, borderRadius: 12, border: `1px solid ${colors.border}`, background: acc.status === 'revoked' ? colors.background : '#fff', opacity: acc.status === 'revoked' ? 0.7 : 1 }}>
+                      <div key={acc.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 16, borderRadius: 12, border: `1px solid ${colors.border}`, background: acc.status === 'revoked' ? colors.bg2 : '#fff', opacity: acc.status === 'revoked' ? 0.7 : 1 }}>
                         <div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                             <strong style={{ fontSize: 15 }}>{acc.accessId}</strong>
