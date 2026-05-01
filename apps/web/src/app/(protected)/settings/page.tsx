@@ -273,7 +273,7 @@ export default function SettingsPage() {
                             <Button size="sm" variant="outline" onClick={() => copyId(acc.accessId)}>Copier ID</Button>
                           )}
                           {acc.status !== 'revoked' && (
-                            <Button size="sm" variant="ghost" onClick={() => revokeAccess(acc.id)} style={{ color: colors.error }}>Révoquer</Button>
+                            <Button size="sm" variant="ghost" onClick={() => revokeAccess(acc.id)} style={{ color: '#EF4444' }}>Révoquer</Button>
                           )}
                         </div>
                       </div>
