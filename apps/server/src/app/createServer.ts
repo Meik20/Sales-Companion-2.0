@@ -23,6 +23,14 @@ export function createServer() {
     res.json({ status: 'ok' })
   })
 
+  // Basic route to avoid 404 on browser visit
+  app.get('/', (_req, res) => {
+    res.send('Sales Companion Backend API is running')
+  })
+
+  // Ignore favicon requests
+  app.get('/favicon.ico', (_req, res) => res.status(204).end())
+
   app.use(authRoutes)
   app.use(adminRoutes)
   app.use(companiesRoutes)
