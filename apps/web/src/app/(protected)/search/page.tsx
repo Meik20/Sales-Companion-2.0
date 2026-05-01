@@ -198,18 +198,18 @@ function SearchContent() {
           minWidth: 300,
         }}
       >
-        <style dangerouslySetInnerHTML={{__html: \`
+        <style dangerouslySetInnerHTML={{__html: `
           @media (max-width: 1024px) {
             .desktop-only-panels { display: none !important; }
             .search-page-grid { grid-template-columns: 1fr !important; }
           }
-        \`}} />
+        `}} />
 
         {/* Pipeline commercial */}
         <DataCard title="Pipeline commercial">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div style={{ display: 'flex', gap: 8, justifyContent: 'center', background: '#FFF3E0', padding: 8, borderRadius: 20 }}>
-              <span style={{ fontSize: 12, fontWeight: 600, color: '#E65100' }}>🎯 Prospection <Badge variant="danger" style={{borderRadius: 10}}>0</Badge></span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: '#E65100' }}>🎯 Prospection <Badge variant="danger">0</Badge></span>
             </div>
             <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
               <span style={{ fontSize: 12, color: colors.textMid }}>🤝 Négociation <Badge variant="info">0</Badge></span>
@@ -220,7 +220,7 @@ function SearchContent() {
         </DataCard>
 
         {/* Assistant B2B */}
-        <DataCard title="🟢 Assistant B2B" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <DataCard title="🟢 Assistant B2B">
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div style={{ background: colors.greenLight, padding: 12, borderRadius: '0 12px 12px 12px', fontSize: 13, color: colors.greenDark }}>
               Bonjour 👋 Je suis votre assistant commercial. Posez-moi vos questions sur la prospection B2B au Cameroun, les secteurs, les stratégies de vente.
@@ -229,7 +229,7 @@ function SearchContent() {
               <input 
                 type="text" 
                 placeholder="Posez une question..." 
-                style={{ width: '100%', padding: '10px 14px', borderRadius: 20, border: \`1px solid \${colors.border2}\`, outline: 'none' }} 
+                style={{ width: '100%', padding: '10px 14px', borderRadius: 20, border: `1px solid ${colors.border2}`, outline: 'none' }} 
               />
               <button style={{ position: 'absolute', right: 4, top: 4, bottom: 4, width: 32, borderRadius: '50%', background: colors.green, color: '#fff', border: 'none', cursor: 'pointer' }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>

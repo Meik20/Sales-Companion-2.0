@@ -182,12 +182,12 @@ export function AppSidebar({ isMobile = false, onClose }: { isMobile?: boolean; 
         >
           {content}
         </div>
-        <style dangerouslySetInnerHTML={{__html: \`
+        <style dangerouslySetInnerHTML={{__html: `
           @keyframes slideInLeft {
             from { transform: translateX(-100%); }
             to { transform: translateX(0); }
           }
-        \`}} />
+        `}} />
       </div>
     )
   }

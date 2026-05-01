@@ -96,7 +96,7 @@ export function MobileNav() {
         left: 0,
         right: 0,
         background: colors.bg2,
-        borderTop: \`1px solid \${colors.border}\`,
+        borderTop: `1px solid ${colors.border}`,
         display: 'flex',
         alignItems: 'stretch',
         flexShrink: 0,

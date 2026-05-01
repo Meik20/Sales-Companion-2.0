@@ -76,7 +76,7 @@ export function ShortcutCard({ sector, title, subtitle, onClick }: ShortcutCardP
         gap: 12,
         padding: 16,
         background: colors.bg2,
-        border: \`1px solid \${colors.border2}\`,
+        border: `1px solid ${colors.border2}`,
         borderRadius: 16,
         cursor: 'pointer',
         transition: transitions.fast,
