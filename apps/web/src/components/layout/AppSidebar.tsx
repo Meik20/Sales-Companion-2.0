@@ -124,9 +124,21 @@ export function AppSidebar({ isMobile = false, onClose }: { isMobile?: boolean; 
           <SidebarLink href={routes.team} label="Équipe" icon="👥" />
         )}
         <SidebarLink href={routes.settings} label="Paramètres" icon="⚙️" />
-        
+
         {user.role === 'admin' && (
-          <SidebarLink href={routes.admin} label="Administration" icon="📈" />
+          <>
+            <hr style={{ border: 'none', borderTop: `1px solid ${colors.border}`, margin: '8px 0' }} />
+            <div style={{ fontSize: 10, fontWeight: 700, color: colors.textDim, textTransform: 'uppercase', letterSpacing: '.08em', padding: '0 12px 4px' }}>
+              Administration
+            </div>
+            <SidebarLink href={routes.adminDashboard}  label="Dashboard"     icon="📊" />
+            <SidebarLink href={routes.adminUsers}      label="Utilisateurs"  icon="👥" />
+            <SidebarLink href={routes.adminCompanies}  label="Entreprises"   icon="🏢" />
+            <SidebarLink href={routes.adminImports}    label="Imports"       icon="📤" />
+            <SidebarLink href={routes.adminSupport}    label="Support"       icon="💬" />
+            <SidebarLink href={routes.adminLogs}       label="Activité"      icon="📋" />
+            <SidebarLink href={routes.adminConfig}     label="Config"        icon="⚙️" />
+          </>
         )}
         
         <button

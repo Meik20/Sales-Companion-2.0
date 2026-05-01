@@ -107,40 +107,61 @@ export function AppHeader({ onOpenMenu }: { onOpenMenu?: () => void }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, position: 'relative' }}>
           {user ? (
             <>
-              {user.role === 'manager' && (
-                <div style={{ 
-                  background: 'rgba(255,255,255,0.2)', 
-                  padding: '4px 10px', 
-                  borderRadius: 12, 
-                  fontSize: 11, 
-                  fontWeight: 700, 
-                  color: '#fff', 
-                  letterSpacing: '0.05em' 
-                }}>
-                  MANAGER
-                </div>
-              )}
-              
-              <button
-                onClick={() => setIsProfileOpen(!isProfileOpen)}
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: '50%',
-                  background: 'rgba(255,255,255,0.2)',
-                  color: '#fff',
-                  border: '1px solid rgba(255,255,255,0.3)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontWeight: 700,
-                  fontSize: 15,
-                  cursor: 'pointer',
-                  transition: 'all 200ms ease',
-                }}
-              >
-                {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || '👤'}
-              </button>
+              {/* Avatar + role badge grouped together */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <button
+                  onClick={() => setIsProfileOpen(!isProfileOpen)}
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: '50%',
+                    background: 'rgba(255,255,255,0.2)',
+                    color: '#fff',
+                    border: '1px solid rgba(255,255,255,0.3)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 700,
+                    fontSize: 15,
+                    cursor: 'pointer',
+                    transition: 'all 200ms ease',
+                  }}
+                >
+                  {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || '👤'}
+                </button>
+
+                {user.role === 'admin' && (
+                  <div style={{
+                    background: 'rgba(255,255,255,0.25)',
+                    border: '1px solid rgba(255,255,255,0.4)',
+                    padding: '3px 9px',
+                    borderRadius: 10,
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: '#fff',
+                    letterSpacing: '0.06em',
+                    lineHeight: 1,
+                  }}>
+                    ADMIN
+                  </div>
+                )}
+
+                {user.role === 'manager' && (
+                  <div style={{
+                    background: 'rgba(255,255,255,0.2)',
+                    border: '1px solid rgba(255,255,255,0.3)',
+                    padding: '3px 9px',
+                    borderRadius: 10,
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: '#fff',
+                    letterSpacing: '0.06em',
+                    lineHeight: 1,
+                  }}>
+                    MANAGER
+                  </div>
+                )}
+              </div>
 
               {/* Menu Déroulant Profil */}
               {isProfileOpen && (
