@@ -19,7 +19,7 @@ export function useSavedSearches() {
   return useQuery({
     queryKey: ['saved-searches', user?.uid],
     queryFn: async () => {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
+      const backendUrl = ''
       const token = await user?.getIdToken()
 
       const response = await fetch(`${backendUrl}/api/saved-searches`, {

@@ -20,7 +20,7 @@ export function useTeamMembers() {
   return useQuery({
     queryKey: ['team-members', user?.uid],
     queryFn: async () => {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
+      const backendUrl = ''
       const token = await user?.getIdToken()
 
       const response = await fetch(`${backendUrl}/api/team/members`, {

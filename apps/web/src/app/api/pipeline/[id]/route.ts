@@ -4,7 +4,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
+    const backendUrl = process.env.BACKEND_URL || process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
     const token = request.headers.get('authorization')?.split(' ')[1] || ''
 
     const response = await fetch(`${backendUrl}/api/pipeline/${id}`, {
@@ -37,7 +37,7 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
+    const backendUrl = process.env.BACKEND_URL || process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
     const token = request.headers.get('authorization')?.split(' ')[1] || ''
     const body = await request.json()
 
@@ -74,7 +74,7 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
+    const backendUrl = process.env.BACKEND_URL || process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
     const token = request.headers.get('authorization')?.split(' ')[1] || ''
 
     const response = await fetch(`${backendUrl}/api/pipeline/${id}`, {

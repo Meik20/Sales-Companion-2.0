@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/Input'
 import { FormField } from '@/components/forms/FormField'
 import { ScIcon } from '@/components/ui/ScIcon'
 import { useAuthActions } from '../hooks/useAuthActions'
+import { mapAuthError } from '../utils/error-mapper'
 import { routes } from '@/constants/routes'
 import { colors } from '@/styles/tokens'
 
@@ -33,13 +34,7 @@ export function LoginForm() {
       await loginWithEmail(email, password)
       router.replace(routes.search)
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message.includes('invalid-credential')
-            ? 'Email ou mot de passe incorrect.'
-            : err.message
-          : 'Connexion impossible.'
-      )
+      setError(mapAuthError(err))
     } finally {
       setLoading(false)
     }

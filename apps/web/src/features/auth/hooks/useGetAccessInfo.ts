@@ -15,7 +15,7 @@ export function useGetAccessInfo(accessId: string) {
   return useQuery({
     queryKey: ['access-info', accessId],
     queryFn: async (): Promise<AccessInfo> => {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
+      const backendUrl = ''
 
       const response = await fetch(`${backendUrl}/team/accesses/${accessId}/public`)
 

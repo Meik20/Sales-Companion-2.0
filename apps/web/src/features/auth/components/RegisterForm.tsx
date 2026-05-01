@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/Input'
 import { FormField } from '@/components/forms/FormField'
 import { ScIcon } from '@/components/ui/ScIcon'
 import { useAuthActions } from '../hooks/useAuthActions'
+import { mapAuthError } from '../utils/error-mapper'
 import { routes } from '@/constants/routes'
 import { colors } from '@/styles/tokens'
 
@@ -46,7 +47,7 @@ export function RegisterForm() {
       await registerWithEmail({ email, password, name, role })
       router.replace(routes.search)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Inscription impossible.')
+      setError(mapAuthError(err))
     } finally {
       setLoading(false)
     }

@@ -9,7 +9,7 @@ export function useDeleteAdminUser() {
 
   return useMutation({
     mutationFn: async (uid: string) => {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
+      const backendUrl = ''
       const token = await user?.getIdToken()
 
       const response = await fetch(`${backendUrl}/api/admin/users/${uid}`, {

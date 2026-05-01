@@ -33,7 +33,7 @@ export function useAdminCompanies(page: number = 1, pageSize: number = 20) {
   return useQuery({
     queryKey: ['admin-companies', page, pageSize],
     queryFn: async () => {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
+      const backendUrl = ''
       const token = await user?.getIdToken()
 
       const response = await fetch(

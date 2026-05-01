@@ -14,7 +14,7 @@ export async function GET(request: Request) {
     if (query) params.append('query', query)
 
     // Forward request to backend server
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
+    const backendUrl = process.env.BACKEND_URL || process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
     const response = await fetch(`${backendUrl}/api/search/companies?${params}`, {
       headers: {
         'Authorization': `Bearer ${request.headers.get('authorization')?.split(' ')[1] || ''}`,
