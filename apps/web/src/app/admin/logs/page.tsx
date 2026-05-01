@@ -53,25 +53,24 @@ export default function AdminLogsPage() {
       />
 
       <DataCard
-        title={
-          <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-            <span>Recherches récentes</span>
-            <button
-              onClick={() => refetch()}
-              style={{
-                padding: '5px 12px',
-                background: colors.greenLight,
-                color: colors.green,
-                border: `1px solid ${colors.successBorder}`,
-                borderRadius: 6,
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: 'pointer',
-              }}
-            >
-              ↻ Actualiser
-            </button>
-          </span>
+        title="Recherches récentes"
+        subtitle="20 dernières"
+        actions={
+          <button
+            onClick={() => refetch()}
+            style={{
+              padding: '5px 12px',
+              background: colors.greenLight,
+              color: colors.green,
+              border: `1px solid ${colors.successBorder}`,
+              borderRadius: 6,
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            ↻ Actualiser
+          </button>
         }
       >
         {isLoading && (
