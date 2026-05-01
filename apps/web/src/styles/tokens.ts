@@ -115,9 +115,12 @@ export const transitions = {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const fonts = {
-  sans:    "'Segoe UI', Tahoma, 'Inter', 'DM Sans', sans-serif",
-  display: "'Syne', 'Inter', sans-serif",
+  /** Body / UI text — matches globals.css body font-family */
+  sans:    "'Segoe UI', Tahoma, sans-serif",
+  /** Display / headings — same system stack, heavier weight applied at usage site */
+  display: "'Segoe UI', Tahoma, sans-serif",
 } as const
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Layout — valeurs numériques tirées des variables CSS

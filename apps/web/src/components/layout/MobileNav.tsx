@@ -44,7 +44,7 @@ const navStyles = `
   font-size: 10px;
   font-weight: 500;
   margin-top: 3px;
-  font-family: 'Inter', sans-serif;
+  font-family: inherit;
 }
 .mobile-nav-btn.active span {
   font-weight: 700;

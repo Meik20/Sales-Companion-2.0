@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+/* Typography: system font stack — no network request required for Segoe UI */
 
 /* ─── Palette Google ────────────────────────────────────────────────── */
 :root {
@@ -143,6 +143,7 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  font-family: inherit; /* cascade from body — prevents browser UA defaults on inputs/selects */
 }
 
 html {
@@ -155,9 +156,9 @@ html[data-scroll-behavior="smooth"] {
 }
 
 body {
-  font-family: 'Segoe UI', Tahoma, 'Inter', 'DM Sans', sans-serif;
-  font-size: 81.25%; /* ≈ 13px */
-  line-height: 154%;
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+  font-size: 81.25%; /* 13px — spec */
+  line-height: 154%;  /* spec */
   background: var(--md-background-color);
   color: var(--cr-primary-text-color);
   min-height: 100vh;
@@ -165,12 +166,11 @@ body {
 }
 
 a {
-  color: inherit;
+  color: var(--cr-link-color);
   text-decoration: none;
 }
-
-button {
-  font-family: inherit;
+a:not([class]) {
+  text-decoration: underline;
 }
 
 /* ─── Noise texture subtile ─────────────────────────────────────────── */
