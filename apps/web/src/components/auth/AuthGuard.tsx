@@ -1,20 +1,19 @@
 'use client'
 
 import { PropsWithChildren, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
-import { routes } from '@/constants/routes'
 import { colors } from '@/styles/tokens'
 
 export function AuthGuard({ children }: PropsWithChildren) {
   const { user, loading } = useCurrentUser()
-  const router = useRouter()
 
   useEffect(() => {
     if (!loading && !user) {
-      router.replace(routes.login)
+      // Shared link opened in a new tab, or any unauthenticated access
+      // → always send to the landing page
+      window.location.replace('/landing.html')
     }
-  }, [user, loading, router])
+  }, [user, loading])
 
   if (loading) {
     return (

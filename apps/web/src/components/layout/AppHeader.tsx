@@ -77,7 +77,7 @@ export function AppHeader({ onOpenMenu }: { onOpenMenu?: () => void }) {
           )}
 
           <Link
-            href={routes.home}
+            href={routes.search}
             style={{
               display: 'flex',
               alignItems: 'center',
