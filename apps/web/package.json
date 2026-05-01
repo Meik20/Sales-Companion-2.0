@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "scripts": {
     "dev": "next dev -p 3000",
-    "build": "next build && cp -r public .next/standalone/apps/web/public && cp -r .next/static .next/standalone/apps/web/.next/static",
+    "build": "next build",
     "start": "next start -p 3000",
     "typecheck": "tsc --noEmit",
     "lint": "next lint"
