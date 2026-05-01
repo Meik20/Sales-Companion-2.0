@@ -61,7 +61,7 @@ export default function SettingsPage() {
       const snap = await getDocs(q)
       setAccesses(snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a: any, b: any) => b.createdAt?.toMillis() - a.createdAt?.toMillis()))
     } catch (e: any) {
-      pushToast({ type: 'error', title: 'Erreur', message: e.message })
+      pushToast({ type: 'error', title: `Erreur: ${e.message}` })
     } finally {
       setLoadingAccesses(false)
     }
@@ -95,11 +95,11 @@ export default function SettingsPage() {
         managerEmail: user.email,
         createdAt: serverTimestamp()
       })
-      pushToast({ type: 'success', title: 'Accès créé !', message: `ID: ${accessId}` })
+      pushToast({ type: 'success', title: `Accès créé ! ID: ${accessId}` })
       setFormData({ firstname: '', lastname: '', company: '' })
       loadAccesses()
     } catch (e: any) {
-      pushToast({ type: 'error', title: 'Erreur', message: e.message })
+      pushToast({ type: 'error', title: `Erreur: ${e.message}` })
     } finally {
       setIsSubmitting(false)
     }
@@ -108,7 +108,7 @@ export default function SettingsPage() {
   // Copier ID
   const copyId = async (id: string) => {
     await navigator.clipboard.writeText(id)
-    pushToast({ type: 'info', title: 'ID copié', message: id })
+    pushToast({ type: 'info', title: `ID copié: ${id}` })
   }
 
   // Révoquer
@@ -122,7 +122,7 @@ export default function SettingsPage() {
       pushToast({ type: 'success', title: 'Accès révoqué' })
       loadAccesses()
     } catch (e: any) {
-      pushToast({ type: 'error', title: 'Erreur', message: e.message })
+      pushToast({ type: 'error', title: `Erreur: ${e.message}` })
     }
   }
 
