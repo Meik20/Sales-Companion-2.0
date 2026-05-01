@@ -1,9 +1,9 @@
 // Service Worker for Sales Companion PWA
 // Handles caching, offline support, and background sync
 
-const CACHE_NAME = 'sales-companion-v1'
+const CACHE_NAME = 'sales-companion-v2' // Incremented cache version
 const STATIC_ASSETS = [
-  '/',
+  '/landing', // Changed from '/' to prevent caching the redirect
   '/search',
   '/pipeline',
   '/profile',
@@ -85,31 +85,80 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  // Static assets and pages - cache first, fallback to network
+  // HTML Navigation Requests - Network First to ensure latest Next.js HTML is served
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            // Only cache ok responses (not opaqueredirects)
+            let responseToCache = response.clone();
+            // Clean redirected flag if present
+            if (responseToCache.redirected) {
+              responseToCache = new Response(responseToCache.body, {
+                status: responseToCache.status,
+                statusText: responseToCache.statusText,
+                headers: responseToCache.headers,
+              });
+            }
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(request, responseToCache)
+            })
+          }
+          return response
+        })
+        .catch(async () => {
+          const cachedResponse = await caches.match(request)
+          if (cachedResponse) {
+            if (cachedResponse.redirected) {
+              return new Response(cachedResponse.body, {
+                status: cachedResponse.status,
+                statusText: cachedResponse.statusText,
+                headers: cachedResponse.headers,
+              });
+            }
+            return cachedResponse
+          }
+          return caches.match('/offline.html').then((response) => {
+            return response || new Response('Offline - Page not cached')
+          })
+        })
+    )
+    return
+  }
+
+  // Static assets - cache first, fallback to network
   event.respondWith(
     caches.match(request).then((cachedResponse) => {
       if (cachedResponse) {
+        if (cachedResponse.redirected) {
+          return new Response(cachedResponse.body, {
+            status: cachedResponse.status,
+            statusText: cachedResponse.statusText,
+            headers: cachedResponse.headers,
+          });
+        }
         return cachedResponse
       }
 
       return fetch(request)
         .then((response) => {
-          // Cache successful responses
           if (response.ok) {
-            const clonedResponse = response.clone()
+            let responseToCache = response.clone()
+            if (responseToCache.redirected) {
+              responseToCache = new Response(responseToCache.body, {
+                status: responseToCache.status,
+                statusText: responseToCache.statusText,
+                headers: responseToCache.headers,
+              });
+            }
             caches.open(CACHE_NAME).then((cache) => {
-              cache.put(request, clonedResponse)
+              cache.put(request, responseToCache)
             })
           }
           return response
         })
         .catch(() => {
-          // Fallback for failed requests
-          if (request.destination === 'document') {
-            return caches.match('/offline.html').then((response) => {
-              return response || new Response('Offline - Page not cached')
-            })
-          }
           return new Response('Network error - Resource not available')
         })
     })
