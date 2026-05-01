@@ -1,70 +1,71 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { adminDb, adminAuth } from '@/lib/firebase-admin'
+
+async function verifyAdmin(token: string | null) {
+  if (!token) throw new Error('unauthenticated')
+  const decoded = await adminAuth.verifyIdToken(token)
+  const doc = await adminDb.collection('users').doc(decoded.uid).get()
+  if (doc.data()?.role !== 'admin') throw new Error('forbidden')
+  return decoded
+}
+
 export async function PATCH(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ uid: string }> }
 ) {
   try {
-    const { uid } = await params;
-    const backendUrl = process.env.BACKEND_URL || process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-    const token = request.headers.get('authorization')?.split(' ')[1] || ''
+    const token = request.headers.get('authorization')?.split(' ')[1] ?? null
+    await verifyAdmin(token)
+
+    const { uid } = await params
     const body = await request.json()
 
-    const response = await fetch(`${backendUrl}/api/admin/users/${uid}`, {
-      method: 'PATCH',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
+    // Strip fields that should not be mutated directly
+    const { uid: _uid, email: _email, ...safeFields } = body
+
+    await adminDb.collection('users').doc(uid).update({
+      ...safeFields,
+      updatedAt: new Date(),
     })
 
-    if (!response.ok) {
-      return Response.json(
-        { error: 'Erreur serveur' },
-        { status: response.status }
-      )
+    // If role change is included, update custom claims too
+    if (safeFields.role) {
+      await adminAuth.setCustomUserClaims(uid, { role: safeFields.role })
     }
 
-    const data = await response.json()
-    return Response.json(data)
-  } catch (error) {
+    const updated = await adminDb.collection('users').doc(uid).get()
+    return NextResponse.json({ uid, ...updated.data() })
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : 'unknown'
+    if (msg === 'unauthenticated') return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+    if (msg === 'forbidden') return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
     console.error('Update user error:', error)
-    return Response.json(
-      { error: 'Erreur interne' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Erreur interne' }, { status: 500 })
   }
 }
 
 export async function DELETE(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ uid: string }> }
 ) {
   try {
-    const { uid } = await params;
-    const backendUrl = process.env.BACKEND_URL || process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-    const token = request.headers.get('authorization')?.split(' ')[1] || ''
+    const token = request.headers.get('authorization')?.split(' ')[1] ?? null
+    await verifyAdmin(token)
 
-    const response = await fetch(`${backendUrl}/api/admin/users/${uid}`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    })
+    const { uid } = await params
 
-    if (!response.ok) {
-      return Response.json(
-        { error: 'Erreur serveur' },
-        { status: response.status }
-      )
-    }
+    // Delete from Firebase Auth and Firestore in parallel
+    await Promise.all([
+      adminAuth.deleteUser(uid),
+      adminDb.collection('users').doc(uid).delete(),
+    ])
 
-    const data = await response.json()
-    return Response.json(data)
-  } catch (error) {
+    return NextResponse.json({ success: true, uid })
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : 'unknown'
+    if (msg === 'unauthenticated') return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+    if (msg === 'forbidden') return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
     console.error('Delete user error:', error)
-    return Response.json(
-      { error: 'Erreur interne' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Erreur interne' }, { status: 500 })
   }
 }
