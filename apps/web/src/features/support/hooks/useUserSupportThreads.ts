@@ -7,12 +7,15 @@ import {
   onSnapshot,
   Timestamp
 } from 'firebase/firestore'
-import { db } from '@/lib/firebase'
+import { firestore } from '@/services/firebase/client'
 
 export interface SupportThread {
   id: string
   userId: string
+  userEmail: string
+  userName: string
   subject: string
+  status: 'open' | 'resolved'
   createdAt: Timestamp
   updatedAt: Timestamp
 }
@@ -28,7 +31,7 @@ export const useUserSupportThreads = (userId: string | null) => {
     setLoading(true)
 
     const q = query(
-      collection(db, 'supportThreads'),
+      collection(firestore, 'support_threads'),
       where('userId', '==', userId),
       orderBy('updatedAt', 'desc')
     )

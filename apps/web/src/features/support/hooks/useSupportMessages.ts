@@ -6,7 +6,7 @@ import {
   onSnapshot,
   Timestamp
 } from 'firebase/firestore'
-import { db } from '@/lib/firebase' // adapte si besoin
+import { firestore } from '@/services/firebase/client'
 
 export interface SupportMessage {
   id: string
@@ -27,7 +27,7 @@ export const useSupportMessages = (threadId: string | null) => {
     setLoading(true)
 
     const q = query(
-      collection(db, 'supportThreads', threadId, 'messages'),
+      collection(firestore, 'support_threads', threadId, 'messages'),
       orderBy('createdAt', 'asc')
     )
 

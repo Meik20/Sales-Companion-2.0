@@ -42,8 +42,7 @@ export function LoginForm() {
       setLoading(true)
       setError(null)
       try {
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '/api'
-        const res = await fetch(`${backendUrl.replace('/api', '')}/api/team/activate`, {
+        const res = await fetch(`/api/team/activate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ accessId, email, password })

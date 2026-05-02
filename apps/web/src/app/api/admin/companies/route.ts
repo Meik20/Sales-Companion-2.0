@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
 
     const companies = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
 
-    return NextResponse.json({ companies, total, page, pageSize })
+    return NextResponse.json({ items: companies, total, page, pageSize })
   } catch (error) {
     console.error('Companies error:', error)
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })

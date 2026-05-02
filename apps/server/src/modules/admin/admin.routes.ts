@@ -14,3 +14,5 @@ adminRoutes.post('/admin/init', asyncHandler(adminController.initAdmin))
 adminRoutes.get('/admin/users', asyncHandler(adminController.listUsers))
 adminRoutes.patch('/admin/users/:uid', asyncHandler(adminController.updateUser))
 adminRoutes.delete('/admin/users/:uid', asyncHandler(adminController.deleteUser))
+
+adminRoutes.get('/admin/companies', asyncHandler(adminController.getCompanies))

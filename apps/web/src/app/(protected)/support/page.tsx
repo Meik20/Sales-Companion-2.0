@@ -16,6 +16,7 @@ import { createSupportThread } from '@/features/support/hooks/useCreateSupportTh
 import { useSupportMessages } from '@/features/support/hooks/useSupportMessages'
 import { useUserSupportThreads } from '@/features/support/hooks/useUserSupportThreads'
 import { sendSupportMessage } from '@/features/support/hooks/useSendSupportMessage'
+import { updateSupportThreadStatus } from '@/features/support/hooks/useUpdateThreadStatus'
 import { useToast } from '@/hooks/useToast'
 import { colors } from '@/styles/tokens'
 
@@ -29,8 +30,10 @@ export default function SupportPage() {
   const [selectedThreadId, setSelectedThreadId] = useState<string | undefined>()
   const [creating,         setCreating]         = useState(false)
   const [showNew,          setShowNew]          = useState(false)
+  const [markingResolved,  setMarkingResolved]  = useState(false)
 
   const { messages } = useSupportMessages(selectedThreadId ?? null)
+  const selectedThread = threads?.find(t => t.id === selectedThreadId)
 
   async function handleCreateThread() {
     if (!user || !subject.trim()) return
@@ -56,12 +59,30 @@ export default function SupportPage() {
 
   async function handleSendMessage(content: string) {
     if (!user || !selectedThreadId) return
-    await sendSupportMessage({
-      threadId:   selectedThreadId,
-      senderId:   user.uid,
-      senderRole: 'user',
-      content,
-    })
+    try {
+      await sendSupportMessage({
+        threadId:   selectedThreadId,
+        senderId:   user.uid,
+        senderRole: 'user',
+        content,
+      })
+      pushToast({ type: 'success', title: 'Message envoyé' })
+    } catch {
+      pushToast({ type: 'error', title: 'Erreur lors de l\'envoi' })
+    }
+  }
+
+  async function handleMarkResolved() {
+    if (!selectedThreadId) return
+    setMarkingResolved(true)
+    try {
+      await updateSupportThreadStatus(selectedThreadId, 'resolved')
+      pushToast({ type: 'success', title: 'Ticket marqué comme résolu' })
+    } catch {
+      pushToast({ type: 'error', title: 'Erreur lors de la mise à jour' })
+    } finally {
+      setMarkingResolved(false)
+    }
   }
 
   return (
@@ -147,8 +168,46 @@ export default function SupportPage() {
           {selectedThreadId ? (
             <DataCard title="Conversation">
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {/* Thread Header */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, paddingBottom: 12, borderBottom: `1px solid ${colors.border}` }}>
+                  <div>
+                    <h3 style={{ margin: '0 0 4px', fontSize: 14, fontWeight: 600, color: colors.text }}>
+                      {selectedThread?.subject}
+                    </h3>
+                    <p style={{ margin: 0, fontSize: 12, color: colors.textMid }}>
+                      Créé le {selectedThread?.createdAt?.toDate?.().toLocaleDateString('fr-FR')}
+                    </p>
+                  </div>
+                  <Badge variant={selectedThread?.status === 'resolved' ? 'success' : 'info'}>
+                    {selectedThread?.status === 'resolved' ? '✓ Résolu' : '🔵 Ouvert'}
+                  </Badge>
+                </div>
+
+                {/* Messages */}
                 <SupportMessageList messages={messages ?? []} currentUserId={user?.uid} />
-                <SupportComposer onSend={handleSendMessage} />
+                
+                {/* Composer */}
+                {selectedThread?.status === 'open' ? (
+                  <SupportComposer onSend={handleSendMessage} />
+                ) : (
+                  <div style={{ padding: 12, background: 'rgba(34,197,94,0.1)', borderRadius: 8, textAlign: 'center', color: colors.green, fontSize: 12 }}>
+                    Ce ticket est marqué comme résolu.
+                  </div>
+                )}
+
+                {/* Actions */}
+                {selectedThread?.status === 'open' && (
+                  <div style={{ paddingTop: 12, borderTop: `1px solid ${colors.border}` }}>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      loading={markingResolved}
+                      onClick={() => void handleMarkResolved()}
+                    >
+                      ✓ Marquer comme résolu
+                    </Button>
+                  </div>
+                )}
               </div>
             </DataCard>
           ) : (

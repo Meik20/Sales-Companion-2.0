@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express'
 import { z } from 'zod'
 import { adminService } from './admin.service'
+import { companiesService } from '../companies/companies.service'
 
 const initAdminSchema = z.object({
   uid: z.string().min(1)
@@ -42,6 +43,14 @@ export const adminController = {
 
   async deleteUser(req: Request, res: Response) {
     const result = await adminService.deleteUser(req.params.uid as string)
+    return res.json(result)
+  },
+
+  async getCompanies(req: Request, res: Response) {
+    const page = req.query.page ? parseInt(req.query.page as string) : 1
+    const pageSize = req.query.pageSize ? parseInt(req.query.pageSize as string) : 20
+
+    const result = await companiesService.listPaginated(page, pageSize)
     return res.json(result)
   }
 }
