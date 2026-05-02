@@ -1,9 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { adminDb, adminAuth } from '@/lib/firebase-admin'
+
+// Lazy import to avoid HTML error if firebase-admin fails to init
+async function getAdminModules() {
+  const { adminDb, adminAuth } = await import('@/lib/firebase-admin')
+  return { adminDb, adminAuth }
+}
 
 export async function POST(request: NextRequest) {
+  // Always return JSON — never let Next.js show HTML error page
   try {
-    const body = await request.json()
+    const { adminDb, adminAuth } = await getAdminModules()
+
+    const body = await request.json().catch(() => null)
+    if (!body) {
+      return NextResponse.json({ message: 'Corps de requête invalide' }, { status: 400 })
+    }
+
     const { accessId, password } = body as { accessId?: string; password?: string }
 
     if (!accessId || !password) {
@@ -13,17 +25,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Le mot de passe doit comporter au moins 6 caractères' }, { status: 400 })
     }
 
-    // ── 1. Fetch the access doc from Firestore ──
+    // ── 1. Fetch the access document ──
     let snap = await adminDb.collection('teamAccesses').doc(accessId).get()
     let collection = 'teamAccesses'
+
     if (!snap.exists) {
       snap = await adminDb.collection('accesses').doc(accessId).get()
       collection = 'accesses'
     }
+    if (!snap.exists) {
+      snap = await adminDb.collection('team_accesses').doc(accessId).get()
+      if (snap.exists) collection = 'team_accesses'
+    }
 
     if (!snap.exists) {
       return NextResponse.json(
-        { message: 'Lien d\'activation invalide ou expiré. Vérifiez le code fourni par votre manager.' },
+        {
+          message:
+            'Lien d\'activation invalide ou expiré. Vérifiez l\'identifiant d\'accès fourni par votre manager ou demandez un nouveau lien.',
+        },
         { status: 404 }
       )
     }
@@ -32,34 +52,41 @@ export async function POST(request: NextRequest) {
 
     if (data.status === 'activated') {
       return NextResponse.json(
-        { message: 'Ce compte a déjà été activé. Connectez-vous directement avec votre email et mot de passe.' },
+        {
+          message:
+            'Ce compte a déjà été activé. Connectez-vous directement sur la page de connexion avec votre adresse email et votre mot de passe.',
+        },
         { status: 409 }
       )
     }
 
-    const email: string = data.email
+    const email: string | undefined = data.email
     if (!email) {
       return NextResponse.json(
-        { message: 'Aucun email associé à cet accès. Contactez votre manager.' },
+        {
+          message:
+            'Aucun email associé à cet accès. Contactez votre manager pour corriger votre profil.',
+        },
         { status: 422 }
       )
     }
 
-    // ── 2. Create or update the Firebase Auth user ──
+    // ── 2. Create or update Firebase Auth user ──
     let uid: string
     try {
-      const existingUser = await adminAuth.getUserByEmail(email)
-      // User exists — update password
-      await adminAuth.updateUser(existingUser.uid, { password })
-      uid = existingUser.uid
+      const existing = await adminAuth.getUserByEmail(email)
+      await adminAuth.updateUser(existing.uid, { password })
+      uid = existing.uid
     } catch (authErr: unknown) {
       const code = (authErr as { code?: string })?.code
       if (code === 'auth/user-not-found') {
-        // Create the user
         const newUser = await adminAuth.createUser({
           email,
           password,
-          displayName: `${data.firstname ?? data.firstName ?? ''} ${data.lastname ?? data.lastName ?? ''}`.trim() || undefined,
+          displayName: [
+            data.firstname ?? data.firstName ?? '',
+            data.lastname  ?? data.lastName  ?? '',
+          ].join(' ').trim() || undefined,
         })
         uid = newUser.uid
       } else {
@@ -67,34 +94,56 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // ── 3. Create/update Firestore user doc ──
-    await adminDb.collection('users').doc(uid).set({
-      uid,
-      email,
-      name: `${data.firstname ?? data.firstName ?? ''} ${data.lastname ?? data.lastName ?? ''}`.trim() || null,
-      role: data.role ?? 'member',
-      plan: data.plan ?? 'free',
-      active: true,
-      company: data.company ?? null,
-      sector: data.sector ?? null,
-      region: data.region ?? null,
-      managerId: data.managerId ?? null,
-      dailyUsed: 0,
-      dailyLimit: data.dailyLimit ?? 10,
-      createdAt: new Date(),
-    }, { merge: true })
+    // ── 3. Write / merge Firestore user document ──
+    await adminDb.collection('users').doc(uid).set(
+      {
+        uid,
+        email,
+        name: [
+          data.firstname ?? data.firstName ?? '',
+          data.lastname  ?? data.lastName  ?? '',
+        ].join(' ').trim() || null,
+        role:      data.role      ?? 'member',
+        plan:      data.plan      ?? 'free',
+        active:    true,
+        company:   data.company   ?? null,
+        sector:    data.sector    ?? null,
+        region:    data.region    ?? null,
+        managerId: data.managerId ?? null,
+        dailyUsed:  0,
+        dailyLimit: data.dailyLimit ?? 10,
+        createdAt: new Date(),
+      },
+      { merge: true }
+    )
 
-    // ── 4. Mark the access as activated ──
+    // ── 4. Mark access as activated ──
     await adminDb.collection(collection).doc(accessId).update({
-      status: 'activated',
-      activatedAt: new Date(),
+      status:       'activated',
+      activatedAt:  new Date(),
       activatedUid: uid,
     })
 
     return NextResponse.json({ success: true, uid })
   } catch (error) {
-    console.error('Activate error:', error)
-    const msg = error instanceof Error ? error.message : 'Erreur serveur'
-    return NextResponse.json({ message: `Activation impossible : ${msg}` }, { status: 500 })
+    console.error('[activate] Error:', error)
+
+    // Always return JSON with a human-readable message
+    const msg =
+      error instanceof Error
+        ? error.message
+        : typeof error === 'string'
+        ? error
+        : 'Erreur serveur inconnue'
+
+    return NextResponse.json(
+      { message: `Activation impossible : ${msg}` },
+      { status: 500 }
+    )
   }
+}
+
+// Handle incorrect method — return JSON not HTML
+export async function GET() {
+  return NextResponse.json({ message: 'Méthode non autorisée' }, { status: 405 })
 }

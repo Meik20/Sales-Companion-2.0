@@ -228,3 +228,97 @@ body::before {
   white-space: nowrap;
   border-width: 0;
 }
+
+/* ─── PWA / Mobile responsive ───────────────────────────────────────── */
+
+/* Respect safe area insets (notch, home bar) */
+:root {
+  --safe-top:    env(safe-area-inset-top,    0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left:   env(safe-area-inset-left,   0px);
+  --safe-right:  env(safe-area-inset-right,  0px);
+}
+
+/* Full-height app shell */
+html, body {
+  height: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Standalone PWA tweaks */
+@media (display-mode: standalone) {
+  body {
+    padding-top: var(--safe-top);
+  }
+}
+
+/* ── Stack layout on mobile (< 768px) ── */
+@media (max-width: 768px) {
+  /* Full-width panels */
+  [data-layout="two-col"],
+  .two-col {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  /* Make sidebar slide under content */
+  [data-sidebar],
+  aside[role="complementary"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--cr-separator-color) !important;
+  }
+
+  /* Tap-friendly buttons and inputs */
+  button, a, input, select, textarea {
+    min-height: 44px;
+  }
+
+  /* Cards full width */
+  [class*="DataCard"],
+  [class*="card"] {
+    border-radius: 0 !important;
+    border-left: none !important;
+    border-right: none !important;
+  }
+
+  /* Tables — horizontal scroll */
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Grid → single column */
+  .grid-responsive {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Header — compact */
+  header {
+    padding: 0 12px !important;
+  }
+  header h1,
+  header span[style*="Syne"] {
+    font-size: 15px !important;
+  }
+
+  /* Select fix on iOS — prevent zoom */
+  select, input, textarea {
+    font-size: 16px !important; /* iOS zooms if < 16px */
+  }
+}
+
+/* ── Very small screens (< 480px) ── */
+@media (max-width: 480px) {
+  body {
+    font-size: 87.5%; /* 14px */
+  }
+
+  /* Hide non-essential sidebar items */
+  [data-mobile-hidden="true"] {
+    display: none !important;
+  }
+}
+
