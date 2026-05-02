@@ -199,7 +199,7 @@ export default function SupportPage() {
                 {selectedThread?.status === 'open' && (
                   <div style={{ paddingTop: 12, borderTop: `1px solid ${colors.border}` }}>
                     <Button
-                      variant="secondary"
+                      variant="outline"
                       size="sm"
                       loading={markingResolved}
                       onClick={() => void handleMarkResolved()}
