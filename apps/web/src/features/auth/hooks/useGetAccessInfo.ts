@@ -9,22 +9,29 @@ export type AccessInfo = {
   lastname: string
   company: string
   status: string
+  email?: string | null
 }
 
 export function useGetAccessInfo(accessId: string) {
   return useQuery({
     queryKey: ['access-info', accessId],
     queryFn: async (): Promise<AccessInfo> => {
-      const backendUrl = ''
-
-      const response = await fetch(`${backendUrl}/team/accesses/${accessId}/public`)
+      const response = await fetch(`/api/team/access-info/${encodeURIComponent(accessId)}`)
 
       if (!response.ok) {
-        throw new Error('Impossible de charger les informations d\'accès')
+        let message = 'Lien d\'activation invalide ou expiré'
+        try {
+          const json = await response.json()
+          if (json?.error) message = json.error
+        } catch {
+          // ignore parse error
+        }
+        throw new Error(message)
       }
 
       return response.json()
     },
     enabled: !!accessId,
+    retry: false,
   })
 }

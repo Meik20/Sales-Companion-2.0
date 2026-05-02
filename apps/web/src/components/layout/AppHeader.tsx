@@ -4,7 +4,6 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
-import { ScIcon } from '@/components/ui/ScIcon'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useAuthActions } from '@/features/auth/hooks/useAuthActions'
 import { routes } from '@/constants/routes'
@@ -85,20 +84,17 @@ export function AppHeader({ onOpenMenu }: { onOpenMenu?: () => void }) {
               textDecoration: 'none',
             }}
           >
-            <div style={{ background: 'rgba(255,255,255,0.1)', padding: 4, borderRadius: 8 }}>
-              <ScIcon size={24} interactive />
-            </div>
             <span
               style={{
                 fontFamily: "'Syne',sans-serif",
                 fontWeight: 700,
-                fontSize: 16,
+                fontSize: 18,
                 color: '#ffffff',
-                letterSpacing: '.02em',
+                letterSpacing: '.04em',
                 textTransform: 'uppercase',
               }}
             >
-              Sales <em style={{ opacity: 0.9, fontStyle: 'normal', fontWeight: 400 }}>Companion</em>
+              Sales <em style={{ opacity: 0.85, fontStyle: 'normal', fontWeight: 400 }}>Companion</em>
             </span>
           </Link>
         </div>

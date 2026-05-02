@@ -18,24 +18,21 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
 
-  const { data: accessInfo, isLoading: isLoadingInfo, isError: isErrorInfo } = useGetAccessInfo(accessId)
+  const { data: accessInfo, isLoading: isLoadingInfo, isError: isErrorInfo, error: infoError } = useGetAccessInfo(accessId)
   const { mutate: activateMember, isPending } = useActivateMember()
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
 
-    // Validations
     if (!password || !confirmPassword) {
       setError('Veuillez remplir tous les champs.')
       return
     }
-
     if (password.length < 6) {
       setError('Le mot de passe doit comporter au moins 6 caractères.')
       return
     }
-
     if (password !== confirmPassword) {
       setError('Les mots de passe ne correspondent pas.')
       return
@@ -44,11 +41,9 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
     activateMember(
       { accessId, password },
       {
-        onSuccess: () => {
-          onSuccess()
-        },
+        onSuccess: () => { onSuccess() },
         onError: (err: Error) => {
-          setError(err.message || 'Erreur lors de l\'activation.')
+          setError(err.message || 'Erreur lors de l\'activation. Réessayez ou contactez votre manager.')
         },
       }
     )
@@ -57,15 +52,27 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
   if (isLoadingInfo) {
     return (
       <div style={{ textAlign: 'center', color: colors.textMid, padding: 20 }}>
-        Chargement des informations...
+        Vérification du lien d&apos;activation…
       </div>
     )
   }
 
   if (isErrorInfo) {
+    const errMsg = infoError instanceof Error ? infoError.message : 'Lien d\'activation invalide ou expiré.'
     return (
-      <div style={{ textAlign: 'center', color: '#f87171', padding: 20 }}>
-        Lien d&apos;activation invalide ou expiré.
+      <div style={{
+        background: 'rgba(239,68,68,0.08)',
+        border: '1px solid rgba(239,68,68,0.3)',
+        borderRadius: 10,
+        padding: '16px 18px',
+        textAlign: 'center',
+      }}>
+        <div style={{ fontSize: 28, marginBottom: 8 }}>❌</div>
+        <div style={{ fontWeight: 600, color: '#f87171', marginBottom: 8, fontSize: 15 }}>Accès impossible</div>
+        <div style={{ fontSize: 13, color: '#fca5a5', lineHeight: 1.5 }}>{errMsg}</div>
+        <div style={{ fontSize: 12, color: colors.textMid, marginTop: 12 }}>
+          Si le problème persiste, contactez votre manager pour obtenir un nouveau lien.
+        </div>
       </div>
     )
   }
@@ -79,11 +86,17 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
-    >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, background: colors.bg, padding: 14, borderRadius: 10 }}>
+    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* Récapitulatif de l'accès */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, background: colors.bg, padding: 14, borderRadius: 10 }}>
+        <div>
+          <div style={{ fontSize: 11, color: colors.textDim, letterSpacing: '.04em', textTransform: 'uppercase', marginBottom: 3 }}>
+            Identifiant d&apos;accès (Access ID)
+          </div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: colors.text, fontFamily: 'monospace', wordBreak: 'break-all' }}>
+            {accessId}
+          </div>
+        </div>
         <div>
           <div style={{ fontSize: 11, color: colors.textDim, letterSpacing: '.04em', textTransform: 'uppercase', marginBottom: 3 }}>
             Nom
@@ -92,6 +105,16 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
             {accessInfo.firstname} {accessInfo.lastname}
           </div>
         </div>
+        {accessInfo.email && (
+          <div>
+            <div style={{ fontSize: 11, color: colors.textDim, letterSpacing: '.04em', textTransform: 'uppercase', marginBottom: 3 }}>
+              Email
+            </div>
+            <div style={{ fontSize: 13, color: colors.textMid }}>
+              {accessInfo.email}
+            </div>
+          </div>
+        )}
         <div>
           <div style={{ fontSize: 11, color: colors.textDim, letterSpacing: '.04em', textTransform: 'uppercase', marginBottom: 3 }}>
             Entreprise
@@ -102,7 +125,7 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
         </div>
       </div>
 
-      <FormField label="Mot de passe" required error={error && password ? error : ''}>
+      <FormField label="Nouveau mot de passe" required>
         <Input
           type="password"
           placeholder="••••••••"
@@ -113,11 +136,7 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
         />
       </FormField>
 
-      <FormField
-        label="Confirmer le mot de passe"
-        required
-        error={error && confirmPassword ? error : ''}
-      >
+      <FormField label="Confirmer le mot de passe" required>
         <Input
           type="password"
           placeholder="••••••••"
@@ -128,25 +147,28 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
         />
       </FormField>
 
-      {error && !password && !confirmPassword && (
-        <div style={{ fontSize: 13, color: '#f87171', padding: '12px', background: 'rgba(239,68,68,0.1)', borderRadius: 8 }}>
-          {error}
+      {/* Bloc d'erreur global — clair et lisible */}
+      {error && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: 10,
+          background: 'rgba(239,68,68,0.08)',
+          border: '1px solid rgba(239,68,68,0.3)',
+          borderRadius: 10,
+          padding: '12px 14px',
+          fontSize: 13,
+          color: '#ef4444',
+          lineHeight: 1.5,
+        }}>
+          <span style={{ fontSize: 16, flexShrink: 0 }}>⚠️</span>
+          <span>{error}</span>
         </div>
       )}
 
-      <div
-        style={{
-          fontSize: 12,
-          color: colors.textMid,
-          lineHeight: 1.6,
-        }}
-      >
-        <p style={{ margin: '0 0 8px' }}>
-          ✓ Au moins 6 caractères
-        </p>
-        <p style={{ margin: 0 }}>
-          ✓ Lettres, chiffres et caractères spéciaux acceptés
-        </p>
+      <div style={{ fontSize: 12, color: colors.textMid, lineHeight: 1.7 }}>
+        <p style={{ margin: '0 0 4px' }}>✓ Au moins 6 caractères</p>
+        <p style={{ margin: 0 }}>✓ Lettres, chiffres et caractères spéciaux acceptés</p>
       </div>
 
       <Button

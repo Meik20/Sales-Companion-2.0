@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     await verifyAdmin(token)
 
     const page = parseInt(request.nextUrl.searchParams.get('page') || '1', 10)
-    const pageSize = parseInt(request.nextUrl.searchParams.get('pageSize') || '20', 10)
+    const pageSize = parseInt(request.nextUrl.searchParams.get('pageSize') || '50', 10)
 
     const totalSnap = await adminDb.collection('users').count().get()
     const total = totalSnap.data().count
@@ -27,9 +27,28 @@ export async function GET(request: NextRequest) {
       .offset((page - 1) * pageSize)
       .get()
 
-    const users = usersSnap.docs.map((doc) => ({ uid: doc.id, ...doc.data() }))
+    const items = usersSnap.docs.map((doc) => {
+      const data = doc.data()
+      return {
+        uid: doc.id,
+        name: data.name ?? null,
+        email: data.email ?? null,
+        role: data.role ?? 'member',
+        plan: data.plan ?? 'free',
+        active: data.active ?? true,
+        dailyUsed: data.dailyUsed ?? 0,
+        dailyLimit: data.dailyLimit ?? 10,
+        company: data.company ?? null,
+        sector: data.sector ?? null,
+        region: data.region ?? null,
+        phone: data.phone ?? null,
+        createdAt: data.createdAt?.toDate?.()?.toISOString() ?? null,
+        lastLoginAt: data.lastLoginAt?.toDate?.()?.toISOString() ?? null,
+        managerId: data.managerId ?? null,
+      }
+    })
 
-    return NextResponse.json({ users, total, page, pageSize })
+    return NextResponse.json({ items, total, page, pageSize })
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : 'unknown'
     if (msg === 'unauthenticated') return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })

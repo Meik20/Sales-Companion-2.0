@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState, Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useEffect, useRef, useState, Suspense } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { AppShell } from '@/components/layout/AppShell'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { LoadingState, EmptyState } from '@/components/feedback/index'
@@ -11,12 +11,16 @@ import { SearchFiltersForm } from '@/features/search/components/SearchFiltersFor
 import { CompaniesSearchResults } from '@/features/search/components/CompaniesSearchResults'
 import { SaveCurrentSearchButton } from '@/features/search/components/SaveCurrentSearchButton'
 import { useCompaniesSearch } from '@/features/search/hooks/useCompaniesSearch'
+import { usePipelineStats } from '@/features/pipeline/hooks/usePipelineStats'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { colors } from '@/styles/tokens'
 import { ShortcutCard } from '@/components/ui/ShortcutCard'
 import { Button } from '@/components/ui/Button'
 
 function SearchContent() {
   const searchParams = useSearchParams()
+  const router = useRouter()
+  const { user } = useCurrentUser()
   const [filters, setFilters] = useState<{
     sector?: string
     region?: string
@@ -24,6 +28,19 @@ function SearchContent() {
     query?: string
   }>({})
   const [hasSearched, setHasSearched] = useState(false)
+
+  // AI B2B chat state
+  type ChatMsg = { role: 'user' | 'assistant'; text: string }
+  const [chatMessages, setChatMessages] = useState<ChatMsg[]>([
+    { role: 'assistant', text: 'Bonjour 👋 Je suis votre Assistant IA B2B.\nPosez-moi vos questions sur la prospection au Cameroun, les secteurs d\'activité, ou demandez-moi de rédiger un email d\'approche.' },
+  ])
+  const [chatInput, setChatInput] = useState('')
+  const [isSendingChat, setIsSendingChat] = useState(false)
+  const chatEndRef = useRef<HTMLDivElement>(null)
+
+  // Pipeline stats
+  const pipelineStats = usePipelineStats()
+  const stats = pipelineStats.data
 
   useEffect(() => {
     const sector = searchParams.get('sector') || undefined
@@ -35,6 +52,52 @@ function SearchContent() {
       setHasSearched(true)
     }
   }, [searchParams])
+
+  // Scroll chat to bottom when new messages arrive
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [chatMessages])
+
+  async function sendChatMessage(msg: string) {
+    if (!msg.trim() || isSendingChat) return
+    const userMsg = msg.trim()
+    setChatInput('')
+    setChatMessages((prev) => [...prev, { role: 'user', text: userMsg }])
+    setIsSendingChat(true)
+    try {
+      const token = await user?.getIdToken()
+      const history = chatMessages
+        .filter((m) => m.role !== 'assistant' || m !== chatMessages[0])
+        .map((m) => ({
+          role: m.role === 'user' ? 'user' : 'model',
+          parts: [{ text: m.text }],
+        }))
+      const res = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ message: userMsg, history }),
+      })
+      const json = await res.json()
+      setChatMessages((prev) => [
+        ...prev,
+        { role: 'assistant', text: json.reply ?? json.error ?? 'Erreur de réponse.' },
+      ])
+    } catch {
+      setChatMessages((prev) => [...prev, { role: 'assistant', text: '❌ Erreur réseau. Vérifiez votre connexion.' }])
+    } finally {
+      setIsSendingChat(false)
+    }
+  }
+
+  function handleChatKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      sendChatMessage(chatInput)
+    }
+  }
 
   const searchQuery = useCompaniesSearch(filters)
   const results = searchQuery.data ?? []
@@ -236,86 +299,149 @@ function SearchContent() {
         `}} />
 
         {/* Pipeline commercial */}
-        <DataCard title="Pipeline commercial">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <div style={{ display: 'flex', gap: 8, justifyContent: 'center', background: '#FFF3E0', padding: 8, borderRadius: 20 }}>
-              <span style={{ fontSize: 12, fontWeight: 600, color: '#E65100' }}>🎯 Prospection <Badge variant="danger">0</Badge></span>
+        <DataCard title="📊 Pipeline commercial">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {/* Stats live */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+              {[
+                { label: 'Prospection', value: stats?.prospection ?? 0, color: '#60a5fa', bg: 'rgba(96,165,250,0.1)' },
+                { label: 'Négociation', value: stats?.negotiation ?? 0, color: '#fbbf24', bg: 'rgba(251,191,36,0.1)' },
+                { label: 'Conclue',     value: stats?.conclusion  ?? 0, color: '#4ade80', bg: 'rgba(74,222,128,0.1)' },
+              ].map(({ label, value, color, bg }) => (
+                <div key={label} style={{ background: bg, borderRadius: 10, padding: '10px 8px', textAlign: 'center' }}>
+                  <div style={{ fontSize: 22, fontWeight: 800, color }}>{value}</div>
+                  <div style={{ fontSize: 10, color: colors.textMid, marginTop: 2 }}>{label}</div>
+                </div>
+              ))}
             </div>
-            <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
-              <span style={{ fontSize: 12, color: colors.textMid }}>🤝 Négociation <Badge variant="info">0</Badge></span>
-              <span style={{ fontSize: 12, color: colors.textMid }}>✅ Conclue <Badge variant="success">0</Badge></span>
-            </div>
-            <Button variant="primary" style={{ width: '100%', borderRadius: 8 }}>+ Ajouter une entreprise</Button>
+            <Button
+              variant="primary"
+              style={{ width: '100%', borderRadius: 8 }}
+              onClick={() => router.push('/pipeline')}
+            >
+              → Voir mon pipeline complet
+            </Button>
           </div>
         </DataCard>
 
-        {/* Assistant B2B */}
+        {/* Assistant B2B IA */}
         <DataCard title="🟢 Assistant IA B2B">
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 16, minHeight: 350 }}>
-            {/* Zone de messages (scrollable) */}
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 12, overflowY: 'auto', paddingRight: 4 }}>
-              <div style={{ 
-                background: colors.greenLight, 
-                padding: '12px 16px', 
-                borderRadius: '16px 16px 16px 4px', 
-                fontSize: 13, 
-                color: colors.greenDark,
-                lineHeight: 1.5,
-                boxShadow: '0 2px 8px rgba(27,122,62,0.05)'
-              }}>
-                <strong>Bonjour 👋 Je suis votre Assistant IA B2B.</strong><br/>
-                Posez-moi vos questions sur la prospection au Cameroun, les secteurs d'activité, ou demandez-moi de rédiger un email d'approche.
-              </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, height: 380 }}>
+            {/* Zone messages */}
+            <div style={{
+              flex: 1,
+              overflowY: 'auto',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 10,
+              paddingRight: 4,
+              maxHeight: 260,
+            }}>
+              {chatMessages.map((msg, i) => (
+                <div
+                  key={i}
+                  style={{
+                    alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
+                    maxWidth: '85%',
+                    background: msg.role === 'user'
+                      ? colors.green
+                      : colors.greenLight,
+                    color: msg.role === 'user' ? '#fff' : colors.greenDark,
+                    padding: '10px 14px',
+                    borderRadius: msg.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+                    fontSize: 12.5,
+                    lineHeight: 1.55,
+                    whiteSpace: 'pre-wrap',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                  }}
+                >
+                  {msg.text}
+                </div>
+              ))}
+              {isSendingChat && (
+                <div style={{ alignSelf: 'flex-start', background: colors.greenLight, color: colors.greenDark, padding: '10px 14px', borderRadius: '16px 16px 16px 4px', fontSize: 12, fontStyle: 'italic' }}>
+                  ⏳ Réflexion en cours…
+                </div>
+              )}
+              <div ref={chatEndRef} />
             </div>
 
-            {/* Suggestions rapides */}
+            {/* Chips suggestions */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-              <button style={{ fontSize: 11, padding: '6px 10px', borderRadius: 999, border: `1px solid ${colors.border}`, background: '#fff', color: colors.textMid, cursor: 'pointer' }}>
-                Tendances BTP Douala
-              </button>
-              <button style={{ fontSize: 11, padding: '6px 10px', borderRadius: 999, border: `1px solid ${colors.border}`, background: '#fff', color: colors.textMid, cursor: 'pointer' }}>
-                Email d'approche Tech
-              </button>
+              {[
+                'Tendances BTP Douala',
+                "Email d'approche Tech",
+                'Script appel DG Agroalimentaire',
+              ].map((chip) => (
+                <button
+                  key={chip}
+                  onClick={() => sendChatMessage(chip)}
+                  disabled={isSendingChat}
+                  style={{
+                    fontSize: 11,
+                    padding: '5px 10px',
+                    borderRadius: 999,
+                    border: `1px solid ${colors.border}`,
+                    background: colors.bg2,
+                    color: colors.textMid,
+                    cursor: isSendingChat ? 'not-allowed' : 'pointer',
+                    opacity: isSendingChat ? 0.5 : 1,
+                    transition: 'all 150ms ease',
+                  }}
+                >
+                  {chip}
+                </button>
+              ))}
             </div>
 
             {/* Zone de saisie */}
-            <div style={{ position: 'relative', marginTop: 'auto' }}>
-              <textarea 
-                placeholder="Ex: Comment aborder un DG dans l'Agroalimentaire ?" 
+            <div style={{ position: 'relative' }}>
+              <textarea
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyDown={handleChatKeyDown}
+                disabled={isSendingChat}
+                placeholder="Ex: Comment aborder un DG dans l'Agroalimentaire ?  (Entrée pour envoyer)"
                 rows={2}
-                style={{ 
-                  width: '100%', 
-                  padding: '12px 48px 12px 16px', 
-                  borderRadius: 16, 
-                  border: `1px solid ${colors.border2}`, 
+                style={{
+                  width: '100%',
+                  padding: '10px 48px 10px 14px',
+                  borderRadius: 14,
+                  border: `1px solid ${colors.border}`,
                   outline: 'none',
-                  fontSize: 13,
+                  fontSize: 12.5,
                   resize: 'none',
                   fontFamily: 'inherit',
-                  boxShadow: '0 2px 12px rgba(0,0,0,0.03)'
-                }} 
+                  background: colors.bg2,
+                  color: colors.text,
+                  boxSizing: 'border-box',
+                }}
               />
-              <button style={{ 
-                position: 'absolute', 
-                right: 8, 
-                bottom: 8, 
-                width: 32, 
-                height: 32,
-                borderRadius: '50%', 
-                background: colors.green, 
-                color: '#fff', 
-                border: 'none', 
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 4px 12px rgba(27,122,62,0.3)',
-                transition: 'transform 200ms'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-              onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+              <button
+                onClick={() => sendChatMessage(chatInput)}
+                disabled={isSendingChat || !chatInput.trim()}
+                style={{
+                  position: 'absolute',
+                  right: 8,
+                  bottom: 8,
+                  width: 32,
+                  height: 32,
+                  borderRadius: '50%',
+                  background: isSendingChat || !chatInput.trim() ? colors.border : colors.green,
+                  color: '#fff',
+                  border: 'none',
+                  cursor: isSendingChat || !chatInput.trim() ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 4px 12px rgba(27,122,62,0.3)',
+                  transition: 'all 200ms ease',
+                }}
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13" />
+                  <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                </svg>
               </button>
             </div>
           </div>

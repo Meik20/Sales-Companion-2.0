@@ -42,7 +42,9 @@ export default function AdminUsersPage() {
     }
   }
 
-  const users = usersQuery.data?.items ?? []
+  const rawUsers = usersQuery.data?.items ?? []
+  // Cast to the extended AdminUser type expected by AdminUsersTable
+  const users = rawUsers as Parameters<typeof AdminUsersTable>[0]['users']
 
   return (
     <AppShell>
