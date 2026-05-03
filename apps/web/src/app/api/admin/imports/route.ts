@@ -52,8 +52,8 @@ export async function POST(request: NextRequest) {
     }
 
     const ext = file.name.split('.').pop()?.toLowerCase()
-    if (!['csv', 'xlsx', 'xls'].includes(ext ?? '')) {
-      return NextResponse.json({ error: 'Format non supporté. Utilisez .csv, .xlsx ou .xls' }, { status: 400 })
+    if (!ext) {
+      return NextResponse.json({ error: 'Fichier sans extension' }, { status: 400 })
     }
 
     const bytes = await file.arrayBuffer()
@@ -184,13 +184,32 @@ export async function POST(request: NextRequest) {
 /* ── CSV parser (no external dependency) ── */
 function parseCSV(text: string): Record<string, string>[] {
   const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').filter(Boolean)
-  if (lines.length < 2) return []
+  if (lines.length < 1) return []
 
-  const headers = splitCSVLine(lines[0]!)
+  // Détecter le séparateur : analyser le header pour trouver le plus fréquent
+  // Supporter : virgule, point-virgule, tabulation, pipe, tilde
+  const headerLine = lines[0]!
+  let sep = ','
+  
+  // Compter les occurrences de chaque séparateur potentiel
+  const separators = [',', ';', '\t', '|', '~']
+  let maxCount = 0
+  for (const s of separators) {
+    const regex = new RegExp(`\\${s}`, 'g')
+    const count = (headerLine.match(regex) || []).length
+    if (count > maxCount) {
+      maxCount = count
+      sep = s
+    }
+  }
+
+  const headers = headerLine.split(sep).map((h) =>
+    h.replace(/^"|"$/g, '').trim().toLowerCase()
+  )
   const rows: Record<string, string>[] = []
 
   for (let i = 1; i < lines.length; i++) {
-    const values = splitCSVLine(lines[i]!)
+    const values = lines[i]!.split(sep).map((v) => v.replace(/^"|"$/g, '').trim())
     if (values.every((v) => !v.trim())) continue
     const row: Record<string, string> = {}
     headers.forEach((h, idx) => {
@@ -199,26 +218,6 @@ function parseCSV(text: string): Record<string, string>[] {
     rows.push(row)
   }
   return rows
-}
-
-function splitCSVLine(line: string): string[] {
-  const result: string[] = []
-  let current = ''
-  let inQuotes = false
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i]
-    if (ch === '"') {
-      if (inQuotes && line[i + 1] === '"') { current += '"'; i++ }
-      else inQuotes = !inQuotes
-    } else if ((ch === ',' || ch === ';') && !inQuotes) {
-      result.push(current.trim())
-      current = ''
-    } else {
-      current += ch
-    }
-  }
-  result.push(current.trim())
-  return result
 }
 
 /* ── Excel parser (using ExcelJS) ── */

@@ -8,10 +8,27 @@ export function parseCsv(content: string) {
     return []
   }
 
-  const headers = splitCsvLine(lines[0] || '')
+  // Détecter le séparateur : analyser le header pour trouver le plus fréquent
+  // Supporter : virgule, point-virgule, tabulation, pipe, tilde
+  const headerLine = lines[0] || ''
+  let sep = ','
+  
+  // Compter les occurrences de chaque séparateur potentiel
+  const separators = [',', ';', '\t', '|', '~']
+  let maxCount = 0
+  for (const s of separators) {
+    const regex = new RegExp(`\\${s}`, 'g')
+    const count = (headerLine.match(regex) || []).length
+    if (count > maxCount) {
+      maxCount = count
+      sep = s
+    }
+  }
+
+  const headers = splitCsvLine(headerLine, sep)
 
   return lines.slice(1).map((line) => {
-    const values = splitCsvLine(line)
+    const values = splitCsvLine(line, sep)
     const row: Record<string, string> = {}
 
     headers.forEach((header, index) => {
@@ -22,7 +39,7 @@ export function parseCsv(content: string) {
   })
 }
 
-function splitCsvLine(line: string) {
+function splitCsvLine(line: string, sep: string = ',') {
   const result: string[] = []
   let current = ''
   let insideQuotes = false
@@ -35,7 +52,7 @@ function splitCsvLine(line: string) {
       continue
     }
 
-    if (char === ',' && !insideQuotes) {
+    if (char === sep && !insideQuotes) {
       result.push(current.trim())
       current = ''
       continue

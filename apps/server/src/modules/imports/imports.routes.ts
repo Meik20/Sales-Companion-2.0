@@ -11,13 +11,18 @@ function fileFilter(
   cb: multer.FileFilterCallback
 ) {
   const lower = file.originalname.toLowerCase()
-
-  if (lower.endsWith('.csv') || lower.endsWith('.xlsx') || lower.endsWith('.xls')) {
+  
+  // Accepter tous les fichiers texte courants
+  // .csv, .xlsx, .xls, .txt, .tsv, .json, .dat, .log, .txt, etc.
+  const allowedExts = ['csv', 'xlsx', 'xls', 'txt', 'tsv', 'json', 'dat', 'log', 'tab', 'pipe']
+  const ext = lower.split('.').pop()
+  
+  if (ext && (allowedExts.includes(ext) || file.mimetype.startsWith('text/'))) {
     cb(null, true)
     return
   }
 
-  cb(new Error('Unsupported file type'))
+  cb(new Error('Unsupported file type. Please use text-based files (csv, txt, xlsx, etc.)'))
 }
 
 const upload = multer({

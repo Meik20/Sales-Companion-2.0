@@ -28,20 +28,34 @@ const HEADER_ALIASES: Record<string, string> = {
 }
 
 function parseCSV(text: string): ParsedRow[] {
-  const lines = text.trim().split(/\r?\n/)
-  if (lines.length < 2) return []
+  const lines = text.trim().split(/\r?\n/).filter(Boolean)
+  if (lines.length < 1) return []
 
-  // Détecter le séparateur : virgule, point-virgule ou tabulation
-  const sep = lines[0]!.includes(';') ? ';' : lines[0]!.includes('\t') ? '\t' : ','
-  const raw_headers = lines[0]!.split(sep).map((h) =>
-    h.replace(/^"|"$/g, '').trim().toLowerCase()
+  // Détecter le séparateur : analyser le header pour trouver le plus fréquent
+  // Supporter : virgule, point-virgule, tabulation, pipe, tilde
+  const headerLine = lines[0]!
+  let sep = ','
+  
+  // Compter les occurrences de chaque séparateur potentiel
+  const separators = [',', ';', '\t', '|', '~']
+  let maxCount = 0
+  for (const s of separators) {
+    const count = (headerLine.match(new RegExp(`\\${s}`, 'g')) || []).length
+    if (count > maxCount) {
+      maxCount = count
+      sep = s
+    }
+  }
+  
+  const raw_headers = headerLine.split(sep).map((h) =>
+    h.replace(/^["'`]|["'`]$/g, '').trim().toLowerCase()
   )
 
   // Mapper les headers vers les colonnes attendues
   const mapped = raw_headers.map((h) => HEADER_ALIASES[h] ?? h)
 
-  return lines.slice(1).map((line) => {
-    const cols = line.split(sep).map((c) => c.replace(/^"|"$/g, '').trim())
+  return lines.slice(1).filter(Boolean).map((line) => {
+    const cols = line.split(sep).map((c) => c.replace(/^["'`]|["'`]$/g, '').trim())
     const row: Record<string, string> = {}
     mapped.forEach((key, i) => { row[key] = cols[i] ?? '' })
     return {
@@ -65,8 +79,9 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
 
   function handleFile(file: File) {
     setError(null); setSuccess(null); setRows([])
-    if (!file.name.match(/\.(csv|txt)$/i)) {
-      setError('Format non supporté. Utilisez un fichier .csv ou .txt')
+    // Accepter tous les formats texte courants
+    if (!file.type.startsWith('text/') && !file.name.match(/\.(csv|txt|tsv|xlsx|xls|json|dat|log)$/i)) {
+      setError('Format non supporté. Utilisez un fichier texte (.csv, .txt, .tsv, .xlsx, etc.)')
       return
     }
     setFileName(file.name)
@@ -177,12 +192,13 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
         padding: '8px 12px', background: colors.bg2,
         borderRadius: 8, border: `1px solid ${colors.border}`,
       }}>
-        <strong>Format attendu :</strong> colonnes CSV séparées par virgule ou point-virgule<br />
+        <strong>📄 Formats supportés :</strong> CSV, TSV, TXT, XLSX, XLS, JSON, etc.<br />
+        <strong>Séparateurs détectés automatiquement :</strong> virgule, point-virgule, tabulation, pipe (|)<br />
         <code style={{ fontSize: 11, background: colors.bg3, padding: '1px 4px', borderRadius: 3 }}>
-          Nom, Téléphone, Email, Ville, Secteur, Notes
+          Nom ; Téléphone | Email , Ville
         </code>
         <br />
-        Les noms de colonnes sont flexibles (français ou anglais).
+        ℹ️ Les noms de colonnes sont flexibles (français ou anglais). Le système s'adapte automatiquement.
       </div>
 
       {/* Messages */}

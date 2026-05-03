@@ -44,41 +44,49 @@ type PreviewCompaniesInput = {
 async function parseSpreadsheet(input: ParseImportFileInput): Promise<ParsedRow[]> {
   const lower = input.filename.toLowerCase()
 
-  if (lower.endsWith('.csv')) {
+  // Fichiers texte : CSV, TXT, TSV, JSON, DAT, LOG, etc.
+  if (lower.endsWith('.csv') || lower.endsWith('.txt') || lower.endsWith('.tsv') || 
+      lower.endsWith('.dat') || lower.endsWith('.log') || lower.endsWith('.tab')) {
     return parseCsv(input.buffer.toString('utf-8'))
   }
 
-  const workbook = new ExcelJS.Workbook()
-  await workbook.xlsx.load(input.buffer as any)
+  // Fichiers Excel
+  if (lower.endsWith('.xlsx') || lower.endsWith('.xls')) {
+    const workbook = new ExcelJS.Workbook()
+    await workbook.xlsx.load(input.buffer as any)
 
-  const sheet = input.sheetName
-    ? workbook.getWorksheet(input.sheetName)
-    : workbook.worksheets[0]
+    const sheet = input.sheetName
+      ? workbook.getWorksheet(input.sheetName)
+      : workbook.worksheets[0]
 
-  if (!sheet) {
-    return []
-  }
-
-  const rows: ParsedRow[] = []
-  let headers: string[] = []
-
-  sheet.eachRow((row, rowNumber) => {
-    if (rowNumber === 1) {
-      // First row = headers
-      const values = row.values as (ExcelJS.CellValue | undefined)[]
-      headers = values.slice(1).map((v) => (v != null ? String(v) : ''))
-      return
+    if (!sheet) {
+      return []
     }
 
-    const obj: ParsedRow = {}
-    headers.forEach((header, i) => {
-      const cell = row.getCell(i + 1)
-      obj[header] = cell.text ?? ''
-    })
-    rows.push(obj)
-  })
+    const rows: ParsedRow[] = []
+    let headers: string[] = []
 
-  return rows
+    sheet.eachRow((row, rowNumber) => {
+      if (rowNumber === 1) {
+        // First row = headers
+        const values = row.values as (ExcelJS.CellValue | undefined)[]
+        headers = values.slice(1).map((v) => (v != null ? String(v) : ''))
+        return
+      }
+
+      const obj: ParsedRow = {}
+      headers.forEach((header, i) => {
+        const cell = row.getCell(i + 1)
+        obj[header] = cell.text ?? ''
+      })
+      rows.push(obj)
+    })
+
+    return rows
+  }
+
+  // Default : essayer comme fichier texte
+  return parseCsv(input.buffer.toString('utf-8'))
 }
 
 export const companyImportService = {
