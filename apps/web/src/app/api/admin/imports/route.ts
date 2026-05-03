@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { adminDb, adminAuth } from '@/lib/firebase-admin'
+import ExcelJS from 'exceljs'
 
 async function verifyAdmin(request: NextRequest) {
   const token = request.headers.get('authorization')?.split(' ')[1]
@@ -64,14 +65,8 @@ export async function POST(request: NextRequest) {
     if (ext === 'csv') {
       const text = buffer.toString('utf-8')
       rows = parseCSV(text)
-    } else {
-      // Excel support requires the xlsx package — not currently installed
-      // Guide the user to convert their file to CSV
-      return NextResponse.json({
-        error:
-          'Le format Excel (.xlsx/.xls) n\'est pas encore supporté directement. ' +
-          'Ouvrez votre fichier dans Excel ou Google Sheets, puis enregistrez-le au format CSV (UTF-8) et réessayez.',
-      }, { status: 415 })
+    } else if (ext === 'xlsx' || ext === 'xls') {
+      rows = await parseExcel(buffer)
     }
 
     if (rows.length === 0) {
@@ -140,8 +135,9 @@ export async function POST(request: NextRequest) {
           await batch.commit()
           batchCount = 0
         }
-      } catch {
+      } catch (error) {
         errors++
+        console.error('[Admin Import] Row error:', { row: row.raisonSociale, error })
       }
     }
 
@@ -165,6 +161,8 @@ export async function POST(request: NextRequest) {
       columnsDetected: detectedColumns,
     })
 
+    console.log('[Admin Import] Successfully imported:', { fileName: file.name, imported, updated, skipped, errors })
+
     return NextResponse.json({
       total: rows.length,
       imported,
@@ -178,6 +176,7 @@ export async function POST(request: NextRequest) {
     if (msg === 'unauthenticated') return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     if (msg === 'forbidden') return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
     console.error('Import POST error:', error)
+    console.error('Import error details:', { message: msg, errorType: error?.constructor?.name, error })
     return NextResponse.json({ error: `Erreur d'import : ${msg}` }, { status: 500 })
   }
 }
@@ -220,4 +219,34 @@ function splitCSVLine(line: string): string[] {
   }
   result.push(current.trim())
   return result
+}
+
+/* ── Excel parser (using ExcelJS) ── */
+async function parseExcel(buffer: Buffer): Promise<Record<string, string>[]> {
+  const workbook = new ExcelJS.Workbook()
+  await workbook.xlsx.load(buffer as any)
+
+  const sheet = workbook.worksheets[0]
+  if (!sheet) return []
+
+  const rows: Record<string, string>[] = []
+  let headers: string[] = []
+
+  sheet.eachRow((row, rowNumber) => {
+    if (rowNumber === 1) {
+      // First row = headers
+      const values = row.values as (string | number | undefined)[]
+      headers = values.slice(1).map((v) => (v != null ? String(v) : ''))
+      return
+    }
+
+    const obj: Record<string, string> = {}
+    headers.forEach((header, i) => {
+      const cell = row.getCell(i + 1)
+      obj[header] = (cell.value != null ? String(cell.value) : '').trim()
+    })
+    rows.push(obj)
+  })
+
+  return rows
 }

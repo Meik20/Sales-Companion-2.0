@@ -33,8 +33,13 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ prospects: filtered })
   } catch (error) {
-    console.error('[imports GET]', error)
-    return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 })
+    console.error('[imports GET] Error fetching prospects:', error)
+    const msg = error instanceof Error ? error.message : 'Erreur serveur inconnue'
+    console.error('[imports GET] Error details:', { message: msg, error })
+    return NextResponse.json(
+      { message: 'Erreur serveur', details: msg },
+      { status: 500 }
+    )
   }
 }
 
@@ -101,9 +106,13 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, count: prospects.length })
   } catch (error) {
-    console.error('[imports POST]', error)
-    const msg = error instanceof Error ? error.message : 'Erreur serveur'
-    return NextResponse.json({ message: msg }, { status: 500 })
+    console.error('[imports POST] Error importing prospects:', error)
+    const msg = error instanceof Error ? error.message : 'Erreur serveur inconnue'
+    console.error('[imports POST] Error details:', { message: msg, error })
+    return NextResponse.json(
+      { message: msg },
+      { status: 500 }
+    )
   }
 }
 
@@ -138,7 +147,12 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('[imports PATCH]', error)
-    return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 })
+    console.error('[imports PATCH] Error updating prospect:', error)
+    const msg = error instanceof Error ? error.message : 'Erreur serveur inconnue'
+    console.error('[imports PATCH] Error details:', { message: msg, error })
+    return NextResponse.json(
+      { message: msg },
+      { status: 500 }
+    )
   }
 }
