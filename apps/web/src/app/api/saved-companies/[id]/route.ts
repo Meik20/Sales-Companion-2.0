@@ -11,9 +11,10 @@ async function getAdminModules() {
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const { adminDb, adminAuth } = await getAdminModules()
 
     const token = request.headers.get('authorization')?.split(' ')[1]
@@ -27,7 +28,7 @@ export async function DELETE(
       return NextResponse.json({ message: 'Token invalide' }, { status: 401 })
     }
 
-    const docRef = adminDb.collection('saved_companies').doc(params.id)
+    const docRef = adminDb.collection('saved_companies').doc(id)
     const doc = await docRef.get()
 
     if (!doc.exists) {
