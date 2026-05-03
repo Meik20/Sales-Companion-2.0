@@ -1,7 +1,9 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
+import { useEffect, useState } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { db } from '@/lib/firebase'
+import { collection, query, where, onSnapshot } from 'firebase/firestore'
 
 export type TeamMember = {
   uid: string
@@ -16,25 +18,54 @@ export type TeamMember = {
 
 export function useTeamMembers() {
   const { user } = useCurrentUser()
+  const [members, setMembers] = useState<TeamMember[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [isError, setIsError] = useState(false)
 
-  return useQuery({
-    queryKey: ['team-members', user?.uid],
-    queryFn: async () => {
-      const backendUrl = ''
-      const token = await user?.getIdToken()
+  useEffect(() => {
+    if (!user?.uid) {
+      setMembers([])
+      return
+    }
 
-      const response = await fetch(`${backendUrl}/api/team/members`, {
-        headers: {
-          'Authorization': `Bearer ${token || ''}`,
-        },
-      })
+    setIsLoading(true)
+    setIsError(false)
 
-      if (!response.ok) {
-        throw new Error('Impossible de charger les membres de l\'équipe')
+    // Set up real-time listener for team members
+    const q = query(collection(db, 'users'), where('managerUid', '==', user.uid))
+    
+    const unsubscribe = onSnapshot(
+      q,
+      (snap) => {
+        const membersList = snap.docs
+          .map(doc => ({
+            uid: doc.id,
+            email: doc.data().email || '',
+            name: doc.data().name || '',
+            role: 'member' as const,
+            managerUid: doc.data().managerUid,
+            active: doc.data().active ?? false,
+            dailyUsed: doc.data().dailyUsed ?? 0,
+            dailyLimit: doc.data().dailyLimit ?? 100,
+          }))
+          .sort((a, b) => (b.active ? 1 : 0) - (a.active ? 1 : 0)) // Sort active members first
+        
+        setMembers(membersList)
+        setIsLoading(false)
+      },
+      (error) => {
+        console.error('Error loading team members:', error)
+        setIsError(true)
+        setIsLoading(false)
       }
+    )
 
-      return response.json() as Promise<TeamMember[]>
-    },
-    enabled: !!user?.uid,
-  })
+    return () => unsubscribe()
+  }, [user?.uid])
+
+  return {
+    data: members,
+    isLoading,
+    isError,
+  }
 }

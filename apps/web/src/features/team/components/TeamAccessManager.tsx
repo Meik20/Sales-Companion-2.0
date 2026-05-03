@@ -7,7 +7,7 @@ import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useToast } from '@/hooks/useToast'
 import { colors } from '@/styles/tokens'
 import { db } from '@/lib/firebase'
-import { collection, query, where, getDocs, doc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore'
+import { collection, query, where, getDocs, doc, setDoc, updateDoc, serverTimestamp, onSnapshot } from 'firebase/firestore'
 
 function normalizeText(text: string) {
   return (text || '')
@@ -37,23 +37,33 @@ export function TeamAccessManager() {
 
   const previewId = buildAccessId(formData.firstname, formData.lastname, formData.company || user?.companyName || 'Entreprise')
 
-  const loadAccesses = async () => {
-    if (!user || user.role !== 'manager') return;
-    setLoadingAccesses(true)
-    try {
-      const q = query(collection(db, 'team_accesses'), where('managerUid', '==', user.uid))
-      const snap = await getDocs(q)
-      setAccesses(snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a: any, b: any) => b.createdAt?.toMillis() - a.createdAt?.toMillis()))
-    } catch (e: any) {
-      pushToast({ type: 'error', title: `Erreur: ${e.message}` })
-    } finally {
-      setLoadingAccesses(false)
-    }
-  }
-
   useEffect(() => {
-    loadAccesses()
-  }, [user])
+    if (!user || user.role !== 'manager') return
+    
+    setLoadingAccesses(true)
+    
+    // Set up real-time listener for team accesses
+    const q = query(collection(db, 'team_accesses'), where('managerUid', '==', user.uid))
+    
+    const unsubscribe = onSnapshot(
+      q,
+      (snap) => {
+        setAccesses(
+          snap.docs
+            .map(d => ({ id: d.id, ...d.data() }))
+            .sort((a: any, b: any) => b.createdAt?.toMillis() - a.createdAt?.toMillis())
+        )
+        setLoadingAccesses(false)
+      },
+      (error: any) => {
+        pushToast({ type: 'error', title: `Erreur: ${error.message}` })
+        setLoadingAccesses(false)
+      }
+    )
+    
+    // Clean up listener on unmount
+    return () => unsubscribe()
+  }, [user, pushToast])
 
   const handleCreateAccess = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -80,7 +90,7 @@ export function TeamAccessManager() {
       })
       pushToast({ type: 'success', title: `Accès créé ! ID: ${accessId}` })
       setFormData({ firstname: '', lastname: '', company: '' })
-      loadAccesses()
+      // Real-time listener will automatically update the list
     } catch (e: any) {
       pushToast({ type: 'error', title: `Erreur: ${e.message}` })
     } finally {
@@ -101,7 +111,7 @@ export function TeamAccessManager() {
         revokedAt: serverTimestamp()
       })
       pushToast({ type: 'success', title: 'Accès révoqué' })
-      loadAccesses()
+      // Real-time listener will automatically update the list
     } catch (e: any) {
       pushToast({ type: 'error', title: `Erreur: ${e.message}` })
     }
