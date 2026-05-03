@@ -2,6 +2,7 @@ import type { Response } from 'express'
 import { z } from 'zod'
 import type { AuthenticatedRequest } from '../../types/express'
 import { pipelineService } from './pipeline.service'
+import { adminDb } from '../../firebase/admin'
 
 const createPipelineItemSchema = z.object({
   companyId: z.string().min(1),
@@ -120,7 +121,19 @@ export const pipelineController = {
     }
 
     try {
-      const stats = await pipelineService.getPipelineStats(req.auth.uid)
+      // Check if user is a manager to determine which stats to return
+      const userDoc = await adminDb
+        .collection('users')
+        .doc(req.auth.uid)
+        .get()
+      
+      const userData = userDoc.data()
+      const isManager = userData?.role === 'manager'
+      
+      const stats = isManager
+        ? await pipelineService.getTeamPipelineStats(req.auth.uid)
+        : await pipelineService.getPipelineStats(req.auth.uid)
+      
       return res.json(stats)
     } catch (error) {
       return res.status(500).json({ message: 'Erreur lors du calcul des statistiques' })

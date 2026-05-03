@@ -130,10 +130,11 @@ export async function POST(request: NextRequest) {
 
     // ── 4. Marquer l'accès comme activé (activated: true + email si nouvellement fourni) ──
     await adminDb.collection(collection).doc(accessId).update({
-      status:       'activated',
+      status:       'active',
       activated:    true,              // champ booléen pour les dashboards de suivi
       activatedAt:  new Date(),
       activatedUid: uid,
+      firebaseUid:  uid,
       // Si l'email n'était pas dans Firestore, on le sauvegarde maintenant
       ...(data.email ? {} : { email }),
     })
