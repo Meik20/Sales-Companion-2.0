@@ -1,5 +1,6 @@
 import { Badge } from '@/components/ui/index'
 import { AddToPipelineButton } from './AddToPipelineButton'
+import { SaveCompanyButton } from './SaveCompanyButton'
 import { colors } from '@/styles/tokens'
 import { Company } from '@/features/search/hooks/useCompaniesSearch'
 
@@ -120,8 +121,9 @@ export function CompaniesSearchResults({ items }: Props) {
               )}
             </div>
 
-            {/* Action pipeline */}
-            <div style={{ flexShrink: 0, paddingTop: 2 }}>
+            {/* Actions par carte : Enregistrer + Pipeline */}
+            <div style={{ flexShrink: 0, paddingTop: 2, display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end' }}>
+              <SaveCompanyButton company={company as any} />
               <AddToPipelineButton company={company as any} />
             </div>
           </div>

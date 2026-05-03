@@ -26,7 +26,8 @@ export function useDeletePipelineItem() {
       return response.json()
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['pipeline', user?.uid] })
+      await queryClient.invalidateQueries({ queryKey: ['pipeline'] })
+      await queryClient.invalidateQueries({ queryKey: ['manager-pipeline'] })
     },
   })
 }
