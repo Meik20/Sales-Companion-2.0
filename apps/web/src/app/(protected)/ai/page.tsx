@@ -2,6 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { colors } from '@/styles/tokens'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { AppShell } from '@/components/layout/AppShell'
 
 interface Message {
   id: string
@@ -11,6 +13,7 @@ interface Message {
 }
 
 export default function AIAssistantPage() {
+  const { user } = useCurrentUser()
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -30,7 +33,7 @@ export default function AIAssistantPage() {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!input.trim()) return
+    if (!input.trim() || !user) return
 
     // Add user message
     const userMessage: Message = {
@@ -44,24 +47,26 @@ export default function AIAssistantPage() {
     setLoading(true)
 
     try {
+      const token = await user.getIdToken()
       const response = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`,
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({ message: input }),
       })
 
       if (!response.ok) {
-        throw new Error('Failed to get response')
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.message || `Failed to get response (${response.status})`)
       }
 
       const data = await response.json()
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: data.response || data.message || 'Désolé, je n\'ai pas pu traiter votre demande.',
+        content: data.reply || data.response || data.message || 'Désolé, je n\'ai pas pu traiter votre demande.',
         timestamp: new Date(),
       }
       setMessages((prev) => [...prev, assistantMessage])
@@ -70,13 +75,23 @@ export default function AIAssistantPage() {
       const errorMessage: Message = {
         id: (Date.now() + 2).toString(),
         role: 'assistant',
-        content: '❌ Désolé, une erreur est survenue. Veuillez réessayer.',
+        content: error instanceof Error 
+          ? `❌ Erreur: ${error.message}` 
+          : '❌ Désolé, une erreur est survenue. Veuillez réessayer.',
         timestamp: new Date(),
       }
       setMessages((prev) => [...prev, errorMessage])
     } finally {
       setLoading(false)
     }
+  }
+
+  if (!user) {
+    return (
+      <div style={{ padding: '20px', textAlign: 'center', color: colors.text }}>
+        ⏳ Chargement...
+      </div>
+    )
   }
 
   return (

@@ -612,9 +612,48 @@ L'onglet **Assistant IA** a été ajouté à la barre de navigation mobile infé
 **Fonctionnalités:**
 - ✅ Chat interface pour conseils commerciaux
 - ✅ Connexion à l'API Groq pour générer des réponses IA
+- ✅ Authentification Firebase avec `getIdToken()`
 - ✅ Historique des messages pendant la session
 - ✅ Gestion des erreurs avec messages informatifs
 - ✅ Design responsive mobile-first
+
+**Authentification:**
+```typescript
+// Récupération correcte du token Firebase
+const token = await user.getIdToken()
+const response = await fetch('/api/ai/chat', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`,
+  },
+  body: JSON.stringify({ message: input }),
+})
+```
+
+### Erreurs courantes et solutions
+
+#### ❌ **401 Unauthorized - `/api/ai/chat`**
+
+**CAUSE CORRIGÉE:** ✅ Token d'authentification Firebase manquant ou incorrectement transmis.
+
+**Solution appliquée:**
+- Utiliser `await user.getIdToken()` pour obtenir le token Firebase valide
+- NE PAS utiliser `localStorage.getItem('authToken')` - Firebase gère les tokens autrement
+- Vérifier que l'utilisateur est authentifié avant d'envoyer des requêtes
+
+**Code correct:**
+```typescript
+const { user } = useCurrentUser()
+// ...
+const token = await user?.getIdToken()
+const response = await fetch('/api/ai/chat', {
+  headers: {
+    'Authorization': `Bearer ${token}`,
+    // ...
+  },
+})
+```
 
 ---
 
