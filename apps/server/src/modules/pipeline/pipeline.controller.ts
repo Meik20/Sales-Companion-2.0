@@ -126,4 +126,17 @@ export const pipelineController = {
       return res.status(500).json({ message: 'Erreur lors du calcul des statistiques' })
     }
   },
+
+  async getManagerPipeline(req: AuthenticatedRequest, res: Response) {
+    if (!req.auth?.uid) {
+      return res.status(401).json({ message: 'Unauthorized' })
+    }
+
+    try {
+      const items = await pipelineService.getTeamPipeline(req.auth.uid)
+      return res.json(items)
+    } catch (error) {
+      return res.status(500).json({ message: 'Erreur lors de la récupération du pipeline équipe' })
+    }
+  },
 }

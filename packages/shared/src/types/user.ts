@@ -11,6 +11,7 @@ export type UserDoc = {
   companyId: string | null
   managerUid?: string | null
   teamAccessId?: string | null
+  sector?: string | null
   plan: UserPlan
   dailyLimit: number
   dailyUsed: number

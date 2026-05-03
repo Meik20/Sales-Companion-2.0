@@ -15,6 +15,7 @@ type RegisterInput = {
   name: string
   role: string
   companyName?: string
+  sector?: string
 }
 
 export function useAuthActions() {
@@ -30,6 +31,7 @@ export function useAuthActions() {
         displayName: input.name,
         name: input.name,
         role: input.role || 'independent',
+        sector: input.sector || null,
         plan: 'free',
         dailyLimit: 10,
         dailyUsed: 0,

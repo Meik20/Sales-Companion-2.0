@@ -34,6 +34,13 @@ teamRoutes.get(
   asyncHandler(teamController.getManagerMemberDetail)
 )
 
+teamRoutes.get(
+  '/team/members',
+  authMiddleware,
+  managerMiddleware,
+  asyncHandler(teamController.getManagerMembers)
+)
+
 teamRoutes.get('/team/accesses/:accessId/public', asyncHandler(teamController.getAccessInfo))
 
 teamRoutes.post('/team/activate-member', asyncHandler(teamController.activateMember))

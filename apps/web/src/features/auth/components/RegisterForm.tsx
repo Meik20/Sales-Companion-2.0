@@ -11,6 +11,7 @@ import { useAuthActions } from '../hooks/useAuthActions'
 import { mapAuthError } from '../utils/error-mapper'
 import { routes } from '@/constants/routes'
 import { colors } from '@/styles/tokens'
+import { BUSINESS_SECTORS } from '@sales-companion/shared'
 
 type RoleOption = 'independent' | 'manager'
 
@@ -28,6 +29,7 @@ export function RegisterForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [companyName, setCompanyName] = useState('')
+  const [sector, setSector] = useState<string>('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -50,7 +52,8 @@ export function RegisterForm() {
         password, 
         name, 
         role, 
-        companyName: role === 'manager' ? companyName : undefined 
+        companyName: role === 'manager' ? companyName : undefined,
+        sector: sector || undefined
       })
       router.replace(routes.search)
     } catch (err) {
@@ -164,6 +167,35 @@ export function RegisterForm() {
               </button>
             ))}
           </div>
+        </FormField>
+
+        {/* Secteur d'activité */}
+        <FormField label="Secteur d'activité" required>
+          <select
+            value={sector}
+            onChange={(e) => setSector(e.target.value)}
+            style={{
+              width: '100%',
+              height: 40,
+              padding: '0 12px',
+              borderRadius: 10,
+              border: `1.5px solid ${colors.border}`,
+              background: colors.bg2,
+              color: colors.text,
+              fontSize: 13,
+              fontFamily: 'inherit',
+              cursor: 'pointer',
+              outline: 'none',
+              boxSizing: 'border-box',
+            }}
+          >
+            <option value="">Sélectionner votre secteur...</option>
+            {BUSINESS_SECTORS.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
         </FormField>
 
         {/* Nom de l'entreprise (uniquement pour Manager) */}

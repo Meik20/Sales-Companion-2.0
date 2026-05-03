@@ -123,6 +123,11 @@ export const teamService = {
       throw new Error('Access is not activable')
     }
 
+    // Get manager's sector
+    const managerSnap = await adminDb.collection('users').doc(access.managerUid).get()
+    const managerData = managerSnap.data()
+    const managerSector = managerData?.sector || null
+
     const userRecord = await adminAuth.createUser({
       email: input.email,
       password: input.password,
@@ -137,6 +142,7 @@ export const teamService = {
       companyId: access.companyId ?? null,
       managerUid: access.managerUid,
       teamAccessId: access.accessId,
+      sector: managerSector,
       plan: 'starter',
       dailyLimit: 100,
       dailyUsed: 0,
@@ -260,5 +266,28 @@ export const teamService = {
           }))
         : []
     }
+  },
+
+  async getManagerMembers(managerUid: string) {
+    // Get all active members for this manager
+    const usersSnapshot = await adminDb
+      .collection('users')
+      .where('managerUid', '==', managerUid)
+      .where('role', '==', 'member')
+      .get()
+
+    return usersSnapshot.docs.map((doc) => {
+      const user = doc.data()
+      return {
+        uid: user.uid,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        managerUid: user.managerUid,
+        active: user.active === true,
+        dailyUsed: user.dailyUsed || 0,
+        dailyLimit: user.dailyLimit || 100
+      }
+    })
   }
 }
