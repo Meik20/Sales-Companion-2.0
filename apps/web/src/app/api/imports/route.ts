@@ -17,14 +17,30 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: 'managerId requis' }, { status: 400 })
     }
 
-    let q = adminDb
+    // Query simplifiée : where seulement (pas d'orderBy pour éviter les composite indexes)
+    const q = adminDb
       .collection('manager_prospects')
       .where('managerId', '==', managerId)
-      .orderBy('createdAt', 'desc')
-      .limit(200)
+      .limit(500)
 
     const snap = await q.get()
-    const prospects = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+    
+    // Tri et filtrage côté app
+    let prospects = snap.docs.map((d) => {
+      const data = d.data()
+      return { 
+        id: d.id, 
+        ...data,
+        createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : data.createdAt
+      }
+    })
+
+    // Trier par createdAt (descendant)
+    prospects.sort((a, b) => {
+      const aTime = a.createdAt instanceof Date ? a.createdAt.getTime() : 0
+      const bTime = b.createdAt instanceof Date ? b.createdAt.getTime() : 0
+      return bTime - aTime
+    })
 
     // Filtrage optionnel par assigné
     const filtered = assignedTo
