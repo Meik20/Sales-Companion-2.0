@@ -249,11 +249,28 @@ html, body {
 @media (display-mode: standalone) {
   body {
     padding-top: var(--safe-top);
+    padding-bottom: var(--safe-bottom);
+  }
+  /* Pas de landing page — géré JS-side dans page.tsx */
+}
+
+/* ── Tablette (< 1024px) ── */
+@media (max-width: 1024px) {
+  .search-page-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .desktop-only-panels {
+    display: none !important;
   }
 }
 
-/* ── Stack layout on mobile (< 768px) ── */
+/* ── Mobile (< 768px) ── */
 @media (max-width: 768px) {
+  /* Réduire les paddings globaux */
+  body {
+    font-size: 87.5%; /* 14px base */
+  }
+
   /* Full-width panels */
   [data-layout="two-col"],
   .two-col {
@@ -261,7 +278,7 @@ html, body {
     flex-direction: column !important;
   }
 
-  /* Make sidebar slide under content */
+  /* Sidebar / aside — passe en dessous */
   [data-sidebar],
   aside[role="complementary"] {
     width: 100% !important;
@@ -270,27 +287,31 @@ html, body {
     border-bottom: 1px solid var(--cr-separator-color) !important;
   }
 
-  /* Tap-friendly buttons and inputs */
-  button, a, input, select, textarea {
+  /* Tap targets — min 44px (WCAG) */
+  button, a[role="button"] {
     min-height: 44px;
   }
 
-  /* Cards full width */
-  [class*="DataCard"],
-  [class*="card"] {
-    border-radius: 0 !important;
-    border-left: none !important;
-    border-right: none !important;
+  /* Inputs et selects */
+  input, select, textarea {
+    min-height: 44px;
+    font-size: 16px !important; /* évite le zoom iOS */
   }
 
-  /* Tables — horizontal scroll */
+  /* Cards full width sur petits écrans */
+  [class*="DataCard"],
+  [class*="card"] {
+    border-radius: 12px !important;
+  }
+
+  /* Tables — scroll horizontal */
   table {
     display: block;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Grid → single column */
+  /* Grid → colonne unique */
   .grid-responsive {
     grid-template-columns: 1fr !important;
   }
@@ -299,26 +320,88 @@ html, body {
   header {
     padding: 0 12px !important;
   }
-  header h1,
-  header span[style*="Syne"] {
-    font-size: 15px !important;
+
+  /* Panneau admin support — stack vertical */
+  [style*="grid-template-columns: 340px"] {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto auto;
   }
 
-  /* Select fix on iOS — prevent zoom */
-  select, input, textarea {
-    font-size: 16px !important; /* iOS zooms if < 16px */
+  /* Barre de recherche — empilement vertical */
+  .search-bar-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .filter-select-wrap,
+  .search-input-wrap {
+    min-width: unset !important;
+    flex: unset !important;
+    width: 100% !important;
+  }
+  .search-btn-primary,
+  .search-btn-geo,
+  .search-btn-reset {
+    width: 100% !important;
+    justify-content: center !important;
+    min-height: 44px !important;
+  }
+  /* Masquer label "Autour de moi" sur très petit écran — juste l'emoji */
+  .search-geo-label {
+    display: inline !important;
+  }
+
+  /* Page header — titre + sous-titre */
+  [data-page-header] h1,
+  [class*="PageHeader"] h1 {
+    font-size: 20px !important;
+  }
+
+  /* Pipeline stats grid */
+  [style*="gridTemplateColumns: 'repeat(3, 1fr)'"] {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+
+  /* Form fields — pleine largeur */
+  form > div[style*="grid"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Modal / panneau flottant — pleine hauteur */
+  [role="dialog"] {
+    width: 100vw !important;
+    height: 100dvh !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
   }
 }
 
-/* ── Very small screens (< 480px) ── */
+/* ── Très petits écrans (< 480px) ── */
 @media (max-width: 480px) {
-  body {
-    font-size: 87.5%; /* 14px */
-  }
-
-  /* Hide non-essential sidebar items */
+  /* Masquer éléments non essentiels */
   [data-mobile-hidden="true"] {
     display: none !important;
   }
+
+  /* Texte légèrement plus petit */
+  body {
+    font-size: 85%;
+  }
+
+  /* Chips de filtres actifs */
+  .search-bar-wrapper [style*="inline-flex"] {
+    font-size: 11px !important;
+  }
+
+  /* Boutons d'action dans les en-têtes */
+  [class*="PageHeader"] button,
+  [class*="PageHeader"] a {
+    font-size: 12px !important;
+    padding: 0 10px !important;
+  }
+}
+
+/* ── Hauteur dynamique (dvh) pour éviter le saut de barre adresse iOS ── */
+.app-shell-main {
+  min-height: 100dvh;
 }
 

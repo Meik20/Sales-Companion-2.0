@@ -110,6 +110,23 @@ function SearchContent() {
         actions={<SaveCurrentSearchButton filters={filters} results={results} />}
       />
 
+      {/* Barre de recherche compacte — inline sous le header */}
+      <div style={{
+        background: 'var(--cr-card-background-color)',
+        border: '1px solid var(--cr-separator-color)',
+        borderRadius: 14,
+        padding: '14px 18px',
+        marginBottom: 20,
+      }}>
+        <SearchFiltersForm
+          initialValues={filters}
+          onSubmit={(v) => {
+            setFilters(v)
+            setHasSearched(true)
+          }}
+        />
+      </div>
+
       <div 
         className="search-page-grid"
         style={{ 
@@ -120,16 +137,6 @@ function SearchContent() {
         }}
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-        {/* Filtres */}
-        <DataCard title="Filtres de recherche">
-          <SearchFiltersForm
-            initialValues={filters}
-            onSubmit={(v) => {
-              setFilters(v)
-              setHasSearched(true)
-            }}
-          />
-        </DataCard>
 
         {/* Résultats */}
         {hasSearched ? (
