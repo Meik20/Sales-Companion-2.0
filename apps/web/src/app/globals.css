@@ -1,5 +1,8 @@
-@import "tailwindcss";
-@import "../../../theme.css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import "../../../../theme.css";
 
 /* Typography: system font stack — no network request required for Segoe UI */
 
