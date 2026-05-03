@@ -1,6 +1,6 @@
 // ─── Design Tokens — Sales Companion ───────────────────────────────────────
-// Toutes les valeurs pointent vers les CSS Variables de globals.css
-// → modifier une couleur dans globals.css suffit à changer tout le projet.
+// Toutes les valeurs pointent vers les CSS Variables du theme.css
+// → modifier une couleur dans theme.css suffit à changer tout le projet.
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Références directes aux CSS Variables (utilisables dans les inline styles React)
@@ -8,71 +8,71 @@
 
 export const colors = {
   // ── Surfaces ──────────────────────────────────────────────────────────────
-  bg:       'var(--md-background-color)',
-  bg2:      'var(--cr-card-background-color)',
-  bg3:      'var(--google-grey-100)',
-  bg4:      'var(--google-grey-200)',
-  surface:  'var(--cr-card-background-color)',
+  bg:       'var(--color-neutral-950)',
+  bg2:      'var(--color-neutral-900)',
+  bg3:      'var(--color-neutral-800)',
+  bg4:      'var(--color-blue-900)',
+  surface:  'var(--color-neutral-900)',
 
   // ── Texte ─────────────────────────────────────────────────────────────────
-  text:     'var(--cr-primary-text-color)',
-  textMid:  'var(--cr-secondary-text-color)',
-  textDim:  'var(--google-grey-500)',
-  textTitle:'var(--cr-title-text-color)',
-  link:     'var(--cr-link-color)',
+  text:     'var(--color-text-primary)',
+  textMid:  'var(--color-text-secondary)',
+  textDim:  'var(--color-text-muted)',
+  textTitle:'var(--color-text-primary)',
+  link:     'var(--color-accent)',
 
-  // ── Vert Cameroun (primary) ───────────────────────────────────────────────
-  green:      'var(--google-green-800)',
-  greenMid:   'var(--google-green-500)',
-  greenDark:  'var(--google-green-900)',
-  greenLight: 'var(--google-green-50)',
+  // ── Bleu Primaire (Deep Blue Tech) ────────────────────────────────────────
+  green:      'var(--color-primary)',
+  greenMid:   'var(--color-blue-600)',
+  greenDark:  'var(--color-blue-900)',
+  greenLight: 'var(--color-blue-50)',
 
-  // ── Accent ────────────────────────────────────────────────────────────────
-  accent:      '#00897B',
-  accentLight: 'var(--google-green-50)',
+  // ── Accent Cyan ───────────────────────────────────────────────────────────
+  accent:      'var(--color-accent)',
+  accentLight: 'var(--color-blue-200)',
 
-  // ── Or / Avertissement ────────────────────────────────────────────────────
-  gold:      'var(--google-yellow-500)',
-  goldDark:  'var(--google-yellow-700)',
-  goldLight: 'var(--google-yellow-50)',
+  // ── Teal / Secondaire ─────────────────────────────────────────────────────
+  gold:      'var(--color-secondary)',
+  goldDark:  'var(--color-teal-900)',
+  goldLight: 'var(--color-teal-50)',
 
   // ── Bordures ──────────────────────────────────────────────────────────────
-  border:        'var(--cr-separator-color)',
-  border2:       'rgba(0,0,0,0.12)',
-  border_compat: 'var(--cr-separator-color)',
+  border:        'rgba(133, 183, 235, 0.18)',
+  border2:       'rgba(133, 183, 235, 0.12)',
+  border_compat: 'rgba(133, 183, 235, 0.18)',
 
   // ── États sémantiques ─────────────────────────────────────────────────────
-  success:       'var(--google-green-800)',
-  successBg:     'var(--google-green-50)',
-  successBorder: 'rgba(27,122,62,0.3)',
+  success:       'var(--color-success)',
+  successBg:     'var(--color-teal-50)',
+  successBorder: 'rgba(29, 158, 117, 0.3)',
 
-  warning:       '#FB8C00',
-  warningBg:     'var(--google-yellow-50)',
-  warningBorder: 'var(--google-yellow-200)',
+  warning:       'var(--color-warning)',
+  warningBg:     'var(--color-blue-100)',
+  warningBorder: 'rgba(239, 159, 39, 0.3)',
 
-  danger:        'var(--google-red-500)',
-  dangerBg:      'var(--google-red-100)',
-  dangerBorder:  'rgba(234,67,53,0.3)',
+  danger:        'var(--color-danger)',
+  dangerBg:      'var(--color-blue-50)',
+  dangerBorder:  'rgba(226, 75, 74, 0.3)',
 
-  info:          'var(--google-blue-600)',
-  infoBg:        'var(--google-blue-50)',
-  infoBorder:    'var(--google-blue-200)',
+  info:          'var(--color-accent)',
+  infoBg:        'var(--color-blue-100)',
+  infoBorder:    'var(--color-blue-200)',
 
   // ── Interactifs ───────────────────────────────────────────────────────────
-  hoverBg:  'var(--cr-hover-background-color)',
-  activeBg: 'var(--cr-active-background-color)',
+  hoverBg:  'rgba(24, 95, 165, 0.12)',
+  activeBg: 'rgba(24, 95, 165, 0.24)',
 } as const
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Ombres — référencent les niveaux d'élévation
+// Ombres — Glass effect
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const shadows = {
-  sm:   'var(--cr-elevation-1)',
-  md:   'var(--cr-elevation-2)',
-  lg:   'var(--cr-elevation-3)',
-  xl:   'var(--cr-elevation-5)',
-  glow: '0 0 30px rgba(27,122,62,0.25)',
+  sm:   'var(--shadow-glass-light)',
+  md:   'var(--shadow-glass-medium)',
+  lg:   'var(--shadow-glass-strong)',
+  xl:   'var(--shadow-glass-strong)',
+  glow: '0 0 30px rgba(24, 95, 165, 0.25)',
 } as const
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -81,10 +81,10 @@ export const shadows = {
 
 export const radius = {
   sm:   6,
-  md:   8,    // = --cr-card-border-radius
-  lg:   16,
+  md:   10,
+  lg:   14,
   xl:   20,
-  pill: 999,
+  pill: 9999,
 } as const
 
 // ─────────────────────────────────────────────────────────────────────────────
