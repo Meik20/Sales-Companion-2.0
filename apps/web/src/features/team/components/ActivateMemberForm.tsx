@@ -26,21 +26,17 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
     error: infoError,
   } = useGetAccessInfo(accessId)
 
-  // L'email peut venir du document Firestore OU être saisi par le membre
-  const resolvedEmail = accessInfo?.email || email.trim()
-  const needsEmail    = !accessInfo?.email
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
 
-    // Validations
-    if (needsEmail && !email.trim()) {
-      setError('Veuillez saisir votre adresse email.')
+    // Validation OBLIGATOIRE de l'email
+    if (!email.trim()) {
+      setError("L'adresse email est obligatoire pour activer votre compte.")
       return
     }
-    if (needsEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      setError('Format d\'adresse email invalide.')
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setError("Format d'adresse email invalide.")
       return
     }
     if (!password || !confirmPassword) {
@@ -61,7 +57,7 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
       const res = await fetch('/api/auth/activate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accessId, email: resolvedEmail, password }),
+        body: JSON.stringify({ accessId, email: email.trim(), password }),
       })
       const json = await res.json().catch(() => ({}))
       if (!res.ok) {
@@ -69,7 +65,7 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
       }
       onSuccess()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur lors de l\'activation. Réessayez.')
+      setError(err instanceof Error ? err.message : "Erreur lors de l'activation. Réessayez.")
     } finally {
       setIsPending(false)
     }
@@ -85,7 +81,7 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
   }
 
   if (isErrorInfo) {
-    const errMsg = infoError instanceof Error ? infoError.message : 'Lien d\'activation invalide ou expiré.'
+    const errMsg = infoError instanceof Error ? infoError.message : "Lien d'activation invalide ou expiré."
     return (
       <div style={{
         background: 'rgba(239,68,68,0.08)',
@@ -143,36 +139,23 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
             <div style={{ fontSize: 13, fontWeight: 600, color: colors.text }}>{accessInfo.company}</div>
           </div>
         )}
-        {/* Email pré-renseigné depuis Firestore */}
-        {accessInfo.email && (
-          <div>
-            <div style={{ fontSize: 11, color: colors.textDim, letterSpacing: '.04em', textTransform: 'uppercase', marginBottom: 3 }}>
-              Email (depuis votre profil)
-            </div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: colors.green }}>
-              {accessInfo.email}
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* Saisie email uniquement si absent dans Firestore */}
-      {needsEmail && (
-        <FormField
-          label="Votre adresse email"
-          required
-          hint="Votre email n'est pas encore enregistré — saisissez-le pour valider votre compte."
-        >
-          <Input
-            type="email"
-            placeholder="vous@exemple.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            disabled={isPending}
-            autoComplete="email"
-          />
-        </FormField>
-      )}
+      {/* Email — TOUJOURS OBLIGATOIRE */}
+      <FormField
+        label="Votre adresse email"
+        required
+        hint="Saisissez l'adresse email qui servira d'identifiant pour vous connecter."
+      >
+        <Input
+          type="email"
+          placeholder="vous@exemple.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          disabled={isPending}
+          autoComplete="email"
+        />
+      </FormField>
 
       <FormField label="Nouveau mot de passe" required>
         <Input
@@ -217,7 +200,7 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
       <Button
         type="submit"
         variant="primary"
-        disabled={isPending || !password || !confirmPassword || (needsEmail && !email.trim())}
+        disabled={isPending || !email.trim() || !password || !confirmPassword}
         loading={isPending}
         style={{ width: '100%', marginTop: 8 }}
       >

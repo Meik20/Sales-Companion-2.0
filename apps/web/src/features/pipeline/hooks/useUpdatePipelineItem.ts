@@ -14,10 +14,9 @@ export function useUpdatePipelineItem() {
 
   return useMutation({
     mutationFn: async (input: UpdateInput) => {
-      const backendUrl = ''
       const token = await user?.getIdToken()
 
-      const response = await fetch(`${backendUrl}/api/pipeline/${input.id}`, {
+      const response = await fetch(`/api/pipeline/${input.id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token || ''}`,
@@ -34,7 +33,7 @@ export function useUpdatePipelineItem() {
       return response.json()
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['pipeline'] })
+      await queryClient.invalidateQueries({ queryKey: ['pipeline', user?.uid] })
     },
   })
 }

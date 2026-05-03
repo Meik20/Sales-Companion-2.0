@@ -1,5 +1,11 @@
+'use client'
+
+import { useState } from 'react'
 import { Badge } from '@/components/ui/index'
+import { Button } from '@/components/ui/Button'
 import { colors } from '@/styles/tokens'
+import { useDeletePipelineItem } from '@/features/pipeline/hooks/useDeletePipelineItem'
+import { useToast } from '@/hooks/useToast'
 
 type PipelineItem = {
   id: string
@@ -27,7 +33,27 @@ const statusLabel: Record<string, string> = {
 }
 
 export function ManagerPipelineList({ items }: Props) {
+  const deleteMutation = useDeletePipelineItem()
+  const { pushToast } = useToast()
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+
   if (!items.length) return null
+
+  async function handleDelete(id: string) {
+    setDeletingId(id)
+    try {
+      await deleteMutation.mutateAsync(id)
+      pushToast({ type: 'success', title: 'Prospect supprimé du pipeline' })
+    } catch (err) {
+      pushToast({
+        type: 'error',
+        title: 'Suppression impossible',
+        description: err instanceof Error ? err.message : 'Erreur inconnue',
+      })
+    } finally {
+      setDeletingId(null)
+    }
+  }
 
   // Grouper par statut
   const grouped: Record<string, PipelineItem[]> = {
@@ -63,18 +89,31 @@ export function ManagerPipelineList({ items }: Props) {
                   borderRadius: 10,
                 }}
               >
-                <div style={{ fontWeight: 600, fontSize: 13, color: colors.text, marginBottom: 4 }}>
-                  {item.companyName}
-                </div>
-                <div style={{ fontSize: 12, color: colors.textMid }}>
-                  {item.companySector ? `🏭 ${item.companySector}` : null}
-                  {item.companyCity   ? ` · 📍 ${item.companyCity}` : null}
-                </div>
-                {item.note ? (
-                  <div style={{ fontSize: 11, color: colors.textDim, marginTop: 4 }}>
-                    📝 {item.note}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 600, fontSize: 13, color: colors.text, marginBottom: 4 }}>
+                      {item.companyName}
+                    </div>
+                    <div style={{ fontSize: 12, color: colors.textMid }}>
+                      {item.companySector ? `🏭 ${item.companySector}` : null}
+                      {item.companyCity   ? ` · 📍 ${item.companyCity}` : null}
+                    </div>
+                    {item.note ? (
+                      <div style={{ fontSize: 11, color: colors.textDim, marginTop: 4 }}>
+                        📝 {item.note}
+                      </div>
+                    ) : null}
                   </div>
-                ) : null}
+                  <Button
+                    size="sm"
+                    variant="danger"
+                    loading={deletingId === item.id}
+                    onClick={() => void handleDelete(item.id)}
+                    style={{ flexShrink: 0, padding: '0 8px', minHeight: 28 }}
+                  >
+                    🗑️
+                  </Button>
+                </div>
               </div>
             ))}
             {groupItems.length === 0 ? (

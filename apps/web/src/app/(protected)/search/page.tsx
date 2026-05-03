@@ -239,11 +239,11 @@ function SearchContent() {
                 </svg>
               </div>
               
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <h2 style={{ fontSize: 24, fontWeight: 700, color: colors.text, margin: 0 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%', paddingLeft: 8, paddingRight: 8 }}>
+                <h2 style={{ fontSize: 'clamp(18px, 5vw, 24px)', fontWeight: 700, color: colors.text, margin: 0, wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
                   Trouvez vos prospects idéaux
                 </h2>
-                <p style={{ color: colors.textMid, fontSize: 15, maxWidth: 400, margin: '0 auto' }}>
+                <p style={{ color: colors.textMid, fontSize: 'clamp(13px, 3.5vw, 15px)', maxWidth: 400, margin: '0 auto', wordBreak: 'break-word' }}>
                   Recherchez par nom, secteur, ville ou utilisez les filtres rapides ci-dessous pour démarrer.
                 </p>
               </div>
@@ -263,10 +263,11 @@ function SearchContent() {
 
             {/* Grille de Raccourcis */}
             <div 
+              className="shortcut-grid"
               style={{ 
                 display: 'grid', 
-                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
-                gap: 16, 
+                gridTemplateColumns: 'repeat(2, 1fr)', 
+                gap: 12, 
                 width: '100%', 
                 maxWidth: 600 
               }}

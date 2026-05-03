@@ -9,10 +9,9 @@ export function useDeletePipelineItem() {
 
   return useMutation({
     mutationFn: async (itemId: string) => {
-      const backendUrl = ''
       const token = await user?.getIdToken()
 
-      const response = await fetch(`${backendUrl}/api/pipeline/${itemId}`, {
+      const response = await fetch(`/api/pipeline/${itemId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token || ''}`,
@@ -27,7 +26,7 @@ export function useDeletePipelineItem() {
       return response.json()
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['pipeline'] })
+      await queryClient.invalidateQueries({ queryKey: ['pipeline', user?.uid] })
     },
   })
 }

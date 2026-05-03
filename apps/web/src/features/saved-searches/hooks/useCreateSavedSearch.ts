@@ -1,7 +1,6 @@
 'use client'
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { savedSearchesRepository } from '@/repositories/saved-searches.repository'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 
 type Input = {
@@ -17,13 +16,26 @@ export function useCreateSavedSearch() {
   return useMutation({
     mutationFn: async (input: Input) => {
       if (!user?.uid) throw new Error('Non authentifié')
-      return savedSearchesRepository.create({
-        userId:      user.uid,
-        label:       input.label,
-        filters:     input.filters,
-        resultCount: input.resultCount ?? 0,
-        createdAt:   null,
+
+      const token = await user.getIdToken()
+      const res = await fetch('/api/saved-searches', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          label:       input.label,
+          filters:     input.filters,
+          resultCount: input.resultCount ?? 0,
+        }),
       })
+
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        throw new Error((json as { message?: string }).message ?? `Erreur ${res.status}`)
+      }
+      return json
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['saved-searches'] })

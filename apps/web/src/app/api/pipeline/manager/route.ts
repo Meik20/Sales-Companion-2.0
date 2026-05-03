@@ -6,8 +6,8 @@ async function getAdminModules() {
 }
 
 /**
- * GET /api/pipeline
- * Récupère le pipeline de l'utilisateur connecté.
+ * GET /api/pipeline/manager
+ * Récupère le pipeline consolidé de l'équipe du manager.
  */
 export async function GET(request: NextRequest) {
   try {
@@ -26,9 +26,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: 'Token invalide' }, { status: 401 })
     }
 
+    // Récupère tous les éléments pipeline dont le managerUid correspond
     const snapshot = await adminDb
       .collection('pipeline')
-      .where('userId', '==', userId)
+      .where('managerUid', '==', userId)
       .orderBy('createdAt', 'desc')
       .get()
 
@@ -39,7 +40,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(items)
   } catch (error) {
-    console.error('[pipeline/GET] Error:', error)
+    console.error('[pipeline/manager/GET] Error:', error)
     return NextResponse.json(
       { message: error instanceof Error ? error.message : 'Erreur serveur' },
       { status: 500 }

@@ -18,10 +18,9 @@ export function usePipelineStats() {
   return useQuery({
     queryKey: ['pipeline-stats', user?.uid],
     queryFn: async () => {
-      const backendUrl = ''
       const token = await user?.getIdToken()
 
-      const response = await fetch(`${backendUrl}/api/pipeline/stats`, {
+      const response = await fetch('/api/pipeline/stats', {
         headers: {
           'Authorization': `Bearer ${token || ''}`,
         },

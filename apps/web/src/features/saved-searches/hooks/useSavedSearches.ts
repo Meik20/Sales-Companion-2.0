@@ -2,7 +2,6 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
-import { savedSearchesRepository } from '@/repositories/saved-searches.repository'
 
 export type SavedSearch = {
   id: string
@@ -21,7 +20,17 @@ export function useSavedSearches() {
     queryKey: ['saved-searches', user?.uid],
     queryFn: async () => {
       if (!user?.uid) return []
-      return savedSearchesRepository.findByUserId(user.uid) as Promise<SavedSearch[]>
+      const token = await user.getIdToken()
+
+      const res = await fetch('/api/saved-searches', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+
+      if (!res.ok) {
+        throw new Error('Impossible de charger les recherches')
+      }
+
+      return res.json() as Promise<SavedSearch[]>
     },
     enabled: !!user?.uid,
   })

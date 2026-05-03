@@ -1,103 +1,113 @@
+import { NextRequest, NextResponse } from 'next/server'
+
+async function getAdminModules() {
+  const { adminDb, adminAuth } = await import('@/lib/firebase-admin')
+  return { adminDb, adminAuth }
+}
+
 export async function GET(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
-    const backendUrl = process.env.BACKEND_URL || process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-    const token = request.headers.get('authorization')?.split(' ')[1] || ''
+    const { id } = await params
+    const { adminDb, adminAuth } = await getAdminModules()
 
-    const response = await fetch(`${backendUrl}/api/pipeline/${id}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    })
+    const token = request.headers.get('authorization')?.split(' ')[1]
+    if (!token) return NextResponse.json({ message: 'Non authentifié' }, { status: 401 })
 
-    if (!response.ok) {
-      return Response.json(
-        { error: 'Non trouvé' },
-        { status: 404 }
-      )
+    let userId: string
+    try {
+      const decoded = await adminAuth.verifyIdToken(token)
+      userId = decoded.uid
+    } catch {
+      return NextResponse.json({ message: 'Token invalide' }, { status: 401 })
     }
 
-    const data = await response.json()
-    return Response.json(data)
+    const doc = await adminDb.collection('pipeline').doc(id).get()
+    if (!doc.exists) return NextResponse.json({ message: 'Non trouvé' }, { status: 404 })
+
+    const data = doc.data()
+    if (data?.userId !== userId && data?.managerUid !== userId) {
+      return NextResponse.json({ message: 'Accès refusé' }, { status: 403 })
+    }
+
+    return NextResponse.json({ id: doc.id, ...data })
   } catch (error) {
-    console.error('Pipeline detail error:', error)
-    return Response.json(
-      { error: 'Erreur interne' },
-      { status: 500 }
-    )
+    console.error('[pipeline/[id]/GET] Error:', error)
+    return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 })
   }
 }
 
 export async function PUT(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
-    const backendUrl = process.env.BACKEND_URL || process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-    const token = request.headers.get('authorization')?.split(' ')[1] || ''
-    const body = await request.json()
+    const { id } = await params
+    const { adminDb, adminAuth } = await getAdminModules()
 
-    const response = await fetch(`${backendUrl}/api/pipeline/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    })
+    const token = request.headers.get('authorization')?.split(' ')[1]
+    if (!token) return NextResponse.json({ message: 'Non authentifié' }, { status: 401 })
 
-    if (!response.ok) {
-      return Response.json(
-        { error: 'Erreur serveur' },
-        { status: response.status }
-      )
+    let userId: string
+    try {
+      const decoded = await adminAuth.verifyIdToken(token)
+      userId = decoded.uid
+    } catch {
+      return NextResponse.json({ message: 'Token invalide' }, { status: 401 })
     }
 
-    const data = await response.json()
-    return Response.json(data)
+    const doc = await adminDb.collection('pipeline').doc(id).get()
+    if (!doc.exists) return NextResponse.json({ message: 'Non trouvé' }, { status: 404 })
+
+    const data = doc.data()
+    if (data?.userId !== userId && data?.managerUid !== userId) {
+      return NextResponse.json({ message: 'Accès refusé' }, { status: 403 })
+    }
+
+    const body = await request.json().catch(() => ({}))
+    await doc.ref.update({ ...body, updatedAt: new Date() })
+
+    const updated = await doc.ref.get()
+    return NextResponse.json({ id: updated.id, ...updated.data() })
   } catch (error) {
-    console.error('Update pipeline error:', error)
-    return Response.json(
-      { error: 'Erreur interne' },
-      { status: 500 }
-    )
+    console.error('[pipeline/[id]/PUT] Error:', error)
+    return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 })
   }
 }
 
 export async function DELETE(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
-    const backendUrl = process.env.BACKEND_URL || process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-    const token = request.headers.get('authorization')?.split(' ')[1] || ''
+    const { id } = await params
+    const { adminDb, adminAuth } = await getAdminModules()
 
-    const response = await fetch(`${backendUrl}/api/pipeline/${id}`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    })
+    const token = request.headers.get('authorization')?.split(' ')[1]
+    if (!token) return NextResponse.json({ message: 'Non authentifié' }, { status: 401 })
 
-    if (!response.ok) {
-      return Response.json(
-        { error: 'Erreur serveur' },
-        { status: response.status }
-      )
+    let userId: string
+    try {
+      const decoded = await adminAuth.verifyIdToken(token)
+      userId = decoded.uid
+    } catch {
+      return NextResponse.json({ message: 'Token invalide' }, { status: 401 })
     }
 
-    const data = await response.json()
-    return Response.json(data)
+    const doc = await adminDb.collection('pipeline').doc(id).get()
+    if (!doc.exists) return NextResponse.json({ message: 'Non trouvé' }, { status: 404 })
+
+    const data = doc.data()
+    if (data?.userId !== userId && data?.managerUid !== userId) {
+      return NextResponse.json({ message: 'Accès refusé' }, { status: 403 })
+    }
+
+    await doc.ref.delete()
+    return NextResponse.json({ success: true, id })
   } catch (error) {
-    console.error('Delete pipeline error:', error)
-    return Response.json(
-      { error: 'Erreur interne' },
-      { status: 500 }
-    )
+    console.error('[pipeline/[id]/DELETE] Error:', error)
+    return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 })
   }
 }

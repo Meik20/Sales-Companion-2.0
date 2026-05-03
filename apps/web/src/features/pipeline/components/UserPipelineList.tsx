@@ -1,8 +1,11 @@
 'use client'
 
+import { useState } from 'react'
 import { Badge } from '@/components/ui/index'
 import { Button } from '@/components/ui/Button'
 import { colors } from '@/styles/tokens'
+import { useDeletePipelineItem } from '@/features/pipeline/hooks/useDeletePipelineItem'
+import { useToast } from '@/hooks/useToast'
 
 type PipelineItem = {
   id: string
@@ -33,6 +36,26 @@ const statusLabel: Record<string, string> = {
 }
 
 export function UserPipelineList({ items, onStatusChange }: Props) {
+  const deleteMutation = useDeletePipelineItem()
+  const { pushToast } = useToast()
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+
+  async function handleDelete(id: string) {
+    setDeletingId(id)
+    try {
+      await deleteMutation.mutateAsync(id)
+      pushToast({ type: 'success', title: 'Prospect supprimé' })
+    } catch (err) {
+      pushToast({
+        type: 'error',
+        title: 'Suppression impossible',
+        description: err instanceof Error ? err.message : 'Erreur inconnue',
+      })
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
   if (!items.length) return null
 
   return (
@@ -71,38 +94,36 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
             </div>
           </div>
 
-          {/* Actions statut */}
-          {onStatusChange ? (
-            <div style={{ display: 'flex', gap: 6, flexShrink: 0, flexWrap: 'wrap' }}>
-              {item.status !== 'prospection' ? (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => onStatusChange(item.id, 'prospection')}
-                >
-                  Prospection
-                </Button>
-              ) : null}
-              {item.status !== 'negociation' ? (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => onStatusChange(item.id, 'negociation')}
-                >
-                  Négociation
-                </Button>
-              ) : null}
-              {item.status !== 'conclue' ? (
-                <Button
-                  size="sm"
-                  variant="primary"
-                  onClick={() => onStatusChange(item.id, 'conclue')}
-                >
-                  ✓ Conclure
-                </Button>
-              ) : null}
-            </div>
-          ) : null}
+          {/* Actions statut + Supprimer */}
+          <div style={{ display: 'flex', gap: 6, flexShrink: 0, flexWrap: 'wrap', alignItems: 'center' }}>
+            {onStatusChange ? (
+              <>
+                {item.status !== 'prospection' ? (
+                  <Button size="sm" variant="ghost" onClick={() => onStatusChange(item.id, 'prospection')}>
+                    Prospection
+                  </Button>
+                ) : null}
+                {item.status !== 'negociation' ? (
+                  <Button size="sm" variant="ghost" onClick={() => onStatusChange(item.id, 'negociation')}>
+                    Négociation
+                  </Button>
+                ) : null}
+                {item.status !== 'conclue' ? (
+                  <Button size="sm" variant="primary" onClick={() => onStatusChange(item.id, 'conclue')}>
+                    ✓ Conclure
+                  </Button>
+                ) : null}
+              </>
+            ) : null}
+            <Button
+              size="sm"
+              variant="danger"
+              loading={deletingId === item.id}
+              onClick={() => void handleDelete(item.id)}
+            >
+              🗑️
+            </Button>
+          </div>
         </div>
       ))}
     </div>

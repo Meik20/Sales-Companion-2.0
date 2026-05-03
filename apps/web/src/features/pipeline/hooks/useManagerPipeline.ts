@@ -10,17 +10,16 @@ export const useManagerPipeline = () => {
   return useQuery({
     queryKey: ['manager-pipeline', user?.uid],
     queryFn: async () => {
-      const backendUrl = ''
       const token = await user?.getIdToken()
 
-      const response = await fetch(`${backendUrl}/api/pipeline/manager`, {
+      const response = await fetch('/api/pipeline/manager', {
         headers: {
-          'Authorization': `Bearer ${token || ''}`,
+          Authorization: `Bearer ${token || ''}`,
         },
       })
 
       if (!response.ok) {
-        throw new Error('Failed to fetch manager pipeline')
+        throw new Error('Impossible de charger le pipeline équipe')
       }
 
       return response.json() as Promise<(PipelineDoc & { id: string })[]>
