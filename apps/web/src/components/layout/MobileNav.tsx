@@ -151,6 +151,20 @@ export function MobileNav() {
         />
       ) : null}
       <NavItem
+        href={routes.ai}
+        label="Assistant IA"
+        icon={
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="1" />
+            <circle cx="19" cy="12" r="1" />
+            <circle cx="5" cy="12" r="1" />
+            <path d="M12 1v6m0 6v6" />
+            <path d="M4.22 4.22l4.24 4.24m5.08 0l4.24-4.24" />
+            <path d="M4.22 19.78l4.24-4.24m5.08 0l4.24 4.24" />
+          </svg>
+        }
+      />
+      <NavItem
         href={routes.profile}
         label="Profil"
         icon={
