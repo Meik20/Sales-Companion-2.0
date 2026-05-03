@@ -1,6 +1,7 @@
 export * from './constants/plans'
 export * from './constants/pipeline-status'
 export * from './constants/roles'
+export * from './constants/sectors'
 export * from './constants/support-status'
 
 export * from './types/user'
