@@ -1,3 +1,6 @@
+@import "tailwindcss";
+@import "../../../theme.css";
+
 /* Typography: system font stack — no network request required for Segoe UI */
 
 /* ─── Palette Google ────────────────────────────────────────────────── */

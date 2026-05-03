@@ -1,0 +1,107 @@
+/* ─────────────────────────────────────────────────────────────────────
+   THEME: Deep Blue Tech — Sales Companion 2.0
+   Version: alpha
+   
+   Profondeur, précision, confiance.
+   Design system built for cameroon-based sales professionals.
+   ───────────────────────────────────────────────────────────────────── */
+
+:root {
+  /* Colors — Base Palette */
+  --color-blue-50: #E6F1FB;
+  --color-blue-100: #B5D4F4;
+  --color-blue-200: #85B7EB;
+  --color-blue-400: #378ADD;
+  --color-blue-600: #185FA5;
+  --color-blue-800: #0C447C;
+  --color-blue-900: #042C53;
+
+  --color-teal-50: #E1F5EE;
+  --color-teal-200: #5DCAA5;
+  --color-teal-400: #1D9E75;
+  --color-teal-600: #0F6E56;
+  --color-teal-900: #04342C;
+
+  --color-neutral-950: #03192E;
+  --color-neutral-900: #061E38;
+  --color-neutral-800: #0A2548;
+
+  /* Semantic Colors */
+  --color-primary: #185FA5;
+  --color-secondary: #1D9E75;
+  --color-accent: #378ADD;
+  --color-danger: #E24B4A;
+  --color-warning: #EF9F27;
+  --color-success: #1D9E75;
+
+  --color-text-primary: #E6F1FB;
+  --color-text-secondary: #B5D4F4;
+  --color-text-muted: #85B7EB;
+
+  /* Typography — Font Families */
+  --font-heading: "Syne", "Exo 2", sans-serif;
+  --font-body: "IBM Plex Sans", "DM Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", "Fira Code", monospace;
+
+  /* Typography — Scales */
+  --font-h1-size: 2rem;
+  --font-h1-weight: 700;
+  --font-h1-line-height: 1.15;
+  --font-h1-letter-spacing: -0.03em;
+
+  --font-h2-size: 1.5rem;
+  --font-h2-weight: 700;
+  --font-h2-line-height: 1.15;
+  --font-h2-letter-spacing: -0.03em;
+
+  --font-h3-size: 1.125rem;
+  --font-h3-weight: 700;
+  --font-h3-line-height: 1.2;
+  --font-h3-letter-spacing: -0.02em;
+
+  --font-body-md-size: 0.9375rem;
+  --font-body-md-weight: 400;
+  --font-body-md-line-height: 1.6;
+
+  --font-body-sm-size: 0.8125rem;
+  --font-body-sm-weight: 400;
+  --font-body-sm-line-height: 1.5;
+
+  --font-label-size: 0.6875rem;
+  --font-label-weight: 500;
+  --font-label-letter-spacing: 0.06em;
+
+  --font-mono-size: 0.8125rem;
+  --font-mono-weight: 400;
+
+  /* Spacing — 4px base unit */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* Border Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+
+  /* Borders — Glass border for glassmorphism */
+  --border-glass: 1px solid rgba(133, 183, 235, 0.18);
+
+  /* Backdrop Effects */
+  --backdrop-blur: blur(16px);
+  --backdrop-blur-mobile: blur(8px);
+
+  /* Shadow — Glass elevation */
+  --shadow-glass-light: 0 8px 32px rgba(10, 37, 72, 0.16);
+  --shadow-glass-medium: 0 12px 48px rgba(10, 37, 72, 0.24);
+  --shadow-glass-strong: 0 16px 64px rgba(10, 37, 72, 0.32);
+}

@@ -23,7 +23,9 @@
     "format": "prettier . --write",
     "format:check": "prettier . --check",
     "test:web": "npm --workspace apps/web run test",
-    "test:server": "npm --workspace apps/server run test"
+    "test:server": "npm --workspace apps/server run test",
+    "theme:lint": "designmd lint THEME.md",
+    "theme:export": "designmd export --format tailwind THEME.md > tailwind.theme.json"
   },
   "devDependencies": {
     "@eslint/js": "^9.13.0",
