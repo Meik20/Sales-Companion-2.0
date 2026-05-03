@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { FormField } from '@/components/forms/FormField'
-import { useActivateMember } from '@/features/auth/hooks/useActivateMember'
 import { useGetAccessInfo } from '@/features/auth/hooks/useGetAccessInfo'
 import { colors } from '@/styles/tokens'
 
@@ -14,23 +13,36 @@ type Props = {
 }
 
 export function ActivateMemberForm({ accessId, onSuccess }: Props) {
-  const [password, setPassword] = useState('')
+  const [email, setEmail]                   = useState('')
+  const [password, setPassword]             = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError]                   = useState<string | null>(null)
+  const [isPending, setIsPending]           = useState(false)
 
-  const { data: accessInfo, isLoading: isLoadingInfo, isError: isErrorInfo, error: infoError } = useGetAccessInfo(accessId)
-  const { mutate: activateMember, isPending } = useActivateMember()
+  const {
+    data: accessInfo,
+    isLoading: isLoadingInfo,
+    isError: isErrorInfo,
+    error: infoError,
+  } = useGetAccessInfo(accessId)
+
+  // L'email peut venir du document Firestore OU être saisi par le membre
+  const resolvedEmail = accessInfo?.email || email.trim()
+  const needsEmail    = !accessInfo?.email
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
 
-    // Vérifie que l'email est bien présent dans Firestore
-    if (!accessInfo?.email) {
-      setError('Aucun email associé à cet accès. Contactez votre manager pour corriger votre profil.')
+    // Validations
+    if (needsEmail && !email.trim()) {
+      setError('Veuillez saisir votre adresse email.')
       return
     }
-
+    if (needsEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setError('Format d\'adresse email invalide.')
+      return
+    }
     if (!password || !confirmPassword) {
       setError('Veuillez remplir tous les champs.')
       return
@@ -44,17 +56,26 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
       return
     }
 
-    activateMember(
-      { accessId, email: accessInfo.email, password },
-      {
-        onSuccess: () => { onSuccess() },
-        onError: (err: Error) => {
-          setError(err.message || 'Erreur lors de l\'activation. Réessayez ou contactez votre manager.')
-        },
+    setIsPending(true)
+    try {
+      const res = await fetch('/api/auth/activate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accessId, email: resolvedEmail, password }),
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        throw new Error((json as { message?: string }).message ?? `Erreur ${res.status}`)
       }
-    )
+      onSuccess()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur lors de l\'activation. Réessayez.')
+    } finally {
+      setIsPending(false)
+    }
   }
 
+  /* ── États de chargement / erreur du lien ── */
   if (isLoadingInfo) {
     return (
       <div style={{ textAlign: 'center', color: colors.textMid, padding: 20 }}>
@@ -91,42 +112,18 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
     )
   }
 
-  // Pas d'email → message d'erreur bloquant
-  if (!accessInfo.email) {
-    return (
-      <div style={{
-        display: 'flex', flexDirection: 'column', gap: 12,
-        background: 'rgba(239,68,68,0.08)',
-        border: '1px solid rgba(239,68,68,0.3)',
-        borderRadius: 12, padding: '20px 18px',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-          <span style={{ fontSize: 22, flexShrink: 0 }}>⚠️</span>
-          <div>
-            <div style={{ fontWeight: 700, color: '#dc2626', fontSize: 14, marginBottom: 6 }}>
-              Aucun email associé à cet accès
-            </div>
-            <div style={{ fontSize: 13, color: '#b91c1c', lineHeight: 1.65 }}>
-              Contactez votre manager pour corriger votre profil.
-            </div>
-            <div style={{ fontSize: 12, color: colors.textMid, marginTop: 8 }}>
-              Access ID : <code style={{ fontFamily: 'monospace', background: colors.bg3, padding: '1px 5px', borderRadius: 3 }}>{accessId}</code>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Récapitulatif de l'accès */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, background: colors.bg, padding: 14, borderRadius: 10 }}>
+      <div style={{
+        display: 'flex', flexDirection: 'column', gap: 10,
+        background: colors.bg, padding: 14, borderRadius: 10,
+      }}>
         <div>
           <div style={{ fontSize: 11, color: colors.textDim, letterSpacing: '.04em', textTransform: 'uppercase', marginBottom: 3 }}>
-            Identifiant d&apos;accès (Access ID)
+            Identifiant d&apos;accès
           </div>
-          <div style={{ fontSize: 13, fontWeight: 600, color: colors.text, fontFamily: 'monospace', wordBreak: 'break-all' }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: colors.text, fontFamily: 'monospace', wordBreak: 'break-all' }}>
             {accessId}
           </div>
         </div>
@@ -138,23 +135,44 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
             {accessInfo.firstname} {accessInfo.lastname}
           </div>
         </div>
-        <div>
-          <div style={{ fontSize: 11, color: colors.textDim, letterSpacing: '.04em', textTransform: 'uppercase', marginBottom: 3 }}>
-            Email (depuis votre profil)
+        {accessInfo.company && (
+          <div>
+            <div style={{ fontSize: 11, color: colors.textDim, letterSpacing: '.04em', textTransform: 'uppercase', marginBottom: 3 }}>
+              Entreprise
+            </div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: colors.text }}>{accessInfo.company}</div>
           </div>
-          <div style={{ fontSize: 13, fontWeight: 600, color: colors.green }}>
-            {accessInfo.email}
+        )}
+        {/* Email pré-renseigné depuis Firestore */}
+        {accessInfo.email && (
+          <div>
+            <div style={{ fontSize: 11, color: colors.textDim, letterSpacing: '.04em', textTransform: 'uppercase', marginBottom: 3 }}>
+              Email (depuis votre profil)
+            </div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: colors.green }}>
+              {accessInfo.email}
+            </div>
           </div>
-        </div>
-        <div>
-          <div style={{ fontSize: 11, color: colors.textDim, letterSpacing: '.04em', textTransform: 'uppercase', marginBottom: 3 }}>
-            Entreprise
-          </div>
-          <div style={{ fontSize: 14, fontWeight: 600, color: colors.text }}>
-            {accessInfo.company}
-          </div>
-        </div>
+        )}
       </div>
+
+      {/* Saisie email uniquement si absent dans Firestore */}
+      {needsEmail && (
+        <FormField
+          label="Votre adresse email"
+          required
+          hint="Votre email n'est pas encore enregistré — saisissez-le pour valider votre compte."
+        >
+          <Input
+            type="email"
+            placeholder="vous@exemple.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={isPending}
+            autoComplete="email"
+          />
+        </FormField>
+      )}
 
       <FormField label="Nouveau mot de passe" required>
         <Input
@@ -181,16 +199,10 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
       {/* Bloc d'erreur global */}
       {error && (
         <div style={{
-          display: 'flex',
-          alignItems: 'flex-start',
-          gap: 10,
-          background: 'rgba(239,68,68,0.08)',
-          border: '1px solid rgba(239,68,68,0.3)',
-          borderRadius: 10,
-          padding: '12px 14px',
-          fontSize: 13,
-          color: '#ef4444',
-          lineHeight: 1.5,
+          display: 'flex', alignItems: 'flex-start', gap: 10,
+          background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)',
+          borderRadius: 10, padding: '12px 14px',
+          fontSize: 13, color: '#ef4444', lineHeight: 1.5,
         }}>
           <span style={{ fontSize: 16, flexShrink: 0 }}>⚠️</span>
           <span>{error}</span>
@@ -205,7 +217,7 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
       <Button
         type="submit"
         variant="primary"
-        disabled={isPending || !password || !confirmPassword}
+        disabled={isPending || !password || !confirmPassword || (needsEmail && !email.trim())}
         loading={isPending}
         style={{ width: '100%', marginTop: 8 }}
       >

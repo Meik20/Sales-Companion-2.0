@@ -75,20 +75,26 @@ export function CompaniesSearchResults({ items }: Props) {
                 )}
               </div>
 
-              {/* Infos de contact */}
+              {/* Infos de contact — téléphone et email toujours affichés */}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px 14px', fontSize: 12, color: colors.textMid, marginBottom: extraFields.length ? 8 : 0 }}>
                 {company.region && (
                   <span>📍 {String(company.region)}{company.city ? ` · ${String(company.city)}` : ''}</span>
                 )}
-                {company.telephone && (
+                {/* Téléphone : toujours affiché, "—" si absent */}
+                {company.telephone ? (
                   <a href={`tel:${company.telephone}`} style={{ color: colors.green, textDecoration: 'none' }}>
                     📞 {String(company.telephone)}
                   </a>
+                ) : (
+                  <span style={{ color: colors.textDim }}>📞 —</span>
                 )}
-                {company.email && (
+                {/* Email : toujours affiché, "—" si absent */}
+                {company.email ? (
                   <a href={`mailto:${company.email}`} style={{ color: colors.green, textDecoration: 'none' }}>
                     ✉️ {String(company.email)}
                   </a>
+                ) : (
+                  <span style={{ color: colors.textDim }}>✉️ —</span>
                 )}
                 {company.dirigeant && <span>👤 {String(company.dirigeant)}</span>}
                 {company.niu && (

@@ -16,7 +16,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Corps de requête invalide' }, { status: 400 })
     }
 
-    const { accessId, password } = body as { accessId?: string; password?: string }
+    const { accessId, password, email: bodyEmail } = body as {
+      accessId?: string
+      password?: string
+      email?: string
+    }
 
     if (!accessId || !password) {
       return NextResponse.json({ message: 'accessId et password sont requis' }, { status: 400 })
@@ -60,14 +64,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const email: string | undefined = data.email
+    // Email : priorité au doc Firestore, sinon email fourni par le membre
+    const email: string | undefined = data.email || bodyEmail?.trim()
     if (!email) {
       return NextResponse.json(
         {
           message:
-            'Aucun email associé à cet accès. Contactez votre manager pour corriger votre profil.',
+            'Aucun email fourni. Veuillez saisir votre adresse email dans le formulaire.',
         },
         { status: 422 }
+      )
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return NextResponse.json(
+        { message: 'Format d\'email invalide.' },
+        { status: 400 }
       )
     }
 
@@ -117,11 +128,14 @@ export async function POST(request: NextRequest) {
       { merge: true }
     )
 
-    // ── 4. Mark access as activated ──
+    // ── 4. Marquer l'accès comme activé (activated: true + email si nouvellement fourni) ──
     await adminDb.collection(collection).doc(accessId).update({
       status:       'activated',
+      activated:    true,              // champ booléen pour les dashboards de suivi
       activatedAt:  new Date(),
       activatedUid: uid,
+      // Si l'email n'était pas dans Firestore, on le sauvegarde maintenant
+      ...(data.email ? {} : { email }),
     })
 
     return NextResponse.json({ success: true, uid })

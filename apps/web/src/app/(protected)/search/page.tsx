@@ -71,13 +71,22 @@ function SearchContent() {
           role: m.role === 'user' ? 'user' : 'model',
           parts: [{ text: m.text }],
         }))
+      // Envoyer le profil utilisateur pour contextualiser l'IA
+      const userProfile = user
+        ? {
+            name:    (user as { name?: string }).name    ?? undefined,
+            sector:  (user as { sector?: string }).sector  ?? undefined,
+            company: (user as { companyName?: string }).companyName ?? undefined,
+            region:  (user as { region?: string }).region  ?? undefined,
+          }
+        : undefined
       const res = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ message: userMsg, history }),
+        body: JSON.stringify({ message: userMsg, history, userProfile }),
       })
       const json = await res.json()
       setChatMessages((prev) => [
@@ -376,32 +385,42 @@ function SearchContent() {
               <div ref={chatEndRef} />
             </div>
 
-            {/* Chips suggestions */}
+            {/* Chips suggestions — adaptées au secteur de l'utilisateur */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-              {[
-                'Tendances BTP Douala',
-                "Email d'approche Tech",
-                'Script appel DG Agroalimentaire',
-              ].map((chip) => (
-                <button
-                  key={chip}
-                  onClick={() => sendChatMessage(chip)}
-                  disabled={isSendingChat}
-                  style={{
-                    fontSize: 11,
-                    padding: '5px 10px',
-                    borderRadius: 999,
-                    border: `1px solid ${colors.border}`,
-                    background: colors.bg2,
-                    color: colors.textMid,
-                    cursor: isSendingChat ? 'not-allowed' : 'pointer',
-                    opacity: isSendingChat ? 0.5 : 1,
-                    transition: 'all 150ms ease',
-                  }}
-                >
-                  {chip}
-                </button>
-              ))}
+              {(() => {
+                const sector = (user as { sector?: string } | null)?.sector
+                const chips = sector
+                  ? [
+                      `Tendances ${sector}`,
+                      `Email d'approche ${sector}`,
+                      `Script appel DG ${sector}`,
+                    ]
+                  : [
+                      'Tendances BTP Douala',
+                      "Email d'approche Tech",
+                      'Script appel DG Agroalimentaire',
+                    ]
+                return chips.map((chip) => (
+                  <button
+                    key={chip}
+                    onClick={() => sendChatMessage(chip)}
+                    disabled={isSendingChat}
+                    style={{
+                      fontSize: 11,
+                      padding: '5px 10px',
+                      borderRadius: 999,
+                      border: `1px solid ${colors.border}`,
+                      background: colors.bg2,
+                      color: colors.textMid,
+                      cursor: isSendingChat ? 'not-allowed' : 'pointer',
+                      opacity: isSendingChat ? 0.5 : 1,
+                      transition: 'all 150ms ease',
+                    }}
+                  >
+                    {chip}
+                  </button>
+                ))
+              })()}
             </div>
 
             {/* Zone de saisie */}
