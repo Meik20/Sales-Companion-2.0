@@ -85,7 +85,7 @@ export default function AIAssistantPage() {
         display: 'flex',
         flexDirection: 'column',
         height: '100vh',
-        background: colors.bg1,
+        background: colors.bg,
         position: 'relative',
       }}
     >
@@ -199,7 +199,7 @@ export default function AIAssistantPage() {
             padding: '10px 12px',
             borderRadius: '8px',
             border: `1px solid ${colors.border}`,
-            background: colors.bg1,
+            background: colors.bg,
             color: colors.text,
             fontSize: '14px',
             fontFamily: 'inherit',
@@ -217,7 +217,7 @@ export default function AIAssistantPage() {
             padding: '10px 16px',
             borderRadius: '8px',
             border: 'none',
-            background: input.trim() && !loading ? colors.greenMid : colors.textLight,
+            background: input.trim() && !loading ? colors.greenMid : colors.textDim,
             color: 'white',
             cursor: input.trim() && !loading ? 'pointer' : 'not-allowed',
             fontWeight: 600,
