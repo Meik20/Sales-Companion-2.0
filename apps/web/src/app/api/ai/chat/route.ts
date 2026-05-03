@@ -14,14 +14,35 @@ Quand tu rédiges un email, utilise un format professionnel complet.`
 
 export async function POST(request: NextRequest) {
   try {
-    // Optional auth check
+    // Auth check + credit deduction
     const token = request.headers.get('authorization')?.split(' ')[1]
+    let userId: string | null = null
+
     if (token) {
       try {
-        await adminAuth.verifyIdToken(token)
+        const decoded = await adminAuth.verifyIdToken(token)
+        userId = decoded.uid
+
+        // Vérifier et déduire 1 crédit
+        const userRef = adminDb.collection('users').doc(userId)
+        const userSnap = await userRef.get()
+        if (userSnap.exists) {
+          const data = userSnap.data()!
+          const dailyUsed  = (data.dailyUsed  as number) ?? 0
+          const dailyLimit = (data.dailyLimit as number) ?? 10
+          if (dailyUsed >= dailyLimit) {
+            return NextResponse.json(
+              { error: `Quota journalier épuisé (${dailyLimit} crédits). Votre compteur sera réinitialisé demain.` },
+              { status: 429 }
+            )
+          }
+          await userRef.update({ dailyUsed: dailyUsed + 1 })
+        }
       } catch {
         return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
       }
+    } else {
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     }
 
     const body = await request.json()

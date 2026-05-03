@@ -14,7 +14,6 @@ type Props = {
 }
 
 export function ActivateMemberForm({ accessId, onSuccess }: Props) {
-  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -26,12 +25,14 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
     e.preventDefault()
     setError(null)
 
-    if (!email || !password || !confirmPassword) {
-      setError('Veuillez remplir tous les champs.')
+    // Vérifie que l'email est bien présent dans Firestore
+    if (!accessInfo?.email) {
+      setError('Aucun email associé à cet accès. Contactez votre manager pour corriger votre profil.')
       return
     }
-    if (!email.includes('@')) {
-      setError('Veuillez entrer une adresse email valide.')
+
+    if (!password || !confirmPassword) {
+      setError('Veuillez remplir tous les champs.')
       return
     }
     if (password.length < 6) {
@@ -44,7 +45,7 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
     }
 
     activateMember(
-      { accessId, email, password },
+      { accessId, email: accessInfo.email, password },
       {
         onSuccess: () => { onSuccess() },
         onError: (err: Error) => {
@@ -90,6 +91,33 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
     )
   }
 
+  // Pas d'email → message d'erreur bloquant
+  if (!accessInfo.email) {
+    return (
+      <div style={{
+        display: 'flex', flexDirection: 'column', gap: 12,
+        background: 'rgba(239,68,68,0.08)',
+        border: '1px solid rgba(239,68,68,0.3)',
+        borderRadius: 12, padding: '20px 18px',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+          <span style={{ fontSize: 22, flexShrink: 0 }}>⚠️</span>
+          <div>
+            <div style={{ fontWeight: 700, color: '#dc2626', fontSize: 14, marginBottom: 6 }}>
+              Aucun email associé à cet accès
+            </div>
+            <div style={{ fontSize: 13, color: '#b91c1c', lineHeight: 1.65 }}>
+              Contactez votre manager pour corriger votre profil.
+            </div>
+            <div style={{ fontSize: 12, color: colors.textMid, marginTop: 8 }}>
+              Access ID : <code style={{ fontFamily: 'monospace', background: colors.bg3, padding: '1px 5px', borderRadius: 3 }}>{accessId}</code>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Récapitulatif de l'accès */}
@@ -110,16 +138,14 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
             {accessInfo.firstname} {accessInfo.lastname}
           </div>
         </div>
-        {accessInfo.email && (
-          <div>
-            <div style={{ fontSize: 11, color: colors.textDim, letterSpacing: '.04em', textTransform: 'uppercase', marginBottom: 3 }}>
-              Email
-            </div>
-            <div style={{ fontSize: 13, color: colors.textMid }}>
-              {accessInfo.email}
-            </div>
+        <div>
+          <div style={{ fontSize: 11, color: colors.textDim, letterSpacing: '.04em', textTransform: 'uppercase', marginBottom: 3 }}>
+            Email (depuis votre profil)
           </div>
-        )}
+          <div style={{ fontSize: 13, fontWeight: 600, color: colors.green }}>
+            {accessInfo.email}
+          </div>
+        </div>
         <div>
           <div style={{ fontSize: 11, color: colors.textDim, letterSpacing: '.04em', textTransform: 'uppercase', marginBottom: 3 }}>
             Entreprise
@@ -152,7 +178,7 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
         />
       </FormField>
 
-      {/* Bloc d'erreur global — clair et lisible */}
+      {/* Bloc d'erreur global */}
       {error && (
         <div style={{
           display: 'flex',
@@ -179,7 +205,7 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
       <Button
         type="submit"
         variant="primary"
-        disabled={isPending || !email || !password || !confirmPassword}
+        disabled={isPending || !password || !confirmPassword}
         loading={isPending}
         style={{ width: '100%', marginTop: 8 }}
       >

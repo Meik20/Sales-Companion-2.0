@@ -48,7 +48,8 @@ export function AppShell({ children }: PropsWithChildren) {
               style={{
                 flex: 1,
                 minWidth: 0,
-                padding: mounted && isDesktop ? '28px 28px 28px 24px' : '0',
+                padding: mounted && isDesktop ? '28px 28px 28px 24px' : '12px 12px 16px',
+                overflowX: 'hidden',
               }}
             >
               {children}

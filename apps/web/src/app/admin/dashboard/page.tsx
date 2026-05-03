@@ -5,6 +5,7 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { LoadingState, ErrorState } from '@/components/feedback/index'
 import { AdminStatsCards } from '@/features/admin/components/AdminStatsCards'
 import { useAdminStats } from '@/features/admin/hooks/useAdminStats'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { colors, shadows } from '@/styles/tokens'
 
 /* ── SVG Bar Chart ── */
@@ -143,6 +144,12 @@ function TrendCard({ label, value, hint, trend, color }: {
 export default function AdminDashboardPage() {
   const statsQuery = useAdminStats()
   const stats = statsQuery.data
+  const { user } = useCurrentUser()
+
+  // Raison sociale : companyName du profil admin (depuis Firestore)
+  const companyLabel = user?.companyName
+    ? `🏢 ${user.companyName}`
+    : 'Vue consolidée des statistiques de la plateforme.'
 
   const roleData = [
     { label: 'Members', value: Math.max(0, (stats?.totalUsers ?? 0) - 2), color: colors.info },
@@ -162,7 +169,7 @@ export default function AdminDashboardPage() {
     <AppShell>
       <PageHeader
         title="Dashboard admin"
-        subtitle="Vue consolidée des statistiques de la plateforme."
+        subtitle={companyLabel}
       />
 
       {statsQuery.isLoading ? <LoadingState /> : null}

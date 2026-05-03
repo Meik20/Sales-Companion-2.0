@@ -73,15 +73,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Le fichier est vide ou non lisible' }, { status: 400 })
     }
 
-    // ── Column mapping ──
+    if (rows.length > 3000) {
+      return NextResponse.json({ error: `${rows.length} lignes détectées. Maximum 3000 par lot.` }, { status: 400 })
+    }
+
+    // ── Column mapping (normalisation vers champs Firestore) ──
     const COLUMN_MAP: Record<string, string> = {
       'RAISON_SOCIALE': 'raisonSociale',
       'RAISON SOCIALE': 'raisonSociale',
       'NOM': 'raisonSociale',
+      'DENOMINATION': 'raisonSociale',
       'NIU': 'niu',
       'SIGLE': 'sigle',
       'ACTIVITE_PRINCIPALE': 'sector',
       'ACTIVITE PRINCIPALE': 'sector',
+      'ACTIVITE': 'sector',
       'SECTEUR': 'sector',
       'CENTRE_DE_RATTACHEMENT': 'region',
       'CENTRE DE RATTACHEMENT': 'region',
@@ -89,61 +95,93 @@ export async function POST(request: NextRequest) {
       'VILLE': 'city',
       'TELEPHONE': 'telephone',
       'TEL': 'telephone',
+      'PHONE': 'telephone',
       'EMAIL': 'email',
+      'MAIL': 'email',
       'DIRIGEANT': 'dirigeant',
+      'RESPONSABLE': 'dirigeant',
       'RCCM': 'rccm',
+      'ADRESSE': 'adresse',
+      'BP': 'bp',
+      'BOITE POSTALE': 'bp',
+      'CAPITAL': 'capital',
+      'DATE_CREATION': 'dateCreation',
+      'DATE CREATION': 'dateCreation',
+      'FORME_JURIDIQUE': 'formeJuridique',
+      'FORME JURIDIQUE': 'formeJuridique',
     }
 
-    const detectedColumns: Record<string, string> = {}
     const headers = Object.keys(rows[0] ?? {})
+    const detectedColumns: Record<string, string> = {}
     headers.forEach((h) => {
       const mapped = COLUMN_MAP[h.toUpperCase().trim()]
       if (mapped) detectedColumns[h] = mapped
     })
 
-    // ── Import rows into Firestore ──
+    // ── Import rows into Firestore (multi-batch, max 499 ops each) ──
     let imported = 0, updated = 0, skipped = 0, errors = 0
-    const batch = adminDb.batch()
+    let currentBatch = adminDb.batch()
     let batchCount = 0
+
+    const flushBatch = async () => {
+      if (batchCount > 0) {
+        await currentBatch.commit()
+        currentBatch = adminDb.batch()
+        batchCount = 0
+      }
+    }
 
     for (const row of rows) {
       try {
+        // Build company document with ALL columns preserved
         const company: Record<string, unknown> = {}
+
+        // 1. Map known columns to canonical field names
         headers.forEach((h) => {
           const mapped = COLUMN_MAP[h.toUpperCase().trim()]
-          if (mapped && row[h]) company[mapped] = row[h].trim()
+          const val = (row[h] ?? '').trim()
+          if (mapped && val) company[mapped] = val
         })
 
+        // 2. Preserve ALL remaining columns as-is (sanitized key)
+        headers.forEach((h) => {
+          const sanitizedKey = h.trim().replace(/[^a-zA-Z0-9_]/g, '_').toLowerCase()
+          if (sanitizedKey && !Object.values(COLUMN_MAP).includes(sanitizedKey as string)) {
+            const val = (row[h] ?? '').trim()
+            if (val && !company[sanitizedKey]) company[sanitizedKey] = val
+          }
+        })
+
+        // raisonSociale is mandatory
         if (!company.raisonSociale) { skipped++; continue }
 
         // Use NIU as document ID for deduplication, or generate one
-        const docId = (company.niu as string) || `comp_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
+        const niu = (company.niu as string)?.replace(/\s+/g, '').toUpperCase()
+        const docId = niu || `comp_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
         const ref = adminDb.collection('companies').doc(docId)
 
         const existing = await ref.get()
         if (existing.exists) {
-          batch.update(ref, { ...company, updatedAt: new Date() })
+          currentBatch.update(ref, { ...company, updatedAt: new Date() })
           updated++
         } else {
-          batch.set(ref, { ...company, createdAt: new Date(), importedBy: decoded.uid })
+          currentBatch.set(ref, { ...company, createdAt: new Date(), importedBy: decoded.uid })
           imported++
         }
 
         batchCount++
-        // Commit every 400 writes (Firestore batch limit is 500)
-        if (batchCount >= 400) {
-          await batch.commit()
-          batchCount = 0
+        // Commit every 499 writes (Firestore batch limit is 500)
+        if (batchCount >= 499) {
+          await flushBatch()
         }
-      } catch (error) {
+      } catch (rowErr) {
         errors++
-        console.error('[Admin Import] Row error:', { row: row.raisonSociale, error })
+        console.error('[Admin Import] Row error:', { row: row['raisonSociale'] ?? row['NOM'] ?? '?', rowErr })
       }
     }
 
-    if (batchCount > 0) {
-      await batch.commit()
-    }
+    // Flush remaining writes
+    await flushBatch()
 
     // ── Save import log ──
     await adminDb.collection('imports').add({

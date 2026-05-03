@@ -94,8 +94,8 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
           setError('Aucun prospect valide trouvé. Vérifiez le format du fichier.')
           return
         }
-        if (parsed.length > 500) {
-          setError(`${parsed.length} lignes détectées. Maximum 500 par import.`)
+        if (parsed.length > 3000) {
+          setError(`${parsed.length} lignes détectées. Maximum 3000 par import.`)
           return
         }
         setRows(parsed)

@@ -59,16 +59,29 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const email: string | undefined = data.email
+    // Utiliser l'email du formulaire ou du document, avec préférence pour le document
+    const email: string | undefined = data.email || (body as any).email
     if (!email) {
       return NextResponse.json(
         {
           message:
-            'Aucun email associé à cet accès. Contactez votre manager pour corriger votre profil.',
+            'Aucun email fourni. Veuillez renseigner votre adresse email dans le formulaire.',
         },
         { status: 422 }
       )
     }
+
+    // Valider le format email
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return NextResponse.json(
+        {
+          message: 'Format d\'email invalide. Vérifiez votre adresse email.',
+        },
+        { status: 400 }
+      )
+    }
+
+    console.log('[team/activate] Activation initiated:', { accessId, email, hasDocEmail: !!data.email, hasFormEmail: !!(body as any).email })
 
     // ── 2. Créer ou mettre à jour l'utilisateur Firebase Auth ──
     let uid: string
@@ -76,6 +89,7 @@ export async function POST(request: NextRequest) {
       const existing = await adminAuth.getUserByEmail(email)
       await adminAuth.updateUser(existing.uid, { password })
       uid = existing.uid
+      console.log('[team/activate] Updated existing user:', { uid, email })
     } catch (authErr: unknown) {
       const code = (authErr as { code?: string })?.code
       if (code === 'auth/user-not-found') {
@@ -88,7 +102,9 @@ export async function POST(request: NextRequest) {
           ].join(' ').trim() || undefined,
         })
         uid = newUser.uid
+        console.log('[team/activate] Created new user:', { uid, email })
       } else {
+        console.error('[team/activate] Firebase Auth error:', { code, message: (authErr as Error).message })
         throw authErr
       }
     }
@@ -123,9 +139,16 @@ export async function POST(request: NextRequest) {
       activatedUid: uid,
     })
 
+    console.log('[team/activate] Account activated successfully:', { accessId, email, uid })
+
     return NextResponse.json({ success: true, uid })
   } catch (error) {
     console.error('[team/activate] Error:', error)
+    console.error('[team/activate] Error details:', {
+      message: error instanceof Error ? error.message : String(error),
+      code: (error as any)?.code,
+      stack: error instanceof Error ? error.stack : undefined,
+    })
 
     const msg =
       error instanceof Error

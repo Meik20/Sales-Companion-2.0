@@ -52,71 +52,23 @@ export function AdminCompaniesTable() {
             >
               <thead>
                 <tr style={{ borderBottom: `1px solid ${colors.border}` }}>
-                  <th
-                    style={{
-                      textAlign: 'left',
-                      padding: '12px 0',
-                      color: colors.textMid,
-                      fontWeight: 600,
-                      fontSize: 12,
-                      textTransform: 'uppercase',
-                      letterSpacing: '.04em',
-                    }}
-                  >
-                    Nom
-                  </th>
-                  <th
-                    style={{
-                      textAlign: 'left',
-                      padding: '12px 16px 12px 0',
-                      color: colors.textMid,
-                      fontWeight: 600,
-                      fontSize: 12,
-                      textTransform: 'uppercase',
-                      letterSpacing: '.04em',
-                    }}
-                  >
-                    Secteur
-                  </th>
-                  <th
-                    style={{
-                      textAlign: 'left',
-                      padding: '12px 16px 12px 0',
-                      color: colors.textMid,
-                      fontWeight: 600,
-                      fontSize: 12,
-                      textTransform: 'uppercase',
-                      letterSpacing: '.04em',
-                    }}
-                  >
-                    Ville
-                  </th>
-                  <th
-                    style={{
-                      textAlign: 'center',
-                      padding: '12px 0',
-                      color: colors.textMid,
-                      fontWeight: 600,
-                      fontSize: 12,
-                      textTransform: 'uppercase',
-                      letterSpacing: '.04em',
-                    }}
-                  >
-                    Statut
-                  </th>
-                  <th
-                    style={{
-                      textAlign: 'right',
-                      padding: '12px 0',
-                      color: colors.textMid,
-                      fontWeight: 600,
-                      fontSize: 12,
-                      textTransform: 'uppercase',
-                      letterSpacing: '.04em',
-                    }}
-                  >
-                    Date
-                  </th>
+                  {['Raison Sociale', 'NIU', 'Secteur', 'Ville / Région', 'Statut', 'Date'].map((h) => (
+                    <th
+                      key={h}
+                      style={{
+                        textAlign: 'left',
+                        padding: '10px 12px',
+                        color: colors.textMid,
+                        fontWeight: 700,
+                        fontSize: 11,
+                        textTransform: 'uppercase',
+                        letterSpacing: '.04em',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {h}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
@@ -197,43 +149,62 @@ export function AdminCompaniesTable() {
 }
 
 function CompanyRow({ company }: { company: AdminCompany }) {
-  const importDate = new Date(company.importedAt)
-  const dateStr = importDate.toLocaleDateString('fr-FR', {
-    month: 'short',
-    day: 'numeric',
-    year: '2-digit',
-  })
+  const importDate = company.importedAt ? new Date(company.importedAt) : null
+  const dateStr = importDate && !isNaN(importDate.getTime())
+    ? importDate.toLocaleDateString('fr-FR', { month: 'short', day: 'numeric', year: '2-digit' })
+    : '—'
+
+  // raisonSociale is the canonical field name from the CSV import
+  const displayName = (company as any).raisonSociale || company.name || '—'
+  const displayNiu = (company as any).niu || '—'
+  const displaySector = (company as any).sector || (company as any).activite_principale || company.sector || '—'
+  const displayCity = (company as any).city || (company as any).ville || company.city || '—'
+  const displayRegion = (company as any).region || (company as any).centre_de_rattachement || ''
 
   return (
     <tr
       style={{
         borderBottom: `1px solid ${colors.border}`,
-        transition: 'background-color 300ms ease',
+        transition: 'background-color 200ms ease',
       }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.backgroundColor = colors.bg2
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.backgroundColor = 'transparent'
-      }}
+      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = colors.bg2 }}
+      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
     >
-      <td style={{ padding: '12px 0', color: colors.text, fontWeight: 500 }}>
-        {company.name}
+      {/* Raison Sociale */}
+      <td style={{ padding: '10px 12px', fontWeight: 600, color: colors.text, maxWidth: 260 }}>
+        <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {displayName}
+        </div>
+        {displayNiu !== '—' && (
+          <div style={{ fontSize: 10.5, color: colors.textDim, marginTop: 2, fontFamily: 'monospace' }}>
+            NIU: {displayNiu}
+          </div>
+        )}
       </td>
-      <td style={{ padding: '12px 16px 12px 0', color: colors.textMid, fontSize: 12 }}>
-        {company.sector || '—'}
+      {/* NIU col – hidden duplicate, now merged above */}
+      {/* Secteur */}
+      <td style={{ padding: '10px 12px', color: colors.textMid, fontSize: 12, maxWidth: 160 }}>
+        <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {displaySector}
+        </div>
       </td>
-      <td style={{ padding: '12px 16px 12px 0', color: colors.textMid, fontSize: 12 }}>
-        {company.city || '—'}
+      {/* Ville / Région */}
+      <td style={{ padding: '10px 12px', color: colors.textMid, fontSize: 12 }}>
+        <div>{displayCity}</div>
+        {displayRegion && displayRegion !== displayCity && (
+          <div style={{ fontSize: 10.5, color: colors.textDim }}>{displayRegion}</div>
+        )}
       </td>
-      <td style={{ padding: '12px 0', textAlign: 'center' }}>
+      {/* Statut */}
+      <td style={{ padding: '10px 12px', textAlign: 'center' }}>
         {company.verified ? (
-          <span style={{ fontSize: 11, color: '#2ea05a', fontWeight: 600 }}>✓ Vérifié</span>
+          <span style={{ fontSize: 11, color: '#2ea05a', fontWeight: 700, background: 'rgba(46,160,90,0.1)', padding: '2px 8px', borderRadius: 4 }}>✓ Vérifié</span>
         ) : (
           <span style={{ fontSize: 11, color: colors.textMid }}>Non vérifié</span>
         )}
       </td>
-      <td style={{ padding: '12px 0', color: colors.textMid, textAlign: 'right', fontSize: 12 }}>
+      {/* Date */}
+      <td style={{ padding: '10px 12px', color: colors.textMid, textAlign: 'right', fontSize: 12, whiteSpace: 'nowrap' }}>
         {dateStr}
       </td>
     </tr>

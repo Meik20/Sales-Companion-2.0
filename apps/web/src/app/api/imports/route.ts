@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     const q = adminDb
       .collection('manager_prospects')
       .where('managerId', '==', managerId)
-      .limit(500)
+      .limit(3000)
 
     const snap = await q.get()
     
@@ -89,21 +89,31 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (prospects.length > 500) {
+    if (prospects.length > 3000) {
       return NextResponse.json(
-        { message: 'Maximum 500 prospects par import' },
+        { message: 'Maximum 3000 prospects par import' },
         { status: 400 }
       )
     }
 
-    // Écriture en batch Firestore
-    const batch = adminDb.batch()
+    // Écriture en multi-batch Firestore (limite Firestore = 500 writes par batch)
+    let importedCount = 0
+    let currentBatch = adminDb.batch()
+    let batchOps = 0
     const colRef = adminDb.collection('manager_prospects')
     const now = new Date()
 
+    const flush = async () => {
+      if (batchOps > 0) {
+        await currentBatch.commit()
+        currentBatch = adminDb.batch()
+        batchOps = 0
+      }
+    }
+
     for (const p of prospects) {
       const ref = colRef.doc()
-      batch.set(ref, {
+      currentBatch.set(ref, {
         managerId,
         name:       (p.name       ?? '').trim(),
         phone:      (p.phone      ?? '').trim(),
@@ -116,11 +126,13 @@ export async function POST(request: NextRequest) {
         createdAt:  now,
         updatedAt:  now,
       })
+      batchOps++
+      importedCount++
+      if (batchOps >= 499) await flush()
     }
+    await flush()
 
-    await batch.commit()
-
-    return NextResponse.json({ success: true, count: prospects.length })
+    return NextResponse.json({ success: true, count: importedCount })
   } catch (error) {
     console.error('[imports POST] Error importing prospects:', error)
     const msg = error instanceof Error ? error.message : 'Erreur serveur inconnue'

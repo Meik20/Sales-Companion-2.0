@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { AppShell } from '@/components/layout/AppShell'
-import { PageHeader } from '@/components/layout/PageHeader'
 import { LoadingState, EmptyState } from '@/components/feedback/index'
 import { ErrorState } from '@/components/feedback/index'
 import { DataCard, Badge } from '@/components/ui/index'
@@ -104,19 +103,13 @@ function SearchContent() {
 
   return (
     <AppShell>
-      <PageHeader
-        title="Recherche"
-        subtitle="Trouvez des entreprises camerounaises et constituez vos prospects."
-        actions={<SaveCurrentSearchButton filters={filters} results={results} />}
-      />
-
-      {/* Barre de recherche compacte — inline sous le header */}
+      {/* Barre de recherche compacte */}
       <div style={{
         background: 'var(--cr-card-background-color)',
         border: '1px solid var(--cr-separator-color)',
         borderRadius: 14,
-        padding: '14px 18px',
-        marginBottom: 20,
+        padding: '12px 14px',
+        marginBottom: 16,
       }}>
         <SearchFiltersForm
           initialValues={filters}
@@ -147,10 +140,20 @@ function SearchContent() {
                 ? `${results.length} entreprise${results.length !== 1 ? 's' : ''} trouvée${results.length !== 1 ? 's' : ''}`
                 : undefined
             }
+            actions={<SaveCurrentSearchButton filters={filters} results={results} />}
           >
             {searchQuery.isLoading ? <LoadingState title="Recherche en cours…" /> : null}
             {searchQuery.isError ? (
-              <ErrorState description="Impossible d'exécuter la recherche." />
+              <div style={{
+                padding: '12px 16px', borderRadius: 8,
+                background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)',
+                color: '#ef4444', fontSize: 13,
+              }}>
+                {(searchQuery.error as Error)?.message?.includes('429') || (searchQuery.error as Error)?.message?.includes('Quota')
+                  ? '⚠️ Quota journalier épuisé. Vos crédits seront réinitialisés demain.'
+                  : '❌ Impossible d\'exécuter la recherche. Veuillez réessayer.'
+                }
+              </div>
             ) : null}
             {!searchQuery.isLoading && !searchQuery.isError && results.length === 0 ? (
               <EmptyState

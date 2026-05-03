@@ -14,6 +14,8 @@ type Prospect = {
   assignedTo?: string | null
   status?: string
   createdAt?: string
+  // Champs dynamiques du CSV
+  [key: string]: unknown
 }
 
 type TeamMember = {
@@ -83,15 +85,12 @@ export function ManagerProspectsList({ managerId, members, refreshTrigger = 0 }:
     }
   }
 
-  // Filtrage local
+  // Filtrage local — cherche dans TOUS les champs de la fiche
   const filtered = prospects.filter((p) => {
     const term = search.toLowerCase()
-    const matchSearch = !term
-      || p.name.toLowerCase().includes(term)
-      || (p.email ?? '').toLowerCase().includes(term)
-      || (p.phone ?? '').toLowerCase().includes(term)
-      || (p.city  ?? '').toLowerCase().includes(term)
-      || (p.sector ?? '').toLowerCase().includes(term)
+    const matchSearch = !term || Object.values(p).some(
+      (v) => v && String(v).toLowerCase().includes(term)
+    )
     const matchMember = !filterMember
       || p.assignedTo === filterMember
       || (filterMember === '__unassigned' && !p.assignedTo)
