@@ -12,6 +12,7 @@ const createTeamAccessSchema = z.object({
 
 const activateMemberSchema = z.object({
   accessId: z.string().min(1),
+  email: z.string().email('Invalid email format'),
   password: z.string().min(6)
 })
 

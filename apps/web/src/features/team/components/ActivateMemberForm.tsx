@@ -14,6 +14,7 @@ type Props = {
 }
 
 export function ActivateMemberForm({ accessId, onSuccess }: Props) {
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -25,8 +26,12 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
     e.preventDefault()
     setError(null)
 
-    if (!password || !confirmPassword) {
+    if (!email || !password || !confirmPassword) {
       setError('Veuillez remplir tous les champs.')
+      return
+    }
+    if (!email.includes('@')) {
+      setError('Veuillez entrer une adresse email valide.')
       return
     }
     if (password.length < 6) {
@@ -39,7 +44,7 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
     }
 
     activateMember(
-      { accessId, password },
+      { accessId, email, password },
       {
         onSuccess: () => { onSuccess() },
         onError: (err: Error) => {
@@ -174,7 +179,7 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
       <Button
         type="submit"
         variant="primary"
-        disabled={isPending || !password || !confirmPassword}
+        disabled={isPending || !email || !password || !confirmPassword}
         loading={isPending}
         style={{ width: '100%', marginTop: 8 }}
       >

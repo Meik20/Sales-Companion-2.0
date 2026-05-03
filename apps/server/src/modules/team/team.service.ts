@@ -13,6 +13,7 @@ type CreateTeamAccessInput = {
 
 type ActivateMemberInput = {
   accessId: string
+  email: string
   password: string
 }
 
@@ -123,14 +124,14 @@ export const teamService = {
     }
 
     const userRecord = await adminAuth.createUser({
-      email: access.email || `user-${access.accessId}@temp.local`,
+      email: input.email,
       password: input.password,
       displayName: `${access.firstname} ${access.lastname}`.trim()
     })
 
     await adminDb.collection('users').doc(userRecord.uid).set({
       uid: userRecord.uid,
-      email: access.email || `user-${access.accessId}@temp.local`,
+      email: input.email,
       name: `${access.firstname} ${access.lastname}`.trim(),
       role: 'member',
       companyId: access.companyId ?? null,
@@ -148,7 +149,7 @@ export const teamService = {
       status: 'active',
       activated: true,
       firebaseUid: userRecord.uid,
-      email: access.email || `user-${access.accessId}@temp.local`,
+      email: input.email,
       mustChangePassword: false,
       activatedAt: admin.firestore.FieldValue.serverTimestamp()
     })

@@ -4,6 +4,7 @@ import { useMutation } from '@tanstack/react-query'
 
 type ActivateInput = {
   accessId: string
+  email: string
   password: string
 }
 
