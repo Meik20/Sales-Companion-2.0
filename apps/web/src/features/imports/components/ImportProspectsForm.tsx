@@ -32,8 +32,8 @@ function parseCSV(text: string): ParsedRow[] {
   if (lines.length < 2) return []
 
   // Détecter le séparateur : virgule, point-virgule ou tabulation
-  const sep = lines[0].includes(';') ? ';' : lines[0].includes('\t') ? '\t' : ','
-  const raw_headers = lines[0].split(sep).map((h) =>
+  const sep = lines[0]!.includes(';') ? ';' : lines[0]!.includes('\t') ? '\t' : ','
+  const raw_headers = lines[0]!.split(sep).map((h) =>
     h.replace(/^"|"$/g, '').trim().toLowerCase()
   )
 
