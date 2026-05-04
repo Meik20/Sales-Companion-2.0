@@ -1,22 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { FieldValue } from 'firebase-admin/firestore'
 
-async function getAdminModules() {
+async function getAdmin() {
   const { adminDb, adminAuth } = await import('@/lib/firebase-admin')
   return { adminDb, adminAuth }
 }
 
 /**
  * GET /api/pipeline
- * Récupère le pipeline de l'utilisateur connecté.
+ * Returns the pipeline items for the authenticated user (member or manager).
+ * For members: items where userId === uid
+ * Sorted in memory to avoid composite index requirement.
  */
 export async function GET(request: NextRequest) {
   try {
-    const { adminDb, adminAuth } = await getAdminModules()
+    const { adminDb, adminAuth } = await getAdmin()
 
     const token = request.headers.get('authorization')?.split(' ')[1]
-    if (!token) {
-      return NextResponse.json({ message: 'Non authentifié' }, { status: 401 })
-    }
+    if (!token) return NextResponse.json({ message: 'Non authentifié' }, { status: 401 })
 
     let userId: string
     try {
@@ -26,23 +27,76 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: 'Token invalide' }, { status: 401 })
     }
 
-    const snapshot = await adminDb
+    // Fetch without orderBy to avoid composite index requirement — sort in memory
+    const snap = await adminDb
       .collection('pipeline')
       .where('userId', '==', userId)
-      .orderBy('createdAt', 'desc')
       .get()
 
-    const items = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }))
+    const items = snap.docs
+      .map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt?.toDate?.()?.toISOString() ?? null,
+        updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() ?? null,
+      }))
+      .sort((a, b) => {
+        const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0
+        const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0
+        return tb - ta
+      })
 
     return NextResponse.json(items)
   } catch (error) {
-    console.error('[pipeline/GET] Error:', error)
-    return NextResponse.json(
-      { message: error instanceof Error ? error.message : 'Erreur serveur' },
-      { status: 500 }
-    )
+    console.error('[pipeline GET]', error)
+    return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 })
+  }
+}
+
+/**
+ * POST /api/pipeline
+ * Adds a company to the authenticated user's own pipeline.
+ */
+export async function POST(request: NextRequest) {
+  try {
+    const { adminDb, adminAuth } = await getAdmin()
+
+    const token = request.headers.get('authorization')?.split(' ')[1]
+    if (!token) return NextResponse.json({ message: 'Non authentifié' }, { status: 401 })
+
+    let userId: string
+    try {
+      const decoded = await adminAuth.verifyIdToken(token)
+      userId = decoded.uid
+    } catch {
+      return NextResponse.json({ message: 'Token invalide' }, { status: 401 })
+    }
+
+    const body = await request.json().catch(() => ({})) as Record<string, unknown>
+    const companyName = (body.companyName ?? body.name ?? '') as string
+
+    if (!companyName) {
+      return NextResponse.json({ message: 'companyName requis' }, { status: 400 })
+    }
+
+    const ref = adminDb.collection('pipeline').doc()
+    await ref.set({
+      userId,
+      companyName,
+      name: companyName,
+      status: (body.status as string) ?? 'prospect',
+      ...Object.fromEntries(
+        Object.entries(body).filter(([k]) =>
+          !['userId', 'managerUid', 'createdAt', 'updatedAt'].includes(k)
+        )
+      ),
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+    })
+
+    return NextResponse.json({ success: true, id: ref.id })
+  } catch (error) {
+    console.error('[pipeline POST]', error)
+    return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 })
   }
 }

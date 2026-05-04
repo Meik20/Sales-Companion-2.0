@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { SectionCard } from './SectionCard'
 import { useCreateTeamAssignment } from '../hooks/useCreateTeamAssignment'
 import { useActiveTeamMembers } from '../hooks/useTeamMembers'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { colors } from '@/styles/tokens'
 import type { Prospect } from '@/features/imports/components/ManagerProspectsList'
 
@@ -50,13 +51,13 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
   const [error, setError]                   = useState('')
   const [successCount, setSuccessCount]     = useState(0)
 
-  // Pipeline-based prospects (legacy path — from manager's pipeline)
   const [pipelineProspects, setPipelineProspects] = useState<PipelineItem[]>([])
   const [loadingPipeline, setLoadingPipeline]     = useState(false)
 
+  const { user } = useCurrentUser()
   const { mutate: createAssignment, isPending } = useCreateTeamAssignment()
-  // Only active (activated) members
   const { data: members } = useActiveTeamMembers()
+
 
   // Load pipeline prospects
   useEffect(() => {
@@ -109,19 +110,27 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
     setError('')
     if (!memberId.trim()) { setError('Veuillez sélectionner un membre'); return }
 
+    const token = await user?.getIdToken()
     let done = 0
     for (const prospect of selectedProspects) {
-      await fetch('/api/imports', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prospectId: prospect.id, assignedTo: memberId }),
+      const res = await fetch('/api/team/assignments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          pipelineItemId: prospect.id,
+          memberId: memberId.trim(),
+        }),
       })
-      done++
+      if (res.ok) done++
     }
     setSuccessCount((n) => n + done)
     setMemberId('')
     onAssigned?.()
   }
+
 
   return (
     <SectionCard
