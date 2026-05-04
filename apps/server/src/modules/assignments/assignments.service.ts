@@ -58,40 +58,46 @@ export const assignmentsService = {
 
     // ── Step 3: For each prospect, copy it to the assignee's pipeline
     for (const prospectId of input.prospectIds) {
-      const prospectSnapshot = await adminDb
-        .collection('pipeline')
-        .doc(prospectId)
-        .get()
+      // Try pipeline first, then imported_prospects (CSV imports)
+      let prospectData: Record<string, unknown> | undefined
 
-      if (prospectSnapshot.exists) {
-        const prospectData = prospectSnapshot.data()
-        
-        if (!prospectData) {
-          console.warn(`Prospect ${prospectId} exists but has no data`)
-          continue
+      const pipelineDoc = await adminDb.collection('pipeline').doc(prospectId).get()
+      if (pipelineDoc.exists) {
+        prospectData = pipelineDoc.data()
+      } else {
+        const importedDoc = await adminDb.collection('imported_prospects').doc(prospectId).get()
+        if (importedDoc.exists) {
+          prospectData = importedDoc.data()
         }
-        
-        // Create copy in assignee's pipeline
-        const newPipelineRef = adminDb.collection('pipeline').doc()
-        await newPipelineRef.set({
-          id: newPipelineRef.id,
-          userId: assigneeUid,
-          assignedTo: assigneeUid,
-          managerUid: input.managerUid,
-          companyId: prospectData.companyId || null,
-          companyName: prospectData.companyName || 'Unknown',
-          companySector: prospectData.companySector || null,
-          companyCity: prospectData.companyCity || null,
-          companyPhone: prospectData.companyPhone || null,
-          companyEmail: prospectData.companyEmail || null,
-          status: 'prospection',
-          notes: prospectData.notes || null,
-          nextFollowUp: prospectData.nextFollowUp || null,
-          sourceId: prospectId, // Reference to original prospect
-          createdAt: Timestamp.now(),
-          updatedAt: Timestamp.now()
-        })
       }
+
+      if (!prospectData) {
+        console.warn(`Prospect ${prospectId} not found in pipeline or imported_prospects — skipping`)
+        continue
+      }
+
+      // Create copy in assignee's pipeline
+      const newPipelineRef = adminDb.collection('pipeline').doc()
+      await newPipelineRef.set({
+        id: newPipelineRef.id,
+        userId: assigneeUid,
+        assignedTo: assigneeUid,
+        managerUid: input.managerUid,
+        companyId: prospectData.companyId ?? prospectData.id ?? null,
+        companyName: prospectData.companyName ?? prospectData.name ?? 'Inconnu',
+        companySector: prospectData.companySector ?? prospectData.sector ?? null,
+        companyCity: prospectData.companyCity ?? prospectData.city ?? null,
+        companyPhone: prospectData.companyPhone ?? prospectData.phone ?? null,
+        companyEmail: prospectData.companyEmail ?? prospectData.email ?? null,
+        status: 'prospection',
+        notes: prospectData.notes ?? null,
+        nextFollowUp: prospectData.nextFollowUp ?? null,
+        sourceId: prospectId,
+        assignedBy: input.managerUid,
+        assignedByName: input.managerName ?? null,
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now()
+      })
     }
 
     // ── Step 4: Mark member as activated in team_accesses

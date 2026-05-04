@@ -34,37 +34,71 @@ export async function GET(request: NextRequest) {
       id: doc.id,
       ...doc.data(),
       createdAt: doc.data().createdAt?.toDate?.()?.toISOString() ?? new Date().toISOString(),
+      updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() ?? new Date().toISOString(),
     }))
 
-    const legacyItems = legacySnap.docs
-      .map((doc) => {
+    // Enrich legacy assignments: resolve companyName from pipeline + member info from team_accesses
+    const legacyItemsRaw = legacySnap.docs.filter((doc) => doc.data().status !== 'done')
+
+    const legacyItems = await Promise.all(
+      legacyItemsRaw.map(async (doc) => {
         const data = doc.data()
-        const prospectIds = Array.isArray(data.prospectIds) ? data.prospectIds : []
+        const prospectIds: string[] = Array.isArray(data.prospectIds) ? data.prospectIds : []
         const firstProspectId = prospectIds[0] ?? ''
         const count = prospectIds.length
+
+        // Resolve company name from pipeline
+        let companyName = count > 1 ? `${count} prospects` : firstProspectId
+        if (firstProspectId) {
+          try {
+            const pDoc = await adminDb.collection('pipeline').doc(firstProspectId).get()
+            if (pDoc.exists) {
+              const pd = pDoc.data()!
+              companyName = pd.companyName ?? pd.name ?? companyName
+            }
+          } catch { /* ignore */ }
+        }
+
+        // Resolve member name/email from team_accesses (legacy assigneeId = accessId)
+        const assigneeId: string = data.assigneeId ?? ''
+        let memberName = ''
+        let memberEmail = ''
+        let memberUid = data.assigneeUid ?? ''
+        if (assigneeId) {
+          try {
+            const aDoc = await adminDb.collection('team_accesses').doc(assigneeId).get()
+            if (aDoc.exists) {
+              const ad = aDoc.data()!
+              memberName = `${ad.firstname ?? ''} ${ad.lastname ?? ''}`.trim()
+              memberEmail = ad.email ?? ''
+              memberUid = ad.firebaseUid ?? memberUid
+            }
+          } catch { /* ignore */ }
+        }
 
         return {
           id: doc.id,
           managerUid: data.managerUid ?? managerUid,
           managerName: data.managerName ?? '',
-          memberId: data.assigneeId ?? '',
-          memberName: '',
-          memberEmail: '',
+          memberId: memberUid || assigneeId,
+          memberName,
+          memberEmail,
           pipelineItemId: firstProspectId,
           pipelineEntryId: '',
-          companyName: count === 1 ? firstProspectId : `${count} prospects`,
-          status: data.status === 'done' ? 'done' : 'active',
+          companyName,
+          status: 'active' as const,
           createdAt: data.createdAt?.toDate?.()?.toISOString() ?? new Date().toISOString(),
           updatedAt: data.updatedAt?.toDate?.()?.toISOString() ?? new Date().toISOString(),
         }
       })
-      .filter((item) => item.status !== 'done')
+    )
 
     const items = [...teamItems, ...legacyItems].sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     )
 
-    return NextResponse.json(items)
+    // ⚠️ Wrap in { items } — useTeamAssignments reads json.items
+    return NextResponse.json({ items })
   } catch (error) {
     console.error('[team/assignments GET]', error)
     return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 })
