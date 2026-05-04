@@ -9,7 +9,7 @@ import { colors } from '@/styles/tokens'
 
 type Props = {
   accessId: string
-  onSuccess: () => void
+  onSuccess: (email: string, password: string) => void
 }
 
 export function ActivateMemberForm({ accessId, onSuccess }: Props) {
@@ -63,7 +63,8 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
       if (!res.ok) {
         throw new Error((json as { message?: string }).message ?? `Erreur ${res.status}`)
       }
-      onSuccess()
+      // ✅ Pass email and password to parent for auto-login
+      onSuccess(email.trim(), password)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur lors de l'activation. Réessayez.")
     } finally {

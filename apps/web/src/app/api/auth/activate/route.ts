@@ -157,6 +157,10 @@ export async function POST(request: NextRequest) {
       { merge: true }
     )
 
+    // ── 5.5. SET CUSTOM CLAIMS for Firestore rules ──────────────────────────
+    const userRole = data.role ?? 'member'
+    await adminAuth.setCustomUserClaims(uid, { role: userRole })
+
     // ── 6. Update the access document: activated=true, email, firebaseUid ───
     //      This is the key step that was missing — the source document in
     //      Firestore (visible in the admin dashboard) must reflect the new state.

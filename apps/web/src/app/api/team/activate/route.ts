@@ -132,6 +132,10 @@ export async function POST(request: NextRequest) {
       { merge: true }
     )
 
+    // ── 3.5. SET CUSTOM CLAIMS for Firestore rules ──────────────────────────
+    const userRole = data.role ?? 'member'
+    await adminAuth.setCustomUserClaims(uid, { role: userRole })
+
     // ── 4. Marquer l'accès comme activé ──
     await adminDb.collection(col).doc(accessId).update({
       status:       'activated',

@@ -134,6 +134,9 @@ export const teamService = {
       displayName: `${access.firstname} ${access.lastname}`.trim()
     })
 
+    // ✅ SET CUSTOM CLAIMS for Firestore rules
+    await adminAuth.setCustomUserClaims(userRecord.uid, { role: 'member' })
+
     await adminDb.collection('users').doc(userRecord.uid).set({
       uid: userRecord.uid,
       email: input.email,

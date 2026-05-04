@@ -50,6 +50,9 @@ export function useAuthActions() {
         },
       }, { merge: false })
       
+      // ✅ FORCE TOKEN REFRESH to get custom claims
+      await user.getIdToken(true)
+      
       return user
     } catch (error) {
       throw error
@@ -59,6 +62,9 @@ export function useAuthActions() {
   const loginWithEmail = async (email: string, password: string) => {
     try {
       const { user } = await signInWithEmailAndPassword(auth, email, password)
+      
+      // ✅ FORCE TOKEN REFRESH to get custom claims
+      await user.getIdToken(true)
       
       // Update lastLogin timestamp
       await setDoc(

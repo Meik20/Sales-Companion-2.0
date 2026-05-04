@@ -17,11 +17,15 @@ service cloud.firestore {
     }
 
     function currentUserDoc() {
-      return get(/databases/$(database)/documents/users/$(authUid())).data;
+      let userDoc = get(/databases/$(database)/documents/users/$(authUid())).data;
+      return userDoc != null ? userDoc : {};
     }
 
     function isManager() {
-      return isSignedIn() && currentUserDoc().role == 'manager';
+      return isSignedIn() && (
+        request.auth.token.role == 'manager' ||
+        currentUserDoc().role == 'manager'
+      );
     }
 
     function isOwner(userId) {

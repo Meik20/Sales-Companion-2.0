@@ -2,6 +2,8 @@
 
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useState, Suspense } from 'react'
+import { signInWithEmailAndPassword } from 'firebase/auth'
+import { auth } from '@/services/firebase/client'
 import { ActivateMemberForm } from '@/features/team/components/ActivateMemberForm'
 import { ScIcon } from '@/components/ui/ScIcon'
 import { colors } from '@/styles/tokens'
@@ -17,11 +19,34 @@ function ActivateContent() {
   const [accessId, setAccessId] = useState(urlAccessId)
   const [manualAccessId, setManualAccessId] = useState('')
   const [done, setDone] = useState(false)
+  const [userEmail, setUserEmail] = useState('')
+  const [userPassword, setUserPassword] = useState('')
 
   function handleManualSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (manualAccessId.trim()) {
       setAccessId(manualAccessId.trim())
+    }
+  }
+
+  // ✅ Auto-login after successful activation
+  async function handleActivationSuccess(email: string, password: string) {
+    try {
+      const { user } = await signInWithEmailAndPassword(auth, email, password)
+      // ✅ FORCE TOKEN REFRESH to get custom claims
+      await user.getIdToken(true)
+      
+      setUserEmail(email)
+      setUserPassword(password)
+      setDone(true)
+      
+      // Redirect to dashboard after animation
+      setTimeout(() => router.replace(routes.search), 2000)
+    } catch (err) {
+      console.error('Auto-login failed:', err)
+      // Fall back to manual login
+      setDone(true)
+      setTimeout(() => router.replace(routes.login), 2000)
     }
   }
 
@@ -78,7 +103,6 @@ function ActivateContent() {
   }
 
   if (done) {
-    setTimeout(() => router.replace(routes.login), 2000)
     return (
       <main
         style={{
@@ -130,7 +154,10 @@ function ActivateContent() {
           </p>
         </div>
 
-        <ActivateMemberForm accessId={accessId} onSuccess={() => setDone(true)} />
+        <ActivateMemberForm 
+          accessId={accessId} 
+          onSuccess={(email: string, password: string) => handleActivationSuccess(email, password)} 
+        />
       </div>
     </main>
   )
