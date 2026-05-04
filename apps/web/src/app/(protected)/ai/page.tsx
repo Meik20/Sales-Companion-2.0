@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { colors } from '@/styles/tokens'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
-import { AppShell } from '@/components/layout/AppShell'
 
 interface Message {
   id: string
@@ -59,7 +58,9 @@ export default function AIAssistantPage() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.message || `Failed to get response (${response.status})`)
+        throw new Error(
+          errorData.message || errorData.error || `Failed to get response (${response.status})`
+        )
       }
 
       const data = await response.json()

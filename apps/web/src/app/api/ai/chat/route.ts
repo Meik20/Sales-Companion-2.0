@@ -58,8 +58,9 @@ export async function POST(request: NextRequest) {
           const dailyUsed  = (data.dailyUsed  as number) ?? 0
           const dailyLimit = (data.dailyLimit as number) ?? 10
           if (dailyUsed >= dailyLimit) {
+            const quotaMessage = `Quota journalier épuisé (${dailyLimit} crédits). Votre compteur sera réinitialisé demain.`
             return NextResponse.json(
-              { error: `Quota journalier épuisé (${dailyLimit} crédits). Votre compteur sera réinitialisé demain.` },
+              { error: quotaMessage, message: quotaMessage },
               { status: 429 }
             )
           }
@@ -74,10 +75,10 @@ export async function POST(request: NextRequest) {
           }
         }
       } catch {
-        return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+        return NextResponse.json({ error: 'Non authentifié', message: 'Non authentifié' }, { status: 401 })
       }
     } else {
-      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+      return NextResponse.json({ error: 'Non authentifié', message: 'Non authentifié' }, { status: 401 })
     }
 
     const body = await request.json()
@@ -96,7 +97,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!message?.trim()) {
-      return NextResponse.json({ error: 'Message vide' }, { status: 400 })
+      return NextResponse.json({ error: 'Message vide', message: 'Message vide' }, { status: 400 })
     }
 
     const systemPrompt = buildSystemPrompt(mergedContext)
@@ -123,16 +124,18 @@ export async function POST(request: NextRequest) {
     }
 
     // ── Neither key available ──
+    const notConfiguredMessage =
+      'Assistant IA non configuré. Veuillez ajouter GEMINI_API_KEY dans les variables Railway, ou renseigner une clé Groq dans le panel Admin → Configuration.'
     return NextResponse.json(
       {
-        error:
-          'Assistant IA non configuré. Veuillez ajouter GEMINI_API_KEY dans les variables Railway, ou renseigner une clé Groq dans le panel Admin → Configuration.',
+        error: notConfiguredMessage,
+        message: notConfiguredMessage,
       },
       { status: 503 }
     )
   } catch (error) {
     console.error('AI chat error:', error)
-    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
+    return NextResponse.json({ error: 'Erreur serveur', message: 'Erreur serveur' }, { status: 500 })
   }
 }
 
