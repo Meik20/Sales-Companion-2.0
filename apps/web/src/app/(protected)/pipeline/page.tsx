@@ -28,9 +28,9 @@ export default function PipelinePage() {
 
   const items = userPipelineQuery.data ?? []
   const counts = {
-    prospection: items.filter((i) => i.status === 'prospection' || i.status === 'prospect').length,
-    negociation: items.filter((i) => i.status === 'negociation' || i.status === 'negotiation').length,
-    conclue:     items.filter((i) => i.status === 'conclue' || i.status === 'conclusion').length,
+    prospection: items.filter((i) => ['prospection', 'prospect'].includes(i.status as string)).length,
+    negociation: items.filter((i) => ['negociation', 'negotiation'].includes(i.status as string)).length,
+    conclue:     items.filter((i) => ['conclue', 'conclusion'].includes(i.status as string)).length,
   }
 
   return (
