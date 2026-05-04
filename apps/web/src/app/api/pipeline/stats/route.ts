@@ -31,12 +31,28 @@ export async function GET(request: NextRequest) {
     const userData = userDoc.data()
     const isManager = userData?.role === 'manager'
 
-    const snapshot = isManager
-      ? await adminDb.collection('pipeline').where('managerUid', '==', userId).get()
-      : await adminDb.collection('pipeline').where('userId', '==', userId).get()
+    let docs: Array<import('firebase-admin').firestore.QueryDocumentSnapshot> = []
+
+    if (isManager) {
+      const managerSnapshot = await adminDb.collection('pipeline').where('managerUid', '==', userId).get()
+      docs = managerSnapshot.docs
+    } else {
+      const ownedSnapshot = await adminDb.collection('pipeline').where('userId', '==', userId).get()
+      const assignedSnapshot = await adminDb.collection('pipeline').where('assignedTo', '==', userId).get()
+      const seen = new Set<string>()
+      docs = []
+      for (const snap of [ownedSnapshot, assignedSnapshot]) {
+        snap.docs.forEach((doc) => {
+          if (!seen.has(doc.id)) {
+            seen.add(doc.id)
+            docs.push(doc)
+          }
+        })
+      }
+    }
 
     const stats = {
-      total: snapshot.size,
+      total: docs.length,
       prospection: 0,
       negotiation: 0,
       conclusion: 0,
@@ -44,7 +60,7 @@ export async function GET(request: NextRequest) {
       conversionRate: 0,
     }
 
-    snapshot.forEach((doc) => {
+    docs.forEach((doc) => {
       const status = doc.data().status as string
       if (status === 'prospection' || status === 'prospect') stats.prospection++
       else if (status === 'negociation' || status === 'negotiation') stats.negotiation++

@@ -116,6 +116,7 @@ export async function POST(request: NextRequest) {
     const pipelineRef = adminDb.collection('pipeline').doc()
     await pipelineRef.set({
       userId:      memberId,          // member sees it in their pipeline
+      assignedTo:  memberId,          // explicit assignment metadata
       managerUid,                     // manager sees it via /api/pipeline/manager
       companyName,
       name:        companyName,

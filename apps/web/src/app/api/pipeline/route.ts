@@ -27,24 +27,39 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: 'Token invalide' }, { status: 401 })
     }
 
-    // Fetch without orderBy to avoid composite index requirement — sort in memory
-    const snap = await adminDb
+    // Fetch owned items plus any explicitly assigned items.
+    const ownedSnap = await adminDb
       .collection('pipeline')
       .where('userId', '==', userId)
       .get()
 
-    const items = snap.docs
-      .map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate?.()?.toISOString() ?? null,
-        updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() ?? null,
-      }))
-      .sort((a, b) => {
-        const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0
-        const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0
-        return tb - ta
+    const assignedSnap = await adminDb
+      .collection('pipeline')
+      .where('assignedTo', '==', userId)
+      .get()
+
+    const seen = new Set<string>()
+    const items = [] as Array<Record<string, unknown>>
+
+    for (const snap of [ownedSnap, assignedSnap]) {
+      snap.docs.forEach((doc) => {
+        if (!seen.has(doc.id)) {
+          seen.add(doc.id)
+          items.push({
+            id: doc.id,
+            ...doc.data(),
+            createdAt: doc.data().createdAt?.toDate?.()?.toISOString() ?? null,
+            updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() ?? null,
+          })
+        }
       })
+    }
+
+    items.sort((a, b) => {
+      const ta = a.createdAt ? new Date(a.createdAt as string).getTime() : 0
+      const tb = b.createdAt ? new Date(b.createdAt as string).getTime() : 0
+      return tb - ta
+    })
 
     return NextResponse.json(items)
   } catch (error) {

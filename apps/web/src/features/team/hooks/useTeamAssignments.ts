@@ -1,9 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
-import { db } from '@/lib/firebase'
-import { collection, query, where, onSnapshot } from 'firebase/firestore'
 
 export type TeamAssignment = {
   id: string
@@ -23,60 +21,33 @@ export type TeamAssignment = {
 }
 
 /**
- * Real-time listener on `team_assignments` for the current manager.
- * Updates instantly when a new assignment is saved — no polling.
+ * Fetches the manager's team assignments via the server-side API.
+ * This avoids direct Firestore client security issues in the browser.
  */
 export function useTeamAssignments() {
   const { user } = useCurrentUser()
-  const [data, setData]       = useState<TeamAssignment[]>([])
-  const [isLoading, setLoading] = useState(false)
-  const [isError, setError]   = useState(false)
 
-  useEffect(() => {
-    if (!user?.uid) { setData([]); return }
-
-    setLoading(true)
-    setError(false)
-
-    const q = query(
-      collection(db, 'team_assignments'),
-      where('managerUid', '==', user.uid)
-    )
-
-    const unsub = onSnapshot(
-      q,
-      (snap) => {
-        const list: TeamAssignment[] = snap.docs.map((doc) => {
-          const d = doc.data()
-          return {
-            id:              doc.id,
-            managerUid:      d.managerUid      ?? '',
-            managerName:     d.managerName     ?? '',
-            memberId:        d.memberId        ?? '',
-            memberName:      d.memberName      ?? '',
-            memberEmail:     d.memberEmail     ?? '',
-            pipelineItemId:  d.pipelineItemId  ?? '',
-            pipelineEntryId: d.pipelineEntryId ?? '',
-            companyName:     d.companyName     ?? d.pipelineItemId ?? '',
-            status:          d.status          ?? 'active',
-            createdAt:       d.createdAt?.toDate?.()?.toISOString() ?? new Date().toISOString(),
-            updatedAt:       d.updatedAt?.toDate?.()?.toISOString() ?? new Date().toISOString(),
-          }
-        })
-
-        list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-        setData(list)
-        setLoading(false)
-      },
-      (err) => {
-        console.error('[useTeamAssignments]', err)
-        setError(true)
-        setLoading(false)
+  return useQuery({
+    queryKey: ['team-assignments', user?.uid],
+    queryFn: async () => {
+      if (!user?.uid) {
+        return [] as TeamAssignment[]
       }
-    )
 
-    return () => unsub()
-  }, [user?.uid])
+      const token = await user.getIdToken()
+      const response = await fetch('/api/team/assignments', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
 
-  return { data, isLoading, isError }
+      if (!response.ok) {
+        throw new Error('Impossible de charger les assignations')
+      }
+
+      const json = await response.json()
+      return (json.items ?? []) as TeamAssignment[]
+    },
+    enabled: !!user?.uid,
+  })
 }

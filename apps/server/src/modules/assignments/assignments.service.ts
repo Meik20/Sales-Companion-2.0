@@ -76,6 +76,7 @@ export const assignmentsService = {
         await newPipelineRef.set({
           id: newPipelineRef.id,
           userId: assigneeUid,
+          assignedTo: assigneeUid,
           managerUid: input.managerUid,
           companyId: prospectData.companyId || null,
           companyName: prospectData.companyName || 'Unknown',
