@@ -5,7 +5,7 @@ import { SectionCard } from './SectionCard'
 import { colors } from '@/styles/tokens'
 
 export function AssignmentsTable() {
-  const { data: assignments, isLoading, isError } = useTeamAssignments()
+  const { data: assignments = [], isLoading, isError } = useTeamAssignments()
 
   if (isLoading) {
     return (
