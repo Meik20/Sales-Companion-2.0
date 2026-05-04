@@ -33,12 +33,20 @@ export function AppHeader({ onOpenMenu }: { onOpenMenu?: () => void }) {
         zIndex: 100,
         background: `linear-gradient(135deg, var(--color-primary) 0%, var(--color-blue-800) 100%)`,
         boxShadow: shadows.sm,
-        padding: '0 24px',
+        padding: '0 16px',
         height: 60,
         display: 'flex',
         alignItems: 'center',
       }}
     >
+      <style dangerouslySetInnerHTML={{__html: `
+        .sc-brand-full { display: inline; }
+        .sc-brand-short { display: none; }
+        @media (max-width: 480px) {
+          .sc-brand-full { display: none; }
+          .sc-brand-short { display: inline; }
+        }
+      `}} />
       <div
         style={{
           maxWidth: 1440,
@@ -51,7 +59,7 @@ export function AppHeader({ onOpenMenu }: { onOpenMenu?: () => void }) {
         }}
       >
         {/* Left: Menu & Brand */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           {onOpenMenu && (
             <button
               onClick={onOpenMenu}
@@ -64,37 +72,48 @@ export function AppHeader({ onOpenMenu }: { onOpenMenu?: () => void }) {
                 alignItems: 'center',
                 justifyContent: 'center',
                 padding: 4,
+                flexShrink: 0,
               }}
               aria-label="Ouvrir le menu"
             >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="3" y1="12" x2="21" y2="12"></line>
-                <line x1="3" y1="6" x2="21" y2="6"></line>
-                <line x1="3" y1="18" x2="21" y2="18"></line>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="3" y1="12" x2="21" y2="12"/>
+                <line x1="3" y1="6" x2="21" y2="6"/>
+                <line x1="3" y1="18" x2="21" y2="18"/>
               </svg>
             </button>
           )}
 
           <Link
             href={routes.search}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              textDecoration: 'none',
-            }}
+            style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}
           >
+            {/* Full name — hidden on mobile */}
             <span
+              className="sc-brand-full"
               style={{
                 fontFamily: "'Syne',sans-serif",
                 fontWeight: 700,
-                fontSize: 18,
+                fontSize: 17,
                 color: '#ffffff',
                 letterSpacing: '.04em',
                 textTransform: 'uppercase',
               }}
             >
               Sales <em style={{ opacity: 0.85, fontStyle: 'normal', fontWeight: 400 }}>Companion</em>
+            </span>
+            {/* Initials — shown only on mobile */}
+            <span
+              className="sc-brand-short"
+              style={{
+                fontFamily: "'Syne',sans-serif",
+                fontWeight: 800,
+                fontSize: 18,
+                color: '#ffffff',
+                letterSpacing: '.06em',
+              }}
+            >
+              SC
             </span>
           </Link>
         </div>

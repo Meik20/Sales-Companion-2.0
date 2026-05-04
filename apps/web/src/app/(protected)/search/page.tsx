@@ -112,14 +112,8 @@ function SearchContent() {
 
   return (
     <AppShell>
-      {/* Barre de recherche compacte */}
-      <div style={{
-        background: 'var(--cr-card-background-color)',
-        border: '1px solid var(--cr-separator-color)',
-        borderRadius: 14,
-        padding: '12px 14px',
-        marginBottom: 16,
-      }}>
+      {/* Barre de recherche — pas de carte, fond neutre */}
+      <div style={{ paddingBottom: 8, marginBottom: 4 }}>
         <SearchFiltersForm
           initialValues={filters}
           onSubmit={(v) => {
@@ -128,6 +122,7 @@ function SearchContent() {
           }}
         />
       </div>
+
 
       <div 
         className="search-page-grid"

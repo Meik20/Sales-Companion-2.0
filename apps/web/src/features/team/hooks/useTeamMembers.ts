@@ -3,7 +3,14 @@
 import { useEffect, useState } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { db } from '@/lib/firebase'
-import { collection, query, where, onSnapshot } from 'firebase/firestore'
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+  doc,
+  getDoc,
+} from 'firebase/firestore'
 
 export type TeamMember = {
   uid: string
@@ -11,22 +18,29 @@ export type TeamMember = {
   name: string
   role: 'member'
   managerUid: string
-  /** true when the member has completed activation */
+  /** true when activated === true in team_accesses OR active/activated in users */
   active: boolean
   dailyUsed: number
   dailyLimit: number
+  /** Source document id in team_accesses */
+  accessId?: string
 }
 
 /**
- * Real-time hook that returns team members for the current manager.
+ * Real-time hook — listens to TWO Firestore sources in parallel:
  *
- * A member is considered "active" when EITHER:
- *   - users/{uid}.active     === true   (set during activation)
- *   - users/{uid}.activated  === true   (legacy / manual Firestore toggle)
+ *  1. `team_accesses` where managerUid == currentUser.uid
+ *     → Primary source of truth for ALL members (created by manager).
+ *     → A member is "active" when `activated === true` (manual or via form).
  *
- * The listener is powered by Firestore onSnapshot so any change — including
- * a manager manually setting activated=true in the Firestore console — is
- * reflected in the UI within milliseconds, with no page refresh needed.
+ *  2. `users` where managerUid == currentUser.uid
+ *     → Enriches data (dailyUsed, dailyLimit) once a member has registered.
+ *
+ * The two lists are merged by firebaseUid / email, deduplicating so a member
+ * never appears twice regardless of which collection is newer.
+ *
+ * Any manual toggle of `activated` in the Firestore console is reflected
+ * in the UI within milliseconds with no page refresh.
  */
 export function useTeamMembers() {
   const { user } = useCurrentUser()
@@ -35,59 +49,150 @@ export function useTeamMembers() {
   const [isError, setIsError] = useState(false)
 
   useEffect(() => {
-    if (!user?.uid) {
-      setMembers([])
-      return
-    }
+    if (!user?.uid) { setMembers([]); return }
 
     setIsLoading(true)
     setIsError(false)
 
-    // Listen to users whose managerUid matches the current manager
-    const q = query(collection(db, 'users'), where('managerUid', '==', user.uid))
+    // ── State for each source ──────────────────────────────────────────────
+    let accessesMap: Record<string, TeamMember> = {}
+    let usersMap:    Record<string, Partial<TeamMember>> = {}
+    let settled = false
 
-    const unsubscribe = onSnapshot(
-      q,
+    function merge() {
+      // Start from team_accesses (source of truth)
+      const byEmail: Record<string, TeamMember> = {}
+
+      for (const m of Object.values(accessesMap)) {
+        const key = m.email?.toLowerCase() || m.uid
+        byEmail[key] = m
+      }
+
+      // Enrich/override with users data (has dailyUsed etc.)
+      for (const [uid, u] of Object.entries(usersMap)) {
+        const key = (u.email || '').toLowerCase() || uid
+        if (byEmail[key]) {
+          byEmail[key] = {
+            ...byEmail[key],
+            uid:       uid,
+            name:      u.name      || byEmail[key].name,
+            email:     u.email     || byEmail[key].email,
+            active:    (u.active ?? byEmail[key].active),
+            dailyUsed: u.dailyUsed ?? byEmail[key].dailyUsed,
+            dailyLimit:u.dailyLimit ?? byEmail[key].dailyLimit,
+          }
+        } else {
+          // User exists in `users` but not in team_accesses (edge case)
+          byEmail[key] = {
+            uid,
+            email:     u.email     ?? '',
+            name:      u.name      ?? '',
+            role:      'member',
+            managerUid: user.uid,
+            active:    u.active    ?? false,
+            dailyUsed: u.dailyUsed ?? 0,
+            dailyLimit:u.dailyLimit ?? 100,
+          }
+        }
+      }
+
+      const list = Object.values(byEmail)
+      list.sort((a, b) => {
+        if (b.active !== a.active) return b.active ? 1 : -1
+        return (a.name || a.email).localeCompare(b.name || b.email, 'fr')
+      })
+
+      setMembers(list)
+      if (!settled) { settled = true; setIsLoading(false) }
+    }
+
+    // ── Listener 1 : team_accesses ─────────────────────────────────────────
+    const qAccesses = query(
+      collection(db, 'team_accesses'),
+      where('managerUid', '==', user.uid)
+    )
+    const unsubAccesses = onSnapshot(
+      qAccesses,
       (snap) => {
-        const list: TeamMember[] = snap.docs.map((doc) => {
-          const d = doc.data()
-          // Accept either field — supports both legacy and new activation paths
-          const isActive = d.active === true || d.activated === true
-          return {
-            uid:        doc.id,
-            email:      d.email      ?? '',
-            name:       d.name       ?? '',
-            role:       'member' as const,
-            managerUid: d.managerUid ?? '',
-            active:     isActive,
-            dailyUsed:  d.dailyUsed  ?? 0,
-            dailyLimit: d.dailyLimit ?? 100,
+        accessesMap = {}
+        snap.docs.forEach((d) => {
+          const data = d.data()
+          // A member is "active" if activated===true OR status==='active'
+          const isActive =
+            data.activated === true ||
+            data.status    === 'active' ||
+            data.active    === true
+
+          const fullName = [data.firstname, data.lastname]
+            .filter(Boolean).join(' ') || data.name || ''
+
+          const uid = data.firebaseUid || d.id
+
+          accessesMap[uid] = {
+            uid,
+            accessId:  d.id,
+            email:     data.email      ?? '',
+            name:      fullName,
+            role:      'member',
+            managerUid: user.uid,
+            active:    isActive,
+            dailyUsed: data.dailyUsed  ?? 0,
+            dailyLimit: data.dailyLimit ?? 100,
           }
         })
-
-        // Active members first, then alphabetical by name
-        list.sort((a, b) => {
-          if (b.active !== a.active) return b.active ? 1 : -1
-          return (a.name || a.email).localeCompare(b.name || b.email, 'fr')
-        })
-
-        setMembers(list)
-        setIsLoading(false)
+        merge()
       },
       (error) => {
-        console.error('[useTeamMembers] Firestore error:', error)
+        console.error('[useTeamMembers] team_accesses error:', error)
         setIsError(true)
         setIsLoading(false)
       }
     )
 
-    return () => unsubscribe()
+    // ── Listener 2 : users ─────────────────────────────────────────────────
+    const qUsers = query(
+      collection(db, 'users'),
+      where('managerUid', '==', user.uid)
+    )
+    const unsubUsers = onSnapshot(
+      qUsers,
+      (snap) => {
+        usersMap = {}
+        snap.docs.forEach((d) => {
+          const data = d.data()
+          const isActive =
+            data.activated === true ||
+            data.active    === true  ||
+            data.status    === 'active'
+
+          usersMap[d.id] = {
+            uid:       d.id,
+            email:     data.email     ?? '',
+            name:      data.name      ?? '',
+            active:    isActive,
+            dailyUsed: data.dailyUsed  ?? 0,
+            dailyLimit: data.dailyLimit ?? 100,
+            managerUid: data.managerUid ?? user.uid,
+          }
+        })
+        merge()
+      },
+      (error) => {
+        // Non-fatal — users collection may not have records yet
+        console.warn('[useTeamMembers] users error:', error)
+      }
+    )
+
+    return () => {
+      unsubAccesses()
+      unsubUsers()
+    }
   }, [user?.uid])
 
   return { data: members, isLoading, isError }
 }
 
-/** Returns only the members that have completed activation */
+/** Convenience hook — returns only active (activated) members */
 export function useActiveTeamMembers() {
   const result = useTeamMembers()
   return {
