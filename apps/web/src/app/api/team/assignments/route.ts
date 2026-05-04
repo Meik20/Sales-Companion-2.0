@@ -25,18 +25,44 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: 'Token invalide' }, { status: 401 })
     }
 
-    const snap = await adminDb
-      .collection('team_assignments')
-      .where('managerUid', '==', managerUid)
-      .get()
+    const [teamSnap, legacySnap] = await Promise.all([
+      adminDb.collection('team_assignments').where('managerUid', '==', managerUid).get(),
+      adminDb.collection('assignments').where('managerUid', '==', managerUid).get(),
+    ])
 
-    const items = snap.docs
-      .map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate?.()?.toISOString() ?? new Date().toISOString(),
-      }))
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    const teamItems = teamSnap.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+      createdAt: doc.data().createdAt?.toDate?.()?.toISOString() ?? new Date().toISOString(),
+    }))
+
+    const legacyItems = legacySnap.docs
+      .map((doc) => {
+        const data = doc.data()
+        const prospectIds = Array.isArray(data.prospectIds) ? data.prospectIds : []
+        const firstProspectId = prospectIds[0] ?? ''
+        const count = prospectIds.length
+
+        return {
+          id: doc.id,
+          managerUid: data.managerUid ?? managerUid,
+          managerName: data.managerName ?? '',
+          memberId: data.assigneeId ?? '',
+          memberName: '',
+          memberEmail: '',
+          pipelineItemId: firstProspectId,
+          pipelineEntryId: '',
+          companyName: count === 1 ? firstProspectId : `${count} prospects`,
+          status: data.status === 'done' ? 'done' : 'active',
+          createdAt: data.createdAt?.toDate?.()?.toISOString() ?? new Date().toISOString(),
+          updatedAt: data.updatedAt?.toDate?.()?.toISOString() ?? new Date().toISOString(),
+        }
+      })
+      .filter((item) => item.status !== 'done')
+
+    const items = [...teamItems, ...legacyItems].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    )
 
     return NextResponse.json(items)
   } catch (error) {
