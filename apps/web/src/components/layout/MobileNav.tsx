@@ -28,7 +28,7 @@ const navStyles = `
   text-decoration: none;
 }
 .mobile-nav-btn.active {
-  color: ${colors.green};
+  color: var(--color-accent);
 }
 .mobile-nav-btn svg {
   width: 22px;
@@ -48,7 +48,7 @@ const navStyles = `
 }
 .mobile-nav-btn.active span {
   font-weight: 700;
-  color: ${colors.green};
+  color: var(--color-accent);
 }
 .nav-bar-indicator {
   position: absolute;
@@ -56,7 +56,7 @@ const navStyles = `
   left: 25%;
   right: 25%;
   height: 3px;
-  background: ${colors.green};
+  background: var(--color-accent);
   border-radius: 0 0 3px 3px;
   animation: navBarIn 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }

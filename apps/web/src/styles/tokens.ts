@@ -1,5 +1,5 @@
 // ─── Design Tokens — Sales Companion ───────────────────────────────────────
-// Toutes les valeurs pointent vers les CSS Variables du theme.css
+// Toutes les valeurs pointent vers les CSS Variables du theme.css (Deep Blue Tech)
 // → modifier une couleur dans theme.css suffit à changer tout le projet.
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -21,11 +21,11 @@ export const colors = {
   textTitle:'var(--color-text-primary)',
   link:     'var(--color-accent)',
 
-  // ── Bleu Primaire (Deep Blue Tech) ────────────────────────────────────────
-  green:      'var(--color-primary)',
-  greenMid:   'var(--color-blue-600)',
-  greenDark:  'var(--color-blue-900)',
-  greenLight: 'var(--color-blue-50)',
+  // ── Deep Blue Tech Primary (ancien colors.green pour compatibilité) ─────────
+  green:      'var(--color-primary)',        // #185FA5
+  greenMid:   'var(--color-blue-600)',       // #185FA5
+  greenDark:  'var(--color-blue-900)',       // #042C53
+  greenLight: 'var(--color-blue-50)',        // #E6F1FB
 
   // ── Accent Cyan ───────────────────────────────────────────────────────────
   accent:      'var(--color-accent)',

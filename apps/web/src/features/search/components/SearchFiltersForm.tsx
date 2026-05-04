@@ -64,12 +64,12 @@ type Props = {
 // ─── Styles partagés ────────────────────────────────────────────────────────
 const selectStyle: React.CSSProperties = {
   height: 40,
-  background: 'var(--cr-card-background-color)',
-  border: '1px solid var(--cr-separator-color)',
+  background: 'var(--color-neutral-900)',
+  border: '1px solid var(--color-border-glass)',
   borderRadius: 10,
   padding: '0 12px',
   fontSize: 13,
-  color: 'var(--cr-primary-text-color)',
+  color: 'var(--color-text-primary)',
   fontFamily: 'inherit',
   outline: 'none',
   cursor: 'pointer',
@@ -187,10 +187,10 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
           width: 100%;
           height: 40px;
           padding: 0 12px 0 36px;
-          border: 1px solid var(--cr-separator-color);
+          border: 1px solid var(--color-border-glass);
           border-radius: 10px;
-          background: var(--cr-card-background-color);
-          color: var(--cr-primary-text-color);
+          background: var(--color-neutral-900);
+          color: var(--color-text-primary);
           font-size: 13px;
           font-family: inherit;
           outline: none;
@@ -198,8 +198,8 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
           transition: border-color 200ms ease;
         }
         .search-input-main:focus {
-          border-color: var(--google-green-700, #2e7d32);
-          box-shadow: 0 0 0 3px rgba(46,160,90,0.12);
+          border-color: var(--color-accent);
+          box-shadow: 0 0 0 3px rgba(133, 183, 235, 0.2);
         }
         .filter-select-wrap {
           flex: 1;
@@ -216,13 +216,13 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
           height: 0;
           border-left: 4px solid transparent;
           border-right: 4px solid transparent;
-          border-top: 5px solid var(--cr-secondary-text-color, #888);
+          border-top: 5px solid var(--color-text-secondary);
           pointer-events: none;
         }
         .search-btn-primary {
           height: 40px;
           padding: 0 18px;
-          background: linear-gradient(135deg, #1b7a3e, #137333);
+          background: linear-gradient(135deg, var(--color-primary), var(--color-blue-600));
           color: #fff;
           border: none;
           border-radius: 10px;
@@ -238,8 +238,8 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
           flex-shrink: 0;
         }
         .search-btn-primary:hover {
-          background: linear-gradient(135deg, #137333, #0d5c2a);
-          box-shadow: 0 4px 14px rgba(27,122,62,0.35);
+          background: linear-gradient(135deg, var(--color-blue-600), var(--color-blue-800));
+          box-shadow: 0 4px 14px rgba(24, 95, 165, 0.35);
         }
         .search-btn-geo {
           height: 40px;
@@ -265,13 +265,13 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
           cursor: pointer;
           font-family: inherit;
           background: transparent;
-          border: 1px solid var(--cr-separator-color);
-          color: var(--cr-secondary-text-color);
+          border: 1px solid var(--color-border-glass);
+          color: var(--color-text-secondary);
           transition: all 200ms ease;
           flex-shrink: 0;
         }
         .search-btn-reset:hover {
-          background: rgba(0,0,0,0.05);
+          background: rgba(133, 183, 235, 0.08);
         }
         .geo-badge {
           font-size: 11.5px;

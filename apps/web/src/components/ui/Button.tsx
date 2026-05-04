@@ -29,8 +29,8 @@ const variants: Record<Variant, CSSProperties> = {
   primary: {
     background: colors.green,
     color: '#fff',
-    border: `1px solid ${colors.greenMid}`,
-    boxShadow: `0 0 20px ${colors.greenLight}`,
+    border: `1px solid var(--color-accent)`,
+    boxShadow: `0 4px 16px rgba(133, 183, 235, 0.35)`,
   },
   ghost: {
     background: 'transparent',
@@ -40,7 +40,7 @@ const variants: Record<Variant, CSSProperties> = {
   outline: {
     background: 'transparent',
     color: colors.green,
-    border: `1px solid ${colors.greenMid}`,
+    border: `1px solid var(--color-accent)`,
   },
   danger: {
     background: colors.dangerBg,
