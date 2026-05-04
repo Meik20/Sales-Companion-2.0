@@ -23,9 +23,20 @@ export const assignmentsService = {
       throw new Error('Member not found')
     }
 
-    const memberAccessData = memberAccessSnapshot.docs[0].data()
+    const memberAccessDoc = memberAccessSnapshot.docs[0]
+    
+    if (!memberAccessDoc) {
+      throw new Error('Member access document not found')
+    }
+    
+    const memberAccessData = memberAccessDoc.data()
+    
+    if (!memberAccessData) {
+      throw new Error('Invalid member access document')
+    }
+    
     const assigneeUid = memberAccessData.firebaseUid
-    const assigneeAccessId = memberAccessSnapshot.docs[0].id
+    const assigneeAccessId = memberAccessDoc.id
 
     if (!assigneeUid) {
       throw new Error('Member has not activated yet')
@@ -54,6 +65,11 @@ export const assignmentsService = {
 
       if (prospectSnapshot.exists) {
         const prospectData = prospectSnapshot.data()
+        
+        if (!prospectData) {
+          console.warn(`Prospect ${prospectId} exists but has no data`)
+          continue
+        }
         
         // Create copy in assignee's pipeline
         const newPipelineRef = adminDb.collection('pipeline').doc()
