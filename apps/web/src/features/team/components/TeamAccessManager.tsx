@@ -165,13 +165,19 @@ export function TeamAccessManager() {
           <EmptyState title="Aucun accès" description="Vous n'avez pas encore généré d'accès pour votre équipe." icon="🔑" />
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {accesses.map(acc => (
-              <div key={acc.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderRadius: 'var(--radius-md)', border: `1px solid ${colors.border}`, background: acc.status === 'revoked' ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.045)', opacity: acc.status === 'revoked' ? 0.6 : 1, transition: 'all 0.2s ease' }}>
+            {accesses.map(acc => {
+              // Déterminer le statut réel : "activated: true" prime sur "status"
+              const isActivated = acc.activated === true
+              const isRevoked = acc.status === 'revoked'
+              const displayStatus = isRevoked ? 'revoked' : isActivated ? 'active' : 'pending'
+              
+              return (
+              <div key={acc.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderRadius: 'var(--radius-md)', border: `1px solid ${colors.border}`, background: displayStatus === 'revoked' ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.045)', opacity: displayStatus === 'revoked' ? 0.6 : 1, transition: 'all 0.2s ease' }}>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
                     <strong style={{ fontSize: 14 }}>{acc.accessId}</strong>
-                    <Badge variant={acc.status === 'active' ? 'success' : acc.status === 'revoked' ? 'danger' : 'default'}>
-                      {acc.status === 'active' ? 'Actif' : acc.status === 'revoked' ? 'Révoqué' : 'En attente'}
+                    <Badge variant={displayStatus === 'active' ? 'success' : displayStatus === 'revoked' ? 'danger' : 'default'}>
+                      {displayStatus === 'active' ? 'Actif' : displayStatus === 'revoked' ? 'Révoqué' : 'En attente'}
                     </Badge>
                   </div>
                   <div style={{ fontSize: 12, color: colors.textMid }}>
@@ -181,15 +187,16 @@ export function TeamAccessManager() {
                 </div>
                 
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-                  {acc.status === 'pending' && (
+                  {displayStatus === 'pending' && (
                     <Button size="sm" variant="outline" onClick={() => copyId(acc.accessId)}>Copier ID</Button>
                   )}
-                  {acc.status !== 'revoked' && (
+                  {displayStatus !== 'revoked' && (
                     <Button size="sm" variant="ghost" onClick={() => revokeAccess(acc.id)} style={{ color: '#EF4444' }}>Révoquer</Button>
                   )}
                 </div>
               </div>
-            ))}
+            )
+            })}
           </div>
         )}
       </DataCard>

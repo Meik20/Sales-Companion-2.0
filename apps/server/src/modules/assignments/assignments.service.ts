@@ -1,32 +1,93 @@
 import { admin, adminDb } from '../../firebase/admin'
+import { Timestamp } from 'firebase-admin/firestore'
 
 type CreateAssignmentInput = {
   managerUid: string
   managerName?: string
   assigneeId: string
-  assigneeUid?: string
   prospectIds: string[]
   note?: string
 }
 
 export const assignmentsService = {
   async create(input: CreateAssignmentInput) {
-    const ref = adminDb.collection('assignments').doc()
+    // ── Step 1: Fetch assigned member's UID from team_accesses
+    const memberAccessSnapshot = await adminDb
+      .collection('team_accesses')
+      .where('accessId', '==', input.assigneeId)
+      .where('managerUid', '==', input.managerUid)
+      .limit(1)
+      .get()
 
-    await ref.set({
+    if (memberAccessSnapshot.empty) {
+      throw new Error('Member not found')
+    }
+
+    const memberAccessData = memberAccessSnapshot.docs[0].data()
+    const assigneeUid = memberAccessData.firebaseUid
+    const assigneeAccessId = memberAccessSnapshot.docs[0].id
+
+    if (!assigneeUid) {
+      throw new Error('Member has not activated yet')
+    }
+
+    // ── Step 2: Create assignment document
+    const assignmentRef = adminDb.collection('assignments').doc()
+    await assignmentRef.set({
       managerUid: input.managerUid,
       managerName: input.managerName ?? null,
       assigneeId: input.assigneeId,
-      assigneeUid: input.assigneeUid ?? null,
+      assigneeUid: assigneeUid,
       prospectIds: input.prospectIds,
       note: input.note ?? '',
-      status: 'pending',
+      status: 'active',
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
       updatedAt: admin.firestore.FieldValue.serverTimestamp()
     })
 
+    // ── Step 3: For each prospect, copy it to the assignee's pipeline
+    for (const prospectId of input.prospectIds) {
+      const prospectSnapshot = await adminDb
+        .collection('pipeline')
+        .doc(prospectId)
+        .get()
+
+      if (prospectSnapshot.exists) {
+        const prospectData = prospectSnapshot.data()
+        
+        // Create copy in assignee's pipeline
+        const newPipelineRef = adminDb.collection('pipeline').doc()
+        await newPipelineRef.set({
+          id: newPipelineRef.id,
+          userId: assigneeUid,
+          managerUid: input.managerUid,
+          companyId: prospectData.companyId || null,
+          companyName: prospectData.companyName || 'Unknown',
+          companySector: prospectData.companySector || null,
+          companyCity: prospectData.companyCity || null,
+          companyPhone: prospectData.companyPhone || null,
+          companyEmail: prospectData.companyEmail || null,
+          status: 'prospection',
+          notes: prospectData.notes || null,
+          nextFollowUp: prospectData.nextFollowUp || null,
+          sourceId: prospectId, // Reference to original prospect
+          createdAt: Timestamp.now(),
+          updatedAt: Timestamp.now()
+        })
+      }
+    }
+
+    // ── Step 4: Mark member as activated in team_accesses
+    await adminDb
+      .collection('team_accesses')
+      .doc(assigneeAccessId)
+      .update({
+        activated: true,
+        activatedAt: admin.firestore.FieldValue.serverTimestamp()
+      })
+
     return {
-      id: ref.id,
+      id: assignmentRef.id,
       created: true
     }
   },

@@ -34,7 +34,12 @@ export function useCreateTeamAssignment() {
       return response.json()
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['team-assignments'] })
+      // Invalidate all relevant caches
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['team-assignments'] }),
+        queryClient.invalidateQueries({ queryKey: ['team-members'] }),
+        queryClient.invalidateQueries({ queryKey: ['pipeline'] }),
+      ])
     },
   })
 }
