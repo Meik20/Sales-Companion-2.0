@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
         const firstProspectId = prospectIds[0] ?? ''
         const count = prospectIds.length
 
-        // Resolve company name from pipeline
+        // Resolve company name: try pipeline → manager_prospects → imported_prospects
         let companyName = count > 1 ? `${count} prospects` : firstProspectId
         if (firstProspectId) {
           try {
@@ -55,6 +55,20 @@ export async function GET(request: NextRequest) {
             if (pDoc.exists) {
               const pd = pDoc.data()!
               companyName = pd.companyName ?? pd.name ?? companyName
+            } else {
+              // Primary CSV import collection
+              const mDoc = await adminDb.collection('manager_prospects').doc(firstProspectId).get()
+              if (mDoc.exists) {
+                const md = mDoc.data()!
+                companyName = md.name ?? md.companyName ?? companyName
+              } else {
+                // Legacy import collection
+                const iDoc = await adminDb.collection('imported_prospects').doc(firstProspectId).get()
+                if (iDoc.exists) {
+                  const id = iDoc.data()!
+                  companyName = id.name ?? id.companyName ?? companyName
+                }
+              }
             }
           } catch { /* ignore */ }
         }

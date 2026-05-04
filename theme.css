@@ -1,16 +1,117 @@
-/* ============================================================
-   DESIGN TOKENS — variables globales
-   ============================================================ */
+/* ─────────────────────────────────────────────────────────────────────
+   THEME: Modern Neutral — Sales Companion 2.0
+   Version: alpha
+
+   Clair, positif, professionnel.
+   Design system built for Cameroon-based sales professionals.
+   Lumineux et aéré pour réduire la fatigue visuelle.
+   ───────────────────────────────────────────────────────────────────── */
+
 :root {
-  /* --- Typographie --- */
-  --font-heading: 'Syne', sans-serif;
-  --font-body: 'IBM Plex Sans', 'DM Sans', sans-serif;
-  --font-mono: 'IBM Plex Mono', monospace;
 
-  --tracking-heading: -0.03em;
-  --weight-heading: 700;
+  /* ── Base Palette: Grays ──────────────────────────────────────────── */
+  --color-white:    #FFFFFF;
+  --color-gray-50:  #F9FAFB;
+  --color-gray-100: #F3F4F6;
+  --color-gray-200: #E5E7EB;
+  --color-gray-300: #D1D5DB;
+  --color-gray-400: #9CA3AF;
+  --color-gray-500: #6B7280;
+  --color-gray-600: #4B5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1F2937;
+  --color-gray-900: #111827;
 
-  /* --- Espacement (base 4px) --- */
+  /* ── Base Palette: Blue (primaire) ───────────────────────────────── */
+  --color-blue-50:  #EFF6FF;
+  --color-blue-100: #E0F2FE;
+  --color-blue-200: #BAE6FD;
+  --color-blue-300: #7DD3FC;
+  --color-blue-400: #38BDF8;
+  --color-blue-500: #0EA5E9;
+  --color-blue-600: #0284C7;
+  --color-blue-700: #0369A1;
+  --color-blue-800: #075985;
+  --color-blue-900: #0C3A5C;
+
+  /* ── Base Palette: Accents ───────────────────────────────────────── */
+  --color-green-50:    #F0FDF4;
+  --color-green-100:   #DCFCE7;
+  --color-green-500:   #22C55E;
+  --color-green-600:   #16A34A;
+
+  --color-orange-50:   #FFF7ED;
+  --color-orange-100:  #FFEDD5;
+  --color-orange-500:  #F97316;
+  --color-orange-600:  #EA580C;
+
+  --color-red-50:      #FEF2F2;
+  --color-red-100:     #FEE2E2;
+  --color-red-500:     #EF4444;
+  --color-red-600:     #DC2626;
+
+  /* ── Semantic Colors ─────────────────────────────────────────────── */
+  --color-primary: #0EA5E9;
+  --color-success: #22C55E;
+  --color-warning: #F97316;
+  --color-danger:  #EF4444;
+  --color-info:    #0EA5E9;
+
+  /* ── Text Colors ─────────────────────────────────────────────────── */
+  --color-text-primary:   #1F2937;
+  --color-text-secondary: #6B7280;
+  --color-text-muted:     #9CA3AF;
+  --color-text-light:     #D1D5DB;
+
+  /* ── Background Colors ───────────────────────────────────────────── */
+  --color-bg-primary:   #FFFFFF;
+  --color-bg-secondary: #F9FAFB;
+  --color-bg-tertiary:  #F3F4F6;
+  --color-bg-hover:     #EFF6FF;
+
+  /* ── Border Colors ───────────────────────────────────────────────── */
+  --color-border-light: #E5E7EB;
+  --color-border-mid:   #D1D5DB;
+  --color-border-dark:  #9CA3AF;
+
+  /* ── Typography: Font Families ───────────────────────────────────── */
+  --font-heading: "Syne", "Exo 2", sans-serif;
+  --font-body:    "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono:    "Fira Code", "IBM Plex Mono", monospace;
+
+  /* ── Typography: Headings ────────────────────────────────────────── */
+  --font-h1-size:           2rem;
+  --font-h1-weight:         700;
+  --font-h1-line-height:    1.15;
+  --font-h1-letter-spacing: -0.03em;
+
+  --font-h2-size:           1.5rem;
+  --font-h2-weight:         700;
+  --font-h2-line-height:    1.2;
+  --font-h2-letter-spacing: -0.02em;
+
+  --font-h3-size:           1.125rem;
+  --font-h3-weight:         700;
+  --font-h3-line-height:    1.2;
+  --font-h3-letter-spacing: -0.01em;
+
+  /* ── Typography: Body ────────────────────────────────────────────── */
+  --font-body-md-size:        0.9375rem;
+  --font-body-md-weight:      400;
+  --font-body-md-line-height: 1.6;
+
+  --font-body-sm-size:        0.8125rem;
+  --font-body-sm-weight:      400;
+  --font-body-sm-line-height: 1.5;
+
+  --font-label-size:           0.6875rem;
+  --font-label-weight:         500;
+  --font-label-letter-spacing: 0.05em;
+
+  --font-mono-size:   0.8125rem;
+  --font-mono-weight: 400;
+
+  /* ── Spacing (base: 4px) ─────────────────────────────────────────── */
   --space-1:  4px;
   --space-2:  8px;
   --space-3:  12px;
@@ -19,377 +120,189 @@
   --space-6:  24px;
   --space-8:  32px;
   --space-10: 40px;
-
-  /* --- Rayons --- */
-  --radius-md:   10px;   /* composants interactifs */
-  --radius-lg:   14px;   /* cards */
-  --radius-full: 9999px; /* badges, pills */
-
-  /* --- Couleurs --- */
-  --color-bg:           #0d1117;
-  --color-accent:       #85b7eb;
-  --color-border-glass: rgba(133, 183, 235, 0.18);
-
-  /* --- Glassmorphism (3 niveaux) --- */
-  --glass-bg-light:     rgba(255, 255, 255, 0.045); /* cards, panneaux */
-  --glass-bg-mid:       rgba(255, 255, 255, 0.07);  /* sidebar, drawers */
-  --glass-bg-strong:    rgba(255, 255, 255, 0.085); /* modals, overlays */
-  --blur-default:       16px;
-  --blur-mobile:        8px;                         /* perf mobile */
-
-  /* --- Texte --- */
-  --color-text:         #e8edf2;
-  --color-muted:        rgba(232, 237, 242, 0.45);
-
-  /* --- Pipeline --- */
-  --pipeline-prospection: #4a6fa5;
-  --pipeline-interessee:  #3d6b9e;
-  --pipeline-negociation: #185fa5;
-  --pipeline-conclue:     #1d9e75; /* bascule sur teal = succès */
-
-  /* --- Layout --- */
-  --sidebar-width: 240px;
-
-  /* --- Deep Blue Tech Extended --- */
-  --color-blue-50: #E6F1FB;
-  --color-blue-100: #B5D4F4;
-  --color-blue-200: #85B7EB;
-  --color-blue-400: #378ADD;
-  --color-blue-600: #185FA5;
-  --color-blue-800: #0C447C;
-  --color-blue-900: #042C53;
-
-  --color-teal-50: #E1F5EE;
-  --color-teal-200: #5DCAA5;
-  --color-teal-400: #1D9E75;
-  --color-teal-600: #0F6E56;
-  --color-teal-900: #04342C;
-
-  --color-neutral-950: #03192E;
-  --color-neutral-900: #061E38;
-  --color-neutral-800: #0A2548;
-
-  --color-primary: #185FA5;
-  --color-secondary: #1D9E75;
-  --color-danger: #E24B4A;
-  --color-warning: #EF9F27;
-  --color-success: #1D9E75;
-
-  --color-text-primary: #E6F1FB;
-  --color-text-secondary: #B5D4F4;
-  --color-text-muted: #85B7EB;
-
-  /* --- Typography Scales --- */
-  --font-h1-size: 2rem;
-  --font-h1-weight: 700;
-  --font-h1-line-height: 1.15;
-  --font-h1-letter-spacing: -0.03em;
-
-  --font-h2-size: 1.5rem;
-  --font-h2-weight: 700;
-  --font-h2-line-height: 1.15;
-  --font-h2-letter-spacing: -0.03em;
-
-  --font-h3-size: 1.125rem;
-  --font-h3-weight: 700;
-  --font-h3-line-height: 1.2;
-  --font-h3-letter-spacing: -0.02em;
-
-  --font-body-md-size: 0.9375rem;
-  --font-body-md-weight: 400;
-  --font-body-md-line-height: 1.6;
-
-  --font-body-sm-size: 0.8125rem;
-  --font-body-sm-weight: 400;
-  --font-body-sm-line-height: 1.5;
-
-  --font-label-size: 0.6875rem;
-  --font-label-weight: 500;
-  --font-label-letter-spacing: 0.06em;
-
-  --font-mono-size: 0.8125rem;
-  --font-mono-weight: 400;
-
-  /* --- Extended Spacing --- */
   --space-12: 48px;
   --space-16: 64px;
 
-  /* --- Extended Radius --- */
-  --radius-sm: 6px;
-  --radius-xl: 20px;
+  /* ── Border Radius ───────────────────────────────────────────────── */
+  --radius-sm:   4px;
+  --radius-md:   8px;
+  --radius-lg:   12px;
+  --radius-xl:   16px;
+  --radius-full: 9999px;
 
-  /* --- Glass Borders & Effects --- */
-  --border-glass: 1px solid rgba(133, 183, 235, 0.18);
-  --backdrop-blur: blur(16px);
-  --backdrop-blur-mobile: blur(8px);
+  /* ── Shadows ─────────────────────────────────────────────────────── */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.10);
 
-  /* --- Shadows --- */
-  --shadow-glass-light: 0 8px 32px rgba(10, 37, 72, 0.16);
-  --shadow-glass-medium: 0 12px 48px rgba(10, 37, 72, 0.24);
-  --shadow-glass-strong: 0 16px 64px rgba(10, 37, 72, 0.32);
-
-  /* === LEGACY VARIABLE MAPPINGS (Deep Blue Tech equivalents) === */
-  /* Ancien système --cr-* mappé au Deep Blue Tech */
-  --cr-card-background-color: var(--glass-bg-light);
-  --cr-separator-color: var(--color-border-glass);
-  --cr-primary-text-color: var(--color-text);
-  --cr-secondary-text-color: var(--color-muted);
-  --cr-title-text-color: var(--color-text);
-  --cr-link-color: var(--color-accent);
-  --cr-hover-background-color: rgba(133, 183, 235, 0.08);
-  --cr-active-background-color: rgba(133, 183, 235, 0.15);
-  
-  /* Ancien système --md-* */
-  --md-background-color: var(--color-bg);
-  
-  /* Ancien système --google-* mappé vers les couleurs Deep Blue Tech */
-  --google-blue-50: #E6F1FB;
-  --google-blue-100: #B5D4F4;
-  --google-blue-200: #85B7EB;
-  --google-blue-300: #378ADD;
-  --google-blue-400: #378ADD;
-  --google-blue-500: #185FA5;
-  --google-blue-600: #185FA5;
-  --google-blue-700: #185FA5;
-  --google-blue-800: #0C447C;
-  --google-blue-900: #042C53;
-  
-  --google-green-50: #E1F5EE;
-  --google-green-200: #5DCAA5;
-  --google-green-300: #5DCAA5;
-  --google-green-400: #1D9E75;
-  --google-green-500: #1D9E75;
-  --google-green-600: #0F6E56;
-  --google-green-700: #0F6E56;
-  --google-green-800: #1D9E75;
-  --google-green-900: #04342C;
-  
-  --google-grey-50: #E8EDF2;
-  --google-grey-100: #D4DCE3;
-  --google-grey-200: #B5BCC7;
-  --google-grey-300: #8F9CB0;
-  --google-grey-400: #6B788A;
-  --google-grey-500: #4D5A6F;
-  --google-grey-600: #3D4A5E;
-  --google-grey-700: #2D3A4D;
-  --google-grey-800: #1D2A3C;
-  --google-grey-900: #0D1A2B;
-  
-  --google-red-50: #FFEBEE;
-  --google-red-100: #FFCDD2;
-  --google-red-200: #EF9A9A;
-  --google-red-300: #E57373;
-  --google-red-500: #F44336;
-  --google-red-600: #E53935;
-  --google-red-700: #D32F2F;
-  
-  --google-yellow-50: #FFFDE7;
-  --google-yellow-100: #FFF9C4;
-  --google-yellow-200: #FFF59D;
-  --google-yellow-500: #FFEB3B;
-  --google-yellow-700: #F57F17;
+  /* ── Transitions ─────────────────────────────────────────────────── */
+  --transition-fast:   150ms ease;
+  --transition-normal: 200ms ease;
+  --transition-slow:   300ms ease;
 }
 
-/* ============================================================
-   IMPORT FONTS (à placer dans <head> ou @import CSS)
-   ============================================================ */
-/*
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700
-  &family=IBM+Plex+Sans:wght@400;500
-  &family=IBM+Plex+Mono:wght@400;500
-  &family=DM+Sans:wght@400;500&display=swap');
-*/
-
-/* ============================================================
-   TYPOGRAPHIE
-   ============================================================ */
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-heading);
-  font-weight: var(--weight-heading);
-  letter-spacing: var(--tracking-heading);
-}
-
-body, p, span, label, input, button {
-  font-family: var(--font-body);
-}
-
-/* Données brutes : codes RCCM, NIU, valeurs numériques */
-.data-value,
-.code-id,
-code {
-  font-family: var(--font-mono);
-}
-
-/* ============================================================
-   GLASSMORPHISM
-   ============================================================ */
-.glass-surface {
-  background: var(--glass-bg-light);
-  backdrop-filter: blur(var(--blur-default));
-  -webkit-backdrop-filter: blur(var(--blur-default));
-  border: 0.5px solid var(--color-border-glass);
-  border-radius: var(--radius-lg);
-}
-
-.glass-surface--mid {
-  background: var(--glass-bg-mid);
-  backdrop-filter: blur(var(--blur-default));
-  -webkit-backdrop-filter: blur(var(--blur-default));
-  border: 0.5px solid var(--color-border-glass);
-}
-
-.glass-surface--strong {
-  background: var(--glass-bg-strong);
-  backdrop-filter: blur(var(--blur-default));
-  -webkit-backdrop-filter: blur(var(--blur-default));
-  border: 0.5px solid var(--color-border-glass);
-}
-
-/* Perf mobile : blur réduit */
-@media (max-width: 768px) {
-  .glass-surface,
-  .glass-surface--mid,
-  .glass-surface--strong {
-    backdrop-filter: blur(var(--blur-mobile));
-    -webkit-backdrop-filter: blur(var(--blur-mobile));
-  }
-}
-
-/* ============================================================
-   LAYOUT — Grille 12/4 colonnes
-   ============================================================ */
-.grid-layout {
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  gap: var(--space-4);
-}
-
-@media (max-width: 768px) {
-  .grid-layout {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-/* Sidebar fixe desktop */
-.sidebar {
-  width: var(--sidebar-width);
-  background: var(--glass-bg-mid);
-  backdrop-filter: blur(var(--blur-default));
-  -webkit-backdrop-filter: blur(var(--blur-default));
-  border-right: 0.5px solid var(--color-border-glass);
-}
-
-/* ============================================================
-   COMPOSANTS
-   ============================================================ */
-
-/* --- Boutons --- */
+/* ── Component: Button Primary ──────────────────────────────────────── */
 .btn-primary {
-  background: var(--color-accent);
-  color: #042c53;
-  font-family: var(--font-body);
-  font-weight: 500;
-  border: none;
-  border-radius: var(--radius-md);
-  padding: var(--space-2) var(--space-4);
-  cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  background-color: var(--color-primary);
+  color:            var(--color-white);
+  border:           none;
+  border-radius:    var(--radius-md);
+  padding:          10px 20px;
+  font-family:      var(--font-body);
+  font-size:        var(--font-body-md-size);
+  font-weight:      500;
+  cursor:           pointer;
+  box-shadow:       0 1px 3px rgba(14, 165, 233, 0.20);
+  transition:       background-color var(--transition-normal), box-shadow var(--transition-normal);
 }
 .btn-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(133, 183, 235, 0.35);
+  background-color: var(--color-blue-600);
+  box-shadow:       0 4px 12px rgba(14, 165, 233, 0.30);
 }
 
+/* ── Component: Button Secondary ────────────────────────────────────── */
 .btn-secondary {
-  background: transparent;
-  color: var(--color-accent);
-  border: 1px solid var(--color-accent);
-  font-family: var(--font-body);
-  font-weight: 500;
-  border-radius: var(--radius-md);
-  padding: var(--space-2) var(--space-4);
-  cursor: pointer;
+  background-color: var(--color-blue-50);
+  color:            var(--color-primary);
+  border:           1px solid var(--color-blue-200);
+  border-radius:    var(--radius-md);
+  padding:          10px 20px;
+  font-family:      var(--font-body);
+  font-size:        var(--font-body-md-size);
+  font-weight:      500;
+  cursor:           pointer;
+  transition:       background-color var(--transition-normal);
+}
+.btn-secondary:hover {
+  background-color: var(--color-blue-100);
 }
 
+/* ── Component: Button Ghost ────────────────────────────────────────── */
 .btn-ghost {
-  background: rgba(133, 183, 235, 0.06);
-  color: var(--color-text);
-  border: none;
-  font-family: var(--font-body);
-  font-weight: 500;
-  border-radius: var(--radius-md);
-  padding: var(--space-2) var(--space-4);
-  cursor: pointer;
+  background-color: transparent;
+  color:            var(--color-text-secondary);
+  border:           1px solid var(--color-border-light);
+  border-radius:    var(--radius-md);
+  padding:          10px 20px;
+  font-family:      var(--font-body);
+  font-size:        var(--font-body-md-size);
+  font-weight:      500;
+  cursor:           pointer;
+  transition:       background-color var(--transition-normal), color var(--transition-normal);
+}
+.btn-ghost:hover {
+  background-color: var(--color-bg-hover);
+  color:            var(--color-primary);
 }
 
-/* --- Input --- */
-.input-field {
-  background: rgba(255, 255, 255, 0.05);
-  border: 0.5px solid var(--color-border-glass);
-  border-radius: var(--radius-md);
-  color: var(--color-text);
-  font-family: var(--font-body);
-  font-size: 14px;
-  padding: var(--space-2) var(--space-3);
-  outline: none;
-  transition: box-shadow 0.15s ease;
-}
-.input-field::placeholder {
-  color: var(--color-muted);
-}
-.input-field:focus {
-  box-shadow: 0 0 0 2px rgba(133, 183, 235, 0.3);
-}
-
-/* --- Cards (toujours glass) --- */
+/* ── Component: Card ────────────────────────────────────────────────── */
 .card {
-  background: var(--glass-bg-light);
-  backdrop-filter: blur(var(--blur-default));
-  -webkit-backdrop-filter: blur(var(--blur-default));
-  border: 0.5px solid var(--color-border-glass);
-  border-radius: var(--radius-lg);
-  padding: var(--space-4);
+  background-color: var(--color-white);
+  border-radius:    var(--radius-lg);
+  border:           1px solid var(--color-border-light);
+  box-shadow:       var(--shadow-sm);
+  padding:          16px 20px;
 }
 
-/* --- Badges & Pills --- */
+.card-subtle {
+  background-color: var(--color-bg-secondary);
+  border-radius:    var(--radius-lg);
+  border:           1px solid var(--color-border-light);
+  padding:          16px 20px;
+}
+
+/* ── Component: Input ───────────────────────────────────────────────── */
+.input {
+  background-color: var(--color-white);
+  border:           1px solid var(--color-border-light);
+  border-radius:    var(--radius-md);
+  color:            var(--color-text-primary);
+  font-family:      var(--font-body);
+  font-size:        var(--font-body-md-size);
+  padding:          10px 14px;
+  outline:          none;
+  transition:       border-color var(--transition-normal), box-shadow var(--transition-normal);
+  width:            100%;
+}
+.input:focus {
+  border-color: var(--color-primary);
+  box-shadow:   0 0 0 3px rgba(14, 165, 233, 0.12);
+}
+
+/* ── Component: Badge ───────────────────────────────────────────────── */
 .badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px var(--space-3);
+  display:       inline-flex;
+  align-items:   center;
   border-radius: var(--radius-full);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 500;
+  font-family:   var(--font-body);
+  font-size:     var(--font-label-size);
+  font-weight:   var(--font-label-weight);
+  letter-spacing: var(--font-label-letter-spacing);
+  padding:       3px 10px;
+}
+.badge-success { background-color: var(--color-green-50);  color: var(--color-green-600); }
+.badge-warning { background-color: var(--color-orange-50); color: var(--color-orange-600); }
+.badge-danger  { background-color: var(--color-red-50);    color: var(--color-red-600); }
+.badge-info    { background-color: var(--color-blue-50);   color: var(--color-blue-700); }
+
+/* ── Component: Sidebar ─────────────────────────────────────────────── */
+.sidebar {
+  background-color: var(--color-white);
+  border-right:     1px solid var(--color-border-light);
 }
 
-/* --- Sidebar nav --- */
-.sidebar-item {
-  padding: var(--space-2) var(--space-3);
-  border-radius: 8px;
-  color: var(--color-muted);
-  cursor: pointer;
-  transition: background 0.1s;
-}
-.sidebar-item.active {
-  background: rgba(133, 183, 235, 0.1);
-  border-left: 2px solid var(--color-accent);
-  color: var(--color-text);
+.nav-item-active {
+  background-color: var(--color-blue-50);
+  color:            var(--color-primary);
+  border-left:      3px solid var(--color-primary);
 }
 
-/* --- Pipeline stages --- */
-.stage-prospection  { background: rgba(74,  111, 165, 0.25); color: #85b7eb; }
-.stage-interessee   { background: rgba(61,  107, 158, 0.25); color: #9dc5ee; }
-.stage-negociation  { background: rgba(24,   95, 165, 0.35); color: #b5d4f4; }
-.stage-conclue      { background: rgba(29,  158, 117, 0.30); color: #5dcaa5; }
+/* ── Component: Chip ────────────────────────────────────────────────── */
+.chip {
+  background-color: var(--color-gray-100);
+  color:            var(--color-text-primary);
+  border-radius:    var(--radius-full);
+  border:           1px solid var(--color-border-light);
+  font-size:        var(--font-body-sm-size);
+  padding:          4px 12px;
+  display:          inline-flex;
+  align-items:      center;
+  cursor:           pointer;
+  transition:       all var(--transition-normal);
+}
+.chip-active {
+  background-color: var(--color-blue-50);
+  color:            var(--color-primary);
+  border-color:     var(--color-blue-200);
+}
 
-/* Mobile : paddings tactiles +1 échelon */
-@media (max-width: 768px) {
-  .btn-primary,
-  .btn-secondary,
-  .btn-ghost {
-    padding: var(--space-3) var(--space-5);
-  }
-  .input-field {
-    padding: var(--space-3) var(--space-4);
-  }
+/* ── Component: Divider ─────────────────────────────────────────────── */
+.divider {
+  background-color: var(--color-border-light);
+  height:           1px;
+  border:           none;
+  margin:           var(--space-4) 0;
+}
+
+/* ── Pipeline Stage Indicators ──────────────────────────────────────── */
+.stage-prospection {
+  background-color: var(--color-blue-50);
+  color:            var(--color-blue-700);
+  border-left:      4px solid var(--color-blue-400);
+}
+.stage-interessee {
+  background-color: var(--color-orange-50);
+  color:            var(--color-orange-600);
+  border-left:      4px solid var(--color-orange-500);
+}
+.stage-negociation {
+  background-color: var(--color-blue-100);
+  color:            var(--color-blue-800);
+  border-left:      4px solid var(--color-primary);
+}
+.stage-conclue {
+  background-color: var(--color-green-50);
+  color:            var(--color-green-600);
+  border-left:      4px solid var(--color-green-500);
 }

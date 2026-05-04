@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { FieldValue, Timestamp } from 'firebase-admin/firestore'
+import { FieldValue } from 'firebase-admin/firestore'
 
 async function getAdmin() {
   const { adminDb, adminAuth } = await import('@/lib/firebase-admin')
@@ -7,13 +7,47 @@ async function getAdmin() {
 }
 
 /**
+ * Resolve a prospect's data from any collection it may exist in.
+ * Priority: pipeline > manager_prospects > imported_prospects
+ */
+async function resolveProspect(
+  adminDb: FirebaseFirestore.Firestore,
+  prospectId: string
+): Promise<Record<string, unknown> | null> {
+  // 1. Try pipeline (prospect added manually)
+  const pDoc = await adminDb.collection('pipeline').doc(prospectId).get()
+  if (pDoc.exists) return pDoc.data() ?? null
+
+  // 2. Try manager_prospects (CSV import — primary collection)
+  const mDoc = await adminDb.collection('manager_prospects').doc(prospectId).get()
+  if (mDoc.exists) return mDoc.data() ?? null
+
+  // 3. Try imported_prospects (legacy collection name)
+  const iDoc = await adminDb.collection('imported_prospects').doc(prospectId).get()
+  if (iDoc.exists) return iDoc.data() ?? null
+
+  return null
+}
+
+/** Extract a human-readable company name from raw prospect data */
+function extractName(data: Record<string, unknown>): string {
+  return (
+    (data.companyName as string) ||
+    (data.name as string) ||
+    (data.raisonSociale as string) ||
+    'Inconnu'
+  )
+}
+
+/**
  * POST /api/team/assignments/repair
  *
- * Repairs existing assignments in Firestore that never created a pipeline item
- * for the member. Iterates all 'assignments' docs for the manager and for each
- * prospect not already in the member's pipeline, creates the missing entry.
+ * 1. Iterates all 'assignments' docs for the manager.
+ * 2. For each prospect that hasn't created a pipeline item for the member → creates it.
+ * 3. Also patches existing pipeline items whose companyName looks like a Firestore ID
+ *    (no spaces, 20 chars) by resolving the real name from source collections.
  *
- * Returns: { repaired: number, skipped: number, errors: string[] }
+ * Returns: { repaired: number, patched: number, skipped: number, errors: string[] }
  */
 export async function POST(request: NextRequest) {
   try {
@@ -33,7 +67,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Token invalide' }, { status: 401 })
     }
 
-    // Get all legacy assignments for this manager
+    // ── Phase 1: Create missing pipeline items ─────────────────────────────
     const assignmentsSnap = await adminDb
       .collection('assignments')
       .where('managerUid', '==', managerUid)
@@ -41,6 +75,7 @@ export async function POST(request: NextRequest) {
 
     let repaired = 0
     let skipped = 0
+    let patched = 0
     const errors: string[] = []
 
     for (const assignDoc of assignmentsSnap.docs) {
@@ -56,49 +91,34 @@ export async function POST(request: NextRequest) {
       for (const prospectId of prospectIds) {
         try {
           // Check if a pipeline item already exists for this member + source prospect
-          const existingSnap = await adminDb
-            .collection('pipeline')
-            .where('assignedTo', '==', assigneeUid)
-            .where('sourceId', '==', prospectId)
-            .limit(1)
-            .get()
+          const [snap1, snap2] = await Promise.all([
+            adminDb.collection('pipeline')
+              .where('assignedTo', '==', assigneeUid)
+              .where('sourceId', '==', prospectId)
+              .limit(1)
+              .get(),
+            adminDb.collection('pipeline')
+              .where('userId', '==', assigneeUid)
+              .where('sourceId', '==', prospectId)
+              .limit(1)
+              .get(),
+          ])
 
-          if (!existingSnap.empty) {
+          if (!snap1.empty || !snap2.empty) {
             skipped++
             continue
           }
 
-          // Also check by userId + sourceId to avoid duplicates
-          const existingSnap2 = await adminDb
-            .collection('pipeline')
-            .where('userId', '==', assigneeUid)
-            .where('sourceId', '==', prospectId)
-            .limit(1)
-            .get()
-
-          if (!existingSnap2.empty) {
-            skipped++
-            continue
-          }
-
-          // Resolve prospect data: try pipeline first, then imported_prospects
-          let prospectData: Record<string, unknown> | undefined
-
-          const pipelineDoc = await adminDb.collection('pipeline').doc(prospectId).get()
-          if (pipelineDoc.exists) {
-            prospectData = pipelineDoc.data()
-          } else {
-            const importedDoc = await adminDb.collection('imported_prospects').doc(prospectId).get()
-            if (importedDoc.exists) {
-              prospectData = importedDoc.data()
-            }
-          }
+          // Resolve prospect data from any source collection
+          const prospectData = await resolveProspect(adminDb, prospectId)
 
           if (!prospectData) {
-            errors.push(`Prospect ${prospectId} introuvable`)
+            errors.push(`Prospect ${prospectId} introuvable dans toutes les collections`)
             skipped++
             continue
           }
+
+          const companyName = extractName(prospectData)
 
           // Create the missing pipeline item for the member
           const newRef = adminDb.collection('pipeline').doc()
@@ -107,15 +127,15 @@ export async function POST(request: NextRequest) {
             userId: assigneeUid,
             assignedTo: assigneeUid,
             managerUid,
-            companyId: prospectData.companyId ?? prospectData.id ?? null,
-            companyName: prospectData.companyName ?? prospectData.name ?? 'Inconnu',
-            companySector: prospectData.companySector ?? prospectData.sector ?? null,
-            companyCity: prospectData.companyCity ?? prospectData.city ?? null,
-            companyPhone: prospectData.companyPhone ?? prospectData.phone ?? null,
-            companyEmail: prospectData.companyEmail ?? prospectData.email ?? null,
+            companyId: (prospectData.companyId as string) ?? (prospectData.id as string) ?? prospectId,
+            companyName,
+            companySector: (prospectData.companySector as string) ?? (prospectData.sector as string) ?? null,
+            companyCity: (prospectData.companyCity as string) ?? (prospectData.city as string) ?? null,
+            companyPhone: (prospectData.companyPhone as string) ?? (prospectData.phone as string) ?? null,
+            companyEmail: (prospectData.companyEmail as string) ?? (prospectData.email as string) ?? null,
             status: 'prospection',
-            notes: prospectData.notes ?? null,
-            nextFollowUp: prospectData.nextFollowUp ?? null,
+            notes: (prospectData.notes as string) ?? null,
+            nextFollowUp: (prospectData.nextFollowUp as string) ?? null,
             sourceId: prospectId,
             assignedBy: managerUid,
             assignedByName: managerName,
@@ -132,7 +152,46 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({ repaired, skipped, errors })
+    // ── Phase 2: Patch pipeline items with ID-like companyName ────────────
+    // A Firestore auto-ID is 20 chars, no spaces, alphanumeric only
+    const isFirestoreId = (s: string) => /^[A-Za-z0-9]{15,25}$/.test(s)
+
+    const memberPipelineSnap = await adminDb
+      .collection('pipeline')
+      .where('managerUid', '==', managerUid)
+      .get()
+
+    for (const doc of memberPipelineSnap.docs) {
+      const d = doc.data()
+      const currentName: string = d.companyName ?? ''
+      const sourceId: string = d.sourceId ?? ''
+
+      if (!isFirestoreId(currentName) || !sourceId) continue
+
+      try {
+        const prospectData = await resolveProspect(adminDb, sourceId)
+        if (!prospectData) continue
+
+        const realName = extractName(prospectData)
+        if (realName === 'Inconnu' || realName === currentName) continue
+
+        await doc.ref.update({
+          companyName: realName,
+          companySector: (prospectData.companySector as string) ?? (prospectData.sector as string) ?? d.companySector ?? null,
+          companyCity: (prospectData.companyCity as string) ?? (prospectData.city as string) ?? d.companyCity ?? null,
+          companyPhone: (prospectData.companyPhone as string) ?? (prospectData.phone as string) ?? d.companyPhone ?? null,
+          companyEmail: (prospectData.companyEmail as string) ?? (prospectData.email as string) ?? d.companyEmail ?? null,
+          updatedAt: FieldValue.serverTimestamp(),
+        })
+
+        patched++
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err)
+        errors.push(`Patch échoué pour ${doc.id}: ${msg}`)
+      }
+    }
+
+    return NextResponse.json({ repaired, patched, skipped, errors })
   } catch (error) {
     console.error('[team/assignments/repair POST]', error)
     return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 })

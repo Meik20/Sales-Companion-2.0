@@ -13,7 +13,7 @@ export function AssignmentsTable() {
   const queryClient = useQueryClient()
 
   const [repairing, setRepairing] = useState(false)
-  const [repairResult, setRepairResult] = useState<{ repaired: number; skipped: number; errors: string[] } | null>(null)
+  const [repairResult, setRepairResult] = useState<{ repaired: number; patched: number; skipped: number; errors: string[] } | null>(null)
 
   const handleRepair = async () => {
     if (!user) return
@@ -26,7 +26,7 @@ export function AssignmentsTable() {
         headers: { Authorization: `Bearer ${token}` },
       })
       const json = await res.json()
-      setRepairResult(json as { repaired: number; skipped: number; errors: string[] })
+      setRepairResult(json as { repaired: number; patched: number; skipped: number; errors: string[] })
       // Refresh pipeline and assignments caches
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['pipeline'] }),
@@ -73,12 +73,15 @@ export function AssignmentsTable() {
         {repairResult && (
           <div style={{
             marginBottom: 10, padding: '10px 14px', borderRadius: 8,
-            background: repairResult.repaired > 0 ? 'rgba(46,160,90,0.1)' : 'rgba(99,102,241,0.08)',
-            border: `1px solid ${repairResult.repaired > 0 ? 'rgba(46,160,90,0.25)' : 'rgba(99,102,241,0.2)'}`,
-            fontSize: 12.5, color: repairResult.repaired > 0 ? '#2ea05a' : colors.textMid,
+            background: (repairResult.repaired > 0 || repairResult.patched > 0) ? 'rgba(46,160,90,0.1)' : 'rgba(99,102,241,0.08)',
+            border: `1px solid ${(repairResult.repaired > 0 || repairResult.patched > 0) ? 'rgba(46,160,90,0.25)' : 'rgba(99,102,241,0.2)'}`,
+            fontSize: 12.5, color: (repairResult.repaired > 0 || repairResult.patched > 0) ? '#2ea05a' : colors.textMid,
           }}>
-            {repairResult.repaired > 0
-              ? `✓ ${repairResult.repaired} item${repairResult.repaired > 1 ? 's' : ''} pipeline créé${repairResult.repaired > 1 ? 's' : ''} pour les membres`
+            {repairResult.repaired > 0 || repairResult.patched > 0
+              ? [
+                  repairResult.repaired > 0 && `✓ ${repairResult.repaired} item${repairResult.repaired > 1 ? 's' : ''} pipeline créé${repairResult.repaired > 1 ? 's' : ''}`,
+                  repairResult.patched  > 0 && `✓ ${repairResult.patched} nom${repairResult.patched > 1 ? 's' : ''} corrigé${repairResult.patched > 1 ? 's' : ''}`,
+                ].filter(Boolean).join(' · ')
               : `✓ Tous les pipelines sont déjà synchronisés (${repairResult.skipped} ignorés)`}
             {repairResult.errors.length > 0 && (
               <div style={{ marginTop: 4, color: '#f87171', fontSize: 11 }}>
