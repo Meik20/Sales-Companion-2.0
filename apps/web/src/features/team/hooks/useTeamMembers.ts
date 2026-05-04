@@ -11,11 +11,23 @@ export type TeamMember = {
   name: string
   role: 'member'
   managerUid: string
+  /** true when the member has completed activation */
   active: boolean
   dailyUsed: number
   dailyLimit: number
 }
 
+/**
+ * Real-time hook that returns team members for the current manager.
+ *
+ * A member is considered "active" when EITHER:
+ *   - users/{uid}.active     === true   (set during activation)
+ *   - users/{uid}.activated  === true   (legacy / manual Firestore toggle)
+ *
+ * The listener is powered by Firestore onSnapshot so any change — including
+ * a manager manually setting activated=true in the Firestore console — is
+ * reflected in the UI within milliseconds, with no page refresh needed.
+ */
 export function useTeamMembers() {
   const { user } = useCurrentUser()
   const [members, setMembers] = useState<TeamMember[]>([])
@@ -31,30 +43,39 @@ export function useTeamMembers() {
     setIsLoading(true)
     setIsError(false)
 
-    // Set up real-time listener for team members
+    // Listen to users whose managerUid matches the current manager
     const q = query(collection(db, 'users'), where('managerUid', '==', user.uid))
-    
+
     const unsubscribe = onSnapshot(
       q,
       (snap) => {
-        const membersList = snap.docs
-          .map(doc => ({
-            uid: doc.id,
-            email: doc.data().email || '',
-            name: doc.data().name || '',
-            role: 'member' as const,
-            managerUid: doc.data().managerUid,
-            active: doc.data().active ?? false,
-            dailyUsed: doc.data().dailyUsed ?? 0,
-            dailyLimit: doc.data().dailyLimit ?? 100,
-          }))
-          .sort((a, b) => (b.active ? 1 : 0) - (a.active ? 1 : 0)) // Sort active members first
-        
-        setMembers(membersList)
+        const list: TeamMember[] = snap.docs.map((doc) => {
+          const d = doc.data()
+          // Accept either field — supports both legacy and new activation paths
+          const isActive = d.active === true || d.activated === true
+          return {
+            uid:        doc.id,
+            email:      d.email      ?? '',
+            name:       d.name       ?? '',
+            role:       'member' as const,
+            managerUid: d.managerUid ?? '',
+            active:     isActive,
+            dailyUsed:  d.dailyUsed  ?? 0,
+            dailyLimit: d.dailyLimit ?? 100,
+          }
+        })
+
+        // Active members first, then alphabetical by name
+        list.sort((a, b) => {
+          if (b.active !== a.active) return b.active ? 1 : -1
+          return (a.name || a.email).localeCompare(b.name || b.email, 'fr')
+        })
+
+        setMembers(list)
         setIsLoading(false)
       },
       (error) => {
-        console.error('Error loading team members:', error)
+        console.error('[useTeamMembers] Firestore error:', error)
         setIsError(true)
         setIsLoading(false)
       }
@@ -63,9 +84,14 @@ export function useTeamMembers() {
     return () => unsubscribe()
   }, [user?.uid])
 
+  return { data: members, isLoading, isError }
+}
+
+/** Returns only the members that have completed activation */
+export function useActiveTeamMembers() {
+  const result = useTeamMembers()
   return {
-    data: members,
-    isLoading,
-    isError,
+    ...result,
+    data: result.data.filter((m) => m.active),
   }
 }

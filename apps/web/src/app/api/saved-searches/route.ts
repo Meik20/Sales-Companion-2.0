@@ -24,17 +24,24 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: 'Token invalide' }, { status: 401 })
     }
 
+    // Note: orderBy + where requires a Firestore composite index.
+    // Sorting in memory avoids that dependency entirely.
     const snapshot = await adminDb
       .collection('saved_searches')
       .where('userId', '==', userId)
-      .orderBy('createdAt', 'desc')
       .get()
 
-    const items = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-      createdAt: doc.data().createdAt?.toDate?.()?.toISOString() ?? null,
-    }))
+    const items = snapshot.docs
+      .map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt?.toDate?.()?.toISOString() ?? null,
+      }))
+      .sort((a, b) => {
+        const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0
+        const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0
+        return tb - ta // desc
+      })
 
     return NextResponse.json(items)
   } catch (error) {
