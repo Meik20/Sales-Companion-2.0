@@ -137,58 +137,93 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
         .sc-bar {
           display: flex;
           align-items: center;
-          gap: 8px;
+          gap: 10px;
+          flex-wrap: wrap;
         }
         .sc-input-wrap {
           flex: 1;
+          min-width: 0;
           position: relative;
         }
         .sc-input-wrap svg {
-          position: absolute; left: 12px; top: 50%;
-          transform: translateY(-50%); pointer-events: none;
+          position: absolute;
+          left: 14px;
+          top: 50%;
+          transform: translateY(-50%);
+          pointer-events: none;
           color: var(--cr-secondary-text-color);
         }
         .sc-input {
-          width: 100%; height: 42px;
-          padding: 0 12px 0 38px;
+          width: 100%;
+          height: 48px;
+          padding: 0 48px 0 44px;
           border: 1.5px solid var(--cr-separator-color);
-          border-radius: 10px;
+          border-radius: 999px;
           background: var(--cr-card-background-color);
           color: var(--cr-primary-text-color);
-          font-size: 14px; font-family: inherit;
-          outline: none; box-sizing: border-box;
+          font-size: 14px;
+          font-family: inherit;
+          outline: none;
+          box-sizing: border-box;
           transition: border-color 180ms ease, box-shadow 180ms ease;
+          box-shadow: 0 1px 2px rgba(0,0,0,0.04);
         }
-        .sc-input::placeholder { color: var(--cr-secondary-text-color); opacity: 0.7; }
+        .sc-input::placeholder {
+          color: var(--cr-secondary-text-color);
+          opacity: 0.7;
+        }
         .sc-input:focus {
           border-color: var(--google-green-500, #34a853);
           box-shadow: 0 0 0 3px rgba(52,168,83,0.12);
         }
         .sc-submit-btn {
-          height: 42px; padding: 0 20px;
-          border-radius: 10px;
+          width: 46px;
+          min-width: 46px;
+          height: 46px;
+          padding: 0;
+          border-radius: 50%;
           background: var(--google-green-600, #1e8e3e);
-          color: #fff; border: none;
-          font-size: 14px; font-weight: 700;
-          cursor: pointer; white-space: nowrap;
-          font-family: inherit; flex-shrink: 0;
-          transition: background 180ms ease;
+          color: #fff;
+          border: none;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          flex-shrink: 0;
+          transition: background 180ms ease, transform 120ms ease;
         }
-        .sc-submit-btn:hover { background: var(--google-green-700, #137333); }
+        .sc-submit-btn:hover {
+          background: var(--google-green-700, #137333);
+          transform: translateY(-1px);
+        }
+        .sc-submit-btn svg {
+          width: 18px;
+          height: 18px;
+          stroke: currentColor;
+        }
 
         /* ── Pill row ── */
         .sc-pills-row {
           display: flex;
           align-items: center;
           justify-content: space-between;
+          gap: 10px;
           flex-wrap: wrap;
-          gap: 8px;
         }
+        .sc-pills-scroll {
+          flex: 1;
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          padding-bottom: 4px;
+          margin-right: 6px;
+        }
+        .sc-pills-scroll::-webkit-scrollbar { display: none; }
         .sc-pills {
-          display: flex;
+          display: inline-flex;
           align-items: center;
-          gap: 6px;
-          flex-wrap: wrap;
+          gap: 8px;
+          padding: 4px 0;
+          min-width: 100%;
         }
         .sc-pill {
           display: inline-flex; align-items: center; gap: 4px;
@@ -329,23 +364,30 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
               onChange={(e) => setQuery(e.target.value)}
             />
           </div>
-          <button type="submit" className="sc-submit-btn">Chercher</button>
+          <button type="submit" className="sc-submit-btn" aria-label="Lancer la recherche">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
+            </svg>
+          </button>
         </div>
 
         {/* ── Block 2: Quick-sector pills + advanced toggle ── */}
         <div className="sc-pills-row">
-          <div className="sc-pills">
-            {QUICK_SECTORS.map((s) => (
-              <button
-                key={s.value}
-                type="button"
-                className={`sc-pill${sector === s.value ? ' active' : ''}`}
-                onClick={() => applyQuickSector(s.value)}
-              >
-                {s.icon && <span style={{ fontSize: 12 }}>{s.icon}</span>}
-                {s.label}
-              </button>
-            ))}
+          <div className="sc-pills-scroll">
+            <div className="sc-pills">
+              {QUICK_SECTORS.map((s) => (
+                <button
+                  key={s.value}
+                  type="button"
+                  className={`sc-pill${sector === s.value ? ' active' : ''}`}
+                  onClick={() => applyQuickSector(s.value)}
+                >
+                  {s.icon && <span style={{ fontSize: 12 }}>{s.icon}</span>}
+                  {s.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           <button
@@ -354,13 +396,15 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
             onClick={() => setShowAdvanced((v) => !v)}
             aria-expanded={showAdvanced}
           >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/>
-            </svg>
-            Filtres avancés
-            <svg className={`sc-adv-chevron${showAdvanced ? ' open' : ''}`} width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="6 9 12 15 18 9"/>
-            </svg>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/>
+              </svg>
+              Filtres avancés
+              <svg className={`sc-adv-chevron${showAdvanced ? ' open' : ''}`} width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </span>
           </button>
         </div>
 

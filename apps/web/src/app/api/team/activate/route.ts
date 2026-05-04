@@ -118,16 +118,17 @@ export async function POST(request: NextRequest) {
           data.firstname ?? data.firstName ?? '',
           data.lastname  ?? data.lastName  ?? '',
         ].join(' ').trim() || null,
-        role:      data.role      ?? 'member',
-        plan:      data.plan      ?? 'free',
-        active:    true,
-        company:   data.company   ?? null,
-        sector:    data.sector    ?? null,
-        region:    data.region    ?? null,
-        managerId: data.managerId ?? null,
-        dailyUsed:  0,
-        dailyLimit: data.dailyLimit ?? 10,
-        createdAt: new Date(),
+        role:       data.role      ?? 'member',
+        plan:       data.plan      ?? 'free',
+        active:     true,
+        company:    data.company   ?? null,
+        sector:     data.sector    ?? null,
+        region:     data.region    ?? null,
+        managerId:  data.managerId  ?? null,
+        managerUid: data.managerUid ?? data.managerId ?? null,
+        dailyUsed:   0,
+        dailyLimit:  data.dailyLimit ?? 10,
+        createdAt:   new Date(),
       },
       { merge: true }
     )
@@ -138,7 +139,8 @@ export async function POST(request: NextRequest) {
 
     // ── 4. Marquer l'accès comme activé ──
     await adminDb.collection(col).doc(accessId).update({
-      status:       'activated',
+      status:       'active',
+      activated:    true,
       activatedAt:  new Date(),
       activatedUid: uid,
     })

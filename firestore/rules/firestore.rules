@@ -12,7 +12,7 @@ service cloud.firestore {
     function isAdmin() {
       return isSignedIn() && (
         request.auth.token.role == 'admin' ||
-        get(/databases/$(database)/documents/users/$(authUid())).data.role == 'admin'
+        currentUserDoc().role == 'admin'
       );
     }
 

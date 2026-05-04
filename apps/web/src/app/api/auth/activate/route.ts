@@ -30,18 +30,6 @@ export async function POST(request: NextRequest) {
     if (!accessId?.trim()) {
       return NextResponse.json({ message: "L'identifiant d'accès est requis." }, { status: 400 })
     }
-    if (!bodyEmail?.trim()) {
-      return NextResponse.json(
-        { message: "L'adresse email est obligatoire pour activer votre compte." },
-        { status: 400 }
-      )
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(bodyEmail.trim())) {
-      return NextResponse.json(
-        { message: "Format d'adresse email invalide. Vérifiez votre adresse." },
-        { status: 400 }
-      )
-    }
     if (!password || password.length < 6) {
       return NextResponse.json(
         { message: 'Le mot de passe doit comporter au moins 6 caractères.' },
@@ -49,7 +37,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const email = bodyEmail.trim().toLowerCase()
+    const requestedEmail = bodyEmail?.trim().toLowerCase()
 
     // ── 1. Find the access document across all known collections ─────────────
     let snap: FirebaseFirestore.DocumentSnapshot | null = null
@@ -75,6 +63,23 @@ export async function POST(request: NextRequest) {
     }
 
     const data = snap.data()!
+
+    const email = requestedEmail ?? data.email?.trim().toLowerCase()
+    if (!email) {
+      return NextResponse.json(
+        {
+          message:
+            "Aucun email fourni. Ce lien d'activation doit être associé à une adresse email ou vous devez en saisir une.",
+        },
+        { status: 400 }
+      )
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return NextResponse.json(
+        { message: "Format d'adresse email invalide. Vérifiez votre adresse." },
+        { status: 400 }
+      )
+    }
 
     // ── 2. Guard: already activated ─────────────────────────────────────────
     if (data.activated === true || data.status === 'active') {
@@ -129,7 +134,11 @@ export async function POST(request: NextRequest) {
     }
 
     // ── 5. Write / merge the users/{uid} document ───────────────────────────
-    await adminDb.collection('users').doc(uid).set(
+    const userDocRef = adminDb.collection('users').doc(uid)
+    const userDocSnap = await userDocRef.get()
+    const createdAt = userDocSnap.exists ? userDocSnap.data()?.createdAt ?? new Date() : new Date()
+
+    await userDocRef.set(
       {
         uid,
         email,
@@ -151,7 +160,7 @@ export async function POST(request: NextRequest) {
         managerEmail: data.managerEmail ?? null,
         dailyUsed:  0,
         dailyLimit: data.dailyLimit ?? 10,
-        createdAt:  new Date(),
+        createdAt,
         activatedAt: new Date(),
       },
       { merge: true }
@@ -175,7 +184,11 @@ export async function POST(request: NextRequest) {
 
     console.log('[auth/activate] Activation complete', { accessId, email, uid, collection: foundCollection })
 
-    return NextResponse.json({ success: true, uid })
+    return NextResponse.json({
+      success: true,
+      uid,
+      message: 'Activation réussie. Votre compte est désormais activé et disponible dans Firestore.',
+    })
   } catch (error) {
     console.error('[auth/activate] Unexpected error:', error)
 
