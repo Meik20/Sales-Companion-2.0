@@ -4,17 +4,58 @@ import { useTeamAssignments, TeamAssignment } from '../hooks/useTeamAssignments'
 import { useTeamMembers } from '../hooks/useTeamMembers'
 import { SectionCard } from './SectionCard'
 import { colors } from '@/styles/tokens'
+import { useEffect, useState } from 'react'
+import { db } from '@/lib/firebase'
+import { doc, getDoc } from 'firebase/firestore'
+
+type ProspectInfo = {
+  id: string
+  companyName: string
+}
 
 export function AssignmentsTable() {
   const { data: assignments, isLoading, isError } = useTeamAssignments()
   const { data: members } = useTeamMembers()
+  const [prospectMap, setProspectMap] = useState<Record<string, ProspectInfo>>({})
 
-  const getMemberName = (memberId: string) => {
-    return members?.find((m) => m.uid === memberId)?.name || 'Inconnu'
+  // Fetch prospect details for all prospectIds
+  useEffect(() => {
+    if (!assignments || assignments.length === 0) return
+
+    const loadProspects = async () => {
+      const allProspectIds = new Set<string>()
+      assignments.forEach(a => {
+        a.prospectIds?.forEach(pid => allProspectIds.add(pid))
+      })
+
+      const map: Record<string, ProspectInfo> = {}
+      for (const prospectId of allProspectIds) {
+        try {
+          const docRef = doc(db, 'pipeline', prospectId)
+          const snapshot = await getDoc(docRef)
+          if (snapshot.exists()) {
+            const data = snapshot.data()
+            map[prospectId] = {
+              id: prospectId,
+              companyName: data.companyName || 'Unknown'
+            }
+          }
+        } catch (e) {
+          console.error(`Failed to load prospect ${prospectId}:`, e)
+        }
+      }
+      setProspectMap(map)
+    }
+
+    void loadProspects()
+  }, [assignments])
+
+  const getMemberName = (assigneeUid: string) => {
+    return members?.find((m) => m.uid === assigneeUid)?.name || 'Inconnu'
   }
 
-  const getMemberEmail = (memberId: string) => {
-    return members?.find((m) => m.uid === memberId)?.email || ''
+  const getMemberEmail = (assigneeUid: string) => {
+    return members?.find((m) => m.uid === assigneeUid)?.email || ''
   }
 
   if (isLoading) {
@@ -37,16 +78,37 @@ export function AssignmentsTable() {
     )
   }
 
-  const sortedAssignments = [...(assignments || [])].sort(
+  // Flatten assignments: one row per prospect
+  const rows: Array<{
+    assignmentId: string
+    prospectId: string
+    assigneeUid: string
+    companyName: string
+    createdAt: string
+  }> = []
+
+  ;(assignments || []).forEach(assignment => {
+    assignment.prospectIds?.forEach(prospectId => {
+      rows.push({
+        assignmentId: assignment.id,
+        prospectId,
+        assigneeUid: assignment.assigneeUid || '',
+        companyName: prospectMap[prospectId]?.companyName || 'Chargement...',
+        createdAt: assignment.createdAt
+      })
+    })
+  })
+
+  const sortedRows = rows.sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   )
 
   return (
     <SectionCard
       title="Assignations actives"
-      subtitle={`${sortedAssignments.length} assignation${sortedAssignments.length > 1 ? 's' : ''}`}
+      subtitle={`${sortedRows.length} prospect${sortedRows.length > 1 ? 's' : ''} assigné${sortedRows.length > 1 ? 's' : ''}`}
     >
-      {sortedAssignments.length === 0 ? (
+      {sortedRows.length === 0 ? (
         <div
           style={{
             textAlign: 'center',
@@ -114,12 +176,13 @@ export function AssignmentsTable() {
               </tr>
             </thead>
             <tbody>
-              {sortedAssignments.map((assignment) => (
+              {sortedRows.map((row) => (
                 <AssignmentRow
-                  key={assignment.id}
-                  assignment={assignment}
-                  memberName={getMemberName(assignment.memberId)}
-                  memberEmail={getMemberEmail(assignment.memberId)}
+                  key={`${row.assignmentId}-${row.prospectId}`}
+                  companyName={row.companyName}
+                  memberName={getMemberName(row.assigneeUid)}
+                  memberEmail={getMemberEmail(row.assigneeUid)}
+                  createdAt={row.createdAt}
                 />
               ))}
             </tbody>
@@ -131,15 +194,17 @@ export function AssignmentsTable() {
 }
 
 function AssignmentRow({
-  assignment,
+  companyName,
   memberName,
   memberEmail,
+  createdAt,
 }: {
-  assignment: TeamAssignment
+  companyName: string
   memberName: string
   memberEmail: string
+  createdAt: string
 }) {
-  const createdDate = new Date(assignment.createdAt)
+  const createdDate = new Date(createdAt)
   const dateStr = createdDate.toLocaleDateString('fr-FR', {
     month: 'short',
     day: 'numeric',
@@ -161,16 +226,7 @@ function AssignmentRow({
       }}
     >
       <td style={{ padding: '12px 0', color: colors.text, fontWeight: 500 }}>
-        <div
-          style={{
-            fontFamily: 'monospace',
-            fontSize: 12,
-            color: '#2ea05a',
-            wordBreak: 'break-all',
-          }}
-        >
-          {assignment.pipelineItemId}
-        </div>
+        {companyName}
       </td>
       <td
         style={{

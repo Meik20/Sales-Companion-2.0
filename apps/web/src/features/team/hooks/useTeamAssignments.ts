@@ -5,9 +5,13 @@ import { useCurrentUser } from '@/hooks/useCurrentUser'
 
 export type TeamAssignment = {
   id: string
-  pipelineItemId: string
-  managerId: string
-  memberId: string
+  assigneeId: string
+  assigneeUid: string
+  prospectIds: string[]
+  managerUid: string
+  managerName: string
+  note: string
+  status: string
   createdAt: string
   updatedAt: string
 }
@@ -31,7 +35,9 @@ export function useTeamAssignments() {
         throw new Error('Impossible de charger les assignations')
       }
 
-      return response.json() as Promise<TeamAssignment[]>
+      const data = await response.json()
+      // Backend retourne { items: [...] }
+      return (data.items || []) as Promise<TeamAssignment[]>
     },
     enabled: !!user?.uid,
   })
