@@ -339,7 +339,9 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
         }
 
         @media (max-width: 640px) {
-          .sc-submit-btn { flex: 1; }
+          .sc-submit-btn { flex: 0 0 46px; width: 46px; min-width: 46px; }
+          .sc-pills-row { display: none; }
+          .sc-adv-panel { display: none; }
           .sc-adv-row { grid-template-columns: 1fr 1fr; }
           .sc-adv-row .sc-adv-geo-col { grid-column: 1 / -1; }
         }

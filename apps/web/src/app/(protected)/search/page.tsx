@@ -4,8 +4,7 @@ import { useEffect, useRef, useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { AppShell } from '@/components/layout/AppShell'
 import { LoadingState, EmptyState } from '@/components/feedback/index'
-import { ErrorState } from '@/components/feedback/index'
-import { DataCard, Badge } from '@/components/ui/index'
+import { DataCard } from '@/components/ui/index'
 import { SearchFiltersForm } from '@/features/search/components/SearchFiltersForm'
 import { CompaniesSearchResults } from '@/features/search/components/CompaniesSearchResults'
 import { SaveCurrentSearchButton } from '@/features/search/components/SaveCurrentSearchButton'
@@ -255,6 +254,18 @@ function SearchContent() {
                 Lancez votre première recherche →
               </Button>
             </div>
+
+            <style dangerouslySetInnerHTML={{__html: `
+              @media (max-width: 640px) {
+                .shortcut-grid {
+                  max-width: 100%;
+                  gap: 10px;
+                }
+                .shortcut-grid > *:nth-child(n+3) {
+                  display: none;
+                }
+              }
+            `}} />
 
             {/* Grille de Raccourcis */}
             <div 

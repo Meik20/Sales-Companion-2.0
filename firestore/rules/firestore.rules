@@ -115,6 +115,23 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    match /team_assignments/{assignmentId} {
+      allow read: if isAdmin()
+        || (isManager() && resource.data.managerUid == authUid());
+
+      allow create: if isAdmin()
+        || (
+          isManager()
+          && request.resource.data.managerUid == authUid()
+        );
+
+      allow update: if isAdmin()
+        || (isManager() && resource.data.managerUid == authUid());
+
+      allow delete: if isAdmin()
+        || (isManager() && resource.data.managerUid == authUid());
+    }
+
     match /assignments/{assignmentId} {
       allow read: if isAdmin()
         || (isManager() && resource.data.managerUid == authUid())
