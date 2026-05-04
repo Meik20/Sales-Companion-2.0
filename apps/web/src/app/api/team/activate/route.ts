@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
 
     const data = snap.data()!
 
-    if (data.status === 'activated') {
+    if (data.activated === true || data.status === 'activated' || data.status === 'active') {
       return NextResponse.json(
         {
           message:
@@ -59,15 +59,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Utiliser l'email du formulaire ou du document, avec préférence pour le document
-    const email: string | undefined = data.email || (body as any).email
+    const requestedEmail = ((body as any).email as string | undefined)?.trim()
+    const email = requestedEmail ?? data.email?.trim()
     if (!email) {
       return NextResponse.json(
         {
           message:
             'Aucun email fourni. Veuillez renseigner votre adresse email dans le formulaire.',
         },
-        { status: 422 }
+        { status: 400 }
       )
     }
 
@@ -109,8 +109,12 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const userDocRef = adminDb.collection('users').doc(uid)
+    const userDocSnap = await userDocRef.get()
+    const createdAt = userDocSnap.exists ? userDocSnap.data()?.createdAt ?? new Date() : new Date()
+
     // ── 3. Écrire / fusionner le document utilisateur Firestore ──
-    await adminDb.collection('users').doc(uid).set(
+    await userDocRef.set(
       {
         uid,
         email,
@@ -121,14 +125,17 @@ export async function POST(request: NextRequest) {
         role:       data.role      ?? 'member',
         plan:       data.plan      ?? 'free',
         active:     true,
+        activated:  true,
         company:    data.company   ?? null,
         sector:     data.sector    ?? null,
         region:     data.region    ?? null,
         managerId:  data.managerId  ?? null,
         managerUid: data.managerUid ?? data.managerId ?? null,
+        managerEmail: data.managerEmail ?? null,
         dailyUsed:   0,
         dailyLimit:  data.dailyLimit ?? 10,
-        createdAt:   new Date(),
+        createdAt,
+        activatedAt: new Date(),
       },
       { merge: true }
     )
@@ -139,8 +146,10 @@ export async function POST(request: NextRequest) {
 
     // ── 4. Marquer l'accès comme activé ──
     await adminDb.collection(col).doc(accessId).update({
-      status:       'active',
       activated:    true,
+      status:       'active',
+      email,
+      firebaseUid:  uid,
       activatedAt:  new Date(),
       activatedUid: uid,
     })

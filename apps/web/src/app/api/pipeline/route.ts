@@ -74,6 +74,15 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json().catch(() => ({})) as Record<string, unknown>
     const companyName = (body.companyName ?? body.name ?? '') as string
+    const status = typeof body.status === 'string'
+      ? body.status === 'prospect'
+        ? 'prospection'
+        : body.status === 'negotiation'
+        ? 'negociation'
+        : body.status === 'conclusion'
+        ? 'conclue'
+        : body.status
+      : 'prospection'
 
     if (!companyName) {
       return NextResponse.json({ message: 'companyName requis' }, { status: 400 })
@@ -84,10 +93,10 @@ export async function POST(request: NextRequest) {
       userId,
       companyName,
       name: companyName,
-      status: (body.status as string) ?? 'prospect',
+      status,
       ...Object.fromEntries(
         Object.entries(body).filter(([k]) =>
-          !['userId', 'managerUid', 'createdAt', 'updatedAt'].includes(k)
+          !['userId', 'managerUid', 'createdAt', 'updatedAt', 'status'].includes(k)
         )
       ),
       createdAt: FieldValue.serverTimestamp(),

@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
 
     snapshot.forEach((doc) => {
       const status = doc.data().status as string
-      if (status === 'prospection') stats.prospection++
+      if (status === 'prospection' || status === 'prospect') stats.prospection++
       else if (status === 'negociation' || status === 'negotiation') stats.negotiation++
       else if (status === 'conclue' || status === 'conclusion') stats.conclusion++
       else if (status === 'lost') stats.lost++

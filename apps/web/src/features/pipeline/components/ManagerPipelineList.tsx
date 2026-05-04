@@ -57,9 +57,9 @@ export function ManagerPipelineList({ items }: Props) {
 
   // Grouper par statut
   const grouped: Record<string, PipelineItem[]> = {
-    prospection: items.filter((i) => i.status === 'prospection'),
-    negociation: items.filter((i) => i.status === 'negociation'),
-    conclue:     items.filter((i) => i.status === 'conclue'),
+    prospection: items.filter((i) => i.status === 'prospection' || i.status === 'prospect'),
+    negociation: items.filter((i) => i.status === 'negociation' || i.status === 'negotiation'),
+    conclue:     items.filter((i) => i.status === 'conclue' || i.status === 'conclusion'),
   }
 
   return (

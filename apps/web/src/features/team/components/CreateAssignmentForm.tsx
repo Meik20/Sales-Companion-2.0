@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { FormField } from '@/components/forms/FormField'
 import { Button } from '@/components/ui/Button'
 import { SectionCard } from './SectionCard'
@@ -57,14 +58,26 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
   const { user } = useCurrentUser()
   const { mutate: createAssignment, isPending } = useCreateTeamAssignment()
   const { data: members } = useActiveTeamMembers()
+  const queryClient = useQueryClient()
 
 
   // Load pipeline prospects
   useEffect(() => {
     const load = async () => {
+      if (!user) {
+        setPipelineProspects([])
+        setLoadingPipeline(false)
+        return
+      }
+
       try {
         setLoadingPipeline(true)
-        const res = await fetch('/api/pipeline/manager')
+        const token = await user.getIdToken()
+        const res = await fetch('/api/pipeline/manager', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
         if (res.ok) {
           const data = await res.json()
           setPipelineProspects(data ?? [])
@@ -76,7 +89,7 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
       }
     }
     void load()
-  }, [])
+  }, [user])
 
   // ── Mode: single assignment (from pipeline dropdown) ──────────────────────
   const handleSingleSubmit = async (e: React.FormEvent) => {
@@ -128,6 +141,12 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
     }
     setSuccessCount((n) => n + done)
     setMemberId('')
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['pipeline'] }),
+      queryClient.invalidateQueries({ queryKey: ['manager-pipeline'] }),
+      queryClient.invalidateQueries({ queryKey: ['team-assignments'] }),
+      queryClient.invalidateQueries({ queryKey: ['pipeline-stats'] }),
+    ])
     onAssigned?.()
   }
 

@@ -119,14 +119,14 @@ export async function POST(request: NextRequest) {
       managerUid,                     // manager sees it via /api/pipeline/manager
       companyName,
       name:        companyName,
-      status:      'prospect',
+      status:      'prospection',
       assignedBy:  managerUid,
       assignedByName: managerName,
       sourceProspectId: pipelineItemId,
-      // Preserve all original prospect fields
+      // Preserve all original prospect fields except status, which is explicitly set above
       ...Object.fromEntries(
         Object.entries(prospectData).filter(([k]) =>
-          !['userId', 'managerUid', 'createdAt', 'updatedAt'].includes(k)
+          !['userId', 'managerUid', 'createdAt', 'updatedAt', 'status'].includes(k)
         )
       ),
       createdAt: FieldValue.serverTimestamp(),

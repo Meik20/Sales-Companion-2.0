@@ -48,6 +48,7 @@ export function useCreateTeamAssignment() {
     onSuccess: () => {
       // Invalidate pipeline caches so both member and manager views refresh
       void queryClient.invalidateQueries({ queryKey: ['pipeline'] })
+      void queryClient.invalidateQueries({ queryKey: ['manager-pipeline'] })
       void queryClient.invalidateQueries({ queryKey: ['team-assignments'] })
       void queryClient.invalidateQueries({ queryKey: ['pipeline-stats'] })
     },
