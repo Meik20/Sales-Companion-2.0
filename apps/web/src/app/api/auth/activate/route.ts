@@ -1,52 +1,74 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-// Lazy import to avoid HTML error if firebase-admin fails to init
+// Lazy import to avoid HTML errors if firebase-admin fails to initialise
 async function getAdminModules() {
   const { adminDb, adminAuth } = await import('@/lib/firebase-admin')
   return { adminDb, adminAuth }
 }
 
+/** Collections to search, in priority order (most recently used first) */
+const ACCESS_COLLECTIONS = ['team_accesses', 'teamAccesses', 'accesses'] as const
+
 export async function POST(request: NextRequest) {
-  // Always return JSON — never let Next.js show HTML error page
+  // Always return JSON — never let Next.js emit an HTML error page
   try {
     const { adminDb, adminAuth } = await getAdminModules()
 
+    // ── Parse body ──────────────────────────────────────────────────────────
     const body = await request.json().catch(() => null)
     if (!body) {
       return NextResponse.json({ message: 'Corps de requête invalide' }, { status: 400 })
     }
 
-    const { accessId, password, email: bodyEmail } = body as {
+    const { accessId, email: bodyEmail, password } = body as {
       accessId?: string
-      password?: string
       email?: string
+      password?: string
     }
 
-    if (!accessId || !password) {
-      return NextResponse.json({ message: 'accessId et password sont requis' }, { status: 400 })
+    // ── Validate required fields ────────────────────────────────────────────
+    if (!accessId?.trim()) {
+      return NextResponse.json({ message: "L'identifiant d'accès est requis." }, { status: 400 })
     }
-    if (password.length < 6) {
-      return NextResponse.json({ message: 'Le mot de passe doit comporter au moins 6 caractères' }, { status: 400 })
+    if (!bodyEmail?.trim()) {
+      return NextResponse.json(
+        { message: "L'adresse email est obligatoire pour activer votre compte." },
+        { status: 400 }
+      )
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(bodyEmail.trim())) {
+      return NextResponse.json(
+        { message: "Format d'adresse email invalide. Vérifiez votre adresse." },
+        { status: 400 }
+      )
+    }
+    if (!password || password.length < 6) {
+      return NextResponse.json(
+        { message: 'Le mot de passe doit comporter au moins 6 caractères.' },
+        { status: 400 }
+      )
     }
 
-    // ── 1. Fetch the access document ──
-    let snap = await adminDb.collection('teamAccesses').doc(accessId).get()
-    let collection = 'teamAccesses'
+    const email = bodyEmail.trim().toLowerCase()
 
-    if (!snap.exists) {
-      snap = await adminDb.collection('accesses').doc(accessId).get()
-      collection = 'accesses'
-    }
-    if (!snap.exists) {
-      snap = await adminDb.collection('team_accesses').doc(accessId).get()
-      if (snap.exists) collection = 'team_accesses'
+    // ── 1. Find the access document across all known collections ─────────────
+    let snap: FirebaseFirestore.DocumentSnapshot | null = null
+    let foundCollection = ''
+
+    for (const col of ACCESS_COLLECTIONS) {
+      const s = await adminDb.collection(col).doc(accessId.trim()).get()
+      if (s.exists) {
+        snap = s
+        foundCollection = col
+        break
+      }
     }
 
-    if (!snap.exists) {
+    if (!snap || !snap.exists) {
       return NextResponse.json(
         {
           message:
-            'Lien d\'activation invalide ou expiré. Vérifiez l\'identifiant d\'accès fourni par votre manager ou demandez un nouveau lien.',
+            "Lien d'activation invalide ou expiré. Vérifiez l'identifiant fourni par votre manager ou demandez un nouveau lien.",
         },
         { status: 404 }
       )
@@ -54,40 +76,37 @@ export async function POST(request: NextRequest) {
 
     const data = snap.data()!
 
-    if (data.status === 'activated') {
+    // ── 2. Guard: already activated ─────────────────────────────────────────
+    if (data.activated === true || data.status === 'active') {
       return NextResponse.json(
         {
           message:
-            'Ce compte a déjà été activé. Connectez-vous directement sur la page de connexion avec votre adresse email et votre mot de passe.',
+            'Ce compte a déjà été activé. Connectez-vous directement avec votre adresse email et votre mot de passe.',
         },
         { status: 409 }
       )
     }
 
-    // Email : priorité au doc Firestore, sinon email fourni par le membre
-    const email: string | undefined = data.email || bodyEmail?.trim()
-    if (!email) {
+    // ── 3. Guard: revoked ───────────────────────────────────────────────────
+    if (data.status === 'revoked') {
       return NextResponse.json(
         {
           message:
-            'Aucun email fourni. Veuillez saisir votre adresse email dans le formulaire.',
+            "Cet accès a été révoqué par votre manager. Contactez-le pour obtenir un nouveau lien.",
         },
-        { status: 422 }
-      )
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return NextResponse.json(
-        { message: 'Format d\'email invalide.' },
-        { status: 400 }
+        { status: 403 }
       )
     }
 
-    // ── 2. Create or update Firebase Auth user ──
+    console.log('[auth/activate] Activation started', { accessId, email, collection: foundCollection })
+
+    // ── 4. Create or update Firebase Auth user ──────────────────────────────
     let uid: string
     try {
       const existing = await adminAuth.getUserByEmail(email)
       await adminAuth.updateUser(existing.uid, { password })
       uid = existing.uid
+      console.log('[auth/activate] Updated existing Auth user', { uid, email })
     } catch (authErr: unknown) {
       const code = (authErr as { code?: string })?.code
       if (code === 'auth/user-not-found') {
@@ -97,15 +116,19 @@ export async function POST(request: NextRequest) {
           displayName: [
             data.firstname ?? data.firstName ?? '',
             data.lastname  ?? data.lastName  ?? '',
-          ].join(' ').trim() || undefined,
+          ]
+            .join(' ')
+            .trim() || undefined,
         })
         uid = newUser.uid
+        console.log('[auth/activate] Created new Auth user', { uid, email })
       } else {
+        console.error('[auth/activate] Firebase Auth error', authErr)
         throw authErr
       }
     }
 
-    // ── 3. Write / merge Firestore user document ──
+    // ── 5. Write / merge the users/{uid} document ───────────────────────────
     await adminDb.collection('users').doc(uid).set(
       {
         uid,
@@ -113,37 +136,45 @@ export async function POST(request: NextRequest) {
         name: [
           data.firstname ?? data.firstName ?? '',
           data.lastname  ?? data.lastName  ?? '',
-        ].join(' ').trim() || null,
-        role:      data.role      ?? 'member',
-        plan:      data.plan      ?? 'free',
-        active:    true,
-        company:   data.company   ?? null,
-        sector:    data.sector    ?? null,
-        region:    data.region    ?? null,
-        managerId: data.managerId ?? null,
+        ]
+          .join(' ')
+          .trim() || null,
+        role:       data.role      ?? 'member',
+        plan:       data.plan      ?? 'free',
+        active:     true,
+        activated:  true,
+        company:    data.company   ?? null,
+        sector:     data.sector    ?? null,
+        region:     data.region    ?? null,
+        managerId:  data.managerId ?? data.managerUid ?? null,
+        managerUid: data.managerUid ?? data.managerId ?? null,
+        managerEmail: data.managerEmail ?? null,
         dailyUsed:  0,
         dailyLimit: data.dailyLimit ?? 10,
-        createdAt: new Date(),
+        createdAt:  new Date(),
+        activatedAt: new Date(),
       },
       { merge: true }
     )
 
-    // ── 4. Marquer l'accès comme activé (activated: true + email si nouvellement fourni) ──
-    await adminDb.collection(collection).doc(accessId).update({
-      status:       'active',
-      activated:    true,              // champ booléen pour les dashboards de suivi
+    // ── 6. Update the access document: activated=true, email, firebaseUid ───
+    //      This is the key step that was missing — the source document in
+    //      Firestore (visible in the admin dashboard) must reflect the new state.
+    await adminDb.collection(foundCollection).doc(accessId.trim()).update({
+      activated:    true,           // boolean — dashboard uses this field
+      status:       'active',       // string  — used by access-info route
+      email,                        // saves the email the member used
+      firebaseUid:  uid,            // links the Firestore doc to the Auth user
       activatedAt:  new Date(),
       activatedUid: uid,
-      firebaseUid:  uid,
-      // Si l'email n'était pas dans Firestore, on le sauvegarde maintenant
-      ...(data.email ? {} : { email }),
     })
+
+    console.log('[auth/activate] Activation complete', { accessId, email, uid, collection: foundCollection })
 
     return NextResponse.json({ success: true, uid })
   } catch (error) {
-    console.error('[activate] Error:', error)
+    console.error('[auth/activate] Unexpected error:', error)
 
-    // Always return JSON with a human-readable message
     const msg =
       error instanceof Error
         ? error.message
@@ -158,7 +189,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Handle incorrect method — return JSON not HTML
+// Wrong method — return JSON, not HTML
 export async function GET() {
   return NextResponse.json({ message: 'Méthode non autorisée' }, { status: 405 })
 }

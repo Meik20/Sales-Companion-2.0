@@ -18,22 +18,22 @@ const badgeStyles: Record<BadgeVariant, CSSProperties> = {
   },
   success: {
     background: colors.successBg,
-    color: '#4ade80',
+    color: 'var(--color-success)',
     border: `1px solid ${colors.successBorder}`,
   },
   warning: {
     background: colors.warningBg,
-    color: '#fbbf24',
+    color: 'var(--color-warning)',
     border: `1px solid ${colors.warningBorder}`,
   },
   danger: {
     background: colors.dangerBg,
-    color: '#f87171',
+    color: 'var(--color-danger)',
     border: `1px solid ${colors.dangerBorder}`,
   },
   info: {
     background: 'rgba(29,78,216,0.12)',
-    color: '#60a5fa',
+    color: 'var(--color-accent)',
     border: '1px solid rgba(29,78,216,0.3)',
   },
   gold: {
