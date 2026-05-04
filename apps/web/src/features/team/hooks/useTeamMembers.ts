@@ -49,7 +49,16 @@ export function useTeamMembers() {
   const [isError, setIsError] = useState(false)
 
   useEffect(() => {
-    if (!user?.uid) { setMembers([]); return }
+    // ── SECURITY: Strict validation of current user before proceeding
+    if (!user?.uid) { 
+      setMembers([])
+      setIsError(false)
+      setIsLoading(false)
+      return 
+    }
+
+    // ── Capture manager UID once to ensure consistent reference
+    const managerUid = user.uid
 
     setIsLoading(true)
     setIsError(false)
@@ -60,6 +69,12 @@ export function useTeamMembers() {
     let settled = false
 
     function merge() {
+      // ── SECURITY: Double-check manager context before processing data
+      if (!managerUid) {
+        console.warn('[useTeamMembers] merge() called without valid managerUid')
+        return
+      }
+
       // Start from team_accesses (source of truth)
       const byEmail: Record<string, TeamMember> = {}
 
@@ -88,7 +103,7 @@ export function useTeamMembers() {
             email:     u.email     ?? '',
             name:      u.name      ?? '',
             role:      'member',
-            managerUid: user.uid,
+            managerUid: managerUid,
             active:    u.active    ?? false,
             dailyUsed: u.dailyUsed ?? 0,
             dailyLimit:u.dailyLimit ?? 100,
@@ -109,7 +124,7 @@ export function useTeamMembers() {
     // ── Listener 1 : team_accesses ─────────────────────────────────────────
     const qAccesses = query(
       collection(db, 'team_accesses'),
-      where('managerUid', '==', user.uid)
+      where('managerUid', '==', managerUid)
     )
     const unsubAccesses = onSnapshot(
       qAccesses,
@@ -134,7 +149,7 @@ export function useTeamMembers() {
             email:     data.email      ?? '',
             name:      fullName,
             role:      'member',
-            managerUid: user.uid,
+            managerUid: managerUid,
             active:    isActive,
             dailyUsed: data.dailyUsed  ?? 0,
             dailyLimit: data.dailyLimit ?? 100,
@@ -152,7 +167,7 @@ export function useTeamMembers() {
     // ── Listener 2 : users ─────────────────────────────────────────────────
     const qUsers = query(
       collection(db, 'users'),
-      where('managerUid', '==', user.uid)
+      where('managerUid', '==', managerUid)
     )
     const unsubUsers = onSnapshot(
       qUsers,
@@ -172,7 +187,7 @@ export function useTeamMembers() {
             active:    isActive,
             dailyUsed: data.dailyUsed  ?? 0,
             dailyLimit: data.dailyLimit ?? 100,
-            managerUid: data.managerUid ?? user.uid,
+            managerUid: data.managerUid ?? managerUid,
           }
         })
         merge()
