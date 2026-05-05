@@ -170,12 +170,20 @@ export async function POST(request: NextRequest) {
       companyName = d.companyName ?? d.name ?? pipelineItemId
       prospectData = d
     } else {
-      // Try imported prospects
-      const importedDoc = await adminDb.collection('imported_prospects').doc(pipelineItemId).get()
-      if (importedDoc.exists) {
-        const d = importedDoc.data()!
-        companyName = d.name ?? d.companyName ?? pipelineItemId
+      // Primary CSV import collection
+      const managerProspectDoc = await adminDb.collection('manager_prospects').doc(pipelineItemId).get()
+      if (managerProspectDoc.exists) {
+        const d = managerProspectDoc.data()!
+        companyName = d.name ?? d.companyName ?? d.raisonSociale ?? pipelineItemId
         prospectData = d
+      } else {
+        // Legacy import collection
+        const importedDoc = await adminDb.collection('imported_prospects').doc(pipelineItemId).get()
+        if (importedDoc.exists) {
+          const d = importedDoc.data()!
+          companyName = d.name ?? d.companyName ?? pipelineItemId
+          prospectData = d
+        }
       }
     }
 

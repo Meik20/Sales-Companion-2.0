@@ -6,58 +6,44 @@ async function getAdmin() {
   return { adminDb, adminAuth }
 }
 
-/** Look up prospect data across all source collections */
+/** Resolve prospect from all source collections */
 async function resolveProspect(
   adminDb: FirebaseFirestore.Firestore,
-  prospectId: string
+  id: string
 ): Promise<Record<string, unknown> | null> {
-  // 1. manager_prospects — primary CSV import collection
-  const mDoc = await adminDb.collection('manager_prospects').doc(prospectId).get()
-  if (mDoc.exists) return mDoc.data() ?? null
-
-  // 2. pipeline — manually added prospects
-  const pDoc = await adminDb.collection('pipeline').doc(prospectId).get()
-  if (pDoc.exists) return pDoc.data() ?? null
-
-  // 3. imported_prospects — legacy collection name
-  const iDoc = await adminDb.collection('imported_prospects').doc(prospectId).get()
-  if (iDoc.exists) return iDoc.data() ?? null
-
+  const [m, p, i] = await Promise.all([
+    adminDb.collection('manager_prospects').doc(id).get(),
+    adminDb.collection('pipeline').doc(id).get(),
+    adminDb.collection('imported_prospects').doc(id).get(),
+  ])
+  if (m.exists) return m.data() ?? null
+  if (p.exists) return p.data() ?? null
+  if (i.exists) return i.data() ?? null
   return null
 }
 
-/** Extract a display name from raw prospect data */
 function extractName(data: Record<string, unknown>): string {
-  const raw =
-    (data.name as string) ||
-    (data.companyName as string) ||
-    (data.raisonSociale as string) ||
-    ''
-  return raw.trim() || 'Inconnu'
+  return (
+    ((data.name as string) || (data.companyName as string) || (data.raisonSociale as string) || '').trim() || ''
+  )
 }
 
-/** Detect Firestore auto-IDs (20-char alphanumeric strings, no spaces) */
-const isFirestoreId = (s: string) => /^[A-Za-z0-9]{15,30}$/.test(s.trim())
-
-/** Detect email-like strings used as user IDs by mistake */
-const isEmail = (s: string) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(s.trim())
+/** Detect raw Firestore auto-IDs (15-30 alphanum, no spaces/dashes) */
+const isFirestoreId = (s: string) => /^[A-Za-z0-9]{15,30}$/.test((s ?? '').trim())
 
 /**
- * POST /api/team/assignments/repair  v3
+ * POST /api/team/assignments/repair  v4
  *
- * Phase 0 — For each assignment, resolve the true Firebase UID of the member.
- *            Handles legacy assignments where assigneeUid is an email or missing.
+ * Global scan — does NOT filter by managerUid so it catches all malformed items
+ * regardless of which system created them.
  *
- * Phase 1 — Create missing pipeline items for the member using the resolved UID
- *            and real prospect data from manager_prospects / pipeline / imported_prospects.
+ * Phase 1 — Scan ALL pipeline items whose companyName is a raw Firestore ID.
+ *           Re-resolve from manager_prospects / pipeline / imported_prospects and patch.
  *
- * Phase 2 — Patch existing pipeline items whose companyName is a raw Firestore ID.
- *            Re-resolves name, phone, email, sector, city from source collections.
+ * Phase 2 — For each assignment in `team_assignments` and `assignments` collections,
+ *           ensure the member has a pipeline item. Creates missing ones.
  *
- * Phase 3 — Patch existing pipeline items whose userId is an email instead of a
- *            Firebase UID (legacy bug). Replaces with the correct Firebase UID.
- *
- * Returns: { repaired, patched, uidFixed, skipped, errors }
+ * Returns: { patched, repaired, skipped, errors }
  */
 export async function POST(request: NextRequest) {
   try {
@@ -71,221 +57,172 @@ export async function POST(request: NextRequest) {
     try {
       const decoded = await adminAuth.verifyIdToken(token)
       managerUid = decoded.uid
-      const managerDoc = await adminDb.collection('users').doc(managerUid).get()
-      managerName = (managerDoc.data()?.name ?? managerDoc.data()?.email ?? '') as string
+      const mDoc = await adminDb.collection('users').doc(managerUid).get()
+      managerName = (mDoc.data()?.name ?? mDoc.data()?.email ?? '') as string
     } catch {
       return NextResponse.json({ message: 'Token invalide' }, { status: 401 })
     }
 
-    const assignmentsSnap = await adminDb
-      .collection('assignments')
-      .where('managerUid', '==', managerUid)
-      .get()
-
+    let patched  = 0
     let repaired = 0
-    let patched   = 0
-    let uidFixed  = 0
-    let skipped   = 0
+    let skipped  = 0
     const errors: string[] = []
 
-    // ── Cache: email → Firebase UID ────────────────────────────────
-    const uidCache = new Map<string, string | null>()
+    // ── PHASE 1: Global name patch ────────────────────────────────────────
+    // Scan ALL pipeline items for this manager (via managerUid) AND all
+    // items where the name looks like a Firestore ID
+    const [byManager, allPipeline] = await Promise.all([
+      adminDb.collection('pipeline').where('managerUid', '==', managerUid).get(),
+      adminDb.collection('pipeline').get(), // full scan to catch orphans
+    ])
 
-    async function resolveFirebaseUid(rawUid: string): Promise<string | null> {
-      if (!rawUid) return null
-      if (!isEmail(rawUid)) return rawUid // already a proper UID
+    // Merge unique docs — prefer byManager, supplement with full scan
+    const docMap = new Map<string, FirebaseFirestore.QueryDocumentSnapshot>()
+    allPipeline.docs.forEach((d) => docMap.set(d.id, d))
+    byManager.docs.forEach((d) => docMap.set(d.id, d))
 
-      if (uidCache.has(rawUid)) return uidCache.get(rawUid)!
+    for (const doc of docMap.values()) {
+      const d = doc.data()
+      const currentName: string = d.companyName ?? d.name ?? ''
+      if (!isFirestoreId(currentName)) continue
+
+      // Find the source ID to look up
+      const sourceId: string = d.sourceId ?? d.sourceProspectId ?? d.companyId ?? currentName
 
       try {
-        // 1. Try team_accesses by email
-        const accessSnap = await adminDb
-          .collection('team_accesses')
-          .where('email', '==', rawUid)
-          .limit(1)
-          .get()
+        const prospectData = await resolveProspect(adminDb, sourceId)
+        if (!prospectData) { skipped++; continue }
 
-        if (!accessSnap.empty) {
-          const accessDoc = accessSnap.docs[0]
-          if (accessDoc) {
-            const uid = (accessDoc.data()?.firebaseUid as string) || null
-            if (uid && !isEmail(uid)) {
-              uidCache.set(rawUid, uid)
-              return uid
-            }
-          }
-        }
+        const realName = extractName(prospectData)
+        if (!realName) { skipped++; continue }
 
-        // 2. Try Firebase Auth by email
-        const userRecord = await adminAuth.getUserByEmail(rawUid)
-        const uid = userRecord.uid
-        uidCache.set(rawUid, uid)
-        return uid
-      } catch {
-        uidCache.set(rawUid, null)
-        return null
+        await doc.ref.update({
+          companyName:   realName,
+          name:          realName,
+          companySector: (prospectData.companySector as string) ?? (prospectData.sector   as string) ?? d.companySector ?? null,
+          companyCity:   (prospectData.companyCity   as string) ?? (prospectData.city     as string) ?? d.companyCity   ?? null,
+          companyPhone:  (prospectData.companyPhone  as string) ?? (prospectData.phone    as string) ?? d.companyPhone  ?? null,
+          companyEmail:  (prospectData.companyEmail  as string) ?? (prospectData.email    as string) ?? d.companyEmail  ?? null,
+          updatedAt:     FieldValue.serverTimestamp(),
+        })
+        patched++
+      } catch (err) {
+        errors.push(`patch ${doc.id}: ${err instanceof Error ? err.message : String(err)}`)
       }
     }
 
-    // ── Phase 0+1: Resolve UID and create missing pipeline items ──
-    for (const assignDoc of assignmentsSnap.docs) {
-      const data = assignDoc.data()
-      const rawAssigneeUid: string = data.assigneeUid ?? data.assigneeId ?? ''
-      const prospectIds: string[] = Array.isArray(data.prospectIds) ? data.prospectIds : []
+    // ── PHASE 2: Create missing member pipeline items ─────────────────────
+    // Query both assignment collections for this manager
+    const [teamSnap, legacySnap] = await Promise.all([
+      adminDb.collection('team_assignments').where('managerUid', '==', managerUid).get(),
+      adminDb.collection('assignments').where('managerUid', '==', managerUid).get(),
+    ])
 
-      if (!rawAssigneeUid) { skipped++; continue }
+    // Process team_assignments (new system)
+    for (const aDoc of teamSnap.docs) {
+      const a = aDoc.data()
+      const memberId: string      = a.memberId ?? ''
+      const pipelineItemId: string = a.pipelineItemId ?? ''
+      const pipelineEntryId: string = a.pipelineEntryId ?? ''
+      if (!memberId || !pipelineItemId) { skipped++; continue }
 
-      // Phase 0: resolve true Firebase UID
-      const assigneeUid = await resolveFirebaseUid(rawAssigneeUid)
-      if (!assigneeUid) {
-        errors.push(`UID introuvable pour l'assigné "${rawAssigneeUid}" (doc ${assignDoc.id})`)
-        skipped++
-        continue
+      // Check if the member pipeline entry still exists
+      if (pipelineEntryId) {
+        const existing = await adminDb.collection('pipeline').doc(pipelineEntryId).get()
+        if (existing.exists) { skipped++; continue }
       }
 
-      // Update the assignment doc if UID changed
-      if (assigneeUid !== rawAssigneeUid) {
-        await assignDoc.ref.update({ assigneeUid })
+      // Check by sourceProspectId
+      const existingSnap = await adminDb.collection('pipeline')
+        .where('userId', '==', memberId)
+        .where('sourceProspectId', '==', pipelineItemId)
+        .limit(1).get()
+      if (!existingSnap.empty) { skipped++; continue }
+
+      // Resolve prospect data
+      const prospectData = await resolveProspect(adminDb, pipelineItemId)
+      if (!prospectData) { skipped++; continue }
+
+      const companyName = extractName(prospectData) || pipelineItemId
+
+      try {
+        const newRef = adminDb.collection('pipeline').doc()
+        await newRef.set({
+          id:           newRef.id,
+          userId:       memberId,
+          assignedTo:   memberId,
+          managerUid,
+          companyName,
+          name:         companyName,
+          companySector: (prospectData.companySector as string) ?? (prospectData.sector as string) ?? null,
+          companyCity:   (prospectData.companyCity   as string) ?? (prospectData.city   as string) ?? null,
+          companyPhone:  (prospectData.companyPhone  as string) ?? (prospectData.phone  as string) ?? null,
+          companyEmail:  (prospectData.companyEmail  as string) ?? (prospectData.email  as string) ?? null,
+          status:        'prospection',
+          sourceProspectId: pipelineItemId,
+          sourceId:      pipelineItemId,
+          assignedBy:    managerUid,
+          assignedByName: managerName,
+          assignmentId:  aDoc.id,
+          createdAt:     FieldValue.serverTimestamp(),
+          updatedAt:     FieldValue.serverTimestamp(),
+        })
+        // Update assignment to point to new entry
+        await aDoc.ref.update({ pipelineEntryId: newRef.id })
+        repaired++
+      } catch (err) {
+        errors.push(`repair team_assignment ${aDoc.id}: ${err instanceof Error ? err.message : String(err)}`)
       }
+    }
+
+    // Process legacy assignments (old Express system)
+    for (const aDoc of legacySnap.docs) {
+      const a = aDoc.data()
+      const assigneeUid: string   = a.assigneeUid ?? ''
+      const prospectIds: string[] = Array.isArray(a.prospectIds) ? a.prospectIds : []
+      if (!assigneeUid || prospectIds.length === 0) { skipped++; continue }
 
       for (const prospectId of prospectIds) {
+        const existSnap = await adminDb.collection('pipeline')
+          .where('userId', '==', assigneeUid)
+          .where('sourceId', '==', prospectId)
+          .limit(1).get()
+        if (!existSnap.empty) { skipped++; continue }
+
+        const prospectData = await resolveProspect(adminDb, prospectId)
+        if (!prospectData) { skipped++; continue }
+
+        const companyName = extractName(prospectData) || prospectId
+
         try {
-          // Check existence using both raw and resolved UID
-          const [s1, s2, s3] = await Promise.all([
-            adminDb.collection('pipeline')
-              .where('userId', '==', assigneeUid)
-              .where('sourceId', '==', prospectId)
-              .limit(1).get(),
-            adminDb.collection('pipeline')
-              .where('assignedTo', '==', assigneeUid)
-              .where('sourceId', '==', prospectId)
-              .limit(1).get(),
-            // Also check with the raw (email) userId in case of legacy items
-            rawAssigneeUid !== assigneeUid
-              ? adminDb.collection('pipeline')
-                .where('userId', '==', rawAssigneeUid)
-                .where('sourceId', '==', prospectId)
-                .limit(1).get()
-              : Promise.resolve({ empty: true } as FirebaseFirestore.QuerySnapshot),
-          ])
-
-          if (!s1.empty || !s2.empty) {
-            skipped++
-            continue
-          }
-
-          // If a legacy item exists with email userId, fix it (Phase 3 inline)
-          if (!s3.empty) {
-            const legacyDoc = s3.docs[0]
-            if (legacyDoc) {
-              await legacyDoc.ref.update({
-                userId: assigneeUid,
-                assignedTo: assigneeUid,
-                updatedAt: FieldValue.serverTimestamp(),
-              })
-              uidFixed++
-            }
-            continue
-          }
-
-          // Resolve prospect data
-          const prospectData = await resolveProspect(adminDb, prospectId)
-          if (!prospectData) {
-            errors.push(`Prospect ${prospectId} introuvable dans toutes les collections`)
-            skipped++
-            continue
-          }
-
-          const companyName = extractName(prospectData)
-
-          // Create missing pipeline item
           const newRef = adminDb.collection('pipeline').doc()
           await newRef.set({
-            id:            newRef.id,
-            userId:        assigneeUid,
-            assignedTo:    assigneeUid,
+            id:           newRef.id,
+            userId:       assigneeUid,
+            assignedTo:   assigneeUid,
             managerUid,
-            companyId:     (prospectData.companyId as string) ?? (prospectData.id as string) ?? prospectId,
             companyName,
-            companySector: (prospectData.companySector as string) ?? (prospectData.sector as string)    ?? null,
-            companyCity:   (prospectData.companyCity   as string) ?? (prospectData.city    as string)   ?? null,
-            companyPhone:  (prospectData.companyPhone  as string) ?? (prospectData.phone   as string)   ?? null,
-            companyEmail:  (prospectData.companyEmail  as string) ?? (prospectData.email   as string)   ?? null,
+            name:         companyName,
+            companySector: (prospectData.companySector as string) ?? (prospectData.sector as string) ?? null,
+            companyCity:   (prospectData.companyCity   as string) ?? (prospectData.city   as string) ?? null,
+            companyPhone:  (prospectData.companyPhone  as string) ?? (prospectData.phone  as string) ?? null,
+            companyEmail:  (prospectData.companyEmail  as string) ?? (prospectData.email  as string) ?? null,
             status:        'prospection',
-            notes:         (prospectData.notes as string) ?? null,
-            nextFollowUp:  (prospectData.nextFollowUp as string) ?? null,
             sourceId:      prospectId,
             assignedBy:    managerUid,
             assignedByName: managerName,
-            assignmentId:  assignDoc.id,
+            assignmentId:  aDoc.id,
             createdAt:     FieldValue.serverTimestamp(),
             updatedAt:     FieldValue.serverTimestamp(),
           })
-
           repaired++
         } catch (err) {
-          const msg = err instanceof Error ? err.message : String(err)
-          errors.push(`Erreur prospect ${prospectId}: ${msg}`)
+          errors.push(`repair legacy ${prospectId}: ${err instanceof Error ? err.message : String(err)}`)
         }
       }
     }
 
-    // ── Phase 2+3: Patch existing pipeline items with bad data ────
-    const memberPipelineSnap = await adminDb
-      .collection('pipeline')
-      .where('managerUid', '==', managerUid)
-      .get()
-
-    for (const doc of memberPipelineSnap.docs) {
-      const d = doc.data()
-      const currentName: string = d.companyName ?? ''
-      const currentUserId: string = d.userId ?? ''
-      const sourceId: string = d.sourceId ?? ''
-
-      const needsNameFix   = isFirestoreId(currentName) && !!sourceId
-      const needsUidFix    = isEmail(currentUserId)
-
-      if (!needsNameFix && !needsUidFix) continue
-
-      try {
-        const updates: Record<string, unknown> = { updatedAt: FieldValue.serverTimestamp() }
-
-        // Phase 2: fix name
-        if (needsNameFix) {
-          const prospectData = await resolveProspect(adminDb, sourceId)
-          if (prospectData) {
-            const realName = extractName(prospectData)
-            if (realName !== 'Inconnu') {
-              updates.companyName   = realName
-              updates.companySector = (prospectData.companySector as string) ?? (prospectData.sector as string) ?? d.companySector ?? null
-              updates.companyCity   = (prospectData.companyCity   as string) ?? (prospectData.city   as string) ?? d.companyCity   ?? null
-              updates.companyPhone  = (prospectData.companyPhone  as string) ?? (prospectData.phone  as string) ?? d.companyPhone  ?? null
-              updates.companyEmail  = (prospectData.companyEmail  as string) ?? (prospectData.email  as string) ?? d.companyEmail  ?? null
-              patched++
-            }
-          }
-        }
-
-        // Phase 3: fix userId (email → Firebase UID)
-        if (needsUidFix) {
-          const realUid = await resolveFirebaseUid(currentUserId)
-          if (realUid && realUid !== currentUserId) {
-            updates.userId     = realUid
-            updates.assignedTo = realUid
-            uidFixed++
-          }
-        }
-
-        if (Object.keys(updates).length > 1) {
-          await doc.ref.update(updates)
-        }
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err)
-        errors.push(`Patch échoué pour ${doc.id}: ${msg}`)
-      }
-    }
-
-    return NextResponse.json({ repaired, patched, uidFixed, skipped, errors })
+    return NextResponse.json({ patched, repaired, skipped, errors })
   } catch (error) {
     console.error('[team/assignments/repair POST]', error)
     return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 })
