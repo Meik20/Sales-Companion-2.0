@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useAdminCompanies, AdminCompany } from '../hooks/useAdminCompanies'
 import { useDeleteAdminCompanies } from '../hooks/useDeleteAdminCompanies'
+import { useDeleteAllAdminCompanies } from '../hooks/useDeleteAllAdminCompanies'
 import { SectionCard } from '@/features/team/components/SectionCard'
 import { useToast } from '@/hooks/useToast'
 import { colors } from '@/styles/tokens'
@@ -13,6 +14,7 @@ export function AdminCompaniesTable() {
   const [isDeleting, setIsDeleting] = useState(false)
   const { data, isLoading, isError } = useAdminCompanies(page)
   const deleteMutation = useDeleteAdminCompanies()
+  const deleteAllMutation = useDeleteAllAdminCompanies()
   const { pushToast } = useToast()
 
   if (isLoading) {
@@ -73,6 +75,27 @@ export function AdminCompaniesTable() {
     }
   }
 
+  const handleDeleteAll = async () => {
+    if (!window.confirm('Supprimer toutes les entreprises importées ?')) {
+      return
+    }
+
+    setIsDeleting(true)
+    try {
+      await deleteAllMutation.mutateAsync()
+      setSelectedIds([])
+      pushToast({ type: 'success', title: 'Liste des entreprises vidée' })
+    } catch (error) {
+      pushToast({
+        type: 'error',
+        title: 'Suppression impossible',
+        description: error instanceof Error ? error.message : 'Erreur inconnue',
+      })
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
   return (
     <SectionCard title="Entreprises" subtitle={`${total} entreprise${total > 1 ? 's' : ''} importée${total > 1 ? 's' : ''}`}>
       {items.length === 0 ? (
@@ -96,23 +119,42 @@ export function AdminCompaniesTable() {
                 ? `${selectedIds.length} entreprise${selectedIds.length > 1 ? 's' : ''} sélectionnée${selectedIds.length > 1 ? 's' : ''}`
                 : 'Sélectionnez des entreprises à supprimer.'}
             </div>
-            <button
-              type="button"
-              onClick={handleDeleteSelected}
-              disabled={selectedIds.length === 0 || isDeleting}
-              style={{
-                padding: '10px 16px',
-                fontSize: 13,
-                borderRadius: 8,
-                border: `1px solid ${selectedIds.length === 0 ? colors.border : colors.dangerBorder}`,
-                background: selectedIds.length === 0 ? colors.bg : colors.dangerBg,
-                color: selectedIds.length === 0 ? colors.textMid : colors.danger,
-                cursor: selectedIds.length === 0 || isDeleting ? 'not-allowed' : 'pointer',
-                opacity: selectedIds.length === 0 || isDeleting ? 0.5 : 1,
-              }}
-            >
-              Supprimer la sélection
-            </button>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                onClick={handleDeleteAll}
+                disabled={items.length === 0 || isDeleting}
+                style={{
+                  padding: '10px 16px',
+                  fontSize: 13,
+                  borderRadius: 8,
+                  border: `1px solid ${colors.border}`,
+                  background: colors.bg,
+                  color: colors.text,
+                  cursor: items.length === 0 || isDeleting ? 'not-allowed' : 'pointer',
+                  opacity: items.length === 0 || isDeleting ? 0.5 : 1,
+                }}
+              >
+                Vider la liste
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteSelected}
+                disabled={selectedIds.length === 0 || isDeleting}
+                style={{
+                  padding: '10px 16px',
+                  fontSize: 13,
+                  borderRadius: 8,
+                  border: `1px solid ${selectedIds.length === 0 ? colors.border : colors.dangerBorder}`,
+                  background: selectedIds.length === 0 ? colors.bg : colors.dangerBg,
+                  color: selectedIds.length === 0 ? colors.textMid : colors.danger,
+                  cursor: selectedIds.length === 0 || isDeleting ? 'not-allowed' : 'pointer',
+                  opacity: selectedIds.length === 0 || isDeleting ? 0.5 : 1,
+                }}
+              >
+                Supprimer la sélection
+              </button>
+            </div>
           </div>
 
           <div style={{ overflowX: 'auto' }}>

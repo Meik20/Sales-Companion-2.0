@@ -33,3 +33,37 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 }
+
+async function deleteAllCompanies() {
+  const batchSize = 500
+
+  while (true) {
+    const snapshot = await adminDb.collection('companies').limit(batchSize).get()
+    if (snapshot.empty) {
+      break
+    }
+
+    const batch = adminDb.batch()
+    snapshot.docs.forEach((doc) => batch.delete(doc.ref))
+    await batch.commit()
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const token = request.headers.get('authorization')?.split(' ')[1]
+    if (!token) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+
+    const decoded = await adminAuth.verifyIdToken(token)
+    const callerDoc = await adminDb.collection('users').doc(decoded.uid).get()
+    if (callerDoc.data()?.role !== 'admin') {
+      return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
+    }
+
+    await deleteAllCompanies()
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Delete all companies error:', error)
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
+  }
+}
