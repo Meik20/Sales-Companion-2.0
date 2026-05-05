@@ -153,8 +153,8 @@ function SearchContent() {
                 color: '#ef4444', fontSize: 13,
               }}>
                 {(searchQuery.error as Error)?.message?.includes('429') || (searchQuery.error as Error)?.message?.includes('Quota')
-                  ? '⚠️ Quota journalier épuisé. Vos crédits seront réinitialisés demain.'
-                  : '❌ Impossible d\'exécuter la recherche. Veuillez réessayer.'
+                  ? 'Quota journalier épuisé. Vos crédits seront réinitialisés demain.'
+                  : 'Impossible d\'exécuter la recherche. Veuillez réessayer.'
                 }
               </div>
             ) : null}
@@ -325,7 +325,7 @@ function SearchContent() {
         `}} />
 
         {/* Pipeline commercial */}
-        <DataCard title="📊 Pipeline commercial">
+        <DataCard title="Pipeline commercial">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {/* Stats live */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
@@ -351,7 +351,7 @@ function SearchContent() {
         </DataCard>
 
         {/* Assistant B2B IA */}
-        <DataCard title="🟢 Assistant IA B2B">
+        <DataCard title="Assistant IA B2B">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, height: 380 }}>
             {/* Zone messages */}
             <div style={{

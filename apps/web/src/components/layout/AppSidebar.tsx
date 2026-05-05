@@ -8,6 +8,12 @@ import { SidebarLink } from './SidebarLink'
 import { colors } from '@/styles/tokens'
 import { useAuthActions } from '@/features/auth/hooks/useAuthActions'
 import { useToast } from '@/hooks/useToast'
+import { usePipelineStats } from '@/features/pipeline/hooks/usePipelineStats'
+import {
+  Search, BarChart2, MessageSquare, Bookmark, WifiOff,
+  Users, Settings, LayoutDashboard, UserCheck, Building2,
+  Upload, Headphones, Activity, Sliders, LogOut, MapPin, Filter,
+} from 'lucide-react'
 
 const REGIONS = [
   'Adamaoua', 'Centre', 'Est', 'Extrême-Nord', 'Littoral',
@@ -37,6 +43,24 @@ function nearestZone(lat: number, lng: number) {
   return best!
 }
 
+// ── Section label separator ─────────────────────────────────────────────
+function SectionLabel({ children }: { children: string }) {
+  return (
+    <div style={{
+      fontSize: 10, fontWeight: 700, color: colors.textDim,
+      textTransform: 'uppercase', letterSpacing: '.09em',
+      padding: '10px 12px 4px',
+      userSelect: 'none',
+    }}>
+      {children}
+    </div>
+  )
+}
+
+function SectionDivider() {
+  return <hr style={{ border: 'none', borderTop: `1px solid ${colors.border}`, margin: '6px 0' }} />
+}
+
 export function AppSidebar({ isMobile = false, onClose }: { isMobile?: boolean; onClose?: () => void }) {
   const { user } = useCurrentUser()
   const { logout } = useAuthActions()
@@ -44,22 +68,27 @@ export function AppSidebar({ isMobile = false, onClose }: { isMobile?: boolean; 
   const router = useRouter()
   const pathname = usePathname()
 
-  const [radius, setRadius]   = useState('10 km')
-  const [region, setRegion]   = useState('')
-  const [sector, setSector]   = useState('')
-  const [geoState, setGeoState] = useState<'idle'|'loading'|'done'>('idle')
+  const [radius, setRadius]     = useState('10 km')
+  const [region, setRegion]     = useState('')
+  const [sector, setSector]     = useState('')
+  const [geoState, setGeoState] = useState<'idle' | 'loading' | 'done'>('idle')
+
+  // Pipeline stats for badge
+  const pipelineStats = usePipelineStats()
+  const totalPipeline = pipelineStats.data
+    ? (pipelineStats.data.prospection ?? 0) + (pipelineStats.data.negotiation ?? 0)
+    : 0
 
   function applyFilters(overrides: { region?: string; sector?: string; city?: string } = {}) {
-    const r = overrides.region  ?? region
-    const s = overrides.sector  ?? sector
-    const c = overrides.city    ?? ''
+    const r = overrides.region ?? region
+    const s = overrides.sector ?? sector
+    const c = overrides.city   ?? ''
     const params = new URLSearchParams()
     if (r) params.set('region', r)
     if (s) params.set('sector', s)
     if (c) params.set('city', c)
     const dest = `/search${params.toString() ? '?' + params.toString() : ''}`
-    if (pathname === '/search') router.push(dest)
-    else router.push(dest)
+    router.push(dest)
     onClose?.()
   }
 
@@ -98,160 +127,186 @@ export function AppSidebar({ isMobile = false, onClose }: { isMobile?: boolean; 
         height: '100%',
         background: colors.bg2,
         borderRight: isMobile ? 'none' : `1px solid ${colors.border}`,
-        padding: '24px 16px',
+        padding: '20px 12px',
         display: 'flex',
         flexDirection: 'column',
-        gap: 12,
+        gap: 4,
         overflowY: 'auto',
       }}
     >
-      {/* 👤 Profil & Plan */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0 8px 16px' }}>
-        <div
-          style={{
-            width: 48,
-            height: 48,
-            borderRadius: '50%',
-            background: 'rgba(133, 183, 235, 0.15)',
-            color: 'var(--color-accent)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: 20,
-            fontWeight: 700,
-          }}
-        >
-          {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || '👤'}
+      {/* ── User Profile Card ───────────────────────────────────────── */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 10,
+        padding: '10px 10px 14px',
+        marginBottom: 4,
+      }}>
+        <div style={{
+          width: 40, height: 40, borderRadius: '50%',
+          background: 'rgba(55,138,221,0.15)',
+          color: 'var(--color-accent)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 17, fontWeight: 700, flexShrink: 0,
+        }}>
+          {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || '?'}
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <span style={{ fontWeight: 700, color: colors.text, fontSize: 15 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+          <span style={{ fontWeight: 700, color: colors.text, fontSize: 13.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {user.name || 'Utilisateur'}
           </span>
-          <span style={{ fontSize: 13, color: colors.textMid, display: 'flex', alignItems: 'center', gap: 4 }}>
-            Plan : {user.role === 'admin' ? 'Admin' : 'Free'} <span style={{ color: colors.green }}>🟢</span>
+          <span style={{ fontSize: 11, color: colors.textMid }}>
+            {user.role === 'admin' ? '🔴 Admin' : user.role === 'manager' ? '🟡 Manager' : '🔵 Membre'} · Plan Free
           </span>
         </div>
       </div>
 
-      <hr style={{ border: 'none', borderTop: `1px solid ${colors.border}`, margin: '4px 0' }} />
+      <SectionDivider />
 
-      {/* 🔍 Filtres rapides ── */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '8px 0' }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: colors.textDim, textTransform: 'uppercase', letterSpacing: '.07em', padding: '0 12px' }}>
-          Filtres rapides
-        </div>
+      {/* ── Filtres rapides ─────────────────────────────────────────── */}
+      <SectionLabel>Filtres rapides</SectionLabel>
 
-        {/* Région */}
-        <div style={{ padding: '0 12px' }}>
-          <label style={{ fontSize: 11, color: colors.textMid, display: 'block', marginBottom: 3 }}>📍 Région</label>
-          <select
-            value={region}
-            onChange={(e) => setRegion(e.target.value)}
-            style={{ width: '100%', height: 34, borderRadius: 8, border: `1px solid ${colors.border}`, background: colors.bg, color: colors.text, fontSize: 12, fontFamily: 'inherit', outline: 'none', padding: '0 8px' }}
-          >
-            <option value="">Toutes les régions</option>
-            {REGIONS.map((r) => <option key={r} value={r}>{r}</option>)}
+      {/* Région */}
+      <div style={{ padding: '2px 10px' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: colors.textMid, marginBottom: 4 }}>
+          <MapPin size={12} /> Région
+        </label>
+        <select
+          value={region}
+          onChange={(e) => setRegion(e.target.value)}
+          style={{ width: '100%', height: 32, borderRadius: 8, border: `1px solid ${colors.border}`, background: colors.bg, color: colors.text, fontSize: 12, fontFamily: 'inherit', outline: 'none', padding: '0 8px' }}
+        >
+          <option value="">Toutes les régions</option>
+          {REGIONS.map((r) => <option key={r} value={r}>{r}</option>)}
+        </select>
+      </div>
+
+      {/* Secteur */}
+      <div style={{ padding: '2px 10px' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: colors.textMid, marginBottom: 4 }}>
+          <Filter size={12} /> Secteur
+        </label>
+        <select
+          value={sector}
+          onChange={(e) => setSector(e.target.value)}
+          style={{ width: '100%', height: 32, borderRadius: 8, border: `1px solid ${colors.border}`, background: colors.bg, color: colors.text, fontSize: 12, fontFamily: 'inherit', outline: 'none', padding: '0 8px' }}
+        >
+          <option value="">Tous les secteurs</option>
+          {SECTORS.map((s) => <option key={s} value={s}>{s}</option>)}
+        </select>
+      </div>
+
+      {/* Buttons */}
+      <div style={{ padding: '4px 10px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {/* P1 — Couleur action unifiée : primary blue, pas de vert */}
+        <button
+          onClick={() => applyFilters()}
+          style={{
+            height: 34, borderRadius: 8,
+            background: 'var(--color-primary)',
+            color: '#fff', border: 'none',
+            fontSize: 12, fontWeight: 700,
+            cursor: 'pointer', fontFamily: 'inherit',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            transition: 'all 150ms ease',
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--color-blue-600)')}
+          onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--color-primary)')}
+        >
+          <Search size={13} /> Rechercher
+        </button>
+
+        <button
+          onClick={handleLocateMe}
+          disabled={geoState === 'loading'}
+          style={{
+            height: 34, borderRadius: 8,
+            background: geoState === 'done' ? 'rgba(55,138,221,0.12)' : 'transparent',
+            color: 'var(--color-accent)',
+            border: `1px solid rgba(55,138,221,0.3)`,
+            fontSize: 12, fontWeight: 600, cursor: geoState === 'loading' ? 'wait' : 'pointer',
+            fontFamily: 'inherit',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            transition: 'all 150ms ease',
+          }}
+        >
+          <MapPin size={13} />
+          {geoState === 'loading' ? 'Détection…' : geoState === 'done' ? 'Autour de moi ✓' : 'Autour de moi'}
+        </button>
+
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 12, color: colors.textMid, padding: '0 2px' }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <Filter size={11} /> Rayon
+          </span>
+          <select value={radius} onChange={(e) => setRadius(e.target.value)} style={{ background: 'transparent', border: `1px solid ${colors.border}`, borderRadius: 6, padding: '3px 7px', color: colors.text, fontSize: 11, outline: 'none' }}>
+            <option>5 km</option><option>10 km</option><option>50 km</option><option>National</option>
           </select>
-        </div>
-
-        {/* Secteur */}
-        <div style={{ padding: '0 12px' }}>
-          <label style={{ fontSize: 11, color: colors.textMid, display: 'block', marginBottom: 3 }}>🏢 Secteur</label>
-          <select
-            value={sector}
-            onChange={(e) => setSector(e.target.value)}
-            style={{ width: '100%', height: 34, borderRadius: 8, border: `1px solid ${colors.border}`, background: colors.bg, color: colors.text, fontSize: 12, fontFamily: 'inherit', outline: 'none', padding: '0 8px' }}
-          >
-            <option value="">Tous les secteurs</option>
-            {SECTORS.map((s) => <option key={s} value={s}>{s}</option>)}
-          </select>
-        </div>
-
-        {/* Buttons */}
-        <div style={{ padding: '0 12px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <button
-            onClick={() => applyFilters()}
-            style={{ height: 34, borderRadius: 8, background: colors.green, color: '#fff', border: 'none', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 150ms ease' }}
-          >
-            🔍 Rechercher
-          </button>
-          <button
-            onClick={handleLocateMe}
-            disabled={geoState === 'loading'}
-            style={{ height: 34, borderRadius: 8, background: geoState === 'done' ? 'rgba(46,160,90,0.12)' : 'rgba(46,160,90,0.07)', color: colors.green, border: `1px solid rgba(46,160,90,0.3)`, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
-          >
-            {geoState === 'loading' ? '⏳ Détection…' : geoState === 'done' ? '✅ Autour de moi' : '📍 Autour de moi'}
-          </button>
-
-          {/* Rayon */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 12, color: colors.textMid }}>
-            <span>🔄 Rayon</span>
-            <select value={radius} onChange={(e) => setRadius(e.target.value)} style={{ background: 'transparent', border: `1px solid ${colors.border}`, borderRadius: 6, padding: '3px 7px', color: colors.text, fontSize: 11, outline: 'none' }}>
-              <option>5 km</option><option>10 km</option><option>50 km</option><option>National</option>
-            </select>
-          </div>
         </div>
       </div>
 
-      <hr style={{ border: 'none', borderTop: `1px solid ${colors.border}`, margin: '4px 0' }} />
+      <SectionDivider />
 
-      {/* 🎯 Outils Principaux */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 2, padding: '8px 0' }}>
-        <SidebarLink href={routes.search}   label="Prospects autour"       icon="🎯" />
-        <SidebarLink href={routes.pipeline} label="Pipeline commercial"    icon="📊" />
-        <SidebarLink href={routes.support}  label="Support"                icon="💬" />
-        <SidebarLink href={routes.saved}    label="Recherches sauvegardées" icon="🔖" />
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', fontSize: 13, color: colors.textMid, cursor: 'not-allowed', opacity: 0.7 }}>
-          <span style={{ fontSize: 15 }}>📴</span> Mode hors ligne
-        </div>
+      {/* ── P4 — Section: Outils Principaux ─────────────────────────── */}
+      <SectionLabel>Prospection</SectionLabel>
+      <SidebarLink href={routes.search}   label="Recherche prospects" icon={Search}    />
+      <SidebarLink href={routes.pipeline} label="Pipeline commercial"  icon={BarChart2} badge={totalPipeline > 0 ? totalPipeline : undefined} />
+      <SidebarLink href={routes.saved}    label="Recherches sauvegardées" icon={Bookmark} />
+      <SidebarLink href={routes.support}  label="Support"              icon={MessageSquare} />
+
+      {/* Disabled item */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', fontSize: 13, color: colors.textDim, cursor: 'not-allowed', opacity: 0.5, userSelect: 'none' }}>
+        <WifiOff size={16} strokeWidth={1.8} style={{ flexShrink: 0 }} />
+        Mode hors ligne
       </div>
 
-      <hr style={{ border: 'none', borderTop: `1px solid ${colors.border}`, margin: '4px 0' }} />
+      {/* ── P4 — Section: Équipe (Manager uniquement) ─────────────── */}
+      {user.role === 'manager' && (
+        <>
+          <SectionDivider />
+          <SectionLabel>Équipe</SectionLabel>
+          <SidebarLink href={routes.team} label="Gestion d'équipe" icon={Users} />
+        </>
+      )}
 
-      {/* ⚙️ Système */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 2, padding: '8px 0', marginTop: 'auto' }}>
-        {user.role === 'manager' && (
-          <SidebarLink href={routes.team} label="Équipe" icon="👥" />
-        )}
-        <SidebarLink href={routes.settings} label="Paramètres" icon="⚙️" />
+      {/* ── P4 — Section: Paramètres ────────────────────────────────── */}
+      <SectionDivider />
+      <SectionLabel>Compte</SectionLabel>
+      <SidebarLink href={routes.settings} label="Paramètres" icon={Settings} />
 
-        {user.role === 'admin' && (
-          <>
-            <hr style={{ border: 'none', borderTop: `1px solid ${colors.border}`, margin: '8px 0' }} />
-            <div style={{ fontSize: 10, fontWeight: 700, color: colors.textDim, textTransform: 'uppercase', letterSpacing: '.08em', padding: '0 12px 4px' }}>
-              Administration
-            </div>
-            <SidebarLink href={routes.adminDashboard}  label="Dashboard"     icon="📊" />
-            <SidebarLink href={routes.adminUsers}      label="Utilisateurs"  icon="👥" />
-            <SidebarLink href={routes.adminCompanies}  label="Entreprises"   icon="🏢" />
-            <SidebarLink href={routes.adminImports}    label="Imports"       icon="📤" />
-            <SidebarLink href={routes.adminSupport}    label="Support"       icon="💬" />
-            <SidebarLink href={routes.adminLogs}       label="Activité"      icon="📋" />
-            <SidebarLink href={routes.adminConfig}     label="Config"        icon="⚙️" />
-          </>
-        )}
-        
+      {/* ── Admin Section ───────────────────────────────────────────── */}
+      {user.role === 'admin' && (
+        <>
+          <SectionDivider />
+          <SectionLabel>Administration</SectionLabel>
+          <SidebarLink href={routes.adminDashboard}  label="Dashboard"     icon={LayoutDashboard} />
+          <SidebarLink href={routes.adminUsers}      label="Utilisateurs"  icon={UserCheck}       />
+          <SidebarLink href={routes.adminCompanies}  label="Entreprises"   icon={Building2}       />
+          <SidebarLink href={routes.adminImports}    label="Imports"       icon={Upload}          />
+          <SidebarLink href={routes.adminSupport}    label="Support"       icon={Headphones}      />
+          <SidebarLink href={routes.adminLogs}       label="Activité"      icon={Activity}        />
+          <SidebarLink href={routes.adminConfig}     label="Config"        icon={Sliders}         />
+        </>
+      )}
+
+      {/* ── Logout ──────────────────────────────────────────────────── */}
+      <div style={{ marginTop: 'auto', paddingTop: 8 }}>
+        <SectionDivider />
         <button
           onClick={handleLogout}
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            padding: '9px 12px',
+            display: 'flex', alignItems: 'center',
+            gap: 10, padding: '9px 12px',
             borderRadius: 9,
             background: 'transparent',
             color: colors.danger,
             border: 'none',
-            fontSize: 13,
-            fontWeight: 500,
-            cursor: 'pointer',
-            textAlign: 'left',
+            fontSize: 13, fontWeight: 500,
+            cursor: 'pointer', textAlign: 'left', width: '100%',
             transition: 'all 200ms ease',
           }}
-          onMouseEnter={e => (e.currentTarget.style.background = colors.dangerBg)}
-          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+          onMouseEnter={(e) => (e.currentTarget.style.background = colors.dangerBg)}
+          onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
         >
-          <span style={{ fontSize: 15 }}>🚪</span> Déconnexion
+          <LogOut size={15} strokeWidth={1.8} style={{ flexShrink: 0 }} />
+          Déconnexion
         </button>
       </div>
     </div>
@@ -259,32 +314,17 @@ export function AppSidebar({ isMobile = false, onClose }: { isMobile?: boolean; 
 
   if (isMobile) {
     return (
-      <div
-        style={{
-          position: 'fixed',
-          inset: 0,
-          zIndex: 9999,
-          display: 'flex',
-        }}
-      >
-        <div 
+      <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex' }}>
+        <div
           onClick={onClose}
-          style={{
-            position: 'absolute',
-            inset: 0,
-            background: 'rgba(0,0,0,0.5)',
-            backdropFilter: 'blur(4px)',
-          }} 
+          style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
         />
-        <div 
-          style={{ 
-            position: 'relative', 
-            background: colors.bg2,
-            width: 280, 
-            height: '100%',
-            animation: 'slideInLeft 300ms cubic-bezier(0.16, 1, 0.3, 1)'
-          }}
-        >
+        <div style={{
+          position: 'relative',
+          background: colors.bg2,
+          width: 280, height: '100%',
+          animation: 'slideInLeft 300ms cubic-bezier(0.16, 1, 0.3, 1)',
+        }}>
           {content}
         </div>
         <style dangerouslySetInnerHTML={{__html: `
@@ -297,9 +337,5 @@ export function AppSidebar({ isMobile = false, onClose }: { isMobile?: boolean; 
     )
   }
 
-  return (
-    <aside style={{ height: '100%' }}>
-      {content}
-    </aside>
-  )
+  return <aside style={{ height: '100%' }}>{content}</aside>
 }

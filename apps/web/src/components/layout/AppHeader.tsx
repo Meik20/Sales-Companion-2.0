@@ -8,6 +8,8 @@ import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useAuthActions } from '@/features/auth/hooks/useAuthActions'
 import { routes } from '@/constants/routes'
 import { colors, shadows } from '@/styles/tokens'
+import { ScIcon } from '@/components/ui/ScIcon'
+import { Settings, User, LogOut, Menu, ChevronDown } from 'lucide-react'
 
 export function AppHeader({ onOpenMenu }: { onOpenMenu?: () => void }) {
   const { user } = useCurrentUser()
@@ -25,6 +27,13 @@ export function AppHeader({ onOpenMenu }: { onOpenMenu?: () => void }) {
     }
   }
 
+  const roleBadge: Record<string, { label: string; bg: string }> = {
+    admin:   { label: 'Admin',   bg: 'rgba(239,68,68,0.25)' },
+    manager: { label: 'Manager', bg: 'rgba(251,191,36,0.22)' },
+    member:  { label: 'Membre',  bg: 'rgba(96,165,250,0.22)' },
+  }
+  const badge = user?.role ? (roleBadge[user.role] ?? null) : null
+
   return (
     <header
       style={{
@@ -33,20 +42,12 @@ export function AppHeader({ onOpenMenu }: { onOpenMenu?: () => void }) {
         zIndex: 100,
         background: `linear-gradient(135deg, var(--color-primary) 0%, var(--color-blue-800) 100%)`,
         boxShadow: shadows.sm,
-        padding: '0 16px',
+        padding: '0 20px',
         height: 60,
         display: 'flex',
         alignItems: 'center',
       }}
     >
-      <style dangerouslySetInnerHTML={{__html: `
-        .sc-brand-full { display: inline; }
-        .sc-brand-short { display: none; }
-        @media (max-width: 480px) {
-          .sc-brand-full { display: none; }
-          .sc-brand-short { display: inline; }
-        }
-      `}} />
       <div
         style={{
           maxWidth: 1440,
@@ -58,29 +59,28 @@ export function AppHeader({ onOpenMenu }: { onOpenMenu?: () => void }) {
           gap: 16,
         }}
       >
-        {/* Left: Menu & Brand */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        {/* ── LEFT: Hamburger + Logo ──────────────────────────────── */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0 }}>
           {onOpenMenu && (
             <button
               onClick={onOpenMenu}
               style={{
-                background: 'transparent',
-                border: 'none',
+                background: 'rgba(255,255,255,0.12)',
+                border: '1px solid rgba(255,255,255,0.18)',
+                borderRadius: 8,
                 color: '#fff',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: 4,
-                flexShrink: 0,
+                padding: 6,
+                transition: 'all 200ms ease',
               }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.2)')}
+              onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.12)')}
               aria-label="Ouvrir le menu"
             >
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="3" y1="12" x2="21" y2="12"/>
-                <line x1="3" y1="6" x2="21" y2="6"/>
-                <line x1="3" y1="18" x2="21" y2="18"/>
-              </svg>
+              <Menu size={18} />
             </button>
           )}
 
@@ -88,102 +88,103 @@ export function AppHeader({ onOpenMenu }: { onOpenMenu?: () => void }) {
             href={routes.search}
             style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}
           >
-            {/* Full name — hidden on mobile */}
-            <span
-              className="sc-brand-full"
-              style={{
-                fontFamily: "'Syne',sans-serif",
-                fontWeight: 700,
-                fontSize: 17,
-                color: '#ffffff',
-                letterSpacing: '.04em',
-                textTransform: 'uppercase',
-              }}
-            >
-              Sales <em style={{ opacity: 0.85, fontStyle: 'normal', fontWeight: 400 }}>Companion</em>
-            </span>
-            {/* Initials — shown only on mobile */}
-            <span
-              className="sc-brand-short"
-              style={{
-                fontFamily: "'Syne',sans-serif",
-                fontWeight: 800,
-                fontSize: 18,
-                color: '#ffffff',
-                letterSpacing: '.06em',
-              }}
-            >
-              SC
-            </span>
+            <ScIcon size={30} />
+            <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
+              <span
+                style={{
+                  fontFamily: "'Syne', sans-serif",
+                  fontWeight: 800,
+                  fontSize: 15,
+                  color: '#ffffff',
+                  letterSpacing: '.05em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                Sales <em style={{ opacity: 0.75, fontStyle: 'normal', fontWeight: 400 }}>Companion</em>
+              </span>
+              <span style={{ fontSize: 9.5, color: 'rgba(255,255,255,0.55)', letterSpacing: '.12em', textTransform: 'uppercase' }}>
+                B2B Cameroun
+              </span>
+            </div>
           </Link>
         </div>
 
-        {/* Right: Avatar & Dropdown */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, position: 'relative' }}>
-          {user ? (
-            <>
-              {/* Avatar + role badge grouped together */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <button
-                  onClick={() => setIsProfileOpen(!isProfileOpen)}
-                  style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: '50%',
-                    background: 'rgba(255,255,255,0.2)',
-                    color: '#fff',
-                    border: '1px solid rgba(255,255,255,0.3)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontWeight: 700,
-                    fontSize: 15,
-                    cursor: 'pointer',
-                    transition: 'all 200ms ease',
-                  }}
-                >
-                  {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || '👤'}
-                </button>
-
-                {user.role === 'admin' && (
-                  <div style={{
-                    background: 'rgba(255,255,255,0.25)',
-                    border: '1px solid rgba(255,255,255,0.4)',
-                    padding: '3px 9px',
-                    borderRadius: 10,
-                    fontSize: 11,
-                    fontWeight: 700,
-                    color: '#fff',
-                    letterSpacing: '0.06em',
-                    lineHeight: 1,
-                  }}>
-                    ADMIN
-                  </div>
-                )}
-
-                {user.role === 'manager' && (
-                  <div style={{
-                    background: 'rgba(255,255,255,0.2)',
-                    border: '1px solid rgba(255,255,255,0.3)',
-                    padding: '3px 9px',
-                    borderRadius: 10,
-                    fontSize: 11,
-                    fontWeight: 700,
-                    color: '#fff',
-                    letterSpacing: '0.06em',
-                    lineHeight: 1,
-                  }}>
-                    MANAGER
-                  </div>
-                )}
+        {/* ── RIGHT: User Profile ──────────────────────────────────── */}
+        {user ? (
+          <div style={{ position: 'relative' }}>
+            <button
+              onClick={() => setIsProfileOpen(!isProfileOpen)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                background: 'rgba(255,255,255,0.1)',
+                border: '1px solid rgba(255,255,255,0.18)',
+                borderRadius: 10,
+                padding: '6px 10px 6px 6px',
+                cursor: 'pointer',
+                color: '#fff',
+                transition: 'all 200ms ease',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.18)')}
+              onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.1)')}
+            >
+              {/* Avatar */}
+              <div style={{
+                width: 30, height: 30,
+                borderRadius: '50%',
+                background: 'rgba(255,255,255,0.25)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontWeight: 700, fontSize: 13, flexShrink: 0,
+              }}>
+                {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || '?'}
               </div>
 
-              {/* Menu Déroulant Profil */}
-              {isProfileOpen && (
-                <div 
+              {/* Name + Role */}
+              <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left', lineHeight: 1.2 }}>
+                <span style={{ fontSize: 13, fontWeight: 600 }}>
+                  {user.name || user.email?.split('@')[0] || 'Utilisateur'}
+                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 1 }}>
+                  {badge && (
+                    <span style={{
+                      fontSize: 9, fontWeight: 700,
+                      padding: '1px 6px',
+                      borderRadius: 9999,
+                      background: badge.bg,
+                      color: '#fff',
+                      letterSpacing: '.06em',
+                      textTransform: 'uppercase',
+                    }}>
+                      {badge.label}
+                    </span>
+                  )}
+                  <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.55)' }}>Plan Free</span>
+                </div>
+              </div>
+
+              <ChevronDown
+                size={14}
+                style={{
+                  opacity: 0.6,
+                  transform: isProfileOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                  transition: 'transform 200ms ease',
+                  flexShrink: 0,
+                }}
+              />
+            </button>
+
+            {/* Dropdown */}
+            {isProfileOpen && (
+              <>
+                <div
+                  onClick={() => setIsProfileOpen(false)}
+                  style={{ position: 'fixed', inset: 0, zIndex: 99 }}
+                />
+                <div
                   style={{
                     position: 'absolute',
-                    top: 50,
+                    top: 46,
                     right: 0,
                     width: 220,
                     background: colors.bg,
@@ -194,42 +195,84 @@ export function AppHeader({ onOpenMenu }: { onOpenMenu?: () => void }) {
                     display: 'flex',
                     flexDirection: 'column',
                     zIndex: 200,
-                    animation: 'fadeIn 150ms ease'
+                    animation: 'fadeIn 150ms ease',
                   }}
                 >
-                  <div style={{ padding: '16px 16px 12px', borderBottom: `1px solid ${colors.border}` }}>
-                    <div style={{ fontWeight: 600, color: colors.text, fontSize: 14 }}>{user.name || 'Utilisateur'}</div>
-                    <div style={{ fontSize: 12, color: colors.textMid, marginTop: 2 }}>{user.email}</div>
+                  {/* User Info */}
+                  <div style={{ padding: '14px 16px 12px', borderBottom: `1px solid ${colors.border}` }}>
+                    <div style={{ fontWeight: 600, color: colors.text, fontSize: 14 }}>
+                      {user.name || 'Utilisateur'}
+                    </div>
+                    <div style={{ fontSize: 11, color: colors.textMid, marginTop: 2 }}>{user.email}</div>
                   </div>
-                  <div style={{ padding: 8, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    <button 
-                      onClick={() => { setIsProfileOpen(false); router.push(routes.profile) }}
-                      style={{ padding: '8px 12px', textAlign: 'left', background: 'transparent', border: 'none', borderRadius: 8, fontSize: 13, cursor: 'pointer', color: colors.text }}
-                    >
-                      👤 Mon Profil
-                    </button>
-                    <button 
-                      onClick={() => { setIsProfileOpen(false); router.push(routes.settings) }}
-                      style={{ padding: '8px 12px', textAlign: 'left', background: 'transparent', border: 'none', borderRadius: 8, fontSize: 13, cursor: 'pointer', color: colors.text }}
-                    >
-                      ⚙️ Paramètres
-                    </button>
-                    <button 
+
+                  {/* Menu Items */}
+                  <div style={{ padding: '6px 8px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    {[
+                      { icon: User,     label: 'Mon Profil',  action: () => { setIsProfileOpen(false); router.push(routes.profile) }},
+                      { icon: Settings, label: 'Paramètres',  action: () => { setIsProfileOpen(false); router.push(routes.settings) }},
+                    ].map(({ icon: Icon, label, action }) => (
+                      <button
+                        key={label}
+                        onClick={action}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: 9,
+                          padding: '8px 10px',
+                          textAlign: 'left',
+                          background: 'transparent',
+                          border: 'none',
+                          borderRadius: 8,
+                          fontSize: 13,
+                          cursor: 'pointer',
+                          color: colors.text,
+                          transition: 'all 150ms ease',
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = colors.hoverBg)}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                      >
+                        <Icon size={15} strokeWidth={1.8} style={{ color: colors.textMid, flexShrink: 0 }} />
+                        {label}
+                      </button>
+                    ))}
+
+                    <div style={{ borderTop: `1px solid ${colors.border}`, margin: '4px 0' }} />
+
+                    <button
                       onClick={handleLogout}
-                      style={{ padding: '8px 12px', textAlign: 'left', background: 'transparent', border: 'none', borderRadius: 8, fontSize: 13, cursor: 'pointer', color: colors.danger, fontWeight: 500, marginTop: 4 }}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 9,
+                        padding: '8px 10px',
+                        textAlign: 'left',
+                        background: 'transparent',
+                        border: 'none',
+                        borderRadius: 8,
+                        fontSize: 13,
+                        cursor: 'pointer',
+                        color: colors.danger,
+                        fontWeight: 500,
+                        transition: 'all 150ms ease',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = colors.dangerBg)}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                     >
-                      🚪 Déconnexion
+                      <LogOut size={15} strokeWidth={1.8} style={{ flexShrink: 0 }} />
+                      Déconnexion
                     </button>
                   </div>
                 </div>
-              )}
-            </>
-          ) : (
-            <Button variant="outline" size="sm" onClick={() => router.push(routes.login)} style={{ borderColor: 'rgba(255,255,255,0.3)', color: '#fff' }}>
-              Connexion
-            </Button>
-          )}
-        </div>
+              </>
+            )}
+          </div>
+        ) : (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => router.push(routes.login)}
+            style={{ borderColor: 'rgba(255,255,255,0.3)', color: '#fff' }}
+          >
+            Connexion
+          </Button>
+        )}
       </div>
     </header>
   )
