@@ -19,6 +19,18 @@ const REGIONS = [
   'Adamaoua', 'Centre', 'Est', 'Extrême-Nord', 'Littoral',
   'Nord', 'Nord-Ouest', 'Ouest', 'Sud', 'Sud-Ouest',
 ]
+const CITIES_BY_REGION: Record<string, string[]> = {
+  'Adamaoua':    ['Ngaoundéré', 'Meiganga', 'Tibati', 'Ngaoundal', 'Banyo'],
+  'Centre':      ['Yaoundé', 'Mbalmayo', 'Bafia', 'Eséka', 'Nanga-Eboko', 'Obala', 'Monatélé'],
+  'Est':         ['Bertoua', 'Abong-Mbang', 'Batouri', 'Yokadouma', 'Dimako'],
+  'Extrême-Nord':['Maroua', 'Mokolo', 'Kousseri', 'Yagoua', 'Mora'],
+  'Littoral':    ['Douala', 'Nkongsamba', 'Edéa', 'Loum', 'Mbanga'],
+  'Nord':        ['Garoua', 'Guider', 'Pitoa', 'Lagdo', 'Ngong'],
+  'Nord-Ouest':  ['Bamenda', 'Kumbo', 'Wum', 'Mbengwi', 'Fundong'],
+  'Ouest':       ['Bafoussam', 'Dschang', 'Mbouda', 'Foumban', 'Bangangté'],
+  'Sud':         ['Ebolowa', 'Sangmélima', 'Kribi', 'Ambam', 'Lolodorf'],
+  'Sud-Ouest':   ['Buea', 'Limbe', 'Kumba', 'Mamfe', 'Tiko'],
+}
 const SECTORS = [
   'Commerce', 'BTP & Construction', 'Industrie manufacturière',
   'Agriculture & Agroalimentaire', 'Services & Conseil', 'Transport & Logistique',
@@ -70,6 +82,7 @@ export function AppSidebar({ isMobile = false, onClose }: { isMobile?: boolean; 
 
   const [radius, setRadius]     = useState('10 km')
   const [region, setRegion]     = useState('')
+  const [city, setCity]         = useState('')
   const [sector, setSector]     = useState('')
   const [geoState, setGeoState] = useState<'idle' | 'loading' | 'done'>('idle')
 
@@ -82,7 +95,7 @@ export function AppSidebar({ isMobile = false, onClose }: { isMobile?: boolean; 
   function applyFilters(overrides: { region?: string; sector?: string; city?: string } = {}) {
     const r = overrides.region ?? region
     const s = overrides.sector ?? sector
-    const c = overrides.city   ?? ''
+    const c = overrides.city !== undefined ? overrides.city : city
     const params = new URLSearchParams()
     if (r) params.set('region', r)
     if (s) params.set('sector', s)
@@ -99,6 +112,7 @@ export function AppSidebar({ isMobile = false, onClose }: { isMobile?: boolean; 
       (pos) => {
         const z = nearestZone(pos.coords.latitude, pos.coords.longitude)
         setRegion(z.region)
+        setCity(z.city)
         setGeoState('done')
         applyFilters({ region: z.region, city: z.city })
       },
@@ -171,13 +185,33 @@ export function AppSidebar({ isMobile = false, onClose }: { isMobile?: boolean; 
         </label>
         <select
           value={region}
-          onChange={(e) => setRegion(e.target.value)}
+          onChange={(e) => {
+            setRegion(e.target.value)
+            setCity('')
+          }}
           style={{ width: '100%', height: 32, borderRadius: 8, border: `1px solid ${colors.border}`, background: colors.bg, color: colors.text, fontSize: 12, fontFamily: 'inherit', outline: 'none', padding: '0 8px' }}
         >
           <option value="">Toutes les régions</option>
           {REGIONS.map((r) => <option key={r} value={r}>{r}</option>)}
         </select>
       </div>
+
+      {/* Ville */}
+      {region && (
+        <div style={{ padding: '2px 10px' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: colors.textMid, marginBottom: 4 }}>
+            <MapPin size={12} /> Ville
+          </label>
+          <select
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+            style={{ width: '100%', height: 32, borderRadius: 8, border: `1px solid ${colors.border}`, background: colors.bg, color: colors.text, fontSize: 12, fontFamily: 'inherit', outline: 'none', padding: '0 8px' }}
+          >
+            <option value="">Toutes les villes</option>
+            {CITIES_BY_REGION[region]?.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+      )}
 
       {/* Secteur */}
       <div style={{ padding: '2px 10px' }}>
