@@ -35,7 +35,7 @@ export function AssignmentsTable() {
         refetch(),
       ])
     } catch {
-      setRepairResult({ repaired: 0, skipped: 0, errors: ['Erreur réseau'] })
+      setRepairResult({ repaired: 0, patched: 0, skipped: 0, errors: ['Erreur réseau'] })
     } finally {
       setRepairing(false)
     }
