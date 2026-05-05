@@ -14,7 +14,7 @@ async function getAdmin() {
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { accessId: string } }
+  { params }: { params: Promise<{ accessId: string }> }
 ) {
   try {
     const { adminDb, adminAuth } = await getAdmin()
@@ -31,7 +31,7 @@ export async function DELETE(
       return NextResponse.json({ message: 'Token invalide' }, { status: 401 })
     }
 
-    const { accessId } = params
+    const { accessId } = await params
     if (!accessId) return NextResponse.json({ message: 'accessId manquant' }, { status: 400 })
 
     // Verify the access belongs to this manager
