@@ -42,12 +42,21 @@ export function AppHeader({ onOpenMenu }: { onOpenMenu?: () => void }) {
         zIndex: 100,
         background: `linear-gradient(135deg, var(--color-primary) 0%, var(--color-blue-800) 100%)`,
         boxShadow: shadows.sm,
-        padding: '0 20px',
+        padding: '0 12px',
         height: 60,
         display: 'flex',
         alignItems: 'center',
       }}
     >
+      <style dangerouslySetInnerHTML={{ __html: `
+        @media (max-width: 640px) {
+          .hdr-name-block { display: none !important; }
+          .hdr-logo-sub   { display: none !important; }
+        }
+        @media (min-width: 641px) {
+          .hdr-name-block { display: flex !important; }
+        }
+      `}} />
       <div
         style={{
           maxWidth: 1440,
@@ -102,7 +111,7 @@ export function AppHeader({ onOpenMenu }: { onOpenMenu?: () => void }) {
               >
                 Sales <em style={{ opacity: 0.75, fontStyle: 'normal', fontWeight: 400 }}>Companion</em>
               </span>
-              <span style={{ fontSize: 9.5, color: 'rgba(255,255,255,0.55)', letterSpacing: '.12em', textTransform: 'uppercase' }}>
+              <span className="hdr-logo-sub" style={{ fontSize: 9.5, color: 'rgba(255,255,255,0.55)', letterSpacing: '.12em', textTransform: 'uppercase' }}>
                 B2B Cameroun
               </span>
             </div>
@@ -140,8 +149,8 @@ export function AppHeader({ onOpenMenu }: { onOpenMenu?: () => void }) {
                 {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || '?'}
               </div>
 
-              {/* Name + Role */}
-              <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left', lineHeight: 1.2 }}>
+              {/* Name + Role — hidden on mobile */}
+              <div className="hdr-name-block" style={{ display: 'flex', flexDirection: 'column', textAlign: 'left', lineHeight: 1.2 }}>
                 <span style={{ fontSize: 13, fontWeight: 600 }}>
                   {user.name || user.email?.split('@')[0] || 'Utilisateur'}
                 </span>

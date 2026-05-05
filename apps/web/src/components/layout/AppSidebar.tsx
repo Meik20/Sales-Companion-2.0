@@ -122,10 +122,10 @@ export function AppSidebar({ isMobile = false, onClose }: { isMobile?: boolean; 
   const content = (
     <div
       style={{
-        width: 280,
-        minWidth: 280,
+        width: '100%',
+        minWidth: 0,
         height: '100%',
-        background: colors.bg2,
+        background: 'transparent',
         borderRight: isMobile ? 'none' : `1px solid ${colors.border}`,
         padding: '20px 12px',
         display: 'flex',
@@ -315,22 +315,36 @@ export function AppSidebar({ isMobile = false, onClose }: { isMobile?: boolean; 
   if (isMobile) {
     return (
       <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex' }}>
+        {/* Dark backdrop — tap to close */}
         <div
           onClick={onClose}
-          style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
+          style={{
+            position: 'absolute', inset: 0,
+            background: 'rgba(0,0,0,0.65)',
+            backdropFilter: 'blur(3px)',
+            WebkitBackdropFilter: 'blur(3px)',
+          }}
         />
+
+        {/* Sidebar panel — explicit opaque background */}
         <div style={{
           position: 'relative',
-          background: colors.bg2,
-          width: 280, height: '100%',
-          animation: 'slideInLeft 300ms cubic-bezier(0.16, 1, 0.3, 1)',
+          /* Use a hard-coded opaque color that works in both themes */
+          background: '#0E1929',   /* deep navy — solid, never transparent */
+          width: 300,
+          maxWidth: '85vw',
+          height: '100%',
+          boxShadow: '4px 0 32px rgba(0,0,0,0.45)',
+          animation: 'slideInLeft 280ms cubic-bezier(0.16, 1, 0.3, 1)',
+          overflowY: 'auto',
         }}>
           {content}
         </div>
+
         <style dangerouslySetInnerHTML={{__html: `
           @keyframes slideInLeft {
-            from { transform: translateX(-100%); }
-            to { transform: translateX(0); }
+            from { transform: translateX(-100%); opacity: 0; }
+            to   { transform: translateX(0);    opacity: 1; }
           }
         `}} />
       </div>

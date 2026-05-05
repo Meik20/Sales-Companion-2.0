@@ -13,12 +13,13 @@ const navStyles = `
   to { transform: scaleX(1); }
 }
 .mobile-nav-btn {
-  flex: 1;
+  min-width: 64px;
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 8px 4px;
+  padding: 8px 6px;
   cursor: pointer;
   transition: all 200ms cubic-bezier(0.4, 0.0, 0.2, 1);
   border: none;
@@ -89,7 +90,7 @@ export function MobileNav() {
   }
 
   return (
-    <div
+    <nav
       style={{
         position: 'fixed',
         bottom: 0,
@@ -100,9 +101,14 @@ export function MobileNav() {
         display: 'flex',
         alignItems: 'stretch',
         flexShrink: 0,
+        overflowX: 'auto',
+        overflowY: 'hidden',
+        /* Hide scrollbar but keep scroll */
+        scrollbarWidth: 'none' as React.CSSProperties['scrollbarWidth'],
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-        boxShadow: '0 -2px 10px rgba(0, 0, 0, 0.04)',
+        boxShadow: '0 -2px 10px rgba(0, 0, 0, 0.06)',
         zIndex: 1000,
+        WebkitOverflowScrolling: 'touch',
       }}
     >
       <NavItem
@@ -174,6 +180,6 @@ export function MobileNav() {
           </svg>
         }
       />
-    </div>
+    </nav>
   )
 }
