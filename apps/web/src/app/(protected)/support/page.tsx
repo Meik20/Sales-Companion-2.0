@@ -9,6 +9,7 @@ import {
   addDoc, updateDoc, doc, serverTimestamp, Timestamp,
 } from 'firebase/firestore'
 import { colors } from '@/styles/tokens'
+import { MessageSquare, Send, Plus, X, ArrowLeft, Headphones } from 'lucide-react'
 
 type Thread = {
   id: string
@@ -29,14 +30,14 @@ type Message = {
 }
 
 const STATUS_COLOR: Record<string, string> = {
-  open: colors.green,
-  resolved: '#43A047',
-  closed: '#9E9E9E',
+  open:     'var(--color-accent)',
+  resolved: 'var(--color-success)',
+  closed:   '#9E9E9E',
 }
 const STATUS_LABEL: Record<string, string> = {
-  open: 'En cours',
+  open:     'En cours',
   resolved: 'Résolu',
-  closed: 'Fermé',
+  closed:   'Fermé',
 }
 
 function fmtTime(ts?: Timestamp) {
@@ -50,33 +51,56 @@ function fmtTime(ts?: Timestamp) {
 
 export default function SupportPage() {
   const { user } = useCurrentUser()
-  const [threads, setThreads] = useState<Thread[]>([])
+  const [threads, setThreads]       = useState<Thread[]>([])
+  const [threadError, setThreadError] = useState<string | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [messages, setMessages] = useState<Message[]>([])
-  const [inputText, setInputText] = useState('')
-  const [sending, setSending] = useState(false)
-  const [showNew, setShowNew] = useState(false)
+  const [messages, setMessages]     = useState<Message[]>([])
+  const [inputText, setInputText]   = useState('')
+  const [sending, setSending]       = useState(false)
+  const [showNew, setShowNew]       = useState(false)
   const [newSubject, setNewSubject] = useState('')
-  const [creating, setCreating] = useState(false)
+  const [creating, setCreating]     = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const textareaRef    = useRef<HTMLTextAreaElement>(null)
 
   const selectedThread = threads.find((t) => t.id === selectedId)
+  const isResolved     = selectedThread ? selectedThread.status !== 'open' : false
 
-  // Real-time threads listener
+  // Real-time threads — sort client-side to avoid composite index requirement
   useEffect(() => {
     if (!user?.uid) return
     const q = query(
       collection(firestore, 'support_threads'),
-      where('userId', '==', user.uid),
-      orderBy('updatedAt', 'desc')
+      where('userId', '==', user.uid)
     )
-    return onSnapshot(q, (snap) => {
-      setThreads(snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Thread, 'id'>) })))
-    })
+    return onSnapshot(
+      q,
+      (snap) => {
+        setThreadError(null)
+        const list = snap.docs
+          .map((d) => ({ id: d.id, ...(d.data() as Omit<Thread, 'id'>) }))
+          .sort((a, b) => {
+            const ta = a.updatedAt?.toMillis() ?? 0
+            const tb = b.updatedAt?.toMillis() ?? 0
+            return tb - ta
+          })
+        setThreads(list)
+      },
+      (err) => {
+        console.error('Support threads snapshot error:', err)
+        setThreadError('Impossible de charger les conversations. Vérifiez votre connexion.')
+      }
+    )
   }, [user?.uid])
 
-  // Real-time messages listener for selected thread
+  // Auto-select first thread
+  useEffect(() => {
+    if (threads.length > 0 && !selectedId) {
+      setSelectedId(threads[0]!.id)
+    }
+  }, [threads, selectedId])
+
+  // Messages for selected thread
   useEffect(() => {
     if (!selectedId) { setMessages([]); return }
     const q = query(
@@ -85,23 +109,14 @@ export default function SupportPage() {
     )
     return onSnapshot(q, (snap) => {
       setMessages(snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Message, 'id'>) })))
-      // Mark as read
       updateDoc(doc(firestore, 'support_threads', selectedId), { unreadByUser: false }).catch(() => {})
     })
   }, [selectedId])
 
-  // Auto scroll to bottom
+  // Auto-scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
-
-  // Auto select first thread on load
-  useEffect(() => {
-    if (threads.length > 0 && !selectedId) {
-      const first = threads[0]
-      if (first) setSelectedId(first.id)
-    }
-  }, [threads, selectedId])
 
   async function handleCreateThread(e: React.FormEvent) {
     e.preventDefault()
@@ -110,20 +125,21 @@ export default function SupportPage() {
     try {
       const now = serverTimestamp()
       const ref = await addDoc(collection(firestore, 'support_threads'), {
-        userId: user.uid,
-        userEmail: user.email ?? '',
-        userName: user.name ?? user.email ?? 'Utilisateur',
-        subject: newSubject.trim(),
-        status: 'open',
-        createdAt: now,
-        updatedAt: now,
-        lastMessage: '',
+        userId:       user.uid,
+        userEmail:    user.email ?? '',
+        userName:     (user as { name?: string }).name ?? user.email ?? 'Utilisateur',
+        subject:      newSubject.trim(),
+        status:       'open',
+        createdAt:    now,
+        updatedAt:    now,
+        lastMessage:  '',
         unreadByAdmin: true,
-        unreadByUser: false,
+        unreadByUser:  false,
       })
       setSelectedId(ref.id)
       setNewSubject('')
       setShowNew(false)
+      setTimeout(() => textareaRef.current?.focus(), 200)
     } catch (err) {
       console.error('Failed to create thread:', err)
     } finally {
@@ -132,28 +148,27 @@ export default function SupportPage() {
   }
 
   async function handleSend() {
-    if (!selectedId || !inputText.trim() || sending || !user) return
-    if (selectedThread?.status !== 'open') return
+    if (!selectedId || !inputText.trim() || sending || !user || isResolved) return
     const text = inputText.trim()
     setInputText('')
     setSending(true)
     try {
       const now = serverTimestamp()
       await addDoc(collection(firestore, 'support_threads', selectedId, 'messages'), {
-        content: text,
-        senderId: user.uid,
+        content:    text,
+        senderId:   user.uid,
         senderRole: 'user',
-        createdAt: now,
+        createdAt:  now,
       })
       await updateDoc(doc(firestore, 'support_threads', selectedId), {
-        lastMessage: text.slice(0, 80),
-        updatedAt: now,
+        lastMessage:  text.slice(0, 80),
+        updatedAt:    now,
         unreadByAdmin: true,
-        unreadByUser: false,
+        unreadByUser:  false,
       })
     } catch (err) {
-      console.error('Failed to send message:', err)
-      setInputText(text) // restore if failed
+      console.error('Failed to send:', err)
+      setInputText(text)
     } finally {
       setSending(false)
       textareaRef.current?.focus()
@@ -161,84 +176,68 @@ export default function SupportPage() {
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      void handleSend()
-    }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void handleSend() }
   }
-
-  const isClosed = selectedThread?.status !== 'open'
 
   return (
     <AppShell>
       <style dangerouslySetInnerHTML={{ __html: `
-        .support-layout {
+        .sup-layout {
           display: grid;
           grid-template-columns: 280px 1fr;
-          height: calc(100dvh - 120px);
-          min-height: 500px;
+          height: calc(100dvh - 132px);
+          min-height: 480px;
           border-radius: 16px;
           overflow: hidden;
           border: 1px solid ${colors.border};
-          background: ${colors.surface};
         }
         @media (max-width: 768px) {
-          .support-layout {
-            grid-template-columns: 1fr;
-            height: auto;
-          }
-          .thread-list-col { display: ${selectedId ? 'none' : 'flex'}; }
-          .chat-col { display: ${selectedId ? 'flex' : 'none'}; }
+          .sup-layout { grid-template-columns: 1fr; height: auto; }
+          .sup-list   { display: var(--list-display, flex); }
+          .sup-chat   { display: var(--chat-display, flex); }
         }
-        .thread-item:hover { background: ${colors.bg3}; }
-        .thread-item.active { background: ${colors.greenLight}; }
-        .msg-bubble-user {
-          background: ${colors.green};
-          color: #fff;
-          border-radius: 18px 18px 4px 18px;
-          align-self: flex-end;
-        }
-        .msg-bubble-admin {
-          background: ${colors.bg3};
-          color: ${colors.text};
-          border-radius: 18px 18px 18px 4px;
-          align-self: flex-start;
-        }
-        .send-btn:hover:not(:disabled) { background: ${colors.greenDark} !important; transform: scale(1.05); }
-        .send-btn { transition: all 150ms ease; }
+        .thr-item { width:100%; text-align:left; padding:12px 14px; border:none; cursor:pointer; transition:background 150ms; display:block; border-bottom:1px solid ${colors.border}; }
+        .thr-item:hover { background: rgba(55,138,221,0.06); }
+        .thr-item.sel  { background: rgba(55,138,221,0.1); border-left: 3px solid var(--color-accent); }
+        .msg-user  { background:var(--color-primary); color:#fff; border-radius:18px 18px 4px 18px; align-self:flex-end; }
+        .msg-admin { background:${colors.bg3}; color:${colors.text}; border-radius:18px 18px 18px 4px; align-self:flex-start; }
       `}} />
 
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, padding: '0 2px' }}>
-        <div>
-          <h1 style={{ fontSize: 20, fontWeight: 800, color: colors.text, margin: 0, fontFamily: "'Syne',sans-serif" }}>💬 Support</h1>
-          <p style={{ fontSize: 12.5, color: colors.textMid, margin: '4px 0 0' }}>Suivez vos conversations avec notre équipe</p>
+      {/* Page header */}
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16, padding:'0 2px' }}>
+        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+          <Headphones size={22} style={{ color:'var(--color-accent)' }} />
+          <div>
+            <h1 style={{ fontSize:20, fontWeight:800, color:colors.text, margin:0, fontFamily:"'Syne',sans-serif" }}>Support</h1>
+            <p style={{ fontSize:12.5, color:colors.textMid, margin:'2px 0 0' }}>Suivez vos conversations avec notre équipe</p>
+          </div>
         </div>
         <button
           onClick={() => setShowNew((v) => !v)}
           style={{
-            height: 36, padding: '0 16px',
-            background: showNew ? colors.bg3 : colors.green,
+            height:36, padding:'0 14px',
+            background: showNew ? colors.bg3 : 'var(--color-primary)',
             color: showNew ? colors.textMid : '#fff',
             border: showNew ? `1px solid ${colors.border}` : 'none',
-            borderRadius: 10, cursor: 'pointer',
-            fontWeight: 600, fontSize: 13, fontFamily: 'inherit',
-            transition: 'all 150ms ease',
+            borderRadius:10, cursor:'pointer',
+            fontWeight:600, fontSize:13, fontFamily:'inherit',
+            display:'flex', alignItems:'center', gap:6,
+            transition:'all 150ms ease',
           }}
         >
-          {showNew ? '✕ Annuler' : '+ Nouvelle conversation'}
+          {showNew ? <><X size={14}/> Annuler</> : <><Plus size={14}/> Nouvelle conversation</>}
         </button>
       </div>
 
-      {/* Formulaire nouvelle conversation */}
+      {/* New thread form */}
       {showNew && (
         <form onSubmit={handleCreateThread} style={{
-          marginBottom: 16, background: colors.surface,
-          border: `1px solid ${colors.border}`, borderRadius: 12,
-          padding: '16px 20px', display: 'flex', gap: 10, alignItems: 'flex-end',
+          marginBottom:16, background:colors.surface,
+          border:`1px solid ${colors.border}`, borderRadius:12,
+          padding:'16px 20px', display:'flex', gap:10, alignItems:'flex-end',
         }}>
-          <div style={{ flex: 1 }}>
-            <label style={{ fontSize: 12, fontWeight: 600, color: colors.textMid, display: 'block', marginBottom: 6 }}>
+          <div style={{ flex:1 }}>
+            <label style={{ fontSize:12, fontWeight:600, color:colors.textMid, display:'block', marginBottom:6 }}>
               Sujet de votre demande
             </label>
             <input
@@ -248,11 +247,10 @@ export default function SupportPage() {
               value={newSubject}
               onChange={(e) => setNewSubject(e.target.value)}
               style={{
-                width: '100%', height: 40, padding: '0 14px',
-                border: `1.5px solid ${colors.border}`, borderRadius: 8,
-                fontSize: 13, fontFamily: 'inherit',
-                background: colors.bg2, color: colors.text, outline: 'none',
-                boxSizing: 'border-box',
+                width:'100%', height:40, padding:'0 14px',
+                border:`1.5px solid ${colors.border}`, borderRadius:8,
+                fontSize:13, fontFamily:'inherit',
+                background:colors.bg2, color:colors.text, outline:'none', boxSizing:'border-box',
               }}
             />
           </div>
@@ -260,82 +258,68 @@ export default function SupportPage() {
             type="submit"
             disabled={creating || !newSubject.trim()}
             style={{
-              height: 40, padding: '0 20px',
-              background: newSubject.trim() ? colors.green : colors.border,
+              height:40, padding:'0 20px',
+              background: newSubject.trim() ? 'var(--color-primary)' : colors.border,
               color: newSubject.trim() ? '#fff' : colors.textMid,
-              border: 'none', borderRadius: 8,
-              fontWeight: 700, fontSize: 13, fontFamily: 'inherit',
-              cursor: newSubject.trim() ? 'pointer' : 'not-allowed',
-              flexShrink: 0, transition: 'all 150ms ease',
+              border:'none', borderRadius:8,
+              fontWeight:700, fontSize:13, fontFamily:'inherit',
+              cursor: newSubject.trim() ? 'pointer' : 'not-allowed', flexShrink:0,
             }}
-          >
-            {creating ? '⏳' : 'Démarrer'}
-          </button>
+          >{creating ? '…' : 'Démarrer'}</button>
         </form>
       )}
 
-      {/* Layout principal */}
-      <div className="support-layout">
-        {/* ─── Colonne threads ─── */}
-        <div className="thread-list-col" style={{
-          display: 'flex', flexDirection: 'column',
-          borderRight: `1px solid ${colors.border}`,
-          overflow: 'hidden',
+      {threadError && (
+        <div style={{ marginBottom:12, padding:'10px 14px', borderRadius:8, background:'rgba(239,68,68,0.08)', border:'1px solid rgba(239,68,68,0.2)', color:'#ef4444', fontSize:13 }}>
+          {threadError}
+        </div>
+      )}
+
+      {/* Main layout */}
+      <div className="sup-layout">
+        {/* ── Left: thread list ── */}
+        <div className="sup-list" style={{
+          flexDirection:'column', borderRight:`1px solid ${colors.border}`, overflow:'hidden',
         }}>
           <div style={{
-            padding: '12px 14px', fontSize: 11, fontWeight: 700,
-            color: colors.textMid, textTransform: 'uppercase', letterSpacing: '.06em',
-            borderBottom: `1px solid ${colors.border}`, background: colors.bg2,
+            padding:'12px 14px', fontSize:11, fontWeight:700,
+            color:colors.textMid, textTransform:'uppercase', letterSpacing:'.06em',
+            borderBottom:`1px solid ${colors.border}`, background:colors.bg2,
+            display:'flex', alignItems:'center', justifyContent:'space-between',
           }}>
-            Conversations ({threads.length})
+            <span>Conversations ({threads.length})</span>
+            {threads.some(t => t.unreadByUser) && (
+              <span style={{ width:8, height:8, borderRadius:'50%', background:'#ef4444', display:'inline-block' }} />
+            )}
           </div>
-          <div style={{ flex: 1, overflowY: 'auto' }}>
+          <div style={{ flex:1, overflowY:'auto' }}>
             {threads.length === 0 ? (
-              <div style={{ padding: 32, textAlign: 'center', color: colors.textMid, fontSize: 13 }}>
-                <div style={{ fontSize: 32, marginBottom: 8 }}>💬</div>
-                Aucune conversation<br />
-                <span style={{ fontSize: 12 }}>Démarrez une nouvelle conversation avec le support.</span>
+              <div style={{ padding:32, textAlign:'center', color:colors.textMid, fontSize:13 }}>
+                <MessageSquare size={32} style={{ opacity:0.3, margin:'0 auto 10px', display:'block' }} />
+                Aucune conversation<br/>
+                <span style={{ fontSize:12 }}>Démarrez une nouvelle conversation avec le support.</span>
               </div>
             ) : threads.map((t) => (
               <button
                 key={t.id}
-                className={`thread-item${selectedId === t.id ? ' active' : ''}`}
+                className={`thr-item${selectedId === t.id ? ' sel' : ''}`}
                 onClick={() => setSelectedId(t.id)}
-                style={{
-                  width: '100%', textAlign: 'left', padding: '12px 14px',
-                  borderBottom: `1px solid ${colors.border}`,
-                  background: selectedId === t.id ? colors.greenLight : 'transparent',
-                  border: 'none', cursor: 'pointer',
-                  transition: 'background 150ms ease',
-                  display: 'block',
-                }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 6 }}>
-                  <span style={{
-                    fontWeight: 600, fontSize: 13, color: colors.text,
-                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1,
-                  }}>
-                    {t.unreadByUser && <span style={{ display: 'inline-block', width: 7, height: 7, borderRadius: '50%', background: '#E53935', marginRight: 5, verticalAlign: 'middle' }} />}
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:6 }}>
+                  <span style={{ fontWeight:600, fontSize:13, color:colors.text, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', flex:1 }}>
+                    {t.unreadByUser && <span style={{ display:'inline-block', width:7, height:7, borderRadius:'50%', background:'#ef4444', marginRight:5, verticalAlign:'middle' }}/>}
                     {t.subject}
                   </span>
-                  <span style={{ fontSize: 10, flexShrink: 0, color: colors.textDim }}>
-                    {fmtTime(t.updatedAt)}
-                  </span>
+                  <span style={{ fontSize:10, flexShrink:0, color:colors.textDim }}>{fmtTime(t.updatedAt)}</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
+                <div style={{ display:'flex', alignItems:'center', gap:6, marginTop:4 }}>
                   <span style={{
-                    fontSize: 10, fontWeight: 700, padding: '2px 6px',
-                    borderRadius: 4, background: `${STATUS_COLOR[t.status] ?? colors.green}22`,
-                    color: STATUS_COLOR[t.status] ?? colors.green,
-                  }}>
-                    {STATUS_LABEL[t.status] ?? t.status}
-                  </span>
+                    fontSize:10, fontWeight:700, padding:'2px 6px', borderRadius:4,
+                    background:`${STATUS_COLOR[t.status] ?? colors.border}22`,
+                    color: STATUS_COLOR[t.status] ?? colors.textMid,
+                  }}>{STATUS_LABEL[t.status] ?? t.status}</span>
                   {t.lastMessage && (
-                    <span style={{
-                      fontSize: 11.5, color: colors.textDim,
-                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                      flex: 1,
-                    }}>
+                    <span style={{ fontSize:11, color:colors.textDim, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', flex:1 }}>
                       {t.lastMessage}
                     </span>
                   )}
@@ -345,159 +329,122 @@ export default function SupportPage() {
           </div>
         </div>
 
-        {/* ─── Zone de chat ─── */}
-        <div className="chat-col" style={{
-          display: 'flex', flexDirection: 'column',
-          overflow: 'hidden',
-        }}>
+        {/* ── Right: chat area ── */}
+        <div className="sup-chat" style={{ flexDirection:'column', overflow:'hidden' }}>
           {!selectedId ? (
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: colors.textMid, fontSize: 13, gap: 12, padding: 40 }}>
-              <span style={{ fontSize: 40 }}>💬</span>
+            <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', color:colors.textMid, fontSize:13, gap:12, padding:40 }}>
+              <MessageSquare size={40} style={{ opacity:0.25 }} />
               <span>Sélectionnez une conversation ou démarrez-en une nouvelle.</span>
+              <button
+                onClick={() => setShowNew(true)}
+                style={{ marginTop:8, padding:'8px 20px', background:'var(--color-primary)', color:'#fff', border:'none', borderRadius:9, cursor:'pointer', fontWeight:600, fontSize:13 }}
+              >
+                + Nouvelle conversation
+              </button>
             </div>
           ) : (
             <>
-              {/* Header du chat */}
-              <div style={{
-                padding: '12px 18px', borderBottom: `1px solid ${colors.border}`,
-                background: colors.bg2, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  {/* Bouton retour mobile */}
+              {/* Chat header */}
+              <div style={{ padding:'12px 18px', borderBottom:`1px solid ${colors.border}`, background:colors.bg2, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                <div style={{ display:'flex', alignItems:'center', gap:10 }}>
                   <button
                     onClick={() => setSelectedId(null)}
-                    className="mobile-back-btn"
-                    style={{
-                      display: 'none', // shown via CSS media query
-                      background: 'none', border: 'none',
-                      cursor: 'pointer', color: colors.textMid,
-                      fontSize: 18, padding: '0 6px 0 0',
-                    }}
-                  >←</button>
-                  <style dangerouslySetInnerHTML={{ __html: `@media (max-width: 768px) { .mobile-back-btn { display: block !important; } }` }} />
+                    style={{ display:'none', background:'none', border:'none', cursor:'pointer', color:colors.textMid, fontSize:18 }}
+                    className="mob-back"
+                  ><ArrowLeft size={18}/></button>
+                  <style dangerouslySetInnerHTML={{ __html:`@media(max-width:768px){.mob-back{display:flex!important;}}` }}/>
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: 14, color: colors.text }}>
-                      {selectedThread?.subject}
-                    </div>
-                    <div style={{ fontSize: 11, color: colors.textMid, marginTop: 2 }}>
-                      {selectedThread?.createdAt?.toDate?.().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}
+                    <div style={{ fontWeight:700, fontSize:14, color:colors.text }}>{selectedThread?.subject}</div>
+                    <div style={{ fontSize:11, color:colors.textMid, marginTop:2 }}>
+                      {selectedThread?.createdAt?.toDate?.().toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' })}
                     </div>
                   </div>
                 </div>
                 <span style={{
-                  fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20,
-                  background: `${STATUS_COLOR[selectedThread?.status ?? 'open']}22`,
+                  fontSize:11, fontWeight:700, padding:'3px 10px', borderRadius:20,
+                  background:`${STATUS_COLOR[selectedThread?.status ?? 'open']}22`,
                   color: STATUS_COLOR[selectedThread?.status ?? 'open'],
-                }}>
-                  {STATUS_LABEL[selectedThread?.status ?? 'open']}
-                </span>
+                }}>{STATUS_LABEL[selectedThread?.status ?? 'open']}</span>
               </div>
 
               {/* Messages */}
-              <div style={{
-                flex: 1, overflowY: 'auto',
-                padding: '20px 18px',
-                display: 'flex', flexDirection: 'column', gap: 10,
-                background: colors.bg,
-              }}>
+              <div style={{ flex:1, overflowY:'auto', padding:'20px 18px', display:'flex', flexDirection:'column', gap:10, background:colors.bg }}>
                 {messages.length === 0 ? (
-                  <div style={{ textAlign: 'center', color: colors.textMid, fontSize: 13, marginTop: 40 }}>
-                    <div style={{ fontSize: 32, marginBottom: 8 }}>👋</div>
+                  <div style={{ textAlign:'center', color:colors.textMid, fontSize:13, marginTop:40 }}>
+                    <MessageSquare size={32} style={{ opacity:0.25, margin:'0 auto 10px', display:'block' }} />
                     Démarrez la conversation en envoyant un message ci-dessous.
                   </div>
                 ) : messages.map((m) => {
                   const isMe = m.senderRole === 'user'
                   return (
-                    <div key={m.id} style={{ display: 'flex', flexDirection: 'column', alignItems: isMe ? 'flex-end' : 'flex-start' }}>
-                      <div
-                        className={isMe ? 'msg-bubble-user' : 'msg-bubble-admin'}
-                        style={{
-                          maxWidth: '75%',
-                          padding: '10px 14px',
-                          fontSize: 13.5,
-                          lineHeight: 1.6,
-                          wordBreak: 'break-word',
-                          boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-                          whiteSpace: 'pre-wrap',
-                        }}
-                      >
+                    <div key={m.id} style={{ display:'flex', flexDirection:'column', alignItems: isMe ? 'flex-end' : 'flex-start' }}>
+                      <div className={isMe ? 'msg-user' : 'msg-admin'} style={{ maxWidth:'75%', padding:'10px 14px', fontSize:13.5, lineHeight:1.6, wordBreak:'break-word', boxShadow:'0 1px 4px rgba(0,0,0,0.06)', whiteSpace:'pre-wrap' }}>
                         {m.content}
                       </div>
-                      <div style={{ fontSize: 10.5, color: colors.textDim, marginTop: 3, padding: '0 4px' }}>
+                      <div style={{ fontSize:10.5, color:colors.textDim, marginTop:3, padding:'0 4px' }}>
                         {isMe ? 'Moi' : '🎧 Support'} · {fmtTime(m.createdAt)}
                       </div>
                     </div>
                   )
                 })}
-                <div ref={messagesEndRef} />
+                <div ref={messagesEndRef}/>
               </div>
 
-              {/* Zone de saisie */}
-              {isClosed ? (
-                <div style={{
-                  padding: '12px 18px', borderTop: `1px solid ${colors.border}`,
-                  background: colors.bg2, textAlign: 'center',
-                  color: colors.textMid, fontSize: 13,
-                }}>
-                  <span style={{ fontSize: 16 }}>✅</span> Cette conversation est <strong>résolue</strong>. Ouvrez une nouvelle conversation si nécessaire.
-                </div>
-              ) : (
-                <div style={{
-                  padding: '10px 14px', borderTop: `1px solid ${colors.border}`,
-                  background: colors.surface, display: 'flex', alignItems: 'flex-end', gap: 8,
-                }}>
-                  <textarea
-                    ref={textareaRef}
-                    value={inputText}
-                    onChange={(e) => setInputText(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    disabled={sending}
-                    placeholder="Écrivez votre message… (Entrée pour envoyer)"
-                    rows={2}
-                    style={{
-                      flex: 1,
-                      padding: '10px 14px',
-                      border: `1.5px solid ${colors.border}`,
-                      borderRadius: 20,
-                      fontSize: 13.5,
-                      resize: 'none',
-                      fontFamily: 'inherit',
-                      background: colors.bg2,
-                      color: colors.text,
-                      outline: 'none',
-                      boxSizing: 'border-box',
-                      lineHeight: 1.5,
-                      transition: 'border-color 150ms ease',
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = colors.green}
-                    onBlur={(e) => e.target.style.borderColor = colors.border}
-                  />
-                  <button
-                    className="send-btn"
-                    onClick={() => void handleSend()}
-                    disabled={sending || !inputText.trim()}
-                    style={{
-                      width: 42, height: 42, flexShrink: 0,
-                      borderRadius: '50%',
-                      background: inputText.trim() ? colors.green : colors.border,
-                      color: '#fff',
-                      border: 'none',
-                      cursor: inputText.trim() ? 'pointer' : 'not-allowed',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      boxShadow: inputText.trim() ? '0 4px 12px rgba(27,122,62,0.35)' : 'none',
-                    }}
-                  >
-                    {sending ? (
-                      <span style={{ fontSize: 14 }}>⏳</span>
-                    ) : (
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <line x1="22" y1="2" x2="11" y2="13" />
-                        <polygon points="22 2 15 22 11 13 2 9 22 2" />
-                      </svg>
-                    )}
-                  </button>
-                </div>
-              )}
+              {/* Input zone — always rendered, disabled when resolved */}
+              <div style={{ padding:'10px 14px', borderTop:`1px solid ${colors.border}`, background:colors.surface }}>
+                {isResolved ? (
+                  <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:12 }}>
+                    <span style={{ fontSize:13, color:colors.textMid }}>
+                      <span style={{ color:'var(--color-success)', fontWeight:600 }}>✓ Conversation résolue.</span>{' '}
+                      Besoin d&apos;aide supplémentaire ?
+                    </span>
+                    <button
+                      onClick={() => setShowNew(true)}
+                      style={{ flexShrink:0, height:34, padding:'0 14px', background:'var(--color-primary)', color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontWeight:600, fontSize:12 }}
+                    >
+                      + Nouvelle conversation
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ display:'flex', alignItems:'flex-end', gap:8 }}>
+                    <textarea
+                      ref={textareaRef}
+                      value={inputText}
+                      onChange={(e) => setInputText(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      disabled={sending}
+                      placeholder="Écrivez votre message… (Entrée pour envoyer)"
+                      rows={2}
+                      style={{
+                        flex:1, padding:'10px 14px',
+                        border:`1.5px solid ${colors.border}`,
+                        borderRadius:20, fontSize:13.5,
+                        resize:'none', fontFamily:'inherit',
+                        background:colors.bg2, color:colors.text,
+                        outline:'none', boxSizing:'border-box', lineHeight:1.5,
+                        transition:'border-color 150ms ease',
+                      }}
+                      onFocus={(e)  => (e.target.style.borderColor = 'var(--color-accent)')}
+                      onBlur={(e)   => (e.target.style.borderColor = colors.border)}
+                    />
+                    <button
+                      onClick={() => void handleSend()}
+                      disabled={sending || !inputText.trim()}
+                      style={{
+                        width:42, height:42, flexShrink:0, borderRadius:'50%',
+                        background: inputText.trim() ? 'var(--color-primary)' : colors.border,
+                        color:'#fff', border:'none',
+                        cursor: inputText.trim() ? 'pointer' : 'not-allowed',
+                        display:'flex', alignItems:'center', justifyContent:'center',
+                        boxShadow: inputText.trim() ? '0 4px 12px rgba(24,95,165,0.35)' : 'none',
+                        transition:'all 150ms ease',
+                      }}
+                    >
+                      {sending ? <span style={{ fontSize:14 }}>…</span> : <Send size={16}/>}
+                    </button>
+                  </div>
+                )}
+              </div>
             </>
           )}
         </div>
