@@ -80,17 +80,16 @@ export async function POST(request: NextRequest) {
     // ── Column mapping (normalisation vers champs Firestore) ──
     const COLUMN_MAP: Record<string, string> = {
       'RAISON_SOCIALE': 'raisonSociale',
-      'RAISON SOCIALE': 'raisonSociale',
       'NOM': 'raisonSociale',
       'DENOMINATION': 'raisonSociale',
       'NIU': 'niu',
       'SIGLE': 'sigle',
       'ACTIVITE_PRINCIPALE': 'sector',
-      'ACTIVITE PRINCIPALE': 'sector',
       'ACTIVITE': 'sector',
       'SECTEUR': 'sector',
+      'SECTEUR_DACTIVITE': 'sector',
+      'SECTEUR_D_ACTIVITE': 'sector',
       'CENTRE_DE_RATTACHEMENT': 'region',
-      'CENTRE DE RATTACHEMENT': 'region',
       'REGION': 'region',
       'VILLE': 'city',
       'TELEPHONE': 'telephone',
@@ -103,18 +102,18 @@ export async function POST(request: NextRequest) {
       'RCCM': 'rccm',
       'ADRESSE': 'adresse',
       'BP': 'bp',
-      'BOITE POSTALE': 'bp',
+      'BOITE_POSTALE': 'bp',
       'CAPITAL': 'capital',
       'DATE_CREATION': 'dateCreation',
-      'DATE CREATION': 'dateCreation',
       'FORME_JURIDIQUE': 'formeJuridique',
-      'FORME JURIDIQUE': 'formeJuridique',
+      'REGIME': 'regime',
     }
 
     const headers = Object.keys(rows[0] ?? {})
     const detectedColumns: Record<string, string> = {}
     headers.forEach((h) => {
-      const mapped = COLUMN_MAP[h.toUpperCase().trim()]
+      const normalized = normalizeHeader(h)
+      const mapped = COLUMN_MAP[normalized]
       if (mapped) detectedColumns[h] = mapped
     })
 
@@ -138,7 +137,8 @@ export async function POST(request: NextRequest) {
 
         // 1. Map known columns to canonical field names
         headers.forEach((h) => {
-          const mapped = COLUMN_MAP[h.toUpperCase().trim()]
+          const normalized = normalizeHeader(h)
+          const mapped = COLUMN_MAP[normalized]
           const val = (row[h] ?? '').trim()
           if (mapped && val) company[mapped] = val
         })
@@ -219,6 +219,42 @@ export async function POST(request: NextRequest) {
   }
 }
 
+function normalizeHeader(header: string | null | undefined) {
+  return String(header ?? '')
+    .trim()
+    .replace(/\s+/g, ' ')
+    .replace(/['"`]/g, '')
+    .replace(/[^a-zA-Z0-9 _]/g, '')
+    .replace(/\s+/g, '_')
+    .toUpperCase()
+}
+
+function splitCsvLine(line: string, sep: string = ',') {
+  const result: string[] = []
+  let current = ''
+  let insideQuotes = false
+
+  for (let i = 0; i < line.length; i += 1) {
+    const char = line[i]
+
+    if (char === '"') {
+      insideQuotes = !insideQuotes
+      continue
+    }
+
+    if (char === sep && !insideQuotes) {
+      result.push(current)
+      current = ''
+      continue
+    }
+
+    current += char
+  }
+
+  result.push(current)
+  return result.map((cell) => cell.replace(/^"|"$/g, '').trim())
+}
+
 /* ── CSV parser (no external dependency) ── */
 function parseCSV(text: string): Record<string, string>[] {
   const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').filter(Boolean)
@@ -241,13 +277,11 @@ function parseCSV(text: string): Record<string, string>[] {
     }
   }
 
-  const headers = headerLine.split(sep).map((h) =>
-    h.replace(/^"|"$/g, '').trim().toLowerCase()
-  )
+  const headers = splitCsvLine(headerLine, sep).map(normalizeHeader)
   const rows: Record<string, string>[] = []
 
   for (let i = 1; i < lines.length; i++) {
-    const values = lines[i]!.split(sep).map((v) => v.replace(/^"|"$/g, '').trim())
+    const values = splitCsvLine(lines[i]!, sep)
     if (values.every((v) => !v.trim())) continue
     const row: Record<string, string> = {}
     headers.forEach((h, idx) => {
