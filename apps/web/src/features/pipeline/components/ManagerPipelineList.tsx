@@ -12,14 +12,14 @@ type PipelineItem = {
   companyName: string
   status: string
   userId: string
-  companyCity?: string
-  companySector?: string
-  companyPhone?: string
-  companyEmail?: string
-  note?: string
-  notes?: string
+  companyCity?: string | null
+  companySector?: string | null
+  companyPhone?: string | null
+  companyEmail?: string | null
+  note?: string | null
+  notes?: string | null
   assignedTo?: string | null
-  assignedByName?: string
+  assignedByName?: string | null
   nextFollowUp?: string | null
 }
 

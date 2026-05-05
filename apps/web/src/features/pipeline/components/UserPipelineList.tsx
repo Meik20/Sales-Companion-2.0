@@ -11,18 +11,18 @@ type PipelineItem = {
   id: string
   companyName: string
   status: string
-  companyCity?: string
-  companySector?: string
-  companyPhone?: string
-  companyEmail?: string
-  note?: string
-  notes?: string
-  nextAction?: string
+  companyCity?: string | null
+  companySector?: string | null
+  companyPhone?: string | null
+  companyEmail?: string | null
+  note?: string | null
+  notes?: string | null
+  nextAction?: string | null
   nextDate?: string | null
   nextFollowUp?: string | null
-  assignedByName?: string
-  managerUid?: string
-  sourceId?: string
+  assignedByName?: string | null
+  managerUid?: string | null
+  sourceId?: string | null
 }
 
 type Props = {
