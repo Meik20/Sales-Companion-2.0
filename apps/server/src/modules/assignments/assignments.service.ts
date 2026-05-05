@@ -65,14 +65,21 @@ export const assignmentsService = {
       if (pipelineDoc.exists) {
         prospectData = pipelineDoc.data()
       } else {
-        const importedDoc = await adminDb.collection('imported_prospects').doc(prospectId).get()
-        if (importedDoc.exists) {
-          prospectData = importedDoc.data()
+        // Primary CSV import collection
+        const managerProspectDoc = await adminDb.collection('manager_prospects').doc(prospectId).get()
+        if (managerProspectDoc.exists) {
+          prospectData = managerProspectDoc.data()
+        } else {
+          // Legacy import collection
+          const importedDoc = await adminDb.collection('imported_prospects').doc(prospectId).get()
+          if (importedDoc.exists) {
+            prospectData = importedDoc.data()
+          }
         }
       }
 
       if (!prospectData) {
-        console.warn(`Prospect ${prospectId} not found in pipeline or imported_prospects — skipping`)
+        console.warn(`Prospect ${prospectId} not found in pipeline, manager_prospects or imported_prospects — skipping`)
         continue
       }
 
