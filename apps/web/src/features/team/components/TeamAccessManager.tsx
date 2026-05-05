@@ -7,7 +7,8 @@ import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useToast } from '@/hooks/useToast'
 import { colors } from '@/styles/tokens'
 import { db } from '@/lib/firebase'
-import { collection, query, where, getDocs, doc, setDoc, updateDoc, serverTimestamp, onSnapshot } from 'firebase/firestore'
+import { collection, query, where, doc, setDoc, updateDoc, serverTimestamp, onSnapshot } from 'firebase/firestore'
+import { Trash2, Copy, Ban, ChevronDown } from 'lucide-react'
 
 function normalizeText(text: string) {
   return (text || '')
@@ -34,6 +35,8 @@ export function TeamAccessManager() {
   const [loadingAccesses, setLoadingAccesses] = useState(false)
   const [formData, setFormData] = useState({ firstname: '', lastname: '', company: '' })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
   const previewId = buildAccessId(formData.firstname, formData.lastname, formData.company || user?.companyName || 'Entreprise')
 
@@ -111,9 +114,29 @@ export function TeamAccessManager() {
         revokedAt: serverTimestamp()
       })
       pushToast({ type: 'success', title: 'Accès révoqué' })
-      // Real-time listener will automatically update the list
     } catch (e: any) {
       pushToast({ type: 'error', title: `Erreur: ${e.message}` })
+    }
+  }
+
+  const deleteMember = async (accessId: string) => {
+    if (!user) return
+    setDeletingId(accessId)
+    try {
+      const token = await user.getIdToken()
+      const res = await fetch(`/api/team/members/${encodeURIComponent(accessId)}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error((json as any).message ?? `Erreur ${res.status}`)
+      pushToast({ type: 'success', title: `Membre supprimé (${json.pipelineDeleted ?? 0} items pipeline retirés)` })
+      setConfirmDeleteId(null)
+      // Real-time listener updates the list automatically
+    } catch (e: any) {
+      pushToast({ type: 'error', title: `Erreur suppression: ${e.message}` })
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -121,6 +144,12 @@ export function TeamAccessManager() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes slideDown {
+          from { opacity: 0; transform: translateY(-6px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      `}} />
       <DataCard
         title="Créer un accès collaborateur"
         subtitle="Générez un identifiant unique pour inviter un membre dans votre équipe."
@@ -166,40 +195,123 @@ export function TeamAccessManager() {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {accesses.map(acc => {
-              // Déterminer le statut réel : "activated: true" prime sur "status"
               const isActivated = acc.activated === true
               const isRevoked = acc.status === 'revoked'
-              const displayStatus = isRevoked ? 'revoked' : isActivated ? 'active' : 'pending'
-              
+              const isPendingEmail = acc.status === 'pending_email'
+              const displayStatus = isRevoked ? 'revoked' : isActivated ? 'active' : isPendingEmail ? 'pending_email' : 'pending'
+              const isConfirmingDelete = confirmDeleteId === acc.id
+              const isDeleting = deletingId === acc.id
+
               return (
-              <div key={acc.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderRadius: 'var(--radius-md)', border: `1px solid ${colors.border}`, background: displayStatus === 'revoked' ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.045)', opacity: displayStatus === 'revoked' ? 0.6 : 1, transition: 'all 0.2s ease' }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
-                    <strong style={{ fontSize: 14 }}>{acc.accessId}</strong>
-                    <Badge variant={displayStatus === 'active' ? 'success' : displayStatus === 'revoked' ? 'danger' : 'default'}>
-                      {displayStatus === 'active' ? 'Actif' : displayStatus === 'revoked' ? 'Révoqué' : 'En attente'}
-                    </Badge>
+                <div key={acc.id} style={{ borderRadius: 10, border: `1px solid ${colors.border}`, overflow: 'hidden' }}>
+                  {/* Main row */}
+                  <div style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    padding: '10px 12px',
+                    background: isRevoked ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.04)',
+                    opacity: isRevoked ? 0.6 : 1,
+                    transition: 'all 0.2s ease',
+                    flexWrap: 'wrap', gap: 8,
+                  }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3, flexWrap: 'wrap' }}>
+                        <strong style={{ fontSize: 14 }}>{acc.firstname} {acc.lastname}</strong>
+                        <Badge variant={displayStatus === 'active' ? 'success' : displayStatus === 'revoked' ? 'danger' : 'default'}>
+                          {displayStatus === 'active' ? 'Actif'
+                            : displayStatus === 'revoked' ? 'Révoqué'
+                            : displayStatus === 'pending_email' ? '⏳ Email en attente'
+                            : 'En attente'}
+                        </Badge>
+                      </div>
+                      <div style={{ fontSize: 11.5, color: colors.textMid, fontFamily: 'monospace' }}>
+                        {acc.accessId}
+                      </div>
+                      {acc.email && (
+                        <div style={{ fontSize: 12, color: colors.textDim, marginTop: 2 }}>{acc.email}</div>
+                      )}
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                      {/* Copy ID — only for pending */}
+                      {displayStatus === 'pending' && (
+                        <button
+                          title="Copier l'identifiant d'accès"
+                          onClick={() => copyId(acc.accessId)}
+                          style={btnStyle('#185FA5')}
+                        >
+                          <Copy size={13} /> Copier
+                        </button>
+                      )}
+                      {/* Revoke — only for non-revoked */}
+                      {displayStatus !== 'revoked' && (
+                        <button
+                          title="Révoquer l'accès"
+                          onClick={() => revokeAccess(acc.id)}
+                          style={btnStyle('#EF9A3A')}
+                        >
+                          <Ban size={13} /> Révoquer
+                        </button>
+                      )}
+                      {/* Delete — always available */}
+                      <button
+                        title="Supprimer définitivement"
+                        onClick={() => setConfirmDeleteId(isConfirmingDelete ? null : acc.id)}
+                        style={btnStyle('#EF4444')}
+                      >
+                        <Trash2 size={13} /> Supprimer
+                        <ChevronDown size={11} style={{ transform: isConfirmingDelete ? 'rotate(180deg)' : 'none', transition: 'transform 200ms' }} />
+                      </button>
+                    </div>
                   </div>
-                  <div style={{ fontSize: 12, color: colors.textMid }}>
-                    {acc.firstname} {acc.lastname} — {acc.company}
-                    {acc.email ? ` (${acc.email})` : ''}
-                  </div>
-                </div>
-                
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-                  {displayStatus === 'pending' && (
-                    <Button size="sm" variant="outline" onClick={() => copyId(acc.accessId)}>Copier ID</Button>
+
+                  {/* Confirmation panel — slides in below the row */}
+                  {isConfirmingDelete && (
+                    <div style={{
+                      padding: '12px 14px',
+                      background: 'rgba(239,68,68,0.06)',
+                      borderTop: '1px solid rgba(239,68,68,0.2)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      gap: 12, flexWrap: 'wrap',
+                      animation: 'slideDown 150ms ease',
+                    }}>
+                      <div style={{ fontSize: 13, color: '#EF4444', lineHeight: 1.5 }}>
+                        <strong>Supprimer définitivement</strong> {acc.firstname} {acc.lastname} ?<br />
+                        <span style={{ fontSize: 11.5, opacity: 0.8 }}>Son accès et son pipeline seront supprimés.</span>
+                      </div>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button onClick={() => setConfirmDeleteId(null)} style={btnStyle(colors.textMid)}>
+                          Annuler
+                        </button>
+                        <button
+                          onClick={() => void deleteMember(acc.id)}
+                          disabled={isDeleting}
+                          style={{ ...btnStyle('#EF4444'), background: 'rgba(239,68,68,0.12)', fontWeight: 700 }}
+                        >
+                          <Trash2 size={13} />
+                          {isDeleting ? 'Suppression...' : 'Confirmer la suppression'}
+                        </button>
+                      </div>
+                    </div>
                   )}
-                  {displayStatus !== 'revoked' && (
-                    <Button size="sm" variant="ghost" onClick={() => revokeAccess(acc.id)} style={{ color: '#EF4444' }}>Révoquer</Button>
-                  )}
                 </div>
-              </div>
-            )
+              )
             })}
           </div>
         )}
       </DataCard>
     </div>
   )
+}
+
+function btnStyle(color: string): React.CSSProperties {
+  return {
+    display: 'inline-flex', alignItems: 'center', gap: 4,
+    height: 28, padding: '0 10px', borderRadius: 7,
+    border: `1px solid ${color}22`,
+    background: `${color}11`,
+    color,
+    fontSize: 12, fontWeight: 600, cursor: 'pointer',
+    fontFamily: 'inherit', transition: 'all 150ms ease',
+    whiteSpace: 'nowrap',
+  }
 }

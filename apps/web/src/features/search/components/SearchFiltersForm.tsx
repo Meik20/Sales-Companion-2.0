@@ -341,12 +341,19 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
         @media (max-width: 640px) {
           .sc-submit-btn { flex: 0 0 46px; width: 46px; min-width: 46px; }
           .sc-pills-row { display: none; }
-          .sc-adv-panel { display: none; }
           .sc-adv-row { grid-template-columns: 1fr 1fr; }
           .sc-adv-row .sc-adv-geo-col { grid-column: 1 / -1; }
         }
         @media (max-width: 420px) {
           .sc-adv-row { grid-template-columns: 1fr; }
+        }
+        /* City field animation */
+        @keyframes fadeSlideIn {
+          from { opacity: 0; transform: translateY(-4px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .sc-city-field {
+          animation: fadeSlideIn 200ms ease;
         }
       `}} />
 
@@ -413,7 +420,7 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
         {/* ── Block 3: Advanced panel (separate card, conditionally rendered) ── */}
         {showAdvanced && (
           <div className="sc-adv-panel">
-            <div className="sc-adv-row">
+            <div className="sc-adv-row" style={{ gridTemplateColumns: region ? '1fr 1fr 1fr' : '1fr 1fr' }}>
 
               {/* Région */}
               <div className="sc-adv-field">
@@ -429,22 +436,21 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
                 </select>
               </div>
 
-              {/* Ville — always rendered, disabled when no region selected */}
-              <div className="sc-adv-field">
-                <label>🏙 Ville</label>
-                <select
-                  className="sc-adv-select"
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  disabled={!region || availableCities.length === 0}
-                  aria-label="Ville"
-                >
-                  <option value="">
-                    {!region ? 'Choisissez une région' : 'Toutes les villes'}
-                  </option>
-                  {availableCities.map((c) => <option key={c} value={c}>{c}</option>)}
-                </select>
-              </div>
+              {/* Ville — appears only when a region is selected */}
+              {region && availableCities.length > 0 && (
+                <div className="sc-adv-field sc-city-field">
+                  <label>🏙 Ville</label>
+                  <select
+                    className="sc-adv-select"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    aria-label="Ville"
+                  >
+                    <option value="">Toutes les villes</option>
+                    {availableCities.map((c) => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+              )}
 
               {/* Autour de moi */}
               <div className="sc-adv-field sc-adv-geo-col" style={{ display: 'flex', flexDirection: 'column' }}>
