@@ -2,12 +2,17 @@
 
 import { useState } from 'react'
 import { useAdminCompanies, AdminCompany } from '../hooks/useAdminCompanies'
+import { useDeleteAdminCompanies } from '../hooks/useDeleteAdminCompanies'
 import { SectionCard } from '@/features/team/components/SectionCard'
+import { useToast } from '@/hooks/useToast'
 import { colors } from '@/styles/tokens'
 
 export function AdminCompaniesTable() {
   const [page, setPage] = useState(1)
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
   const { data, isLoading, isError } = useAdminCompanies(page)
+  const deleteMutation = useDeleteAdminCompanies()
+  const { pushToast } = useToast()
 
   if (isLoading) {
     return (
@@ -33,6 +38,36 @@ export function AdminCompaniesTable() {
   const total = data?.total || 0
   const pageSize = data?.pageSize || 20
   const totalPages = Math.ceil(total / pageSize)
+  const allSelected = items.length > 0 && selectedIds.length === items.length
+
+  const handleToggleAll = () => {
+    setSelectedIds((current) => (allSelected ? [] : items.map((item) => item.id)))
+  }
+
+  const handleToggleOne = (id: string) => {
+    setSelectedIds((current) =>
+      current.includes(id) ? current.filter((selectedId) => selectedId !== id) : [...current, id]
+    )
+  }
+
+  const handleDeleteSelected = async () => {
+    if (selectedIds.length === 0) return
+    if (!window.confirm(`Supprimer ${selectedIds.length} entreprise${selectedIds.length > 1 ? 's' : ''} sélectionnée${selectedIds.length > 1 ? 's' : ''} ?`)) {
+      return
+    }
+
+    try {
+      await deleteMutation.mutateAsync(selectedIds)
+      setSelectedIds([])
+      pushToast({ type: 'success', title: 'Entreprises supprimées' })
+    } catch (error) {
+      pushToast({
+        type: 'error',
+        title: 'Suppression impossible',
+        description: error instanceof Error ? error.message : 'Erreur inconnue',
+      })
+    }
+  }
 
   return (
     <SectionCard title="Entreprises" subtitle={`${total} entreprise${total > 1 ? 's' : ''} importée${total > 1 ? 's' : ''}`}>
@@ -42,6 +77,39 @@ export function AdminCompaniesTable() {
         </div>
       ) : (
         <>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: 12,
+              marginBottom: 16,
+              flexWrap: 'wrap',
+            }}
+          >
+            <div style={{ color: colors.textMid, fontSize: 13 }}>
+              {selectedIds.length > 0
+                ? `${selectedIds.length} entreprise${selectedIds.length > 1 ? 's' : ''} sélectionnée${selectedIds.length > 1 ? 's' : ''}`
+                : 'Sélectionnez des entreprises à supprimer.'}
+            </div>
+            <button
+              type="button"
+              onClick={handleDeleteSelected}
+              disabled={selectedIds.length === 0 || deleteMutation.isLoading}
+              style={{
+                padding: '10px 16px',
+                fontSize: 13,
+                borderRadius: 8,
+                border: `1px solid ${selectedIds.length === 0 ? colors.border : colors.dangerBorder}`,
+                background: selectedIds.length === 0 ? colors.bg : colors.dangerBg,
+                color: selectedIds.length === 0 ? colors.textMid : colors.danger,
+                cursor: selectedIds.length === 0 ? 'not-allowed' : 'pointer',
+              }}
+            >
+              Supprimer la sélection
+            </button>
+          </div>
+
           <div style={{ overflowX: 'auto' }}>
             <table
               style={{
@@ -52,6 +120,14 @@ export function AdminCompaniesTable() {
             >
               <thead>
                 <tr style={{ borderBottom: `1px solid ${colors.border}` }}>
+                  <th style={{ padding: '10px 12px' }}>
+                    <input
+                      type="checkbox"
+                      checked={allSelected}
+                      onChange={handleToggleAll}
+                      aria-label="Sélectionner toutes les entreprises"
+                    />
+                  </th>
                   {['Raison Sociale', 'NIU', 'Secteur', 'Ville / Région', 'Statut', 'Date'].map((h) => (
                     <th
                       key={h}
@@ -73,7 +149,12 @@ export function AdminCompaniesTable() {
               </thead>
               <tbody>
                 {items.map((company) => (
-                  <CompanyRow key={company.id} company={company} />
+                  <CompanyRow
+                    key={company.id}
+                    company={company}
+                    isSelected={selectedIds.includes(company.id)}
+                    onToggle={() => handleToggleOne(company.id)}
+                  />
                 ))}
               </tbody>
             </table>
@@ -91,7 +172,10 @@ export function AdminCompaniesTable() {
               }}
             >
               <button
-                onClick={() => setPage(Math.max(1, page - 1))}
+                onClick={() => {
+                  setSelectedIds([])
+                  setPage(Math.max(1, page - 1))
+                }}
                 disabled={page === 1}
                 style={{
                   padding: '8px 12px',
@@ -109,7 +193,10 @@ export function AdminCompaniesTable() {
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
                 <button
                   key={p}
-                  onClick={() => setPage(p)}
+                  onClick={() => {
+                    setSelectedIds([])
+                    setPage(p)
+                  }}
                   style={{
                     padding: '8px 12px',
                     fontSize: 12,
@@ -125,7 +212,10 @@ export function AdminCompaniesTable() {
                 </button>
               ))}
               <button
-                onClick={() => setPage(Math.min(totalPages, page + 1))}
+                onClick={() => {
+                  setSelectedIds([])
+                  setPage(Math.min(totalPages, page + 1))
+                }}
                 disabled={page === totalPages}
                 style={{
                   padding: '8px 12px',
@@ -148,7 +238,15 @@ export function AdminCompaniesTable() {
   )
 }
 
-function CompanyRow({ company }: { company: AdminCompany }) {
+function CompanyRow({
+  company,
+  isSelected,
+  onToggle,
+}: {
+  company: AdminCompany
+  isSelected: boolean
+  onToggle: () => void
+}) {
   const importDate = company.importedAt ? new Date(company.importedAt) : null
   const dateStr = importDate && !isNaN(importDate.getTime())
     ? importDate.toLocaleDateString('fr-FR', { month: 'short', day: 'numeric', year: '2-digit' })
@@ -170,6 +268,14 @@ function CompanyRow({ company }: { company: AdminCompany }) {
       onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = colors.bg2 }}
       onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
     >
+      <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+        <input
+          type="checkbox"
+          checked={isSelected}
+          onChange={onToggle}
+          aria-label={`Sélectionner ${displayName}`}
+        />
+      </td>
       {/* Raison Sociale */}
       <td style={{ padding: '10px 12px', fontWeight: 600, color: colors.text, maxWidth: 260 }}>
         <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -181,7 +287,6 @@ function CompanyRow({ company }: { company: AdminCompany }) {
           </div>
         )}
       </td>
-      {/* NIU col – hidden duplicate, now merged above */}
       {/* Secteur */}
       <td style={{ padding: '10px 12px', color: colors.textMid, fontSize: 12, maxWidth: 160 }}>
         <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
