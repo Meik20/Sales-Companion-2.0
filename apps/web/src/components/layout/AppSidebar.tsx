@@ -168,7 +168,7 @@ export function AppSidebar({ isMobile = false, onClose }: { isMobile?: boolean; 
             {user.name || 'Utilisateur'}
           </span>
           <span style={{ fontSize: 11, color: colors.textMid }}>
-            {user.role === 'admin' ? '🔴 Admin' : user.role === 'manager' ? '🟡 Manager' : '🔵 Membre'} · Plan Free
+            {user.role === 'admin' ? '🔴 Admin' : user.role === 'manager' ? '🟡 Manager' : user.role === 'independent' ? '🟢 Indépendant' : '🔵 Membre'} · Plan Free
           </span>
         </div>
       </div>
