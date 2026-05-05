@@ -10,6 +10,7 @@ import { colors } from '@/styles/tokens'
 export function AdminCompaniesTable() {
   const [page, setPage] = useState(1)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [isDeleting, setIsDeleting] = useState(false)
   const { data, isLoading, isError } = useAdminCompanies(page)
   const deleteMutation = useDeleteAdminCompanies()
   const { pushToast } = useToast()
@@ -56,6 +57,7 @@ export function AdminCompaniesTable() {
       return
     }
 
+    setIsDeleting(true)
     try {
       await deleteMutation.mutateAsync(selectedIds)
       setSelectedIds([])
@@ -66,6 +68,8 @@ export function AdminCompaniesTable() {
         title: 'Suppression impossible',
         description: error instanceof Error ? error.message : 'Erreur inconnue',
       })
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -95,7 +99,7 @@ export function AdminCompaniesTable() {
             <button
               type="button"
               onClick={handleDeleteSelected}
-              disabled={selectedIds.length === 0 || deleteMutation.isLoading}
+              disabled={selectedIds.length === 0 || isDeleting}
               style={{
                 padding: '10px 16px',
                 fontSize: 13,
@@ -103,7 +107,8 @@ export function AdminCompaniesTable() {
                 border: `1px solid ${selectedIds.length === 0 ? colors.border : colors.dangerBorder}`,
                 background: selectedIds.length === 0 ? colors.bg : colors.dangerBg,
                 color: selectedIds.length === 0 ? colors.textMid : colors.danger,
-                cursor: selectedIds.length === 0 ? 'not-allowed' : 'pointer',
+                cursor: selectedIds.length === 0 || isDeleting ? 'not-allowed' : 'pointer',
+                opacity: selectedIds.length === 0 || isDeleting ? 0.5 : 1,
               }}
             >
               Supprimer la sélection
