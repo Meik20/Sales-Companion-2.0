@@ -106,10 +106,13 @@ export async function POST(request: NextRequest) {
           .get()
 
         if (!accessSnap.empty) {
-          const uid = (accessSnap.docs[0].data()?.firebaseUid as string) || null
-          if (uid && !isEmail(uid)) {
-            uidCache.set(rawUid, uid)
-            return uid
+          const accessDoc = accessSnap.docs[0]
+          if (accessDoc) {
+            const uid = (accessDoc.data()?.firebaseUid as string) || null
+            if (uid && !isEmail(uid)) {
+              uidCache.set(rawUid, uid)
+              return uid
+            }
           }
         }
 
