@@ -1,8 +1,8 @@
 'use client'
 
 import { useSearchParams, useRouter } from 'next/navigation'
-import { useState, Suspense } from 'react'
-import { signInWithEmailAndPassword } from 'firebase/auth'
+import { useState, useEffect, Suspense } from 'react'
+import { signInWithEmailAndPassword, sendEmailVerification } from 'firebase/auth'
 import { auth } from '@/services/firebase/client'
 import { ActivateMemberForm } from '@/features/team/components/ActivateMemberForm'
 import { ScIcon } from '@/components/ui/ScIcon'
@@ -11,78 +11,107 @@ import { routes } from '@/constants/routes'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { FormField } from '@/components/forms/FormField'
+import { Mail, RefreshCw, CheckCircle } from 'lucide-react'
+
+type ActivateStep =
+  | 'form'        // initial form
+  | 'check-email' // email sent, waiting for click
+  | 'verified'    // email verified, redirecting
 
 function ActivateContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const urlAccessId = searchParams.get('accessId') ?? ''
-  const [accessId, setAccessId] = useState(urlAccessId)
+  const [accessId, setAccessId]         = useState(urlAccessId)
   const [manualAccessId, setManualAccessId] = useState('')
-  const [done, setDone] = useState(false)
-  const [userEmail, setUserEmail] = useState('')
-  const [userPassword, setUserPassword] = useState('')
+  const [step, setStep]                 = useState<ActivateStep>('form')
+  const [pendingEmail, setPendingEmail] = useState('')
+  const [resendCooldown, setResendCooldown] = useState(0)
+  const [resendLoading, setResendLoading]   = useState(false)
+
+  // Countdown for resend button
+  useEffect(() => {
+    if (resendCooldown <= 0) return
+    const t = setTimeout(() => setResendCooldown((c) => c - 1), 1000)
+    return () => clearTimeout(t)
+  }, [resendCooldown])
+
+  // Poll emailVerified once on the "check-email" screen
+  useEffect(() => {
+    if (step !== 'check-email') return
+    const interval = setInterval(async () => {
+      const currentUser = auth.currentUser
+      if (!currentUser) return
+      await currentUser.reload()
+      if (currentUser.emailVerified) {
+        // Call the finalize endpoint
+        try {
+          const token = await currentUser.getIdToken(true)
+          await fetch('/api/auth/verify-email', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token}` },
+          })
+        } catch { /* ignore */ }
+        setStep('verified')
+        clearInterval(interval)
+        setTimeout(() => router.replace(routes.search), 2000)
+      }
+    }, 3000) // check every 3 seconds
+    return () => clearInterval(interval)
+  }, [step, router])
 
   function handleManualSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (manualAccessId.trim()) {
-      setAccessId(manualAccessId.trim())
-    }
+    if (manualAccessId.trim()) setAccessId(manualAccessId.trim())
   }
 
-  // ✅ Auto-login after successful activation
+  // Called by ActivateMemberForm after the API creates the Firebase user
   async function handleActivationSuccess(email: string, password: string) {
+    setPendingEmail(email)
     try {
-      const { user } = await signInWithEmailAndPassword(auth, email, password)
-      // ✅ FORCE TOKEN REFRESH to get custom claims
-      await user.getIdToken(true)
-      
-      setUserEmail(email)
-      setUserPassword(password)
-      setDone(true)
-      
-      // Redirect to dashboard after animation
-      setTimeout(() => router.replace(routes.search), 2000)
+      // Sign in silently to get the Firebase user object
+      const { user: firebaseUser } = await signInWithEmailAndPassword(auth, email, password)
+      // Send verification email
+      await sendEmailVerification(firebaseUser, {
+        url: `${window.location.origin}${routes.login}`,
+        handleCodeInApp: false,
+      })
+      setResendCooldown(60)
+      setStep('check-email')
     } catch (err) {
-      console.error('Auto-login failed:', err)
-      // Fall back to manual login
-      setDone(true)
-      setTimeout(() => router.replace(routes.login), 2000)
+      console.error('Email verification send failed:', err)
+      // Still move to check-email — user may have to request manually
+      setStep('check-email')
     }
   }
 
+  async function handleResend() {
+    const currentUser = auth.currentUser
+    if (!currentUser || resendCooldown > 0) return
+    setResendLoading(true)
+    try {
+      await sendEmailVerification(currentUser, {
+        url: `${window.location.origin}${routes.login}`,
+        handleCodeInApp: false,
+      })
+      setResendCooldown(60)
+    } catch (err) {
+      console.error('Resend failed:', err)
+    } finally {
+      setResendLoading(false)
+    }
+  }
+
+  // ── Screen: no accessId yet ──────────────────────────────────────────────
   if (!accessId) {
     return (
-      <main
-        style={{
-          minHeight: '100vh',
-          background: colors.bg,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '24px 16px',
-        }}
-      >
-        <div
-          style={{
-            background: colors.bg2,
-            border: `1px solid ${colors.border}`,
-            borderRadius: 20,
-            padding: 40,
-            width: '100%',
-            maxWidth: 440,
-            boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
-          }}
-        >
-          <div style={{ textAlign: 'center', marginBottom: 28 }}>
+      <main style={cardPage}>
+        <div style={card}>
+          <div style={cardHeader}>
             <ScIcon size={48} style={{ marginBottom: 14 }} />
-            <h1 style={{ margin: '0 0 8px', fontSize: 22, fontWeight: 800, color: colors.text, fontFamily: "'Syne',sans-serif" }}>
-              Accès Entreprise
-            </h1>
-            <p style={{ margin: 0, fontSize: 13, color: colors.textMid }}>
-              Veuillez saisir le code d&apos;accès fourni par votre manager.
-            </p>
+            <h1 style={h1}>Accès Entreprise</h1>
+            <p style={sub}>Veuillez saisir le code d&apos;accès fourni par votre manager.</p>
           </div>
-
           <form onSubmit={handleManualSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <FormField label="Code d'accès" required>
               <Input
@@ -92,7 +121,6 @@ function ActivateContent() {
                 onChange={(e) => setManualAccessId(e.target.value)}
               />
             </FormField>
-            
             <Button type="submit" variant="primary" size="lg" style={{ width: '100%', marginTop: 8 }} disabled={!manualAccessId.trim()}>
               Continuer
             </Button>
@@ -102,66 +130,142 @@ function ActivateContent() {
     )
   }
 
-  if (done) {
+  // ── Screen: check your inbox ─────────────────────────────────────────────
+  if (step === 'check-email') {
     return (
-      <main
-        style={{
-          minHeight: '100vh',
-          background: colors.bg,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexDirection: 'column',
-          gap: 16,
-          color: colors.text,
-        }}
-      >
-        <span style={{ fontSize: 40 }}>✓</span>
-        <p style={{ fontSize: 15, fontWeight: 600 }}>Compte activé ! Redirection en cours…</p>
+      <main style={cardPage}>
+        <div style={card}>
+          <div style={{ textAlign: 'center', marginBottom: 24 }}>
+            <div style={{
+              width: 72, height: 72, borderRadius: '50%',
+              background: 'rgba(55,138,221,0.12)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              margin: '0 auto 16px',
+            }}>
+              <Mail size={32} style={{ color: 'var(--color-accent)' }} />
+            </div>
+            <h1 style={{ ...h1, marginBottom: 8 }}>Vérifiez votre email</h1>
+            <p style={sub}>
+              Un email de vérification a été envoyé à<br />
+              <strong style={{ color: colors.text }}>{pendingEmail}</strong>
+            </p>
+          </div>
+
+          <div style={{
+            background: 'rgba(55,138,221,0.06)',
+            border: `1px solid rgba(55,138,221,0.2)`,
+            borderRadius: 12, padding: '16px 18px',
+            fontSize: 13.5, color: colors.textMid, lineHeight: 1.7,
+            marginBottom: 20,
+          }}>
+            <p style={{ margin: '0 0 8px', fontWeight: 600, color: colors.text }}>Comment procéder :</p>
+            <ol style={{ margin: 0, paddingLeft: 18 }}>
+              <li>Ouvrez l&apos;email de <strong>Sales Companion</strong> dans votre boîte de réception.</li>
+              <li>Cliquez sur le bouton <strong>« Vérifier mon adresse email »</strong>.</li>
+              <li>Votre compte sera activé automatiquement.</li>
+            </ol>
+          </div>
+
+          <p style={{ fontSize: 12, color: colors.textDim, textAlign: 'center', marginBottom: 12 }}>
+            Pas d&apos;email ? Vérifiez vos spams ou attendez quelques instants.
+          </p>
+
+          <button
+            onClick={() => void handleResend()}
+            disabled={resendCooldown > 0 || resendLoading}
+            style={{
+              width: '100%', height: 40,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              background: resendCooldown > 0 ? colors.bg3 : 'transparent',
+              border: `1px solid ${colors.border}`,
+              borderRadius: 10, cursor: resendCooldown > 0 ? 'not-allowed' : 'pointer',
+              color: colors.textMid, fontSize: 13, fontFamily: 'inherit',
+              transition: 'all 150ms ease',
+            }}
+          >
+            <RefreshCw size={14} style={{ animation: resendLoading ? 'spin 1s linear infinite' : 'none' }} />
+            {resendCooldown > 0 ? `Renvoyer dans ${resendCooldown}s` : 'Renvoyer l\'email'}
+          </button>
+
+          <p style={{ fontSize: 11, color: colors.textDim, textAlign: 'center', marginTop: 16 }}>
+            Cette page se met à jour automatiquement dès que votre email est vérifié.
+          </p>
+        </div>
       </main>
     )
   }
 
-  return (
-    <main
-      style={{
-        minHeight: '100vh',
-        background: colors.bg,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '24px 16px',
-      }}
-    >
-      <div
-        style={{
-          background: colors.bg2,
-          border: `1px solid ${colors.border}`,
-          borderRadius: 20,
-          padding: 40,
-          width: '100%',
-          maxWidth: 440,
-          boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
-        }}
-      >
-        <div style={{ textAlign: 'center', marginBottom: 28 }}>
-          <ScIcon size={48} style={{ marginBottom: 14 }} />
-          <h1 style={{ margin: '0 0 8px', fontSize: 22, fontWeight: 800, color: colors.text, fontFamily: "'Syne',sans-serif" }}>
-            Activer mon compte
-          </h1>
-          <p style={{ margin: 0, fontSize: 13, color: colors.textMid }}>
-            Créez votre mot de passe pour accéder à Sales Companion.
-          </p>
-        </div>
+  // ── Screen: verified ─────────────────────────────────────────────────────
+  if (step === 'verified') {
+    return (
+      <main style={{ ...cardPage, flexDirection: 'column', gap: 16 }}>
+        <CheckCircle size={52} style={{ color: 'var(--color-success)' }} />
+        <h2 style={{ fontSize: 20, fontWeight: 700, color: colors.text, margin: 0 }}>
+          Email vérifié !
+        </h2>
+        <p style={{ fontSize: 14, color: colors.textMid, margin: 0 }}>
+          Votre compte est maintenant actif. Redirection…
+        </p>
+      </main>
+    )
+  }
 
-        <ActivateMemberForm 
-          accessId={accessId} 
-          onSuccess={(email: string, password: string) => handleActivationSuccess(email, password)} 
+  // ── Screen: activation form ───────────────────────────────────────────────
+  return (
+    <main style={cardPage}>
+      <div style={card}>
+        <div style={cardHeader}>
+          <ScIcon size={48} style={{ marginBottom: 14 }} />
+          <h1 style={h1}>Activer mon compte</h1>
+          <p style={sub}>Créez votre mot de passe pour accéder à Sales Companion.</p>
+          <div style={{
+            marginTop: 12,
+            display: 'flex', alignItems: 'center', gap: 8,
+            background: 'rgba(55,138,221,0.08)',
+            border: '1px solid rgba(55,138,221,0.2)',
+            borderRadius: 8, padding: '8px 12px',
+            fontSize: 12.5, color: 'var(--color-accent)',
+          }}>
+            <Mail size={14} />
+            <span>Un email de vérification sera envoyé après l&apos;activation.</span>
+          </div>
+        </div>
+        <ActivateMemberForm
+          accessId={accessId}
+          onSuccess={(email: string, password: string) => void handleActivationSuccess(email, password)}
         />
       </div>
     </main>
   )
 }
+
+// ── Style constants ───────────────────────────────────────────────────────────
+const cardPage: React.CSSProperties = {
+  minHeight: '100vh',
+  background: colors.bg,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: '24px 16px',
+}
+const card: React.CSSProperties = {
+  background: colors.bg2,
+  border: `1px solid ${colors.border}`,
+  borderRadius: 20,
+  padding: 40,
+  width: '100%',
+  maxWidth: 460,
+  boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+}
+const cardHeader: React.CSSProperties = { textAlign: 'center', marginBottom: 28 }
+const h1: React.CSSProperties = {
+  margin: '0 0 8px',
+  fontSize: 22,
+  fontWeight: 800,
+  color: colors.text,
+  fontFamily: "'Syne',sans-serif",
+}
+const sub: React.CSSProperties = { margin: 0, fontSize: 13, color: colors.textMid }
 
 export default function ActivatePage() {
   return (

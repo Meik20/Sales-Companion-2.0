@@ -150,8 +150,9 @@ export async function POST(request: NextRequest) {
           .trim() || null,
         role:       data.role      ?? 'member',
         plan:       data.plan      ?? 'free',
-        active:     true,
-        activated:  true,
+        active:     false,          // not active until email verified
+        activated:  false,          // will be set true by /api/auth/verify-email
+        emailVerificationPending: true,
         company:    data.company   ?? null,
         sector:     data.sector    ?? null,
         region:     data.region    ?? null,
@@ -161,7 +162,7 @@ export async function POST(request: NextRequest) {
         dailyUsed:  0,
         dailyLimit: data.dailyLimit ?? 10,
         createdAt,
-        activatedAt: new Date(),
+        activatedAt: null,
       },
       { merge: true }
     )
@@ -170,24 +171,24 @@ export async function POST(request: NextRequest) {
     const userRole = data.role ?? 'member'
     await adminAuth.setCustomUserClaims(uid, { role: userRole })
 
-    // ── 6. Update the access document: activated=true, email, firebaseUid ───
-    //      This is the key step that was missing — the source document in
-    //      Firestore (visible in the admin dashboard) must reflect the new state.
+    // ── 6. Update the access document — pending verification ──────────────
     await adminDb.collection(foundCollection).doc(accessId.trim()).update({
-      activated:    true,           // boolean — dashboard uses this field
-      status:       'active',       // string  — used by access-info route
-      email,                        // saves the email the member used
-      firebaseUid:  uid,            // links the Firestore doc to the Auth user
-      activatedAt:  new Date(),
-      activatedUid: uid,
+      activated:               false,             // finalized after email verification
+      emailVerificationPending: true,
+      status:                  'pending_email',   // intermediate status
+      email,
+      firebaseUid:             uid,
+      activatedAt:             null,
+      activatedUid:            uid,
     })
 
-    console.log('[auth/activate] Activation complete', { accessId, email, uid, collection: foundCollection })
+    console.log('[auth/activate] Activation pending email verification', { accessId, email, uid, collection: foundCollection })
 
     return NextResponse.json({
       success: true,
       uid,
-      message: 'Activation réussie. Votre compte est désormais activé et disponible dans Firestore.',
+      requiresEmailVerification: true,
+      message: 'Compte créé. Vérifiez votre email pour finaliser l\'activation.',
     })
   } catch (error) {
     console.error('[auth/activate] Unexpected error:', error)
