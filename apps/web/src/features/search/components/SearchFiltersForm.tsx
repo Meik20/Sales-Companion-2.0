@@ -151,6 +151,20 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
           gap: 10px;
           flex-wrap: wrap;
         }
+        @media (max-width: 640px) {
+          .sc-filters-container {
+            position: sticky;
+            top: 60px; /* Header height */
+            z-index: 90;
+            background: var(--bg);
+            padding: 8px 12px;
+            margin: -10px -16px 10px;
+            width: calc(100% + 32px);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--bd);
+          }
+        }
         .sc-input-wrap {
           flex: 1;
           min-width: 0;
@@ -217,9 +231,8 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
         .sc-pills-row {
           display: flex;
           align-items: center;
-          justify-content: space-between;
-          gap: 10px;
-          flex-wrap: wrap;
+          gap: 12px;
+          overflow: hidden;
         }
         .sc-pills-scroll {
           flex: 1;
@@ -229,6 +242,10 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
           margin-right: 6px;
         }
         .sc-pills-scroll::-webkit-scrollbar { display: none; }
+        .sc-pills-scroll {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
         .sc-pills {
           display: inline-flex;
           align-items: center;
@@ -266,6 +283,28 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
         .sc-adv-btn:hover { color: var(--google-green-700,#137333); }
         .sc-adv-chevron { transition: transform 200ms ease; }
         .sc-adv-chevron.open { transform: rotate(180deg); }
+
+        @media (max-width: 640px) {
+          .sc-pills-row {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 8px;
+          }
+          .sc-pills-scroll {
+            margin-right: 0;
+            padding-bottom: 2px;
+          }
+          .sc-pills {
+            padding: 2px 0;
+          }
+          .sc-adv-btn {
+            display: flex;
+            justify-content: center;
+            padding: 8px 0;
+            border-top: 1px solid var(--bd);
+            margin-top: 4px;
+          }
+        }
 
         /* ── Advanced panel ── */
         .sc-adv-panel {
@@ -351,7 +390,6 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
 
         @media (max-width: 640px) {
           .sc-submit-btn { flex: 0 0 46px; width: 46px; min-width: 46px; }
-          .sc-pills-row { display: none; }
           .sc-adv-row { grid-template-columns: 1fr 1fr; }
           .sc-adv-row .sc-adv-geo-col { grid-column: 1 / -1; }
         }
@@ -369,9 +407,10 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
       `}} />
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-
-        {/* ── Block 1: Search bar ── */}
-        <div className="sc-bar">
+        <div className="sc-filters-container">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {/* ── Block 1: Search bar ── */}
+            <div className="sc-bar">
           <div className="sc-input-wrap">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -437,6 +476,8 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
             </span>
           </button>
         </div>
+      </div>
+    </div>
 
         {/* ── Block 3: Advanced panel (separate card, conditionally rendered) ── */}
         {showAdvanced && (
