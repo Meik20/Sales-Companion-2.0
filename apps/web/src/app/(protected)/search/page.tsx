@@ -178,23 +178,23 @@ function SearchContent() {
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              padding: '40px 16px',
+              padding: '16px 8px',
               textAlign: 'center',
-              gap: 32,
+              gap: 16,
             }}
           >
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
               {/* Illustration SVG Custom (Cameroun + Réseau + Loupe + Pulse) */}
-              <div 
-                style={{ 
-                  position: 'relative',
-                  width: 140, 
-                  height: 140, 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                }}
-              >
+                <div 
+                  style={{ 
+                    position: 'relative',
+                    width: 100, 
+                    height: 100, 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                  }}
+                >
                 <div style={{
                   position: 'absolute',
                   inset: 0,
@@ -206,7 +206,7 @@ function SearchContent() {
                 <style dangerouslySetInnerHTML={{__html: `
                   @keyframes pulse {
                     0%, 100% { transform: scale(1); opacity: 0.5; }
-                    50% { transform: scale(1.1); opacity: 0.2; }
+                    50% { transform: scale(1.05); opacity: 0.2; }
                   }
                 `}} />
                 
@@ -215,19 +215,18 @@ function SearchContent() {
                   <path d="M70 40 L100 20 L130 50 L140 90 L120 140 L80 160 L50 120 L40 80 Z" fill={colors.border2} stroke={colors.border} strokeWidth="2" strokeLinejoin="round"/>
                   
                   {/* Nœuds réseau d'entreprises */}
-                  <circle cx="80" cy="60" r="6" fill={colors.green} />
-                  <circle cx="110" cy="80" r="8" fill={colors.greenDark} />
-                  <circle cx="90" cy="110" r="5" fill={colors.green} />
-                  <circle cx="120" cy="120" r="7" fill={colors.green} />
-                  <circle cx="60" cy="100" r="4" fill={colors.green} />
+                  <circle cx="80" cy="60" r="5" fill={colors.green} />
+                  <circle cx="110" cy="80" r="7" fill={colors.greenDark} />
+                  <circle cx="90" cy="110" r="4" fill={colors.green} />
+                  <circle cx="120" cy="120" r="6" fill={colors.green} />
+                  <circle cx="60" cy="100" r="3" fill={colors.green} />
                   
                   {/* Lignes de connexion réseau */}
-                  <path d="M80 60 L110 80 L120 120 L90 110 Z" stroke={colors.green} strokeWidth="1.5" strokeDasharray="4 4" />
-                  <path d="M80 60 L60 100 L90 110" stroke={colors.green} strokeWidth="1.5" strokeDasharray="4 4" />
+                  <path d="M80 60 L110 80 L120 120 L90 110 Z" stroke={colors.green} strokeWidth="1.2" strokeDasharray="3 3" />
                   
                   {/* Loupe */}
-                  <circle cx="130" cy="140" r="24" fill="none" stroke={colors.text} strokeWidth="6" />
-                  <line x1="147" y1="157" x2="170" y2="180" stroke={colors.text} strokeWidth="8" strokeLinecap="round" />
+                  <circle cx="130" cy="140" r="20" fill="none" stroke={colors.text} strokeWidth="5" />
+                  <line x1="145" y1="155" x2="165" y2="175" stroke={colors.text} strokeWidth="7" strokeLinecap="round" />
                   
                   {/* Commercial (silhouette) dans la loupe */}
                   <circle cx="130" cy="135" r="8" fill={colors.textMid} />
@@ -260,19 +259,12 @@ function SearchContent() {
             <style dangerouslySetInnerHTML={{__html: `
             @media (max-width: 640px) {
               .shortcut-grid {
-                display: flex !important;
-                flex-wrap: nowrap !important;
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
-                padding: 4px 16px;
-                margin: 0 -16px;
-                gap: 12px;
-                scrollbar-width: none;
-              }
-              .shortcut-grid::-webkit-scrollbar { display: none; }
-              .shortcut-grid > * {
-                flex: 0 0 160px;
-                min-width: 160px;
+                grid-template-columns: repeat(2, 1fr) !important;
+                display: grid !important;
+                gap: 10px !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                overflow: visible !important;
               }
             }
             `}} />

@@ -271,38 +271,12 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
           color: var(--google-green-700,#137333);
           font-weight: 700;
         }
-        .sc-adv-btn {
-          display: inline-flex; align-items: center; gap: 5px;
-          background: none; border: none; cursor: pointer;
-          font-size: 12.5px; font-weight: 600;
-          color: var(--google-green-600,#1e8e3e);
-          font-family: inherit; padding: 2px 0;
-          white-space: nowrap;
-          transition: color 150ms ease;
-        }
         .sc-adv-btn:hover { color: var(--google-green-700,#137333); }
         .sc-adv-chevron { transition: transform 200ms ease; }
         .sc-adv-chevron.open { transform: rotate(180deg); }
 
-        @media (max-width: 640px) {
-          .sc-pills-row {
-            flex-direction: column;
-            align-items: stretch;
-            gap: 8px;
-          }
-          .sc-pills-scroll {
-            margin-right: 0;
-            padding-bottom: 2px;
-          }
           .sc-pills {
             padding: 2px 0;
-          }
-          .sc-adv-btn {
-            display: flex;
-            justify-content: center;
-            padding: 8px 0;
-            border-top: 1px solid var(--bd);
-            margin-top: 4px;
           }
         }
 
@@ -458,121 +432,9 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
               })}
             </div>
           </div>
-
-          <button
-            type="button"
-            className="sc-adv-btn"
-            onClick={() => setShowAdvanced((v) => !v)}
-            aria-expanded={showAdvanced}
-          >
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/>
-              </svg>
-              {t('search.advancedFilters')}
-              <svg className={`sc-adv-chevron${showAdvanced ? ' open' : ''}`} width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="6 9 12 15 18 9"/>
-              </svg>
-            </span>
-          </button>
         </div>
       </div>
     </div>
-
-        {/* ── Block 3: Advanced panel (separate card, conditionally rendered) ── */}
-        {showAdvanced && (
-          <div className="sc-adv-panel">
-            <div className="sc-adv-row" style={{ gridTemplateColumns: region ? '1fr 1fr 1fr' : '1fr 1fr' }}>
-
-              {/* Région */}
-              <div className="sc-adv-field">
-                <label>{t('search.region')}</label>
-                <select
-                  className="sc-adv-select"
-                  value={region}
-                  onChange={(e) => handleRegionChange(e.target.value)}
-                  aria-label="Région"
-                >
-                  <option value="">{t('search.allRegions')}</option>
-                  {REGIONS.map((r) => <option key={r} value={r}>{r}</option>)}
-                </select>
-              </div>
-
-              {/* Ville — appears only when a region is selected */}
-              {region && availableCities.length > 0 && (
-                <div className="sc-adv-field sc-city-field">
-                  <label>{t('search.city')}</label>
-                  <select
-                    className="sc-adv-select"
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                    aria-label="Ville"
-                  >
-                    <option value="">{t('search.allCities')}</option>
-                    {availableCities.map((c) => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                </div>
-              )}
-
-              {/* Autour de moi */}
-              <div className="sc-adv-field sc-adv-geo-col" style={{ display: 'flex', flexDirection: 'column' }}>
-                <label>{t('search.geolocation')}</label>
-                <button
-                  type="button"
-                  className={`sc-geo-btn${geoState === 'done' ? ' done' : ''}`}
-                  onClick={handleLocateMe}
-                  disabled={geoState === 'loading'}
-                >
-                  {geoState === 'loading' ? t('search.detecting') : geoState === 'done' ? t('search.aroundMeDone') : t('search.aroundMe')}
-                </button>
-              </div>
-
-              {/* Secteur complet — full width */}
-              <div className="sc-adv-field" style={{ gridColumn: '1 / -1' }}>
-                <label>{t('search.sector')}</label>
-                <select
-                  className="sc-adv-select"
-                  value={sector}
-                  onChange={(e) => setSector(e.target.value)}
-                  aria-label="Secteur"
-                >
-                  <option value="">{t('search.allSectors')}</option>
-                  {SECTORS.map((s) => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </div>
-            </div>
-
-            {/* Geo feedback */}
-            {geoMsg && (
-              <div
-                className="sc-geo-msg"
-                style={{
-                  background: geoState === 'error' ? 'rgba(234,67,53,0.08)' : 'rgba(52,168,83,0.08)',
-                  color:      geoState === 'error' ? '#c62828' : 'var(--google-green-700,#137333)',
-                  border: `1px solid ${geoState === 'error' ? 'rgba(234,67,53,0.25)' : 'rgba(52,168,83,0.25)'}`,
-                }}
-              >
-                {geoMsg}
-              </div>
-            )}
-
-            {/* Apply / Cancel */}
-            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-              <button type="button" className="sc-reset-btn" onClick={handleReset}>{t('search.reset')}</button>
-              <button
-                type="submit"
-                style={{
-                  height: 34, padding: '0 18px', borderRadius: 8,
-                  background: 'var(--google-green-600,#1e8e3e)', color: '#fff',
-                  border: 'none', fontSize: 12.5, fontWeight: 700,
-                  cursor: 'pointer', fontFamily: 'inherit',
-                }}
-              >
-                {t('search.apply')}
-              </button>
-            </div>
-          </div>
-        )}
 
         {/* ── Active filter chips ── */}
         {hasFilters && (
