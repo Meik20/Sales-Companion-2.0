@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { adminAuth, adminDb } from '@/lib/firebase-admin'
+import { ensureDailyReset } from '@/lib/quota-utils'
 
 /**
  * Construit un system prompt contextualisé selon le profil utilisateur.
@@ -55,16 +56,19 @@ export async function POST(request: NextRequest) {
         const userSnap = await userRef.get()
         if (userSnap.exists) {
           const data       = userSnap.data()!
-          const dailyUsed  = (data.dailyUsed  as number) ?? 0
           const dailyLimit = (data.dailyLimit as number) ?? 10
-          if (dailyUsed >= dailyLimit) {
+          
+          // Vérification et reset si nouveau jour (Lazy Reset)
+          const currentDailyUsed = await ensureDailyReset(userRef, data)
+          
+          if (currentDailyUsed >= dailyLimit) {
             const quotaMessage = `Quota journalier épuisé (${dailyLimit} crédits). Votre compteur sera réinitialisé demain.`
             return NextResponse.json(
               { error: quotaMessage, message: quotaMessage },
               { status: 429 }
             )
           }
-          await userRef.update({ dailyUsed: dailyUsed + 1 })
+          await userRef.update({ dailyUsed: currentDailyUsed + 1 })
 
           // Extraire le contexte métier de l'utilisateur
           userContext = {

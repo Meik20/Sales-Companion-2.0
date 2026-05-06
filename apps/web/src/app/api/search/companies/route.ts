@@ -3,7 +3,8 @@ import { NextRequest, NextResponse } from 'next/server'
 // Lazy import pour éviter les erreurs si firebase-admin ne s'initialise pas
 async function getAdminModules() {
   const { adminDb, adminAuth } = await import('@/lib/firebase-admin')
-  return { adminDb, adminAuth }
+  const { ensureDailyReset } = await import('@/lib/quota-utils')
+  return { adminDb, adminAuth, ensureDailyReset }
 }
 
 /**
@@ -28,21 +29,26 @@ export async function GET(request: NextRequest) {
 
     if (token) {
       try {
+        const { adminDb, adminAuth, ensureDailyReset } = await getAdminModules()
         const decoded = await adminAuth.verifyIdToken(token)
         userId = decoded.uid
 
-        // Déduire 1 crédit (dailyUsed + 1)
+        // Déduire 1 crédit (dailyUsed + 1 avec Reset Lazy)
         const userRef = adminDb.collection('users').doc(userId)
         const userSnap = await userRef.get()
         if (userSnap.exists) {
           const data = userSnap.data()!
-          const dailyUsed  = (data.dailyUsed  as number) ?? 0
           const dailyLimit = (data.dailyLimit as number) ?? 10
-          if (dailyUsed < dailyLimit) {
-            await userRef.update({ dailyUsed: dailyUsed + 1 })
+          
+          // Vérification et reset si nouveau jour
+          const currentDailyUsed = await ensureDailyReset(userRef, data)
+          
+          if (currentDailyUsed < dailyLimit) {
+            await userRef.update({ dailyUsed: currentDailyUsed + 1 })
           }
         }
-      } catch {
+      } catch (err) {
+        console.error('[search/companies] Auth error:', err)
         // Token invalide → on continue sans déduire
       }
     }
