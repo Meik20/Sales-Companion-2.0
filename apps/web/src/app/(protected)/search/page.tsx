@@ -258,15 +258,23 @@ function SearchContent() {
             </div>
 
             <style dangerouslySetInnerHTML={{__html: `
-              @media (max-width: 640px) {
-                .shortcut-grid {
-                  max-width: 100%;
-                  gap: 10px;
-                }
-                .shortcut-grid > *:nth-child(n+3) {
-                  display: none;
-                }
+            @media (max-width: 640px) {
+              .shortcut-grid {
+                display: flex !important;
+                flex-wrap: nowrap !important;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                padding: 4px 16px;
+                margin: 0 -16px;
+                gap: 12px;
+                scrollbar-width: none;
               }
+              .shortcut-grid::-webkit-scrollbar { display: none; }
+              .shortcut-grid > * {
+                flex: 0 0 160px;
+                min-width: 160px;
+              }
+            }
             `}} />
 
             {/* Grille de Raccourcis */}
