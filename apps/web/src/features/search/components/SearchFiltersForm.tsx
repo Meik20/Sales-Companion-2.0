@@ -2,6 +2,15 @@
 
 import { FormEvent, useState, useEffect } from 'react'
 import { useTranslation } from '@/providers/I18nProvider'
+import { 
+  HardHat, 
+  ShoppingBag, 
+  Laptop, 
+  Sprout, 
+  Truck, 
+  Stethoscope, 
+  LayoutGrid 
+} from 'lucide-react'
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 const REGIONS = [
@@ -30,13 +39,13 @@ const SECTORS = [
 ]
 
 const QUICK_SECTORS = [
-  { label: 'Tous',      value: '' },
-  { label: 'BTP',       value: 'BTP & Construction',         icon: '🏗' },
-  { label: 'Commerce',  value: 'Commerce',                   icon: '🛒' },
-  { label: 'Tech',      value: 'Technologies & Numérique',   icon: '💻' },
-  { label: 'Agro',      value: 'Agriculture & Agroalimentaire', icon: '🌾' },
-  { label: 'Transport', value: 'Transport & Logistique',     icon: '🚛' },
-  { label: 'Santé',     value: 'Santé',                      icon: '⚕️' },
+  { label: 'Tous',      value: '',                           icon: LayoutGrid },
+  { label: 'BTP',       value: 'BTP & Construction',         icon: HardHat },
+  { label: 'Commerce',  value: 'Commerce',                   icon: ShoppingBag },
+  { label: 'Tech',      value: 'Technologies & Numérique',   icon: Laptop },
+  { label: 'Agro',      value: 'Agriculture & Agroalimentaire', icon: Sprout },
+  { label: 'Transport', value: 'Transport & Logistique',     icon: Truck },
+  { label: 'Santé',     value: 'Santé',                      icon: Stethoscope },
 ]
 
 const CAMEROON_ZONES = [
@@ -403,7 +412,7 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
                     className={`sc-pill${sector === s.value ? ' active' : ''}`}
                     onClick={() => applyQuickSector(s.value)}
                   >
-                    {s.icon && <span style={{ fontSize: 12 }}>{s.icon}</span>}
+                    {s.icon && <s.icon size={14} style={{ flexShrink: 0 }} />}
                     {label}
                   </button>
                 )
