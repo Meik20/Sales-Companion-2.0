@@ -6,10 +6,11 @@ import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { firestore } from '@/services/firebase/client'
 import {
   collection, query, where, orderBy, onSnapshot,
-  addDoc, updateDoc, doc, serverTimestamp, Timestamp,
+  addDoc, updateDoc, deleteDoc, doc, serverTimestamp, Timestamp,
+  getDocs,
 } from 'firebase/firestore'
 import { colors } from '@/styles/tokens'
-import { MessageSquare, Send, Plus, X, ArrowLeft, Headphones } from 'lucide-react'
+import { MessageSquare, Send, Plus, X, ArrowLeft, Headphones, Trash2 } from 'lucide-react'
 
 type Thread = {
   id: string
@@ -175,6 +176,29 @@ export default function SupportPage() {
     }
   }
 
+  async function handleDeleteThread(e: React.MouseEvent, id: string) {
+    e.stopPropagation()
+    if (!window.confirm('Voulez-vous vraiment supprimer cette conversation ?')) return
+
+    try {
+      // 1. Delete all messages first (subcollection)
+      const messagesRef = collection(firestore, 'support_threads', id, 'messages')
+      const messagesSnap = await getDocs(messagesRef)
+      const deletePromises = messagesSnap.docs.map(d => deleteDoc(d.ref))
+      await Promise.all(deletePromises)
+
+      // 2. Delete the thread itself
+      await deleteDoc(doc(firestore, 'support_threads', id))
+
+      if (selectedId === id) {
+        setSelectedId(null)
+      }
+    } catch (err) {
+      console.error('Failed to delete thread:', err)
+      alert('Une erreur est survenue lors de la suppression.')
+    }
+  }
+
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void handleSend() }
   }
@@ -312,17 +336,33 @@ export default function SupportPage() {
                   </span>
                   <span style={{ fontSize:10, flexShrink:0, color:colors.textDim }}>{fmtTime(t.updatedAt)}</span>
                 </div>
-                <div style={{ display:'flex', alignItems:'center', gap:6, marginTop:4 }}>
-                  <span style={{
-                    fontSize:10, fontWeight:700, padding:'2px 6px', borderRadius:4,
-                    background:`${STATUS_COLOR[t.status] ?? colors.border}22`,
-                    color: STATUS_COLOR[t.status] ?? colors.textMid,
-                  }}>{STATUS_LABEL[t.status] ?? t.status}</span>
-                  {t.lastMessage && (
-                    <span style={{ fontSize:11, color:colors.textDim, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', flex:1 }}>
-                      {t.lastMessage}
-                    </span>
-                  )}
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', gap:6, marginTop:4 }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                    <span style={{
+                      fontSize:10, fontWeight:700, padding:'2px 6px', borderRadius:4,
+                      background:`${STATUS_COLOR[t.status] ?? colors.border}22`,
+                      color: STATUS_COLOR[t.status] ?? colors.textMid,
+                    }}>{STATUS_LABEL[t.status] ?? t.status}</span>
+                    {t.lastMessage && (
+                      <span style={{ fontSize:11, color:colors.textDim, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:120 }}>
+                        {t.lastMessage}
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    onClick={(e) => handleDeleteThread(e, t.id)}
+                    style={{
+                      background:'none', border:'none', cursor:'pointer',
+                      color:colors.textDim, padding:4, borderRadius:4,
+                      display:'flex', alignItems:'center', justifyContent:'center',
+                      transition:'all 150ms ease',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = '#ef4444')}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = colors.textDim)}
+                    title="Supprimer la conversation"
+                  >
+                    <Trash2 size={13} />
+                  </button>
                 </div>
               </button>
             ))}
