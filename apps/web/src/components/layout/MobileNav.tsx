@@ -14,8 +14,8 @@ const navStyles = `
   to { transform: scaleX(1); }
 }
 .mobile-nav-btn {
-  min-width: 64px;
-  flex-shrink: 0;
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -102,15 +102,10 @@ export function MobileNav() {
         borderTop: `1px solid ${colors.border}`,
         display: 'flex',
         alignItems: 'stretch',
-        flexShrink: 0,
-        overflowX: 'auto',
-        overflowY: 'hidden',
-        /* Hide scrollbar but keep scroll */
-        scrollbarWidth: 'none' as React.CSSProperties['scrollbarWidth'],
+        justifyContent: 'space-around',
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
         boxShadow: '0 -2px 10px rgba(0, 0, 0, 0.06)',
         zIndex: 1000,
-        WebkitOverflowScrolling: 'touch',
       }}
     >
       <NavItem
