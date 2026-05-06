@@ -351,11 +351,12 @@ function CompanyRow({
     : '—'
 
   // raisonSociale is the canonical field name from the CSV import
-  const displayName = (company as any).raisonSociale || company.name || '—'
-  const displayNiu = (company as any).niu || '—'
-  const displaySector = (company as any).sector || (company as any).activite_principale || company.sector || '—'
-  const displayCity = (company as any).city || (company as any).ville || company.city || '—'
-  const displayRegion = (company as any).region || (company as any).centre_de_rattachement || ''
+  const displayName = company.raisonSociale || company.name || '—'
+  const displaySigle = company.sigle || ''
+  const displayNiu = company.niu || '—'
+  const displaySector = company.sector || company.activite_principale || '—'
+  const displayCity = company.city || company.ville || '—'
+  const displayRegion = company.region || company.centre_de_rattachement || ''
 
   return (
     <tr
@@ -379,11 +380,15 @@ function CompanyRow({
         <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {displayName}
         </div>
-        {displayNiu !== '—' && (
-          <div style={{ fontSize: 10.5, color: colors.textDim, marginTop: 2, fontFamily: 'monospace' }}>
-            NIU: {displayNiu}
+        {displaySigle && (
+          <div style={{ fontSize: 10.5, color: colors.textDim, marginTop: 2, fontStyle: 'italic' }}>
+            {displaySigle}
           </div>
         )}
+      </td>
+      {/* NIU */}
+      <td style={{ padding: '10px 12px', color: colors.textMid, fontSize: 12, fontFamily: 'monospace' }}>
+        {displayNiu}
       </td>
       {/* Secteur */}
       <td style={{ padding: '10px 12px', color: colors.textMid, fontSize: 12, maxWidth: 160 }}>

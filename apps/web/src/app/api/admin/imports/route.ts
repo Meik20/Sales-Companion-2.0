@@ -80,9 +80,13 @@ export async function POST(request: NextRequest) {
     // ── Column mapping (normalisation vers champs Firestore) ──
     const COLUMN_MAP: Record<string, string> = {
       'RAISON_SOCIALE': 'raisonSociale',
+      'NOM_OU_RAISON_SOCIALE': 'raisonSociale',
+      'NOM_RAISON_SOCIALE': 'raisonSociale',
       'NOM': 'raisonSociale',
       'DENOMINATION': 'raisonSociale',
       'NIU': 'niu',
+      'N_I_U': 'niu',
+      'IDENTIFIANT_FISCAL': 'niu',
       'SIGLE': 'sigle',
       'ACTIVITE_PRINCIPALE': 'sector',
       'ACTIVITE': 'sector',
@@ -107,6 +111,7 @@ export async function POST(request: NextRequest) {
       'DATE_CREATION': 'dateCreation',
       'FORME_JURIDIQUE': 'formeJuridique',
       'REGIME': 'regime',
+      'REGIME_FISCAL': 'regime',
     }
 
     const headers = Object.keys(rows[0] ?? {})
@@ -221,6 +226,8 @@ export async function POST(request: NextRequest) {
 
 function normalizeHeader(header: string | null | undefined) {
   return String(header ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
     .trim()
     .replace(/\s+/g, ' ')
     .replace(/['"`]/g, '')

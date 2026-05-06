@@ -6,9 +6,16 @@ import { useCurrentUser } from '@/hooks/useCurrentUser'
 export type AdminCompany = {
   id: string
   name: string
+  raisonSociale?: string
+  niu?: string
+  sigle?: string
   registrationNumber: string
   sector: string
+  activite_principale?: string
   city: string
+  ville?: string
+  region?: string
+  centre_de_rattachement?: string
   country: string
   yearFounded?: number
   employeeCount?: number
