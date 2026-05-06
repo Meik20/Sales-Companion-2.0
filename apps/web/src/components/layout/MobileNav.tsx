@@ -15,7 +15,8 @@ const navStyles = `
 }
 .mobile-nav-btn {
   flex: 1;
-  min-width: 0;
+  min-width: 76px;
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -62,6 +63,9 @@ const navStyles = `
   border-radius: 0 0 3px 3px;
   animation: navBarIn 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
+nav::-webkit-scrollbar {
+  display: none;
+}
 `
 
 export function MobileNav() {
@@ -102,7 +106,11 @@ export function MobileNav() {
         borderTop: `1px solid ${colors.border}`,
         display: 'flex',
         alignItems: 'stretch',
-        justifyContent: 'space-around',
+        justifyContent: 'flex-start',
+        overflowX: 'auto',
+        overflowY: 'hidden',
+        scrollbarWidth: 'none' as React.CSSProperties['scrollbarWidth'],
+        WebkitOverflowScrolling: 'touch',
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
         boxShadow: '0 -2px 10px rgba(0, 0, 0, 0.06)',
         zIndex: 1000,
