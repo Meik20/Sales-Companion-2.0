@@ -22,6 +22,18 @@ const REGIONS = [
   'Adamaoua', 'Centre', 'Est', 'Extrême-Nord', 'Littoral',
   'Nord', 'Nord-Ouest', 'Ouest', 'Sud', 'Sud-Ouest',
 ]
+const REGION_KEYS: Record<string, string> = {
+  'Adamaoua':    'adamaoua',
+  'Centre':      'centre',
+  'Est':         'est',
+  'Extrême-Nord':'extremeNord',
+  'Littoral':    'littoral',
+  'Nord':        'nord',
+  'Nord-Ouest':  'nordOuest',
+  'Ouest':       'ouest',
+  'Sud':         'sud',
+  'Sud-Ouest':   'sudOuest',
+}
 const CITIES_BY_REGION: Record<string, string[]> = {
   'Adamaoua':    ['Ngaoundéré', 'Meiganga', 'Tibati', 'Ngaoundal', 'Banyo'],
   'Centre':      ['Yaoundé', 'Mbalmayo', 'Bafia', 'Eséka', 'Nanga-Eboko', 'Obala', 'Monatélé'],
@@ -198,7 +210,11 @@ export function AppSidebar({ isMobile = false, onClose }: { isMobile?: boolean; 
           style={{ width: '100%', height: 32, borderRadius: 8, border: `1px solid ${colors.border}`, background: colors.bg, color: colors.text, fontSize: 12, fontFamily: 'inherit', outline: 'none', padding: '0 8px' }}
         >
           <option value="">{t('sidebar.allRegions')}</option>
-          {REGIONS.map((r) => <option key={r} value={r}>{r}</option>)}
+          {REGIONS.map((r) => (
+            <option key={r} value={r}>
+              {t(`regions.${REGION_KEYS[r]}` as any)}
+            </option>
+          ))}
         </select>
       </div>
 

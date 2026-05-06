@@ -245,5 +245,17 @@ export const en = {
     raisonSociale: "Company Name",
     sigle: "Acronym",
     formeJuridique: "Legal Form",
+  },
+  regions: {
+    adamaoua: 'Adamawa',
+    centre: 'Center',
+    est: 'East',
+    extremeNord: 'Far-North',
+    littoral: 'Littoral',
+    nord: 'North',
+    nordOuest: 'North-West',
+    ouest: 'West',
+    sud: 'South',
+    sudOuest: 'South-West',
   }
 }

@@ -245,5 +245,17 @@ export const fr = {
     raisonSociale: "Raison Sociale",
     sigle: "Sigle",
     formeJuridique: "Forme Juridique",
+  },
+  regions: {
+    adamaoua: 'Adamaoua',
+    centre: 'Centre',
+    est: 'Est',
+    extremeNord: 'Extrême-Nord',
+    littoral: 'Littoral',
+    nord: 'Nord',
+    nordOuest: 'Nord-Ouest',
+    ouest: 'Ouest',
+    sud: 'Sud',
+    sudOuest: 'Sud-Ouest',
   }
 }

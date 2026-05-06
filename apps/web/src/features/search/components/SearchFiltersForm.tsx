@@ -17,6 +17,18 @@ const REGIONS = [
   'Adamaoua', 'Centre', 'Est', 'Extrême-Nord', 'Littoral',
   'Nord', 'Nord-Ouest', 'Ouest', 'Sud', 'Sud-Ouest',
 ]
+const REGION_KEYS: Record<string, string> = {
+  'Adamaoua':    'adamaoua',
+  'Centre':      'centre',
+  'Est':         'est',
+  'Extrême-Nord':'extremeNord',
+  'Littoral':    'littoral',
+  'Nord':        'nord',
+  'Nord-Ouest':  'nordOuest',
+  'Ouest':       'ouest',
+  'Sud':         'sud',
+  'Sud-Ouest':   'sudOuest',
+}
 
 const CITIES_BY_REGION: Record<string, string[]> = {
   'Adamaoua':    ['Ngaoundéré', 'Meiganga', 'Tibati', 'Ngaoundal', 'Banyo'],
@@ -440,7 +452,7 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
         {hasFilters && (
           <div className="sc-chips">
             {query  && <ActiveChip label={`"${query}"`}  onRemove={() => { setQuery('');  submit({ query: undefined }) }} />}
-            {region && <ActiveChip label={region}        onRemove={() => { setRegion(''); setCity(''); submit({ region: undefined, city: undefined }) }} />}
+            {region && <ActiveChip label={t(`regions.${REGION_KEYS[region]}` as any)} onRemove={() => { setRegion(''); setCity(''); submit({ region: undefined, city: undefined }) }} />}
             {city   && <ActiveChip label={city}          onRemove={() => { setCity('');   submit({ city: undefined }) }} />}
             {sector && <ActiveChip label={sector}        onRemove={() => { setSector(''); applyQuickSector('') }} />}
             <button type="button" className="sc-reset-btn" onClick={handleReset}>{t('search.clearAll')}</button>
