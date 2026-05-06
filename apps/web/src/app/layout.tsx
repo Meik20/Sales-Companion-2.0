@@ -2,6 +2,8 @@ import './globals.css'
 import type { Metadata, Viewport } from 'next'
 import { ReactNode } from 'react'
 import { AppProvider } from '@/providers/AppProvider'
+import { ThemeProvider } from '@/providers/ThemeProvider'
+import { I18nProvider } from '@/providers/I18nProvider'
 
 export const metadata: Metadata = {
   title: 'Sales Companion — B2B Intelligence Cameroun',
@@ -26,9 +28,13 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="fr" data-scroll-behavior="smooth">
+    <html lang="fr" data-scroll-behavior="smooth" suppressHydrationWarning>
       <body>
-        <AppProvider>{children}</AppProvider>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <I18nProvider>
+            <AppProvider>{children}</AppProvider>
+          </I18nProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

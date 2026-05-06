@@ -144,6 +144,43 @@
   --transition-fast: 150ms ease;
 }
 
+/* ─── Dark Mode Overrides ───────────────────────────────────────────── */
+.dark {
+  /* Backgrounds & surfaces */
+  --md-background-color:    #0E1929; /* Navy/Dark blue background */
+  --cr-card-background-color: #16243A;
+  --cr-menu-background-color: #16243A;
+
+  /* Texte */
+  --cr-primary-text-color:   #F9FAFB;
+  --cr-secondary-text-color: #D1D5DB;
+  --cr-title-text-color:     #9CA3AF;
+  --cr-link-color:           #38BDF8;
+
+  /* Bordures & séparateurs */
+  --cr-hairline:        1px solid rgba(255, 255, 255, 0.1);
+  --cr-separator-color: rgba(255, 255, 255, 0.1);
+  --cr-separator-line:  1px solid rgba(255, 255, 255, 0.1);
+
+  /* États interactifs */
+  --cr-hover-background-color:  rgba(255, 255, 255, 0.08);
+  --cr-active-background-color: rgba(255, 255, 255, 0.12);
+  --cr-focus-outline-color:     #38BDF8;
+
+  /* Alias */
+  --bg:  var(--md-background-color);
+  --bg2: var(--cr-card-background-color);
+  --bg3: #1C2E4A;
+  --bg4: #2A3B54;
+  
+  --tx:  var(--cr-primary-text-color);
+  --tx2: var(--cr-secondary-text-color);
+  --tx3: var(--cr-title-text-color);
+
+  --bd:  var(--cr-separator-color);
+  --bd2: rgba(255, 255, 255, 0.15);
+}
+
 /* ─── Reset ─────────────────────────────────────────────────────────── */
 *, *::before, *::after {
   box-sizing: border-box;

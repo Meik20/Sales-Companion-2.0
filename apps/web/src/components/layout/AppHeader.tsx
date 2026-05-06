@@ -10,8 +10,10 @@ import { routes } from '@/constants/routes'
 import { colors, shadows } from '@/styles/tokens'
 import { ScIcon } from '@/components/ui/ScIcon'
 import { Settings, User, LogOut, Menu, ChevronDown } from 'lucide-react'
+import { useTranslation } from '@/providers/I18nProvider'
 
 export function AppHeader({ onOpenMenu }: { onOpenMenu?: () => void }) {
+  const { t } = useTranslation()
   const { user } = useCurrentUser()
   const { logout } = useAuthActions()
   const router = useRouter()
@@ -30,8 +32,8 @@ export function AppHeader({ onOpenMenu }: { onOpenMenu?: () => void }) {
   const roleBadge: Record<string, { label: string; bg: string }> = {
     admin:       { label: 'Admin',       bg: 'rgba(239,68,68,0.25)' },
     manager:     { label: 'Manager',     bg: 'rgba(251,191,36,0.22)' },
-    member:      { label: 'Membre',      bg: 'rgba(96,165,250,0.22)' },
-    independent: { label: 'Indépendant', bg: 'rgba(34,197,94,0.22)' },
+    member:      { label: t('sidebar.member'),      bg: 'rgba(96,165,250,0.22)' },
+    independent: { label: t('sidebar.independent'), bg: 'rgba(34,197,94,0.22)' },
   }
   const badge = user?.role ? (roleBadge[user.role] ?? null) : null
 
@@ -153,7 +155,7 @@ export function AppHeader({ onOpenMenu }: { onOpenMenu?: () => void }) {
               {/* Name + Role — hidden on mobile */}
               <div className="hdr-name-block" style={{ display: 'flex', flexDirection: 'column', textAlign: 'left', lineHeight: 1.2 }}>
                 <span style={{ fontSize: 13, fontWeight: 600 }}>
-                  {user.name || user.email?.split('@')[0] || 'Utilisateur'}
+                  {user.name || user.email?.split('@')[0] || t('sidebar.user')}
                 </span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 1 }}>
                   {badge && (
@@ -169,7 +171,7 @@ export function AppHeader({ onOpenMenu }: { onOpenMenu?: () => void }) {
                       {badge.label}
                     </span>
                   )}
-                  <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.55)' }}>Plan Free</span>
+                  <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.55)' }}>{t('header.planFree')}</span>
                 </div>
               </div>
 
@@ -211,7 +213,7 @@ export function AppHeader({ onOpenMenu }: { onOpenMenu?: () => void }) {
                   {/* User Info */}
                   <div style={{ padding: '14px 16px 12px', borderBottom: `1px solid ${colors.border}` }}>
                     <div style={{ fontWeight: 600, color: colors.text, fontSize: 14 }}>
-                      {user.name || 'Utilisateur'}
+                      {user.name || t('sidebar.user')}
                     </div>
                     <div style={{ fontSize: 11, color: colors.textMid, marginTop: 2 }}>{user.email}</div>
                   </div>
@@ -219,8 +221,8 @@ export function AppHeader({ onOpenMenu }: { onOpenMenu?: () => void }) {
                   {/* Menu Items */}
                   <div style={{ padding: '6px 8px', display: 'flex', flexDirection: 'column', gap: 2 }}>
                     {[
-                      { icon: User,     label: 'Mon Profil',  action: () => { setIsProfileOpen(false); router.push(routes.profile) }},
-                      { icon: Settings, label: 'Paramètres',  action: () => { setIsProfileOpen(false); router.push(routes.settings) }},
+                      { icon: User,     label: t('header.myProfile'),  action: () => { setIsProfileOpen(false); router.push(routes.profile) }},
+                      { icon: Settings, label: t('header.settings'),  action: () => { setIsProfileOpen(false); router.push(routes.settings) }},
                     ].map(({ icon: Icon, label, action }) => (
                       <button
                         key={label}
@@ -266,7 +268,7 @@ export function AppHeader({ onOpenMenu }: { onOpenMenu?: () => void }) {
                       onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                     >
                       <LogOut size={15} strokeWidth={1.8} style={{ flexShrink: 0 }} />
-                      Déconnexion
+                      {t('header.logout')}
                     </button>
                   </div>
                 </div>
@@ -280,7 +282,7 @@ export function AppHeader({ onOpenMenu }: { onOpenMenu?: () => void }) {
             onClick={() => router.push(routes.login)}
             style={{ borderColor: 'rgba(255,255,255,0.3)', color: '#fff' }}
           >
-            Connexion
+            {t('header.login')}
           </Button>
         )}
       </div>

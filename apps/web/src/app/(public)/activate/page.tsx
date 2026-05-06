@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { FormField } from '@/components/forms/FormField'
 import { Mail, RefreshCw, CheckCircle } from 'lucide-react'
+import { useTranslation } from '@/providers/I18nProvider'
 
 type ActivateStep =
   | 'form'        // initial form
@@ -19,6 +20,7 @@ type ActivateStep =
   | 'verified'    // email verified, redirecting
 
 function ActivateContent() {
+  const { t } = useTranslation()
   const searchParams = useSearchParams()
   const router = useRouter()
   const urlAccessId = searchParams.get('accessId') ?? ''
@@ -109,11 +111,11 @@ function ActivateContent() {
         <div style={card}>
           <div style={cardHeader}>
             <ScIcon size={48} style={{ marginBottom: 14 }} />
-            <h1 style={h1}>Accès Entreprise</h1>
-            <p style={sub}>Veuillez saisir le code d&apos;accès fourni par votre manager.</p>
+            <h1 style={h1}>{t('auth.companyAccess')}</h1>
+            <p style={sub}>{t('auth.enterAccessCode')}</p>
           </div>
           <form onSubmit={handleManualSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <FormField label="Code d'accès" required>
+            <FormField label={t('auth.accessId')} required>
               <Input
                 type="text"
                 placeholder="Ex: dU8k2... ou prenomnom@entreprise"
@@ -122,7 +124,7 @@ function ActivateContent() {
               />
             </FormField>
             <Button type="submit" variant="primary" size="lg" style={{ width: '100%', marginTop: 8 }} disabled={!manualAccessId.trim()}>
-              Continuer
+              {t('auth.continue')}
             </Button>
           </form>
         </div>
@@ -144,9 +146,9 @@ function ActivateContent() {
             }}>
               <Mail size={32} style={{ color: 'var(--color-accent)' }} />
             </div>
-            <h1 style={{ ...h1, marginBottom: 8 }}>Vérifiez votre email</h1>
+            <h1 style={{ ...h1, marginBottom: 8 }}>{t('auth.checkEmail')}</h1>
             <p style={sub}>
-              Un email de vérification a été envoyé à<br />
+              {t('auth.verificationEmailSent')}<br />
               <strong style={{ color: colors.text }}>{pendingEmail}</strong>
             </p>
           </div>
@@ -158,16 +160,16 @@ function ActivateContent() {
             fontSize: 13.5, color: colors.textMid, lineHeight: 1.7,
             marginBottom: 20,
           }}>
-            <p style={{ margin: '0 0 8px', fontWeight: 600, color: colors.text }}>Comment procéder :</p>
+            <p style={{ margin: '0 0 8px', fontWeight: 600, color: colors.text }}>{t('auth.howToProceed')}</p>
             <ol style={{ margin: 0, paddingLeft: 18 }}>
-              <li>Ouvrez l&apos;email de <strong>Sales Companion</strong> dans votre boîte de réception.</li>
-              <li>Cliquez sur le bouton <strong>« Vérifier mon adresse email »</strong>.</li>
-              <li>Votre compte sera activé automatiquement.</li>
+              <li>{t('auth.proceedStep1')}</li>
+              <li>{t('auth.proceedStep2')}</li>
+              <li>{t('auth.proceedStep3')}</li>
             </ol>
           </div>
 
           <p style={{ fontSize: 12, color: colors.textDim, textAlign: 'center', marginBottom: 12 }}>
-            Pas d&apos;email ? Vérifiez vos spams ou attendez quelques instants.
+            {t('auth.noEmail')}
           </p>
 
           <button
@@ -184,11 +186,11 @@ function ActivateContent() {
             }}
           >
             <RefreshCw size={14} style={{ animation: resendLoading ? 'spin 1s linear infinite' : 'none' }} />
-            {resendCooldown > 0 ? `Renvoyer dans ${resendCooldown}s` : 'Renvoyer l\'email'}
+            {resendCooldown > 0 ? t('auth.resendIn').replace('{seconds}', String(resendCooldown)) : t('auth.resend')}
           </button>
 
           <p style={{ fontSize: 11, color: colors.textDim, textAlign: 'center', marginTop: 16 }}>
-            Cette page se met à jour automatiquement dès que votre email est vérifié.
+            {t('auth.pageAutoUpdates')}
           </p>
         </div>
       </main>
@@ -201,10 +203,10 @@ function ActivateContent() {
       <main style={{ ...cardPage, flexDirection: 'column', gap: 16 }}>
         <CheckCircle size={52} style={{ color: 'var(--color-success)' }} />
         <h2 style={{ fontSize: 20, fontWeight: 700, color: colors.text, margin: 0 }}>
-          Email vérifié !
+          {t('auth.emailVerified')}
         </h2>
         <p style={{ fontSize: 14, color: colors.textMid, margin: 0 }}>
-          Votre compte est maintenant actif. Redirection…
+          {t('auth.accountActive')}
         </p>
       </main>
     )
@@ -216,8 +218,8 @@ function ActivateContent() {
       <div style={card}>
         <div style={cardHeader}>
           <ScIcon size={48} style={{ marginBottom: 14 }} />
-          <h1 style={h1}>Activer mon compte</h1>
-          <p style={sub}>Créez votre mot de passe pour accéder à Sales Companion.</p>
+          <h1 style={h1}>{t('auth.activateHeader')}</h1>
+          <p style={sub}>{t('auth.activateHeaderSub')}</p>
           <div style={{
             marginTop: 12,
             display: 'flex', alignItems: 'center', gap: 8,
@@ -227,7 +229,7 @@ function ActivateContent() {
             fontSize: 12.5, color: 'var(--color-accent)',
           }}>
             <Mail size={14} />
-            <span>Un email de vérification sera envoyé après l&apos;activation.</span>
+            <span>{t('auth.emailWillBeSent')}</span>
           </div>
         </div>
         <ActivateMemberForm

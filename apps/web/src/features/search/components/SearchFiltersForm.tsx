@@ -1,6 +1,7 @@
 'use client'
 
 import { FormEvent, useState, useEffect } from 'react'
+import { useTranslation } from '@/providers/I18nProvider'
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 const REGIONS = [
@@ -65,6 +66,7 @@ type Props   = { initialValues?: Filters; onSubmit: (v: Filters) => void }
 
 // ─── Component ───────────────────────────────────────────────────────────────
 export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
+  const { t } = useTranslation()
   const [query,  setQuery]  = useState(initialValues.query  ?? '')
   const [sector, setSector] = useState(initialValues.sector ?? '')
   const [region, setRegion] = useState(initialValues.region ?? '')
@@ -111,7 +113,7 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
   }
 
   function handleLocateMe() {
-    if (!navigator.geolocation) { setGeoState('error'); setGeoMsg('Géolocalisation non supportée.'); return }
+    if (!navigator.geolocation) { setGeoState('error'); setGeoMsg(t('search.locationNotSupported')); return }
     setGeoState('loading'); setGeoMsg('')
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -122,7 +124,7 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
       },
       (err) => {
         setGeoState('error')
-        setGeoMsg(err.code === 1 ? 'Localisation refusée. Autorisez-la dans votre navigateur.' : 'Position indisponible.')
+        setGeoMsg(err.code === 1 ? t('search.locationDenied') : t('search.locationUnavailable'))
       },
       { timeout: 8000, maximumAge: 60000 }
     )
@@ -368,7 +370,7 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
             <input
               id="main-search-input"
               className="sc-input"
-              placeholder="Entreprise, secteur, ville…"
+              placeholder={t('search.placeholder')}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
@@ -409,7 +411,7 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/>
               </svg>
-              Filtres avancés
+              {t('search.advancedFilters')}
               <svg className={`sc-adv-chevron${showAdvanced ? ' open' : ''}`} width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="6 9 12 15 18 9"/>
               </svg>
@@ -424,14 +426,14 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
 
               {/* Région */}
               <div className="sc-adv-field">
-                <label>📍 Région</label>
+                <label>{t('search.region')}</label>
                 <select
                   className="sc-adv-select"
                   value={region}
                   onChange={(e) => handleRegionChange(e.target.value)}
                   aria-label="Région"
                 >
-                  <option value="">Toutes les régions</option>
+                  <option value="">{t('search.allRegions')}</option>
                   {REGIONS.map((r) => <option key={r} value={r}>{r}</option>)}
                 </select>
               </div>
@@ -439,14 +441,14 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
               {/* Ville — appears only when a region is selected */}
               {region && availableCities.length > 0 && (
                 <div className="sc-adv-field sc-city-field">
-                  <label>🏙 Ville</label>
+                  <label>{t('search.city')}</label>
                   <select
                     className="sc-adv-select"
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
                     aria-label="Ville"
                   >
-                    <option value="">Toutes les villes</option>
+                    <option value="">{t('search.allCities')}</option>
                     {availableCities.map((c) => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
@@ -454,27 +456,27 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
 
               {/* Autour de moi */}
               <div className="sc-adv-field sc-adv-geo-col" style={{ display: 'flex', flexDirection: 'column' }}>
-                <label>📡 Géolocalisation</label>
+                <label>{t('search.geolocation')}</label>
                 <button
                   type="button"
                   className={`sc-geo-btn${geoState === 'done' ? ' done' : ''}`}
                   onClick={handleLocateMe}
                   disabled={geoState === 'loading'}
                 >
-                  {geoState === 'loading' ? '⏳ Détection…' : geoState === 'done' ? '✅ Autour de moi' : '📍 Autour de moi'}
+                  {geoState === 'loading' ? t('search.detecting') : geoState === 'done' ? t('search.aroundMeDone') : t('search.aroundMe')}
                 </button>
               </div>
 
               {/* Secteur complet — full width */}
               <div className="sc-adv-field" style={{ gridColumn: '1 / -1' }}>
-                <label>🏢 Secteur d&apos;activité</label>
+                <label>{t('search.sector')}</label>
                 <select
                   className="sc-adv-select"
                   value={sector}
                   onChange={(e) => setSector(e.target.value)}
                   aria-label="Secteur"
                 >
-                  <option value="">Tous les secteurs</option>
+                  <option value="">{t('search.allSectors')}</option>
                   {SECTORS.map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
@@ -496,7 +498,7 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
 
             {/* Apply / Cancel */}
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-              <button type="button" className="sc-reset-btn" onClick={handleReset}>✕ Réinitialiser</button>
+              <button type="button" className="sc-reset-btn" onClick={handleReset}>{t('search.reset')}</button>
               <button
                 type="submit"
                 style={{
@@ -506,7 +508,7 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
                   cursor: 'pointer', fontFamily: 'inherit',
                 }}
               >
-                Appliquer
+                {t('search.apply')}
               </button>
             </div>
           </div>
@@ -519,7 +521,7 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
             {region && <ActiveChip label={region}        onRemove={() => { setRegion(''); setCity(''); submit({ region: undefined, city: undefined }) }} />}
             {city   && <ActiveChip label={city}          onRemove={() => { setCity('');   submit({ city: undefined }) }} />}
             {sector && <ActiveChip label={sector}        onRemove={() => { setSector(''); applyQuickSector('') }} />}
-            <button type="button" className="sc-reset-btn" onClick={handleReset}>✕ Tout effacer</button>
+            <button type="button" className="sc-reset-btn" onClick={handleReset}>{t('search.clearAll')}</button>
           </div>
         )}
       </form>

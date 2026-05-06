@@ -14,8 +14,10 @@ import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { colors } from '@/styles/tokens'
 import { ShortcutCard } from '@/components/ui/ShortcutCard'
 import { Button } from '@/components/ui/Button'
+import { useTranslation } from '@/providers/I18nProvider'
 
 function SearchContent() {
+  const { t } = useTranslation()
   const searchParams = useSearchParams()
   const router = useRouter()
   const { user } = useCurrentUser()
@@ -30,7 +32,7 @@ function SearchContent() {
   // AI B2B chat state
   type ChatMsg = { role: 'user' | 'assistant'; text: string }
   const [chatMessages, setChatMessages] = useState<ChatMsg[]>([
-    { role: 'assistant', text: 'Bonjour 👋 Je suis votre Assistant IA B2B.\nPosez-moi vos questions sur la prospection au Cameroun, les secteurs d\'activité, ou demandez-moi de rédiger un email d\'approche.' },
+    { role: 'assistant', text: t('search.aiGreeting') },
   ])
   const [chatInput, setChatInput] = useState('')
   const [isSendingChat, setIsSendingChat] = useState(false)
@@ -137,15 +139,15 @@ function SearchContent() {
         {/* Résultats */}
         {hasSearched ? (
           <DataCard
-            title="Résultats"
+            title={t('search.results')}
             subtitle={
               !searchQuery.isLoading && !searchQuery.isError
-                ? `${results.length} entreprise${results.length !== 1 ? 's' : ''} trouvée${results.length !== 1 ? 's' : ''}`
+                ? `${results.length} ${t('search.companiesFound')}`
                 : undefined
             }
             actions={<SaveCurrentSearchButton filters={filters} results={results} />}
           >
-            {searchQuery.isLoading ? <LoadingState title="Recherche en cours…" /> : null}
+            {searchQuery.isLoading ? <LoadingState title={t('search.loadingSearch')} /> : null}
             {searchQuery.isError ? (
               <div style={{
                 padding: '12px 16px', borderRadius: 8,
@@ -153,15 +155,15 @@ function SearchContent() {
                 color: '#ef4444', fontSize: 13,
               }}>
                 {(searchQuery.error as Error)?.message?.includes('429') || (searchQuery.error as Error)?.message?.includes('Quota')
-                  ? 'Quota journalier épuisé. Vos crédits seront réinitialisés demain.'
-                  : 'Impossible d\'exécuter la recherche. Veuillez réessayer.'
+                  ? t('search.quotaExceeded')
+                  : t('search.searchError')
                 }
               </div>
             ) : null}
             {!searchQuery.isLoading && !searchQuery.isError && results.length === 0 ? (
               <EmptyState
-                title="Aucun résultat"
-                description="Essayez d'élargir vos critères de recherche."
+                title={t('search.noResult')}
+                description={t('search.noResultDesc')}
                 icon="🔍"
               />
             ) : null}
@@ -235,10 +237,10 @@ function SearchContent() {
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%', paddingLeft: 8, paddingRight: 8 }}>
                 <h2 style={{ fontSize: 'clamp(18px, 5vw, 24px)', fontWeight: 700, color: colors.text, margin: 0, wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
-                  Trouvez vos prospects idéaux
+                  {t('search.findIdealProspects')}
                 </h2>
                 <p style={{ color: colors.textMid, fontSize: 'clamp(13px, 3.5vw, 15px)', maxWidth: 400, margin: '0 auto', wordBreak: 'break-word' }}>
-                  Recherchez par nom, secteur, ville ou utilisez les filtres rapides ci-dessous pour démarrer.
+                  {t('search.findIdealProspectsDesc')}
                 </p>
               </div>
 
@@ -251,7 +253,7 @@ function SearchContent() {
                 }}
                 style={{ marginTop: 8 }}
               >
-                Lancez votre première recherche →
+                {t('search.startFirstSearch')}
               </Button>
             </div>
 
@@ -345,13 +347,13 @@ function SearchContent() {
               style={{ width: '100%', borderRadius: 8 }}
               onClick={() => router.push('/pipeline')}
             >
-              → Voir mon pipeline complet
+              {t('search.myPipelineFull')}
             </Button>
           </div>
         </DataCard>
 
         {/* Assistant B2B IA */}
-        <DataCard title="Assistant IA B2B">
+        <DataCard title={t('search.aiAssistant')}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, height: 380 }}>
             {/* Zone messages */}
             <div style={{
@@ -386,7 +388,7 @@ function SearchContent() {
               ))}
               {isSendingChat && (
                 <div style={{ alignSelf: 'flex-start', background: colors.greenLight, color: colors.greenDark, padding: '10px 14px', borderRadius: '16px 16px 16px 4px', fontSize: 12, fontStyle: 'italic' }}>
-                  ⏳ Réflexion en cours…
+                  {t('search.aiThinking')}
                 </div>
               )}
               <div ref={chatEndRef} />
@@ -437,7 +439,7 @@ function SearchContent() {
                 onChange={(e) => setChatInput(e.target.value)}
                 onKeyDown={handleChatKeyDown}
                 disabled={isSendingChat}
-                placeholder="Ex: Comment aborder un DG dans l'Agroalimentaire ?  (Entrée pour envoyer)"
+                placeholder={t('search.aiPlaceholder')}
                 rows={2}
                 style={{
                   width: '100%',
@@ -489,8 +491,9 @@ function SearchContent() {
 }
 
 export default function SearchPage() {
+  const { t } = useTranslation()
   return (
-    <Suspense fallback={<div style={{ padding: 20 }}>Chargement de la recherche...</div>}>
+    <Suspense fallback={<div style={{ padding: 20 }}>{t('search.loadingSearch')}</div>}>
       <SearchContent />
     </Suspense>
   )

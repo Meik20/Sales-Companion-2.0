@@ -14,8 +14,10 @@ import { UserPipelineList } from '@/features/pipeline/components/UserPipelineLis
 import { useUpdatePipelineItem } from '@/features/pipeline/hooks/useUpdatePipelineItem'
 import { useState } from 'react'
 import { colors } from '@/styles/tokens'
+import { useTranslation } from '@/providers/I18nProvider'
 
 export default function PipelinePage() {
+  const { t } = useTranslation()
   const { user } = useCurrentUser()
   const managerPipelineQuery = useManagerPipeline()
   const userPipelineQuery = useUserPipeline()
@@ -36,8 +38,8 @@ export default function PipelinePage() {
   return (
     <AppShell>
       <PageHeader
-        title="Pipeline"
-        subtitle="Suivi de la prospection jusqu'à la conclusion."
+        title={t('pipeline.title')}
+        subtitle={t('pipeline.subtitle')}
         actions={
           user?.role !== 'manager' ? (
             <Button
@@ -45,7 +47,7 @@ export default function PipelinePage() {
               size="sm"
               onClick={() => setShowForm((v) => !v)}
             >
-              {showForm ? '✕ Annuler' : '+ Ajouter un prospect'}
+              {showForm ? t('pipeline.cancel') : t('pipeline.addProspect')}
             </Button>
           ) : undefined
         }
@@ -62,9 +64,9 @@ export default function PipelinePage() {
           }}
         >
           {[
-            { label: 'Prospection', count: counts.prospection, color: '#60a5fa', variant: 'info' as const },
-            { label: 'Négociation', count: counts.negociation, color: '#fbbf24', variant: 'warning' as const },
-            { label: 'Conclue',     count: counts.conclue,     color: '#4ade80', variant: 'success' as const },
+            { label: t('pipeline.prospection'), count: counts.prospection, color: '#60a5fa', variant: 'info' as const },
+            { label: t('pipeline.negotiation'), count: counts.negociation, color: '#fbbf24', variant: 'warning' as const },
+            { label: t('pipeline.closed'),     count: counts.conclue,     color: '#4ade80', variant: 'success' as const },
           ].map(({ label, count, color, variant }) => (
             <div
               key={label}
@@ -88,12 +90,12 @@ export default function PipelinePage() {
       {/* Vue manager */}
       {user?.role === 'manager' ? (
         <DataCard
-          title="Vue équipe"
-          subtitle="Pipeline consolidé de toute votre équipe."
+          title={t('pipeline.teamView')}
+          subtitle={t('pipeline.teamSubtitle')}
         >
           {managerPipelineQuery.isLoading ? <LoadingState /> : null}
           {!managerPipelineQuery.isLoading && !managerPipelineQuery.data?.length ? (
-            <EmptyState title="Aucun prospect" description="Votre équipe n'a pas encore de prospects." icon="📊" />
+            <EmptyState title={t('pipeline.noProspect')} description={t('pipeline.teamNoProspect')} icon="📊" />
           ) : null}
           {managerPipelineQuery.data?.length ? (
             <ManagerPipelineList items={managerPipelineQuery.data} />
@@ -105,17 +107,17 @@ export default function PipelinePage() {
       {(user?.role === 'member' || user?.role === 'independent') ? (
         <>
           {showForm ? (
-            <DataCard title="Ajouter un prospect" subtitle="Renseignez les informations du nouveau contact.">
+            <DataCard title={t('pipeline.addProspectTitle')} subtitle={t('pipeline.addProspectSubtitle')}>
               <CreatePipelineItemForm onSuccess={() => setShowForm(false)} />
             </DataCard>
           ) : null}
 
-          <DataCard title="Mon pipeline">
+          <DataCard title={t('pipeline.myPipeline')}>
             {userPipelineQuery.isLoading ? <LoadingState /> : null}
             {!userPipelineQuery.isLoading && items.length === 0 ? (
               <EmptyState
-                title="Pipeline vide"
-                description='Ajoutez un prospect via "Ajouter un prospect" ou depuis la recherche.'
+                title={t('pipeline.emptyPipeline')}
+                description={t('pipeline.emptyPipelineDesc')}
                 icon="📋"
               />
             ) : null}

@@ -12,16 +12,19 @@ import { mapAuthError } from '../utils/error-mapper'
 import { routes } from '@/constants/routes'
 import { colors } from '@/styles/tokens'
 import { BUSINESS_SECTORS } from '@sales-companion/shared'
+import { useTranslation } from '@/providers/I18nProvider'
 
 type RoleOption = 'independent' | 'manager'
 
-const roleOptions: { value: RoleOption; label: string; desc: string }[] = [
-  { value: 'independent', label: 'Indépendant', desc: 'Gérez votre propre pipeline' },
-  { value: 'manager', label: 'Manager', desc: 'Gérez une équipe de commerciaux' },
-]
-
 export function RegisterForm() {
+  const { t } = useTranslation()
   const { registerWithEmail } = useAuthActions()
+
+  const roleOptions: { value: RoleOption; label: string; desc: string }[] = [
+    { value: 'independent', label: t('auth.independent'), desc: t('auth.independentDesc') },
+    { value: 'manager', label: t('auth.manager'), desc: t('auth.managerDesc') },
+  ]
+
   const router = useRouter()
 
   const [name, setName] = useState('')
@@ -36,11 +39,11 @@ export function RegisterForm() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!name || !email || !password) {
-      setError('Veuillez remplir tous les champs.')
+      setError(t('auth.errorFillAll'))
       return
     }
     if (password.length < 6) {
-      setError('Le mot de passe doit comporter au moins 6 caractères.')
+      setError(t('auth.errorPasswordLength'))
       return
     }
     setLoading(true)
@@ -88,10 +91,10 @@ export function RegisterForm() {
             letterSpacing: '-.03em',
           }}
         >
-          Créer un compte
+          {t('auth.registerTitle')}
         </h1>
         <p style={{ margin: 0, fontSize: 13, color: colors.textMid }}>
-          Rejoignez Sales Companion
+          {t('auth.registerSubtitle')}
         </p>
       </div>
 
@@ -99,7 +102,7 @@ export function RegisterForm() {
         onSubmit={(e) => void handleSubmit(e)}
         style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
       >
-        <FormField label="Nom complet" required>
+        <FormField label={t('auth.fullName')} required>
           <Input
             placeholder="Jean Dupont"
             value={name}
@@ -108,7 +111,7 @@ export function RegisterForm() {
           />
         </FormField>
 
-        <FormField label="Email" required>
+        <FormField label={t('auth.email')} required>
           <Input
             type="email"
             placeholder="vous@exemple.cm"
@@ -118,7 +121,7 @@ export function RegisterForm() {
           />
         </FormField>
 
-        <FormField label="Mot de passe" required hint="Minimum 6 caractères">
+        <FormField label={t('auth.password')} required hint="Minimum 6 caractères">
           <Input
             type="password"
             placeholder="••••••••"
@@ -129,7 +132,7 @@ export function RegisterForm() {
         </FormField>
 
         {/* Rôle */}
-        <FormField label="Type de compte">
+        <FormField label={t('auth.accountType')}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
             {roleOptions.map((opt) => (
               <button
@@ -170,7 +173,7 @@ export function RegisterForm() {
         </FormField>
 
         {/* Secteur d'activité */}
-        <FormField label="Secteur d'activité" required>
+        <FormField label={t('auth.sector')} required>
           <select
             value={sector}
             onChange={(e) => setSector(e.target.value)}
@@ -189,7 +192,7 @@ export function RegisterForm() {
               boxSizing: 'border-box',
             }}
           >
-            <option value="">Sélectionner votre secteur...</option>
+            <option value="">{t('auth.selectSector')}</option>
             {BUSINESS_SECTORS.map((s) => (
               <option key={s} value={s}>
                 {s}
@@ -200,7 +203,7 @@ export function RegisterForm() {
 
         {/* Nom de l'entreprise (uniquement pour Manager) */}
         {role === 'manager' && (
-          <FormField label="Nom de l'entreprise" required>
+          <FormField label={t('auth.companyName')} required>
             <Input
               placeholder="Ex: Acme Corp"
               value={companyName}
@@ -231,14 +234,14 @@ export function RegisterForm() {
           loading={loading}
           style={{ width: '100%', marginTop: 4 }}
         >
-          Créer mon compte
+          {t('auth.createAccount')}
         </Button>
       </form>
 
       <p style={{ textAlign: 'center', marginTop: 24, fontSize: 13, color: colors.textMid }}>
-        Déjà un compte ?{' '}
+        {t('auth.alreadyAccount')}{' '}
         <Link href={routes.login} style={{ color: colors.greenMid, fontWeight: 600 }}>
-          Se connecter
+          {t('auth.loginBtn')}
         </Link>
       </p>
     </div>

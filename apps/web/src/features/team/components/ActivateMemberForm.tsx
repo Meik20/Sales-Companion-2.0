@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/Input'
 import { FormField } from '@/components/forms/FormField'
 import { useGetAccessInfo } from '@/features/auth/hooks/useGetAccessInfo'
 import { colors } from '@/styles/tokens'
+import { useTranslation } from '@/providers/I18nProvider'
 
 type Props = {
   accessId: string
@@ -13,6 +14,7 @@ type Props = {
 }
 
 export function ActivateMemberForm({ accessId, onSuccess }: Props) {
+  const { t } = useTranslation()
   const [email, setEmail]                   = useState('')
   const [password, setPassword]             = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -32,23 +34,23 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
 
     // Validation OBLIGATOIRE de l'email
     if (!email.trim()) {
-      setError("L'adresse email est obligatoire pour activer votre compte.")
+      setError(t('auth.invalidEmail'))
       return
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      setError("Format d'adresse email invalide.")
+      setError(t('auth.invalidEmailFormat'))
       return
     }
     if (!password || !confirmPassword) {
-      setError('Veuillez remplir tous les champs.')
+      setError(t('auth.errorFillAll'))
       return
     }
     if (password.length < 6) {
-      setError('Le mot de passe doit comporter au moins 6 caractères.')
+      setError(t('auth.errorPasswordLength'))
       return
     }
     if (password !== confirmPassword) {
-      setError('Les mots de passe ne correspondent pas.')
+      setError(t('auth.errorPasswordMatch'))
       return
     }
 
@@ -66,7 +68,7 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
       // ✅ Pass email and password to parent for auto-login
       onSuccess(email.trim(), password)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur lors de l'activation. Réessayez.")
+      setError(err instanceof Error ? err.message : t('auth.errorActivation'))
     } finally {
       setIsPending(false)
     }
@@ -76,13 +78,13 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
   if (isLoadingInfo) {
     return (
       <div style={{ textAlign: 'center', color: colors.textMid, padding: 20 }}>
-        Vérification du lien d&apos;activation…
+        {t('auth.verifyingLink')}
       </div>
     )
   }
 
   if (isErrorInfo) {
-    const errMsg = infoError instanceof Error ? infoError.message : "Lien d'activation invalide ou expiré."
+    const errMsg = infoError instanceof Error ? infoError.message : t('auth.invalidLink')
     return (
       <div style={{
         background: 'rgba(239,68,68,0.08)',
@@ -92,10 +94,10 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
         textAlign: 'center',
       }}>
         <div style={{ fontSize: 28, marginBottom: 8 }}>❌</div>
-        <div style={{ fontWeight: 600, color: '#f87171', marginBottom: 8, fontSize: 15 }}>Accès impossible</div>
+        <div style={{ fontWeight: 600, color: '#f87171', marginBottom: 8, fontSize: 15 }}>{t('auth.accessImpossible')}</div>
         <div style={{ fontSize: 13, color: '#fca5a5', lineHeight: 1.5 }}>{errMsg}</div>
         <div style={{ fontSize: 12, color: colors.textMid, marginTop: 12 }}>
-          Si le problème persiste, contactez votre manager pour obtenir un nouveau lien.
+          {t('auth.contactManager')}
         </div>
       </div>
     )
@@ -104,7 +106,7 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
   if (!accessInfo) {
     return (
       <div style={{ textAlign: 'center', color: colors.textMid, padding: 20 }}>
-        Impossible de charger les informations d&apos;accès.
+        {t('auth.unableToLoadAccess')}
       </div>
     )
   }
@@ -118,7 +120,7 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
       }}>
         <div>
           <div style={{ fontSize: 11, color: colors.textDim, letterSpacing: '.04em', textTransform: 'uppercase', marginBottom: 3 }}>
-            Identifiant d&apos;accès
+            {t('auth.accessId')}
           </div>
           <div style={{ fontSize: 12, fontWeight: 600, color: colors.text, fontFamily: 'monospace', wordBreak: 'break-all' }}>
             {accessId}
@@ -126,7 +128,7 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
         </div>
         <div>
           <div style={{ fontSize: 11, color: colors.textDim, letterSpacing: '.04em', textTransform: 'uppercase', marginBottom: 3 }}>
-            Nom
+            {t('auth.name')}
           </div>
           <div style={{ fontSize: 14, fontWeight: 600, color: colors.text }}>
             {accessInfo.firstname} {accessInfo.lastname}
@@ -135,7 +137,7 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
         {accessInfo.company && (
           <div>
             <div style={{ fontSize: 11, color: colors.textDim, letterSpacing: '.04em', textTransform: 'uppercase', marginBottom: 3 }}>
-              Entreprise
+              {t('auth.company')}
             </div>
             <div style={{ fontSize: 13, fontWeight: 600, color: colors.text }}>{accessInfo.company}</div>
           </div>
@@ -144,9 +146,9 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
 
       {/* Email — TOUJOURS OBLIGATOIRE */}
       <FormField
-        label="Votre adresse email"
+        label={t('auth.yourEmailAddress')}
         required
-        hint="Saisissez l'adresse email qui servira d'identifiant pour vous connecter."
+        hint={t('auth.emailHint')}
       >
         <Input
           type="email"
@@ -158,7 +160,7 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
         />
       </FormField>
 
-      <FormField label="Nouveau mot de passe" required>
+      <FormField label={t('auth.newPassword')} required>
         <Input
           type="password"
           placeholder="••••••••"
@@ -169,7 +171,7 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
         />
       </FormField>
 
-      <FormField label="Confirmer le mot de passe" required>
+      <FormField label={t('auth.confirmPassword')} required>
         <Input
           type="password"
           placeholder="••••••••"
@@ -194,8 +196,8 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
       )}
 
       <div style={{ fontSize: 12, color: colors.textMid, lineHeight: 1.7 }}>
-        <p style={{ margin: '0 0 4px' }}>✓ Au moins 6 caractères</p>
-        <p style={{ margin: 0 }}>✓ Lettres, chiffres et caractères spéciaux acceptés</p>
+        <p style={{ margin: '0 0 4px' }}>{t('auth.atLeast6Chars')}</p>
+        <p style={{ margin: 0 }}>{t('auth.allowedChars')}</p>
       </div>
 
       <Button
@@ -205,7 +207,7 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
         loading={isPending}
         style={{ width: '100%', marginTop: 8 }}
       >
-        {isPending ? 'Activation en cours...' : 'Activer mon compte'}
+        {isPending ? t('auth.activationInProgress') : t('auth.activateBtn')}
       </Button>
     </form>
   )

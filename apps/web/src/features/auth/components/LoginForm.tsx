@@ -11,8 +11,10 @@ import { useAuthActions } from '../hooks/useAuthActions'
 import { mapAuthError } from '../utils/error-mapper'
 import { routes } from '@/constants/routes'
 import { colors } from '@/styles/tokens'
+import { useTranslation } from '@/providers/I18nProvider'
 
 export function LoginForm() {
+  const { t } = useTranslation()
   const { loginWithEmail } = useAuthActions()
   const router = useRouter()
 
@@ -32,11 +34,11 @@ export function LoginForm() {
     
     if (isActivationMode) {
       if (!accessId || !email || !password || !confirmPassword) {
-        setError('Veuillez remplir tous les champs.')
+        setError(t('auth.errorFillAll'))
         return
       }
       if (password !== confirmPassword) {
-        setError('Les mots de passe ne correspondent pas.')
+        setError(t('auth.errorPasswordMatch'))
         return
       }
       setLoading(true)
@@ -62,7 +64,7 @@ export function LoginForm() {
     }
 
     if (!email || !password) {
-      setError('Veuillez remplir tous les champs.')
+      setError(t('auth.errorFillAll'))
       return
     }
     setLoading(true)
@@ -103,16 +105,16 @@ export function LoginForm() {
             letterSpacing: '-.03em',
           }}
         >
-          {isActivationMode ? 'Activer mon accès' : 'Connexion'}
+          {isActivationMode ? t('auth.activateTitle') : t('auth.loginTitle')}
         </h1>
         <p style={{ margin: 0, fontSize: 13, color: colors.textMid }}>
-          {isActivationMode ? 'Renseignez l\'ID fourni par votre manager.' : 'Bienvenue sur Sales Companion'}
+          {isActivationMode ? t('auth.activateSubtitle') : t('auth.loginSubtitle')}
         </p>
       </div>
 
       <form onSubmit={(e) => void handleSubmit(e)} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {isActivationMode && (
-          <FormField label="Identifiant d'accès (Access ID)" required>
+          <FormField label={t('auth.accessId')} required>
             <Input
               type="text"
               placeholder="Ex: jeandupont@entreprise"
@@ -122,7 +124,7 @@ export function LoginForm() {
           </FormField>
         )}
 
-        <FormField label="Email" required>
+        <FormField label={t('auth.email')} required>
           <Input
             type="email"
             placeholder="vous@exemple.cm"
@@ -132,7 +134,7 @@ export function LoginForm() {
           />
         </FormField>
 
-        <FormField label={isActivationMode ? "Nouveau mot de passe" : "Mot de passe"} required>
+        <FormField label={isActivationMode ? t('auth.newPassword') : t('auth.password')} required>
           <Input
             type="password"
             placeholder="••••••••"
@@ -143,7 +145,7 @@ export function LoginForm() {
         </FormField>
 
         {isActivationMode && (
-          <FormField label="Confirmer le mot de passe" required>
+          <FormField label={t('auth.confirmPassword')} required>
             <Input
               type="password"
               placeholder="••••••••"
@@ -170,7 +172,7 @@ export function LoginForm() {
         ) : null}
 
         <Button type="submit" variant="primary" size="lg" loading={loading} style={{ width: '100%', marginTop: 4 }}>
-          {isActivationMode ? 'Activer mon compte' : 'Se connecter'}
+          {isActivationMode ? t('auth.activateBtn') : t('auth.loginBtn')}
         </Button>
 
         <Button
@@ -183,18 +185,18 @@ export function LoginForm() {
             setError(null)
           }}
         >
-          {isActivationMode ? 'Retour à la connexion' : 'J\'ai un accès équipe à activer'}
+          {isActivationMode ? t('auth.switchToLogin') : t('auth.switchToActivate')}
         </Button>
       </form>
 
       {!isActivationMode && (
         <p style={{ textAlign: 'center', marginTop: 24, fontSize: 13, color: colors.textMid }}>
-          Pas encore de compte ?{' '}
+          {t('auth.noAccount')}{' '}
           <Link
             href={routes.register}
             style={{ color: colors.greenMid, fontWeight: 600 }}
           >
-            Créer un compte
+            {t('auth.createAccount')}
           </Link>
         </p>
       )}

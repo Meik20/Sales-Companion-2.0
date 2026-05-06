@@ -13,7 +13,10 @@ import {
   Search, BarChart2, MessageSquare, Bookmark, WifiOff,
   Users, Settings, LayoutDashboard, UserCheck, Building2,
   Upload, Headphones, Activity, Sliders, LogOut, MapPin, Filter,
+  Moon, Sun, Globe
 } from 'lucide-react'
+import { useTheme } from 'next-themes'
+import { useTranslation } from '@/providers/I18nProvider'
 
 const REGIONS = [
   'Adamaoua', 'Centre', 'Est', 'Extrême-Nord', 'Littoral',
@@ -85,6 +88,9 @@ export function AppSidebar({ isMobile = false, onClose }: { isMobile?: boolean; 
   const [city, setCity]         = useState('')
   const [sector, setSector]     = useState('')
   const [geoState, setGeoState] = useState<'idle' | 'loading' | 'done'>('idle')
+
+  const { theme, setTheme } = useTheme()
+  const { t, lang, setLang } = useTranslation()
 
   // Pipeline stats for badge
   const pipelineStats = usePipelineStats()
@@ -176,12 +182,12 @@ export function AppSidebar({ isMobile = false, onClose }: { isMobile?: boolean; 
       <SectionDivider />
 
       {/* ── Filtres rapides ─────────────────────────────────────────── */}
-      <SectionLabel>Filtres rapides</SectionLabel>
+      <SectionLabel>{t('sidebar.quickFilters')}</SectionLabel>
 
       {/* Région */}
       <div style={{ padding: '2px 10px' }}>
         <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: colors.textMid, marginBottom: 4 }}>
-          <MapPin size={12} /> Région
+          <MapPin size={12} /> {t('sidebar.region')}
         </label>
         <select
           value={region}
@@ -191,7 +197,7 @@ export function AppSidebar({ isMobile = false, onClose }: { isMobile?: boolean; 
           }}
           style={{ width: '100%', height: 32, borderRadius: 8, border: `1px solid ${colors.border}`, background: colors.bg, color: colors.text, fontSize: 12, fontFamily: 'inherit', outline: 'none', padding: '0 8px' }}
         >
-          <option value="">Toutes les régions</option>
+          <option value="">{t('sidebar.allRegions')}</option>
           {REGIONS.map((r) => <option key={r} value={r}>{r}</option>)}
         </select>
       </div>
@@ -200,14 +206,14 @@ export function AppSidebar({ isMobile = false, onClose }: { isMobile?: boolean; 
       {region && (
         <div style={{ padding: '2px 10px' }}>
           <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: colors.textMid, marginBottom: 4 }}>
-            <MapPin size={12} /> Ville
+            <MapPin size={12} /> {t('sidebar.city')}
           </label>
           <select
             value={city}
             onChange={(e) => setCity(e.target.value)}
             style={{ width: '100%', height: 32, borderRadius: 8, border: `1px solid ${colors.border}`, background: colors.bg, color: colors.text, fontSize: 12, fontFamily: 'inherit', outline: 'none', padding: '0 8px' }}
           >
-            <option value="">Toutes les villes</option>
+            <option value="">{t('sidebar.allCities')}</option>
             {CITIES_BY_REGION[region]?.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
@@ -216,14 +222,14 @@ export function AppSidebar({ isMobile = false, onClose }: { isMobile?: boolean; 
       {/* Secteur */}
       <div style={{ padding: '2px 10px' }}>
         <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: colors.textMid, marginBottom: 4 }}>
-          <Filter size={12} /> Secteur
+          <Filter size={12} /> {t('sidebar.sector')}
         </label>
         <select
           value={sector}
           onChange={(e) => setSector(e.target.value)}
           style={{ width: '100%', height: 32, borderRadius: 8, border: `1px solid ${colors.border}`, background: colors.bg, color: colors.text, fontSize: 12, fontFamily: 'inherit', outline: 'none', padding: '0 8px' }}
         >
-          <option value="">Tous les secteurs</option>
+          <option value="">{t('sidebar.allSectors')}</option>
           {SECTORS.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
       </div>
@@ -245,7 +251,7 @@ export function AppSidebar({ isMobile = false, onClose }: { isMobile?: boolean; 
           onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--color-blue-600)')}
           onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--color-primary)')}
         >
-          <Search size={13} /> Rechercher
+          <Search size={13} /> {t('sidebar.search')}
         </button>
 
         <button
@@ -263,12 +269,12 @@ export function AppSidebar({ isMobile = false, onClose }: { isMobile?: boolean; 
           }}
         >
           <MapPin size={13} />
-          {geoState === 'loading' ? 'Détection…' : geoState === 'done' ? 'Autour de moi ✓' : 'Autour de moi'}
+          {geoState === 'loading' ? 'Détection…' : geoState === 'done' ? `${t('sidebar.aroundMe')} ✓` : t('sidebar.aroundMe')}
         </button>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 12, color: colors.textMid, padding: '0 2px' }}>
           <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <Filter size={11} /> Rayon
+            <Filter size={11} /> {t('sidebar.radius')}
           </span>
           <select value={radius} onChange={(e) => setRadius(e.target.value)} style={{ background: 'transparent', border: `1px solid ${colors.border}`, borderRadius: 6, padding: '3px 7px', color: colors.text, fontSize: 11, outline: 'none' }}>
             <option>5 km</option><option>10 km</option><option>50 km</option><option>National</option>
@@ -279,44 +285,88 @@ export function AppSidebar({ isMobile = false, onClose }: { isMobile?: boolean; 
       <SectionDivider />
 
       {/* ── P4 — Section: Outils Principaux ─────────────────────────── */}
-      <SectionLabel>Prospection</SectionLabel>
-      <SidebarLink href={routes.search}   label="Recherche prospects" icon={Search}    />
-      <SidebarLink href={routes.pipeline} label="Pipeline commercial"  icon={BarChart2} badge={totalPipeline > 0 ? totalPipeline : undefined} />
-      <SidebarLink href={routes.saved}    label="Recherches sauvegardées" icon={Bookmark} />
-      <SidebarLink href={routes.support}  label="Support"              icon={MessageSquare} />
+      <SectionLabel>{t('sidebar.prospection')}</SectionLabel>
+      <SidebarLink href={routes.search}   label={t('sidebar.searchProspects')} icon={Search}    />
+      <SidebarLink href={routes.pipeline} label={t('sidebar.pipeline')}  icon={BarChart2} badge={totalPipeline > 0 ? totalPipeline : undefined} />
+      <SidebarLink href={routes.saved}    label={t('sidebar.savedSearches')} icon={Bookmark} />
+      <SidebarLink href={routes.support}  label={t('sidebar.support')}              icon={MessageSquare} />
 
       {/* Disabled item */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', fontSize: 13, color: colors.textDim, cursor: 'not-allowed', opacity: 0.5, userSelect: 'none' }}>
         <WifiOff size={16} strokeWidth={1.8} style={{ flexShrink: 0 }} />
-        Mode hors ligne
+        {t('sidebar.offlineMode')}
       </div>
 
       {/* ── P4 — Section: Équipe (Manager uniquement) ─────────────── */}
       {user.role === 'manager' && (
         <>
           <SectionDivider />
-          <SectionLabel>Équipe</SectionLabel>
-          <SidebarLink href={routes.team} label="Gestion d'équipe" icon={Users} />
+          <SectionLabel>{t('sidebar.team')}</SectionLabel>
+          <SidebarLink href={routes.team} label={t('sidebar.teamManagement')} icon={Users} />
         </>
       )}
 
       {/* ── P4 — Section: Paramètres ────────────────────────────────── */}
       <SectionDivider />
-      <SectionLabel>Compte</SectionLabel>
-      <SidebarLink href={routes.settings} label="Paramètres" icon={Settings} />
+      <SectionLabel>{t('sidebar.account')}</SectionLabel>
+      <SidebarLink href={routes.settings} label={t('sidebar.settings')} icon={Settings} />
+      
+      <button
+        onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '9px 12px',
+          borderRadius: 9,
+          background: 'transparent',
+          border: 'none',
+          cursor: 'pointer',
+          width: '100%',
+          textAlign: 'left',
+          transition: 'all 200ms ease',
+        }}
+        onMouseEnter={(e) => (e.currentTarget.style.background = colors.hoverBg)}
+        onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+      >
+        <span style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: colors.textDim, fontWeight: 500 }}>
+          {theme === 'dark' ? <Sun size={16} strokeWidth={1.8} /> : <Moon size={16} strokeWidth={1.8} />}
+          {t('sidebar.theme')} : {theme === 'dark' ? t('sidebar.light') : t('sidebar.dark')}
+        </span>
+      </button>
+
+      <button
+        onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '9px 12px',
+          borderRadius: 9,
+          background: 'transparent',
+          border: 'none',
+          cursor: 'pointer',
+          width: '100%',
+          textAlign: 'left',
+          transition: 'all 200ms ease',
+        }}
+        onMouseEnter={(e) => (e.currentTarget.style.background = colors.hoverBg)}
+        onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+      >
+        <span style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: colors.textDim, fontWeight: 500 }}>
+          <Globe size={16} strokeWidth={1.8} />
+          {lang === 'fr' ? 'English (EN)' : 'Français (FR)'}
+        </span>
+      </button>
 
       {/* ── Admin Section ───────────────────────────────────────────── */}
       {user.role === 'admin' && (
         <>
           <SectionDivider />
-          <SectionLabel>Administration</SectionLabel>
-          <SidebarLink href={routes.adminDashboard}  label="Dashboard"     icon={LayoutDashboard} />
-          <SidebarLink href={routes.adminUsers}      label="Utilisateurs"  icon={UserCheck}       />
-          <SidebarLink href={routes.adminCompanies}  label="Entreprises"   icon={Building2}       />
-          <SidebarLink href={routes.adminImports}    label="Imports"       icon={Upload}          />
-          <SidebarLink href={routes.adminSupport}    label="Support"       icon={Headphones}      />
-          <SidebarLink href={routes.adminLogs}       label="Activité"      icon={Activity}        />
-          <SidebarLink href={routes.adminConfig}     label="Config"        icon={Sliders}         />
+          <SectionLabel>{t('sidebar.admin')}</SectionLabel>
+          <SidebarLink href={routes.adminDashboard}  label={t('sidebar.dashboard')}     icon={LayoutDashboard} />
+          <SidebarLink href={routes.adminUsers}      label={t('sidebar.users')}  icon={UserCheck}       />
+          <SidebarLink href={routes.adminCompanies}  label={t('sidebar.companies')}   icon={Building2}       />
+          <SidebarLink href={routes.adminImports}    label={t('sidebar.imports')}       icon={Upload}          />
+          <SidebarLink href={routes.adminSupport}    label={t('sidebar.support')}       icon={Headphones}      />
+          <SidebarLink href={routes.adminLogs}       label={t('sidebar.activity')}      icon={Activity}        />
+          <SidebarLink href={routes.adminConfig}     label={t('sidebar.config')}        icon={Sliders}         />
         </>
       )}
 
@@ -340,7 +390,7 @@ export function AppSidebar({ isMobile = false, onClose }: { isMobile?: boolean; 
           onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
         >
           <LogOut size={15} strokeWidth={1.8} style={{ flexShrink: 0 }} />
-          Déconnexion
+          {t('sidebar.logout')}
         </button>
       </div>
     </div>
