@@ -132,10 +132,10 @@ export function AppSidebar({ isMobile = false, onClose }: { isMobile?: boolean; 
   const handleLogout = async () => {
     try {
       await logout()
-      pushToast({ type: 'success', title: 'Déconnexion réussie' })
+      pushToast({ type: 'success', title: t('sidebar.logoutSuccess') })
       if (onClose) onClose()
     } catch {
-      pushToast({ type: 'error', title: 'Erreur de déconnexion' })
+      pushToast({ type: 'error', title: t('sidebar.logoutError') })
     }
   }
 
@@ -171,10 +171,10 @@ export function AppSidebar({ isMobile = false, onClose }: { isMobile?: boolean; 
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
           <span style={{ fontWeight: 700, color: colors.text, fontSize: 13.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {user.name || 'Utilisateur'}
+            {user.name || t('sidebar.user')}
           </span>
           <span style={{ fontSize: 11, color: colors.textMid }}>
-            {user.role === 'admin' ? '🔴 Admin' : user.role === 'manager' ? '🟡 Manager' : user.role === 'independent' ? '🟢 Indépendant' : '🔵 Membre'} · Plan Free
+            {user.role === 'admin' ? t('sidebar.adminRole') : user.role === 'manager' ? t('sidebar.managerRole') : user.role === 'independent' ? t('sidebar.independentRole') : t('sidebar.memberRole')} · {t('header.planFree')}
           </span>
         </div>
       </div>
@@ -269,7 +269,7 @@ export function AppSidebar({ isMobile = false, onClose }: { isMobile?: boolean; 
           }}
         >
           <MapPin size={13} />
-          {geoState === 'loading' ? 'Détection…' : geoState === 'done' ? `${t('sidebar.aroundMe')} ✓` : t('sidebar.aroundMe')}
+          {geoState === 'loading' ? t('sidebar.detecting') : geoState === 'done' ? `${t('sidebar.aroundMe')} ✓` : t('sidebar.aroundMe')}
         </button>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 12, color: colors.textMid, padding: '0 2px' }}>

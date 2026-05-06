@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { colors } from '@/styles/tokens'
 import { useDeletePipelineItem } from '@/features/pipeline/hooks/useDeletePipelineItem'
 import { useToast } from '@/hooks/useToast'
+import { useTranslation } from '@/providers/I18nProvider'
 
 type PipelineItem = {
   id: string
@@ -39,25 +40,20 @@ const statusVariant: Record<string, 'info' | 'warning' | 'success'> = {
   conclusion:  'success',
 }
 
-const statusLabel: Record<string, string> = {
-  prospection: 'Prospection',
-  prospect:    'Prospection',
-  negociation: 'Négociation',
-  negotiation: 'Négociation',
-  conclue:     'Conclue',
-  conclusion:  'Conclue',
-}
-
+// ── Contact Detail Modal ────────────────────────────────────────────────
 // ── Contact Detail Modal ────────────────────────────────────────────────
 function ProspectModal({
   item,
   onClose,
   onStatusChange,
+  statusLabel,
 }: {
   item: PipelineItem
   onClose: () => void
   onStatusChange?: (id: string, status: 'prospection' | 'negociation' | 'conclue') => void
+  statusLabel: Record<string, string>
 }) {
+  const { t } = useTranslation()
   const noteText = item.notes ?? item.note ?? ''
 
   return (
@@ -122,18 +118,18 @@ function ProspectModal({
             marginBottom: 16,
           }}>
             <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em', color: colors.textMid, marginBottom: 2 }}>
-              Informations de contact
+              {t('pipeline.contactInfo')}
             </div>
 
             {item.companySector && (
-              <InfoRow icon="🏭" label="Secteur" value={item.companySector} />
+              <InfoRow icon="🏭" label={t('pipeline.sector')} value={item.companySector} />
             )}
             {item.companyCity && (
-              <InfoRow icon="📍" label="Ville" value={item.companyCity} />
+              <InfoRow icon="📍" label={t('pipeline.city')} value={item.companyCity} />
             )}
             {item.companyPhone ? (
               <InfoRow
-                icon="📞" label="Téléphone"
+                icon="📞" label={t('pipeline.phone')}
                 value={
                   <a href={`tel:${item.companyPhone}`} style={{ color: '#60a5fa', textDecoration: 'none' }}>
                     {item.companyPhone}
@@ -141,11 +137,11 @@ function ProspectModal({
                 }
               />
             ) : (
-              <InfoRow icon="📞" label="Téléphone" value={<span style={{ color: colors.textMid, fontStyle: 'italic' }}>Non renseigné</span>} />
+              <InfoRow icon="📞" label={t('pipeline.phone')} value={<span style={{ color: colors.textMid, fontStyle: 'italic' }}>{t('pipeline.notSpecified')}</span>} />
             )}
             {item.companyEmail ? (
               <InfoRow
-                icon="✉️" label="Email"
+                icon="✉️" label={t('pipeline.email')}
                 value={
                   <a href={`mailto:${item.companyEmail}`} style={{ color: '#60a5fa', textDecoration: 'none' }}>
                     {item.companyEmail}
@@ -153,7 +149,7 @@ function ProspectModal({
                 }
               />
             ) : (
-              <InfoRow icon="✉️" label="Email" value={<span style={{ color: colors.textMid, fontStyle: 'italic' }}>Non renseigné</span>} />
+              <InfoRow icon="✉️" label={t('pipeline.email')} value={<span style={{ color: colors.textMid, fontStyle: 'italic' }}>{t('pipeline.notSpecified')}</span>} />
             )}
           </div>
 
@@ -164,7 +160,7 @@ function ProspectModal({
               borderRadius: 10, padding: '12px 14px', marginBottom: 16,
             }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: '#fbbf24', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>
-                📝 Notes
+                📝 {t('pipeline.notesLabel')}
               </div>
               <div style={{ fontSize: 13, color: colors.text, lineHeight: 1.5 }}>{noteText}</div>
             </div>
@@ -177,14 +173,14 @@ function ProspectModal({
               borderRadius: 10, padding: '10px 14px', marginBottom: 16,
               fontSize: 13, color: '#93c5fd',
             }}>
-              📅 Prochain suivi : {item.nextFollowUp ?? item.nextDate}
+              📅 {t('pipeline.nextFollowUpLabel')} : {item.nextFollowUp ?? item.nextDate}
             </div>
           )}
 
           {/* Assigné par */}
           {item.assignedByName && (
             <div style={{ fontSize: 12, color: colors.textMid, marginBottom: 16 }}>
-              Assigné par : <span style={{ color: colors.text }}>{item.assignedByName}</span>
+              {t('pipeline.assignedBy')} : <span style={{ color: colors.text }}>{item.assignedByName}</span>
             </div>
           )}
 
@@ -193,17 +189,17 @@ function ProspectModal({
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {item.status !== 'prospection' && item.status !== 'prospect' && (
                 <Button size="sm" variant="ghost" onClick={() => { onStatusChange(item.id, 'prospection'); onClose() }}>
-                  Prospection
+                  {t('pipeline.prospection')}
                 </Button>
               )}
               {item.status !== 'negociation' && item.status !== 'negotiation' && (
                 <Button size="sm" variant="ghost" onClick={() => { onStatusChange(item.id, 'negociation'); onClose() }}>
-                  Négociation
+                  {t('pipeline.negotiation')}
                 </Button>
               )}
               {item.status !== 'conclue' && item.status !== 'conclusion' && (
                 <Button size="sm" variant="primary" onClick={() => { onStatusChange(item.id, 'conclue'); onClose() }}>
-                  ✓ Conclure
+                  ✓ {t('pipeline.closed')}
                 </Button>
               )}
             </div>
@@ -226,7 +222,17 @@ function InfoRow({ icon, label, value }: { icon: string; label: string; value: R
 
 // ── Main List Component ────────────────────────────────────────────────
 export function UserPipelineList({ items, onStatusChange }: Props) {
+  const { t } = useTranslation()
   const deleteMutation = useDeletePipelineItem()
+
+  const statusLabel: Record<string, string> = {
+    prospection: t('pipeline.prospection'),
+    prospect:    t('pipeline.prospection'),
+    negociation: t('pipeline.negotiation'),
+    negotiation: t('pipeline.negotiation'),
+    conclue:     t('pipeline.closed'),
+    conclusion:  t('pipeline.closed'),
+  }
   const { pushToast } = useToast()
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [selectedItem, setSelectedItem] = useState<PipelineItem | null>(null)
@@ -236,12 +242,12 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
     setDeletingId(id)
     try {
       await deleteMutation.mutateAsync(id)
-      pushToast({ type: 'success', title: 'Prospect supprimé' })
+      pushToast({ type: 'success', title: t('pipeline.deleteSuccess') })
     } catch (err) {
       pushToast({
         type: 'error',
-        title: 'Suppression impossible',
-        description: err instanceof Error ? err.message : 'Erreur inconnue',
+        title: t('pipeline.deleteError'),
+        description: err instanceof Error ? err.message : 'Unknown error',
       })
     } finally {
       setDeletingId(null)
@@ -258,6 +264,7 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
           item={selectedItem}
           onClose={() => setSelectedItem(null)}
           onStatusChange={onStatusChange}
+          statusLabel={statusLabel}
         />
       )}
 
@@ -306,7 +313,7 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
               </div>
 
               <div style={{ fontSize: 11, color: 'rgba(99,102,241,0.7)', marginTop: 5 }}>
-                Cliquer pour voir les détails →
+                {t('pipeline.clickForDetails')} →
               </div>
             </div>
 

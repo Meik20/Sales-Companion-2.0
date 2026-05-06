@@ -179,6 +179,63 @@
 
   --bd:  var(--cr-separator-color);
   --bd2: rgba(255, 255, 255, 0.15);
+
+  /* Overrides for theme.css variables used directly */
+  --color-text-primary:   #F9FAFB;
+  --color-text-secondary: #D1D5DB;
+  --color-text-muted:     #9CA3AF;
+  --color-text-light:     #6B7280;
+
+  --color-bg-primary:   #0E1929;
+  --color-bg-secondary: #16243A;
+  --color-bg-tertiary:  #1C2E4A;
+  --color-bg-hover:     rgba(56, 189, 248, 0.1);
+
+  --color-border-light: rgba(255, 255, 255, 0.1);
+  --color-border-mid:   rgba(255, 255, 255, 0.15);
+  --color-border-dark:  rgba(255, 255, 255, 0.25);
+
+  --color-primary: #38BDF8; /* Lighter blue for dark mode */
+
+  /* Light color variants used for backgrounds of chips/bubbles */
+  --color-blue-50:  rgba(56, 189, 248, 0.1);
+  --color-blue-100: rgba(56, 189, 248, 0.2);
+  --color-blue-200: rgba(56, 189, 248, 0.3);
+
+  --color-green-50:  rgba(34, 197, 94, 0.1);
+  --color-orange-50: rgba(249, 115, 22, 0.1);
+  --color-red-50:    rgba(239, 68, 68, 0.1);
+
+  /* Ensure text on these light backgrounds is readable */
+  --color-blue-700:   #7DD3FC;
+  --color-blue-800:   #BAE6FD;
+  --color-blue-900:   #F9FAFB;
+  --color-green-600:  #4ADE80;
+  --color-orange-600: #FB923C;
+
+  color-scheme: dark;
+}
+
+.dark body {
+  color: var(--tx);
+  background-color: var(--bg);
+}
+
+/* Force some elements to respect the dark theme */
+.dark input, 
+.dark select, 
+.dark textarea,
+.dark button {
+  color: var(--tx);
+}
+
+.dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
+  color: var(--tx);
+}
+
+.dark p, .dark span, .dark label, .dark div {
+  /* We don't force color: inherit here to avoid overriding specific mid/dim colors, 
+     but we ensure the base variables are correct */
 }
 
 /* ─── Reset ─────────────────────────────────────────────────────────── */

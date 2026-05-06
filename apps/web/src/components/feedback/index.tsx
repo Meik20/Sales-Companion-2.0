@@ -1,13 +1,17 @@
 // ─── LoadingState ─────────────────────────────────────────────────────────────
 
 import { colors } from '@/styles/tokens'
+import { useTranslation } from '@/providers/I18nProvider'
 
 type LoadingProps = { title?: string; description?: string }
 
 export function LoadingState({
-  title = 'Chargement…',
-  description = 'Veuillez patienter.',
+  title,
+  description,
 }: LoadingProps) {
+  const { t } = useTranslation()
+  const displayTitle = title ?? t('feedback.loading')
+  const displayDesc  = description ?? t('feedback.pleaseWait')
   return (
     <div
       style={{
@@ -31,9 +35,9 @@ export function LoadingState({
         }}
       />
       <div style={{ textAlign: 'center' }}>
-        <p style={{ margin: 0, fontWeight: 600, color: colors.text }}>{title}</p>
-        {description ? (
-          <p style={{ margin: '4px 0 0', fontSize: 13 }}>{description}</p>
+        <p style={{ margin: 0, fontWeight: 600, color: colors.text }}>{displayTitle}</p>
+        {displayDesc ? (
+          <p style={{ margin: '4px 0 0', fontSize: 13 }}>{displayDesc}</p>
         ) : null}
       </div>
     </div>
@@ -76,9 +80,11 @@ type ErrorProps = {
 }
 
 export function ErrorState({
-  title = 'Une erreur est survenue',
+  title,
   description,
 }: ErrorProps) {
+  const { t } = useTranslation()
+  const displayTitle = title ?? t('feedback.errorOccurred')
   return (
     <div
       style={{
@@ -94,7 +100,7 @@ export function ErrorState({
       }}
     >
       <span style={{ fontSize: 28 }}>⚠️</span>
-      <p style={{ margin: 0, fontWeight: 600, color: '#f87171' }}>{title}</p>
+      <p style={{ margin: 0, fontWeight: 600, color: '#f87171' }}>{displayTitle}</p>
       {description ? (
         <p style={{ margin: 0, fontSize: 13, color: colors.textMid }}>{description}</p>
       ) : null}

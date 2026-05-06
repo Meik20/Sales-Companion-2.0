@@ -8,18 +8,18 @@
 
 export const colors = {
   // ── Surfaces ──────────────────────────────────────────────────────────────
-  bg:       'var(--color-neutral-950)',
-  bg2:      'var(--color-neutral-900)',
-  bg3:      'var(--color-neutral-800)',
-  bg4:      'var(--color-blue-900)',
-  surface:  'var(--color-neutral-900)',
+  bg:       'var(--bg)',
+  bg2:      'var(--bg2)',
+  bg3:      'var(--bg3)',
+  bg4:      'var(--bg4)',
+  surface:  'var(--bg2)',
 
   // ── Texte ─────────────────────────────────────────────────────────────────
-  text:     'var(--color-text-primary)',
-  textMid:  'var(--color-text-secondary)',
-  textDim:  'var(--color-text-muted)',
-  textTitle:'var(--color-text-primary)',
-  link:     'var(--color-accent)',
+  text:     'var(--tx)',
+  textMid:  'var(--tx2)',
+  textDim:  'var(--tx3)',
+  textTitle:'var(--tx)',
+  link:     'var(--cr-link-color)',
 
   // ── Deep Blue Tech Primary (ancien colors.green pour compatibilité) ─────────
   green:      'var(--color-primary)',        // #185FA5
@@ -37,9 +37,9 @@ export const colors = {
   goldLight: 'var(--color-teal-50)',
 
   // ── Bordures ──────────────────────────────────────────────────────────────
-  border:        'rgba(133, 183, 235, 0.18)',
-  border2:       'rgba(133, 183, 235, 0.12)',
-  border_compat: 'rgba(133, 183, 235, 0.18)',
+  border:        'var(--bd)',
+  border2:       'var(--bd2)',
+  border_compat: 'var(--bd)',
 
   // ── États sémantiques ─────────────────────────────────────────────────────
   success:       'var(--color-success)',
@@ -59,8 +59,8 @@ export const colors = {
   infoBorder:    'var(--color-blue-200)',
 
   // ── Interactifs ───────────────────────────────────────────────────────────
-  hoverBg:  'rgba(24, 95, 165, 0.12)',
-  activeBg: 'rgba(24, 95, 165, 0.24)',
+  hoverBg:  'var(--cr-hover-background-color)',
+  activeBg: 'var(--cr-active-background-color)',
 } as const
 
 // ─────────────────────────────────────────────────────────────────────────────

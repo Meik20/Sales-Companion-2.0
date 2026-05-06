@@ -282,26 +282,26 @@ function SearchContent() {
             >
               <ShortcutCard 
                 sector="btp" 
-                title="BTP Douala" 
-                subtitle="Nouvelles entreprises" 
+                title={t('search.btpDouala')}
+                subtitle={t('search.newCompanies')}
                 onClick={() => { setFilters({ sector: 'BTP', city: 'Douala' }); setHasSearched(true) }} 
               />
               <ShortcutCard 
                 sector="tech" 
-                title="Tech Yaoundé" 
-                subtitle="Startups & PME" 
+                title={t('search.techYaounde')}
+                subtitle={t('search.startupsPme')}
                 onClick={() => { setFilters({ sector: 'Tech', city: 'Yaoundé' }); setHasSearched(true) }} 
               />
               <ShortcutCard 
                 sector="agro" 
-                title="Agroalimentaire" 
-                subtitle="Tout Cameroun" 
+                title={t('search.agro')}
+                subtitle={t('search.allCameroon')}
                 onClick={() => { setFilters({ sector: 'Agroalimentaire' }); setHasSearched(true) }} 
               />
               <ShortcutCard 
                 sector="transport" 
-                title="Transport" 
-                subtitle="Tout Cameroun" 
+                title={t('search.transport')}
+                subtitle={t('search.allCameroon')}
                 onClick={() => { setFilters({ sector: 'Transport' }); setHasSearched(true) }} 
               />
             </div>
@@ -327,14 +327,14 @@ function SearchContent() {
         `}} />
 
         {/* Pipeline commercial */}
-        <DataCard title="Pipeline commercial">
+        <DataCard title={t('search.commercialPipeline')}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {/* Stats live */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
               {[
-                { label: 'Prospection', value: stats?.prospection ?? 0, color: '#60a5fa', bg: 'rgba(96,165,250,0.1)' },
-                { label: 'Négociation', value: stats?.negotiation ?? 0, color: '#fbbf24', bg: 'rgba(251,191,36,0.1)' },
-                { label: 'Conclue',     value: stats?.conclusion  ?? 0, color: '#4ade80', bg: 'rgba(74,222,128,0.1)' },
+                { label: t('search.prospection'), value: stats?.prospection ?? 0, color: '#60a5fa', bg: 'rgba(96,165,250,0.1)' },
+                { label: t('search.negotiation'), value: stats?.negotiation ?? 0, color: '#fbbf24', bg: 'rgba(251,191,36,0.1)' },
+                { label: t('search.conclusion'),  value: stats?.conclusion  ?? 0, color: '#4ade80', bg: 'rgba(74,222,128,0.1)' },
               ].map(({ label, value, color, bg }) => (
                 <div key={label} style={{ background: bg, borderRadius: 10, padding: '10px 8px', textAlign: 'center' }}>
                   <div style={{ fontSize: 22, fontWeight: 800, color }}>{value}</div>

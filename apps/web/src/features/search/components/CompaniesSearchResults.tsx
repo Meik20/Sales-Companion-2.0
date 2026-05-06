@@ -3,6 +3,7 @@ import { AddToPipelineButton } from './AddToPipelineButton'
 import { SaveCompanyButton } from './SaveCompanyButton'
 import { colors } from '@/styles/tokens'
 import { Company } from '@/features/search/hooks/useCompaniesSearch'
+import { useTranslation } from '@/providers/I18nProvider'
 
 type Props = { items: Company[] }
 
@@ -17,7 +18,9 @@ const EXCLUDE_FROM_EXTRA = new Set([
   'activite_principale', 'centre_de_rattachement', 'ville',
 ])
 
-function formatFieldLabel(key: string): string {
+function formatFieldLabel(key: string, t: any): string {
+  const trans = t(`field.${key}`)
+  if (trans !== `field.${key}`) return trans
   return key
     .replace(/_/g, ' ')
     .replace(/([A-Z])/g, ' $1')
@@ -26,6 +29,7 @@ function formatFieldLabel(key: string): string {
 }
 
 export function CompaniesSearchResults({ items }: Props) {
+  const { t } = useTranslation()
   if (!items.length) return null
 
   return (
@@ -99,10 +103,10 @@ export function CompaniesSearchResults({ items }: Props) {
                 )}
                 {company.dirigeant && <span>👤 {String(company.dirigeant)}</span>}
                 {company.niu && (
-                  <span style={{ fontFamily: 'monospace', fontSize: 11, color: colors.textDim }}>NIU {String(company.niu)}</span>
+                  <span style={{ fontFamily: 'monospace', fontSize: 11, color: colors.textDim }}>{t('field.niu')} {String(company.niu)}</span>
                 )}
                 {company.rccm && (
-                  <span style={{ fontSize: 11, color: colors.textDim }}>RCCM {String(company.rccm)}</span>
+                  <span style={{ fontSize: 11, color: colors.textDim }}>{t('field.rccm')} {String(company.rccm)}</span>
                 )}
                 {company.adresse && <span>🏢 {String(company.adresse)}</span>}
                 {company.capital && <span>💰 {String(company.capital)}</span>}
@@ -113,7 +117,7 @@ export function CompaniesSearchResults({ items }: Props) {
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px 12px', fontSize: 11, color: colors.textDim }}>
                   {extraFields.map(([key, val]) => (
                     <span key={key}>
-                      <span style={{ fontWeight: 600 }}>{formatFieldLabel(key)}:</span>{' '}
+                      <span style={{ fontWeight: 600 }}>{formatFieldLabel(key, t)}:</span>{' '}
                       {String(val)}
                     </span>
                   ))}

@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { routes } from '@/constants/routes'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { colors } from '@/styles/tokens'
+import { useTranslation } from '@/providers/I18nProvider'
 
 // Injection of keyframes and basic CSS for the Bottom Navigation
 const navStyles = `
@@ -64,6 +65,7 @@ const navStyles = `
 `
 
 export function MobileNav() {
+  const { t } = useTranslation()
   const { user } = useCurrentUser()
   const pathname = usePathname()
 
@@ -113,7 +115,7 @@ export function MobileNav() {
     >
       <NavItem
         href={routes.search}
-        label="Recherche"
+        label={t('header.search')}
         icon={
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="11" cy="11" r="8" />
@@ -123,7 +125,7 @@ export function MobileNav() {
       />
       <NavItem
         href={routes.pipeline}
-        label="Pipeline"
+        label={t('sidebar.pipeline')}
         icon={
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
@@ -135,7 +137,7 @@ export function MobileNav() {
       />
       <NavItem
         href={routes.saved}
-        label="Sauvegardés"
+        label={t('sidebar.saved')}
         icon={
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
             <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
@@ -145,7 +147,7 @@ export function MobileNav() {
       {user.role === 'manager' || user.role === 'admin' ? (
         <NavItem
           href={user.role === 'manager' ? routes.team : routes.admin}
-          label={user.role === 'manager' ? 'Équipe' : 'Admin'}
+          label={user.role === 'manager' ? t('sidebar.team') : t('sidebar.admin')}
           icon={
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
@@ -158,7 +160,7 @@ export function MobileNav() {
       ) : null}
       <NavItem
         href={routes.ai}
-        label="Assistant IA"
+        label={t('header.aiAssistant')}
         icon={
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="1" />
@@ -172,7 +174,7 @@ export function MobileNav() {
       />
       <NavItem
         href={routes.profile}
-        label="Profil"
+        label={t('header.profile')}
         icon={
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />

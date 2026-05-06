@@ -8,19 +8,21 @@ import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { getErrorMessage } from '@/lib/errors'
 import { useCreatePipelineItem } from '../hooks/useCreatePipelineItem'
 import { colors } from '@/styles/tokens'
+import { useTranslation } from '@/providers/I18nProvider'
 
 type Props = {
   onSuccess?: () => void
 }
 
-const STATUS_OPTIONS = [
-  { value: 'prospection', label: 'Prospection' },
-  { value: 'negociation', label: 'Négociation' },
-  { value: 'conclue',     label: 'Conclue' },
-]
-
 export function CreatePipelineItemForm({ onSuccess }: Props) {
+  const { t } = useTranslation()
   const { user } = useCurrentUser()
+
+  const STATUS_OPTIONS = [
+    { value: 'prospection', label: t('pipeline.prospection') },
+    { value: 'negociation', label: t('pipeline.negotiation') },
+    { value: 'conclue',     label: t('pipeline.closed') },
+  ]
   const mutation = useCreatePipelineItem()
 
   const [companyName,   setCompanyName]   = useState('')
@@ -33,8 +35,8 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!user) { setError('Utilisateur introuvable'); return }
-    if (!companyName.trim()) { setError('Le nom de l\'entreprise est requis'); return }
+    if (!user) { setError(t('auth.accessImpossible')); return }
+    if (!companyName.trim()) { setError(t('pipeline.errorNameRequired')); return }
 
     setError(null)
     try {
@@ -70,33 +72,33 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
       style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
     >
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
-        <FormField label="Entreprise" required>
+        <FormField label={t('pipeline.company')} required>
           <Input
-            placeholder="Nom de l'entreprise"
+            placeholder={t('pipeline.placeholderCompanyName')}
             value={companyName}
             onChange={(e) => setCompanyName(e.target.value)}
           />
         </FormField>
-
-        <FormField label="Ville">
+|
+        <FormField label={t('pipeline.city')}>
           <Input
-            placeholder="Douala, Yaoundé…"
+            placeholder={t('pipeline.placeholderCity')}
             value={companyCity}
             onChange={(e) => setCompanyCity(e.target.value)}
           />
         </FormField>
-
-        <FormField label="Secteur">
+|
+        <FormField label={t('pipeline.sector')}>
           <Input
-            placeholder="BTP, Commerce…"
+            placeholder={t('pipeline.placeholderSector')}
             value={companySector}
             onChange={(e) => setCompanySector(e.target.value)}
           />
         </FormField>
       </div>
-
+|
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
-        <FormField label="Statut">
+        <FormField label={t('pipeline.status')}>
           <div style={{ display: 'flex', gap: 8 }}>
             {STATUS_OPTIONS.map((opt) => (
               <button
@@ -122,18 +124,18 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
             ))}
           </div>
         </FormField>
-
-        <FormField label="Note">
+|
+        <FormField label={t('pipeline.note')}>
           <Input
-            placeholder="Observations…"
+            placeholder={t('pipeline.placeholderNote')}
             value={note}
             onChange={(e) => setNote(e.target.value)}
           />
         </FormField>
-
-        <FormField label="Prochaine action">
+|
+        <FormField label={t('pipeline.nextAction')}>
           <Input
-            placeholder="Rappel, démo, RDV…"
+            placeholder={t('pipeline.placeholderNextAction')}
             value={nextAction}
             onChange={(e) => setNextAction(e.target.value)}
           />
@@ -146,7 +148,7 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
 
       <div>
         <Button type="submit" variant="primary" size="md" loading={mutation.isPending}>
-          Ajouter au pipeline
+          {t('pipeline.addBtn')}
         </Button>
       </div>
     </form>

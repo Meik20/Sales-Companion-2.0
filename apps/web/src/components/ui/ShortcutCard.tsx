@@ -3,6 +3,7 @@
 import React from 'react'
 import { colors, transitions } from '@/styles/tokens'
 import { Building2, Monitor, Leaf, Truck, Briefcase } from 'lucide-react'
+import { useTranslation } from '@/providers/I18nProvider'
 
 type Sector = 'btp' | 'tech' | 'agro' | 'transport' | 'default'
 
@@ -29,6 +30,7 @@ const ICON_COLOR = 'var(--color-accent)'
 const HOVER_BORDER = 'rgba(55,138,221,0.4)'
 
 export function ShortcutCard({ sector = 'default', title, subtitle, count, updatedAt, onClick }: ShortcutCardProps) {
+  const { t } = useTranslation()
   const config = sectorConfig[sector] ?? sectorConfig.default
 
   return (
@@ -85,8 +87,8 @@ export function ShortcutCard({ sector = 'default', title, subtitle, count, updat
         </span>
         {(count != null || updatedAt) && (
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6, fontSize: 10, color: colors.textDim }}>
-            {count != null && <span>{count.toLocaleString('fr-FR')} entreprises</span>}
-            {updatedAt && <span>Mis à jour : {updatedAt}</span>}
+            {count != null && <span>{count.toLocaleString()} {t('search.companies')}</span>}
+            {updatedAt && <span>{t('search.updatedAt')} : {updatedAt}</span>}
           </div>
         )}
       </div>

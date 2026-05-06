@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { colors } from '@/styles/tokens'
 import { useDeletePipelineItem } from '@/features/pipeline/hooks/useDeletePipelineItem'
 import { useToast } from '@/hooks/useToast'
+import { useTranslation } from '@/providers/I18nProvider'
 
 type PipelineItem = {
   id: string
@@ -34,17 +35,18 @@ const statusVariant: Record<string, 'info' | 'warning' | 'success'> = {
   conclusion:  'success',
 }
 
-const statusLabel: Record<string, string> = {
-  prospection: 'Prospection',
-  prospect:    'Prospection',
-  negociation: 'Négociation',
-  negotiation: 'Négociation',
-  conclue:     'Conclue',
-  conclusion:  'Conclue',
-}
-
 // ── Prospect detail modal ───────────────────────────────────────────────
-function ProspectModal({ item, onClose }: { item: PipelineItem; onClose: () => void }) {
+// ── Prospect detail modal ───────────────────────────────────────────────
+function ProspectModal({ 
+  item, 
+  onClose,
+  statusLabel
+}: { 
+  item: PipelineItem; 
+  onClose: () => void;
+  statusLabel: Record<string, string>;
+}) {
+  const { t } = useTranslation()
   const noteText = item.notes ?? item.note ?? ''
   return (
     <>
@@ -93,39 +95,39 @@ function ProspectModal({ item, onClose }: { item: PipelineItem; onClose: () => v
           {/* Contact Info */}
           <div style={{ background: colors.bg3, borderRadius: 10, padding: '14px 16px', marginBottom: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
             <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em', color: colors.textMid, marginBottom: 2 }}>
-              Informations de contact
+              {t('pipeline.contactInfo')}
             </div>
-            {item.companySector && <InfoRow icon="🏭" label="Secteur" value={item.companySector} />}
-            {item.companyCity   && <InfoRow icon="📍" label="Ville"   value={item.companyCity} />}
+            {item.companySector && <InfoRow icon="🏭" label={t('pipeline.sector')} value={item.companySector} />}
+            {item.companyCity   && <InfoRow icon="📍" label={t('pipeline.city')}   value={item.companyCity} />}
             <InfoRow
-              icon="📞" label="Téléphone"
+              icon="📞" label={t('pipeline.phone')}
               value={
                 item.companyPhone
                   ? <a href={`tel:${item.companyPhone}`} style={{ color: '#60a5fa', textDecoration: 'none' }}>{item.companyPhone}</a>
-                  : <span style={{ color: colors.textMid, fontStyle: 'italic' }}>Non renseigné</span>
+                  : <span style={{ color: colors.textMid, fontStyle: 'italic' }}>{t('pipeline.notSpecified')}</span>
               }
             />
             <InfoRow
-              icon="✉️" label="Email"
+              icon="✉️" label={t('pipeline.email')}
               value={
                 item.companyEmail
                   ? <a href={`mailto:${item.companyEmail}`} style={{ color: '#60a5fa', textDecoration: 'none' }}>{item.companyEmail}</a>
-                  : <span style={{ color: colors.textMid, fontStyle: 'italic' }}>Non renseigné</span>
+                  : <span style={{ color: colors.textMid, fontStyle: 'italic' }}>{t('pipeline.notSpecified')}</span>
               }
             />
-            {item.assignedTo && <InfoRow icon="👤" label="Assigné à" value={item.assignedTo} />}
+            {item.assignedTo && <InfoRow icon="👤" label={t('pipeline.assignedTo')} value={item.assignedTo} />}
           </div>
 
           {noteText && (
             <div style={{ background: 'rgba(251,191,36,0.07)', border: '1px solid rgba(251,191,36,0.2)', borderRadius: 10, padding: '12px 14px', marginBottom: 14 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#fbbf24', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>📝 Notes</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#fbbf24', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>📝 {t('pipeline.notesLabel')}</div>
               <div style={{ fontSize: 13, color: colors.text, lineHeight: 1.5 }}>{noteText}</div>
             </div>
           )}
 
           {item.nextFollowUp && (
             <div style={{ background: 'rgba(96,165,250,0.07)', border: '1px solid rgba(96,165,250,0.2)', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: '#93c5fd' }}>
-              📅 Prochain suivi : {item.nextFollowUp}
+              📅 {t('pipeline.nextFollowUpLabel')} : {item.nextFollowUp}
             </div>
           )}
         </div>
@@ -145,7 +147,17 @@ function InfoRow({ icon, label, value }: { icon: string; label: string; value: R
 }
 
 export function ManagerPipelineList({ items }: Props) {
+  const { t } = useTranslation()
   const deleteMutation = useDeletePipelineItem()
+
+  const statusLabel: Record<string, string> = {
+    prospection: t('pipeline.prospection'),
+    prospect:    t('pipeline.prospection'),
+    negociation: t('pipeline.negotiation'),
+    negotiation: t('pipeline.negotiation'),
+    conclue:     t('pipeline.closed'),
+    conclusion:  t('pipeline.closed'),
+  }
   const { pushToast } = useToast()
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [selectedItem, setSelectedItem] = useState<PipelineItem | null>(null)
@@ -157,12 +169,12 @@ export function ManagerPipelineList({ items }: Props) {
     setDeletingId(id)
     try {
       await deleteMutation.mutateAsync(id)
-      pushToast({ type: 'success', title: 'Prospect supprimé du pipeline' })
+      pushToast({ type: 'success', title: t('pipeline.deleteSuccess') })
     } catch (err) {
       pushToast({
         type: 'error',
-        title: 'Suppression impossible',
-        description: err instanceof Error ? err.message : 'Erreur inconnue',
+        title: t('pipeline.deleteError'),
+        description: err instanceof Error ? err.message : 'Unknown error',
       })
     } finally {
       setDeletingId(null)
@@ -186,7 +198,7 @@ export function ManagerPipelineList({ items }: Props) {
   return (
     <>
       {selectedItem && (
-        <ProspectModal item={selectedItem} onClose={() => setSelectedItem(null)} />
+        <ProspectModal item={selectedItem} onClose={() => setSelectedItem(null)} statusLabel={statusLabel} />
       )}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
@@ -260,7 +272,7 @@ export function ManagerPipelineList({ items }: Props) {
                     color: colors.textMid,
                   }}
                 >
-                  Aucun prospect
+                  {t('pipeline.noProspect')}
                 </div>
               )}
             </div>

@@ -30,8 +30,8 @@ export function AppHeader({ onOpenMenu }: { onOpenMenu?: () => void }) {
   }
 
   const roleBadge: Record<string, { label: string; bg: string }> = {
-    admin:       { label: 'Admin',       bg: 'rgba(239,68,68,0.25)' },
-    manager:     { label: 'Manager',     bg: 'rgba(251,191,36,0.22)' },
+    admin:       { label: t('sidebar.admin'),       bg: 'rgba(239,68,68,0.25)' },
+    manager:     { label: t('sidebar.manager'),     bg: 'rgba(251,191,36,0.22)' },
     member:      { label: t('sidebar.member'),      bg: 'rgba(96,165,250,0.22)' },
     independent: { label: t('sidebar.independent'), bg: 'rgba(34,197,94,0.22)' },
   }

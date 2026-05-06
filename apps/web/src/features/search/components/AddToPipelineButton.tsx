@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { colors } from '@/styles/tokens'
+import { useTranslation } from '@/providers/I18nProvider'
 
 type Company = {
   id: string
@@ -18,6 +19,7 @@ type Company = {
 type Props = { company: Company }
 
 export function AddToPipelineButton({ company }: Props) {
+  const { t } = useTranslation()
   const { user } = useCurrentUser()
   const [status, setStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
@@ -60,7 +62,7 @@ export function AddToPipelineButton({ company }: Props) {
   if (status === 'done') {
     return (
       <span style={{ fontSize: 12, color: colors.green, fontWeight: 600, whiteSpace: 'nowrap' }}>
-        ✓ Dans le pipeline
+        {t('search.inPipeline')}
       </span>
     )
   }
@@ -100,7 +102,7 @@ export function AddToPipelineButton({ company }: Props) {
           }
         }}
       >
-        {status === 'loading' ? '⏳ Ajout…' : status === 'error' ? '↺ Réessayer' : '+ Pipeline'}
+        {status === 'loading' ? t('search.adding') : status === 'error' ? t('search.retry') : t('search.addPipeline')}
       </button>
       {errorMsg && (
         <span style={{ fontSize: 10.5, color: '#ef4444', maxWidth: 120, textAlign: 'right', lineHeight: 1.3 }}>

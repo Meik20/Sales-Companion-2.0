@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { colors } from '@/styles/tokens'
+import { useTranslation } from '@/providers/I18nProvider'
 
 type Company = {
   id: string
@@ -17,6 +18,7 @@ type Company = {
 type Props = { company: Company }
 
 export function SaveCompanyButton({ company }: Props) {
+  const { t } = useTranslation()
   const { user } = useCurrentUser()
   const [status, setStatus] = useState<'idle' | 'loading' | 'done' | 'duplicate' | 'error'>('idle')
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
@@ -61,7 +63,7 @@ export function SaveCompanyButton({ company }: Props) {
   if (isDone) {
     return (
       <span style={{ fontSize: 12, color: colors.green, fontWeight: 600, whiteSpace: 'nowrap' }}>
-        {status === 'duplicate' ? '✓ Déjà enregistrée' : '✓ Enregistrée'}
+        {status === 'duplicate' ? t('search.alreadySaved') : `✓ ${t('search.saved')}`}
       </span>
     )
   }
@@ -101,7 +103,7 @@ export function SaveCompanyButton({ company }: Props) {
           }
         }}
       >
-        {status === 'loading' ? '⏳ Sauvegarde…' : status === 'error' ? '↺ Réessayer' : '🔖 Enregistrer'}
+        {status === 'loading' ? t('search.saving') : status === 'error' ? t('search.retry') : `🔖 ${t('search.save')}`}
       </button>
       {errorMsg && (
         <span style={{ fontSize: 10.5, color: '#ef4444', maxWidth: 120, textAlign: 'right', lineHeight: 1.3 }}>
