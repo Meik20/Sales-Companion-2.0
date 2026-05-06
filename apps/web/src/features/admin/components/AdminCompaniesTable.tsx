@@ -6,6 +6,7 @@ import { useDeleteAdminCompanies } from '../hooks/useDeleteAdminCompanies'
 import { useDeleteAllAdminCompanies } from '../hooks/useDeleteAllAdminCompanies'
 import { SectionCard } from '@/features/team/components/SectionCard'
 import { useToast } from '@/hooks/useToast'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { colors } from '@/styles/tokens'
 
 export function AdminCompaniesTable() {
@@ -13,6 +14,7 @@ export function AdminCompaniesTable() {
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [isDeleting, setIsDeleting] = useState(false)
   const { data, isLoading, isError } = useAdminCompanies(page)
+  const { user } = useCurrentUser()
   const deleteMutation = useDeleteAdminCompanies()
   const deleteAllMutation = useDeleteAllAdminCompanies()
   const { pushToast } = useToast()
@@ -96,6 +98,37 @@ export function AdminCompaniesTable() {
     }
   }
 
+  const handleExport = async () => {
+    try {
+      const token = await user?.getIdToken()
+      const response = await fetch('/api/admin/companies/export', {
+        headers: {
+          'Authorization': `Bearer ${token || ''}`,
+        },
+      })
+
+      if (!response.ok) throw new Error("Erreur lors de l'export")
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `export_entreprises_${new Date().toISOString().split('T')[0]}.csv`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+      
+      pushToast({ type: 'success', title: 'Export réussi', description: 'Le fichier CSV a été téléchargé.' })
+    } catch (error) {
+      pushToast({
+        type: 'error',
+        title: 'Export impossible',
+        description: error instanceof Error ? error.message : 'Erreur inconnue',
+      })
+    }
+  }
+
   return (
     <SectionCard title="Entreprises" subtitle={`${total} entreprise${total > 1 ? 's' : ''} importée${total > 1 ? 's' : ''}`}>
       {items.length === 0 ? (
@@ -136,6 +169,24 @@ export function AdminCompaniesTable() {
                 }}
               >
                 Vider la liste
+              </button>
+              <button
+                type="button"
+                onClick={handleExport}
+                disabled={items.length === 0}
+                style={{
+                  padding: '10px 16px',
+                  fontSize: 13,
+                  borderRadius: 8,
+                  border: `1px solid ${colors.green}`,
+                  background: 'rgba(46,160,90,0.1)',
+                  color: colors.green,
+                  cursor: items.length === 0 ? 'not-allowed' : 'pointer',
+                  opacity: items.length === 0 ? 0.5 : 1,
+                  fontWeight: 600,
+                }}
+              >
+                📥 Exporter CSV
               </button>
               <button
                 type="button"
