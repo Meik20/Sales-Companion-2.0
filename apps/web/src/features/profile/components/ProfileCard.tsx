@@ -1,6 +1,7 @@
 'use client'
 
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { useTranslation } from '@/providers/I18nProvider'
 import { Panel, Badge, MetricCard, StatsGrid } from '@/components/ui/index'
 import { ScIcon } from '@/components/ui/ScIcon'
 import { colors } from '@/styles/tokens'
@@ -12,21 +13,22 @@ const planBadge: Record<string, 'default' | 'info' | 'success' | 'gold'> = {
   enterprise: 'gold',
 }
 
-const roleLabelFr: Record<string, string> = {
-  admin:       'Administrateur',
-  manager:     'Manager',
-  member:      'Commercial',
-  independent: 'Indépendant',
+const roleLabelKeys: Record<string, string> = {
+  admin:       'profile.roles.admin',
+  manager:     'profile.roles.manager',
+  member:      'profile.roles.member',
+  independent: 'profile.roles.independent',
 }
 
 export function ProfileCard() {
+  const { t } = useTranslation()
   const { user, loading } = useCurrentUser()
 
   if (loading) {
     return (
       <Panel>
         <p style={{ color: colors.textMid, textAlign: 'center', padding: 32 }}>
-          Chargement…
+          {t('profile.loading')}
         </p>
       </Panel>
     )
@@ -66,7 +68,7 @@ export function ProfileCard() {
           <div style={{ flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 6 }}>
               <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: colors.text, fontFamily: "'Syne',sans-serif" }}>
-                {user.name || 'Utilisateur'}
+                {user.name || t('profile.defaultName')}
               </h2>
               <Badge variant={planBadge[user.plan] ?? 'default'}>
                 {user.plan?.toUpperCase()}
@@ -76,7 +78,7 @@ export function ProfileCard() {
               {user.email}
             </p>
             <p style={{ margin: '4px 0 0', fontSize: 12, color: colors.textDim }}>
-              {roleLabelFr[user.role] ?? user.role}
+              {t(roleLabelKeys[user.role] as any) || user.role}
             </p>
           </div>
         </div>
@@ -85,19 +87,19 @@ export function ProfileCard() {
       {/* Stats */}
       <StatsGrid>
         <MetricCard
-          label="Recherches aujourd'hui"
+          label={t('profile.searchesToday')}
           value={`${user.dailyUsed} / ${user.dailyLimit}`}
-          hint={`${usagePercent}% du quota utilisé`}
+          hint={`${usagePercent}% ${t('profile.quotaUsed')}`}
           accent
         />
         <MetricCard
-          label="Quota quotidien"
+          label={t('profile.dailyQuota')}
           value={user.dailyLimit}
-          hint="Réinitialisé chaque jour"
+          hint={t('profile.resetDaily')}
         />
         <MetricCard
-          label="Statut"
-          value={user.active ? '✓ Actif' : '✗ Inactif'}
+          label={t('profile.status')}
+          value={user.active ? `✓ ${t('profile.active')}` : `✗ ${t('profile.inactive')}`}
         />
       </StatsGrid>
 
@@ -106,7 +108,7 @@ export function ProfileCard() {
         <div style={{ marginBottom: 10 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
             <span style={{ fontSize: 12, fontWeight: 600, color: colors.textMid, textTransform: 'uppercase', letterSpacing: '.04em' }}>
-              Quota journalier
+              {t('profile.dailyQuotaLabel')}
             </span>
             <span style={{ fontSize: 12, color: usageColor, fontWeight: 600 }}>
               {usagePercent}%

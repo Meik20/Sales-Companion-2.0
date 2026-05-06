@@ -7,16 +7,18 @@ import { DataCard, Badge } from '@/components/ui/index'
 import { EmptyState } from '@/components/feedback/index'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useToast } from '@/hooks/useToast'
+import { useTranslation } from '@/providers/I18nProvider'
 import { colors } from '@/styles/tokens'
 
 const planDetails = {
-  free:       { label: 'Gratuit',      searches: 50,    features: ['Recherche basique', 'Pipeline personnel', '50 recherches/jour'] },
-  starter:    { label: 'Starter',      searches: 200,   features: ['Recherche avancée', 'Pipeline personnel', '200 recherches/jour', 'Export Excel'] },
-  pro:        { label: 'Pro',          searches: 1000,  features: ['Tout Starter', 'Gestion équipe', '1 000 recherches/jour', 'Assistant IA', 'Support prioritaire'] },
-  enterprise: { label: 'Entreprise',   searches: 99999, features: ['Tout Pro', 'Illimité', 'Déploiement dédié', 'Support dédié'] },
+  free:       { labelKey: 'settings.plans.free',       searches: 50,    featureKeys: ['settings.features.basicSearch', 'settings.features.personalPipeline', 'settings.features.fiftySearches'] },
+  starter:    { labelKey: 'settings.plans.starter',    searches: 200,   featureKeys: ['settings.features.advancedSearch', 'settings.features.personalPipeline', 'settings.features.twoHundredSearches', 'settings.features.excelExport'] },
+  pro:        { labelKey: 'settings.plans.pro',        searches: 1000,  featureKeys: ['settings.features.allStarter', 'settings.features.teamManagement', 'settings.features.oneThousandSearches', 'settings.features.aiAssistant', 'settings.features.prioritySupport'] },
+  enterprise: { labelKey: 'settings.plans.enterprise', searches: 99999, featureKeys: ['settings.features.allPro', 'settings.features.unlimited', 'settings.features.dedicatedDeployment', 'settings.features.dedicatedSupport'] },
 }
 
 export default function SettingsPage() {
+  const { t } = useTranslation()
   const { user } = useCurrentUser()
   const { pushToast } = useToast()
 
@@ -27,13 +29,13 @@ export default function SettingsPage() {
     <main>
       <AppShell>
         <PageHeader
-          title="Paramètres"
-          subtitle="Préférences utilisateur et informations d'abonnement."
+          title={t('settings.title')}
+          subtitle={t('settings.subtitle')}
         />
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           {/* Plan actuel */}
-          <DataCard title="Abonnement actuel">
+          <DataCard title={t('settings.currentSubscription')}>
             <div
               style={{
                 display: 'flex',
@@ -47,20 +49,20 @@ export default function SettingsPage() {
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
                   <span style={{ fontSize: 20, fontWeight: 800, color: colors.text, fontFamily: "'Syne',sans-serif" }}>
-                    Plan {planInfo.label}
+                    {t('settings.planLabel')} {t(planInfo.labelKey as any)}
                   </span>
                   <Badge variant={plan === 'enterprise' ? 'gold' : plan === 'pro' ? 'success' : 'default'}>
-                    {planInfo.label}
+                    {t(planInfo.labelKey as any)}
                   </Badge>
                 </div>
                 <p style={{ margin: 0, fontSize: 13, color: colors.textMid }}>
-                  {planInfo.searches === 99999 ? 'Recherches illimitées' : `${planInfo.searches} recherches / jour`}
+                  {planInfo.searches === 99999 ? t('settings.unlimitedSearches') : `${planInfo.searches} ${t('settings.searchesPerDay')}`}
                 </p>
               </div>
 
               {plan !== 'enterprise' ? (
                 <button
-                  onClick={() => pushToast({ type: 'info', title: 'Contactez votre Admin pour upgrade' })}
+                  onClick={() => pushToast({ type: 'info', title: t('settings.upgradeAdminHint') })}
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
@@ -76,16 +78,16 @@ export default function SettingsPage() {
                     transition: 'all 200ms ease',
                   }}
                 >
-                  ⬆️ Passer à un plan supérieur
+                  ⬆️ {t('settings.upgradeBtn')}
                 </button>
               ) : null}
             </div>
 
             {/* Fonctionnalités incluses */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {planInfo.features.map((f) => (
+              {planInfo.featureKeys.map((fk) => (
                 <span
-                  key={f}
+                  key={fk}
                   style={{
                     padding: '5px 12px',
                     background: 'rgba(27,122,62,0.1)',
@@ -96,7 +98,7 @@ export default function SettingsPage() {
                     fontWeight: 500,
                   }}
                 >
-                  ✓ {f}
+                  ✓ {t(fk as any)}
                 </span>
               ))}
             </div>
@@ -106,10 +108,10 @@ export default function SettingsPage() {
 
           {/* Infos compte */}
           {user?.role !== 'manager' ? (
-            <DataCard title="Compte">
+            <DataCard title={t('settings.account')}>
               <EmptyState
-                title="Aucun paramètre avancé disponible"
-                description="Passez au plan Manager pour accéder aux paramètres d'équipe."
+                title={t('settings.noAdvancedParams')}
+                description={t('settings.managerUpgradeHint')}
                 icon="⚙️"
               />
             </DataCard>
