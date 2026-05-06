@@ -118,7 +118,43 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
               </td>
               {/* Plan */}
               <td style={{ padding: '11px 12px' }}>
-                <Badge variant={planBadge[user.plan] ?? 'default'}>{user.plan}</Badge>
+                {onUpdate ? (
+                  <select
+                    value={user.plan}
+                    onChange={(e) => {
+                      const newPlan = e.target.value
+                      const limits: Record<string, number> = {
+                        free: 10,
+                        starter: 50,
+                        pro: 200,
+                        enterprise: 1000,
+                      }
+                      onUpdate(user.uid, { 
+                        plan: newPlan, 
+                        dailyLimit: limits[newPlan] ?? 10 
+                      })
+                    }}
+                    style={{
+                      padding: '4px 8px',
+                      borderRadius: 6,
+                      border: `1px solid ${colors.border}`,
+                      background: colors.bg2,
+                      color: colors.text,
+                      fontSize: 11,
+                      fontWeight: 600,
+                      fontFamily: 'inherit',
+                      cursor: 'pointer',
+                      outline: 'none',
+                    }}
+                  >
+                    <option value="free">FREE</option>
+                    <option value="starter">STARTER</option>
+                    <option value="pro">PRO</option>
+                    <option value="enterprise">ENTERPRISE</option>
+                  </select>
+                ) : (
+                  <Badge variant={planBadge[user.plan] ?? 'default'}>{user.plan}</Badge>
+                )}
               </td>
               {/* Quota */}
               <td style={{ padding: '11px 12px', color: colors.textMid, whiteSpace: 'nowrap' }}>
