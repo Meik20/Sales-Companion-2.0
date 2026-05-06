@@ -9,6 +9,14 @@
   <meta property="og:description" content="Intelligence B2B Cameroun — Recherche d'entreprises, pipeline CRM et gestion d'équipe." />
   <meta property="og:type" content="website" />
   <title>Sales Companion — B2B Intelligence Cameroun</title>
+  <script>
+    // ── Smart PWA Redirect ──
+    // Si l'application est ouverte en mode "standalone" (PWA installée),
+    // on redirige immédiatement vers la page de connexion pour éviter la landing page.
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+      window.location.replace('/login');
+    }
+  </script>
 
   <!-- Favicon SVG inline (format texte réel, interactif) -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Crect width='256' height='256' rx='52' fill='%231B7A3E'/%3E%3Ctext x='128' y='178' font-family='Inter,Arial Black,sans-serif' font-size='148' font-weight='900' fill='%23FBFCFB' text-anchor='middle' letter-spacing='-8'%3ESC%3C/text%3E%3C/svg%3E" />

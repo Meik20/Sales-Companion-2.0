@@ -2,7 +2,7 @@
   "name": "Sales Companion",
   "short_name": "SalesComp",
   "description": "Intelligence B2B Cameroun — Recherche d'entreprises, pipeline CRM et gestion d'équipe",
-  "start_url": "/login",
+  "start_url": "/login?source=pwa",
   "scope": "/",
   "display": "standalone",
   "background_color": "#0D1117",

@@ -19,7 +19,8 @@ export default function Home() {
     const isStandalone =
       window.matchMedia('(display-mode: standalone)').matches ||
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (window.navigator as any).standalone === true
+      (window.navigator as any).standalone === true ||
+      window.location.search.includes('source=pwa')
 
     if (user) {
       // Utilisateur authentifié → app principale
