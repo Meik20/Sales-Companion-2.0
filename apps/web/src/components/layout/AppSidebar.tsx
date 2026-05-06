@@ -52,6 +52,20 @@ const SECTORS = [
   'Hôtellerie & Restauration', 'Santé', 'Éducation & Formation',
   'Technologies & Numérique', 'Finance & Assurance', 'Énergie & Mines',
 ]
+const SECTOR_KEYS: Record<string, string> = {
+  'Commerce':                      'commerce',
+  'BTP & Construction':            'btp',
+  'Industrie manufacturière':      'industrie',
+  'Agriculture & Agroalimentaire': 'agro',
+  'Services & Conseil':            'services',
+  'Transport & Logistique':        'transport',
+  'Hôtellerie & Restauration':     'hotellerie',
+  'Santé':                         'sante',
+  'Éducation & Formation':         'education',
+  'Technologies & Numérique':      'tech',
+  'Finance & Assurance':           'finance',
+  'Énergie & Mines':               'energie',
+}
 const CAMEROON_ZONES = [
   { region: 'Littoral',     city: 'Douala',     lat: 4.05,  lng: 9.70  },
   { region: 'Centre',       city: 'Yaoundé',    lat: 3.87,  lng: 11.52 },
@@ -246,7 +260,11 @@ export function AppSidebar({ isMobile = false, onClose }: { isMobile?: boolean; 
           style={{ width: '100%', height: 32, borderRadius: 8, border: `1px solid ${colors.border}`, background: colors.bg, color: colors.text, fontSize: 12, fontFamily: 'inherit', outline: 'none', padding: '0 8px' }}
         >
           <option value="">{t('sidebar.allSectors')}</option>
-          {SECTORS.map((s) => <option key={s} value={s}>{s}</option>)}
+          {SECTORS.map((s) => (
+            <option key={s} value={s}>
+              {t(`sectors.${SECTOR_KEYS[s]}` as any)}
+            </option>
+          ))}
         </select>
       </div>
 

@@ -49,15 +49,29 @@ const SECTORS = [
   'Hôtellerie & Restauration', 'Santé', 'Éducation & Formation',
   'Technologies & Numérique', 'Finance & Assurance', 'Énergie & Mines',
 ]
+const SECTOR_KEYS: Record<string, string> = {
+  'Commerce':                      'commerce',
+  'BTP & Construction':            'btp',
+  'Industrie manufacturière':      'industrie',
+  'Agriculture & Agroalimentaire': 'agro',
+  'Services & Conseil':            'services',
+  'Transport & Logistique':        'transport',
+  'Hôtellerie & Restauration':     'hotellerie',
+  'Santé':                         'sante',
+  'Éducation & Formation':         'education',
+  'Technologies & Numérique':      'tech',
+  'Finance & Assurance':           'finance',
+  'Énergie & Mines':               'energie',
+}
 
 const QUICK_SECTORS = [
-  { label: 'Tous',      value: '',                           icon: LayoutGrid },
-  { label: 'BTP',       value: 'BTP & Construction',         icon: HardHat },
-  { label: 'Commerce',  value: 'Commerce',                   icon: ShoppingBag },
-  { label: 'Tech',      value: 'Technologies & Numérique',   icon: Laptop },
-  { label: 'Agro',      value: 'Agriculture & Agroalimentaire', icon: Sprout },
-  { label: 'Transport', value: 'Transport & Logistique',     icon: Truck },
-  { label: 'Santé',     value: 'Santé',                      icon: Stethoscope },
+  { labelKey: 'search.quickAll', value: '',                           icon: LayoutGrid },
+  { labelKey: 'search.btp',      value: 'BTP & Construction',         icon: HardHat },
+  { labelKey: 'search.commerce', value: 'Commerce',                   icon: ShoppingBag },
+  { labelKey: 'search.tech',     value: 'Technologies & Numérique',   icon: Laptop },
+  { labelKey: 'search.agro',     value: 'Agriculture & Agroalimentaire', icon: Sprout },
+  { labelKey: 'search.transport',value: 'Transport & Logistique',     icon: Truck },
+  { labelKey: 'search.sante',    value: 'Santé',                      icon: Stethoscope },
 ]
 
 const CAMEROON_ZONES = [
@@ -422,14 +436,6 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
           <div className="sc-pills-scroll">
             <div className="sc-pills">
               {QUICK_SECTORS.map((s) => {
-                const label = s.value === '' ? t('search.quickAll') :
-                            s.label === 'BTP' ? t('search.btp') :
-                            s.label === 'Commerce' ? t('search.commerce') :
-                            s.label === 'Tech' ? t('search.tech') :
-                            s.label === 'Agro' ? t('search.agro') :
-                            s.label === 'Transport' ? t('search.transport') :
-                            s.label === 'Santé' ? t('search.sante') : s.label;
-
                 return (
                   <button
                     key={s.value}
@@ -438,7 +444,7 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
                     onClick={() => applyQuickSector(s.value)}
                   >
                     {s.icon && <s.icon size={14} style={{ flexShrink: 0 }} />}
-                    {label}
+                    {t(s.labelKey as any)}
                   </button>
                 )
               })}
@@ -454,7 +460,7 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
             {query  && <ActiveChip label={`"${query}"`}  onRemove={() => { setQuery('');  submit({ query: undefined }) }} />}
             {region && <ActiveChip label={t(`regions.${REGION_KEYS[region]}` as any)} onRemove={() => { setRegion(''); setCity(''); submit({ region: undefined, city: undefined }) }} />}
             {city   && <ActiveChip label={city}          onRemove={() => { setCity('');   submit({ city: undefined }) }} />}
-            {sector && <ActiveChip label={sector}        onRemove={() => { setSector(''); applyQuickSector('') }} />}
+            {sector && <ActiveChip label={t(`sectors.${SECTOR_KEYS[sector]}` as any) || sector} onRemove={() => { setSector(''); applyQuickSector('') }} />}
             <button type="button" className="sc-reset-btn" onClick={handleReset}>{t('search.clearAll')}</button>
           </div>
         )}
