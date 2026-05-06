@@ -387,17 +387,27 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
         <div className="sc-pills-row">
           <div className="sc-pills-scroll">
             <div className="sc-pills">
-              {QUICK_SECTORS.map((s) => (
-                <button
-                  key={s.value}
-                  type="button"
-                  className={`sc-pill${sector === s.value ? ' active' : ''}`}
-                  onClick={() => applyQuickSector(s.value)}
-                >
-                  {s.icon && <span style={{ fontSize: 12 }}>{s.icon}</span>}
-                  {s.label}
-                </button>
-              ))}
+              {QUICK_SECTORS.map((s) => {
+                const label = s.value === '' ? t('search.quickAll') :
+                            s.label === 'BTP' ? t('search.btp') :
+                            s.label === 'Commerce' ? t('search.commerce') :
+                            s.label === 'Tech' ? t('search.tech') :
+                            s.label === 'Agro' ? t('search.agro') :
+                            s.label === 'Transport' ? t('search.transport') :
+                            s.label === 'Santé' ? t('search.sante') : s.label;
+
+                return (
+                  <button
+                    key={s.value}
+                    type="button"
+                    className={`sc-pill${sector === s.value ? ' active' : ''}`}
+                    onClick={() => applyQuickSector(s.value)}
+                  >
+                    {s.icon && <span style={{ fontSize: 12 }}>{s.icon}</span>}
+                    {label}
+                  </button>
+                )
+              })}
             </div>
           </div>
 

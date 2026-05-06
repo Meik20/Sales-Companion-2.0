@@ -57,6 +57,10 @@ export const fr = {
   search: {
     placeholder: 'Entreprise, secteur, ville…',
     quickAll: 'Tous',
+    btp: 'BTP',
+    commerce: 'Commerce',
+    tech: 'Tech',
+    sante: 'Santé',
     advancedFilters: 'Filtres avancés',
     region: '📍 Région',
     allRegions: 'Toutes les régions',
@@ -111,6 +115,10 @@ export const fr = {
     agro: "Agroalimentaire",
     allCameroon: "Tout Cameroun",
     transport: "Transport",
+    commercialPipeline: "Pipeline commercial",
+    prospection: "Prospection",
+    negotiation: "Négociation",
+    conclusion: "Conclusion",
   },
   feedback: {
     loading: "Chargement…",
