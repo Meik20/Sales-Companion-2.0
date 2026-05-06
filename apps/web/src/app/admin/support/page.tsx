@@ -7,9 +7,10 @@ import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { firestore } from '@/services/firebase/client'
 import {
   collection, query, orderBy, limit, getDocs,
-  doc, updateDoc, addDoc, serverTimestamp, Timestamp,
+  doc, updateDoc, deleteDoc, addDoc, serverTimestamp, Timestamp,
 } from 'firebase/firestore'
 import { colors } from '@/styles/tokens'
+import { Trash2 } from 'lucide-react'
 
 type Thread = {
   id: string
@@ -108,6 +109,27 @@ export default function AdminSupportPage() {
       setError(msg)
       console.error('Failed to send reply:', err)
     } finally { setSending(false) }
+  }
+
+  async function handleDeleteThread(e: React.MouseEvent, id: string) {
+    e.stopPropagation()
+    if (!window.confirm('Voulez-vous vraiment supprimer définitivement ce ticket et tous ses messages ?')) return
+
+    try {
+      // 1. Delete messages
+      const messagesSnap = await getDocs(collection(firestore, 'support_threads', id, 'messages'))
+      const deletePromises = messagesSnap.docs.map(d => deleteDoc(d.ref))
+      await Promise.all(deletePromises)
+
+      // 2. Delete thread
+      await deleteDoc(doc(firestore, 'support_threads', id))
+
+      if (selected?.id === id) setSelected(null)
+      await loadThreads()
+    } catch (err) {
+      console.error('Failed to delete thread:', err)
+      setError('Erreur lors de la suppression du ticket.')
+    }
   }
 
   async function resolveThread() {
@@ -272,8 +294,24 @@ export default function AdminSupportPage() {
                       {t.lastMessage}
                     </div>
                   )}
-                  <div style={{ fontSize: 10.5, color: colors.textDim, marginTop: 3 }}>
-                    {fmtDate(t.updatedAt)}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
+                    <div style={{ fontSize: 10.5, color: colors.textDim }}>
+                      {fmtDate(t.updatedAt)}
+                    </div>
+                    <button
+                      onClick={(e) => handleDeleteThread(e, t.id)}
+                      style={{
+                        background: 'none', border: 'none', cursor: 'pointer',
+                        color: colors.textDim, padding: 4, borderRadius: 4,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        transition: 'all 150ms ease',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = '#ef4444')}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = colors.textDim)}
+                      title="Supprimer définitivement"
+                    >
+                      <Trash2 size={12} />
+                    </button>
                   </div>
                 </button>
               )
