@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/useToast'
 import { colors } from '@/styles/tokens'
 import { db } from '@/lib/firebase'
 import { collection, query, where, doc, setDoc, updateDoc, serverTimestamp, onSnapshot } from 'firebase/firestore'
+import { useTranslation } from '@/providers/I18nProvider'
 import { Trash2, Copy, Ban, ChevronDown } from 'lucide-react'
 
 function normalizeText(text: string) {
@@ -30,6 +31,7 @@ function buildAccessId(firstname: string, lastname: string, company: string) {
 export function TeamAccessManager() {
   const { user } = useCurrentUser()
   const { pushToast } = useToast()
+  const { t } = useTranslation()
 
   const [accesses, setAccesses] = useState<any[]>([])
   const [loadingAccesses, setLoadingAccesses] = useState(false)
@@ -107,7 +109,7 @@ export function TeamAccessManager() {
   }
 
   const revokeAccess = async (id: string) => {
-    if (!confirm("Voulez-vous révoquer cet accès ?")) return
+    if (!confirm(t('support.confirmDelete') || "Voulez-vous révoquer cet accès ?")) return
     try {
       await updateDoc(doc(db, 'team_accesses', id), {
         status: 'revoked',
@@ -151,25 +153,25 @@ export function TeamAccessManager() {
         }
       `}} />
       <DataCard
-        title="Créer un accès collaborateur"
-        subtitle="Générez un identifiant unique pour inviter un membre dans votre équipe."
+        title={t('team.createAccess')}
+        subtitle={t('team.createAccessDesc')}
       >
         <form onSubmit={handleCreateAccess} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
             <Input 
-              placeholder="Prénom" 
+              placeholder={t('team.firstname')} 
               value={formData.firstname}
               onChange={e => setFormData(p => ({ ...p, firstname: e.target.value }))}
               required 
             />
             <Input 
-              placeholder="Nom" 
+              placeholder={t('team.lastname')} 
               value={formData.lastname}
               onChange={e => setFormData(p => ({ ...p, lastname: e.target.value }))}
               required 
             />
             <Input 
-              placeholder="Entreprise (Optionnel)" 
+              placeholder={t('team.companyOptional')} 
               value={formData.company}
               onChange={e => setFormData(p => ({ ...p, company: e.target.value }))}
             />
@@ -177,21 +179,21 @@ export function TeamAccessManager() {
           
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, background: colors.bg2, padding: '12px 16px', borderRadius: 8, border: `1px solid ${colors.border}` }}>
             <div>
-              <span style={{ fontSize: 12, color: colors.textMid, display: 'block', marginBottom: 4 }}>Aperçu de l'Identifiant (Access ID) :</span>
+              <span style={{ fontSize: 12, color: colors.textMid, display: 'block', marginBottom: 4 }}>{t('team.accessIdPreview')}</span>
               <strong style={{ fontSize: 15, color: colors.green }}>{previewId}</strong>
             </div>
             <Button type="submit" variant="primary" disabled={isSubmitting || previewId === '@entreprise'}>
-              {isSubmitting ? 'Création...' : 'Générer l\'accès'}
+              {isSubmitting ? t('team.creating') : t('team.generateAccess')}
             </Button>
           </div>
         </form>
       </DataCard>
 
-      <DataCard title="Accès générés" subtitle={`${accesses.length} accès au total`}>
+      <DataCard title={t('team.generatedAccesses')} subtitle={`${accesses.length} ${t('team.totalAccesses')}`}>
         {loadingAccesses ? (
           <LoadingState />
         ) : accesses.length === 0 ? (
-          <EmptyState title="Aucun accès" description="Vous n'avez pas encore généré d'accès pour votre équipe." icon="🔑" />
+          <EmptyState title={t('team.noAccess')} description={t('team.noAccessDesc')} icon="🔑" />
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {accesses.map(acc => {
@@ -217,10 +219,10 @@ export function TeamAccessManager() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3, flexWrap: 'wrap' }}>
                         <strong style={{ fontSize: 14 }}>{acc.firstname} {acc.lastname}</strong>
                         <Badge variant={displayStatus === 'active' ? 'success' : displayStatus === 'revoked' ? 'danger' : 'default'}>
-                          {displayStatus === 'active' ? 'Actif'
-                            : displayStatus === 'revoked' ? 'Révoqué'
-                            : displayStatus === 'pending_email' ? '⏳ Email en attente'
-                            : 'En attente'}
+                          {displayStatus === 'active' ? t('team.active')
+                            : displayStatus === 'revoked' ? t('team.revoked')
+                            : displayStatus === 'pending_email' ? t('team.pendingEmail')
+                            : t('team.pending')}
                         </Badge>
                       </div>
                       <div style={{ fontSize: 11.5, color: colors.textMid, fontFamily: 'monospace' }}>
@@ -235,30 +237,30 @@ export function TeamAccessManager() {
                       {/* Copy ID — only for pending */}
                       {displayStatus === 'pending' && (
                         <button
-                          title="Copier l'identifiant d'accès"
+                          title={t('team.copyAccessId')}
                           onClick={() => copyId(acc.accessId)}
                           style={btnStyle('#185FA5')}
                         >
-                          <Copy size={13} /> Copier
+                          <Copy size={13} /> {t('team.copy')}
                         </button>
                       )}
                       {/* Revoke — only for non-revoked */}
                       {displayStatus !== 'revoked' && (
                         <button
-                          title="Révoquer l'accès"
+                          title={t('team.revokeAccess')}
                           onClick={() => revokeAccess(acc.id)}
                           style={btnStyle('#EF9A3A')}
                         >
-                          <Ban size={13} /> Révoquer
+                          <Ban size={13} /> {t('team.revoke')}
                         </button>
                       )}
                       {/* Delete — always available */}
                       <button
-                        title="Supprimer définitivement"
+                        title={t('team.deletePermanently')}
                         onClick={() => setConfirmDeleteId(isConfirmingDelete ? null : acc.id)}
                         style={btnStyle('#EF4444')}
                       >
-                        <Trash2 size={13} /> Supprimer
+                        <Trash2 size={13} /> {t('team.delete')}
                         <ChevronDown size={11} style={{ transform: isConfirmingDelete ? 'rotate(180deg)' : 'none', transition: 'transform 200ms' }} />
                       </button>
                     </div>
@@ -275,12 +277,12 @@ export function TeamAccessManager() {
                       animation: 'slideDown 150ms ease',
                     }}>
                       <div style={{ fontSize: 13, color: '#EF4444', lineHeight: 1.5 }}>
-                        <strong>Supprimer définitivement</strong> {acc.firstname} {acc.lastname} ?<br />
-                        <span style={{ fontSize: 11.5, opacity: 0.8 }}>Son accès et son pipeline seront supprimés.</span>
+                        <strong>{t('team.deletePermanently')}</strong> {acc.firstname} {acc.lastname} ?<br />
+                        <span style={{ fontSize: 11.5, opacity: 0.8 }}>{t('team.deleteWarning')}</span>
                       </div>
                       <div style={{ display: 'flex', gap: 8 }}>
                         <button onClick={() => setConfirmDeleteId(null)} style={btnStyle(colors.textMid)}>
-                          Annuler
+                          {t('team.cancel')}
                         </button>
                         <button
                           onClick={() => void deleteMember(acc.id)}
@@ -288,7 +290,7 @@ export function TeamAccessManager() {
                           style={{ ...btnStyle('#EF4444'), background: 'rgba(239,68,68,0.12)', fontWeight: 700 }}
                         >
                           <Trash2 size={13} />
-                          {isDeleting ? 'Suppression...' : 'Confirmer la suppression'}
+                          {isDeleting ? t('team.deleting') : t('team.confirmDeleteBtn')}
                         </button>
                       </div>
                     </div>

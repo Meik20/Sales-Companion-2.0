@@ -3,15 +3,17 @@
 import { useTeamMembers, TeamMember } from '../hooks/useTeamMembers'
 import { SectionCard } from './SectionCard'
 import { colors } from '@/styles/tokens'
+import { useTranslation } from '@/providers/I18nProvider'
 
 export function TeamMembersSection() {
   const { data: members, isLoading, isError } = useTeamMembers()
+  const { t } = useTranslation()
 
   if (isLoading) {
     return (
-      <SectionCard title="Membres de l'équipe" subtitle={`${0} membres actifs`}>
+      <SectionCard title={t('team.teamMembers')} subtitle={`${0} ${t('team.activeMembersCount')}`}>
         <div style={{ textAlign: 'center', color: colors.textMid, padding: 20 }}>
-          Chargement...
+          {t('team.loading')}
         </div>
       </SectionCard>
     )
@@ -19,9 +21,9 @@ export function TeamMembersSection() {
 
   if (isError) {
     return (
-      <SectionCard title="Membres de l'équipe" subtitle="Erreur">
+      <SectionCard title={t('team.teamMembers')} subtitle="Erreur">
         <div style={{ textAlign: 'center', color: '#f87171', padding: 20 }}>
-          Impossible de charger les membres
+          {t('support.errorLoad')}
         </div>
       </SectionCard>
     )
@@ -31,8 +33,8 @@ export function TeamMembersSection() {
 
   return (
     <SectionCard
-      title="Membres de l'équipe"
-      subtitle={`${activeMembers.length} membre${activeMembers.length > 1 ? 's' : ''} actif${activeMembers.length > 1 ? 's' : ''}`}
+      title={t('team.teamMembers')}
+      subtitle={`${activeMembers.length} ${t('team.activeMembersCount')}`}
     >
       {activeMembers.length === 0 ? (
         <div
@@ -43,7 +45,7 @@ export function TeamMembersSection() {
             fontSize: 13,
           }}
         >
-          Aucun membre n'a été assigné à cette équipe.
+          {t('team.noMemberAssigned')}
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -58,6 +60,7 @@ export function TeamMembersSection() {
 
 function MemberCard({ member }: { member: TeamMember }) {
   const usagePercent = Math.round((member.dailyUsed / member.dailyLimit) * 100)
+  const { t } = useTranslation()
 
   return (
     <div
@@ -95,7 +98,7 @@ function MemberCard({ member }: { member: TeamMember }) {
               marginBottom: 4,
             }}
           >
-            Quota quotidien
+            {t('team.dailyQuota')}
           </div>
           <div
             style={{
@@ -147,7 +150,7 @@ function MemberCard({ member }: { member: TeamMember }) {
             }}
           />
           <span style={{ fontSize: 11, color: colors.textMid }}>
-            {member.active ? 'Actif' : 'Inactif'}
+            {member.active ? t('team.active') : t('team.inactive')}
           </span>
         </div>
       </div>

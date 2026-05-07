@@ -6,11 +6,13 @@ import { useTeamAssignments } from '../hooks/useTeamAssignments'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { SectionCard } from './SectionCard'
 import { colors } from '@/styles/tokens'
+import { useTranslation } from '@/providers/I18nProvider'
 
 export function AssignmentsTable() {
   const { data: assignments = [], isLoading, isError, refetch } = useTeamAssignments()
   const { user } = useCurrentUser()
   const queryClient = useQueryClient()
+  const { t } = useTranslation()
 
   const [repairing, setRepairing] = useState(false)
   const [repairResult, setRepairResult] = useState<{ uidFixed: number; nameFixed: number; skipped: number; errors: string[] } | null>(null)
@@ -35,7 +37,7 @@ export function AssignmentsTable() {
         refetch(),
       ])
     } catch {
-      setRepairResult({ uidFixed: 0, nameFixed: 0, skipped: 0, errors: ['Erreur réseau'] })
+      setRepairResult({ uidFixed: 0, nameFixed: 0, skipped: 0, errors: [t('team.repairNetworkError')] })
     } finally {
       setRepairing(false)
     }
@@ -43,9 +45,9 @@ export function AssignmentsTable() {
 
   if (isLoading) {
     return (
-      <SectionCard title="Assignations actives" subtitle="0 assignation">
+      <SectionCard title={t('team.activeAssignments')} subtitle={`0 ${t('team.prospectAssigned')}`}>
         <div style={{ textAlign: 'center', color: colors.textMid, padding: 20 }}>
-          Chargement…
+          {t('team.loading')}
         </div>
       </SectionCard>
     )
@@ -53,9 +55,9 @@ export function AssignmentsTable() {
 
   if (isError) {
     return (
-      <SectionCard title="Assignations actives" subtitle="Erreur">
+      <SectionCard title={t('team.activeAssignments')} subtitle="Erreur">
         <div style={{ textAlign: 'center', color: '#f87171', padding: 20 }}>
-          Impossible de charger les assignations
+          {t('support.errorLoad')}
         </div>
       </SectionCard>
     )
@@ -65,8 +67,8 @@ export function AssignmentsTable() {
 
   return (
     <SectionCard
-      title="Assignations actives"
-      subtitle={`${count} prospect${count > 1 ? 's' : ''} assigné${count > 1 ? 's' : ''}`}
+      title={t('team.activeAssignments')}
+      subtitle={`${count} ${t('team.prospectAssigned')}`}
     >
       {/* Repair banner — shown if there are legacy assignments */}
       <div style={{ marginBottom: 16 }}>
@@ -79,13 +81,13 @@ export function AssignmentsTable() {
           }}>
             {repairResult.uidFixed > 0 || repairResult.nameFixed > 0
               ? [
-                  repairResult.uidFixed  > 0 && `✓ ${repairResult.uidFixed} membre${repairResult.uidFixed > 1 ? 's' : ''} synchronisé${repairResult.uidFixed > 1 ? 's' : ''} (pipeline visible)`,
-                  repairResult.nameFixed > 0 && `✓ ${repairResult.nameFixed} nom${repairResult.nameFixed > 1 ? 's' : ''} corrigé${repairResult.nameFixed > 1 ? 's' : ''}`,
+                  repairResult.uidFixed  > 0 && `✓ ${repairResult.uidFixed} ${t('team.repairSuccessSync')}`,
+                  repairResult.nameFixed > 0 && `✓ ${repairResult.nameFixed} ${t('team.repairSuccessName')}`,
                 ].filter(Boolean).join(' · ')
-              : `✓ Tous les pipelines sont déjà synchronisés (${repairResult.skipped} ignorés)`}
+              : t('team.repairSkipped')}
             {repairResult.errors.length > 0 && (
               <div style={{ marginTop: 4, color: '#f87171', fontSize: 11 }}>
-                {repairResult.errors.length} erreur(s) : {repairResult.errors[0]}
+                {repairResult.errors.length} {t('team.repairErrors')} : {repairResult.errors[0]}
               </div>
             )}
           </div>
@@ -103,20 +105,20 @@ export function AssignmentsTable() {
           onMouseEnter={(e) => { e.currentTarget.style.background = colors.bg2; e.currentTarget.style.color = colors.text }}
           onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = colors.textMid }}
         >
-          {repairing ? '⏳ Réparation…' : '🔧 Réparer les pipelines membres'}
+          {repairing ? t('team.repairingPipelines') : t('team.repairPipelines')}
         </button>
       </div>
 
       {count === 0 ? (
         <div style={{ textAlign: 'center', color: colors.textMid, padding: 20, fontSize: 13 }}>
-          Aucune assignation n&apos;a encore été créée.
+          {t('team.noAssignmentCreated')}
         </div>
       ) : (
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
             <thead>
               <tr style={{ borderBottom: `1px solid ${colors.border}` }}>
-                {['Prospect', 'Assigné à', 'Date'].map((h, i) => (
+                {[t('team.prospect'), t('pipeline.assignedTo'), t('team.date')].map((h, i) => (
                   <th
                     key={h}
                     style={{
@@ -157,7 +159,7 @@ export function AssignmentsTable() {
                         {a.companyName || a.pipelineItemId}
                       </div>
                       <div style={{ fontSize: 11, color: colors.textMid, marginTop: 2 }}>
-                        Prospect assigné
+                        {t('team.prospectAssignedSub')}
                       </div>
                     </td>
 

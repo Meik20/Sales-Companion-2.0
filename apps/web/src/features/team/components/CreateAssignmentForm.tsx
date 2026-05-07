@@ -10,6 +10,7 @@ import { useActiveTeamMembers } from '../hooks/useTeamMembers'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { colors } from '@/styles/tokens'
 import type { Prospect } from '@/features/imports/components/ManagerProspectsList'
+import { useTranslation } from '@/providers/I18nProvider'
 
 type Props = {
   /** Prospects pre-selected from ManagerProspectsList */
@@ -47,6 +48,7 @@ function blurStyle(el: HTMLSelectElement, border: string) {
 }
 
 export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Props) {
+  const { t }                               = useTranslation()
   const [pipelineItemId, setPipelineItemId] = useState('')
   const [memberId, setMemberId]             = useState('')
   const [error, setError]                   = useState('')
@@ -95,8 +97,8 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
   const handleSingleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-    if (!pipelineItemId.trim()) { setError('Veuillez sélectionner un prospect'); return }
-    if (!memberId.trim())       { setError('Veuillez sélectionner un membre');   return }
+    if (!pipelineItemId.trim()) { setError(t('team.selectProspect')); return }
+    if (!memberId.trim())       { setError(t('team.selectMember'));   return }
 
     const selectedP = pipelineProspects.find(p => p.id === pipelineItemId)
     createAssignment(
@@ -114,7 +116,7 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
           onAssigned?.()
         },
         onError: (err: Error) => {
-          setError(err.message || "Erreur lors de la création de l'assignation")
+          setError(err.message || t('support.errorLoad')) // fallback error msg
         },
       }
     )
@@ -126,7 +128,7 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
   const handleBulkSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-    if (!memberId.trim()) { setError('Veuillez sélectionner un membre'); return }
+    if (!memberId.trim()) { setError(t('team.selectMember')); return }
 
     const token = await user?.getIdToken()
     let done = 0
@@ -159,11 +161,11 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
 
   return (
     <SectionCard
-      title="Assigner un prospect"
+      title={t('team.assignProspect')}
       subtitle={
         hasBulk
-          ? `${selectedProspects.length} prospect${selectedProspects.length > 1 ? 's' : ''} sélectionné${selectedProspects.length > 1 ? 's' : ''} depuis la liste`
-          : "Attribuez un prospect à un membre de l'équipe"
+          ? `${selectedProspects.length} ${t('team.assignProspectBulk')}`
+          : t('team.assignProspectSingle')
       }
     >
       {successCount > 0 && (
@@ -172,7 +174,7 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
           background: 'rgba(46,160,90,0.1)', border: '1px solid rgba(46,160,90,0.25)',
           fontSize: 13, color: '#2ea05a', fontWeight: 600,
         }}>
-          ✓ {successCount} assignation{successCount > 1 ? 's' : ''} créée{successCount > 1 ? 's' : ''} avec succès
+          ✓ {successCount} {t('team.successCreated')}
         </div>
       )}
 
@@ -182,7 +184,7 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
       >
         {/* ── Bulk mode: show the selected prospect names ── */}
         {hasBulk ? (
-          <FormField label="Prospects sélectionnés" required>
+          <FormField label={t('team.selectedProspects')} required>
             <div style={{
               padding: '10px 12px', borderRadius: 10,
               border: `1px solid ${colors.border}`, background: colors.bg,
@@ -199,7 +201,7 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
           </FormField>
         ) : (
           /* ── Single mode: pipeline dropdown ── */
-          <FormField label="Prospect" required error={error && !memberId ? error : ''}>
+          <FormField label={t('team.prospect')} required error={error && !memberId ? error : ''}>
             <select
               value={pipelineItemId}
               onChange={(e) => setPipelineItemId(e.target.value)}
@@ -209,7 +211,7 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
               onBlur={(e) => blurStyle(e.currentTarget, colors.border)}
             >
               <option value="">
-                {loadingPipeline ? 'Chargement…' : pipelineProspects.length === 0 ? 'Aucun prospect disponible' : 'Sélectionner un prospect…'}
+                {loadingPipeline ? t('team.loading') : pipelineProspects.length === 0 ? t('team.noProspectAvailable') : t('team.selectProspect')}
               </option>
               {pipelineProspects.map((p) => (
                 <option key={p.id} value={p.id}>
@@ -221,7 +223,7 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
         )}
 
         {/* ── Member selector — always shows only ACTIVE members ── */}
-        <FormField label="Membre de l'équipe" required error={error && memberId ? error : ''}>
+        <FormField label={t('team.teamMember')} required error={error && memberId ? error : ''}>
           <select
             value={memberId}
             onChange={(e) => setMemberId(e.target.value)}
@@ -231,7 +233,7 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
             onBlur={(e) => blurStyle(e.currentTarget, colors.border)}
           >
             <option value="">
-              {members.length === 0 ? 'Aucun membre actif' : 'Sélectionner un membre…'}
+              {members.length === 0 ? t('team.noActiveMember') : t('team.selectMember')}
             </option>
             {members.map((m) => (
               <option key={m.uid} value={m.uid}>
@@ -241,7 +243,7 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
           </select>
           {members.length === 0 && (
             <p style={{ fontSize: 11, color: colors.textMid, margin: '4px 0 0' }}>
-              Aucun membre actif. Les membres doivent activer leur compte avant d&apos;être assignables.
+              {t('team.noActiveMemberDesc')}
             </p>
           )}
         </FormField>
@@ -262,10 +264,10 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
           style={{ width: '100%' }}
         >
           {isPending
-            ? 'Assignation en cours…'
+            ? t('team.assigning')
             : hasBulk
-            ? `Assigner ${selectedProspects.length} prospect${selectedProspects.length > 1 ? 's' : ''}`
-            : 'Assigner le prospect'}
+            ? `${t('team.assignSelectedBtn')} ${selectedProspects.length}`
+            : t('team.assignProspectBtn')}
         </Button>
       </form>
     </SectionCard>
