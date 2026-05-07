@@ -9,9 +9,11 @@ import { SavedSearchesList } from '@/features/saved-searches/components/SavedSea
 import { useSavedSearches } from '@/features/saved-searches/hooks/useSavedSearches'
 import { useDeleteSavedSearch } from '@/features/saved-searches/hooks/useDeleteSavedSearch'
 import { useToast } from '@/hooks/useToast'
+import { useTranslation } from '@/providers/I18nProvider'
 
 export default function SavedPage() {
   const router = useRouter()
+  const { t } = useTranslation()
   const savedSearchesQuery = useSavedSearches()
   const deleteMutation = useDeleteSavedSearch()
   const { pushToast } = useToast()
@@ -23,18 +25,18 @@ export default function SavedPage() {
     if (typeof filters.region === 'string') params.set('region', filters.region)
     if (typeof filters.city === 'string') params.set('city', filters.city)
     router.push(`/search?${params.toString()}`)
-    pushToast({ type: 'success', title: 'Recherche restaurée' })
+    pushToast({ type: 'success', title: t('saved.restoreSuccess') })
   }
 
   async function handleDelete(id: string) {
     try {
       await deleteMutation.mutateAsync(id)
-      pushToast({ type: 'success', title: 'Recherche supprimée' })
+      pushToast({ type: 'success', title: t('saved.deleteSuccess') })
     } catch (error) {
       pushToast({
         type: 'error',
-        title: 'Suppression impossible',
-        description: error instanceof Error ? error.message : 'Erreur inconnue',
+        title: t('saved.deleteError'),
+        description: error instanceof Error ? error.message : t('saved.unknownError'),
       })
     }
   }
@@ -44,22 +46,22 @@ export default function SavedPage() {
   return (
     <AppShell>
       <PageHeader
-        title="Recherches sauvegardées"
-        subtitle="Relancez vos recherches favorites en un clic."
+        title={t('saved.title')}
+        subtitle={t('saved.subtitle')}
       />
 
       <DataCard
-        title="Mes recherches"
-        subtitle={items.length ? `${items.length} recherche${items.length > 1 ? 's' : ''} sauvegardée${items.length > 1 ? 's' : ''}` : undefined}
+        title={t('saved.mySearches')}
+        subtitle={items.length ? `${items.length} ${t('saved.searchesSaved')}` : undefined}
       >
         {savedSearchesQuery.isLoading ? <LoadingState /> : null}
         {savedSearchesQuery.isError ? (
-          <ErrorState description="Impossible de charger les recherches sauvegardées." />
+          <ErrorState description={t('saved.errorLoad')} />
         ) : null}
         {!savedSearchesQuery.isLoading && !savedSearchesQuery.isError && items.length === 0 ? (
           <EmptyState
-            title="Aucune recherche sauvegardée"
-            description={`Utilisez le bouton "Sauvegarder" lors d'une recherche pour retrouver vos filtres ici.`}
+            title={t('saved.noSearch')}
+            description={t('saved.noSearchDesc')}
             icon="🔖"
           />
         ) : null}

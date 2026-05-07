@@ -12,6 +12,7 @@ import { ManagerProspectsList, type Prospect } from '@/features/imports/componen
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useTeamMembers } from '@/features/team/hooks/useTeamMembers'
 import { colors } from '@/styles/tokens'
+import { useTranslation } from '@/providers/I18nProvider'
 
 type Tab = 'team' | 'imports'
 
@@ -23,12 +24,13 @@ export default function TeamPage() {
 
   const { user }          = useCurrentUser()
   const { data: members = [] } = useTeamMembers()
+  const { t }             = useTranslation()
 
   const isManager = user?.role === 'manager'
 
   const tabs: { id: Tab; label: string; icon: string }[] = [
-    { id: 'team',    label: 'Mon équipe',             icon: '👥' },
-    ...(isManager ? [{ id: 'imports' as Tab, label: 'Mes prospects importés', icon: '📋' }] : []),
+    { id: 'team',    label: t('team.tabTeam'),             icon: '👥' },
+    ...(isManager ? [{ id: 'imports' as Tab, label: t('team.tabImports'), icon: '📋' }] : []),
   ]
 
   /**
@@ -53,8 +55,8 @@ export default function TeamPage() {
   return (
     <AppShell>
       <PageHeader
-        title="Gestion de l'équipe"
-        subtitle="Gérez les membres de votre équipe, leurs accès et vos prospects importés."
+        title={t('team.title')}
+        subtitle={t('team.subtitle')}
       />
 
       {/* ── Onglets (managers only) ── */}
@@ -122,9 +124,9 @@ export default function TeamPage() {
               }}>
                 <span>
                   <span style={{ color: colors.green, fontWeight: 700 }}>
-                    {selectedProspects.length} prospect{selectedProspects.length > 1 ? 's' : ''}
+                    {selectedProspects.length}
                   </span>
-                  {' '}sélectionné{selectedProspects.length > 1 ? 's' : ''} depuis la liste d&apos;imports
+                  {' '}{t('team.prospectsSelected')}
                 </span>
                 <button
                   onClick={() => setSelectedProspects([])}
@@ -132,7 +134,7 @@ export default function TeamPage() {
                     background: 'none', border: 'none', cursor: 'pointer',
                     fontSize: 18, color: colors.textMid, lineHeight: 1,
                   }}
-                  title="Effacer la sélection"
+                  title={t('team.clearSelection')}
                 >
                   ×
                 </button>
@@ -156,10 +158,10 @@ export default function TeamPage() {
           }}>
             <div style={{ marginBottom: 16 }}>
               <h2 style={{ fontSize: 15, fontWeight: 700, color: colors.text, margin: '0 0 4px' }}>
-                📥 Importer une base de prospects
+                {t('team.importTitle')}
               </h2>
               <p style={{ fontSize: 12.5, color: colors.textMid, margin: 0 }}>
-                Importez vos prospects depuis un fichier CSV. La base sera accessible uniquement à vous et votre équipe.
+                {t('team.importDesc')}
               </p>
             </div>
             {user?.uid && (
@@ -178,10 +180,10 @@ export default function TeamPage() {
             <div style={{ marginBottom: 16, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
               <div>
                 <h2 style={{ fontSize: 15, fontWeight: 700, color: colors.text, margin: '0 0 4px' }}>
-                  📋 Mes prospects
+                  {t('team.myProspects')}
                 </h2>
                 <p style={{ fontSize: 12.5, color: colors.textMid, margin: 0 }}>
-                  Cochez des prospects et cliquez sur &quot;Assigner la sélection&quot; pour les retrouver dans le formulaire d&apos;assignation.
+                  {t('team.myProspectsDesc')}
                 </p>
               </div>
               {selectedProspects.length > 0 && (
@@ -195,7 +197,7 @@ export default function TeamPage() {
                     fontFamily: 'inherit', whiteSpace: 'nowrap',
                   }}
                 >
-                  Aller au formulaire ↗
+                  {t('team.goToForm')}
                 </button>
               )}
             </div>

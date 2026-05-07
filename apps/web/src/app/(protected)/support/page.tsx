@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { AppShell } from '@/components/layout/AppShell'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { firestore } from '@/services/firebase/client'
+import { useTranslation } from '@/providers/I18nProvider'
 import {
   collection, query, where, orderBy, onSnapshot,
   addDoc, updateDoc, deleteDoc, doc, serverTimestamp, Timestamp,
@@ -35,10 +36,12 @@ const STATUS_COLOR: Record<string, string> = {
   resolved: 'var(--color-success)',
   closed:   '#9E9E9E',
 }
-const STATUS_LABEL: Record<string, string> = {
-  open:     'En cours',
-  resolved: 'Résolu',
-  closed:   'Fermé',
+
+function getStatusLabel(status: string, t: any) {
+  if (status === 'open') return t('support.statusOpen')
+  if (status === 'resolved') return t('support.statusResolved')
+  if (status === 'closed') return t('support.statusClosed')
+  return status
 }
 
 function fmtTime(ts?: Timestamp) {
@@ -51,6 +54,7 @@ function fmtTime(ts?: Timestamp) {
 }
 
 export default function SupportPage() {
+  const { t } = useTranslation()
   const { user } = useCurrentUser()
   const [threads, setThreads]       = useState<Thread[]>([])
   const [threadError, setThreadError] = useState<string | null>(null)
@@ -89,7 +93,7 @@ export default function SupportPage() {
       },
       (err) => {
         console.error('Support threads snapshot error:', err)
-        setThreadError('Impossible de charger les conversations. Vérifiez votre connexion.')
+        setThreadError(t('support.errorLoad'))
       }
     )
   }, [user?.uid])
@@ -128,7 +132,7 @@ export default function SupportPage() {
       const ref = await addDoc(collection(firestore, 'support_threads'), {
         userId:       user.uid,
         userEmail:    user.email ?? '',
-        userName:     (user as { name?: string }).name ?? user.email ?? 'Utilisateur',
+        userName:     (user as { name?: string }).name ?? user.email ?? t('sidebar.user'),
         subject:      newSubject.trim(),
         status:       'open',
         createdAt:    now,
@@ -178,7 +182,7 @@ export default function SupportPage() {
 
   async function handleDeleteThread(e: React.MouseEvent, id: string) {
     e.stopPropagation()
-    if (!window.confirm('Voulez-vous vraiment supprimer cette conversation ?')) return
+    if (!window.confirm(t('support.confirmDelete'))) return
 
     try {
       // 1. Delete all messages first (subcollection)
@@ -195,7 +199,7 @@ export default function SupportPage() {
       }
     } catch (err) {
       console.error('Failed to delete thread:', err)
-      alert('Une erreur est survenue lors de la suppression.')
+      alert(t('support.errorDelete'))
     }
   }
 
@@ -232,8 +236,8 @@ export default function SupportPage() {
         <div style={{ display:'flex', alignItems:'center', gap:10 }}>
           <Headphones size={22} style={{ color:'var(--color-accent)' }} />
           <div>
-            <h1 style={{ fontSize:20, fontWeight:800, color:colors.text, margin:0, fontFamily:"'Syne',sans-serif" }}>Support</h1>
-            <p style={{ fontSize:12.5, color:colors.textMid, margin:'2px 0 0' }}>Suivez vos conversations avec notre équipe</p>
+            <h1 style={{ fontSize:20, fontWeight:800, color:colors.text, margin:0, fontFamily:"'Syne',sans-serif" }}>{t('support.title')}</h1>
+            <p style={{ fontSize:12.5, color:colors.textMid, margin:'2px 0 0' }}>{t('support.subtitle')}</p>
           </div>
         </div>
         <button
@@ -249,7 +253,7 @@ export default function SupportPage() {
             transition:'all 150ms ease',
           }}
         >
-          {showNew ? <><X size={14}/> Annuler</> : <><Plus size={14}/> Nouvelle conversation</>}
+          {showNew ? <><X size={14}/> {t('support.cancel')}</> : <><Plus size={14}/> {t('support.newConversation')}</>}
         </button>
       </div>
 
@@ -262,12 +266,12 @@ export default function SupportPage() {
         }}>
           <div style={{ flex:1 }}>
             <label style={{ fontSize:12, fontWeight:600, color:colors.textMid, display:'block', marginBottom:6 }}>
-              Sujet de votre demande
+              {t('support.subjectLabel')}
             </label>
             <input
               autoFocus
               type="text"
-              placeholder="Ex: Problème d'accès, Question sur mon plan…"
+              placeholder={t('support.subjectPlaceholder')}
               value={newSubject}
               onChange={(e) => setNewSubject(e.target.value)}
               style={{
@@ -289,7 +293,7 @@ export default function SupportPage() {
               fontWeight:700, fontSize:13, fontFamily:'inherit',
               cursor: newSubject.trim() ? 'pointer' : 'not-allowed', flexShrink:0,
             }}
-          >{creating ? '…' : 'Démarrer'}</button>
+          >{creating ? '…' : t('support.start')}</button>
         </form>
       )}
 
@@ -311,7 +315,7 @@ export default function SupportPage() {
             borderBottom:`1px solid ${colors.border}`, background:colors.bg2,
             display:'flex', alignItems:'center', justifyContent:'space-between',
           }}>
-            <span>Conversations ({threads.length})</span>
+            <span>{t('support.conversationsList')} ({threads.length})</span>
             {threads.some(t => t.unreadByUser) && (
               <span style={{ width:8, height:8, borderRadius:'50%', background:'#ef4444', display:'inline-block' }} />
             )}
@@ -320,37 +324,37 @@ export default function SupportPage() {
             {threads.length === 0 ? (
               <div style={{ padding:32, textAlign:'center', color:colors.textMid, fontSize:13 }}>
                 <MessageSquare size={32} style={{ opacity:0.3, margin:'0 auto 10px', display:'block' }} />
-                Aucune conversation<br/>
-                <span style={{ fontSize:12 }}>Démarrez une nouvelle conversation avec le support.</span>
+                {t('support.noConversation')}<br/>
+                <span style={{ fontSize:12 }}>{t('support.startNew')}</span>
               </div>
-            ) : threads.map((t) => (
+            ) : threads.map((thread) => (
               <button
-                key={t.id}
-                className={`thr-item${selectedId === t.id ? ' sel' : ''}`}
-                onClick={() => setSelectedId(t.id)}
+                key={thread.id}
+                className={`thr-item${selectedId === thread.id ? ' sel' : ''}`}
+                onClick={() => setSelectedId(thread.id)}
               >
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:6 }}>
                   <span style={{ fontWeight:600, fontSize:13, color:colors.text, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', flex:1 }}>
-                    {t.unreadByUser && <span style={{ display:'inline-block', width:7, height:7, borderRadius:'50%', background:'#ef4444', marginRight:5, verticalAlign:'middle' }}/>}
-                    {t.subject}
+                    {thread.unreadByUser && <span style={{ display:'inline-block', width:7, height:7, borderRadius:'50%', background:'#ef4444', marginRight:5, verticalAlign:'middle' }}/>}
+                    {thread.subject}
                   </span>
-                  <span style={{ fontSize:10, flexShrink:0, color:colors.textDim }}>{fmtTime(t.updatedAt)}</span>
+                  <span style={{ fontSize:10, flexShrink:0, color:colors.textDim }}>{fmtTime(thread.updatedAt)}</span>
                 </div>
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', gap:6, marginTop:4 }}>
                   <div style={{ display:'flex', alignItems:'center', gap:6 }}>
                     <span style={{
                       fontSize:10, fontWeight:700, padding:'2px 6px', borderRadius:4,
-                      background:`${STATUS_COLOR[t.status] ?? colors.border}22`,
-                      color: STATUS_COLOR[t.status] ?? colors.textMid,
-                    }}>{STATUS_LABEL[t.status] ?? t.status}</span>
-                    {t.lastMessage && (
+                      background:`${STATUS_COLOR[thread.status] ?? colors.border}22`,
+                      color: STATUS_COLOR[thread.status] ?? colors.textMid,
+                    }}>{getStatusLabel(thread.status, t)}</span>
+                    {thread.lastMessage && (
                       <span style={{ fontSize:11, color:colors.textDim, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:120 }}>
-                        {t.lastMessage}
+                        {thread.lastMessage}
                       </span>
                     )}
                   </div>
                   <button
-                    onClick={(e) => handleDeleteThread(e, t.id)}
+                    onClick={(e) => handleDeleteThread(e, thread.id)}
                     style={{
                       background:'none', border:'none', cursor:'pointer',
                       color:colors.textDim, padding:4, borderRadius:4,
@@ -359,7 +363,7 @@ export default function SupportPage() {
                     }}
                     onMouseEnter={(e) => (e.currentTarget.style.color = '#ef4444')}
                     onMouseLeave={(e) => (e.currentTarget.style.color = colors.textDim)}
-                    title="Supprimer la conversation"
+                    title={t('support.deleteTitle')}
                   >
                     <Trash2 size={13} />
                   </button>
@@ -374,12 +378,12 @@ export default function SupportPage() {
           {!selectedId ? (
             <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', color:colors.textMid, fontSize:13, gap:12, padding:40 }}>
               <MessageSquare size={40} style={{ opacity:0.25 }} />
-              <span>Sélectionnez une conversation ou démarrez-en une nouvelle.</span>
+              <span>{t('support.selectOrStart')}</span>
               <button
                 onClick={() => setShowNew(true)}
                 style={{ marginTop:8, padding:'8px 20px', background:'var(--color-primary)', color:'#fff', border:'none', borderRadius:9, cursor:'pointer', fontWeight:600, fontSize:13 }}
               >
-                + Nouvelle conversation
+                + {t('support.newConversation')}
               </button>
             </div>
           ) : (
@@ -404,7 +408,7 @@ export default function SupportPage() {
                   fontSize:11, fontWeight:700, padding:'3px 10px', borderRadius:20,
                   background:`${STATUS_COLOR[selectedThread?.status ?? 'open']}22`,
                   color: STATUS_COLOR[selectedThread?.status ?? 'open'],
-                }}>{STATUS_LABEL[selectedThread?.status ?? 'open']}</span>
+                }}>{getStatusLabel(selectedThread?.status ?? 'open', t)}</span>
               </div>
 
               {/* Messages */}
@@ -412,7 +416,7 @@ export default function SupportPage() {
                 {messages.length === 0 ? (
                   <div style={{ textAlign:'center', color:colors.textMid, fontSize:13, marginTop:40 }}>
                     <MessageSquare size={32} style={{ opacity:0.25, margin:'0 auto 10px', display:'block' }} />
-                    Démarrez la conversation en envoyant un message ci-dessous.
+                    {t('support.startBySending')}
                   </div>
                 ) : messages.map((m) => {
                   const isMe = m.senderRole === 'user'
@@ -422,7 +426,7 @@ export default function SupportPage() {
                         {m.content}
                       </div>
                       <div style={{ fontSize:10.5, color:colors.textDim, marginTop:3, padding:'0 4px' }}>
-                        {isMe ? 'Moi' : '🎧 Support'} · {fmtTime(m.createdAt)}
+                        {isMe ? t('support.me') : t('support.supportTeam')} · {fmtTime(m.createdAt)}
                       </div>
                     </div>
                   )
@@ -435,14 +439,14 @@ export default function SupportPage() {
                 {isResolved ? (
                   <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:12 }}>
                     <span style={{ fontSize:13, color:colors.textMid }}>
-                      <span style={{ color:'var(--color-success)', fontWeight:600 }}>✓ Conversation résolue.</span>{' '}
-                      Besoin d&apos;aide supplémentaire ?
+                      <span style={{ color:'var(--color-success)', fontWeight:600 }}>{t('support.resolvedThread')}</span>{' '}
+                      {t('support.needMoreHelp')}
                     </span>
                     <button
                       onClick={() => setShowNew(true)}
                       style={{ flexShrink:0, height:34, padding:'0 14px', background:'var(--color-primary)', color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontWeight:600, fontSize:12 }}
                     >
-                      + Nouvelle conversation
+                      + {t('support.newConversation')}
                     </button>
                   </div>
                 ) : (
@@ -453,7 +457,7 @@ export default function SupportPage() {
                       onChange={(e) => setInputText(e.target.value)}
                       onKeyDown={handleKeyDown}
                       disabled={sending}
-                      placeholder="Écrivez votre message… (Entrée pour envoyer)"
+                      placeholder={t('support.typeMessage')}
                       rows={2}
                       style={{
                         flex:1, padding:'10px 14px',
