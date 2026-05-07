@@ -171,7 +171,9 @@ export function AppHeader({ onOpenMenu }: { onOpenMenu?: () => void }) {
                       {badge.label}
                     </span>
                   )}
-                  <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.55)' }}>{t('header.planFree')}</span>
+                  <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase' }}>
+                    {(user.plan || 'free') === 'free' ? t('header.planFree') : user.plan}
+                  </span>
                 </div>
               </div>
 

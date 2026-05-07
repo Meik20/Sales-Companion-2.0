@@ -312,6 +312,12 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
                 {item.companyEmail  && <span>✉️ {item.companyEmail}</span>}
               </div>
 
+              {item.assignedByName && (
+                <div style={{ fontSize: 11, color: 'rgba(99,102,241,0.7)', marginTop: 5 }}>
+                  👤 {t('pipeline.assignedBy')} : {item.assignedByName}
+                </div>
+              )}
+
               <div style={{ fontSize: 11, color: 'rgba(99,102,241,0.7)', marginTop: 5 }}>
                 {t('pipeline.clickForDetails')} →
               </div>

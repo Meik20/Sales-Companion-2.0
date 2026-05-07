@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { User as FirebaseUser } from 'firebase/auth'
-import { doc, getDoc } from 'firebase/firestore'
+import { doc, onSnapshot } from 'firebase/firestore'
 import { auth, firestore } from '@/services/firebase/client'
 
 export type CurrentUser = {
@@ -26,23 +26,29 @@ export function useCurrentUser() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
+    let unsubscribeSnapshot: (() => void) | null = null
+
+    const unsubscribeAuth = auth.onAuthStateChanged((firebaseUser) => {
+      if (unsubscribeSnapshot) {
+        unsubscribeSnapshot()
+        unsubscribeSnapshot = null
+      }
+
       if (!firebaseUser) {
         setUser(null)
         setLoading(false)
         return
       }
 
-      try {
-        const userDoc = await getDoc(doc(firestore, 'users', firebaseUser.uid))
-        if (userDoc.exists()) {
+      const userDocRef = doc(firestore, 'users', firebaseUser.uid)
+      unsubscribeSnapshot = onSnapshot(userDocRef, (snapshot) => {
+        if (snapshot.exists()) {
           setUser({
             uid: firebaseUser.uid,
-            ...userDoc.data(),
+            ...snapshot.data(),
             getIdToken: (forceRefresh?: boolean) => firebaseUser.getIdToken(forceRefresh),
           } as CurrentUser)
         } else {
-          // If no user doc yet, create basic user from Firebase auth
           setUser({
             uid: firebaseUser.uid,
             email: firebaseUser.email || '',
@@ -57,15 +63,20 @@ export function useCurrentUser() {
             getIdToken: (forceRefresh?: boolean) => firebaseUser.getIdToken(forceRefresh),
           })
         }
-      } catch (error) {
+        setLoading(false)
+      }, (error) => {
         console.error('Error fetching user data:', error)
         setUser(null)
-      } finally {
         setLoading(false)
-      }
+      })
     })
 
-    return () => unsubscribe()
+    return () => {
+      unsubscribeAuth()
+      if (unsubscribeSnapshot) {
+        unsubscribeSnapshot()
+      }
+    }
   }, [])
 
   return { user, loading }

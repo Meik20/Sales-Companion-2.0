@@ -200,7 +200,7 @@ export function AppSidebar({ isMobile = false, onClose }: { isMobile?: boolean; 
             {user.name || t('sidebar.user')}
           </span>
           <span style={{ fontSize: 11, color: colors.textMid }}>
-            {user.role === 'admin' ? t('sidebar.adminRole') : user.role === 'manager' ? t('sidebar.managerRole') : user.role === 'independent' ? t('sidebar.independentRole') : t('sidebar.memberRole')} · {t('header.planFree')}
+            {user.role === 'admin' ? t('sidebar.adminRole') : user.role === 'manager' ? t('sidebar.managerRole') : user.role === 'independent' ? t('sidebar.independentRole') : t('sidebar.memberRole')} · <span style={{ textTransform: 'uppercase' }}>{(user.plan || 'free') === 'free' ? t('header.planFree') : user.plan}</span>
           </span>
         </div>
       </div>

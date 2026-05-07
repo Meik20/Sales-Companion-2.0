@@ -45,12 +45,10 @@ export function AddToPipelineButton({ company }: Props) {
           companyPhone:  company.telephone ?? null,
           companyEmail:  company.email ?? null,
           managerUid:    user.role === 'member' ? (user.managerUid ?? null) : user.uid,
-          // Si c'est un membre, passer son identité pour que le manager puisse le voir
-          ...(user.role === 'member' ? {
-            assignedTo:     user.uid,
-            memberName:     user.name || user.email,
-            memberAccessId: user.accessId ?? null,
-          } : {}),
+          // Passer l'identité de l'assigné pour qu'il soit affiché correctement
+          assignedTo:     user.uid,
+          memberName:     user.name || user.email,
+          memberAccessId: user.accessId ?? null,
         }),
       })
       const json = await res.json().catch(() => ({}))

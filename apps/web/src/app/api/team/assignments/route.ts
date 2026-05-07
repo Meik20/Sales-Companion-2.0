@@ -200,16 +200,26 @@ export async function POST(request: NextRequest) {
 
     // ── Step 2: Get member info ────────────────────────────────────────────
     const memberDoc = await adminDb.collection('users').doc(memberId).get()
-    const memberName  = memberDoc.data()?.name  ?? memberDoc.data()?.email ?? memberId
-    const memberEmail = memberDoc.data()?.email ?? ''
+    const memberData = memberDoc.data() || {}
+    const memberName  = memberData.name  ?? memberData.email ?? memberId
+    const memberEmail = memberData.email ?? ''
+    const memberAccessId = memberData.accessId ?? null
 
     // ── Step 3: Create pipeline item owned by the MEMBER ──────────────────
     // This makes it visible in the member's own Pipeline tab
     // AND in the manager's consolidated view (/api/pipeline/manager)
     const pipelineRef = adminDb.collection('pipeline').doc()
     await pipelineRef.set({
+      // Preserve all original prospect fields except those explicitly overridden
+      ...Object.fromEntries(
+        Object.entries(prospectData).filter(([k]) =>
+          !['userId', 'managerUid', 'createdAt', 'updatedAt', 'status', 'assignedTo', 'memberName', 'memberAccessId', 'assignedBy', 'assignedByName', 'id', 'sourceProspectId'].includes(k)
+        )
+      ),
       userId:      memberId,          // member sees it in their pipeline
       assignedTo:  memberId,          // explicit assignment metadata
+      memberName:  memberName,
+      memberAccessId: memberAccessId,
       managerUid,                     // manager sees it via /api/pipeline/manager
       companyName,
       name:        companyName,
@@ -217,12 +227,6 @@ export async function POST(request: NextRequest) {
       assignedBy:  managerUid,
       assignedByName: managerName,
       sourceProspectId: pipelineItemId,
-      // Preserve all original prospect fields except status, which is explicitly set above
-      ...Object.fromEntries(
-        Object.entries(prospectData).filter(([k]) =>
-          !['userId', 'managerUid', 'createdAt', 'updatedAt', 'status'].includes(k)
-        )
-      ),
       createdAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp(),
     })
