@@ -233,7 +233,7 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
               <thead>
                 <tr>
-                  {[t('field.raisonSociale'), t('field.telephone'), t('field.email'), t('field.ville'), t('field.secteur')].map((h) => (
+                  {[t('field.raisonSociale'), t('field.telephone'), t('field.email'), t('field.city'), t('field.sector')].map((h) => (
                     <th key={h} style={{
                       textAlign: 'left', padding: '6px 10px',
                       background: colors.bg3, color: colors.textMid,

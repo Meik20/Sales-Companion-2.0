@@ -260,7 +260,7 @@ export function ManagerProspectsList({
                     title={t('team.selectAll')}
                   />
                 </th>
-                {[t('field.raisonSociale'), t('field.telephone'), t('field.email'), t('field.ville'), t('field.secteur'), t('pipeline.status'), t('pipeline.assignedTo')].map((h) => (
+                {[t('field.raisonSociale'), t('field.telephone'), t('field.email'), t('field.city'), t('field.sector'), t('pipeline.status'), t('pipeline.assignedTo')].map((h) => (
                   <th key={h} style={{
                     textAlign: 'left', padding: '9px 12px',
                     color: colors.textMid, fontWeight: 600, fontSize: 11,
