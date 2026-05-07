@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { colors } from '@/styles/tokens'
+import { useTranslation } from '@/providers/I18nProvider'
 
 export type Prospect = {
   id: string
@@ -39,12 +40,14 @@ const STATUS_COLOR: Record<string, string> = {
   converted:   '#43A047',
   lost:        '#E53935',
 }
-const STATUS_LABEL: Record<string, string> = {
-  new:         'Nouveau',
-  contacted:   'Contacté',
-  in_progress: 'En cours',
-  converted:   'Converti',
-  lost:        'Perdu',
+
+function getStatusLabel(status: string, t: any) {
+  if (status === 'new') return t('team.statusNew')
+  if (status === 'contacted') return t('team.statusContacted')
+  if (status === 'in_progress') return t('team.statusInProgress')
+  if (status === 'converted') return t('team.statusConverted')
+  if (status === 'lost') return t('team.statusLost')
+  return status
 }
 
 const SELECT_STYLE: React.CSSProperties = {
@@ -62,6 +65,7 @@ export function ManagerProspectsList({
   refreshTrigger = 0,
   onAssignSelection,
 }: Props) {
+  const { t }                           = useTranslation()
   const [prospects, setProspects]       = useState<Prospect[]>([])
   const [loading, setLoading]           = useState(false)
   const [search, setSearch]             = useState('')
@@ -162,7 +166,7 @@ export function ManagerProspectsList({
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
         <input
           type="text"
-          placeholder="Rechercher un prospect…"
+          placeholder={t('team.searchProspect')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           style={{
@@ -183,15 +187,15 @@ export function ManagerProspectsList({
             cursor: 'pointer',
           }}
         >
-          <option value="">Tous les membres</option>
-          <option value="__unassigned">Non assignés</option>
+          <option value="">{t('team.allMembers')}</option>
+          <option value="__unassigned">{t('team.unassigned')}</option>
           {activeMembers.map((m) => (
             <option key={m.uid} value={m.uid}>{m.name ?? m.email}</option>
           ))}
         </select>
         <button
           onClick={() => void loadProspects()}
-          title="Actualiser"
+          title={t('team.refresh')}
           style={{
             height: 36, padding: '0 12px',
             background: colors.greenLight, color: colors.green,
@@ -207,11 +211,11 @@ export function ManagerProspectsList({
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
         <span style={{ fontSize: 12, color: colors.textMid }}>
           {loading
-            ? 'Chargement…'
-            : `${filtered.length} prospect${filtered.length !== 1 ? 's' : ''} sur ${prospects.length}`}
+            ? t('team.loading')
+            : `${filtered.length} ${t('team.prospectsOn')} ${prospects.length}`}
           {someSelected && (
             <span style={{ marginLeft: 8, color: colors.green, fontWeight: 600 }}>
-              · {selected.size} sélectionné{selected.size > 1 ? 's' : ''}
+              · {selected.size} {t('team.selected')}
             </span>
           )}
         </span>
@@ -227,7 +231,7 @@ export function ManagerProspectsList({
               display: 'flex', alignItems: 'center', gap: 6,
             }}
           >
-            ↗ Assigner la sélection ({selected.size})
+            {t('team.assignSelection')} ({selected.size})
           </button>
         )}
       </div>
@@ -237,8 +241,8 @@ export function ManagerProspectsList({
         <div style={{ textAlign: 'center', padding: 32, color: colors.textMid, fontSize: 13 }}>
           <div style={{ fontSize: 28, marginBottom: 8 }}>📋</div>
           {prospects.length === 0
-            ? 'Aucun prospect importé. Utilisez le bouton "Importer" ci-dessus.'
-            : 'Aucun prospect correspond à votre recherche.'}
+            ? t('team.noProspectImported')
+            : t('team.noProspectMatch')}
         </div>
       ) : (
         <div style={{ overflowX: 'auto', borderRadius: 10, border: `1px solid ${colors.border}` }}>
@@ -253,10 +257,10 @@ export function ManagerProspectsList({
                     ref={(el) => { if (el) el.indeterminate = someSelected && !allSelected }}
                     onChange={toggleAll}
                     style={checkboxStyle}
-                    title="Tout sélectionner"
+                    title={t('team.selectAll')}
                   />
                 </th>
-                {['Nom', 'Téléphone', 'Email', 'Ville', 'Secteur', 'Statut', 'Assigné à'].map((h) => (
+                {[t('field.raisonSociale'), t('field.telephone'), t('field.email'), t('field.ville'), t('field.secteur'), t('pipeline.status'), t('pipeline.assignedTo')].map((h) => (
                   <th key={h} style={{
                     textAlign: 'left', padding: '9px 12px',
                     color: colors.textMid, fontWeight: 600, fontSize: 11,
@@ -313,7 +317,7 @@ export function ManagerProspectsList({
                         fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 4,
                         background: `${statusColor}18`, color: statusColor,
                       }}>
-                        {STATUS_LABEL[p.status ?? 'new'] ?? p.status}
+                        {getStatusLabel(p.status ?? 'new', t)}
                       </span>
                     </td>
                     <td style={{ padding: '9px 12px' }}>
@@ -325,7 +329,7 @@ export function ManagerProspectsList({
                           onChange={(e) => void handleAssign(p.id, e.target.value || null)}
                           style={SELECT_STYLE}
                         >
-                          <option value="">Non assigné</option>
+                          <option value="">{t('team.notAssigned')}</option>
                           {activeMembers.map((m) => (
                             <option key={m.uid} value={m.uid}>
                               {m.name ?? m.email}

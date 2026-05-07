@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { colors } from '@/styles/tokens'
+import { useTranslation } from '@/providers/I18nProvider'
 
 type ParsedRow = {
   name: string
@@ -70,6 +71,7 @@ function parseCSV(text: string): ParsedRow[] {
 }
 
 export function ImportProspectsForm({ managerId, onImported }: Props) {
+  const { t }                   = useTranslation()
   const [rows, setRows]         = useState<ParsedRow[]>([])
   const [fileName, setFileName] = useState('')
   const [error, setError]       = useState<string | null>(null)
@@ -81,7 +83,7 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
     setError(null); setSuccess(null); setRows([])
     // Accepter tous les formats texte courants
     if (!file.type.startsWith('text/') && !file.name.match(/\.(csv|txt|tsv|xlsx|xls|json|dat|log)$/i)) {
-      setError('Format non supporté. Utilisez un fichier texte (.csv, .txt, .tsv, .xlsx, etc.)')
+      setError(t('team.errorFormat'))
       return
     }
     setFileName(file.name)
@@ -91,16 +93,16 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
       try {
         const parsed = parseCSV(text)
         if (parsed.length === 0) {
-          setError('Aucun prospect valide trouvé. Vérifiez le format du fichier.')
+          setError(t('team.errorNoValid'))
           return
         }
         if (parsed.length > 3000) {
-          setError(`${parsed.length} lignes détectées. Maximum 3000 par import.`)
+          setError(`${parsed.length} ${t('team.errorMaxRows')}`)
           return
         }
         setRows(parsed)
       } catch {
-        setError('Impossible de lire le fichier. Vérifiez qu\'il est bien encodé en UTF-8.')
+        setError(t('team.errorRead'))
       }
     }
     reader.readAsText(file, 'UTF-8')
@@ -122,13 +124,13 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
         body: JSON.stringify({ managerId, prospects: rows }),
       })
       const json = await res.json()
-      if (!res.ok) throw new Error(json.message ?? 'Erreur serveur')
-      setSuccess(`✅ ${json.count} prospect${json.count > 1 ? 's' : ''} importé${json.count > 1 ? 's' : ''} avec succès`)
+      if (!res.ok) throw new Error(json.message ?? t('team.errorServer'))
+      setSuccess(`✅ ${json.count} ${t('team.importSuccess')}`)
       setRows([])
       setFileName('')
       onImported(json.count)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur lors de l\'import')
+      setError(err instanceof Error ? err.message : t('team.importError'))
     } finally {
       setLoading(false)
     }
@@ -165,16 +167,16 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
         ) : (
           <>
             <div style={{ fontSize: 13, fontWeight: 600, color: colors.text, marginBottom: 4 }}>
-              Glissez votre fichier CSV ici
+              {t('team.dragDrop')}
             </div>
             <div style={{ fontSize: 12, color: colors.textMid }}>
-              ou cliquez pour sélectionner
+              {t('team.orClick')}
             </div>
           </>
         )}
         {rows.length > 0 && (
           <div style={{ fontSize: 12, color: colors.green, marginTop: 6, fontWeight: 600 }}>
-            {rows.length} prospect{rows.length > 1 ? 's' : ''} détecté{rows.length > 1 ? 's' : ''}
+            {rows.length} {t('team.prospectsDetected')}
           </div>
         )}
         <input
@@ -192,13 +194,13 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
         padding: '8px 12px', background: colors.bg2,
         borderRadius: 8, border: `1px solid ${colors.border}`,
       }}>
-        <strong>📄 Formats supportés :</strong> CSV, TSV, TXT, XLSX, XLS, JSON, etc.<br />
-        <strong>Séparateurs détectés automatiquement :</strong> virgule, point-virgule, tabulation, pipe (|)<br />
+        <strong>📄 {t('team.supportedFormats')}</strong> CSV, TSV, TXT, XLSX, XLS, JSON, etc.<br />
+        <strong>{t('team.autoSeparators')}</strong> {t('team.separatorsList')}<br />
         <code style={{ fontSize: 11, background: colors.bg3, padding: '1px 4px', borderRadius: 3 }}>
           Nom ; Téléphone | Email , Ville
         </code>
         <br />
-        ℹ️ Les noms de colonnes sont flexibles (français ou anglais). Le système s'adapte automatiquement.
+        ℹ️ {t('team.flexibleColumns')}
       </div>
 
       {/* Messages */}
@@ -225,13 +227,13 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
       {rows.length > 0 && (
         <div>
           <div style={{ fontSize: 12, fontWeight: 600, color: colors.textMid, marginBottom: 8 }}>
-            Aperçu ({Math.min(rows.length, 5)} / {rows.length})
+            {t('team.preview')} ({Math.min(rows.length, 5)} / {rows.length})
           </div>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
               <thead>
                 <tr>
-                  {['Nom', 'Téléphone', 'Email', 'Ville', 'Secteur'].map((h) => (
+                  {[t('field.raisonSociale'), t('field.telephone'), t('field.email'), t('field.ville'), t('field.secteur')].map((h) => (
                     <th key={h} style={{
                       textAlign: 'left', padding: '6px 10px',
                       background: colors.bg3, color: colors.textMid,
@@ -273,7 +275,7 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
             transition: 'all 200ms ease',
           }}
         >
-          {loading ? '⏳ Import en cours…' : `⬆ Importer ${rows.length > 0 ? `${rows.length} prospects` : ''}`}
+          {loading ? t('team.importing') : `${t('team.importBtn')} ${rows.length > 0 ? `(${rows.length})` : ''}`}
         </button>
         {(rows.length > 0 || fileName) && (
           <button
@@ -285,7 +287,7 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
               fontWeight: 600, fontSize: 12, fontFamily: 'inherit',
             }}
           >
-            Annuler
+            {t('team.cancel')}
           </button>
         )}
       </div>
