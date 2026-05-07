@@ -7,6 +7,9 @@ import { firestore } from '@/services/firebase/client'
 type PipelineItemInput = {
   userId: string
   managerUid: string | null
+  assignedTo?: string | null
+  memberName?: string | null
+  memberAccessId?: string | null
   companyId: string | null
   companyName: string
   companySector?: string

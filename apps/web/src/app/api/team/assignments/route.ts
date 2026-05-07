@@ -152,39 +152,50 @@ export async function POST(request: NextRequest) {
     const body = await request.json().catch(() => ({})) as {
       pipelineItemId?: string
       memberId?: string
+      companyName?: string
     }
-    const { pipelineItemId, memberId } = body
+    const { pipelineItemId, memberId, companyName: providedName } = body
 
     if (!pipelineItemId || !memberId) {
       return NextResponse.json({ message: 'pipelineItemId et memberId requis' }, { status: 400 })
     }
 
     // ── Step 1: Resolve prospect details ──────────────────────────────────
-    // Try pipeline collection first, then imported prospects
-    let companyName = pipelineItemId
+    // Try provided name first, then look up in collections
+    let companyName = providedName || pipelineItemId
     let prospectData: Record<string, unknown> = {}
 
-    const pipelineDoc = await adminDb.collection('pipeline').doc(pipelineItemId).get()
-    if (pipelineDoc.exists) {
-      const d = pipelineDoc.data()!
-      companyName = d.companyName ?? d.name ?? pipelineItemId
-      prospectData = d
-    } else {
-      // Primary CSV import collection
-      const managerProspectDoc = await adminDb.collection('manager_prospects').doc(pipelineItemId).get()
-      if (managerProspectDoc.exists) {
-        const d = managerProspectDoc.data()!
-        companyName = d.name ?? d.companyName ?? d.raisonSociale ?? pipelineItemId
+    if (!providedName) {
+      const pipelineDoc = await adminDb.collection('pipeline').doc(pipelineItemId).get()
+      if (pipelineDoc.exists) {
+        const d = pipelineDoc.data()!
+        companyName = d.companyName || d.name || pipelineItemId
         prospectData = d
       } else {
-        // Legacy import collection
-        const importedDoc = await adminDb.collection('imported_prospects').doc(pipelineItemId).get()
-        if (importedDoc.exists) {
-          const d = importedDoc.data()!
-          companyName = d.name ?? d.companyName ?? pipelineItemId
+        // Primary CSV import collection
+        const managerProspectDoc = await adminDb.collection('manager_prospects').doc(pipelineItemId).get()
+        if (managerProspectDoc.exists) {
+          const d = managerProspectDoc.data()!
+          companyName = d.name || d.companyName || d.raisonSociale || pipelineItemId
           prospectData = d
+        } else {
+          // Legacy import collection
+          const importedDoc = await adminDb.collection('imported_prospects').doc(pipelineItemId).get()
+          if (importedDoc.exists) {
+            const d = importedDoc.data()!
+            companyName = d.name || d.companyName || pipelineItemId
+            prospectData = d
+          }
         }
       }
+    } else {
+      // If name provided, still try to fetch extra data (like email, phone) if possible
+      const pDoc = await adminDb.collection('pipeline').doc(pipelineItemId).get()
+      const mDoc = !pDoc.exists ? await adminDb.collection('manager_prospects').doc(pipelineItemId).get() : null
+      const iDoc = (!pDoc.exists && !mDoc?.exists) ? await adminDb.collection('imported_prospects').doc(pipelineItemId).get() : null
+      
+      const foundDoc = pDoc.exists ? pDoc : (mDoc?.exists ? mDoc : (iDoc?.exists ? iDoc : null))
+      if (foundDoc) prospectData = foundDoc.data()!
     }
 
     // ── Step 2: Get member info ────────────────────────────────────────────

@@ -98,8 +98,13 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
     if (!pipelineItemId.trim()) { setError('Veuillez sélectionner un prospect'); return }
     if (!memberId.trim())       { setError('Veuillez sélectionner un membre');   return }
 
+    const selectedP = pipelineProspects.find(p => p.id === pipelineItemId)
     createAssignment(
-      { pipelineItemId: pipelineItemId.trim(), memberId: memberId.trim() },
+      { 
+        pipelineItemId: pipelineItemId.trim(), 
+        memberId: memberId.trim(),
+        companyName: selectedP?.companyName
+      },
       {
         onSuccess: () => {
           setPipelineItemId('')
@@ -135,6 +140,7 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
         body: JSON.stringify({
           pipelineItemId: prospect.id,
           memberId: memberId.trim(),
+          companyName: prospect.name || prospect.companyName || (prospect as any).raisonSociale,
         }),
       })
       if (res.ok) done++

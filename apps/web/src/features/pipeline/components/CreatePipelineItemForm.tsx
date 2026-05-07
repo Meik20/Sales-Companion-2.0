@@ -43,6 +43,12 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
       await mutation.mutateAsync({
         userId:        user.uid,
         managerUid:    user.role === 'member' ? (user.managerUid ?? null) : user.uid,
+        // Si c'est un membre, lier son identité pour la vue manager
+        ...(user.role === 'member' ? {
+          assignedTo:     user.uid,
+          memberName:     user.name || user.email,
+          memberAccessId: user.accessId ?? null,
+        } : {}),
         companyId:     null,
         companyName:   companyName.trim(),
         companySector: companySector || undefined,

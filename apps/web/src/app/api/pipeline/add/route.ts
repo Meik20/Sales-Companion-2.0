@@ -40,6 +40,9 @@ export async function POST(request: NextRequest) {
       companyPhone,
       companyEmail,
       managerUid,
+      assignedTo,
+      memberName,
+      memberAccessId,
     } = body as {
       companyId?: string
       companyName?: string
@@ -48,6 +51,9 @@ export async function POST(request: NextRequest) {
       companyPhone?: string
       companyEmail?: string
       managerUid?: string | null
+      assignedTo?: string | null
+      memberName?: string | null
+      memberAccessId?: string | null
     }
 
     if (!companyName) {
@@ -57,7 +63,10 @@ export async function POST(request: NextRequest) {
     const now = new Date()
     const docRef = await adminDb.collection('pipeline').add({
       userId,
-      managerUid: managerUid ?? null,
+      managerUid:    managerUid ?? null,
+      assignedTo:    assignedTo ?? userId,   // UID du membre qui a ajouté
+      memberName:    memberName ?? null,      // Nom du membre
+      memberAccessId: memberAccessId ?? null, // Access ID du membre (ex: "prenomnom@entreprise")
       companyId:     companyId ?? null,
       companyName:   companyName,
       companySector: companySector ?? null,

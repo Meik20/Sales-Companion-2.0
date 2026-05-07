@@ -6,6 +6,7 @@ import { useCurrentUser } from '@/hooks/useCurrentUser'
 type Input = {
   pipelineItemId: string
   memberId: string
+  companyName?: string
 }
 
 /**

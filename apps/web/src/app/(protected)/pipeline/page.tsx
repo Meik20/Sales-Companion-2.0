@@ -12,6 +12,7 @@ import { useUserPipeline } from '@/features/pipeline/hooks/useUserPipeline'
 import { CreatePipelineItemForm } from '@/features/pipeline/components/CreatePipelineItemForm'
 import { UserPipelineList } from '@/features/pipeline/components/UserPipelineList'
 import { useUpdatePipelineItem } from '@/features/pipeline/hooks/useUpdatePipelineItem'
+import { useTeamMembers } from '@/features/team/hooks/useTeamMembers'
 import { useState } from 'react'
 import { colors } from '@/styles/tokens'
 import { useTranslation } from '@/providers/I18nProvider'
@@ -22,6 +23,7 @@ export default function PipelinePage() {
   const managerPipelineQuery = useManagerPipeline()
   const userPipelineQuery = useUserPipeline()
   const updateMutation = useUpdatePipelineItem()
+  const { data: members = [] } = useTeamMembers()
   const [showForm, setShowForm] = useState(false)
 
   async function handleStatusChange(id: string, status: 'prospection' | 'negociation' | 'conclue') {
@@ -98,7 +100,7 @@ export default function PipelinePage() {
             <EmptyState title={t('pipeline.noProspect')} description={t('pipeline.teamNoProspect')} icon="📊" />
           ) : null}
           {managerPipelineQuery.data?.length ? (
-            <ManagerPipelineList items={managerPipelineQuery.data} />
+            <ManagerPipelineList items={managerPipelineQuery.data} members={members} />
           ) : null}
         </DataCard>
       ) : null}

@@ -21,10 +21,39 @@ type PipelineItem = {
   notes?: string | null
   assignedTo?: string | null
   assignedByName?: string | null
+  memberName?: string | null      // Nom du membre (stocké dans le doc pipeline)
+  memberAccessId?: string | null  // Access ID du membre (stocké dans le doc pipeline)
   nextFollowUp?: string | null
 }
 
-type Props = { items: PipelineItem[] }
+type Member = { uid: string; name?: string; email?: string; accessId?: string }
+
+type Props = { 
+  items: PipelineItem[]
+  members?: Member[]
+}
+
+/** Résout le nom d'affichage d'un membre pour un item du pipeline */
+function resolveMemberLabel(
+  item: PipelineItem,
+  members?: Member[]
+): string | null {
+  if (!item.assignedTo) return null
+
+  // 1. Priorité : champs stockés directement dans le doc pipeline
+  if (item.memberName || item.memberAccessId) {
+    const name = item.memberName || ''
+    const id   = item.memberAccessId || ''
+    return name && id ? `${name} (${id})` : name || id
+  }
+
+  // 2. Fallback : chercher dans la liste des membres actifs
+  const m = members?.find(m => m.uid === item.assignedTo)
+  if (!m) return item.assignedTo   // fallback ultime : afficher l'UID
+  const name = m.name || ''
+  const id   = m.accessId || m.email || ''
+  return name && id ? `${name} (${id})` : name || id
+}
 
 const statusVariant: Record<string, 'info' | 'warning' | 'success'> = {
   prospection: 'info',
@@ -40,11 +69,13 @@ const statusVariant: Record<string, 'info' | 'warning' | 'success'> = {
 function ProspectModal({ 
   item, 
   onClose,
-  statusLabel
+  statusLabel,
+  members,
 }: { 
   item: PipelineItem; 
   onClose: () => void;
   statusLabel: Record<string, string>;
+  members?: Member[];
 }) {
   const { t } = useTranslation()
   const noteText = item.notes ?? item.note ?? ''
@@ -115,7 +146,16 @@ function ProspectModal({
                   : <span style={{ color: colors.textMid, fontStyle: 'italic' }}>{t('pipeline.notSpecified')}</span>
               }
             />
-            {item.assignedTo && <InfoRow icon="👤" label={t('pipeline.assignedTo')} value={item.assignedTo} />}
+            {item.assignedTo && (() => {
+              const label = resolveMemberLabel(item, members)
+              return label ? (
+                <InfoRow 
+                  icon="👤" 
+                  label={t('pipeline.assignedTo')} 
+                  value={label} 
+                />
+              ) : null
+            })()}
           </div>
 
           {noteText && (
@@ -146,7 +186,7 @@ function InfoRow({ icon, label, value }: { icon: string; label: string; value: R
   )
 }
 
-export function ManagerPipelineList({ items }: Props) {
+export function ManagerPipelineList({ items, members }: Props) {
   const { t } = useTranslation()
   const deleteMutation = useDeletePipelineItem()
 
@@ -198,7 +238,7 @@ export function ManagerPipelineList({ items }: Props) {
   return (
     <>
       {selectedItem && (
-        <ProspectModal item={selectedItem} onClose={() => setSelectedItem(null)} statusLabel={statusLabel} />
+        <ProspectModal item={selectedItem} onClose={() => setSelectedItem(null)} statusLabel={statusLabel} members={members} />
       )}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
@@ -243,7 +283,7 @@ export function ManagerPipelineList({ items }: Props) {
                       </div>
                       {item.assignedTo && (
                         <div style={{ fontSize: 11, color: 'rgba(99,102,241,0.7)', marginTop: 3 }}>
-                          👤 {item.assignedTo}
+                          👤 {resolveMemberLabel(item, members) ?? item.assignedTo}
                         </div>
                       )}
                     </div>

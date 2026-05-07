@@ -13,6 +13,7 @@ export type CurrentUser = {
   companyId: string | null
   companyName?: string | null
   managerUid: string | null
+  accessId?: string | null   // ← Access ID généré par le Manager (ex: "prenomnom@entreprise")
   plan: string
   dailyLimit: number
   dailyUsed: number

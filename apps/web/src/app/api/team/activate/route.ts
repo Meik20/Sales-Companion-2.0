@@ -132,6 +132,7 @@ export async function POST(request: NextRequest) {
         managerId:  data.managerId  ?? null,
         managerUid: data.managerUid ?? data.managerId ?? null,
         managerEmail: data.managerEmail ?? null,
+        accessId:   accessId,          // ← Access ID (ex: "prenomnom@entreprise")
         dailyUsed:   0,
         dailyLimit:  data.dailyLimit ?? 10,
         createdAt,
