@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
     // ── Fetch team members to resolve missing names ──────────────────────
     const membersSnap = await adminDb
       .collection('users')
-      .where('managerId', '==', managerUid)
+      .where('managerUid', '==', managerUid)
       .get()
 
     const membersMap = new Map<string, { name: string; accessId: string }>()
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
       const d = doc.data()
       membersMap.set(doc.id, {
         name: d.name || d.email || doc.id,
-        accessId: d.accessId || '',
+        accessId: d.teamAccessId || '',
       })
     })
 
