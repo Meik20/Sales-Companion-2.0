@@ -1,7 +1,16 @@
 // apps/web/src/app/(public)/login/page.tsx
-
+import type { Metadata } from 'next'
 import { LoginForm } from '@/features/auth/components/LoginForm'
 import { colors } from '@/styles/tokens'
+
+export const metadata: Metadata = {
+  title: 'Connexion',
+  description:
+    'Connectez-vous à Sales Companion pour accéder à votre pipeline commercial et gérer votre prospection B2B au Cameroun.',
+  alternates: { canonical: '/login' },
+  robots: { index: false, follow: false }, // page auth — pas d'indexation
+}
+
 
 export default function LoginPage() {
   return (
