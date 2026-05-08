@@ -610,6 +610,11 @@ export const fr = {
     searchesPerDay: "Recherches / jour",
     recommendedMonthlyPrice: "Prix mensuel recommandé",
     target: "Cible",
+    targetFree: "Essai / découverte",
+    targetStarter: "Commerciaux indépendants",
+    targetPro: "Équipes commerciales, PME",
+    targetEnterprise: "Grandes entreprises, cabinets",
+    unlimited: "Illimité",
     
     supportTitle: "Centre de Support Admin",
     supportSubtitle: "Gérez et répondez aux tickets utilisateurs.",

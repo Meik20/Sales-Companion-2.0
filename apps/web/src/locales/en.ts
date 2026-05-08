@@ -610,6 +610,11 @@ export const en = {
     searchesPerDay: "Searches / day",
     recommendedMonthlyPrice: "Recommended monthly price",
     target: "Target",
+    targetFree: "Trial / Discovery",
+    targetStarter: "Independent sales reps",
+    targetPro: "Sales teams, SMEs",
+    targetEnterprise: "Large enterprises, agencies",
+    unlimited: "Unlimited",
     
     supportTitle: "Admin Support Center",
     supportSubtitle: "Manage and reply to user tickets.",

@@ -7,13 +7,6 @@ import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { colors } from '@/styles/tokens'
 import { useTranslation } from '@/providers/I18nProvider'
 
-const PLAN_ROWS = [
-  { plan: 'Gratuit',    daily: '10',       price: '—',            target: 'Essai / découverte' },
-  { plan: 'Starter',   daily: '200',      price: '5 000 FCFA',   target: 'Commerciaux indépendants' },
-  { plan: 'Pro',       daily: '500',      price: '15 000 FCFA',  target: 'Équipes commerciales, PME' },
-  { plan: 'Entreprise',daily: 'Illimité', price: '50 000 FCFA',  target: 'Grandes entreprises, cabinets' },
-]
-
 const PLAN_COLOR: Record<string, string> = {
   Gratuit: '#888', Starter: '#1a73e8', Pro: '#f39c12', Entreprise: '#1B7A3E',
 }
@@ -27,6 +20,13 @@ export default function AdminConfigPage() {
   const [saving, setSaving] = useState(false)
   const [changingPass, setChangingPass] = useState(false)
   const { t } = useTranslation()
+
+  const PLAN_ROWS = [
+    { plan: 'Gratuit',    daily: '10',       price: '—',            target: t('admin.targetFree') || 'Essai / découverte' },
+    { plan: 'Starter',   daily: '200',      price: '5 000 FCFA',   target: t('admin.targetStarter') || 'Commerciaux indépendants' },
+    { plan: 'Pro',       daily: '500',      price: '15 000 FCFA',  target: t('admin.targetPro') || 'Équipes commerciales, PME' },
+    { plan: 'Entreprise',daily: t('admin.unlimited') || 'Illimité', price: '50 000 FCFA',  target: t('admin.targetEnterprise') || 'Grandes entreprises, cabinets' },
+  ]
 
   async function saveApiKey() {
     if (!apiKey.trim()) { setApiMsg({ type: 'err', text: 'Saisissez une clé API' }); return }
