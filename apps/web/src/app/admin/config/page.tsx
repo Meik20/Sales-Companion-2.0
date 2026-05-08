@@ -103,23 +103,22 @@ export default function AdminConfigPage() {
         {/* API Key */}
         <div style={card}>
           <div style={{ fontWeight: 700, fontSize: 14, color: colors.text, marginBottom: 16, paddingBottom: 12, borderBottom: `1px solid ${colors.border}` }}>
-            🔑 Clé API Groq
+            🔑 {t('admin.apiKeyGroq')}
           </div>
-          <label style={labelStyle}>Clé API Groq (pour l'assistant chat)</label>
+          <label style={labelStyle}>{t('admin.apiKeyGroqLabel')}</label>
           <input
             type="password"
             value={apiKey}
             onChange={(e) => setApiKey(e.target.value)}
-            placeholder="gsk_..."
+            placeholder={t('admin.apiKeyGroqPlaceholder')}
             style={inputStyle}
             onKeyDown={(e) => { if (e.key === 'Enter') saveApiKey() }}
           />
           <p style={{ fontSize: 12, color: colors.textMid, marginTop: 6, lineHeight: 1.5, maxWidth: 480 }}>
-            Obtenez votre clé gratuite sur <strong>console.groq.com/keys</strong>.<br />
-            Utilisée uniquement pour l'assistant chat.
+            {t('admin.apiKeyGroqHelp1')}<strong>console.groq.com/keys</strong>{t('admin.apiKeyGroqHelp2')}
           </p>
           <button onClick={saveApiKey} disabled={saving} style={btnStyle}>
-            {saving ? 'Enregistrement...' : 'Enregistrer la clé'}
+            {saving ? t('team.saving') : t('admin.saveApiKey')}
           </button>
           {apiMsg && <div style={msgStyle(apiMsg.type)}>{apiMsg.text}</div>}
         </div>
@@ -127,22 +126,22 @@ export default function AdminConfigPage() {
         {/* Change password */}
         <div style={card}>
           <div style={{ fontWeight: 700, fontSize: 14, color: colors.text, marginBottom: 16, paddingBottom: 12, borderBottom: `1px solid ${colors.border}` }}>
-            🔒 Sécurité admin
+            🔒 {t('admin.adminSecurity')}
           </div>
-          <label style={labelStyle}>Nouveau mot de passe</label>
+          <label style={labelStyle}>{t('admin.newPassword')}</label>
           <input
             type="password"
             value={newPass}
             onChange={(e) => setNewPass(e.target.value)}
-            placeholder="Minimum 6 caractères"
+            placeholder={t('admin.newPasswordPlaceholder')}
             style={{ ...inputStyle, fontFamily: 'inherit' }}
             onKeyDown={(e) => { if (e.key === 'Enter') changePassword() }}
           />
           <p style={{ fontSize: 12, color: colors.textMid, marginTop: 6, lineHeight: 1.5, maxWidth: 480 }}>
-            {t('auth.newPassword')}
+            {t('admin.newPasswordHelp')}
           </p>
           <button onClick={changePassword} disabled={changingPass} style={btnStyle}>
-            {changingPass ? t('team.saving') : t('auth.resetPassword')}
+            {changingPass ? t('team.saving') : t('admin.changePassword')}
           </button>
           {passMsg && <div style={msgStyle(passMsg.type)}>{passMsg.text}</div>}
         </div>
@@ -151,13 +150,13 @@ export default function AdminConfigPage() {
       {/* Plans table */}
       <div style={card}>
         <div style={{ fontWeight: 700, fontSize: 14, color: colors.text, marginBottom: 16, paddingBottom: 12, borderBottom: `1px solid ${colors.border}` }}>
-          💳 Plans tarifaires
+          💳 {t('admin.pricingPlans')}
         </div>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
             <thead>
               <tr>
-                {['Plan', 'Recherches / jour', 'Prix mensuel recommandé', 'Cible'].map((h) => (
+                {[t('admin.plan'), t('admin.searchesPerDay'), t('admin.recommendedMonthlyPrice'), t('admin.target')].map((h) => (
                   <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: colors.textMid, textTransform: 'uppercase', letterSpacing: '.06em', borderBottom: `1px solid ${colors.border}` }}>
                     {h}
                   </th>
