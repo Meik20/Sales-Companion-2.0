@@ -61,7 +61,7 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
     t('admin.status'), 
     `${t('field.region') || 'Région'} / ${t('field.sector') || 'Secteur'}`, 
     t('admin.created'), 
-    'Dernière co.', 
+    t('admin.lastLogin'), 
     t('admin.actions')
   ]
 
