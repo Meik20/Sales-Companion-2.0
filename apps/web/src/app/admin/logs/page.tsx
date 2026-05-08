@@ -50,8 +50,6 @@ export default function AdminLogsPage() {
   return (
     <AppShell>
       <PageHeader
-    <AppShell>
-      <PageHeader
         title={t('admin.logsTitle')}
         subtitle={t('admin.logsSubtitle')}
       />
