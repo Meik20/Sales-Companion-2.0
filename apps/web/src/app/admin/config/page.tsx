@@ -5,6 +5,7 @@ import { AppShell } from '@/components/layout/AppShell'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { colors } from '@/styles/tokens'
+import { useTranslation } from '@/providers/I18nProvider'
 
 const PLAN_ROWS = [
   { plan: 'Gratuit',    daily: '10',       price: '—',            target: 'Essai / découverte' },
@@ -25,6 +26,7 @@ export default function AdminConfigPage() {
   const [passMsg, setPassMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
   const [saving, setSaving] = useState(false)
   const [changingPass, setChangingPass] = useState(false)
+  const { t } = useTranslation()
 
   async function saveApiKey() {
     if (!apiKey.trim()) { setApiMsg({ type: 'err', text: 'Saisissez une clé API' }); return }
@@ -95,7 +97,7 @@ export default function AdminConfigPage() {
 
   return (
     <AppShell>
-      <PageHeader title="Configuration" subtitle="Clé API, sécurité et plans tarifaires." />
+      <PageHeader title={t('admin.configTitle')} subtitle={t('admin.configSubtitle')} />
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
         {/* API Key */}
@@ -137,10 +139,10 @@ export default function AdminConfigPage() {
             onKeyDown={(e) => { if (e.key === 'Enter') changePassword() }}
           />
           <p style={{ fontSize: 12, color: colors.textMid, marginTop: 6, lineHeight: 1.5, maxWidth: 480 }}>
-            Changez le mot de passe administrateur par défaut.
+            {t('auth.newPassword')}
           </p>
           <button onClick={changePassword} disabled={changingPass} style={btnStyle}>
-            {changingPass ? 'Modification...' : 'Changer le mot de passe'}
+            {changingPass ? t('team.saving') : t('auth.resetPassword')}
           </button>
           {passMsg && <div style={msgStyle(passMsg.type)}>{passMsg.text}</div>}
         </div>

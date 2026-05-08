@@ -8,6 +8,7 @@ import { SectionCard } from '@/features/team/components/SectionCard'
 import { useToast } from '@/hooks/useToast'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { colors } from '@/styles/tokens'
+import { useTranslation } from '@/providers/I18nProvider'
 
 export function AdminCompaniesTable() {
   const [page, setPage] = useState(1)
@@ -18,12 +19,13 @@ export function AdminCompaniesTable() {
   const deleteMutation = useDeleteAdminCompanies()
   const deleteAllMutation = useDeleteAllAdminCompanies()
   const { pushToast } = useToast()
+  const { t } = useTranslation()
 
   if (isLoading) {
     return (
-      <SectionCard title="Entreprises" subtitle="Gestion des entreprises importées">
+      <SectionCard title={t('admin.companies')} subtitle={t('admin.companiesSubtitle')}>
         <div style={{ textAlign: 'center', color: colors.textMid, padding: 20 }}>
-          Chargement...
+          {t('team.loading')}
         </div>
       </SectionCard>
     )
@@ -31,9 +33,9 @@ export function AdminCompaniesTable() {
 
   if (isError) {
     return (
-      <SectionCard title="Entreprises" subtitle="Erreur">
+      <SectionCard title={t('admin.companies')} subtitle="Erreur">
         <div style={{ textAlign: 'center', color: '#f87171', padding: 20 }}>
-          Impossible de charger les entreprises
+          {t('support.errorLoad')}
         </div>
       </SectionCard>
     )
@@ -57,7 +59,7 @@ export function AdminCompaniesTable() {
 
   const handleDeleteSelected = async () => {
     if (selectedIds.length === 0) return
-    if (!window.confirm(`Supprimer ${selectedIds.length} entreprise${selectedIds.length > 1 ? 's' : ''} sélectionnée${selectedIds.length > 1 ? 's' : ''} ?`)) {
+    if (!window.confirm(`Supprimer ${selectedIds.length} entreprise(s) ?`)) {
       return
     }
 
@@ -130,10 +132,10 @@ export function AdminCompaniesTable() {
   }
 
   return (
-    <SectionCard title="Entreprises" subtitle={`${total} entreprise${total > 1 ? 's' : ''} importée${total > 1 ? 's' : ''}`}>
+    <SectionCard title={t('admin.companies')} subtitle={`${total} ${t('admin.inDatabase')}`}>
       {items.length === 0 ? (
         <div style={{ textAlign: 'center', color: colors.textMid, padding: 20, fontSize: 13 }}>
-          Aucune entreprise n'a été importée.
+          {t('admin.noCompanyMatch')}
         </div>
       ) : (
         <>
@@ -223,10 +225,10 @@ export function AdminCompaniesTable() {
                       type="checkbox"
                       checked={allSelected}
                       onChange={handleToggleAll}
-                      aria-label="Sélectionner toutes les entreprises"
+                      aria-label={t('team.selectAll')}
                     />
                   </th>
-                  {['Raison Sociale', 'NIU', 'Secteur', 'Ville / Région', 'Statut', 'Date'].map((h) => (
+                  {[t('field.raisonSociale') || 'Raison Sociale', t('field.niu') || 'NIU', t('field.sector') || 'Secteur', `${t('field.city') || 'Ville'} / ${t('field.region') || 'Région'}`, t('admin.status'), t('admin.date')].map((h) => (
                     <th
                       key={h}
                       style={{
@@ -345,6 +347,7 @@ function CompanyRow({
   isSelected: boolean
   onToggle: () => void
 }) {
+  const { t } = useTranslation()
   const importDate = company.importedAt ? new Date(company.importedAt) : null
   const dateStr = importDate && !isNaN(importDate.getTime())
     ? importDate.toLocaleDateString('fr-FR', { month: 'short', day: 'numeric', year: '2-digit' })
@@ -406,9 +409,9 @@ function CompanyRow({
       {/* Statut */}
       <td style={{ padding: '10px 12px', textAlign: 'center' }}>
         {company.verified ? (
-          <span style={{ fontSize: 11, color: '#2ea05a', fontWeight: 700, background: 'rgba(46,160,90,0.1)', padding: '2px 8px', borderRadius: 4 }}>✓ Vérifié</span>
+          <span style={{ fontSize: 11, color: '#2ea05a', fontWeight: 700, background: 'rgba(46,160,90,0.1)', padding: '2px 8px', borderRadius: 4 }}>✓</span>
         ) : (
-          <span style={{ fontSize: 11, color: colors.textMid }}>Non vérifié</span>
+          <span style={{ fontSize: 11, color: colors.textMid }}>—</span>
         )}
       </td>
       {/* Date */}

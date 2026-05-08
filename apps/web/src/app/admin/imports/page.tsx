@@ -6,6 +6,7 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useAdminImports } from '@/features/admin/hooks/useAdminImports'
 import { colors } from '@/styles/tokens'
+import { useTranslation } from '@/providers/I18nProvider'
 
 /* ── types ── */
 type ImportResult = {
@@ -32,6 +33,7 @@ export default function AdminImportsPage() {
   const [isDragging, setIsDragging] = useState(false)
   const [historyPage, setHistoryPage] = useState(1)
   const { data, isLoading, isError, refetch } = useAdminImports(historyPage)
+  const { t } = useTranslation()
 
   /* ── upload logic ── */
   async function handleFile(file: File) {
@@ -108,8 +110,8 @@ export default function AdminImportsPage() {
   return (
     <AppShell>
       <PageHeader
-        title="Import de données"
-        subtitle="Importez des fichiers Excel ou CSV pour alimenter la base d'entreprises."
+        title={t('admin.importsTitle')}
+        subtitle={t('admin.importsSubtitle')}
       />
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
@@ -117,7 +119,7 @@ export default function AdminImportsPage() {
         {/* ── Upload zone ── */}
         <div style={{ background: colors.surface, borderRadius: 14, border: `1px solid ${colors.border}`, padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div style={{ fontWeight: 700, fontSize: 14, color: colors.text, paddingBottom: 12, borderBottom: `1px solid ${colors.border}` }}>
-            📤 Importer un fichier Excel / CSV
+            📤 {t('admin.newImport')}
           </div>
 
           {/* Drop zone */}
@@ -252,7 +254,7 @@ export default function AdminImportsPage() {
         <div style={{ background: colors.surface, borderRadius: 14, border: `1px solid ${colors.border}`, padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 12, borderBottom: `1px solid ${colors.border}` }}>
             <div>
-              <span style={{ fontWeight: 700, fontSize: 14, color: colors.text }}>📂 Historique des imports</span>
+              <span style={{ fontWeight: 700, fontSize: 14, color: colors.text }}>📂 {t('admin.allImports')}</span>
               {total > 0 && (
                 <span style={{ marginLeft: 8, fontSize: 12, color: colors.textMid }}>{total} import{total > 1 ? 's' : ''}</span>
               )}
@@ -261,20 +263,20 @@ export default function AdminImportsPage() {
               onClick={() => refetch()}
               style={{ background: colors.greenLight, color: colors.green, border: `1px solid ${colors.successBorder}`, borderRadius: 6, padding: '4px 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
             >
-              ↻ Rafraîchir
+              {t('admin.refresh')}
             </button>
           </div>
 
           {isLoading && (
-            <div style={{ textAlign: 'center', padding: 40, color: colors.textMid, fontSize: 13 }}>Chargement…</div>
+            <div style={{ textAlign: 'center', padding: 40, color: colors.textMid, fontSize: 13 }}>{t('team.loading')}</div>
           )}
           {isError && (
-            <div style={{ textAlign: 'center', padding: 40, color: colors.danger, fontSize: 13 }}>Impossible de charger l'historique.</div>
+            <div style={{ textAlign: 'center', padding: 40, color: colors.danger, fontSize: 13 }}>{t('support.errorLoad')}</div>
           )}
           {!isLoading && !isError && items.length === 0 && (
             <div style={{ textAlign: 'center', padding: 40, color: colors.textMid, fontSize: 13 }}>
               <div style={{ fontSize: 32, marginBottom: 10 }}>📂</div>
-              Aucun import effectué pour l'instant.
+              {t('admin.noImports')}
             </div>
           )}
           {!isLoading && !isError && items.length > 0 && (
@@ -283,7 +285,7 @@ export default function AdminImportsPage() {
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                   <thead>
                     <tr>
-                      {['Fichier', 'Enregistrements', 'Résultats', 'Statut', 'Date'].map((h) => (
+                      {[t('admin.filename'), t('admin.count'), t('admin.resultsCount'), t('admin.status'), t('admin.date')].map((h) => (
                         <th key={h} style={{ padding: '9px 10px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: colors.textMid, textTransform: 'uppercase', letterSpacing: '.05em', borderBottom: `1px solid ${colors.border}` }}>
                           {h}
                         </th>

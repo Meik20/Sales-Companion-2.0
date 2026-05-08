@@ -11,6 +11,7 @@ import {
 } from 'firebase/firestore'
 import { colors } from '@/styles/tokens'
 import { Trash2 } from 'lucide-react'
+import { useTranslation } from '@/providers/I18nProvider'
 
 type Thread = {
   id: string
@@ -47,6 +48,7 @@ export default function AdminSupportPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [filterStatus, setFilterStatus] = useState<'all' | 'open' | 'resolved'>('all')
+  const { t } = useTranslation()
 
   // Debounce search term (500ms)
   useEffect(() => {
@@ -167,7 +169,7 @@ export default function AdminSupportPage() {
   return (
     <AppShell>
       <PageHeader
-        title="Support"
+        title={t('admin.supportTitle')}
         subtitle={`${threads.length} ticket${threads.length !== 1 ? 's' : ''}${unreadCount > 0 ? ` · ${unreadCount} non lu${unreadCount > 1 ? 's' : ''}` : ''}`}
       />
 
@@ -211,7 +213,7 @@ export default function AdminSupportPage() {
               fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
             }}
           >
-            {s === 'all' ? 'Tous' : s === 'open' ? '🔵 En cours' : '✅ Résolus'}
+            {s === 'all' ? t('admin.allTickets') : s === 'open' ? `🔵 ${t('admin.openTickets')}` : `✅ ${t('admin.closedTickets')}`}
           </button>
         ))}
         <button
@@ -223,7 +225,7 @@ export default function AdminSupportPage() {
             fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
           }}
         >
-          ↻ Actualiser
+          {t('admin.refresh')}
         </button>
       </div>
 
@@ -240,11 +242,11 @@ export default function AdminSupportPage() {
           </div>
           <div style={{ overflowY: 'auto', flex: 1 }}>
             {loading ? (
-              <div style={{ textAlign: 'center', padding: 40, color: colors.textMid, fontSize: 13 }}>Chargement...</div>
+              <div style={{ textAlign: 'center', padding: 40, color: colors.textMid, fontSize: 13 }}>{t('team.loading')}</div>
             ) : filteredThreads.length === 0 ? (
               <div style={{ textAlign: 'center', padding: 40, color: colors.textMid, fontSize: 13 }}>
                 <div style={{ fontSize: 28, marginBottom: 8 }}>💬</div>
-                Aucun ticket trouvé.
+                {t('admin.noTickets')}
               </div>
             ) : filteredThreads.map((t) => {
               const status = t.status ?? 'open'
@@ -470,7 +472,7 @@ export default function AdminSupportPage() {
                         fontSize: 12, fontWeight: 600, fontFamily: 'inherit',
                       }}
                     >
-                      ✅ Résoudre
+                      ✅ {t('admin.resolve')}
                     </button>
                   )}
                 </div>
