@@ -243,12 +243,13 @@ export async function GET(request: NextRequest) {
       ...detailRows.map(rowToCsv),
     ]
 
+    // Force unaccented English characters for maximum compatibility
+    const rawCsvString = lines.join('\r\n')
+    const unaccentedCsvString = rawCsvString.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+
     // Build a proper UTF-8 BOM + content buffer
-    // Injecting \uFEFF as a JS string is unreliable — Excel may ignore it.
-    // Concatenating raw BOM bytes (EF BB BF) with a UTF-8 Buffer is the only
-    // guaranteed way to make Excel open the file with correct French accents.
-    const bomBytes     = Buffer.from([0xef, 0xbb, 0xbf])          // UTF-8 BOM
-    const contentBytes = Buffer.from(lines.join('\r\n'), 'utf-8')  // CSV body
+    const bomBytes     = Buffer.from([0xef, 0xbb, 0xbf])           // UTF-8 BOM
+    const contentBytes = Buffer.from(unaccentedCsvString, 'utf-8') // CSV body
     const csvBuffer    = Buffer.concat([bomBytes, contentBytes])
 
     // filename with date range
