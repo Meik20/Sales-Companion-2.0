@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server'
 
 // Lazy import pour éviter les erreurs si firebase-admin ne s'initialise pas

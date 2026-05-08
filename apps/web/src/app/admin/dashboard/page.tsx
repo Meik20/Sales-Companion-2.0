@@ -7,6 +7,7 @@ import { AdminStatsCards } from '@/features/admin/components/AdminStatsCards'
 import { useAdminStats } from '@/features/admin/hooks/useAdminStats'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { colors, shadows } from '@/styles/tokens'
+import { useTranslation } from '@/providers/I18nProvider'
 
 /* ── SVG Bar Chart ── */
 function BarChart({ data }: { data: { label: string; value: number; color: string }[] }) {
@@ -145,17 +146,18 @@ export default function AdminDashboardPage() {
   const statsQuery = useAdminStats()
   const stats = statsQuery.data
   const { user } = useCurrentUser()
+  const { t } = useTranslation()
 
   // Raison sociale : companyName du profil admin (depuis Firestore)
   const companyLabel = user?.companyName
     ? `🏢 ${user.companyName}`
-    : 'Vue consolidée des statistiques de la plateforme.'
+    : t('admin.dashboardSubtitle')
 
   const roleData = [
-    { label: 'Members', value: Math.max(0, (stats?.totalUsers ?? 0) - 2), color: colors.info },
-    { label: 'Managers', value: Math.max(0, Math.round((stats?.totalUsers ?? 0) * 0.15)), color: colors.greenMid },
-    { label: 'Indép.', value: Math.max(0, Math.round((stats?.totalUsers ?? 0) * 0.05)), color: colors.gold },
-    { label: 'Admins', value: 1, color: colors.goldDark },
+    { label: t('admin.members'), value: Math.max(0, (stats?.totalUsers ?? 0) - 2), color: colors.info },
+    { label: t('admin.managers'), value: Math.max(0, Math.round((stats?.totalUsers ?? 0) * 0.15)), color: colors.greenMid },
+    { label: t('admin.indep'), value: Math.max(0, Math.round((stats?.totalUsers ?? 0) * 0.05)), color: colors.gold },
+    { label: t('admin.admins'), value: 1, color: colors.goldDark },
   ]
 
   const planData = [
@@ -168,50 +170,49 @@ export default function AdminDashboardPage() {
   return (
     <AppShell>
       <PageHeader
-        title="Dashboard admin"
+        title={t('admin.dashboardTitle')}
         subtitle={companyLabel}
       />
 
       {statsQuery.isLoading ? <LoadingState /> : null}
-      {statsQuery.isError ? <ErrorState description="Impossible de charger les statistiques admin." /> : null}
+      {statsQuery.isError ? <ErrorState description={t('admin.loadingStats')} /> : null}
 
       {stats ? (
         <>
           {/* KPI Cards */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 24 }}>
             <TrendCard
-              label="Utilisateurs"
+              label={t('admin.users')}
               value={stats.totalUsers ?? 0}
-              hint={`${stats.activeUsers ?? 0} actifs cette semaine`}
-              trend={`+${stats.newUsersThisWeek ?? 0} cette semaine`}
+              hint={`${stats.activeUsers ?? 0} ${t('admin.activeThisWeek')}`}
+              trend={`+${stats.newUsersThisWeek ?? 0} ${t('admin.thisWeek')}`}
               color={colors.green}
             />
             <TrendCard
-              label="Entreprises"
+              label={t('admin.companies')}
               value={stats.totalCompanies ?? 0}
-              hint="Dans la base de données"
+              hint={t('admin.inDatabase')}
               color={colors.info}
             />
             <TrendCard
-              label="Items pipeline"
+              label={t('admin.pipelineItems')}
               value={stats.totalPipelineItems ?? 0}
-              hint="Tous les commerciaux"
+              hint={t('admin.allReps')}
               color={colors.gold}
             />
             <TrendCard
-              label="Recherches aujourd'hui"
+              label={t('admin.searchesToday')}
               value={stats.totalSearchesToday ?? 0}
-              hint="Sur l'ensemble de la plateforme"
+              hint={t('admin.acrossPlatform')}
               color="#8b5cf6"
             />
           </div>
 
-          {/* Charts row */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 24 }}>
-            <ChartCard title="📊 Utilisateurs par rôle">
+            <ChartCard title={t('admin.usersByRole')}>
               <BarChart data={roleData} />
             </ChartCard>
-            <ChartCard title="💎 Répartition des plans">
+            <ChartCard title={t('admin.plansDistribution')}>
               <DonutChart segments={planData} />
             </ChartCard>
           </div>
@@ -225,14 +226,14 @@ export default function AdminDashboardPage() {
             boxShadow: shadows.sm,
           }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: colors.text, marginBottom: 16, paddingBottom: 12, borderBottom: `1px solid ${colors.border}` }}>
-              📈 Activité récente
+              {t('admin.recentActivity')}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
               {[
-                { icon: '👥', label: 'Nouveaux utilisateurs', value: stats.newUsersThisWeek ?? 0, unit: 'cette semaine', color: colors.green },
-                { icon: '🔍', label: 'Recherches', value: stats.totalSearchesToday ?? 0, unit: "aujourd'hui", color: colors.info },
-                { icon: '📊', label: 'Taux d\'activation', value: stats.totalUsers ? Math.round(((stats.activeUsers ?? 0) / stats.totalUsers) * 100) : 0, unit: '% actifs', color: colors.gold },
-                { icon: '🏢', label: 'Entreprises / Utilisateur', value: stats.totalUsers ? Math.round((stats.totalCompanies ?? 0) / stats.totalUsers) : 0, unit: 'moy.', color: '#8b5cf6' },
+                { icon: '👥', label: t('admin.newUsers'), value: stats.newUsersThisWeek ?? 0, unit: t('admin.thisWeek'), color: colors.green },
+                { icon: '🔍', label: t('admin.searches'), value: stats.totalSearchesToday ?? 0, unit: t('admin.today'), color: colors.info },
+                { icon: '📊', label: t('admin.activationRate'), value: stats.totalUsers ? Math.round(((stats.activeUsers ?? 0) / stats.totalUsers) * 100) : 0, unit: t('admin.activePct'), color: colors.gold },
+                { icon: '🏢', label: t('admin.companiesPerUser'), value: stats.totalUsers ? Math.round((stats.totalCompanies ?? 0) / stats.totalUsers) : 0, unit: t('admin.avg'), color: '#8b5cf6' },
               ].map((item) => (
                 <div key={item.label} style={{
                   background: colors.bg3,

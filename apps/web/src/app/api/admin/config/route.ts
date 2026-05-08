@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server'
 import { adminDb, adminAuth } from '@/lib/firebase-admin'
 
@@ -56,3 +57,4 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Erreur interne' }, { status: 500 })
   }
 }
+

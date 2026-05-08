@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/index'
 import { useQuery } from '@tanstack/react-query'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { colors } from '@/styles/tokens'
+import { useTranslation } from '@/providers/I18nProvider'
 
 type SearchLog = {
   id: string
@@ -44,17 +45,20 @@ function useSearchLogs() {
 
 export default function AdminLogsPage() {
   const { data: logs = [], isLoading, isError, refetch } = useSearchLogs()
+  const { t } = useTranslation()
 
   return (
     <AppShell>
       <PageHeader
-        title="Journal d'activité"
-        subtitle="20 dernières recherches effectuées sur la plateforme."
+    <AppShell>
+      <PageHeader
+        title={t('admin.logsTitle')}
+        subtitle={t('admin.logsSubtitle')}
       />
 
       <DataCard
-        title="Recherches récentes"
-        subtitle="20 dernières"
+        title={t('admin.recentSearches')}
+        subtitle={t('admin.last20')}
         actions={
           <button
             onClick={() => refetch()}
@@ -69,18 +73,18 @@ export default function AdminLogsPage() {
               cursor: 'pointer',
             }}
           >
-            ↻ Actualiser
+            {t('admin.refresh')}
           </button>
         }
       >
         {isLoading && (
           <div style={{ textAlign: 'center', padding: 40, color: colors.textMid, fontSize: 13 }}>
-            Chargement...
+            {t('team.loading')}
           </div>
         )}
         {isError && (
           <div style={{ textAlign: 'center', padding: 40, color: colors.danger, fontSize: 13 }}>
-            Impossible de charger les logs.
+            {t('admin.loadingLogs')}
           </div>
         )}
         {!isLoading && !isError && (
@@ -88,7 +92,7 @@ export default function AdminLogsPage() {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
                 <tr>
-                  {['Utilisateur', 'Email', 'Requête', 'Résultats', 'Plan', 'Date'].map((h) => (
+                  {[t('admin.user'), t('admin.email'), t('admin.query'), t('admin.resultsCount'), t('admin.plan'), t('admin.date')].map((h) => (
                     <th
                       key={h}
                       style={{
@@ -115,7 +119,7 @@ export default function AdminLogsPage() {
                       style={{ textAlign: 'center', padding: '40px 0', color: colors.textMid, fontSize: 13 }}
                     >
                       <div style={{ fontSize: 28, marginBottom: 8 }}>📋</div>
-                      Aucune activité enregistrée pour l'instant.
+                      {t('admin.noActivity')}
                     </td>
                   </tr>
                 ) : (

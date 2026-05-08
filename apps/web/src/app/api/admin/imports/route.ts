@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server'
 import { adminDb, adminAuth } from '@/lib/firebase-admin'
 import ExcelJS from 'exceljs'
@@ -328,3 +329,4 @@ async function parseExcel(buffer: Buffer): Promise<Record<string, string>[]> {
 
   return rows
 }
+

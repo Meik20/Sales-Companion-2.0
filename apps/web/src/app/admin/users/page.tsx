@@ -9,12 +9,14 @@ import { useAdminUsers } from '@/features/admin/hooks/useAdminUsers'
 import { useDeleteAdminUser } from '@/features/admin/hooks/useDeleteAdminUser'
 import { useUpdateAdminUser } from '@/features/admin/hooks/useUpdateAdminUser'
 import { useToast } from '@/hooks/useToast'
+import { useTranslation } from '@/providers/I18nProvider'
 
 export default function AdminUsersPage() {
   const usersQuery   = useAdminUsers()
   const deleteMutation = useDeleteAdminUser()
   const updateMutation = useUpdateAdminUser()
   const { pushToast } = useToast()
+  const { t } = useTranslation()
 
   async function handleDelete(uid: string) {
     try {
@@ -49,14 +51,14 @@ export default function AdminUsersPage() {
   return (
     <AppShell>
       <PageHeader
-        title="Gestion des utilisateurs"
-        subtitle={`${users.length} compte${users.length > 1 ? 's' : ''} enregistré${users.length > 1 ? 's' : ''}`}
+        title={t('admin.usersTitle')}
+        subtitle={t('admin.usersSubtitle')}
       />
 
-      <DataCard title="Liste des utilisateurs">
+      <DataCard title={t('admin.allUsers')}>
         {usersQuery.isLoading ? <LoadingState /> : null}
         {usersQuery.isError ? (
-          <ErrorState description="Impossible de charger la liste des utilisateurs." />
+          <ErrorState description={t('support.errorLoad')} />
         ) : null}
         {!usersQuery.isLoading && !usersQuery.isError ? (
           <AdminUsersTable users={users} onDelete={handleDelete} onUpdate={handleUpdate} />

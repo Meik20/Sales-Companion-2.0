@@ -2,6 +2,7 @@ import { Badge } from '@/components/ui/index'
 import { Button } from '@/components/ui/Button'
 import { colors } from '@/styles/tokens'
 import type { UserDoc } from '@sales-companion/shared'
+import { useTranslation } from '@/providers/I18nProvider'
 
 type UserWithId = UserDoc & {
   id?: string
@@ -44,11 +45,25 @@ function formatDate(iso: string | null | undefined): string {
 }
 
 export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
+  const { t } = useTranslation()
+
   if (!users.length) {
-    return <p style={{ color: colors.textMid, textAlign: 'center', padding: '32px 0' }}>Aucun utilisateur.</p>
+    return <p style={{ color: colors.textMid, textAlign: 'center', padding: '32px 0' }}>{t('team.noUserMatch') || 'Aucun utilisateur.'}</p>
   }
 
-  const headers = ['Nom', 'Email', 'Entreprise', 'Rôle', 'Plan', 'Quota', 'Statut', 'Région / Secteur', 'Créé le', 'Dernière co.', 'Actions']
+  const headers = [
+    t('team.name') || 'Nom', 
+    t('admin.email'), 
+    t('admin.companies'), 
+    t('admin.role'), 
+    t('admin.plan'), 
+    t('admin.quota'), 
+    t('admin.status'), 
+    `${t('field.region') || 'Région'} / ${t('field.sector') || 'Secteur'}`, 
+    t('admin.created'), 
+    'Dernière co.', 
+    t('admin.actions')
+  ]
 
   return (
     <div style={{ overflowX: 'auto' }}>
@@ -170,7 +185,7 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
               {/* Statut */}
               <td style={{ padding: '11px 12px' }}>
                 <Badge variant={user.active ? 'success' : 'danger'}>
-                  {user.active ? 'Actif' : 'Inactif'}
+                  {user.active ? t('team.active') : t('team.inactive')}
                 </Badge>
               </td>
               {/* Région / Secteur */}
@@ -195,7 +210,7 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
                       variant="ghost"
                       onClick={() => onUpdate(user.uid, { active: !user.active })}
                     >
-                      {user.active ? 'Désactiver' : 'Activer'}
+                      {user.active ? (t('team.deactivate') || 'Désactiver') : (t('team.activate') || 'Activer')}
                     </Button>
                   ) : null}
                   <Button
@@ -203,7 +218,7 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
                     variant="danger"
                     onClick={() => onDelete(user.uid)}
                   >
-                    Supprimer
+                    {t('team.remove') || 'Supprimer'}
                   </Button>
                 </div>
               </td>
