@@ -7,6 +7,7 @@ import { colors } from '@/styles/tokens'
 import { useDeletePipelineItem } from '@/features/pipeline/hooks/useDeletePipelineItem'
 import { useToast } from '@/hooks/useToast'
 import { useTranslation } from '@/providers/I18nProvider'
+import { useExportTeamPerformance } from '@/features/pipeline/hooks/useExportTeamPerformance'
 
 type PipelineItem = {
   id: string
@@ -186,6 +187,166 @@ function InfoRow({ icon, label, value }: { icon: string; label: string; value: R
   )
 }
 
+// ── Export Panel ────────────────────────────────────────────────────────
+function ExportPanel({ members }: { members?: Member[] }) {
+  const { t } = useTranslation()
+  const { exportPerformance, loading } = useExportTeamPerformance()
+  const [open, setOpen]         = useState(false)
+  const [memberId, setMemberId] = useState('')
+  const [from, setFrom]         = useState('')
+  const [to, setTo]             = useState('')
+
+  const inputStyle: React.CSSProperties = {
+    background: colors.bg3,
+    border: `1px solid ${colors.border}`,
+    borderRadius: 8,
+    padding: '7px 10px',
+    fontSize: 13,
+    color: colors.text,
+    outline: 'none',
+    width: '100%',
+    boxSizing: 'border-box',
+  }
+
+  const labelStyle: React.CSSProperties = {
+    fontSize: 11,
+    fontWeight: 700,
+    textTransform: 'uppercase',
+    letterSpacing: '.05em',
+    color: colors.textMid,
+    marginBottom: 4,
+    display: 'block',
+  }
+
+  return (
+    <div style={{ marginBottom: 20 }}>
+      {/* Trigger */}
+      <button
+        onClick={() => setOpen((v) => !v)}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          background: 'linear-gradient(135deg, rgba(99,102,241,0.15) 0%, rgba(139,92,246,0.15) 100%)',
+          border: '1px solid rgba(99,102,241,0.35)',
+          borderRadius: 10,
+          padding: '9px 16px',
+          cursor: 'pointer',
+          color: '#a5b4fc',
+          fontWeight: 600,
+          fontSize: 13,
+          fontFamily: "'Syne',sans-serif",
+          transition: 'all 200ms ease',
+          width: '100%',
+          justifyContent: 'space-between',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.borderColor = 'rgba(99,102,241,0.6)'
+          e.currentTarget.style.background  = 'linear-gradient(135deg, rgba(99,102,241,0.25) 0%, rgba(139,92,246,0.25) 100%)'
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.borderColor = 'rgba(99,102,241,0.35)'
+          e.currentTarget.style.background  = 'linear-gradient(135deg, rgba(99,102,241,0.15) 0%, rgba(139,92,246,0.15) 100%)'
+        }}
+      >
+        <span>📊 {t('pipeline.exportPerformances')}</span>
+        <span style={{ fontSize: 11, opacity: 0.7 }}>{open ? '▲' : '▼'}</span>
+      </button>
+
+      {/* Collapsible form */}
+      {open && (
+        <div
+          style={{
+            marginTop: 10,
+            background: colors.bg2,
+            border: `1px solid ${colors.border}`,
+            borderRadius: 12,
+            padding: '18px 20px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 14,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+          }}
+        >
+          {/* Header */}
+          <div style={{ fontSize: 13, color: colors.textMid, lineHeight: 1.5 }}>
+            {t('pipeline.exportDesc')}
+          </div>
+
+          {/* Member filter */}
+          <div>
+            <label style={labelStyle}>{t('pipeline.filterMember')}</label>
+            <select
+              value={memberId}
+              onChange={(e) => setMemberId(e.target.value)}
+              style={inputStyle}
+            >
+              <option value="">{t('pipeline.allMembers')}</option>
+              {members?.map((m) => (
+                <option key={m.uid} value={m.uid}>
+                  {m.name ?? m.email ?? m.uid}
+                  {m.accessId ? ` (${m.accessId})` : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Date range */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div>
+              <label style={labelStyle}>{t('pipeline.exportFrom')}</label>
+              <input
+                type="date"
+                value={from}
+                onChange={(e) => setFrom(e.target.value)}
+                style={inputStyle}
+              />
+            </div>
+            <div>
+              <label style={labelStyle}>{t('pipeline.exportTo')}</label>
+              <input
+                type="date"
+                value={to}
+                onChange={(e) => setTo(e.target.value)}
+                style={inputStyle}
+              />
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                setMemberId('')
+                setFrom('')
+                setTo('')
+              }}
+            >
+              {t('pipeline.exportReset')}
+            </Button>
+            <Button
+              size="sm"
+              variant="primary"
+              loading={loading}
+              onClick={() =>
+                void exportPerformance({
+                  memberId: memberId || undefined,
+                  from: from || undefined,
+                  to:   to   || undefined,
+                })
+              }
+            >
+              ⬇ {t('pipeline.exportDownload')}
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function ManagerPipelineList({ items, members }: Props) {
   const { t } = useTranslation()
   const deleteMutation = useDeletePipelineItem()
@@ -240,6 +401,9 @@ export function ManagerPipelineList({ items, members }: Props) {
       {selectedItem && (
         <ProspectModal item={selectedItem} onClose={() => setSelectedItem(null)} statusLabel={statusLabel} members={members} />
       )}
+
+      {/* Export panel — always shown for managers */}
+      <ExportPanel members={members} />
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
         {Object.entries(grouped).map(([status, groupItems]) => (
