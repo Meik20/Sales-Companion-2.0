@@ -37,6 +37,21 @@ export async function GET(request: NextRequest) {
     const fromDate = searchParams.get('from') ? new Date(searchParams.get('from')!) : null
     const toDate   = searchParams.get('to')   ? new Date(searchParams.get('to')! + 'T23:59:59Z') : null
 
+    // ── Fetch team members to resolve missing names ──────────────────────
+    const membersSnap = await adminDb
+      .collection('users')
+      .where('managerId', '==', managerUid)
+      .get()
+
+    const membersMap = new Map<string, { name: string; accessId: string }>()
+    membersSnap.docs.forEach((doc) => {
+      const d = doc.data()
+      membersMap.set(doc.id, {
+        name: d.name || d.email || doc.id,
+        accessId: d.accessId || '',
+      })
+    })
+
     // ── Fetch all pipeline items under this manager ──────────────────────
     const teamSnap = await adminDb
       .collection('pipeline')
@@ -138,8 +153,20 @@ export async function GET(request: NextRequest) {
     const byMember: Record<string, MemberStat> = {}
     for (const item of filtered) {
       const uid  = item.assignedTo ?? '__manager__'
-      const name = item.memberName ?? 'Manager'
-      const id   = item.memberAccessId ?? ''
+      
+      let name = item.memberName
+      let id   = item.memberAccessId
+
+      if (!name || !id) {
+        if (uid !== '__manager__' && uid !== managerUid) {
+          const m = membersMap.get(uid)
+          name = name || m?.name || uid
+          id   = id || m?.accessId || ''
+        } else {
+          name = 'Manager'
+          id = ''
+        }
+      }
 
       if (!byMember[uid]) {
         byMember[uid] = {
@@ -206,19 +233,36 @@ export async function GET(request: NextRequest) {
       'Date ajout',
     ]
 
-    const detailRows = filtered.map((i) => [
-      i.companyName ?? '',
-      normalizeStatus(i.status),
-      i.memberName ?? 'Manager',
-      i.memberAccessId ?? '',
-      i.companyCity ?? '',
-      i.companySector ?? '',
-      i.companyPhone ?? '',
-      i.companyEmail ?? '',
-      i.notes ?? i.note ?? '',
-      i.nextFollowUp ?? '',
-      i.createdAt ? new Date(i.createdAt).toLocaleDateString('fr-FR') : '',
-    ])
+    const detailRows = filtered.map((i) => {
+      const uid = i.assignedTo ?? '__manager__'
+      let name = i.memberName
+      let id = i.memberAccessId
+
+      if (!name || !id) {
+        if (uid !== '__manager__' && uid !== managerUid) {
+          const m = membersMap.get(uid)
+          name = name || m?.name || uid
+          id   = id || m?.accessId || ''
+        } else {
+          name = 'Manager'
+          id = ''
+        }
+      }
+
+      return [
+        i.companyName ?? '',
+        normalizeStatus(i.status),
+        name,
+        id,
+        i.companyCity ?? '',
+        i.companySector ?? '',
+        i.companyPhone ?? '',
+        i.companyEmail ?? '',
+        i.notes ?? i.note ?? '',
+        i.nextFollowUp ?? '',
+        i.createdAt ? new Date(i.createdAt).toLocaleDateString('fr-FR') : '',
+      ]
+    })
 
     // Escape a single CSV cell (wraps in quotes if needed)
     const esc = (v: string) => {
