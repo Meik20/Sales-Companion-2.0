@@ -99,7 +99,7 @@ function SectionLabel({ children }: { children: string }) {
 }
 
 function SectionDivider() {
-  return <hr style={{ border: 'none', borderTop: `1px solid ${colors.border}`, margin: '6px 0' }} />
+  return <hr style={{ border: 'none', borderTop: `1px solid ${colors.border}`, margin: '14px 0 8px 0' }} />
 }
 
 export function AppSidebar({ isMobile = false, onClose }: { isMobile?: boolean; onClose?: () => void }) {

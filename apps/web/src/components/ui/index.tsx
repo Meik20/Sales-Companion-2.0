@@ -82,9 +82,9 @@ export function Card({ children }: PropsWithChildren) {
 
 // ─── Panel ───────────────────────────────────────────────────────────────────
 
-type PanelProps = PropsWithChildren<{ padded?: boolean }>
+type PanelProps = PropsWithChildren<{ padded?: boolean; style?: CSSProperties }>
 
-export function Panel({ children, padded = true }: PanelProps) {
+export function Panel({ children, padded = true, style }: PanelProps) {
   return (
     <div
       style={{
@@ -93,6 +93,7 @@ export function Panel({ children, padded = true }: PanelProps) {
         borderRadius: radius.lg,
         boxShadow: shadows.sm,
         padding: padded ? spacing.xl : 0,
+        ...style,
       }}
     >
       {children}
@@ -116,11 +117,12 @@ type DataCardProps = PropsWithChildren<{
   title: string
   subtitle?: string
   actions?: ReactNode
+  style?: CSSProperties
 }>
 
-export function DataCard({ title, subtitle, actions, children }: DataCardProps) {
+export function DataCard({ title, subtitle, actions, children, style }: DataCardProps) {
   return (
-    <Panel>
+    <Panel style={style}>
       <Stack gap={16}>
         <div
           style={{

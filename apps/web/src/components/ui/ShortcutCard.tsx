@@ -42,23 +42,26 @@ export function ShortcutCard({ sector = 'default', title, subtitle, count, updat
         alignItems: 'flex-start',
         gap: 10,
         padding: '14px 16px',
-        background: colors.bg2,
-        border: `1px solid ${colors.border}`,
+        background: 'rgba(55,138,221,0.02)',
+        border: `2px solid rgba(55,138,221,0.15)`,
         borderRadius: 14,
         cursor: 'pointer',
         transition: transitions.fast,
         textAlign: 'left',
         width: '100%',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = HOVER_BORDER
-        e.currentTarget.style.background   = 'rgba(55,138,221,0.05)'
-        e.currentTarget.style.transform    = 'translateY(-1px)'
+        e.currentTarget.style.borderColor = 'rgba(55,138,221,0.4)'
+        e.currentTarget.style.background   = 'rgba(55,138,221,0.06)'
+        e.currentTarget.style.transform    = 'translateY(-2px)'
+        e.currentTarget.style.boxShadow    = '0 6px 16px rgba(0,0,0,0.06)'
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = colors.border
-        e.currentTarget.style.background  = colors.bg2
+        e.currentTarget.style.borderColor = 'rgba(55,138,221,0.15)'
+        e.currentTarget.style.background  = 'rgba(55,138,221,0.02)'
         e.currentTarget.style.transform   = 'translateY(0)'
+        e.currentTarget.style.boxShadow   = '0 2px 8px rgba(0,0,0,0.02)'
       }}
     >
       {/* Icon */}

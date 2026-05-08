@@ -147,7 +147,13 @@ function SearchContent() {
             }
             actions={<SaveCurrentSearchButton filters={filters} results={results} />}
           >
-            {searchQuery.isLoading ? <LoadingState title={t('search.loadingSearch')} /> : null}
+            {searchQuery.isLoading ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '10px 0' }}>
+                {[1, 2, 3].map((i) => (
+                  <div key={i} style={{ height: 96, borderRadius: 12, background: 'var(--color-bg2)', border: '1px solid var(--color-border)', opacity: 0.7, animation: 'pulse 1.5s infinite ease-in-out' }} />
+                ))}
+              </div>
+            ) : null}
             {searchQuery.isError ? (
               <div style={{
                 padding: '12px 16px', borderRadius: 8,
@@ -327,7 +333,7 @@ function SearchContent() {
         `}} />
 
         {/* Pipeline commercial */}
-        <DataCard title={t('search.commercialPipeline')}>
+        <DataCard title={t('search.commercialPipeline')} style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.06)', border: '1px solid rgba(55,138,221,0.15)' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {/* Stats live */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
@@ -353,7 +359,7 @@ function SearchContent() {
         </DataCard>
 
         {/* Assistant B2B IA */}
-        <DataCard title={t('search.aiAssistant')}>
+        <DataCard title={t('search.aiAssistant')} style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.06)', border: '1px solid rgba(27,122,62,0.15)' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, height: 380 }}>
             {/* Zone messages */}
             <div style={{
@@ -418,9 +424,9 @@ function SearchContent() {
                       fontSize: 11,
                       padding: '5px 10px',
                       borderRadius: 999,
-                      border: `1px solid ${colors.border}`,
-                      background: colors.bg2,
-                      color: colors.textMid,
+                      border: `1px solid rgba(27,122,62,0.3)`,
+                      background: 'rgba(27,122,62,0.08)',
+                      color: colors.greenDark,
                       cursor: isSendingChat ? 'not-allowed' : 'pointer',
                       opacity: isSendingChat ? 0.5 : 1,
                       transition: 'all 150ms ease',
@@ -440,7 +446,7 @@ function SearchContent() {
                 onKeyDown={handleChatKeyDown}
                 disabled={isSendingChat}
                 placeholder={t('search.aiPlaceholder')}
-                rows={2}
+                rows={3}
                 style={{
                   width: '100%',
                   padding: '10px 48px 10px 14px',
