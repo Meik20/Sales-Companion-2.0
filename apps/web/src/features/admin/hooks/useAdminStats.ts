@@ -10,6 +10,8 @@ type AdminStats = {
   totalSearchesToday?: number
   activeUsers?: number
   newUsersThisWeek?: number
+  roleDistribution?: Record<string, number>
+  planDistribution?: Record<string, number>
 }
 
 export function useAdminStats() {
@@ -34,5 +36,7 @@ export function useAdminStats() {
       return response.json() as Promise<AdminStats>
     },
     enabled: !!user?.uid,
+    refetchInterval: 5000, // Refresh automatically every 5 seconds
+    refetchOnWindowFocus: true,
   })
 }

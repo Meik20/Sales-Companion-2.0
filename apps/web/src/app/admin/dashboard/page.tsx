@@ -154,17 +154,17 @@ export default function AdminDashboardPage() {
     : t('admin.dashboardSubtitle')
 
   const roleData = [
-    { label: t('admin.members'), value: Math.max(0, (stats?.totalUsers ?? 0) - 2), color: colors.info },
-    { label: t('admin.managers'), value: Math.max(0, Math.round((stats?.totalUsers ?? 0) * 0.15)), color: colors.greenMid },
-    { label: t('admin.indep'), value: Math.max(0, Math.round((stats?.totalUsers ?? 0) * 0.05)), color: colors.gold },
-    { label: t('admin.admins'), value: 1, color: colors.goldDark },
+    { label: t('admin.members'), value: stats?.roleDistribution?.member || 0, color: colors.info },
+    { label: t('admin.managers'), value: stats?.roleDistribution?.manager || 0, color: colors.greenMid },
+    { label: t('admin.indep'), value: stats?.roleDistribution?.independent || 0, color: colors.gold },
+    { label: t('admin.admins'), value: stats?.roleDistribution?.admin || 0, color: colors.goldDark },
   ]
 
   const planData = [
-    { label: 'Free', value: Math.max(1, Math.round((stats?.totalUsers ?? 0) * 0.6)), color: colors.textDim },
-    { label: 'Starter', value: Math.max(0, Math.round((stats?.totalUsers ?? 0) * 0.25)), color: colors.info },
-    { label: 'Pro', value: Math.max(0, Math.round((stats?.totalUsers ?? 0) * 0.12)), color: colors.green },
-    { label: 'Enterprise', value: Math.max(0, Math.round((stats?.totalUsers ?? 0) * 0.03)), color: colors.gold },
+    { label: 'Free', value: stats?.planDistribution?.FREE || 0, color: colors.textDim },
+    { label: 'Starter', value: stats?.planDistribution?.STARTER || 0, color: colors.info },
+    { label: 'Pro', value: stats?.planDistribution?.PRO || 0, color: colors.green },
+    { label: 'Enterprise', value: stats?.planDistribution?.ENTERPRISE || 0, color: colors.gold },
   ]
 
   return (

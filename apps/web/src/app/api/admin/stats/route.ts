@@ -31,6 +31,7 @@ export async function GET(request: NextRequest) {
       activeUsersSnap,
       newUsersSnap,
       searchesTodaySnap,
+      usersDataSnap,
     ] = await Promise.all([
       adminDb.collection('users').count().get(),
       adminDb.collection('companies').count().get(),
@@ -50,7 +51,20 @@ export async function GET(request: NextRequest) {
         .where('createdAt', '>=', todayStart)
         .count()
         .get(),
+      adminDb.collection('users').select('role', 'plan').get(),
     ])
+
+    const roles: Record<string, number> = {}
+    const plans: Record<string, number> = {}
+    
+    const allUsersSnap = usersDataSnap as FirebaseFirestore.QuerySnapshot
+    allUsersSnap.forEach((doc) => {
+      const data = doc.data()
+      const role = data.role || 'member'
+      const plan = data.plan || 'FREE'
+      roles[role] = (roles[role] || 0) + 1
+      plans[plan] = (plans[plan] || 0) + 1
+    })
 
     return NextResponse.json({
       totalUsers: usersSnap.data().count,
@@ -59,6 +73,8 @@ export async function GET(request: NextRequest) {
       activeUsers: activeUsersSnap.data().count,
       newUsersThisWeek: newUsersSnap.data().count,
       totalSearchesToday: searchesTodaySnap.data().count,
+      roleDistribution: roles,
+      planDistribution: plans,
     })
   } catch (error) {
     console.error('Admin stats error:', error)
