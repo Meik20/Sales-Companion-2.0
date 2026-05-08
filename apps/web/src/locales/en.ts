@@ -607,7 +607,6 @@ export const en = {
     newPasswordHelp: "Change the default administrator password.",
     changePassword: "Change password",
     pricingPlans: "Pricing Plans",
-    plan: "Plan",
     searchesPerDay: "Searches / day",
     recommendedMonthlyPrice: "Recommended monthly price",
     target: "Target",

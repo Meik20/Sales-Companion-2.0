@@ -607,7 +607,6 @@ export const fr = {
     newPasswordHelp: "Changez le mot de passe administrateur par défaut.",
     changePassword: "Changer le mot de passe",
     pricingPlans: "Plans tarifaires",
-    plan: "Plan",
     searchesPerDay: "Recherches / jour",
     recommendedMonthlyPrice: "Prix mensuel recommandé",
     target: "Cible",
