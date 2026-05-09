@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+export const dynamic = 'force-dynamic'
 async function getAdminModules() {
   const { adminDb, adminAuth } = await import('@/lib/firebase-admin')
   return { adminDb, adminAuth }

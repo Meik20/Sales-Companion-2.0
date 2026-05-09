@@ -208,10 +208,10 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
           width: 100%;
           height: 48px;
           padding: 0 48px 0 44px;
-          border: 1.5px solid var(--cr-separator-color);
+          border: 1.5px solid var(--bd);
           border-radius: 999px;
-          background: var(--cr-card-background-color);
-          color: var(--cr-primary-text-color);
+          background: var(--bg2);
+          color: var(--tx);
           font-size: 14px;
           font-family: inherit;
           outline: none;
@@ -220,12 +220,12 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
           box-shadow: 0 1px 2px rgba(0,0,0,0.04);
         }
         .sc-input::placeholder {
-          color: var(--cr-secondary-text-color);
+          color: var(--tx2);
           opacity: 0.7;
         }
         .sc-input:focus {
-          border-color: var(--google-green-500, #34a853);
-          box-shadow: 0 0 0 3px rgba(52,168,83,0.12);
+          border-color: var(--color-primary);
+          box-shadow: 0 0 0 3px rgba(0,85,255,0.12);
         }
         .sc-submit-btn {
           width: 46px;
@@ -233,7 +233,7 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
           height: 46px;
           padding: 0;
           border-radius: 50%;
-          background: var(--google-green-600, #1e8e3e);
+          background: var(--color-primary);
           color: #fff;
           border: none;
           display: inline-flex;
@@ -244,7 +244,7 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
           transition: background 180ms ease, transform 120ms ease;
         }
         .sc-submit-btn:hover {
-          background: var(--google-green-700, #137333);
+          background: var(--color-blue-600);
           transform: translateY(-1px);
         }
         .sc-submit-btn svg {
@@ -283,21 +283,21 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
           display: inline-flex; align-items: center; gap: 4px;
           height: 28px; padding: 0 12px;
           border-radius: 999px;
-          border: 1.5px solid var(--cr-separator-color);
-          background: var(--cr-card-background-color);
-          color: var(--cr-primary-text-color);
+          border: 1.5px solid var(--bd);
+          background: var(--bg2);
+          color: var(--tx);
           font-size: 12px; font-weight: 500;
           cursor: pointer; font-family: inherit;
           transition: all 150ms ease; white-space: nowrap;
         }
-        .sc-pill:hover { border-color: var(--google-green-500,#34a853); color: var(--google-green-700,#137333); }
+        .sc-pill:hover { border-color: var(--color-primary); color: var(--color-primary); }
         .sc-pill.active {
-          border-color: var(--google-green-500,#34a853);
-          background: rgba(52,168,83,0.09);
-          color: var(--google-green-700,#137333);
+          border-color: var(--color-primary);
+          background: rgba(0,85,255,0.09);
+          color: var(--color-primary);
           font-weight: 700;
         }
-        .sc-adv-btn:hover { color: var(--google-green-700,#137333); }
+        .sc-adv-btn:hover { color: var(--color-primary); }
         .sc-adv-chevron { transition: transform 200ms ease; }
         .sc-adv-chevron.open { transform: rotate(180deg); }
 
@@ -311,8 +311,8 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
           display: flex; flex-direction: column; gap: 10px;
           padding: 14px 16px;
           border-radius: 10px;
-          background: var(--cr-card-background-color);
-          border: 1.5px solid var(--cr-separator-color);
+          background: var(--bg2);
+          border: 1.5px solid var(--bd);
           animation: sc-fadein 160ms ease;
         }
         @keyframes sc-fadein {
@@ -326,34 +326,34 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
         }
         .sc-adv-field label {
           display: block; font-size: 11px; font-weight: 600;
-          color: var(--cr-secondary-text-color);
+          color: var(--tx2);
           text-transform: uppercase; letter-spacing: .05em;
           margin-bottom: 4px;
         }
         .sc-adv-select {
           width: 100%; height: 36px; padding: 0 10px;
-          border: 1.5px solid var(--cr-separator-color);
+          border: 1.5px solid var(--bd);
           border-radius: 8px;
-          background: var(--md-background-color, var(--cr-card-background-color));
-          color: var(--cr-primary-text-color);
+          background: var(--bg);
+          color: var(--tx);
           font-size: 12.5px; font-family: inherit;
           outline: none; cursor: pointer;
           transition: border-color 150ms ease;
         }
-        .sc-adv-select:focus { border-color: var(--google-green-500,#34a853); }
+        .sc-adv-select:focus { border-color: var(--color-primary); }
         .sc-adv-select:disabled { opacity: 0.5; cursor: not-allowed; }
         .sc-geo-btn {
           height: 36px; padding: 0 14px;
           border-radius: 8px; font-size: 12px; font-weight: 600;
           cursor: pointer; font-family: inherit;
-          background: rgba(52,168,83,0.07);
-          border: 1.5px solid rgba(52,168,83,0.25);
-          color: var(--google-green-600,#1e8e3e);
+          background: rgba(0,85,255,0.07);
+          border: 1.5px solid rgba(0,85,255,0.25);
+          color: var(--color-primary);
           display: flex; align-items: center; justify-content: center; gap: 5px;
           transition: all 150ms ease; white-space: nowrap; width: 100%;
         }
-        .sc-geo-btn:hover { background: rgba(52,168,83,0.13); }
-        .sc-geo-btn.done { background: rgba(52,168,83,0.13); border-color: rgba(52,168,83,0.5); }
+        .sc-geo-btn:hover { background: rgba(0,85,255,0.13); }
+        .sc-geo-btn.done { background: rgba(0,85,255,0.13); border-color: rgba(0,85,255,0.5); }
         .sc-geo-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
         /* ── Active chips ── */
@@ -361,9 +361,9 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
         .sc-chip {
           display: inline-flex; align-items: center; gap: 5px;
           font-size: 11.5px; padding: 3px 10px; border-radius: 999px;
-          background: rgba(52,168,83,0.09);
-          border: 1px solid rgba(52,168,83,0.3);
-          color: var(--google-green-700,#137333); font-weight: 600;
+          background: rgba(0,85,255,0.09);
+          border: 1px solid rgba(0,85,255,0.3);
+          color: var(--color-primary); font-weight: 600;
         }
         .sc-chip button {
           background: none; border: none; cursor: pointer;
@@ -375,8 +375,8 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
           display: inline-flex; align-items: center; gap: 4px;
           height: 26px; padding: 0 10px; border-radius: 8px;
           background: transparent;
-          border: 1px solid var(--cr-separator-color);
-          color: var(--cr-secondary-text-color);
+          border: 1px solid var(--bd);
+          color: var(--tx2);
           font-size: 11.5px; font-weight: 600; cursor: pointer;
           font-family: inherit; transition: all 150ms ease;
         }
