@@ -281,7 +281,6 @@ function SearchContent() {
             }
             `}} />
 
-            {/* Grille de Raccourcis */}
             <div 
               className="shortcut-grid"
               style={{ 
@@ -296,25 +295,25 @@ function SearchContent() {
                 sector="btp" 
                 title={t('search.btpDouala')}
                 subtitle={t('search.newCompanies')}
-                onClick={() => { setFilters({ sector: 'BTP', city: 'Douala' }); setHasSearched(true) }} 
+                onClick={() => { setFilters({ sector: 'BTP & Construction', city: 'Douala' }); setHasSearched(true) }} 
               />
               <ShortcutCard 
                 sector="tech" 
                 title={t('search.techYaounde')}
                 subtitle={t('search.startupsPme')}
-                onClick={() => { setFilters({ sector: 'Tech', city: 'Yaoundé' }); setHasSearched(true) }} 
+                onClick={() => { setFilters({ sector: 'Technologies & Numérique', city: 'Yaoundé' }); setHasSearched(true) }} 
               />
               <ShortcutCard 
                 sector="agro" 
                 title={t('search.agro')}
                 subtitle={t('search.allCameroon')}
-                onClick={() => { setFilters({ sector: 'Agroalimentaire' }); setHasSearched(true) }} 
+                onClick={() => { setFilters({ sector: 'Agriculture & Agroalimentaire' }); setHasSearched(true) }} 
               />
               <ShortcutCard 
                 sector="transport" 
                 title={t('search.transport')}
                 subtitle={t('search.allCameroon')}
-                onClick={() => { setFilters({ sector: 'Transport' }); setHasSearched(true) }} 
+                onClick={() => { setFilters({ sector: 'Transport & Logistique' }); setHasSearched(true) }} 
               />
             </div>
           </div>
