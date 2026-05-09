@@ -173,29 +173,38 @@ export async function POST(request: NextRequest) {
         companyName = d.companyName || d.name || pipelineItemId
         prospectData = d
       } else {
-        // Primary CSV import collection
-        const managerProspectDoc = await adminDb.collection('manager_prospects').doc(pipelineItemId).get()
-        if (managerProspectDoc.exists) {
-          const d = managerProspectDoc.data()!
-          companyName = d.name || d.companyName || d.raisonSociale || pipelineItemId
+        // Look in companies first
+        const companyDoc = await adminDb.collection('companies').doc(pipelineItemId).get()
+        if (companyDoc.exists) {
+          const d = companyDoc.data()!
+          companyName = d.raisonSociale || d.name || pipelineItemId
           prospectData = d
         } else {
-          // Legacy import collection
-          const importedDoc = await adminDb.collection('imported_prospects').doc(pipelineItemId).get()
-          if (importedDoc.exists) {
-            const d = importedDoc.data()!
-            companyName = d.name || d.companyName || pipelineItemId
+          // Primary CSV import collection
+          const managerProspectDoc = await adminDb.collection('manager_prospects').doc(pipelineItemId).get()
+          if (managerProspectDoc.exists) {
+            const d = managerProspectDoc.data()!
+            companyName = d.name || d.companyName || d.raisonSociale || pipelineItemId
             prospectData = d
+          } else {
+            // Legacy import collection
+            const importedDoc = await adminDb.collection('imported_prospects').doc(pipelineItemId).get()
+            if (importedDoc.exists) {
+              const d = importedDoc.data()!
+              companyName = d.name || d.companyName || pipelineItemId
+              prospectData = d
+            }
           }
         }
       }
     } else {
       // If name provided, still try to fetch extra data (like email, phone) if possible
       const pDoc = await adminDb.collection('pipeline').doc(pipelineItemId).get()
-      const mDoc = !pDoc.exists ? await adminDb.collection('manager_prospects').doc(pipelineItemId).get() : null
-      const iDoc = (!pDoc.exists && !mDoc?.exists) ? await adminDb.collection('imported_prospects').doc(pipelineItemId).get() : null
+      const cDoc = !pDoc.exists ? await adminDb.collection('companies').doc(pipelineItemId).get() : null
+      const mDoc = (!pDoc.exists && !cDoc?.exists) ? await adminDb.collection('manager_prospects').doc(pipelineItemId).get() : null
+      const iDoc = (!pDoc.exists && !cDoc?.exists && !mDoc?.exists) ? await adminDb.collection('imported_prospects').doc(pipelineItemId).get() : null
       
-      const foundDoc = pDoc.exists ? pDoc : (mDoc?.exists ? mDoc : (iDoc?.exists ? iDoc : null))
+      const foundDoc = pDoc.exists ? pDoc : (cDoc?.exists ? cDoc : (mDoc?.exists ? mDoc : (iDoc?.exists ? iDoc : null)))
       if (foundDoc) prospectData = foundDoc.data()!
     }
 
@@ -217,6 +226,10 @@ export async function POST(request: NextRequest) {
           !['userId', 'managerUid', 'createdAt', 'updatedAt', 'status', 'assignedTo', 'memberName', 'memberAccessId', 'assignedBy', 'assignedByName', 'id', 'sourceProspectId'].includes(k)
         )
       ),
+      companyPhone: prospectData.companyPhone || prospectData.telephone || prospectData.phone || prospectData.tel || null,
+      companyEmail: prospectData.companyEmail || prospectData.email || prospectData.mail || null,
+      companySector: prospectData.companySector || prospectData.sector || prospectData.secteur || prospectData.activite || null,
+      companyCity: prospectData.companyCity || prospectData.city || prospectData.ville || prospectData.region || null,
       userId:      memberId,          // member sees it in their pipeline
       assignedTo:  memberId,          // explicit assignment metadata
       memberName:  memberName,
