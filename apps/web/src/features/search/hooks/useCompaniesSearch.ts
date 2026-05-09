@@ -61,7 +61,12 @@ export function useCompaniesSearch(filters: SearchFilters) {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to search companies')
+        let errMessage = 'Failed to search companies'
+        try {
+          const errData = await response.json()
+          if (errData?.message) errMessage = errData.message
+        } catch (e) {}
+        throw new Error(errMessage)
       }
       return response.json()
     },
