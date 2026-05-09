@@ -613,8 +613,8 @@ export const en = {
     statusClosed: "Closed"
   },
   saved: {
-    title: "Saved searches",
-    subtitle: "Relaunch your favorite searches in one click.",
+    title: "My Saved Items",
+    subtitle: "Find your saved companies and search criteria.",
     mySearches: "My searches",
     searchesSaved: "saved search(es)",
     errorLoad: "Unable to load saved searches.",
@@ -623,7 +623,13 @@ export const en = {
     restoreSuccess: "Search restored",
     deleteSuccess: "Search deleted",
     deleteError: "Cannot delete search",
-    unknownError: "Unknown error"
+    unknownError: "Unknown error",
+    myCompanies: "My Saved Companies",
+    errorLoadCompanies: "Error loading companies",
+    noCompany: "No saved company",
+    noCompanyDesc: "You haven't saved any individual companies yet.",
+    deleteCompanySuccess: "Company removed from favorites",
+    deleteCompanyError: "Error deleting company",
   },
   admin: {
     dashboardTitle: "Admin Dashboard",

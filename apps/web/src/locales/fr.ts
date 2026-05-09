@@ -613,8 +613,8 @@ export const fr = {
     statusClosed: "Fermé"
   },
   saved: {
-    title: "Recherches sauvegardées",
-    subtitle: "Relancez vos recherches favorites en un clic.",
+    title: "Mes favoris",
+    subtitle: "Retrouvez vos entreprises et recherches enregistrées.",
     mySearches: "Mes recherches",
     searchesSaved: "recherche(s) sauvegardée(s)",
     errorLoad: "Impossible de charger les recherches sauvegardées.",
@@ -623,7 +623,13 @@ export const fr = {
     restoreSuccess: "Recherche restaurée",
     deleteSuccess: "Recherche supprimée",
     deleteError: "Suppression impossible",
-    unknownError: "Erreur inconnue"
+    unknownError: "Erreur inconnue",
+    myCompanies: "Mes entreprises sauvegardées",
+    errorLoadCompanies: "Erreur lors du chargement des entreprises",
+    noCompany: "Aucune entreprise sauvegardée",
+    noCompanyDesc: "Vous n'avez pas encore sauvegardé d'entreprises individuelles.",
+    deleteCompanySuccess: "Entreprise supprimée de vos favoris",
+    deleteCompanyError: "Erreur de suppression",
   },
   admin: {
     dashboardTitle: "Dashboard admin",
