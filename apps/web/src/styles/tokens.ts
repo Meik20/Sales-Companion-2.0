@@ -80,10 +80,10 @@ export const shadows = {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const radius = {
-  sm:   6,
-  md:   10,
-  lg:   14,
-  xl:   20,
+  sm:   4,
+  md:   4,
+  lg:   4,
+  xl:   4,
   pill: 9999,
 } as const
 
@@ -115,10 +115,8 @@ export const transitions = {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const fonts = {
-  /** Body / UI text — matches globals.css body font-family */
-  sans:    "'Segoe UI', Tahoma, sans-serif",
-  /** Display / headings — same system stack, heavier weight applied at usage site */
-  display: "'Segoe UI', Tahoma, sans-serif",
+  sans:    "'Geist', sans-serif",
+  display: "'Geist', sans-serif",
 } as const
 
 

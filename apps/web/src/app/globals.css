@@ -60,182 +60,91 @@
   --google-yellow-700: rgb(240,147,0);
 }
 
-/* ─── Design System (surfaces, texte, cartes, ombres, layout) ───────── */
-:root {
-  /* Backgrounds & surfaces */
-  --md-background-color:    rgb(248,249,250);
-  --cr-card-background-color: white;
-  --cr-menu-background-color: white;
+/* ─── Design System (Premium Agency) ───────────────────────────────── */
+:root, .dark {
+  /* Colors - Surfaces */
+  --color-surface: #0f131d;
+  --color-surface-dim: #0f131d;
+  --color-surface-bright: #353944;
+  --color-surface-container-lowest: #0a0e18;
+  --color-surface-container-low: #181b25;
+  --color-surface-container: #1c212c;
+  --color-surface-container-high: #262b37;
+  --color-surface-container-highest: #313745;
 
-  /* Texte */
-  --cr-primary-text-color:   rgb(31,31,31);
-  --cr-secondary-text-color: rgb(68,71,70);
-  --cr-title-text-color:     rgb(90,90,90);
-  --cr-link-color:           rgb(11,87,208);
+  /* Colors - Brand & Accents */
+  --color-brand-primary: #0055ff;
+  --color-on-primary: #ffffff;
+  --color-secondary-container: rgba(0, 85, 255, 0.1);
+  --color-on-secondary-container: #0055ff;
 
-  /* Cartes */
-  --cr-card-border-radius: 8px;
-  --cr-card-shadow:        var(--cr-elevation-2);
+  /* Colors - Typography & Icons */
+  --color-on-surface: #ffffff;
+  --color-on-surface-variant: #94a3b8;
+  --color-outline: #334155;
+  --color-outline-variant: rgba(51, 65, 85, 0.5);
 
-  /* Ombres (élévation) */
-  --cr-elevation-1: 0 1px 2px 0 rgba(0,0,0,0.3), 0 1px 3px 1px rgba(0,0,0,0.15);
-  --cr-elevation-2: 0 1px 2px 0 rgba(0,0,0,0.3), 0 2px 6px 2px rgba(0,0,0,0.15);
-  --cr-elevation-3: 0 1px 3px 0 rgba(0,0,0,0.3), 0 4px 8px 3px rgba(0,0,0,0.15);
-  --cr-elevation-4: 0 2px 3px 0 rgba(0,0,0,0.3), 0 6px 10px 4px rgba(0,0,0,0.15);
-  --cr-elevation-5: 0 4px 4px 0 rgba(0,0,0,0.3), 0 8px 12px 6px rgba(0,0,0,0.15);
+  /* Typography Scale */
+  --font-family: 'Geist', sans-serif;
+  
+  /* Spacing & Borders */
+  --radius-standard: 4px;
 
-  /* Layout */
-  --cr-toolbar-height:        56px;
-  --cr-section-padding:       20px;
-  --cr-section-vertical-padding: 12px;
-  --cr-centered-card-max-width: 680px;
-  --cr-button-height:         36px;
+  /* ─── Alias rétrocompatibles (Mappings) ───────────────────────── */
+  --bg:  var(--color-surface);
+  --bg2: var(--color-surface-container-low);
+  --bg3: var(--color-surface-container);
+  --bg4: var(--color-surface-container-high);
 
-  /* Bordures & séparateurs */
-  --cr-hairline:        1px solid rgba(0,0,0,0.14);
-  --cr-separator-color: rgba(0,0,0,0.06);
-  --cr-separator-line:  1px solid rgba(0,0,0,0.06);
+  --tx:  var(--color-on-surface);
+  --tx2: var(--color-on-surface-variant);
+  --tx3: #64748b;
 
-  /* États interactifs */
-  --cr-hover-background-color:  rgba(31,31,31,0.08);
-  --cr-active-background-color: rgba(31,31,31,0.12);
-  --cr-focus-outline-color:     rgb(11,87,208);
-}
+  --bd:  var(--color-outline);
+  --bd2: var(--color-outline-variant);
 
-/* ─── Alias rétrocompatibles (anciens tokens courts) ────────────────── */
-:root {
-  /* Primaire vert Cameroun (mappé sur la palette Google Green) */
-  --g:   var(--google-green-800);   /* #1B5E20 → 800 */
-  --gm:  var(--google-green-500);   /* #43A047 → 500 */
-  --gd:  var(--google-green-900);   /* #0D3311 → 900 */
-  --gl:  var(--google-green-50);    /* #E8F5E9 → 50  */
+  --r:  var(--radius-standard);
+  --r2: var(--radius-standard);
+  --r3: var(--radius-standard);
 
-  /* Accent & or (conservé) */
-  --accent: #00897B;
-  --gold:   var(--google-yellow-500);
-  --goldd:  var(--google-yellow-700);
+  --sh:  none;
+  --sh2: 0 4px 12px rgba(0,0,0,0.2);
 
-  /* Surfaces (mappées sur le design system) */
-  --bg:  var(--md-background-color);
-  --bg2: var(--cr-card-background-color);
-  --bg3: var(--google-grey-100);
-  --bg4: var(--google-grey-200);
+  --cr-link-color: var(--color-brand-primary);
+  --cr-focus-outline-color: var(--color-brand-primary);
+  --cr-hover-background-color: var(--color-surface-container-high);
+  --cr-active-background-color: var(--color-surface-container-highest);
 
-  /* Texte */
-  --tx:  var(--cr-primary-text-color);
-  --tx2: var(--cr-secondary-text-color);
-  --tx3: var(--google-grey-500);
+  /* Brand overrides for components using these directly */
+  --color-primary: var(--color-brand-primary);
+  --color-blue-50: var(--color-secondary-container);
+  --color-blue-100: rgba(0, 85, 255, 0.15);
+  --color-blue-200: rgba(0, 85, 255, 0.25);
+  --color-blue-600: #0044cc;
+  --color-blue-900: #002266;
+  
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger:  #ef4444;
 
-  /* Bordures */
-  --bd:  var(--cr-separator-color);
-  --bd2: rgba(0,0,0,0.12);
-
-  /* Rayons */
-  --r:  var(--cr-card-border-radius);
-  --r2: 16px;
-  --r3: 20px;
-
-  /* Ombres */
-  --sh:  var(--cr-elevation-1);
-  --sh2: var(--cr-elevation-3);
-
-  /* Transitions */
   --transition: 300ms ease;
   --transition-fast: 150ms ease;
-}
-
-/* ─── Dark Mode Overrides ───────────────────────────────────────────── */
-.dark {
-  /* Backgrounds & surfaces */
-  --md-background-color:    #0E1929; /* Navy/Dark blue background */
-  --cr-card-background-color: #16243A;
-  --cr-menu-background-color: #16243A;
-
-  /* Texte */
-  --cr-primary-text-color:   #F9FAFB;
-  --cr-secondary-text-color: #D1D5DB;
-  --cr-title-text-color:     #9CA3AF;
-  --cr-link-color:           #38BDF8;
-
-  /* Bordures & séparateurs */
-  --cr-hairline:        1px solid rgba(255, 255, 255, 0.1);
-  --cr-separator-color: rgba(255, 255, 255, 0.1);
-  --cr-separator-line:  1px solid rgba(255, 255, 255, 0.1);
-
-  /* États interactifs */
-  --cr-hover-background-color:  rgba(255, 255, 255, 0.08);
-  --cr-active-background-color: rgba(255, 255, 255, 0.12);
-  --cr-focus-outline-color:     #38BDF8;
-
-  /* Alias */
-  --bg:  var(--md-background-color);
-  --bg2: var(--cr-card-background-color);
-  --bg3: #1C2E4A;
-  --bg4: #2A3B54;
   
-  --tx:  var(--cr-primary-text-color);
-  --tx2: var(--cr-secondary-text-color);
-  --tx3: var(--cr-title-text-color);
-
-  --bd:  var(--cr-separator-color);
-  --bd2: rgba(255, 255, 255, 0.15);
-
-  /* Overrides for theme.css variables used directly */
-  --color-text-primary:   #F9FAFB;
-  --color-text-secondary: #D1D5DB;
-  --color-text-muted:     #9CA3AF;
-  --color-text-light:     #6B7280;
-
-  --color-bg-primary:   #0E1929;
-  --color-bg-secondary: #16243A;
-  --color-bg-tertiary:  #1C2E4A;
-  --color-bg-hover:     rgba(56, 189, 248, 0.1);
-
-  --color-border-light: rgba(255, 255, 255, 0.1);
-  --color-border-mid:   rgba(255, 255, 255, 0.15);
-  --color-border-dark:  rgba(255, 255, 255, 0.25);
-
-  --color-primary: #38BDF8; /* Lighter blue for dark mode */
-
-  /* Light color variants used for backgrounds of chips/bubbles */
-  --color-blue-50:  rgba(56, 189, 248, 0.1);
-  --color-blue-100: rgba(56, 189, 248, 0.2);
-  --color-blue-200: rgba(56, 189, 248, 0.3);
-
-  --color-green-50:  rgba(34, 197, 94, 0.1);
-  --color-orange-50: rgba(249, 115, 22, 0.1);
-  --color-red-50:    rgba(239, 68, 68, 0.1);
-
-  /* Ensure text on these light backgrounds is readable */
-  --color-blue-700:   #7DD3FC;
-  --color-blue-800:   #BAE6FD;
-  --color-blue-900:   #F9FAFB;
-  --color-green-600:  #4ADE80;
-  --color-orange-600: #FB923C;
-
   color-scheme: dark;
 }
 
-.dark body {
+body {
   color: var(--tx);
   background-color: var(--bg);
 }
 
 /* Force some elements to respect the dark theme */
-.dark input, 
-.dark select, 
-.dark textarea,
-.dark button {
+input, select, textarea, button {
   color: var(--tx);
 }
 
-.dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
+h1, h2, h3, h4, h5, h6 {
   color: var(--tx);
-}
-
-.dark p, .dark span, .dark label, .dark div {
-  /* We don't force color: inherit here to avoid overriding specific mid/dim colors, 
-     but we ensure the base variables are correct */
 }
 
 /* ─── Reset ─────────────────────────────────────────────────────────── */
@@ -243,7 +152,7 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: inherit; /* cascade from body — prevents browser UA defaults on inputs/selects */
+  font-family: inherit;
 }
 
 html {
@@ -256,11 +165,11 @@ html[data-scroll-behavior="smooth"] {
 }
 
 body {
-  font-family: 'Segoe UI', Tahoma, sans-serif;
-  font-size: 81.25%; /* 13px — spec */
-  line-height: 154%;  /* spec */
-  background: var(--md-background-color);
-  color: var(--cr-primary-text-color);
+  font-family: var(--font-family);
+  font-size: 81.25%;
+  line-height: 154%;
+  background: var(--bg);
+  color: var(--tx);
   min-height: 100vh;
   overflow-x: hidden;
 }
