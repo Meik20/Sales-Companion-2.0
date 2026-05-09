@@ -665,6 +665,83 @@ export function LandingPage() {
 
 
 {/*  ═══════════════════════════════════════════════════
+     CAS D'USAGE (USE CASES)
+     ═══════════════════════════════════════════════════  */}
+<section className="section-sm" id="use-cases" aria-labelledby="use-cases-title">
+  <div className="container">
+    <header className="section-header reveal">
+      <h2 className="section-title" id="use-cases-title">
+        {t("landing.useCasesSection.title1")} <em>{t("landing.useCasesSection.title2")}</em> {t("landing.useCasesSection.title3")}
+      </h2>
+      <p className="section-sub">
+        {t("landing.useCasesSection.sub")}
+      </p>
+    </header>
+
+    <div className="features-grid">
+      <article className="feature-card reveal" aria-label={t("landing.useCasesSection.uc1Title")}>
+        <div className="feature-icon" aria-hidden="true" style={{ background: 'var(--color-primary)' }}>🏢</div>
+        <h3>{t("landing.useCasesSection.uc1Title")}</h3>
+        <p>{t("landing.useCasesSection.uc1Desc")}</p>
+      </article>
+
+      <article className="feature-card reveal reveal-d1" aria-label={t("landing.useCasesSection.uc2Title")}>
+        <div className="feature-icon" aria-hidden="true" style={{ background: 'var(--color-accent)' }}>💻</div>
+        <h3>{t("landing.useCasesSection.uc2Title")}</h3>
+        <p>{t("landing.useCasesSection.uc2Desc")}</p>
+      </article>
+
+      <article className="feature-card reveal reveal-d2" aria-label={t("landing.useCasesSection.uc3Title")}>
+        <div className="feature-icon" aria-hidden="true" style={{ background: 'var(--color-secondary)' }}>🏦</div>
+        <h3>{t("landing.useCasesSection.uc3Title")}</h3>
+        <p>{t("landing.useCasesSection.uc3Desc")}</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<div className="section-divider" aria-hidden="true"></div>
+
+
+{/*  ═══════════════════════════════════════════════════
+     FAQ (FOIRE AUX QUESTIONS)
+     ═══════════════════════════════════════════════════  */}
+<section className="section-sm" id="faq" aria-labelledby="faq-title">
+  <div className="container">
+    <header className="section-header reveal">
+      <h2 className="section-title" id="faq-title">
+        {t("landing.faqSection.title1")} <em>{t("landing.faqSection.title2")}</em> {t("landing.faqSection.title3")}
+      </h2>
+      <p className="section-sub">
+        {t("landing.faqSection.sub")}
+      </p>
+    </header>
+
+    <div className="faq-list" style={{ maxWidth: '800px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <article className="feature-card reveal" style={{ padding: '20px', textAlign: 'left' }}>
+        <h3 style={{ fontSize: '18px', marginBottom: '8px', color: 'var(--tx)' }}>{t("landing.faqSection.q1")}</h3>
+        <p style={{ color: 'var(--tx2)', fontSize: '15px', margin: 0 }}>{t("landing.faqSection.a1")}</p>
+      </article>
+      <article className="feature-card reveal reveal-d1" style={{ padding: '20px', textAlign: 'left' }}>
+        <h3 style={{ fontSize: '18px', marginBottom: '8px', color: 'var(--tx)' }}>{t("landing.faqSection.q2")}</h3>
+        <p style={{ color: 'var(--tx2)', fontSize: '15px', margin: 0 }}>{t("landing.faqSection.a2")}</p>
+      </article>
+      <article className="feature-card reveal reveal-d2" style={{ padding: '20px', textAlign: 'left' }}>
+        <h3 style={{ fontSize: '18px', marginBottom: '8px', color: 'var(--tx)' }}>{t("landing.faqSection.q3")}</h3>
+        <p style={{ color: 'var(--tx2)', fontSize: '15px', margin: 0 }}>{t("landing.faqSection.a3")}</p>
+      </article>
+      <article className="feature-card reveal reveal-d3" style={{ padding: '20px', textAlign: 'left' }}>
+        <h3 style={{ fontSize: '18px', marginBottom: '8px', color: 'var(--tx)' }}>{t("landing.faqSection.q4")}</h3>
+        <p style={{ color: 'var(--tx2)', fontSize: '15px', margin: 0 }}>{t("landing.faqSection.a4")}</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<div className="section-divider" aria-hidden="true"></div>
+
+
+{/*  ═══════════════════════════════════════════════════
      TÉMOIGNAGES
      ═══════════════════════════════════════════════════  */}
 <section className="section-sm" id="testimonials" aria-labelledby="testimonials-title">
