@@ -58,7 +58,7 @@ export function AuthGuard({ children }: PropsWithChildren) {
 
   useEffect(() => {
     if (!loading && !user) {
-      window.location.replace('/landing.html')
+      window.location.replace('/')
     }
   }, [user, loading])
 
