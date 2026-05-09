@@ -802,15 +802,15 @@ export function LandingPage() {
           <ul role="list">
             <li><a href="/login">Connexion</a></li>
             <li><a href="/register">Inscription</a></li>
-            <li><a href="/search">{t("landing.footer.search")}</a></li>
-            <li><a href="/pipeline">{t("landing.footer.pipeline")}</a></li>
+            <li><a href="/login">{t("landing.footer.search")}</a></li>
+            <li><a href="/login">{t("landing.footer.pipeline")}</a></li>
           </ul>
         </nav>
         <nav className="footer-col" aria-label="Liens support">
           <h4>{t("landing.footer.support")}</h4>
           <ul role="list">
-            <li><a href="/support">{t("landing.footer.assistance")}</a></li>
-            <li><a href="/profile">{t("landing.footer.account")}</a></li>
+            <li><a href="/login">{t("landing.footer.assistance")}</a></li>
+            <li><a href="/login">{t("landing.footer.account")}</a></li>
           </ul>
         </nav>
       </div>
