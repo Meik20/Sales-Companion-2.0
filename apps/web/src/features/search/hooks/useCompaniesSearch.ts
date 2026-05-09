@@ -8,6 +8,9 @@ type SearchFilters = {
   region?: string
   city?: string
   query?: string
+  lat?: string
+  lng?: string
+  radius?: string
 }
 
 /** Tous les champs qui peuvent exister dans une entreprise importée */
@@ -26,13 +29,17 @@ export type Company = {
   adresse?: string
   formeJuridique?: string
   capital?: string
+  // For google maps results:
+  _source?: 'google_places'
+  googlePlaceId?: string
+  rating?: number
   // Champs additionnels dynamiques
   [key: string]: unknown
 }
 
 export function useCompaniesSearch(filters: SearchFilters) {
   const { user } = useCurrentUser()
-  const hasFilters = !!(filters.sector || filters.region || filters.city || filters.query)
+  const hasFilters = !!(filters.sector || filters.region || filters.city || filters.query || filters.lat)
 
   return useQuery({
     queryKey: ['companies-search', filters],
@@ -42,6 +49,9 @@ export function useCompaniesSearch(filters: SearchFilters) {
       if (filters.region) params.append('region', filters.region)
       if (filters.city)   params.append('city',   filters.city)
       if (filters.query)  params.append('query',  filters.query)
+      if (filters.lat)    params.append('lat',    filters.lat)
+      if (filters.lng)    params.append('lng',    filters.lng)
+      if (filters.radius) params.append('radius', filters.radius)
 
       // Passer le token pour déduire un crédit côté serveur
       const token = user ? await user.getIdToken() : null

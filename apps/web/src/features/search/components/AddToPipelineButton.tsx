@@ -49,6 +49,7 @@ export function AddToPipelineButton({ company }: Props) {
           assignedTo:     user.uid,
           memberName:     user.name || user.email,
           memberAccessId: user.accessId ?? null,
+          googlePlaceId:  company._source === 'google_places' ? company.id : null,
         }),
       })
       const json = await res.json().catch(() => ({}))

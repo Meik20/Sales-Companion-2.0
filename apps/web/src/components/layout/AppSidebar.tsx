@@ -146,7 +146,18 @@ export function AppSidebar({ isMobile = false, onClose }: { isMobile?: boolean; 
         setRegion(z.region)
         setCity(z.city)
         setGeoState('done')
-        applyFilters({ region: z.region, city: z.city })
+        
+        const rValue = radius === 'National' ? 50000 : parseInt(radius) * 1000
+        const params = new URLSearchParams()
+        params.set('region', z.region)
+        params.set('city', z.city)
+        params.set('lat', pos.coords.latitude.toString())
+        params.set('lng', pos.coords.longitude.toString())
+        params.set('radius', rValue.toString())
+        if (sector) params.set('sector', sector)
+        
+        router.push(`/search?${params.toString()}`)
+        onClose?.()
       },
       () => setGeoState('idle'),
       { timeout: 8000, maximumAge: 60000 }

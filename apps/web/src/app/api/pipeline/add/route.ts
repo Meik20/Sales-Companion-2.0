@@ -44,6 +44,7 @@ export async function POST(request: NextRequest) {
       assignedTo,
       memberName,
       memberAccessId,
+      googlePlaceId,
     } = body as {
       companyId?: string
       companyName?: string
@@ -55,10 +56,32 @@ export async function POST(request: NextRequest) {
       assignedTo?: string | null
       memberName?: string | null
       memberAccessId?: string | null
+      googlePlaceId?: string | null
     }
 
     if (!companyName) {
       return NextResponse.json({ message: 'companyName requis' }, { status: 400 })
+    }
+
+    let finalPhone = companyPhone
+    let finalWebsite = null
+
+    // ── Fetch Google Place Details si googlePlaceId est présent ──
+    if (googlePlaceId) {
+      const googleApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || process.env.GOOGLE_MAPS_API_KEY
+      if (googleApiKey) {
+        try {
+          const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${googlePlaceId}&fields=formatted_phone_number,website&key=${googleApiKey}`
+          const gRes = await fetch(url)
+          const gData = await gRes.json()
+          if (gData.result) {
+            if (gData.result.formatted_phone_number && !finalPhone) finalPhone = gData.result.formatted_phone_number
+            if (gData.result.website) finalWebsite = gData.result.website
+          }
+        } catch (err) {
+          console.error('[pipeline/add] Google Place Details Error:', err)
+        }
+      }
     }
 
     const now = new Date()
@@ -72,8 +95,9 @@ export async function POST(request: NextRequest) {
       companyName:   companyName,
       companySector: companySector ?? null,
       companyCity:   companyCity ?? null,
-      companyPhone:  companyPhone ?? null,
+      companyPhone:  finalPhone ?? null,
       companyEmail:  companyEmail ?? null,
+      companyWebsite: finalWebsite ?? null,
       status:        'prospection',
       nextDate:      null,
       note:          '',

@@ -22,6 +22,9 @@ export async function GET(request: NextRequest) {
     const region = searchParams.get('region')?.trim()
     const city   = searchParams.get('city')?.trim()
     const query  = searchParams.get('query')?.trim()
+    const lat    = searchParams.get('lat')?.trim()
+    const lng    = searchParams.get('lng')?.trim()
+    const radius = searchParams.get('radius')?.trim() || '10000'
 
     // ── Auth optionnelle : si token présent, vérifier et déduire un crédit ──
     const authHeader = request.headers.get('authorization')
@@ -54,7 +57,41 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // ── Requête Firestore ──
+    // ── Google Maps Places Search ──
+    // Si lat & lng sont fournis et qu'une clé API est disponible
+    const googleApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || process.env.GOOGLE_MAPS_API_KEY
+    if (lat && lng && googleApiKey) {
+      try {
+        const keyword = [query, sector].filter(Boolean).join(' ')
+        let url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&key=${googleApiKey}`
+        if (keyword) {
+           url += `&keyword=${encodeURIComponent(keyword)}`
+        }
+        
+        const gRes = await fetch(url)
+        const gData = await gRes.json()
+        
+        if (gData.results) {
+           const places = gData.results.map((place: any) => ({
+              id: place.place_id,
+              raisonSociale: place.name,
+              adresse: place.vicinity,
+              city: place.vicinity,
+              sector: place.types?.join(', ') || sector || '',
+              region: region || '',
+              _source: 'google_places',
+              googlePlaceId: place.place_id,
+              rating: place.rating,
+           }))
+           return NextResponse.json(places)
+        }
+      } catch (err) {
+        console.error('[search/companies] Google Maps Error:', err)
+        // Fallback to internal search
+      }
+    }
+
+    // ── Requête Firestore (Fallback ou Recherche Normale) ──
     // On applique les filtres disponibles, puis filtrage texte côté app
     let q: FirebaseFirestore.Query = adminDb.collection('companies').limit(200)
 

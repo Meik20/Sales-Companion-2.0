@@ -26,6 +26,9 @@ function SearchContent() {
     region?: string
     city?: string
     query?: string
+    lat?: string
+    lng?: string
+    radius?: string
   }>({})
   const [hasSearched, setHasSearched] = useState(false)
 
@@ -47,8 +50,11 @@ function SearchContent() {
     const region = searchParams.get('region') || undefined
     const city   = searchParams.get('city')   || undefined
     const query  = searchParams.get('query')  || undefined
-    if (sector || region || city || query) {
-      setFilters({ sector, region, city, query })
+    const lat    = searchParams.get('lat')    || undefined
+    const lng    = searchParams.get('lng')    || undefined
+    const radius = searchParams.get('radius') || undefined
+    if (sector || region || city || query || lat || lng) {
+      setFilters({ sector, region, city, query, lat, lng, radius })
       setHasSearched(true)
     }
   }, [searchParams])

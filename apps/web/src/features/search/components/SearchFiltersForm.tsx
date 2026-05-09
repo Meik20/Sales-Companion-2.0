@@ -96,7 +96,7 @@ function nearestZone(lat: number, lng: number) {
   return best!
 }
 
-type Filters = { sector?: string; region?: string; city?: string; query?: string }
+type Filters = { sector?: string; region?: string; city?: string; query?: string; lat?: string; lng?: string; radius?: string }
 type Props   = { initialValues?: Filters; onSubmit: (v: Filters) => void }
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -155,7 +155,15 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
         const z = nearestZone(pos.coords.latitude, pos.coords.longitude)
         setRegion(z.region); setCity(z.city)
         setGeoState('done'); setGeoMsg(`📍 ${z.city} (${z.region})`)
-        onSubmit({ query: query || undefined, sector: sector || undefined, region: z.region, city: z.city })
+        onSubmit({ 
+          query: query || undefined, 
+          sector: sector || undefined, 
+          region: z.region, 
+          city: z.city,
+          lat: pos.coords.latitude.toString(),
+          lng: pos.coords.longitude.toString(),
+          radius: '10000' // Default 10km radius
+        })
       },
       (err) => {
         setGeoState('error')
