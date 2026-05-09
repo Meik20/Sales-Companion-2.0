@@ -47,9 +47,14 @@ export async function GET(request: NextRequest) {
           // Vérification et reset si nouveau jour
           const currentDailyUsed = await ensureDailyReset(userRef, data)
           
-          if (currentDailyUsed < dailyLimit) {
-            await userRef.update({ dailyUsed: currentDailyUsed + 1 })
+          if (currentDailyUsed >= dailyLimit) {
+            const quotaMessage = `Quota journalier épuisé (${dailyLimit} crédits). Votre compteur sera réinitialisé demain.`
+            return NextResponse.json(
+              { error: quotaMessage, message: quotaMessage },
+              { status: 429 }
+            )
           }
+          await userRef.update({ dailyUsed: currentDailyUsed + 1 })
         }
       } catch (err) {
         console.error('[search/companies] Auth error:', err)
