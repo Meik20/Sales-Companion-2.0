@@ -30,6 +30,8 @@ export async function GET(request: NextRequest) {
 
     const items = usersSnap.docs.map((doc) => {
       const data = doc.data()
+      const today = new Date().toISOString().split('T')[0]
+      const currentDailyUsed = data.lastResetDate === today ? (data.dailyUsed ?? 0) : 0
       return {
         uid: doc.id,
         name: data.name ?? null,
@@ -37,7 +39,7 @@ export async function GET(request: NextRequest) {
         role: data.role ?? 'member',
         plan: data.plan ?? 'free',
         active: data.active ?? true,
-        dailyUsed: data.dailyUsed ?? 0,
+        dailyUsed: currentDailyUsed,
         dailyLimit: data.dailyLimit ?? 10,
         company: data.company ?? null,
         sector: data.sector ?? null,

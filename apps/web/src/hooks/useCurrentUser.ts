@@ -43,9 +43,14 @@ export function useCurrentUser() {
       const userDocRef = doc(firestore, 'users', firebaseUser.uid)
       unsubscribeSnapshot = onSnapshot(userDocRef, (snapshot) => {
         if (snapshot.exists()) {
+          const data = snapshot.data()
+          const today = new Date().toISOString().split('T')[0]
+          const currentDailyUsed = data.lastResetDate === today ? (data.dailyUsed ?? 0) : 0
+
           setUser({
             uid: firebaseUser.uid,
-            ...snapshot.data(),
+            ...data,
+            dailyUsed: currentDailyUsed,
             getIdToken: (forceRefresh?: boolean) => firebaseUser.getIdToken(forceRefresh),
           } as CurrentUser)
         } else {

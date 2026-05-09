@@ -143,6 +143,9 @@ export function useTeamMembers() {
 
           const uid = data.firebaseUid || d.id
 
+          const today = new Date().toISOString().split('T')[0]
+          const currentDailyUsed = data.lastResetDate === today ? (data.dailyUsed ?? 0) : 0
+
           accessesMap[uid] = {
             uid,
             accessId:  d.id,
@@ -151,7 +154,7 @@ export function useTeamMembers() {
             role:      'member',
             managerUid: managerUid,
             active:    isActive,
-            dailyUsed: data.dailyUsed  ?? 0,
+            dailyUsed: currentDailyUsed,
             dailyLimit: data.dailyLimit ?? 100,
           }
         })
@@ -180,12 +183,15 @@ export function useTeamMembers() {
             data.active    === true  ||
             data.status    === 'active'
 
+          const today = new Date().toISOString().split('T')[0]
+          const currentDailyUsed = data.lastResetDate === today ? (data.dailyUsed ?? 0) : 0
+
           usersMap[d.id] = {
             uid:       d.id,
             email:     data.email     ?? '',
             name:      data.name      ?? '',
             active:    isActive,
-            dailyUsed: data.dailyUsed  ?? 0,
+            dailyUsed: currentDailyUsed,
             dailyLimit: data.dailyLimit ?? 100,
             managerUid: data.managerUid ?? managerUid,
           }
