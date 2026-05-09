@@ -4,7 +4,7 @@ import { ReactNode } from 'react'
 import { AppProvider } from '@/providers/AppProvider'
 import { ThemeProvider } from '@/providers/ThemeProvider'
 import { I18nProvider } from '@/providers/I18nProvider'
-
+import { GoogleAnalytics } from '@next/third-parties/google'
 export const metadata: Metadata = {
   // ── Core ──────────────────────────────────────────────────────────────
   title: {
@@ -85,6 +85,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <AppProvider>{children}</AppProvider>
           </I18nProvider>
         </ThemeProvider>
+        {process.env.NEXT_PUBLIC_GA_ID && (
+          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
+        )}
       </body>
     </html>
   )

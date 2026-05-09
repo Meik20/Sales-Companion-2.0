@@ -10,6 +10,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@next/third-parties": "^16.2.6",
     "@sales-companion/shared": "*",
     "@tanstack/react-query": "^5.0.0",
     "exceljs": "^3.4.0",
