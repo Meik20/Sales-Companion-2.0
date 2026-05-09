@@ -444,11 +444,9 @@ export function AppSidebar({ isMobile = false, onClose }: { isMobile?: boolean; 
           }}
         />
 
-        {/* Sidebar panel — explicit opaque background */}
         <div style={{
           position: 'relative',
-          /* Use a hard-coded opaque color that works in both themes */
-          background: '#0E1929',   /* deep navy — solid, never transparent */
+          background: colors.bg,
           width: 300,
           maxWidth: '85vw',
           height: '100%',
