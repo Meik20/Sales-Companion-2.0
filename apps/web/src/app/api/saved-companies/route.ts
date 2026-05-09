@@ -27,16 +27,34 @@ export async function GET(request: NextRequest) {
     const snapshot = await adminDb
       .collection('saved_companies')
       .where('userId', '==', userId)
-      .orderBy('savedAt', 'desc')
       .get()
 
-    const items = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-      savedAt: doc.data().savedAt?.toDate?.()?.toISOString() ?? null,
-    }))
+    const docs = snapshot.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        userId: data.userId,
+        companyId: data.companyId,
+        companyName: data.raisonSociale || '',
+        metadata: {
+          sector: data.sector,
+          city: data.city,
+          region: data.region,
+          telephone: data.telephone,
+          email: data.email,
+        },
+        savedAt: data.savedAt?.toDate?.()?.toISOString() ?? null,
+      };
+    })
 
-    return NextResponse.json(items)
+    // Sort by savedAt desc in memory to avoid missing Firestore index errors
+    docs.sort((a, b) => {
+      if (!a.savedAt) return 1;
+      if (!b.savedAt) return -1;
+      return new Date(b.savedAt).getTime() - new Date(a.savedAt).getTime();
+    });
+
+    return NextResponse.json({ companies: docs })
   } catch (error) {
     console.error('[saved-companies/GET] Error:', error)
     return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 })
