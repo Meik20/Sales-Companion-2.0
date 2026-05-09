@@ -43,7 +43,7 @@ export function AppHeader({ onOpenMenu }: { onOpenMenu?: () => void }) {
         position: 'sticky',
         top: 0,
         zIndex: 100,
-        background: `linear-gradient(135deg, var(--color-primary) 0%, var(--color-blue-800) 100%)`,
+        background: `var(--color-primary)`,
         boxShadow: shadows.sm,
         padding: '0 12px',
         height: 60,
