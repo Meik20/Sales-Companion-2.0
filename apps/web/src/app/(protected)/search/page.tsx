@@ -424,8 +424,8 @@ function SearchContent() {
                       fontSize: 11,
                       padding: '5px 10px',
                       borderRadius: 999,
-                      border: `1px solid rgba(27,122,62,0.3)`,
-                      background: 'rgba(27,122,62,0.08)',
+                      border: `1px solid ${colors.greenLight}`,
+                      background: colors.greenLight,
                       color: colors.greenDark,
                       cursor: isSendingChat ? 'not-allowed' : 'pointer',
                       opacity: isSendingChat ? 0.5 : 1,
@@ -478,7 +478,7 @@ function SearchContent() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  boxShadow: '0 4px 12px rgba(27,122,62,0.3)',
+                  boxShadow: '0 4px 12px rgba(0,85,255,0.3)',
                   transition: 'all 200ms ease',
                 }}
               >

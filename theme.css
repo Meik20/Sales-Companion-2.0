@@ -105,6 +105,10 @@
   /* Dark mode specific mapping overrides */
   --bg:  var(--color-surface);
   --sh2: 0 4px 12px rgba(0,0,0,0.2);
+  
+  /* Textes sur fond brand doivent être clairs en dark mode */
+  --color-blue-900: #e0e7ff; 
+  --color-blue-600: #818cf8;
 }
 
 /* ── Component: Button Primary ──────────────────────────────────────── */
