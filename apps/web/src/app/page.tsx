@@ -2,12 +2,13 @@
 
 import { useEffect } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { LandingPage } from '@/features/landing/components/LandingPage'
 
 /**
  * Root page — smart redirect:
  *  - PWA standalone (installée sur mobile) → /login  (pas de landing page)
  *  - Authenticated user                    → /search
- *  - Unauthenticated user (browser normal) → /landing.html
+ *  - Unauthenticated user (browser normal) → Renders LandingPage directly
  */
 export default function Home() {
   const { user, loading } = useCurrentUser()
@@ -28,13 +29,12 @@ export default function Home() {
     } else if (isStandalone) {
       // PWA installée, non connecté → page de connexion (jamais la landing)
       window.location.replace('/login')
-    } else {
-      // Navigateur classique, non connecté → landing marketing
-      window.location.replace('/landing.html')
     }
   }, [user, loading])
 
-  // Écran vide le temps de résoudre — pas de flash
-  return null
+  if (loading || user) return null
+
+  // Navigateur classique, non connecté → landing marketing
+  return <LandingPage />
 }
 

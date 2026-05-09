@@ -5,6 +5,7 @@ import {
   signInWithEmailAndPassword,
   signOut,
   updateProfile,
+  sendEmailVerification,
 } from 'firebase/auth'
 import { doc, setDoc, Timestamp } from 'firebase/firestore'
 import { auth, firestore } from '@/services/firebase/client'
@@ -52,6 +53,9 @@ export function useAuthActions() {
       
       // ✅ FORCE TOKEN REFRESH to get custom claims
       await user.getIdToken(true)
+
+      // Send email verification link
+      await sendEmailVerification(user)
       
       return user
     } catch (error) {
