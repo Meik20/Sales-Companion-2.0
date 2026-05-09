@@ -6,6 +6,7 @@ type Props = {
   size?: number
   interactive?: boolean
   className?: string
+  id?: string
   style?: CSSProperties
   onClick?: () => void
 }
@@ -17,7 +18,7 @@ type Props = {
  * Supporte l'interactivité : survol → glow vert, clic → callback.
  * Les paths reproduisent fidèlement le fichier icon.svg fourni.
  */
-export function ScIcon({ size = 32, interactive = false, style, onClick }: Props) {
+export function ScIcon({ size = 32, interactive = false, style, onClick, className, id }: Props) {
   const s: CSSProperties = {
     display: 'inline-block',
     flexShrink: 0,
@@ -28,6 +29,8 @@ export function ScIcon({ size = 32, interactive = false, style, onClick }: Props
 
   return (
     <svg
+      id={id}
+      className={className}
       width={size}
       height={size}
       viewBox="0 0 256 256"
