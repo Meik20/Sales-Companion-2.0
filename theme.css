@@ -1,145 +1,78 @@
 /* ─────────────────────────────────────────────────────────────────────
-   THEME: Modern Neutral — Sales Companion 2.0
-   Version: alpha
-
-   Clair, positif, professionnel.
-   Design system built for Cameroon-based sales professionals.
-   Lumineux et aéré pour réduire la fatigue visuelle.
+   THEME: Premium Agency — Sales Companion 2.0
+   Version: 1.0
    ───────────────────────────────────────────────────────────────────── */
 
-:root {
+:root, .dark {
+  /* Colors - Surfaces */
+  --color-surface: #0f131d;
+  --color-surface-dim: #0f131d;
+  --color-surface-bright: #353944;
+  --color-surface-container-lowest: #0a0e18;
+  --color-surface-container-low: #181b25;
+  --color-surface-container: #1c212c;
+  --color-surface-container-high: #262b37;
+  --color-surface-container-highest: #313745;
 
-  /* ── Base Palette: Grays ──────────────────────────────────────────── */
-  --color-white:    #FFFFFF;
-  --color-gray-50:  #F9FAFB;
-  --color-gray-100: #F3F4F6;
-  --color-gray-200: #E5E7EB;
-  --color-gray-300: #D1D5DB;
-  --color-gray-400: #9CA3AF;
-  --color-gray-500: #6B7280;
-  --color-gray-600: #4B5563;
-  --color-gray-700: #374151;
-  --color-gray-800: #1F2937;
-  --color-gray-900: #111827;
+  /* Colors - Brand & Accents */
+  --color-brand-primary: #0055ff;
+  --color-on-primary: #ffffff;
+  --color-secondary-container: rgba(0, 85, 255, 0.1);
+  --color-on-secondary-container: #0055ff;
 
-  /* ── Base Palette: Blue (primaire) ───────────────────────────────── */
-  --color-blue-50:  #EFF6FF;
-  --color-blue-100: #E0F2FE;
-  --color-blue-200: #BAE6FD;
-  --color-blue-300: #7DD3FC;
-  --color-blue-400: #38BDF8;
-  --color-blue-500: #0EA5E9;
-  --color-blue-600: #0284C7;
-  --color-blue-700: #0369A1;
-  --color-blue-800: #075985;
-  --color-blue-900: #0C3A5C;
+  /* Colors - Typography & Icons */
+  --color-on-surface: #ffffff;
+  --color-on-surface-variant: #94a3b8;
+  --color-outline: #334155;
+  --color-outline-variant: rgba(51, 65, 85, 0.5);
 
-  /* ── Base Palette: Accents ───────────────────────────────────────── */
-  --color-green-50:    #F0FDF4;
-  --color-green-100:   #DCFCE7;
-  --color-green-500:   #22C55E;
-  --color-green-600:   #16A34A;
+  /* Typography Scale */
+  --font-family: 'Geist', sans-serif;
+  
+  /* Spacing & Borders */
+  --radius-standard: 4px;
 
-  --color-orange-50:   #FFF7ED;
-  --color-orange-100:  #FFEDD5;
-  --color-orange-500:  #F97316;
-  --color-orange-600:  #EA580C;
+  /* ─── Alias rétrocompatibles (Mappings) ───────────────────────── */
+  --bg:  var(--color-surface);
+  --bg2: var(--color-surface-container-low);
+  --bg3: var(--color-surface-container);
+  --bg4: var(--color-surface-container-high);
 
-  --color-red-50:      #FEF2F2;
-  --color-red-100:     #FEE2E2;
-  --color-red-500:     #EF4444;
-  --color-red-600:     #DC2626;
+  --tx:  var(--color-on-surface);
+  --tx2: var(--color-on-surface-variant);
+  --tx3: #64748b;
 
-  /* ── Semantic Colors ─────────────────────────────────────────────── */
-  --color-primary: #0EA5E9;
-  --color-success: #22C55E;
-  --color-warning: #F97316;
-  --color-danger:  #EF4444;
-  --color-info:    #0EA5E9;
+  --bd:  var(--color-outline);
+  --bd2: var(--color-outline-variant);
 
-  /* ── Text Colors ─────────────────────────────────────────────────── */
-  --color-text-primary:   #1F2937;
-  --color-text-secondary: #6B7280;
-  --color-text-muted:     #9CA3AF;
-  --color-text-light:     #D1D5DB;
+  --r:  var(--radius-standard);
+  --r2: var(--radius-standard);
+  --r3: var(--radius-standard);
 
-  /* ── Background Colors ───────────────────────────────────────────── */
-  --color-bg-primary:   #FFFFFF;
-  --color-bg-secondary: #F9FAFB;
-  --color-bg-tertiary:  #F3F4F6;
-  --color-bg-hover:     #EFF6FF;
+  --sh:  none;
+  --sh2: 0 4px 12px rgba(0,0,0,0.2);
 
-  /* ── Border Colors ───────────────────────────────────────────────── */
-  --color-border-light: #E5E7EB;
-  --color-border-mid:   #D1D5DB;
-  --color-border-dark:  #9CA3AF;
+  --cr-link-color: var(--color-brand-primary);
+  --cr-focus-outline-color: var(--color-brand-primary);
+  --cr-hover-background-color: var(--color-surface-container-high);
+  --cr-active-background-color: var(--color-surface-container-highest);
 
-  /* ── Typography: Font Families ───────────────────────────────────── */
-  --font-heading: "Syne", "Exo 2", sans-serif;
-  --font-body:    "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono:    "Fira Code", "IBM Plex Mono", monospace;
+  /* Brand overrides for components using these directly */
+  --color-primary: var(--color-brand-primary);
+  --color-blue-50: var(--color-secondary-container);
+  --color-blue-100: rgba(0, 85, 255, 0.15);
+  --color-blue-200: rgba(0, 85, 255, 0.25);
+  --color-blue-600: #0044cc;
+  --color-blue-900: #002266;
+  
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger:  #ef4444;
 
-  /* ── Typography: Headings ────────────────────────────────────────── */
-  --font-h1-size:           2rem;
-  --font-h1-weight:         700;
-  --font-h1-line-height:    1.15;
-  --font-h1-letter-spacing: -0.03em;
-
-  --font-h2-size:           1.5rem;
-  --font-h2-weight:         700;
-  --font-h2-line-height:    1.2;
-  --font-h2-letter-spacing: -0.02em;
-
-  --font-h3-size:           1.125rem;
-  --font-h3-weight:         700;
-  --font-h3-line-height:    1.2;
-  --font-h3-letter-spacing: -0.01em;
-
-  /* ── Typography: Body ────────────────────────────────────────────── */
-  --font-body-md-size:        0.9375rem;
-  --font-body-md-weight:      400;
-  --font-body-md-line-height: 1.6;
-
-  --font-body-sm-size:        0.8125rem;
-  --font-body-sm-weight:      400;
-  --font-body-sm-line-height: 1.5;
-
-  --font-label-size:           0.6875rem;
-  --font-label-weight:         500;
-  --font-label-letter-spacing: 0.05em;
-
-  --font-mono-size:   0.8125rem;
-  --font-mono-weight: 400;
-
-  /* ── Spacing (base: 4px) ─────────────────────────────────────────── */
-  --space-1:  4px;
-  --space-2:  8px;
-  --space-3:  12px;
-  --space-4:  16px;
-  --space-5:  20px;
-  --space-6:  24px;
-  --space-8:  32px;
-  --space-10: 40px;
-  --space-12: 48px;
-  --space-16: 64px;
-
-  /* ── Border Radius ───────────────────────────────────────────────── */
-  --radius-sm:   4px;
-  --radius-md:   8px;
-  --radius-lg:   12px;
-  --radius-xl:   16px;
-  --radius-full: 9999px;
-
-  /* ── Shadows ─────────────────────────────────────────────────────── */
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.10);
-
-  /* ── Transitions ─────────────────────────────────────────────────── */
-  --transition-fast:   150ms ease;
-  --transition-normal: 200ms ease;
-  --transition-slow:   300ms ease;
+  --transition: 300ms ease;
+  --transition-fast: 150ms ease;
+  
+  color-scheme: dark;
 }
 
 /* ── Component: Button Primary ──────────────────────────────────────── */
