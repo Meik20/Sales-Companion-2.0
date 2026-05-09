@@ -25,7 +25,7 @@ function BarChart({ data }: { data: { label: string; value: number; color: strin
             <text x={x + 25} y={y - 6} textAnchor="middle" fontSize={11} fontWeight="700" fill={d.color}>
               {d.value}
             </text>
-            <text x={x + 25} y={h + 18} textAnchor="middle" fontSize={10} fill="var(--cr-secondary-text-color)">
+            <text x={x + 25} y={h + 18} textAnchor="middle" fontSize={10} fill={colors.textMid}>
               {d.label}
             </text>
           </g>
@@ -65,10 +65,10 @@ function DonutChart({ segments }: { segments: { label: string; value: number; co
             />
           )
         })}
-        <text x={cx} y={cy - 6} textAnchor="middle" fontSize={20} fontWeight="800" fill="var(--cr-primary-text-color)">
+        <text x={cx} y={cy - 6} textAnchor="middle" fontSize={20} fontWeight="800" fill={colors.text}>
           {total}
         </text>
-        <text x={cx} y={cy + 12} textAnchor="middle" fontSize={9} fill="var(--cr-secondary-text-color)">
+        <text x={cx} y={cy + 12} textAnchor="middle" fontSize={9} fill={colors.textMid}>
           TOTAL
         </text>
       </svg>
@@ -154,17 +154,17 @@ export default function AdminDashboardPage() {
     : t('admin.dashboardSubtitle')
 
   const roleData = [
-    { label: t('admin.members'), value: stats?.roleDistribution?.member || 0, color: colors.info },
-    { label: t('admin.managers'), value: stats?.roleDistribution?.manager || 0, color: colors.greenMid },
-    { label: t('admin.indep'), value: stats?.roleDistribution?.independent || 0, color: colors.gold },
-    { label: t('admin.admins'), value: stats?.roleDistribution?.admin || 0, color: colors.goldDark },
+    { label: t('admin.members'), value: stats?.roleDistribution?.member || 0, color: '#60a5fa' },
+    { label: t('admin.managers'), value: stats?.roleDistribution?.manager || 0, color: '#34d399' },
+    { label: t('admin.indep'), value: stats?.roleDistribution?.independent || 0, color: '#c084fc' },
+    { label: t('admin.admins'), value: stats?.roleDistribution?.admin || 0, color: '#facc15' },
   ]
 
   const planData = [
-    { label: 'Free', value: stats?.planDistribution?.FREE || 0, color: colors.textDim },
-    { label: 'Starter', value: stats?.planDistribution?.STARTER || 0, color: colors.info },
-    { label: 'Pro', value: stats?.planDistribution?.PRO || 0, color: colors.green },
-    { label: 'Enterprise', value: stats?.planDistribution?.ENTERPRISE || 0, color: colors.gold },
+    { label: 'Free', value: stats?.planDistribution?.FREE || 0, color: '#9ca3af' },
+    { label: 'Starter', value: stats?.planDistribution?.STARTER || 0, color: '#60a5fa' },
+    { label: 'Pro', value: stats?.planDistribution?.PRO || 0, color: '#34d399' },
+    { label: 'Enterprise', value: stats?.planDistribution?.ENTERPRISE || 0, color: '#facc15' },
   ]
 
   return (
