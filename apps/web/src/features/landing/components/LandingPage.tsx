@@ -315,26 +315,25 @@ export function LandingPage() {
         viewBox="0 0 41 41" 
         xmlns="http://www.w3.org/2000/svg"
         role="img"
-        aria-label="Code QR pour installer l'application"
+        aria-label={t('landing.pwaBanner.qrAria')}
       >
         {/*  L'image remplacera le SVG  */}
       </svg>
       <img id="qr-code-img" src="" alt="QR Code" width="120" height="120" style={{"display":"none","borderRadius":"4px","background":"#fff","border":"1px solid var(--bd)","padding":"8px"}} />
-      <span className="pwa-install-qr-label">Scannez pour installer</span>
+      <span className="pwa-install-qr-label">{t('landing.pwaBanner.scanToInstall')}</span>
     </div>
     
     <div className="pwa-install-content">
-      <div className="pwa-install-title">📱 Installer sur votre téléphone</div>
+      <div className="pwa-install-title">📱 {t('landing.pwaBanner.title')}</div>
       <p className="pwa-install-desc">
-        Téléchargez Sales Companion directement sur votre téléphone pour un accès rapide 
-        et un fonctionnement hors ligne. Aucun compte App Store requis.
+        {t('landing.pwaBanner.desc')}
       </p>
       <div className="pwa-install-actions">
-        <button id="install-pwa-btn-banner" className="btn-install-pwa hidden" aria-label="Installer l'application">
-          ⬇️ Installer maintenant
+        <button id="install-pwa-btn-banner" className="btn-install-pwa hidden" aria-label={t('landing.pwaBanner.installAria')}>
+          ⬇️ {t('landing.pwaBanner.installBtn')}
         </button>
         <a href="/register" className="btn-install-pwa" style={{"textDecoration":"none","background":"var(--dark3)","border":"1px solid var(--bd)"}}>
-          🚀 Commencer
+          🚀 {t('landing.pwaBanner.startBtn')}
         </a>
       </div>
     </div>

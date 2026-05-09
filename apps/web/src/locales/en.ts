@@ -13,11 +13,20 @@ export const en = {
     heroTitle4: 'sell',
     heroTitle5: 'better',
     heroSub: "Sales Companion centralizes your base of Cameroonian companies, your CRM pipeline and team management — in a single PWA tool, accessible everywhere, even offline.",
+    freeToStart: 'Free to start',
     discoverFeatures: 'Discover features',
     installApp: "Install app",
-    freeToStart: 'Free to start',
     noCardRequired: 'No credit card required',
     officialDatabase: 'Official Cameroonian database',
+    pwaBanner: {
+      qrAria: "QR Code to install the app",
+      scanToInstall: "Scan to install",
+      title: "Install on your phone",
+      desc: "Download Sales Companion directly to your phone for quick access and offline functionality. No App Store account required.",
+      installAria: "Install application",
+      installBtn: "Install now",
+      startBtn: "Get started"
+    },
     stats: {
       indexed: 'indexed companies',
       regions: 'regions in Cameroon',
