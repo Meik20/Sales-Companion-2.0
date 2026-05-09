@@ -32,5 +32,7 @@ export function useAdminUsers() {
       return response.json() as Promise<AdminUsersResponse>
     },
     enabled: !!user?.uid,
+    refetchInterval: 5000, // Real-time updates every 5 seconds
+    refetchOnWindowFocus: true,
   })
 }
