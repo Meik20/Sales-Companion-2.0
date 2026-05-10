@@ -142,10 +142,10 @@ export function LandingPage() {
 <nav className="nav" id="nav" role="navigation" aria-label="Navigation principale">
   <div className="nav-inner">
     {/*  Brand avec ScIcon interactif  */}
-    <a href="/" className="nav-brand" aria-label="Sales Companion — Accueil">
+    <a href="/" className="nav-brand" aria-label="Sales Companion 2.0 — Accueil">
       {/*  ScIcon SVG  */}
       <ScIcon size={32} interactive className="sc-icon interactive" id="nav-icon" />
-      <span className="nav-brand-text">Sales <em>Companion</em></span>
+      <span className="nav-brand-text">Sales <em>Companion 2.0</em></span>
     </a>
 
     {/*  Desktop nav  */}
@@ -238,7 +238,7 @@ export function LandingPage() {
             <path d="M0 0 C7 6 12 11 12 24 C4 25 -3 25 -9 25 C-11 18 -13 16 -16 13 C-19 11 -26 12 -41 15 C-43 18 -43 23 -43 23 C-38 30 -27 32 -19 33 C-8 36 4 39 10 49 C15 57 16 65 14 74 C12 82 8 88 0 93 C-8 97 -16 97 -25 97 C-39 97 -48 95 -56 88 C-63 81 -66 73 -66 63 C-60 62 -47 61 -47 61 C-43 72 -41 75 -36 78 C-30 80 -20 80 -14 78 C-7 71 -7 62 -7 62 C-11 57 -17 56 -24 55 C-44 49 -54 45 -60 35 C-64 28 -64 22 -62 15 C-60 8 -56 2 -49 -2 C-35 -8 -13 -9 0 0 Z" fill="#FBFCFB" transform="translate(105,124)"/>
             <path d="M0 0 C6 5 10 11 12 18 C12 21 12 21 -8 26 C-12 17 -14 14 -21 11 C-28 9 -35 9 -41 12 C-48 18 -53 33 -53 33 C-54 46 -47 69 -47 69 C-39 76 -33 77 -33 77 C-20 76 -14 71 -14 71 C-9 62 -7 57 -7 57 C-1 58 12 63 12 63 C6 82 -3 88 -3 88 C-27 96 -40 95 -40 95 C-60 85 -67 76 -67 76 C-77 42 -73 25 -73 25 C-62 3 -51 -4 -51 -4 C-35 -12 -14 -10 0 0 Z" fill="#FBFCFC" transform="translate(203,126)"/>
           </svg>
-          <span className="mockup-header-text" style={{"color":"var(--gm)"}}>Sales Companion</span>
+          <span className="mockup-header-text" style={{"color":"var(--gm)"}}>Sales Companion 2.0</span>
           <span style={{"fontSize":"10px","color":"var(--tx3)","marginLeft":"auto"}}>Recherche</span>
         </div>
         {/*  Barre de recherche  */}
@@ -884,7 +884,7 @@ export function LandingPage() {
     </div>
 
     <div className="footer-bottom">
-      <span>© 2025 Sales Companion. {t("landing.footer.rights")}</span>
+      <span>© 2025 Sales Companion 2.0. {t("landing.footer.rights")}</span>
       <span>
         <span className="footer-flag" aria-label="Drapeau Cameroun">🇨🇲</span>
         Intelligence B2B Cameroun

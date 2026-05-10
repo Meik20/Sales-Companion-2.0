@@ -138,7 +138,7 @@ export function AuthGuard({ children }: PropsWithChildren) {
           }}>
             <strong style={{ color: colors.text }}>Étapes :</strong>
             <ol style={{ margin: '8px 0 0', paddingLeft: 16 }}>
-              <li>Ouvrez l&apos;email de <strong>Sales Companion</strong></li>
+              <li>Ouvrez l&apos;email de <strong>Sales Companion 2.0</strong></li>
               <li>Cliquez sur <strong>« Vérifier mon adresse email »</strong></li>
               <li>Revenez ici — votre accès s&apos;ouvrira automatiquement</li>
             </ol>

@@ -6,7 +6,7 @@ import { colors } from '@/styles/tokens'
 export const metadata: Metadata = {
   title: 'Connexion',
   description:
-    'Connectez-vous à Sales Companion pour accéder à votre pipeline commercial et gérer votre prospection B2B au Cameroun.',
+    'Connectez-vous à Sales Companion 2.0 pour accéder à votre pipeline commercial et gérer votre prospection B2B au Cameroun.',
   alternates: { canonical: '/login' },
   robots: { index: false, follow: false }, // page auth — pas d'indexation
 }

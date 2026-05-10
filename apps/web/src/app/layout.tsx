@@ -8,8 +8,8 @@ import { GoogleAnalytics } from '@next/third-parties/google'
 export const metadata: Metadata = {
   // ── Core ──────────────────────────────────────────────────────────────
   title: {
-    default: 'Sales Companion — Intelligence B2B Cameroun',
-    template: '%s | Sales Companion',
+    default: 'Sales Companion 2.0 — Intelligence B2B Cameroun',
+    template: '%s | Sales Companion 2.0',
   },
   description:
     'La plateforme B2B dédiée aux commerciaux et managers au Cameroun. Recherchez des entreprises, gérez votre pipeline commercial et boostez vos performances de vente.',
@@ -20,10 +20,10 @@ export const metadata: Metadata = {
     'gestion équipe commerciale',
     'intelligence commerciale Cameroun',
     'logiciel commercial Cameroun',
-    'Sales Companion',
+    'Sales Companion 2.0',
   ],
-  authors: [{ name: 'Sales Companion' }],
-  creator: 'Sales Companion',
+  authors: [{ name: 'Sales Companion 2.0' }],
+  creator: 'Sales Companion 2.0',
 
   // ── Canonical & robots ────────────────────────────────────────────────
   metadataBase: new URL(
@@ -51,11 +51,11 @@ export const metadata: Metadata = {
 
   // ── Open Graph ────────────────────────────────────────────────────────
   openGraph: {
-    title: 'Sales Companion — Intelligence B2B Cameroun',
+    title: 'Sales Companion 2.0 — Intelligence B2B Cameroun',
     description:
       'Recherchez des entreprises, gérez votre pipeline et boostez vos performances commerciales au Cameroun.',
     url: '/',
-    siteName: 'Sales Companion',
+    siteName: 'Sales Companion 2.0',
     locale: 'fr_FR',
     type: 'website',
   },
@@ -63,7 +63,7 @@ export const metadata: Metadata = {
   // ── Twitter / X Card ─────────────────────────────────────────────────
   twitter: {
     card: 'summary_large_image',
-    title: 'Sales Companion — Intelligence B2B Cameroun',
+    title: 'Sales Companion 2.0 — Intelligence B2B Cameroun',
     description:
       'La plateforme commerciale B2B dédiée aux équipes de vente au Cameroun.',
     creator: '@SalesCompanion',

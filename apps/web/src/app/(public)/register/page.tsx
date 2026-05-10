@@ -5,7 +5,7 @@ import { colors } from '@/styles/tokens'
 export const metadata: Metadata = {
   title: 'Créer un compte',
   description:
-    'Créez votre compte Sales Companion gratuitement. Rejoignez les équipes commerciales et managers qui boostent leur prospection B2B au Cameroun.',
+    'Créez votre compte Sales Companion 2.0 gratuitement. Rejoignez les équipes commerciales et managers qui boostent leur prospection B2B au Cameroun.',
   alternates: { canonical: '/register' },
   robots: { index: true, follow: true },
 }

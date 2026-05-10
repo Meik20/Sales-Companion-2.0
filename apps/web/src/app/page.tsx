@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 import { HomeClient } from './HomeClient'
 
 export const metadata: Metadata = {
-  title: 'Sales Companion | Prospectez plus vite, Vendez mieux',
+  title: 'Sales Companion 2.0 | Prospectez plus vite, Vendez mieux',
   description: 'Le premier outil d\'intelligence commerciale et de prospection B2B au Cameroun. Trouvez vos prospects idéaux et gérez votre pipeline commercial facilement.',
 }
 
@@ -11,7 +11,7 @@ export default function Home() {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
-    name: 'Sales Companion',
+    name: 'Sales Companion 2.0',
     applicationCategory: 'BusinessApplication',
     operatingSystem: 'Web, iOS, Android',
     offers: {

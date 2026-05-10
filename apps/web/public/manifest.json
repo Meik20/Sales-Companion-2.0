@@ -1,6 +1,6 @@
 {
-  "name": "Sales Companion",
-  "short_name": "SalesComp",
+  "name": "Sales Companion 2.0",
+  "short_name": "SC 2.0",
   "description": "Intelligence B2B Cameroun — Recherche d'entreprises, pipeline CRM et gestion d'équipe",
   "start_url": "/login?source=pwa",
   "scope": "/",
