@@ -83,7 +83,7 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
             onChange={(e) => setCompanyName(e.target.value)}
           />
         </FormField>
-|
+
         <FormField label={t('pipeline.city')}>
           <Input
             placeholder={t('pipeline.placeholderCity')}
@@ -91,7 +91,7 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
             onChange={(e) => setCompanyCity(e.target.value)}
           />
         </FormField>
-|
+
         <FormField label={t('pipeline.sector')}>
           <Input
             placeholder={t('pipeline.placeholderSector')}
@@ -100,7 +100,7 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
           />
         </FormField>
       </div>
-|
+
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
         <FormField label={t('pipeline.status')}>
           <div style={{ display: 'flex', gap: 8 }}>
@@ -128,15 +128,7 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
             ))}
           </div>
         </FormField>
-|
-        <FormField label={t('pipeline.note')}>
-          <Input
-            placeholder={t('pipeline.placeholderNote')}
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-          />
-        </FormField>
-|
+
         <FormField label={t('pipeline.nextAction')}>
           <Input
             placeholder={t('pipeline.placeholderNextAction')}
@@ -144,6 +136,55 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
             onChange={(e) => setNextAction(e.target.value)}
           />
         </FormField>
+      </div>
+
+      {/* ── NOTES — champ dédié, pleine largeur ── */}
+      <div style={{
+        background: 'rgba(251,191,36,0.05)',
+        border: '1px solid rgba(251,191,36,0.25)',
+        borderRadius: 12,
+        padding: '14px 16px',
+      }}>
+        <label style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          fontSize: 11,
+          fontWeight: 700,
+          textTransform: 'uppercase',
+          letterSpacing: '.07em',
+          color: '#fbbf24',
+          marginBottom: 8,
+        }}>
+          📝 {t('pipeline.notesLabel')}
+          <span style={{ fontWeight: 400, color: 'rgba(251,191,36,0.6)', textTransform: 'none', letterSpacing: 0 }}>
+            — {t('pipeline.notesHint')}
+          </span>
+        </label>
+        <textarea
+          placeholder={t('pipeline.placeholderNotes')}
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          rows={4}
+          style={{
+            width: '100%',
+            boxSizing: 'border-box',
+            background: 'transparent',
+            border: '1px solid rgba(251,191,36,0.2)',
+            borderRadius: 8,
+            padding: '10px 12px',
+            fontSize: 13,
+            color: colors.text,
+            resize: 'vertical',
+            outline: 'none',
+            fontFamily: 'inherit',
+            lineHeight: 1.6,
+            transition: 'border-color 200ms ease',
+            minHeight: 90,
+          }}
+          onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(251,191,36,0.5)' }}
+          onBlur={(e)  => { e.currentTarget.style.borderColor = 'rgba(251,191,36,0.2)' }}
+        />
       </div>
 
       {error ? (

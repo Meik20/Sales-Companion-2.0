@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/index'
 import { Button } from '@/components/ui/Button'
 import { colors } from '@/styles/tokens'
 import { useDeletePipelineItem } from '@/features/pipeline/hooks/useDeletePipelineItem'
+import { useUpdatePipelineItem } from '@/features/pipeline/hooks/useUpdatePipelineItem'
 import { useToast } from '@/hooks/useToast'
 import { useTranslation } from '@/providers/I18nProvider'
 import { useExportTeamPerformance } from '@/features/pipeline/hooks/useExportTeamPerformance'
@@ -79,7 +80,27 @@ function ProspectModal({
   members?: Member[];
 }) {
   const { t } = useTranslation()
-  const noteText = item.notes ?? item.note ?? ''
+  const updateMutation = useUpdatePipelineItem()
+  const { pushToast } = useToast()
+
+  const [noteText, setNoteText] = useState(item.notes ?? item.note ?? '')
+  const [noteSaving, setNoteSaving] = useState(false)
+
+  async function handleSaveNote() {
+    setNoteSaving(true)
+    try {
+      await updateMutation.mutateAsync({ id: item.id, data: { notes: noteText } })
+      pushToast({ type: 'success', title: t('pipeline.notesSaved') })
+    } catch {
+      pushToast({ type: 'error', title: t('pipeline.notesSaveError') })
+    } finally {
+      setNoteSaving(false)
+    }
+  }
+
+  const originalNote = item.notes ?? item.note ?? ''
+  const noteChanged = noteText !== originalNote
+
   return (
     <>
       <div
@@ -99,9 +120,10 @@ function ProspectModal({
         <div
           style={{
             background: colors.bg2, border: `1px solid ${colors.border}`,
-            borderRadius: 16, width: '100%', maxWidth: 480,
+            borderRadius: 16, width: '100%', maxWidth: 520,
             padding: 28, pointerEvents: 'auto',
             boxShadow: '0 24px 64px rgba(0,0,0,0.4)',
+            maxHeight: '90vh', overflowY: 'auto',
           }}
         >
           {/* Header */}
@@ -159,12 +181,60 @@ function ProspectModal({
             })()}
           </div>
 
-          {noteText && (
-            <div style={{ background: 'rgba(251,191,36,0.07)', border: '1px solid rgba(251,191,36,0.2)', borderRadius: 10, padding: '12px 14px', marginBottom: 14 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#fbbf24', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6 }}>📝 {t('pipeline.notesLabel')}</div>
-              <div style={{ fontSize: 13, color: colors.text, lineHeight: 1.5 }}>{noteText}</div>
+          {/* ── NOTES — section éditable ── */}
+          <div style={{
+            background: 'rgba(251,191,36,0.06)',
+            border: '1px solid rgba(251,191,36,0.25)',
+            borderRadius: 12,
+            padding: '14px 16px',
+            marginBottom: 16,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#fbbf24', textTransform: 'uppercase', letterSpacing: '.06em' }}>
+                📝 {t('pipeline.notesLabel')}
+              </div>
+              {noteChanged && (
+                <Button
+                  size="sm"
+                  variant="primary"
+                  loading={noteSaving}
+                  onClick={() => void handleSaveNote()}
+                  style={{ fontSize: 11, padding: '4px 10px', minHeight: 26 }}
+                >
+                  {t('pipeline.notesSaveBtn')}
+                </Button>
+              )}
             </div>
-          )}
+            <textarea
+              value={noteText}
+              onChange={(e) => setNoteText(e.target.value)}
+              placeholder={t('pipeline.placeholderNotes')}
+              rows={4}
+              style={{
+                width: '100%',
+                boxSizing: 'border-box',
+                background: 'transparent',
+                border: '1px solid rgba(251,191,36,0.2)',
+                borderRadius: 8,
+                padding: '10px 12px',
+                fontSize: 13,
+                color: colors.text,
+                resize: 'vertical',
+                outline: 'none',
+                fontFamily: 'inherit',
+                lineHeight: 1.6,
+                minHeight: 90,
+                transition: 'border-color 200ms ease',
+              }}
+              onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(251,191,36,0.5)' }}
+              onBlur={(e)  => { e.currentTarget.style.borderColor = 'rgba(251,191,36,0.2)' }}
+            />
+            {noteChanged && (
+              <div style={{ fontSize: 11, color: '#fbbf24', marginTop: 6, opacity: 0.8 }}>
+                {t('pipeline.notesUnsaved')}
+              </div>
+            )}
+          </div>
 
           {item.nextFollowUp && (
             <div style={{ background: 'rgba(96,165,250,0.07)', border: '1px solid rgba(96,165,250,0.2)', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: '#93c5fd' }}>
@@ -445,6 +515,11 @@ export function ManagerPipelineList({ items, members }: Props) {
                         {item.companySector ? `🏭 ${item.companySector}` : ''}
                         {item.companyCity   ? ` · 📍 ${item.companyCity}` : ''}
                       </div>
+                      {(item.notes ?? item.note) && (
+                        <div style={{ fontSize: 11, color: '#fbbf24', marginTop: 2 }}>
+                          📝 {t('pipeline.hasNotes')}
+                        </div>
+                      )}
                       {item.assignedTo && (
                         <div style={{ fontSize: 11, color: 'rgba(99,102,241,0.7)', marginTop: 3 }}>
                           👤 {resolveMemberLabel(item, members) ?? item.assignedTo}
