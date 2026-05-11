@@ -112,7 +112,7 @@ export function AppHeader({ onOpenMenu }: { onOpenMenu?: () => void }) {
                   textTransform: 'uppercase',
                 }}
               >
-                Sales <em style={{ opacity: 0.75, fontStyle: 'normal', fontWeight: 400 }}>Companion</em>
+                Sales <em style={{ opacity: 0.75, fontStyle: 'normal', fontWeight: 400 }}>Companion</em>{' '}<em style={{ opacity: 0.55, fontStyle: 'normal', fontWeight: 400, fontSize: 12 }}>2.0</em>
               </span>
               <span className="hdr-logo-sub" style={{ fontSize: 9.5, color: 'rgba(255,255,255,0.55)', letterSpacing: '.12em', textTransform: 'uppercase' }}>
                 B2B Cameroun
