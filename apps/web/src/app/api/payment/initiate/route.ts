@@ -63,6 +63,7 @@ export async function POST(request: NextRequest) {
     // ── Appel CAMPAY ───────────────────────────────────────────────────────
     const campayResponse = await campayCollect({
       amount:             String(planInfo.amount),
+      currency:           'XAF',
       from:               phone,
       description:        `Sales Companion 2.0 — Abonnement ${planInfo.label}`,
       external_reference,

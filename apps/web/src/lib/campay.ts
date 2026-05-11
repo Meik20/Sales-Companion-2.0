@@ -16,6 +16,7 @@ const CAMPAY_APP_PASSWORD   = process.env.CAMPAY_APP_PASSWORD   ?? ''
 
 export interface CampayCollectRequest {
   amount:             string   // Montant en FCFA (ex: "15000")
+  currency:           string   // Toujours "XAF" pour le Cameroun
   from:               string   // Numéro Mobile Money (ex: "237690000000")
   description:        string   // Description de la transaction
   external_reference: string   // Référence unique côté Sales Companion
