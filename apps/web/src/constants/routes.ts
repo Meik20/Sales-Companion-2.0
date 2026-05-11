@@ -8,6 +8,7 @@ export const routes = {
   profile: '/profile',
   saved: '/saved',
   settings: '/settings',
+  upgrade: '/upgrade',
   support: '/support',
   ai: '/ai',
   team: '/team',

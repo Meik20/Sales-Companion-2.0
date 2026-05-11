@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { AppShell } from '@/components/layout/AppShell'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { DataCard, Badge } from '@/components/ui/index'
@@ -9,6 +10,7 @@ import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useToast } from '@/hooks/useToast'
 import { useTranslation } from '@/providers/I18nProvider'
 import { colors } from '@/styles/tokens'
+import { routes } from '@/constants/routes'
 
 const planDetails = {
   free:       { labelKey: 'settings.plans.free',       searches: 50,    featureKeys: ['settings.features.basicSearch', 'settings.features.personalPipeline', 'settings.features.fiftySearches'] },
@@ -21,6 +23,7 @@ export default function SettingsPage() {
   const { t } = useTranslation()
   const { user } = useCurrentUser()
   const { pushToast } = useToast()
+  const router = useRouter()
 
   const plan = user?.plan ?? 'free'
   const planInfo = planDetails[plan as keyof typeof planDetails] ?? planDetails.free
@@ -62,7 +65,7 @@ export default function SettingsPage() {
 
               {plan !== 'enterprise' ? (
                 <button
-                  onClick={() => pushToast({ type: 'info', title: t('settings.upgradeAdminHint') })}
+                  onClick={() => router.push(routes.upgrade)}
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
