@@ -12,8 +12,8 @@ import { routes } from '@/constants/routes'
 
 // ── Configuration des comptes de réception (À MODIFIER PAR VOUS) ──────────────
 const PAYMENT_ACCOUNTS = {
-  MTN:    { number: '6XX XXX XXX', name: 'VOTRE NOM ICI' },
-  ORANGE: { number: '6XX XXX XXX', name: 'VOTRE NOM ICI' },
+  MTN:    { number: '655 88 60 86', name: 'MBAYE EYOUM IVAN KEVIN' },
+  ORANGE: { number: '655 88 60 86', name: 'MBAYE EYOUM IVAN KEVIN' },
 }
 
 // ── Plans ────────────────────────────────────────────────────────────────────
