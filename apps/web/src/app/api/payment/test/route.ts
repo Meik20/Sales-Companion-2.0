@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 /**
  * GET /api/payment/test
  * Diagnostic CAMPAY étendu — teste toutes les combinaisons d'authentification.
+ * Version : 2.1 (Forced Redeploy)
  * À supprimer après débogage.
  */
 export async function GET(request: NextRequest) {
