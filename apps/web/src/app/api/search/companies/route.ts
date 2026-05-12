@@ -148,7 +148,15 @@ export async function GET(request: NextRequest) {
     }
     if (sector) {
       const nSector = normalize(sector)
-      internalCompanies = internalCompanies.filter((c) => normalize(c.sector as string).includes(nSector))
+      const sectorKeywords = nSector.split(/[\s&/]+/).filter(kw => kw.length > 2)
+      
+      internalCompanies = internalCompanies.filter((c) => {
+        const cSector = normalize(c.sector as string)
+        // If no keywords (very short sector), just check inclusion
+        if (sectorKeywords.length === 0) return cSector.includes(nSector)
+        // Otherwise check if ANY keyword matches (OR logic for composite sectors)
+        return sectorKeywords.some(kw => cSector.includes(kw))
+      })
     }
     if (query) {
       const keywords = normalize(query).split(/\s+/).filter(Boolean)
