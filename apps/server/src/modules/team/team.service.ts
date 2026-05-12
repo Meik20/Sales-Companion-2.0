@@ -149,7 +149,9 @@ export const teamService = {
       plan: managerData?.plan || 'starter',
       dailyLimit: managerData?.dailyLimit || 10,
       dailyUsed: 0,
-      active: true,
+      active: false,
+      activated: false,
+      emailVerificationPending: true,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
       updatedAt: admin.firestore.FieldValue.serverTimestamp()
     })
