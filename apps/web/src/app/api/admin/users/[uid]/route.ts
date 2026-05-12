@@ -24,10 +24,36 @@ export async function PATCH(
     // Strip fields that should not be mutated directly
     const { uid: _uid, email: _email, ...safeFields } = body
 
-    await adminDb.collection('users').doc(uid).update({
+    const userDocRef = adminDb.collection('users').doc(uid)
+    const oldSnap = await userDocRef.get()
+    const oldData = oldSnap.data()
+
+    await userDocRef.update({
       ...safeFields,
       updatedAt: new Date(),
     })
+
+    // ── Plan & Limit Propagation ──
+    // If a manager's plan or limit is updated, propagate to all their members
+    if ((safeFields.plan || safeFields.dailyLimit !== undefined) && oldData?.role === 'manager') {
+      const membersSnap = await adminDb
+        .collection('users')
+        .where('managerUid', '==', uid)
+        .where('role', '==', 'member')
+        .get()
+
+      const batch = adminDb.batch()
+      membersSnap.docs.forEach((doc) => {
+        const updateData: Record<string, any> = {
+          updatedAt: new Date(),
+        }
+        if (safeFields.plan) updateData.plan = safeFields.plan
+        if (safeFields.dailyLimit !== undefined) updateData.dailyLimit = safeFields.dailyLimit
+        
+        batch.update(doc.ref, updateData)
+      })
+      await batch.commit()
+    }
 
     // If role change is included, update custom claims too
     if (safeFields.role) {

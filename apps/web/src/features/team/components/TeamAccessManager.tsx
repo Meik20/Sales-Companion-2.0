@@ -75,27 +75,25 @@ export function TeamAccessManager() {
     if (!user) return
     setIsSubmitting(true)
     try {
-      const accessId = buildAccessId(formData.firstname, formData.lastname, formData.company || user.companyName || 'Entreprise')
-      if (accessId === '@entreprise') throw new Error("Identifiant invalide")
-
-      const ref = doc(db, 'team_accesses', accessId)
-      await setDoc(ref, {
-        accessId,
-        firstname: formData.firstname,
-        lastname: formData.lastname,
-        company: formData.company || user.companyName || 'Entreprise',
-        role: 'member',
-        status: 'pending',
-        activated: false,
-        firebaseUid: null,
-        email: null,
-        managerUid: user.uid,
-        managerEmail: user.email,
-        createdAt: serverTimestamp()
+      const token = await user.getIdToken()
+      const res = await fetch('/api/team/accesses', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          firstname: formData.firstname,
+          lastname: formData.lastname,
+          company: formData.company || user.companyName || 'Entreprise'
+        })
       })
-      pushToast({ type: 'success', title: `Accès créé ! ID: ${accessId}` })
+
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message || data.error || "Erreur lors de la création")
+
+      pushToast({ type: 'success', title: `Accès créé ! ID: ${data.accessId}` })
       setFormData({ firstname: '', lastname: '', company: '' })
-      // Real-time listener will automatically update the list
     } catch (e: any) {
       pushToast({ type: 'error', title: `Erreur: ${e.message}` })
     } finally {

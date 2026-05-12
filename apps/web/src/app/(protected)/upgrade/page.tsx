@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { AppShell } from '@/components/layout/AppShell'
 import { PageHeader } from '@/components/layout/PageHeader'
@@ -59,9 +59,18 @@ const PLANS = [
 ]
 
 export default function UpgradePage() {
-  const { user } = useCurrentUser()
+  const { user, loading: userLoading } = useCurrentUser()
   const { pushToast } = useToast()
   const router = useRouter()
+
+  // ── Protection de la page ────────────────────────────────────────────────
+  useEffect(() => {
+    if (!userLoading && user) {
+      if (user.role !== 'manager' && user.role !== 'independent') {
+        router.replace(routes.search)
+      }
+    }
+  }, [user, userLoading, router])
 
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
   const [operator, setOperator]         = useState<'MTN' | 'ORANGE'>('MTN')

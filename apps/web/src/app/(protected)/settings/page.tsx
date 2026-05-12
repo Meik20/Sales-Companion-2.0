@@ -63,7 +63,7 @@ export default function SettingsPage() {
                 </p>
               </div>
 
-              {plan !== 'enterprise' ? (
+              {(plan !== 'enterprise' && (user?.role === 'manager' || user?.role === 'independent')) ? (
                 <button
                   onClick={() => router.push(routes.upgrade)}
                   style={{
