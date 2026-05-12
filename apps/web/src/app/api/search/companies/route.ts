@@ -137,35 +137,31 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    // ── 4. Filtrage flexible ──
+    // ── 4. Filtrage flexible (Mots-clés pour chaque champ) ──
+    const matchKeywords = (dataValue: string, filterValue: string, logic: 'every' | 'some' = 'every') => {
+      const nData = normalize(dataValue)
+      const kws = normalize(filterValue).split(/[\s&/]+/).filter(kw => kw.length >= 2)
+      if (kws.length === 0) return nData.includes(normalize(filterValue))
+      return kws[logic](kw => nData.includes(kw))
+    }
+
     if (region) {
-      const nRegion = normalize(region)
-      internalCompanies = internalCompanies.filter((c) => normalize(c.region as string).includes(nRegion))
+      internalCompanies = internalCompanies.filter((c) => matchKeywords(c.region as string, region, 'some'))
     }
     if (city) {
-      const nCity = normalize(city)
-      internalCompanies = internalCompanies.filter((c) => normalize(c.city as string).includes(nCity))
+      internalCompanies = internalCompanies.filter((c) => matchKeywords(c.city as string, city, 'some'))
     }
     if (sector) {
-      const nSector = normalize(sector)
-      const sectorKeywords = nSector.split(/[\s&/]+/).filter(kw => kw.length > 2)
-      
-      internalCompanies = internalCompanies.filter((c) => {
-        const cSector = normalize(c.sector as string)
-        // If no keywords (very short sector), just check inclusion
-        if (sectorKeywords.length === 0) return cSector.includes(nSector)
-        // Otherwise check if ANY keyword matches (OR logic for composite sectors)
-        return sectorKeywords.some(kw => cSector.includes(kw))
-      })
+      internalCompanies = internalCompanies.filter((c) => matchKeywords(c.sector as string, sector, 'some'))
     }
     if (query) {
-      const keywords = normalize(query).split(/\s+/).filter(Boolean)
       internalCompanies = internalCompanies.filter((c) => {
         const searchable = normalize([
           c.raisonSociale, c.niu, c.sigle, c.dirigeant,
           c.sector, c.region, c.city, c.telephone, c.email, c.rccm,
         ].join(' '))
-        return keywords.every((kw) => searchable.includes(kw))
+        const kws = normalize(query).split(/\s+/).filter(Boolean)
+        return kws.every((kw) => searchable.includes(kw))
       })
     }
     // ── 5. Fusion des résultats ──
