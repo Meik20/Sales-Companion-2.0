@@ -96,24 +96,22 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // ── Requête Firestore (Fallback ou Recherche Normale) ──
-    // On applique les filtres disponibles, puis filtrage texte côté app
-    let q: FirebaseFirestore.Query = adminDb.collection('companies').limit(200)
-
-    if (region) {
-      q = q.where('region', '==', region)
-    }
-    if (city) {
-      q = q.where('city', '==', city)
-    }
-    if (sector) {
-      q = q.where('sector', '==', sector)
+    // ── Helper : normalise une chaîne (minuscules + sans accents) ──
+    function normalize(str: string) {
+      return String(str ?? '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .trim()
     }
 
-    const snap = await q.get()
+    // ── Requête Firestore : on charge TOUT (limité à 500) et on filtre côté app ──
+    // Les filtres Firestore avec == ne fonctionnent pas car les valeurs importées
+    // peuvent différer par la casse, les accents ou les espaces.
+    const snap = await adminDb.collection('companies').limit(500).get()
+
     let companies = snap.docs.map((d) => {
       const data = d.data()
-      // Spread raw fields first so typed aliases always win, id set once at end
       return {
         ...data,
         id: d.id,
@@ -133,15 +131,27 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    // ── Filtrage texte libre côté app ──
+    // ── Filtrage flexible côté app (insensible à la casse et aux accents) ──
+    if (region) {
+      const nRegion = normalize(region)
+      companies = companies.filter((c) => normalize(c.region as string).includes(nRegion))
+    }
+    if (city) {
+      const nCity = normalize(city)
+      companies = companies.filter((c) => normalize(c.city as string).includes(nCity))
+    }
+    if (sector) {
+      const nSector = normalize(sector)
+      companies = companies.filter((c) => normalize(c.sector as string).includes(nSector))
+    }
     if (query) {
-      const q_lower = query.toLowerCase()
+      const nQuery = normalize(query)
       companies = companies.filter((c) => {
-        const searchable = [
+        const searchable = normalize([
           c.raisonSociale, c.niu, c.sigle, c.dirigeant,
           c.sector, c.region, c.city, c.telephone, c.email, c.rccm,
-        ].join(' ').toLowerCase()
-        return searchable.includes(q_lower)
+        ].join(' '))
+        return searchable.includes(nQuery)
       })
     }
 
