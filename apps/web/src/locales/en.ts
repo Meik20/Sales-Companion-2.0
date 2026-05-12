@@ -750,6 +750,7 @@ export const en = {
     selectToDelete: "Select companies to delete.",
     clearSelection: "Clear selection",
     deleteSelection: "Delete selection",
+    clearHistory: "Clear history",
     
     importsTitle: "Data Imports",
     importsSubtitle: "History of bulk imports performed on the platform.",

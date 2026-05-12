@@ -41,6 +41,31 @@ export async function GET(request: NextRequest) {
   }
 }
 
+/* ── DELETE /api/admin/imports — clear history ── */
+export async function DELETE(request: NextRequest) {
+  try {
+    await verifyAdmin(request)
+
+    const batchSize = 500
+    while (true) {
+      const snapshot = await adminDb.collection('imports').limit(batchSize).get()
+      if (snapshot.empty) break
+
+      const batch = adminDb.batch()
+      snapshot.docs.forEach((doc) => batch.delete(doc.ref))
+      await batch.commit()
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : 'unknown'
+    if (msg === 'unauthenticated') return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+    if (msg === 'forbidden') return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
+    console.error('Imports DELETE error:', error)
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
+  }
+}
+
 /* ── POST /api/admin/imports — upload + parse CSV/Excel and save to Firestore ── */
 export async function POST(request: NextRequest) {
   try {

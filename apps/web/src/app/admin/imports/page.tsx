@@ -79,6 +79,26 @@ export default function AdminImportsPage() {
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
+  async function handleClearHistory() {
+    if (!window.confirm('Voulez-vous vraiment effacer tout l\'historique des imports ? Cette action ne supprime pas les entreprises importées.')) {
+      return
+    }
+
+    try {
+      const token = await user?.getIdToken()
+      const res = await fetch('/api/admin/imports', {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token ?? ''}` },
+      })
+
+      if (!res.ok) throw new Error('Erreur lors de la suppression')
+
+      refetch()
+    } catch (e) {
+      alert(e instanceof Error ? e.message : 'Erreur réseau')
+    }
+  }
+
   function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0]
     if (f) handleFile(f)
@@ -259,12 +279,31 @@ export default function AdminImportsPage() {
                 <span style={{ marginLeft: 8, fontSize: 12, color: colors.textMid }}>{total} import{total > 1 ? 's' : ''}</span>
               )}
             </div>
-            <button
-              onClick={() => refetch()}
-              style={{ background: colors.greenLight, color: colors.green, border: `1px solid ${colors.successBorder}`, borderRadius: 6, padding: '4px 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
-            >
-              {t('admin.refresh')}
-            </button>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button
+                onClick={handleClearHistory}
+                disabled={items.length === 0}
+                style={{
+                  background: colors.dangerBg,
+                  color: colors.danger,
+                  border: `1px solid ${colors.dangerBorder}`,
+                  borderRadius: 6,
+                  padding: '4px 10px',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: items.length === 0 ? 'not-allowed' : 'pointer',
+                  opacity: items.length === 0 ? 0.5 : 1
+                }}
+              >
+                🗑️ {t('admin.clearHistory')}
+              </button>
+              <button
+                onClick={() => refetch()}
+                style={{ background: colors.greenLight, color: colors.green, border: `1px solid ${colors.successBorder}`, borderRadius: 6, padding: '4px 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+              >
+                {t('admin.refresh')}
+              </button>
+            </div>
           </div>
 
           {isLoading && (
