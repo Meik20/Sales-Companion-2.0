@@ -62,41 +62,50 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // ── Google Maps Places Search ──
-    // Si lat & lng sont fournis et qu'une clé API est disponible
+    // ── 1. Google Maps Places Search ──
+    let googleResults: any[] = []
     const googleApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || process.env.GOOGLE_MAPS_API_KEY
-    if (lat && lng && googleApiKey) {
+    
+    if (googleApiKey && (query || (lat && lng))) {
       try {
+        let url = ""
         const keyword = [query, sector].filter(Boolean).join(' ')
-        let url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&key=${googleApiKey}`
-        if (keyword) {
-           url += `&keyword=${encodeURIComponent(keyword)}`
+        
+        if (lat && lng) {
+          // Use Nearby Search if we have coordinates
+          url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&key=${googleApiKey}`
+          if (keyword) url += `&keyword=${encodeURIComponent(keyword)}`
+        } else if (query) {
+          // Use Text Search if we only have a query (e.g. "Pharmacie Douala")
+          // We append "Cameroun" to keep it local if not specified
+          const finalQuery = query.toLowerCase().includes('cameroun') ? query : `${query} Cameroun`
+          url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(finalQuery)}&key=${googleApiKey}`
         }
-        
-        const gRes = await fetch(url)
-        const gData = await gRes.json()
-        
-        if (gData.results) {
-           const places = gData.results.map((place: any) => ({
+
+        if (url) {
+          const gRes = await fetch(url)
+          const gData = await gRes.json()
+          if (gData.results) {
+            googleResults = gData.results.map((place: any) => ({
               id: place.place_id,
               raisonSociale: place.name,
-              adresse: place.vicinity,
-              city: place.vicinity,
+              adresse: place.formatted_address || place.vicinity || '',
+              city: place.vicinity || '',
               sector: place.types?.join(', ') || sector || '',
               region: region || '',
               _source: 'google_places',
               googlePlaceId: place.place_id,
               rating: place.rating,
-           }))
-           return NextResponse.json(places)
+              telephone: '', // Google Places doesn't return phone in nearby/text search without extra fields/details request
+            }))
+          }
         }
       } catch (err) {
         console.error('[search/companies] Google Maps Error:', err)
-        // Fallback to internal search
       }
     }
 
-    // ── Helper : normalise une chaîne (minuscules + sans accents) ──
+    // ── 2. Helper : normalise une chaîne ──
     function normalize(str: string) {
       return String(str ?? '')
         .toLowerCase()
@@ -105,12 +114,9 @@ export async function GET(request: NextRequest) {
         .trim()
     }
 
-    // ── Requête Firestore : on charge TOUT (limité à 500) et on filtre côté app ──
-    // Les filtres Firestore avec == ne fonctionnent pas car les valeurs importées
-    // peuvent différer par la casse, les accents ou les espaces.
+    // ── 3. Requête Firestore ──
     const snap = await adminDb.collection('companies').limit(500).get()
-
-    let companies = snap.docs.map((d) => {
+    let internalCompanies = snap.docs.map((d) => {
       const data = d.data()
       return {
         ...data,
@@ -131,33 +137,35 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    // ── Filtrage flexible côté app (insensible à la casse et aux accents) ──
+    // ── 4. Filtrage flexible ──
     if (region) {
       const nRegion = normalize(region)
-      companies = companies.filter((c) => normalize(c.region as string).includes(nRegion))
+      internalCompanies = internalCompanies.filter((c) => normalize(c.region as string).includes(nRegion))
     }
     if (city) {
       const nCity = normalize(city)
-      companies = companies.filter((c) => normalize(c.city as string).includes(nCity))
+      internalCompanies = internalCompanies.filter((c) => normalize(c.city as string).includes(nCity))
     }
     if (sector) {
       const nSector = normalize(sector)
-      companies = companies.filter((c) => normalize(c.sector as string).includes(nSector))
+      internalCompanies = internalCompanies.filter((c) => normalize(c.sector as string).includes(nSector))
     }
     if (query) {
-      const nQuery = normalize(query)
-      companies = companies.filter((c) => {
+      const keywords = normalize(query).split(/\s+/).filter(Boolean)
+      internalCompanies = internalCompanies.filter((c) => {
         const searchable = normalize([
           c.raisonSociale, c.niu, c.sigle, c.dirigeant,
           c.sector, c.region, c.city, c.telephone, c.email, c.rccm,
         ].join(' '))
-        return searchable.includes(nQuery)
+        return keywords.every((kw) => searchable.includes(kw))
       })
     }
+    // ── 5. Fusion des résultats ──
+    const allCompanies = [...internalCompanies, ...googleResults]
 
-    return NextResponse.json(companies)
+    return NextResponse.json(allCompanies)
   } catch (error) {
     console.error('[search/companies] Error:', error)
-    return NextResponse.json([], { status: 200 }) // Always return array
+    return NextResponse.json([], { status: 200 })
   }
 }
