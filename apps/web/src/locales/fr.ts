@@ -776,7 +776,7 @@ export const fr = {
     retry: "Réessayer",
     autoColumns: "Colonnes reconnues automatiquement :",
     autoColumnsDesc1: "— Nom de l'entreprise (obligatoire)",
-    autoColumnsDesc2: "— Numéro d'identification unique (clé dédoublonnage)",
+    autoColumnsDesc2: "— Numéro d'identification unique (optionnel, clé dédoublonnage)",
     autoColumnsDesc3: "— Secteur auto-détecté",
     autoColumnsDesc4: "— Région / Ville auto-détectées",
     autoColumnsDesc5: "+ SIGLE, TELEPHONE, EMAIL, DIRIGEANT, RCCM (si disponibles)",

@@ -776,7 +776,7 @@ export const en = {
     retry: "Retry",
     autoColumns: "Automatically recognized columns:",
     autoColumnsDesc1: "— Company name (required)",
-    autoColumnsDesc2: "— Unique Identification Number (deduplication key)",
+    autoColumnsDesc2: "— Unique Identification Number (optional, deduplication key)",
     autoColumnsDesc3: "— Auto-detected sector",
     autoColumnsDesc4: "— Auto-detected Region / City",
     autoColumnsDesc5: "+ ACRONYM, PHONE, EMAIL, MANAGER, RCCM (if available)",

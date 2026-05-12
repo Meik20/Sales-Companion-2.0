@@ -161,9 +161,10 @@ export async function POST(request: NextRequest) {
         // raisonSociale is mandatory
         if (!company.raisonSociale) { skipped++; continue }
 
-        // Use NIU as document ID for deduplication, or generate one
+        // Use NIU as document ID for deduplication, or generate a stable one from name
         const niu = (company.niu as string)?.replace(/\s+/g, '').toUpperCase()
-        const docId = niu || `comp_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+        const nameSlug = (company.raisonSociale as string || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '_')
+        const docId = niu || `name_${nameSlug}`
         const ref = adminDb.collection('companies').doc(docId)
 
         const existing = await ref.get()

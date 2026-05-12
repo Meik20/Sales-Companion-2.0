@@ -242,7 +242,7 @@ export default function AdminImportsPage() {
             <strong>📋 Colonnes reconnues automatiquement :</strong>
             <ul style={{ paddingLeft: 16, marginTop: 6, lineHeight: 1.9 }}>
               <li><strong>RAISON_SOCIALE</strong> — Nom de l'entreprise (obligatoire)</li>
-              <li><strong>NIU</strong> — Numéro d'identification unique (clé dédoublonnage)</li>
+              <li><strong>NIU</strong> — Numéro d'identification unique (optionnel, clé dédoublonnage)</li>
               <li><strong>ACTIVITE_PRINCIPALE</strong> — Secteur auto-détecté</li>
               <li><strong>CENTRE_DE_RATTACHEMENT</strong> — Région / Ville auto-détectées</li>
               <li>+ SIGLE, TELEPHONE, EMAIL, DIRIGEANT, RCCM (si disponibles)</li>
