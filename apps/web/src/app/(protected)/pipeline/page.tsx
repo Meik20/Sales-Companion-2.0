@@ -100,7 +100,11 @@ export default function PipelinePage() {
             <EmptyState title={t('pipeline.noProspect')} description={t('pipeline.teamNoProspect')} icon="📊" />
           ) : null}
           {managerPipelineQuery.data?.length ? (
-            <ManagerPipelineList items={managerPipelineQuery.data} members={members} />
+            <ManagerPipelineList 
+              items={managerPipelineQuery.data} 
+              members={members} 
+              managerUid={user?.uid}
+            />
           ) : null}
         </DataCard>
       ) : null}

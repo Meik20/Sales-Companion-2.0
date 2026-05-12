@@ -33,6 +33,7 @@ type Member = { uid: string; name?: string; email?: string; accessId?: string }
 type Props = { 
   items: PipelineItem[]
   members?: Member[]
+  managerUid?: string
 }
 
 /** Résout le nom d'affichage d'un membre pour un item du pipeline */
@@ -73,11 +74,13 @@ function ProspectModal({
   onClose,
   statusLabel,
   members,
+  managerUid,
 }: { 
   item: PipelineItem; 
   onClose: () => void;
   statusLabel: Record<string, string>;
   members?: Member[];
+  managerUid?: string;
 }) {
   const { t } = useTranslation()
   const updateMutation = useUpdatePipelineItem()
@@ -169,7 +172,7 @@ function ProspectModal({
                   : <span style={{ color: colors.textMid, fontStyle: 'italic' }}>{t('pipeline.notSpecified')}</span>
               }
             />
-            {item.assignedTo && (() => {
+            {item.assignedTo && item.assignedTo !== managerUid && (() => {
               const label = resolveMemberLabel(item, members)
               return label ? (
                 <InfoRow 
@@ -417,7 +420,7 @@ function ExportPanel({ members }: { members?: Member[] }) {
   )
 }
 
-export function ManagerPipelineList({ items, members }: Props) {
+export function ManagerPipelineList({ items, members, managerUid }: Props) {
   const { t } = useTranslation()
   const deleteMutation = useDeletePipelineItem()
 
@@ -469,7 +472,13 @@ export function ManagerPipelineList({ items, members }: Props) {
   return (
     <>
       {selectedItem && (
-        <ProspectModal item={selectedItem} onClose={() => setSelectedItem(null)} statusLabel={statusLabel} members={members} />
+        <ProspectModal 
+          item={selectedItem} 
+          onClose={() => setSelectedItem(null)} 
+          statusLabel={statusLabel} 
+          members={members} 
+          managerUid={managerUid}
+        />
       )}
 
       {/* Export panel — always shown for managers */}
@@ -520,7 +529,7 @@ export function ManagerPipelineList({ items, members }: Props) {
                           📝 {t('pipeline.hasNotes')}
                         </div>
                       )}
-                      {item.assignedTo && (
+                      {item.assignedTo && item.assignedTo !== managerUid && (
                         <div style={{ fontSize: 11, color: 'rgba(99,102,241,0.7)', marginTop: 3 }}>
                           👤 {resolveMemberLabel(item, members) ?? item.assignedTo}
                         </div>
