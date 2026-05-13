@@ -188,15 +188,14 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
         @media (max-width: 640px) {
           .sc-filters-container {
             position: sticky;
-            top: 60px; /* Header height */
-            z-index: 90;
+            top: 59px; /* Slightly overlap to avoid 1px gaps */
+            z-index: 95;
             background: var(--bg);
-            padding: 8px 12px;
-            margin: -10px -16px 10px;
+            padding: 10px 16px;
+            margin: -12px -16px 12px;
             width: calc(100% + 32px);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
             border-bottom: 1px solid var(--bd);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
           }
         }
         .sc-input-wrap {
