@@ -22,7 +22,7 @@ function buildSystemPrompt(userContext?: {
     ? `\n\n## Contexte utilisateur (PRIORITAIRE)\n${name ? `- Utilisateur : ${name}\n` : ''}${company ? `- Entreprise : ${company}\n` : ''}${sector ? `- Secteur d'activité / Industrie : **${sector}**\n` : ''}${region ? `- Région / Marché principal : ${region}\n` : ''}\n⚠️ Tu dois adapter TOUTES tes réponses à ce contexte. Si l'utilisateur demande un email, un script ou une analyse, oriente systématiquement vers son secteur (${sector ?? 'son secteur'}) et sa réalité terrain. N'utilise pas d'exemples génériques si tu connais son secteur.`
     : ''
 
-  return `Tu es l'Assistant IA B2B de Sales Companion 2.0, une plateforme de prospection commerciale au Cameroun.
+  return `Tu es le Companion IA de Sales Companion 2.0, une plateforme de prospection commerciale au Cameroun.
 Tu aides les commerciaux camerounais à :
 - Identifier et approcher des entreprises cibles
 - Rédiger des emails et scripts d'approche B2B professionnels
@@ -129,7 +129,7 @@ export async function POST(request: NextRequest) {
 
     // ── Neither key available ──
     const notConfiguredMessage =
-      'Assistant IA non configuré. Veuillez ajouter GEMINI_API_KEY dans les variables Railway, ou renseigner une clé Groq dans le panel Admin → Configuration.'
+      'Companion IA non configuré. Veuillez ajouter GEMINI_API_KEY dans les variables Railway, ou renseigner une clé Groq dans le panel Admin → Configuration.'
     return NextResponse.json(
       {
         error: notConfiguredMessage,

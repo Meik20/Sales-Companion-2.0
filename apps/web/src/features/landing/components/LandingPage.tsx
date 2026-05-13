@@ -557,7 +557,7 @@ export function LandingPage() {
           </li>
           <li className="plan-feature" role="listitem" style={{"opacity":0.45}}>
             <span style={{"color":"var(--tx3)"}} aria-hidden="true">✗</span>
-            <span style={{"color":"var(--tx3)"}}>Assistant IA</span>
+            <span style={{color:"var(--tx3)"}}>Companion IA</span>
           </li>
           <li className="plan-feature" role="listitem" style={{"opacity":0.45}}>
             <span style={{"color":"var(--tx3)"}} aria-hidden="true">✗</span>

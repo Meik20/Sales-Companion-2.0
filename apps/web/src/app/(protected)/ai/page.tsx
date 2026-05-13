@@ -17,7 +17,7 @@ export default function AIAssistantPage() {
     {
       id: '1',
       role: 'assistant',
-      content: '👋 Bonjour! Je suis votre assistant IA. Je peux vous aider avec des conseils commerciaux, des stratégies de prospection, et bien plus. Comment puis-je vous aider?',
+      content: '👋 Bonjour! Je suis votre Companion IA. Je peux vous aider avec des conseils commerciaux, des stratégies de prospection, et bien plus. Comment puis-je vous aider?',
       timestamp: new Date(),
     },
   ])
@@ -116,10 +116,9 @@ export default function AIAssistantPage() {
           gap: '12px',
         }}
       >
-        <div style={{ fontSize: '24px' }}>🤖</div>
         <div>
           <h1 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: colors.text }}>
-            Assistant IA
+            Companion IA
           </h1>
           <p style={{ margin: 0, fontSize: '12px', color: colors.textMid }}>
             Conseils commerciaux en temps réel

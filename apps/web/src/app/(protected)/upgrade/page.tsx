@@ -41,7 +41,7 @@ const PLANS = [
     colorBg:    'rgba(245,158,11,0.08)',
     icon:       Shield,
     searches:   1000,
-    features:   ['Tout Starter inclus', '1 000 recherches / jour', 'Assistant IA commercial', 'Support prioritaire'],
+    features:   ['Tout Starter inclus', '1 000 recherches / jour', 'Companion IA commercial', 'Support prioritaire'],
   },
   {
     key:        'enterprise',
