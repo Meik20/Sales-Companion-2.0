@@ -140,9 +140,9 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
                       const newPlan = e.target.value
                       const limits: Record<string, number> = {
                         free: 10,
-                        starter: 50,
-                        pro: 200,
-                        enterprise: 1000,
+                        starter: 200,
+                        pro: 1000,
+                        enterprise: 99999,
                       }
                       onUpdate(user.uid, { 
                         plan: newPlan, 
