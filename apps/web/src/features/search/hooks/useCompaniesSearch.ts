@@ -3,12 +3,45 @@
 import { useQuery } from '@tanstack/react-query'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 
+export type Company = {
+  id: string
+  raisonSociale: string
+  niu?: string
+  sigle?: string
+  sector?: string
+  region?: string
+  city?: string
+  telephone?: string
+  email?: string
+  dirigeant?: string
+  rccm?: string
+  adresse?: string
+  formeJuridique?: string
+  capital?: string
+  // For google maps results:
+  _source?: 'google_places'
+  googlePlaceId?: string
+  rating?: number
+  // Champs additionnels dynamiques
+  [key: string]: unknown
+}
+
 export type SearchResponse = {
   items: Company[]
   total: number
   page: number
   pageSize: number
   totalPages: number
+}
+
+export type SearchFilters = {
+  sector?: string
+  region?: string
+  city?: string
+  query?: string
+  lat?: string
+  lng?: string
+  radius?: string
 }
 
 export function useCompaniesSearch(filters: SearchFilters & { page?: number }) {
