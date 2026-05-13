@@ -16,6 +16,9 @@ const EXCLUDE_FROM_EXTRA = new Set([
   'telephone', 'email', 'dirigeant', 'niu', 'rccm', 'adresse', 'capital',
   'formeJuridique', 'importedBy', 'createdAt', 'updatedAt', 'verified',
   'activite_principale', 'centre_de_rattachement', 'ville',
+  'raison_sociale', 'Secteur d activite', 'Responsable', 'dirigeant', 'Responsable/Propriétaire',
+  'Telephone', 'Email', 'Site Web', 'Description', 'Localisation',
+  'RAISON SOCIALE', 'SECTEUR D ACTIVITE', 'RESPONSABLE',
 ])
 
 function formatFieldLabel(key: string, t: any): string {
@@ -33,103 +36,159 @@ export function CompaniesSearchResults({ items }: Props) {
   if (!items.length) return null
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       {items.map((company) => {
         // Extraire les champs supplémentaires du CSV qui ne sont pas déjà affichés
         const extraFields = Object.entries(company).filter(
-          ([key, val]) => !EXCLUDE_FROM_EXTRA.has(key) && val && String(val).trim()
+          ([key, val]) => {
+            const normalizedKey = key.trim()
+            return !EXCLUDE_FROM_EXTRA.has(normalizedKey) && 
+                   !EXCLUDE_FROM_EXTRA.has(normalizedKey.toUpperCase()) &&
+                   val && String(val).trim()
+          }
         )
+
+        const sectorStr = String(company.sector || '').trim()
+        const isLongSector = sectorStr.length > 50
 
         return (
           <div
             key={company.id}
             style={{
-              padding: '14px 18px',
+              padding: '16px',
               background: colors.surface,
               border: `1px solid ${colors.border}`,
               borderRadius: 12,
               display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'flex-start',
-              gap: 16,
-              flexWrap: 'wrap',
-              transition: 'box-shadow 200ms ease, border-color 200ms ease',
+              flexDirection: 'column',
+              gap: 12,
+              transition: 'all 200ms ease',
+              position: 'relative'
             }}
             onMouseEnter={(e) => {
-              (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(46,160,90,0.35)'
-              ;(e.currentTarget as HTMLDivElement).style.boxShadow = '0 2px 12px rgba(27,122,62,0.08)'
+              (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(46,160,90,0.4)'
+              ;(e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)'
             }}
             onMouseLeave={(e) => {
               (e.currentTarget as HTMLDivElement).style.borderColor = colors.border
               ;(e.currentTarget as HTMLDivElement).style.boxShadow = 'none'
             }}
           >
-            {/* Infos principales */}
-            <div style={{ flex: 1, minWidth: 0 }}>
-              {/* Nom + badges */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
-                <strong style={{ fontSize: 14, color: colors.text, fontWeight: 700, wordBreak: 'break-word' }}>
+            {/* Header: Nom + Actions */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <strong style={{ fontSize: 16, color: colors.text, fontWeight: 700, display: 'block', marginBottom: 4, lineHeight: 1.2 }}>
                   {company.raisonSociale || '—'}
                 </strong>
-                {company.sigle && <Badge variant="default">{String(company.sigle)}</Badge>}
-                {company.sector && <Badge variant="success">{String(company.sector)}</Badge>}
-                {company.formeJuridique && (
-                  <span style={{ fontSize: 10.5, color: colors.textDim, background: colors.bg3, padding: '1px 6px', borderRadius: 4 }}>
-                    {String(company.formeJuridique)}
-                  </span>
-                )}
-              </div>
-
-              {/* Infos de contact — téléphone et email toujours affichés */}
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px 14px', fontSize: 12, color: colors.textMid, marginBottom: extraFields.length ? 8 : 0 }}>
-                {company.region && (
-                  <span>📍 {String(company.region)}{company.city ? ` · ${String(company.city)}` : ''}</span>
-                )}
-                {/* Téléphone : toujours affiché, "—" si absent */}
-                {company.telephone ? (
-                  <a href={`tel:${company.telephone}`} style={{ color: colors.green, textDecoration: 'none' }}>
-                    📞 {String(company.telephone)}
-                  </a>
-                ) : (
-                  <span style={{ color: colors.textDim }}>📞 —</span>
-                )}
-                {/* Email : toujours affiché, "—" si absent */}
-                {company.email ? (
-                  <a href={`mailto:${company.email}`} style={{ color: colors.green, textDecoration: 'none' }}>
-                    ✉️ {String(company.email)}
-                  </a>
-                ) : (
-                  <span style={{ color: colors.textDim }}>✉️ —</span>
-                )}
-                {company.dirigeant && <span>👤 {String(company.dirigeant)}</span>}
-                {company.niu && (
-                  <span style={{ fontFamily: 'monospace', fontSize: 11, color: colors.textDim }}>{t('field.niu')} {String(company.niu)}</span>
-                )}
-                {company.rccm && (
-                  <span style={{ fontSize: 11, color: colors.textDim }}>{t('field.rccm')} {String(company.rccm)}</span>
-                )}
-                {company.adresse && <span>🏢 {String(company.adresse)}</span>}
-                {company.capital && <span>💰 {String(company.capital)}</span>}
-              </div>
-
-              {/* Champs supplémentaires du CSV (dynamiques) */}
-              {extraFields.length > 0 && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px 12px', fontSize: 11, color: colors.textDim }}>
-                  {extraFields.map(([key, val]) => (
-                    <span key={key}>
-                      <span style={{ fontWeight: 600 }}>{formatFieldLabel(key, t)}:</span>{' '}
-                      {String(val)}
+                
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
+                  {company.sigle && <Badge variant="default" style={{ fontSize: 10 }}>{String(company.sigle)}</Badge>}
+                  {!isLongSector && company.sector && (
+                    <Badge variant="success" style={{ fontSize: 10, maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {sectorStr}
+                    </Badge>
+                  )}
+                  {company.formeJuridique && (
+                    <span style={{ fontSize: 10, color: colors.textDim, background: colors.bg3, padding: '1px 6px', borderRadius: 4 }}>
+                      {String(company.formeJuridique)}
                     </span>
-                  ))}
+                  )}
+                </div>
+              </div>
+
+              {/* Actions : côte à côte en haut à droite */}
+              <div style={{ display: 'flex', gap: 6 }}>
+                <SaveCompanyButton company={company as any} />
+                <AddToPipelineButton company={company as any} />
+              </div>
+            </div>
+
+            {/* Secteur long (si applicable) */}
+            {isLongSector && (
+              <div style={{ 
+                fontSize: 12, 
+                color: colors.green, 
+                fontWeight: 500, 
+                background: 'rgba(46,160,90,0.05)', 
+                padding: '6px 10px', 
+                borderRadius: 6,
+                borderLeft: `3px solid ${colors.green}`,
+                lineHeight: 1.4
+              }}>
+                {sectorStr}
+              </div>
+            )}
+
+            {/* Infos de contact & Localisation */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '8px 16px', fontSize: 13 }}>
+              {company.telephone && (
+                <a href={`tel:${company.telephone}`} style={{ color: colors.green, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6, fontWeight: 500 }}>
+                  <span style={{ fontSize: 14 }}>📞</span> {String(company.telephone)}
+                </a>
+              )}
+              {company.email && (
+                <a href={`mailto:${company.email}`} style={{ color: colors.green, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <span style={{ fontSize: 14 }}>✉️</span> {String(company.email)}
+                </a>
+              )}
+              {(company.region || company.city) && (
+                <div style={{ color: colors.textMid, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 14 }}>📍</span> {String(company.region)}{company.city ? ` · ${String(company.city)}` : ''}
+                </div>
+              )}
+              {company.dirigeant && (
+                <div style={{ color: colors.textMid, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 14 }}>👤</span> {String(company.dirigeant)}
+                </div>
+              )}
+              {company.adresse && (
+                <div style={{ color: colors.textDim, fontSize: 12, display: 'flex', alignItems: 'center', gap: 6, gridColumn: '1 / -1' }}>
+                  <span style={{ fontSize: 14 }}>🏢</span> {String(company.adresse)}
                 </div>
               )}
             </div>
 
-            {/* Actions par carte : Enregistrer + Pipeline */}
-            <div style={{ flexShrink: 0, paddingTop: 2, display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end' }}>
-              <SaveCompanyButton company={company as any} />
-              <AddToPipelineButton company={company as any} />
-            </div>
+            {/* Badges Techniques (NIU, RCCM, Capital) */}
+            {(company.niu || company.rccm || company.capital) && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, paddingTop: 4, borderTop: `1px dashed ${colors.border}`, marginTop: 4 }}>
+                {company.niu && (
+                  <span style={{ fontSize: 11, color: colors.textDim }}>
+                    <span style={{ fontWeight: 600 }}>{t('field.niu')}:</span> {String(company.niu)}
+                  </span>
+                )}
+                {company.rccm && (
+                  <span style={{ fontSize: 11, color: colors.textDim }}>
+                    <span style={{ fontWeight: 600 }}>{t('field.rccm')}:</span> {String(company.rccm)}
+                  </span>
+                )}
+                {company.capital && (
+                  <span style={{ fontSize: 11, color: colors.textDim }}>
+                    <span style={{ fontWeight: 600 }}>{t('field.capital')}:</span> {String(company.capital)}
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* Champs supplémentaires du CSV (dynamiques et filtrés) */}
+            {extraFields.length > 0 && (
+              <div style={{ 
+                display: 'flex', 
+                flexWrap: 'wrap', 
+                gap: '4px 16px', 
+                fontSize: 11, 
+                color: colors.textDim,
+                background: colors.bg2,
+                padding: '8px 12px',
+                borderRadius: 8
+              }}>
+                {extraFields.map(([key, val]) => (
+                  <span key={key}>
+                    <span style={{ fontWeight: 600, color: colors.textMid }}>{formatFieldLabel(key, t)}:</span>{' '}
+                    {String(val)}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         )
       })}
