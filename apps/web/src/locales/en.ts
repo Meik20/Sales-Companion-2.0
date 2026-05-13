@@ -151,6 +151,44 @@ export const en = {
       q4: "Is it possible to export my prospects?",
       a4: "Yes, you can export your entire pipeline and searches in Excel or CSV format (feature available on Pro and Team plans) to integrate them with your other tools.",
     },
+    privacy: {
+      label: "Transparency",
+      title: "Your data, ",
+      titleHighlight: "your control",
+      subtitle: "We treat your information with rigor and respect. Here is exactly what we collect, why, and how you retain full control.",
+      collected: {
+        title: "Data collected",
+        item1: "Name, email address, and password (registration)",
+        item2: "Professional profile information (sector, region)",
+        item3: "Search history and filters used",
+        item4: "Prospects added to your sales pipeline",
+        item5: "Connection logs and usage data"
+      },
+      purposes: {
+        title: "Purposes of processing",
+        item1: "Provide and improve our B2B prospecting services",
+        item2: "Personalize your experience (sector suggestions)",
+        item3: "Manage your account, subscription, and billing",
+        item4: "Contact you for support or important updates",
+        item5: "Ensure security and prevent abuse"
+      },
+      rights: {
+        title: "Your rights",
+        item1: "Access all your personal data at any time",
+        item2: "Correct or update your information from your profile",
+        item3: "Request complete deletion of your account",
+        item4: "Export your prospects and saved searches (CSV)",
+        item5: "Revoke your consent without justification"
+      },
+      security: {
+        title: "Our security commitments",
+        tls: { title: "TLS Encryption", desc: "Encrypted communications in transit (HTTPS/TLS 1.3)" },
+        firebase: { title: "Firebase Secure", desc: "Data hosted on Google Firebase with secure auth" },
+        resale: { title: "Zero resale", desc: "Your data is never sold or shared with third parties" },
+        hosting: { title: "Certified hosting", desc: "Infrastructure in ISO 27001 certified data centers" },
+        contactText: "For any request regarding your personal data, contact us via the built-in support accessible after login. We respond within 72 hours."
+      }
+    },
     ctaSection: {
       title1: "Ready to prospect",
       title2: "",

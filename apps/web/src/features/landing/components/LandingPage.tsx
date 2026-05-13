@@ -800,12 +800,12 @@ export function LandingPage() {
 <section className="section-sm" id="privacy" aria-labelledby="privacy-title">
   <div className="container">
     <header className="section-header reveal">
-      <span className="section-label">Transparence</span>
+      <span className="section-label">{t('landing.privacy.label')}</span>
       <h2 className="section-title" id="privacy-title">
-        Vos données, <em>votre contrôle</em>
+        {t('landing.privacy.title')}<em>{t('landing.privacy.titleHighlight')}</em>
       </h2>
       <p className="section-sub">
-        Nous traitons vos informations avec rigueur et respect. Voici exactement ce que nous collectons, pourquoi, et comment vous gardez le contrôle total.
+        {t('landing.privacy.subtitle')}
       </p>
     </header>
 
@@ -814,14 +814,14 @@ export function LandingPage() {
       {/* Ce que nous collectons */}
       <article className="feature-card reveal" style={{ textAlign: 'left' }}>
         <div style={{ fontSize: '28px', marginBottom: '12px' }} aria-hidden="true">📋</div>
-        <h3 className="feature-title">Données collectées</h3>
+        <h3 className="feature-title">{t('landing.privacy.collected.title')}</h3>
         <ul style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px', paddingLeft: 0, listStyle: 'none' }}>
           {[
-            'Nom, adresse e-mail et mot de passe (inscription)',
-            'Informations de profil professionnel (secteur, région)',
-            'Historique de recherche et filtres utilisés',
-            'Prospects ajoutés à votre pipeline commercial',
-            'Journaux de connexion et données d\'utilisation',
+            t('landing.privacy.collected.item1'),
+            t('landing.privacy.collected.item2'),
+            t('landing.privacy.collected.item3'),
+            t('landing.privacy.collected.item4'),
+            t('landing.privacy.collected.item5'),
           ].map((item) => (
             <li key={item} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', fontSize: '14px', color: 'var(--tx2)' }}>
               <span style={{ color: 'var(--color-success)', flexShrink: 0, marginTop: '2px' }}>✓</span>
@@ -834,14 +834,14 @@ export function LandingPage() {
       {/* Finalités */}
       <article className="feature-card reveal reveal-d1" style={{ textAlign: 'left' }}>
         <div style={{ fontSize: '28px', marginBottom: '12px' }} aria-hidden="true">🎯</div>
-        <h3 className="feature-title">Finalités du traitement</h3>
+        <h3 className="feature-title">{t('landing.privacy.purposes.title')}</h3>
         <ul style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px', paddingLeft: 0, listStyle: 'none' }}>
           {[
-            'Fournir et améliorer nos services de prospection B2B',
-            'Personnaliser votre expérience (suggestions de secteurs)',
-            'Gérer votre compte, abonnement et facturation',
-            'Vous contacter en cas de support ou mises à jour importantes',
-            'Assurer la sécurité et prévenir les utilisations abusives',
+            t('landing.privacy.purposes.item1'),
+            t('landing.privacy.purposes.item2'),
+            t('landing.privacy.purposes.item3'),
+            t('landing.privacy.purposes.item4'),
+            t('landing.privacy.purposes.item5'),
           ].map((item) => (
             <li key={item} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', fontSize: '14px', color: 'var(--tx2)' }}>
               <span style={{ color: 'var(--color-primary)', flexShrink: 0, marginTop: '2px' }}>→</span>
@@ -854,14 +854,14 @@ export function LandingPage() {
       {/* Vos droits */}
       <article className="feature-card reveal reveal-d2" style={{ textAlign: 'left' }}>
         <div style={{ fontSize: '28px', marginBottom: '12px' }} aria-hidden="true">🛡️</div>
-        <h3 className="feature-title">Vos droits</h3>
+        <h3 className="feature-title">{t('landing.privacy.rights.title')}</h3>
         <ul style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px', paddingLeft: 0, listStyle: 'none' }}>
           {[
-            'Accéder à toutes vos données personnelles à tout moment',
-            'Corriger ou mettre à jour vos informations depuis votre profil',
-            'Demander la suppression complète de votre compte',
-            'Exporter vos prospects et recherches sauvegardées (CSV)',
-            'Révoquer votre consentement sans justification',
+            t('landing.privacy.rights.item1'),
+            t('landing.privacy.rights.item2'),
+            t('landing.privacy.rights.item3'),
+            t('landing.privacy.rights.item4'),
+            t('landing.privacy.rights.item5'),
           ].map((item) => (
             <li key={item} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', fontSize: '14px', color: 'var(--tx2)' }}>
               <span style={{ color: 'var(--color-success)', flexShrink: 0, marginTop: '2px' }}>✓</span>
@@ -884,14 +884,14 @@ export function LandingPage() {
       margin: '40px auto 0',
     }}>
       <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#ffffff', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-        🔒 Nos engagements de sécurité
+        🔒 {t('landing.privacy.security.title')}
       </h3>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
         {[
-          { icon: '🔐', title: 'Chiffrement TLS', desc: 'Communications chiffrées en transit (HTTPS/TLS 1.3)' },
-          { icon: '🏦', title: 'Firebase Secure', desc: 'Données hébergées sur Google Firebase avec auth sécurisée' },
-          { icon: '🚫', title: 'Zéro revente', desc: 'Vos données ne sont jamais vendues ni partagées avec des tiers' },
-          { icon: '📍', title: 'Hébergement certifié', desc: 'Infrastructure dans des data centers certifiés ISO 27001' },
+          { icon: '🔐', title: t('landing.privacy.security.tls.title'), desc: t('landing.privacy.security.tls.desc') },
+          { icon: '🏦', title: t('landing.privacy.security.firebase.title'), desc: t('landing.privacy.security.firebase.desc') },
+          { icon: '🚫', title: t('landing.privacy.security.resale.title'), desc: t('landing.privacy.security.resale.desc') },
+          { icon: '📍', title: t('landing.privacy.security.hosting.title'), desc: t('landing.privacy.security.hosting.desc') },
         ].map((item) => (
           <div key={item.title} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
             <span style={{ fontSize: '20px', flexShrink: 0 }}>{item.icon}</span>
@@ -903,7 +903,7 @@ export function LandingPage() {
         ))}
       </div>
       <p style={{ marginTop: '20px', fontSize: '13px', color: 'rgba(255,255,255,0.65)', borderTop: '1px solid rgba(255,255,255,0.15)', paddingTop: '16px' }}>
-        Pour toute demande relative à vos données personnelles, contactez-nous via le support intégré accessible après connexion. Nous répondons dans un délai de 72 heures.
+        {t('landing.privacy.security.contactText')}
       </p>
     </div>
 

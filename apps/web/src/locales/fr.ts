@@ -151,6 +151,44 @@ export const fr = {
       q4: "Est-il possible d'exporter mes prospects ?",
       a4: "Oui, vous pouvez exporter l'ensemble de votre pipeline et de vos recherches au format Excel ou CSV (fonctionnalité disponible sur les plans Pro et Team) pour les intégrer à vos autres outils.",
     },
+    privacy: {
+      label: "Transparence",
+      title: "Vos données, ",
+      titleHighlight: "votre contrôle",
+      subtitle: "Nous traitons vos informations avec rigueur et respect. Voici exactement ce que nous collectons, pourquoi, et comment vous gardez le contrôle total.",
+      collected: {
+        title: "Données collectées",
+        item1: "Nom, adresse e-mail et mot de passe (inscription)",
+        item2: "Informations de profil professionnel (secteur, région)",
+        item3: "Historique de recherche et filtres utilisés",
+        item4: "Prospects ajoutés à votre pipeline commercial",
+        item5: "Journaux de connexion et données d'utilisation"
+      },
+      purposes: {
+        title: "Finalités du traitement",
+        item1: "Fournir et améliorer nos services de prospection B2B",
+        item2: "Personnaliser votre expérience (suggestions de secteurs)",
+        item3: "Gérer votre compte, abonnement et facturation",
+        item4: "Vous contacter en cas de support ou mises à jour importantes",
+        item5: "Assurer la sécurité et prévenir les utilisations abusives"
+      },
+      rights: {
+        title: "Vos droits",
+        item1: "Accéder à toutes vos données personnelles à tout moment",
+        item2: "Corriger ou mettre à jour vos informations depuis votre profil",
+        item3: "Demander la suppression complète de votre compte",
+        item4: "Exporter vos prospects et recherches sauvegardées (CSV)",
+        item5: "Révoquer votre consentement sans justification"
+      },
+      security: {
+        title: "Nos engagements de sécurité",
+        tls: { title: "Chiffrement TLS", desc: "Communications chiffrées en transit (HTTPS/TLS 1.3)" },
+        firebase: { title: "Firebase Secure", desc: "Données hébergées sur Google Firebase avec auth sécurisée" },
+        resale: { title: "Zéro revente", desc: "Vos données ne sont jamais vendues ni partagées avec des tiers" },
+        hosting: { title: "Hébergement certifié", desc: "Infrastructure dans des data centers certifiés ISO 27001" },
+        contactText: "Pour toute demande relative à vos données personnelles, contactez-nous via le support intégré accessible après connexion. Nous répondons dans un délai de 72 heures."
+      }
+    },
     ctaSection: {
       title1: "Prêt à prospecter",
       title2: "plus",

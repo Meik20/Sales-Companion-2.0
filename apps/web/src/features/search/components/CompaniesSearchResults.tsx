@@ -74,8 +74,8 @@ export function CompaniesSearchResults({ items }: Props) {
             }}
           >
             {/* Header: Nom + Actions */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
+              <div style={{ flex: 1, minWidth: 200 }}>
                 <strong style={{ fontSize: 16, color: colors.text, fontWeight: 700, display: 'block', marginBottom: 4, lineHeight: 1.2 }}>
                   {company.raisonSociale || '—'}
                 </strong>
