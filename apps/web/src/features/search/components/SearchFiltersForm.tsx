@@ -460,13 +460,12 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
       </div>
     </div>
 
-        {/* ── Active filter chips ── */}
-        {hasFilters && (
+        {/* ── Active filter chips — only shown when there are visible chips (not just sector) ── */}
+        {!!(query || region || city) && (
           <div className="sc-chips">
             {query  && <ActiveChip label={`"${query}"`}  onRemove={() => { setQuery('');  submit({ query: undefined }) }} />}
             {region && <ActiveChip label={t(`regions.${REGION_KEYS[region]}` as any)} onRemove={() => { setRegion(''); setCity(''); submit({ region: undefined, city: undefined }) }} />}
             {city   && <ActiveChip label={city}          onRemove={() => { setCity('');   submit({ city: undefined }) }} />}
-            {/* Sector chip removed here to avoid redundancy with quick-sector pills */}
             <button type="button" className="sc-reset-btn" onClick={handleReset}>{t('search.clearAll')}</button>
           </div>
         )}
