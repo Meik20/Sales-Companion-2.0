@@ -873,17 +873,17 @@ export function LandingPage() {
 
     </div>
 
-    {/* Engagements sécurité */}
+    {/* Engagements sécurité — fond bleu foncé avec texte blanc explicite */}
     <div className="reveal" style={{
       marginTop: '40px',
-      background: 'var(--color-primary-light)',
-      border: '1px solid rgba(10,102,194,0.3)',
+      background: '#004182',
+      border: '1px solid rgba(255,255,255,0.12)',
       borderRadius: '12px',
       padding: '28px 32px',
       maxWidth: '800px',
       margin: '40px auto 0',
     }}>
-      <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--color-primary)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#ffffff', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
         🔒 Nos engagements de sécurité
       </h3>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
@@ -896,13 +896,13 @@ export function LandingPage() {
           <div key={item.title} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
             <span style={{ fontSize: '20px', flexShrink: 0 }}>{item.icon}</span>
             <div>
-              <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--tx)', marginBottom: '4px' }}>{item.title}</div>
-              <div style={{ fontSize: '13px', color: 'var(--tx2)', lineHeight: 1.5 }}>{item.desc}</div>
+              <div style={{ fontWeight: 700, fontSize: '14px', color: '#ffffff', marginBottom: '4px' }}>{item.title}</div>
+              <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.78)', lineHeight: 1.5 }}>{item.desc}</div>
             </div>
           </div>
         ))}
       </div>
-      <p style={{ marginTop: '20px', fontSize: '13px', color: 'var(--tx2)', borderTop: '1px solid rgba(10,102,194,0.2)', paddingTop: '16px' }}>
+      <p style={{ marginTop: '20px', fontSize: '13px', color: 'rgba(255,255,255,0.65)', borderTop: '1px solid rgba(255,255,255,0.15)', paddingTop: '16px' }}>
         Pour toute demande relative à vos données personnelles, contactez-nous via le support intégré accessible après connexion. Nous répondons dans un délai de 72 heures.
       </p>
     </div>
