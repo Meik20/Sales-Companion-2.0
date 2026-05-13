@@ -82,9 +82,9 @@ export function CompaniesSearchResults({ items }: Props) {
                 </strong>
                 
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
-                  {company.sigle && <Badge variant="default" style={{ fontSize: 10 }}>{String(company.sigle)}</Badge>}
+                  {company.sigle && <Badge variant="default">{String(company.sigle)}</Badge>}
                   {!isLongSector && company.sector && (
-                    <Badge variant="success" style={{ fontSize: 10, maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <Badge variant="success">
                       {sectorStr}
                     </Badge>
                   )}
