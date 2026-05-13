@@ -18,6 +18,7 @@ export async function GET(request: NextRequest) {
     const { adminDb, adminAuth } = await getAdminModules()
 
     const { searchParams } = new URL(request.url)
+    const page = parseInt(searchParams.get('page') || '1')
     const sector = searchParams.get('sector')?.trim()
     const region = searchParams.get('region')?.trim()
     const city   = searchParams.get('city')?.trim()
@@ -26,39 +27,33 @@ export async function GET(request: NextRequest) {
     const lng    = searchParams.get('lng')?.trim()
     const radius = searchParams.get('radius')?.trim() || '10000'
 
-    // ── Auth optionnelle : si token présent, vérifier et déduire un crédit ──
+    // ── Auth : déduire un crédit seulement si page > 1 ──
     const authHeader = request.headers.get('authorization')
     const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null
     let userId: string | null = null
 
-    if (token) {
+    if (token && page > 1) {
       try {
         const { adminDb, adminAuth, ensureDailyReset } = await getAdminModules()
         const decoded = await adminAuth.verifyIdToken(token)
         userId = decoded.uid
 
-        // Déduire 1 crédit (dailyUsed + 1 avec Reset Lazy)
+        // Déduire 1 crédit
         const userRef = adminDb.collection('users').doc(userId)
         const userSnap = await userRef.get()
         if (userSnap.exists) {
           const data = userSnap.data()!
           const dailyLimit = (data.dailyLimit as number) ?? 10
-          
-          // Vérification et reset si nouveau jour
           const currentDailyUsed = await ensureDailyReset(userRef, data)
           
           if (currentDailyUsed >= dailyLimit) {
-            const quotaMessage = `Quota journalier épuisé (${dailyLimit} crédits). Votre compteur sera réinitialisé demain.`
-            return NextResponse.json(
-              { error: quotaMessage, message: quotaMessage },
-              { status: 429 }
-            )
+            const quotaMessage = `Quota journalier épuisé (${dailyLimit} crédits).`
+            return NextResponse.json({ error: quotaMessage, message: quotaMessage }, { status: 429 })
           }
           await userRef.update({ dailyUsed: currentDailyUsed + 1 })
         }
       } catch (err) {
         console.error('[search/companies] Auth error:', err)
-        // Token invalide → on continue sans déduire
       }
     }
 
@@ -115,7 +110,7 @@ export async function GET(request: NextRequest) {
     }
 
     // ── 3. Requête Firestore ──
-    const snap = await adminDb.collection('companies').limit(10000).get()
+    const snap = await adminDb.collection('companies').limit(500000).get()
     let internalCompanies = snap.docs.map((d) => {
       const data = d.data()
       return {
