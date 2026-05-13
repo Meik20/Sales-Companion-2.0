@@ -163,7 +163,6 @@ export async function GET(request: NextRequest) {
     const allCompanies = [...internalCompanies, ...googleResults]
 
     // ── 6. Pagination ──
-    const page = parseInt(searchParams.get('page') || '1')
     const pageSize = parseInt(searchParams.get('pageSize') || '50')
     const start = (page - 1) * pageSize
     const end = start + pageSize
