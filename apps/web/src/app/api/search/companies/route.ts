@@ -27,12 +27,12 @@ export async function GET(request: NextRequest) {
     const lng    = searchParams.get('lng')?.trim()
     const radius = searchParams.get('radius')?.trim() || '10000'
 
-    // ── Auth : déduire un crédit seulement si page > 1 ──
+    // ── Auth : déduire un crédit seulement si charge !== 'false' ──
     const authHeader = request.headers.get('authorization')
     const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null
     let userId: string | null = null
 
-    if (token && page > 1) {
+    if (token && searchParams.get('charge') !== 'false') {
       try {
         const { adminDb, adminAuth, ensureDailyReset } = await getAdminModules()
         const decoded = await adminAuth.verifyIdToken(token)

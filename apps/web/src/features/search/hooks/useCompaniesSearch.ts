@@ -44,7 +44,7 @@ export type SearchFilters = {
   radius?: string
 }
 
-export function useCompaniesSearch(filters: SearchFilters & { page?: number }) {
+export function useCompaniesSearch(filters: SearchFilters & { page?: number; charge?: boolean }) {
   const { user } = useCurrentUser()
   const hasFilters = !!(filters.sector || filters.region || filters.city || filters.query || filters.lat)
 
@@ -60,6 +60,7 @@ export function useCompaniesSearch(filters: SearchFilters & { page?: number }) {
       if (filters.lng)    params.append('lng',    filters.lng)
       if (filters.radius) params.append('radius', filters.radius)
       if (filters.page)   params.append('page',   filters.page.toString())
+      if (filters.charge === false) params.append('charge', 'false')
 
       // Passer le token pour déduire un crédit côté serveur
       const token = user ? await user.getIdToken() : null

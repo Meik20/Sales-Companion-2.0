@@ -32,6 +32,7 @@ function SearchContent() {
   }>({})
   const [hasSearched, setHasSearched] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
+  const [isBackAction, setIsBackAction] = useState(false)
 
   // AI B2B chat state
   type ChatMsg = { role: 'user' | 'assistant'; text: string }
@@ -115,7 +116,7 @@ function SearchContent() {
     }
   }
 
-  const searchQuery = useCompaniesSearch({ ...filters, page: currentPage })
+  const searchQuery = useCompaniesSearch({ ...filters, page: currentPage, charge: !isBackAction })
   const searchData = searchQuery.data
   const results = searchData?.items ?? []
   const totalResults = searchData?.total ?? 0
@@ -130,6 +131,7 @@ function SearchContent() {
           onSubmit={(v) => {
             setFilters(v)
             setCurrentPage(1)
+            setIsBackAction(false)
             setHasSearched(true)
           }}
         />
@@ -204,6 +206,7 @@ function SearchContent() {
                       size="sm"
                       disabled={currentPage <= 1 || searchQuery.isLoading}
                       onClick={() => {
+                        setIsBackAction(true)
                         setCurrentPage(p => Math.max(1, p - 1))
                         window.scrollTo({ top: 0, behavior: 'smooth' })
                       }}
@@ -220,6 +223,7 @@ function SearchContent() {
                       size="sm"
                       disabled={currentPage >= totalPages || searchQuery.isLoading}
                       onClick={() => {
+                        setIsBackAction(false)
                         setCurrentPage(p => p + 1)
                         window.scrollTo({ top: 0, behavior: 'smooth' })
                       }}
