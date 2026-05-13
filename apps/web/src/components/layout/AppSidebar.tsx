@@ -322,7 +322,10 @@ export function AppSidebar({ isMobile = false, onClose }: { isMobile?: boolean; 
             <Filter size={11} /> {t('sidebar.radius')}
           </span>
           <select value={radius} onChange={(e) => setRadius(e.target.value)} style={{ background: 'transparent', border: `1px solid ${colors.border}`, borderRadius: 6, padding: '3px 7px', color: colors.text, fontSize: 11, outline: 'none' }}>
-            <option>5 km</option><option>10 km</option><option>50 km</option><option>National</option>
+            <option style={{ background: colors.bg2, color: colors.text }}>5 km</option>
+            <option style={{ background: colors.bg2, color: colors.text }}>10 km</option>
+            <option style={{ background: colors.bg2, color: colors.text }}>50 km</option>
+            <option style={{ background: colors.bg2, color: colors.text }}>National</option>
           </select>
         </div>
       </div>

@@ -75,6 +75,11 @@ input, select, textarea, button {
   color: var(--tx);
 }
 
+option {
+  background-color: var(--bg2);
+  color: var(--tx);
+}
+
 h1, h2, h3, h4, h5, h6 {
   color: var(--tx);
 }

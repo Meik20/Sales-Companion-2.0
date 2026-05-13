@@ -348,6 +348,7 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
         }
         .sc-adv-select:focus { border-color: var(--color-primary); }
         .sc-adv-select:disabled { opacity: 0.5; cursor: not-allowed; }
+        .sc-adv-select option { background: var(--bg2); color: var(--tx); }
         .sc-geo-btn {
           height: 36px; padding: 0 14px;
           border-radius: 8px; font-size: 12px; font-weight: 600;
