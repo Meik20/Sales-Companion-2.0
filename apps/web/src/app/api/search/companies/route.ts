@@ -115,7 +115,7 @@ export async function GET(request: NextRequest) {
     }
 
     // ── 3. Requête Firestore ──
-    const snap = await adminDb.collection('companies').limit(500).get()
+    const snap = await adminDb.collection('companies').limit(10000).get()
     let internalCompanies = snap.docs.map((d) => {
       const data = d.data()
       return {
