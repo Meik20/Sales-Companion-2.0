@@ -41,24 +41,24 @@ export const colors = {
   border2:       'var(--bd2)',
   border_compat: 'var(--bd)',
 
-  // ── États sémantiques ─────────────────────────────────────────────────────
+  // ── États sémantiques ─────────────────────────────────────────────
   success:       'var(--color-success)',
-  successBg:     'var(--color-teal-50)',
-  successBorder: 'rgba(29, 158, 117, 0.3)',
+  successBg:     'var(--color-success-bg)',
+  successBorder: 'rgba(5, 118, 66, 0.3)',
 
   warning:       'var(--color-warning)',
-  warningBg:     'var(--color-blue-100)',
-  warningBorder: 'rgba(239, 159, 39, 0.3)',
+  warningBg:     'var(--color-warning-bg)',
+  warningBorder: 'rgba(145, 89, 7, 0.3)',
 
   danger:        'var(--color-danger)',
-  dangerBg:      'var(--color-blue-50)',
-  dangerBorder:  'rgba(226, 75, 74, 0.3)',
+  dangerBg:      'var(--color-danger-bg)',
+  dangerBorder:  'rgba(204, 16, 22, 0.3)',
 
   info:          'var(--color-accent)',
-  infoBg:        'var(--color-blue-100)',
+  infoBg:        'var(--color-primary-light)',
   infoBorder:    'var(--color-blue-200)',
 
-  // ── Interactifs ───────────────────────────────────────────────────────────
+  // ── Interactifs ───────────────────────────────────────────────────
   hoverBg:  'var(--cr-hover-background-color)',
   activeBg: 'var(--cr-active-background-color)',
 } as const
