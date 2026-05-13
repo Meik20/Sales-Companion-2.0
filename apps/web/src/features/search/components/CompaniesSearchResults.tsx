@@ -98,8 +98,8 @@ export function CompaniesSearchResults({ items }: Props) {
 
               {/* Actions : côte à côte en haut à droite */}
               <div style={{ display: 'flex', gap: 6 }}>
-                <SaveCompanyButton company={company as any} />
-                <AddToPipelineButton company={company as any} />
+                <SaveCompanyButton company={company} />
+                <AddToPipelineButton company={company} />
               </div>
             </div>
 

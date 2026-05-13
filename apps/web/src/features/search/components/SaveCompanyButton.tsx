@@ -5,15 +5,7 @@ import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { colors } from '@/styles/tokens'
 import { useTranslation } from '@/providers/I18nProvider'
 
-type Company = {
-  id: string
-  raisonSociale?: string
-  sector?: string
-  region?: string
-  city?: string
-  telephone?: string
-  email?: string
-}
+import { Company } from '@/features/search/hooks/useCompaniesSearch'
 
 type Props = { company: Company }
 
