@@ -466,7 +466,7 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
             {query  && <ActiveChip label={`"${query}"`}  onRemove={() => { setQuery('');  submit({ query: undefined }) }} />}
             {region && <ActiveChip label={t(`regions.${REGION_KEYS[region]}` as any)} onRemove={() => { setRegion(''); setCity(''); submit({ region: undefined, city: undefined }) }} />}
             {city   && <ActiveChip label={city}          onRemove={() => { setCity('');   submit({ city: undefined }) }} />}
-            {sector && <ActiveChip label={t(`sectors.${SECTOR_KEYS[sector]}` as any) || sector} onRemove={() => { setSector(''); applyQuickSector('') }} />}
+            {/* Sector chip removed here to avoid redundancy with quick-sector pills */}
             <button type="button" className="sc-reset-btn" onClick={handleReset}>{t('search.clearAll')}</button>
           </div>
         )}
