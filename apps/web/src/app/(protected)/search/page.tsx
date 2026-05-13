@@ -31,6 +31,7 @@ function SearchContent() {
     radius?: string
   }>({})
   const [hasSearched, setHasSearched] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
 
   // AI B2B chat state
   type ChatMsg = { role: 'user' | 'assistant'; text: string }
@@ -114,8 +115,11 @@ function SearchContent() {
     }
   }
 
-  const searchQuery = useCompaniesSearch(filters)
-  const results = searchQuery.data ?? []
+  const searchQuery = useCompaniesSearch({ ...filters, page: currentPage })
+  const searchData = searchQuery.data
+  const results = searchData?.items ?? []
+  const totalResults = searchData?.total ?? 0
+  const totalPages = searchData?.totalPages ?? 0
 
   return (
     <AppShell>
@@ -125,6 +129,7 @@ function SearchContent() {
           initialValues={filters}
           onSubmit={(v) => {
             setFilters(v)
+            setCurrentPage(1)
             setHasSearched(true)
           }}
         />
@@ -148,7 +153,7 @@ function SearchContent() {
             title={t('search.results')}
             subtitle={
               !searchQuery.isLoading && !searchQuery.isError
-                ? `${results.length} ${t('search.companiesFound')}`
+                ? `${totalResults} ${t('search.companiesFound')}`
                 : undefined
             }
             actions={<SaveCurrentSearchButton filters={filters} results={results} />}
@@ -180,7 +185,50 @@ function SearchContent() {
               />
             ) : null}
             {!searchQuery.isLoading && !searchQuery.isError && results.length > 0 ? (
-              <CompaniesSearchResults items={results} />
+              <>
+                <CompaniesSearchResults items={results} />
+                
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                  <div style={{ 
+                    marginTop: 24, 
+                    paddingTop: 20, 
+                    borderTop: `1px solid ${colors.border}`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 16
+                  }}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={currentPage <= 1 || searchQuery.isLoading}
+                      onClick={() => {
+                        setCurrentPage(p => Math.max(1, p - 1))
+                        window.scrollTo({ top: 0, behavior: 'smooth' })
+                      }}
+                    >
+                      {t('common.previous' as any) || 'Précédent'}
+                    </Button>
+                    
+                    <span style={{ fontSize: 13, color: colors.textMid, fontWeight: 600 }}>
+                      Page {currentPage} / {totalPages}
+                    </span>
+
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      disabled={currentPage >= totalPages || searchQuery.isLoading}
+                      onClick={() => {
+                        setCurrentPage(p => p + 1)
+                        window.scrollTo({ top: 0, behavior: 'smooth' })
+                      }}
+                    >
+                      {t('common.next' as any) || 'Suivant'}
+                    </Button>
+                  </div>
+                )}
+              </>
             ) : null}
           </DataCard>
         ) : (

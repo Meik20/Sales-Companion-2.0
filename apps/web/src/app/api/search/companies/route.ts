@@ -167,9 +167,22 @@ export async function GET(request: NextRequest) {
     // ── 5. Fusion des résultats ──
     const allCompanies = [...internalCompanies, ...googleResults]
 
-    return NextResponse.json(allCompanies)
+    // ── 6. Pagination ──
+    const page = parseInt(searchParams.get('page') || '1')
+    const pageSize = parseInt(searchParams.get('pageSize') || '50')
+    const start = (page - 1) * pageSize
+    const end = start + pageSize
+    const paginatedCompanies = allCompanies.slice(start, end)
+
+    return NextResponse.json({
+      items: paginatedCompanies,
+      total: allCompanies.length,
+      page,
+      pageSize,
+      totalPages: Math.ceil(allCompanies.length / pageSize)
+    })
   } catch (error) {
     console.error('[search/companies] Error:', error)
-    return NextResponse.json([], { status: 200 })
+    return NextResponse.json({ items: [], total: 0 }, { status: 200 })
   }
 }

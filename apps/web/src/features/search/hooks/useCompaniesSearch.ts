@@ -3,47 +3,21 @@
 import { useQuery } from '@tanstack/react-query'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 
-type SearchFilters = {
-  sector?: string
-  region?: string
-  city?: string
-  query?: string
-  lat?: string
-  lng?: string
-  radius?: string
+export type SearchResponse = {
+  items: Company[]
+  total: number
+  page: number
+  pageSize: number
+  totalPages: number
 }
 
-/** Tous les champs qui peuvent exister dans une entreprise importée */
-export type Company = {
-  id: string
-  raisonSociale: string
-  niu?: string
-  sigle?: string
-  sector?: string
-  region?: string
-  city?: string
-  telephone?: string
-  email?: string
-  dirigeant?: string
-  rccm?: string
-  adresse?: string
-  formeJuridique?: string
-  capital?: string
-  // For google maps results:
-  _source?: 'google_places'
-  googlePlaceId?: string
-  rating?: number
-  // Champs additionnels dynamiques
-  [key: string]: unknown
-}
-
-export function useCompaniesSearch(filters: SearchFilters) {
+export function useCompaniesSearch(filters: SearchFilters & { page?: number }) {
   const { user } = useCurrentUser()
   const hasFilters = !!(filters.sector || filters.region || filters.city || filters.query || filters.lat)
 
   return useQuery({
     queryKey: ['companies-search', filters],
-    queryFn: async (): Promise<Company[]> => {
+    queryFn: async (): Promise<SearchResponse> => {
       const params = new URLSearchParams()
       if (filters.sector) params.append('sector', filters.sector)
       if (filters.region) params.append('region', filters.region)
@@ -52,6 +26,7 @@ export function useCompaniesSearch(filters: SearchFilters) {
       if (filters.lat)    params.append('lat',    filters.lat)
       if (filters.lng)    params.append('lng',    filters.lng)
       if (filters.radius) params.append('radius', filters.radius)
+      if (filters.page)   params.append('page',   filters.page.toString())
 
       // Passer le token pour déduire un crédit côté serveur
       const token = user ? await user.getIdToken() : null
@@ -71,6 +46,6 @@ export function useCompaniesSearch(filters: SearchFilters) {
       return response.json()
     },
     enabled: hasFilters,
-    staleTime: 1000 * 60 * 2, // 2 min cache pour éviter re-fetch sur chaque render
+    staleTime: 1000 * 60 * 2,
   })
 }
