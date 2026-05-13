@@ -112,7 +112,7 @@ function ProspectModal({
           {/* Header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
             <div>
-              <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: colors.text, fontFamily: "'Syne',sans-serif" }}>
+              <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: colors.text, fontFamily: 'inherit' }}>
                 {item.companyName}
               </h2>
               <div style={{ marginTop: 6 }}>
