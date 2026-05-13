@@ -844,5 +844,9 @@ export const en = {
     noMessageInTicket: "No message in this ticket.",
     identifier: "Identifier (UID)",
     clickToCopy: "Click to copy ID"
+  },
+  common: {
+    next: 'Next',
+    previous: 'Previous',
   }
 }
