@@ -13,6 +13,11 @@ async function getAdminModules() {
  * Recherche dans la collection Firestore "companies" importée par l'admin.
  * Déduit 1 crédit par recherche pour l'utilisateur authentifié.
  */
+// Cache en mémoire pour éviter de recharger 500k docs à chaque clic
+let cachedCompanies: any[] | null = null
+let lastCacheUpdate = 0
+const CACHE_DURATION = 1000 * 60 * 15 // 15 minutes
+
 export async function GET(request: NextRequest) {
   try {
     const { adminDb, adminAuth } = await getAdminModules()
@@ -34,11 +39,10 @@ export async function GET(request: NextRequest) {
 
     if (token && searchParams.get('charge') !== 'false') {
       try {
-        const { adminDb, adminAuth, ensureDailyReset } = await getAdminModules()
+        const { ensureDailyReset } = await getAdminModules()
         const decoded = await adminAuth.verifyIdToken(token)
         userId = decoded.uid
 
-        // Déduire 1 crédit
         const userRef = adminDb.collection('users').doc(userId)
         const userSnap = await userRef.get()
         if (userSnap.exists) {
@@ -67,12 +71,9 @@ export async function GET(request: NextRequest) {
         const keyword = [query, sector].filter(Boolean).join(' ')
         
         if (lat && lng) {
-          // Use Nearby Search if we have coordinates
           url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&key=${googleApiKey}`
           if (keyword) url += `&keyword=${encodeURIComponent(keyword)}`
         } else if (query) {
-          // Use Text Search if we only have a query (e.g. "Pharmacie Douala")
-          // We append "Cameroun" to keep it local if not specified
           const finalQuery = query.toLowerCase().includes('cameroun') ? query : `${query} Cameroun`
           url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(finalQuery)}&key=${googleApiKey}`
         }
@@ -91,7 +92,7 @@ export async function GET(request: NextRequest) {
               _source: 'google_places',
               googlePlaceId: place.place_id,
               rating: place.rating,
-              telephone: '', // Google Places doesn't return phone in nearby/text search without extra fields/details request
+              telephone: '',
             }))
           }
         }
@@ -109,30 +110,37 @@ export async function GET(request: NextRequest) {
         .trim()
     }
 
-    // ── 3. Requête Firestore ──
-    const snap = await adminDb.collection('companies').limit(500000).get()
-    let internalCompanies = snap.docs.map((d) => {
-      const data = d.data()
-      return {
-        ...data,
-        id: d.id,
-        raisonSociale: data.raisonSociale ?? data.name ?? '',
-        sector:        data.sector ?? data.activite_principale ?? '',
-        region:        data.region ?? data.centre_de_rattachement ?? '',
-        city:          data.city ?? data.ville ?? '',
-        niu:           data.niu ?? '',
-        sigle:         data.sigle ?? '',
-        dirigeant:     data.dirigeant ?? '',
-        telephone:     data.telephone ?? '',
-        email:         data.email ?? '',
-        rccm:          data.rccm ?? '',
-        adresse:       data.adresse ?? '',
-        formeJuridique: data.formeJuridique ?? '',
-        capital:       data.capital ?? '',
-      }
-    })
+    // ── 3. Récupération des données (avec Cache) ──
+    if (!cachedCompanies || (Date.now() - lastCacheUpdate > CACHE_DURATION)) {
+      console.log('[search/companies] Refreshing companies cache...')
+      const snap = await adminDb.collection('companies').limit(500000).get()
+      cachedCompanies = snap.docs.map((d) => {
+        const data = d.data()
+        return {
+          ...data,
+          id: d.id,
+          raisonSociale: data.raisonSociale ?? data.name ?? '',
+          sector:        data.sector ?? data.activite_principale ?? '',
+          region:        data.region ?? data.centre_de_rattachement ?? '',
+          city:          data.city ?? data.ville ?? '',
+          niu:           data.niu ?? '',
+          sigle:         data.sigle ?? '',
+          dirigeant:     data.dirigeant ?? '',
+          telephone:     data.telephone ?? '',
+          email:         data.email ?? '',
+          rccm:          data.rccm ?? '',
+          adresse:       data.adresse ?? '',
+          formeJuridique: data.formeJuridique ?? '',
+          capital:       data.capital ?? '',
+        }
+      })
+      lastCacheUpdate = Date.now()
+      console.log(`[search/companies] Cache updated with ${cachedCompanies.length} companies.`)
+    }
 
-    // ── 4. Filtrage flexible (Mots-clés pour chaque champ) ──
+    let internalCompanies = [...(cachedCompanies || [])]
+
+    // ── 4. Filtrage flexible ──
     const matchKeywords = (dataValue: string, filterValue: string, logic: 'every' | 'some' = 'every') => {
       const nData = normalize(dataValue)
       const kws = normalize(filterValue).split(/[\s&/]+/).filter(kw => kw.length >= 2)
@@ -159,6 +167,7 @@ export async function GET(request: NextRequest) {
         return kws.every((kw) => searchable.includes(kw))
       })
     }
+
     // ── 5. Fusion des résultats ──
     const allCompanies = [...internalCompanies, ...googleResults]
 
@@ -176,7 +185,11 @@ export async function GET(request: NextRequest) {
       totalPages: Math.ceil(allCompanies.length / pageSize)
     })
   } catch (error) {
-    console.error('[search/companies] Error:', error)
-    return NextResponse.json({ items: [], total: 0 }, { status: 200 })
+    console.error('[search/companies] Global Critical Error:', error)
+    return NextResponse.json({ 
+      items: [], 
+      total: 0, 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    }, { status: 500 })
   }
 }
