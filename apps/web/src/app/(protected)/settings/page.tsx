@@ -51,7 +51,7 @@ export default function SettingsPage() {
             >
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-                  <span style={{ fontSize: 20, fontWeight: 800, color: colors.text, fontFamily: "'Syne',sans-serif" }}>
+                  <span style={{ fontSize: 20, fontWeight: 800, color: colors.text, fontFamily: 'inherit' }}>
                     {t('settings.planLabel')} {t(planInfo.labelKey as any)}
                   </span>
                   <Badge variant={plan === 'enterprise' ? 'gold' : plan === 'pro' ? 'success' : 'default'}>
@@ -72,11 +72,11 @@ export default function SettingsPage() {
                     gap: 8,
                     padding: '9px 18px',
                     borderRadius: 10,
-                    background: '#1B7A3E',
+                    background: 'var(--color-primary)',
                     color: '#fff',
                     fontSize: 13,
                     fontWeight: 600,
-                    border: '1px solid #2ea05a',
+                    border: 'none',
                     cursor: 'pointer',
                     transition: 'all 200ms ease',
                   }}
@@ -93,11 +93,11 @@ export default function SettingsPage() {
                   key={fk}
                   style={{
                     padding: '5px 12px',
-                    background: 'rgba(27,122,62,0.1)',
-                    border: '1px solid rgba(27,122,62,0.2)',
+                    background: 'var(--bg3)',
+                    border: `1px solid var(--bd)`,
                     borderRadius: 999,
                     fontSize: 12,
-                    color: '#4ade80',
+                    color: 'var(--tx2)',
                     fontWeight: 500,
                   }}
                 >

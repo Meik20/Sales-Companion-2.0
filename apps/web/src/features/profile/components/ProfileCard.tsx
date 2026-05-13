@@ -9,7 +9,7 @@ import { colors } from '@/styles/tokens'
 const planBadge: Record<string, 'default' | 'info' | 'success' | 'gold'> = {
   free:       'default',
   starter:    'info',
-  pro:        'success',
+  pro:        'info',
   enterprise: 'gold',
 }
 
@@ -40,7 +40,7 @@ export function ProfileCard() {
     ? Math.round((user.dailyUsed / user.dailyLimit) * 100)
     : 0
 
-  const usageColor = usagePercent > 80 ? '#f87171' : usagePercent > 60 ? '#fbbf24' : colors.greenMid
+  const usageColor = usagePercent > 80 ? '#f87171' : usagePercent > 60 ? '#fbbf24' : 'var(--color-primary)'
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -53,8 +53,9 @@ export function ProfileCard() {
               width: 64,
               height: 64,
               borderRadius: '50%',
-              background: 'rgba(27,122,62,0.2)',
-              border: '2px solid rgba(46,160,90,0.4)',
+              background: 'rgba(10, 102, 194, 0.08)',
+              border: '2px solid rgba(10, 102, 194, 0.2)',
+              color: 'var(--color-primary)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -67,7 +68,7 @@ export function ProfileCard() {
           {/* Infos */}
           <div style={{ flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 6 }}>
-              <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: colors.text, fontFamily: "'Syne',sans-serif" }}>
+              <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: colors.text, fontFamily: 'inherit' }}>
                 {user.name || t('profile.defaultName')}
               </h2>
               <Badge variant={planBadge[user.plan] ?? 'default'}>

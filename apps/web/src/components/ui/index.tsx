@@ -179,9 +179,9 @@ export function MetricCard({ label, value, hint, accent }: MetricCardProps) {
           fontSize: 32,
           fontWeight: 800,
           marginTop: 8,
-          color: accent ? colors.greenMid : colors.text,
+          color: accent ? 'var(--color-primary)' : colors.text,
           letterSpacing: '-.03em',
-          fontFamily: "'Syne',sans-serif",
+          fontFamily: 'inherit',
         }}
       >
         {value}
