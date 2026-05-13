@@ -18,7 +18,7 @@ const EXCLUDE_FROM_EXTRA = new Set([
   'activite_principale', 'centre_de_rattachement', 'ville',
   'raison_sociale', 'Secteur d activite', 'Responsable', 'dirigeant', 'Responsable/Propriétaire',
   'Telephone', 'Email', 'Site Web', 'Description', 'Localisation',
-  'RAISON SOCIALE', 'SECTEUR D ACTIVITE', 'RESPONSABLE',
+  'RAISON SOCIALE', 'SECTEUR D ACTIVITE', 'RESPONSABLE', 'secteur d activite', 'Secteur d\'activité', 'Secteur d\'activite', 'SECTEUR D\'ACTIVITE'
 ])
 
 function formatFieldLabel(key: string, t: any): string {
@@ -49,7 +49,6 @@ export function CompaniesSearchResults({ items }: Props) {
         )
 
         const sectorStr = String(company.sector || '').trim()
-        const isLongSector = sectorStr.length > 50
 
         return (
           <div
@@ -83,11 +82,6 @@ export function CompaniesSearchResults({ items }: Props) {
                 
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
                   {company.sigle && <Badge variant="default">{String(company.sigle)}</Badge>}
-                  {!isLongSector && company.sector && (
-                    <Badge variant="success">
-                      {sectorStr}
-                    </Badge>
-                  )}
                   {company.formeJuridique && (
                     <span style={{ fontSize: 10, color: colors.textDim, background: colors.bg3, padding: '1px 6px', borderRadius: 4 }}>
                       {String(company.formeJuridique)}
@@ -103,17 +97,19 @@ export function CompaniesSearchResults({ items }: Props) {
               </div>
             </div>
 
-            {/* Secteur long (si applicable) */}
-            {isLongSector && (
+            {/* Secteur */}
+            {sectorStr && (
               <div style={{ 
                 fontSize: 12, 
-                color: colors.green, 
-                fontWeight: 500, 
-                background: 'rgba(46,160,90,0.05)', 
-                padding: '6px 10px', 
-                borderRadius: 6,
-                borderLeft: `3px solid ${colors.green}`,
-                lineHeight: 1.4
+                color: 'var(--color-primary)', 
+                fontWeight: 600, 
+                background: 'var(--color-blue-50)', 
+                padding: '8px 12px', 
+                borderRadius: '8px',
+                borderLeft: '4px solid var(--color-primary)',
+                lineHeight: 1.4,
+                marginTop: '4px',
+                marginBottom: '4px'
               }}>
                 {sectorStr}
               </div>

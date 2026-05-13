@@ -154,7 +154,22 @@ function ProspectModal({
             <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em', color: colors.textMid, marginBottom: 2 }}>
               {t('pipeline.contactInfo')}
             </div>
-            {item.companySector && <InfoRow icon="🏭" label={t('pipeline.sector')} value={item.companySector} />}
+            {item.companySector && (
+              <div style={{ 
+                fontSize: 12, 
+                color: 'var(--color-primary)', 
+                fontWeight: 600, 
+                background: 'var(--color-blue-50)', 
+                padding: '8px 12px', 
+                borderRadius: '8px',
+                borderLeft: '4px solid var(--color-primary)',
+                lineHeight: 1.4,
+                marginTop: '6px',
+                marginBottom: '8px'
+              }}>
+                {item.companySector}
+              </div>
+            )}
             {item.companyCity   && <InfoRow icon="📍" label={t('pipeline.city')}   value={item.companyCity} />}
             <InfoRow
               icon="📞" label={t('pipeline.phone')}

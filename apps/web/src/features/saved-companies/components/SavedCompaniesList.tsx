@@ -34,13 +34,28 @@ export function SavedCompaniesList({ items, onDelete }: Props) {
               <div style={{ fontWeight: 600, fontSize: 14, color: colors.text, marginBottom: 6 }}>
                 {item.companyName}
               </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {sector && <Badge variant="default">{sector}</Badge>}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
                 {city && <Badge variant="info">📍 {city}</Badge>}
                 <Badge variant="default">
                   ID: {item.companyId}
                 </Badge>
               </div>
+              {sector && (
+                <div style={{ 
+                  fontSize: 12, 
+                  color: 'var(--color-primary)', 
+                  fontWeight: 600, 
+                  background: 'var(--color-blue-50)', 
+                  padding: '8px 12px', 
+                  borderRadius: '8px',
+                  borderLeft: '4px solid var(--color-primary)',
+                  lineHeight: 1.4,
+                  marginTop: '4px',
+                  display: 'inline-block'
+                }}>
+                  {sector}
+                </div>
+              )}
             </div>
 
             <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
