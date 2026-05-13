@@ -136,10 +136,22 @@
   --shadow-glass-medium: 0 0 0 1px rgba(255,255,255,0.08), 0 4px 8px rgba(0,0,0,0.3);
   --shadow-glass-strong: 0 0 0 1px rgba(255,255,255,0.08), 0 8px 16px rgba(0,0,0,0.4);
 
-  /* Blue scale in dark */
-  --color-blue-900: #dce6f1;
-  --color-blue-600: #7fc3f7;
-  --color-primary-light: rgba(10,102,194,0.2);
+  /* Blue scale in dark — overridden for readable contrast */
+  --color-blue-50:  rgba(10,102,194,0.18);  /* dark surface for AI bubbles / chips */
+  --color-blue-100: rgba(10,102,194,0.22);
+  --color-blue-200: rgba(10,102,194,0.30);
+  --color-blue-600: #7fc3f7;               /* medium blue text */
+  --color-blue-900: #bfd7f5;               /* light blue text on dark blue surface */
+  --color-primary-light: rgba(10,102,194,0.20);
+
+  /* Semantic states in dark */
+  --color-success-bg:   rgba(5,118,66,0.20);
+  --color-warning-bg:   rgba(145,89,7,0.20);
+  --color-danger-bg:    rgba(204,16,22,0.20);
+
+  /* Teal/secondary in dark */
+  --color-teal-50:  rgba(131,148,31,0.18);
+  --color-teal-900: #c8d87a;
 
   /* Neutral overrides for dark */
   --color-neutral-100: #1d2226;
