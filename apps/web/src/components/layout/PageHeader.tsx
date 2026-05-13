@@ -26,8 +26,7 @@ export function PageHeader({ title, subtitle, actions }: Props) {
             fontSize: 24,
             fontWeight: 800,
             color: colors.text,
-            letterSpacing: '-.03em',
-            fontFamily: "'Syne','Inter',sans-serif",
+            fontFamily: 'inherit',
           }}
         >
           {title}

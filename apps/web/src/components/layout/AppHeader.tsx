@@ -104,7 +104,7 @@ export function AppHeader({ onOpenMenu }: { onOpenMenu?: () => void }) {
             <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
               <span
                 style={{
-                  fontFamily: "'Syne', sans-serif",
+                  fontFamily: 'inherit',
                   fontWeight: 800,
                   fontSize: 15,
                   color: '#ffffff',
