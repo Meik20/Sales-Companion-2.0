@@ -155,6 +155,7 @@ export function LandingPage() {
         <li><a href="#roles">{t('landing.roles')}</a></li>
         <li><a href="#plans">{t('landing.pricing')}</a></li>
         <li><a href="#testimonials">{t('landing.testimonials')}</a></li>
+        <li><a href="#privacy">Confidentialité</a></li>
       </ul>
       <div className="nav-cta">
         <button
@@ -790,6 +791,127 @@ export function LandingPage() {
   </div>
 </section>
 
+<div className="section-divider" aria-hidden="true"></div>
+
+
+{/*  ═══════════════════════════════════════════════════
+     DONNÉES & CONFIDENTIALITÉ
+     ═══════════════════════════════════════════════════  */}
+<section className="section-sm" id="privacy" aria-labelledby="privacy-title">
+  <div className="container">
+    <header className="section-header reveal">
+      <span className="section-label">Transparence</span>
+      <h2 className="section-title" id="privacy-title">
+        Vos données, <em>votre contrôle</em>
+      </h2>
+      <p className="section-sub">
+        Nous traitons vos informations avec rigueur et respect. Voici exactement ce que nous collectons, pourquoi, et comment vous gardez le contrôle total.
+      </p>
+    </header>
+
+    <div className="features-grid" style={{ maxWidth: '1000px', margin: '0 auto' }}>
+
+      {/* Ce que nous collectons */}
+      <article className="feature-card reveal" style={{ textAlign: 'left' }}>
+        <div style={{ fontSize: '28px', marginBottom: '12px' }} aria-hidden="true">📋</div>
+        <h3 className="feature-title">Données collectées</h3>
+        <ul style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px', paddingLeft: 0, listStyle: 'none' }}>
+          {[
+            'Nom, adresse e-mail et mot de passe (inscription)',
+            'Informations de profil professionnel (secteur, région)',
+            'Historique de recherche et filtres utilisés',
+            'Prospects ajoutés à votre pipeline commercial',
+            'Journaux de connexion et données d\'utilisation',
+          ].map((item) => (
+            <li key={item} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', fontSize: '14px', color: 'var(--tx2)' }}>
+              <span style={{ color: 'var(--color-success)', flexShrink: 0, marginTop: '2px' }}>✓</span>
+              {item}
+            </li>
+          ))}
+        </ul>
+      </article>
+
+      {/* Finalités */}
+      <article className="feature-card reveal reveal-d1" style={{ textAlign: 'left' }}>
+        <div style={{ fontSize: '28px', marginBottom: '12px' }} aria-hidden="true">🎯</div>
+        <h3 className="feature-title">Finalités du traitement</h3>
+        <ul style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px', paddingLeft: 0, listStyle: 'none' }}>
+          {[
+            'Fournir et améliorer nos services de prospection B2B',
+            'Personnaliser votre expérience (suggestions de secteurs)',
+            'Gérer votre compte, abonnement et facturation',
+            'Vous contacter en cas de support ou mises à jour importantes',
+            'Assurer la sécurité et prévenir les utilisations abusives',
+          ].map((item) => (
+            <li key={item} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', fontSize: '14px', color: 'var(--tx2)' }}>
+              <span style={{ color: 'var(--color-primary)', flexShrink: 0, marginTop: '2px' }}>→</span>
+              {item}
+            </li>
+          ))}
+        </ul>
+      </article>
+
+      {/* Vos droits */}
+      <article className="feature-card reveal reveal-d2" style={{ textAlign: 'left' }}>
+        <div style={{ fontSize: '28px', marginBottom: '12px' }} aria-hidden="true">🛡️</div>
+        <h3 className="feature-title">Vos droits</h3>
+        <ul style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px', paddingLeft: 0, listStyle: 'none' }}>
+          {[
+            'Accéder à toutes vos données personnelles à tout moment',
+            'Corriger ou mettre à jour vos informations depuis votre profil',
+            'Demander la suppression complète de votre compte',
+            'Exporter vos prospects et recherches sauvegardées (CSV)',
+            'Révoquer votre consentement sans justification',
+          ].map((item) => (
+            <li key={item} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', fontSize: '14px', color: 'var(--tx2)' }}>
+              <span style={{ color: 'var(--color-success)', flexShrink: 0, marginTop: '2px' }}>✓</span>
+              {item}
+            </li>
+          ))}
+        </ul>
+      </article>
+
+    </div>
+
+    {/* Engagements sécurité */}
+    <div className="reveal" style={{
+      marginTop: '40px',
+      background: 'var(--color-primary-light)',
+      border: '1px solid rgba(10,102,194,0.3)',
+      borderRadius: '12px',
+      padding: '28px 32px',
+      maxWidth: '800px',
+      margin: '40px auto 0',
+    }}>
+      <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--color-primary)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+        🔒 Nos engagements de sécurité
+      </h3>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
+        {[
+          { icon: '🔐', title: 'Chiffrement TLS', desc: 'Communications chiffrées en transit (HTTPS/TLS 1.3)' },
+          { icon: '🏦', title: 'Firebase Secure', desc: 'Données hébergées sur Google Firebase avec auth sécurisée' },
+          { icon: '🚫', title: 'Zéro revente', desc: 'Vos données ne sont jamais vendues ni partagées avec des tiers' },
+          { icon: '📍', title: 'Hébergement certifié', desc: 'Infrastructure dans des data centers certifiés ISO 27001' },
+        ].map((item) => (
+          <div key={item.title} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+            <span style={{ fontSize: '20px', flexShrink: 0 }}>{item.icon}</span>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--tx)', marginBottom: '4px' }}>{item.title}</div>
+              <div style={{ fontSize: '13px', color: 'var(--tx2)', lineHeight: 1.5 }}>{item.desc}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <p style={{ marginTop: '20px', fontSize: '13px', color: 'var(--tx2)', borderTop: '1px solid rgba(10,102,194,0.2)', paddingTop: '16px' }}>
+        Pour toute demande relative à vos données personnelles, contactez-nous via le support intégré accessible après connexion. Nous répondons dans un délai de 72 heures.
+      </p>
+    </div>
+
+  </div>
+</section>
+
+<div className="section-divider" aria-hidden="true"></div>
+
 
 {/*  ═══════════════════════════════════════════════════
      CTA FINAL
@@ -867,6 +989,7 @@ export function LandingPage() {
           <ul role="list">
             <li><a href="/login">{t("landing.footer.assistance")}</a></li>
             <li><a href="/login">{t("landing.footer.account")}</a></li>
+            <li><a href="#privacy">Confidentialité des données</a></li>
           </ul>
         </nav>
         <nav className="footer-col" aria-label="Réseaux sociaux">
