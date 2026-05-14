@@ -1,40 +1,34 @@
 import type { MetadataRoute } from 'next'
 
 /**
- * Dynamically generated /robots.txt via Next.js App Router.
- *
- * Strategy:
- *  - Allow public pages: /, /login, /register, /activate
- *  - Disallow all protected / admin routes (require auth)
- *  - Point crawlers to the sitemap
+ * /robots.txt — Bloque tous les crawlers et archiveurs.
+ * La plateforme contient des données commerciales propriétaires
+ * qui ne doivent pas être indexées ni archivées.
  */
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://sales-companion.app'
-
   return {
     rules: [
       {
+        // Block all bots from everything
         userAgent: '*',
-        allow: [
-          '/',
-          '/login',
-          '/register',
-          '/activate',
-        ],
-        disallow: [
-          '/pipeline',
-          '/search',
-          '/saved',
-          '/profile',
-          '/settings',
-          '/support',
-          '/ai',
-          '/team',
-          '/admin',
-          '/api/',
-        ],
+        disallow: ['/'],
       },
+      // Explicitly block major scrapers even if they ignore '*'
+      { userAgent: 'GPTBot',          disallow: ['/'] },
+      { userAgent: 'CCBot',           disallow: ['/'] },
+      { userAgent: 'ChatGPT-User',    disallow: ['/'] },
+      { userAgent: 'Google-Extended', disallow: ['/'] },
+      { userAgent: 'anthropic-ai',    disallow: ['/'] },
+      { userAgent: 'ClaudeBot',       disallow: ['/'] },
+      { userAgent: 'Bytespider',      disallow: ['/'] },
+      { userAgent: 'Applebot',        disallow: ['/'] },
+      { userAgent: 'AhrefsBot',       disallow: ['/'] },
+      { userAgent: 'SemrushBot',      disallow: ['/'] },
+      { userAgent: 'MJ12bot',         disallow: ['/'] },
+      { userAgent: 'DotBot',          disallow: ['/'] },
+      { userAgent: 'DataForSeoBot',   disallow: ['/'] },
+      { userAgent: 'ia_archiver',     disallow: ['/'] },
     ],
-    sitemap: `${baseUrl}/sitemap.xml`,
+    // No sitemap exposed to public indexers
   }
 }
