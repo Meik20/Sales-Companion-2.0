@@ -17,19 +17,6 @@ const PAYMENT_ACCOUNTS = {
 }
 
 // ── Plans ────────────────────────────────────────────────────────────────────
-const PLANS = [
-  {
-    key:        'starter',
-    label:      'Starter',
-    price:      '5 000',
-    amount:     5000,
-    period:     'FCFA / mois',
-    color:      '#3b82f6',
-    colorBg:    'rgba(59,130,246,0.08)',
-    icon:       Zap,
-    searches:   200,
-    features:   ['Recherche avancée', 'Pipeline personnel', '200 recherches / jour', 'Export Excel'],
-  },
   {
     key:        'pro',
     label:      'Pro',
@@ -40,8 +27,8 @@ const PLANS = [
     color:      '#f59e0b',
     colorBg:    'rgba(245,158,11,0.08)',
     icon:       Shield,
-    searches:   1000,
-    features:   ['Tout Starter inclus', '1 000 recherches / jour', 'Companion IA commercial', 'Support prioritaire'],
+    searches:   200,
+    features:   ['Recherche avancée', 'Pipeline illimité', '200 recherches / jour', 'Companion IA commercial'],
   },
   {
     key:        'enterprise',
@@ -53,10 +40,9 @@ const PLANS = [
     color:      '#8b5cf6',
     colorBg:    'rgba(139,92,246,0.08)',
     icon:       Users,
-    searches:   99999,
-    features:   ['Tout Pro inclus', 'Recherches illimitées', 'Gestion équipe complète', 'Support dédié'],
+    searches:   1000,
+    features:   ['Tout Pro inclus', '1 000 recherches / jour', 'Gestion équipe complète', 'Support dédié'],
   },
-]
 
 export default function UpgradePage() {
   const { user, loading: userLoading } = useCurrentUser()

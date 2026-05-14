@@ -579,8 +579,7 @@ export function LandingPage() {
         <div className="plan-divider" aria-hidden="true"></div>
         <ul className="plan-features" role="list">
           <li className="plan-feature" role="listitem">
-            <span className="plan-feature-check" aria-hidden="true">✓</span>
-            <strong>500</strong> {t("landing.plansSection.pPro1")}
+            <strong>200</strong> {t("landing.plansSection.pPro1")}
           </li>
           <li className="plan-feature" role="listitem">
             <span className="plan-feature-check" aria-hidden="true">✓</span>
