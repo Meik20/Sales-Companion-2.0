@@ -573,7 +573,8 @@ export function LandingPage() {
         <div className="plan-divider" aria-hidden="true"></div>
         <ul className="plan-features" role="list">
           <li className="plan-feature" role="listitem">
-            <strong>200</strong> {t("landing.plansSection.pPro1")}
+            <span className="plan-feature-check" aria-hidden="true">✓</span>
+            {t("landing.plansSection.pPro1")}
           </li>
           <li className="plan-feature" role="listitem">
             <span className="plan-feature-check" aria-hidden="true">✓</span>
@@ -611,27 +612,27 @@ export function LandingPage() {
         <ul className="plan-features" role="list">
           <li className="plan-feature" role="listitem">
             <span className="plan-feature-check" aria-hidden="true">✓</span>
-            {t("landing.plansSection.pTeam1")}
+            {t("landing.plansSection.pEnterprise1")}
           </li>
           <li className="plan-feature" role="listitem">
             <span className="plan-feature-check" aria-hidden="true">✓</span>
-            {t("landing.plansSection.pTeam2")}
+            {t("landing.plansSection.pEnterprise2")}
           </li>
           <li className="plan-feature" role="listitem">
             <span className="plan-feature-check" aria-hidden="true">✓</span>
-            {t("landing.plansSection.pTeam3")}
+            {t("landing.plansSection.pEnterprise3")}
           </li>
           <li className="plan-feature" role="listitem">
             <span className="plan-feature-check" aria-hidden="true">✓</span>
-            {t("landing.plansSection.pTeam4")}
+            {t("landing.plansSection.pEnterprise4")}
           </li>
           <li className="plan-feature" role="listitem">
             <span className="plan-feature-check" aria-hidden="true">✓</span>
-            {t("landing.plansSection.pTeam5")}
+            {t("landing.plansSection.pEnterprise5")}
           </li>
           <li className="plan-feature" role="listitem">
             <span className="plan-feature-check" aria-hidden="true">✓</span>
-            {t("landing.plansSection.pTeam6")}
+            {t("landing.plansSection.pEnterprise6")}
           </li>
         </ul>
         <a href="/register" className="btn btn-ghost btn-md" style={{"width":"100%","justifyContent":"center"}} aria-label="Démarrer avec le plan Enterprise">
