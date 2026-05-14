@@ -56,7 +56,7 @@ export const teamService = {
       .get()
 
     if (!duplicateSnapshot.empty) {
-      throw new Error('Access label already exists')
+      throw new Error("cet identifiant n'est plus disponible")
     }
 
     const accessRef = adminDb.collection('team_accesses').doc()
