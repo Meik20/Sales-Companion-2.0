@@ -186,12 +186,6 @@ export function LandingPage() {
   <div className="hero-glow-tl" aria-hidden="true"></div>
   <div className="hero-glow-br" aria-hidden="true"></div>
 
-  <div className="hero-badge" role="status" aria-label="Intelligence B2B Cameroun">
-    <span className="hero-badge-dot" aria-hidden="true"></span>
-    {t('landing.heroBadge')}&nbsp;
-    <span className="footer-flag" aria-label="Drapeau Cameroun">🇨🇲</span>
-  </div>
-
   <h1 className="hero-title">
     {t('landing.heroTitle1')}<br />
     {t('landing.heroTitle2')} <em>{t('landing.heroTitle3')}</em>{t('landing.heroTitle3') ? ',' : ''}<br />
