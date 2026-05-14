@@ -183,31 +183,33 @@ function ProspectModal({
             })()}
           </div>
 
-          {/* ── NOTES — vue manager (non-éditable) ── */}
-          <div style={{
-            background: 'rgba(34,197,94,0.06)',
-            border: '1px solid rgba(34,197,94,0.25)',
-            borderRadius: 12,
-            padding: '14px 16px',
-            marginBottom: 16,
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#22c55e', textTransform: 'uppercase', letterSpacing: '.06em' }}>
-                📝 {t('pipeline.notesLabel')}
+          {/* ── NOTES — vue manager (seulement si renseignée) ── */}
+          {noteText && (
+            <div style={{
+              background: 'rgba(34,197,94,0.06)',
+              border: '1px solid rgba(34,197,94,0.25)',
+              borderRadius: 12,
+              padding: '14px 16px',
+              marginBottom: 16,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#22c55e', textTransform: 'uppercase', letterSpacing: '.06em' }}>
+                  📝 {t('pipeline.notesLabel')}
+                </div>
+              </div>
+              <div style={{ 
+                fontSize: 13, 
+                color: colors.text, 
+                lineHeight: 1.6, 
+                whiteSpace: 'pre-wrap',
+                minHeight: 'auto',
+                fontStyle: 'normal',
+                opacity: 1
+              }}>
+                {noteText}
               </div>
             </div>
-            <div style={{ 
-              fontSize: 13, 
-              color: colors.text, 
-              lineHeight: 1.6, 
-              whiteSpace: 'pre-wrap',
-              minHeight: noteText ? 'auto' : 40,
-              fontStyle: noteText ? 'normal' : 'italic',
-              opacity: noteText ? 1 : 0.6
-            }}>
-              {noteText || t('pipeline.placeholderNotes')}
-            </div>
-          </div>
+          )}
 
           {item.nextFollowUp && (
             <div style={{ background: 'rgba(96,165,250,0.07)', border: '1px solid rgba(96,165,250,0.2)', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: '#93c5fd' }}>
