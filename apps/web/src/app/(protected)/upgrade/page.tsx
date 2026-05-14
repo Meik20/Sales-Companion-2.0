@@ -10,51 +10,56 @@ import { colors, shadows } from '@/styles/tokens'
 import { Check, Zap, Shield, Users, Loader2, Copy, ArrowRight, MessageSquare } from 'lucide-react'
 import { routes } from '@/constants/routes'
 
+import { PLAN_LIMITS, PLAN_PRICES } from '@sales-companion/shared'
+
 // ── Configuration des comptes de réception (À MODIFIER PAR VOUS) ──────────────
 const PAYMENT_ACCOUNTS = {
   MTN:    { number: '655 88 60 86', name: 'MBAYE EYOUM IVAN KEVIN' },
   ORANGE: { number: '655 88 60 86', name: 'MBAYE EYOUM IVAN KEVIN' },
 }
 
+// Helper pour formater les prix
+const formatPrice = (p: number) => p.toLocaleString('fr-FR').replace(/\s/g, ' ')
+
 // ── Plans ────────────────────────────────────────────────────────────────────
 const PLANS = [
   {
     key:        'starter',
     label:      'Starter',
-    price:      '5 000',
-    amount:     5000,
+    price:      formatPrice(PLAN_PRICES.starter),
+    amount:     PLAN_PRICES.starter,
     period:     'FCFA / mois',
     color:      '#3b82f6',
     colorBg:    'rgba(59,130,246,0.08)',
     icon:       Zap,
-    searches:   50,
-    features:   ['Recherche avancée', 'Pipeline personnel', '50 recherches / jour', 'Export Excel'],
+    searches:   PLAN_LIMITS.starter,
+    features:   ['Recherche avancée', 'Pipeline personnel', `${PLAN_LIMITS.starter} recherches / jour`, 'Export Excel'],
   },
   {
     key:        'pro',
     label:      'Pro',
-    price:      '15 000',
-    amount:     15000,
+    price:      formatPrice(PLAN_PRICES.pro),
+    amount:     PLAN_PRICES.pro,
     period:     'FCFA / mois',
     badge:      '⭐ Populaire',
     color:      '#f59e0b',
     colorBg:    'rgba(245,158,11,0.08)',
     icon:       Shield,
-    searches:   200,
-    features:   ['Recherche avancée', 'Pipeline illimité', '200 recherches / jour', 'Companion IA commercial'],
+    searches:   PLAN_LIMITS.pro,
+    features:   ['Recherche avancée', 'Pipeline illimité', `${PLAN_LIMITS.pro} recherches / jour`, 'Companion IA commercial'],
   },
   {
     key:        'enterprise',
     label:      'Enterprise',
-    price:      '50 000',
-    amount:     50000,
+    price:      formatPrice(PLAN_PRICES.enterprise),
+    amount:     PLAN_PRICES.enterprise,
     period:     'FCFA / mois',
     badge:      '💎 Premium',
     color:      '#8b5cf6',
     colorBg:    'rgba(139,92,246,0.08)',
     icon:       Users,
-    searches:   1000,
-    features:   ['Tout Pro inclus', '1 000 recherches / jour', 'Gestion équipe complète', 'Support dédié'],
+    searches:   PLAN_LIMITS.enterprise,
+    features:   ['Tout Pro inclus', `${PLAN_LIMITS.enterprise} recherches / jour`, 'Gestion équipe complète', 'Support dédié'],
   },
 ]
 

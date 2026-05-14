@@ -1,7 +1,8 @@
 import { Badge } from '@/components/ui/index'
 import { Button } from '@/components/ui/Button'
 import { colors } from '@/styles/tokens'
-import type { UserDoc } from '@sales-companion/shared'
+import type { UserDoc, UserPlan } from '@sales-companion/shared'
+import { PLAN_LIMITS } from '@sales-companion/shared'
 import { useTranslation } from '@/providers/I18nProvider'
 
 type UserWithId = UserDoc & {
@@ -137,16 +138,10 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
                   <select
                     value={user.plan}
                     onChange={(e) => {
-                      const newPlan = e.target.value
-                      const limits: Record<string, number> = {
-                        free: 10,
-                        starter: 200,
-                        pro: 1000,
-                        enterprise: 99999,
-                      }
+                      const newPlan = e.target.value as UserPlan
                       onUpdate(user.uid, { 
                         plan: newPlan, 
-                        dailyLimit: limits[newPlan] ?? 10 
+                        dailyLimit: PLAN_LIMITS[newPlan] ?? 10 
                       })
                     }}
                     style={{
@@ -173,8 +168,31 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
               </td>
               {/* Quota */}
               <td style={{ padding: '11px 12px', color: colors.textMid, whiteSpace: 'nowrap' }}>
-                <div style={{ fontSize: 12 }}>{user.dailyUsed}/{user.dailyLimit}</div>
-                <div style={{ marginTop: 3, height: 4, width: 60, background: colors.border, borderRadius: 2, overflow: 'hidden' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: colors.text }}>{user.dailyUsed}</span>
+                  <span style={{ color: colors.textDim }}>/</span>
+                  {onUpdate ? (
+                    <input
+                      type="number"
+                      value={user.dailyLimit}
+                      onChange={(e) => onUpdate(user.uid, { dailyLimit: parseInt(e.target.value) || 0 })}
+                      style={{
+                        width: 60,
+                        padding: '2px 4px',
+                        fontSize: 11,
+                        background: colors.bg3,
+                        border: `1px solid ${colors.border}`,
+                        borderRadius: 4,
+                        color: colors.text,
+                        fontWeight: 600,
+                        textAlign: 'center',
+                      }}
+                    />
+                  ) : (
+                    <span style={{ fontSize: 12, fontWeight: 600 }}>{user.dailyLimit}</span>
+                  )}
+                </div>
+                <div style={{ height: 4, width: '100%', maxWidth: 100, background: colors.border, borderRadius: 2, overflow: 'hidden' }}>
                   <div style={{
                     height: '100%',
                     width: `${Math.min(100, user.dailyLimit > 0 ? (user.dailyUsed / user.dailyLimit) * 100 : 0)}%`,

@@ -115,7 +115,8 @@ apps/web/src/
 | `/landing` | Landing page PWA | Public |
 | `/login` | Connexion | Public |
 | `/register` | Inscription | Public |
-| `/activate` | Activation compte | Public |
+| `/activate` | Activation compte (Via Access ID) | Public |
+| `/verify-email`| Rappel de vérification email | Public |
 | `/search` | Recherche d'entreprises | Privée |
 | `/pipeline` | Gestion du pipeline | Privée |
 | `/saved` | Recherches & entreprises sauvegardées | Privée |
@@ -169,10 +170,17 @@ apps/web/src/
    - Historique conversations
 
 8. **🔑 Admin Dashboard**
-   - Gestion utilisateurs
-   - Import données en masse
-   - Configuration système
-   - Logs et analytics
+   - Gestion utilisateurs (Activation, suspension)
+   - Import données en masse (CSV avec mapping intelligent)
+   - Configuration système (Quotas, rôles)
+   - Logs et audit analytics
+
+9. **🛡️ Sécurité & Hardening**
+   - **Rate Limiting** : Protection contre les attaques DoS (100 requêtes / 15 min par IP)
+   - **Email Verification** : Accès bloqué tant que l'adresse email n'est pas confirmée via Firebase Auth
+   - **Error Masking** : Masquage des détails techniques (stack traces) en production
+   - **Firestore Rules** : Protection stricte des champs critiques (`plan`, `role`, `dailyLimit`) via `allow update: if false` pour les clients
+   - **Deduplication ID** : Garantie d'unicité des `accessId` lors de l'activation des membres
 
 ### Design System
 
@@ -301,6 +309,7 @@ export * from './types/saved-search'
 export * from './types/support'
 export * from './types/team'
 export * from './types/assignment'
+export * from './types/payment'
 
 // Schemas Zod
 export * from './schemas/user.schema'
@@ -352,7 +361,13 @@ Company {
 }
 ```
 
----
+// Plan types & Quotas
+PLANS {
+  free:       { dailyLimit: 10   }
+  starter:    { dailyLimit: 50   }
+  pro:        { dailyLimit: 200  }
+  enterprise: { dailyLimit: 1000 }
+}
 
 ## 🔐 Firebase & Firestore
 
@@ -403,6 +418,8 @@ imports/
 - Isolation utilisateur (chacun voit ses propres données)
 - Permissions admin pour gestion système
 - Isolation manager (accès équipe assignée)
+- **Validation Email** : Champ `emailVerified` (Auth) synchronisé avec l'accès aux routes protégées
+- **Champs Protégés** : `dailyLimit`, `role`, `plan` ne peuvent être modifiés que par l'Admin SDK (Server) ou la Console Admin.
 
 ---
 
@@ -657,6 +674,7 @@ const response = await fetch('/api/ai/chat', {
 
 ---
 
-**Dernière mise à jour:** Mai 2026  
-**Version:** 2.0  
-**Statut:** Production Ready ✅
+**Dernière mise à jour :** 14 Mai 2026
+**Version :** 2.0.1 (Security Hardened)
+**Statut :** Production Ready ✅
+
