@@ -885,5 +885,7 @@ export const fr = {
   common: {
     next: 'Suivant',
     previous: 'Précédent',
+    edit: 'Modifier',
+    cancel: 'Annuler',
   }
 }

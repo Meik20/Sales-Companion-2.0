@@ -87,22 +87,6 @@ function ProspectModal({
   const { pushToast } = useToast()
 
   const [noteText, setNoteText] = useState(item.notes ?? item.note ?? '')
-  const [noteSaving, setNoteSaving] = useState(false)
-
-  async function handleSaveNote() {
-    setNoteSaving(true)
-    try {
-      await updateMutation.mutateAsync({ id: item.id, data: { notes: noteText } })
-      pushToast({ type: 'success', title: t('pipeline.notesSaved') })
-    } catch {
-      pushToast({ type: 'error', title: t('pipeline.notesSaveError') })
-    } finally {
-      setNoteSaving(false)
-    }
-  }
-
-  const originalNote = item.notes ?? item.note ?? ''
-  const noteChanged = noteText !== originalNote
 
   return (
     <>
@@ -199,59 +183,30 @@ function ProspectModal({
             })()}
           </div>
 
-          {/* ── NOTES — section éditable ── */}
+          {/* ── NOTES — vue manager (non-éditable) ── */}
           <div style={{
-            background: 'rgba(251,191,36,0.06)',
-            border: '1px solid rgba(251,191,36,0.25)',
+            background: 'rgba(34,197,94,0.06)',
+            border: '1px solid rgba(34,197,94,0.25)',
             borderRadius: 12,
             padding: '14px 16px',
             marginBottom: 16,
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#fbbf24', textTransform: 'uppercase', letterSpacing: '.06em' }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#22c55e', textTransform: 'uppercase', letterSpacing: '.06em' }}>
                 📝 {t('pipeline.notesLabel')}
               </div>
-              {noteChanged && (
-                <Button
-                  size="sm"
-                  variant="primary"
-                  loading={noteSaving}
-                  onClick={() => void handleSaveNote()}
-                  style={{ fontSize: 11, padding: '4px 10px', minHeight: 26 }}
-                >
-                  {t('pipeline.notesSaveBtn')}
-                </Button>
-              )}
             </div>
-            <textarea
-              value={noteText}
-              onChange={(e) => setNoteText(e.target.value)}
-              placeholder={t('pipeline.placeholderNotes')}
-              rows={4}
-              style={{
-                width: '100%',
-                boxSizing: 'border-box',
-                background: 'transparent',
-                border: '1px solid rgba(251,191,36,0.2)',
-                borderRadius: 8,
-                padding: '10px 12px',
-                fontSize: 13,
-                color: colors.text,
-                resize: 'vertical',
-                outline: 'none',
-                fontFamily: 'inherit',
-                lineHeight: 1.6,
-                minHeight: 90,
-                transition: 'border-color 200ms ease',
-              }}
-              onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(251,191,36,0.5)' }}
-              onBlur={(e)  => { e.currentTarget.style.borderColor = 'rgba(251,191,36,0.2)' }}
-            />
-            {noteChanged && (
-              <div style={{ fontSize: 11, color: '#fbbf24', marginTop: 6, opacity: 0.8 }}>
-                {t('pipeline.notesUnsaved')}
-              </div>
-            )}
+            <div style={{ 
+              fontSize: 13, 
+              color: colors.text, 
+              lineHeight: 1.6, 
+              whiteSpace: 'pre-wrap',
+              minHeight: noteText ? 'auto' : 40,
+              fontStyle: noteText ? 'normal' : 'italic',
+              opacity: noteText ? 1 : 0.6
+            }}>
+              {noteText || t('pipeline.placeholderNotes')}
+            </div>
           </div>
 
           {item.nextFollowUp && (

@@ -885,5 +885,7 @@ export const en = {
   common: {
     next: 'Next',
     previous: 'Previous',
+    edit: 'Edit',
+    cancel: 'Cancel',
   }
 }
