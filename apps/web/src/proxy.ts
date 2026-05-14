@@ -48,7 +48,7 @@ function checkRateLimit(key: string, limit: number, windowMs: number): boolean {
   return true // allowed
 }
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl
   const ua = req.headers.get('user-agent') ?? ''
   const ip = getClientIp(req)
@@ -130,9 +130,11 @@ export function middleware(req: NextRequest) {
   return response
 }
 
+export default proxy
+
 export const config = {
   // Apply to all routes EXCEPT static files and Next.js internals
   matcher: [
-    '/((?!_next/static|_next/image|favicon|manifest|icons|sw\\.js|workbox).*)',
+    '/((?!_next/static|_next/image|favicon|manifest|icons|sw\.js|workbox).*)',
   ],
 }
