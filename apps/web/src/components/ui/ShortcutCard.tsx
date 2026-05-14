@@ -35,6 +35,7 @@ export function ShortcutCard({ sector = 'default', title, subtitle, count, updat
 
   return (
     <button
+      type="button"
       onClick={onClick}
       style={{
         display: 'flex',

@@ -299,8 +299,8 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
         .sc-pill:hover { border-color: var(--color-primary); color: var(--color-primary); }
         .sc-pill.active {
           border-color: var(--color-primary);
-          background: rgba(0,85,255,0.09);
-          color: var(--color-primary);
+          background: var(--color-primary);
+          color: #fff;
           font-weight: 700;
         }
         .sc-adv-btn:hover { color: var(--color-primary); }
@@ -368,9 +368,9 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
         .sc-chip {
           display: inline-flex; align-items: center; gap: 5px;
           font-size: 11.5px; padding: 3px 10px; border-radius: 999px;
-          background: rgba(0,85,255,0.09);
-          border: 1px solid rgba(0,85,255,0.3);
-          color: var(--color-primary); font-weight: 600;
+          background: var(--color-primary);
+          border: 1px solid var(--color-primary);
+          color: #fff; font-weight: 600;
         }
         .sc-chip button {
           background: none; border: none; cursor: pointer;
@@ -458,8 +458,6 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
             </div>
           </div>
         </div>
-      </div>
-    </div>
 
         {/* ── Active filter chips — only shown when there are visible chips (not just sector) ── */}
         {!!(query || region || city) && (
@@ -470,6 +468,8 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
             <button type="button" className="sc-reset-btn" onClick={handleReset}>{t('search.clearAll')}</button>
           </div>
         )}
+          </div>
+        </div>
       </form>
     </>
   )
