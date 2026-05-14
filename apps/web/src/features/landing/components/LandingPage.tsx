@@ -611,7 +611,7 @@ export function LandingPage() {
         <ul className="plan-features" role="list">
           <li className="plan-feature" role="listitem">
             <span className="plan-feature-check" aria-hidden="true">✓</span>
-            {t("landing.plansSection.pTeam1")} <strong>{t("landing.plansSection.pTeam1b")}</strong>
+            {t("landing.plansSection.pTeam1")}
           </li>
           <li className="plan-feature" role="listitem">
             <span className="plan-feature-check" aria-hidden="true">✓</span>
