@@ -131,6 +131,34 @@ export function AdminCompaniesTable() {
     }
   }
 
+  // Smart pagination logic to avoid rendering 100+ buttons
+  const getVisiblePages = () => {
+    const delta = 2; // how many pages to show around the current page
+    const range = [];
+    const rangeWithDots = [];
+    let l;
+
+    for (let i = 1; i <= totalPages; i++) {
+      if (i === 1 || i === totalPages || (i >= page - delta && i <= page + delta)) {
+        range.push(i);
+      }
+    }
+
+    for (let i of range) {
+      if (l) {
+        if (i - l === 2) {
+          rangeWithDots.push(l + 1);
+        } else if (i - l !== 1) {
+          rangeWithDots.push('...');
+        }
+      }
+      rangeWithDots.push(i);
+      l = i;
+    }
+
+    return rangeWithDots;
+  };
+
   return (
     <SectionCard title={t('admin.companies')} subtitle={`${total} ${t('admin.inDatabase')}`}>
       {items.length === 0 ? (
@@ -265,12 +293,37 @@ export function AdminCompaniesTable() {
               style={{
                 display: 'flex',
                 justifyContent: 'center',
-                gap: 8,
+                alignItems: 'center',
+                gap: 6,
                 marginTop: 16,
                 paddingTop: 16,
                 borderTop: `1px solid ${colors.border}`,
+                flexWrap: 'wrap',
               }}
             >
+              <button
+                onClick={() => {
+                  setSelectedIds([])
+                  setPage(1)
+                }}
+                disabled={page === 1}
+                style={{
+                  padding: '8px 12px',
+                  fontSize: 14,
+                  border: `1px solid ${colors.border}`,
+                  borderRadius: 6,
+                  background: colors.bg,
+                  color: colors.text,
+                  cursor: page === 1 ? 'not-allowed' : 'pointer',
+                  opacity: page === 1 ? 0.5 : 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                title="Première page"
+              >
+                &laquo;
+              </button>
               <button
                 onClick={() => {
                   setSelectedIds([])
@@ -279,38 +332,49 @@ export function AdminCompaniesTable() {
                 disabled={page === 1}
                 style={{
                   padding: '8px 12px',
-                  fontSize: 12,
+                  fontSize: 14,
                   border: `1px solid ${colors.border}`,
                   borderRadius: 6,
                   background: colors.bg,
                   color: colors.text,
                   cursor: page === 1 ? 'not-allowed' : 'pointer',
                   opacity: page === 1 ? 0.5 : 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
+                title="Page précédente"
               >
-                Précédent
+                &lsaquo;
               </button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                <button
-                  key={p}
-                  onClick={() => {
-                    setSelectedIds([])
-                    setPage(p)
-                  }}
-                  style={{
-                    padding: '8px 12px',
-                    fontSize: 12,
-                    border: `1px solid ${p === page ? '#2ea05a' : colors.border}`,
-                    borderRadius: 6,
-                    background: p === page ? 'rgba(46,160,90,0.1)' : colors.bg,
-                    color: colors.text,
-                    cursor: 'pointer',
-                    fontWeight: p === page ? 600 : 400,
-                  }}
-                >
-                  {p}
-                </button>
-              ))}
+              
+              {getVisiblePages().map((p, index) => {
+                if (p === '...') {
+                  return <span key={`ellipsis-${index}`} style={{ color: colors.textMid, padding: '0 4px' }}>...</span>
+                }
+                return (
+                  <button
+                    key={`page-${p}`}
+                    onClick={() => {
+                      setSelectedIds([])
+                      setPage(p as number)
+                    }}
+                    style={{
+                      padding: '8px 12px',
+                      fontSize: 12,
+                      border: `1px solid ${p === page ? '#2ea05a' : colors.border}`,
+                      borderRadius: 6,
+                      background: p === page ? 'rgba(46,160,90,0.1)' : colors.bg,
+                      color: colors.text,
+                      cursor: 'pointer',
+                      fontWeight: p === page ? 600 : 400,
+                    }}
+                  >
+                    {p}
+                  </button>
+                )
+              })}
+
               <button
                 onClick={() => {
                   setSelectedIds([])
@@ -319,16 +383,43 @@ export function AdminCompaniesTable() {
                 disabled={page === totalPages}
                 style={{
                   padding: '8px 12px',
-                  fontSize: 12,
+                  fontSize: 14,
                   border: `1px solid ${colors.border}`,
                   borderRadius: 6,
                   background: colors.bg,
                   color: colors.text,
                   cursor: page === totalPages ? 'not-allowed' : 'pointer',
                   opacity: page === totalPages ? 0.5 : 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
+                title="Page suivante"
               >
-                Suivant
+                &rsaquo;
+              </button>
+              <button
+                onClick={() => {
+                  setSelectedIds([])
+                  setPage(totalPages)
+                }}
+                disabled={page === totalPages}
+                style={{
+                  padding: '8px 12px',
+                  fontSize: 14,
+                  border: `1px solid ${colors.border}`,
+                  borderRadius: 6,
+                  background: colors.bg,
+                  color: colors.text,
+                  cursor: page === totalPages ? 'not-allowed' : 'pointer',
+                  opacity: page === totalPages ? 0.5 : 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                title="Dernière page"
+              >
+                &raquo;
               </button>
             </div>
           )}
