@@ -53,16 +53,19 @@ export function ProfileCard() {
               width: 64,
               height: 64,
               borderRadius: '50%',
-              background: 'rgba(10, 102, 194, 0.08)',
-              border: '2px solid rgba(10, 102, 194, 0.2)',
-              color: 'var(--color-primary)',
+              background: 'rgba(55,138,221,0.15)',
+              border: '2px solid rgba(55,138,221,0.3)',
+              color: 'var(--color-accent)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               flexShrink: 0,
+              fontSize: 24,
+              fontWeight: 800,
+              fontFamily: 'inherit',
             }}
           >
-            <ScIcon size={36} />
+            {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || '?'}
           </div>
 
           {/* Infos */}

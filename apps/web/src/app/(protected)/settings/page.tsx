@@ -13,10 +13,10 @@ import { colors } from '@/styles/tokens'
 import { routes } from '@/constants/routes'
 
 const planDetails = {
-  free:       { labelKey: 'settings.plans.free',       searches: 50,    featureKeys: ['settings.features.basicSearch', 'settings.features.personalPipeline', 'settings.features.fiftySearches'] },
-  starter:    { labelKey: 'settings.plans.starter',    searches: 200,   featureKeys: ['settings.features.advancedSearch', 'settings.features.personalPipeline', 'settings.features.twoHundredSearches', 'settings.features.excelExport'] },
-  pro:        { labelKey: 'settings.plans.pro',        searches: 1000,  featureKeys: ['settings.features.allStarter', 'settings.features.teamManagement', 'settings.features.oneThousandSearches', 'settings.features.aiAssistant', 'settings.features.prioritySupport'] },
-  enterprise: { labelKey: 'settings.plans.enterprise', searches: 99999, featureKeys: ['settings.features.allPro', 'settings.features.unlimited', 'settings.features.dedicatedDeployment', 'settings.features.dedicatedSupport'] },
+  free:       { labelKey: 'settings.plans.free',       searches: 10,    featureKeys: ['settings.features.basicSearch', 'settings.features.personalPipeline'] },
+  starter:    { labelKey: 'settings.plans.starter',    searches: 50,    featureKeys: ['settings.features.advancedSearch', 'settings.features.personalPipeline', 'settings.features.excelExport'] },
+  pro:        { labelKey: 'settings.plans.pro',        searches: 200,   featureKeys: ['settings.features.allStarter', 'settings.features.pipelineUnlimited', 'settings.features.aiAssistant', 'settings.features.prioritySupport'] },
+  enterprise: { labelKey: 'settings.plans.enterprise', searches: 1000,  featureKeys: ['settings.features.allPro', 'settings.features.oneThousandSearches', 'settings.features.teamManagement', 'settings.features.dedicatedSupport'] },
 }
 
 export default function SettingsPage() {
@@ -58,9 +58,9 @@ export default function SettingsPage() {
                     {t(planInfo.labelKey as any)}
                   </Badge>
                 </div>
-                <p style={{ margin: 0, fontSize: 13, color: colors.textMid }}>
-                  {planInfo.searches === 99999 ? t('settings.unlimitedSearches') : `${planInfo.searches} ${t('settings.searchesPerDay')}`}
-                </p>
+            <p style={{ margin: 0, fontSize: 13, color: colors.textMid }}>
+              {planInfo.searches >= 1000 ? t('settings.searchesPerDay1000') || `${planInfo.searches} ${t('settings.searchesPerDay')}` : `${planInfo.searches} ${t('settings.searchesPerDay')}`}
+            </p>
               </div>
 
               {(plan !== 'enterprise' && (user?.role === 'manager' || user?.role === 'independent')) ? (
