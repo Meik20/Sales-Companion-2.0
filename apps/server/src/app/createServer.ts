@@ -1,6 +1,7 @@
 import cors from 'cors'
 import express from 'express'
 import helmet from 'helmet'
+import { rateLimit } from 'express-rate-limit'
 import { errorMiddleware } from '../middlewares/error.middleware'
 import { adminRoutes } from '../modules/admin/admin.routes'
 import { aiRoutes } from '../modules/ai/ai.routes'
@@ -18,6 +19,16 @@ export function createServer() {
   app.use(helmet())
   app.use(cors({ origin: process.env.WEB_ORIGIN, credentials: true }))
   app.use(express.json())
+
+  // Rate limiting to protect the API
+  const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // Limit each IP to 100 requests per windowMs
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { message: 'Trop de requêtes, veuillez réessayer plus tard.' }
+  })
+  app.use(limiter)
 
   app.get('/health', (_req, res) => {
     res.json({ status: 'ok' })

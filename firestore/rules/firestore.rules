@@ -44,7 +44,10 @@ service cloud.firestore {
       allow create: if isOwner(uid) || isAdmin();
 
       allow update: if isAdmin()
-        || isOwner(uid);
+        || (isOwner(uid) 
+            && !request.resource.data.diff(resource.data).affectedKeys()
+                .hasAny(['role', 'plan', 'dailyLimit', 'activated', 'managerUid', 'managerEmail'])
+           );
 
       allow delete: if isAdmin();
     }
@@ -97,7 +100,8 @@ service cloud.firestore {
     }
 
     match /team_accesses/{accessId} {
-      allow get: if true;
+      // Désormais géré uniquement via Firebase Admin SDK sur le backend
+      allow get: if false;
 
       allow read: if isAdmin()
         || (isManager() && resource.data.managerUid == authUid());
