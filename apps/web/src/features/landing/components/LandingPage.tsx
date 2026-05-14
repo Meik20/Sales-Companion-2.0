@@ -601,12 +601,12 @@ export function LandingPage() {
         </a>
       </article>
 
-      {/*  Team  */}
-      <article className="plan-card reveal reveal-d2" aria-label="Plan Team">
-        <div className="plan-name">{t("landing.plansSection.team")}</div>
-        <span className="badge badge-gold">{t("landing.plansSection.teamBadge")}</span>
-        <div className="plan-price">{t("landing.plansSection.teamPrice")} <sub>FCFA</sub></div>
-        <div className="plan-period">{t("landing.plansSection.proPeriod")}</div>
+      {/*  Enterprise  */}
+      <article className="plan-card reveal reveal-d2" aria-label="Plan Enterprise">
+        <div className="plan-name">{t("landing.plansSection.enterprise")}</div>
+        <span className="badge badge-gold">{t("landing.plansSection.enterpriseBadge")}</span>
+        <div className="plan-price">{t("landing.plansSection.enterprisePrice")} <sub>FCFA</sub></div>
+        <div className="plan-period">{t("landing.plansSection.enterprisePeriod")}</div>
         <div className="plan-divider" aria-hidden="true"></div>
         <ul className="plan-features" role="list">
           <li className="plan-feature" role="listitem">
@@ -634,8 +634,8 @@ export function LandingPage() {
             {t("landing.plansSection.pTeam6")}
           </li>
         </ul>
-        <a href="/register" className="btn btn-ghost btn-md" style={{"width":"100%","justifyContent":"center"}} aria-label="Démarrer avec le plan Team">
-          {t("landing.plansSection.contactTeamBtn")}
+        <a href="/register" className="btn btn-ghost btn-md" style={{"width":"100%","justifyContent":"center"}} aria-label="Démarrer avec le plan Enterprise">
+          {t("landing.plansSection.contactEnterpriseBtn")}
         </a>
       </article>
 
