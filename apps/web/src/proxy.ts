@@ -93,35 +93,8 @@ export function proxy(req: NextRequest) {
     }
   }
 
-  // ── 4. Block direct API access without Referer (non-browser scraping) ─────
-  // Only apply to sensitive data routes (search, pipeline, admin)
-  const sensitiveRoutes = ['/api/search/', '/api/pipeline', '/api/admin']
-  const isSensitive = sensitiveRoutes.some((r) => pathname.startsWith(r))
 
-  if (isSensitive) {
-    const referer = req.headers.get('referer') ?? ''
-    const origin  = req.headers.get('origin')  ?? ''
-    const appUrl  = process.env.NEXT_PUBLIC_APP_URL ?? 'https://sales-companion.app'
-
-    const hasValidOrigin =
-      referer.startsWith(appUrl) ||
-      origin.startsWith(appUrl)  ||
-      // Allow localhost in development
-      referer.includes('localhost') ||
-      origin.includes('localhost')
-
-    if (!hasValidOrigin) {
-      return new NextResponse(
-        JSON.stringify({ error: 'Direct API access is not allowed.' }),
-        {
-          status: 403,
-          headers: { 'Content-Type': 'application/json' },
-        }
-      )
-    }
-  }
-
-  // ── 5. Add anti-scraping response headers ────────────────────────────────
+  // ── 4. Add anti-scraping response headers ────────────────────────────────
   const response = NextResponse.next()
   response.headers.set('X-Robots-Tag', 'noindex, nofollow, nosnippet, noarchive')
   response.headers.set('X-Content-Type-Options', 'nosniff')
