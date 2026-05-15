@@ -303,7 +303,7 @@ function SearchContent() {
                 
                 <img 
                   src="/illustrations/search-prospects.png" 
-                  alt="Search illustration" 
+                  alt="Prospection B2B au Cameroun — Trouvez vos clients avec Sales Companion" 
                   className="illustration-refined illustration-light"
                   style={{
                     width: '100%',
@@ -314,7 +314,7 @@ function SearchContent() {
                 />
                 <img 
                   src="/illustrations/search-prospects-dark.png" 
-                  alt="Search illustration dark" 
+                  alt="Annuaire des entreprises du Cameroun — Intelligence commerciale B2B" 
                   className="illustration-refined illustration-dark"
                   style={{
                     width: '100%',

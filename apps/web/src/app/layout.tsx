@@ -8,22 +8,23 @@ import { GoogleAnalytics } from '@next/third-parties/google'
 export const metadata: Metadata = {
   // ── Core ──────────────────────────────────────────────────────────────
   title: {
-    default: 'Sales Companion 2.0 — Intelligence B2B Cameroun',
-    template: '%s | Sales Companion 2.0',
+    default: 'Sales Companion — Base de Données Entreprises Cameroun | Annuaire B2B N°1',
+    template: '%s | Sales Companion',
   },
   description:
-    'La plateforme B2B dédiée aux commerciaux et managers au Cameroun. Recherchez des entreprises, gérez votre pipeline commercial et boostez vos performances de vente.',
+    'Accédez à la base de données la plus complète des entreprises camerounaises. 50 000+ sociétés vérifiées à Douala, Yaoundé et dans tout le Cameroun. Prospection B2B, contacts dirigeants.',
   keywords: [
-    'CRM Cameroun',
-    'pipeline commercial',
-    'prospection B2B',
-    'gestion équipe commerciale',
+    'base de données entreprises Cameroun',
+    'annuaire entreprises Cameroun',
+    'prospection B2B Cameroun',
+    'liste entreprises Douala',
+    'liste entreprises Yaoundé',
     'intelligence commerciale Cameroun',
-    'logiciel commercial Cameroun',
-    'Sales Companion 2.0',
+    'annuaire professionnel Cameroun',
+    'Sales Companion',
   ],
-  authors: [{ name: 'Sales Companion 2.0' }],
-  creator: 'Sales Companion 2.0',
+  authors: [{ name: 'Sales Companion' }],
+  creator: 'Sales Companion',
 
   // ── Canonical & robots ────────────────────────────────────────────────
   metadataBase: new URL(
@@ -31,6 +32,10 @@ export const metadata: Metadata = {
   ),
   alternates: {
     canonical: '/',
+    languages: {
+      'fr-CM': '/fr',
+      'en-CM': '/en',
+    },
   },
   robots: {
     index: true,
@@ -51,21 +56,21 @@ export const metadata: Metadata = {
 
   // ── Open Graph ────────────────────────────────────────────────────────
   openGraph: {
-    title: 'Sales Companion 2.0 — Intelligence B2B Cameroun',
+    title: 'Sales Companion — Base de Données Entreprises Cameroun',
     description:
-      'Recherchez des entreprises, gérez votre pipeline et boostez vos performances commerciales au Cameroun.',
+      'Accédez à la base de données la plus complète des entreprises camerounaises. 50 000+ sociétés vérifiées.',
     url: '/',
-    siteName: 'Sales Companion 2.0',
-    locale: 'fr_FR',
+    siteName: 'Sales Companion',
+    locale: 'fr_CM',
     type: 'website',
   },
 
   // ── Twitter / X Card ─────────────────────────────────────────────────
   twitter: {
     card: 'summary_large_image',
-    title: 'Sales Companion 2.0 — Intelligence B2B Cameroun',
+    title: 'Sales Companion — Base de Données Entreprises Cameroun',
     description:
-      'La plateforme commerciale B2B dédiée aux équipes de vente au Cameroun.',
+      'La plateforme B2B de référence pour la prospection commerciale au Cameroun.',
     creator: '@SalesCompanion',
   },
 }
@@ -77,8 +82,41 @@ export const viewport: Viewport = {
 }
 
 export default function RootLayout({ children }: { children: ReactNode }) {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Sales Companion",
+    "description": "Plateforme d'intelligence commerciale et base de données entreprises au Cameroun.",
+    "url": "https://sales-companion.app",
+    "logo": "https://sales-companion.app/logo.png",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Douala",
+      "addressCountry": "CM"
+    },
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "contactType": "customer service",
+      "availableLanguage": ["French", "English"]
+    },
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "https://sales-companion.app/search?query={search_term_string}"
+      },
+      "query-input": "required name=search_term_string"
+    }
+  };
+
   return (
-    <html lang="fr" data-scroll-behavior="smooth" suppressHydrationWarning>
+    <html lang="fr-CM" data-scroll-behavior="smooth" suppressHydrationWarning>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <I18nProvider>

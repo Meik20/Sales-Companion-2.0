@@ -14,14 +14,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     {
       url: baseUrl,
       lastModified: now,
-      changeFrequency: 'weekly',
+      changeFrequency: 'daily',
       priority: 1.0,
     },
     {
       url: `${baseUrl}/login`,
       lastModified: now,
       changeFrequency: 'monthly',
-      priority: 0.8,
+      priority: 0.5,
     },
     {
       url: `${baseUrl}/register`,
@@ -29,5 +29,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'monthly',
       priority: 0.8,
     },
+    // Future routes to be indexed as per SEO Strategy:
+    // - /annuaire/ (Companies fiches)
+    // - /blog/ (Editorial content)
   ]
 }

@@ -6,14 +6,16 @@ import type { MetadataRoute } from 'next'
  * qui ne doivent pas être indexées ni archivées.
  */
 export default function robots(): MetadataRoute.Robots {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://sales-companion.app'
+
   return {
     rules: [
       {
-        // Block all bots from everything
         userAgent: '*',
-        disallow: ['/'],
+        allow: ['/', '/login', '/register'],
+        disallow: ['/api/', '/_next/', '/admin/', '/protected/'],
       },
-      // Explicitly block major scrapers even if they ignore '*'
+      // Block AI scrapers from all content to protect proprietary database
       { userAgent: 'GPTBot',          disallow: ['/'] },
       { userAgent: 'CCBot',           disallow: ['/'] },
       { userAgent: 'ChatGPT-User',    disallow: ['/'] },
@@ -21,14 +23,9 @@ export default function robots(): MetadataRoute.Robots {
       { userAgent: 'anthropic-ai',    disallow: ['/'] },
       { userAgent: 'ClaudeBot',       disallow: ['/'] },
       { userAgent: 'Bytespider',      disallow: ['/'] },
-      { userAgent: 'Applebot',        disallow: ['/'] },
       { userAgent: 'AhrefsBot',       disallow: ['/'] },
       { userAgent: 'SemrushBot',      disallow: ['/'] },
-      { userAgent: 'MJ12bot',         disallow: ['/'] },
-      { userAgent: 'DotBot',          disallow: ['/'] },
-      { userAgent: 'DataForSeoBot',   disallow: ['/'] },
-      { userAgent: 'ia_archiver',     disallow: ['/'] },
     ],
-    // No sitemap exposed to public indexers
+    sitemap: `${baseUrl}/sitemap.xml`,
   }
 }

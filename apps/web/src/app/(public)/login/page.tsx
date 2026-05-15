@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description:
     'Connectez-vous à Sales Companion 2.0 pour accéder à votre pipeline commercial et gérer votre prospection B2B au Cameroun.',
   alternates: { canonical: '/login' },
-  robots: { index: false, follow: false }, // page auth — pas d'indexation
+  robots: { index: true, follow: true },
 }
 
 
