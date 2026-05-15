@@ -253,33 +253,42 @@ function SearchContent() {
                 style={{ 
                   position: 'relative',
                   width: '100%',
-                  maxWidth: 320,
-                  height: 240,
+                  maxWidth: 360,
+                  height: 280,
                   display: 'flex', 
                   alignItems: 'center', 
                   justifyContent: 'center',
-                  marginBottom: 8
+                  marginBottom: 16,
+                  // Ajout d'un halo subtil pour ancrer l'image dans l'UI
+                  background: `radial-gradient(50% 50% at 50% 50%, ${colors.greenLight} 0%, transparent 100%)`,
                 }}
               >
                 <style dangerouslySetInnerHTML={{__html: `
-                  @keyframes float {
-                    0%, 100% { transform: translateY(0); }
-                    50% { transform: translateY(-10px); }
+                  @keyframes floatSubtle {
+                    0%, 100% { transform: translateY(0) scale(1); }
+                    50% { transform: translateY(-8px) scale(1.02); }
                   }
-                  .illustration-float {
-                    animation: float 4s infinite ease-in-out;
+                  .illustration-refined {
+                    animation: floatSubtle 6s infinite ease-in-out;
+                    mix-blend-mode: multiply;
+                    transition: filter 0.3s ease;
+                  }
+                  /* En mode sombre, multiply ne fonctionne pas bien, on ajuste */
+                  [data-theme='dark'] .illustration-refined {
+                    mix-blend-mode: normal;
+                    filter: brightness(0.9) contrast(1.1);
                   }
                 `}} />
                 
                 <img 
                   src="/illustrations/search-prospects.png" 
                   alt="Search illustration" 
-                  className="illustration-float"
+                  className="illustration-refined"
                   style={{
                     width: '100%',
                     height: '100%',
                     objectFit: 'contain',
-                    filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.08))'
+                    opacity: 0.95,
                   }}
                 />
               </div>
