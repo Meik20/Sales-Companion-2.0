@@ -275,12 +275,23 @@ function SearchContent() {
                   .illustration-refined {
                     animation: floatSubtle 6s infinite ease-in-out;
                     mix-blend-mode: multiply;
-                    transition: filter 0.3s ease;
+                    transition: all 0.3s ease;
                   }
-                  [data-theme='dark'] .illustration-refined {
-                    mix-blend-mode: normal;
-                    filter: brightness(0.9) contrast(1.1);
+                  .illustration-dark { display: none; }
+                  
+                  /* Mode Sombre : on change d'image et d'effet */
+                  [data-theme='dark'] .illustration-light {
+                    display: none;
                   }
+                  [data-theme='dark'] .illustration-dark {
+                    display: block;
+                    animation: floatSubtle 6s infinite ease-in-out;
+                    filter: drop-shadow(0 0 15px rgba(24, 95, 165, 0.3));
+                  }
+                  [data-theme='dark'] .desktop-illustration {
+                    background: radial-gradient(50% 50% at 50% 50%, rgba(24, 95, 165, 0.15) 0%, transparent 100%) !important;
+                  }
+
                   .mobile-illustration { display: none; }
                   @media (max-width: 768px) {
                     .desktop-illustration { display: none !important; }
@@ -291,12 +302,22 @@ function SearchContent() {
                 <img 
                   src="/illustrations/search-prospects.png" 
                   alt="Search illustration" 
-                  className="illustration-refined"
+                  className="illustration-refined illustration-light"
                   style={{
                     width: '100%',
                     height: '100%',
                     objectFit: 'contain',
                     opacity: 0.95,
+                  }}
+                />
+                <img 
+                  src="/illustrations/search-prospects-dark.png" 
+                  alt="Search illustration dark" 
+                  className="illustration-refined illustration-dark"
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'contain',
                   }}
                 />
               </div>
