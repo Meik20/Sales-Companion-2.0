@@ -84,6 +84,40 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // ── Step: Find previous assignees ──────────────────────────────────
+    const prevAssigneesMap = new Map<string, { userId: string, memberName: string, assignedAt: string }>()
+    if (companyId) {
+      try {
+        const byCompanyId = await adminDb.collection('pipeline').where('companyId', '==', companyId).get()
+        byCompanyId.docs.forEach(doc => {
+          const d = doc.data()
+          if (d.userId && d.userId !== userId) {
+            prevAssigneesMap.set(d.userId, {
+              userId: d.userId,
+              memberName: d.memberName || d.userId,
+              assignedAt: d.createdAt?.toDate?.()?.toISOString() || new Date().toISOString()
+            })
+          }
+        })
+      } catch (err) { console.error('Error fetching by companyId', err) }
+    }
+    if (companyName) {
+      try {
+        const byName = await adminDb.collection('pipeline').where('companyName', '==', companyName).get()
+        byName.docs.forEach(doc => {
+          const d = doc.data()
+          if (d.userId && d.userId !== userId) {
+            prevAssigneesMap.set(d.userId, {
+              userId: d.userId,
+              memberName: d.memberName || d.userId,
+              assignedAt: d.createdAt?.toDate?.()?.toISOString() || new Date().toISOString()
+            })
+          }
+        })
+      } catch (err) { console.error('Error fetching by companyName', err) }
+    }
+    const previousAssignees = Array.from(prevAssigneesMap.values())
+
     const now = new Date()
     const docRef = await adminDb.collection('pipeline').add({
       userId,
@@ -101,6 +135,7 @@ export async function POST(request: NextRequest) {
       status:        'prospection',
       nextDate:      null,
       note:          '',
+      previousAssignees,
       createdAt:     now,
       updatedAt:     now,
     })

@@ -104,6 +104,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'companyName requis' }, { status: 400 })
     }
 
+    // ── Find previous assignees ──────────────────────────────────
+    const prevAssigneesMap = new Map<string, { userId: string, memberName: string, assignedAt: string }>()
+    if (companyName) {
+      try {
+        const byName = await adminDb.collection('pipeline').where('companyName', '==', companyName).get()
+        byName.docs.forEach(doc => {
+          const d = doc.data()
+          if (d.userId && d.userId !== userId) {
+            prevAssigneesMap.set(d.userId, {
+              userId: d.userId,
+              memberName: d.memberName || d.userId,
+              assignedAt: d.createdAt?.toDate?.()?.toISOString() || new Date().toISOString()
+            })
+          }
+        })
+      } catch (err) { console.error('Error fetching by companyName', err) }
+    }
+    const previousAssignees = Array.from(prevAssigneesMap.values())
+
     const ref = adminDb.collection('pipeline').doc()
     await ref.set({
       userId,
@@ -112,9 +131,10 @@ export async function POST(request: NextRequest) {
       status,
       ...Object.fromEntries(
         Object.entries(body).filter(([k]) =>
-          !['userId', 'managerUid', 'createdAt', 'updatedAt', 'status'].includes(k)
+          !['userId', 'managerUid', 'createdAt', 'updatedAt', 'status', 'previousAssignees'].includes(k)
         )
       ),
+      previousAssignees,
       createdAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp(),
     })

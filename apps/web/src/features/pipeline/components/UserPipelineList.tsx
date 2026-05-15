@@ -25,6 +25,11 @@ type PipelineItem = {
   assignedByName?: string | null
   managerUid?: string | null
   sourceId?: string | null
+  previousAssignees?: {
+    userId: string
+    memberName: string
+    assignedAt: string
+  }[]
 }
 
 type Props = {
@@ -314,6 +319,25 @@ function ProspectModal({
             </div>
           )}
 
+          {/* Déjà visité / assigné */}
+          {item.previousAssignees && item.previousAssignees.length > 0 && (
+            <div style={{
+              background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.2)',
+              borderRadius: 10, padding: '10px 14px', marginBottom: 16,
+              fontSize: 13, color: '#f87171', display: 'flex', alignItems: 'flex-start', gap: 8
+            }}>
+              <span>⚠️</span>
+              <div>
+                <strong>Attention :</strong> Ce prospect a déjà été visité/assigné précédemment à :
+                <ul style={{ margin: '4px 0 0 0', paddingLeft: 16 }}>
+                  {item.previousAssignees.map((pa, idx) => (
+                    <li key={idx}>{pa.memberName} (le {new Date(pa.assignedAt).toLocaleDateString()})</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
+
           {/* Status Actions */}
           {onStatusChange && (
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -448,6 +472,12 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
               {item.assignedByName && (
                 <div style={{ fontSize: 11, color: 'rgba(99,102,241,0.7)', marginTop: 5 }}>
                   👤 {t('pipeline.assignedBy')} : {item.assignedByName}
+                </div>
+              )}
+
+              {item.previousAssignees && item.previousAssignees.length > 0 && (
+                <div style={{ fontSize: 11, color: '#f87171', marginTop: 5, fontWeight: 500 }}>
+                  ⚠️ Déjà visité par d'autres membres
                 </div>
               )}
 

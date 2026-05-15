@@ -215,6 +215,40 @@ export async function POST(request: NextRequest) {
     const memberEmail = memberData.email ?? ''
     const memberAccessId = memberData.accessId ?? null
 
+    // ── Step 2.5: Find previous assignees ──────────────────────────────────
+    const prevAssigneesMap = new Map<string, { userId: string, memberName: string, assignedAt: string }>()
+    if (pipelineItemId) {
+      try {
+        const bySource = await adminDb.collection('pipeline').where('sourceProspectId', '==', pipelineItemId).get()
+        bySource.docs.forEach(doc => {
+          const d = doc.data()
+          if (d.userId && d.userId !== memberId) {
+            prevAssigneesMap.set(d.userId, {
+              userId: d.userId,
+              memberName: d.memberName || d.userId,
+              assignedAt: d.createdAt?.toDate?.()?.toISOString() || new Date().toISOString()
+            })
+          }
+        })
+      } catch (err) { console.error('Error fetching by sourceProspectId', err) }
+    }
+    if (companyName) {
+      try {
+        const byName = await adminDb.collection('pipeline').where('companyName', '==', companyName).get()
+        byName.docs.forEach(doc => {
+          const d = doc.data()
+          if (d.userId && d.userId !== memberId) {
+            prevAssigneesMap.set(d.userId, {
+              userId: d.userId,
+              memberName: d.memberName || d.userId,
+              assignedAt: d.createdAt?.toDate?.()?.toISOString() || new Date().toISOString()
+            })
+          }
+        })
+      } catch (err) { console.error('Error fetching by companyName', err) }
+    }
+    const previousAssignees = Array.from(prevAssigneesMap.values())
+
     // ── Step 3: Create pipeline item owned by the MEMBER ──────────────────
     // This makes it visible in the member's own Pipeline tab
     // AND in the manager's consolidated view (/api/pipeline/manager)
@@ -223,7 +257,7 @@ export async function POST(request: NextRequest) {
       // Preserve all original prospect fields except those explicitly overridden
       ...Object.fromEntries(
         Object.entries(prospectData).filter(([k]) =>
-          !['userId', 'managerUid', 'createdAt', 'updatedAt', 'status', 'assignedTo', 'memberName', 'memberAccessId', 'assignedBy', 'assignedByName', 'id', 'sourceProspectId'].includes(k)
+          !['userId', 'managerUid', 'createdAt', 'updatedAt', 'status', 'assignedTo', 'memberName', 'memberAccessId', 'assignedBy', 'assignedByName', 'id', 'sourceProspectId', 'previousAssignees'].includes(k)
         )
       ),
       companyPhone: prospectData.companyPhone || prospectData.telephone || prospectData.phone || prospectData.tel || null,
@@ -241,6 +275,7 @@ export async function POST(request: NextRequest) {
       assignedBy:  managerUid,
       assignedByName: managerName,
       sourceProspectId: pipelineItemId,
+      previousAssignees,
       createdAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp(),
     })
