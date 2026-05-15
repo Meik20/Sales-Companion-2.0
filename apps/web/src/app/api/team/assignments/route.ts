@@ -249,6 +249,24 @@ export async function POST(request: NextRequest) {
     }
     const previousAssignees = Array.from(prevAssigneesMap.values())
 
+    // ── Step 2.6: Check for existing assignment to avoid duplicates ──────
+    const existingSnap = await adminDb
+      .collection('team_assignments')
+      .where('managerUid', '==', managerUid)
+      .where('memberId', '==', memberId)
+      .where('pipelineItemId', '==', pipelineItemId)
+      .limit(1)
+      .get()
+
+    if (!existingSnap.empty) {
+      return NextResponse.json({
+        success: true,
+        message: 'Déjà assigné',
+        assignmentId: existingSnap.docs[0]!.id,
+        pipelineEntryId: existingSnap.docs[0]!.data().pipelineEntryId,
+      })
+    }
+
     // ── Step 3: Create pipeline item owned by the MEMBER ──────────────────
     // This makes it visible in the member's own Pipeline tab
     // AND in the manager's consolidated view (/api/pipeline/manager)

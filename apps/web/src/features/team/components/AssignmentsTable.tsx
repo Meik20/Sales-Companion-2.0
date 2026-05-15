@@ -20,7 +20,14 @@ export function AssignmentsTable() {
   const { t } = useTranslation()
 
   const [repairing, setRepairing] = useState(false)
-  const [repairResult, setRepairResult] = useState<{ uidFixed: number; nameFixed: number; skipped: number; errors: string[] } | null>(null)
+  const [repairResult, setRepairResult] = useState<{ 
+    uidFixed: number; 
+    nameFixed: number; 
+    deletedDupes?: number; 
+    deletedStale?: number; 
+    skipped: number; 
+    errors: string[] 
+  } | null>(null)
 
   const handleRepair = async () => {
     if (!user) return
@@ -33,7 +40,14 @@ export function AssignmentsTable() {
         headers: { Authorization: `Bearer ${token}` },
       })
       const json = await res.json()
-      setRepairResult(json as { uidFixed: number; nameFixed: number; skipped: number; errors: string[] })
+      setRepairResult(json as { 
+        uidFixed: number; 
+        nameFixed: number; 
+        deletedDupes?: number; 
+        deletedStale?: number; 
+        skipped: number; 
+        errors: string[] 
+      })
       // Refresh pipeline and assignments caches
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['pipeline'] }),
@@ -84,10 +98,12 @@ export function AssignmentsTable() {
             border: `1px solid ${(repairResult.uidFixed > 0 || repairResult.nameFixed > 0) ? 'rgba(46,160,90,0.25)' : 'rgba(99,102,241,0.2)'}`,
             fontSize: 12.5, color: (repairResult.uidFixed > 0 || repairResult.nameFixed > 0) ? '#2ea05a' : colors.textMid,
           }}>
-            {repairResult.uidFixed > 0 || repairResult.nameFixed > 0
+            {repairResult.uidFixed > 0 || repairResult.nameFixed > 0 || (repairResult.deletedDupes || 0) > 0 || (repairResult.deletedStale || 0) > 0
               ? [
                   repairResult.uidFixed  > 0 && `✓ ${repairResult.uidFixed} ${t('team.repairSuccessSync')}`,
                   repairResult.nameFixed > 0 && `✓ ${repairResult.nameFixed} ${t('team.repairSuccessName')}`,
+                  (repairResult.deletedDupes || 0) > 0 && `✓ ${repairResult.deletedDupes} doublons supprimés`,
+                  (repairResult.deletedStale || 0) > 0 && `✓ ${repairResult.deletedStale} éléments obsolètes retirés`,
                 ].filter(Boolean).join(' · ')
               : t('team.repairSkipped')}
             {repairResult.errors.length > 0 && (
