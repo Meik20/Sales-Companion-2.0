@@ -23,9 +23,9 @@ export default function AdminConfigPage() {
 
   const PLAN_ROWS = [
     { plan: 'Gratuit',    daily: '10',       price: '—',            target: t('admin.targetFree') || 'Essai / découverte' },
-    { plan: 'Starter',   daily: '200',      price: '5 000 FCFA',   target: t('admin.targetStarter') || 'Commerciaux indépendants' },
-    { plan: 'Pro',       daily: '500',      price: '15 000 FCFA',  target: t('admin.targetPro') || 'Équipes commerciales, PME' },
-    { plan: 'Entreprise',daily: t('admin.unlimited') || 'Illimité', price: '50 000 FCFA',  target: t('admin.targetEnterprise') || 'Grandes entreprises, cabinets' },
+    { plan: 'Starter',   daily: '50',       price: '5 000 FCFA',   target: t('admin.targetStarter') || 'Commerciaux indépendants' },
+    { plan: 'Pro',       daily: '200',      price: '15 000 FCFA',  target: t('admin.targetPro') || 'Équipes commerciales, PME' },
+    { plan: 'Entreprise',daily: '1 000',     price: '50 000 FCFA',  target: t('admin.targetEnterprise') || 'Grandes entreprises, cabinets' },
   ]
 
   async function saveApiKey() {

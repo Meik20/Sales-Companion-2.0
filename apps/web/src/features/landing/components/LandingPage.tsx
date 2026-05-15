@@ -553,13 +553,39 @@ export function LandingPage() {
             <span style={{"color":"var(--tx3)"}} aria-hidden="true">✗</span>
             <span style={{color:"var(--tx3)"}}>Companion IA</span>
           </li>
-          <li className="plan-feature" role="listitem" style={{"opacity":0.45}}>
-            <span style={{"color":"var(--tx3)"}} aria-hidden="true">✗</span>
-            <span style={{"color":"var(--tx3)"}}>Gestion équipe</span>
-          </li>
         </ul>
         <a href="/register" className="btn btn-outline btn-md" style={{"width":"100%","justifyContent":"center"}} aria-label="Démarrer avec le plan Gratuit">
           {t("landing.plansSection.startFreeBtn")}
+        </a>
+      </article>
+
+      {/*  Starter  */}
+      <article className="plan-card reveal reveal-d05" aria-label="Plan Starter">
+        <div className="plan-name">{t("landing.plansSection.starter")}</div>
+        <span className="badge badge-info">{t("landing.plansSection.starterBadge")}</span>
+        <div className="plan-price">{t("landing.plansSection.starterPrice")} <sub>FCFA</sub></div>
+        <div className="plan-period">{t("landing.plansSection.starterPeriod")}</div>
+        <div className="plan-divider" aria-hidden="true"></div>
+        <ul className="plan-features" role="list">
+          <li className="plan-feature" role="listitem">
+            <span className="plan-feature-check" aria-hidden="true">✓</span>
+            {t("landing.plansSection.pStarter1")}
+          </li>
+          <li className="plan-feature" role="listitem">
+            <span className="plan-feature-check" aria-hidden="true">✓</span>
+            {t("landing.plansSection.pStarter2")}
+          </li>
+          <li className="plan-feature" role="listitem">
+            <span className="plan-feature-check" aria-hidden="true">✓</span>
+            {t("landing.plansSection.pStarter3")}
+          </li>
+          <li className="plan-feature" role="listitem">
+            <span className="plan-feature-check" aria-hidden="true">✓</span>
+            {t("landing.plansSection.pStarter4")}
+          </li>
+        </ul>
+        <a href="/register" className="btn btn-outline btn-md" style={{"width":"100%","justifyContent":"center","borderColor":"var(--gm)","color":"var(--gm)"}} aria-label="Démarrer avec le plan Starter">
+          {t("landing.plansSection.chooseStarterBtn")}
         </a>
       </article>
 
