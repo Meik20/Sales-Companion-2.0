@@ -15,7 +15,10 @@ type SearchLog = {
   userEmail?: string
   userName?: string
   plan?: string
-  resultsCount?: number
+  resultsCount: number
+  sector?: string
+  city?: string
+  radius?: string
   createdAt?: string
 }
 
@@ -39,7 +42,7 @@ function useSearchLogs() {
       return res.json()
     },
     enabled: !!user?.uid,
-    refetchInterval: 30_000,
+    refetchInterval: 5000,
   })
 }
 
@@ -90,23 +93,23 @@ export default function AdminLogsPage() {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
                 <tr>
-                  {[t('admin.user'), t('admin.email'), t('admin.query'), t('admin.resultsCount'), t('admin.plan'), t('admin.date')].map((h) => (
-                    <th
-                      key={h}
-                      style={{
-                        padding: '10px 12px',
-                        textAlign: 'left',
-                        fontSize: 11,
-                        fontWeight: 700,
-                        color: colors.textMid,
-                        letterSpacing: '.06em',
-                        textTransform: 'uppercase',
-                        borderBottom: `1px solid ${colors.border}`,
-                      }}
-                    >
-                      {h}
-                    </th>
-                  ))}
+                    {['Utilisateur', 'Email', 'Recherche', 'Résultats', 'Plan', 'Date'].map((h, i) => (
+                      <th
+                        key={h}
+                        style={{
+                          padding: '12px',
+                          textAlign: i === 5 ? 'right' : 'left',
+                          fontSize: 11,
+                          fontWeight: 700,
+                          color: colors.textMid,
+                          letterSpacing: '.06em',
+                          textTransform: 'uppercase',
+                          borderBottom: `2px solid ${colors.border}`,
+                        }}
+                      >
+                        {h}
+                      </th>
+                    ))}
                 </tr>
               </thead>
               <tbody>
@@ -124,43 +127,68 @@ export default function AdminLogsPage() {
                   logs.map((log) => (
                     <tr
                       key={log.id}
-                      style={{ borderBottom: `1px solid ${colors.border}` }}
+                      style={{ borderBottom: `1px solid ${colors.border}`, transition: 'background 200ms ease' }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = colors.bg2}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                     >
-                      <td style={{ padding: '11px 12px', fontWeight: 600, color: colors.text }}>
-                        {log.userName || '—'}
+                      <td style={{ padding: '12px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <div style={{
+                            width: 28, height: 28, borderRadius: 8,
+                            background: 'rgba(99,102,241,0.1)', color: '#6366f1',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: 12, fontWeight: 800, flexShrink: 0
+                          }}>
+                            {(log.userName || log.userEmail || '?')[0]!.toUpperCase()}
+                          </div>
+                          <span style={{ fontWeight: 700, color: colors.text, fontSize: 13 }}>
+                            {log.userName || '—'}
+                          </span>
+                        </div>
                       </td>
-                      <td style={{ padding: '11px 12px', color: colors.textMid, fontSize: 12 }}>
+                      <td style={{ padding: '12px', color: colors.textMid, fontSize: 12 }}>
                         {log.userEmail || '—'}
                       </td>
                       <td
                         style={{
-                          padding: '11px 12px',
-                          color: colors.textMid,
+                          padding: '12px',
+                          color: colors.text,
                           maxWidth: 220,
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap',
+                          fontWeight: 500
                         }}
                       >
-                        {log.query || '—'}
+                        {log.query || (log.sector ? `Secteur: ${log.sector}` : (log.city ? `Ville: ${log.city}` : '—'))}
                       </td>
-                      <td style={{ padding: '11px 12px', fontWeight: 600, color: colors.green }}>
-                        {log.resultsCount ?? 0}
+                      <td style={{ padding: '12px' }}>
+                        <div style={{ 
+                          display: 'inline-flex', alignItems: 'center', gap: 6,
+                          color: log.resultsCount > 0 ? colors.green : colors.textDim,
+                          fontWeight: 800, fontSize: 14
+                        }}>
+                          {log.resultsCount ?? 0}
+                        </div>
                       </td>
-                      <td style={{ padding: '11px 12px' }}>
-                        <Badge variant={PLAN_BADGE[log.plan ?? 'free'] ?? 'default'}>
+                      <td style={{ padding: '12px' }}>
+                        <Badge variant={PLAN_BADGE[log.plan ?? 'free'] ?? 'default'} style={{ fontSize: 10, textTransform: 'uppercase' }}>
                           {log.plan || 'free'}
                         </Badge>
                       </td>
-                      <td style={{ padding: '11px 12px', color: colors.textMid, fontSize: 12 }}>
-                        {log.createdAt
-                          ? new Date(log.createdAt).toLocaleString('fr-FR', {
-                              day: '2-digit',
-                              month: 'short',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })
-                          : '—'}
+                      <td style={{ padding: '12px', color: colors.textMid, fontSize: 11, textAlign: 'right' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
+                          <span style={{ fontWeight: 600 }}>
+                            {log.createdAt
+                              ? new Date(log.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })
+                              : '—'}
+                          </span>
+                          <span style={{ opacity: 0.7 }}>
+                            {log.createdAt
+                              ? new Date(log.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+                              : ''}
+                          </span>
+                        </div>
                       </td>
                     </tr>
                   ))

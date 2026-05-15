@@ -64,21 +64,6 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // ── Enregistrement de la recherche pour les stats admin (toujours) ──
-    try {
-      const { adminDb, FieldValue } = await getAdminModules()
-      await adminDb.collection('searches').add({
-        userId: userId || 'anonymous',
-        sector: sector || null,
-        region: region || null,
-        city: city || null,
-        query: query || null,
-        radius: radius || null,
-        createdAt: FieldValue.serverTimestamp(),
-      })
-    } catch (err) {
-      console.error('[search/companies] Search logging error:', err)
-    }
 
     // ── 1. Google Maps Places Search ──
     let googleResults: any[] = []
@@ -195,6 +180,41 @@ export async function GET(request: NextRequest) {
     const start = (page - 1) * pageSize
     const end = start + pageSize
     const paginatedCompanies = allCompanies.slice(start, end)
+
+    // ── Enregistrement de la recherche pour les stats admin (toujours) ──
+    try {
+      const { adminDb, FieldValue } = await getAdminModules()
+      
+      let userName = 'Anonymous'
+      let userEmail = 'anonymous@platform'
+      let plan = 'free'
+
+      if (userId) {
+        const uDoc = await adminDb.collection('users').doc(userId).get()
+        if (uDoc.exists) {
+          const ud = uDoc.data()!
+          userName = ud.name || ud.email || userName
+          userEmail = ud.email || userEmail
+          plan = ud.plan || plan
+        }
+      }
+
+      await adminDb.collection('searches').add({
+        userId: userId || 'anonymous',
+        userName,
+        userEmail,
+        plan,
+        sector: sector || null,
+        region: region || null,
+        city: city || null,
+        query: query || null,
+        radius: radius || null,
+        resultsCount: allCompanies.length,
+        createdAt: FieldValue.serverTimestamp(),
+      })
+    } catch (err) {
+      console.error('[search/companies] Search logging error:', err)
+    }
 
     return NextResponse.json({
       items: paginatedCompanies,
