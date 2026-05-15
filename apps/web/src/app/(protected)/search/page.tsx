@@ -279,17 +279,19 @@ function SearchContent() {
                   }
                   .illustration-dark { display: none; }
                   
-                  /* Mode Sombre : on change d'image et d'effet */
+                  /* Mode Sombre : visibilité maximale */
                   [data-theme='dark'] .illustration-light {
                     display: none;
                   }
                   [data-theme='dark'] .illustration-dark {
                     display: block;
                     animation: floatSubtle 6s infinite ease-in-out;
-                    filter: drop-shadow(0 0 15px rgba(24, 95, 165, 0.3));
+                    /* Inversion pour transformer le sombre en clair + boost luminosité */
+                    filter: invert(0.8) brightness(1.8) contrast(1.2) drop-shadow(0 0 12px rgba(255, 255, 255, 0.2));
+                    opacity: 1;
                   }
                   [data-theme='dark'] .desktop-illustration {
-                    background: radial-gradient(50% 50% at 50% 50%, rgba(24, 95, 165, 0.15) 0%, transparent 100%) !important;
+                    background: radial-gradient(50% 50% at 50% 50%, rgba(96, 165, 250, 0.1) 0%, transparent 100%) !important;
                   }
 
                   .mobile-illustration { display: none; }
