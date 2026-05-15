@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
     allUsersSnap.forEach((doc) => {
       const data = doc.data()
       const role = data.role || 'member'
-      const plan = data.plan || 'FREE'
+      const plan = (data.plan || 'free').toUpperCase()
       roles[role] = (roles[role] || 0) + 1
       plans[plan] = (plans[plan] || 0) + 1
     })

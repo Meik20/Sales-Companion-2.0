@@ -36,8 +36,8 @@ function BarChart({ data }: { data: { label: string; value: number; color: strin
 }
 
 /* ── SVG Donut Chart ── */
-function DonutChart({ segments }: { segments: { label: string; value: number; color: string }[] }) {
-  const total = segments.reduce((s, d) => s + d.value, 0) || 1
+function DonutChart({ segments, totalOverride }: { segments: { label: string; value: number; color: string }[]; totalOverride?: number }) {
+  const total = totalOverride ?? (segments.reduce((s, d) => s + d.value, 0) || 1)
   const cx = 80, cy = 80, r = 60, stroke = 28
   let cumAngle = -90
 
@@ -81,7 +81,7 @@ function DonutChart({ segments }: { segments: { label: string; value: number; co
               {seg.value}
             </span>
             <span style={{ color: colors.textDim, fontSize: 10 }}>
-              ({Math.round((seg.value / (segments.reduce((s,d)=>s+d.value,0)||1)) * 100)}%)
+              ({Math.round((seg.value / total) * 100)}%)
             </span>
           </div>
         ))}
@@ -213,7 +213,7 @@ export default function AdminDashboardPage() {
               <BarChart data={roleData} />
             </ChartCard>
             <ChartCard title={t('admin.plansDistribution')}>
-              <DonutChart segments={planData} />
+              <DonutChart segments={planData} totalOverride={stats.totalUsers} />
             </ChartCard>
           </div>
 

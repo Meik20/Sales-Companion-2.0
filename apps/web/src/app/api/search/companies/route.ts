@@ -55,6 +55,18 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: quotaMessage, message: quotaMessage }, { status: 429 })
           }
           await userRef.update({ dailyUsed: currentDailyUsed + 1 })
+          
+          // ── Enregistrement de la recherche pour les stats admin ──
+          await adminDb.collection('searches').add({
+            userId,
+            sector,
+            region,
+            city,
+            query,
+            radius,
+            resultsCount: 0, // Sera mis à jour plus tard ou laissé tel quel
+            createdAt: new Date(),
+          })
         }
       } catch (err) {
         console.error('[search/companies] Auth error:', err)

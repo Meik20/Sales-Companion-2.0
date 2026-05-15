@@ -37,6 +37,7 @@ export function useCreatePipelineItem() {
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['pipeline'] })
+      await queryClient.invalidateQueries({ queryKey: ['pipeline-stats'] })
     },
   })
 }

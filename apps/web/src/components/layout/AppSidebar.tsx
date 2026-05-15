@@ -121,7 +121,7 @@ export function AppSidebar({ isMobile = false, onClose }: { isMobile?: boolean; 
   // Pipeline stats for badge
   const pipelineStats = usePipelineStats()
   const totalPipeline = pipelineStats.data
-    ? (pipelineStats.data.prospection ?? 0) + (pipelineStats.data.negotiation ?? 0)
+    ? (pipelineStats.data.prospection ?? 0) + (pipelineStats.data.negotiation ?? 0) + (pipelineStats.data.conclusion ?? 0)
     : 0
 
   function applyFilters(overrides: { region?: string; sector?: string; city?: string } = {}) {

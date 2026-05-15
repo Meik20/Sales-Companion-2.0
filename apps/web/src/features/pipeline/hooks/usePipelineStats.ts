@@ -33,5 +33,6 @@ export function usePipelineStats() {
       return response.json() as Promise<PipelineStats>
     },
     enabled: !!user?.uid,
+    refetchInterval: 10000, // Rafraîchir toutes les 10s pour garder les compteurs à jour
   })
 }

@@ -35,6 +35,7 @@ export function useUpdatePipelineItem() {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['pipeline'] })
       await queryClient.invalidateQueries({ queryKey: ['manager-pipeline'] })
+      await queryClient.invalidateQueries({ queryKey: ['pipeline-stats'] })
     },
   })
 }
