@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { User as FirebaseUser } from 'firebase/auth'
 import { doc, onSnapshot } from 'firebase/firestore'
 import { auth, firestore } from '@/services/firebase/client'
+import { updateDoc, serverTimestamp } from 'firebase/firestore'
 
 export type CurrentUser = {
   uid: string
@@ -41,6 +42,10 @@ export function useCurrentUser() {
       }
 
       const userDocRef = doc(firestore, 'users', firebaseUser.uid)
+      
+      // Update lastLoginAt once per session (simplified)
+      updateDoc(userDocRef, { lastLoginAt: serverTimestamp() }).catch(() => {})
+
       unsubscribeSnapshot = onSnapshot(userDocRef, (snapshot) => {
         if (snapshot.exists()) {
           const data = snapshot.data()

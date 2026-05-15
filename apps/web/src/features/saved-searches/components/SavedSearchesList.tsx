@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/index'
-import { colors } from '@/styles/tokens'
+import { colors, shadows } from '@/styles/tokens'
+import { Search, History, Trash2, Filter, RotateCcw, Bookmark } from 'lucide-react'
 
 type SavedSearch = {
   id: string
@@ -18,11 +19,12 @@ type Props = {
 
 export function SavedSearchesList({ items, onRestore, onDelete }: Props) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       {items.map((item) => {
-        const tags = Object.entries(item.filters)
-          .filter(([, v]) => v)
-          .map(([k, v]) => `${k}: ${v}`)
+        const filters = item.filters || {}
+        const tags = Object.entries(filters)
+          .filter(([, v]) => v && typeof v === 'string' && v.trim().length > 0)
+          .map(([k, v]) => ({ key: k, value: v as string }))
 
         return (
           <div
@@ -30,34 +32,76 @@ export function SavedSearchesList({ items, onRestore, onDelete }: Props) {
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: 16,
-              padding: '14px 18px',
-              background: colors.bg3,
+              gap: 20,
+              padding: '18px 20px',
+              background: colors.surface,
               border: `1px solid ${colors.border}`,
-              borderRadius: 12,
+              borderRadius: 16,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+              transition: 'all 200ms ease',
               flexWrap: 'wrap',
             }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)'
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)'
+              e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.02)'
+            }}
           >
-            <div style={{ flex: 1, minWidth: 180 }}>
-              <div style={{ fontWeight: 600, fontSize: 14, color: colors.text, marginBottom: 6 }}>
+            <div style={{ 
+              width: 44, height: 44, borderRadius: 12, 
+              background: 'rgba(245,158,11,0.1)', color: colors.gold,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0
+            }}>
+              <Bookmark size={22} fill="currentColor" fillOpacity={0.2} />
+            </div>
+
+            <div style={{ flex: 1, minWidth: 200 }}>
+              <div style={{ fontWeight: 800, fontSize: 15, color: colors.text, marginBottom: 8 }}>
                 {item.label}
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {tags.map((tag) => (
-                  <Badge key={tag} variant="default">{tag}</Badge>
+                  <div 
+                    key={tag.key} 
+                    style={{ 
+                      fontSize: 10.5, fontWeight: 700, padding: '2px 8px', borderRadius: 6, 
+                      background: colors.bg2, border: `1px solid ${colors.border}`, 
+                      color: colors.textMid, textTransform: 'uppercase', letterSpacing: '0.02em',
+                      display: 'flex', alignItems: 'center', gap: 4
+                    }}
+                  >
+                    <span style={{ opacity: 0.5, fontWeight: 400 }}>{tag.key}:</span> {tag.value}
+                  </div>
                 ))}
-                {item.resultCount !== undefined ? (
-                  <Badge variant="info">{item.resultCount} résultats</Badge>
-                ) : null}
+                {item.resultCount !== undefined && (
+                  <Badge variant="success" style={{ fontSize: 10, padding: '2px 8px' }}>
+                    {item.resultCount} résultats
+                  </Badge>
+                )}
               </div>
             </div>
 
             <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-              <Button size="sm" variant="primary" onClick={() => onRestore(item.filters)}>
-                🔍 Relancer
+              <Button 
+                size="sm" 
+                variant="primary" 
+                onClick={() => onRestore(item.filters)}
+                style={{ borderRadius: 10, fontWeight: 700 }}
+              >
+                <RotateCcw size={14} style={{ marginRight: 6 }} />
+                Relancer
               </Button>
-              <Button size="sm" variant="danger" onClick={() => onDelete(item.id)}>
-                Supprimer
+              <Button 
+                size="sm" 
+                variant="danger" 
+                onClick={() => onDelete(item.id)}
+                style={{ borderRadius: 10, padding: '8px 12px' }}
+              >
+                <Trash2 size={14} />
               </Button>
             </div>
           </div>

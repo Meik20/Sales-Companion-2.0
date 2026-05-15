@@ -4,8 +4,9 @@ import { NextRequest, NextResponse } from 'next/server'
 // Lazy import pour éviter les erreurs si firebase-admin ne s'initialise pas
 async function getAdminModules() {
   const { adminDb, adminAuth } = await import('@/lib/firebase-admin')
+  const { FieldValue } = await import('firebase-admin/firestore')
   const { ensureDailyReset } = await import('@/lib/quota-utils')
-  return { adminDb, adminAuth, ensureDailyReset }
+  return { adminDb, adminAuth, FieldValue, ensureDailyReset }
 }
 
 /**
@@ -37,40 +38,46 @@ export async function GET(request: NextRequest) {
     const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null
     let userId: string | null = null
 
-    if (token && searchParams.get('charge') !== 'false') {
+    if (token) {
       try {
-        const { ensureDailyReset } = await getAdminModules()
         const decoded = await adminAuth.verifyIdToken(token)
         userId = decoded.uid
 
-        const userRef = adminDb.collection('users').doc(userId)
-        const userSnap = await userRef.get()
-        if (userSnap.exists) {
-          const data = userSnap.data()!
-          const dailyLimit = (data.dailyLimit as number) ?? 10
-          const currentDailyUsed = await ensureDailyReset(userRef, data)
-          
-          if (currentDailyUsed >= dailyLimit) {
-            const quotaMessage = `Quota journalier épuisé (${dailyLimit} crédits).`
-            return NextResponse.json({ error: quotaMessage, message: quotaMessage }, { status: 429 })
+        if (searchParams.get('charge') !== 'false') {
+          const { ensureDailyReset } = await getAdminModules()
+          const userRef = adminDb.collection('users').doc(userId)
+          const userSnap = await userRef.get()
+          if (userSnap.exists) {
+            const data = userSnap.data()!
+            const dailyLimit = (data.dailyLimit as number) ?? 10
+            const currentDailyUsed = await ensureDailyReset(userRef, data)
+            
+            if (currentDailyUsed >= dailyLimit) {
+              const quotaMessage = `Quota journalier épuisé (${dailyLimit} crédits).`
+              return NextResponse.json({ error: quotaMessage, message: quotaMessage }, { status: 429 })
+            }
+            await userRef.update({ dailyUsed: currentDailyUsed + 1 })
           }
-          await userRef.update({ dailyUsed: currentDailyUsed + 1 })
-          
-          // ── Enregistrement de la recherche pour les stats admin ──
-          await adminDb.collection('searches').add({
-            userId,
-            sector,
-            region,
-            city,
-            query,
-            radius,
-            resultsCount: 0, // Sera mis à jour plus tard ou laissé tel quel
-            createdAt: new Date(),
-          })
         }
       } catch (err) {
         console.error('[search/companies] Auth error:', err)
       }
+    }
+
+    // ── Enregistrement de la recherche pour les stats admin (toujours) ──
+    try {
+      const { adminDb, FieldValue } = await getAdminModules()
+      await adminDb.collection('searches').add({
+        userId: userId || 'anonymous',
+        sector: sector || null,
+        region: region || null,
+        city: city || null,
+        query: query || null,
+        radius: radius || null,
+        createdAt: FieldValue.serverTimestamp(),
+      })
+    } catch (err) {
+      console.error('[search/companies] Search logging error:', err)
     }
 
     // ── 1. Google Maps Places Search ──

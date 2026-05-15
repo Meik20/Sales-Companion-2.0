@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server'
 import { adminDb, adminAuth } from '@/lib/firebase-admin'
+import { Timestamp } from 'firebase-admin/firestore'
 
 export async function GET(request: NextRequest) {
   try {
@@ -38,17 +39,17 @@ export async function GET(request: NextRequest) {
       adminDb.collection('pipeline').count().get(),
       adminDb
         .collection('users')
-        .where('lastLoginAt', '>=', oneWeekAgo)
+        .where('lastLoginAt', '>=', Timestamp.fromDate(oneWeekAgo))
         .count()
         .get(),
       adminDb
         .collection('users')
-        .where('createdAt', '>=', oneWeekAgo)
+        .where('createdAt', '>=', Timestamp.fromDate(oneWeekAgo))
         .count()
         .get(),
       adminDb
         .collection('searches')
-        .where('createdAt', '>=', todayStart)
+        .where('createdAt', '>=', Timestamp.fromDate(todayStart))
         .count()
         .get(),
       adminDb.collection('users').select('role', 'plan').get(),

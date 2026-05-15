@@ -3,7 +3,12 @@
 import { useState } from 'react'
 import { useAdminImports, AdminImport } from '../hooks/useAdminImports'
 import { SectionCard } from '@/features/team/components/SectionCard'
-import { colors } from '@/styles/tokens'
+import { colors, shadows } from '@/styles/tokens'
+import { Badge } from '@/components/ui/index'
+import { 
+  FileText, CheckCircle2, XCircle, Clock, 
+  AlertCircle, ArrowRight, Calendar, BarChart
+} from 'lucide-react'
 
 export function AdminImportsTable() {
   const [page, setPage] = useState(1)
@@ -205,18 +210,11 @@ function ImportRow({ import: importItem }: { import: AdminImport }) {
     minute: '2-digit',
   })
 
-  const statusColors: Record<string, string> = {
-    pending: colors.textMid,
-    processing: '#fbbf24',
-    completed: '#2ea05a',
-    failed: '#f87171',
-  }
-
-  const statusLabels: Record<string, string> = {
-    pending: 'En attente',
-    processing: 'En cours',
-    completed: 'Terminé',
-    failed: 'Échoué',
+  const statusConfigs: Record<string, { color: string, icon: any, label: string, variant: any }> = {
+    pending:    { color: colors.textMid, icon: Clock,       label: 'En attente', variant: 'default' },
+    processing: { color: '#fbbf24',       icon: AlertCircle, label: 'En cours',  variant: 'gold' },
+    completed:  { color: '#2ea05a',       icon: CheckCircle2, label: 'Terminé',   variant: 'success' },
+    failed:     { color: '#f87171',       icon: XCircle,      label: 'Échoué',    variant: 'danger' },
   }
 
   const successRate =
@@ -228,7 +226,7 @@ function ImportRow({ import: importItem }: { import: AdminImport }) {
     <tr
       style={{
         borderBottom: `1px solid ${colors.border}`,
-        transition: 'background-color 300ms ease',
+        transition: 'all 200ms ease',
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.backgroundColor = colors.bg2
@@ -237,34 +235,69 @@ function ImportRow({ import: importItem }: { import: AdminImport }) {
         e.currentTarget.style.backgroundColor = 'transparent'
       }}
     >
-      <td style={{ padding: '12px 0', color: colors.text, fontWeight: 500 }}>
-        {importItem.fileName}
+      <td style={{ padding: '16px 0' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{
+            width: 32, height: 32, borderRadius: 8,
+            background: 'rgba(55,138,221,0.1)', color: colors.info,
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }}>
+            <FileText size={16} />
+          </div>
+          <span style={{ color: colors.text, fontWeight: 700, fontSize: 13 }}>
+            {importItem.fileName}
+          </span>
+        </div>
       </td>
-      <td style={{ padding: '12px 16px 12px 0', color: colors.textMid, textAlign: 'right' }}>
+      <td style={{ padding: '16px 16px 16px 0', color: colors.textMid, textAlign: 'right', fontWeight: 600 }}>
         {importItem.totalRecords}
       </td>
-      <td style={{ padding: '12px 0', textAlign: 'center' }}>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 8, fontSize: 11 }}>
-          <span style={{ color: '#2ea05a' }}>✓ {importItem.successCount}</span>
-          {importItem.errorCount > 0 && <span style={{ color: '#f87171' }}>✗ {importItem.errorCount}</span>}
-        </div>
-        <div style={{ fontSize: 10, color: colors.textMid, marginTop: 2 }}>
-          {successRate}% réussi
+      <td style={{ padding: '16px 0', textAlign: 'center' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 12, fontSize: 11, fontWeight: 700 }}>
+            <span style={{ color: '#2ea05a', display: 'flex', alignItems: 'center', gap: 4 }}>
+               {importItem.successCount}
+            </span>
+            {importItem.errorCount > 0 && (
+              <span style={{ color: '#f87171', display: 'flex', alignItems: 'center', gap: 4 }}>
+                 {importItem.errorCount}
+              </span>
+            )}
+          </div>
+          <div style={{ 
+            width: 80, height: 4, background: colors.bg3, borderRadius: 2, 
+            overflow: 'hidden', border: `1px solid ${colors.border}` 
+          }}>
+            <div style={{ 
+              width: `${successRate}%`, height: '100%', 
+              background: successRate > 90 ? '#2ea05a' : successRate > 50 ? '#fbbf24' : '#f87171' 
+            }} />
+          </div>
+          <span style={{ fontSize: 10, color: colors.textMid, fontWeight: 600 }}>
+            {successRate}% réussi
+          </span>
         </div>
       </td>
-      <td style={{ padding: '12px 16px 12px 0', textAlign: 'center' }}>
-        <span
-          style={{
-            fontSize: 11,
-            fontWeight: 600,
-            color: statusColors[importItem.status] || colors.textMid,
-          }}
-        >
-          {statusLabels[importItem.status] || importItem.status}
-        </span>
+      <td style={{ padding: '16px 16px 16px 0', textAlign: 'center' }}>
+        {(() => {
+          const config = (statusConfigs[importItem.status] || statusConfigs.pending) as { color: string, icon: any, label: string, variant: any }
+          const Icon = config.icon
+          return (
+            <Badge variant={config.variant} style={{ 
+              display: 'inline-flex', alignItems: 'center', gap: 4, 
+              padding: '2px 10px', fontSize: 10, textTransform: 'uppercase' 
+            }}>
+              <Icon size={10} />
+              {config.label}
+            </Badge>
+          )
+        })()}
       </td>
-      <td style={{ padding: '12px 0', color: colors.textMid, textAlign: 'right', fontSize: 12 }}>
-        {dateStr}
+      <td style={{ padding: '16px 0', color: colors.textMid, textAlign: 'right', fontSize: 12 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
+          <span style={{ fontWeight: 600 }}>{dateStr.split(' ')[0]} {dateStr.split(' ')[1]}</span>
+          <span style={{ fontSize: 10, opacity: 0.7 }}>{dateStr.split(' ').slice(2).join(' ')}</span>
+        </div>
       </td>
     </tr>
   )

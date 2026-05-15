@@ -8,30 +8,45 @@ import { useAdminStats } from '@/features/admin/hooks/useAdminStats'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { colors, shadows } from '@/styles/tokens'
 import { useTranslation } from '@/providers/I18nProvider'
+import { 
+  Users, Building2, ListTodo, Search, 
+  TrendingUp, Activity, BarChart3, PieChart,
+  Clock, ArrowUpRight, UserPlus, Globe
+} from 'lucide-react'
 
 /* ── SVG Bar Chart ── */
 function BarChart({ data }: { data: { label: string; value: number; color: string }[] }) {
   const max = Math.max(...data.map((d) => d.value), 1)
-  const h = 120
+  const h = 140
   return (
-    <svg width="100%" height={h + 40} viewBox={`0 0 ${data.length * 70} ${h + 40}`} preserveAspectRatio="xMidYMid meet">
-      {data.map((d, i) => {
-        const barH = Math.max(4, (d.value / max) * h)
-        const x = i * 70 + 10
-        const y = h - barH
-        return (
-          <g key={d.label}>
-            <rect x={x} y={y} width={50} height={barH} rx={6} fill={d.color} opacity={0.85} />
-            <text x={x + 25} y={y - 6} textAnchor="middle" fontSize={11} fontWeight="700" fill={d.color}>
-              {d.value}
-            </text>
-            <text x={x + 25} y={h + 18} textAnchor="middle" fontSize={10} fill={colors.textMid}>
-              {d.label}
-            </text>
-          </g>
-        )
-      })}
-    </svg>
+    <div style={{ padding: '10px 0' }}>
+      <svg width="100%" height={h + 40} viewBox={`0 0 ${data.length * 70} ${h + 40}`} preserveAspectRatio="xMidYMid meet">
+        <defs>
+          {data.map((d, i) => (
+            <linearGradient key={`grad-${i}`} id={`grad-${i}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={d.color} stopOpacity={1} />
+              <stop offset="100%" stopColor={d.color} stopOpacity={0.6} />
+            </linearGradient>
+          ))}
+        </defs>
+        {data.map((d, i) => {
+          const barH = Math.max(4, (d.value / max) * h)
+          const x = i * 70 + 10
+          const y = h - barH
+          return (
+            <g key={d.label}>
+              <rect x={x} y={y} width={50} height={barH} rx={8} fill={`url(#grad-${i})`} style={{ filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.1))' }} />
+              <text x={x + 25} y={y - 8} textAnchor="middle" fontSize={12} fontWeight="800" fill={d.color} fontFamily="Inter, sans-serif">
+                {d.value}
+              </text>
+              <text x={x + 25} y={h + 24} textAnchor="middle" fontSize={10} fontWeight="600" fill={colors.textMid} style={{ textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+                {d.label}
+              </text>
+            </g>
+          )
+        })}
+      </svg>
+    </div>
   )
 }
 
@@ -117,26 +132,54 @@ function ChartCard({ title, children }: { title: string; children: React.ReactNo
 }
 
 /* ── KPI Trend Card ── */
-function TrendCard({ label, value, hint, trend, color }: {
-  label: string; value: number; hint?: string; trend?: string; color: string
+function TrendCard({ label, value, hint, trend, color, icon: Icon }: {
+  label: string; value: number; hint?: string; trend?: string; color: string; icon: any
 }) {
   return (
     <div style={{
       background: colors.surface,
       border: `1px solid ${colors.border}`,
-      borderRadius: 14,
-      padding: '20px 24px',
-      boxShadow: shadows.sm,
-      borderLeft: `4px solid ${color}`,
+      borderRadius: 16,
+      padding: '24px',
+      boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
+      position: 'relative',
+      overflow: 'hidden'
     }}>
-      <div style={{ fontSize: 11, fontWeight: 700, color: colors.textMid, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
-        {label}
+      <div style={{
+        position: 'absolute', top: -10, right: -10, opacity: 0.05, color: colors.text
+      }}>
+        <Icon size={80} />
       </div>
-      <div style={{ fontSize: 32, fontWeight: 800, color, fontFamily: "'Syne',sans-serif", lineHeight: 1 }}>
+      
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+        <div style={{
+          width: 32, height: 32, borderRadius: 8, background: `${color}15`, color,
+          display: 'flex', alignItems: 'center', justifyContent: 'center'
+        }}>
+          <Icon size={18} />
+        </div>
+        <span style={{ fontSize: 11, fontWeight: 700, color: colors.textMid, textTransform: 'uppercase', letterSpacing: '.06em' }}>
+          {label}
+        </span>
+      </div>
+      
+      <div style={{ fontSize: 36, fontWeight: 800, color: colors.text, fontFamily: "'Syne',sans-serif", lineHeight: 1, marginBottom: 8 }}>
         {value.toLocaleString('fr-FR')}
       </div>
-      {hint && <div style={{ fontSize: 12, color: colors.textMid, marginTop: 6 }}>{hint}</div>}
-      {trend && <div style={{ fontSize: 11, color: colors.green, marginTop: 4, fontWeight: 600 }}>{trend}</div>}
+      
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        {hint && (
+          <div style={{ fontSize: 12, color: colors.textMid, display: 'flex', alignItems: 'center', gap: 4 }}>
+             {hint}
+          </div>
+        )}
+        {trend && (
+          <div style={{ fontSize: 11, color: colors.green, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
+            <TrendingUp size={12} />
+            {trend}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
@@ -187,24 +230,28 @@ export default function AdminDashboardPage() {
               hint={`${stats.activeUsers ?? 0} ${t('admin.activeThisWeek')}`}
               trend={`+${stats.newUsersThisWeek ?? 0} ${t('admin.thisWeek')}`}
               color={colors.green}
+              icon={Users}
             />
             <TrendCard
               label={t('admin.companies')}
               value={stats.totalCompanies ?? 0}
               hint={t('admin.inDatabase')}
               color={colors.info}
+              icon={Building2}
             />
             <TrendCard
               label={t('admin.pipelineItems')}
               value={stats.totalPipelineItems ?? 0}
               hint={t('admin.allReps')}
               color={colors.gold}
+              icon={ListTodo}
             />
             <TrendCard
               label={t('admin.searchesToday')}
               value={stats.totalSearchesToday ?? 0}
               hint={t('admin.acrossPlatform')}
               color="#8b5cf6"
+              icon={Search}
             />
           </div>
 
@@ -228,25 +275,39 @@ export default function AdminDashboardPage() {
             <div style={{ fontSize: 13, fontWeight: 700, color: colors.text, marginBottom: 16, paddingBottom: 12, borderBottom: `1px solid ${colors.border}` }}>
               {t('admin.recentActivity')}
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
               {[
-                { icon: '👥', label: t('admin.newUsers'), value: stats.newUsersThisWeek ?? 0, unit: t('admin.thisWeek'), color: colors.green },
-                { icon: '🔍', label: t('admin.searches'), value: stats.totalSearchesToday ?? 0, unit: t('admin.today'), color: colors.info },
-                { icon: '📊', label: t('admin.activationRate'), value: stats.totalUsers ? Math.round(((stats.activeUsers ?? 0) / stats.totalUsers) * 100) : 0, unit: t('admin.activePct'), color: colors.gold },
-                { icon: '🏢', label: t('admin.companiesPerUser'), value: stats.totalUsers ? Math.round((stats.totalCompanies ?? 0) / stats.totalUsers) : 0, unit: t('admin.avg'), color: '#8b5cf6' },
-              ].map((item) => (
-                <div key={item.label} style={{
-                  background: colors.bg3,
-                  borderRadius: 10,
-                  padding: '14px 16px',
+                { icon: <UserPlus size={20} />, label: t('admin.newUsers'), value: stats.newUsersThisWeek ?? 0, unit: t('admin.thisWeek'), color: colors.green },
+                { icon: <Search size={20} />, label: t('admin.searches'), value: stats.totalSearchesToday ?? 0, unit: t('admin.today'), color: colors.info },
+                { icon: <Activity size={20} />, label: t('admin.activationRate'), value: stats.totalUsers ? Math.round(((stats.activeUsers ?? 0) / stats.totalUsers) * 100) : 0, unit: t('admin.activePct'), color: colors.gold },
+                { icon: <Globe size={20} />, label: t('admin.companiesPerUser'), value: stats.totalUsers ? Math.round((stats.totalCompanies ?? 0) / stats.totalUsers) : 0, unit: t('admin.avg'), color: '#8b5cf6' },
+              ].map((item, idx) => (
+                <div key={idx} style={{
+                  background: colors.bg2,
+                  borderRadius: 14,
+                  padding: '16px 20px',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 12,
+                  gap: 16,
+                  border: `1px solid ${colors.border}`,
+                  transition: 'transform 200ms ease',
                 }}>
-                  <span style={{ fontSize: 24 }}>{item.icon}</span>
+                  <div style={{
+                    width: 44, height: 44, borderRadius: 12,
+                    background: 'white', color: item.color,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    boxShadow: '0 4px 10px rgba(0,0,0,0.05)'
+                  }}>
+                    {item.icon}
+                  </div>
                   <div>
-                    <div style={{ fontSize: 20, fontWeight: 800, color: item.color }}>{item.value}<span style={{ fontSize: 11, color: colors.textMid, marginLeft: 4 }}>{item.unit}</span></div>
-                    <div style={{ fontSize: 11, color: colors.textMid }}>{item.label}</div>
+                    <div style={{ fontSize: 22, fontWeight: 900, color: colors.text, lineHeight: 1.1 }}>
+                      {item.value}
+                      <span style={{ fontSize: 11, color: colors.textDim, marginLeft: 4, fontWeight: 600 }}>{item.unit}</span>
+                    </div>
+                    <div style={{ fontSize: 11, color: colors.textMid, fontWeight: 700, textTransform: 'uppercase', marginTop: 2, letterSpacing: '0.02em' }}>
+                      {item.label}
+                    </div>
                   </div>
                 </div>
               ))}

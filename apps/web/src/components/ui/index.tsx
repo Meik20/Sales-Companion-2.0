@@ -8,6 +8,7 @@ type BadgeVariant = 'default' | 'success' | 'warning' | 'danger' | 'info' | 'gol
 type BadgeProps = {
   children: ReactNode
   variant?: BadgeVariant
+  style?: CSSProperties
 }
 
 const badgeStyles: Record<BadgeVariant, CSSProperties> = {
@@ -43,7 +44,7 @@ const badgeStyles: Record<BadgeVariant, CSSProperties> = {
   },
 }
 
-export function Badge({ children, variant = 'default' }: BadgeProps) {
+export function Badge({ children, variant = 'default', style }: BadgeProps) {
   return (
     <span
       style={{
@@ -55,6 +56,7 @@ export function Badge({ children, variant = 'default' }: BadgeProps) {
         fontWeight: 600,
         letterSpacing: '.03em',
         ...badgeStyles[variant],
+        ...style,
       }}
     >
       {children}
@@ -64,7 +66,7 @@ export function Badge({ children, variant = 'default' }: BadgeProps) {
 
 // ─── Card ────────────────────────────────────────────────────────────────────
 
-export function Card({ children }: PropsWithChildren) {
+export function Card({ children, style }: PropsWithChildren<{ style?: CSSProperties }>) {
   return (
     <div
       style={{
@@ -73,6 +75,7 @@ export function Card({ children }: PropsWithChildren) {
         borderRadius: radius.lg,
         padding: spacing.xl,
         boxShadow: shadows.sm,
+        ...style,
       }}
     >
       {children}

@@ -9,7 +9,11 @@ import { colors } from '@/styles/tokens'
 import { db } from '@/lib/firebase'
 import { collection, query, where, doc, setDoc, updateDoc, serverTimestamp, onSnapshot } from 'firebase/firestore'
 import { useTranslation } from '@/providers/I18nProvider'
-import { Trash2, Copy, Ban, ChevronDown } from 'lucide-react'
+import { 
+  Trash2, Copy, Ban, ChevronDown, UserPlus, 
+  RefreshCw, CheckCircle2, Shield, Fingerprint, 
+  Clock, XCircle, ArrowRight, UserCheck, Mail
+} from 'lucide-react'
 
 function normalizeText(text: string) {
   return (text || '')
@@ -154,34 +158,85 @@ export function TeamAccessManager() {
         title={t('team.createAccess')}
         subtitle={t('team.createAccessDesc')}
       >
-        <form onSubmit={handleCreateAccess} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
-            <Input 
-              placeholder={t('team.firstname')} 
-              value={formData.firstname}
-              onChange={e => setFormData(p => ({ ...p, firstname: e.target.value }))}
-              required 
-            />
-            <Input 
-              placeholder={t('team.lastname')} 
-              value={formData.lastname}
-              onChange={e => setFormData(p => ({ ...p, lastname: e.target.value }))}
-              required 
-            />
-            <Input 
-              placeholder={t('team.companyOptional')} 
-              value={formData.company}
-              onChange={e => setFormData(p => ({ ...p, company: e.target.value }))}
-            />
+        <form onSubmit={handleCreateAccess} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <label style={{ fontSize: 11, fontWeight: 700, color: colors.textMid, textTransform: 'uppercase', paddingLeft: 4 }}>
+                {t('team.firstname')}
+              </label>
+              <Input 
+                placeholder="Ex: Jean" 
+                value={formData.firstname}
+                onChange={e => setFormData(p => ({ ...p, firstname: e.target.value }))}
+                required 
+                style={{ borderRadius: 10, padding: '12px 14px' }}
+              />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <label style={{ fontSize: 11, fontWeight: 700, color: colors.textMid, textTransform: 'uppercase', paddingLeft: 4 }}>
+                {t('team.lastname')}
+              </label>
+              <Input 
+                placeholder="Ex: Dupont" 
+                value={formData.lastname}
+                onChange={e => setFormData(p => ({ ...p, lastname: e.target.value }))}
+                required 
+                style={{ borderRadius: 10, padding: '12px 14px' }}
+              />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <label style={{ fontSize: 11, fontWeight: 700, color: colors.textMid, textTransform: 'uppercase', paddingLeft: 4 }}>
+                {t('team.companyOptional')}
+              </label>
+              <Input 
+                placeholder={user?.companyName || 'Entreprise'} 
+                value={formData.company}
+                onChange={e => setFormData(p => ({ ...p, company: e.target.value }))}
+                style={{ borderRadius: 10, padding: '12px 14px' }}
+              />
+            </div>
           </div>
           
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, background: colors.bg2, padding: '12px 16px', borderRadius: 8, border: `1px solid ${colors.border}` }}>
-            <div>
-              <span style={{ fontSize: 12, color: colors.textMid, display: 'block', marginBottom: 4 }}>{t('team.accessIdPreview')}</span>
-              <strong style={{ fontSize: 15, color: colors.green }}>{previewId}</strong>
+          <div style={{ 
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', 
+            flexWrap: 'wrap', gap: 16, background: colors.bg2, 
+            padding: '16px 20px', borderRadius: 12, border: `1px solid ${colors.border}`,
+            boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ 
+                width: 36, height: 36, borderRadius: 10, background: 'white', 
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: colors.green, boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+              }}>
+                <Fingerprint size={20} />
+              </div>
+              <div>
+                <span style={{ fontSize: 11, color: colors.textMid, fontWeight: 600, display: 'block' }}>
+                  {t('team.accessIdPreview')}
+                </span>
+                <strong style={{ fontSize: 16, color: colors.green, fontFamily: 'monospace', letterSpacing: '0.02em' }}>
+                  {previewId}
+                </strong>
+              </div>
             </div>
-            <Button type="submit" variant="primary" disabled={isSubmitting || previewId === '@entreprise'}>
-              {isSubmitting ? t('team.creating') : t('team.generateAccess')}
+            <Button 
+              type="submit" 
+              variant="primary" 
+              disabled={isSubmitting || previewId === '@entreprise'}
+              style={{ borderRadius: 10, padding: '10px 24px', fontWeight: 800 }}
+            >
+              {isSubmitting ? (
+                <>
+                  <RefreshCw size={16} className="animate-spin" style={{ marginRight: 8 }} />
+                  {t('team.creating')}
+                </>
+              ) : (
+                <>
+                  <UserPlus size={16} style={{ marginRight: 8 }} />
+                  {t('team.generateAccess')}
+                </>
+              )}
             </Button>
           </div>
         </form>
@@ -203,41 +258,59 @@ export function TeamAccessManager() {
               const isDeleting = deletingId === acc.id
 
               return (
-                <div key={acc.id} style={{ borderRadius: 10, border: `1px solid ${colors.border}`, overflow: 'hidden' }}>
+                <div key={acc.id} style={{ 
+                  borderRadius: 14, 
+                  border: `1px solid ${colors.border}`, 
+                  overflow: 'hidden',
+                  background: colors.surface,
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
+                  transition: 'all 200ms ease'
+                }}>
                   {/* Main row */}
                   <div style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    padding: '10px 12px',
-                    background: isRevoked ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.04)',
+                    padding: '16px 20px',
                     opacity: isRevoked ? 0.6 : 1,
-                    transition: 'all 0.2s ease',
-                    flexWrap: 'wrap', gap: 8,
+                    flexWrap: 'wrap', gap: 12,
                   }}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3, flexWrap: 'wrap' }}>
-                        <strong style={{ fontSize: 14 }}>{acc.firstname} {acc.lastname}</strong>
-                        <Badge variant={displayStatus === 'active' ? 'success' : displayStatus === 'revoked' ? 'danger' : 'default'}>
-                          {displayStatus === 'active' ? t('team.active')
-                            : displayStatus === 'revoked' ? t('team.revoked')
-                            : displayStatus === 'pending_email' ? t('team.pendingEmail')
-                            : t('team.pending')}
-                        </Badge>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16, flex: 1, minWidth: 200 }}>
+                      <div style={{
+                        width: 40, height: 40, borderRadius: 10,
+                        background: isRevoked ? colors.bg3 : isActivated ? 'rgba(34,197,94,0.1)' : 'rgba(99,102,241,0.1)',
+                        color: isRevoked ? colors.textDim : isActivated ? '#16a34a' : '#6366f1',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        flexShrink: 0
+                      }}>
+                        {isActivated ? <UserCheck size={20} /> : <Clock size={20} />}
                       </div>
-                      <div style={{ fontSize: 11.5, color: colors.textMid, fontFamily: 'monospace' }}>
-                        {acc.accessId}
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2, flexWrap: 'wrap' }}>
+                          <strong style={{ fontSize: 14, fontWeight: 800 }}>{acc.firstname} {acc.lastname}</strong>
+                          <Badge variant={displayStatus === 'active' ? 'success' : displayStatus === 'revoked' ? 'danger' : 'default'} style={{ fontSize: 9, padding: '1px 6px' }}>
+                            {displayStatus === 'active' ? t('team.active')
+                              : displayStatus === 'revoked' ? t('team.revoked')
+                              : displayStatus === 'pending_email' ? t('team.pendingEmail')
+                              : t('team.pending')}
+                          </Badge>
+                        </div>
+                        <div style={{ fontSize: 12, color: colors.textMid, fontFamily: 'monospace', fontWeight: 600 }}>
+                          {acc.accessId}
+                        </div>
+                        {acc.email && (
+                          <div style={{ fontSize: 11, color: colors.textDim, marginTop: 2, display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <Mail size={10} /> {acc.email}
+                          </div>
+                        )}
                       </div>
-                      {acc.email && (
-                        <div style={{ fontSize: 12, color: colors.textDim, marginTop: 2 }}>{acc.email}</div>
-                      )}
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
                       {/* Copy ID — only for pending */}
                       {displayStatus === 'pending' && (
                         <button
                           title={t('team.copyAccessId')}
                           onClick={() => copyId(acc.accessId)}
-                          style={btnStyle('#185FA5')}
+                          style={btnStyle('#6366f1')}
                         >
                           <Copy size={13} /> {t('team.copy')}
                         </button>
@@ -247,7 +320,7 @@ export function TeamAccessManager() {
                         <button
                           title={t('team.revokeAccess')}
                           onClick={() => revokeAccess(acc.id)}
-                          style={btnStyle('#EF9A3A')}
+                          style={btnStyle('#f59e0b')}
                         >
                           <Ban size={13} /> {t('team.revoke')}
                         </button>
@@ -256,10 +329,10 @@ export function TeamAccessManager() {
                       <button
                         title={t('team.deletePermanently')}
                         onClick={() => setConfirmDeleteId(isConfirmingDelete ? null : acc.id)}
-                        style={btnStyle('#EF4444')}
+                        style={{ ...btnStyle('#ef4444'), background: isConfirmingDelete ? 'rgba(239,68,68,0.1)' : 'transparent' }}
                       >
                         <Trash2 size={13} /> {t('team.delete')}
-                        <ChevronDown size={11} style={{ transform: isConfirmingDelete ? 'rotate(180deg)' : 'none', transition: 'transform 200ms' }} />
+                        <ChevronDown size={11} style={{ marginLeft: 2, transform: isConfirmingDelete ? 'rotate(180deg)' : 'none', transition: 'transform 200ms' }} />
                       </button>
                     </div>
                   </div>

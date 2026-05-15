@@ -5,8 +5,13 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useTeamAssignments } from '../hooks/useTeamAssignments'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { SectionCard } from './SectionCard'
-import { colors } from '@/styles/tokens'
+import { colors, shadows } from '@/styles/tokens'
 import { useTranslation } from '@/providers/I18nProvider'
+import { 
+  Wrench, CheckCircle2, AlertCircle, User, 
+  Building2, Calendar, MapPin, ArrowRight,
+  ShieldCheck, History
+} from 'lucide-react'
 
 export function AssignmentsTable() {
   const { data: assignments = [], isLoading, isError, refetch } = useTeamAssignments()
@@ -97,14 +102,17 @@ export function AssignmentsTable() {
           onClick={handleRepair}
           disabled={repairing}
           style={{
-            fontSize: 11.5, padding: '6px 12px', borderRadius: 8,
-            border: `1px solid ${colors.border}`, background: 'transparent',
+            fontSize: 12, padding: '8px 16px', borderRadius: 10,
+            border: `1px solid ${colors.border}`, background: colors.surface,
             color: colors.textMid, cursor: repairing ? 'wait' : 'pointer',
             transition: 'all 200ms ease', fontFamily: 'inherit',
+            display: 'flex', alignItems: 'center', gap: 8,
+            fontWeight: 600, boxShadow: shadows.sm
           }}
           onMouseEnter={(e) => { e.currentTarget.style.background = colors.bg2; e.currentTarget.style.color = colors.text }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = colors.textMid }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = colors.surface; e.currentTarget.style.color = colors.textMid }}
         >
+          <Wrench size={14} style={{ animation: repairing ? 'spin 2s linear infinite' : 'none' }} />
           {repairing ? t('team.repairingPipelines') : t('team.repairPipelines')}
         </button>
       </div>
@@ -118,20 +126,27 @@ export function AssignmentsTable() {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
             <thead>
               <tr style={{ borderBottom: `1px solid ${colors.border}` }}>
-                {[t('team.prospect'), t('pipeline.assignedTo'), t('team.date')].map((h, i) => (
+                {[
+                  { label: t('team.prospect'), icon: <Building2 size={12} /> },
+                  { label: t('pipeline.assignedTo'), icon: <User size={12} /> },
+                  { label: t('team.date'), icon: <Calendar size={12} /> }
+                ].map((h, i) => (
                   <th
-                    key={h}
+                    key={h.label}
                     style={{
                       textAlign: i === 2 ? 'right' : 'left',
-                      padding: i === 1 ? '12px 16px 12px 0' : '12px 0',
+                      padding: '12px 0',
                       color: colors.textMid,
-                      fontWeight: 600,
+                      fontWeight: 700,
                       fontSize: 11,
                       textTransform: 'uppercase',
-                      letterSpacing: '.04em',
+                      letterSpacing: '.05em',
                     }}
                   >
-                    {h}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: i === 2 ? 'flex-end' : 'flex-start', gap: 6 }}>
+                      {h.icon}
+                      {h.label}
+                    </div>
                   </th>
                 ))}
               </tr>
@@ -148,32 +163,56 @@ export function AssignmentsTable() {
                     key={a.id}
                     style={{
                       borderBottom: `1px solid ${colors.border}`,
-                      transition: 'background 200ms ease',
+                      transition: 'all 200ms ease',
                     }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = colors.bg2)}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = colors.bg3)}
                     onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                   >
                     {/* Prospect / Company */}
-                    <td style={{ padding: '12px 0', color: colors.text }}>
-                      <div style={{ fontWeight: 600, fontSize: 13 }}>
-                        {a.companyName || a.pipelineItemId}
-                      </div>
-                      <div style={{ fontSize: 11, color: colors.textMid, marginTop: 2 }}>
-                        {t('team.prospectAssignedSub')}
+                    <td style={{ padding: '16px 0' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div style={{ 
+                          width: 32, height: 32, borderRadius: 8, 
+                          background: 'rgba(99,102,241,0.1)', color: '#6366f1',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center'
+                        }}>
+                          <Building2 size={16} />
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: 800, fontSize: 13, color: colors.text }}>
+                            {a.companyName || a.pipelineItemId}
+                          </div>
+                          <div style={{ fontSize: 11, color: colors.textMid, marginTop: 2 }}>
+                            {t('team.prospectAssignedSub')}
+                          </div>
+                        </div>
                       </div>
                     </td>
 
                     {/* Member */}
-                    <td style={{ padding: '12px 16px 12px 0', color: colors.text }}>
-                      <div style={{ fontWeight: 500, fontSize: 13 }}>
-                        {a.memberName || a.memberId}
+                    <td style={{ padding: '16px 0' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div style={{ 
+                          width: 32, height: 32, borderRadius: '50%', 
+                          background: 'rgba(34,197,94,0.1)', color: '#16a34a',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: 12, fontWeight: 800
+                        }}>
+                          {(a.memberName || a.memberId || '?')[0]?.toUpperCase()}
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: 700, fontSize: 13, color: colors.text }}>
+                            {a.memberName || a.memberId}
+                          </div>
+                          <div style={{ fontSize: 11, color: colors.textMid }}>{a.memberEmail}</div>
+                        </div>
                       </div>
-                      <div style={{ fontSize: 11, color: colors.textMid }}>{a.memberEmail}</div>
                     </td>
 
                     {/* Date */}
-                    <td style={{ padding: '12px 0', color: colors.textMid, textAlign: 'right', whiteSpace: 'nowrap' }}>
-                      {dateStr}
+                    <td style={{ padding: '16px 0', color: colors.textMid, textAlign: 'right', whiteSpace: 'nowrap' }}>
+                      <div style={{ fontSize: 12, fontWeight: 600 }}>{dateStr.split(' ')[0]} {dateStr.split(' ')[1]}</div>
+                      <div style={{ fontSize: 10, opacity: 0.7 }}>{dateStr.split(' ').slice(2).join(' ')}</div>
                     </td>
                   </tr>
                 )
