@@ -248,8 +248,9 @@ function SearchContent() {
             }}
           >
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-              {/* Illustration Premium (Générée) */}
+              {/* Illustration Desktop (Premium) */}
               <div 
+                className="desktop-illustration"
                 style={{ 
                   position: 'relative',
                   width: '100%',
@@ -259,7 +260,6 @@ function SearchContent() {
                   alignItems: 'center', 
                   justifyContent: 'center',
                   marginBottom: 16,
-                  // Ajout d'un halo subtil pour ancrer l'image dans l'UI
                   background: `radial-gradient(50% 50% at 50% 50%, ${colors.greenLight} 0%, transparent 100%)`,
                 }}
               >
@@ -268,15 +268,23 @@ function SearchContent() {
                     0%, 100% { transform: translateY(0) scale(1); }
                     50% { transform: translateY(-8px) scale(1.02); }
                   }
+                  @keyframes pulseSimple {
+                    0%, 100% { transform: scale(1); opacity: 0.5; }
+                    50% { transform: scale(1.1); opacity: 0.2; }
+                  }
                   .illustration-refined {
                     animation: floatSubtle 6s infinite ease-in-out;
                     mix-blend-mode: multiply;
                     transition: filter 0.3s ease;
                   }
-                  /* En mode sombre, multiply ne fonctionne pas bien, on ajuste */
                   [data-theme='dark'] .illustration-refined {
                     mix-blend-mode: normal;
                     filter: brightness(0.9) contrast(1.1);
+                  }
+                  .mobile-illustration { display: none; }
+                  @media (max-width: 768px) {
+                    .desktop-illustration { display: none !important; }
+                    .mobile-illustration { display: flex !important; }
                   }
                 `}} />
                 
@@ -291,6 +299,42 @@ function SearchContent() {
                     opacity: 0.95,
                   }}
                 />
+              </div>
+
+              {/* Illustration Mobile (Simplified SVG Pulse) */}
+              <div 
+                className="mobile-illustration"
+                style={{ 
+                  position: 'relative',
+                  width: 100, 
+                  height: 100, 
+                  display: 'none', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  marginBottom: 8
+                }}
+              >
+                <div style={{
+                  position: 'absolute',
+                  inset: 0,
+                  borderRadius: '50%',
+                  background: colors.greenLight,
+                  animation: 'pulseSimple 2s infinite ease-in-out',
+                  opacity: 0.5
+                }} />
+                <svg width="80" height="80" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ zIndex: 1 }}>
+                  <path d="M70 40 L100 20 L130 50 L140 90 L120 140 L80 160 L50 120 L40 80 Z" fill={colors.border2} stroke={colors.border} strokeWidth="2" strokeLinejoin="round"/>
+                  <circle cx="80" cy="60" r="5" fill={colors.green} />
+                  <circle cx="110" cy="80" r="7" fill={colors.greenDark} />
+                  <circle cx="90" cy="110" r="4" fill={colors.green} />
+                  <circle cx="120" cy="120" r="6" fill={colors.green} />
+                  <circle cx="60" cy="100" r="3" fill={colors.green} />
+                  <path d="M80 60 L110 80 L120 120 L90 110 Z" stroke={colors.green} strokeWidth="1.2" strokeDasharray="3 3" />
+                  <circle cx="130" cy="140" r="20" fill="none" stroke={colors.text} strokeWidth="5" />
+                  <line x1="145" y1="155" x2="165" y2="175" stroke={colors.text} strokeWidth="7" strokeLinecap="round" />
+                  <circle cx="130" cy="135" r="8" fill={colors.textMid} />
+                  <path d="M118 152 C118 145 142 145 142 152" stroke={colors.textMid} strokeWidth="4" strokeLinecap="round" />
+                </svg>
               </div>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%', paddingLeft: 8, paddingRight: 8 }}>
