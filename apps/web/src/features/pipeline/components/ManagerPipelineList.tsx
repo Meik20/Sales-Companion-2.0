@@ -3,12 +3,16 @@
 import { useState } from 'react'
 import { Badge } from '@/components/ui/index'
 import { Button } from '@/components/ui/Button'
-import { colors } from '@/styles/tokens'
+import { colors, shadows } from '@/styles/tokens'
 import { useDeletePipelineItem } from '@/features/pipeline/hooks/useDeletePipelineItem'
 import { useUpdatePipelineItem } from '@/features/pipeline/hooks/useUpdatePipelineItem'
 import { useToast } from '@/hooks/useToast'
 import { useTranslation } from '@/providers/I18nProvider'
 import { useExportTeamPerformance } from '@/features/pipeline/hooks/useExportTeamPerformance'
+import { 
+  Building2, MapPin, Phone, Mail, User, Calendar, 
+  AlertTriangle, X, Edit3, MessageSquare, ChevronRight
+} from 'lucide-react'
 
 type PipelineItem = {
   id: string
@@ -114,12 +118,20 @@ function ProspectModal({
           }}
         >
           {/* Header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
-            <div>
-              <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: colors.text, fontFamily: "'Syne',sans-serif" }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <h2 style={{ 
+                margin: 0, 
+                fontSize: 20, 
+                fontWeight: 800, 
+                color: colors.text, 
+                fontFamily: "'Syne', sans-serif",
+                lineHeight: 1.2,
+                letterSpacing: '-0.02em'
+              }}>
                 {item.companyName}
               </h2>
-              <div style={{ marginTop: 6 }}>
+              <div style={{ marginTop: 8 }}>
                 <Badge variant={statusVariant[item.status] ?? 'default'}>
                   {statusLabel[item.status] ?? item.status}
                 </Badge>
@@ -127,83 +139,159 @@ function ProspectModal({
             </div>
             <button
               onClick={onClose}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: colors.textMid, padding: '2px 6px', borderRadius: 6 }}
+              style={{ 
+                background: colors.bg3, 
+                border: `1px solid ${colors.border}`, 
+                cursor: 'pointer', 
+                color: colors.textMid, 
+                padding: 8, 
+                borderRadius: 10,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.2s ease',
+                marginLeft: 16,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = colors.bg4
+                e.currentTarget.style.color = colors.text
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = colors.bg3
+                e.currentTarget.style.color = colors.textMid
+              }}
             >
-              ✕
+              <X size={18} />
             </button>
           </div>
 
           {/* Contact Info */}
-          <div style={{ background: colors.bg3, borderRadius: 10, padding: '14px 16px', marginBottom: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em', color: colors.textMid, marginBottom: 2 }}>
+          <div style={{ 
+            background: colors.bg3, 
+            borderRadius: 12, 
+            padding: 20, 
+            marginBottom: 20, 
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: 12,
+            border: `1px solid ${colors.border}`,
+            boxShadow: 'inset 0 0 20px rgba(0,0,0,0.1)'
+          }}>
+            <div style={{ 
+              fontSize: 11, 
+              fontWeight: 800, 
+              textTransform: 'uppercase', 
+              letterSpacing: '.1em', 
+              color: colors.textMid, 
+              marginBottom: 4,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6
+            }}>
+              <User size={12} strokeWidth={3} />
               {t('pipeline.contactInfo')}
             </div>
+
             {item.companySector && (
               <div style={{ 
-                fontSize: 12, 
-                color: 'var(--color-primary)', 
-                fontWeight: 600, 
-                background: 'var(--color-blue-50)', 
-                padding: '8px 12px', 
-                borderRadius: '8px',
-                borderLeft: '4px solid var(--color-primary)',
-                lineHeight: 1.4,
-                marginTop: '6px',
-                marginBottom: '8px'
+                fontSize: 13, 
+                color: colors.text, 
+                fontWeight: 500, 
+                background: 'rgba(96, 165, 250, 0.08)', 
+                padding: '12px 14px', 
+                borderRadius: '10px',
+                border: '1px solid rgba(96, 165, 250, 0.15)',
+                lineHeight: 1.5,
+                marginTop: 4,
+                marginBottom: 4,
+                display: 'flex',
+                gap: 12,
+                alignItems: 'flex-start'
               }}>
-                {item.companySector}
+                <Building2 size={16} style={{ color: '#60a5fa', flexShrink: 0, marginTop: 2 }} />
+                <span>{item.companySector}</span>
               </div>
             )}
-            {item.companyCity   && <InfoRow icon="📍" label={t('pipeline.city')}   value={item.companyCity} />}
-            <InfoRow
-              icon="📞" label={t('pipeline.phone')}
-              value={
-                item.companyPhone
-                  ? <a href={`tel:${item.companyPhone}`} style={{ color: '#60a5fa', textDecoration: 'none' }}>{item.companyPhone}</a>
-                  : <span style={{ color: colors.textMid, fontStyle: 'italic' }}>{t('pipeline.notSpecified')}</span>
-              }
-            />
-            <InfoRow
-              icon="✉️" label={t('pipeline.email')}
-              value={
-                item.companyEmail
-                  ? <a href={`mailto:${item.companyEmail}`} style={{ color: '#60a5fa', textDecoration: 'none' }}>{item.companyEmail}</a>
-                  : <span style={{ color: colors.textMid, fontStyle: 'italic' }}>{t('pipeline.notSpecified')}</span>
-              }
-            />
-            {item.assignedTo && item.assignedTo !== managerUid && (() => {
-              const label = resolveMemberLabel(item, members)
-              return label ? (
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 4 }}>
+              {item.companyCity && (
                 <InfoRow 
-                  icon="👤" 
-                  label={t('pipeline.assignedTo')} 
-                  value={label} 
+                  icon={<MapPin size={15} />} 
+                  label={t('pipeline.city')} 
+                  value={item.companyCity} 
                 />
-              ) : null
-            })()}
+              )}
+              
+              <InfoRow
+                icon={<Phone size={15} />} 
+                label={t('pipeline.phone')}
+                value={
+                  item.companyPhone ? (
+                    <a href={`tel:${item.companyPhone}`} style={{ color: '#60a5fa', textDecoration: 'none', fontWeight: 600 }}>
+                      {item.companyPhone}
+                    </a>
+                  ) : (
+                    <span style={{ color: colors.textDim, fontStyle: 'italic' }}>{t('pipeline.notSpecified')}</span>
+                  )
+                }
+              />
+
+              <InfoRow
+                icon={<Mail size={15} />} 
+                label={t('pipeline.email')}
+                value={
+                  item.companyEmail ? (
+                    <a 
+                      href={`mailto:${item.companyEmail}`} 
+                      style={{ 
+                        color: '#60a5fa', 
+                        textDecoration: 'none', 
+                        fontWeight: 600,
+                        wordBreak: 'break-all',
+                        lineHeight: 1.4
+                      }}
+                    >
+                      {item.companyEmail}
+                    </a>
+                  ) : (
+                    <span style={{ color: colors.textDim, fontStyle: 'italic' }}>{t('pipeline.notSpecified')}</span>
+                  )
+                }
+              />
+
+              {item.assignedTo && item.assignedTo !== managerUid && (() => {
+                const label = resolveMemberLabel(item, members)
+                return label ? (
+                  <InfoRow 
+                    icon={<User size={15} />} 
+                    label={t('pipeline.assignedTo')} 
+                    value={<strong>{label}</strong>} 
+                  />
+                ) : null
+              })()}
+            </div>
           </div>
 
           {/* ── NOTES — vue manager (seulement si renseignée) ── */}
           {noteText && (
             <div style={{
-              background: 'rgba(34,197,94,0.06)',
-              border: '1px solid rgba(34,197,94,0.25)',
+              background: 'rgba(34,197,94,0.03)',
+              border: '1px solid rgba(34,197,94,0.2)',
               borderRadius: 12,
-              padding: '14px 16px',
-              marginBottom: 16,
+              padding: 18,
+              marginBottom: 20,
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#22c55e', textTransform: 'uppercase', letterSpacing: '.06em' }}>
-                  📝 {t('pipeline.notesLabel')}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+                <MessageSquare size={12} strokeWidth={3} style={{ color: '#22c55e' }} />
+                <div style={{ fontSize: 11, fontWeight: 800, color: '#22c55e', textTransform: 'uppercase', letterSpacing: '.1em' }}>
+                  {t('pipeline.notesLabel')}
                 </div>
               </div>
               <div style={{ 
-                fontSize: 13, 
+                fontSize: 14, 
                 color: colors.text, 
                 lineHeight: 1.6, 
                 whiteSpace: 'pre-wrap',
-                minHeight: 'auto',
-                fontStyle: 'normal',
                 opacity: 1
               }}>
                 {noteText}
@@ -212,8 +300,21 @@ function ProspectModal({
           )}
 
           {item.nextFollowUp && (
-            <div style={{ background: 'rgba(96,165,250,0.07)', border: '1px solid rgba(96,165,250,0.2)', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: '#93c5fd' }}>
-              📅 {t('pipeline.nextFollowUpLabel')} : {item.nextFollowUp}
+            <div style={{ 
+              background: 'rgba(96,165,250,0.05)', 
+              border: '1px solid rgba(96,165,250,0.15)', 
+              borderRadius: 12, 
+              padding: '14px 16px', 
+              fontSize: 13, 
+              color: '#93c5fd',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10
+            }}>
+              <Calendar size={16} strokeWidth={2.5} />
+              <span>
+                <strong>{t('pipeline.nextFollowUpLabel')}</strong> : {item.nextFollowUp}
+              </span>
             </div>
           )}
         </div>
@@ -222,12 +323,27 @@ function ProspectModal({
   )
 }
 
-function InfoRow({ icon, label, value }: { icon: string; label: string; value: React.ReactNode }) {
+function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13 }}>
-      <span style={{ width: 20, textAlign: 'center', flexShrink: 0 }}>{icon}</span>
-      <span style={{ color: colors.textMid, minWidth: 80, flexShrink: 0 }}>{label}</span>
-      <span style={{ color: colors.text, fontWeight: 500 }}>{value}</span>
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, fontSize: 14 }}>
+      <span style={{ 
+        width: 28, 
+        height: 28, 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        background: colors.bg2,
+        borderRadius: 8,
+        color: colors.textMid,
+        flexShrink: 0,
+        border: `1px solid ${colors.border}`
+      }}>
+        {icon}
+      </span>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <span style={{ color: colors.textDim, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</span>
+        <span style={{ color: colors.text, fontWeight: 500, lineHeight: 1.4 }}>{value}</span>
+      </div>
     </div>
   )
 }
@@ -492,15 +608,28 @@ export function ManagerPipelineList({ items, members, managerUid }: Props) {
                       <div style={{ fontWeight: 600, fontSize: 13, color: colors.text, marginBottom: 4 }}>
                         {item.companyName}
                       </div>
-                      <div style={{ fontSize: 11, color: colors.textMid }}>
-                        {item.companySector ? `🏭 ${item.companySector}` : ''}
-                        {item.companyCity   ? ` · 📍 ${item.companyCity}` : ''}
-                      </div>
-                      {(item.notes ?? item.note) && (
-                        <div style={{ fontSize: 11, color: '#fbbf24', marginTop: 2 }}>
-                          📝 {t('pipeline.hasNotes')}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4 }}>
+                        <div style={{ fontSize: 11, color: colors.textMid, display: 'flex', flexWrap: 'wrap', gap: '4px 10px' }}>
+                          {item.companySector && (
+                            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                              <Building2 size={10} style={{ opacity: 0.7 }} />
+                              {item.companySector}
+                            </span>
+                          )}
+                          {item.companyCity && (
+                            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                              <MapPin size={10} style={{ opacity: 0.7 }} />
+                              {item.companyCity}
+                            </span>
+                          )}
                         </div>
-                      )}
+                        {(item.notes ?? item.note) && (
+                          <div style={{ fontSize: 11, color: '#fbbf24', display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <MessageSquare size={10} />
+                            {t('pipeline.hasNotes')}
+                          </div>
+                        )}
+                      </div>
                       {item.assignedTo && item.assignedTo !== managerUid && (
                         <div style={{ fontSize: 11, color: 'rgba(99,102,241,0.7)', marginTop: 3 }}>
                           👤 {resolveMemberLabel(item, members) ?? item.assignedTo}

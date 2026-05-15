@@ -3,11 +3,16 @@
 import { useState } from 'react'
 import { Badge } from '@/components/ui/index'
 import { Button } from '@/components/ui/Button'
-import { colors } from '@/styles/tokens'
+import { colors, shadows } from '@/styles/tokens'
 import { useDeletePipelineItem } from '@/features/pipeline/hooks/useDeletePipelineItem'
 import { useUpdatePipelineItem } from '@/features/pipeline/hooks/useUpdatePipelineItem'
 import { useToast } from '@/hooks/useToast'
 import { useTranslation } from '@/providers/I18nProvider'
+import { 
+  Building2, MapPin, Phone, Mail, User, Calendar, 
+  AlertTriangle, X, Edit3, Save, RotateCcw, CheckCircle,
+  ChevronRight, MessageSquare
+} from 'lucide-react'
 
 type PipelineItem = {
   id: string
@@ -117,12 +122,20 @@ function ProspectModal({
           }}
         >
           {/* Header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
-            <div>
-              <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: colors.text, fontFamily: 'inherit' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <h2 style={{ 
+                margin: 0, 
+                fontSize: 20, 
+                fontWeight: 800, 
+                color: colors.text, 
+                fontFamily: "'Syne', sans-serif",
+                lineHeight: 1.2,
+                letterSpacing: '-0.02em'
+              }}>
                 {item.companyName}
               </h2>
-              <div style={{ marginTop: 6 }}>
+              <div style={{ marginTop: 8 }}>
                 <Badge variant={statusVariant[item.status] ?? 'default'}>
                   {statusLabel[item.status] ?? item.status}
                 </Badge>
@@ -131,90 +144,146 @@ function ProspectModal({
             <button
               onClick={onClose}
               style={{
-                background: 'none', border: 'none', cursor: 'pointer',
-                fontSize: 20, color: colors.textMid, lineHeight: 1,
-                padding: '2px 6px', borderRadius: 6,
+                background: colors.bg3, 
+                border: `1px solid ${colors.border}`, 
+                cursor: 'pointer',
+                color: colors.textMid, 
+                padding: 8, 
+                borderRadius: 10,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.2s ease',
+                marginLeft: 16,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = colors.bg4
+                e.currentTarget.style.color = colors.text
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = colors.bg3
+                e.currentTarget.style.color = colors.textMid
               }}
             >
-              ✕
+              <X size={18} />
             </button>
           </div>
 
           {/* Contact Info */}
           <div style={{
-            display: 'flex', flexDirection: 'column', gap: 10,
-            background: colors.bg3, borderRadius: 10, padding: '14px 16px',
-            marginBottom: 16,
+            display: 'flex', flexDirection: 'column', gap: 12,
+            background: colors.bg3, 
+            borderRadius: 12, 
+            padding: 20,
+            marginBottom: 20,
+            border: `1px solid ${colors.border}`,
+            boxShadow: 'inset 0 0 20px rgba(0,0,0,0.1)'
           }}>
-            <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em', color: colors.textMid, marginBottom: 2 }}>
+            <div style={{ 
+              fontSize: 11, 
+              fontWeight: 800, 
+              textTransform: 'uppercase', 
+              letterSpacing: '.1em', 
+              color: colors.textMid, 
+              marginBottom: 4,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6
+            }}>
+              <User size={12} strokeWidth={3} />
               {t('pipeline.contactInfo')}
             </div>
 
             {item.companySector && (
               <div style={{ 
-                fontSize: 12, 
-                color: 'var(--color-primary)', 
-                fontWeight: 600, 
-                background: 'var(--color-blue-50)', 
-                padding: '8px 12px', 
-                borderRadius: '8px',
-                borderLeft: '4px solid var(--color-primary)',
-                lineHeight: 1.4,
-                marginTop: '6px',
-                marginBottom: '8px'
+                fontSize: 13, 
+                color: colors.text, 
+                fontWeight: 500, 
+                background: 'rgba(96, 165, 250, 0.08)', 
+                padding: '12px 14px', 
+                borderRadius: '10px',
+                border: '1px solid rgba(96, 165, 250, 0.15)',
+                lineHeight: 1.5,
+                marginTop: 4,
+                marginBottom: 4,
+                display: 'flex',
+                gap: 12,
+                alignItems: 'flex-start'
               }}>
-                {item.companySector}
+                <Building2 size={16} style={{ color: '#60a5fa', flexShrink: 0, marginTop: 2 }} />
+                <span>{item.companySector}</span>
               </div>
             )}
-            {item.companyCity && (
-              <InfoRow icon="📍" label={t('pipeline.city')} value={item.companyCity} />
-            )}
-            {item.companyPhone ? (
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 4 }}>
+              {item.companyCity && (
+                <InfoRow 
+                  icon={<MapPin size={15} />} 
+                  label={t('pipeline.city')} 
+                  value={item.companyCity} 
+                />
+              )}
+              
               <InfoRow
-                icon="📞" label={t('pipeline.phone')}
+                icon={<Phone size={15} />} 
+                label={t('pipeline.phone')}
                 value={
-                  <a href={`tel:${item.companyPhone}`} style={{ color: '#60a5fa', textDecoration: 'none' }}>
-                    {item.companyPhone}
-                  </a>
+                  item.companyPhone ? (
+                    <a href={`tel:${item.companyPhone}`} style={{ color: '#60a5fa', textDecoration: 'none', fontWeight: 600 }}>
+                      {item.companyPhone}
+                    </a>
+                  ) : (
+                    <span style={{ color: colors.textDim, fontStyle: 'italic' }}>{t('pipeline.notSpecified')}</span>
+                  )
                 }
               />
-            ) : (
-              <InfoRow icon="📞" label={t('pipeline.phone')} value={<span style={{ color: colors.textMid, fontStyle: 'italic' }}>{t('pipeline.notSpecified')}</span>} />
-            )}
-            {item.companyEmail ? (
+
               <InfoRow
-                icon="✉️" label={t('pipeline.email')}
+                icon={<Mail size={15} />} 
+                label={t('pipeline.email')}
                 value={
-                  <a href={`mailto:${item.companyEmail}`} style={{ color: '#60a5fa', textDecoration: 'none' }}>
-                    {item.companyEmail}
-                  </a>
+                  item.companyEmail ? (
+                    <a 
+                      href={`mailto:${item.companyEmail}`} 
+                      style={{ 
+                        color: '#60a5fa', 
+                        textDecoration: 'none', 
+                        fontWeight: 600,
+                        wordBreak: 'break-all',
+                        lineHeight: 1.4
+                      }}
+                    >
+                      {item.companyEmail}
+                    </a>
+                  ) : (
+                    <span style={{ color: colors.textDim, fontStyle: 'italic' }}>{t('pipeline.notSpecified')}</span>
+                  )
                 }
               />
-            ) : (
-              <InfoRow icon="✉️" label={t('pipeline.email')} value={<span style={{ color: colors.textMid, fontStyle: 'italic' }}>{t('pipeline.notSpecified')}</span>} />
-            )}
+            </div>
           </div>
 
           {/* ── NOTES — section éditable ── */}
           <div style={{
-            background: isEditing ? 'rgba(251,191,36,0.06)' : 'rgba(34,197,94,0.06)',
-            border: isEditing ? '1px solid rgba(251,191,36,0.25)' : '1px solid rgba(34,197,94,0.25)',
+            background: isEditing ? 'rgba(251,191,36,0.03)' : 'rgba(34,197,94,0.03)',
+            border: isEditing ? '1px solid rgba(251,191,36,0.2)' : '1px solid rgba(34,197,94,0.2)',
             borderRadius: 12,
-            padding: '14px 16px',
-            marginBottom: 16,
+            padding: 18,
+            marginBottom: 20,
             transition: 'all 300ms ease',
           }}>
             <div style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              marginBottom: 10,
+              marginBottom: 12,
             }}>
               <div style={{ 
-                fontSize: 11, fontWeight: 700, 
+                fontSize: 11, fontWeight: 800, 
                 color: isEditing ? '#fbbf24' : '#22c55e', 
-                textTransform: 'uppercase', letterSpacing: '.06em',
+                textTransform: 'uppercase', letterSpacing: '.1em',
                 display: 'flex', alignItems: 'center', gap: 6
               }}>
-                📝 {t('pipeline.notesLabel')}
+                <MessageSquare size={12} strokeWidth={3} />
+                {t('pipeline.notesLabel')}
               </div>
               
               {!isEditing ? (
@@ -222,9 +291,19 @@ function ProspectModal({
                   size="sm"
                   variant="ghost"
                   onClick={() => setIsEditing(true)}
-                  style={{ fontSize: 11, padding: '4px 10px', minHeight: 26, color: '#22c55e', borderColor: 'rgba(34,197,94,0.3)' }}
+                  style={{ 
+                    fontSize: 11, 
+                    padding: '4px 10px', 
+                    minHeight: 26, 
+                    color: '#22c55e', 
+                    borderColor: 'rgba(34,197,94,0.2)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4
+                  }}
                 >
-                  ✎ {t('common.edit') || 'Modifier'}
+                  <Edit3 size={11} />
+                  {t('common.edit') || 'Modifier'}
                 </Button>
               ) : (
                 <div style={{ display: 'flex', gap: 8 }}>
@@ -235,8 +314,9 @@ function ProspectModal({
                       setNoteText(originalNote)
                       setIsEditing(false)
                     }}
-                    style={{ fontSize: 11, padding: '4px 10px', minHeight: 26 }}
+                    style={{ fontSize: 11, padding: '4px 10px', minHeight: 26, display: 'flex', alignItems: 'center', gap: 4 }}
                   >
+                    <RotateCcw size={11} />
                     {t('common.cancel') || 'Annuler'}
                   </Button>
                   <Button
@@ -245,8 +325,18 @@ function ProspectModal({
                     loading={noteSaving}
                     disabled={!noteChanged}
                     onClick={() => void handleSaveNote()}
-                    style={{ fontSize: 11, padding: '4px 10px', minHeight: 26, background: '#22c55e', borderColor: '#22c55e' }}
+                    style={{ 
+                      fontSize: 11, 
+                      padding: '4px 10px', 
+                      minHeight: 26, 
+                      background: '#22c55e', 
+                      borderColor: '#22c55e',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4
+                    }}
                   >
+                    <Save size={11} />
                     {t('pipeline.notesSaveBtn')}
                   </Button>
                 </div>
@@ -264,37 +354,36 @@ function ProspectModal({
                   style={{
                     width: '100%',
                     boxSizing: 'border-box',
-                    background: 'transparent',
-                    border: '1px solid rgba(251,191,36,0.2)',
-                    borderRadius: 8,
-                    padding: '10px 12px',
-                    fontSize: 13,
+                    background: colors.bg2,
+                    border: '1px solid rgba(251,191,36,0.3)',
+                    borderRadius: 10,
+                    padding: '12px 14px',
+                    fontSize: 14,
                     color: colors.text,
                     resize: 'vertical',
                     outline: 'none',
                     fontFamily: 'inherit',
                     lineHeight: 1.6,
-                    minHeight: 90,
+                    minHeight: 100,
                     transition: 'border-color 200ms ease',
                   }}
-                  onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(251,191,36,0.5)' }}
-                  onBlur={(e)  => { e.currentTarget.style.borderColor = 'rgba(251,191,36,0.2)' }}
                 />
                 {noteChanged && (
-                  <div style={{ fontSize: 11, color: '#fbbf24', marginTop: 6, opacity: 0.8 }}>
+                  <div style={{ fontSize: 11, color: '#fbbf24', marginTop: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <AlertTriangle size={10} />
                     {t('pipeline.notesUnsaved')}
                   </div>
                 )}
               </>
             ) : (
               <div style={{ 
-                fontSize: 13, 
+                fontSize: 14, 
                 color: colors.text, 
                 lineHeight: 1.6, 
                 whiteSpace: 'pre-wrap',
                 minHeight: noteText ? 'auto' : 40,
                 fontStyle: noteText ? 'normal' : 'italic',
-                opacity: noteText ? 1 : 0.6
+                opacity: noteText ? 1 : 0.5
               }}>
                 {noteText || t('pipeline.placeholderNotes')}
               </div>
@@ -304,34 +393,65 @@ function ProspectModal({
           {/* Next follow-up */}
           {(item.nextFollowUp ?? item.nextDate) && (
             <div style={{
-              background: 'rgba(96,165,250,0.07)', border: '1px solid rgba(96,165,250,0.2)',
-              borderRadius: 10, padding: '10px 14px', marginBottom: 16,
-              fontSize: 13, color: '#93c5fd',
+              background: 'rgba(96,165,250,0.05)', 
+              border: '1px solid rgba(96,165,250,0.15)',
+              borderRadius: 12, 
+              padding: '14px 16px', 
+              marginBottom: 20,
+              fontSize: 13, 
+              color: '#93c5fd',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10
             }}>
-              📅 {t('pipeline.nextFollowUpLabel')} : {item.nextFollowUp ?? item.nextDate}
+              <Calendar size={16} strokeWidth={2.5} />
+              <span>
+                <strong>{t('pipeline.nextFollowUpLabel')}</strong> : {item.nextFollowUp ?? item.nextDate}
+              </span>
             </div>
           )}
 
           {/* Assigné par */}
           {item.assignedByName && (
-            <div style={{ fontSize: 12, color: colors.textMid, marginBottom: 16 }}>
-              {t('pipeline.assignedBy')} : <span style={{ color: colors.text }}>{item.assignedByName}</span>
+            <div style={{ 
+              fontSize: 12, 
+              color: colors.textMid, 
+              marginBottom: 20,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '0 4px'
+            }}>
+              <User size={14} style={{ opacity: 0.6 }} />
+              <span>
+                {t('pipeline.assignedBy')} : <strong style={{ color: colors.text }}>{item.assignedByName}</strong>
+              </span>
             </div>
           )}
 
           {/* Déjà visité / assigné */}
           {item.previousAssignees && item.previousAssignees.length > 0 && (
             <div style={{
-              background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.2)',
-              borderRadius: 10, padding: '10px 14px', marginBottom: 16,
-              fontSize: 13, color: '#f87171', display: 'flex', alignItems: 'flex-start', gap: 8
+              background: 'rgba(239,68,68,0.05)', 
+              border: '1px solid rgba(239,68,68,0.15)',
+              borderRadius: 12, 
+              padding: '14px 16px', 
+              marginBottom: 20,
+              fontSize: 13, 
+              color: '#f87171', 
+              display: 'flex', 
+              alignItems: 'flex-start', 
+              gap: 12
             }}>
-              <span>⚠️</span>
+              <AlertTriangle size={18} style={{ flexShrink: 0, marginTop: 2 }} />
               <div>
-                <strong>Attention :</strong> Ce prospect a déjà été visité/assigné précédemment à :
-                <ul style={{ margin: '4px 0 0 0', paddingLeft: 16 }}>
+                <strong style={{ display: 'block', marginBottom: 4 }}>Attention :</strong>
+                Ce prospect a déjà été visité/assigné précédemment à :
+                <ul style={{ margin: '8px 0 0 0', paddingLeft: 16, fontSize: 12, opacity: 0.9 }}>
                   {item.previousAssignees.map((pa, idx) => (
-                    <li key={idx}>{pa.memberName} (le {new Date(pa.assignedAt).toLocaleDateString()})</li>
+                    <li key={idx} style={{ marginBottom: 4 }}>
+                      <strong>{pa.memberName}</strong> (le {new Date(pa.assignedAt).toLocaleDateString()})
+                    </li>
                   ))}
                 </ul>
               </div>
@@ -364,12 +484,27 @@ function ProspectModal({
   )
 }
 
-function InfoRow({ icon, label, value }: { icon: string; label: string; value: React.ReactNode }) {
+function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13 }}>
-      <span style={{ width: 20, textAlign: 'center', flexShrink: 0 }}>{icon}</span>
-      <span style={{ color: colors.textMid, minWidth: 80, flexShrink: 0 }}>{label}</span>
-      <span style={{ color: colors.text, fontWeight: 500 }}>{value}</span>
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, fontSize: 14 }}>
+      <span style={{ 
+        width: 28, 
+        height: 28, 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        background: colors.bg2,
+        borderRadius: 8,
+        color: colors.textMid,
+        flexShrink: 0,
+        border: `1px solid ${colors.border}`
+      }}>
+        {icon}
+      </span>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <span style={{ color: colors.textDim, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</span>
+        <span style={{ color: colors.text, fontWeight: 500, lineHeight: 1.4 }}>{value}</span>
+      </div>
     </div>
   )
 }
@@ -459,13 +594,36 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
                 </Badge>
               </div>
 
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px 14px', fontSize: 12, color: colors.textMid }}>
-                {item.companySector && <span>🏭 {item.companySector}</span>}
-                {item.companyCity   && <span>📍 {item.companyCity}</span>}
-                {item.companyPhone  && <span>📞 {item.companyPhone}</span>}
-                {item.companyEmail  && <span>✉️ {item.companyEmail}</span>}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 16px', fontSize: 12, color: colors.textMid, marginTop: 4 }}>
+                {item.companySector && (
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Building2 size={12} style={{ opacity: 0.7 }} />
+                    {item.companySector}
+                  </span>
+                )}
+                {item.companyCity && (
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <MapPin size={12} style={{ opacity: 0.7 }} />
+                    {item.companyCity}
+                  </span>
+                )}
+                {item.companyPhone && (
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Phone size={12} style={{ opacity: 0.7 }} />
+                    {item.companyPhone}
+                  </span>
+                )}
+                {item.companyEmail && (
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Mail size={12} style={{ opacity: 0.7 }} />
+                    {item.companyEmail}
+                  </span>
+                )}
                 {(item.notes ?? item.note) && (
-                  <span style={{ color: '#fbbf24' }}>📝 {t('pipeline.hasNotes')}</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#fbbf24' }}>
+                    <MessageSquare size={12} />
+                    {t('pipeline.hasNotes')}
+                  </span>
                 )}
               </div>
 
