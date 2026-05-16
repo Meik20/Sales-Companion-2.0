@@ -525,6 +525,7 @@ export const fr = {
     planLabel: "Plan",
     unlimitedSearches: "Recherches illimitées",
     searchesPerDay: "recherches / jour",
+    searchesPerDay1000: "1 000 recherches / jour",
     upgradeBtn: "Passer à un plan supérieur",
     upgradeAdminHint: "Contactez votre Admin pour upgrade",
     account: "Compte",
@@ -550,6 +551,7 @@ export const fr = {
       prioritySupport: "Support prioritaire",
       allPro: "Tout Pro",
       unlimited: "Illimité",
+      pipelineUnlimited: "Pipeline illimité",
       dedicatedDeployment: "Déploiement dédié",
       dedicatedSupport: "Support dédié",
     }
