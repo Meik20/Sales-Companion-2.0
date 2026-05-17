@@ -14,7 +14,7 @@ const createPipelineItemSchema = z.object({
   status: z.enum(['prospection', 'negotiation', 'conclusion', 'lost']).default('prospection'),
   notes: z.string().optional(),
   nextFollowUp: z.string().optional(),
-  managerUid: z.string().nullable().optional(),
+  managerUid: z.string().nullable().optional()
 })
 
 const updatePipelineItemSchema = z.object({
@@ -22,7 +22,7 @@ const updatePipelineItemSchema = z.object({
   notes: z.string().optional(),
   nextFollowUp: z.string().optional(),
   companyPhone: z.string().optional(),
-  companyEmail: z.string().email().optional(),
+  companyEmail: z.string().email().optional()
 })
 
 export const pipelineController = {
@@ -72,7 +72,7 @@ export const pipelineController = {
         companyEmail: input.companyEmail,
         status: input.status,
         notes: input.notes,
-        nextFollowUp: input.nextFollowUp,
+        nextFollowUp: input.nextFollowUp
       })
       return res.status(201).json(item)
     } catch (error) {
@@ -90,7 +90,7 @@ export const pipelineController = {
       const item = await pipelineService.updatePipelineItem({
         id: req.params.id as string,
         userId: req.auth.uid,
-        data,
+        data
       })
       return res.json(item)
     } catch (error) {
@@ -122,18 +122,15 @@ export const pipelineController = {
 
     try {
       // Check if user is a manager to determine which stats to return
-      const userDoc = await adminDb
-        .collection('users')
-        .doc(req.auth.uid)
-        .get()
-      
+      const userDoc = await adminDb.collection('users').doc(req.auth.uid).get()
+
       const userData = userDoc.data()
       const isManager = userData?.role === 'manager'
-      
+
       const stats = isManager
         ? await pipelineService.getTeamPipelineStats(req.auth.uid)
         : await pipelineService.getPipelineStats(req.auth.uid)
-      
+
       return res.json(stats)
     } catch (error) {
       return res.status(500).json({ message: 'Erreur lors du calcul des statistiques' })
@@ -151,5 +148,5 @@ export const pipelineController = {
     } catch (error) {
       return res.status(500).json({ message: 'Erreur lors de la récupération du pipeline équipe' })
     }
-  },
+  }
 }

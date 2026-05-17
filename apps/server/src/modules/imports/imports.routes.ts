@@ -11,12 +11,12 @@ function fileFilter(
   cb: multer.FileFilterCallback
 ) {
   const lower = file.originalname.toLowerCase()
-  
+
   // Accepter tous les fichiers texte courants
   // .csv, .xlsx, .xls, .txt, .tsv, .json, .dat, .log, .txt, etc.
   const allowedExts = ['csv', 'xlsx', 'xls', 'txt', 'tsv', 'json', 'dat', 'log', 'tab', 'pipe']
   const ext = lower.split('.').pop()
-  
+
   if (ext && (allowedExts.includes(ext) || file.mimetype.startsWith('text/'))) {
     cb(null, true)
     return

@@ -12,29 +12,32 @@ export function useDeleteAdminCompanies() {
       const backendUrl = ''
       const token = await user?.getIdToken()
 
-      const results = await Promise.all(ids.map(async (id) => {
-        const response = await fetch(`${backendUrl}/api/admin/companies/${id}`, {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${token || ''}`,
-          },
+      const results = await Promise.all(
+        ids.map(async (id) => {
+          const response = await fetch(`${backendUrl}/api/admin/companies/${id}`, {
+            method: 'DELETE',
+            headers: {
+              Authorization: `Bearer ${token || ''}`
+            }
+          })
+
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}))
+            throw new Error(
+              errorData?.message ||
+                `Erreur lors de la suppression de l'entreprise (${response.status})`
+            )
+          }
+
+          return response.json()
         })
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}))
-          throw new Error(
-            errorData?.message || `Erreur lors de la suppression de l'entreprise (${response.status})`
-          )
-        }
-
-        return response.json()
-      }))
+      )
 
       return results
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['admin-companies'] })
       await queryClient.invalidateQueries({ queryKey: ['admin-company-stats'] })
-    },
+    }
   })
 }

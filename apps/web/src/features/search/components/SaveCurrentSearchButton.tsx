@@ -25,9 +25,12 @@ export function SaveCurrentSearchButton({ filters, results }: Props) {
     if (!hasFilters) return
     try {
       await mutation.mutateAsync({
-        label:       [filters.query, filters.sector, filters.region, filters.city].filter(Boolean).join(' · ') || t('search.defaultSearchLabel'),
+        label:
+          [filters.query, filters.sector, filters.region, filters.city]
+            .filter(Boolean)
+            .join(' · ') || t('search.defaultSearchLabel'),
         filters,
-        resultCount: results.length,
+        resultCount: results.length
       })
       setSaved(true)
       pushToast({ type: 'success', title: t('search.saveSearchSuccess') })
@@ -39,11 +42,20 @@ export function SaveCurrentSearchButton({ filters, results }: Props) {
   if (!hasFilters) return null
 
   if (saved) {
-    return <span style={{ fontSize: 12, color: '#4ade80', fontWeight: 600 }}>✓ {t('search.savedSearch')}</span>
+    return (
+      <span style={{ fontSize: 12, color: '#4ade80', fontWeight: 600 }}>
+        ✓ {t('search.savedSearch')}
+      </span>
+    )
   }
 
   return (
-    <Button size="sm" variant="ghost" loading={mutation.isPending} onClick={() => void handleSave()}>
+    <Button
+      size="sm"
+      variant="ghost"
+      loading={mutation.isPending}
+      onClick={() => void handleSave()}
+    >
       🔖 {t('search.saveSearch')}
     </Button>
   )

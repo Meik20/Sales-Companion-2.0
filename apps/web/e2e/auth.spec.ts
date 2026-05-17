@@ -17,21 +17,21 @@ test.describe('Authentication', () => {
 
   test('should show validation errors for empty form', async ({ page }) => {
     await page.goto('/login')
-    
+
     // Try submitting empty form
     await page.click('button[type="submit"]')
-    
+
     // Should show validation error
     await expect(page.locator('[role="alert"]')).toBeVisible()
   })
 
   test('should validate email format', async ({ page }) => {
     await page.goto('/register')
-    
+
     await page.fill('input[type="email"]', 'invalid-email')
     await page.fill('input[type="password"]', 'password123')
     await page.click('button[type="submit"]')
-    
+
     // Should show email validation error
     await expect(page.locator('[role="alert"], .error')).toBeVisible()
   })

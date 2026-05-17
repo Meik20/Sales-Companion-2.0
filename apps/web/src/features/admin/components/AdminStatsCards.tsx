@@ -36,11 +36,7 @@ export function AdminStatsCards({ stats }: Props) {
         hint="Sur l'ensemble de la plateforme"
       />
       {stats.newUsersThisWeek !== undefined ? (
-        <MetricCard
-          label="Nouveaux cette semaine"
-          value={stats.newUsersThisWeek}
-          accent
-        />
+        <MetricCard label="Nouveaux cette semaine" value={stats.newUsersThisWeek} accent />
       ) : null}
     </StatsGrid>
   )

@@ -32,9 +32,11 @@ export default function PipelinePage() {
 
   const items = userPipelineQuery.data ?? []
   const counts = {
-    prospection: items.filter((i) => ['prospection', 'prospect'].includes(i.status as string)).length,
-    negociation: items.filter((i) => ['negociation', 'negotiation'].includes(i.status as string)).length,
-    conclue:     items.filter((i) => ['conclue', 'conclusion'].includes(i.status as string)).length,
+    prospection: items.filter((i) => ['prospection', 'prospect'].includes(i.status as string))
+      .length,
+    negociation: items.filter((i) => ['negociation', 'negotiation'].includes(i.status as string))
+      .length,
+    conclue: items.filter((i) => ['conclue', 'conclusion'].includes(i.status as string)).length
   }
 
   return (
@@ -44,11 +46,7 @@ export default function PipelinePage() {
         subtitle={t('pipeline.subtitle')}
         actions={
           user?.role !== 'manager' ? (
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => setShowForm((v) => !v)}
-            >
+            <Button variant="primary" size="sm" onClick={() => setShowForm((v) => !v)}>
               {showForm ? t('pipeline.cancel') : t('pipeline.addProspect')}
             </Button>
           ) : undefined
@@ -56,19 +54,34 @@ export default function PipelinePage() {
       />
 
       {/* Stats rapides */}
-      {(user?.role === 'member' || user?.role === 'independent') ? (
+      {user?.role === 'member' || user?.role === 'independent' ? (
         <div
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(3, 1fr)',
             gap: 12,
-            marginBottom: 20,
+            marginBottom: 20
           }}
         >
           {[
-            { label: t('pipeline.prospection'), count: counts.prospection, color: '#60a5fa', variant: 'info' as const },
-            { label: t('pipeline.negotiation'), count: counts.negociation, color: '#fbbf24', variant: 'warning' as const },
-            { label: t('pipeline.closed'),     count: counts.conclue,     color: '#4ade80', variant: 'success' as const },
+            {
+              label: t('pipeline.prospection'),
+              count: counts.prospection,
+              color: '#60a5fa',
+              variant: 'info' as const
+            },
+            {
+              label: t('pipeline.negotiation'),
+              count: counts.negociation,
+              color: '#fbbf24',
+              variant: 'warning' as const
+            },
+            {
+              label: t('pipeline.closed'),
+              count: counts.conclue,
+              color: '#4ade80',
+              variant: 'success' as const
+            }
           ].map(({ label, count, color, variant }) => (
             <div
               key={label}
@@ -77,10 +90,12 @@ export default function PipelinePage() {
                 border: `1px solid ${colors.border}`,
                 borderRadius: 12,
                 padding: '14px 18px',
-                textAlign: 'center',
+                textAlign: 'center'
               }}
             >
-              <div style={{ fontSize: 28, fontWeight: 800, color, fontFamily: "'Syne',sans-serif" }}>
+              <div
+                style={{ fontSize: 28, fontWeight: 800, color, fontFamily: "'Syne',sans-serif" }}
+              >
                 {count}
               </div>
               <Badge variant={variant}>{label}</Badge>
@@ -91,18 +106,19 @@ export default function PipelinePage() {
 
       {/* Vue manager */}
       {user?.role === 'manager' ? (
-        <DataCard
-          title={t('pipeline.teamView')}
-          subtitle={t('pipeline.teamSubtitle')}
-        >
+        <DataCard title={t('pipeline.teamView')} subtitle={t('pipeline.teamSubtitle')}>
           {managerPipelineQuery.isLoading ? <LoadingState /> : null}
           {!managerPipelineQuery.isLoading && !managerPipelineQuery.data?.length ? (
-            <EmptyState title={t('pipeline.noProspect')} description={t('pipeline.teamNoProspect')} icon="📊" />
+            <EmptyState
+              title={t('pipeline.noProspect')}
+              description={t('pipeline.teamNoProspect')}
+              icon="📊"
+            />
           ) : null}
           {managerPipelineQuery.data?.length ? (
-            <ManagerPipelineList 
-              items={managerPipelineQuery.data} 
-              members={members} 
+            <ManagerPipelineList
+              items={managerPipelineQuery.data}
+              members={members}
               managerUid={user?.uid}
             />
           ) : null}
@@ -110,10 +126,13 @@ export default function PipelinePage() {
       ) : null}
 
       {/* Vue member/independent */}
-      {(user?.role === 'member' || user?.role === 'independent') ? (
+      {user?.role === 'member' || user?.role === 'independent' ? (
         <>
           {showForm ? (
-            <DataCard title={t('pipeline.addProspectTitle')} subtitle={t('pipeline.addProspectSubtitle')}>
+            <DataCard
+              title={t('pipeline.addProspectTitle')}
+              subtitle={t('pipeline.addProspectSubtitle')}
+            >
               <CreatePipelineItemForm onSuccess={() => setShowForm(false)} />
             </DataCard>
           ) : null}

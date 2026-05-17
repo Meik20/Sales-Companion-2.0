@@ -4,9 +4,15 @@ import { useTeamMembers, TeamMember } from '../hooks/useTeamMembers'
 import { SectionCard } from './SectionCard'
 import { colors, shadows } from '@/styles/tokens'
 import { useTranslation } from '@/providers/I18nProvider'
-import { 
-  User, Mail, BarChart3, CheckCircle2, 
-  XCircle, Clock, Shield, UserCheck
+import {
+  User,
+  Mail,
+  BarChart3,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  Shield,
+  UserCheck
 } from 'lucide-react'
 import { Badge } from '@/components/ui/index'
 
@@ -47,7 +53,7 @@ export function TeamMembersSection() {
             textAlign: 'center',
             color: colors.textMid,
             padding: 20,
-            fontSize: 13,
+            fontSize: 13
           }}
         >
           {t('team.noMemberAssigned')}
@@ -92,20 +98,37 @@ function MemberCard({ member }: { member: TeamMember }) {
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 14, flex: 1, minWidth: 200 }}>
-        <div style={{
-          width: 44, height: 44, borderRadius: 12,
-          background: 'rgba(99,102,241,0.1)', color: '#6366f1',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 18, fontWeight: 800, flexShrink: 0,
-          border: '1px solid rgba(99,102,241,0.2)'
-        }}>
+        <div
+          style={{
+            width: 44,
+            height: 44,
+            borderRadius: 12,
+            background: 'rgba(99,102,241,0.1)',
+            color: '#6366f1',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 18,
+            fontWeight: 800,
+            flexShrink: 0,
+            border: '1px solid rgba(99,102,241,0.2)'
+          }}
+        >
           {member.name[0]?.toUpperCase()}
         </div>
         <div style={{ minWidth: 0 }}>
           <div style={{ fontSize: 14, fontWeight: 800, color: colors.text, marginBottom: 2 }}>
             {member.name}
           </div>
-          <div style={{ fontSize: 12, color: colors.textMid, display: 'flex', alignItems: 'center', gap: 4 }}>
+          <div
+            style={{
+              fontSize: 12,
+              color: colors.textMid,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4
+            }}
+          >
             <Mail size={12} style={{ opacity: 0.6 }} />
             {member.email}
           </div>
@@ -116,19 +139,37 @@ function MemberCard({ member }: { member: TeamMember }) {
         {/* Quota Section */}
         <div style={{ width: 140 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-            <span style={{ fontSize: 11, fontWeight: 700, color: colors.textMid, textTransform: 'uppercase' }}>
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                color: colors.textMid,
+                textTransform: 'uppercase'
+              }}
+            >
               {t('team.dailyQuota')}
             </span>
             <span style={{ fontSize: 11, fontWeight: 800, color: colors.text }}>
-              {member.dailyUsed}<span style={{ color: colors.textDim, fontWeight: 400 }}>/{member.dailyLimit}</span>
+              {member.dailyUsed}
+              <span style={{ color: colors.textDim, fontWeight: 400 }}>/{member.dailyLimit}</span>
             </span>
           </div>
-          <div style={{ height: 6, width: '100%', background: colors.bg2, borderRadius: 10, overflow: 'hidden', border: `1px solid ${colors.border}` }}>
+          <div
+            style={{
+              height: 6,
+              width: '100%',
+              background: colors.bg2,
+              borderRadius: 10,
+              overflow: 'hidden',
+              border: `1px solid ${colors.border}`
+            }}
+          >
             <div
               style={{
                 width: `${Math.min(usagePercent, 100)}%`,
                 height: '100%',
-                background: usagePercent > 80 ? '#f87171' : usagePercent > 50 ? '#fbbf24' : '#6366f1',
+                background:
+                  usagePercent > 80 ? '#f87171' : usagePercent > 50 ? '#fbbf24' : '#6366f1',
                 borderRadius: 10,
                 transition: 'width 500ms ease-out'
               }}
@@ -138,10 +179,17 @@ function MemberCard({ member }: { member: TeamMember }) {
 
         {/* Status Section */}
         <div style={{ minWidth: 80, display: 'flex', justifyContent: 'flex-end' }}>
-          <Badge variant={member.active ? 'success' : 'default'} style={{ 
-            display: 'inline-flex', alignItems: 'center', gap: 4, 
-            padding: '4px 10px', fontSize: 10, fontWeight: 700 
-          }}>
+          <Badge
+            variant={member.active ? 'success' : 'default'}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 4,
+              padding: '4px 10px',
+              fontSize: 10,
+              fontWeight: 700
+            }}
+          >
             {member.active ? <CheckCircle2 size={10} /> : <XCircle size={10} />}
             {member.active ? t('team.active').toUpperCase() : t('team.inactive').toUpperCase()}
           </Badge>

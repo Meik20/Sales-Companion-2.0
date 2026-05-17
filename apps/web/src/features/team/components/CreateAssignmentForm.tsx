@@ -11,10 +11,18 @@ import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { colors, shadows } from '@/styles/tokens'
 import type { Prospect } from '@/features/imports/components/ManagerProspectsList'
 import { useTranslation } from '@/providers/I18nProvider'
-import { 
-  Users, Building2, UserPlus, CheckCircle2, 
-  AlertCircle, ChevronDown, ListFilter, Trash2,
-  Building, MapPin, Search
+import {
+  Users,
+  Building2,
+  UserPlus,
+  CheckCircle2,
+  AlertCircle,
+  ChevronDown,
+  ListFilter,
+  Trash2,
+  Building,
+  MapPin,
+  Search
 } from 'lucide-react'
 
 type Props = {
@@ -56,20 +64,19 @@ function blurStyle(el: HTMLSelectElement, border: string) {
 }
 
 export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Props) {
-  const { t }                               = useTranslation()
+  const { t } = useTranslation()
   const [pipelineItemId, setPipelineItemId] = useState('')
-  const [memberId, setMemberId]             = useState('')
-  const [error, setError]                   = useState('')
-  const [successCount, setSuccessCount]     = useState(0)
+  const [memberId, setMemberId] = useState('')
+  const [error, setError] = useState('')
+  const [successCount, setSuccessCount] = useState(0)
 
   const [pipelineProspects, setPipelineProspects] = useState<PipelineItem[]>([])
-  const [loadingPipeline, setLoadingPipeline]     = useState(false)
+  const [loadingPipeline, setLoadingPipeline] = useState(false)
 
   const { user } = useCurrentUser()
   const { mutate: createAssignment, isPending } = useCreateTeamAssignment()
   const { data: members } = useActiveTeamMembers()
   const queryClient = useQueryClient()
-
 
   // Load pipeline prospects
   useEffect(() => {
@@ -85,8 +92,8 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
         const token = await user.getIdToken()
         const res = await fetch('/api/pipeline/manager', {
           headers: {
-            Authorization: `Bearer ${token}`,
-          },
+            Authorization: `Bearer ${token}`
+          }
         })
         if (res.ok) {
           const data = await res.json()
@@ -105,13 +112,19 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
   const handleSingleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-    if (!pipelineItemId.trim()) { setError(t('team.selectProspect')); return }
-    if (!memberId.trim())       { setError(t('team.selectMember'));   return }
+    if (!pipelineItemId.trim()) {
+      setError(t('team.selectProspect'))
+      return
+    }
+    if (!memberId.trim()) {
+      setError(t('team.selectMember'))
+      return
+    }
 
-    const selectedP = pipelineProspects.find(p => p.id === pipelineItemId)
+    const selectedP = pipelineProspects.find((p) => p.id === pipelineItemId)
     createAssignment(
-      { 
-        pipelineItemId: pipelineItemId.trim(), 
+      {
+        pipelineItemId: pipelineItemId.trim(),
         memberId: memberId.trim(),
         companyName: selectedP?.companyName
       },
@@ -125,7 +138,7 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
         },
         onError: (err: Error) => {
           setError(err.message || t('support.errorLoad')) // fallback error msg
-        },
+        }
       }
     )
   }
@@ -136,7 +149,10 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
   const handleBulkSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-    if (!memberId.trim()) { setError(t('team.selectMember')); return }
+    if (!memberId.trim()) {
+      setError(t('team.selectMember'))
+      return
+    }
 
     const token = await user?.getIdToken()
     let done = 0
@@ -145,13 +161,13 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
         },
         body: JSON.stringify({
           pipelineItemId: prospect.id,
           memberId: memberId.trim(),
-          companyName: prospect.name || prospect.companyName || (prospect as any).raisonSociale,
-        }),
+          companyName: prospect.name || prospect.companyName || (prospect as any).raisonSociale
+        })
       })
       if (res.ok) done++
     }
@@ -161,11 +177,10 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
       queryClient.invalidateQueries({ queryKey: ['pipeline'] }),
       queryClient.invalidateQueries({ queryKey: ['manager-pipeline'] }),
       queryClient.invalidateQueries({ queryKey: ['team-assignments'] }),
-      queryClient.invalidateQueries({ queryKey: ['pipeline-stats'] }),
+      queryClient.invalidateQueries({ queryKey: ['pipeline-stats'] })
     ])
     onAssigned?.()
   }
-
 
   return (
     <SectionCard
@@ -177,13 +192,22 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
       }
     >
       {successCount > 0 && (
-        <div style={{
-          marginBottom: 20, padding: '12px 16px', borderRadius: 12,
-          background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.2)',
-          fontSize: 13, color: '#16a34a', fontWeight: 700,
-          display: 'flex', alignItems: 'center', gap: 8,
-          animation: 'slideDown 200ms ease'
-        }}>
+        <div
+          style={{
+            marginBottom: 20,
+            padding: '12px 16px',
+            borderRadius: 12,
+            background: 'rgba(34,197,94,0.1)',
+            border: '1px solid rgba(34,197,94,0.2)',
+            fontSize: 13,
+            color: '#16a34a',
+            fontWeight: 700,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            animation: 'slideDown 200ms ease'
+          }}
+        >
           <CheckCircle2 size={16} />
           {successCount} {t('team.successCreated')}
         </div>
@@ -196,25 +220,58 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
         {/* ── Bulk mode: show the selected prospect names ── */}
         {hasBulk ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <label style={{ fontSize: 11, fontWeight: 700, color: colors.textMid, textTransform: 'uppercase', paddingLeft: 4 }}>
+            <label
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                color: colors.textMid,
+                textTransform: 'uppercase',
+                paddingLeft: 4
+              }}
+            >
               {t('team.selectedProspects')}
             </label>
-            <div style={{
-              padding: '12px', borderRadius: 12,
-              background: colors.bg3, border: `1px solid ${colors.border}`,
-              maxHeight: 180, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6,
-              boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.03)'
-            }}>
+            <div
+              style={{
+                padding: '12px',
+                borderRadius: 12,
+                background: colors.bg3,
+                border: `1px solid ${colors.border}`,
+                maxHeight: 180,
+                overflowY: 'auto',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 6,
+                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.03)'
+              }}
+            >
               {selectedProspects.map((p) => (
-                <div key={p.id} style={{ 
-                  fontSize: 12.5, color: colors.text, display: 'flex', 
-                  alignItems: 'center', gap: 10, padding: '8px 10px',
-                  background: 'white', borderRadius: 8, border: `1px solid ${colors.border}`
-                }}>
+                <div
+                  key={p.id}
+                  style={{
+                    fontSize: 12.5,
+                    color: colors.text,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                    padding: '8px 10px',
+                    background: 'white',
+                    borderRadius: 8,
+                    border: `1px solid ${colors.border}`
+                  }}
+                >
                   <Building size={14} style={{ color: colors.info, opacity: 0.7 }} />
                   <span style={{ fontWeight: 700 }}>{p.name}</span>
                   {p.city && (
-                    <span style={{ fontSize: 11, color: colors.textMid, display: 'flex', alignItems: 'center', gap: 3 }}>
+                    <span
+                      style={{
+                        fontSize: 11,
+                        color: colors.textMid,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 3
+                      }}
+                    >
                       <MapPin size={10} /> {p.city}
                     </span>
                   )}
@@ -225,7 +282,15 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
         ) : (
           /* ── Single mode: pipeline dropdown ── */
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <label style={{ fontSize: 11, fontWeight: 700, color: colors.textMid, textTransform: 'uppercase', paddingLeft: 4 }}>
+            <label
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                color: colors.textMid,
+                textTransform: 'uppercase',
+                paddingLeft: 4
+              }}
+            >
               {t('team.prospect')}
             </label>
             <div style={{ position: 'relative' }}>
@@ -238,7 +303,11 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
                 onBlur={(e) => blurStyle(e.currentTarget, colors.border)}
               >
                 <option value="">
-                  {loadingPipeline ? t('team.loading') : pipelineProspects.length === 0 ? t('team.noProspectAvailable') : t('team.selectProspect')}
+                  {loadingPipeline
+                    ? t('team.loading')
+                    : pipelineProspects.length === 0
+                      ? t('team.noProspectAvailable')
+                      : t('team.selectProspect')}
                 </option>
                 {pipelineProspects.map((p) => (
                   <option key={p.id} value={p.id}>
@@ -246,17 +315,36 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
                   </option>
                 ))}
               </select>
-              <div style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: colors.textDim }}>
+              <div
+                style={{
+                  position: 'absolute',
+                  right: 12,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  pointerEvents: 'none',
+                  color: colors.textDim
+                }}
+              >
                 <ChevronDown size={18} />
               </div>
             </div>
-            {error && !pipelineItemId && <div style={{ fontSize: 11, color: '#f87171', paddingLeft: 4 }}>{error}</div>}
+            {error && !pipelineItemId && (
+              <div style={{ fontSize: 11, color: '#f87171', paddingLeft: 4 }}>{error}</div>
+            )}
           </div>
         )}
 
         {/* ── Member selector — always shows only ACTIVE members ── */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <label style={{ fontSize: 11, fontWeight: 700, color: colors.textMid, textTransform: 'uppercase', paddingLeft: 4 }}>
+          <label
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              color: colors.textMid,
+              textTransform: 'uppercase',
+              paddingLeft: 4
+            }}
+          >
             {t('team.teamMember')}
           </label>
           <div style={{ position: 'relative' }}>
@@ -277,7 +365,16 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
                 </option>
               ))}
             </select>
-            <div style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: colors.textDim }}>
+            <div
+              style={{
+                position: 'absolute',
+                right: 12,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                pointerEvents: 'none',
+                color: colors.textDim
+              }}
+            >
               <ChevronDown size={18} />
             </div>
           </div>
@@ -286,7 +383,9 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
               {t('team.noActiveMemberDesc')}
             </p>
           )}
-          {error && memberId === '' && <div style={{ fontSize: 11, color: '#f87171', paddingLeft: 4 }}>{error}</div>}
+          {error && memberId === '' && (
+            <div style={{ fontSize: 11, color: '#f87171', paddingLeft: 4 }}>{error}</div>
+          )}
         </div>
 
         {error && !pipelineItemId && !memberId && (
@@ -296,13 +395,16 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
         <Button
           type="submit"
           variant="primary"
-          disabled={
-            isPending ||
-            !memberId.trim() ||
-            (!hasBulk && !pipelineItemId.trim())
-          }
+          disabled={isPending || !memberId.trim() || (!hasBulk && !pipelineItemId.trim())}
           loading={isPending}
-          style={{ width: '100%', height: 48, borderRadius: 12, fontSize: 15, fontWeight: 800, marginTop: 8 }}
+          style={{
+            width: '100%',
+            height: 48,
+            borderRadius: 12,
+            fontSize: 15,
+            fontWeight: 800,
+            marginTop: 8
+          }}
         >
           {isPending ? (
             t('team.assigning')

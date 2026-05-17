@@ -32,7 +32,7 @@ export function SidebarLink({ href, label, icon: Icon, badge }: Props) {
         fontWeight: active ? 600 : 400,
         transition: 'all 200ms ease',
         borderLeft: active ? '2px solid var(--color-accent)' : '2px solid transparent',
-        position: 'relative',
+        position: 'relative'
       }}
       onMouseEnter={(e) => {
         if (!active) e.currentTarget.style.background = 'rgba(55,138,221,0.06)'
@@ -43,20 +43,25 @@ export function SidebarLink({ href, label, icon: Icon, badge }: Props) {
         if (!active) e.currentTarget.style.color = colors.textMid
       }}
     >
-      {Icon ? (
-        <Icon size={16} strokeWidth={active ? 2.2 : 1.8} style={{ flexShrink: 0 }} />
-      ) : null}
+      {Icon ? <Icon size={16} strokeWidth={active ? 2.2 : 1.8} style={{ flexShrink: 0 }} /> : null}
       <span style={{ flex: 1 }}>{label}</span>
       {badge != null && badge > 0 ? (
-        <span style={{
-          minWidth: 18, height: 18, padding: '0 5px',
-          borderRadius: 9999,
-          background: 'var(--color-accent)',
-          color: '#fff',
-          fontSize: 10, fontWeight: 700,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          flexShrink: 0,
-        }}>
+        <span
+          style={{
+            minWidth: 18,
+            height: 18,
+            padding: '0 5px',
+            borderRadius: 9999,
+            background: 'var(--color-accent)',
+            color: '#fff',
+            fontSize: 10,
+            fontWeight: 700,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0
+          }}
+        >
           {badge > 99 ? '99+' : badge}
         </span>
       ) : null}

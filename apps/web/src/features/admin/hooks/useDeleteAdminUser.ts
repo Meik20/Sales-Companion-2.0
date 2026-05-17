@@ -15,14 +15,15 @@ export function useDeleteAdminUser() {
       const response = await fetch(`${backendUrl}/api/admin/users/${uid}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${token || ''}`,
-        },
+          Authorization: `Bearer ${token || ''}`
+        }
       })
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
         throw new Error(
-          errorData?.message || `Erreur lors de la suppression de l'utilisateur (${response.status})`
+          errorData?.message ||
+            `Erreur lors de la suppression de l'utilisateur (${response.status})`
         )
       }
 
@@ -31,6 +32,6 @@ export function useDeleteAdminUser() {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['admin-users'] })
       await queryClient.invalidateQueries({ queryKey: ['admin-stats'] })
-    },
+    }
   })
 }

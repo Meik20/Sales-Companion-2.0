@@ -19,8 +19,8 @@ describe('AdminUsersTable', () => {
         plan: 'free',
         dailyUsed: 5,
         dailyLimit: 10,
-        active: true,
-      },
+        active: true
+      }
     ]
 
     render(<AdminUsersTable users={mockUsers} onDelete={() => {}} />)
@@ -40,8 +40,8 @@ describe('AdminUsersTable', () => {
         plan: 'free',
         dailyUsed: 5,
         dailyLimit: 10,
-        active: true,
-      },
+        active: true
+      }
     ]
 
     render(<AdminUsersTable users={mockUsers} onDelete={() => {}} onUpdate={() => {}} />)

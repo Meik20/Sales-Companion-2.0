@@ -26,22 +26,22 @@ export function AddToPipelineButton({ company }: Props) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
-          companyId:     company.id,
-          companyName:   company.raisonSociale ?? '—',
+          companyId: company.id,
+          companyName: company.raisonSociale ?? '—',
           companySector: company.sector ?? null,
-          companyCity:   company.city ?? company.region ?? null,
-          companyPhone:  company.telephone ?? null,
-          companyEmail:  company.email ?? null,
-          managerUid:    user.role === 'member' ? (user.managerUid ?? null) : user.uid,
+          companyCity: company.city ?? company.region ?? null,
+          companyPhone: company.telephone ?? null,
+          companyEmail: company.email ?? null,
+          managerUid: user.role === 'member' ? (user.managerUid ?? null) : user.uid,
           // Passer l'identité de l'assigné pour qu'il soit affiché correctement
-          assignedTo:     user.uid,
-          memberName:     user.name || user.email,
+          assignedTo: user.uid,
+          memberName: user.name || user.email,
           memberAccessId: user.accessId ?? null,
-          googlePlaceId:  company._source === 'google_places' ? company.id : null,
-        }),
+          googlePlaceId: company._source === 'google_places' ? company.id : null
+        })
       })
       const json = await res.json().catch(() => ({}))
       if (!res.ok) {
@@ -81,27 +81,39 @@ export function AddToPipelineButton({ company }: Props) {
           opacity: status === 'loading' ? 0.6 : 1,
           transition: 'all 150ms ease',
           whiteSpace: 'nowrap',
-          fontFamily: 'inherit',
+          fontFamily: 'inherit'
         }}
         onMouseEnter={(e) => {
           if (status === 'idle') {
-            (e.currentTarget as HTMLButtonElement).style.background = colors.greenLight
+            ;(e.currentTarget as HTMLButtonElement).style.background = colors.greenLight
             ;(e.currentTarget as HTMLButtonElement).style.borderColor = colors.green
             ;(e.currentTarget as HTMLButtonElement).style.color = colors.greenDark
           }
         }}
         onMouseLeave={(e) => {
           if (status === 'idle') {
-            (e.currentTarget as HTMLButtonElement).style.background = colors.surface
+            ;(e.currentTarget as HTMLButtonElement).style.background = colors.surface
             ;(e.currentTarget as HTMLButtonElement).style.borderColor = colors.border
             ;(e.currentTarget as HTMLButtonElement).style.color = colors.text
           }
         }}
       >
-        {status === 'loading' ? t('search.adding') : status === 'error' ? t('search.retry') : t('search.addPipeline')}
+        {status === 'loading'
+          ? t('search.adding')
+          : status === 'error'
+            ? t('search.retry')
+            : t('search.addPipeline')}
       </button>
       {errorMsg && (
-        <span style={{ fontSize: 10.5, color: '#ef4444', maxWidth: 120, textAlign: 'right', lineHeight: 1.3 }}>
+        <span
+          style={{
+            fontSize: 10.5,
+            color: '#ef4444',
+            maxWidth: 120,
+            textAlign: 'right',
+            lineHeight: 1.3
+          }}
+        >
           {errorMsg}
         </span>
       )}

@@ -24,7 +24,7 @@ export function ScIcon({ size = 32, interactive = false, style, onClick, classNa
     flexShrink: 0,
     cursor: interactive ? 'pointer' : 'default',
     transition: 'transform 300ms ease, filter 300ms ease',
-    ...style,
+    ...style
   }
 
   return (

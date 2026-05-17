@@ -34,11 +34,11 @@ type Props = {
 }
 
 const STATUS_COLOR: Record<string, string> = {
-  new:         '#1E88E5',
-  contacted:   '#FB8C00',
+  new: '#1E88E5',
+  contacted: '#FB8C00',
   in_progress: '#7B1FA2',
-  converted:   '#43A047',
-  lost:        '#E53935',
+  converted: '#43A047',
+  lost: '#E53935'
 }
 
 function getStatusLabel(status: string, t: any) {
@@ -51,27 +51,32 @@ function getStatusLabel(status: string, t: any) {
 }
 
 const SELECT_STYLE: React.CSSProperties = {
-  height: 28, padding: '0 6px',
-  border: `1px solid ${colors.border}`, borderRadius: 6,
-  fontSize: 11, fontFamily: 'inherit',
-  background: colors.bg2, color: colors.text,
-  cursor: 'pointer', outline: 'none',
-  maxWidth: 150,
+  height: 28,
+  padding: '0 6px',
+  border: `1px solid ${colors.border}`,
+  borderRadius: 6,
+  fontSize: 11,
+  fontFamily: 'inherit',
+  background: colors.bg2,
+  color: colors.text,
+  cursor: 'pointer',
+  outline: 'none',
+  maxWidth: 150
 }
 
 export function ManagerProspectsList({
   managerId,
   members,
   refreshTrigger = 0,
-  onAssignSelection,
+  onAssignSelection
 }: Props) {
-  const { t }                           = useTranslation()
-  const [prospects, setProspects]       = useState<Prospect[]>([])
-  const [loading, setLoading]           = useState(false)
-  const [search, setSearch]             = useState('')
+  const { t } = useTranslation()
+  const [prospects, setProspects] = useState<Prospect[]>([])
+  const [loading, setLoading] = useState(false)
+  const [search, setSearch] = useState('')
   const [filterMember, setFilterMember] = useState('')
-  const [assigning, setAssigning]       = useState<string | null>(null)
-  const [selected, setSelected]         = useState<Set<string>>(new Set())
+  const [assigning, setAssigning] = useState<string | null>(null)
+  const [selected, setSelected] = useState<Set<string>>(new Set())
 
   // Only active members can receive assignments
   const activeMembers = members.filter((m) => m.active !== false)
@@ -90,10 +95,14 @@ export function ManagerProspectsList({
     }
   }, [managerId])
 
-  useEffect(() => { void loadProspects() }, [loadProspects, refreshTrigger])
+  useEffect(() => {
+    void loadProspects()
+  }, [loadProspects, refreshTrigger])
 
   // Reset selection when data reloads
-  useEffect(() => { setSelected(new Set()) }, [refreshTrigger])
+  useEffect(() => {
+    setSelected(new Set())
+  }, [refreshTrigger])
 
   async function handleAssign(prospectId: string, memberId: string | null) {
     setAssigning(prospectId)
@@ -101,10 +110,10 @@ export function ManagerProspectsList({
       await fetch('/api/imports', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prospectId, assignedTo: memberId, managerId }),
+        body: JSON.stringify({ prospectId, assignedTo: memberId, managerId })
       })
       setProspects((prev) =>
-        prev.map((p) => p.id === prospectId ? { ...p, assignedTo: memberId } : p)
+        prev.map((p) => (p.id === prospectId ? { ...p, assignedTo: memberId } : p))
       )
     } finally {
       setAssigning(null)
@@ -114,19 +123,19 @@ export function ManagerProspectsList({
   // Filtering
   const filtered = prospects.filter((p) => {
     const term = search.toLowerCase()
-    const matchSearch = !term || Object.values(p).some(
-      (v) => v && String(v).toLowerCase().includes(term)
-    )
-    const matchMember = !filterMember
-      || p.assignedTo === filterMember
-      || (filterMember === '__unassigned' && !p.assignedTo)
+    const matchSearch =
+      !term || Object.values(p).some((v) => v && String(v).toLowerCase().includes(term))
+    const matchMember =
+      !filterMember ||
+      p.assignedTo === filterMember ||
+      (filterMember === '__unassigned' && !p.assignedTo)
     return matchSearch && matchMember
   })
 
   // Selection helpers
-  const allFilteredIds   = filtered.map((p) => p.id)
-  const allSelected      = allFilteredIds.length > 0 && allFilteredIds.every((id) => selected.has(id))
-  const someSelected     = allFilteredIds.some((id) => selected.has(id))
+  const allFilteredIds = filtered.map((p) => p.id)
+  const allSelected = allFilteredIds.length > 0 && allFilteredIds.every((id) => selected.has(id))
+  const someSelected = allFilteredIds.some((id) => selected.has(id))
   const selectedProspects = prospects.filter((p) => selected.has(p.id))
 
   function toggleAll() {
@@ -156,12 +165,14 @@ export function ManagerProspectsList({
   }
 
   const checkboxStyle: React.CSSProperties = {
-    width: 15, height: 15, cursor: 'pointer', accentColor: colors.green,
+    width: 15,
+    height: 15,
+    cursor: 'pointer',
+    accentColor: colors.green
   }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-
       {/* ── Barre de filtres ── */}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
         <input
@@ -170,37 +181,57 @@ export function ManagerProspectsList({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           style={{
-            flex: 1, minWidth: 180, height: 36, padding: '0 12px',
-            border: `1px solid ${colors.border}`, borderRadius: 8,
-            fontSize: 13, fontFamily: 'inherit',
-            background: colors.bg2, color: colors.text, outline: 'none',
+            flex: 1,
+            minWidth: 180,
+            height: 36,
+            padding: '0 12px',
+            border: `1px solid ${colors.border}`,
+            borderRadius: 8,
+            fontSize: 13,
+            fontFamily: 'inherit',
+            background: colors.bg2,
+            color: colors.text,
+            outline: 'none'
           }}
         />
         <select
           value={filterMember}
           onChange={(e) => setFilterMember(e.target.value)}
           style={{
-            height: 36, padding: '0 10px',
-            border: `1px solid ${colors.border}`, borderRadius: 8,
-            fontSize: 12, fontFamily: 'inherit',
-            background: colors.bg2, color: colors.text, outline: 'none',
-            cursor: 'pointer',
+            height: 36,
+            padding: '0 10px',
+            border: `1px solid ${colors.border}`,
+            borderRadius: 8,
+            fontSize: 12,
+            fontFamily: 'inherit',
+            background: colors.bg2,
+            color: colors.text,
+            outline: 'none',
+            cursor: 'pointer'
           }}
         >
           <option value="">{t('team.allMembers')}</option>
           <option value="__unassigned">{t('team.unassigned')}</option>
           {activeMembers.map((m) => (
-            <option key={m.uid} value={m.uid}>{m.name ?? m.email}</option>
+            <option key={m.uid} value={m.uid}>
+              {m.name ?? m.email}
+            </option>
           ))}
         </select>
         <button
           onClick={() => void loadProspects()}
           title={t('team.refresh')}
           style={{
-            height: 36, padding: '0 12px',
-            background: colors.greenLight, color: colors.green,
-            border: `1px solid ${colors.successBorder}`, borderRadius: 8,
-            fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+            height: 36,
+            padding: '0 12px',
+            background: colors.greenLight,
+            color: colors.green,
+            border: `1px solid ${colors.successBorder}`,
+            borderRadius: 8,
+            fontSize: 14,
+            fontWeight: 700,
+            cursor: 'pointer',
+            fontFamily: 'inherit'
           }}
         >
           ↻
@@ -208,7 +239,15 @@ export function ManagerProspectsList({
       </div>
 
       {/* ── Compteur + action sélection ── */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 8
+        }}
+      >
         <span style={{ fontSize: 12, color: colors.textMid }}>
           {loading
             ? t('team.loading')
@@ -224,11 +263,19 @@ export function ManagerProspectsList({
           <button
             onClick={() => onAssignSelection(selectedProspects)}
             style={{
-              height: 32, padding: '0 14px',
-              background: colors.green, color: '#fff',
-              border: 'none', borderRadius: 8,
-              fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
-              display: 'flex', alignItems: 'center', gap: 6,
+              height: 32,
+              padding: '0 14px',
+              background: colors.green,
+              color: '#fff',
+              border: 'none',
+              borderRadius: 8,
+              fontSize: 12,
+              fontWeight: 700,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6
             }}
           >
             {t('team.assignSelection')} ({selected.size})
@@ -240,9 +287,7 @@ export function ManagerProspectsList({
       {!loading && filtered.length === 0 ? (
         <div style={{ textAlign: 'center', padding: 32, color: colors.textMid, fontSize: 13 }}>
           <div style={{ fontSize: 28, marginBottom: 8 }}>📋</div>
-          {prospects.length === 0
-            ? t('team.noProspectImported')
-            : t('team.noProspectMatch')}
+          {prospects.length === 0 ? t('team.noProspectImported') : t('team.noProspectMatch')}
         </div>
       ) : (
         <div style={{ overflowX: 'auto', borderRadius: 10, border: `1px solid ${colors.border}` }}>
@@ -250,29 +295,55 @@ export function ManagerProspectsList({
             <thead>
               <tr style={{ background: colors.bg3 }}>
                 {/* Select-all checkbox */}
-                <th style={{ padding: '9px 12px', width: 36, textAlign: 'center', borderBottom: `1px solid ${colors.border}` }}>
+                <th
+                  style={{
+                    padding: '9px 12px',
+                    width: 36,
+                    textAlign: 'center',
+                    borderBottom: `1px solid ${colors.border}`
+                  }}
+                >
                   <input
                     type="checkbox"
                     checked={allSelected}
-                    ref={(el) => { if (el) el.indeterminate = someSelected && !allSelected }}
+                    ref={(el) => {
+                      if (el) el.indeterminate = someSelected && !allSelected
+                    }}
                     onChange={toggleAll}
                     style={checkboxStyle}
                     title={t('team.selectAll')}
                   />
                 </th>
-                {[t('field.raisonSociale'), t('field.telephone'), t('field.email'), t('field.city'), t('field.sector'), t('pipeline.status'), t('pipeline.assignedTo')].map((h) => (
-                  <th key={h} style={{
-                    textAlign: 'left', padding: '9px 12px',
-                    color: colors.textMid, fontWeight: 600, fontSize: 11,
-                    borderBottom: `1px solid ${colors.border}`, whiteSpace: 'nowrap',
-                  }}>{h}</th>
+                {[
+                  t('field.raisonSociale'),
+                  t('field.telephone'),
+                  t('field.email'),
+                  t('field.city'),
+                  t('field.sector'),
+                  t('pipeline.status'),
+                  t('pipeline.assignedTo')
+                ].map((h) => (
+                  <th
+                    key={h}
+                    style={{
+                      textAlign: 'left',
+                      padding: '9px 12px',
+                      color: colors.textMid,
+                      fontWeight: 600,
+                      fontSize: 11,
+                      borderBottom: `1px solid ${colors.border}`,
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    {h}
+                  </th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {filtered.map((p, i) => {
                 const statusColor = STATUS_COLOR[p.status ?? 'new'] ?? '#1E88E5'
-                const isSelected  = selected.has(p.id)
+                const isSelected = selected.has(p.id)
                 return (
                   <tr
                     key={p.id}
@@ -280,8 +351,10 @@ export function ManagerProspectsList({
                       borderBottom: `1px solid ${colors.border}`,
                       background: isSelected
                         ? `${colors.green}12`
-                        : i % 2 === 0 ? 'transparent' : colors.bg2,
-                      transition: 'background 150ms ease',
+                        : i % 2 === 0
+                          ? 'transparent'
+                          : colors.bg2,
+                      transition: 'background 150ms ease'
                     }}
                   >
                     {/* Row checkbox */}
@@ -298,25 +371,52 @@ export function ManagerProspectsList({
                     </td>
                     <td style={{ padding: '9px 12px', color: colors.textMid }}>
                       {p.phone ? (
-                        <a href={`tel:${p.phone}`} style={{ color: colors.green, textDecoration: 'none' }}>
+                        <a
+                          href={`tel:${p.phone}`}
+                          style={{ color: colors.green, textDecoration: 'none' }}
+                        >
                           {p.phone}
                         </a>
-                      ) : '—'}
+                      ) : (
+                        '—'
+                      )}
                     </td>
-                    <td style={{ padding: '9px 12px', color: colors.textMid, maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <td
+                      style={{
+                        padding: '9px 12px',
+                        color: colors.textMid,
+                        maxWidth: 180,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
                       {p.email ? (
-                        <a href={`mailto:${p.email}`} style={{ color: colors.green, textDecoration: 'none' }}>
+                        <a
+                          href={`mailto:${p.email}`}
+                          style={{ color: colors.green, textDecoration: 'none' }}
+                        >
                           {p.email}
                         </a>
-                      ) : '—'}
+                      ) : (
+                        '—'
+                      )}
                     </td>
                     <td style={{ padding: '9px 12px', color: colors.textMid }}>{p.city || '—'}</td>
-                    <td style={{ padding: '9px 12px', color: colors.textMid }}>{p.sector || '—'}</td>
+                    <td style={{ padding: '9px 12px', color: colors.textMid }}>
+                      {p.sector || '—'}
+                    </td>
                     <td style={{ padding: '9px 12px' }}>
-                      <span style={{
-                        fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 4,
-                        background: `${statusColor}18`, color: statusColor,
-                      }}>
+                      <span
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 700,
+                          padding: '2px 7px',
+                          borderRadius: 4,
+                          background: `${statusColor}18`,
+                          color: statusColor
+                        }}
+                      >
                         {getStatusLabel(p.status ?? 'new', t)}
                       </span>
                     </td>

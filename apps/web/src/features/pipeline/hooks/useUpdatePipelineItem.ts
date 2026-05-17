@@ -19,10 +19,10 @@ export function useUpdatePipelineItem() {
       const response = await fetch(`/api/pipeline/${input.id}`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${token || ''}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token || ''}`,
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify(input.data),
+        body: JSON.stringify(input.data)
       })
 
       if (!response.ok) {
@@ -36,6 +36,6 @@ export function useUpdatePipelineItem() {
       await queryClient.invalidateQueries({ queryKey: ['pipeline'] })
       await queryClient.invalidateQueries({ queryKey: ['manager-pipeline'] })
       await queryClient.invalidateQueries({ queryKey: ['pipeline-stats'] })
-    },
+    }
   })
 }

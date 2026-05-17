@@ -5,6 +5,7 @@
 API REST Backend for Sales Companion 2.0 platform. Built with Express.js + TypeScript + Firebase.
 
 **Base URLs:**
+
 - Development: `http://localhost:8000`
 - Production: `https://api.salescompanion.cm`
 
@@ -15,6 +16,7 @@ API REST Backend for Sales Companion 2.0 platform. Built with Express.js + TypeS
 ## Authentication Endpoints
 
 ### Register User
+
 ```
 POST /auth/register
 Content-Type: application/json
@@ -35,6 +37,7 @@ Response: 201 Created
 ```
 
 ### Login User
+
 ```
 POST /auth/login
 Content-Type: application/json
@@ -56,6 +59,7 @@ Response: 200 OK
 ## Pipeline Endpoints
 
 ### List Pipeline Items
+
 ```
 GET /api/pipeline
 Authorization: Bearer {token}
@@ -74,6 +78,7 @@ Response: 200 OK
 ```
 
 ### Create Pipeline Item
+
 ```
 POST /api/pipeline
 Authorization: Bearer {token}
@@ -92,6 +97,7 @@ Response: 201 Created
 ```
 
 ### Update Pipeline Item
+
 ```
 PUT /api/pipeline/{id}
 Authorization: Bearer {token}
@@ -106,6 +112,7 @@ Response: 200 OK
 ```
 
 ### Delete Pipeline Item
+
 ```
 DELETE /api/pipeline/{id}
 Authorization: Bearer {token}
@@ -114,6 +121,7 @@ Response: 200 OK
 ```
 
 ### Get Pipeline Stats
+
 ```
 GET /api/pipeline/stats/summary
 Authorization: Bearer {token}
@@ -133,6 +141,7 @@ Response: 200 OK
 ## Companies Endpoints
 
 ### Search Companies
+
 ```
 GET /api/companies?query={query}&sector={sector}&city={city}
 Authorization: Bearer {token}
@@ -161,6 +170,7 @@ Response: 200 OK
 ## Admin Endpoints
 
 ### Get Dashboard Stats
+
 ```
 GET /api/admin/stats
 Authorization: Bearer {token}
@@ -178,6 +188,7 @@ Response: 200 OK
 ```
 
 ### List All Users
+
 ```
 GET /api/admin/users
 Authorization: Bearer {token}
@@ -198,6 +209,7 @@ Response: 200 OK
 ```
 
 ### Update User
+
 ```
 PATCH /api/admin/users/{uid}
 Authorization: Bearer {token}
@@ -212,6 +224,7 @@ Response: 200 OK
 ```
 
 ### Delete User
+
 ```
 DELETE /api/admin/users/{uid}
 Authorization: Bearer {token}
@@ -224,6 +237,7 @@ Response: 200 OK
 ## Team Endpoints
 
 ### List Team Members
+
 ```
 GET /api/team/members
 Authorization: Bearer {token}
@@ -242,6 +256,7 @@ Response: 200 OK
 ```
 
 ### Create Team Assignment
+
 ```
 POST /api/team/assignments
 Authorization: Bearer {token}
@@ -256,6 +271,7 @@ Response: 201 Created
 ```
 
 ### List Team Assignments
+
 ```
 GET /api/team/assignments
 Authorization: Bearer {token}
@@ -276,6 +292,7 @@ Response: 200 OK
 ## Support Endpoints
 
 ### List Support Threads
+
 ```
 GET /api/support/threads
 Authorization: Bearer {token}
@@ -293,6 +310,7 @@ Response: 200 OK
 ```
 
 ### Create Support Ticket
+
 ```
 POST /api/support/threads
 Authorization: Bearer {token}
@@ -307,6 +325,7 @@ Response: 201 Created
 ```
 
 ### Reply to Support Thread
+
 ```
 POST /api/support/threads/{id}/messages
 Authorization: Bearer {token}
@@ -324,16 +343,16 @@ Response: 201 Created
 ## Error Responses
 
 ### Validation Error (400)
+
 ```json
 {
   "message": "Invalid input",
-  "errors": [
-    { "field": "email", "message": "Invalid email format" }
-  ]
+  "errors": [{ "field": "email", "message": "Invalid email format" }]
 }
 ```
 
 ### Unauthorized (401)
+
 ```json
 {
   "message": "Unauthorized - Missing or invalid token"
@@ -341,6 +360,7 @@ Response: 201 Created
 ```
 
 ### Forbidden (403)
+
 ```json
 {
   "message": "Forbidden - Insufficient permissions"
@@ -348,6 +368,7 @@ Response: 201 Created
 ```
 
 ### Not Found (404)
+
 ```json
 {
   "message": "Resource not found"
@@ -355,6 +376,7 @@ Response: 201 Created
 ```
 
 ### Server Error (500)
+
 ```json
 {
   "message": "Internal server error"
@@ -370,6 +392,7 @@ Response: 201 Created
 - **Admin:** Unlimited
 
 Headers:
+
 ```
 X-RateLimit-Limit: 100
 X-RateLimit-Remaining: 45
@@ -383,11 +406,13 @@ X-RateLimit-Reset: 1234567890
 All endpoints (except `/auth/register` and `/auth/login`) require Bearer token authentication.
 
 **Header Format:**
+
 ```
 Authorization: Bearer {firebase_jwt_token}
 ```
 
 **Getting Token:**
+
 1. Register/Login via `/auth/register` or `/auth/login`
 2. Token is returned in response
 3. Use token in Authorization header for subsequent requests

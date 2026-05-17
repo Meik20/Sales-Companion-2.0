@@ -34,15 +34,19 @@ export function SupportThreadList({ threads, selectedId, onSelect }: ThreadListP
             cursor: 'pointer',
             textAlign: 'left',
             fontFamily: 'inherit',
-            transition: 'all 200ms ease',
+            transition: 'all 200ms ease'
           }}
         >
           <div style={{ fontSize: 13, fontWeight: 600, color: colors.text, marginBottom: 6 }}>
             {thread.subject}
           </div>
           <div style={{ display: 'flex', gap: 6 }}>
-            {thread.type   ? <Badge variant="info">{thread.type}</Badge>   : null}
-            {thread.status ? <Badge variant={thread.status === 'open' ? 'success' : 'default'}>{thread.status}</Badge> : null}
+            {thread.type ? <Badge variant="info">{thread.type}</Badge> : null}
+            {thread.status ? (
+              <Badge variant={thread.status === 'open' ? 'success' : 'default'}>
+                {thread.status}
+              </Badge>
+            ) : null}
           </div>
         </button>
       ))}

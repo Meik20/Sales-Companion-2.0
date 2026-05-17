@@ -137,24 +137,27 @@ export const teamService = {
     // ✅ SET CUSTOM CLAIMS for Firestore rules
     await adminAuth.setCustomUserClaims(userRecord.uid, { role: 'member' })
 
-    await adminDb.collection('users').doc(userRecord.uid).set({
-      uid: userRecord.uid,
-      email: input.email,
-      name: `${access.firstname} ${access.lastname}`.trim(),
-      role: 'member',
-      companyId: access.companyId ?? null,
-      managerUid: access.managerUid,
-      teamAccessId: access.accessId,
-      sector: managerSector,
-      plan: managerData?.plan || 'starter',
-      dailyLimit: managerData?.dailyLimit || 10,
-      dailyUsed: 0,
-      active: false,
-      activated: false,
-      emailVerificationPending: true,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      updatedAt: admin.firestore.FieldValue.serverTimestamp()
-    })
+    await adminDb
+      .collection('users')
+      .doc(userRecord.uid)
+      .set({
+        uid: userRecord.uid,
+        email: input.email,
+        name: `${access.firstname} ${access.lastname}`.trim(),
+        role: 'member',
+        companyId: access.companyId ?? null,
+        managerUid: access.managerUid,
+        teamAccessId: access.accessId,
+        sector: managerSector,
+        plan: managerData?.plan || 'starter',
+        dailyLimit: managerData?.dailyLimit || 10,
+        dailyUsed: 0,
+        active: false,
+        activated: false,
+        emailVerificationPending: true,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      })
 
     await accessRef.update({
       status: 'active',
@@ -249,10 +252,7 @@ export const teamService = {
       .get()
 
     const pipelineSnapshot = access.firebaseUid
-      ? await adminDb
-          .collection('pipeline')
-          .where('userId', '==', access.firebaseUid)
-          .get()
+      ? await adminDb.collection('pipeline').where('userId', '==', access.firebaseUid).get()
       : null
 
     return {

@@ -22,7 +22,7 @@ const base: CSSProperties = {
   cursor: 'pointer',
   transition: 'all 300ms ease',
   whiteSpace: 'nowrap',
-  letterSpacing: '.01em',
+  letterSpacing: '.01em'
 }
 
 const variants: Record<Variant, CSSProperties> = {
@@ -30,29 +30,29 @@ const variants: Record<Variant, CSSProperties> = {
     background: colors.green,
     color: '#fff',
     border: `1px solid var(--color-accent)`,
-    boxShadow: `0 4px 16px rgba(133, 183, 235, 0.35)`,
+    boxShadow: `0 4px 16px rgba(133, 183, 235, 0.35)`
   },
   ghost: {
     background: 'transparent',
     color: colors.textMid,
-    border: '1px solid transparent',
+    border: '1px solid transparent'
   },
   outline: {
     background: 'transparent',
     color: colors.green,
-    border: `1px solid var(--color-accent)`,
+    border: `1px solid var(--color-accent)`
   },
   danger: {
     background: colors.dangerBg,
     color: colors.danger,
-    border: `1px solid ${colors.dangerBorder}`,
-  },
+    border: `1px solid ${colors.dangerBorder}`
+  }
 }
 
 const sizes: Record<Size, CSSProperties> = {
   sm: { padding: '6px 12px', fontSize: 12 },
   md: { padding: '9px 18px', fontSize: 13 },
-  lg: { padding: '12px 24px', fontSize: 14 },
+  lg: { padding: '12px 24px', fontSize: 14 }
 }
 
 export function Button({
@@ -75,7 +75,7 @@ export function Button({
         ...sizes[size],
         opacity: isDisabled ? 0.5 : 1,
         cursor: isDisabled ? 'not-allowed' : 'pointer',
-        ...style,
+        ...style
       }}
       {...props}
     >
@@ -88,7 +88,7 @@ export function Button({
             borderTopColor: 'transparent',
             borderRadius: '50%',
             display: 'inline-block',
-            animation: 'spin 0.7s linear infinite',
+            animation: 'spin 0.7s linear infinite'
           }}
         />
       ) : null}

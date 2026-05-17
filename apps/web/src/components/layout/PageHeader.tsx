@@ -16,7 +16,7 @@ export function PageHeader({ title, subtitle, actions }: Props) {
         alignItems: 'flex-start',
         gap: 16,
         marginBottom: 28,
-        flexWrap: 'wrap',
+        flexWrap: 'wrap'
       }}
     >
       <div>
@@ -26,15 +26,13 @@ export function PageHeader({ title, subtitle, actions }: Props) {
             fontSize: 24,
             fontWeight: 800,
             color: colors.text,
-            fontFamily: 'inherit',
+            fontFamily: 'inherit'
           }}
         >
           {title}
         </h1>
         {subtitle ? (
-          <p style={{ margin: '6px 0 0', fontSize: 14, color: colors.textMid }}>
-            {subtitle}
-          </p>
+          <p style={{ margin: '6px 0 0', fontSize: 14, color: colors.textMid }}>{subtitle}</p>
         ) : null}
       </div>
       {actions ? <div style={{ display: 'flex', gap: 8 }}>{actions}</div> : null}

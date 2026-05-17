@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
 
   turbopack: {
-    root: '../../',
+    root: '../../'
   },
 
   // Allow dev access from local network
@@ -19,23 +19,26 @@ const nextConfig: NextConfig = {
         source: '/(.*)',
         headers: [
           // Anti-clickjacking
-          { key: 'X-Frame-Options',               value: 'DENY' },
+          { key: 'X-Frame-Options', value: 'DENY' },
           // Prevent MIME sniffing
-          { key: 'X-Content-Type-Options',         value: 'nosniff' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
           // XSS protection (legacy browsers)
-          { key: 'X-XSS-Protection',               value: '1; mode=block' },
+          { key: 'X-XSS-Protection', value: '1; mode=block' },
           // Restrict referrer leakage
-          { key: 'Referrer-Policy',                value: 'strict-origin-when-cross-origin' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           // Restrict browser feature access
-          { key: 'Permissions-Policy',             value: 'camera=(), microphone=(), geolocation=(self), interest-cohort=()' },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=(self), interest-cohort=()'
+          },
           // Block all search indexing & archiving
-          { key: 'X-Robots-Tag',                   value: 'noindex, nofollow, nosnippet, noarchive, noimageindex' },
+          { key: 'X-Robots-Tag', value: 'noindex, nofollow, nosnippet, noarchive, noimageindex' },
           // Prevent cross-origin embedding of resources
-          { key: 'Cross-Origin-Resource-Policy',   value: 'same-origin' },
+          { key: 'Cross-Origin-Resource-Policy', value: 'same-origin' },
           // Isolate browsing context (prevent cross-origin reads)
-          { key: 'Cross-Origin-Opener-Policy',     value: 'same-origin' },
+          { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
           // Prevent cross-origin embedding of this page
-          { key: 'Cross-Origin-Embedder-Policy',   value: 'require-corp' },
+          { key: 'Cross-Origin-Embedder-Policy', value: 'require-corp' },
           // Content-Security-Policy: restrict sources to self + Firebase
           {
             key: 'Content-Security-Policy',
@@ -50,38 +53,36 @@ const nextConfig: NextConfig = {
               `object-src 'none'`,
               `base-uri 'self'`,
               `form-action 'self'`,
-              `upgrade-insecure-requests`,
-            ].join('; '),
-          },
-        ],
+              `upgrade-insecure-requests`
+            ].join('; ')
+          }
+        ]
       },
 
       // ── API routes: add cache-control to prevent caching of sensitive data ─
       {
         source: '/api/(.*)',
         headers: [
-          { key: 'Cache-Control',  value: 'no-store, no-cache, must-revalidate, private' },
-          { key: 'Pragma',         value: 'no-cache' },
-          { key: 'X-Robots-Tag',  value: 'noindex, nofollow' },
-        ],
+          { key: 'Cache-Control', value: 'no-store, no-cache, must-revalidate, private' },
+          { key: 'Pragma', value: 'no-cache' },
+          { key: 'X-Robots-Tag', value: 'noindex, nofollow' }
+        ]
       },
 
       // ── PWA assets (public, cacheable) ───────────────────────────────────
       {
         source: '/manifest.json',
         headers: [
-          { key: 'Content-Type',  value: 'application/manifest+json' },
-          { key: 'Cache-Control', value: 'public, max-age=86400' },
-        ],
+          { key: 'Content-Type', value: 'application/manifest+json' },
+          { key: 'Cache-Control', value: 'public, max-age=86400' }
+        ]
       },
       {
         source: '/favicon.svg',
-        headers: [
-          { key: 'Cache-Control', value: 'public, max-age=604800' },
-        ],
-      },
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=604800' }]
+      }
     ]
-  },
+  }
 }
 
 export default nextConfig

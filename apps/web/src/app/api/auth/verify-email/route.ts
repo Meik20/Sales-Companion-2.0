@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
           { status: 403 }
         )
       }
-      uid   = decoded.uid
+      uid = decoded.uid
       email = decoded.email ?? ''
     } catch {
       return NextResponse.json({ message: 'Token invalide' }, { status: 401 })
@@ -54,27 +54,23 @@ export async function POST(request: NextRequest) {
     }
 
     await userRef.update({
-      activated:               true,
-      active:                  true,
+      activated: true,
+      active: true,
       emailVerificationPending: false,
-      emailVerified:           true,
-      activatedAt:             new Date(),
+      emailVerified: true,
+      activatedAt: new Date()
     })
 
     // ── 2. Update team_accesses document ──────────────────────────────────
     const collections = ['team_accesses', 'teamAccesses', 'accesses'] as const
     for (const col of collections) {
-      const snap = await adminDb
-        .collection(col)
-        .where('firebaseUid', '==', uid)
-        .limit(1)
-        .get()
+      const snap = await adminDb.collection(col).where('firebaseUid', '==', uid).limit(1).get()
       if (!snap.empty) {
         await snap.docs[0]!.ref.update({
-          activated:   true,
-          status:      'active',
+          activated: true,
+          status: 'active',
           activatedAt: new Date(),
-          emailVerificationPending: false,
+          emailVerificationPending: false
         })
         break
       }

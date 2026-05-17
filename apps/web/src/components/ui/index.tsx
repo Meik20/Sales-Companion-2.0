@@ -15,33 +15,33 @@ const badgeStyles: Record<BadgeVariant, CSSProperties> = {
   default: {
     background: 'rgba(255,255,255,0.07)',
     color: colors.textMid,
-    border: `1px solid ${colors.border}`,
+    border: `1px solid ${colors.border}`
   },
   success: {
     background: colors.successBg,
     color: 'var(--color-success)',
-    border: `1px solid ${colors.successBorder}`,
+    border: `1px solid ${colors.successBorder}`
   },
   warning: {
     background: colors.warningBg,
     color: 'var(--color-warning)',
-    border: `1px solid ${colors.warningBorder}`,
+    border: `1px solid ${colors.warningBorder}`
   },
   danger: {
     background: colors.dangerBg,
     color: 'var(--color-danger)',
-    border: `1px solid ${colors.dangerBorder}`,
+    border: `1px solid ${colors.dangerBorder}`
   },
   info: {
     background: 'rgba(29,78,216,0.12)',
     color: 'var(--color-accent)',
-    border: '1px solid rgba(29,78,216,0.3)',
+    border: '1px solid rgba(29,78,216,0.3)'
   },
   gold: {
     background: colors.goldLight,
     color: colors.gold,
-    border: `1px solid rgba(245,166,35,0.3)`,
-  },
+    border: `1px solid rgba(245,166,35,0.3)`
+  }
 }
 
 export function Badge({ children, variant = 'default', style }: BadgeProps) {
@@ -56,7 +56,7 @@ export function Badge({ children, variant = 'default', style }: BadgeProps) {
         fontWeight: 600,
         letterSpacing: '.03em',
         ...badgeStyles[variant],
-        ...style,
+        ...style
       }}
     >
       {children}
@@ -75,7 +75,7 @@ export function Card({ children, style }: PropsWithChildren<{ style?: CSSPropert
         borderRadius: radius.lg,
         padding: spacing.xl,
         boxShadow: shadows.sm,
-        ...style,
+        ...style
       }}
     >
       {children}
@@ -96,7 +96,7 @@ export function Panel({ children, padded = true, style }: PanelProps) {
         borderRadius: radius.lg,
         boxShadow: shadows.sm,
         padding: padded ? spacing.xl : 0,
-        ...style,
+        ...style
       }}
     >
       {children}
@@ -109,9 +109,7 @@ export function Panel({ children, padded = true, style }: PanelProps) {
 type StackProps = PropsWithChildren<{ gap?: number }>
 
 export function Stack({ children, gap = 16 }: StackProps) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap }}>{children}</div>
-  )
+  return <div style={{ display: 'flex', flexDirection: 'column', gap }}>{children}</div>
 }
 
 // ─── DataCard ────────────────────────────────────────────────────────────────
@@ -133,7 +131,7 @@ export function DataCard({ title, subtitle, actions, children, style }: DataCard
             justifyContent: 'space-between',
             alignItems: 'flex-start',
             gap: 16,
-            flexWrap: 'wrap',
+            flexWrap: 'wrap'
           }}
         >
           <div>
@@ -143,15 +141,13 @@ export function DataCard({ title, subtitle, actions, children, style }: DataCard
                 fontSize: 16,
                 fontWeight: 700,
                 color: colors.text,
-                letterSpacing: '-.01em',
+                letterSpacing: '-.01em'
               }}
             >
               {title}
             </h2>
             {subtitle ? (
-              <p style={{ margin: '4px 0 0', fontSize: 13, color: colors.textMid }}>
-                {subtitle}
-              </p>
+              <p style={{ margin: '4px 0 0', fontSize: 13, color: colors.textMid }}>{subtitle}</p>
             ) : null}
           </div>
           {actions ? <div>{actions}</div> : null}
@@ -174,7 +170,15 @@ type MetricCardProps = {
 export function MetricCard({ label, value, hint, accent }: MetricCardProps) {
   return (
     <Panel>
-      <div style={{ fontSize: 12, fontWeight: 500, color: colors.textMid, letterSpacing: '.04em', textTransform: 'uppercase' }}>
+      <div
+        style={{
+          fontSize: 12,
+          fontWeight: 500,
+          color: colors.textMid,
+          letterSpacing: '.04em',
+          textTransform: 'uppercase'
+        }}
+      >
         {label}
       </div>
       <div
@@ -184,7 +188,7 @@ export function MetricCard({ label, value, hint, accent }: MetricCardProps) {
           marginTop: 8,
           color: accent ? 'var(--color-primary)' : colors.text,
           letterSpacing: '-.03em',
-          fontFamily: 'inherit',
+          fontFamily: 'inherit'
         }}
       >
         {value}
@@ -204,7 +208,7 @@ export function StatsGrid({ children }: PropsWithChildren) {
       style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-        gap: spacing.lg,
+        gap: spacing.lg
       }}
     >
       {children}
@@ -215,9 +219,5 @@ export function StatsGrid({ children }: PropsWithChildren) {
 // ─── PageGrid ────────────────────────────────────────────────────────────────
 
 export function PageGrid({ children }: PropsWithChildren) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.xl }}>
-      {children}
-    </div>
-  )
+  return <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.xl }}>{children}</div>
 }

@@ -15,14 +15,15 @@ export function useDeleteAllAdminCompanies() {
       const response = await fetch(`${backendUrl}/api/admin/companies`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${token || ''}`,
-        },
+          Authorization: `Bearer ${token || ''}`
+        }
       })
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
         throw new Error(
-          errorData?.error || `Erreur lors de la suppression de toutes les entreprises (${response.status})`
+          errorData?.error ||
+            `Erreur lors de la suppression de toutes les entreprises (${response.status})`
         )
       }
 
@@ -31,6 +32,6 @@ export function useDeleteAllAdminCompanies() {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['admin-companies'] })
       await queryClient.invalidateQueries({ queryKey: ['admin-company-stats'] })
-    },
+    }
   })
 }

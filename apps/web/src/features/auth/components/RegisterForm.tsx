@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/Input'
 import { FormField } from '@/components/forms/FormField'
 import { ScIcon } from '@/components/ui/ScIcon'
 import { useAuthActions } from '../hooks/useAuthActions'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { mapAuthError } from '../utils/error-mapper'
 import { routes } from '@/constants/routes'
 import { colors } from '@/styles/tokens'
@@ -19,13 +20,19 @@ type RoleOption = 'independent' | 'manager'
 export function RegisterForm() {
   const { t } = useTranslation()
   const { registerWithEmail } = useAuthActions()
+  const router = useRouter()
+  const { user, loading: authLoading } = useCurrentUser()
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.replace(routes.search)
+    }
+  }, [user, authLoading, router])
 
   const roleOptions: { value: RoleOption; label: string; desc: string }[] = [
     { value: 'independent', label: t('auth.independent'), desc: t('auth.independentDesc') },
-    { value: 'manager', label: t('auth.manager'), desc: t('auth.managerDesc') },
+    { value: 'manager', label: t('auth.manager'), desc: t('auth.managerDesc') }
   ]
-
-  const router = useRouter()
 
   const [name, setName] = useState('')
   const [role, setRole] = useState<RoleOption>('independent')
@@ -50,11 +57,11 @@ export function RegisterForm() {
     setError(null)
 
     try {
-      await registerWithEmail({ 
-        email, 
-        password, 
-        name, 
-        role, 
+      await registerWithEmail({
+        email,
+        password,
+        name,
+        role,
         companyName: role === 'manager' ? companyName : undefined,
         sector: sector || undefined
       })
@@ -66,6 +73,50 @@ export function RegisterForm() {
     }
   }
 
+  if (authLoading || user) {
+    return (
+      <div
+        style={{
+          background: colors.bg2,
+          border: `1px solid ${colors.border}`,
+          borderRadius: 20,
+          padding: 40,
+          width: '100%',
+          maxWidth: 460,
+          boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: 300,
+          color: colors.textMid
+        }}
+      >
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
+              @keyframes spin { to { transform: rotate(360deg); } }
+            `
+          }}
+        />
+        <span
+          style={{
+            width: 32,
+            height: 32,
+            border: '3px solid rgba(255,255,255,0.1)',
+            borderTopColor: colors.greenMid,
+            borderRadius: '50%',
+            display: 'inline-block',
+            animation: 'spin 0.8s linear infinite'
+          }}
+        />
+        <p style={{ margin: '16px 0 0', fontSize: 14 }}>
+          {t('auth.loading' as any) || 'Chargement…'}
+        </p>
+      </div>
+    )
+  }
+
   return (
     <div
       style={{
@@ -75,7 +126,7 @@ export function RegisterForm() {
         padding: 40,
         width: '100%',
         maxWidth: 460,
-        boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+        boxShadow: '0 20px 60px rgba(0,0,0,0.5)'
       }}
     >
       {/* Header */}
@@ -88,7 +139,7 @@ export function RegisterForm() {
             fontWeight: 800,
             color: colors.text,
             fontFamily: "'Syne',sans-serif",
-            letterSpacing: '-.03em',
+            letterSpacing: '-.03em'
           }}
         >
           {t('auth.registerTitle')}
@@ -142,31 +193,25 @@ export function RegisterForm() {
                 style={{
                   padding: '12px 14px',
                   borderRadius: 10,
-                  border: `1px solid ${
-                    role === opt.value ? 'rgba(46,160,90,0.5)' : colors.border
-                  }`,
+                  border: `1px solid ${role === opt.value ? 'rgba(46,160,90,0.5)' : colors.border}`,
                   background:
-                    role === opt.value
-                      ? 'rgba(27,122,62,0.12)'
-                      : 'rgba(255,255,255,0.03)',
+                    role === opt.value ? 'rgba(27,122,62,0.12)' : 'rgba(255,255,255,0.03)',
                   cursor: 'pointer',
                   textAlign: 'left',
                   transition: 'all 200ms ease',
-                  fontFamily: 'inherit',
+                  fontFamily: 'inherit'
                 }}
               >
                 <div
                   style={{
                     fontWeight: 600,
                     fontSize: 13,
-                    color: role === opt.value ? colors.greenMid : colors.text,
+                    color: role === opt.value ? colors.greenMid : colors.text
                   }}
                 >
                   {opt.label}
                 </div>
-                <div style={{ fontSize: 11, color: colors.textMid, marginTop: 2 }}>
-                  {opt.desc}
-                </div>
+                <div style={{ fontSize: 11, color: colors.textMid, marginTop: 2 }}>{opt.desc}</div>
               </button>
             ))}
           </div>
@@ -189,7 +234,7 @@ export function RegisterForm() {
               fontFamily: 'inherit',
               cursor: 'pointer',
               outline: 'none',
-              boxSizing: 'border-box',
+              boxSizing: 'border-box'
             }}
           >
             <option value="">{t('auth.selectSector')}</option>
@@ -220,7 +265,7 @@ export function RegisterForm() {
               border: '1px solid rgba(239,68,68,0.25)',
               borderRadius: 8,
               fontSize: 13,
-              color: '#f87171',
+              color: '#f87171'
             }}
           >
             {error}

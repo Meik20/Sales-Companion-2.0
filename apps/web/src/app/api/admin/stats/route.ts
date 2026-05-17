@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { adminDb, adminAuth } from '@/lib/firebase-admin'
 import { Timestamp } from 'firebase-admin/firestore'
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
       activeUsersSnap,
       newUsersSnap,
       searchesTodaySnap,
-      usersDataSnap,
+      usersDataSnap
     ] = await Promise.all([
       adminDb.collection('users').count().get(),
       adminDb.collection('companies').count().get(),
@@ -52,12 +52,12 @@ export async function GET(request: NextRequest) {
         .where('createdAt', '>=', Timestamp.fromDate(todayStart))
         .count()
         .get(),
-      adminDb.collection('users').select('role', 'plan').get(),
+      adminDb.collection('users').select('role', 'plan').get()
     ])
 
     const roles: Record<string, number> = {}
     const plans: Record<string, number> = {}
-    
+
     const allUsersSnap = usersDataSnap as FirebaseFirestore.QuerySnapshot
     allUsersSnap.forEach((doc) => {
       const data = doc.data()
@@ -75,11 +75,10 @@ export async function GET(request: NextRequest) {
       newUsersThisWeek: newUsersSnap.data().count,
       totalSearchesToday: searchesTodaySnap.data().count,
       roleDistribution: roles,
-      planDistribution: plans,
+      planDistribution: plans
     })
   } catch (error) {
     console.error('Admin stats error:', error)
     return NextResponse.json({ error: 'Erreur interne' }, { status: 500 })
   }
 }
-

@@ -42,7 +42,8 @@ export const statsService = {
       today.setHours(0, 0, 0, 0)
       const startOfDay = Timestamp.fromDate(today)
 
-      const snapshot = await db.collection('usage_logs')
+      const snapshot = await db
+        .collection('usage_logs')
         .where('type', '==', 'search')
         .where('timestamp', '>=', startOfDay)
         .get()
@@ -60,9 +61,7 @@ export const statsService = {
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
       const startDate = Timestamp.fromDate(sevenDaysAgo)
 
-      const snapshot = await db.collection('users')
-        .where('lastLogin', '>=', startDate)
-        .get()
+      const snapshot = await db.collection('users').where('lastLogin', '>=', startDate).get()
       return snapshot.size
     } catch (error) {
       logger.error('getActiveUsers error:', error)
@@ -77,9 +76,7 @@ export const statsService = {
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
       const startDate = Timestamp.fromDate(sevenDaysAgo)
 
-      const snapshot = await db.collection('users')
-        .where('createdAt', '>=', startDate)
-        .get()
+      const snapshot = await db.collection('users').where('createdAt', '>=', startDate).get()
       return snapshot.size
     } catch (error) {
       logger.error('getNewUsersThisWeek error:', error)
@@ -97,7 +94,7 @@ export const statsService = {
         prospection: 0,
         negotiation: 0,
         conclusion: 0,
-        lost: 0,
+        lost: 0
       }
 
       snapshot.forEach((doc: any) => {
@@ -130,7 +127,7 @@ export const statsService = {
         totalItems: snapshot.size,
         closed: 0,
         conversionRate: 0,
-        lastWeekItems: 0,
+        lastWeekItems: 0
       }
 
       const oneWeekAgo = new Date()
@@ -155,7 +152,7 @@ export const statsService = {
         totalItems: 0,
         closed: 0,
         conversionRate: 0,
-        lastWeekItems: 0,
+        lastWeekItems: 0
       }
     }
   },
@@ -168,14 +165,14 @@ export const statsService = {
         totalPipelineItems,
         totalSearchesToday,
         activeUsers,
-        newUsersThisWeek,
+        newUsersThisWeek
       ] = await Promise.all([
         this.getTotalUsers(),
         this.getTotalCompanies(),
         this.getTotalPipelineItems(),
         this.getTotalSearchesToday(),
         this.getActiveUsers(),
-        this.getNewUsersThisWeek(),
+        this.getNewUsersThisWeek()
       ])
 
       return {
@@ -184,7 +181,7 @@ export const statsService = {
         totalPipelineItems,
         totalSearchesToday,
         activeUsers,
-        newUsersThisWeek,
+        newUsersThisWeek
       }
     } catch (error) {
       logger.error('getDashboardStats error:', error)
@@ -194,7 +191,7 @@ export const statsService = {
         totalPipelineItems: 0,
         totalSearchesToday: 0,
         activeUsers: 0,
-        newUsersThisWeek: 0,
+        newUsersThisWeek: 0
       }
     }
   }

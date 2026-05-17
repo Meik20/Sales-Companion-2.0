@@ -24,12 +24,12 @@ export async function GET(request: NextRequest) {
       .limit(3000)
 
     const snap = await q.get()
-    
+
     // Tri et filtrage côté app
     let prospects = snap.docs.map((d) => {
       const data = d.data()
-      return { 
-        id: d.id, 
+      return {
+        id: d.id,
         ...data,
         createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : data.createdAt
       }
@@ -52,10 +52,7 @@ export async function GET(request: NextRequest) {
     console.error('[imports GET] Error fetching prospects:', error)
     const msg = error instanceof Error ? error.message : 'Erreur serveur inconnue'
     console.error('[imports GET] Error details:', { message: msg, error })
-    return NextResponse.json(
-      { message: 'Erreur serveur', details: msg },
-      { status: 500 }
-    )
+    return NextResponse.json({ message: 'Erreur serveur', details: msg }, { status: 500 })
   }
 }
 
@@ -90,10 +87,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (prospects.length > 3000) {
-      return NextResponse.json(
-        { message: 'Maximum 3000 prospects par import' },
-        { status: 400 }
-      )
+      return NextResponse.json({ message: 'Maximum 3000 prospects par import' }, { status: 400 })
     }
 
     // Écriture en multi-batch Firestore (limite Firestore = 500 writes par batch)
@@ -115,16 +109,16 @@ export async function POST(request: NextRequest) {
       const ref = colRef.doc()
       currentBatch.set(ref, {
         managerId,
-        name:       (p.name       ?? '').trim(),
-        phone:      (p.phone      ?? '').trim(),
-        email:      (p.email      ?? '').trim(),
-        city:       (p.city       ?? '').trim(),
-        sector:     (p.sector     ?? '').trim(),
-        notes:      (p.notes      ?? '').trim(),
+        name: (p.name ?? '').trim(),
+        phone: (p.phone ?? '').trim(),
+        email: (p.email ?? '').trim(),
+        city: (p.city ?? '').trim(),
+        sector: (p.sector ?? '').trim(),
+        notes: (p.notes ?? '').trim(),
         assignedTo: p.assignedTo ?? null,
-        status:     'new',
-        createdAt:  now,
-        updatedAt:  now,
+        status: 'new',
+        createdAt: now,
+        updatedAt: now
       })
       batchOps++
       importedCount++
@@ -137,10 +131,7 @@ export async function POST(request: NextRequest) {
     console.error('[imports POST] Error importing prospects:', error)
     const msg = error instanceof Error ? error.message : 'Erreur serveur inconnue'
     console.error('[imports POST] Error details:', { message: msg, error })
-    return NextResponse.json(
-      { message: msg },
-      { status: 500 }
-    )
+    return NextResponse.json({ message: msg }, { status: 500 })
   }
 }
 
@@ -178,9 +169,6 @@ export async function PATCH(request: NextRequest) {
     console.error('[imports PATCH] Error updating prospect:', error)
     const msg = error instanceof Error ? error.message : 'Erreur serveur inconnue'
     console.error('[imports PATCH] Error details:', { message: msg, error })
-    return NextResponse.json(
-      { message: msg },
-      { status: 500 }
-    )
+    return NextResponse.json({ message: msg }, { status: 500 })
   }
 }

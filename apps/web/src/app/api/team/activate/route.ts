@@ -21,7 +21,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'accessId et password sont requis' }, { status: 400 })
     }
     if (password.length < 6) {
-      return NextResponse.json({ message: 'Le mot de passe doit comporter au moins 6 caractères' }, { status: 400 })
+      return NextResponse.json(
+        { message: 'Le mot de passe doit comporter au moins 6 caractères' },
+        { status: 400 }
+      )
     }
 
     // ── 1. Chercher le document d'accès (plusieurs collections possibles) ──
@@ -41,7 +44,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           message:
-            "Lien d'activation invalide ou expiré. Vérifiez l'identifiant d'accès fourni par votre manager ou demandez un nouveau lien.",
+            "Lien d'activation invalide ou expiré. Vérifiez l'identifiant d'accès fourni par votre manager ou demandez un nouveau lien."
         },
         { status: 404 }
       )
@@ -53,7 +56,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           message:
-            'Ce compte a déjà été activé. Connectez-vous directement sur la page de connexion avec votre adresse email et votre mot de passe.',
+            'Ce compte a déjà été activé. Connectez-vous directement sur la page de connexion avec votre adresse email et votre mot de passe.'
         },
         { status: 409 }
       )
@@ -64,8 +67,7 @@ export async function POST(request: NextRequest) {
     if (!email) {
       return NextResponse.json(
         {
-          message:
-            'Aucun email fourni. Veuillez renseigner votre adresse email dans le formulaire.',
+          message: 'Aucun email fourni. Veuillez renseigner votre adresse email dans le formulaire.'
         },
         { status: 400 }
       )
@@ -75,13 +77,18 @@ export async function POST(request: NextRequest) {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return NextResponse.json(
         {
-          message: 'Format d\'email invalide. Vérifiez votre adresse email.',
+          message: "Format d'email invalide. Vérifiez votre adresse email."
         },
         { status: 400 }
       )
     }
 
-    console.log('[team/activate] Activation initiated:', { accessId, email, hasDocEmail: !!data.email, hasFormEmail: !!(body as any).email })
+    console.log('[team/activate] Activation initiated:', {
+      accessId,
+      email,
+      hasDocEmail: !!data.email,
+      hasFormEmail: !!(body as any).email
+    })
 
     // ── 2. Créer ou mettre à jour l'utilisateur Firebase Auth ──
     let uid: string
@@ -96,47 +103,52 @@ export async function POST(request: NextRequest) {
         const newUser = await adminAuth.createUser({
           email,
           password,
-          displayName: [
-            data.firstname ?? data.firstName ?? '',
-            data.lastname  ?? data.lastName  ?? '',
-          ].join(' ').trim() || undefined,
+          displayName:
+            [data.firstname ?? data.firstName ?? '', data.lastname ?? data.lastName ?? '']
+              .join(' ')
+              .trim() || undefined
         })
         uid = newUser.uid
         console.log('[team/activate] Created new user:', { uid, email })
       } else {
-        console.error('[team/activate] Firebase Auth error:', { code, message: (authErr as Error).message })
+        console.error('[team/activate] Firebase Auth error:', {
+          code,
+          message: (authErr as Error).message
+        })
         throw authErr
       }
     }
 
     const userDocRef = adminDb.collection('users').doc(uid)
     const userDocSnap = await userDocRef.get()
-    const createdAt = userDocSnap.exists ? userDocSnap.data()?.createdAt ?? new Date() : new Date()
+    const createdAt = userDocSnap.exists
+      ? (userDocSnap.data()?.createdAt ?? new Date())
+      : new Date()
 
     // ── 3. Écrire / fusionner le document utilisateur Firestore ──
     await userDocRef.set(
       {
         uid,
         email,
-        name: [
-          data.firstname ?? data.firstName ?? '',
-          data.lastname  ?? data.lastName  ?? '',
-        ].join(' ').trim() || null,
-        role:       data.role      ?? 'member',
-        plan:       data.plan      ?? 'free',
-        active:     true,
-        activated:  true,
-        company:    data.company   ?? null,
-        sector:     data.sector    ?? null,
-        region:     data.region    ?? null,
-        managerId:  data.managerId  ?? null,
+        name:
+          [data.firstname ?? data.firstName ?? '', data.lastname ?? data.lastName ?? '']
+            .join(' ')
+            .trim() || null,
+        role: data.role ?? 'member',
+        plan: data.plan ?? 'free',
+        active: true,
+        activated: true,
+        company: data.company ?? null,
+        sector: data.sector ?? null,
+        region: data.region ?? null,
+        managerId: data.managerId ?? null,
         managerUid: data.managerUid ?? data.managerId ?? null,
         managerEmail: data.managerEmail ?? null,
-        accessId:   accessId,          // ← Access ID (ex: "prenomnom@entreprise")
-        dailyUsed:   0,
-        dailyLimit:  data.dailyLimit ?? 10,
+        accessId: accessId, // ← Access ID (ex: "prenomnom@entreprise")
+        dailyUsed: 0,
+        dailyLimit: data.dailyLimit ?? 10,
         createdAt,
-        activatedAt: new Date(),
+        activatedAt: new Date()
       },
       { merge: true }
     )
@@ -147,12 +159,12 @@ export async function POST(request: NextRequest) {
 
     // ── 4. Marquer l'accès comme activé ──
     await adminDb.collection(col).doc(accessId).update({
-      activated:    true,
-      status:       'active',
+      activated: true,
+      status: 'active',
       email,
-      firebaseUid:  uid,
-      activatedAt:  new Date(),
-      activatedUid: uid,
+      firebaseUid: uid,
+      activatedAt: new Date(),
+      activatedUid: uid
     })
 
     console.log('[team/activate] Account activated successfully:', { accessId, email, uid })
@@ -163,20 +175,17 @@ export async function POST(request: NextRequest) {
     console.error('[team/activate] Error details:', {
       message: error instanceof Error ? error.message : String(error),
       code: (error as any)?.code,
-      stack: error instanceof Error ? error.stack : undefined,
+      stack: error instanceof Error ? error.stack : undefined
     })
 
     const msg =
       error instanceof Error
         ? error.message
         : typeof error === 'string'
-        ? error
-        : 'Erreur serveur inconnue'
+          ? error
+          : 'Erreur serveur inconnue'
 
-    return NextResponse.json(
-      { message: `Activation impossible : ${msg}` },
-      { status: 500 }
-    )
+    return NextResponse.json({ message: `Activation impossible : ${msg}` }, { status: 500 })
   }
 }
 

@@ -2,9 +2,7 @@
 // v3 — fixes Response.clone() bug, skips POST/non-GET, login as start
 
 const CACHE_NAME = 'sales-companion-v3'
-const STATIC_ASSETS = [
-  '/offline.html',
-]
+const STATIC_ASSETS = ['/offline.html']
 
 // Install — cache minimal static assets only
 self.addEventListener('install', (event) => {
@@ -48,16 +46,18 @@ self.addEventListener('fetch', (event) => {
     url.includes('googleapis.com') ||
     url.includes('firebaseapp.com') ||
     url.includes('firebase.googleapis.com')
-  ) return
+  )
+    return
 
   // ── 3. API calls — network only, NEVER cache (avoids the clone bug)
   if (url.includes('/api/')) {
     event.respondWith(
-      fetch(request).catch(() =>
-        new Response(
-          JSON.stringify({ message: 'Vous êtes hors ligne.', offline: true }),
-          { status: 503, headers: { 'Content-Type': 'application/json' } }
-        )
+      fetch(request).catch(
+        () =>
+          new Response(JSON.stringify({ message: 'Vous êtes hors ligne.', offline: true }), {
+            status: 503,
+            headers: { 'Content-Type': 'application/json' }
+          })
       )
     )
     return
@@ -89,13 +89,15 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(request).then((cached) => {
       if (cached) return cached
-      return fetch(request).then((response) => {
-        if (response.ok) {
-          const clone = response.clone()
-          caches.open(CACHE_NAME).then((c) => c.put(request, clone))
-        }
-        return response
-      }).catch(() => new Response('Network error', { status: 503 }))
+      return fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const clone = response.clone()
+            caches.open(CACHE_NAME).then((c) => c.put(request, clone))
+          }
+          return response
+        })
+        .catch(() => new Response('Network error', { status: 503 }))
     })
   )
 })

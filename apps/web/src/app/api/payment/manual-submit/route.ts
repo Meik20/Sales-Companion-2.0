@@ -31,9 +31,9 @@ export async function POST(request: NextRequest) {
       operator,
       transactionId,
       amount,
-      status:    'MANUAL_PENDING', // Statut spécial pour validation admin
+      status: 'MANUAL_PENDING', // Statut spécial pour validation admin
       createdAt: FieldValue.serverTimestamp(),
-      updatedAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp()
     })
 
     return NextResponse.json({ success: true, reference })

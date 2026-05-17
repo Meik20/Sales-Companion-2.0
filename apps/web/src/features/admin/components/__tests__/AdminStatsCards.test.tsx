@@ -9,7 +9,7 @@ describe('AdminStatsCards', () => {
       totalCompanies: 500,
       totalPipelineItems: 1000,
       activeUsers: 75,
-      newUsersThisWeek: 12,
+      newUsersThisWeek: 12
     }
 
     render(<AdminStatsCards stats={mockStats} />)
@@ -32,7 +32,7 @@ describe('AdminStatsCards', () => {
   it('should display active users hint when available', () => {
     const mockStats = {
       totalUsers: 100,
-      activeUsers: 75,
+      activeUsers: 75
     }
 
     render(<AdminStatsCards stats={mockStats} />)

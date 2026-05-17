@@ -26,17 +26,17 @@ export function SaveCompanyButton({ company }: Props) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
-          companyId:    company.id,
+          companyId: company.id,
           raisonSociale: company.raisonSociale ?? '—',
-          sector:       company.sector ?? null,
-          region:       company.region ?? null,
-          city:         company.city ?? null,
-          telephone:    company.telephone ?? null,
-          email:        company.email ?? null,
-        }),
+          sector: company.sector ?? null,
+          region: company.region ?? null,
+          city: company.city ?? null,
+          telephone: company.telephone ?? null,
+          email: company.email ?? null
+        })
       })
       const json = await res.json().catch(() => ({}))
       if (!res.ok) {
@@ -78,7 +78,7 @@ export function SaveCompanyButton({ company }: Props) {
           opacity: status === 'loading' ? 0.6 : 1,
           transition: 'all 150ms ease',
           whiteSpace: 'nowrap',
-          fontFamily: 'inherit',
+          fontFamily: 'inherit'
         }}
         onMouseEnter={(e) => {
           if (status === 'idle') {
@@ -95,10 +95,22 @@ export function SaveCompanyButton({ company }: Props) {
           }
         }}
       >
-        {status === 'loading' ? t('search.saving') : status === 'error' ? t('search.retry') : `🔖 ${t('search.save')}`}
+        {status === 'loading'
+          ? t('search.saving')
+          : status === 'error'
+            ? t('search.retry')
+            : `🔖 ${t('search.save')}`}
       </button>
       {errorMsg && (
-        <span style={{ fontSize: 10.5, color: '#ef4444', maxWidth: 120, textAlign: 'right', lineHeight: 1.3 }}>
+        <span
+          style={{
+            fontSize: 10.5,
+            color: '#ef4444',
+            maxWidth: 120,
+            textAlign: 'right',
+            lineHeight: 1.3
+          }}
+        >
           {errorMsg}
         </span>
       )}

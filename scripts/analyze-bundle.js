@@ -3,7 +3,7 @@
 /**
  * Bundle Analysis Script
  * Analyse la taille du bundle Next.js
- * 
+ *
  * Usage: node scripts/analyze-bundle.js
  */
 
@@ -49,7 +49,7 @@ function analyzeDirectory(dir, label) {
   }
 
   console.log(`\n📁 ${label}`)
-  console.log('=' .repeat(50))
+  console.log('='.repeat(50))
 
   const files = []
   let totalSize = 0
@@ -68,7 +68,7 @@ function analyzeDirectory(dir, label) {
         const size = stat.size
         files.push({
           name: itemRelativePath,
-          size: size,
+          size: size
         })
         totalSize += size
       }
@@ -99,14 +99,11 @@ function analyzeDirectory(dir, label) {
 const chunksAnalysis = analyzeDirectory(path.join(staticDir, 'chunks'), 'JS Chunks')
 
 // Analyse CSS
-const cssAnalysis = analyzeDirectory(
-  path.join(DIST_DIR, '_next/static/css'),
-  'CSS Chunks'
-)
+const cssAnalysis = analyzeDirectory(path.join(DIST_DIR, '_next/static/css'), 'CSS Chunks')
 
 // Afficher recommendations
 console.log('\n\n💡 Recommendations:')
-console.log('=' .repeat(50))
+console.log('='.repeat(50))
 
 if (chunksAnalysis && chunksAnalysis.totalSize > 500 * 1024) {
   console.log('⚠️  JS bundle is large (> 500KB). Consider:')

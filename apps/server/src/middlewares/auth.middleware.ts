@@ -2,11 +2,7 @@ import type { NextFunction, Response } from 'express'
 import { adminAuth } from '../firebase/admin'
 import type { AuthenticatedRequest } from '../types/express'
 
-export async function authMiddleware(
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction
-) {
+export async function authMiddleware(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization
 
   if (!authHeader?.startsWith('Bearer ')) {

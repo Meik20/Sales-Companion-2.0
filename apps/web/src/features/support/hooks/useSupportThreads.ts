@@ -25,8 +25,8 @@ export function useSupportThreads() {
 
       const response = await fetch(`${backendUrl}/api/support/threads`, {
         headers: {
-          'Authorization': `Bearer ${token || ''}`,
-        },
+          Authorization: `Bearer ${token || ''}`
+        }
       })
 
       if (!response.ok) {
@@ -35,6 +35,6 @@ export function useSupportThreads() {
 
       return response.json() as Promise<SupportThread[]>
     },
-    enabled: !!user?.uid,
+    enabled: !!user?.uid
   })
 }

@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { adminDb, adminAuth } from '@/lib/firebase-admin'
 
@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
 
     // Fetch all companies
     const snap = await adminDb.collection('companies').orderBy('createdAt', 'desc').get()
-    const companies = snap.docs.map(doc => doc.data())
+    const companies = snap.docs.map((doc) => doc.data())
 
     // Define CSV Headers according to requested format
     // N°, RAISON_SOCIALE, SIGLE, NIU, SECTEUR D'ACTIVITE, REGIME, REGION, VILLE
@@ -47,12 +47,14 @@ export async function GET(request: NextRequest) {
         c.telephone || '',
         c.email || ''
       ]
-      
+
       // Escape commas and quotes for CSV
-      return row.map(val => {
-        const str = String(val).replace(/"/g, '""')
-        return `"${str}"`
-      }).join(',')
+      return row
+        .map((val) => {
+          const str = String(val).replace(/"/g, '""')
+          return `"${str}"`
+        })
+        .join(',')
     })
 
     const csvContent = [headers.join(','), ...csvRows].join('\n')
@@ -61,15 +63,15 @@ export async function GET(request: NextRequest) {
     return new Response(csvContent, {
       headers: {
         'Content-Type': 'text/csv; charset=utf-8',
-        'Content-Disposition': `attachment; filename="entreprises_export_${new Date().toISOString().split('T')[0]}.csv"`,
-      },
+        'Content-Disposition': `attachment; filename="entreprises_export_${new Date().toISOString().split('T')[0]}.csv"`
+      }
     })
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : 'unknown'
-    if (msg === 'unauthenticated') return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+    if (msg === 'unauthenticated')
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     if (msg === 'forbidden') return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
     console.error('Export GET error:', error)
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 }
-

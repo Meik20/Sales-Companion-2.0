@@ -9,6 +9,7 @@ La plateforme B2B dédiée aux commerciaux et managers camerounais. Recherchez d
 ## 🎯 Vision produit
 
 **Stack technique identifiée :**
+
 - **Frontend** : Next.js 16 + React 19 + TypeScript + TanStack Query
 - **Backend** : Express.js + TypeScript + Node.js
 - **Database** : Firebase/Firestore
@@ -17,6 +18,7 @@ La plateforme B2B dédiée aux commerciaux et managers camerounais. Recherchez d
 - **Type** : Progressive Web App (PWA)
 
 **Architecture :**
+
 ```
 sales-companion/
 ├── apps/
@@ -42,6 +44,7 @@ sales-companion/
 **Auth Domain :** `sales-companion-237.firebaseapp.com`
 
 ### Services requis
+
 - ✅ Firebase Authentication (Email/Password)
 - ✅ Cloud Firestore
 - ✅ Firestore Rules & Security
@@ -193,7 +196,7 @@ service cloud.firestore {
     function authUid() { return request.auth.uid; }
     function isAdmin() { return get(/databases/{database}/documents/users/{authUid()}).data.role == 'admin'; }
     function isManager() { return get(/databases/{database}/documents/users/{authUid()}).data.role == 'manager'; }
-    
+
     // Collections avec règles appropriées...
   }
 }
@@ -213,14 +216,9 @@ firebase deploy --only firestore:indexes
 ### Tokens CSS
 
 ```css
---g:     #1b7a3e      /* Vert principal Cameroun */
---gm:    #2ea05a      /* Vert moyen */
---gd:    #145f2f      /* Vert foncé */
---accent: #00897b     /* Accent teal */
---gold:  #f5a623      /* Or */
---dark:  #0d1117      /* Fond dark */
---tx:    #f0f6fc      /* Texte clair */
---tx2:   #8b949e      /* Texte secondaire */
+--g: #1b7a3e /* Vert principal Cameroun */ --gm: #2ea05a /* Vert moyen */ --gd: #145f2f
+  /* Vert foncé */ --accent: #00897b /* Accent teal */ --gold: #f5a623 /* Or */ --dark: #0d1117
+  /* Fond dark */ --tx: #f0f6fc /* Texte clair */ --tx2: #8b949e /* Texte secondaire */;
 ```
 
 ### Typographie
@@ -240,6 +238,7 @@ firebase deploy --only firestore:indexes
 **Fichier :** `public/sw.js`
 
 Features :
+
 - Cache strategies (Cache-First, Network-First)
 - Offline fallback
 - Background sync
@@ -257,6 +256,7 @@ Features :
 ### Installation
 
 L'app peut être installée comme native sur :
+
 - Android (Chrome, Edge, Samsung)
 - iOS (PWA web-based)
 
@@ -285,6 +285,7 @@ npm start      # Node production
 ### Variables d'environnement
 
 **Frontend (.env.local)**
+
 ```env
 NEXT_PUBLIC_FIREBASE_API_KEY=...
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
@@ -293,6 +294,7 @@ NEXT_PUBLIC_API_URL=https://api.salescompanion.cm
 ```
 
 **Backend (.env)**
+
 ```env
 PORT=8080
 NODE_ENV=production
@@ -310,6 +312,7 @@ CORS_ORIGIN=https://salescompanion.cm
 ### `@sales-companion/shared`
 
 Types, constantes et utilitaires partagés :
+
 ```
 packages/shared/src/
 ├── types/           # Types TypeScript
@@ -349,6 +352,7 @@ npm run test:server
 **Fichier :** `firestore/docs/data-model.md`
 
 Collections :
+
 - `users` - Profils utilisateurs
 - `companies` - Entreprises camerounaises
 - `pipeline` - Prospects CRM
@@ -453,6 +457,7 @@ src/types/
 ## 📞 Support
 
 Pour les problèmes :
+
 1. Vérifier la documentation
 2. Créer un ticket support dans l'app
 3. Contacter l'équipe admin
@@ -464,4 +469,5 @@ Pour les problèmes :
 © 2025 Sales Companion. Tous droits réservés.
 
 Made in Cameroon 🇨🇲
+
 # Sales-Companion-2.0

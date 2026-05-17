@@ -32,16 +32,14 @@ export function useCreateTeamAssignment() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify(input),
+        body: JSON.stringify(input)
       })
 
       const json = await res.json().catch(() => ({}))
       if (!res.ok) {
-        throw new Error(
-          (json as { message?: string }).message ?? `Erreur ${res.status}`
-        )
+        throw new Error((json as { message?: string }).message ?? `Erreur ${res.status}`)
       }
       return json as { success: boolean; assignmentId: string; pipelineEntryId: string }
     },
@@ -52,6 +50,6 @@ export function useCreateTeamAssignment() {
       void queryClient.invalidateQueries({ queryKey: ['manager-pipeline'] })
       void queryClient.invalidateQueries({ queryKey: ['team-assignments'] })
       void queryClient.invalidateQueries({ queryKey: ['pipeline-stats'] })
-    },
+    }
   })
 }

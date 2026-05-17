@@ -9,9 +9,9 @@ export function useMediaQuery(query: string): boolean {
   useEffect(() => {
     // Set mounted flag first to avoid hydration mismatch
     setMounted(true)
-    
+
     const mediaQuery = window.matchMedia(query)
-    
+
     const handleChange = () => {
       setMatches(mediaQuery.matches)
     }

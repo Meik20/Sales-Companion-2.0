@@ -17,8 +17,7 @@ export const importsController = {
     const result = await importsService.previewCompaniesFile({
       buffer: file.buffer,
       filename: file.originalname,
-      sheetName:
-        typeof req.body?.sheetName === 'string' ? req.body.sheetName : undefined,
+      sheetName: typeof req.body?.sheetName === 'string' ? req.body.sheetName : undefined,
       mapping: parseJsonField(req.body?.mapping)
     })
 
@@ -37,10 +36,8 @@ export const importsController = {
       filename: file.originalname,
       sourceFile:
         typeof req.body?.sourceFile === 'string' ? req.body.sourceFile : file.originalname,
-      importedBy:
-        typeof req.body?.importedBy === 'string' ? req.body.importedBy : undefined,
-      sheetName:
-        typeof req.body?.sheetName === 'string' ? req.body.sheetName : undefined,
+      importedBy: typeof req.body?.importedBy === 'string' ? req.body.importedBy : undefined,
+      sheetName: typeof req.body?.sheetName === 'string' ? req.body.sheetName : undefined,
       mapping: parseJsonField(req.body?.mapping),
       dryRun: req.body?.dryRun === 'true'
     })

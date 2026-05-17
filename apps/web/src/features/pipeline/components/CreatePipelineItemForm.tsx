@@ -21,42 +21,48 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
   const STATUS_OPTIONS = [
     { value: 'prospection', label: t('pipeline.prospection') },
     { value: 'negociation', label: t('pipeline.negotiation') },
-    { value: 'conclue',     label: t('pipeline.closed') },
+    { value: 'conclue', label: t('pipeline.closed') }
   ]
   const mutation = useCreatePipelineItem()
 
-  const [companyName,   setCompanyName]   = useState('')
-  const [companyCity,   setCompanyCity]   = useState('')
+  const [companyName, setCompanyName] = useState('')
+  const [companyCity, setCompanyCity] = useState('')
   const [companySector, setCompanySector] = useState('')
-  const [note,          setNote]          = useState('')
-  const [nextAction,    setNextAction]    = useState('')
-  const [status,        setStatus]        = useState<'prospection' | 'negociation' | 'conclue'>('prospection')
-  const [error,         setError]         = useState<string | null>(null)
+  const [note, setNote] = useState('')
+  const [nextAction, setNextAction] = useState('')
+  const [status, setStatus] = useState<'prospection' | 'negociation' | 'conclue'>('prospection')
+  const [error, setError] = useState<string | null>(null)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!user) { setError(t('auth.accessImpossible')); return }
-    if (!companyName.trim()) { setError(t('pipeline.errorNameRequired')); return }
+    if (!user) {
+      setError(t('auth.accessImpossible'))
+      return
+    }
+    if (!companyName.trim()) {
+      setError(t('pipeline.errorNameRequired'))
+      return
+    }
 
     setError(null)
     try {
       await mutation.mutateAsync({
-        userId:        user.uid,
-        managerUid:    user.role === 'member' ? (user.managerUid ?? null) : user.uid,
+        userId: user.uid,
+        managerUid: user.role === 'member' ? (user.managerUid ?? null) : user.uid,
         // Passer l'identité de l'assigné pour qu'il soit affiché correctement
-        assignedTo:     user.uid,
-        memberName:     user.name || user.email,
+        assignedTo: user.uid,
+        memberName: user.name || user.email,
         memberAccessId: user.accessId ?? null,
-        companyId:     null,
-        companyName:   companyName.trim(),
+        companyId: null,
+        companyName: companyName.trim(),
         companySector: companySector || undefined,
-        companyCity:   companyCity   || undefined,
+        companyCity: companyCity || undefined,
         status,
-        note:          note          || undefined,
-        nextAction:    nextAction    || undefined,
-        nextDate:      null,
-        createdAt:     null,
-        updatedAt:     null,
+        note: note || undefined,
+        nextAction: nextAction || undefined,
+        nextDate: null,
+        createdAt: null,
+        updatedAt: null
       })
       setCompanyName('')
       setCompanyCity('')
@@ -75,7 +81,13 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
       onSubmit={(e) => void handleSubmit(e)}
       style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
     >
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gap: 12
+        }}
+      >
         <FormField label={t('pipeline.company')} required>
           <Input
             placeholder={t('pipeline.placeholderCompanyName')}
@@ -101,7 +113,13 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
         </FormField>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gap: 12
+        }}
+      >
         <FormField label={t('pipeline.status')}>
           <div style={{ display: 'flex', gap: 8 }}>
             {STATUS_OPTIONS.map((opt) => (
@@ -120,7 +138,7 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
                   fontWeight: 600,
                   cursor: 'pointer',
                   fontFamily: 'inherit',
-                  transition: 'all 200ms ease',
+                  transition: 'all 200ms ease'
                 }}
               >
                 {opt.label}
@@ -139,25 +157,36 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
       </div>
 
       {/* ── NOTES — champ dédié, pleine largeur ── */}
-      <div style={{
-        background: 'rgba(251,191,36,0.05)',
-        border: '1px solid rgba(251,191,36,0.25)',
-        borderRadius: 12,
-        padding: '14px 16px',
-      }}>
-        <label style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 6,
-          fontSize: 11,
-          fontWeight: 700,
-          textTransform: 'uppercase',
-          letterSpacing: '.07em',
-          color: '#fbbf24',
-          marginBottom: 8,
-        }}>
+      <div
+        style={{
+          background: 'rgba(251,191,36,0.05)',
+          border: '1px solid rgba(251,191,36,0.25)',
+          borderRadius: 12,
+          padding: '14px 16px'
+        }}
+      >
+        <label
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            fontSize: 11,
+            fontWeight: 700,
+            textTransform: 'uppercase',
+            letterSpacing: '.07em',
+            color: '#fbbf24',
+            marginBottom: 8
+          }}
+        >
           📝 {t('pipeline.notesLabel')}
-          <span style={{ fontWeight: 400, color: 'rgba(251,191,36,0.6)', textTransform: 'none', letterSpacing: 0 }}>
+          <span
+            style={{
+              fontWeight: 400,
+              color: 'rgba(251,191,36,0.6)',
+              textTransform: 'none',
+              letterSpacing: 0
+            }}
+          >
             — {t('pipeline.notesHint')}
           </span>
         </label>
@@ -180,16 +209,18 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
             fontFamily: 'inherit',
             lineHeight: 1.6,
             transition: 'border-color 200ms ease',
-            minHeight: 90,
+            minHeight: 90
           }}
-          onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(251,191,36,0.5)' }}
-          onBlur={(e)  => { e.currentTarget.style.borderColor = 'rgba(251,191,36,0.2)' }}
+          onFocus={(e) => {
+            e.currentTarget.style.borderColor = 'rgba(251,191,36,0.5)'
+          }}
+          onBlur={(e) => {
+            e.currentTarget.style.borderColor = 'rgba(251,191,36,0.2)'
+          }}
         />
       </div>
 
-      {error ? (
-        <p style={{ fontSize: 13, color: '#f87171', margin: 0 }}>{error}</p>
-      ) : null}
+      {error ? <p style={{ fontSize: 13, color: '#f87171', margin: 0 }}>{error}</p> : null}
 
       <div>
         <Button type="submit" variant="primary" size="md" loading={mutation.isPending}>

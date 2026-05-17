@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { FieldValue } from 'firebase-admin/firestore'
 
@@ -29,10 +29,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch owned items plus any explicitly assigned items.
-    const ownedSnap = await adminDb
-      .collection('pipeline')
-      .where('userId', '==', userId)
-      .get()
+    const ownedSnap = await adminDb.collection('pipeline').where('userId', '==', userId).get()
 
     const assignedSnap = await adminDb
       .collection('pipeline')
@@ -50,7 +47,7 @@ export async function GET(request: NextRequest) {
             id: doc.id,
             ...doc.data(),
             createdAt: doc.data().createdAt?.toDate?.()?.toISOString() ?? null,
-            updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() ?? null,
+            updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() ?? null
           })
         }
       })
@@ -88,28 +85,35 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Token invalide' }, { status: 401 })
     }
 
-    const body = await request.json().catch(() => ({})) as Record<string, unknown>
+    const body = (await request.json().catch(() => ({}))) as Record<string, unknown>
     const companyName = (body.companyName ?? body.name ?? '') as string
-    const status = typeof body.status === 'string'
-      ? body.status === 'prospect'
-        ? 'prospection'
-        : body.status === 'negotiation'
-        ? 'negociation'
-        : body.status === 'conclusion'
-        ? 'conclue'
-        : body.status
-      : 'prospection'
+    const status =
+      typeof body.status === 'string'
+        ? body.status === 'prospect'
+          ? 'prospection'
+          : body.status === 'negotiation'
+            ? 'negociation'
+            : body.status === 'conclusion'
+              ? 'conclue'
+              : body.status
+        : 'prospection'
 
     if (!companyName) {
       return NextResponse.json({ message: 'companyName requis' }, { status: 400 })
     }
 
     // ── Find previous assignees ──────────────────────────────────
-    const prevAssigneesMap = new Map<string, { userId: string, memberName: string, assignedAt: string }>()
+    const prevAssigneesMap = new Map<
+      string,
+      { userId: string; memberName: string; assignedAt: string }
+    >()
     if (companyName) {
       try {
-        const byName = await adminDb.collection('pipeline').where('companyName', '==', companyName).get()
-        byName.docs.forEach(doc => {
+        const byName = await adminDb
+          .collection('pipeline')
+          .where('companyName', '==', companyName)
+          .get()
+        byName.docs.forEach((doc) => {
           const d = doc.data()
           if (d.userId && d.userId !== userId) {
             prevAssigneesMap.set(d.userId, {
@@ -119,7 +123,9 @@ export async function POST(request: NextRequest) {
             })
           }
         })
-      } catch (err) { console.error('Error fetching by companyName', err) }
+      } catch (err) {
+        console.error('Error fetching by companyName', err)
+      }
     }
     const previousAssignees = Array.from(prevAssigneesMap.values())
 
@@ -130,13 +136,21 @@ export async function POST(request: NextRequest) {
       name: companyName,
       status,
       ...Object.fromEntries(
-        Object.entries(body).filter(([k]) =>
-          !['userId', 'managerUid', 'createdAt', 'updatedAt', 'status', 'previousAssignees'].includes(k)
+        Object.entries(body).filter(
+          ([k]) =>
+            ![
+              'userId',
+              'managerUid',
+              'createdAt',
+              'updatedAt',
+              'status',
+              'previousAssignees'
+            ].includes(k)
         )
       ),
       previousAssignees,
       createdAt: FieldValue.serverTimestamp(),
-      updatedAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp()
     })
 
     return NextResponse.json({ success: true, id: ref.id })

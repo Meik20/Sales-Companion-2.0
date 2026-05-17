@@ -15,21 +15,21 @@ import { Mail, RefreshCw, CheckCircle } from 'lucide-react'
 import { useTranslation } from '@/providers/I18nProvider'
 
 type ActivateStep =
-  | 'form'        // initial form
+  | 'form' // initial form
   | 'check-email' // email sent, waiting for click
-  | 'verified'    // email verified, redirecting
+  | 'verified' // email verified, redirecting
 
 function ActivateContent() {
   const { t } = useTranslation()
   const searchParams = useSearchParams()
   const router = useRouter()
   const urlAccessId = searchParams.get('accessId') ?? ''
-  const [accessId, setAccessId]         = useState(urlAccessId)
+  const [accessId, setAccessId] = useState(urlAccessId)
   const [manualAccessId, setManualAccessId] = useState('')
-  const [step, setStep]                 = useState<ActivateStep>('form')
+  const [step, setStep] = useState<ActivateStep>('form')
   const [pendingEmail, setPendingEmail] = useState('')
   const [resendCooldown, setResendCooldown] = useState(0)
-  const [resendLoading, setResendLoading]   = useState(false)
+  const [resendLoading, setResendLoading] = useState(false)
 
   // Countdown for resend button
   useEffect(() => {
@@ -51,9 +51,11 @@ function ActivateContent() {
           const token = await currentUser.getIdToken(true)
           await fetch('/api/auth/verify-email', {
             method: 'POST',
-            headers: { Authorization: `Bearer ${token}` },
+            headers: { Authorization: `Bearer ${token}` }
           })
-        } catch { /* ignore */ }
+        } catch {
+          /* ignore */
+        }
         setStep('verified')
         clearInterval(interval)
         setTimeout(() => router.replace(routes.search), 2000)
@@ -76,7 +78,7 @@ function ActivateContent() {
       // Send verification email
       await sendEmailVerification(firebaseUser, {
         url: `${window.location.origin}${routes.login}`,
-        handleCodeInApp: false,
+        handleCodeInApp: false
       })
       setResendCooldown(60)
       setStep('check-email')
@@ -94,7 +96,7 @@ function ActivateContent() {
     try {
       await sendEmailVerification(currentUser, {
         url: `${window.location.origin}${routes.login}`,
-        handleCodeInApp: false,
+        handleCodeInApp: false
       })
       setResendCooldown(60)
     } catch (err) {
@@ -114,7 +116,10 @@ function ActivateContent() {
             <h1 style={h1}>{t('auth.companyAccess')}</h1>
             <p style={sub}>{t('auth.enterAccessCode')}</p>
           </div>
-          <form onSubmit={handleManualSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <form
+            onSubmit={handleManualSubmit}
+            style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
+          >
             <FormField label={t('auth.accessId')} required>
               <Input
                 type="text"
@@ -123,7 +128,13 @@ function ActivateContent() {
                 onChange={(e) => setManualAccessId(e.target.value)}
               />
             </FormField>
-            <Button type="submit" variant="primary" size="lg" style={{ width: '100%', marginTop: 8 }} disabled={!manualAccessId.trim()}>
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              style={{ width: '100%', marginTop: 8 }}
+              disabled={!manualAccessId.trim()}
+            >
               {t('auth.continue')}
             </Button>
           </form>
@@ -138,29 +149,43 @@ function ActivateContent() {
       <main style={cardPage}>
         <div style={card}>
           <div style={{ textAlign: 'center', marginBottom: 24 }}>
-            <div style={{
-              width: 72, height: 72, borderRadius: '50%',
-              background: 'rgba(55,138,221,0.12)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              margin: '0 auto 16px',
-            }}>
+            <div
+              style={{
+                width: 72,
+                height: 72,
+                borderRadius: '50%',
+                background: 'rgba(55,138,221,0.12)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 16px'
+              }}
+            >
               <Mail size={32} style={{ color: 'var(--color-accent)' }} />
             </div>
             <h1 style={{ ...h1, marginBottom: 8 }}>{t('auth.checkEmail')}</h1>
             <p style={sub}>
-              {t('auth.verificationEmailSent')}<br />
+              {t('auth.verificationEmailSent')}
+              <br />
               <strong style={{ color: colors.text }}>{pendingEmail}</strong>
             </p>
           </div>
 
-          <div style={{
-            background: 'rgba(55,138,221,0.06)',
-            border: `1px solid rgba(55,138,221,0.2)`,
-            borderRadius: 12, padding: '16px 18px',
-            fontSize: 13.5, color: colors.textMid, lineHeight: 1.7,
-            marginBottom: 20,
-          }}>
-            <p style={{ margin: '0 0 8px', fontWeight: 600, color: colors.text }}>{t('auth.howToProceed')}</p>
+          <div
+            style={{
+              background: 'rgba(55,138,221,0.06)',
+              border: `1px solid rgba(55,138,221,0.2)`,
+              borderRadius: 12,
+              padding: '16px 18px',
+              fontSize: 13.5,
+              color: colors.textMid,
+              lineHeight: 1.7,
+              marginBottom: 20
+            }}
+          >
+            <p style={{ margin: '0 0 8px', fontWeight: 600, color: colors.text }}>
+              {t('auth.howToProceed')}
+            </p>
             <ol style={{ margin: 0, paddingLeft: 18 }}>
               <li>{t('auth.proceedStep1')}</li>
               <li>{t('auth.proceedStep2')}</li>
@@ -176,17 +201,29 @@ function ActivateContent() {
             onClick={() => void handleResend()}
             disabled={resendCooldown > 0 || resendLoading}
             style={{
-              width: '100%', height: 40,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              width: '100%',
+              height: 40,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
               background: resendCooldown > 0 ? colors.bg3 : 'transparent',
               border: `1px solid ${colors.border}`,
-              borderRadius: 10, cursor: resendCooldown > 0 ? 'not-allowed' : 'pointer',
-              color: colors.textMid, fontSize: 13, fontFamily: 'inherit',
-              transition: 'all 150ms ease',
+              borderRadius: 10,
+              cursor: resendCooldown > 0 ? 'not-allowed' : 'pointer',
+              color: colors.textMid,
+              fontSize: 13,
+              fontFamily: 'inherit',
+              transition: 'all 150ms ease'
             }}
           >
-            <RefreshCw size={14} style={{ animation: resendLoading ? 'spin 1s linear infinite' : 'none' }} />
-            {resendCooldown > 0 ? t('auth.resendIn').replace('{seconds}', String(resendCooldown)) : t('auth.resend')}
+            <RefreshCw
+              size={14}
+              style={{ animation: resendLoading ? 'spin 1s linear infinite' : 'none' }}
+            />
+            {resendCooldown > 0
+              ? t('auth.resendIn').replace('{seconds}', String(resendCooldown))
+              : t('auth.resend')}
           </button>
 
           <p style={{ fontSize: 11, color: colors.textDim, textAlign: 'center', marginTop: 16 }}>
@@ -205,9 +242,7 @@ function ActivateContent() {
         <h2 style={{ fontSize: 20, fontWeight: 700, color: colors.text, margin: 0 }}>
           {t('auth.emailVerified')}
         </h2>
-        <p style={{ fontSize: 14, color: colors.textMid, margin: 0 }}>
-          {t('auth.accountActive')}
-        </p>
+        <p style={{ fontSize: 14, color: colors.textMid, margin: 0 }}>{t('auth.accountActive')}</p>
       </main>
     )
   }
@@ -220,21 +255,29 @@ function ActivateContent() {
           <ScIcon size={48} style={{ marginBottom: 14 }} />
           <h1 style={h1}>{t('auth.activateHeader')}</h1>
           <p style={sub}>{t('auth.activateHeaderSub')}</p>
-          <div style={{
-            marginTop: 12,
-            display: 'flex', alignItems: 'center', gap: 8,
-            background: 'rgba(55,138,221,0.08)',
-            border: '1px solid rgba(55,138,221,0.2)',
-            borderRadius: 8, padding: '8px 12px',
-            fontSize: 12.5, color: 'var(--color-accent)',
-          }}>
+          <div
+            style={{
+              marginTop: 12,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              background: 'rgba(55,138,221,0.08)',
+              border: '1px solid rgba(55,138,221,0.2)',
+              borderRadius: 8,
+              padding: '8px 12px',
+              fontSize: 12.5,
+              color: 'var(--color-accent)'
+            }}
+          >
             <Mail size={14} />
             <span>{t('auth.emailWillBeSent')}</span>
           </div>
         </div>
         <ActivateMemberForm
           accessId={accessId}
-          onSuccess={(email: string, password: string) => void handleActivationSuccess(email, password)}
+          onSuccess={(email: string, password: string) =>
+            void handleActivationSuccess(email, password)
+          }
         />
       </div>
     </main>
@@ -248,7 +291,7 @@ const cardPage: React.CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  padding: '24px 16px',
+  padding: '24px 16px'
 }
 const card: React.CSSProperties = {
   background: colors.bg2,
@@ -257,7 +300,7 @@ const card: React.CSSProperties = {
   padding: 40,
   width: '100%',
   maxWidth: 460,
-  boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+  boxShadow: '0 20px 60px rgba(0,0,0,0.5)'
 }
 const cardHeader: React.CSSProperties = { textAlign: 'center', marginBottom: 28 }
 const h1: React.CSSProperties = {
@@ -265,7 +308,7 @@ const h1: React.CSSProperties = {
   fontSize: 22,
   fontWeight: 800,
   color: colors.text,
-  fontFamily: "'Syne',sans-serif",
+  fontFamily: "'Syne',sans-serif"
 }
 const sub: React.CSSProperties = { margin: 0, fontSize: 13, color: colors.textMid }
 

@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { adminDb, adminAuth } from '@/lib/firebase-admin'
 
@@ -47,17 +47,17 @@ export async function GET(request: NextRequest) {
         phone: data.phone ?? null,
         createdAt: data.createdAt?.toDate?.()?.toISOString() ?? null,
         lastLoginAt: data.lastLoginAt?.toDate?.()?.toISOString() ?? null,
-        managerId: data.managerId ?? null,
+        managerId: data.managerId ?? null
       }
     })
 
     return NextResponse.json({ items, total, page, pageSize })
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : 'unknown'
-    if (msg === 'unauthenticated') return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+    if (msg === 'unauthenticated')
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     if (msg === 'forbidden') return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
     console.error('Admin users error:', error)
     return NextResponse.json({ error: 'Erreur interne' }, { status: 500 })
   }
 }
-

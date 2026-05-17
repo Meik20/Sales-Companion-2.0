@@ -15,7 +15,7 @@ export const savedSearchesRepository = {
   async create(data: SavedSearch) {
     return addDoc(collection(firestore, 'saved_searches'), {
       ...data,
-      createdAt: new Date(),
+      createdAt: new Date()
     })
   },
 
@@ -24,11 +24,11 @@ export const savedSearchesRepository = {
     const snapshot = await getDocs(q)
     return snapshot.docs.map((doc) => ({
       id: doc.id,
-      ...doc.data(),
+      ...doc.data()
     })) as (SavedSearch & { id: string })[]
   },
 
   async delete(id: string) {
     return deleteDoc(doc(firestore, 'saved_searches', id))
-  },
+  }
 }

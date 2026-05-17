@@ -26,12 +26,12 @@ export function AppShell({ children }: PropsWithChildren) {
           <AppSidebar isMobile={true} onClose={() => setIsDrawerOpen(false)} />
         )}
 
-      <div
+        <div
           style={{
             maxWidth: 1440,
             margin: '0 auto',
             padding: '0',
-            overflowX: 'hidden',
+            overflowX: 'hidden'
           }}
         >
           <div
@@ -40,7 +40,7 @@ export function AppShell({ children }: PropsWithChildren) {
               alignItems: 'stretch',
               minHeight: 'calc(100vh - 60px)',
               gap: 0,
-              paddingBottom: mounted && !isDesktop ? '72px' : '0',
+              paddingBottom: mounted && !isDesktop ? '72px' : '0'
             }}
           >
             {mounted && isDesktop ? <AppSidebar /> : null}
@@ -53,7 +53,7 @@ export function AppShell({ children }: PropsWithChildren) {
                 maxWidth: '100%',
                 padding: mounted && isDesktop ? '28px 28px 28px 24px' : '12px 16px 16px',
                 overflowX: 'hidden',
-                boxSizing: 'border-box',
+                boxSizing: 'border-box'
               }}
             >
               {children}

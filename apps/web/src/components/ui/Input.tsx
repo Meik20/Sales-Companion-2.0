@@ -24,7 +24,7 @@ export const Input = forwardRef<HTMLInputElement, Props>(function Input(
         fontFamily: 'inherit',
         outline: 'none',
         transition: 'border-color 200ms ease, box-shadow 200ms ease',
-        ...style,
+        ...style
       }}
       onFocus={(e) => {
         e.target.style.borderColor = 'var(--color-accent)'

@@ -8,10 +8,21 @@ import { useDeletePipelineItem } from '@/features/pipeline/hooks/useDeletePipeli
 import { useUpdatePipelineItem } from '@/features/pipeline/hooks/useUpdatePipelineItem'
 import { useToast } from '@/hooks/useToast'
 import { useTranslation } from '@/providers/I18nProvider'
-import { 
-  Building2, MapPin, Phone, Mail, User, Calendar, 
-  AlertTriangle, X, Edit3, Save, RotateCcw, CheckCircle,
-  ChevronRight, MessageSquare
+import {
+  Building2,
+  MapPin,
+  Phone,
+  Mail,
+  User,
+  Calendar,
+  AlertTriangle,
+  X,
+  Edit3,
+  Save,
+  RotateCcw,
+  CheckCircle,
+  ChevronRight,
+  MessageSquare
 } from 'lucide-react'
 
 type PipelineItem = {
@@ -44,11 +55,11 @@ type Props = {
 
 const statusVariant: Record<string, 'info' | 'warning' | 'success'> = {
   prospection: 'info',
-  prospect:    'info',
+  prospect: 'info',
   negociation: 'warning',
   negotiation: 'warning',
-  conclue:     'success',
-  conclusion:  'success',
+  conclue: 'success',
+  conclusion: 'success'
 }
 
 // ── Contact Detail Modal ────────────────────────────────────────────────
@@ -57,7 +68,7 @@ function ProspectModal({
   item,
   onClose,
   onStatusChange,
-  statusLabel,
+  statusLabel
 }: {
   item: PipelineItem
   onClose: () => void
@@ -94,18 +105,25 @@ function ProspectModal({
       <div
         onClick={onClose}
         style={{
-          position: 'fixed', inset: 0, zIndex: 999,
-          background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)',
+          position: 'fixed',
+          inset: 0,
+          zIndex: 999,
+          background: 'rgba(0,0,0,0.55)',
+          backdropFilter: 'blur(4px)'
         }}
       />
 
       {/* Modal */}
       <div
         style={{
-          position: 'fixed', inset: 0, zIndex: 1000,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          position: 'fixed',
+          inset: 0,
+          zIndex: 1000,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
           padding: '20px 16px',
-          pointerEvents: 'none',
+          pointerEvents: 'none'
         }}
       >
         <div
@@ -113,26 +131,36 @@ function ProspectModal({
             background: colors.bg2,
             border: `1px solid ${colors.border}`,
             borderRadius: 16,
-            width: '100%', maxWidth: 520,
+            width: '100%',
+            maxWidth: 520,
             padding: 28,
             pointerEvents: 'auto',
             boxShadow: '0 24px 64px rgba(0,0,0,0.4)',
             maxHeight: '90vh',
-            overflowY: 'auto',
+            overflowY: 'auto'
           }}
         >
           {/* Header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+              marginBottom: 24
+            }}
+          >
             <div style={{ flex: 1, minWidth: 0 }}>
-              <h2 style={{ 
-                margin: 0, 
-                fontSize: 20, 
-                fontWeight: 800, 
-                color: colors.text, 
-                fontFamily: "'Syne', sans-serif",
-                lineHeight: 1.2,
-                letterSpacing: '-0.02em'
-              }}>
+              <h2
+                style={{
+                  margin: 0,
+                  fontSize: 20,
+                  fontWeight: 800,
+                  color: colors.text,
+                  fontFamily: "'Syne', sans-serif",
+                  lineHeight: 1.2,
+                  letterSpacing: '-0.02em'
+                }}
+              >
                 {item.companyName}
               </h2>
               <div style={{ marginTop: 8 }}>
@@ -144,17 +172,17 @@ function ProspectModal({
             <button
               onClick={onClose}
               style={{
-                background: colors.bg3, 
-                border: `1px solid ${colors.border}`, 
+                background: colors.bg3,
+                border: `1px solid ${colors.border}`,
                 cursor: 'pointer',
-                color: colors.textMid, 
-                padding: 8, 
+                color: colors.textMid,
+                padding: 8,
                 borderRadius: 10,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 transition: 'all 0.2s ease',
-                marginLeft: 16,
+                marginLeft: 16
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.background = colors.bg4
@@ -170,46 +198,54 @@ function ProspectModal({
           </div>
 
           {/* Contact Info */}
-          <div style={{
-            display: 'flex', flexDirection: 'column', gap: 12,
-            background: colors.bg3, 
-            borderRadius: 12, 
-            padding: 20,
-            marginBottom: 20,
-            border: `1px solid ${colors.border}`,
-            boxShadow: 'inset 0 0 20px rgba(0,0,0,0.1)'
-          }}>
-            <div style={{ 
-              fontSize: 11, 
-              fontWeight: 800, 
-              textTransform: 'uppercase', 
-              letterSpacing: '.1em', 
-              color: colors.textMid, 
-              marginBottom: 4,
+          <div
+            style={{
               display: 'flex',
-              alignItems: 'center',
-              gap: 6
-            }}>
+              flexDirection: 'column',
+              gap: 12,
+              background: colors.bg3,
+              borderRadius: 12,
+              padding: 20,
+              marginBottom: 20,
+              border: `1px solid ${colors.border}`,
+              boxShadow: 'inset 0 0 20px rgba(0,0,0,0.1)'
+            }}
+          >
+            <div
+              style={{
+                fontSize: 11,
+                fontWeight: 800,
+                textTransform: 'uppercase',
+                letterSpacing: '.1em',
+                color: colors.textMid,
+                marginBottom: 4,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6
+              }}
+            >
               <User size={12} strokeWidth={3} />
               {t('pipeline.contactInfo')}
             </div>
 
             {item.companySector && (
-              <div style={{ 
-                fontSize: 13, 
-                color: colors.text, 
-                fontWeight: 500, 
-                background: 'rgba(96, 165, 250, 0.08)', 
-                padding: '12px 14px', 
-                borderRadius: '10px',
-                border: '1px solid rgba(96, 165, 250, 0.15)',
-                lineHeight: 1.5,
-                marginTop: 4,
-                marginBottom: 4,
-                display: 'flex',
-                gap: 12,
-                alignItems: 'flex-start'
-              }}>
+              <div
+                style={{
+                  fontSize: 13,
+                  color: colors.text,
+                  fontWeight: 500,
+                  background: 'rgba(96, 165, 250, 0.08)',
+                  padding: '12px 14px',
+                  borderRadius: '10px',
+                  border: '1px solid rgba(96, 165, 250, 0.15)',
+                  lineHeight: 1.5,
+                  marginTop: 4,
+                  marginBottom: 4,
+                  display: 'flex',
+                  gap: 12,
+                  alignItems: 'flex-start'
+                }}
+              >
                 <Building2 size={16} style={{ color: '#60a5fa', flexShrink: 0, marginTop: 2 }} />
                 <span>{item.companySector}</span>
               </div>
@@ -217,37 +253,42 @@ function ProspectModal({
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 4 }}>
               {item.companyCity && (
-                <InfoRow 
-                  icon={<MapPin size={15} />} 
-                  label={t('pipeline.city')} 
-                  value={item.companyCity} 
+                <InfoRow
+                  icon={<MapPin size={15} />}
+                  label={t('pipeline.city')}
+                  value={item.companyCity}
                 />
               )}
-              
+
               <InfoRow
-                icon={<Phone size={15} />} 
+                icon={<Phone size={15} />}
                 label={t('pipeline.phone')}
                 value={
                   item.companyPhone ? (
-                    <a href={`tel:${item.companyPhone}`} style={{ color: '#60a5fa', textDecoration: 'none', fontWeight: 600 }}>
+                    <a
+                      href={`tel:${item.companyPhone}`}
+                      style={{ color: '#60a5fa', textDecoration: 'none', fontWeight: 600 }}
+                    >
                       {item.companyPhone}
                     </a>
                   ) : (
-                    <span style={{ color: colors.textDim, fontStyle: 'italic' }}>{t('pipeline.notSpecified')}</span>
+                    <span style={{ color: colors.textDim, fontStyle: 'italic' }}>
+                      {t('pipeline.notSpecified')}
+                    </span>
                   )
                 }
               />
 
               <InfoRow
-                icon={<Mail size={15} />} 
+                icon={<Mail size={15} />}
                 label={t('pipeline.email')}
                 value={
                   item.companyEmail ? (
-                    <a 
-                      href={`mailto:${item.companyEmail}`} 
-                      style={{ 
-                        color: '#60a5fa', 
-                        textDecoration: 'none', 
+                    <a
+                      href={`mailto:${item.companyEmail}`}
+                      style={{
+                        color: '#60a5fa',
+                        textDecoration: 'none',
                         fontWeight: 600,
                         wordBreak: 'break-all',
                         lineHeight: 1.4
@@ -256,7 +297,9 @@ function ProspectModal({
                       {item.companyEmail}
                     </a>
                   ) : (
-                    <span style={{ color: colors.textDim, fontStyle: 'italic' }}>{t('pipeline.notSpecified')}</span>
+                    <span style={{ color: colors.textDim, fontStyle: 'italic' }}>
+                      {t('pipeline.notSpecified')}
+                    </span>
                   )
                 }
               />
@@ -264,38 +307,52 @@ function ProspectModal({
           </div>
 
           {/* ── NOTES — section éditable ── */}
-          <div style={{
-            background: isEditing ? 'rgba(251,191,36,0.03)' : 'rgba(34,197,94,0.03)',
-            border: isEditing ? '1px solid rgba(251,191,36,0.2)' : '1px solid rgba(34,197,94,0.2)',
-            borderRadius: 12,
-            padding: 18,
-            marginBottom: 20,
-            transition: 'all 300ms ease',
-          }}>
-            <div style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              marginBottom: 12,
-            }}>
-              <div style={{ 
-                fontSize: 11, fontWeight: 800, 
-                color: isEditing ? '#fbbf24' : '#22c55e', 
-                textTransform: 'uppercase', letterSpacing: '.1em',
-                display: 'flex', alignItems: 'center', gap: 6
-              }}>
+          <div
+            style={{
+              background: isEditing ? 'rgba(251,191,36,0.03)' : 'rgba(34,197,94,0.03)',
+              border: isEditing
+                ? '1px solid rgba(251,191,36,0.2)'
+                : '1px solid rgba(34,197,94,0.2)',
+              borderRadius: 12,
+              padding: 18,
+              marginBottom: 20,
+              transition: 'all 300ms ease'
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 12
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 11,
+                  fontWeight: 800,
+                  color: isEditing ? '#fbbf24' : '#22c55e',
+                  textTransform: 'uppercase',
+                  letterSpacing: '.1em',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6
+                }}
+              >
                 <MessageSquare size={12} strokeWidth={3} />
                 {t('pipeline.notesLabel')}
               </div>
-              
+
               {!isEditing ? (
                 <Button
                   size="sm"
                   variant="ghost"
                   onClick={() => setIsEditing(true)}
-                  style={{ 
-                    fontSize: 11, 
-                    padding: '4px 10px', 
-                    minHeight: 26, 
-                    color: '#22c55e', 
+                  style={{
+                    fontSize: 11,
+                    padding: '4px 10px',
+                    minHeight: 26,
+                    color: '#22c55e',
                     borderColor: 'rgba(34,197,94,0.2)',
                     display: 'flex',
                     alignItems: 'center',
@@ -307,14 +364,21 @@ function ProspectModal({
                 </Button>
               ) : (
                 <div style={{ display: 'flex', gap: 8 }}>
-                   <Button
+                  <Button
                     size="sm"
                     variant="ghost"
                     onClick={() => {
                       setNoteText(originalNote)
                       setIsEditing(false)
                     }}
-                    style={{ fontSize: 11, padding: '4px 10px', minHeight: 26, display: 'flex', alignItems: 'center', gap: 4 }}
+                    style={{
+                      fontSize: 11,
+                      padding: '4px 10px',
+                      minHeight: 26,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4
+                    }}
                   >
                     <RotateCcw size={11} />
                     {t('common.cancel') || 'Annuler'}
@@ -325,11 +389,11 @@ function ProspectModal({
                     loading={noteSaving}
                     disabled={!noteChanged}
                     onClick={() => void handleSaveNote()}
-                    style={{ 
-                      fontSize: 11, 
-                      padding: '4px 10px', 
-                      minHeight: 26, 
-                      background: '#22c55e', 
+                    style={{
+                      fontSize: 11,
+                      padding: '4px 10px',
+                      minHeight: 26,
+                      background: '#22c55e',
                       borderColor: '#22c55e',
                       display: 'flex',
                       alignItems: 'center',
@@ -365,26 +429,37 @@ function ProspectModal({
                     fontFamily: 'inherit',
                     lineHeight: 1.6,
                     minHeight: 100,
-                    transition: 'border-color 200ms ease',
+                    transition: 'border-color 200ms ease'
                   }}
                 />
                 {noteChanged && (
-                  <div style={{ fontSize: 11, color: '#fbbf24', marginTop: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <div
+                    style={{
+                      fontSize: 11,
+                      color: '#fbbf24',
+                      marginTop: 8,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4
+                    }}
+                  >
                     <AlertTriangle size={10} />
                     {t('pipeline.notesUnsaved')}
                   </div>
                 )}
               </>
             ) : (
-              <div style={{ 
-                fontSize: 14, 
-                color: colors.text, 
-                lineHeight: 1.6, 
-                whiteSpace: 'pre-wrap',
-                minHeight: noteText ? 'auto' : 40,
-                fontStyle: noteText ? 'normal' : 'italic',
-                opacity: noteText ? 1 : 0.5
-              }}>
+              <div
+                style={{
+                  fontSize: 14,
+                  color: colors.text,
+                  lineHeight: 1.6,
+                  whiteSpace: 'pre-wrap',
+                  minHeight: noteText ? 'auto' : 40,
+                  fontStyle: noteText ? 'normal' : 'italic',
+                  opacity: noteText ? 1 : 0.5
+                }}
+              >
                 {noteText || t('pipeline.placeholderNotes')}
               </div>
             )}
@@ -392,57 +467,65 @@ function ProspectModal({
 
           {/* Next follow-up */}
           {(item.nextFollowUp ?? item.nextDate) && (
-            <div style={{
-              background: 'rgba(96,165,250,0.05)', 
-              border: '1px solid rgba(96,165,250,0.15)',
-              borderRadius: 12, 
-              padding: '14px 16px', 
-              marginBottom: 20,
-              fontSize: 13, 
-              color: '#93c5fd',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10
-            }}>
+            <div
+              style={{
+                background: 'rgba(96,165,250,0.05)',
+                border: '1px solid rgba(96,165,250,0.15)',
+                borderRadius: 12,
+                padding: '14px 16px',
+                marginBottom: 20,
+                fontSize: 13,
+                color: '#93c5fd',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10
+              }}
+            >
               <Calendar size={16} strokeWidth={2.5} />
               <span>
-                <strong>{t('pipeline.nextFollowUpLabel')}</strong> : {item.nextFollowUp ?? item.nextDate}
+                <strong>{t('pipeline.nextFollowUpLabel')}</strong> :{' '}
+                {item.nextFollowUp ?? item.nextDate}
               </span>
             </div>
           )}
 
           {/* Assigné par */}
           {item.assignedByName && (
-            <div style={{ 
-              fontSize: 12, 
-              color: colors.textMid, 
-              marginBottom: 20,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              padding: '0 4px'
-            }}>
+            <div
+              style={{
+                fontSize: 12,
+                color: colors.textMid,
+                marginBottom: 20,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '0 4px'
+              }}
+            >
               <User size={14} style={{ opacity: 0.6 }} />
               <span>
-                {t('pipeline.assignedBy')} : <strong style={{ color: colors.text }}>{item.assignedByName}</strong>
+                {t('pipeline.assignedBy')} :{' '}
+                <strong style={{ color: colors.text }}>{item.assignedByName}</strong>
               </span>
             </div>
           )}
 
           {/* Déjà visité / assigné */}
           {item.previousAssignees && item.previousAssignees.length > 0 && (
-            <div style={{
-              background: 'rgba(239,68,68,0.05)', 
-              border: '1px solid rgba(239,68,68,0.15)',
-              borderRadius: 12, 
-              padding: '14px 16px', 
-              marginBottom: 20,
-              fontSize: 13, 
-              color: '#f87171', 
-              display: 'flex', 
-              alignItems: 'flex-start', 
-              gap: 12
-            }}>
+            <div
+              style={{
+                background: 'rgba(239,68,68,0.05)',
+                border: '1px solid rgba(239,68,68,0.15)',
+                borderRadius: 12,
+                padding: '14px 16px',
+                marginBottom: 20,
+                fontSize: 13,
+                color: '#f87171',
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 12
+              }}
+            >
               <AlertTriangle size={18} style={{ flexShrink: 0, marginTop: 2 }} />
               <div>
                 <strong style={{ display: 'block', marginBottom: 4 }}>Attention :</strong>
@@ -450,7 +533,8 @@ function ProspectModal({
                 <ul style={{ margin: '8px 0 0 0', paddingLeft: 16, fontSize: 12, opacity: 0.9 }}>
                   {item.previousAssignees.map((pa, idx) => (
                     <li key={idx} style={{ marginBottom: 4 }}>
-                      <strong>{pa.memberName}</strong> (le {new Date(pa.assignedAt).toLocaleDateString()})
+                      <strong>{pa.memberName}</strong> (le{' '}
+                      {new Date(pa.assignedAt).toLocaleDateString()})
                     </li>
                   ))}
                 </ul>
@@ -462,17 +546,38 @@ function ProspectModal({
           {onStatusChange && (
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {item.status !== 'prospection' && item.status !== 'prospect' && (
-                <Button size="sm" variant="ghost" onClick={() => { onStatusChange(item.id, 'prospection'); onClose() }}>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => {
+                    onStatusChange(item.id, 'prospection')
+                    onClose()
+                  }}
+                >
                   {t('pipeline.prospection')}
                 </Button>
               )}
               {item.status !== 'negociation' && item.status !== 'negotiation' && (
-                <Button size="sm" variant="ghost" onClick={() => { onStatusChange(item.id, 'negociation'); onClose() }}>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => {
+                    onStatusChange(item.id, 'negociation')
+                    onClose()
+                  }}
+                >
                   {t('pipeline.negotiation')}
                 </Button>
               )}
               {item.status !== 'conclue' && item.status !== 'conclusion' && (
-                <Button size="sm" variant="primary" onClick={() => { onStatusChange(item.id, 'conclue'); onClose() }}>
+                <Button
+                  size="sm"
+                  variant="primary"
+                  onClick={() => {
+                    onStatusChange(item.id, 'conclue')
+                    onClose()
+                  }}
+                >
                   ✓ {t('pipeline.closed')}
                 </Button>
               )}
@@ -484,25 +589,45 @@ function ProspectModal({
   )
 }
 
-function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) {
+function InfoRow({
+  icon,
+  label,
+  value
+}: {
+  icon: React.ReactNode
+  label: string
+  value: React.ReactNode
+}) {
   return (
     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, fontSize: 14 }}>
-      <span style={{ 
-        width: 28, 
-        height: 28, 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center', 
-        background: colors.bg2,
-        borderRadius: 8,
-        color: colors.textMid,
-        flexShrink: 0,
-        border: `1px solid ${colors.border}`
-      }}>
+      <span
+        style={{
+          width: 28,
+          height: 28,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: colors.bg2,
+          borderRadius: 8,
+          color: colors.textMid,
+          flexShrink: 0,
+          border: `1px solid ${colors.border}`
+        }}
+      >
         {icon}
       </span>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <span style={{ color: colors.textDim, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</span>
+        <span
+          style={{
+            color: colors.textDim,
+            fontSize: 11,
+            fontWeight: 700,
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em'
+          }}
+        >
+          {label}
+        </span>
         <span style={{ color: colors.text, fontWeight: 500, lineHeight: 1.4 }}>{value}</span>
       </div>
     </div>
@@ -516,11 +641,11 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
 
   const statusLabel: Record<string, string> = {
     prospection: t('pipeline.prospection'),
-    prospect:    t('pipeline.prospection'),
+    prospect: t('pipeline.prospection'),
     negociation: t('pipeline.negotiation'),
     negotiation: t('pipeline.negotiation'),
-    conclue:     t('pipeline.closed'),
-    conclusion:  t('pipeline.closed'),
+    conclue: t('pipeline.closed'),
+    conclusion: t('pipeline.closed')
   }
   const { pushToast } = useToast()
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -536,7 +661,7 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
       pushToast({
         type: 'error',
         title: t('pipeline.deleteError'),
-        description: err instanceof Error ? err.message : 'Unknown error',
+        description: err instanceof Error ? err.message : 'Unknown error'
       })
     } finally {
       setDeletingId(null)
@@ -572,7 +697,7 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
               alignItems: 'flex-start',
               flexWrap: 'wrap',
               cursor: 'pointer',
-              transition: 'all 200ms ease',
+              transition: 'all 200ms ease'
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.borderColor = 'rgba(99,102,241,0.4)'
@@ -585,16 +710,31 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
           >
             {/* Content */}
             <div style={{ flex: 1, minWidth: 200 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6, flexWrap: 'wrap' }}>
-                <strong style={{ fontSize: 14, color: colors.text }}>
-                  {item.companyName}
-                </strong>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  marginBottom: 6,
+                  flexWrap: 'wrap'
+                }}
+              >
+                <strong style={{ fontSize: 14, color: colors.text }}>{item.companyName}</strong>
                 <Badge variant={statusVariant[item.status] ?? 'default'}>
                   {statusLabel[item.status] ?? item.status}
                 </Badge>
               </div>
 
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 16px', fontSize: 12, color: colors.textMid, marginTop: 4 }}>
+              <div
+                style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '8px 16px',
+                  fontSize: 12,
+                  color: colors.textMid,
+                  marginTop: 4
+                }}
+              >
                 {item.companySector && (
                   <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <Building2 size={12} style={{ opacity: 0.7 }} />

@@ -37,8 +37,8 @@ export function useTeamAssignments() {
       const token = await user.getIdToken()
       const response = await fetch('/api/team/assignments', {
         headers: {
-          Authorization: `Bearer ${token}`,
-        },
+          Authorization: `Bearer ${token}`
+        }
       })
 
       if (!response.ok) {
@@ -48,6 +48,6 @@ export function useTeamAssignments() {
       const json = await response.json()
       return (json.items ?? []) as TeamAssignment[]
     },
-    enabled: !!user?.uid,
+    enabled: !!user?.uid
   })
 }

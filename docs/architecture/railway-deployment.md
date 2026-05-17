@@ -3,6 +3,7 @@
 ## Overview
 
 Sales Companion est déployé sur Railway avec :
+
 - **Frontend** : Next.js sur Vercel (optionnel) ou Railway
 - **Backend** : Express API sur Railway
 - **Database** : Firebase Firestore (managé par Google)
@@ -80,6 +81,7 @@ ENABLE_IMPORT=true
 #### 2.3 Configurer le build et start
 
 Railway automatiquement détecte :
+
 ```json
 // package.json scripts
 "build": "npm run build:server",
@@ -89,6 +91,7 @@ Railway automatiquement détecte :
 #### 2.4 Database Integration (optionnel)
 
 Si utilisant PostgreSQL avec Railway :
+
 ```
 Railway → Variables → Add
 DATABASE_URL = Railway PostgreSQL URL
@@ -144,12 +147,14 @@ Railway automatic SSL is included ✅
 ## ✅ Pre-Deployment Checklist
 
 ### Code Quality
+
 - [ ] `npm run typecheck` passes
 - [ ] `npm run lint` passes
 - [ ] Tests passing: `npm run test:web && npm run test:server`
 - [ ] No console.errors or warnings
 
 ### Security
+
 - [ ] Firebase rules deployed
 - [ ] Service Account key safely stored
 - [ ] No hardcoded secrets in code
@@ -157,18 +162,21 @@ Railway automatic SSL is included ✅
 - [ ] Security headers enabled
 
 ### Performance
+
 - [ ] Bundle size < 500KB (JS)
 - [ ] Lighthouse score > 90
 - [ ] No unused dependencies
 - [ ] Images optimized
 
 ### Firebase
+
 - [ ] Firestore indexes created
 - [ ] Collections protected
 - [ ] Backup enabled
 - [ ] quotas configured
 
 ### Infrastructure
+
 - [ ] Health check endpoint working
 - [ ] Environment variables set
 - [ ] Database migrations done
@@ -342,6 +350,7 @@ firebase deploy --only firestore:rules
 ## 📞 Support
 
 For issues:
+
 - Check logs: `railway logs -f`
 - Railway docs: https://docs.railway.app
 - Firebase docs: https://firebase.google.com/docs
@@ -354,6 +363,7 @@ For issues:
 Your Sales Companion 2.0 is now live! 🚀
 
 **URLs**
+
 - Frontend: https://salescompanion.cm
 - Backend API: https://api.salescompanion.cm
 - Health: https://api.salescompanion.cm/health

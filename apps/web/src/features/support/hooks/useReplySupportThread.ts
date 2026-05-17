@@ -20,21 +20,21 @@ export function useReplySupportThread() {
       const response = await fetch(`${backendUrl}/api/support/threads/${input.threadId}/messages`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token || ''}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token || ''}`,
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ message: input.message }),
+        body: JSON.stringify({ message: input.message })
       })
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData?.message || 'Erreur lors de l\'envoi du message')
+        throw new Error(errorData?.message || "Erreur lors de l'envoi du message")
       }
 
       return response.json()
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['support-threads'] })
-    },
+    }
   })
 }

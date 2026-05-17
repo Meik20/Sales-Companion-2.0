@@ -41,7 +41,7 @@ export default function SavedPage() {
       pushToast({
         type: 'error',
         title: t('saved.deleteError'),
-        description: error instanceof Error ? error.message : t('saved.unknownError'),
+        description: error instanceof Error ? error.message : t('saved.unknownError')
       })
     }
   }
@@ -60,7 +60,7 @@ export default function SavedPage() {
       pushToast({
         type: 'error',
         title: t('saved.deleteCompanyError'),
-        description: error instanceof Error ? error.message : t('saved.unknownError'),
+        description: error instanceof Error ? error.message : t('saved.unknownError')
       })
     }
   }
@@ -69,10 +69,7 @@ export default function SavedPage() {
 
   return (
     <AppShell>
-      <PageHeader
-        title={t('saved.title')}
-        subtitle={t('saved.subtitle')}
-      />
+      <PageHeader title={t('saved.title')} subtitle={t('saved.subtitle')} />
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
         {/* Saved Companies Section */}
@@ -84,7 +81,9 @@ export default function SavedPage() {
           {savedCompaniesQuery.isError ? (
             <ErrorState description={t('saved.errorLoadCompanies')} />
           ) : null}
-          {!savedCompaniesQuery.isLoading && !savedCompaniesQuery.isError && companyItems.length === 0 ? (
+          {!savedCompaniesQuery.isLoading &&
+          !savedCompaniesQuery.isError &&
+          companyItems.length === 0 ? (
             <EmptyState
               title={t('saved.noCompany')}
               description={t('saved.noCompanyDesc')}
@@ -99,13 +98,15 @@ export default function SavedPage() {
         {/* Saved Searches Section */}
         <DataCard
           title={t('saved.mySearches')}
-          subtitle={searchItems.length ? `${searchItems.length} ${t('saved.searchesSaved')}` : undefined}
+          subtitle={
+            searchItems.length ? `${searchItems.length} ${t('saved.searchesSaved')}` : undefined
+          }
         >
           {savedSearchesQuery.isLoading ? <LoadingState /> : null}
-          {savedSearchesQuery.isError ? (
-            <ErrorState description={t('saved.errorLoad')} />
-          ) : null}
-          {!savedSearchesQuery.isLoading && !savedSearchesQuery.isError && searchItems.length === 0 ? (
+          {savedSearchesQuery.isError ? <ErrorState description={t('saved.errorLoad')} /> : null}
+          {!savedSearchesQuery.isLoading &&
+          !savedSearchesQuery.isError &&
+          searchItems.length === 0 ? (
             <EmptyState
               title={t('saved.noSearch')}
               description={t('saved.noSearchDesc')}
@@ -113,7 +114,11 @@ export default function SavedPage() {
             />
           ) : null}
           {searchItems.length > 0 ? (
-            <SavedSearchesList items={searchItems} onRestore={handleRestoreSearch} onDelete={handleDeleteSearch} />
+            <SavedSearchesList
+              items={searchItems}
+              onRestore={handleRestoreSearch}
+              onDelete={handleDeleteSearch}
+            />
           ) : null}
         </DataCard>
       </div>

@@ -31,7 +31,7 @@ export const pipelineService = {
 
     return snapshot.docs.map((doc) => ({
       id: doc.id,
-      ...doc.data(),
+      ...doc.data()
     }))
   },
 
@@ -44,7 +44,7 @@ export const pipelineService = {
 
     return snapshot.docs.map((doc) => ({
       id: doc.id,
-      ...doc.data(),
+      ...doc.data()
     }))
   },
 
@@ -56,7 +56,7 @@ export const pipelineService = {
     }
 
     const data = doc.data()
-    
+
     // Verify ownership or manager access
     if (data?.userId !== userId && data?.managerUid !== userId) {
       throw new Error('Unauthorized')
@@ -64,7 +64,7 @@ export const pipelineService = {
 
     return {
       id: doc.id,
-      ...data,
+      ...data
     }
   },
 
@@ -85,7 +85,7 @@ export const pipelineService = {
       notes: input.notes || null,
       nextFollowUp: input.nextFollowUp || null,
       createdAt: Timestamp.now(),
-      updatedAt: Timestamp.now(),
+      updatedAt: Timestamp.now()
     }
 
     await docRef.set(itemData)
@@ -101,7 +101,7 @@ export const pipelineService = {
     }
 
     const data = doc.data()
-    
+
     // Verify ownership or manager access
     if (data?.userId !== input.userId && data?.managerUid !== input.userId) {
       throw new Error('Unauthorized')
@@ -109,7 +109,7 @@ export const pipelineService = {
 
     const updateData = {
       ...input.data,
-      updatedAt: Timestamp.now(),
+      updatedAt: Timestamp.now()
     }
 
     await doc.ref.update(updateData)
@@ -117,7 +117,7 @@ export const pipelineService = {
     const updated = await doc.ref.get()
     return {
       id: updated.id,
-      ...updated.data(),
+      ...updated.data()
     }
   },
 
@@ -129,7 +129,7 @@ export const pipelineService = {
     }
 
     const data = doc.data()
-    
+
     // Verify ownership or manager access
     if (data?.userId !== userId && data?.managerUid !== userId) {
       throw new Error('Unauthorized')
@@ -141,17 +141,14 @@ export const pipelineService = {
   },
 
   async getPipelineStats(userId: string) {
-    const snapshot = await adminDb
-      .collection('pipeline')
-      .where('userId', '==', userId)
-      .get()
+    const snapshot = await adminDb.collection('pipeline').where('userId', '==', userId).get()
 
     const stats = {
       total: snapshot.size,
       prospection: 0,
       negotiation: 0,
       conclusion: 0,
-      lost: 0,
+      lost: 0
     }
 
     snapshot.forEach((doc) => {
@@ -177,7 +174,7 @@ export const pipelineService = {
       negotiation: 0,
       conclusion: 0,
       lost: 0,
-      conversionRate: 0,
+      conversionRate: 0
     }
 
     snapshot.forEach((doc) => {
@@ -188,9 +185,8 @@ export const pipelineService = {
       else if (status === 'lost') stats.lost++
     })
 
-    stats.conversionRate =
-      stats.total > 0 ? Math.round((stats.conclusion / stats.total) * 100) : 0
+    stats.conversionRate = stats.total > 0 ? Math.round((stats.conclusion / stats.total) * 100) : 0
 
     return stats
-  },
+  }
 }

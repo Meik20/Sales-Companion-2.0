@@ -20,17 +20,15 @@ export function useUpdateAdminUser() {
       const response = await fetch(`${backendUrl}/api/admin/users/${input.uid}`, {
         method: 'PATCH',
         headers: {
-          'Authorization': `Bearer ${token || ''}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token || ''}`,
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify(input.data),
+        body: JSON.stringify(input.data)
       })
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
-        throw new Error(
-          errorData?.message || `Erreur lors de la mise à jour (${response.status})`
-        )
+        throw new Error(errorData?.message || `Erreur lors de la mise à jour (${response.status})`)
       }
 
       return response.json()
@@ -38,6 +36,6 @@ export function useUpdateAdminUser() {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['admin-users'] })
       await queryClient.invalidateQueries({ queryKey: ['admin-stats'] })
-    },
+    }
   })
 }

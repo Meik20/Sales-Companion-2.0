@@ -20,8 +20,8 @@ export function useCompanyStats() {
 
       const response = await fetch(`${backendUrl}/api/admin/company-stats`, {
         headers: {
-          'Authorization': `Bearer ${token || ''}`,
-        },
+          Authorization: `Bearer ${token || ''}`
+        }
       })
 
       if (!response.ok) {
@@ -30,6 +30,6 @@ export function useCompanyStats() {
 
       return response.json() as Promise<CompanyStats>
     },
-    enabled: !!user?.uid,
+    enabled: !!user?.uid
   })
 }

@@ -3,14 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { db } from '@/lib/firebase'
-import {
-  collection,
-  query,
-  where,
-  onSnapshot,
-  doc,
-  getDoc,
-} from 'firebase/firestore'
+import { collection, query, where, onSnapshot, doc, getDoc } from 'firebase/firestore'
 
 export type TeamMember = {
   uid: string
@@ -50,11 +43,11 @@ export function useTeamMembers() {
 
   useEffect(() => {
     // ── SECURITY: Strict validation of current user before proceeding
-    if (!user?.uid) { 
+    if (!user?.uid) {
       setMembers([])
       setIsError(false)
       setIsLoading(false)
-      return 
+      return
     }
 
     // ── Capture manager UID once to ensure consistent reference
@@ -65,7 +58,7 @@ export function useTeamMembers() {
 
     // ── State for each source ──────────────────────────────────────────────
     let accessesMap: Record<string, TeamMember> = {}
-    let usersMap:    Record<string, Partial<TeamMember>> = {}
+    let usersMap: Record<string, Partial<TeamMember>> = {}
     let settled = false
 
     function merge() {
@@ -89,24 +82,24 @@ export function useTeamMembers() {
         if (byEmail[key]) {
           byEmail[key] = {
             ...byEmail[key],
-            uid:       uid,
-            name:      u.name      || byEmail[key].name,
-            email:     u.email     || byEmail[key].email,
-            active:    (u.active ?? byEmail[key].active),
+            uid: uid,
+            name: u.name || byEmail[key].name,
+            email: u.email || byEmail[key].email,
+            active: u.active ?? byEmail[key].active,
             dailyUsed: u.dailyUsed ?? byEmail[key].dailyUsed,
-            dailyLimit:u.dailyLimit ?? byEmail[key].dailyLimit,
+            dailyLimit: u.dailyLimit ?? byEmail[key].dailyLimit
           }
         } else {
           // User exists in `users` but not in team_accesses (edge case)
           byEmail[key] = {
             uid,
-            email:     u.email     ?? '',
-            name:      u.name      ?? '',
-            role:      'member',
+            email: u.email ?? '',
+            name: u.name ?? '',
+            role: 'member',
             managerUid: managerUid,
-            active:    u.active    ?? false,
+            active: u.active ?? false,
             dailyUsed: u.dailyUsed ?? 0,
-            dailyLimit:u.dailyLimit ?? 100,
+            dailyLimit: u.dailyLimit ?? 100
           }
         }
       }
@@ -118,14 +111,14 @@ export function useTeamMembers() {
       })
 
       setMembers(list)
-      if (!settled) { settled = true; setIsLoading(false) }
+      if (!settled) {
+        settled = true
+        setIsLoading(false)
+      }
     }
 
     // ── Listener 1 : team_accesses ─────────────────────────────────────────
-    const qAccesses = query(
-      collection(db, 'team_accesses'),
-      where('managerUid', '==', managerUid)
-    )
+    const qAccesses = query(collection(db, 'team_accesses'), where('managerUid', '==', managerUid))
     const unsubAccesses = onSnapshot(
       qAccesses,
       (snap) => {
@@ -134,12 +127,10 @@ export function useTeamMembers() {
           const data = d.data()
           // A member is "active" if activated===true OR status==='active'
           const isActive =
-            data.activated === true ||
-            data.status    === 'active' ||
-            data.active    === true
+            data.activated === true || data.status === 'active' || data.active === true
 
-          const fullName = [data.firstname, data.lastname]
-            .filter(Boolean).join(' ') || data.name || ''
+          const fullName =
+            [data.firstname, data.lastname].filter(Boolean).join(' ') || data.name || ''
 
           const uid = data.firebaseUid || d.id
 
@@ -148,14 +139,14 @@ export function useTeamMembers() {
 
           accessesMap[uid] = {
             uid,
-            accessId:  d.id,
-            email:     data.email      ?? '',
-            name:      fullName,
-            role:      'member',
+            accessId: d.id,
+            email: data.email ?? '',
+            name: fullName,
+            role: 'member',
             managerUid: managerUid,
-            active:    isActive,
+            active: isActive,
             dailyUsed: currentDailyUsed,
-            dailyLimit: data.dailyLimit ?? 100,
+            dailyLimit: data.dailyLimit ?? 100
           }
         })
         merge()
@@ -168,10 +159,7 @@ export function useTeamMembers() {
     )
 
     // ── Listener 2 : users ─────────────────────────────────────────────────
-    const qUsers = query(
-      collection(db, 'users'),
-      where('managerUid', '==', managerUid)
-    )
+    const qUsers = query(collection(db, 'users'), where('managerUid', '==', managerUid))
     const unsubUsers = onSnapshot(
       qUsers,
       (snap) => {
@@ -179,21 +167,19 @@ export function useTeamMembers() {
         snap.docs.forEach((d) => {
           const data = d.data()
           const isActive =
-            data.activated === true ||
-            data.active    === true  ||
-            data.status    === 'active'
+            data.activated === true || data.active === true || data.status === 'active'
 
           const today = new Date().toISOString().split('T')[0]
           const currentDailyUsed = data.lastResetDate === today ? (data.dailyUsed ?? 0) : 0
 
           usersMap[d.id] = {
-            uid:       d.id,
-            email:     data.email     ?? '',
-            name:      data.name      ?? '',
-            active:    isActive,
+            uid: d.id,
+            email: data.email ?? '',
+            name: data.name ?? '',
+            active: isActive,
             dailyUsed: currentDailyUsed,
             dailyLimit: data.dailyLimit ?? 100,
-            managerUid: data.managerUid ?? managerUid,
+            managerUid: data.managerUid ?? managerUid
           }
         })
         merge()
@@ -218,6 +204,6 @@ export function useActiveTeamMembers() {
   const result = useTeamMembers()
   return {
     ...result,
-    data: result.data.filter((m) => m.active),
+    data: result.data.filter((m) => m.active)
   }
 }

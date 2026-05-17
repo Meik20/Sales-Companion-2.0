@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const memberId = searchParams.get('memberId') || null
     const fromDate = searchParams.get('from') ? new Date(searchParams.get('from')!) : null
-    const toDate   = searchParams.get('to')   ? new Date(searchParams.get('to')! + 'T23:59:59Z') : null
+    const toDate = searchParams.get('to') ? new Date(searchParams.get('to')! + 'T23:59:59Z') : null
 
     // ── Fetch team members to resolve missing names ──────────────────────
     const membersSnap = await adminDb
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
       const d = doc.data()
       membersMap.set(doc.id, {
         name: d.name || d.email || doc.id,
-        accessId: d.teamAccessId || '',
+        accessId: d.teamAccessId || ''
       })
     })
 
@@ -58,10 +58,7 @@ export async function GET(request: NextRequest) {
       .where('managerUid', '==', managerUid)
       .get()
 
-    const ownSnap = await adminDb
-      .collection('pipeline')
-      .where('userId', '==', managerUid)
-      .get()
+    const ownSnap = await adminDb.collection('pipeline').where('userId', '==', managerUid).get()
 
     const seen = new Set<string>()
     type RawItem = {
@@ -103,7 +100,7 @@ export async function GET(request: NextRequest) {
             notes: d.notes,
             nextFollowUp: d.nextFollowUp,
             createdAt: d.createdAt?.toDate?.()?.toISOString() ?? null,
-            updatedAt: d.updatedAt?.toDate?.()?.toISOString() ?? null,
+            updatedAt: d.updatedAt?.toDate?.()?.toISOString() ?? null
           })
         }
       })
@@ -133,9 +130,9 @@ export async function GET(request: NextRequest) {
     // ── Normalize status labels ───────────────────────────────────────────
     const normalizeStatus = (s?: string) => {
       if (!s) return ''
-      if (['prospection', 'prospect'].includes(s))      return 'Prospection'
-      if (['negociation', 'negotiation'].includes(s))   return 'Négociation'
-      if (['conclue', 'conclusion'].includes(s))        return 'Conclue'
+      if (['prospection', 'prospect'].includes(s)) return 'Prospection'
+      if (['negociation', 'negotiation'].includes(s)) return 'Négociation'
+      if (['conclue', 'conclusion'].includes(s)) return 'Conclue'
       return s
     }
 
@@ -152,16 +149,16 @@ export async function GET(request: NextRequest) {
 
     const byMember: Record<string, MemberStat> = {}
     for (const item of filtered) {
-      const uid  = item.assignedTo ?? '__manager__'
-      
+      const uid = item.assignedTo ?? '__manager__'
+
       let name = item.memberName
-      let id   = item.memberAccessId
+      let id = item.memberAccessId
 
       if (!name || !id) {
         if (uid !== '__manager__' && uid !== managerUid) {
           const m = membersMap.get(uid)
           name = name || m?.name || uid
-          id   = id || m?.accessId || ''
+          id = id || m?.accessId || ''
         } else {
           name = 'Manager'
           id = ''
@@ -176,7 +173,7 @@ export async function GET(request: NextRequest) {
           prospection: 0,
           negociation: 0,
           conclue: 0,
-          conversionRate: '0%',
+          conversionRate: '0%'
         }
       }
 
@@ -191,9 +188,8 @@ export async function GET(request: NextRequest) {
 
     // Compute conversion rate (conclue / total)
     for (const stat of Object.values(byMember)) {
-      stat.conversionRate = stat.total > 0
-        ? `${Math.round((stat.conclue / stat.total) * 100)}%`
-        : '0%'
+      stat.conversionRate =
+        stat.total > 0 ? `${Math.round((stat.conclue / stat.total) * 100)}%` : '0%'
     }
 
     // ── Build CSV ────────────────────────────────────────────────────────
@@ -205,7 +201,7 @@ export async function GET(request: NextRequest) {
       'Prospection',
       'Négociation',
       'Conclue',
-      'Taux conversion',
+      'Taux conversion'
     ]
 
     const summaryRows = Object.values(byMember).map((s) => [
@@ -215,7 +211,7 @@ export async function GET(request: NextRequest) {
       String(s.prospection),
       String(s.negociation),
       String(s.conclue),
-      s.conversionRate,
+      s.conversionRate
     ])
 
     // Sheet 2 — Detailed items
@@ -230,7 +226,7 @@ export async function GET(request: NextRequest) {
       'Email',
       'Note',
       'Prochain suivi',
-      'Date ajout',
+      'Date ajout'
     ]
 
     const detailRows = filtered.map((i) => {
@@ -242,7 +238,7 @@ export async function GET(request: NextRequest) {
         if (uid !== '__manager__' && uid !== managerUid) {
           const m = membersMap.get(uid)
           name = name || m?.name || uid
-          id   = id || m?.accessId || ''
+          id = id || m?.accessId || ''
         } else {
           name = 'Manager'
           id = ''
@@ -260,7 +256,7 @@ export async function GET(request: NextRequest) {
         i.companyEmail ?? '',
         i.notes ?? i.note ?? '',
         i.nextFollowUp ?? '',
-        i.createdAt ? new Date(i.createdAt).toLocaleDateString('fr-FR') : '',
+        i.createdAt ? new Date(i.createdAt).toLocaleDateString('fr-FR') : ''
       ]
     })
 
@@ -284,7 +280,7 @@ export async function GET(request: NextRequest) {
       '',
       '=== DÉTAIL DES PROSPECTS ===',
       rowToCsv(detailHeader),
-      ...detailRows.map(rowToCsv),
+      ...detailRows.map(rowToCsv)
     ]
 
     // Force unaccented English characters for maximum compatibility
@@ -292,9 +288,9 @@ export async function GET(request: NextRequest) {
     const unaccentedCsvString = rawCsvString.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
 
     // Build a proper UTF-8 BOM + content buffer
-    const bomBytes     = Buffer.from([0xef, 0xbb, 0xbf])           // UTF-8 BOM
+    const bomBytes = Buffer.from([0xef, 0xbb, 0xbf]) // UTF-8 BOM
     const contentBytes = Buffer.from(unaccentedCsvString, 'utf-8') // CSV body
-    const csvBuffer    = Buffer.concat([bomBytes, contentBytes])
+    const csvBuffer = Buffer.concat([bomBytes, contentBytes])
 
     // filename with date range
     const today = new Date().toISOString().slice(0, 10)
@@ -305,8 +301,8 @@ export async function GET(request: NextRequest) {
       headers: {
         'Content-Type': 'text/csv; charset=utf-8',
         'Content-Disposition': `attachment; filename="${filename}"`,
-        'X-Content-Type-Options': 'nosniff',
-      },
+        'X-Content-Type-Options': 'nosniff'
+      }
     })
   } catch (error) {
     console.error('[pipeline/export GET]', error)

@@ -49,10 +49,7 @@ export function mapRowToCompany(
   }
 }
 
-export function buildCompanyLookupKey(company: {
-  raisonSociale: string
-  niu?: string | null
-}) {
+export function buildCompanyLookupKey(company: { raisonSociale: string; niu?: string | null }) {
   const niu = company.niu?.trim()
   if (niu) return `niu:${niu.toLowerCase()}`
   return `raisonSociale:${company.raisonSociale.trim().toLowerCase()}`

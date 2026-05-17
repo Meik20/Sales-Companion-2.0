@@ -7,9 +7,9 @@ vi.mock('@/hooks/useCurrentUser', () => ({
   useCurrentUser: () => ({
     user: {
       uid: 'test-user-id',
-      getIdToken: vi.fn().mockResolvedValue('test-token'),
-    },
-  }),
+      getIdToken: vi.fn().mockResolvedValue('test-token')
+    }
+  })
 }))
 
 describe('useSavedSearches', () => {
@@ -21,9 +21,7 @@ describe('useSavedSearches', () => {
   })
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   )
 
   it('should fetch saved searches successfully', async () => {
@@ -33,13 +31,13 @@ describe('useSavedSearches', () => {
         userId: 'test-user-id',
         label: 'Tech Companies',
         filters: { sector: 'technology' },
-        resultCount: 50,
-      },
+        resultCount: 50
+      }
     ]
 
     global.fetch = vi.fn().mockResolvedValueOnce({
       ok: true,
-      json: async () => mockSearches,
+      json: async () => mockSearches
     })
 
     const { result } = renderHook(() => useSavedSearches(), { wrapper })
@@ -55,7 +53,7 @@ describe('useSavedSearches', () => {
   it('should handle empty searches list', async () => {
     global.fetch = vi.fn().mockResolvedValueOnce({
       ok: true,
-      json: async () => [],
+      json: async () => []
     })
 
     const { result } = renderHook(() => useSavedSearches(), { wrapper })

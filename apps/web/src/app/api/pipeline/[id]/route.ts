@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 
 async function getAdminModules() {
@@ -6,10 +6,7 @@ async function getAdminModules() {
   return { adminDb, adminAuth }
 }
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
     const { adminDb, adminAuth } = await getAdminModules()
@@ -40,10 +37,7 @@ export async function GET(
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
     const { adminDb, adminAuth } = await getAdminModules()

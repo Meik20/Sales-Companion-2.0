@@ -7,17 +7,17 @@ import { ScIcon } from '@/components/ui/ScIcon'
 import { colors } from '@/styles/tokens'
 
 const planBadge: Record<string, 'default' | 'info' | 'success' | 'gold'> = {
-  free:       'default',
-  starter:    'info',
-  pro:        'info',
-  enterprise: 'gold',
+  free: 'default',
+  starter: 'info',
+  pro: 'info',
+  enterprise: 'gold'
 }
 
 const roleLabelKeys: Record<string, string> = {
-  admin:       'profile.roles.admin',
-  manager:     'profile.roles.manager',
-  member:      'profile.roles.member',
-  independent: 'profile.roles.independent',
+  admin: 'profile.roles.admin',
+  manager: 'profile.roles.manager',
+  member: 'profile.roles.member',
+  independent: 'profile.roles.independent'
 }
 
 export function ProfileCard() {
@@ -36,11 +36,11 @@ export function ProfileCard() {
 
   if (!user) return null
 
-  const usagePercent = user.dailyLimit > 0
-    ? Math.round((user.dailyUsed / user.dailyLimit) * 100)
-    : 0
+  const usagePercent =
+    user.dailyLimit > 0 ? Math.round((user.dailyUsed / user.dailyLimit) * 100) : 0
 
-  const usageColor = usagePercent > 80 ? '#f87171' : usagePercent > 60 ? '#fbbf24' : 'var(--color-primary)'
+  const usageColor =
+    usagePercent > 80 ? '#f87171' : usagePercent > 60 ? '#fbbf24' : 'var(--color-primary)'
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -62,7 +62,7 @@ export function ProfileCard() {
               flexShrink: 0,
               fontSize: 24,
               fontWeight: 800,
-              fontFamily: 'inherit',
+              fontFamily: 'inherit'
             }}
           >
             {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || '?'}
@@ -70,17 +70,29 @@ export function ProfileCard() {
 
           {/* Infos */}
           <div style={{ flex: 1 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 6 }}>
-              <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: colors.text, fontFamily: 'inherit' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                flexWrap: 'wrap',
+                marginBottom: 6
+              }}
+            >
+              <h2
+                style={{
+                  margin: 0,
+                  fontSize: 20,
+                  fontWeight: 800,
+                  color: colors.text,
+                  fontFamily: 'inherit'
+                }}
+              >
                 {user.name || t('profile.defaultName')}
               </h2>
-              <Badge variant={planBadge[user.plan] ?? 'default'}>
-                {user.plan?.toUpperCase()}
-              </Badge>
+              <Badge variant={planBadge[user.plan] ?? 'default'}>{user.plan?.toUpperCase()}</Badge>
             </div>
-            <p style={{ margin: 0, fontSize: 13, color: colors.textMid }}>
-              {user.email}
-            </p>
+            <p style={{ margin: 0, fontSize: 13, color: colors.textMid }}>{user.email}</p>
             <p style={{ margin: '4px 0 0', fontSize: 12, color: colors.textDim }}>
               {t(roleLabelKeys[user.role] as any) || user.role}
             </p>
@@ -111,7 +123,15 @@ export function ProfileCard() {
       <Panel>
         <div style={{ marginBottom: 10 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-            <span style={{ fontSize: 12, fontWeight: 600, color: colors.textMid, textTransform: 'uppercase', letterSpacing: '.04em' }}>
+            <span
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                color: colors.textMid,
+                textTransform: 'uppercase',
+                letterSpacing: '.04em'
+              }}
+            >
               {t('profile.dailyQuotaLabel')}
             </span>
             <span style={{ fontSize: 12, color: usageColor, fontWeight: 600 }}>
@@ -123,7 +143,7 @@ export function ProfileCard() {
               height: 6,
               background: colors.bg3,
               borderRadius: 999,
-              overflow: 'hidden',
+              overflow: 'hidden'
             }}
           >
             <div
@@ -132,7 +152,7 @@ export function ProfileCard() {
                 width: `${usagePercent}%`,
                 background: usageColor,
                 borderRadius: 999,
-                transition: 'width 600ms ease',
+                transition: 'width 600ms ease'
               }}
             />
           </div>

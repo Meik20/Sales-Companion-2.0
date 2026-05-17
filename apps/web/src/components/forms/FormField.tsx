@@ -18,21 +18,15 @@ export function FormField({ label, children, error, hint, required }: Props) {
           fontWeight: 600,
           color: colors.textMid,
           letterSpacing: '.04em',
-          textTransform: 'uppercase',
+          textTransform: 'uppercase'
         }}
       >
         {label}
-        {required ? (
-          <span style={{ color: '#f87171', marginLeft: 3 }}>*</span>
-        ) : null}
+        {required ? <span style={{ color: '#f87171', marginLeft: 3 }}>*</span> : null}
       </label>
       {children}
-      {error ? (
-        <span style={{ fontSize: 12, color: '#f87171' }}>{error}</span>
-      ) : null}
-      {hint && !error ? (
-        <span style={{ fontSize: 12, color: colors.textDim }}>{hint}</span>
-      ) : null}
+      {error ? <span style={{ fontSize: 12, color: '#f87171' }}>{error}</span> : null}
+      {hint && !error ? <span style={{ fontSize: 12, color: colors.textDim }}>{hint}</span> : null}
     </div>
   )
 }

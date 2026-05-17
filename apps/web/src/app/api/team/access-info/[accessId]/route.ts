@@ -25,10 +25,7 @@ export async function GET(
     }
 
     if (!snap || !snap.exists) {
-      return NextResponse.json(
-        { error: "Lien d'activation invalide ou expiré." },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: "Lien d'activation invalide ou expiré." }, { status: 404 })
     }
 
     const data = snap.data()!
@@ -43,7 +40,7 @@ export async function GET(
 
     if (data.status === 'revoked') {
       return NextResponse.json(
-        { error: "Cet accès a été révoqué. Contactez votre manager." },
+        { error: 'Cet accès a été révoqué. Contactez votre manager.' },
         { status: 403 }
       )
     }
@@ -52,11 +49,11 @@ export async function GET(
     return NextResponse.json({
       accessId,
       accessLabel: data.accessLabel ?? accessId,
-      firstname:   data.firstname  ?? data.firstName  ?? '',
-      lastname:    data.lastname   ?? data.lastName   ?? '',
-      company:     data.company    ?? '',
-      status:      data.status     ?? 'pending',
-      email:       data.email      ?? null,
+      firstname: data.firstname ?? data.firstName ?? '',
+      lastname: data.lastname ?? data.lastName ?? '',
+      company: data.company ?? '',
+      status: data.status ?? 'pending',
+      email: data.email ?? null
     })
   } catch (error) {
     console.error('[access-info] Error:', error)

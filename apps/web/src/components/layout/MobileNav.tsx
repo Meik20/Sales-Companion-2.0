@@ -83,7 +83,15 @@ export function MobileNav() {
     document.head.appendChild(style)
   }
 
-  const NavItem = ({ href, icon, label }: { href: string; icon: React.ReactNode; label: string }) => {
+  const NavItem = ({
+    href,
+    icon,
+    label
+  }: {
+    href: string
+    icon: React.ReactNode
+    label: string
+  }) => {
     const active = pathname === href || (href !== '/' && pathname.startsWith(href))
 
     return (
@@ -113,14 +121,20 @@ export function MobileNav() {
         WebkitOverflowScrolling: 'touch',
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
         boxShadow: '0 -2px 10px rgba(0, 0, 0, 0.06)',
-        zIndex: 1000,
+        zIndex: 1000
       }}
     >
       <NavItem
         href={routes.search}
         label={t('header.search')}
         icon={
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <circle cx="11" cy="11" r="8" />
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
@@ -130,7 +144,13 @@ export function MobileNav() {
         href={routes.pipeline}
         label={t('sidebar.pipeline')}
         icon={
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
             <circle cx="9" cy="7" r="4" />
             <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
@@ -142,7 +162,13 @@ export function MobileNav() {
         href={routes.saved}
         label={t('sidebar.saved')}
         icon={
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
           </svg>
         }
@@ -152,7 +178,13 @@ export function MobileNav() {
           href={user.role === 'manager' ? routes.team : routes.admin}
           label={user.role === 'manager' ? t('sidebar.team') : t('sidebar.admin')}
           icon={
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
               <circle cx="9" cy="7" r="4" />
               <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
@@ -165,7 +197,13 @@ export function MobileNav() {
         href={routes.ai}
         label={t('header.aiAssistant')}
         icon={
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <circle cx="12" cy="12" r="1" />
             <circle cx="19" cy="12" r="1" />
             <circle cx="5" cy="12" r="1" />
@@ -179,7 +217,13 @@ export function MobileNav() {
         href={routes.profile}
         label={t('header.profile')}
         icon={
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
             <circle cx="12" cy="7" r="4" />
           </svg>

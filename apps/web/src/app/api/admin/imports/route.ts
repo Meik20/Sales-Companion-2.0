@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { adminDb, adminAuth } from '@/lib/firebase-admin'
 import ExcelJS from 'exceljs'
@@ -34,7 +34,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ items, total, page, pageSize })
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : 'unknown'
-    if (msg === 'unauthenticated') return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+    if (msg === 'unauthenticated')
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     if (msg === 'forbidden') return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
     console.error('Imports GET error:', error)
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
@@ -59,7 +60,8 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ success: true })
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : 'unknown'
-    if (msg === 'unauthenticated') return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+    if (msg === 'unauthenticated')
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     if (msg === 'forbidden') return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
     console.error('Imports DELETE error:', error)
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
@@ -100,59 +102,62 @@ export async function POST(request: NextRequest) {
     }
 
     if (rows.length > 3000) {
-      return NextResponse.json({ error: `${rows.length} lignes détectées. Maximum 3000 par lot.` }, { status: 400 })
+      return NextResponse.json(
+        { error: `${rows.length} lignes détectées. Maximum 3000 par lot.` },
+        { status: 400 }
+      )
     }
 
     // ── Column mapping (normalisation vers champs Firestore) ──
     const COLUMN_MAP: Record<string, string> = {
-      'RAISON_SOCIALE': 'raisonSociale',
-      'RAISONSOCIALE': 'raisonSociale',
-      'NOM_OU_RAISON_SOCIALE': 'raisonSociale',
-      'NOM_RAISON_SOCIALE': 'raisonSociale',
-      'NOM_RAISON_SOC': 'raisonSociale',
-      'NOM': 'raisonSociale',
-      'DENOMINATION': 'raisonSociale',
-      'COMPANY_NAME': 'raisonSociale',
-      'COMPANY': 'raisonSociale',
-      'NIU': 'niu',
-      'N_I_U': 'niu',
-      'N_U_I': 'niu',
-      'NUI': 'niu',
-      'IDENTIFIANT_FISCAL': 'niu',
-      'SIGLE': 'sigle',
-      'ABBREVIATION': 'sigle',
-      'ACTIVITE_PRINCIPALE': 'sector',
-      'ACTIVITEPRINCIPALE': 'sector',
-      'ACTIVITE': 'sector',
-      'SECTEUR': 'sector',
-      'SECTEUR_DACTIVITE': 'sector',
-      'SECTEUR_D_ACTIVITE': 'sector',
-      'CENTRE_DE_RATTACHEMENT': 'region',
-      'CENTRE_RATTACHEMENT': 'region',
-      'REGION': 'region',
-      'VILLE': 'city',
-      'CITY': 'city',
-      'TELEPHONE': 'telephone',
-      'TEL': 'telephone',
-      'PHONE': 'telephone',
-      'MOBILE': 'telephone',
-      'EMAIL': 'email',
-      'MAIL': 'email',
-      'DIRIGEANT': 'dirigeant',
-      'RESPONSABLE': 'dirigeant',
-      'MANAGER': 'dirigeant',
-      'RCCM': 'rccm',
-      'N_RCCM': 'rccm',
-      'ADRESSE': 'adresse',
-      'ADDRESS': 'adresse',
-      'BP': 'bp',
-      'BOITE_POSTALE': 'bp',
-      'PO_BOX': 'bp',
-      'CAPITAL': 'capital',
-      'DATE_CREATION': 'dateCreation',
-      'FORME_JURIDIQUE': 'formeJuridique',
-      'REGIME': 'regime',
-      'REGIME_FISCAL': 'regime',
+      RAISON_SOCIALE: 'raisonSociale',
+      RAISONSOCIALE: 'raisonSociale',
+      NOM_OU_RAISON_SOCIALE: 'raisonSociale',
+      NOM_RAISON_SOCIALE: 'raisonSociale',
+      NOM_RAISON_SOC: 'raisonSociale',
+      NOM: 'raisonSociale',
+      DENOMINATION: 'raisonSociale',
+      COMPANY_NAME: 'raisonSociale',
+      COMPANY: 'raisonSociale',
+      NIU: 'niu',
+      N_I_U: 'niu',
+      N_U_I: 'niu',
+      NUI: 'niu',
+      IDENTIFIANT_FISCAL: 'niu',
+      SIGLE: 'sigle',
+      ABBREVIATION: 'sigle',
+      ACTIVITE_PRINCIPALE: 'sector',
+      ACTIVITEPRINCIPALE: 'sector',
+      ACTIVITE: 'sector',
+      SECTEUR: 'sector',
+      SECTEUR_DACTIVITE: 'sector',
+      SECTEUR_D_ACTIVITE: 'sector',
+      CENTRE_DE_RATTACHEMENT: 'region',
+      CENTRE_RATTACHEMENT: 'region',
+      REGION: 'region',
+      VILLE: 'city',
+      CITY: 'city',
+      TELEPHONE: 'telephone',
+      TEL: 'telephone',
+      PHONE: 'telephone',
+      MOBILE: 'telephone',
+      EMAIL: 'email',
+      MAIL: 'email',
+      DIRIGEANT: 'dirigeant',
+      RESPONSABLE: 'dirigeant',
+      MANAGER: 'dirigeant',
+      RCCM: 'rccm',
+      N_RCCM: 'rccm',
+      ADRESSE: 'adresse',
+      ADDRESS: 'adresse',
+      BP: 'bp',
+      BOITE_POSTALE: 'bp',
+      PO_BOX: 'bp',
+      CAPITAL: 'capital',
+      DATE_CREATION: 'dateCreation',
+      FORME_JURIDIQUE: 'formeJuridique',
+      REGIME: 'regime',
+      REGIME_FISCAL: 'regime'
     }
 
     const headers = Object.keys(rows[0] ?? {})
@@ -164,7 +169,10 @@ export async function POST(request: NextRequest) {
     })
 
     // ── Import rows into Firestore (multi-batch, max 499 ops each) ──
-    let imported = 0, updated = 0, skipped = 0, errors = 0
+    let imported = 0,
+      updated = 0,
+      skipped = 0,
+      errors = 0
     let currentBatch = adminDb.batch()
     let batchCount = 0
 
@@ -191,7 +199,10 @@ export async function POST(request: NextRequest) {
 
         // 2. Preserve ALL remaining columns as-is (sanitized key)
         headers.forEach((h) => {
-          const sanitizedKey = h.trim().replace(/[^a-zA-Z0-9_]/g, '_').toLowerCase()
+          const sanitizedKey = h
+            .trim()
+            .replace(/[^a-zA-Z0-9_]/g, '_')
+            .toLowerCase()
           if (sanitizedKey && !Object.values(COLUMN_MAP).includes(sanitizedKey as string)) {
             const val = (row[h] ?? '').trim()
             if (val && !company[sanitizedKey]) company[sanitizedKey] = val
@@ -199,11 +210,18 @@ export async function POST(request: NextRequest) {
         })
 
         // raisonSociale is mandatory
-        if (!company.raisonSociale) { skipped++; continue }
+        if (!company.raisonSociale) {
+          skipped++
+          continue
+        }
 
         // Use NIU as document ID for deduplication, or generate a stable one from name
         const niu = (company.niu as string)?.replace(/\s+/g, '').toUpperCase()
-        const nameSlug = (company.raisonSociale as string || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '_')
+        const nameSlug = ((company.raisonSociale as string) || '')
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/[^a-z0-9]/g, '_')
         const docId = niu || `name_${nameSlug}`
         const ref = adminDb.collection('companies').doc(docId)
 
@@ -223,7 +241,10 @@ export async function POST(request: NextRequest) {
         }
       } catch (rowErr) {
         errors++
-        console.error('[Admin Import] Row error:', { row: row['raisonSociale'] ?? row['NOM'] ?? '?', rowErr })
+        console.error('[Admin Import] Row error:', {
+          row: row['raisonSociale'] ?? row['NOM'] ?? '?',
+          rowErr
+        })
       }
     }
 
@@ -243,10 +264,16 @@ export async function POST(request: NextRequest) {
       status: 'completed',
       importedBy: decoded.uid,
       importedAt: new Date(),
-      columnsDetected: detectedColumns,
+      columnsDetected: detectedColumns
     })
 
-    console.log('[Admin Import] Successfully imported:', { fileName: file.name, imported, updated, skipped, errors })
+    console.log('[Admin Import] Successfully imported:', {
+      fileName: file.name,
+      imported,
+      updated,
+      skipped,
+      errors
+    })
 
     return NextResponse.json({
       total: rows.length,
@@ -254,14 +281,19 @@ export async function POST(request: NextRequest) {
       updated,
       skipped,
       errors,
-      columns_detected: detectedColumns,
+      columns_detected: detectedColumns
     })
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : 'unknown'
-    if (msg === 'unauthenticated') return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+    if (msg === 'unauthenticated')
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     if (msg === 'forbidden') return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
     console.error('Import POST error:', error)
-    console.error('Import error details:', { message: msg, errorType: error?.constructor?.name, error })
+    console.error('Import error details:', {
+      message: msg,
+      errorType: error?.constructor?.name,
+      error
+    })
     return NextResponse.json({ error: `Erreur d'import : ${msg}` }, { status: 500 })
   }
 }
@@ -313,7 +345,7 @@ function parseCSV(text: string): Record<string, string>[] {
   // Supporter : virgule, point-virgule, tabulation, pipe, tilde
   const headerLine = lines[0]!
   let sep = ','
-  
+
   // Compter les occurrences de chaque séparateur potentiel
   const separators = [',', ';', '\t', '|', '~']
   let maxCount = 0
@@ -370,4 +402,3 @@ async function parseExcel(buffer: Buffer): Promise<Record<string, string>[]> {
 
   return rows
 }
-

@@ -12,9 +12,13 @@ export function mapAuthError(error: unknown): string {
     return 'Cet email est déjà utilisé par un autre compte.'
   }
   if (errorString.includes('auth/invalid-email')) {
-    return 'L\'adresse email est invalide.'
+    return "L'adresse email est invalide."
   }
-  if (errorString.includes('auth/invalid-credential') || errorString.includes('auth/wrong-password') || errorString.includes('auth/user-not-found')) {
+  if (
+    errorString.includes('auth/invalid-credential') ||
+    errorString.includes('auth/wrong-password') ||
+    errorString.includes('auth/user-not-found')
+  ) {
     return 'Email ou mot de passe incorrect.'
   }
   if (errorString.includes('auth/weak-password')) {
@@ -27,12 +31,12 @@ export function mapAuthError(error: unknown): string {
     return 'Erreur réseau. Veuillez vérifier votre connexion internet.'
   }
   if (errorString.includes('auth/operation-not-allowed')) {
-    return 'Ce mode de connexion n\'est pas activé.'
+    return "Ce mode de connexion n'est pas activé."
   }
 
   // Fallback for generic firebase errors
   if (errorString.includes('firebase')) {
-    return 'Une erreur d\'authentification est survenue. Veuillez réessayer.'
+    return "Une erreur d'authentification est survenue. Veuillez réessayer."
   }
 
   return error.message

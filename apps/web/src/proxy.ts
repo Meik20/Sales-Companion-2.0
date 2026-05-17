@@ -3,26 +3,53 @@ import { NextRequest, NextResponse } from 'next/server'
 // ── Bot / Scraper User-Agent patterns ─────────────────────────────────────────
 const BOT_UA_PATTERNS = [
   // Generic crawlers & scrapers
-  /bot/i, /crawl/i, /spider/i, /scraper/i, /python-requests/i,
-  /node-fetch/i, /axios/i, /curl/i, /wget/i, /httpie/i,
-  /go-http-client/i, /java\/\d/i, /ruby/i, /php/i,
-  /perl/i, /libwww/i, /lwp/i, /mechanize/i,
+  /bot/i,
+  /crawl/i,
+  /spider/i,
+  /scraper/i,
+  /python-requests/i,
+  /node-fetch/i,
+  /axios/i,
+  /curl/i,
+  /wget/i,
+  /httpie/i,
+  /go-http-client/i,
+  /java\/\d/i,
+  /ruby/i,
+  /php/i,
+  /perl/i,
+  /libwww/i,
+  /lwp/i,
+  /mechanize/i,
   // Known scraping tools
-  /scrapy/i, /selenium/i, /playwright/i, /puppeteer/i, /headless/i,
-  /phantomjs/i, /jsdom/i, /cheerio/i,
+  /scrapy/i,
+  /selenium/i,
+  /playwright/i,
+  /puppeteer/i,
+  /headless/i,
+  /phantomjs/i,
+  /jsdom/i,
+  /cheerio/i,
   // SEO & indexing bots
-  /ahrefs/i, /semrush/i, /mj12bot/i, /dotbot/i, /dataforseo/i,
-  /rogerbot/i, /exabot/i, /blexbot/i,
+  /ahrefs/i,
+  /semrush/i,
+  /mj12bot/i,
+  /dotbot/i,
+  /dataforseo/i,
+  /rogerbot/i,
+  /exabot/i,
+  /blexbot/i,
   // Archives
-  /archive\.org/i, /ia_archiver/i,
+  /archive\.org/i,
+  /ia_archiver/i
 ]
 
 // ── In-memory IP rate limiter (Edge-compatible, per-instance) ─────────────────
 // Key: IP, Value: { count, resetAt }
 const ipStore = new Map<string, { count: number; resetAt: number }>()
-const API_RATE_LIMIT = 60       // max requests per window
-const API_RATE_WINDOW = 60_000  // 1 minute window (ms)
-const SEARCH_RATE_LIMIT = 10    // tighter for search endpoints
+const API_RATE_LIMIT = 60 // max requests per window
+const API_RATE_WINDOW = 60_000 // 1 minute window (ms)
+const SEARCH_RATE_LIMIT = 10 // tighter for search endpoints
 const SEARCH_RATE_WINDOW = 10_000 // 10 seconds
 
 function getClientIp(req: NextRequest): string {
@@ -58,7 +85,7 @@ export function proxy(req: NextRequest) {
   if (isBot) {
     return new NextResponse('Access denied', {
       status: 403,
-      headers: { 'Content-Type': 'text/plain' },
+      headers: { 'Content-Type': 'text/plain' }
     })
   }
 
@@ -66,33 +93,29 @@ export function proxy(req: NextRequest) {
   if (pathname.startsWith('/api/') && !ua.trim()) {
     return new NextResponse(JSON.stringify({ error: 'Forbidden' }), {
       status: 403,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json' }
     })
   }
 
   // ── 3. Rate limiting on API routes ────────────────────────────────────────
   if (pathname.startsWith('/api/')) {
     const isSearch = pathname.includes('/search')
-    const limit  = isSearch ? SEARCH_RATE_LIMIT  : API_RATE_LIMIT
+    const limit = isSearch ? SEARCH_RATE_LIMIT : API_RATE_LIMIT
     const window = isSearch ? SEARCH_RATE_WINDOW : API_RATE_WINDOW
 
     const key = `${ip}:${isSearch ? 'search' : 'api'}`
     const allowed = checkRateLimit(key, limit, window)
 
     if (!allowed) {
-      return new NextResponse(
-        JSON.stringify({ error: 'Too many requests. Please slow down.' }),
-        {
-          status: 429,
-          headers: {
-            'Content-Type': 'application/json',
-            'Retry-After': '60',
-          },
+      return new NextResponse(JSON.stringify({ error: 'Too many requests. Please slow down.' }), {
+        status: 429,
+        headers: {
+          'Content-Type': 'application/json',
+          'Retry-After': '60'
         }
-      )
+      })
     }
   }
-
 
   // ── 4. Add anti-scraping response headers ────────────────────────────────
   const response = NextResponse.next()
@@ -107,7 +130,5 @@ export default proxy
 
 export const config = {
   // Apply to all routes EXCEPT static files and Next.js internals
-  matcher: [
-    '/((?!_next/static|_next/image|favicon|manifest|icons|sw\.js|workbox).*)',
-  ],
+  matcher: ['/((?!_next/static|_next/image|favicon|manifest|icons|sw\.js|workbox).*)']
 }

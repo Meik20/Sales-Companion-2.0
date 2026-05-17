@@ -24,13 +24,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: 'Token invalide' }, { status: 401 })
     }
 
-    const snapshot = await adminDb
-      .collection('saved_companies')
-      .where('userId', '==', userId)
-      .get()
+    const snapshot = await adminDb.collection('saved_companies').where('userId', '==', userId).get()
 
     const docs = snapshot.docs.map((doc) => {
-      const data = doc.data();
+      const data = doc.data()
       return {
         id: doc.id,
         userId: data.userId,
@@ -41,18 +38,18 @@ export async function GET(request: NextRequest) {
           city: data.city,
           region: data.region,
           telephone: data.telephone,
-          email: data.email,
+          email: data.email
         },
-        savedAt: data.savedAt?.toDate?.()?.toISOString() ?? null,
-      };
+        savedAt: data.savedAt?.toDate?.()?.toISOString() ?? null
+      }
     })
 
     // Sort by savedAt desc in memory to avoid missing Firestore index errors
     docs.sort((a, b) => {
-      if (!a.savedAt) return 1;
-      if (!b.savedAt) return -1;
-      return new Date(b.savedAt).getTime() - new Date(a.savedAt).getTime();
-    });
+      if (!a.savedAt) return 1
+      if (!b.savedAt) return -1
+      return new Date(b.savedAt).getTime() - new Date(a.savedAt).getTime()
+    })
 
     return NextResponse.json({ companies: docs })
   } catch (error) {
@@ -115,7 +112,7 @@ export async function POST(request: NextRequest) {
       city: city ?? null,
       telephone: telephone ?? null,
       email: email ?? null,
-      savedAt: new Date(),
+      savedAt: new Date()
     })
 
     return NextResponse.json({ success: true, id: docRef.id })

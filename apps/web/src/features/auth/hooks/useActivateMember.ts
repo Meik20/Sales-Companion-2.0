@@ -14,17 +14,17 @@ export function useActivateMember() {
       const response = await fetch('/api/auth/activate', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify(input),
+        body: JSON.stringify(input)
       })
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData?.message || 'Erreur lors de l\'activation')
+        throw new Error(errorData?.message || "Erreur lors de l'activation")
       }
 
       return response.json()
-    },
+    }
   })
 }

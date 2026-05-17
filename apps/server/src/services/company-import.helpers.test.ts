@@ -54,7 +54,10 @@ describe('company-import.helpers', () => {
   })
 
   it('getHeaders returns merged headers', () => {
-    const rows = [{ a: 1, b: 2 }, { b: 3, c: 4 }]
+    const rows = [
+      { a: 1, b: 2 },
+      { b: 3, c: 4 }
+    ]
     const headers = getHeaders(rows)
 
     expect(headers).toContain('a')

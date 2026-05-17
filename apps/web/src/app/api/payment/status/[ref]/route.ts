@@ -8,10 +8,7 @@ import { PLANS } from '@/lib/payment-plans'
  * GET /api/payment/status/[ref]
  * Vérifie le statut d'un paiement CAMPAY et met à jour le plan si succès.
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ ref: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ ref: string }> }) {
   try {
     const { ref: externalRef } = await params
 
@@ -38,16 +35,19 @@ export async function GET(
       const planInfo = PLANS[paymentData.plan]
 
       // ── Upgrade du plan utilisateur ──────────────────────────────────────
-      await adminDb.collection('users').doc(paymentData.userId).update({
-        plan:       paymentData.plan,
-        dailyLimit: planInfo?.dailyLimit ?? 1000,
-        updatedAt:  FieldValue.serverTimestamp(),
-      })
+      await adminDb
+        .collection('users')
+        .doc(paymentData.userId)
+        .update({
+          plan: paymentData.plan,
+          dailyLimit: planInfo?.dailyLimit ?? 1000,
+          updatedAt: FieldValue.serverTimestamp()
+        })
 
       // ── Marquer la transaction comme réussie ──────────────────────────────
       await adminDb.collection('payments').doc(externalRef).update({
-        status:    'SUCCESSFUL',
-        updatedAt: FieldValue.serverTimestamp(),
+        status: 'SUCCESSFUL',
+        updatedAt: FieldValue.serverTimestamp()
       })
 
       return NextResponse.json({ status: 'SUCCESSFUL', plan: paymentData.plan })
@@ -55,8 +55,8 @@ export async function GET(
 
     if (campayStatus.status === 'FAILED') {
       await adminDb.collection('payments').doc(externalRef).update({
-        status:    'FAILED',
-        updatedAt: FieldValue.serverTimestamp(),
+        status: 'FAILED',
+        updatedAt: FieldValue.serverTimestamp()
       })
       return NextResponse.json({ status: 'FAILED' })
     }

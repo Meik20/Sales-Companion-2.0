@@ -8,7 +8,10 @@ import { CreateAssignmentForm } from '@/features/team/components/CreateAssignmen
 import { AssignmentsTable } from '@/features/team/components/AssignmentsTable'
 import { TeamAccessManager } from '@/features/team/components/TeamAccessManager'
 import { ImportProspectsForm } from '@/features/imports/components/ImportProspectsForm'
-import { ManagerProspectsList, type Prospect } from '@/features/imports/components/ManagerProspectsList'
+import {
+  ManagerProspectsList,
+  type Prospect
+} from '@/features/imports/components/ManagerProspectsList'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useTeamMembers } from '@/features/team/hooks/useTeamMembers'
 import { colors } from '@/styles/tokens'
@@ -17,20 +20,20 @@ import { useTranslation } from '@/providers/I18nProvider'
 type Tab = 'team' | 'imports'
 
 export default function TeamPage() {
-  const [activeTab, setActiveTab]           = useState<Tab>('team')
-  const [importRefresh, setImportRefresh]   = useState(0)
+  const [activeTab, setActiveTab] = useState<Tab>('team')
+  const [importRefresh, setImportRefresh] = useState(0)
   const [selectedProspects, setSelectedProspects] = useState<Prospect[]>([])
   const assignFormRef = useRef<HTMLDivElement>(null)
 
-  const { user }          = useCurrentUser()
+  const { user } = useCurrentUser()
   const { data: members = [] } = useTeamMembers()
-  const { t }             = useTranslation()
+  const { t } = useTranslation()
 
   const isManager = user?.role === 'manager'
 
   const tabs: { id: Tab; label: string; icon: string }[] = [
-    { id: 'team',    label: t('team.tabTeam'),             icon: '👥' },
-    ...(isManager ? [{ id: 'imports' as Tab, label: t('team.tabImports'), icon: '📋' }] : []),
+    { id: 'team', label: t('team.tabTeam'), icon: '👥' },
+    ...(isManager ? [{ id: 'imports' as Tab, label: t('team.tabImports'), icon: '📋' }] : [])
   ]
 
   /**
@@ -54,17 +57,18 @@ export default function TeamPage() {
 
   return (
     <AppShell>
-      <PageHeader
-        title={t('team.title')}
-        subtitle={t('team.subtitle')}
-      />
+      <PageHeader title={t('team.title')} subtitle={t('team.subtitle')} />
 
       {/* ── Onglets (managers only) ── */}
       {isManager && (
-        <div style={{
-          display: 'flex', gap: 4, marginBottom: 20,
-          borderBottom: `1px solid ${colors.border}`,
-        }}>
+        <div
+          style={{
+            display: 'flex',
+            gap: 4,
+            marginBottom: 20,
+            borderBottom: `1px solid ${colors.border}`
+          }}
+        >
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -74,9 +78,8 @@ export default function TeamPage() {
                 padding: '10px 20px',
                 border: 'none',
                 background: 'transparent',
-                borderBottom: activeTab === tab.id
-                  ? `2px solid ${colors.green}`
-                  : '2px solid transparent',
+                borderBottom:
+                  activeTab === tab.id ? `2px solid ${colors.green}` : '2px solid transparent',
                 color: activeTab === tab.id ? colors.green : colors.textMid,
                 fontWeight: activeTab === tab.id ? 700 : 500,
                 fontSize: 13,
@@ -85,19 +88,29 @@ export default function TeamPage() {
                 transition: 'all 150ms ease',
                 display: 'flex',
                 alignItems: 'center',
-                gap: 6,
+                gap: 6
               }}
             >
               {tab.icon} {tab.label}
               {/* Badge on "imports" tab when prospects are selected */}
               {tab.id === 'imports' && selectedProspects.length > 0 && (
-                <span style={{
-                  position: 'absolute', top: 4, right: 4,
-                  minWidth: 16, height: 16, borderRadius: 8,
-                  background: colors.green, color: '#fff',
-                  fontSize: 10, fontWeight: 700, lineHeight: '16px',
-                  padding: '0 4px', textAlign: 'center',
-                }}>
+                <span
+                  style={{
+                    position: 'absolute',
+                    top: 4,
+                    right: 4,
+                    minWidth: 16,
+                    height: 16,
+                    borderRadius: 8,
+                    background: colors.green,
+                    color: '#fff',
+                    fontSize: 10,
+                    fontWeight: 700,
+                    lineHeight: '16px',
+                    padding: '0 4px',
+                    textAlign: 'center'
+                  }}
+                >
                   {selectedProspects.length}
                 </span>
               )}
@@ -115,24 +128,36 @@ export default function TeamPage() {
           {/* Assignment form — receives pre-selected prospects from imports tab */}
           <div ref={assignFormRef}>
             {selectedProspects.length > 0 && (
-              <div style={{
-                padding: '10px 14px', borderRadius: 8, marginBottom: 4,
-                background: 'rgba(46,160,90,0.08)',
-                border: '1px solid rgba(46,160,90,0.2)',
-                fontSize: 12.5, color: colors.textMid,
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
-              }}>
+              <div
+                style={{
+                  padding: '10px 14px',
+                  borderRadius: 8,
+                  marginBottom: 4,
+                  background: 'rgba(46,160,90,0.08)',
+                  border: '1px solid rgba(46,160,90,0.2)',
+                  fontSize: 12.5,
+                  color: colors.textMid,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 12
+                }}
+              >
                 <span>
                   <span style={{ color: colors.green, fontWeight: 700 }}>
                     {selectedProspects.length}
-                  </span>
-                  {' '}{t('team.prospectsSelected')}
+                  </span>{' '}
+                  {t('team.prospectsSelected')}
                 </span>
                 <button
                   onClick={() => setSelectedProspects([])}
                   style={{
-                    background: 'none', border: 'none', cursor: 'pointer',
-                    fontSize: 18, color: colors.textMid, lineHeight: 1,
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: 18,
+                    color: colors.textMid,
+                    lineHeight: 1
                   }}
                   title={t('team.clearSelection')}
                 >
@@ -150,12 +175,15 @@ export default function TeamPage() {
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-
           {/* Import section */}
-          <div style={{
-            background: colors.surface, borderRadius: 14,
-            border: `1px solid ${colors.border}`, padding: 20,
-          }}>
+          <div
+            style={{
+              background: colors.surface,
+              borderRadius: 14,
+              border: `1px solid ${colors.border}`,
+              padding: 20
+            }}
+          >
             <div style={{ marginBottom: 16 }}>
               <h2 style={{ fontSize: 15, fontWeight: 700, color: colors.text, margin: '0 0 4px' }}>
                 {t('team.importTitle')}
@@ -173,13 +201,27 @@ export default function TeamPage() {
           </div>
 
           {/* Prospects list with selection */}
-          <div style={{
-            background: colors.surface, borderRadius: 14,
-            border: `1px solid ${colors.border}`, padding: 20,
-          }}>
-            <div style={{ marginBottom: 16, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+          <div
+            style={{
+              background: colors.surface,
+              borderRadius: 14,
+              border: `1px solid ${colors.border}`,
+              padding: 20
+            }}
+          >
+            <div
+              style={{
+                marginBottom: 16,
+                display: 'flex',
+                alignItems: 'flex-start',
+                justifyContent: 'space-between',
+                gap: 12
+              }}
+            >
               <div>
-                <h2 style={{ fontSize: 15, fontWeight: 700, color: colors.text, margin: '0 0 4px' }}>
+                <h2
+                  style={{ fontSize: 15, fontWeight: 700, color: colors.text, margin: '0 0 4px' }}
+                >
                   {t('team.myProspects')}
                 </h2>
                 <p style={{ fontSize: 12.5, color: colors.textMid, margin: 0 }}>
@@ -188,13 +230,26 @@ export default function TeamPage() {
               </div>
               {selectedProspects.length > 0 && (
                 <button
-                  onClick={() => { setActiveTab('team'); setTimeout(() => assignFormRef.current?.scrollIntoView({ behavior: 'smooth' }), 150) }}
+                  onClick={() => {
+                    setActiveTab('team')
+                    setTimeout(
+                      () => assignFormRef.current?.scrollIntoView({ behavior: 'smooth' }),
+                      150
+                    )
+                  }}
                   style={{
-                    flexShrink: 0, height: 34, padding: '0 14px',
-                    background: colors.green, color: '#fff',
-                    border: 'none', borderRadius: 8,
-                    fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                    fontFamily: 'inherit', whiteSpace: 'nowrap',
+                    flexShrink: 0,
+                    height: 34,
+                    padding: '0 14px',
+                    background: colors.green,
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 8,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                    whiteSpace: 'nowrap'
                   }}
                 >
                   {t('team.goToForm')}
@@ -204,7 +259,12 @@ export default function TeamPage() {
             {user?.uid && (
               <ManagerProspectsList
                 managerId={user.uid}
-                members={members.map((m) => ({ uid: m.uid, name: m.name, email: m.email, active: m.active }))}
+                members={members.map((m) => ({
+                  uid: m.uid,
+                  name: m.name,
+                  email: m.email,
+                  active: m.active
+                }))}
                 refreshTrigger={importRefresh}
                 onAssignSelection={handleAssignSelection}
               />

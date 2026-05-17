@@ -50,7 +50,10 @@
           "companyName": { "type": "string" },
           "companySector": { "type": "string" },
           "companyCity": { "type": "string" },
-          "status": { "type": "string", "enum": ["prospection", "negotiation", "conclusion", "lost"] },
+          "status": {
+            "type": "string",
+            "enum": ["prospection", "negotiation", "conclusion", "lost"]
+          },
           "notes": { "type": "string" },
           "nextFollowUp": { "type": "string", "format": "date-time" },
           "createdAt": { "type": "string", "format": "date-time" },

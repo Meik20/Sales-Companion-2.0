@@ -2,163 +2,202 @@
 
 import { FormEvent, useState, useEffect } from 'react'
 import { useTranslation } from '@/providers/I18nProvider'
-import { 
-  HardHat, 
-  ShoppingBag, 
-  Laptop, 
-  Sprout, 
-  Truck, 
-  Stethoscope, 
-  LayoutGrid 
-} from 'lucide-react'
+import { HardHat, ShoppingBag, Laptop, Sprout, Truck, Stethoscope, LayoutGrid } from 'lucide-react'
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 const REGIONS = [
-  'Adamaoua', 'Centre', 'Est', 'Extrême-Nord', 'Littoral',
-  'Nord', 'Nord-Ouest', 'Ouest', 'Sud', 'Sud-Ouest',
+  'Adamaoua',
+  'Centre',
+  'Est',
+  'Extrême-Nord',
+  'Littoral',
+  'Nord',
+  'Nord-Ouest',
+  'Ouest',
+  'Sud',
+  'Sud-Ouest'
 ]
 const REGION_KEYS: Record<string, string> = {
-  'Adamaoua':    'adamaoua',
-  'Centre':      'centre',
-  'Est':         'est',
-  'Extrême-Nord':'extremeNord',
-  'Littoral':    'littoral',
-  'Nord':        'nord',
-  'Nord-Ouest':  'nordOuest',
-  'Ouest':       'ouest',
-  'Sud':         'sud',
-  'Sud-Ouest':   'sudOuest',
+  Adamaoua: 'adamaoua',
+  Centre: 'centre',
+  Est: 'est',
+  'Extrême-Nord': 'extremeNord',
+  Littoral: 'littoral',
+  Nord: 'nord',
+  'Nord-Ouest': 'nordOuest',
+  Ouest: 'ouest',
+  Sud: 'sud',
+  'Sud-Ouest': 'sudOuest'
 }
 
 const CITIES_BY_REGION: Record<string, string[]> = {
-  'Adamaoua':    ['Ngaoundéré', 'Meiganga', 'Tibati', 'Ngaoundal', 'Banyo'],
-  'Centre':      ['Yaoundé', 'Mbalmayo', 'Bafia', 'Eséka', 'Nanga-Eboko', 'Obala', 'Monatélé'],
-  'Est':         ['Bertoua', 'Abong-Mbang', 'Batouri', 'Yokadouma', 'Dimako'],
-  'Extrême-Nord':['Maroua', 'Mokolo', 'Kousseri', 'Yagoua', 'Mora'],
-  'Littoral':    ['Douala', 'Nkongsamba', 'Edéa', 'Loum', 'Mbanga'],
-  'Nord':        ['Garoua', 'Guider', 'Pitoa', 'Lagdo', 'Ngong'],
-  'Nord-Ouest':  ['Bamenda', 'Kumbo', 'Wum', 'Mbengwi', 'Fundong'],
-  'Ouest':       ['Bafoussam', 'Dschang', 'Mbouda', 'Foumban', 'Bangangté'],
-  'Sud':         ['Ebolowa', 'Sangmélima', 'Kribi', 'Ambam', 'Lolodorf'],
-  'Sud-Ouest':   ['Buea', 'Limbe', 'Kumba', 'Mamfe', 'Tiko'],
+  Adamaoua: ['Ngaoundéré', 'Meiganga', 'Tibati', 'Ngaoundal', 'Banyo'],
+  Centre: ['Yaoundé', 'Mbalmayo', 'Bafia', 'Eséka', 'Nanga-Eboko', 'Obala', 'Monatélé'],
+  Est: ['Bertoua', 'Abong-Mbang', 'Batouri', 'Yokadouma', 'Dimako'],
+  'Extrême-Nord': ['Maroua', 'Mokolo', 'Kousseri', 'Yagoua', 'Mora'],
+  Littoral: ['Douala', 'Nkongsamba', 'Edéa', 'Loum', 'Mbanga'],
+  Nord: ['Garoua', 'Guider', 'Pitoa', 'Lagdo', 'Ngong'],
+  'Nord-Ouest': ['Bamenda', 'Kumbo', 'Wum', 'Mbengwi', 'Fundong'],
+  Ouest: ['Bafoussam', 'Dschang', 'Mbouda', 'Foumban', 'Bangangté'],
+  Sud: ['Ebolowa', 'Sangmélima', 'Kribi', 'Ambam', 'Lolodorf'],
+  'Sud-Ouest': ['Buea', 'Limbe', 'Kumba', 'Mamfe', 'Tiko']
 }
 
 const SECTORS = [
-  'Commerce', 'BTP & Construction', 'Industrie manufacturière',
-  'Agriculture & Agroalimentaire', 'Services & Conseil', 'Transport & Logistique',
-  'Hôtellerie & Restauration', 'Santé', 'Éducation & Formation',
-  'Technologies & Numérique', 'Finance & Assurance', 'Énergie & Mines',
+  'Commerce',
+  'BTP & Construction',
+  'Industrie manufacturière',
+  'Agriculture & Agroalimentaire',
+  'Services & Conseil',
+  'Transport & Logistique',
+  'Hôtellerie & Restauration',
+  'Santé',
+  'Éducation & Formation',
+  'Technologies & Numérique',
+  'Finance & Assurance',
+  'Énergie & Mines'
 ]
 const SECTOR_KEYS: Record<string, string> = {
-  'Commerce':                      'commerce',
-  'BTP & Construction':            'btp',
-  'Industrie manufacturière':      'industrie',
+  Commerce: 'commerce',
+  'BTP & Construction': 'btp',
+  'Industrie manufacturière': 'industrie',
   'Agriculture & Agroalimentaire': 'agro',
-  'Services & Conseil':            'services',
-  'Transport & Logistique':        'transport',
-  'Hôtellerie & Restauration':     'hotellerie',
-  'Santé':                         'sante',
-  'Éducation & Formation':         'education',
-  'Technologies & Numérique':      'tech',
-  'Finance & Assurance':           'finance',
-  'Énergie & Mines':               'energie',
+  'Services & Conseil': 'services',
+  'Transport & Logistique': 'transport',
+  'Hôtellerie & Restauration': 'hotellerie',
+  Santé: 'sante',
+  'Éducation & Formation': 'education',
+  'Technologies & Numérique': 'tech',
+  'Finance & Assurance': 'finance',
+  'Énergie & Mines': 'energie'
 }
 
 const QUICK_SECTORS = [
-  { labelKey: 'search.quickAll', value: '',                           icon: LayoutGrid },
-  { labelKey: 'search.btp',      value: 'BTP & Construction',         icon: HardHat },
-  { labelKey: 'search.commerce', value: 'Commerce',                   icon: ShoppingBag },
-  { labelKey: 'search.tech',     value: 'Technologies & Numérique',   icon: Laptop },
-  { labelKey: 'search.agro',     value: 'Agriculture & Agroalimentaire', icon: Sprout },
-  { labelKey: 'search.transport',value: 'Transport & Logistique',     icon: Truck },
-  { labelKey: 'search.sante',    value: 'Santé',                      icon: Stethoscope },
+  { labelKey: 'search.quickAll', value: '', icon: LayoutGrid },
+  { labelKey: 'search.btp', value: 'BTP & Construction', icon: HardHat },
+  { labelKey: 'search.commerce', value: 'Commerce', icon: ShoppingBag },
+  { labelKey: 'search.tech', value: 'Technologies & Numérique', icon: Laptop },
+  { labelKey: 'search.agro', value: 'Agriculture & Agroalimentaire', icon: Sprout },
+  { labelKey: 'search.transport', value: 'Transport & Logistique', icon: Truck },
+  { labelKey: 'search.sante', value: 'Santé', icon: Stethoscope }
 ]
 
 const CAMEROON_ZONES = [
-  { region: 'Littoral',     city: 'Douala',     lat: 4.05,  lng: 9.70  },
-  { region: 'Centre',       city: 'Yaoundé',    lat: 3.87,  lng: 11.52 },
-  { region: 'Ouest',        city: 'Bafoussam',  lat: 5.48,  lng: 10.42 },
-  { region: 'Nord-Ouest',   city: 'Bamenda',    lat: 5.96,  lng: 10.16 },
-  { region: 'Sud-Ouest',    city: 'Buea',       lat: 4.15,  lng: 9.24  },
-  { region: 'Adamaoua',     city: 'Ngaoundéré', lat: 7.33,  lng: 13.58 },
-  { region: 'Nord',         city: 'Garoua',     lat: 9.30,  lng: 13.40 },
-  { region: 'Extrême-Nord', city: 'Maroua',     lat: 10.60, lng: 14.33 },
-  { region: 'Est',          city: 'Bertoua',    lat: 4.58,  lng: 13.68 },
-  { region: 'Sud',          city: 'Ebolowa',    lat: 2.90,  lng: 11.15 },
+  { region: 'Littoral', city: 'Douala', lat: 4.05, lng: 9.7 },
+  { region: 'Centre', city: 'Yaoundé', lat: 3.87, lng: 11.52 },
+  { region: 'Ouest', city: 'Bafoussam', lat: 5.48, lng: 10.42 },
+  { region: 'Nord-Ouest', city: 'Bamenda', lat: 5.96, lng: 10.16 },
+  { region: 'Sud-Ouest', city: 'Buea', lat: 4.15, lng: 9.24 },
+  { region: 'Adamaoua', city: 'Ngaoundéré', lat: 7.33, lng: 13.58 },
+  { region: 'Nord', city: 'Garoua', lat: 9.3, lng: 13.4 },
+  { region: 'Extrême-Nord', city: 'Maroua', lat: 10.6, lng: 14.33 },
+  { region: 'Est', city: 'Bertoua', lat: 4.58, lng: 13.68 },
+  { region: 'Sud', city: 'Ebolowa', lat: 2.9, lng: 11.15 }
 ]
 
 function nearestZone(lat: number, lng: number) {
-  let best = CAMEROON_ZONES[0]; let bestDist = Infinity
+  let best = CAMEROON_ZONES[0]
+  let bestDist = Infinity
   for (const z of CAMEROON_ZONES) {
     const d = Math.hypot(lat - z.lat, lng - z.lng)
-    if (d < bestDist) { bestDist = d; best = z }
+    if (d < bestDist) {
+      bestDist = d
+      best = z
+    }
   }
   return best!
 }
 
-type Filters = { sector?: string; region?: string; city?: string; query?: string; lat?: string; lng?: string; radius?: string }
-type Props   = { initialValues?: Filters; onSubmit: (v: Filters) => void }
+type Filters = {
+  sector?: string
+  region?: string
+  city?: string
+  query?: string
+  lat?: string
+  lng?: string
+  radius?: string
+}
+type Props = { initialValues?: Filters; onSubmit: (v: Filters) => void }
 
 // ─── Component ───────────────────────────────────────────────────────────────
 export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
   const { t } = useTranslation()
-  const [query,  setQuery]  = useState(initialValues.query  ?? '')
+  const [query, setQuery] = useState(initialValues.query ?? '')
   const [sector, setSector] = useState(initialValues.sector ?? '')
   const [region, setRegion] = useState(initialValues.region ?? '')
-  const [city,   setCity]   = useState(initialValues.city   ?? '')
+  const [city, setCity] = useState(initialValues.city ?? '')
   const [showAdvanced, setShowAdvanced] = useState(false)
-  const [geoState, setGeoState]         = useState<'idle'|'loading'|'done'|'error'>('idle')
-  const [geoMsg,   setGeoMsg]           = useState('')
+  const [geoState, setGeoState] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
+  const [geoMsg, setGeoMsg] = useState('')
 
   // Cities available for the selected region
   const availableCities = region ? (CITIES_BY_REGION[region] ?? []) : []
 
   useEffect(() => {
-    setQuery(initialValues.query   ?? '')
+    setQuery(initialValues.query ?? '')
     setSector(initialValues.sector ?? '')
     setRegion(initialValues.region ?? '')
-    setCity(initialValues.city     ?? '')
+    setCity(initialValues.city ?? '')
   }, [initialValues.query, initialValues.sector, initialValues.region, initialValues.city])
 
   function handleRegionChange(r: string) {
     setRegion(r)
-    setCity('')   // always reset city when region changes
+    setCity('') // always reset city when region changes
   }
 
   function submit(overrides: Partial<Filters> = {}) {
     onSubmit({
-      query:  (overrides.query  ?? query)  || undefined,
+      query: (overrides.query ?? query) || undefined,
       sector: (overrides.sector ?? sector) || undefined,
       region: (overrides.region ?? region) || undefined,
-      city:   (overrides.city   ?? city)   || undefined,
+      city: (overrides.city ?? city) || undefined
     })
   }
 
-  function handleSubmit(e: FormEvent) { e.preventDefault(); submit() }
+  function handleSubmit(e: FormEvent) {
+    e.preventDefault()
+    submit()
+  }
 
   function handleReset() {
-    setQuery(''); setSector(''); setRegion(''); setCity('')
-    setGeoState('idle'); setGeoMsg('')
+    setQuery('')
+    setSector('')
+    setRegion('')
+    setCity('')
+    setGeoState('idle')
+    setGeoMsg('')
     onSubmit({})
   }
 
   function applyQuickSector(value: string) {
     setSector(value)
-    onSubmit({ query: query || undefined, sector: value || undefined, region: region || undefined, city: city || undefined })
+    onSubmit({
+      query: query || undefined,
+      sector: value || undefined,
+      region: region || undefined,
+      city: city || undefined
+    })
   }
 
   function handleLocateMe() {
-    if (!navigator.geolocation) { setGeoState('error'); setGeoMsg(t('search.locationNotSupported')); return }
-    setGeoState('loading'); setGeoMsg('')
+    if (!navigator.geolocation) {
+      setGeoState('error')
+      setGeoMsg(t('search.locationNotSupported'))
+      return
+    }
+    setGeoState('loading')
+    setGeoMsg('')
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const z = nearestZone(pos.coords.latitude, pos.coords.longitude)
-        setRegion(z.region); setCity(z.city)
-        setGeoState('done'); setGeoMsg(`📍 ${z.city} (${z.region})`)
-        onSubmit({ 
-          query: query || undefined, 
-          sector: sector || undefined, 
-          region: z.region, 
+        setRegion(z.region)
+        setCity(z.city)
+        setGeoState('done')
+        setGeoMsg(`📍 ${z.city} (${z.region})`)
+        onSubmit({
+          query: query || undefined,
+          sector: sector || undefined,
+          region: z.region,
           city: z.city,
           lat: pos.coords.latitude.toString(),
           lng: pos.coords.longitude.toString(),
@@ -177,7 +216,9 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{__html: `
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
         /* ── Search bar block ── */
         .sc-bar {
           display: flex;
@@ -411,63 +452,109 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
         .sc-city-field {
           animation: fadeSlideIn 200ms ease;
         }
-      `}} />
+      `
+        }}
+      />
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         <div className="sc-filters-container">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {/* ── Block 1: Search bar ── */}
             <div className="sc-bar">
-          <div className="sc-input-wrap">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-            </svg>
-            <input
-              id="main-search-input"
-              className="sc-input"
-              placeholder={t('search.placeholder')}
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-          </div>
-          <button type="submit" className="sc-submit-btn" aria-label="Lancer la recherche">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="5" y1="12" x2="19" y2="12" />
-              <polyline points="12 5 19 12 12 19" />
-            </svg>
-          </button>
-        </div>
-
-        {/* ── Block 2: Quick-sector pills + advanced toggle ── */}
-        <div className="sc-pills-row">
-          <div className="sc-pills-scroll">
-            <div className="sc-pills">
-              {QUICK_SECTORS.map((s) => {
-                return (
-                  <button
-                    key={s.value}
-                    type="button"
-                    className={`sc-pill${sector === s.value ? ' active' : ''}`}
-                    onClick={() => applyQuickSector(s.value)}
-                  >
-                    {s.icon && <s.icon size={14} style={{ flexShrink: 0 }} />}
-                    {t(s.labelKey as any)}
-                  </button>
-                )
-              })}
+              <div className="sc-input-wrap">
+                <svg
+                  width="15"
+                  height="15"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+                <input
+                  id="main-search-input"
+                  className="sc-input"
+                  placeholder={t('search.placeholder')}
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                />
+              </div>
+              <button type="submit" className="sc-submit-btn" aria-label="Lancer la recherche">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                  <polyline points="12 5 19 12 12 19" />
+                </svg>
+              </button>
             </div>
-          </div>
-        </div>
 
-        {/* ── Active filter chips — only shown when there are visible chips (not just sector) ── */}
-        {!!(query || region || city) && (
-          <div className="sc-chips">
-            {query  && <ActiveChip label={`"${query}"`}  onRemove={() => { setQuery('');  submit({ query: undefined }) }} />}
-            {region && <ActiveChip label={t(`regions.${REGION_KEYS[region]}` as any)} onRemove={() => { setRegion(''); setCity(''); submit({ region: undefined, city: undefined }) }} />}
-            {city   && <ActiveChip label={city}          onRemove={() => { setCity('');   submit({ city: undefined }) }} />}
-            <button type="button" className="sc-reset-btn" onClick={handleReset}>{t('search.clearAll')}</button>
-          </div>
-        )}
+            {/* ── Block 2: Quick-sector pills + advanced toggle ── */}
+            <div className="sc-pills-row">
+              <div className="sc-pills-scroll">
+                <div className="sc-pills">
+                  {QUICK_SECTORS.map((s) => {
+                    return (
+                      <button
+                        key={s.value}
+                        type="button"
+                        className={`sc-pill${sector === s.value ? ' active' : ''}`}
+                        onClick={() => applyQuickSector(s.value)}
+                      >
+                        {s.icon && <s.icon size={14} style={{ flexShrink: 0 }} />}
+                        {t(s.labelKey as any)}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* ── Active filter chips — only shown when there are visible chips (not just sector) ── */}
+            {!!(query || region || city) && (
+              <div className="sc-chips">
+                {query && (
+                  <ActiveChip
+                    label={`"${query}"`}
+                    onRemove={() => {
+                      setQuery('')
+                      submit({ query: undefined })
+                    }}
+                  />
+                )}
+                {region && (
+                  <ActiveChip
+                    label={t(`regions.${REGION_KEYS[region]}` as any)}
+                    onRemove={() => {
+                      setRegion('')
+                      setCity('')
+                      submit({ region: undefined, city: undefined })
+                    }}
+                  />
+                )}
+                {city && (
+                  <ActiveChip
+                    label={city}
+                    onRemove={() => {
+                      setCity('')
+                      submit({ city: undefined })
+                    }}
+                  />
+                )}
+                <button type="button" className="sc-reset-btn" onClick={handleReset}>
+                  {t('search.clearAll')}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </form>
@@ -479,7 +566,9 @@ function ActiveChip({ label, onRemove }: { label: string; onRemove: () => void }
   return (
     <span className="sc-chip">
       {label}
-      <button type="button" onClick={onRemove} aria-label={`Retirer ${label}`}>✕</button>
+      <button type="button" onClick={onRemove} aria-label={`Retirer ${label}`}>
+        ✕
+      </button>
     </span>
   )
 }

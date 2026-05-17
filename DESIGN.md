@@ -29,6 +29,7 @@ sales-companion/
 ### Stack Technique
 
 **Frontend:**
+
 - Next.js 16 (Turbopack) + React 19
 - TypeScript 5.6
 - TanStack Query 5
@@ -37,6 +38,7 @@ sales-companion/
 - PWA avec Service Worker
 
 **Backend:**
+
 - Express.js + TypeScript
 - Node.js runtime
 - Firebase Admin SDK
@@ -44,6 +46,7 @@ sales-companion/
 - Swagger/OpenAPI
 
 **Infrastructure:**
+
 - Firebase/Firestore (Database + Auth)
 - Firebase Admin (Backend access)
 - Railway (Deployment)
@@ -109,23 +112,23 @@ apps/web/src/
 
 ### Pages principales
 
-| Route | Description | Protection |
-|-------|-------------|-----------|
-| `/` | Redirection vers `/landing` | Public |
-| `/landing` | Landing page PWA | Public |
-| `/login` | Connexion | Public |
-| `/register` | Inscription | Public |
-| `/activate` | Activation compte (Via Access ID) | Public |
-| `/verify-email`| Rappel de vérification email | Public |
-| `/search` | Recherche d'entreprises | Privée |
-| `/pipeline` | Gestion du pipeline | Privée |
-| `/saved` | Recherches & entreprises sauvegardées | Privée |
-| `/team` | Gestion d'équipe (manager) | Privée |
-| `/profile` | Mon profil | Privée |
-| `/support` | Support tickets & messages | Privée |
-| `/ai` | Assistant IA - Conseils commerciaux | Privée |
-| `/settings` | Paramètres compte | Privée |
-| `/admin/*` | Dashboard administrateur | Admin only |
+| Route           | Description                           | Protection |
+| --------------- | ------------------------------------- | ---------- |
+| `/`             | Redirection vers `/landing`           | Public     |
+| `/landing`      | Landing page PWA                      | Public     |
+| `/login`        | Connexion                             | Public     |
+| `/register`     | Inscription                           | Public     |
+| `/activate`     | Activation compte (Via Access ID)     | Public     |
+| `/verify-email` | Rappel de vérification email          | Public     |
+| `/search`       | Recherche d'entreprises               | Privée     |
+| `/pipeline`     | Gestion du pipeline                   | Privée     |
+| `/saved`        | Recherches & entreprises sauvegardées | Privée     |
+| `/team`         | Gestion d'équipe (manager)            | Privée     |
+| `/profile`      | Mon profil                            | Privée     |
+| `/support`      | Support tickets & messages            | Privée     |
+| `/ai`           | Assistant IA - Conseils commerciaux   | Privée     |
+| `/settings`     | Paramètres compte                     | Privée     |
+| `/admin/*`      | Dashboard administrateur              | Admin only |
 
 ### Features principales
 
@@ -185,6 +188,7 @@ apps/web/src/
 ### Design System
 
 **Tokens CSS** (`src/styles/tokens.ts`):
+
 ```typescript
 colors: {
   bg1, bg2, bg3                // Backgrounds
@@ -202,6 +206,7 @@ typography:
 ```
 
 **Animations** (`src/app/globals.css`):
+
 - `fadeUp`: Apparition avec remontée
 - `pulse`: Pulsation infinie
 - `glow`: Effet lumineux
@@ -257,32 +262,38 @@ apps/server/src/
 ### API Endpoints principaux
 
 **Authentication:**
+
 - `POST /api/auth/register` - Inscription
 - `POST /api/auth/login` - Connexion
 - `POST /api/auth/activate` - Activation compte
 
 **Recherche Entreprises:**
+
 - `GET /api/companies/search` - Recherche avec filtres
 - `POST /api/companies/saved` - Sauvegarder favoris
 - `GET /api/companies/saved` - Récupérer favoris
 
 **Pipeline:**
+
 - `GET /api/pipeline` - Liste prospects
 - `POST /api/pipeline` - Créer prospect
 - `PUT /api/pipeline/[id]` - Modifier prospect
 - `DELETE /api/pipeline/[id]` - Supprimer prospect
 
 **Équipe (Manager):**
+
 - `POST /api/team/members` - Ajouter membre
 - `GET /api/team/members` - Liste équipe
 - `POST /api/team/assignments` - Assigner prospect
 
 **Support:**
+
 - `POST /api/support/threads` - Créer ticket
 - `GET /api/support/threads/[id]` - Détail ticket
 - `POST /api/support/threads/[id]/messages` - Ajouter message
 
 **Admin:**
+
 - `GET /api/admin/users` - Gestion utilisateurs
 - `POST /api/admin/imports` - Importer données
 - `GET /api/admin/stats` - Statistiques système
@@ -363,10 +374,10 @@ Company {
 
 // Plan types & Quotas
 PLANS {
-  free:       { dailyLimit: 10   }
-  starter:    { dailyLimit: 50   }
-  pro:        { dailyLimit: 200  }
-  enterprise: { dailyLimit: 1000 }
+free: { dailyLimit: 10 }
+starter: { dailyLimit: 50 }
+pro: { dailyLimit: 200 }
+enterprise: { dailyLimit: 1000 }
 }
 
 ## 🔐 Firebase & Firestore
@@ -428,11 +439,13 @@ imports/
 ### Service Worker (`public/sw.js`)
 
 **Stratégies de caching:**
+
 - **Cache-First**: Images, fonts (rarement modifiés)
 - **Network-First**: API calls (always fresh)
 - **Stale-While-Revalidate**: HTML, CSS, JS
 
 **Fonctionnalités:**
+
 - ✅ Installation avec pré-cache assets
 - ✅ Activation et nettoyage caches obsolètes
 - ✅ Offline fallback page
@@ -461,6 +474,7 @@ imports/
 ### Railway Configuration
 
 **Services:**
+
 1. **Web (Next.js)**
    - Port: 3000
    - Build: `npm run build:web`
@@ -525,7 +539,7 @@ import { useState } from 'react'
 
 export function MyComponent() {
   const [state, setState] = useState('')
-  
+
   return <div>{state}</div>
 }
 ```
@@ -535,11 +549,14 @@ export function MyComponent() {
 ```typescript
 import { asyncHandler } from '@/utils/async-handler'
 
-router.get('/route', asyncHandler(async (req, res) => {
-  // Pas besoin de try/catch
-  const data = await db.collection('users').get()
-  res.json(data)
-}))
+router.get(
+  '/route',
+  asyncHandler(async (req, res) => {
+    // Pas besoin de try/catch
+    const data = await db.collection('users').get()
+    res.json(data)
+  })
+)
 ```
 
 ### Validation (Zod)
@@ -550,7 +567,7 @@ import { BUSINESS_SECTORS } from '@sales-companion/shared'
 
 const schema = z.object({
   email: z.string().email(),
-  sector: z.enum(BUSINESS_SECTORS),
+  sector: z.enum(BUSINESS_SECTORS)
 })
 
 const data = schema.parse(input)
@@ -578,12 +595,14 @@ const data = schema.parse(input)
 **Cause:** L'utilisateur n'est pas authentifié ou le token JWT est expiré.
 
 **Solutions:**
+
 - Vérifier que le token d'authentification est transmis dans le header `Authorization: Bearer <token>`
 - Vérifier que le middleware d'authentification est correctement configuré
 - Vérifier que le rôle de l'utilisateur est `manager` ou `admin`
 - Rafraîchir la page pour obtenir un nouveau token
 
 **Vérification dans le code Backend (`apps/server/src/middlewares/auth.middleware.ts`):**
+
 ```typescript
 // Le middleware doit vérifier le token avant d'accéder aux routes protégées
 const token = request.headers.get('authorization')?.split(' ')[1]
@@ -593,17 +612,20 @@ if (!token) return NextResponse.json({ message: 'Non authentifié' }, { status: 
 #### 2. **500 Server Error - `/api/saved-searches`**
 
 **Causes possibles:**
+
 - Erreur dans la récupération des données Firestore
 - Permissions Firestore insuffisantes
 - Structure de données invalide en base de données
 
 **Solutions:**
+
 - Vérifier les règles de sécurité Firestore dans `firestore/rules/firestore.rules`
 - Vérifier que les collections `saved_searches` existent dans Firestore
 - Consulter les logs serveur dans la console Backend
 - Vérifier que l'utilisateur authentifié a les permissions de lecture/écriture
 
 **Règles Firestore à valider (`firestore/rules/firestore.rules`):**
+
 ```firestore
 match /saved_searches/{document=**} {
   allow read, write: if request.auth.uid == resource.data.userId
@@ -613,6 +635,7 @@ match /saved_searches/{document=**} {
 #### 3. **Issues PWA & Service Worker**
 
 Si le Service Worker ne fonctionne pas:
+
 - Vérifier que `public/sw.js` existe et est valide
 - Consulter la console JavaScript pour les erreurs d'enregistrement
 - Effacer le cache du navigateur: DevTools → Application → Clear storage
@@ -627,6 +650,7 @@ L'onglet **Assistant IA** a été ajouté à la barre de navigation mobile infé
 **Page:** `apps/web/src/app/(protected)/ai/page.tsx`
 
 **Fonctionnalités:**
+
 - ✅ Chat interface pour conseils commerciaux
 - ✅ Connexion à l'API Groq pour générer des réponses IA
 - ✅ Authentification Firebase avec `getIdToken()`
@@ -635,6 +659,7 @@ L'onglet **Assistant IA** a été ajouté à la barre de navigation mobile infé
 - ✅ Design responsive mobile-first
 
 **Authentification:**
+
 ```typescript
 // Récupération correcte du token Firebase
 const token = await user.getIdToken()
@@ -642,9 +667,9 @@ const response = await fetch('/api/ai/chat', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`,
+    Authorization: `Bearer ${token}`
   },
-  body: JSON.stringify({ message: input }),
+  body: JSON.stringify({ message: input })
 })
 ```
 
@@ -655,20 +680,22 @@ const response = await fetch('/api/ai/chat', {
 **CAUSE CORRIGÉE:** ✅ Token d'authentification Firebase manquant ou incorrectement transmis.
 
 **Solution appliquée:**
+
 - Utiliser `await user.getIdToken()` pour obtenir le token Firebase valide
 - NE PAS utiliser `localStorage.getItem('authToken')` - Firebase gère les tokens autrement
 - Vérifier que l'utilisateur est authentifié avant d'envoyer des requêtes
 
 **Code correct:**
+
 ```typescript
 const { user } = useCurrentUser()
 // ...
 const token = await user?.getIdToken()
 const response = await fetch('/api/ai/chat', {
   headers: {
-    'Authorization': `Bearer ${token}`,
+    Authorization: `Bearer ${token}`
     // ...
-  },
+  }
 })
 ```
 
@@ -677,4 +704,3 @@ const response = await fetch('/api/ai/chat', {
 **Dernière mise à jour :** 14 Mai 2026
 **Version :** 2.0.1 (Security Hardened)
 **Statut :** Production Ready ✅
-

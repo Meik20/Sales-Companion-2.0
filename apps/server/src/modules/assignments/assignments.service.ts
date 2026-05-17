@@ -24,17 +24,17 @@ export const assignmentsService = {
     }
 
     const memberAccessDoc = memberAccessSnapshot.docs[0]
-    
+
     if (!memberAccessDoc) {
       throw new Error('Member access document not found')
     }
-    
+
     const memberAccessData = memberAccessDoc.data()
-    
+
     if (!memberAccessData) {
       throw new Error('Invalid member access document')
     }
-    
+
     const assigneeUid = memberAccessData.firebaseUid
     const assigneeAccessId = memberAccessDoc.id
 
@@ -66,7 +66,10 @@ export const assignmentsService = {
         prospectData = pipelineDoc.data()
       } else {
         // Primary CSV import collection
-        const managerProspectDoc = await adminDb.collection('manager_prospects').doc(prospectId).get()
+        const managerProspectDoc = await adminDb
+          .collection('manager_prospects')
+          .doc(prospectId)
+          .get()
         if (managerProspectDoc.exists) {
           prospectData = managerProspectDoc.data()
         } else {
@@ -79,7 +82,9 @@ export const assignmentsService = {
       }
 
       if (!prospectData) {
-        console.warn(`Prospect ${prospectId} not found in pipeline, manager_prospects or imported_prospects — skipping`)
+        console.warn(
+          `Prospect ${prospectId} not found in pipeline, manager_prospects or imported_prospects — skipping`
+        )
         continue
       }
 
@@ -108,13 +113,10 @@ export const assignmentsService = {
     }
 
     // ── Step 4: Mark member as activated in team_accesses
-    await adminDb
-      .collection('team_accesses')
-      .doc(assigneeAccessId)
-      .update({
-        activated: true,
-        activatedAt: admin.firestore.FieldValue.serverTimestamp()
-      })
+    await adminDb.collection('team_accesses').doc(assigneeAccessId).update({
+      activated: true,
+      activatedAt: admin.firestore.FieldValue.serverTimestamp()
+    })
 
     return {
       id: assignmentRef.id,

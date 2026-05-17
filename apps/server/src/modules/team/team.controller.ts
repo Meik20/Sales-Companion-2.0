@@ -92,7 +92,10 @@ export const teamController = {
       return res.status(401).json({ message: 'Unauthorized' })
     }
 
-    const result = await teamService.getManagerMemberDetail(req.auth.uid, req.params.accessId as string)
+    const result = await teamService.getManagerMemberDetail(
+      req.auth.uid,
+      req.params.accessId as string
+    )
     return res.json(result)
   },
 

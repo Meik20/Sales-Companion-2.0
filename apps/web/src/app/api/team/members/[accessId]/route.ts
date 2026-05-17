@@ -101,13 +101,15 @@ export async function DELETE(
     if (memberFirebaseUid) {
       try {
         await adminAuth.updateUser(memberFirebaseUid, { disabled: true })
-      } catch { /* user might not exist yet */ }
+      } catch {
+        /* user might not exist yet */
+      }
     }
 
     return NextResponse.json({
       success: true,
       pipelineDeleted,
-      assignmentsDeleted,
+      assignmentsDeleted
     })
   } catch (error) {
     console.error('[team/members DELETE]', error)

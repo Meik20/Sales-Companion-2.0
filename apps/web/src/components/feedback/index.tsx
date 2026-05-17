@@ -5,13 +5,10 @@ import { useTranslation } from '@/providers/I18nProvider'
 
 type LoadingProps = { title?: string; description?: string }
 
-export function LoadingState({
-  title,
-  description,
-}: LoadingProps) {
+export function LoadingState({ title, description }: LoadingProps) {
   const { t } = useTranslation()
   const displayTitle = title ?? t('feedback.loading')
-  const displayDesc  = description ?? t('feedback.pleaseWait')
+  const displayDesc = description ?? t('feedback.pleaseWait')
   return (
     <div
       style={{
@@ -20,7 +17,7 @@ export function LoadingState({
         alignItems: 'center',
         gap: 12,
         padding: 40,
-        color: colors.textMid,
+        color: colors.textMid
       }}
     >
       <span
@@ -31,14 +28,12 @@ export function LoadingState({
           borderTopColor: colors.greenMid,
           borderRadius: '50%',
           display: 'inline-block',
-          animation: 'spin 0.8s linear infinite',
+          animation: 'spin 0.8s linear infinite'
         }}
       />
       <div style={{ textAlign: 'center' }}>
         <p style={{ margin: 0, fontWeight: 600, color: colors.text }}>{displayTitle}</p>
-        {displayDesc ? (
-          <p style={{ margin: '4px 0 0', fontSize: 13 }}>{displayDesc}</p>
-        ) : null}
+        {displayDesc ? <p style={{ margin: '4px 0 0', fontSize: 13 }}>{displayDesc}</p> : null}
       </div>
     </div>
   )
@@ -62,7 +57,7 @@ export function EmptyState({ title, description, icon = '📭' }: EmptyProps) {
         gap: 10,
         padding: '40px 24px',
         color: colors.textMid,
-        textAlign: 'center',
+        textAlign: 'center'
       }}
     >
       <span style={{ fontSize: 36 }}>{icon}</span>
@@ -79,10 +74,7 @@ type ErrorProps = {
   description?: string
 }
 
-export function ErrorState({
-  title,
-  description,
-}: ErrorProps) {
+export function ErrorState({ title, description }: ErrorProps) {
   const { t } = useTranslation()
   const displayTitle = title ?? t('feedback.errorOccurred')
   return (
@@ -96,7 +88,7 @@ export function ErrorState({
         background: 'rgba(239,68,68,0.06)',
         border: '1px solid rgba(239,68,68,0.2)',
         borderRadius: 12,
-        textAlign: 'center',
+        textAlign: 'center'
       }}
     >
       <span style={{ fontSize: 28 }}>⚠️</span>

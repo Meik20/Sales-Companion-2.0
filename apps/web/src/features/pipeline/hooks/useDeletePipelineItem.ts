@@ -14,8 +14,8 @@ export function useDeletePipelineItem() {
       const response = await fetch(`/api/pipeline/${itemId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${token || ''}`,
-        },
+          Authorization: `Bearer ${token || ''}`
+        }
       })
 
       if (!response.ok) {
@@ -29,6 +29,6 @@ export function useDeletePipelineItem() {
       await queryClient.invalidateQueries({ queryKey: ['pipeline'] })
       await queryClient.invalidateQueries({ queryKey: ['manager-pipeline'] })
       await queryClient.invalidateQueries({ queryKey: ['pipeline-stats'] })
-    },
+    }
   })
 }

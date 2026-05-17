@@ -8,9 +8,8 @@ export const metadata: Metadata = {
   description:
     'Connectez-vous à Sales Companion 2.0 pour accéder à votre pipeline commercial et gérer votre prospection B2B au Cameroun.',
   alternates: { canonical: '/login' },
-  robots: { index: true, follow: true },
+  robots: { index: true, follow: true }
 }
-
 
 export default function LoginPage() {
   return (
@@ -21,7 +20,7 @@ export default function LoginPage() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '24px 16px',
+        padding: '24px 16px'
       }}
     >
       {/* Background glow */}
@@ -34,10 +33,18 @@ export default function LoginPage() {
           height: '600px',
           background: 'radial-gradient(circle, rgba(27,122,62,0.2) 0%, transparent 70%)',
           pointerEvents: 'none',
-          zIndex: 0,
+          zIndex: 0
         }}
       />
-      <div style={{ position: 'relative', zIndex: 1, width: '100%', display: 'flex', justifyContent: 'center' }}>
+      <div
+        style={{
+          position: 'relative',
+          zIndex: 1,
+          width: '100%',
+          display: 'flex',
+          justifyContent: 'center'
+        }}
+      >
         <LoginForm />
       </div>
     </main>

@@ -11,10 +11,7 @@ export default function AdminCompaniesPage() {
 
   return (
     <AppShell>
-      <PageHeader
-        title={t('admin.companiesTitle')}
-        subtitle={t('admin.companiesSubtitle')}
-      />
+      <PageHeader title={t('admin.companiesTitle')} subtitle={t('admin.companiesSubtitle')} />
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
         <CompanyStatsChart />

@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   // ── Core ──────────────────────────────────────────────────────────────
   title: {
     default: 'Sales Companion — Base de Données Entreprises Cameroun | Annuaire B2B N°1',
-    template: '%s | Sales Companion',
+    template: '%s | Sales Companion'
   },
   description:
     'Accédez à la base de données la plus complète des entreprises camerounaises. 50 000+ sociétés vérifiées à Douala, Yaoundé et dans tout le Cameroun. Prospection B2B, contacts dirigeants.',
@@ -21,21 +21,19 @@ export const metadata: Metadata = {
     'liste entreprises Yaoundé',
     'intelligence commerciale Cameroun',
     'annuaire professionnel Cameroun',
-    'Sales Companion',
+    'Sales Companion'
   ],
   authors: [{ name: 'Sales Companion' }],
   creator: 'Sales Companion',
 
   // ── Canonical & robots ────────────────────────────────────────────────
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL ?? 'https://sales-companion.app'
-  ),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'https://sales-companion.app'),
   alternates: {
     canonical: '/',
     languages: {
       'fr-CM': '/fr',
-      'en-CM': '/en',
-    },
+      'en-CM': '/en'
+    }
   },
   robots: {
     index: true,
@@ -43,15 +41,15 @@ export const metadata: Metadata = {
     googleBot: {
       index: true,
       follow: true,
-      'max-image-preview': 'large',
-    },
+      'max-image-preview': 'large'
+    }
   },
 
   // ── PWA / Icons ───────────────────────────────────────────────────────
   manifest: '/manifest.json',
   icons: {
     icon: '/favicon.svg',
-    apple: '/apple-touch-icon.png',
+    apple: '/apple-touch-icon.png'
   },
 
   // ── Open Graph ────────────────────────────────────────────────────────
@@ -62,52 +60,52 @@ export const metadata: Metadata = {
     url: '/',
     siteName: 'Sales Companion',
     locale: 'fr_CM',
-    type: 'website',
+    type: 'website'
   },
 
   // ── Twitter / X Card ─────────────────────────────────────────────────
   twitter: {
     card: 'summary_large_image',
     title: 'Sales Companion — Base de Données Entreprises Cameroun',
-    description:
-      'La plateforme B2B de référence pour la prospection commerciale au Cameroun.',
-    creator: '@SalesCompanion',
-  },
+    description: 'La plateforme B2B de référence pour la prospection commerciale au Cameroun.',
+    creator: '@SalesCompanion'
+  }
 }
 
 export const viewport: Viewport = {
   themeColor: '#1B7A3E',
   width: 'device-width',
-  initialScale: 1,
+  initialScale: 1
 }
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    "name": "Sales Companion",
-    "description": "Plateforme d'intelligence commerciale et base de données entreprises au Cameroun.",
-    "url": "https://sales-companion.app",
-    "logo": "https://sales-companion.app/logo.png",
-    "address": {
-      "@type": "PostalAddress",
-      "addressLocality": "Douala",
-      "addressCountry": "CM"
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'Sales Companion',
+    description:
+      "Plateforme d'intelligence commerciale et base de données entreprises au Cameroun.",
+    url: 'https://sales-companion.app',
+    logo: 'https://sales-companion.app/logo.png',
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: 'Douala',
+      addressCountry: 'CM'
     },
-    "contactPoint": {
-      "@type": "ContactPoint",
-      "contactType": "customer service",
-      "availableLanguage": ["French", "English"]
+    contactPoint: {
+      '@type': 'ContactPoint',
+      contactType: 'customer service',
+      availableLanguage: ['French', 'English']
     },
-    "potentialAction": {
-      "@type": "SearchAction",
-      "target": {
-        "@type": "EntryPoint",
-        "urlTemplate": "https://sales-companion.app/search?query={search_term_string}"
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: 'https://sales-companion.app/search?query={search_term_string}'
       },
-      "query-input": "required name=search_term_string"
+      'query-input': 'required name=search_term_string'
     }
-  };
+  }
 
   return (
     <html lang="fr-CM" data-scroll-behavior="smooth" suppressHydrationWarning>
@@ -123,9 +121,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <AppProvider>{children}</AppProvider>
           </I18nProvider>
         </ThemeProvider>
-        {process.env.NEXT_PUBLIC_GA_ID && (
-          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
-        )}
+        {process.env.NEXT_PUBLIC_GA_ID && <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />}
       </body>
     </html>
   )

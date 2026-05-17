@@ -19,7 +19,7 @@ export function useGetAccessInfo(accessId: string) {
       const response = await fetch(`/api/team/access-info/${encodeURIComponent(accessId)}`)
 
       if (!response.ok) {
-        let message = 'Lien d\'activation invalide ou expiré'
+        let message = "Lien d'activation invalide ou expiré"
         try {
           const json = await response.json()
           if (json?.error) message = json.error
@@ -32,6 +32,6 @@ export function useGetAccessInfo(accessId: string) {
       return response.json()
     },
     enabled: !!accessId,
-    retry: false,
+    retry: false
   })
 }

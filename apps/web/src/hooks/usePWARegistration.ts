@@ -22,7 +22,7 @@ export function usePWARegistration() {
 
         const reg = await navigator.serviceWorker.register('/sw.js', {
           scope: '/',
-          updateViaCache: 'none',
+          updateViaCache: 'none'
         })
 
         setRegistration(reg)
@@ -49,7 +49,7 @@ export function usePWARegistration() {
               pushToast({
                 type: 'info',
                 title: 'Mise à jour disponible',
-                description: 'Une nouvelle version est prête. Rechargez la page pour l\'activer.',
+                description: "Une nouvelle version est prête. Rechargez la page pour l'activer."
               })
               setState('installed')
             }
@@ -61,7 +61,7 @@ export function usePWARegistration() {
         pushToast({
           type: 'error',
           title: 'Erreur PWA',
-          description: 'Impossible d\'enregistrer le service worker.',
+          description: "Impossible d'enregistrer le service worker."
         })
       }
     }
@@ -101,7 +101,7 @@ export function usePWARegistration() {
         pushToast({
           type: 'success',
           title: 'Synchronisation',
-          description: `${data.count} action${data.count > 1 ? 's' : ''} synchronisée${data.count > 1 ? 's' : ''}.`,
+          description: `${data.count} action${data.count > 1 ? 's' : ''} synchronisée${data.count > 1 ? 's' : ''}.`
         })
       }
     }
@@ -117,12 +117,16 @@ export function usePWARegistration() {
     state,
     registration,
     isSupported: typeof window !== 'undefined' && 'serviceWorker' in navigator,
-    isInstalled: state === 'installed',
+    isInstalled: state === 'installed'
   }
 }
 
 export function requestPushPermission() {
-  if (typeof window === 'undefined' || !('serviceWorker' in navigator) || !('Notification' in window)) {
+  if (
+    typeof window === 'undefined' ||
+    !('serviceWorker' in navigator) ||
+    !('Notification' in window)
+  ) {
     return false
   }
 

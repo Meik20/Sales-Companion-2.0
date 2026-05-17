@@ -33,6 +33,6 @@ export function useSavedCompanies() {
       const data = await res.json()
       return (data.companies || []) as SavedCompany[]
     },
-    enabled: !!user?.uid,
+    enabled: !!user?.uid
   })
 }

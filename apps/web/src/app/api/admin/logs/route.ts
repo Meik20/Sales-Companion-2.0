@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { adminDb, adminAuth } from '@/lib/firebase-admin'
 
@@ -16,11 +16,7 @@ export async function GET(request: NextRequest) {
     const token = request.headers.get('authorization')?.split(' ')[1] ?? null
     await verifyAdmin(token)
 
-    const snap = await adminDb
-      .collection('searches')
-      .orderBy('createdAt', 'desc')
-      .limit(20)
-      .get()
+    const snap = await adminDb.collection('searches').orderBy('createdAt', 'desc').limit(20).get()
 
     const logs = snap.docs.map((doc) => {
       const data = doc.data()
@@ -33,17 +29,17 @@ export async function GET(request: NextRequest) {
         resultsCount: data.resultsCount ?? data.results_count ?? 0,
         createdAt: data.createdAt?.toDate
           ? data.createdAt.toDate().toISOString()
-          : (data.createdAt ?? null),
+          : (data.createdAt ?? null)
       }
     })
 
     return NextResponse.json(logs)
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : 'unknown'
-    if (msg === 'unauthenticated') return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+    if (msg === 'unauthenticated')
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     if (msg === 'forbidden') return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
     console.error('Admin logs error:', error)
     return NextResponse.json({ error: 'Erreur interne' }, { status: 500 })
   }
 }
-

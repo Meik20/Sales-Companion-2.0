@@ -47,10 +47,7 @@ export const importsService = {
     const offset = (pageNum - 1) * limit
 
     // Get total count
-    const totalSnapshot = await adminDb
-      .collection('import_logs')
-      .count()
-      .get()
+    const totalSnapshot = await adminDb.collection('import_logs').count().get()
     const total = totalSnapshot.data().count
 
     // Get paginated data

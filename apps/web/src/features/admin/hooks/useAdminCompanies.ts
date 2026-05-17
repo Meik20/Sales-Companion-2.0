@@ -47,8 +47,8 @@ export function useAdminCompanies(page: number = 1, pageSize: number = 20) {
         `${backendUrl}/api/admin/companies?page=${page}&pageSize=${pageSize}`,
         {
           headers: {
-            'Authorization': `Bearer ${token || ''}`,
-          },
+            Authorization: `Bearer ${token || ''}`
+          }
         }
       )
 
@@ -58,6 +58,6 @@ export function useAdminCompanies(page: number = 1, pageSize: number = 20) {
 
       return response.json() as Promise<AdminCompaniesResponse>
     },
-    enabled: !!user?.uid,
+    enabled: !!user?.uid
   })
 }

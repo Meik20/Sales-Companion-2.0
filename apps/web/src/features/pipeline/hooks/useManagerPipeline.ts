@@ -14,8 +14,8 @@ export const useManagerPipeline = () => {
 
       const response = await fetch('/api/pipeline/manager', {
         headers: {
-          Authorization: `Bearer ${token || ''}`,
-        },
+          Authorization: `Bearer ${token || ''}`
+        }
       })
 
       if (!response.ok) {
@@ -24,6 +24,6 @@ export const useManagerPipeline = () => {
 
       return response.json() as Promise<(PipelineDoc & { id: string })[]>
     },
-    enabled: !!user?.uid && user.role === 'manager',
+    enabled: !!user?.uid && user.role === 'manager'
   })
 }

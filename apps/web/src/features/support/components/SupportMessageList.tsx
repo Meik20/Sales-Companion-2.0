@@ -23,7 +23,16 @@ export function SupportMessageList({ messages, currentUserId }: Props) {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxHeight: 400, overflowY: 'auto', padding: 4 }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 12,
+        maxHeight: 400,
+        overflowY: 'auto',
+        padding: 4
+      }}
+    >
       {messages.map((msg) => {
         const isMe = msg.senderId === currentUserId
         const isAdmin = msg.senderRole === 'admin'
@@ -33,7 +42,7 @@ export function SupportMessageList({ messages, currentUserId }: Props) {
             key={msg.id}
             style={{
               display: 'flex',
-              justifyContent: isMe ? 'flex-end' : 'flex-start',
+              justifyContent: isMe ? 'flex-end' : 'flex-start'
             }}
           >
             <div
@@ -44,16 +53,25 @@ export function SupportMessageList({ messages, currentUserId }: Props) {
                 background: isMe
                   ? 'rgba(27,122,62,0.25)'
                   : isAdmin
-                  ? 'rgba(245,166,35,0.12)'
-                  : colors.bg4,
+                    ? 'rgba(245,166,35,0.12)'
+                    : colors.bg4,
                 border: `1px solid ${isMe ? 'rgba(46,160,90,0.3)' : isAdmin ? 'rgba(245,166,35,0.25)' : colors.border}`,
                 fontSize: 13,
                 color: colors.text,
-                lineHeight: 1.55,
+                lineHeight: 1.55
               }}
             >
               {isAdmin && !isMe ? (
-                <div style={{ fontSize: 10, fontWeight: 700, color: '#F5A623', marginBottom: 4, letterSpacing: '.05em', textTransform: 'uppercase' }}>
+                <div
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    color: '#F5A623',
+                    marginBottom: 4,
+                    letterSpacing: '.05em',
+                    textTransform: 'uppercase'
+                  }}
+                >
                   Support
                 </div>
               ) : null}

@@ -8,7 +8,10 @@ import { colors } from '@/styles/tokens'
 import { useTranslation } from '@/providers/I18nProvider'
 
 const PLAN_COLOR: Record<string, string> = {
-  Gratuit: '#888', Starter: '#1a73e8', Pro: '#f39c12', Entreprise: '#1B7A3E',
+  Gratuit: '#888',
+  Starter: '#1a73e8',
+  Pro: '#f39c12',
+  Entreprise: '#1B7A3E'
 }
 
 export default function AdminConfigPage() {
@@ -22,14 +25,37 @@ export default function AdminConfigPage() {
   const { t } = useTranslation()
 
   const PLAN_ROWS = [
-    { plan: 'Gratuit',    daily: '10',       price: '—',            target: t('admin.targetFree') || 'Essai / découverte' },
-    { plan: 'Starter',   daily: '50',       price: '5 000 FCFA',   target: t('admin.targetStarter') || 'Commerciaux indépendants' },
-    { plan: 'Pro',       daily: '200',      price: '15 000 FCFA',  target: t('admin.targetPro') || 'Équipes commerciales, PME' },
-    { plan: 'Entreprise',daily: '1 000',     price: '50 000 FCFA',  target: t('admin.targetEnterprise') || 'Grandes entreprises, cabinets' },
+    {
+      plan: 'Gratuit',
+      daily: '10',
+      price: '—',
+      target: t('admin.targetFree') || 'Essai / découverte'
+    },
+    {
+      plan: 'Starter',
+      daily: '50',
+      price: '5 000 FCFA',
+      target: t('admin.targetStarter') || 'Commerciaux indépendants'
+    },
+    {
+      plan: 'Pro',
+      daily: '200',
+      price: '15 000 FCFA',
+      target: t('admin.targetPro') || 'Équipes commerciales, PME'
+    },
+    {
+      plan: 'Entreprise',
+      daily: '1 000',
+      price: '50 000 FCFA',
+      target: t('admin.targetEnterprise') || 'Grandes entreprises, cabinets'
+    }
   ]
 
   async function saveApiKey() {
-    if (!apiKey.trim()) { setApiMsg({ type: 'err', text: 'Saisissez une clé API' }); return }
+    if (!apiKey.trim()) {
+      setApiMsg({ type: 'err', text: 'Saisissez une clé API' })
+      return
+    }
     setSaving(true)
     setApiMsg(null)
     try {
@@ -37,7 +63,7 @@ export default function AdminConfigPage() {
       const res = await fetch('/api/admin/config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token ?? ''}` },
-        body: JSON.stringify({ key: 'groq_api_key', value: apiKey.trim() }),
+        body: JSON.stringify({ key: 'groq_api_key', value: apiKey.trim() })
       })
       if (res.ok) {
         setApiMsg({ type: 'ok', text: '✅ Clé API enregistrée — tableau de bord mis à jour' })
@@ -48,11 +74,16 @@ export default function AdminConfigPage() {
       }
     } catch (e) {
       setApiMsg({ type: 'err', text: `❌ Erreur réseau` })
-    } finally { setSaving(false) }
+    } finally {
+      setSaving(false)
+    }
   }
 
   async function changePassword() {
-    if (!newPass || newPass.length < 6) { setPassMsg({ type: 'err', text: 'Minimum 6 caractères' }); return }
+    if (!newPass || newPass.length < 6) {
+      setPassMsg({ type: 'err', text: 'Minimum 6 caractères' })
+      return
+    }
     setChangingPass(true)
     setPassMsg(null)
     try {
@@ -60,7 +91,7 @@ export default function AdminConfigPage() {
       const res = await fetch('/api/admin/change-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token ?? ''}` },
-        body: JSON.stringify({ newPassword: newPass }),
+        body: JSON.stringify({ newPassword: newPass })
       })
       if (res.ok) {
         setPassMsg({ type: 'ok', text: '✅ Mot de passe modifié' })
@@ -69,30 +100,53 @@ export default function AdminConfigPage() {
         const d = await res.json()
         setPassMsg({ type: 'err', text: `❌ ${d.error ?? 'Erreur'}` })
       }
-    } catch { setPassMsg({ type: 'err', text: '❌ Erreur réseau' }) }
-    finally { setChangingPass(false) }
+    } catch {
+      setPassMsg({ type: 'err', text: '❌ Erreur réseau' })
+    } finally {
+      setChangingPass(false)
+    }
   }
 
   const card: React.CSSProperties = {
     background: colors.surface,
     borderRadius: 12,
     border: `1px solid ${colors.border}`,
-    padding: '20px 22px',
+    padding: '20px 22px'
   }
-  const labelStyle: React.CSSProperties = { display: 'block', fontSize: 13, fontWeight: 600, color: colors.text, marginBottom: 6 }
+  const labelStyle: React.CSSProperties = {
+    display: 'block',
+    fontSize: 13,
+    fontWeight: 600,
+    color: colors.text,
+    marginBottom: 6
+  }
   const inputStyle: React.CSSProperties = {
-    width: '100%', maxWidth: 480, padding: '10px 14px',
-    border: `1.5px solid ${colors.border}`, borderRadius: 8,
-    fontSize: 13, fontFamily: 'monospace', outline: 'none',
+    width: '100%',
+    maxWidth: 480,
+    padding: '10px 14px',
+    border: `1.5px solid ${colors.border}`,
+    borderRadius: 8,
+    fontSize: 13,
+    fontFamily: 'monospace',
+    outline: 'none'
   }
   const btnStyle: React.CSSProperties = {
-    padding: '9px 20px', background: colors.green, color: '#fff',
-    border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600,
-    cursor: 'pointer', fontFamily: 'inherit', marginTop: 12,
+    padding: '9px 20px',
+    background: colors.green,
+    color: '#fff',
+    border: 'none',
+    borderRadius: 8,
+    fontSize: 13,
+    fontWeight: 600,
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+    marginTop: 12
   }
   const msgStyle = (type: 'ok' | 'err'): React.CSSProperties => ({
-    marginTop: 10, fontSize: 13, fontWeight: 600,
-    color: type === 'ok' ? colors.success : colors.danger,
+    marginTop: 10,
+    fontSize: 13,
+    fontWeight: 600,
+    color: type === 'ok' ? colors.success : colors.danger
   })
 
   return (
@@ -102,7 +156,16 @@ export default function AdminConfigPage() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
         {/* API Key */}
         <div style={card}>
-          <div style={{ fontWeight: 700, fontSize: 14, color: colors.text, marginBottom: 16, paddingBottom: 12, borderBottom: `1px solid ${colors.border}` }}>
+          <div
+            style={{
+              fontWeight: 700,
+              fontSize: 14,
+              color: colors.text,
+              marginBottom: 16,
+              paddingBottom: 12,
+              borderBottom: `1px solid ${colors.border}`
+            }}
+          >
             🔑 {t('admin.apiKeyGroq')}
           </div>
           <label style={labelStyle}>{t('admin.apiKeyGroqLabel')}</label>
@@ -112,10 +175,22 @@ export default function AdminConfigPage() {
             onChange={(e) => setApiKey(e.target.value)}
             placeholder={t('admin.apiKeyGroqPlaceholder')}
             style={inputStyle}
-            onKeyDown={(e) => { if (e.key === 'Enter') saveApiKey() }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') saveApiKey()
+            }}
           />
-          <p style={{ fontSize: 12, color: colors.textMid, marginTop: 6, lineHeight: 1.5, maxWidth: 480 }}>
-            {t('admin.apiKeyGroqHelp1')}<strong>console.groq.com/keys</strong>{t('admin.apiKeyGroqHelp2')}
+          <p
+            style={{
+              fontSize: 12,
+              color: colors.textMid,
+              marginTop: 6,
+              lineHeight: 1.5,
+              maxWidth: 480
+            }}
+          >
+            {t('admin.apiKeyGroqHelp1')}
+            <strong>console.groq.com/keys</strong>
+            {t('admin.apiKeyGroqHelp2')}
           </p>
           <button onClick={saveApiKey} disabled={saving} style={btnStyle}>
             {saving ? t('team.saving') : t('admin.saveApiKey')}
@@ -125,7 +200,16 @@ export default function AdminConfigPage() {
 
         {/* Change password */}
         <div style={card}>
-          <div style={{ fontWeight: 700, fontSize: 14, color: colors.text, marginBottom: 16, paddingBottom: 12, borderBottom: `1px solid ${colors.border}` }}>
+          <div
+            style={{
+              fontWeight: 700,
+              fontSize: 14,
+              color: colors.text,
+              marginBottom: 16,
+              paddingBottom: 12,
+              borderBottom: `1px solid ${colors.border}`
+            }}
+          >
             🔒 {t('admin.adminSecurity')}
           </div>
           <label style={labelStyle}>{t('admin.newPassword')}</label>
@@ -135,9 +219,19 @@ export default function AdminConfigPage() {
             onChange={(e) => setNewPass(e.target.value)}
             placeholder={t('admin.newPasswordPlaceholder')}
             style={{ ...inputStyle, fontFamily: 'inherit' }}
-            onKeyDown={(e) => { if (e.key === 'Enter') changePassword() }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') changePassword()
+            }}
           />
-          <p style={{ fontSize: 12, color: colors.textMid, marginTop: 6, lineHeight: 1.5, maxWidth: 480 }}>
+          <p
+            style={{
+              fontSize: 12,
+              color: colors.textMid,
+              marginTop: 6,
+              lineHeight: 1.5,
+              maxWidth: 480
+            }}
+          >
             {t('admin.newPasswordHelp')}
           </p>
           <button onClick={changePassword} disabled={changingPass} style={btnStyle}>
@@ -149,15 +243,41 @@ export default function AdminConfigPage() {
 
       {/* Plans table */}
       <div style={card}>
-        <div style={{ fontWeight: 700, fontSize: 14, color: colors.text, marginBottom: 16, paddingBottom: 12, borderBottom: `1px solid ${colors.border}` }}>
+        <div
+          style={{
+            fontWeight: 700,
+            fontSize: 14,
+            color: colors.text,
+            marginBottom: 16,
+            paddingBottom: 12,
+            borderBottom: `1px solid ${colors.border}`
+          }}
+        >
           💳 {t('admin.pricingPlans')}
         </div>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
             <thead>
               <tr>
-                {[t('admin.plan'), t('admin.searchesPerDay'), t('admin.recommendedMonthlyPrice'), t('admin.target')].map((h) => (
-                  <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: colors.textMid, textTransform: 'uppercase', letterSpacing: '.06em', borderBottom: `1px solid ${colors.border}` }}>
+                {[
+                  t('admin.plan'),
+                  t('admin.searchesPerDay'),
+                  t('admin.recommendedMonthlyPrice'),
+                  t('admin.target')
+                ].map((h) => (
+                  <th
+                    key={h}
+                    style={{
+                      padding: '10px 14px',
+                      textAlign: 'left',
+                      fontSize: 11,
+                      fontWeight: 700,
+                      color: colors.textMid,
+                      textTransform: 'uppercase',
+                      letterSpacing: '.06em',
+                      borderBottom: `1px solid ${colors.border}`
+                    }}
+                  >
                     {h}
                   </th>
                 ))}
@@ -167,11 +287,23 @@ export default function AdminConfigPage() {
               {PLAN_ROWS.map((row) => (
                 <tr key={row.plan} style={{ borderBottom: `1px solid ${colors.border}` }}>
                   <td style={{ padding: '12px 14px' }}>
-                    <span style={{ display: 'inline-block', padding: '3px 10px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: `${PLAN_COLOR[row.plan]}18`, color: PLAN_COLOR[row.plan] }}>
+                    <span
+                      style={{
+                        display: 'inline-block',
+                        padding: '3px 10px',
+                        borderRadius: 20,
+                        fontSize: 12,
+                        fontWeight: 700,
+                        background: `${PLAN_COLOR[row.plan]}18`,
+                        color: PLAN_COLOR[row.plan]
+                      }}
+                    >
                       {row.plan}
                     </span>
                   </td>
-                  <td style={{ padding: '12px 14px', fontWeight: 600, color: colors.text }}>{row.daily}</td>
+                  <td style={{ padding: '12px 14px', fontWeight: 600, color: colors.text }}>
+                    {row.daily}
+                  </td>
                   <td style={{ padding: '12px 14px', color: colors.textMid }}>{row.price}</td>
                   <td style={{ padding: '12px 14px', color: colors.textMid }}>{row.target}</td>
                 </tr>

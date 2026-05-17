@@ -1,12 +1,7 @@
 import type { NextFunction, Request, Response } from 'express'
 import { logger } from '../utils/logger'
 
-export function errorMiddleware(
-  error: unknown,
-  _req: Request,
-  res: Response,
-  _next: NextFunction
-) {
+export function errorMiddleware(error: unknown, _req: Request, res: Response, _next: NextFunction) {
   logger.error(error)
 
   const isDev = process.env.NODE_ENV === 'development'
@@ -18,7 +13,7 @@ export function errorMiddleware(
     message.includes('max rows limit') ||
     message.includes('max headers limit') ||
     message.includes('No file uploaded') ||
-    message.includes('identifiant n\'est plus disponible') ||
+    message.includes("identifiant n'est plus disponible") ||
     message.includes('Unauthorized') ||
     message.includes('Forbidden')
   ) {
@@ -26,8 +21,8 @@ export function errorMiddleware(
   }
 
   // Generic error response for 500s to avoid leaking internals
-  return res.status(500).json({ 
+  return res.status(500).json({
     message: isDev ? message : 'Une erreur interne est survenue. Veuillez réessayer plus tard.',
-    error: isDev ? error : undefined 
+    error: isDev ? error : undefined
   })
 }

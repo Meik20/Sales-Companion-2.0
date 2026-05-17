@@ -37,7 +37,7 @@ export function ToastProvider({ children }: PropsWithChildren) {
           display: 'flex',
           flexDirection: 'column',
           gap: 10,
-          pointerEvents: 'none',
+          pointerEvents: 'none'
         }}
       >
         {toasts.map((t) => (

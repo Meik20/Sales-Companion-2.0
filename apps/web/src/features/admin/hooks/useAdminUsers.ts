@@ -21,8 +21,8 @@ export function useAdminUsers() {
 
       const response = await fetch(`${backendUrl}/api/admin/users`, {
         headers: {
-          'Authorization': `Bearer ${token || ''}`,
-        },
+          Authorization: `Bearer ${token || ''}`
+        }
       })
 
       if (!response.ok) {
@@ -33,6 +33,6 @@ export function useAdminUsers() {
     },
     enabled: !!user?.uid,
     refetchInterval: 5000, // Real-time updates every 5 seconds
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: true
   })
 }

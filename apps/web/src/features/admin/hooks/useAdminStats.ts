@@ -25,8 +25,8 @@ export function useAdminStats() {
 
       const response = await fetch(`${backendUrl}/api/admin/stats`, {
         headers: {
-          'Authorization': `Bearer ${token || ''}`,
-        },
+          Authorization: `Bearer ${token || ''}`
+        }
       })
 
       if (!response.ok) {
@@ -37,6 +37,6 @@ export function useAdminStats() {
     },
     enabled: !!user?.uid,
     refetchInterval: 5000, // Refresh automatically every 5 seconds
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: true
   })
 }

@@ -17,9 +17,10 @@ export default function AIAssistantPage() {
     {
       id: '1',
       role: 'assistant',
-      content: '👋 Bonjour! Je suis votre Companion IA. Je peux vous aider avec des conseils commerciaux, des stratégies de prospection, et bien plus. Comment puis-je vous aider?',
-      timestamp: new Date(),
-    },
+      content:
+        '👋 Bonjour! Je suis votre Companion IA. Je peux vous aider avec des conseils commerciaux, des stratégies de prospection, et bien plus. Comment puis-je vous aider?',
+      timestamp: new Date()
+    }
   ])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -39,7 +40,7 @@ export default function AIAssistantPage() {
       id: Date.now().toString(),
       role: 'user',
       content: input,
-      timestamp: new Date(),
+      timestamp: new Date()
     }
     setMessages((prev) => [...prev, userMessage])
     setInput('')
@@ -51,9 +52,9 @@ export default function AIAssistantPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ message: input }),
+        body: JSON.stringify({ message: input })
       })
 
       if (!response.ok) {
@@ -67,8 +68,12 @@ export default function AIAssistantPage() {
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: data.reply || data.response || data.message || 'Désolé, je n\'ai pas pu traiter votre demande.',
-        timestamp: new Date(),
+        content:
+          data.reply ||
+          data.response ||
+          data.message ||
+          "Désolé, je n'ai pas pu traiter votre demande.",
+        timestamp: new Date()
       }
       setMessages((prev) => [...prev, assistantMessage])
     } catch (error) {
@@ -76,10 +81,11 @@ export default function AIAssistantPage() {
       const errorMessage: Message = {
         id: (Date.now() + 2).toString(),
         role: 'assistant',
-        content: error instanceof Error 
-          ? `❌ Erreur: ${error.message}` 
-          : '❌ Désolé, une erreur est survenue. Veuillez réessayer.',
-        timestamp: new Date(),
+        content:
+          error instanceof Error
+            ? `❌ Erreur: ${error.message}`
+            : '❌ Désolé, une erreur est survenue. Veuillez réessayer.',
+        timestamp: new Date()
       }
       setMessages((prev) => [...prev, errorMessage])
     } finally {
@@ -102,7 +108,7 @@ export default function AIAssistantPage() {
         flexDirection: 'column',
         height: '100vh',
         background: colors.bg,
-        position: 'relative',
+        position: 'relative'
       }}
     >
       {/* Header */}
@@ -113,7 +119,7 @@ export default function AIAssistantPage() {
           background: colors.bg2,
           display: 'flex',
           alignItems: 'center',
-          gap: '12px',
+          gap: '12px'
         }}
       >
         <div>
@@ -135,7 +141,7 @@ export default function AIAssistantPage() {
           display: 'flex',
           flexDirection: 'column',
           gap: '12px',
-          paddingBottom: '100px',
+          paddingBottom: '100px'
         }}
       >
         {messages.map((msg) => (
@@ -145,7 +151,7 @@ export default function AIAssistantPage() {
               display: 'flex',
               justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
               gap: '8px',
-              animation: 'fadeUp 300ms ease-out forwards',
+              animation: 'fadeUp 300ms ease-out forwards'
             }}
           >
             <div
@@ -157,7 +163,7 @@ export default function AIAssistantPage() {
                 color: msg.role === 'user' ? 'white' : colors.text,
                 fontSize: '14px',
                 lineHeight: '1.5',
-                wordBreak: 'break-word',
+                wordBreak: 'break-word'
               }}
             >
               {msg.content}
@@ -169,7 +175,7 @@ export default function AIAssistantPage() {
             style={{
               display: 'flex',
               justifyContent: 'flex-start',
-              gap: '8px',
+              gap: '8px'
             }}
           >
             <div
@@ -178,7 +184,7 @@ export default function AIAssistantPage() {
                 borderRadius: '12px',
                 background: colors.bg2,
                 color: colors.textMid,
-                fontSize: '14px',
+                fontSize: '14px'
               }}
             >
               ⏳ Réflexion en cours...
@@ -201,7 +207,7 @@ export default function AIAssistantPage() {
           borderTop: `1px solid ${colors.border}`,
           display: 'flex',
           gap: '8px',
-          paddingBottom: 'max(12px, env(safe-area-inset-bottom, 0px))',
+          paddingBottom: 'max(12px, env(safe-area-inset-bottom, 0px))'
         }}
       >
         <textarea
@@ -220,7 +226,7 @@ export default function AIAssistantPage() {
             fontFamily: 'inherit',
             resize: 'none',
             maxHeight: '60px',
-            outline: 'none',
+            outline: 'none'
           }}
           rows={1}
           disabled={loading}
@@ -238,7 +244,7 @@ export default function AIAssistantPage() {
             fontWeight: 600,
             fontSize: '14px',
             fontFamily: 'inherit',
-            transition: 'all 200ms ease',
+            transition: 'all 200ms ease'
           }}
         >
           Envoyer

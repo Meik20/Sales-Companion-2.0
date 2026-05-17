@@ -9,11 +9,22 @@ import { useToast } from '@/hooks/useToast'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { colors, shadows } from '@/styles/tokens'
 import { useTranslation } from '@/providers/I18nProvider'
-import { 
-  Building2, Hash, MapPin, CheckCircle2, 
-  Calendar, Trash2, Download, Eraser, 
-  ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,
-  Search, Filter, Activity
+import {
+  Building2,
+  Hash,
+  MapPin,
+  CheckCircle2,
+  Calendar,
+  Trash2,
+  Download,
+  Eraser,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  Search,
+  Filter,
+  Activity
 } from 'lucide-react'
 
 export function AdminCompaniesTable() {
@@ -78,7 +89,7 @@ export function AdminCompaniesTable() {
       pushToast({
         type: 'error',
         title: 'Suppression impossible',
-        description: error instanceof Error ? error.message : 'Erreur inconnue',
+        description: error instanceof Error ? error.message : 'Erreur inconnue'
       })
     } finally {
       setIsDeleting(false)
@@ -99,7 +110,7 @@ export function AdminCompaniesTable() {
       pushToast({
         type: 'error',
         title: 'Suppression impossible',
-        description: error instanceof Error ? error.message : 'Erreur inconnue',
+        description: error instanceof Error ? error.message : 'Erreur inconnue'
       })
     } finally {
       setIsDeleting(false)
@@ -111,8 +122,8 @@ export function AdminCompaniesTable() {
       const token = await user?.getIdToken()
       const response = await fetch('/api/admin/companies/export', {
         headers: {
-          'Authorization': `Bearer ${token || ''}`,
-        },
+          Authorization: `Bearer ${token || ''}`
+        }
       })
 
       if (!response.ok) throw new Error("Erreur lors de l'export")
@@ -126,44 +137,48 @@ export function AdminCompaniesTable() {
       a.click()
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
-      
-      pushToast({ type: 'success', title: 'Export réussi', description: 'Le fichier CSV a été téléchargé.' })
+
+      pushToast({
+        type: 'success',
+        title: 'Export réussi',
+        description: 'Le fichier CSV a été téléchargé.'
+      })
     } catch (error) {
       pushToast({
         type: 'error',
         title: 'Export impossible',
-        description: error instanceof Error ? error.message : 'Erreur inconnue',
+        description: error instanceof Error ? error.message : 'Erreur inconnue'
       })
     }
   }
 
   // Smart pagination logic to avoid rendering 100+ buttons
   const getVisiblePages = () => {
-    const delta = 2; // how many pages to show around the current page
-    const range = [];
-    const rangeWithDots = [];
-    let l;
+    const delta = 2 // how many pages to show around the current page
+    const range = []
+    const rangeWithDots = []
+    let l
 
     for (let i = 1; i <= totalPages; i++) {
       if (i === 1 || i === totalPages || (i >= page - delta && i <= page + delta)) {
-        range.push(i);
+        range.push(i)
       }
     }
 
     for (let i of range) {
       if (l) {
         if (i - l === 2) {
-          rangeWithDots.push(l + 1);
+          rangeWithDots.push(l + 1)
         } else if (i - l !== 1) {
-          rangeWithDots.push('...');
+          rangeWithDots.push('...')
         }
       }
-      rangeWithDots.push(i);
-      l = i;
+      rangeWithDots.push(i)
+      l = i
     }
 
-    return rangeWithDots;
-  };
+    return rangeWithDots
+  }
 
   return (
     <SectionCard title={t('admin.companies')} subtitle={`${total} ${t('admin.inDatabase')}`}>
@@ -180,7 +195,7 @@ export function AdminCompaniesTable() {
               alignItems: 'center',
               gap: 12,
               marginBottom: 16,
-              flexWrap: 'wrap',
+              flexWrap: 'wrap'
             }}
           >
             <div style={{ color: colors.textMid, fontSize: 13 }}>
@@ -206,7 +221,7 @@ export function AdminCompaniesTable() {
                   alignItems: 'center',
                   gap: 8,
                   fontWeight: 600,
-                  transition: 'all 200ms ease',
+                  transition: 'all 200ms ease'
                 }}
               >
                 <Eraser size={16} />
@@ -229,7 +244,7 @@ export function AdminCompaniesTable() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: 8,
-                  transition: 'all 200ms ease',
+                  transition: 'all 200ms ease'
                 }}
               >
                 <Download size={16} />
@@ -252,7 +267,7 @@ export function AdminCompaniesTable() {
                   alignItems: 'center',
                   gap: 8,
                   fontWeight: 600,
-                  transition: 'all 200ms ease',
+                  transition: 'all 200ms ease'
                 }}
               >
                 <Trash2 size={16} />
@@ -266,7 +281,7 @@ export function AdminCompaniesTable() {
               style={{
                 width: '100%',
                 borderCollapse: 'collapse',
-                fontSize: 13,
+                fontSize: 13
               }}
             >
               <thead>
@@ -281,10 +296,16 @@ export function AdminCompaniesTable() {
                     />
                   </th>
                   {[
-                    { label: t('field.raisonSociale') || 'Raison Sociale', icon: <Building2 size={12} /> },
+                    {
+                      label: t('field.raisonSociale') || 'Raison Sociale',
+                      icon: <Building2 size={12} />
+                    },
                     { label: t('field.niu') || 'NIU', icon: <Hash size={12} /> },
                     { label: t('field.sector') || 'Secteur', icon: <Filter size={12} /> },
-                    { label: `${t('field.city') || 'Ville'} / ${t('field.region') || 'Région'}`, icon: <MapPin size={12} /> },
+                    {
+                      label: `${t('field.city') || 'Ville'} / ${t('field.region') || 'Région'}`,
+                      icon: <MapPin size={12} />
+                    },
                     { label: t('admin.status'), icon: <Activity size={12} /> },
                     { label: t('admin.date'), icon: <Calendar size={12} /> }
                   ].map((h) => (
@@ -298,7 +319,7 @@ export function AdminCompaniesTable() {
                         fontSize: 10.5,
                         textTransform: 'uppercase',
                         letterSpacing: '.06em',
-                        whiteSpace: 'nowrap',
+                        whiteSpace: 'nowrap'
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -332,17 +353,27 @@ export function AdminCompaniesTable() {
                 marginTop: 16,
                 paddingTop: 16,
                 borderTop: `1px solid ${colors.border}`,
-                flexWrap: 'wrap',
+                flexWrap: 'wrap'
               }}
             >
               <button
-                onClick={() => { setSelectedIds([]); setPage(1) }}
+                onClick={() => {
+                  setSelectedIds([])
+                  setPage(1)
+                }}
                 disabled={page === 1}
                 style={{
-                  width: 36, height: 36, borderRadius: 10,
-                  border: `1px solid ${colors.border}`, background: colors.bg,
-                  color: colors.text, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  cursor: page === 1 ? 'not-allowed' : 'pointer', opacity: page === 1 ? 0.5 : 1,
+                  width: 36,
+                  height: 36,
+                  borderRadius: 10,
+                  border: `1px solid ${colors.border}`,
+                  background: colors.bg,
+                  color: colors.text,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: page === 1 ? 'not-allowed' : 'pointer',
+                  opacity: page === 1 ? 0.5 : 1,
                   transition: 'all 200ms ease'
                 }}
                 title="Première page"
@@ -350,34 +381,59 @@ export function AdminCompaniesTable() {
                 <ChevronsLeft size={16} />
               </button>
               <button
-                onClick={() => { setSelectedIds([]); setPage(Math.max(1, page - 1)) }}
+                onClick={() => {
+                  setSelectedIds([])
+                  setPage(Math.max(1, page - 1))
+                }}
                 disabled={page === 1}
                 style={{
-                  width: 36, height: 36, borderRadius: 10,
-                  border: `1px solid ${colors.border}`, background: colors.bg,
-                  color: colors.text, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  cursor: page === 1 ? 'not-allowed' : 'pointer', opacity: page === 1 ? 0.5 : 1,
+                  width: 36,
+                  height: 36,
+                  borderRadius: 10,
+                  border: `1px solid ${colors.border}`,
+                  background: colors.bg,
+                  color: colors.text,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: page === 1 ? 'not-allowed' : 'pointer',
+                  opacity: page === 1 ? 0.5 : 1,
                   transition: 'all 200ms ease'
                 }}
                 title="Page précédente"
               >
                 <ChevronLeft size={16} />
               </button>
-              
+
               {getVisiblePages().map((p, index) => {
                 if (p === '...') {
-                  return <span key={`ellipsis-${index}`} style={{ color: colors.textDim, padding: '0 8px', fontWeight: 700 }}>...</span>
+                  return (
+                    <span
+                      key={`ellipsis-${index}`}
+                      style={{ color: colors.textDim, padding: '0 8px', fontWeight: 700 }}
+                    >
+                      ...
+                    </span>
+                  )
                 }
                 return (
                   <button
                     key={`page-${p}`}
-                    onClick={() => { setSelectedIds([]); setPage(p as number) }}
+                    onClick={() => {
+                      setSelectedIds([])
+                      setPage(p as number)
+                    }}
                     style={{
-                      minWidth: 36, height: 36, borderRadius: 10, padding: '0 8px',
+                      minWidth: 36,
+                      height: 36,
+                      borderRadius: 10,
+                      padding: '0 8px',
                       border: `1px solid ${p === page ? colors.green : colors.border}`,
                       background: p === page ? 'rgba(46,160,90,0.1)' : colors.bg,
                       color: p === page ? colors.green : colors.text,
-                      cursor: 'pointer', fontWeight: 700, fontSize: 13,
+                      cursor: 'pointer',
+                      fontWeight: 700,
+                      fontSize: 13,
                       transition: 'all 200ms ease'
                     }}
                   >
@@ -387,13 +443,23 @@ export function AdminCompaniesTable() {
               })}
 
               <button
-                onClick={() => { setSelectedIds([]); setPage(Math.min(totalPages, page + 1)) }}
+                onClick={() => {
+                  setSelectedIds([])
+                  setPage(Math.min(totalPages, page + 1))
+                }}
                 disabled={page === totalPages}
                 style={{
-                  width: 36, height: 36, borderRadius: 10,
-                  border: `1px solid ${colors.border}`, background: colors.bg,
-                  color: colors.text, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  cursor: page === totalPages ? 'not-allowed' : 'pointer', opacity: page === totalPages ? 0.5 : 1,
+                  width: 36,
+                  height: 36,
+                  borderRadius: 10,
+                  border: `1px solid ${colors.border}`,
+                  background: colors.bg,
+                  color: colors.text,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: page === totalPages ? 'not-allowed' : 'pointer',
+                  opacity: page === totalPages ? 0.5 : 1,
                   transition: 'all 200ms ease'
                 }}
                 title="Page suivante"
@@ -401,13 +467,23 @@ export function AdminCompaniesTable() {
                 <ChevronRight size={16} />
               </button>
               <button
-                onClick={() => { setSelectedIds([]); setPage(totalPages) }}
+                onClick={() => {
+                  setSelectedIds([])
+                  setPage(totalPages)
+                }}
                 disabled={page === totalPages}
                 style={{
-                  width: 36, height: 36, borderRadius: 10,
-                  border: `1px solid ${colors.border}`, background: colors.bg,
-                  color: colors.text, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  cursor: page === totalPages ? 'not-allowed' : 'pointer', opacity: page === totalPages ? 0.5 : 1,
+                  width: 36,
+                  height: 36,
+                  borderRadius: 10,
+                  border: `1px solid ${colors.border}`,
+                  background: colors.bg,
+                  color: colors.text,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: page === totalPages ? 'not-allowed' : 'pointer',
+                  opacity: page === totalPages ? 0.5 : 1,
                   transition: 'all 200ms ease'
                 }}
                 title="Dernière page"
@@ -425,7 +501,7 @@ export function AdminCompaniesTable() {
 function CompanyRow({
   company,
   isSelected,
-  onToggle,
+  onToggle
 }: {
   company: AdminCompany
   isSelected: boolean
@@ -433,9 +509,10 @@ function CompanyRow({
 }) {
   const { t } = useTranslation()
   const importDate = company.importedAt ? new Date(company.importedAt) : null
-  const dateStr = importDate && !isNaN(importDate.getTime())
-    ? importDate.toLocaleDateString('fr-FR', { month: 'short', day: 'numeric', year: '2-digit' })
-    : '—'
+  const dateStr =
+    importDate && !isNaN(importDate.getTime())
+      ? importDate.toLocaleDateString('fr-FR', { month: 'short', day: 'numeric', year: '2-digit' })
+      : '—'
 
   // raisonSociale is the canonical field name from the CSV import
   const displayName = company.raisonSociale || company.name || '—'
@@ -449,10 +526,14 @@ function CompanyRow({
     <tr
       style={{
         borderBottom: `1px solid ${colors.border}`,
-        transition: 'all 200ms ease',
+        transition: 'all 200ms ease'
       }}
-      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = colors.bg2 }}
-      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.backgroundColor = colors.bg2
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.backgroundColor = 'transparent'
+      }}
     >
       <td style={{ padding: '14px 12px', textAlign: 'center' }}>
         <input
@@ -466,11 +547,22 @@ function CompanyRow({
       {/* Raison Sociale */}
       <td style={{ padding: '14px 12px', maxWidth: 280 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <span style={{ fontWeight: 700, color: colors.text, fontSize: 13.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <span
+            style={{
+              fontWeight: 700,
+              color: colors.text,
+              fontSize: 13.5,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}
+          >
             {displayName}
           </span>
           {displaySigle && (
-            <span style={{ fontSize: 10, color: colors.textDim, fontStyle: 'italic', opacity: 0.8 }}>
+            <span
+              style={{ fontSize: 10, color: colors.textDim, fontStyle: 'italic', opacity: 0.8 }}
+            >
               {displaySigle}
             </span>
           )}
@@ -478,15 +570,41 @@ function CompanyRow({
       </td>
       {/* NIU */}
       <td style={{ padding: '14px 12px' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '2px 8px', borderRadius: 6, background: colors.bg3, border: `1px solid ${colors.border}` }}>
-          <span style={{ color: colors.textMid, fontSize: 11.5, fontFamily: 'monospace', fontWeight: 600 }}>
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '2px 8px',
+            borderRadius: 6,
+            background: colors.bg3,
+            border: `1px solid ${colors.border}`
+          }}
+        >
+          <span
+            style={{
+              color: colors.textMid,
+              fontSize: 11.5,
+              fontFamily: 'monospace',
+              fontWeight: 600
+            }}
+          >
             {displayNiu}
           </span>
         </div>
       </td>
       {/* Secteur */}
       <td style={{ padding: '14px 12px', maxWidth: 180 }}>
-        <span style={{ fontSize: 12, color: colors.textMid, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block' }}>
+        <span
+          style={{
+            fontSize: 12,
+            color: colors.textMid,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            display: 'block'
+          }}
+        >
           {displaySector}
         </span>
       </td>
@@ -502,11 +620,20 @@ function CompanyRow({
       {/* Statut */}
       <td style={{ padding: '14px 12px', textAlign: 'center' }}>
         {company.verified ? (
-          <div style={{ 
-            display: 'inline-flex', alignItems: 'center', gap: 4, 
-            padding: '2px 8px', borderRadius: 6, background: 'rgba(34,197,94,0.1)',
-            color: '#16a34a', fontSize: 11, fontWeight: 700, border: '1px solid rgba(34,197,94,0.2)'
-          }}>
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 4,
+              padding: '2px 8px',
+              borderRadius: 6,
+              background: 'rgba(34,197,94,0.1)',
+              color: '#16a34a',
+              fontSize: 11,
+              fontWeight: 700,
+              border: '1px solid rgba(34,197,94,0.2)'
+            }}
+          >
             <CheckCircle2 size={12} />
             VERIFIED
           </div>
@@ -515,7 +642,16 @@ function CompanyRow({
         )}
       </td>
       {/* Date */}
-      <td style={{ padding: '14px 12px', color: colors.textMid, textAlign: 'right', fontSize: 12, whiteSpace: 'nowrap', fontWeight: 500 }}>
+      <td
+        style={{
+          padding: '14px 12px',
+          color: colors.textMid,
+          textAlign: 'right',
+          fontSize: 12,
+          whiteSpace: 'nowrap',
+          fontWeight: 500
+        }}
+      >
         {dateStr}
       </td>
     </tr>

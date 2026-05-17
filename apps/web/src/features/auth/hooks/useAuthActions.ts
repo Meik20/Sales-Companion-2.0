@@ -5,7 +5,7 @@ import {
   signInWithEmailAndPassword,
   signOut,
   updateProfile,
-  sendEmailVerification,
+  sendEmailVerification
 } from 'firebase/auth'
 import { doc, setDoc, Timestamp } from 'firebase/firestore'
 import { auth, firestore } from '@/services/firebase/client'
@@ -24,41 +24,45 @@ export function useAuthActions() {
     try {
       const { user } = await createUserWithEmailAndPassword(auth, input.email, input.password)
       await updateProfile(user, { displayName: input.name })
-      
+
       // Save user profile data to Firestore
-      await setDoc(doc(firestore, 'users', user.uid), {
-        uid: user.uid,
-        email: user.email,
-        displayName: input.name,
-        name: input.name,
-        role: input.role || 'independent',
-        sector: input.sector || null,
-        plan: 'free',
-        dailyLimit: 10,
-        dailyUsed: 0,
-        active: false,
-        activated: false,
-        emailVerificationPending: true,
-        createdAt: Timestamp.now(),
-        updatedAt: Timestamp.now(),
-        lastLogin: Timestamp.now(),
-        photoURL: user.photoURL || null,
-        companyName: input.companyName || null,
-        companyId: null,
-        managerUid: null,
-        preferences: {
-          darkMode: false,
-          emailNotifications: true,
-          language: 'fr',
+      await setDoc(
+        doc(firestore, 'users', user.uid),
+        {
+          uid: user.uid,
+          email: user.email,
+          displayName: input.name,
+          name: input.name,
+          role: input.role || 'independent',
+          sector: input.sector || null,
+          plan: 'free',
+          dailyLimit: 10,
+          dailyUsed: 0,
+          active: false,
+          activated: false,
+          emailVerificationPending: true,
+          createdAt: Timestamp.now(),
+          updatedAt: Timestamp.now(),
+          lastLogin: Timestamp.now(),
+          photoURL: user.photoURL || null,
+          companyName: input.companyName || null,
+          companyId: null,
+          managerUid: null,
+          preferences: {
+            darkMode: false,
+            emailNotifications: true,
+            language: 'fr'
+          }
         },
-      }, { merge: false })
-      
+        { merge: false }
+      )
+
       // ✅ FORCE TOKEN REFRESH to get custom claims
       await user.getIdToken(true)
 
       // Send email verification link
       await sendEmailVerification(user)
-      
+
       return user
     } catch (error) {
       throw error
@@ -68,17 +72,17 @@ export function useAuthActions() {
   const loginWithEmail = async (email: string, password: string) => {
     try {
       const { user } = await signInWithEmailAndPassword(auth, email, password)
-      
+
       // ✅ FORCE TOKEN REFRESH to get custom claims
       await user.getIdToken(true)
-      
+
       // Update lastLogin timestamp
       await setDoc(
         doc(firestore, 'users', user.uid),
         { lastLogin: Timestamp.now() },
         { merge: true }
       )
-      
+
       return user
     } catch (error) {
       throw error

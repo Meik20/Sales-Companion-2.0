@@ -42,7 +42,7 @@ export function SupportComposer({ onSend }: Props) {
           fontFamily: 'inherit',
           outline: 'none',
           resize: 'none',
-          lineHeight: 1.55,
+          lineHeight: 1.55
         }}
       />
       <Button

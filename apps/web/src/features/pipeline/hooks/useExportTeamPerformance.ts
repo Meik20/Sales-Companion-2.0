@@ -6,8 +6,8 @@ import { useState } from 'react'
 
 export type ExportFilters = {
   memberId?: string
-  from?: string   // "YYYY-MM-DD"
-  to?: string     // "YYYY-MM-DD"
+  from?: string // "YYYY-MM-DD"
+  to?: string // "YYYY-MM-DD"
 }
 
 /**
@@ -15,8 +15,8 @@ export type ExportFilters = {
  * Downloads the file automatically in the browser.
  */
 export function useExportTeamPerformance() {
-  const { user }        = useCurrentUser()
-  const { pushToast }   = useToast()
+  const { user } = useCurrentUser()
+  const { pushToast } = useToast()
   const [loading, setLoading] = useState(false)
 
   async function exportPerformance(filters: ExportFilters = {}) {
@@ -27,13 +27,13 @@ export function useExportTeamPerformance() {
 
       const params = new URLSearchParams()
       if (filters.memberId) params.set('memberId', filters.memberId)
-      if (filters.from)     params.set('from',     filters.from)
-      if (filters.to)       params.set('to',       filters.to)
+      if (filters.from) params.set('from', filters.from)
+      if (filters.to) params.set('to', filters.to)
 
       const url = `/api/pipeline/export${params.toString() ? `?${params}` : ''}`
 
       const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` }
       })
 
       if (!res.ok) {
@@ -55,12 +55,16 @@ export function useExportTeamPerformance() {
       document.body.removeChild(a)
       URL.revokeObjectURL(objectUrl)
 
-      pushToast({ type: 'success', title: 'Export réussi', description: `Fichier "${filename}" téléchargé.` })
+      pushToast({
+        type: 'success',
+        title: 'Export réussi',
+        description: `Fichier "${filename}" téléchargé.`
+      })
     } catch (err) {
       pushToast({
         type: 'error',
         title: "Erreur d'export",
-        description: err instanceof Error ? err.message : 'Erreur inconnue',
+        description: err instanceof Error ? err.message : 'Erreur inconnue'
       })
     } finally {
       setLoading(false)

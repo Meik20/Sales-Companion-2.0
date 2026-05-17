@@ -11,9 +11,9 @@ export type PipelineDoc = {
   companyPhone?: string
   companyEmail?: string
   assignedTo?: string | null
-  memberName?: string | null      // Nom du membre qui a ajouté/est assigné
-  memberAccessId?: string | null  // Access ID du membre (ex: "prenomnom@entreprise")
-  assignedByName?: string | null  // Nom du manager qui a fait l'assignation
+  memberName?: string | null // Nom du membre qui a ajouté/est assigné
+  memberAccessId?: string | null // Access ID du membre (ex: "prenomnom@entreprise")
+  assignedByName?: string | null // Nom du manager qui a fait l'assignation
   previousAssignees?: {
     userId: string
     memberName: string

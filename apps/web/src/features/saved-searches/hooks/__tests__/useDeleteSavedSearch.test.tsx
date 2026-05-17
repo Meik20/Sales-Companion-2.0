@@ -7,9 +7,9 @@ vi.mock('@/hooks/useCurrentUser', () => ({
   useCurrentUser: () => ({
     user: {
       uid: 'test-user-id',
-      getIdToken: vi.fn().mockResolvedValue('test-token'),
-    },
-  }),
+      getIdToken: vi.fn().mockResolvedValue('test-token')
+    }
+  })
 }))
 
 describe('useDeleteSavedSearch', () => {
@@ -21,15 +21,13 @@ describe('useDeleteSavedSearch', () => {
   })
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   )
 
   it('should delete saved search successfully', async () => {
     global.fetch = vi.fn().mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ success: true }),
+      json: async () => ({ success: true })
     })
 
     const { result } = renderHook(() => useDeleteSavedSearch(), { wrapper })

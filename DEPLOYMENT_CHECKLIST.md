@@ -3,6 +3,7 @@
 ## 📋 Phase 1: Code Quality & Testing
 
 ### TypeScript & Linting
+
 - [ ] `npm run typecheck` - Tous les types correctement validés
 - [ ] `npm run lint` - Pas d'erreurs lint
 - [ ] `npm run format:check` - Code formaté correctement
@@ -10,12 +11,14 @@
 - [ ] Imports correctement résolus
 
 ### Tests
+
 - [ ] `npm run test:web` - Frontend tests passing
 - [ ] `npm run test:server` - Backend tests passing
 - [ ] Coverage > 70% (critical paths)
 - [ ] Tests e2e (si applicable)
 
 ### Build Verification
+
 - [ ] `npm run build` - Build complet sans erreurs
 - [ ] `npm run build:web` - Frontend build OK
 - [ ] `npm run build:server` - Backend build OK
@@ -26,6 +29,7 @@
 ## 🔐 Phase 2: Security
 
 ### Code Security
+
 - [ ] Pas de secrets en hardcoded
 - [ ] Pas de tokens/credentials dans git
 - [ ] `.env` dans `.gitignore`
@@ -33,6 +37,7 @@
 - [ ] Input validation sur toutes les routes
 
 ### Firebase Security
+
 - [ ] Firestore rules déployées: `firebase deploy --only firestore:rules`
 - [ ] Indexes déployés: `firebase deploy --only firestore:indexes`
 - [ ] Collections protégées (vérifier `firestore.rules`)
@@ -40,6 +45,7 @@
 - [ ] Admin SDK permissions correctes
 
 ### API Security
+
 - [ ] CORS configuré correctement
 - [ ] Rate limiting activé
 - [ ] Input sanitization
@@ -47,6 +53,7 @@
 - [ ] XSS prevention headers
 
 ### Infrastructure
+
 - [ ] Security headers enabled (Helmet)
 - [ ] HTTPS force enabled
 - [ ] CSP (Content Security Policy) configured
@@ -57,6 +64,7 @@
 ## 📱 Phase 3: PWA & Performance
 
 ### PWA Configuration
+
 - [ ] `manifest.json` complet et valide
 - [ ] `icon.svg` et favicons présents
 - [ ] `sw.js` service worker enregistré
@@ -64,6 +72,7 @@
 - [ ] App installable sur mobile
 
 ### Performance Metrics
+
 - [ ] Lighthouse score > 90
 - [ ] First Contentful Paint (FCP) < 1.8s
 - [ ] Largest Contentful Paint (LCP) < 2.5s
@@ -71,6 +80,7 @@
 - [ ] Time to Interactive (TTI) < 3.5s
 
 ### Bundle Size
+
 - [ ] JS bundle < 500KB (gzipped)
 - [ ] CSS bundle < 100KB (gzipped)
 - [ ] No duplicate dependencies
@@ -78,6 +88,7 @@
 - [ ] Code splitting optimized
 
 ### Caching
+
 - [ ] Static assets cached (1 year)
 - [ ] HTML not cached (service worker)
 - [ ] API responses cached appropriately
@@ -88,6 +99,7 @@
 ## 🌐 Phase 4: Database
 
 ### Firestore Configuration
+
 - [ ] Collections created:
   - [ ] `users`
   - [ ] `companies`
@@ -106,6 +118,7 @@
   - [ ] `support_threads`: userId+status, status+createdAt
 
 ### Data Integrity
+
 - [ ] No null references between collections
 - [ ] Timestamps using server-side timestamps
 - [ ] Backup strategy implemented
@@ -116,6 +129,7 @@
 ## 🖥️ Phase 5: Frontend
 
 ### Pages & Routes
+
 - [ ] `/` redirects to `/landing`
 - [ ] `/landing` loads correctly
 - [ ] `/login` and `/register` accessible
@@ -124,6 +138,7 @@
 - [ ] 404 page exists and styled
 
 ### Features
+
 - [ ] Search functionality working
 - [ ] Pipeline CRUD operations
 - [ ] Team management (if applicable)
@@ -132,6 +147,7 @@
 - [ ] File uploads (if applicable)
 
 ### Mobile/Responsive
+
 - [ ] Responsive on 320px to 2560px
 - [ ] Touch interactions work
 - [ ] Forms mobile-friendly
@@ -139,6 +155,7 @@
 - [ ] Navigation mobile-friendly
 
 ### Accessibility
+
 - [ ] Semantic HTML used
 - [ ] ARIA labels where needed
 - [ ] Keyboard navigation working
@@ -150,6 +167,7 @@
 ## 🔧 Phase 6: Backend
 
 ### API Endpoints
+
 - [ ] `GET /health` returns `{"status":"ok"}`
 - [ ] Auth endpoints working (`/auth/*`)
 - [ ] Companies endpoints working (`/companies/*`)
@@ -157,6 +175,7 @@
 - [ ] Error responses consistent
 
 ### Middleware
+
 - [ ] Auth middleware validates tokens
 - [ ] Admin middleware checks permissions
 - [ ] Error middleware catches all errors
@@ -164,6 +183,7 @@
 - [ ] Rate limiting working
 
 ### Validation & Error Handling
+
 - [ ] Zod schemas validate all inputs
 - [ ] Error messages user-friendly
 - [ ] 4xx and 5xx responses correct
@@ -171,6 +191,7 @@
 - [ ] No sensitive data in errors
 
 ### Database Operations
+
 - [ ] Firestore queries optimized
 - [ ] No N+1 queries
 - [ ] Transactions for critical operations
@@ -182,13 +203,16 @@
 ## 🚀 Phase 7: Deployment Configuration
 
 ### Environment Variables
+
 #### Frontend (.env.local)
+
 - [ ] NEXT_PUBLIC_FIREBASE_API_KEY set
 - [ ] NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN set
 - [ ] NEXT_PUBLIC_FIREBASE_PROJECT_ID set
 - [ ] NEXT_PUBLIC_API_URL set correctly
 
 #### Backend (.env)
+
 - [ ] NODE_ENV=production
 - [ ] PORT=8080
 - [ ] FIREBASE_PROJECT_ID set
@@ -198,6 +222,7 @@
 - [ ] CORS_ORIGIN set correctly
 
 ### Railway Configuration
+
 - [ ] railway.json configured
 - [ ] Procfile created and valid
 - [ ] Build commands correct
@@ -205,6 +230,7 @@
 - [ ] Environment variables in Railway dashboard
 
 ### Deployment Credentials
+
 - [ ] Firebase service account key secure
 - [ ] Railway access token configured
 - [ ] GitHub SSH key added
@@ -215,6 +241,7 @@
 ## 🧪 Phase 8: Integration Testing
 
 ### End-to-End User Flow
+
 - [ ] User can register
 - [ ] User can login
 - [ ] User can search companies
@@ -225,6 +252,7 @@
 - [ ] Manager can assign prospects
 
 ### Third-party Integrations
+
 - [ ] Firebase Auth working
 - [ ] Firestore operations working
 - [ ] Service Worker registering
@@ -232,6 +260,7 @@
 - [ ] Email notifications (if configured)
 
 ### Browser Compatibility
+
 - [ ] Chrome latest version
 - [ ] Firefox latest version
 - [ ] Safari latest version
@@ -243,6 +272,7 @@
 ## 🔄 Phase 9: Rollback & Recovery
 
 ### Backup & Restore
+
 - [ ] Firestore backup configured
 - [ ] Database snapshots scheduled
 - [ ] Restore procedure documented
@@ -250,6 +280,7 @@
 - [ ] Git tags for releases
 
 ### Monitoring Setup
+
 - [ ] Error logging configured (Sentry/etc)
 - [ ] Performance monitoring enabled
 - [ ] Uptime monitoring configured
@@ -261,6 +292,7 @@
 ## 📊 Phase 10: Documentation
 
 ### Technical Documentation
+
 - [ ] README.md complete and up-to-date
 - [ ] data-model.md documented
 - [ ] API documentation (if using Swagger/OpenAPI)
@@ -268,6 +300,7 @@
 - [ ] Architecture diagram included
 
 ### Deployment Documentation
+
 - [ ] railway-deployment.md complete
 - [ ] Setup instructions clear
 - [ ] Troubleshooting guide provided
@@ -275,6 +308,7 @@
 - [ ] Maintenance procedures documented
 
 ### User Documentation
+
 - [ ] User guide written (if applicable)
 - [ ] Feature overview documented
 - [ ] FAQ section created
@@ -286,6 +320,7 @@
 ## ✨ Final Checks
 
 ### Before Going Live
+
 - [ ] All checklist items checked
 - [ ] Code review completed
 - [ ] Security audit passed
@@ -293,6 +328,7 @@
 - [ ] Stakeholder approval received
 
 ### Day of Deployment
+
 - [ ] Backup Firestore
 - [ ] Take screenshot of current status
 - [ ] Notify stakeholders
@@ -304,6 +340,7 @@
 - [ ] Update status page
 
 ### Post-Deployment
+
 - [ ] Monitor error rates
 - [ ] Check performance metrics
 - [ ] Collect user feedback
@@ -331,7 +368,7 @@ Keep monitoring and iterate based on user feedback!
 
 ## 📝 Sign-Off
 
-- [ ] Project Manager: _____ Date: _____
-- [ ] Tech Lead: _____ Date: _____
-- [ ] QA Lead: _____ Date: _____
-- [ ] DevOps: _____ Date: _____
+- [ ] Project Manager: **\_** Date: **\_**
+- [ ] Tech Lead: **\_** Date: **\_**
+- [ ] QA Lead: **\_** Date: **\_**
+- [ ] DevOps: **\_** Date: **\_**

@@ -13,10 +13,40 @@ import { colors } from '@/styles/tokens'
 import { routes } from '@/constants/routes'
 
 const planDetails = {
-  free:       { labelKey: 'settings.plans.free',       searches: 10,    featureKeys: ['settings.features.basicSearch', 'settings.features.personalPipeline'] },
-  starter:    { labelKey: 'settings.plans.starter',    searches: 50,    featureKeys: ['settings.features.advancedSearch', 'settings.features.personalPipeline', 'settings.features.excelExport'] },
-  pro:        { labelKey: 'settings.plans.pro',        searches: 200,   featureKeys: ['settings.features.allStarter', 'settings.features.pipelineUnlimited', 'settings.features.aiAssistant', 'settings.features.prioritySupport'] },
-  enterprise: { labelKey: 'settings.plans.enterprise', searches: 1000,  featureKeys: ['settings.features.allPro', 'settings.features.oneThousandSearches', 'settings.features.teamManagement', 'settings.features.dedicatedSupport'] },
+  free: {
+    labelKey: 'settings.plans.free',
+    searches: 10,
+    featureKeys: ['settings.features.basicSearch', 'settings.features.personalPipeline']
+  },
+  starter: {
+    labelKey: 'settings.plans.starter',
+    searches: 50,
+    featureKeys: [
+      'settings.features.advancedSearch',
+      'settings.features.personalPipeline',
+      'settings.features.excelExport'
+    ]
+  },
+  pro: {
+    labelKey: 'settings.plans.pro',
+    searches: 200,
+    featureKeys: [
+      'settings.features.allStarter',
+      'settings.features.pipelineUnlimited',
+      'settings.features.aiAssistant',
+      'settings.features.prioritySupport'
+    ]
+  },
+  enterprise: {
+    labelKey: 'settings.plans.enterprise',
+    searches: 1000,
+    featureKeys: [
+      'settings.features.allPro',
+      'settings.features.oneThousandSearches',
+      'settings.features.teamManagement',
+      'settings.features.dedicatedSupport'
+    ]
+  }
 }
 
 export default function SettingsPage() {
@@ -31,10 +61,7 @@ export default function SettingsPage() {
   return (
     <main>
       <AppShell>
-        <PageHeader
-          title={t('settings.title')}
-          subtitle={t('settings.subtitle')}
-        />
+        <PageHeader title={t('settings.title')} subtitle={t('settings.subtitle')} />
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           {/* Plan actuel */}
@@ -46,24 +73,39 @@ export default function SettingsPage() {
                 justifyContent: 'space-between',
                 gap: 16,
                 flexWrap: 'wrap',
-                marginBottom: 20,
+                marginBottom: 20
               }}
             >
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-                  <span style={{ fontSize: 20, fontWeight: 800, color: colors.text, fontFamily: 'inherit' }}>
+                  <span
+                    style={{
+                      fontSize: 20,
+                      fontWeight: 800,
+                      color: colors.text,
+                      fontFamily: 'inherit'
+                    }}
+                  >
                     {t('settings.planLabel')} {t(planInfo.labelKey as any)}
                   </span>
-                  <Badge variant={plan === 'enterprise' ? 'gold' : plan === 'pro' ? 'success' : 'default'}>
+                  <Badge
+                    variant={
+                      plan === 'enterprise' ? 'gold' : plan === 'pro' ? 'success' : 'default'
+                    }
+                  >
                     {t(planInfo.labelKey as any)}
                   </Badge>
                 </div>
-            <p style={{ margin: 0, fontSize: 13, color: colors.textMid }}>
-              {planInfo.searches >= 1000 ? t('settings.searchesPerDay1000') || `${planInfo.searches} ${t('settings.searchesPerDay')}` : `${planInfo.searches} ${t('settings.searchesPerDay')}`}
-            </p>
+                <p style={{ margin: 0, fontSize: 13, color: colors.textMid }}>
+                  {planInfo.searches >= 1000
+                    ? t('settings.searchesPerDay1000') ||
+                      `${planInfo.searches} ${t('settings.searchesPerDay')}`
+                    : `${planInfo.searches} ${t('settings.searchesPerDay')}`}
+                </p>
               </div>
 
-              {(plan !== 'enterprise' && (user?.role === 'manager' || user?.role === 'independent')) ? (
+              {plan !== 'enterprise' &&
+              (user?.role === 'manager' || user?.role === 'independent') ? (
                 <button
                   onClick={() => router.push(routes.upgrade)}
                   style={{
@@ -78,7 +120,7 @@ export default function SettingsPage() {
                     fontWeight: 600,
                     border: 'none',
                     cursor: 'pointer',
-                    transition: 'all 200ms ease',
+                    transition: 'all 200ms ease'
                   }}
                 >
                   ⬆️ {t('settings.upgradeBtn')}
@@ -98,7 +140,7 @@ export default function SettingsPage() {
                     borderRadius: 999,
                     fontSize: 12,
                     color: 'var(--tx2)',
-                    fontWeight: 500,
+                    fontWeight: 500
                   }}
                 >
                   ✓ {t(fk as any)}
@@ -106,8 +148,6 @@ export default function SettingsPage() {
               ))}
             </div>
           </DataCard>
-
-
 
           {/* Infos compte */}
           {user?.role !== 'manager' ? (

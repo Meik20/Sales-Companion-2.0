@@ -12,13 +12,13 @@ export function usePipelineByStatus(status?: PipelineStatus) {
     queryKey: ['pipeline', 'by-status', status],
     queryFn: async () => {
       const items = pipelineQuery.data || []
-      
+
       if (!status) {
         return items
       }
 
       return items.filter((item) => item.status === status)
     },
-    enabled: !!pipelineQuery.data,
+    enabled: !!pipelineQuery.data
   })
 }

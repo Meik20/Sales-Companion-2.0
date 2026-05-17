@@ -1,11 +1,5 @@
 import { useEffect, useState } from 'react'
-import {
-  collection,
-  query,
-  orderBy,
-  onSnapshot,
-  Timestamp
-} from 'firebase/firestore'
+import { collection, query, orderBy, onSnapshot, Timestamp } from 'firebase/firestore'
 import { firestore } from '@/services/firebase/client'
 
 export interface SupportMessage {
@@ -36,7 +30,7 @@ export const useSupportMessages = (threadId: string | null) => {
       (snapshot) => {
         const data = snapshot.docs.map((doc) => ({
           id: doc.id,
-          ...doc.data(),
+          ...doc.data()
         })) as SupportMessage[]
 
         setMessages(data)

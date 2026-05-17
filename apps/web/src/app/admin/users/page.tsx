@@ -12,7 +12,7 @@ import { useToast } from '@/hooks/useToast'
 import { useTranslation } from '@/providers/I18nProvider'
 
 export default function AdminUsersPage() {
-  const usersQuery   = useAdminUsers()
+  const usersQuery = useAdminUsers()
   const deleteMutation = useDeleteAdminUser()
   const updateMutation = useUpdateAdminUser()
   const { pushToast } = useToast()
@@ -26,7 +26,7 @@ export default function AdminUsersPage() {
       pushToast({
         type: 'error',
         title: 'Suppression impossible',
-        description: error instanceof Error ? error.message : 'Erreur inconnue',
+        description: error instanceof Error ? error.message : 'Erreur inconnue'
       })
     }
   }
@@ -39,7 +39,7 @@ export default function AdminUsersPage() {
       pushToast({
         type: 'error',
         title: 'Mise à jour impossible',
-        description: error instanceof Error ? error.message : 'Erreur inconnue',
+        description: error instanceof Error ? error.message : 'Erreur inconnue'
       })
     }
   }
@@ -50,16 +50,11 @@ export default function AdminUsersPage() {
 
   return (
     <AppShell>
-      <PageHeader
-        title={t('admin.usersTitle')}
-        subtitle={t('admin.usersSubtitle')}
-      />
+      <PageHeader title={t('admin.usersTitle')} subtitle={t('admin.usersSubtitle')} />
 
       <DataCard title={t('admin.allUsers')}>
         {usersQuery.isLoading ? <LoadingState /> : null}
-        {usersQuery.isError ? (
-          <ErrorState description={t('support.errorLoad')} />
-        ) : null}
+        {usersQuery.isError ? <ErrorState description={t('support.errorLoad')} /> : null}
         {!usersQuery.isLoading && !usersQuery.isError ? (
           <AdminUsersTable users={users} onDelete={handleDelete} onUpdate={handleUpdate} />
         ) : null}

@@ -1,12 +1,5 @@
 import { useEffect, useState } from 'react'
-import {
-  collection,
-  query,
-  where,
-  orderBy,
-  onSnapshot,
-  Timestamp
-} from 'firebase/firestore'
+import { collection, query, where, orderBy, onSnapshot, Timestamp } from 'firebase/firestore'
 import { firestore } from '@/services/firebase/client'
 
 export interface SupportThread {
@@ -41,7 +34,7 @@ export const useUserSupportThreads = (userId: string | null) => {
       (snapshot) => {
         const data = snapshot.docs.map((doc) => ({
           id: doc.id,
-          ...doc.data(),
+          ...doc.data()
         })) as SupportThread[]
 
         setThreads(data)

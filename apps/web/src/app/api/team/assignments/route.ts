@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { FieldValue } from 'firebase-admin/firestore'
 
@@ -28,14 +28,14 @@ export async function GET(request: NextRequest) {
 
     const [teamSnap, legacySnap] = await Promise.all([
       adminDb.collection('team_assignments').where('managerUid', '==', managerUid).get(),
-      adminDb.collection('assignments').where('managerUid', '==', managerUid).get(),
+      adminDb.collection('assignments').where('managerUid', '==', managerUid).get()
     ])
 
     const teamItems = teamSnap.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
       createdAt: doc.data().createdAt?.toDate?.()?.toISOString() ?? new Date().toISOString(),
-      updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() ?? new Date().toISOString(),
+      updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() ?? new Date().toISOString()
     }))
 
     // Enrich legacy assignments: resolve companyName from pipeline + member info from team_accesses
@@ -64,14 +64,19 @@ export async function GET(request: NextRequest) {
                 companyName = md.name ?? md.companyName ?? companyName
               } else {
                 // Legacy import collection
-                const iDoc = await adminDb.collection('imported_prospects').doc(firstProspectId).get()
+                const iDoc = await adminDb
+                  .collection('imported_prospects')
+                  .doc(firstProspectId)
+                  .get()
                 if (iDoc.exists) {
                   const id = iDoc.data()!
                   companyName = id.name ?? id.companyName ?? companyName
                 }
               }
             }
-          } catch { /* ignore */ }
+          } catch {
+            /* ignore */
+          }
         }
 
         // Resolve member name/email from team_accesses (legacy assigneeId = accessId)
@@ -88,7 +93,9 @@ export async function GET(request: NextRequest) {
               memberEmail = ad.email ?? ''
               memberUid = ad.firebaseUid ?? memberUid
             }
-          } catch { /* ignore */ }
+          } catch {
+            /* ignore */
+          }
         }
 
         return {
@@ -103,7 +110,7 @@ export async function GET(request: NextRequest) {
           companyName,
           status: 'active' as const,
           createdAt: data.createdAt?.toDate?.()?.toISOString() ?? new Date().toISOString(),
-          updatedAt: data.updatedAt?.toDate?.()?.toISOString() ?? new Date().toISOString(),
+          updatedAt: data.updatedAt?.toDate?.()?.toISOString() ?? new Date().toISOString()
         }
       })
     )
@@ -150,7 +157,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Token invalide' }, { status: 401 })
     }
 
-    const body = await request.json().catch(() => ({})) as {
+    const body = (await request.json().catch(() => ({}))) as {
       pipelineItemId?: string
       memberId?: string
       companyName?: string
@@ -181,14 +188,20 @@ export async function POST(request: NextRequest) {
           prospectData = d
         } else {
           // Primary CSV import collection
-          const managerProspectDoc = await adminDb.collection('manager_prospects').doc(pipelineItemId).get()
+          const managerProspectDoc = await adminDb
+            .collection('manager_prospects')
+            .doc(pipelineItemId)
+            .get()
           if (managerProspectDoc.exists) {
             const d = managerProspectDoc.data()!
             companyName = d.name || d.companyName || d.raisonSociale || pipelineItemId
             prospectData = d
           } else {
             // Legacy import collection
-            const importedDoc = await adminDb.collection('imported_prospects').doc(pipelineItemId).get()
+            const importedDoc = await adminDb
+              .collection('imported_prospects')
+              .doc(pipelineItemId)
+              .get()
             if (importedDoc.exists) {
               const d = importedDoc.data()!
               companyName = d.name || d.companyName || pipelineItemId
@@ -200,27 +213,49 @@ export async function POST(request: NextRequest) {
     } else {
       // If name provided, still try to fetch extra data (like email, phone) if possible
       const pDoc = await adminDb.collection('pipeline').doc(pipelineItemId).get()
-      const cDoc = !pDoc.exists ? await adminDb.collection('companies').doc(pipelineItemId).get() : null
-      const mDoc = (!pDoc.exists && !cDoc?.exists) ? await adminDb.collection('manager_prospects').doc(pipelineItemId).get() : null
-      const iDoc = (!pDoc.exists && !cDoc?.exists && !mDoc?.exists) ? await adminDb.collection('imported_prospects').doc(pipelineItemId).get() : null
-      
-      const foundDoc = pDoc.exists ? pDoc : (cDoc?.exists ? cDoc : (mDoc?.exists ? mDoc : (iDoc?.exists ? iDoc : null)))
+      const cDoc = !pDoc.exists
+        ? await adminDb.collection('companies').doc(pipelineItemId).get()
+        : null
+      const mDoc =
+        !pDoc.exists && !cDoc?.exists
+          ? await adminDb.collection('manager_prospects').doc(pipelineItemId).get()
+          : null
+      const iDoc =
+        !pDoc.exists && !cDoc?.exists && !mDoc?.exists
+          ? await adminDb.collection('imported_prospects').doc(pipelineItemId).get()
+          : null
+
+      const foundDoc = pDoc.exists
+        ? pDoc
+        : cDoc?.exists
+          ? cDoc
+          : mDoc?.exists
+            ? mDoc
+            : iDoc?.exists
+              ? iDoc
+              : null
       if (foundDoc) prospectData = foundDoc.data()!
     }
 
     // ── Step 2: Get member info ────────────────────────────────────────────
     const memberDoc = await adminDb.collection('users').doc(memberId).get()
     const memberData = memberDoc.data() || {}
-    const memberName  = memberData.name  ?? memberData.email ?? memberId
+    const memberName = memberData.name ?? memberData.email ?? memberId
     const memberEmail = memberData.email ?? ''
     const memberAccessId = memberData.accessId ?? null
 
     // ── Step 2.5: Find previous assignees ──────────────────────────────────
-    const prevAssigneesMap = new Map<string, { userId: string, memberName: string, assignedAt: string }>()
+    const prevAssigneesMap = new Map<
+      string,
+      { userId: string; memberName: string; assignedAt: string }
+    >()
     if (pipelineItemId) {
       try {
-        const bySource = await adminDb.collection('pipeline').where('sourceProspectId', '==', pipelineItemId).get()
-        bySource.docs.forEach(doc => {
+        const bySource = await adminDb
+          .collection('pipeline')
+          .where('sourceProspectId', '==', pipelineItemId)
+          .get()
+        bySource.docs.forEach((doc) => {
           const d = doc.data()
           if (d.userId && d.userId !== memberId) {
             prevAssigneesMap.set(d.userId, {
@@ -230,12 +265,17 @@ export async function POST(request: NextRequest) {
             })
           }
         })
-      } catch (err) { console.error('Error fetching by sourceProspectId', err) }
+      } catch (err) {
+        console.error('Error fetching by sourceProspectId', err)
+      }
     }
     if (companyName) {
       try {
-        const byName = await adminDb.collection('pipeline').where('companyName', '==', companyName).get()
-        byName.docs.forEach(doc => {
+        const byName = await adminDb
+          .collection('pipeline')
+          .where('companyName', '==', companyName)
+          .get()
+        byName.docs.forEach((doc) => {
           const d = doc.data()
           if (d.userId && d.userId !== memberId) {
             prevAssigneesMap.set(d.userId, {
@@ -245,7 +285,9 @@ export async function POST(request: NextRequest) {
             })
           }
         })
-      } catch (err) { console.error('Error fetching by companyName', err) }
+      } catch (err) {
+        console.error('Error fetching by companyName', err)
+      }
     }
     const previousAssignees = Array.from(prevAssigneesMap.values())
 
@@ -263,7 +305,7 @@ export async function POST(request: NextRequest) {
         success: true,
         message: 'Déjà assigné',
         assignmentId: existingSnap.docs[0]!.id,
-        pipelineEntryId: existingSnap.docs[0]!.data().pipelineEntryId,
+        pipelineEntryId: existingSnap.docs[0]!.data().pipelineEntryId
       })
     }
 
@@ -274,28 +316,58 @@ export async function POST(request: NextRequest) {
     await pipelineRef.set({
       // Preserve all original prospect fields except those explicitly overridden
       ...Object.fromEntries(
-        Object.entries(prospectData).filter(([k]) =>
-          !['userId', 'managerUid', 'createdAt', 'updatedAt', 'status', 'assignedTo', 'memberName', 'memberAccessId', 'assignedBy', 'assignedByName', 'id', 'sourceProspectId', 'previousAssignees'].includes(k)
+        Object.entries(prospectData).filter(
+          ([k]) =>
+            ![
+              'userId',
+              'managerUid',
+              'createdAt',
+              'updatedAt',
+              'status',
+              'assignedTo',
+              'memberName',
+              'memberAccessId',
+              'assignedBy',
+              'assignedByName',
+              'id',
+              'sourceProspectId',
+              'previousAssignees'
+            ].includes(k)
         )
       ),
-      companyPhone: prospectData.companyPhone || prospectData.telephone || prospectData.phone || prospectData.tel || null,
+      companyPhone:
+        prospectData.companyPhone ||
+        prospectData.telephone ||
+        prospectData.phone ||
+        prospectData.tel ||
+        null,
       companyEmail: prospectData.companyEmail || prospectData.email || prospectData.mail || null,
-      companySector: prospectData.companySector || prospectData.sector || prospectData.secteur || prospectData.activite || null,
-      companyCity: prospectData.companyCity || prospectData.city || prospectData.ville || prospectData.region || null,
-      userId:      memberId,          // member sees it in their pipeline
-      assignedTo:  memberId,          // explicit assignment metadata
-      memberName:  memberName,
+      companySector:
+        prospectData.companySector ||
+        prospectData.sector ||
+        prospectData.secteur ||
+        prospectData.activite ||
+        null,
+      companyCity:
+        prospectData.companyCity ||
+        prospectData.city ||
+        prospectData.ville ||
+        prospectData.region ||
+        null,
+      userId: memberId, // member sees it in their pipeline
+      assignedTo: memberId, // explicit assignment metadata
+      memberName: memberName,
       memberAccessId: memberAccessId,
-      managerUid,                     // manager sees it via /api/pipeline/manager
+      managerUid, // manager sees it via /api/pipeline/manager
       companyName,
-      name:        companyName,
-      status:      'prospection',
-      assignedBy:  managerUid,
+      name: companyName,
+      status: 'prospection',
+      assignedBy: managerUid,
       assignedByName: managerName,
       sourceProspectId: pipelineItemId,
       previousAssignees,
       createdAt: FieldValue.serverTimestamp(),
-      updatedAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp()
     })
 
     // ── Step 4: Create assignment record ──────────────────────────────────
@@ -307,18 +379,18 @@ export async function POST(request: NextRequest) {
       memberId,
       memberName,
       memberEmail,
-      pipelineItemId,        // original prospect id
+      pipelineItemId, // original prospect id
       pipelineEntryId: pipelineRef.id, // new member pipeline item
       companyName,
-      status:    'active',
+      status: 'active',
       createdAt: FieldValue.serverTimestamp(),
-      updatedAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp()
     })
 
     return NextResponse.json({
       success: true,
       assignmentId: assignmentRef.id,
-      pipelineEntryId: pipelineRef.id,
+      pipelineEntryId: pipelineRef.id
     })
   } catch (error) {
     console.error('[team/assignments POST]', error)

@@ -12,15 +12,16 @@ function buildSystemPrompt(userContext?: {
   region?: string | null
   name?: string | null
 }): string {
-  const sector  = userContext?.sector?.trim()
+  const sector = userContext?.sector?.trim()
   const company = userContext?.company?.trim()
-  const region  = userContext?.region?.trim()
-  const name    = userContext?.name?.trim()
+  const region = userContext?.region?.trim()
+  const name = userContext?.name?.trim()
 
   // Contexte dynamique injecté si disponible
-  const contextBlock = (sector || company || region)
-    ? `\n\n## Contexte utilisateur (PRIORITAIRE)\n${name ? `- Utilisateur : ${name}\n` : ''}${company ? `- Entreprise : ${company}\n` : ''}${sector ? `- Secteur d'activité / Industrie : **${sector}**\n` : ''}${region ? `- Région / Marché principal : ${region}\n` : ''}\n⚠️ Tu dois adapter TOUTES tes réponses à ce contexte. Si l'utilisateur demande un email, un script ou une analyse, oriente systématiquement vers son secteur (${sector ?? 'son secteur'}) et sa réalité terrain. N'utilise pas d'exemples génériques si tu connais son secteur.`
-    : ''
+  const contextBlock =
+    sector || company || region
+      ? `\n\n## Contexte utilisateur (PRIORITAIRE)\n${name ? `- Utilisateur : ${name}\n` : ''}${company ? `- Entreprise : ${company}\n` : ''}${sector ? `- Secteur d'activité / Industrie : **${sector}**\n` : ''}${region ? `- Région / Marché principal : ${region}\n` : ''}\n⚠️ Tu dois adapter TOUTES tes réponses à ce contexte. Si l'utilisateur demande un email, un script ou une analyse, oriente systématiquement vers son secteur (${sector ?? 'son secteur'}) et sa réalité terrain. N'utilise pas d'exemples génériques si tu connais son secteur.`
+      : ''
 
   return `Tu es le Companion IA de Sales Companion 2.0, une plateforme de prospection commerciale au Cameroun.
 Tu aides les commerciaux camerounais à :
@@ -52,15 +53,15 @@ export async function POST(request: NextRequest) {
         userId = decoded.uid
 
         // Lire le profil utilisateur pour le contexte ET vérifier les crédits
-        const userRef  = adminDb.collection('users').doc(userId)
+        const userRef = adminDb.collection('users').doc(userId)
         const userSnap = await userRef.get()
         if (userSnap.exists) {
-          const data       = userSnap.data()!
+          const data = userSnap.data()!
           const dailyLimit = (data.dailyLimit as number) ?? 10
-          
+
           // Vérification et reset si nouveau jour (Lazy Reset)
           const currentDailyUsed = await ensureDailyReset(userRef, data)
-          
+
           if (currentDailyUsed >= dailyLimit) {
             const quotaMessage = `Quota journalier épuisé (${dailyLimit} crédits). Votre compteur sera réinitialisé demain.`
             return NextResponse.json(
@@ -72,21 +73,31 @@ export async function POST(request: NextRequest) {
 
           // Extraire le contexte métier de l'utilisateur
           userContext = {
-            sector:  data.sector  ?? data.industry ?? null,
+            sector: data.sector ?? data.industry ?? null,
             company: data.company ?? data.companyName ?? null,
-            region:  data.region  ?? null,
-            name:    data.name    ?? null,
+            region: data.region ?? null,
+            name: data.name ?? null
           }
         }
       } catch {
-        return NextResponse.json({ error: 'Non authentifié', message: 'Non authentifié' }, { status: 401 })
+        return NextResponse.json(
+          { error: 'Non authentifié', message: 'Non authentifié' },
+          { status: 401 }
+        )
       }
     } else {
-      return NextResponse.json({ error: 'Non authentifié', message: 'Non authentifié' }, { status: 401 })
+      return NextResponse.json(
+        { error: 'Non authentifié', message: 'Non authentifié' },
+        { status: 401 }
+      )
     }
 
     const body = await request.json()
-    const { message, history = [], userProfile } = body as {
+    const {
+      message,
+      history = [],
+      userProfile
+    } = body as {
       message: string
       history?: { role: 'user' | 'model'; parts: [{ text: string }] }[]
       userProfile?: { sector?: string; company?: string; region?: string; name?: string }
@@ -94,10 +105,10 @@ export async function POST(request: NextRequest) {
 
     // Fusionner contexte Firestore + contexte envoyé par le client (priorité Firestore)
     const mergedContext = {
-      sector:  userContext.sector  ?? userProfile?.sector  ?? null,
+      sector: userContext.sector ?? userProfile?.sector ?? null,
       company: userContext.company ?? userProfile?.company ?? null,
-      region:  userContext.region  ?? userProfile?.region  ?? null,
-      name:    userContext.name    ?? userProfile?.name    ?? null,
+      region: userContext.region ?? userProfile?.region ?? null,
+      name: userContext.name ?? userProfile?.name ?? null
     }
 
     if (!message?.trim()) {
@@ -107,8 +118,8 @@ export async function POST(request: NextRequest) {
     const systemPrompt = buildSystemPrompt(mergedContext)
 
     const contents: { role: string; parts: [{ text: string }] }[] = [
-      ...history.slice(-10) as { role: string; parts: [{ text: string }] }[],
-      { role: 'user', parts: [{ text: message }] },
+      ...(history.slice(-10) as { role: string; parts: [{ text: string }] }[]),
+      { role: 'user', parts: [{ text: message }] }
     ]
 
     // ── Try Gemini first (env var) ──
@@ -133,13 +144,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         error: notConfiguredMessage,
-        message: notConfiguredMessage,
+        message: notConfiguredMessage
       },
       { status: 503 }
     )
   } catch (error) {
     console.error('AI chat error:', error)
-    return NextResponse.json({ error: 'Erreur serveur', message: 'Erreur serveur' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Erreur serveur', message: 'Erreur serveur' },
+      { status: 500 }
+    )
   }
 }
 
@@ -158,8 +172,8 @@ async function callGemini(
         body: JSON.stringify({
           systemInstruction: { parts: [{ text: systemPrompt }] },
           contents,
-          generationConfig: { temperature: 0.7, maxOutputTokens: 1024 },
-        }),
+          generationConfig: { temperature: 0.7, maxOutputTokens: 1024 }
+        })
       }
     )
     if (!res.ok) {
@@ -186,23 +200,23 @@ async function callGroq(
       { role: 'system', content: systemPrompt },
       ...history.map((h) => ({
         role: h.role === 'model' ? 'assistant' : 'user',
-        content: h.parts[0].text,
+        content: h.parts[0].text
       })),
-      { role: 'user', content: message },
+      { role: 'user', content: message }
     ]
 
     const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`
       },
       body: JSON.stringify({
         model: 'llama-3.3-70b-versatile',
         messages,
         max_tokens: 1024,
-        temperature: 0.7,
-      }),
+        temperature: 0.7
+      })
     })
     if (!res.ok) {
       console.error('Groq error:', res.status, await res.text())

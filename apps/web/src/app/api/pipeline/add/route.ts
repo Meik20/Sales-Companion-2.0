@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 
 async function getAdminModules() {
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
       assignedTo,
       memberName,
       memberAccessId,
-      googlePlaceId,
+      googlePlaceId
     } = body as {
       companyId?: string
       companyName?: string
@@ -68,14 +68,16 @@ export async function POST(request: NextRequest) {
 
     // ── Fetch Google Place Details si googlePlaceId est présent ──
     if (googlePlaceId) {
-      const googleApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || process.env.GOOGLE_MAPS_API_KEY
+      const googleApiKey =
+        process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || process.env.GOOGLE_MAPS_API_KEY
       if (googleApiKey) {
         try {
           const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${googlePlaceId}&fields=formatted_phone_number,website&key=${googleApiKey}`
           const gRes = await fetch(url)
           const gData = await gRes.json()
           if (gData.result) {
-            if (gData.result.formatted_phone_number && !finalPhone) finalPhone = gData.result.formatted_phone_number
+            if (gData.result.formatted_phone_number && !finalPhone)
+              finalPhone = gData.result.formatted_phone_number
             if (gData.result.website) finalWebsite = gData.result.website
           }
         } catch (err) {
@@ -85,11 +87,17 @@ export async function POST(request: NextRequest) {
     }
 
     // ── Step: Find previous assignees ──────────────────────────────────
-    const prevAssigneesMap = new Map<string, { userId: string, memberName: string, assignedAt: string }>()
+    const prevAssigneesMap = new Map<
+      string,
+      { userId: string; memberName: string; assignedAt: string }
+    >()
     if (companyId) {
       try {
-        const byCompanyId = await adminDb.collection('pipeline').where('companyId', '==', companyId).get()
-        byCompanyId.docs.forEach(doc => {
+        const byCompanyId = await adminDb
+          .collection('pipeline')
+          .where('companyId', '==', companyId)
+          .get()
+        byCompanyId.docs.forEach((doc) => {
           const d = doc.data()
           if (d.userId && d.userId !== userId) {
             prevAssigneesMap.set(d.userId, {
@@ -99,12 +107,17 @@ export async function POST(request: NextRequest) {
             })
           }
         })
-      } catch (err) { console.error('Error fetching by companyId', err) }
+      } catch (err) {
+        console.error('Error fetching by companyId', err)
+      }
     }
     if (companyName) {
       try {
-        const byName = await adminDb.collection('pipeline').where('companyName', '==', companyName).get()
-        byName.docs.forEach(doc => {
+        const byName = await adminDb
+          .collection('pipeline')
+          .where('companyName', '==', companyName)
+          .get()
+        byName.docs.forEach((doc) => {
           const d = doc.data()
           if (d.userId && d.userId !== userId) {
             prevAssigneesMap.set(d.userId, {
@@ -114,30 +127,32 @@ export async function POST(request: NextRequest) {
             })
           }
         })
-      } catch (err) { console.error('Error fetching by companyName', err) }
+      } catch (err) {
+        console.error('Error fetching by companyName', err)
+      }
     }
     const previousAssignees = Array.from(prevAssigneesMap.values())
 
     const now = new Date()
     const docRef = await adminDb.collection('pipeline').add({
       userId,
-      managerUid:    managerUid ?? null,
-      assignedTo:    assignedTo ?? userId,   // UID du membre qui a ajouté
-      memberName:    memberName ?? null,      // Nom du membre
+      managerUid: managerUid ?? null,
+      assignedTo: assignedTo ?? userId, // UID du membre qui a ajouté
+      memberName: memberName ?? null, // Nom du membre
       memberAccessId: memberAccessId ?? null, // Access ID du membre (ex: "prenomnom@entreprise")
-      companyId:     companyId ?? null,
-      companyName:   companyName,
+      companyId: companyId ?? null,
+      companyName: companyName,
       companySector: companySector ?? null,
-      companyCity:   companyCity ?? null,
-      companyPhone:  finalPhone ?? null,
-      companyEmail:  companyEmail ?? null,
+      companyCity: companyCity ?? null,
+      companyPhone: finalPhone ?? null,
+      companyEmail: companyEmail ?? null,
       companyWebsite: finalWebsite ?? null,
-      status:        'prospection',
-      nextDate:      null,
-      note:          '',
+      status: 'prospection',
+      nextDate: null,
+      note: '',
       previousAssignees,
-      createdAt:     now,
-      updatedAt:     now,
+      createdAt: now,
+      updatedAt: now
     })
 
     return NextResponse.json({ success: true, id: docRef.id })

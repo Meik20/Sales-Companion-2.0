@@ -15,7 +15,7 @@ interface I18nContextType {
 const I18nContext = createContext<I18nContextType>({
   lang: 'fr',
   t: () => '',
-  setLang: () => {},
+  setLang: () => {}
 })
 
 export function I18nProvider({ children }: { children: ReactNode }) {
@@ -59,7 +59,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   return (
     <I18nContext.Provider value={{ lang, t, setLang }}>
       <div style={{ visibility: mounted ? 'visible' : 'hidden', display: 'contents' }}>
-         {children}
+        {children}
       </div>
     </I18nContext.Provider>
   )

@@ -5,9 +5,15 @@ import { useAdminImports, AdminImport } from '../hooks/useAdminImports'
 import { SectionCard } from '@/features/team/components/SectionCard'
 import { colors, shadows } from '@/styles/tokens'
 import { Badge } from '@/components/ui/index'
-import { 
-  FileText, CheckCircle2, XCircle, Clock, 
-  AlertCircle, ArrowRight, Calendar, BarChart
+import {
+  FileText,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  AlertCircle,
+  ArrowRight,
+  Calendar,
+  BarChart
 } from 'lucide-react'
 
 export function AdminImportsTable() {
@@ -17,9 +23,7 @@ export function AdminImportsTable() {
   if (isLoading) {
     return (
       <SectionCard title="Historique des imports" subtitle="Suivi des imports de données">
-        <div style={{ textAlign: 'center', color: colors.textMid, padding: 20 }}>
-          Chargement...
-        </div>
+        <div style={{ textAlign: 'center', color: colors.textMid, padding: 20 }}>Chargement...</div>
       </SectionCard>
     )
   }
@@ -52,7 +56,7 @@ export function AdminImportsTable() {
               style={{
                 width: '100%',
                 borderCollapse: 'collapse',
-                fontSize: 13,
+                fontSize: 13
               }}
             >
               <thead>
@@ -65,7 +69,7 @@ export function AdminImportsTable() {
                       fontWeight: 600,
                       fontSize: 12,
                       textTransform: 'uppercase',
-                      letterSpacing: '.04em',
+                      letterSpacing: '.04em'
                     }}
                   >
                     Fichier
@@ -78,7 +82,7 @@ export function AdminImportsTable() {
                       fontWeight: 600,
                       fontSize: 12,
                       textTransform: 'uppercase',
-                      letterSpacing: '.04em',
+                      letterSpacing: '.04em'
                     }}
                   >
                     Enregistrements
@@ -91,7 +95,7 @@ export function AdminImportsTable() {
                       fontWeight: 600,
                       fontSize: 12,
                       textTransform: 'uppercase',
-                      letterSpacing: '.04em',
+                      letterSpacing: '.04em'
                     }}
                   >
                     Résultats
@@ -104,7 +108,7 @@ export function AdminImportsTable() {
                       fontWeight: 600,
                       fontSize: 12,
                       textTransform: 'uppercase',
-                      letterSpacing: '.04em',
+                      letterSpacing: '.04em'
                     }}
                   >
                     Statut
@@ -117,7 +121,7 @@ export function AdminImportsTable() {
                       fontWeight: 600,
                       fontSize: 12,
                       textTransform: 'uppercase',
-                      letterSpacing: '.04em',
+                      letterSpacing: '.04em'
                     }}
                   >
                     Date
@@ -140,7 +144,7 @@ export function AdminImportsTable() {
                 gap: 8,
                 marginTop: 16,
                 paddingTop: 16,
-                borderTop: `1px solid ${colors.border}`,
+                borderTop: `1px solid ${colors.border}`
               }}
             >
               <button
@@ -154,7 +158,7 @@ export function AdminImportsTable() {
                   background: colors.bg,
                   color: colors.text,
                   cursor: page === 1 ? 'not-allowed' : 'pointer',
-                  opacity: page === 1 ? 0.5 : 1,
+                  opacity: page === 1 ? 0.5 : 1
                 }}
               >
                 Précédent
@@ -171,7 +175,7 @@ export function AdminImportsTable() {
                     background: p === page ? 'rgba(46,160,90,0.1)' : colors.bg,
                     color: colors.text,
                     cursor: 'pointer',
-                    fontWeight: p === page ? 600 : 400,
+                    fontWeight: p === page ? 600 : 400
                   }}
                 >
                   {p}
@@ -188,7 +192,7 @@ export function AdminImportsTable() {
                   background: colors.bg,
                   color: colors.text,
                   cursor: page === totalPages ? 'not-allowed' : 'pointer',
-                  opacity: page === totalPages ? 0.5 : 1,
+                  opacity: page === totalPages ? 0.5 : 1
                 }}
               >
                 Suivant
@@ -207,14 +211,14 @@ function ImportRow({ import: importItem }: { import: AdminImport }) {
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
-    minute: '2-digit',
+    minute: '2-digit'
   })
 
-  const statusConfigs: Record<string, { color: string, icon: any, label: string, variant: any }> = {
-    pending:    { color: colors.textMid, icon: Clock,       label: 'En attente', variant: 'default' },
-    processing: { color: '#fbbf24',       icon: AlertCircle, label: 'En cours',  variant: 'gold' },
-    completed:  { color: '#2ea05a',       icon: CheckCircle2, label: 'Terminé',   variant: 'success' },
-    failed:     { color: '#f87171',       icon: XCircle,      label: 'Échoué',    variant: 'danger' },
+  const statusConfigs: Record<string, { color: string; icon: any; label: string; variant: any }> = {
+    pending: { color: colors.textMid, icon: Clock, label: 'En attente', variant: 'default' },
+    processing: { color: '#fbbf24', icon: AlertCircle, label: 'En cours', variant: 'gold' },
+    completed: { color: '#2ea05a', icon: CheckCircle2, label: 'Terminé', variant: 'success' },
+    failed: { color: '#f87171', icon: XCircle, label: 'Échoué', variant: 'danger' }
   }
 
   const successRate =
@@ -226,7 +230,7 @@ function ImportRow({ import: importItem }: { import: AdminImport }) {
     <tr
       style={{
         borderBottom: `1px solid ${colors.border}`,
-        transition: 'all 200ms ease',
+        transition: 'all 200ms ease'
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.backgroundColor = colors.bg2
@@ -237,11 +241,18 @@ function ImportRow({ import: importItem }: { import: AdminImport }) {
     >
       <td style={{ padding: '16px 0' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{
-            width: 32, height: 32, borderRadius: 8,
-            background: 'rgba(55,138,221,0.1)', color: colors.info,
-            display: 'flex', alignItems: 'center', justifyContent: 'center'
-          }}>
+          <div
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 8,
+              background: 'rgba(55,138,221,0.1)',
+              color: colors.info,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
             <FileText size={16} />
           </div>
           <span style={{ color: colors.text, fontWeight: 700, fontSize: 13 }}>
@@ -249,29 +260,53 @@ function ImportRow({ import: importItem }: { import: AdminImport }) {
           </span>
         </div>
       </td>
-      <td style={{ padding: '16px 16px 16px 0', color: colors.textMid, textAlign: 'right', fontWeight: 600 }}>
+      <td
+        style={{
+          padding: '16px 16px 16px 0',
+          color: colors.textMid,
+          textAlign: 'right',
+          fontWeight: 600
+        }}
+      >
         {importItem.totalRecords}
       </td>
       <td style={{ padding: '16px 0', textAlign: 'center' }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 12, fontSize: 11, fontWeight: 700 }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              gap: 12,
+              fontSize: 11,
+              fontWeight: 700
+            }}
+          >
             <span style={{ color: '#2ea05a', display: 'flex', alignItems: 'center', gap: 4 }}>
-               {importItem.successCount}
+              {importItem.successCount}
             </span>
             {importItem.errorCount > 0 && (
               <span style={{ color: '#f87171', display: 'flex', alignItems: 'center', gap: 4 }}>
-                 {importItem.errorCount}
+                {importItem.errorCount}
               </span>
             )}
           </div>
-          <div style={{ 
-            width: 80, height: 4, background: colors.bg3, borderRadius: 2, 
-            overflow: 'hidden', border: `1px solid ${colors.border}` 
-          }}>
-            <div style={{ 
-              width: `${successRate}%`, height: '100%', 
-              background: successRate > 90 ? '#2ea05a' : successRate > 50 ? '#fbbf24' : '#f87171' 
-            }} />
+          <div
+            style={{
+              width: 80,
+              height: 4,
+              background: colors.bg3,
+              borderRadius: 2,
+              overflow: 'hidden',
+              border: `1px solid ${colors.border}`
+            }}
+          >
+            <div
+              style={{
+                width: `${successRate}%`,
+                height: '100%',
+                background: successRate > 90 ? '#2ea05a' : successRate > 50 ? '#fbbf24' : '#f87171'
+              }}
+            />
           </div>
           <span style={{ fontSize: 10, color: colors.textMid, fontWeight: 600 }}>
             {successRate}% réussi
@@ -280,13 +315,25 @@ function ImportRow({ import: importItem }: { import: AdminImport }) {
       </td>
       <td style={{ padding: '16px 16px 16px 0', textAlign: 'center' }}>
         {(() => {
-          const config = (statusConfigs[importItem.status] || statusConfigs.pending) as { color: string, icon: any, label: string, variant: any }
+          const config = (statusConfigs[importItem.status] || statusConfigs.pending) as {
+            color: string
+            icon: any
+            label: string
+            variant: any
+          }
           const Icon = config.icon
           return (
-            <Badge variant={config.variant} style={{ 
-              display: 'inline-flex', alignItems: 'center', gap: 4, 
-              padding: '2px 10px', fontSize: 10, textTransform: 'uppercase' 
-            }}>
+            <Badge
+              variant={config.variant}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                padding: '2px 10px',
+                fontSize: 10,
+                textTransform: 'uppercase'
+              }}
+            >
               <Icon size={10} />
               {config.label}
             </Badge>
@@ -295,8 +342,12 @@ function ImportRow({ import: importItem }: { import: AdminImport }) {
       </td>
       <td style={{ padding: '16px 0', color: colors.textMid, textAlign: 'right', fontSize: 12 }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
-          <span style={{ fontWeight: 600 }}>{dateStr.split(' ')[0]} {dateStr.split(' ')[1]}</span>
-          <span style={{ fontSize: 10, opacity: 0.7 }}>{dateStr.split(' ').slice(2).join(' ')}</span>
+          <span style={{ fontWeight: 600 }}>
+            {dateStr.split(' ')[0]} {dateStr.split(' ')[1]}
+          </span>
+          <span style={{ fontSize: 10, opacity: 0.7 }}>
+            {dateStr.split(' ').slice(2).join(' ')}
+          </span>
         </div>
       </td>
     </tr>

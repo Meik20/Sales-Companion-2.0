@@ -14,8 +14,8 @@ export const useUserPipeline = () => {
 
       const response = await fetch('/api/pipeline', {
         headers: {
-          Authorization: `Bearer ${token || ''}`,
-        },
+          Authorization: `Bearer ${token || ''}`
+        }
       })
 
       if (!response.ok) {
@@ -24,6 +24,6 @@ export const useUserPipeline = () => {
 
       return response.json() as Promise<(PipelineDoc & { id: string })[]>
     },
-    enabled: !!user?.uid,
+    enabled: !!user?.uid
   })
 }

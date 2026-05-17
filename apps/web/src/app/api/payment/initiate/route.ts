@@ -23,14 +23,14 @@ export async function POST(request: NextRequest) {
     let userEmail: string
     try {
       const decoded = await adminAuth.verifyIdToken(token)
-      userId    = decoded.uid
+      userId = decoded.uid
       userEmail = decoded.email ?? ''
     } catch {
       return NextResponse.json({ error: 'Token invalide' }, { status: 401 })
     }
 
     // ── Validation body ────────────────────────────────────────────────────
-    const { plan, phone } = await request.json() as { plan: string; phone: string }
+    const { plan, phone } = (await request.json()) as { plan: string; phone: string }
 
     if (!plan || !PLANS[plan]) {
       return NextResponse.json({ error: 'Plan invalide' }, { status: 400 })
@@ -52,38 +52,38 @@ export async function POST(request: NextRequest) {
       userId,
       userEmail,
       plan,
-      amount:    planInfo.amount,
+      amount: planInfo.amount,
       phone,
-      status:    'PENDING',
+      status: 'PENDING',
       campayRef: null,
       createdAt: FieldValue.serverTimestamp(),
-      updatedAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp()
     })
 
     // ── Appel CAMPAY ───────────────────────────────────────────────────────
     const campayResponse = await campayCollect({
-      amount:             String(planInfo.amount),
-      currency:           'XAF',
-      from:               phone,
-      description:        `Sales Companion 2.0 — Abonnement ${planInfo.label}`,
-      external_reference,
+      amount: String(planInfo.amount),
+      currency: 'XAF',
+      from: phone,
+      description: `Sales Companion 2.0 — Abonnement ${planInfo.label}`,
+      external_reference
     })
 
     // ── Mettre à jour avec la référence CAMPAY ─────────────────────────────
     await adminDb.collection('payments').doc(external_reference).update({
       campayRef: campayResponse.reference,
-      operator:  campayResponse.operator,
-      updatedAt: FieldValue.serverTimestamp(),
+      operator: campayResponse.operator,
+      updatedAt: FieldValue.serverTimestamp()
     })
 
     return NextResponse.json({
-      success:            true,
+      success: true,
       external_reference,
-      campay_reference:   campayResponse.reference,
-      operator:           campayResponse.operator,
-      ussd_code:          campayResponse.ussd_code,
-      amount:             planInfo.amount,
-      plan,
+      campay_reference: campayResponse.reference,
+      operator: campayResponse.operator,
+      ussd_code: campayResponse.ussd_code,
+      amount: planInfo.amount,
+      plan
     })
   } catch (error) {
     console.error('[payment/initiate]', error)

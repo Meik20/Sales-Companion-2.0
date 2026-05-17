@@ -32,12 +32,12 @@ export function useCreatePipelineItem() {
       return addDoc(collection(firestore, 'pipeline'), {
         ...input,
         createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
       })
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['pipeline'] })
       await queryClient.invalidateQueries({ queryKey: ['pipeline-stats'] })
-    },
+    }
   })
 }

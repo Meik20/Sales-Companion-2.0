@@ -15,17 +15,17 @@ type Props = {
 
 export function ActivateMemberForm({ accessId, onSuccess }: Props) {
   const { t } = useTranslation()
-  const [email, setEmail]                   = useState('')
-  const [password, setPassword]             = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [error, setError]                   = useState<string | null>(null)
-  const [isPending, setIsPending]           = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [isPending, setIsPending] = useState(false)
 
   const {
     data: accessInfo,
     isLoading: isLoadingInfo,
     isError: isErrorInfo,
-    error: infoError,
+    error: infoError
   } = useGetAccessInfo(accessId)
 
   async function handleSubmit(e: React.FormEvent) {
@@ -59,7 +59,7 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
       const res = await fetch('/api/auth/activate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accessId, email: email.trim(), password }),
+        body: JSON.stringify({ accessId, email: email.trim(), password })
       })
       const json = await res.json().catch(() => ({}))
       if (!res.ok) {
@@ -86,15 +86,19 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
   if (isErrorInfo) {
     const errMsg = infoError instanceof Error ? infoError.message : t('auth.invalidLink')
     return (
-      <div style={{
-        background: 'rgba(239,68,68,0.08)',
-        border: '1px solid rgba(239,68,68,0.3)',
-        borderRadius: 10,
-        padding: '16px 18px',
-        textAlign: 'center',
-      }}>
+      <div
+        style={{
+          background: 'rgba(239,68,68,0.08)',
+          border: '1px solid rgba(239,68,68,0.3)',
+          borderRadius: 10,
+          padding: '16px 18px',
+          textAlign: 'center'
+        }}
+      >
         <div style={{ fontSize: 28, marginBottom: 8 }}>❌</div>
-        <div style={{ fontWeight: 600, color: '#f87171', marginBottom: 8, fontSize: 15 }}>{t('auth.accessImpossible')}</div>
+        <div style={{ fontWeight: 600, color: '#f87171', marginBottom: 8, fontSize: 15 }}>
+          {t('auth.accessImpossible')}
+        </div>
         <div style={{ fontSize: 13, color: '#fca5a5', lineHeight: 1.5 }}>{errMsg}</div>
         <div style={{ fontSize: 12, color: colors.textMid, marginTop: 12 }}>
           {t('auth.contactManager')}
@@ -114,20 +118,50 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
   return (
     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Récapitulatif de l'accès */}
-      <div style={{
-        display: 'flex', flexDirection: 'column', gap: 10,
-        background: colors.bg, padding: 14, borderRadius: 10,
-      }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 10,
+          background: colors.bg,
+          padding: 14,
+          borderRadius: 10
+        }}
+      >
         <div>
-          <div style={{ fontSize: 11, color: colors.textDim, letterSpacing: '.04em', textTransform: 'uppercase', marginBottom: 3 }}>
+          <div
+            style={{
+              fontSize: 11,
+              color: colors.textDim,
+              letterSpacing: '.04em',
+              textTransform: 'uppercase',
+              marginBottom: 3
+            }}
+          >
             {t('auth.accessId')}
           </div>
-          <div style={{ fontSize: 12, fontWeight: 600, color: colors.text, fontFamily: 'monospace', wordBreak: 'break-all' }}>
+          <div
+            style={{
+              fontSize: 12,
+              fontWeight: 600,
+              color: colors.text,
+              fontFamily: 'monospace',
+              wordBreak: 'break-all'
+            }}
+          >
             {accessId}
           </div>
         </div>
         <div>
-          <div style={{ fontSize: 11, color: colors.textDim, letterSpacing: '.04em', textTransform: 'uppercase', marginBottom: 3 }}>
+          <div
+            style={{
+              fontSize: 11,
+              color: colors.textDim,
+              letterSpacing: '.04em',
+              textTransform: 'uppercase',
+              marginBottom: 3
+            }}
+          >
             {t('auth.name')}
           </div>
           <div style={{ fontSize: 14, fontWeight: 600, color: colors.text }}>
@@ -136,20 +170,26 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
         </div>
         {accessInfo.company && (
           <div>
-            <div style={{ fontSize: 11, color: colors.textDim, letterSpacing: '.04em', textTransform: 'uppercase', marginBottom: 3 }}>
+            <div
+              style={{
+                fontSize: 11,
+                color: colors.textDim,
+                letterSpacing: '.04em',
+                textTransform: 'uppercase',
+                marginBottom: 3
+              }}
+            >
               {t('auth.company')}
             </div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: colors.text }}>{accessInfo.company}</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: colors.text }}>
+              {accessInfo.company}
+            </div>
           </div>
         )}
       </div>
 
       {/* Email — TOUJOURS OBLIGATOIRE */}
-      <FormField
-        label={t('auth.yourEmailAddress')}
-        required
-        hint={t('auth.emailHint')}
-      >
+      <FormField label={t('auth.yourEmailAddress')} required hint={t('auth.emailHint')}>
         <Input
           type="email"
           placeholder="vous@exemple.com"
@@ -184,12 +224,20 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
 
       {/* Bloc d'erreur global */}
       {error && (
-        <div style={{
-          display: 'flex', alignItems: 'flex-start', gap: 10,
-          background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)',
-          borderRadius: 10, padding: '12px 14px',
-          fontSize: 13, color: '#ef4444', lineHeight: 1.5,
-        }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 10,
+            background: 'rgba(239,68,68,0.08)',
+            border: '1px solid rgba(239,68,68,0.3)',
+            borderRadius: 10,
+            padding: '12px 14px',
+            fontSize: 13,
+            color: '#ef4444',
+            lineHeight: 1.5
+          }}
+        >
           <span style={{ fontSize: 16, flexShrink: 0 }}>⚠️</span>
           <span>{error}</span>
         </div>

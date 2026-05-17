@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { adminDb, adminAuth } from '@/lib/firebase-admin'
 
@@ -21,15 +21,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'key et value requis' }, { status: 400 })
     }
 
-    await adminDb.collection('config').doc('admin').set(
-      { [key]: value, updatedAt: new Date() },
-      { merge: true }
-    )
+    await adminDb
+      .collection('config')
+      .doc('admin')
+      .set({ [key]: value, updatedAt: new Date() }, { merge: true })
 
     return NextResponse.json({ success: true })
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : 'unknown'
-    if (msg === 'unauthenticated') return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+    if (msg === 'unauthenticated')
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     if (msg === 'forbidden') return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
     console.error('Admin config error:', error)
     return NextResponse.json({ error: 'Erreur interne' }, { status: 500 })
@@ -47,14 +48,14 @@ export async function GET(request: NextRequest) {
 
     // Never return the raw key value — just indicate if it is set
     return NextResponse.json({
-      groq_api_key: !!data.groq_api_key,
+      groq_api_key: !!data.groq_api_key
     })
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : 'unknown'
-    if (msg === 'unauthenticated') return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+    if (msg === 'unauthenticated')
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     if (msg === 'forbidden') return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
     console.error('Admin config GET error:', error)
     return NextResponse.json({ error: 'Erreur interne' }, { status: 500 })
   }
 }
-

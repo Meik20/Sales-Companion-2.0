@@ -14,8 +14,7 @@ function initAdminApp() {
 
   // Support both a base64-encoded JSON service account key and plain JSON
   const serviceAccountRaw =
-    process.env.FIREBASE_SERVICE_ACCOUNT_KEY ||
-    process.env.FIREBASE_ADMIN_SDK_KEY
+    process.env.FIREBASE_SERVICE_ACCOUNT_KEY || process.env.FIREBASE_ADMIN_SDK_KEY
 
   if (serviceAccountRaw) {
     let credential: object
@@ -24,20 +23,18 @@ function initAdminApp() {
       credential = JSON.parse(serviceAccountRaw)
     } catch {
       // Fallback: base64-encoded JSON
-      credential = JSON.parse(
-        Buffer.from(serviceAccountRaw, 'base64').toString('utf-8')
-      )
+      credential = JSON.parse(Buffer.from(serviceAccountRaw, 'base64').toString('utf-8'))
     }
     return initializeApp({
       credential: cert(credential as Parameters<typeof cert>[0]),
-      projectId,
+      projectId
     })
   }
 
   // Fallback: Application Default Credentials (works in Cloud Run / GCP)
   return initializeApp({
     credential: applicationDefault(),
-    projectId,
+    projectId
   })
 }
 

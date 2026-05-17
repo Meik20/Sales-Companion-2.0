@@ -12,7 +12,7 @@ export function parseCsv(content: string) {
   // Supporter : virgule, point-virgule, tabulation, pipe, tilde
   const headerLine = lines[0] || ''
   let sep = ','
-  
+
   // Compter les occurrences de chaque séparateur potentiel
   const separators = [',', ';', '\t', '|', '~']
   let maxCount = 0

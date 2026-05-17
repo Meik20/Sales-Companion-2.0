@@ -20,7 +20,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Corps de requête invalide' }, { status: 400 })
     }
 
-    const { accessId, email: bodyEmail, password } = body as {
+    const {
+      accessId,
+      email: bodyEmail,
+      password
+    } = body as {
       accessId?: string
       email?: string
       password?: string
@@ -56,7 +60,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           message:
-            "Lien d'activation invalide ou expiré. Vérifiez l'identifiant fourni par votre manager ou demandez un nouveau lien.",
+            "Lien d'activation invalide ou expiré. Vérifiez l'identifiant fourni par votre manager ou demandez un nouveau lien."
         },
         { status: 404 }
       )
@@ -69,7 +73,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           message:
-            "Aucun email fourni. Ce lien d'activation doit être associé à une adresse email ou vous devez en saisir une.",
+            "Aucun email fourni. Ce lien d'activation doit être associé à une adresse email ou vous devez en saisir une."
         },
         { status: 400 }
       )
@@ -86,7 +90,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           message:
-            'Ce compte a déjà été activé. Connectez-vous directement avec votre adresse email et votre mot de passe.',
+            'Ce compte a déjà été activé. Connectez-vous directement avec votre adresse email et votre mot de passe.'
         },
         { status: 409 }
       )
@@ -97,13 +101,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           message:
-            "Cet accès a été révoqué par votre manager. Contactez-le pour obtenir un nouveau lien.",
+            'Cet accès a été révoqué par votre manager. Contactez-le pour obtenir un nouveau lien.'
         },
         { status: 403 }
       )
     }
 
-    console.log('[auth/activate] Activation started', { accessId, email, collection: foundCollection })
+    console.log('[auth/activate] Activation started', {
+      accessId,
+      email,
+      collection: foundCollection
+    })
 
     // ── 4. Create or update Firebase Auth user ──────────────────────────────
     let uid: string
@@ -118,12 +126,10 @@ export async function POST(request: NextRequest) {
         const newUser = await adminAuth.createUser({
           email,
           password,
-          displayName: [
-            data.firstname ?? data.firstName ?? '',
-            data.lastname  ?? data.lastName  ?? '',
-          ]
-            .join(' ')
-            .trim() || undefined,
+          displayName:
+            [data.firstname ?? data.firstName ?? '', data.lastname ?? data.lastName ?? '']
+              .join(' ')
+              .trim() || undefined
         })
         uid = newUser.uid
         console.log('[auth/activate] Created new Auth user', { uid, email })
@@ -136,33 +142,33 @@ export async function POST(request: NextRequest) {
     // ── 5. Write / merge the users/{uid} document ───────────────────────────
     const userDocRef = adminDb.collection('users').doc(uid)
     const userDocSnap = await userDocRef.get()
-    const createdAt = userDocSnap.exists ? userDocSnap.data()?.createdAt ?? new Date() : new Date()
+    const createdAt = userDocSnap.exists
+      ? (userDocSnap.data()?.createdAt ?? new Date())
+      : new Date()
 
     await userDocRef.set(
       {
         uid,
         email,
-        name: [
-          data.firstname ?? data.firstName ?? '',
-          data.lastname  ?? data.lastName  ?? '',
-        ]
-          .join(' ')
-          .trim() || null,
-        role:       data.role      ?? 'member',
-        plan:       data.plan      ?? 'free',
-        active:     false,          // not active until email verified
-        activated:  false,          // will be set true by /api/auth/verify-email
+        name:
+          [data.firstname ?? data.firstName ?? '', data.lastname ?? data.lastName ?? '']
+            .join(' ')
+            .trim() || null,
+        role: data.role ?? 'member',
+        plan: data.plan ?? 'free',
+        active: false, // not active until email verified
+        activated: false, // will be set true by /api/auth/verify-email
         emailVerificationPending: true,
-        company:    data.company   ?? null,
-        sector:     data.sector    ?? null,
-        region:     data.region    ?? null,
-        managerId:  data.managerId ?? data.managerUid ?? null,
+        company: data.company ?? null,
+        sector: data.sector ?? null,
+        region: data.region ?? null,
+        managerId: data.managerId ?? data.managerUid ?? null,
         managerUid: data.managerUid ?? data.managerId ?? null,
         managerEmail: data.managerEmail ?? null,
-        dailyUsed:  0,
+        dailyUsed: 0,
         dailyLimit: data.dailyLimit ?? 10,
         createdAt,
-        activatedAt: null,
+        activatedAt: null
       },
       { merge: true }
     )
@@ -173,22 +179,27 @@ export async function POST(request: NextRequest) {
 
     // ── 6. Update the access document — pending verification ──────────────
     await adminDb.collection(foundCollection).doc(accessId.trim()).update({
-      activated:               false,             // finalized after email verification
+      activated: false, // finalized after email verification
       emailVerificationPending: true,
-      status:                  'pending_email',   // intermediate status
+      status: 'pending_email', // intermediate status
       email,
-      firebaseUid:             uid,
-      activatedAt:             null,
-      activatedUid:            uid,
+      firebaseUid: uid,
+      activatedAt: null,
+      activatedUid: uid
     })
 
-    console.log('[auth/activate] Activation pending email verification', { accessId, email, uid, collection: foundCollection })
+    console.log('[auth/activate] Activation pending email verification', {
+      accessId,
+      email,
+      uid,
+      collection: foundCollection
+    })
 
     return NextResponse.json({
       success: true,
       uid,
       requiresEmailVerification: true,
-      message: 'Compte créé. Vérifiez votre email pour finaliser l\'activation.',
+      message: "Compte créé. Vérifiez votre email pour finaliser l'activation."
     })
   } catch (error) {
     console.error('[auth/activate] Unexpected error:', error)
@@ -197,13 +208,10 @@ export async function POST(request: NextRequest) {
       error instanceof Error
         ? error.message
         : typeof error === 'string'
-        ? error
-        : 'Erreur serveur inconnue'
+          ? error
+          : 'Erreur serveur inconnue'
 
-    return NextResponse.json(
-      { message: `Activation impossible : ${msg}` },
-      { status: 500 }
-    )
+    return NextResponse.json({ message: `Activation impossible : ${msg}` }, { status: 500 })
   }
 }
 

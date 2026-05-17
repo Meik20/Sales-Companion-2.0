@@ -13,7 +13,7 @@ export function useDeleteSavedSearch() {
       const token = await user.getIdToken()
       const res = await fetch(`/api/saved-searches/${searchId}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` }
       })
       if (!res.ok) {
         const json = await res.json().catch(() => ({}))
@@ -22,6 +22,6 @@ export function useDeleteSavedSearch() {
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['saved-searches'] })
-    },
+    }
   })
 }

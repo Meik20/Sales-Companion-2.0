@@ -4,8 +4,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 
 type Input = {
-  label:       string
-  filters:     Record<string, unknown>
+  label: string
+  filters: Record<string, unknown>
   resultCount?: number
 }
 
@@ -22,13 +22,13 @@ export function useCreateSavedSearch() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
-          label:       input.label,
-          filters:     input.filters,
-          resultCount: input.resultCount ?? 0,
-        }),
+          label: input.label,
+          filters: input.filters,
+          resultCount: input.resultCount ?? 0
+        })
       })
 
       const json = await res.json().catch(() => ({}))
@@ -39,6 +39,6 @@ export function useCreateSavedSearch() {
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['saved-searches'] })
-    },
+    }
   })
 }

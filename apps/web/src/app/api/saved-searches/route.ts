@@ -27,16 +27,13 @@ export async function GET(request: NextRequest) {
 
     // Note: orderBy + where requires a Firestore composite index.
     // Sorting in memory avoids that dependency entirely.
-    const snapshot = await adminDb
-      .collection('saved_searches')
-      .where('userId', '==', userId)
-      .get()
+    const snapshot = await adminDb.collection('saved_searches').where('userId', '==', userId).get()
 
     const items = snapshot.docs
       .map((doc) => ({
         id: doc.id,
         ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate?.()?.toISOString() ?? null,
+        createdAt: doc.data().createdAt?.toDate?.()?.toISOString() ?? null
       }))
       .sort((a, b) => {
         const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0
@@ -86,7 +83,7 @@ export async function POST(request: NextRequest) {
       label,
       filters,
       resultCount: resultCount ?? 0,
-      createdAt: new Date(),
+      createdAt: new Date()
     })
 
     return NextResponse.json({ success: true, id: docRef.id })

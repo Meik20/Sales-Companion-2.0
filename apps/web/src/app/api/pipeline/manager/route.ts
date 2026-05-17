@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 
 async function getAdmin() {
@@ -37,10 +37,7 @@ export async function GET(request: NextRequest) {
       .get()
 
     // Items in the manager's own pipeline (userId = managerUid)
-    const ownSnap = await adminDb
-      .collection('pipeline')
-      .where('userId', '==', managerUid)
-      .get()
+    const ownSnap = await adminDb.collection('pipeline').where('userId', '==', managerUid).get()
 
     // Merge & deduplicate by doc id
     const seen = new Set<string>()
@@ -54,7 +51,7 @@ export async function GET(request: NextRequest) {
             id: doc.id,
             ...doc.data(),
             createdAt: doc.data().createdAt?.toDate?.()?.toISOString() ?? null,
-            updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() ?? null,
+            updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() ?? null
           })
         }
       })

@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 
 // Lazy import pour éviter les erreurs si firebase-admin ne s'initialise pas
@@ -27,10 +27,10 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1')
     const sector = searchParams.get('sector')?.trim()
     const region = searchParams.get('region')?.trim()
-    const city   = searchParams.get('city')?.trim()
-    const query  = searchParams.get('query')?.trim()
-    const lat    = searchParams.get('lat')?.trim()
-    const lng    = searchParams.get('lng')?.trim()
+    const city = searchParams.get('city')?.trim()
+    const query = searchParams.get('query')?.trim()
+    const lat = searchParams.get('lat')?.trim()
+    const lng = searchParams.get('lng')?.trim()
     const radius = searchParams.get('radius')?.trim() || '10000'
 
     // ── Auth : déduire un crédit seulement si charge !== 'false' ──
@@ -51,10 +51,13 @@ export async function GET(request: NextRequest) {
             const data = userSnap.data()!
             const dailyLimit = (data.dailyLimit as number) ?? 10
             const currentDailyUsed = await ensureDailyReset(userRef, data)
-            
+
             if (currentDailyUsed >= dailyLimit) {
               const quotaMessage = `Quota journalier épuisé (${dailyLimit} crédits).`
-              return NextResponse.json({ error: quotaMessage, message: quotaMessage }, { status: 429 })
+              return NextResponse.json(
+                { error: quotaMessage, message: quotaMessage },
+                { status: 429 }
+              )
             }
             await userRef.update({ dailyUsed: currentDailyUsed + 1 })
           }
@@ -64,16 +67,16 @@ export async function GET(request: NextRequest) {
       }
     }
 
-
     // ── 1. Google Maps Places Search ──
     let googleResults: any[] = []
-    const googleApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || process.env.GOOGLE_MAPS_API_KEY
-    
+    const googleApiKey =
+      process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || process.env.GOOGLE_MAPS_API_KEY
+
     if (googleApiKey && (query || (lat && lng))) {
       try {
-        let url = ""
+        let url = ''
         const keyword = [query, sector].filter(Boolean).join(' ')
-        
+
         if (lat && lng) {
           url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&key=${googleApiKey}`
           if (keyword) url += `&keyword=${encodeURIComponent(keyword)}`
@@ -96,7 +99,7 @@ export async function GET(request: NextRequest) {
               _source: 'google_places',
               googlePlaceId: place.place_id,
               rating: place.rating,
-              telephone: '',
+              telephone: ''
             }))
           }
         }
@@ -115,7 +118,7 @@ export async function GET(request: NextRequest) {
     }
 
     // ── 3. Récupération des données (avec Cache) ──
-    if (!cachedCompanies || (Date.now() - lastCacheUpdate > CACHE_DURATION)) {
+    if (!cachedCompanies || Date.now() - lastCacheUpdate > CACHE_DURATION) {
       console.log('[search/companies] Refreshing companies cache...')
       const snap = await adminDb.collection('companies').limit(500000).get()
       cachedCompanies = snap.docs.map((d) => {
@@ -124,18 +127,18 @@ export async function GET(request: NextRequest) {
           ...data,
           id: d.id,
           raisonSociale: data.raisonSociale ?? data.name ?? '',
-          sector:        data.sector ?? data.activite_principale ?? '',
-          region:        data.region ?? data.centre_de_rattachement ?? '',
-          city:          data.city ?? data.ville ?? '',
-          niu:           data.niu ?? '',
-          sigle:         data.sigle ?? '',
-          dirigeant:     data.dirigeant ?? '',
-          telephone:     data.telephone ?? '',
-          email:         data.email ?? '',
-          rccm:          data.rccm ?? '',
-          adresse:       data.adresse ?? '',
+          sector: data.sector ?? data.activite_principale ?? '',
+          region: data.region ?? data.centre_de_rattachement ?? '',
+          city: data.city ?? data.ville ?? '',
+          niu: data.niu ?? '',
+          sigle: data.sigle ?? '',
+          dirigeant: data.dirigeant ?? '',
+          telephone: data.telephone ?? '',
+          email: data.email ?? '',
+          rccm: data.rccm ?? '',
+          adresse: data.adresse ?? '',
           formeJuridique: data.formeJuridique ?? '',
-          capital:       data.capital ?? '',
+          capital: data.capital ?? ''
         }
       })
       lastCacheUpdate = Date.now()
@@ -145,28 +148,50 @@ export async function GET(request: NextRequest) {
     let internalCompanies = [...(cachedCompanies || [])]
 
     // ── 4. Filtrage flexible ──
-    const matchKeywords = (dataValue: string, filterValue: string, logic: 'every' | 'some' = 'every') => {
+    const matchKeywords = (
+      dataValue: string,
+      filterValue: string,
+      logic: 'every' | 'some' = 'every'
+    ) => {
       const nData = normalize(dataValue)
-      const kws = normalize(filterValue).split(/[\s&/]+/).filter(kw => kw.length >= 2)
+      const kws = normalize(filterValue)
+        .split(/[\s&/]+/)
+        .filter((kw) => kw.length >= 2)
       if (kws.length === 0) return nData.includes(normalize(filterValue))
-      return kws[logic](kw => nData.includes(kw))
+      return kws[logic]((kw) => nData.includes(kw))
     }
 
     if (region) {
-      internalCompanies = internalCompanies.filter((c) => matchKeywords(c.region as string, region, 'some'))
+      internalCompanies = internalCompanies.filter((c) =>
+        matchKeywords(c.region as string, region, 'some')
+      )
     }
     if (city) {
-      internalCompanies = internalCompanies.filter((c) => matchKeywords(c.city as string, city, 'some'))
+      internalCompanies = internalCompanies.filter((c) =>
+        matchKeywords(c.city as string, city, 'some')
+      )
     }
     if (sector) {
-      internalCompanies = internalCompanies.filter((c) => matchKeywords(c.sector as string, sector, 'some'))
+      internalCompanies = internalCompanies.filter((c) =>
+        matchKeywords(c.sector as string, sector, 'some')
+      )
     }
     if (query) {
       internalCompanies = internalCompanies.filter((c) => {
-        const searchable = normalize([
-          c.raisonSociale, c.niu, c.sigle, c.dirigeant,
-          c.sector, c.region, c.city, c.telephone, c.email, c.rccm,
-        ].join(' '))
+        const searchable = normalize(
+          [
+            c.raisonSociale,
+            c.niu,
+            c.sigle,
+            c.dirigeant,
+            c.sector,
+            c.region,
+            c.city,
+            c.telephone,
+            c.email,
+            c.rccm
+          ].join(' ')
+        )
         const kws = normalize(query).split(/\s+/).filter(Boolean)
         return kws.every((kw) => searchable.includes(kw))
       })
@@ -184,7 +209,7 @@ export async function GET(request: NextRequest) {
     // ── Enregistrement de la recherche pour les stats admin (toujours) ──
     try {
       const { adminDb, FieldValue } = await getAdminModules()
-      
+
       let userName = 'Anonymous'
       let userEmail = 'anonymous@platform'
       let plan = 'free'
@@ -210,7 +235,7 @@ export async function GET(request: NextRequest) {
         query: query || null,
         radius: radius || null,
         resultsCount: allCompanies.length,
-        createdAt: FieldValue.serverTimestamp(),
+        createdAt: FieldValue.serverTimestamp()
       })
     } catch (err) {
       console.error('[search/companies] Search logging error:', err)
@@ -225,10 +250,13 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error('[search/companies] Global Critical Error:', error)
-    return NextResponse.json({ 
-      items: [], 
-      total: 0, 
-      error: error instanceof Error ? error.message : 'Unknown error' 
-    }, { status: 500 })
+    return NextResponse.json(
+      {
+        items: [],
+        total: 0,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    )
   }
 }

@@ -8,10 +8,7 @@ export default function ProfilePage() {
   const { t } = useTranslation()
   return (
     <AppShell>
-      <PageHeader
-        title={t('profile.title')}
-        subtitle={t('profile.subtitle')}
-      />
+      <PageHeader title={t('profile.title')} subtitle={t('profile.subtitle')} />
       <ProfileCard />
     </AppShell>
   )

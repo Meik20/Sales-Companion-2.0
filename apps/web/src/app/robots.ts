@@ -13,19 +13,19 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: ['/', '/login', '/register'],
-        disallow: ['/api/', '/_next/', '/admin/', '/protected/'],
+        disallow: ['/api/', '/_next/', '/admin/', '/protected/']
       },
       // Block AI scrapers from all content to protect proprietary database
-      { userAgent: 'GPTBot',          disallow: ['/'] },
-      { userAgent: 'CCBot',           disallow: ['/'] },
-      { userAgent: 'ChatGPT-User',    disallow: ['/'] },
+      { userAgent: 'GPTBot', disallow: ['/'] },
+      { userAgent: 'CCBot', disallow: ['/'] },
+      { userAgent: 'ChatGPT-User', disallow: ['/'] },
       { userAgent: 'Google-Extended', disallow: ['/'] },
-      { userAgent: 'anthropic-ai',    disallow: ['/'] },
-      { userAgent: 'ClaudeBot',       disallow: ['/'] },
-      { userAgent: 'Bytespider',      disallow: ['/'] },
-      { userAgent: 'AhrefsBot',       disallow: ['/'] },
-      { userAgent: 'SemrushBot',      disallow: ['/'] },
+      { userAgent: 'anthropic-ai', disallow: ['/'] },
+      { userAgent: 'ClaudeBot', disallow: ['/'] },
+      { userAgent: 'Bytespider', disallow: ['/'] },
+      { userAgent: 'AhrefsBot', disallow: ['/'] },
+      { userAgent: 'SemrushBot', disallow: ['/'] }
     ],
-    sitemap: `${baseUrl}/sitemap.xml`,
+    sitemap: `${baseUrl}/sitemap.xml`
   }
 }

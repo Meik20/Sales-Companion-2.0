@@ -23,7 +23,7 @@ export function useSavedSearches() {
       const token = await user.getIdToken()
 
       const res = await fetch('/api/saved-searches', {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` }
       })
 
       if (!res.ok) {
@@ -32,6 +32,6 @@ export function useSavedSearches() {
 
       return res.json() as Promise<SavedSearch[]>
     },
-    enabled: !!user?.uid,
+    enabled: !!user?.uid
   })
 }

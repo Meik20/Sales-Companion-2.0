@@ -12,7 +12,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     // Polyfill for crypto.randomUUID if not available
     if (!globalThis.crypto) {
       Object.defineProperty(globalThis, 'crypto', {
-        value: {},
+        value: {}
       })
     }
     if (!globalThis.crypto.randomUUID) {

@@ -31,8 +31,8 @@ export function usePipelineItems() {
 
       const response = await fetch(`${backendUrl}/api/pipeline`, {
         headers: {
-          'Authorization': `Bearer ${token || ''}`,
-        },
+          Authorization: `Bearer ${token || ''}`
+        }
       })
 
       if (!response.ok) {
@@ -41,6 +41,6 @@ export function usePipelineItems() {
 
       return response.json() as Promise<PipelineItem[]>
     },
-    enabled: !!user?.uid,
+    enabled: !!user?.uid
   })
 }

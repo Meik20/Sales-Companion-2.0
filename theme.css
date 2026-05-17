@@ -9,43 +9,43 @@
   color-scheme: light;
 
   /* ── LinkedIn Color Palette ─────────────────────────────────────── */
-  --color-primary:         #0a66c2;   /* LinkedIn Science Blue */
-  --color-primary-dark:    #004182;   /* LinkedIn Congress Blue */
-  --color-primary-light:   #dce6f1;   /* LinkedIn Botticelli */
+  --color-primary: #0a66c2; /* LinkedIn Science Blue */
+  --color-primary-dark: #004182; /* LinkedIn Congress Blue */
+  --color-primary-light: #dce6f1; /* LinkedIn Botticelli */
 
-  --color-brand-green:        #83941f;
-  --color-brand-green-dark:   #44712e;
-  --color-brand-green-light:  #d7ebce;
+  --color-brand-green: #83941f;
+  --color-brand-green-dark: #44712e;
+  --color-brand-green-light: #d7ebce;
 
-  --color-brand-amber:        #e7a33e;
-  --color-brand-amber-dark:   #915907;
-  --color-brand-amber-light:  #fce2ba;
+  --color-brand-amber: #e7a33e;
+  --color-brand-amber-dark: #915907;
+  --color-brand-amber-light: #fce2ba;
 
-  --color-brand-coral:        #f5987e;
-  --color-brand-coral-dark:   #b24020;
-  --color-brand-coral-light:  #fadfd8;
+  --color-brand-coral: #f5987e;
+  --color-brand-coral-dark: #b24020;
+  --color-brand-coral-light: #fadfd8;
 
   /* ── Neutral Scale ──────────────────────────────────────────────── */
-  --color-neutral-900:  #1d2226;
-  --color-neutral-800:  #38434f;
-  --color-neutral-700:  #56687a;
-  --color-neutral-600:  #666666;
-  --color-neutral-500:  #86888a;
-  --color-neutral-400:  #adb3b8;
-  --color-neutral-300:  #c2c8cc;
-  --color-neutral-200:  #e9e5df;
-  --color-neutral-100:  #f3f2ef;   /* LinkedIn page background */
-  --color-neutral-50:   #fdfaf5;
-  --color-white:        #ffffff;
+  --color-neutral-900: #1d2226;
+  --color-neutral-800: #38434f;
+  --color-neutral-700: #56687a;
+  --color-neutral-600: #666666;
+  --color-neutral-500: #86888a;
+  --color-neutral-400: #adb3b8;
+  --color-neutral-300: #c2c8cc;
+  --color-neutral-200: #e9e5df;
+  --color-neutral-100: #f3f2ef; /* LinkedIn page background */
+  --color-neutral-50: #fdfaf5;
+  --color-white: #ffffff;
 
   /* ── Semantic Colors ────────────────────────────────────────────── */
-  --color-success:      #057642;
-  --color-success-bg:   #d7ebce;
-  --color-warning:      #915907;
-  --color-warning-bg:   #fce2ba;
-  --color-danger:       #cc1016;
-  --color-danger-bg:    #fadfd8;
-  --color-accent:       #0a66c2;
+  --color-success: #057642;
+  --color-success-bg: #d7ebce;
+  --color-warning: #915907;
+  --color-warning-bg: #fce2ba;
+  --color-danger: #cc1016;
+  --color-danger-bg: #fadfd8;
+  --color-accent: #0a66c2;
 
   /* ── Typography ─────────────────────────────────────────────────── */
   --font-family: 'Source Sans 3', 'Source Sans Pro', -apple-system, Arial, sans-serif;
@@ -54,103 +54,102 @@
   --radius-standard: 4px;
 
   /* ── Shadows ────────────────────────────────────────────────────── */
-  --shadow-glass-light:  0 0 0 1px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.05);
-  --shadow-glass-medium: 0 0 0 1px rgba(0,0,0,0.08), 0 4px 8px rgba(0,0,0,0.08);
-  --shadow-glass-strong: 0 0 0 1px rgba(0,0,0,0.08), 0 8px 16px rgba(0,0,0,0.10);
+  --shadow-glass-light: 0 0 0 1px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.05);
+  --shadow-glass-medium: 0 0 0 1px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.08);
+  --shadow-glass-strong: 0 0 0 1px rgba(0, 0, 0, 0.08), 0 8px 16px rgba(0, 0, 0, 0.1);
 
   /* ── Backward-compatible aliases ────────────────────────────────── */
   /* Surfaces */
-  --bg:  #f3f2ef;          /* LinkedIn page background */
-  --bg2: #ffffff;          /* LinkedIn card surface */
+  --bg: #f3f2ef; /* LinkedIn page background */
+  --bg2: #ffffff; /* LinkedIn card surface */
   --bg3: #f3f2ef;
   --bg4: #e9e5df;
 
   /* Text */
-  --tx:  #1d2226;          /* LinkedIn primary text */
-  --tx2: #56687a;          /* LinkedIn secondary text */
-  --tx3: #86888a;          /* LinkedIn tertiary text */
+  --tx: #1d2226; /* LinkedIn primary text */
+  --tx2: #56687a; /* LinkedIn secondary text */
+  --tx3: #86888a; /* LinkedIn tertiary text */
 
   /* Borders */
-  --bd:  rgba(0,0,0,0.15); /* LinkedIn default border */
+  --bd: rgba(0, 0, 0, 0.15); /* LinkedIn default border */
   --bd2: #c2c8cc;
 
   /* Radius */
-  --r:  var(--radius-standard);
+  --r: var(--radius-standard);
   --r2: var(--radius-standard);
   --r3: var(--radius-standard);
 
   /* Shadows */
-  --sh:  none;
-  --sh2: 0 0 0 1px rgba(0,0,0,0.08), 0 4px 8px rgba(0,0,0,0.05);
+  --sh: none;
+  --sh2: 0 0 0 1px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.05);
 
   /* Interaction */
-  --cr-link-color:                #0a66c2;
-  --cr-focus-outline-color:       #0a66c2;
-  --cr-hover-background-color:    rgba(0,0,0,0.08);
-  --cr-active-background-color:   rgba(0,0,0,0.12);
+  --cr-link-color: #0a66c2;
+  --cr-focus-outline-color: #0a66c2;
+  --cr-hover-background-color: rgba(0, 0, 0, 0.08);
+  --cr-active-background-color: rgba(0, 0, 0, 0.12);
 
   /* Blue scale (used in components) */
-  --color-blue-50:  #dce6f1;
-  --color-blue-100: rgba(10,102,194,0.12);
-  --color-blue-200: rgba(10,102,194,0.20);
+  --color-blue-50: #dce6f1;
+  --color-blue-100: rgba(10, 102, 194, 0.12);
+  --color-blue-200: rgba(10, 102, 194, 0.2);
   --color-blue-600: #004182;
   --color-blue-900: #002266;
 
   /* Teal/secondary */
-  --color-secondary:  #83941f;
-  --color-teal-50:    #d7ebce;
-  --color-teal-900:   #44712e;
+  --color-secondary: #83941f;
+  --color-teal-50: #d7ebce;
+  --color-teal-900: #44712e;
 
   /* Transitions */
   --transition: 200ms ease;
   --transition-fast: 100ms ease;
 }
 
-
 /* ─── Dark Mode ─────────────────────────────────────────────────── */
 .dark {
   color-scheme: dark;
 
   /* Surfaces */
-  --bg:  #1d2226;
+  --bg: #1d2226;
   --bg2: #1d2226;
   --bg3: #2d3748;
   --bg4: #3d4f60;
 
   /* Text */
-  --tx:  rgba(255,255,255,0.9);
-  --tx2: rgba(255,255,255,0.7);
-  --tx3: rgba(255,255,255,0.5);
+  --tx: rgba(255, 255, 255, 0.9);
+  --tx2: rgba(255, 255, 255, 0.7);
+  --tx3: rgba(255, 255, 255, 0.5);
 
   /* Borders */
-  --bd:  rgba(255,255,255,0.12);
-  --bd2: rgba(255,255,255,0.20);
+  --bd: rgba(255, 255, 255, 0.12);
+  --bd2: rgba(255, 255, 255, 0.2);
 
   /* Interaction */
-  --cr-hover-background-color:  rgba(255,255,255,0.08);
-  --cr-active-background-color: rgba(255,255,255,0.12);
+  --cr-hover-background-color: rgba(255, 255, 255, 0.08);
+  --cr-active-background-color: rgba(255, 255, 255, 0.12);
 
   /* Shadows */
-  --sh2: 0 4px 12px rgba(0,0,0,0.3);
-  --shadow-glass-light:  0 0 0 1px rgba(255,255,255,0.08), 0 2px 4px rgba(0,0,0,0.2);
-  --shadow-glass-medium: 0 0 0 1px rgba(255,255,255,0.08), 0 4px 8px rgba(0,0,0,0.3);
-  --shadow-glass-strong: 0 0 0 1px rgba(255,255,255,0.08), 0 8px 16px rgba(0,0,0,0.4);
+  --sh2: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow-glass-light: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 2px 4px rgba(0, 0, 0, 0.2);
+  --shadow-glass-medium: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 4px 8px rgba(0, 0, 0, 0.3);
+  --shadow-glass-strong: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 8px 16px rgba(0, 0, 0, 0.4);
 
   /* Blue scale in dark — overridden for readable contrast */
-  --color-blue-50:  rgba(10,102,194,0.18);  /* dark surface for AI bubbles / chips */
-  --color-blue-100: rgba(10,102,194,0.22);
-  --color-blue-200: rgba(10,102,194,0.30);
-  --color-blue-600: #7fc3f7;               /* medium blue text */
-  --color-blue-900: #bfd7f5;               /* light blue text on dark blue surface */
-  --color-primary-light: rgba(10,102,194,0.20);
+  --color-blue-50: rgba(10, 102, 194, 0.18); /* dark surface for AI bubbles / chips */
+  --color-blue-100: rgba(10, 102, 194, 0.22);
+  --color-blue-200: rgba(10, 102, 194, 0.3);
+  --color-blue-600: #7fc3f7; /* medium blue text */
+  --color-blue-900: #bfd7f5; /* light blue text on dark blue surface */
+  --color-primary-light: rgba(10, 102, 194, 0.2);
 
   /* Semantic states in dark */
-  --color-success-bg:   rgba(5,118,66,0.20);
-  --color-warning-bg:   rgba(145,89,7,0.20);
-  --color-danger-bg:    rgba(204,16,22,0.20);
+  --color-success-bg: rgba(5, 118, 66, 0.2);
+  --color-warning-bg: rgba(145, 89, 7, 0.2);
+  --color-danger-bg: rgba(204, 16, 22, 0.2);
 
   /* Teal/secondary in dark */
-  --color-teal-50:  rgba(131,148,31,0.18);
+  --color-teal-50: rgba(131, 148, 31, 0.18);
   --color-teal-900: #c8d87a;
 
   /* Neutral overrides for dark */
@@ -158,7 +157,6 @@
   --color-neutral-200: #2d3748;
   --color-neutral-300: #3d4f60;
 }
-
 
 /* ── Component: Button Primary ──────────────────────────────────── */
 .btn-primary {
@@ -171,7 +169,9 @@
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color var(--transition), box-shadow var(--transition);
+  transition:
+    background-color var(--transition),
+    box-shadow var(--transition);
 }
 .btn-primary:hover {
   background-color: var(--color-primary-dark);
@@ -191,7 +191,7 @@
   transition: background-color var(--transition);
 }
 .btn-secondary:hover {
-  background-color: rgba(10,102,194,0.08);
+  background-color: rgba(10, 102, 194, 0.08);
 }
 
 /* ── Component: Card ─────────────────────────────────────────────── */
@@ -213,10 +213,22 @@
   font-weight: 600;
   padding: 3px 10px;
 }
-.badge-success { background-color: var(--color-success-bg);  color: var(--color-success); }
-.badge-warning { background-color: var(--color-warning-bg);  color: var(--color-warning); }
-.badge-danger  { background-color: var(--color-danger-bg);   color: var(--color-danger); }
-.badge-info    { background-color: var(--color-blue-50);     color: var(--color-primary); }
+.badge-success {
+  background-color: var(--color-success-bg);
+  color: var(--color-success);
+}
+.badge-warning {
+  background-color: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+.badge-danger {
+  background-color: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+.badge-info {
+  background-color: var(--color-blue-50);
+  color: var(--color-primary);
+}
 
 /* ── Component: Sidebar ──────────────────────────────────────────── */
 .sidebar {

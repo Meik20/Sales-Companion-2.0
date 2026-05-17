@@ -45,8 +45,14 @@ async function parseSpreadsheet(input: ParseImportFileInput): Promise<ParsedRow[
   const lower = input.filename.toLowerCase()
 
   // Fichiers texte : CSV, TXT, TSV, JSON, DAT, LOG, etc.
-  if (lower.endsWith('.csv') || lower.endsWith('.txt') || lower.endsWith('.tsv') || 
-      lower.endsWith('.dat') || lower.endsWith('.log') || lower.endsWith('.tab')) {
+  if (
+    lower.endsWith('.csv') ||
+    lower.endsWith('.txt') ||
+    lower.endsWith('.tsv') ||
+    lower.endsWith('.dat') ||
+    lower.endsWith('.log') ||
+    lower.endsWith('.tab')
+  ) {
     return parseCsv(input.buffer.toString('utf-8'))
   }
 
@@ -55,9 +61,7 @@ async function parseSpreadsheet(input: ParseImportFileInput): Promise<ParsedRow[
     const workbook = new ExcelJS.Workbook()
     await workbook.xlsx.load(input.buffer as any)
 
-    const sheet = input.sheetName
-      ? workbook.getWorksheet(input.sheetName)
-      : workbook.worksheets[0]
+    const sheet = input.sheetName ? workbook.getWorksheet(input.sheetName) : workbook.worksheets[0]
 
     if (!sheet) {
       return []

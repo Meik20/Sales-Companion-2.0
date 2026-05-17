@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { adminDb, adminAuth } from '@/lib/firebase-admin'
 
@@ -20,11 +20,11 @@ export async function GET(request: NextRequest) {
     // Calculate statistics
     const bySector: Record<string, number> = {}
     const byRegion: Record<string, number> = {}
-    
+
     companies.forEach((company: any) => {
       const sector = company.sector || 'Non spécifié'
       const region = company.city || 'Non spécifiée'
-      
+
       bySector[sector] = (bySector[sector] || 0) + 1
       byRegion[region] = (byRegion[region] || 0) + 1
     })
@@ -36,11 +36,10 @@ export async function GET(request: NextRequest) {
       byRegion: Object.entries(byRegion)
         .map(([region, count]) => ({ region, count }))
         .sort((a, b) => b.count - a.count),
-      total: companies.length,
+      total: companies.length
     })
   } catch (error) {
     console.error('Company stats error:', error)
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 }
-

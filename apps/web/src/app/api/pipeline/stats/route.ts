@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 
 async function getAdminModules() {
@@ -35,11 +35,17 @@ export async function GET(request: NextRequest) {
     let docs: Array<import('firebase-admin').firestore.QueryDocumentSnapshot> = []
 
     if (isManager) {
-      const managerSnapshot = await adminDb.collection('pipeline').where('managerUid', '==', userId).get()
+      const managerSnapshot = await adminDb
+        .collection('pipeline')
+        .where('managerUid', '==', userId)
+        .get()
       docs = managerSnapshot.docs
     } else {
       const ownedSnapshot = await adminDb.collection('pipeline').where('userId', '==', userId).get()
-      const assignedSnapshot = await adminDb.collection('pipeline').where('assignedTo', '==', userId).get()
+      const assignedSnapshot = await adminDb
+        .collection('pipeline')
+        .where('assignedTo', '==', userId)
+        .get()
       const seen = new Set<string>()
       docs = []
       for (const snap of [ownedSnapshot, assignedSnapshot]) {
@@ -58,7 +64,7 @@ export async function GET(request: NextRequest) {
       negotiation: 0,
       conclusion: 0,
       lost: 0,
-      conversionRate: 0,
+      conversionRate: 0
     }
 
     docs.forEach((doc) => {
@@ -69,8 +75,7 @@ export async function GET(request: NextRequest) {
       else if (status === 'lost') stats.lost++
     })
 
-    stats.conversionRate =
-      stats.total > 0 ? Math.round((stats.conclusion / stats.total) * 100) : 0
+    stats.conversionRate = stats.total > 0 ? Math.round((stats.conclusion / stats.total) * 100) : 0
 
     return NextResponse.json(stats)
   } catch (error) {

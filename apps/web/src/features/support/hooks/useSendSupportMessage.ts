@@ -13,14 +13,14 @@ export const sendSupportMessage = async (data: {
       senderId: data.senderId,
       senderRole: data.senderRole,
       content: data.content,
-      createdAt: serverTimestamp(),
+      createdAt: serverTimestamp()
     })
 
     // Update thread's lastMessage and updatedAt
     await updateDoc(doc(firestore, 'support_threads', data.threadId), {
       lastMessage: data.content,
       updatedAt: serverTimestamp(),
-      unreadByAdmin: true,
+      unreadByAdmin: true
     })
 
     return { success: true }

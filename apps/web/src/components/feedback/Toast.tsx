@@ -15,11 +15,24 @@ type Props = {
   onDismiss: (id: string) => void
 }
 
-const toastStyles: Record<ToastData['type'], { bg: string; border: string; icon: string; color: string }> = {
-  success: { bg: 'rgba(27,122,62,0.12)', border: 'rgba(46,160,90,0.3)', icon: '✓', color: '#4ade80' },
-  error:   { bg: 'rgba(239,68,68,0.1)',  border: 'rgba(239,68,68,0.3)',  icon: '✕', color: '#f87171' },
-  warning: { bg: 'rgba(245,166,35,0.1)', border: 'rgba(245,166,35,0.3)', icon: '!', color: '#fbbf24' },
-  info:    { bg: 'rgba(96,165,250,0.1)', border: 'rgba(96,165,250,0.3)', icon: 'i', color: '#60a5fa' },
+const toastStyles: Record<
+  ToastData['type'],
+  { bg: string; border: string; icon: string; color: string }
+> = {
+  success: {
+    bg: 'rgba(27,122,62,0.12)',
+    border: 'rgba(46,160,90,0.3)',
+    icon: '✓',
+    color: '#4ade80'
+  },
+  error: { bg: 'rgba(239,68,68,0.1)', border: 'rgba(239,68,68,0.3)', icon: '✕', color: '#f87171' },
+  warning: {
+    bg: 'rgba(245,166,35,0.1)',
+    border: 'rgba(245,166,35,0.3)',
+    icon: '!',
+    color: '#fbbf24'
+  },
+  info: { bg: 'rgba(96,165,250,0.1)', border: 'rgba(96,165,250,0.3)', icon: 'i', color: '#60a5fa' }
 }
 
 export function Toast({ toast, onDismiss }: Props) {
@@ -44,7 +57,7 @@ export function Toast({ toast, onDismiss }: Props) {
         minWidth: 300,
         maxWidth: 420,
         animation: 'fadeIn 200ms ease',
-        cursor: 'pointer',
+        cursor: 'pointer'
       }}
       onClick={() => onDismiss(toast.id)}
     >
@@ -62,7 +75,7 @@ export function Toast({ toast, onDismiss }: Props) {
           fontWeight: 700,
           color: s.color,
           flexShrink: 0,
-          marginTop: 1,
+          marginTop: 1
         }}
       >
         {s.icon}

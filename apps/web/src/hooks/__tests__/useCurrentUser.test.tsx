@@ -9,9 +9,9 @@ vi.mock('@/services/firebase/client', () => ({
     onAuthStateChanged: (callback: (user: any) => void) => {
       callback(null)
       return () => {}
-    },
+    }
   },
-  firestore: {},
+  firestore: {}
 }))
 
 describe('useCurrentUser', () => {
@@ -23,9 +23,7 @@ describe('useCurrentUser', () => {
   })
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   )
 
   it('should initialize with null user', () => {

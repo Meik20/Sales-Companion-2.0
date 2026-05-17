@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { adminDb, adminAuth } from '@/lib/firebase-admin'
 
@@ -30,7 +30,7 @@ export async function PATCH(
 
     await userDocRef.update({
       ...safeFields,
-      updatedAt: new Date(),
+      updatedAt: new Date()
     })
 
     // ── Plan & Limit Propagation ──
@@ -45,11 +45,11 @@ export async function PATCH(
       const batch = adminDb.batch()
       membersSnap.docs.forEach((doc) => {
         const updateData: Record<string, any> = {
-          updatedAt: new Date(),
+          updatedAt: new Date()
         }
         if (safeFields.plan) updateData.plan = safeFields.plan
         if (safeFields.dailyLimit !== undefined) updateData.dailyLimit = safeFields.dailyLimit
-        
+
         batch.update(doc.ref, updateData)
       })
       await batch.commit()
@@ -64,7 +64,8 @@ export async function PATCH(
     return NextResponse.json({ uid, ...updated.data() })
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : 'unknown'
-    if (msg === 'unauthenticated') return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+    if (msg === 'unauthenticated')
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     if (msg === 'forbidden') return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
     console.error('Update user error:', error)
     return NextResponse.json({ error: 'Erreur interne' }, { status: 500 })
@@ -82,15 +83,13 @@ export async function DELETE(
     const { uid } = await params
 
     // Delete from Firebase Auth and Firestore in parallel
-    await Promise.all([
-      adminAuth.deleteUser(uid),
-      adminDb.collection('users').doc(uid).delete(),
-    ])
+    await Promise.all([adminAuth.deleteUser(uid), adminDb.collection('users').doc(uid).delete()])
 
     return NextResponse.json({ success: true, uid })
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : 'unknown'
-    if (msg === 'unauthenticated') return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+    if (msg === 'unauthenticated')
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     if (msg === 'forbidden') return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
     console.error('Delete user error:', error)
     return NextResponse.json({ error: 'Erreur interne' }, { status: 500 })

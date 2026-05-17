@@ -12,18 +12,12 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
 
-    const {
-      status,
-      reference,
-      external_reference,
-      amount,
-      operator,
-    } = body as {
-      status:             string
-      reference:          string
+    const { status, reference, external_reference, amount, operator } = body as {
+      status: string
+      reference: string
       external_reference: string
-      amount:             string
-      operator:           string
+      amount: string
+      operator: string
     }
 
     console.log('[webhook/campay] reçu:', { status, reference, external_reference, operator })
@@ -47,25 +41,30 @@ export async function POST(request: NextRequest) {
     if (status === 'SUCCESSFUL') {
       const planInfo = PLANS[paymentData.plan]
 
-      await adminDb.collection('users').doc(paymentData.userId).update({
-        plan:       paymentData.plan,
-        dailyLimit: planInfo?.dailyLimit ?? 1000,
-        updatedAt:  FieldValue.serverTimestamp(),
-      })
+      await adminDb
+        .collection('users')
+        .doc(paymentData.userId)
+        .update({
+          plan: paymentData.plan,
+          dailyLimit: planInfo?.dailyLimit ?? 1000,
+          updatedAt: FieldValue.serverTimestamp()
+        })
 
       await paymentRef.update({
-        status:      'SUCCESSFUL',
-        campayRef:   reference,
-        operator:    operator ?? paymentData.operator,
-        amountPaid:  amount,
-        updatedAt:   FieldValue.serverTimestamp(),
+        status: 'SUCCESSFUL',
+        campayRef: reference,
+        operator: operator ?? paymentData.operator,
+        amountPaid: amount,
+        updatedAt: FieldValue.serverTimestamp()
       })
 
-      console.log(`[webhook/campay] ✅ plan "${paymentData.plan}" activé pour user ${paymentData.userId}`)
+      console.log(
+        `[webhook/campay] ✅ plan "${paymentData.plan}" activé pour user ${paymentData.userId}`
+      )
     } else if (status === 'FAILED') {
       await paymentRef.update({
-        status:    'FAILED',
-        updatedAt: FieldValue.serverTimestamp(),
+        status: 'FAILED',
+        updatedAt: FieldValue.serverTimestamp()
       })
       console.log('[webhook/campay] ❌ paiement échoué:', external_reference)
     }
