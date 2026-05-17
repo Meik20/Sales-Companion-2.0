@@ -58,14 +58,14 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
   }
 
   const headers = [
-    { label: t('team.name') || 'Nom', icon: <User size={12} /> },
-    { label: t('admin.email'), icon: <Mail size={12} /> },
+    { label: t('admin.user') || 'Utilisateur', icon: <User size={12} /> },
     { label: t('admin.role'), icon: <Shield size={12} /> },
     { label: t('admin.plan'), icon: <Zap size={12} /> },
     { label: t('admin.quota'), icon: <BarChart3 size={12} /> },
     { label: t('admin.status'), icon: <Activity size={12} /> },
     { label: `${t('field.region') || 'Région'} / ${t('field.sector') || 'Secteur'}`, icon: <MapPin size={12} /> },
     { label: t('admin.created'), icon: <Calendar size={12} /> },
+    { label: t('admin.lastLogin') || 'Dernière co.', icon: <Clock size={12} /> },
     { label: t('admin.actions'), icon: <Settings size={12} /> }
   ]
 
