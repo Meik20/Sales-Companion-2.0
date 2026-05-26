@@ -1,129 +1,473 @@
-# 🏢 SALES COMPANION — Intelligence B2B Cameroun
-**Version 2.0 — Package de déploiement**
+# Sales Companion 2.0
+
+**Réécriture complète de Sales Companion sur une base cohérente, robuste et maintenable.**
+
+La plateforme B2B dédiée aux commerciaux et managers camerounais. Recherchez des entreprises, gérez votre pipeline et boostez vos performances.
 
 ---
 
-## Contenu du package
+## 🎯 Vision produit
+
+**Stack technique identifiée :**
+
+- **Frontend** : Next.js 16 + React 19 + TypeScript + TanStack Query
+- **Backend** : Express.js + TypeScript + Node.js
+- **Database** : Firebase/Firestore
+- **Authentication** : Firebase Authentication
+- **Deployment** : Railway
+- **Type** : Progressive Web App (PWA)
+
+**Architecture :**
 
 ```
-SalesCompanion/
-├── server/          → Serveur backend (à déployer une seule fois)
-├── mobile/          → Application mobile PWA (Android & iPhone)
-├── client/          → Application desktop Windows/Mac/Linux
-└── README.md        → Ce guide
+sales-companion/
+├── apps/
+│   ├── web/              # Application Next.js PWA
+│   └── server/           # API Express
+├── packages/
+│   └── shared/           # Code partagé (types, constantes, schémas)
+├── firestore/
+│   ├── rules/            # Règles de sécurité Firestore
+│   ├── indexes/          # Index Firestore
+│   └── docs/             # Documentation
+└── docs/
+    └── architecture/     # Documentation technique
 ```
 
 ---
 
-## DÉMARRAGE RAPIDE (5 minutes)
+## 🔥 Firebase Configuration
 
-### Prérequis
-- **Node.js v18+** → https://nodejs.org (téléchargez la version LTS)
-- **Clé API Groq gratuite** → https://console.groq.com/keys (assistant IA)
+### Credentials Firebase
+
+**Project ID :** `sales-companion-237`  
+**Auth Domain :** `sales-companion-237.firebaseapp.com`
+
+### Services requis
+
+- ✅ Firebase Authentication (Email/Password)
+- ✅ Cloud Firestore
+- ✅ Firestore Rules & Security
+- ✅ Firestore Indexes
 
 ---
 
-## ÉTAPE 1 — Démarrer le serveur
+## 🌐 Frontend (Web)
+
+### Pages principales
+
+```
+/                          Redirection vers /landing
+/landing                   Landing page PWA
+/login                     Connexion
+/register                  Inscription
+/activate                  Activation compte
+
+/search                    Recherche d'entreprises
+/pipeline                  Pipeline CRM
+/saved                     Recherches sauvegardées
+/team                      Gestion d'équipe
+/profile                   Mon profil
+/support                   Support
+
+/admin/*                   Panel administrateur
+```
+
+### Features
+
+1. **Recherche Entreprises** - Base RCCM/NIU camerounaise
+2. **Pipeline CRM** - Suivi des prospects (Prospection → Conclue)
+3. **Gestion Équipe** - Assignations et tableau de bord manager
+4. **Assistant IA** - Conseils commerciaux (Groq)
+5. **Recherches Sauvegardées** - Accès rapide aux critères
+6. **PWA Offline** - Mode hors-ligne complet
+7. **Support Intégré** - Tickets et chat
+8. **Admin Dashboard** - Gestion utilisateurs et imports
+
+### Technologies
+
+```json
+{
+  "next": "16.2.4",
+  "react": "19.0.0",
+  "firebase": "11.10.0",
+  "@tanstack/react-query": "5.0.0",
+  "zod": "3.23.0",
+  "typescript": "5.6.0"
+}
+```
+
+### Scripts
 
 ```bash
-npm install
-npm start
+npm run dev:web         # Développement (port 3000)
+npm run build:web       # Build production
+npm run typecheck:web   # Vérifier types
+npm run lint:web        # Linter
+npm run test:web        # Tests
 ```
 
-✅ Le serveur démarre sur **http://localhost:3210**
-
-**Panel Admin :** http://localhost:3210/admin
-- Login : `admin`
-- Mot de passe : `admin123`  
-  ⚠️ **Changez ce mot de passe dès la première connexion**
-
 ---
 
-## ÉTAPE 2 — Configuration initiale (Panel Admin)
+## 🖥️ Backend (API)
 
-1. Ouvrez http://localhost:3210/admin
-2. Allez dans **Configuration** → saisissez votre clé API Groq (`gsk_...`)
-3. Allez dans **Import données** → importez votre fichier Excel d'entreprises
+### Routes principales
 
-**Colonnes Excel reconnues automatiquement :**
-| Colonne | Description |
-|---|---|
-| RAISON_SOCIALE | Nom de l'entreprise (**obligatoire**) |
-| SIGLE | Abréviation / acronyme |
-| NIU | Numéro fiscal (dédoublonnage automatique) |
-| ACTIVITE_PRINCIPALE | Secteur auto-détecté |
-| CENTRE_DE_RATTACHEMENT | Région/Ville auto-détectées |
-| TELEPHONE, EMAIL, DIRIGEANT, RCCM | Si disponibles |
+```
+GET  /health                   Health check
+POST /auth/*                   Authentification & tokens
+GET  /admin/*                  Routes admin
+GET  /companies/*              Entreprises
+POST /imports/*                Import Excel/CSV
+GET  /team/*                   Gestion équipe
+POST /assignments/*            Affectations
+POST /ai/*                     Assistant IA
+GET  /support/*                Support
+```
 
----
+### Modules
 
-## ÉTAPE 3A — Application Mobile (Android & iPhone)
+1. **Auth** - Vérification tokens Firebase
+2. **Companies** - API entreprises
+3. **Imports** - Import de fichiers (Excel/CSV)
+4. **Team** - Gestion équipes
+5. **Assignments** - Affectations prospects
+6. **Admin** - Management plateforme
+7. **Support** - Tickets support
+8. **AI** - Assistant IA (Groq)
 
-### Si le serveur est en réseau local
-1. Trouvez l'IP de votre PC : tapez `ipconfig` (Windows) ou `ifconfig` (Mac/Linux)
-2. Sur votre téléphone, ouvrez le navigateur et allez sur :
-   ```
-   http://[votre-IP]:3210/mobile
-   ```
-   Exemple : `http://192.168.1.10:3210/mobile`
+### Technologies
 
-### Installer comme application native
-- **Android (Chrome)** → Menu ⋮ → "Ajouter à l'écran d'accueil"
-- **iPhone (Safari)** → Bouton partage ↑ → "Sur l'écran d'accueil"
+```json
+{
+  "express": "4.21.0",
+  "firebase-admin": "13.8.0",
+  "cors": "2.8.5",
+  "helmet": "8.0.0",
+  "multer": "2.0.0",
+  "exceljs": "4.4.0",
+  "zod": "3.23.0"
+}
+```
 
-L'application apparaît alors avec son icône, comme une vraie application installée.
-
----
-
-## ÉTAPE 3B — Application Desktop (Windows)
+### Scripts
 
 ```bash
-cd client
-npm install
-npm start              # Lancer pour tester
-npm run build:win      # Compiler en .exe portable
+npm run dev:server      # Développement (watch mode)
+npm run build:server    # Build TypeScript
+npm run start           # Production
+npm run typecheck       # Vérifier types
 ```
 
-Le fichier `.exe` est généré dans `client/dist/`
+### Middlewares
+
+- **auth.middleware** - Vérification Firebase tokens
+- **admin.middleware** - Guard admin
+- **manager.middleware** - Guard manager
+- **error.middleware** - Gestion erreurs globale
 
 ---
 
-## Plans & Tarification
+## 🔐 Sécurité Firestore
 
-| Plan | Recherches/jour | Prix/mois recommandé |
-|---|---|---|
-| Gratuit | 10 | — |
-| Starter | 200 | 5 000 FCFA |
-| Pro | 500 | 15 000 FCFA |
-| Entreprise | Illimité | 50 000 FCFA |
+### Collections protégées
 
-Gérez les plans depuis le **Panel Admin → Utilisateurs**
+```javascript
+// users: Admin, owner, ou manager peuvent lire
+// companies: Lecture auth, Écriture admin only
+// pipeline: User-scoped + manager peut voir son équipe
+// saved_searches: User-scoped strict
+// support_threads: User ou admin
+// team_accesses: Manager-scoped
+// assignments: Manager créé, assignee peut update
+// app_config: Admin only
+// usage_logs: Create user, Read admin
+// import_logs: Admin only
+```
+
+### Règles Firestore
+
+**Fichier :** `firestore/rules/firestore.rules`
+
+```javascript
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() { return request.auth != null; }
+    function authUid() { return request.auth.uid; }
+    function isAdmin() { return get(/databases/{database}/documents/users/{authUid()}).data.role == 'admin'; }
+    function isManager() { return get(/databases/{database}/documents/users/{authUid()}).data.role == 'manager'; }
+
+    // Collections avec règles appropriées...
+  }
+}
+```
+
+### Déploiement
+
+```bash
+firebase deploy --only firestore:rules
+firebase deploy --only firestore:indexes
+```
 
 ---
 
-## Déploiement en ligne (pour accès depuis n'importe où)
+## 🎨 Design System
 
-Pour que vos utilisateurs se connectent depuis partout (pas seulement en réseau local) :
+### Tokens CSS
 
-1. **Louez un VPS** (5-10$/mois) : DigitalOcean, Contabo, OVH
-2. Copiez le dossier `server/` sur le VPS
-3. Installez Node.js sur le VPS
-4. Lancez avec PM2 (redémarrage automatique) :
-   ```bash
-   npm install -g pm2
-   cd server && npm install
-   pm2 start server.js --name "sales-companion"
-   pm2 startup && pm2 save
-   ```
-5. L'URL devient : `http://votre-domaine.com:3210`
+```css
+--g: #1b7a3e /* Vert principal Cameroun */ --gm: #2ea05a /* Vert moyen */ --gd: #145f2f
+  /* Vert foncé */ --accent: #00897b /* Accent teal */ --gold: #f5a623 /* Or */ --dark: #0d1117
+  /* Fond dark */ --tx: #f0f6fc /* Texte clair */ --tx2: #8b949e /* Texte secondaire */;
+```
 
----
+### Typographie
 
-## Support & Contacts
-
-Pour toute assistance technique, contactez votre administrateur.
+```css
+'Syne'       - Titres (font-weight: 700-800)
+'Inter'      - Body & UI
+'DM Sans'    - Subtext
+```
 
 ---
 
-*Sales Companion v2.0 — © 2025*
-# Sales-Companion
+## 📱 PWA Configuration
+
+### Service Worker
+
+**Fichier :** `public/sw.js`
+
+Features :
+
+- Cache strategies (Cache-First, Network-First)
+- Offline fallback
+- Background sync
+- Push notifications
+
+### Manifest
+
+**Fichier :** `public/manifest.json`
+
+- Icônes multiples tailles (192, 512, maskable)
+- Standalone mode
+- Thème Cameroun
+- Shortcuts (Recherche, Pipeline)
+
+### Installation
+
+L'app peut être installée comme native sur :
+
+- Android (Chrome, Edge, Samsung)
+- iOS (PWA web-based)
+
+---
+
+## 🚀 Déploiement
+
+### Frontend (Vercel/Railway)
+
+```bash
+npm run build:web
+# Build génère: .next/
+
+npm run start  # Next.js production
+```
+
+### Backend (Railway)
+
+```bash
+npm run build:server
+# Build génère: dist/
+
+npm start      # Node production
+```
+
+### Variables d'environnement
+
+**Frontend (.env.local)**
+
+```env
+NEXT_PUBLIC_FIREBASE_API_KEY=...
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=sales-companion-237
+NEXT_PUBLIC_API_URL=https://api.salescompanion.cm
+```
+
+**Backend (.env)**
+
+```env
+PORT=8080
+NODE_ENV=production
+FIREBASE_PROJECT_ID=sales-companion-237
+FIREBASE_CLIENT_EMAIL=...
+FIREBASE_PRIVATE_KEY=...
+WEB_ORIGIN=https://salescompanion.cm
+CORS_ORIGIN=https://salescompanion.cm
+```
+
+---
+
+## 📦 Package Structure
+
+### `@sales-companion/shared`
+
+Types, constantes et utilitaires partagés :
+
+```
+packages/shared/src/
+├── types/           # Types TypeScript
+├── schemas/         # Zod schemas
+├── constants/       # Constantes métier
+└── utils/           # Utilitaires
+```
+
+---
+
+## 🧪 Tests
+
+### Frontend (Vitest)
+
+```bash
+npm run test:web
+```
+
+### Backend (Vitest)
+
+```bash
+npm run test:server
+```
+
+### Couverture
+
+- Utils (CSV parsing, imports guards)
+- Services (company-import, pitch, stats)
+- API endpoints
+
+---
+
+## 📚 Collectes Firestore
+
+### Modèle de données
+
+**Fichier :** `firestore/docs/data-model.md`
+
+Collections :
+
+- `users` - Profils utilisateurs
+- `companies` - Entreprises camerounaises
+- `pipeline` - Prospects CRM
+- `saved_searches` - Recherches sauvegardées
+- `support_threads` - Support client
+- `team_accesses` - Accès équipe
+- `assignments` - Affectations
+- `app_config` - Configuration
+- `usage_logs` - Logs d'utilisation
+- `import_logs` - Logs d'import
+
+---
+
+## 🛠️ Commandes principales
+
+```bash
+# Développement
+npm run dev:web              # Frontend dev
+npm run dev:server           # Backend dev
+
+# Build
+npm run build                # Build tout
+npm run build:web            # Frontend build
+npm run build:server         # Backend build
+
+# Vérification
+npm run typecheck            # TypeScript check
+npm run lint                 # Linter
+npm run format               # Formatter
+
+# Tests
+npm run test:web             # Frontend tests
+npm run test:server          # Backend tests
+
+# Monorepo workspace
+npm --workspace apps/web run dev
+npm --workspace apps/server run dev
+npm --workspace packages/shared run build
+```
+
+---
+
+## 📋 Checklist Déploiement
+
+- [ ] Convertir favicons ICO → SVG/PNG
+- [ ] Tester Service Worker en offline
+- [ ] Vérifier Firestore rules et indexes
+- [ ] Tests d'authentification
+- [ ] Tests CRUD Firestore
+- [ ] Lighthouse PWA audit
+- [ ] Security headers validés
+- [ ] Build test production (web et server)
+- [ ] Variables env Railway configurées
+- [ ] railway.json configuré
+- [ ] Health check endpoint testée
+- [ ] Backup Firestore prêt
+
+---
+
+## 🤝 Contribution
+
+### Structure code
+
+```typescript
+// Components
+src/components/
+├── auth/           # Authentification
+├── forms/          # Formulaires
+├── layout/         # Layout principal
+├── feedback/       # Notifications
+└── ui/             # Composants UI
+
+// Features (métier)
+src/features/
+├── companies/
+├── pipeline/
+├── search/
+├── team/
+└── ...
+
+// Services & Repos
+src/services/       # Logique métier
+src/repositories/   # Accès données
+
+// Hooks & Utils
+src/hooks/
+src/utils/
+src/lib/
+src/types/
+```
+
+### Conventions
+
+- **TypeScript strict** - Pas d'any
+- **Nommage clair** - Éviter les abbréviations
+- **Modularité** - Une responsabilité par fichier
+- **Documentation** - JSDoc pour les functions
+- **Tests** - Couverture > 70%
+
+---
+
+## 📞 Support
+
+Pour les problèmes :
+
+1. Vérifier la documentation
+2. Créer un ticket support dans l'app
+3. Contacter l'équipe admin
+
+---
+
+## 📝 License
+
+© 2025 Sales Companion. Tous droits réservés.
+
+Made in Cameroon 🇨🇲
+
+# Sales-Companion-2.0

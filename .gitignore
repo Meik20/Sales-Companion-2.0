@@ -1,70 +1,74 @@
-# Dependencies
+# Dependency directories
 node_modules/
-package-lock.json
-yarn.lock
+jspm_packages/
 
-# Environment variables (NEVER commit these!)
-.env
-.env.*
-!.env.example
-.env.local
-.env.*.local
+# Next.js build output
+.next/
+out/
 
-# Firebase (NEVER commit credentials!)
-firebase-service-account.json
-firebase-key.json
-*firebase*.json
-*-firebase*.json
-.firebaserc
-functions/node_modules/
-.runtimeconfig.json
-
-# Build outputs
+# Production build outputs
 dist/
 build/
-out/
-*.exe
-*.dmg
-*.AppImage
 
-# Logs
-logs/
+# IDEs and OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Testing and Coverage
+coverage/
+*.lcov
+
+# Debug/System Logs
 *.log
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+firebase-debug.log*
+firestore-debug.log*
+ui-debug.log*
 
-# OS
-.DS_Store
-Thumbs.db
-*.swp
-*.swo
+# Environment and Secrets (CRITICAL)
+.env
+.env.local
+.env.production
+.env.production.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env*.local
+.env.backup
+.env.sample
 
-# IDEs
-.vscode/
-.idea/
-*.sublime-workspace
-*.sublime-project
+# Service accounts and Private keys (CRITICAL)
+*serviceAccount*.json
+*service-account*.json
+serviceAccount.json
+firebase-service-account.json
+*.pem
+*.key
 
-# Electron
-electron/dist/
-electron/dist_electron/
+# Firebase CLI cache
+.firebase/
 
-# Temporary files
-temp/
-tmp/
-*.tmp
+# Vercel CLI
+.vercel/
 
-# Uploads
-server/uploads/
+# TypeScript build info
+*.tsbuildinfo
 
-# Auth tokens
-*.token
-auth_token.txt
-firebase_token.txt
-server_url.txt
-
-# Testing
-coverage/
-.nyc_output/
-
-# Development
-.sixth/
+# AI Agent internal logs and context
+brain/

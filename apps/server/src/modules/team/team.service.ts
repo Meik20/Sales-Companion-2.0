@@ -1,0 +1,307 @@
+import { admin, adminAuth, adminDb } from '../../firebase/admin'
+import { buildTeamAccessLabel } from '@sales-companion/shared'
+
+type CreateTeamAccessInput = {
+  firstname: string
+  lastname: string
+  company: string
+  companyId?: string | null
+  managerUid: string
+  managerEmail: string
+  createdBy: string
+}
+
+type ActivateMemberInput = {
+  accessId: string
+  email: string
+  password: string
+}
+
+type AccessInfo = {
+  accessId: string
+  firstname: string
+  lastname: string
+  company: string
+  status: string
+}
+
+type RevokeTeamAccessInput = {
+  accessId: string
+  managerUid: string
+}
+
+export const teamService = {
+  async createTeamAccess(input: CreateTeamAccessInput) {
+    const managerSnap = await adminDb.collection('users').doc(input.managerUid).get()
+    if (!managerSnap.exists) {
+      throw new Error('Profil Manager introuvable')
+    }
+    const managerData = managerSnap.data()
+    const plan = managerData?.plan || 'free'
+
+    const maxMembers = plan === 'enterprise' ? 10 : plan === 'pro' ? 3 : 0
+
+    const existingSnapshot = await adminDb
+      .collection('team_accesses')
+      .where('managerUid', '==', input.managerUid)
+      .get()
+
+    const activeOrPendingCount = existingSnapshot.docs.filter((doc) => {
+      const data = doc.data()
+      return data.status === 'pending' || data.status === 'active'
+    }).length
+
+    if (activeOrPendingCount >= maxMembers) {
+      throw new Error(
+        `Limite de membres atteinte. Le plan ${plan.toUpperCase()} permet d'ajouter jusqu'à ${maxMembers} membres.`
+      )
+    }
+
+    const accessId = buildTeamAccessLabel(input.firstname, input.lastname, input.company)
+
+    const duplicateSnapshot = await adminDb
+      .collection('team_accesses')
+      .doc(accessId)
+      .get()
+
+    if (duplicateSnapshot.exists) {
+      throw new Error("cet identifiant n'est plus disponible")
+    }
+
+    const accessRef = adminDb.collection('team_accesses').doc(accessId)
+
+    await accessRef.set({
+      accessId,
+      firstname: input.firstname,
+      lastname: input.lastname,
+      company: input.company,
+      companyId: input.companyId ?? null,
+      role: 'member',
+      status: 'pending',
+      activated: false,
+      firebaseUid: null,
+      email: null,
+      createdBy: input.createdBy,
+      managerUid: input.managerUid,
+      managerEmail: input.managerEmail,
+      mustChangePassword: true,
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    })
+
+    return {
+      accessId
+    }
+  },
+
+  async getAccessInfo(accessId: string): Promise<AccessInfo> {
+    const normalizedAccessId = accessId.trim().toLowerCase()
+    const accessSnap = await adminDb.collection('team_accesses').doc(normalizedAccessId).get()
+
+    if (!accessSnap.exists) {
+      throw new Error('Access not found')
+    }
+
+    const access = accessSnap.data()
+    if (!access) {
+      throw new Error('Access data not found')
+    }
+
+    return {
+      accessId: access.accessId,
+      firstname: access.firstname,
+      lastname: access.lastname,
+      company: access.company,
+      status: access.status
+    }
+  },
+
+  async activateMember(input: ActivateMemberInput) {
+    const accessId = input.accessId.trim().toLowerCase()
+    const accessRef = adminDb.collection('team_accesses').doc(accessId)
+    const accessSnap = await accessRef.get()
+
+    if (!accessSnap.exists) {
+      throw new Error('Access not found')
+    }
+
+    const accessDoc = accessSnap
+    const access = accessDoc.data()
+
+    if (!access || access.status !== 'pending') {
+      throw new Error('Access is not activable')
+    }
+
+    // Get manager's sector
+    const managerSnap = await adminDb.collection('users').doc(access.managerUid).get()
+    const managerData = managerSnap.data()
+    const managerSector = managerData?.sector || null
+
+    const userRecord = await adminAuth.createUser({
+      email: input.email,
+      password: input.password,
+      displayName: `${access.firstname} ${access.lastname}`.trim()
+    })
+
+    // ✅ SET CUSTOM CLAIMS for Firestore rules
+    await adminAuth.setCustomUserClaims(userRecord.uid, { role: 'member' })
+
+    await adminDb
+      .collection('users')
+      .doc(userRecord.uid)
+      .set({
+        uid: userRecord.uid,
+        email: input.email,
+        name: `${access.firstname} ${access.lastname}`.trim(),
+        role: 'member',
+        companyId: access.companyId ?? null,
+        managerUid: access.managerUid,
+        teamAccessId: access.accessId,
+        sector: managerSector,
+        plan: managerData?.plan || 'starter',
+        dailyLimit: managerData?.dailyLimit || 10,
+        dailyUsed: 0,
+        active: false,
+        activated: false,
+        emailVerificationPending: true,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      })
+
+    await accessRef.update({
+      status: 'active',
+      activated: true,
+      firebaseUid: userRecord.uid,
+      email: input.email,
+      mustChangePassword: false,
+      activatedAt: admin.firestore.FieldValue.serverTimestamp()
+    })
+
+    return {
+      uid: userRecord.uid,
+      accessId: access.accessId,
+      status: 'active'
+    }
+  },
+
+  async revokeTeamAccess(input: RevokeTeamAccessInput) {
+    const normalizedAccessId = input.accessId.trim().toLowerCase()
+    const accessRef = adminDb.collection('team_accesses').doc(normalizedAccessId)
+    const accessSnap = await accessRef.get()
+
+    if (!accessSnap.exists) {
+      throw new Error('Access not found')
+    }
+
+    const access = accessSnap.data()
+
+    if (!access) {
+      throw new Error('Access data not found')
+    }
+
+    if (access.managerUid !== input.managerUid) {
+      throw new Error('Forbidden')
+    }
+
+    await accessRef.update({
+      status: 'revoked',
+      activated: false,
+      revokedAt: admin.firestore.FieldValue.serverTimestamp()
+    })
+
+    if (access.firebaseUid) {
+      await adminDb.collection('users').doc(access.firebaseUid).set(
+        {
+          active: false,
+          updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        },
+        { merge: true }
+      )
+
+      await adminAuth.updateUser(access.firebaseUid, {
+        disabled: true
+      })
+    }
+
+    return {
+      accessId: input.accessId,
+      revoked: true
+    }
+  },
+
+  async listManagerAccesses(managerUid: string) {
+    const snapshot = await adminDb
+      .collection('team_accesses')
+      .where('managerUid', '==', managerUid)
+      .get()
+
+    return snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data()
+    }))
+  },
+
+  async getManagerMemberDetail(managerUid: string, accessId: string) {
+    const normalizedAccessId = accessId.trim().toLowerCase()
+    const accessSnap = await adminDb.collection('team_accesses').doc(normalizedAccessId).get()
+
+    if (!accessSnap.exists) {
+      throw new Error('Member access not found')
+    }
+
+    const access = accessSnap.data()
+
+    if (!access || access.managerUid !== managerUid) {
+      throw new Error('Forbidden')
+    }
+
+    const assignmentsSnapshot = await adminDb
+      .collection('assignments')
+      .where('managerUid', '==', managerUid)
+      .where('assigneeId', '==', accessId)
+      .get()
+
+    const pipelineSnapshot = access.firebaseUid
+      ? await adminDb.collection('pipeline').where('userId', '==', access.firebaseUid).get()
+      : null
+
+    return {
+      access: {
+        id: accessSnap.id,
+        ...access
+      },
+      assignments: assignmentsSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data()
+      })),
+      pipeline: pipelineSnapshot
+        ? pipelineSnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data()
+          }))
+        : []
+    }
+  },
+
+  async getManagerMembers(managerUid: string) {
+    // Get all active members for this manager
+    const usersSnapshot = await adminDb
+      .collection('users')
+      .where('managerUid', '==', managerUid)
+      .where('role', '==', 'member')
+      .get()
+
+    return usersSnapshot.docs.map((doc) => {
+      const user = doc.data()
+      return {
+        uid: user.uid,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        managerUid: user.managerUid,
+        active: user.active === true,
+        dailyUsed: user.dailyUsed || 0,
+        dailyLimit: user.dailyLimit || 100
+      }
+    })
+  }
+}

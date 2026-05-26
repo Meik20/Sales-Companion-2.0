@@ -1,0 +1,394 @@
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,300;0,400;0,500;0,600;0,700;0,900;1,300;1,400;1,600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import '../../../../theme.css';
+
+/* Typography: system font stack — no network request required for Segoe UI */
+
+/* ─── Palette Google ────────────────────────────────────────────────── */
+:root {
+  /* Blue */
+  --google-blue-50: rgb(232, 240, 254);
+  --google-blue-100: rgb(210, 227, 252);
+  --google-blue-200: rgb(174, 203, 250);
+  --google-blue-300: rgb(138, 180, 248);
+  --google-blue-400: rgb(102, 157, 246);
+  --google-blue-500: rgb(66, 133, 244);
+  --google-blue-600: rgb(26, 115, 232);
+  --google-blue-700: rgb(25, 103, 210);
+  --google-blue-800: rgb(24, 90, 188);
+  --google-blue-900: rgb(23, 78, 166);
+
+  /* Green */
+  --google-green-50: rgb(230, 244, 234);
+  --google-green-200: rgb(168, 218, 181);
+  --google-green-300: rgb(129, 201, 149);
+  --google-green-400: rgb(91, 185, 116);
+  --google-green-500: rgb(52, 168, 83);
+  --google-green-600: rgb(30, 142, 62);
+  --google-green-700: rgb(24, 128, 56);
+  --google-green-800: rgb(19, 115, 51);
+  --google-green-900: rgb(13, 101, 45);
+
+  /* Grey */
+  --google-grey-50: rgb(248, 249, 250);
+  --google-grey-100: rgb(241, 243, 244);
+  --google-grey-200: rgb(232, 234, 237);
+  --google-grey-300: rgb(218, 220, 224);
+  --google-grey-400: rgb(189, 193, 198);
+  --google-grey-500: rgb(154, 160, 166);
+  --google-grey-600: rgb(128, 134, 139);
+  --google-grey-700: rgb(95, 99, 104);
+  --google-grey-800: rgb(60, 64, 67);
+  --google-grey-900: rgb(32, 33, 36);
+
+  /* Red */
+  --google-red-100: rgb(244, 199, 195);
+  --google-red-300: rgb(242, 139, 130);
+  --google-red-500: rgb(234, 67, 53);
+  --google-red-600: rgb(217, 48, 37);
+  --google-red-700: rgb(197, 57, 41);
+
+  /* Yellow */
+  --google-yellow-50: rgb(254, 247, 224);
+  --google-yellow-100: rgb(254, 239, 195);
+  --google-yellow-200: rgb(253, 226, 147);
+  --google-yellow-300: rgb(253, 214, 51);
+  --google-yellow-400: rgb(252, 201, 52);
+  --google-yellow-500: rgb(251, 188, 4);
+  --google-yellow-700: rgb(240, 147, 0);
+}
+
+/* The design system tokens are now imported from theme.css */
+
+body {
+  color: var(--tx);
+  background-color: var(--bg);
+}
+
+/* Force some elements to respect the dark theme */
+input,
+select,
+textarea,
+button {
+  color: var(--tx);
+}
+
+option {
+  background-color: var(--bg2);
+  color: var(--tx);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--tx);
+}
+
+/* ─── Reset ─────────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: inherit;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html[data-scroll-behavior='smooth'] {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-family);
+  font-size: 81.25%;
+  line-height: 154%;
+  background: var(--bg);
+  color: var(--tx);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+a {
+  color: var(--cr-link-color);
+  text-decoration: none;
+}
+a:not([class]) {
+  text-decoration: underline;
+}
+
+/* ─── Noise texture subtile ─────────────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.35;
+}
+
+/* ─── Scrollbar ─────────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--google-grey-100);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--google-grey-400);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--google-grey-600);
+}
+
+/* ─── Focus visible ─────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--cr-focus-outline-color);
+  outline-offset: 2px;
+}
+
+/* ─── Animations ────────────────────────────────────────────────────── */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(0.85);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ─── Utilities ─────────────────────────────────────────────────────── */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* ─── PWA / Mobile responsive ───────────────────────────────────────── */
+
+/* Respect safe area insets (notch, home bar) */
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+}
+
+/* Full-height app shell */
+html,
+body {
+  height: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Standalone PWA tweaks */
+@media (display-mode: standalone) {
+  body {
+    padding-top: var(--safe-top);
+    padding-bottom: var(--safe-bottom);
+  }
+  /* Pas de landing page — géré JS-side dans page.tsx */
+}
+
+/* ── Tablette (< 1024px) ── */
+@media (max-width: 1024px) {
+  .search-page-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .desktop-only-panels {
+    display: none !important;
+  }
+}
+
+/* ── Mobile (< 768px) ── */
+@media (max-width: 768px) {
+  /* Réduire les paddings globaux */
+  body {
+    font-size: 87.5%; /* 14px base */
+  }
+
+  /* Full-width panels */
+  [data-layout='two-col'],
+  .two-col {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  /* Sidebar / aside — passe en dessous */
+  [data-sidebar],
+  aside[role='complementary'] {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--cr-separator-color) !important;
+  }
+
+  /* Tap targets — min 44px (WCAG) */
+  button,
+  a[role='button'] {
+    min-height: 44px;
+  }
+
+  /* Inputs et selects */
+  input,
+  select,
+  textarea {
+    min-height: 44px;
+    font-size: 16px !important; /* évite le zoom iOS */
+  }
+
+  /* Cards full width sur petits écrans */
+  [class*='DataCard'],
+  [class*='card'] {
+    border-radius: 12px !important;
+  }
+
+  /* Tables — scroll horizontal */
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Grid → colonne unique */
+  .grid-responsive {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Header — compact */
+  header {
+    padding: 0 12px !important;
+  }
+
+  /* Panneau admin support — stack vertical */
+  [style*='grid-template-columns: 340px'] {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto auto;
+  }
+
+  /* Barre de recherche — empilement vertical */
+  .search-bar-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .filter-select-wrap,
+  .search-input-wrap {
+    min-width: unset !important;
+    flex: unset !important;
+    width: 100% !important;
+  }
+  .search-btn-primary,
+  .search-btn-geo,
+  .search-btn-reset {
+    width: 100% !important;
+    justify-content: center !important;
+    min-height: 44px !important;
+  }
+  /* Masquer label "Autour de moi" sur très petit écran — juste l'emoji */
+  .search-geo-label {
+    display: inline !important;
+  }
+
+  /* Page header — titre + sous-titre */
+  [data-page-header] h1,
+  [class*='PageHeader'] h1 {
+    font-size: 20px !important;
+  }
+
+  /* Pipeline stats grid */
+  [style*="gridTemplateColumns: 'repeat(3, 1fr)'"] {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+
+  /* Form fields — pleine largeur */
+  form > div[style*='grid'] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Modal / panneau flottant — pleine hauteur */
+  [role='dialog'] {
+    width: 100vw !important;
+    height: 100dvh !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+  }
+}
+
+/* ── Très petits écrans (< 480px) ── */
+@media (max-width: 480px) {
+  /* Masquer éléments non essentiels */
+  [data-mobile-hidden='true'] {
+    display: none !important;
+  }
+
+  /* Texte légèrement plus petit */
+  body {
+    font-size: 85%;
+  }
+
+  /* Chips de filtres actifs */
+  .search-bar-wrapper [style*='inline-flex'] {
+    font-size: 11px !important;
+  }
+
+  /* Boutons d'action dans les en-têtes */
+  [class*='PageHeader'] button,
+  [class*='PageHeader'] a {
+    font-size: 12px !important;
+    padding: 0 10px !important;
+  }
+}
+
+/* ── Hauteur dynamique (dvh) pour éviter le saut de barre adresse iOS ── */
+.app-shell-main {
+  min-height: 100dvh;
+}

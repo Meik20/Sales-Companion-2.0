@@ -1,30 +1,48 @@
 {
-  "name": "sales-companion-server",
-  "version": "2.0.0",
-  "description": "Serveur Sales Companion — B2B Intelligence Cameroun",
-  "main": "server/server-firebase.js",
+  "name": "sales-companion",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "start": "node server/server-firebase.js",
-    "dev": "nodemon server/server-firebase.js",
-    "generate:icons": "node scripts/generate-icons.js",
-    "generate:mac-icon": "node scripts/generate-mac-icon.js"
-  },
-  "dependencies": {
-    "axios": "^1.6.0",
-    "compression": "^1.8.1",
-    "cors": "^2.8.5",
-    "dotenv": "^16.3.1",
-    "express": "^4.18.2",
-    "express-rate-limit": "^8.3.2",
-    "firebase-admin": "^10.1.0",
-    "helmet": "^8.1.0",
-    "multer": "^1.4.5-lts.1",
-    "node-fetch": "^2.7.0",
-    "xlsx": "^0.18.5"
+    "generate:pwa-icons": "node scripts/generate-pwa-icons.js",
+    "dev:web": "npm --workspace apps/web run dev",
+    "dev:server": "npm --workspace apps/server run dev",
+    "build:web": "npm --workspace apps/web run build",
+    "build:server": "npm --workspace apps/server run build",
+    "build:shared": "npm --workspace packages/shared run build",
+    "build": "npm run build:shared && npm run build:web && npm run build:server",
+    "typecheck:web": "npm --workspace apps/web run typecheck",
+    "typecheck:server": "npm --workspace apps/server run typecheck",
+    "typecheck:shared": "npm --workspace packages/shared run typecheck",
+    "typecheck": "npm run typecheck:shared && npm run typecheck:web && npm run typecheck:server",
+    "lint": "npm run lint:web && npm run lint:server",
+    "lint:web": "npm --workspace apps/web run lint",
+    "lint:server": "npm --workspace apps/server run lint",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check",
+    "test:web": "npm --workspace apps/web run test",
+    "test:server": "npm --workspace apps/server run test",
+    "theme:lint": "designmd lint THEME.md",
+    "theme:export": "designmd export --format tailwind THEME.md > tailwind.theme.json"
   },
   "devDependencies": {
-    "icojs": "^0.22.0",
-    "nodemon": "^3.0.1",
-    "sharp": "^0.34.5"
+    "@eslint/js": "^9.13.0",
+    "eslint": "^9.13.0",
+    "prettier": "^3.3.3",
+    "typescript-eslint": "^8.11.0",
+    "vitest": "^3.0.0"
+  },
+  "overrides": {
+    "postcss": "^8.5.10",
+    "uuid": "^14.0.0",
+    "@babel/runtime": "^7.26.10",
+    "path-to-regexp": "^8.0.0",
+    "send": "^0.19.0",
+    "cookie": "^0.7.0"
+  },
+  "dependencies": {
+    "@google/design.md": "^0.1.1"
   }
 }
