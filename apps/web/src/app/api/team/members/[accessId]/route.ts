@@ -97,11 +97,18 @@ export async function DELETE(
       }
     }
 
-    // 4. Disable Firebase Auth user (do not delete — audit trail)
+    // 4. Update the user document to detach from manager and downgrade role
+    // and disable Firebase Auth user (do not delete — audit trail)
     if (memberFirebaseUid) {
       try {
         await adminAuth.updateUser(memberFirebaseUid, { disabled: true })
-      } catch {
+        // Detach from the team
+        await adminDb.collection('users').doc(memberFirebaseUid).update({
+          managerUid: null,
+          role: 'independent'
+        })
+      } catch (err) {
+        console.error('[team/members DELETE] failed to update user/auth:', err)
         /* user might not exist yet */
       }
     }

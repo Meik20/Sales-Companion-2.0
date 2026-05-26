@@ -151,13 +151,22 @@ export function TeamAccessManager() {
   }
 
   const revokeAccess = async (id: string) => {
+    if (!user) return
     if (!confirm(t('support.confirmDelete') || 'Voulez-vous révoquer cet accès ?')) return
     try {
-      await updateDoc(doc(db, 'team_accesses', id), {
-        status: 'revoked',
-        revokedAt: serverTimestamp()
+      const token = await user.getIdToken()
+      const res = await fetch('/api/team/accesses/revoke', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ accessId: id })
       })
-      pushToast({ type: 'success', title: 'Accès révoqué' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Erreur lors de la révocation')
+
+      pushToast({ type: 'success', title: 'Accès révoqué et membre détaché' })
     } catch (e: any) {
       pushToast({ type: 'error', title: `Erreur: ${e.message}` })
     }
