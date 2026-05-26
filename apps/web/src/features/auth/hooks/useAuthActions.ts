@@ -38,9 +38,9 @@ export function useAuthActions() {
           plan: 'free',
           dailyLimit: 10,
           dailyUsed: 0,
-          active: false,
-          activated: false,
-          emailVerificationPending: true,
+          active: true,
+          activated: true,
+          emailVerificationPending: false, // SUSPENDU: Pas de vérification d'email pour l'instant
           createdAt: Timestamp.now(),
           updatedAt: Timestamp.now(),
           lastLogin: Timestamp.now(),
@@ -60,7 +60,8 @@ export function useAuthActions() {
       // ✅ FORCE TOKEN REFRESH to get custom claims
       await user.getIdToken(true)
 
-      // Send email verification link
+      // SUSPENDU: L'envoi de l'email de vérification est temporairement désactivé
+      /*
       try {
         const actionCodeSettings = {
           url: typeof window !== 'undefined' ? `${window.location.origin}/login` : 'http://localhost:3000/login',
@@ -69,8 +70,8 @@ export function useAuthActions() {
         await sendEmailVerification(user, actionCodeSettings)
       } catch (emailErr) {
         console.error('Initial email verification send failed:', emailErr)
-        // Non-blocking: we still want registration to succeed because the Firebase user was created successfully
       }
+      */
 
       return user
     } catch (error) {
