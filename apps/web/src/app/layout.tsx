@@ -4,6 +4,7 @@ import { ReactNode } from 'react'
 import { AppProvider } from '@/providers/AppProvider'
 import { ThemeProvider } from '@/providers/ThemeProvider'
 import { I18nProvider } from '@/providers/I18nProvider'
+import { DesignThemeProvider } from '@/providers/DesignThemeProvider'
 import { GoogleAnalytics } from '@next/third-parties/google'
 export const metadata: Metadata = {
   // ── Core ──────────────────────────────────────────────────────────────
@@ -114,8 +115,15 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
+        {/* ── No-flash design theme script — runs synchronously before first paint ── */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var d=localStorage.getItem('sc-design-theme')||'linkedin';document.documentElement.setAttribute('data-design',d);}catch(e){}})();`
+          }}
+        />
       </head>
       <body>
+        <DesignThemeProvider />
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <I18nProvider>
             <AppProvider>{children}</AppProvider>

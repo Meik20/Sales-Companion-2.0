@@ -19,7 +19,15 @@ export function AppShell({ children }: PropsWithChildren) {
 
   return (
     <AuthGuard>
-      <div style={{ minHeight: '100vh', background: colors.bg }}>
+      <div
+        style={{
+          height: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          background: colors.bg
+        }}
+      >
         <AppHeader onOpenMenu={() => setIsDrawerOpen(true)} />
 
         {mounted && !isDesktop && isDrawerOpen && (
@@ -28,31 +36,34 @@ export function AppShell({ children }: PropsWithChildren) {
 
         <div
           style={{
+            flex: 1,
+            display: 'flex',
+            overflow: 'hidden',
+            width: '100%',
             maxWidth: 1440,
             margin: '0 auto',
-            padding: '0',
-            overflowX: 'hidden'
+            position: 'relative'
           }}
         >
           <div
             style={{
               display: 'flex',
-              alignItems: 'stretch',
-              minHeight: 'calc(100vh - 60px)',
-              gap: 0,
+              width: '100%',
+              height: '100%',
+              overflow: 'hidden',
               paddingBottom: mounted && !isDesktop ? '72px' : '0'
             }}
           >
             {mounted && isDesktop ? <AppSidebar /> : null}
 
             <main
+              id="main-scroll-container"
               style={{
                 flex: 1,
                 minWidth: 0,
-                width: '100%',
-                maxWidth: '100%',
+                height: '100%',
+                overflowY: 'auto',
                 padding: mounted && isDesktop ? '28px 28px 28px 24px' : '12px 16px 16px',
-                overflowX: 'hidden',
                 boxSizing: 'border-box'
               }}
             >

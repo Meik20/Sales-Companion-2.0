@@ -1,0 +1,207 @@
+/* ════════════════════════════════════════════════════════════════════
+   THEME 2 : Firebase Console Design System — Navy + Amber
+   Activé par : <html data-design="firebase">
+   Compatible avec les modes clair et sombre (.dark)
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── Primitives Firebase ─────────────────────────────────────────── */
+[data-design="firebase"] {
+  --fb-amber-300: #FFCB2B;
+  --fb-amber-400: #FFA611;
+  --fb-amber-500: #F5820D;
+  --fb-amber-600: #E07000;
+  --fb-amber-700: #BF5C00;
+
+  --fb-navy-50:  #F0F4FF;
+  --fb-navy-100: #D6E2FF;
+  --fb-navy-200: #AABFFF;
+  --fb-navy-500: #1967D2;
+  --fb-navy-700: #0D47A1;
+}
+
+/* ── Firebase Light Mode ─────────────────────────────────────────── */
+[data-design="firebase"]:not(.dark) {
+  --bg:  #F1F3F4 !important;
+  --bg2: #FFFFFF !important;
+  --bg3: #F8F9FA !important;
+  --bg4: #E8EAED !important;
+
+  --tx:  #202124 !important;
+  --tx2: #5F6368 !important;
+  --tx3: #9AA0A6 !important;
+
+  --bd:  #E8EAED !important;
+  --bd2: #DADCE0 !important;
+
+  --color-primary:       #FFA611 !important;
+  --color-primary-dark:  #E07000 !important;
+  --color-primary-light: rgba(255,166,17,.12) !important;
+
+  --color-accent:    #1967D2 !important;
+  --color-secondary: #1967D2 !important;
+
+  --color-success:    #1E8E3E !important;
+  --color-success-bg: #E6F4EA !important;
+  --color-warning:    #8A6500 !important;
+  --color-warning-bg: #FEF7E0 !important;
+  --color-danger:     #D93025 !important;
+  --color-danger-bg:  #FCE8E6 !important;
+
+  --cr-link-color:              #1967D2 !important;
+  --cr-focus-outline-color:     #FFA611 !important;
+  --cr-hover-background-color:  rgba(0,0,0,.06) !important;
+  --cr-active-background-color: rgba(0,0,0,.10) !important;
+
+  --shadow-glass-light:  0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06) !important;
+  --shadow-glass-medium: 0 4px 12px rgba(0,0,0,.08), 0 2px 4px rgba(0,0,0,.06) !important;
+  --shadow-glass-strong: 0 10px 30px rgba(0,0,0,.10), 0 4px 8px rgba(0,0,0,.06) !important;
+
+  --font-family: 'Outfit', 'Google Sans', 'Source Sans 3', -apple-system, Arial, sans-serif !important;
+
+  --radius-standard: 8px !important;
+  --r:  8px !important;
+  --r2: 8px !important;
+  --r3: 12px !important;
+
+  --color-blue-50:  rgba(255,166,17,.10) !important;
+  --color-blue-100: rgba(255,166,17,.15) !important;
+  --color-blue-200: rgba(255,166,17,.25) !important;
+  --color-blue-600: #E07000 !important;
+  --color-blue-900: #BF5C00 !important;
+
+  --color-teal-50:  rgba(25,103,210,.1) !important;
+  --color-teal-900: #0D47A1 !important;
+}
+
+/* ── Firebase Dark Mode ──────────────────────────────────────────── */
+[data-design="firebase"].dark {
+  --bg:  #202124 !important;   /* Google dark base — Gris anthracite pur */
+  --bg2: #2D2E31 !important;   /* Surface élevée — cartes, sidebar */
+  --bg3: #35363A !important;   /* Surface secondaire — dropdowns, tags */
+  --bg4: #3C3F47 !important;   /* Bordures et hovers */
+
+  --tx:  #E8EAED !important;
+  --tx2: #9AA0A6 !important;
+  --tx3: #5F6368 !important;
+
+  --bd:  rgba(255,255,255,.10) !important;
+  --bd2: rgba(255,255,255,.18) !important;
+
+  --color-primary:       #FFA611 !important;
+  --color-primary-dark:  #FFCB2B !important;
+  --color-primary-light: rgba(255,166,17,.15) !important;
+
+  --color-accent:    #AABFFF !important;
+  --color-secondary: #AABFFF !important;
+
+  --color-success:    #34A853 !important;
+  --color-success-bg: rgba(5,118,66,.2) !important;
+  --color-warning:    #FBBC04 !important;
+  --color-warning-bg: rgba(251,188,4,.15) !important;
+  --color-danger:     #EA4335 !important;
+  --color-danger-bg:  rgba(217,48,37,.2) !important;
+
+  --cr-link-color:              #AABFFF !important;
+  --cr-focus-outline-color:     #FFA611 !important;
+  --cr-hover-background-color:  rgba(255,255,255,.06) !important;
+  --cr-active-background-color: rgba(255,255,255,.10) !important;
+
+  --shadow-glass-light:  0 1px 2px rgba(0,0,0,.3) !important;
+  --shadow-glass-medium: 0 4px 12px rgba(0,0,0,.35), 0 2px 4px rgba(0,0,0,.2) !important;
+  --shadow-glass-strong: 0 10px 30px rgba(0,0,0,.4), 0 4px 8px rgba(0,0,0,.25) !important;
+
+  --font-family: 'Outfit', 'Google Sans', 'Source Sans 3', -apple-system, Arial, sans-serif !important;
+
+  --radius-standard: 8px !important;
+  --r:  8px !important;
+  --r2: 8px !important;
+  --r3: 12px !important;
+
+  --color-blue-50:  rgba(255,166,17,.15) !important;
+  --color-blue-100: rgba(255,166,17,.20) !important;
+  --color-blue-200: rgba(255,166,17,.30) !important;
+  --color-blue-600: #FFCB2B !important;
+  --color-blue-900: #FFE082 !important;
+
+  --color-teal-50:  rgba(170,191,255,.1) !important;
+  --color-teal-900: #AABFFF !important;
+}
+
+/* ── Transitions globales lors du changement de thème ─────────── */
+html[data-design] *,
+html[data-design] *::before,
+html[data-design] *::after {
+  transition-property: background-color, border-color, color, box-shadow;
+  transition-duration: 250ms;
+  transition-timing-function: ease;
+}
+
+/* ── Custom Scrollbars (Firebase Design) ───────────────────────── */
+[data-design="firebase"] ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+[data-design="firebase"] ::-webkit-scrollbar-track {
+  background: transparent;
+}
+[data-design="firebase"] ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 99px;
+}
+[data-design="firebase"].dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+}
+[data-design="firebase"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+[data-design="firebase"].dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* ── Component Overrides (Firebase Design) ───────────────────── */
+
+/* Clean rounded geometric buttons */
+[data-design="firebase"] button,
+[data-design="firebase"] .btn-primary,
+[data-design="firebase"] .btn-secondary {
+  border-radius: var(--r) !important;
+  font-family: var(--font-family) !important;
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+[data-design="firebase"] .btn-primary {
+  box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15) !important;
+  font-weight: 500 !important;
+}
+
+[data-design="firebase"] .btn-primary:hover {
+  box-shadow: 0 1px 3px 0 rgba(60,64,67,0.3), 0 4px 8px 3px rgba(60,64,67,0.15) !important;
+}
+
+[data-design="firebase"] .btn-secondary {
+  border: 1px solid var(--bd2) !important;
+  color: var(--tx) !important;
+}
+
+/* Clean rounded inputs */
+[data-design="firebase"] input,
+[data-design="firebase"] select,
+[data-design="firebase"] textarea {
+  border-radius: var(--r) !important;
+  font-family: var(--font-family) !important;
+}
+
+/* Modern slightly-rounded cards & panels */
+[data-design="firebase"] .card,
+[data-design="firebase"] .panel,
+[data-design="firebase"] [style*="borderRadius"] {
+  border-radius: var(--r3) !important;
+}
+
+/* Authentic flat badge styles */
+[data-design="firebase"] .badge {
+  border-radius: 4px !important;
+  font-family: var(--font-family) !important;
+}
+
+

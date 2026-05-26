@@ -228,7 +228,7 @@ function SearchContent() {
                         onClick={() => {
                           setIsBackAction(true)
                           setCurrentPage((p) => Math.max(1, p - 1))
-                          window.scrollTo({ top: 0, behavior: 'smooth' })
+                          document.getElementById('main-scroll-container')?.scrollTo({ top: 0, behavior: 'smooth' })
                         }}
                       >
                         {t('common.previous' as any) || 'Précédent'}
@@ -245,7 +245,7 @@ function SearchContent() {
                         onClick={() => {
                           setIsBackAction(false)
                           setCurrentPage((p) => p + 1)
-                          window.scrollTo({ top: 0, behavior: 'smooth' })
+                          document.getElementById('main-scroll-container')?.scrollTo({ top: 0, behavior: 'smooth' })
                         }}
                       >
                         {t('common.next' as any) || 'Suivant'}
@@ -549,7 +549,12 @@ function SearchContent() {
             display: 'flex',
             flexDirection: 'column',
             gap: 20,
-            minWidth: 300
+            minWidth: 300,
+            position: 'sticky',
+            top: 88,
+            maxHeight: 'calc(100vh - 116px)',
+            overflowY: 'auto',
+            paddingRight: 4
           }}
         >
           <style

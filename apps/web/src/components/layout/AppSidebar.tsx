@@ -733,5 +733,18 @@ export function AppSidebar({
     )
   }
 
-  return <aside style={{ height: '100%' }}>{content}</aside>
+  return (
+    <aside
+      style={{
+        position: 'sticky',
+        top: 60,
+        height: 'calc(100vh - 60px)',
+        width: 300,
+        flexShrink: 0,
+        overflow: 'hidden'
+      }}
+    >
+      {content}
+    </aside>
+  )
 }

@@ -80,11 +80,11 @@ export const shadows = {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const radius = {
-  sm: 4,
-  md: 4,
-  lg: 4,
-  xl: 4,
-  pill: 9999
+  sm: 'var(--r)',
+  md: 'var(--r2)',
+  lg: 'var(--r3)',
+  xl: 'var(--r3)',
+  pill: '9999px'
 } as const
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -115,8 +115,8 @@ export const transitions = {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const fonts = {
-  sans: "'Geist', sans-serif",
-  display: "'Geist', sans-serif"
+  sans: 'var(--font-family)',
+  display: 'var(--font-family)'
 } as const
 
 // ─────────────────────────────────────────────────────────────────────────────
