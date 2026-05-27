@@ -29,7 +29,8 @@ import {
   Filter,
   Moon,
   Sun,
-  Globe
+  Globe,
+  CreditCard
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useTranslation } from '@/providers/I18nProvider'
@@ -655,6 +656,7 @@ export function AppSidebar({
           <SidebarLink href={routes.adminSupport} label={t('sidebar.support')} icon={Headphones} />
           <SidebarLink href={routes.adminLogs} label={t('sidebar.activity')} icon={Activity} />
           <SidebarLink href={routes.adminConfig} label={t('sidebar.config')} icon={Sliders} />
+          <SidebarLink href={routes.adminPayments} label={t('sidebar.payments')} icon={CreditCard} />
         </>
       )}
 
