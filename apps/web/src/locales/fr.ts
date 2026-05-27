@@ -957,9 +957,9 @@ export const fr = {
     paymentConfirmReject: 'Voulez-vous vraiment rejeter ce paiement ?',
     validateBtn: 'Valider',
     rejectBtn: 'Rejeter',
-    statusManualPending: 'En attente',
-    statusSuccessful: 'Validé',
-    statusFailed: 'Échoué'
+    paymentStatusPending: 'En attente',
+    paymentStatusDone: 'Validé',
+    paymentStatusFailed: 'Échoué'
   },
   common: {
     next: 'Suivant',

@@ -2,7 +2,7 @@
 
 import { Badge } from '@/components/ui/index'
 import { Button } from '@/components/ui/Button'
-import { colors, shadows } from '@/styles/tokens'
+import { colors } from '@/styles/tokens'
 import { useTranslation } from '@/providers/I18nProvider'
 import type { AdminPaymentItem } from '../hooks/useAdminPayments'
 import {
@@ -176,20 +176,20 @@ export function AdminPaymentsTable({ payments, onValidate, onReject }: Props) {
                 <td style={{ padding: '16px 12px' }}>
                   {payment.status === 'MANUAL_PENDING' ? (
                     <Badge variant="warning">
-                      {t('admin.statusManualPending') || 'En attente'}
+                      {t('admin.paymentStatusPending') || 'En attente'}
                     </Badge>
                   ) : payment.status === 'SUCCESSFUL' ? (
                     <Badge variant="success">
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                         <CheckCircle2 size={10} />
-                        {t('admin.statusSuccessful') || 'Validé'}
+                        {t('admin.paymentStatusDone') || 'Validé'}
                       </span>
                     </Badge>
                   ) : (
                     <Badge variant="danger">
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                         <XCircle size={10} />
-                        {t('admin.statusFailed') || 'Échoué'}
+                        {t('admin.paymentStatusFailed') || 'Échoué'}
                       </span>
                     </Badge>
                   )}
@@ -204,9 +204,6 @@ export function AdminPaymentsTable({ payments, onValidate, onReject }: Props) {
                         variant="primary"
                         onClick={() => onValidate(payment.reference)}
                         style={{
-                          background: colors.green,
-                          color: '#fff',
-                          border: 'none',
                           fontSize: 11,
                           fontWeight: 700,
                           padding: '6px 12px',

@@ -953,9 +953,9 @@ export const en = {
     paymentConfirmReject: 'Are you sure you want to reject this payment?',
     validateBtn: 'Validate',
     rejectBtn: 'Reject',
-    statusManualPending: 'Pending',
-    statusSuccessful: 'Validated',
-    statusFailed: 'Failed'
+    paymentStatusPending: 'Pending',
+    paymentStatusDone: 'Validated',
+    paymentStatusFailed: 'Failed'
   },
   common: {
     next: 'Next',

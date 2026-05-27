@@ -43,7 +43,7 @@ export function useAdminPayments() {
       return response.json() as Promise<AdminPaymentsResponse>
     },
     enabled: !!user?.uid,
-    refetchInterval: 5000, // Real-time updates every 5 seconds
+    refetchInterval: process.env.NODE_ENV === 'production' ? 10000 : 30000,
     refetchOnWindowFocus: true
   })
 }
