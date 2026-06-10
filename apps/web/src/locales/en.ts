@@ -13,7 +13,7 @@ export const en = {
     heroTitle4: 'Prospect faster,',
     heroTitle5: 'sell better',
     heroSub:
-      'Sales Companion is the leading B2B Directory that centralizes your database of Cameroonian companies, your CRM pipeline and team management in one tool accessible everywhere.',
+      'Sales Companion 2.0 is the leading B2B Directory that centralizes your database of Cameroonian companies, your CRM pipeline and team management in one tool accessible everywhere.',
     freeToStart: 'Free to start',
     discoverFeatures: 'Discover features',
     installApp: 'Install app',
@@ -38,7 +38,7 @@ export const en = {
       title1: 'B2B',
       title2: 'prospecting tools',
       title3: 'in Cameroon',
-      sub: 'Optimize your sales with Sales Companion: official database, lightweight CRM and sales intelligence for the Cameroonian market.',
+      sub: 'Optimize your sales with Sales Companion 2.0: official database, lightweight CRM and sales intelligence for the Cameroonian market.',
       f1Title: 'Company Directory',
       f1Desc:
         'Access contact details for 500K + Cameroonian companies. Filter by sector, region and city to target your prospects.',
@@ -87,7 +87,7 @@ export const en = {
     plansSection: {
       title1: 'Pricing for',
       title2: 'your Sales',
-      title3: 'Companion plan',
+      title3: 'Companion 2.0 plan',
       sub: 'Choose the plan adapted to your prospecting volume. All our rates are designed for the Cameroonian market.',
       free: 'Free Plan',
       freeBadge: 'Always available',

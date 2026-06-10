@@ -9,8 +9,8 @@ import { GoogleAnalytics } from '@next/third-parties/google'
 export const metadata: Metadata = {
   // ── Core ──────────────────────────────────────────────────────────────
   title: {
-    default: 'Sales Companion — Base de Données Entreprises Cameroun | Annuaire B2B N°1',
-    template: '%s | Sales Companion'
+    default: 'Sales Companion 2.0 — Base de Données Entreprises Cameroun | Annuaire B2B N°1',
+    template: '%s | Sales Companion 2.0'
   },
   description:
     'Accédez à la base de données la plus complète des entreprises camerounaises. 50 000+ sociétés vérifiées à Douala, Yaoundé et dans tout le Cameroun. Prospection B2B, contacts dirigeants.',
@@ -22,13 +22,13 @@ export const metadata: Metadata = {
     'liste entreprises Yaoundé',
     'intelligence commerciale Cameroun',
     'annuaire professionnel Cameroun',
-    'Sales Companion'
+    'Sales Companion 2.0'
   ],
-  authors: [{ name: 'Sales Companion' }],
-  creator: 'Sales Companion',
+  authors: [{ name: 'Sales Companion 2.0' }],
+  creator: 'Sales Companion 2.0',
 
   // ── Canonical & robots ────────────────────────────────────────────────
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'https://sales-companion.app'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'https://salescompanion2-0.com'),
   alternates: {
     canonical: '/',
     languages: {
@@ -55,11 +55,11 @@ export const metadata: Metadata = {
 
   // ── Open Graph ────────────────────────────────────────────────────────
   openGraph: {
-    title: 'Sales Companion — Base de Données Entreprises Cameroun',
+    title: 'Sales Companion 2.0 — Base de Données Entreprises Cameroun',
     description:
       'Accédez à la base de données la plus complète des entreprises camerounaises. 50 000+ sociétés vérifiées.',
     url: '/',
-    siteName: 'Sales Companion',
+    siteName: 'Sales Companion 2.0',
     locale: 'fr_CM',
     type: 'website'
   },
@@ -67,9 +67,9 @@ export const metadata: Metadata = {
   // ── Twitter / X Card ─────────────────────────────────────────────────
   twitter: {
     card: 'summary_large_image',
-    title: 'Sales Companion — Base de Données Entreprises Cameroun',
+    title: 'Sales Companion 2.0 — Base de Données Entreprises Cameroun',
     description: 'La plateforme B2B de référence pour la prospection commerciale au Cameroun.',
-    creator: '@SalesCompanion'
+    creator: '@SalesCompanion20'
   }
 }
 
@@ -83,11 +83,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'Sales Companion',
+    name: 'Sales Companion 2.0',
     description:
       "Plateforme d'intelligence commerciale et base de données entreprises au Cameroun.",
-    url: 'https://sales-companion.app',
-    logo: 'https://sales-companion.app/logo.png',
+    url: 'https://salescompanion2-0.com',
+    logo: 'https://salescompanion2-0.com/logo.png',
     address: {
       '@type': 'PostalAddress',
       addressLocality: 'Douala',
@@ -102,7 +102,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       '@type': 'SearchAction',
       target: {
         '@type': 'EntryPoint',
-        urlTemplate: 'https://sales-companion.app/search?query={search_term_string}'
+        urlTemplate: 'https://salescompanion2-0.com/search?query={search_term_string}'
       },
       'query-input': 'required name=search_term_string'
     }

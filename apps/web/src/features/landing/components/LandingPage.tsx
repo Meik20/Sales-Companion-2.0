@@ -144,13 +144,13 @@ export function LandingPage() {
           <a
             href="/"
             className="nav-brand"
-            aria-label="Sales Companion — Accueil"
-            title="Sales Companion — Base de données entreprises Cameroun"
+            aria-label="Sales Companion 2.0 — Accueil"
+            title="Sales Companion 2.0 — Base de données entreprises Cameroun"
           >
             {/*  ScIcon SVG  */}
             <ScIcon size={32} interactive className="sc-icon interactive" id="nav-icon" />
             <span className="nav-brand-text">
-              Sales <em>Companion</em>
+              Sales <em>Companion 2.0</em>
             </span>
           </a>
 
@@ -203,7 +203,7 @@ export function LandingPage() {
               <a
                 href="/register"
                 className="btn btn-primary btn-sm"
-                title="Créer un compte gratuit sur Sales Companion"
+                title="Créer un compte gratuit sur Sales Companion 2.0"
               >
                 {t('landing.startFree')}
               </a>
@@ -260,7 +260,7 @@ export function LandingPage() {
             id="install-pwa-btn"
             className="btn btn-primary btn-xl"
             style={{ display: 'none', gap: '8px' }}
-            title="Installer l'application Sales Companion"
+            title="Installer l'application Sales Companion 2.0"
           >
             📱 {t('landing.installApp')}
           </button>
@@ -278,10 +278,10 @@ export function LandingPage() {
         {/*  Phone mockup PWA  */}
         <div
           className="mockup-wrap"
-          aria-label="Aperçu de l'application de prospection Sales Companion sur mobile"
+          aria-label="Aperçu de l'application de prospection Sales Companion 2.0 sur mobile"
           role="img"
           style={{ marginTop: '56px' }}
-          title="Interface mobile de Sales Companion : Annuaire et CRM B2B"
+          title="Interface mobile de Sales Companion 2.0 : Annuaire et CRM B2B"
         >
           <div className="mockup">
             <div className="mockup-bar">
@@ -318,7 +318,7 @@ export function LandingPage() {
                   />
                 </svg>
                 <span className="mockup-header-text" style={{ color: 'var(--gm)' }}>
-                  Sales Companion
+                  Sales Companion 2.0
                 </span>
                 <span style={{ fontSize: '10px', color: 'var(--tx3)', marginLeft: 'auto' }}>
                   Recherche
@@ -392,7 +392,7 @@ export function LandingPage() {
               <img
                 id="qr-code-img"
                 src={qrCodeUrl}
-                alt="QR Code pour installer Sales Companion — Annuaire B2B Cameroun"
+                alt="QR Code pour installer Sales Companion 2.0 — Annuaire B2B Cameroun"
                 width="120"
                 height="120"
                 crossOrigin="anonymous"

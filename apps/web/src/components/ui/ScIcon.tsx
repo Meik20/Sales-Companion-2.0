@@ -12,7 +12,7 @@ type Props = {
 }
 
 /**
- * ScIcon — Logo Sales Companion en SVG inline.
+ * ScIcon — Logo Sales Companion 2.0 en SVG inline.
  *
  * Rendu comme du texte réel dans le DOM (SVG natif, pas d'img).
  * Supporte l'interactivité : survol → glow vert, clic → callback.
@@ -36,7 +36,7 @@ export function ScIcon({ size = 32, interactive = false, style, onClick, classNa
       viewBox="0 0 256 256"
       xmlns="http://www.w3.org/2000/svg"
       role={onClick ? 'button' : 'img'}
-      aria-label="Sales Companion"
+      aria-label="Sales Companion 2.0"
       style={s}
       onClick={onClick}
       onMouseEnter={(e) => {

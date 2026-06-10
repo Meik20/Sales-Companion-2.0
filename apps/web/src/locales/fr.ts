@@ -13,7 +13,7 @@ export const fr = {
     heroTitle4: 'Prospectez plus vite,',
     heroTitle5: 'vendez mieux',
     heroSub:
-      "Sales Companion est l'annuaire B2B de référence qui centralise votre base d'entreprises camerounaises, votre pipeline CRM et la gestion d'équipe en un seul outil accessible partout.",
+      "Sales Companion 2.0 est l'annuaire B2B de référence qui centralise votre base d'entreprises camerounaises, votre pipeline CRM et la gestion d'équipe en un seul outil accessible partout.",
     freeToStart: 'Gratuit au démarrage',
     discoverFeatures: 'Découvrir les fonctionnalités',
     installApp: "Installer l'app",
@@ -38,7 +38,7 @@ export const fr = {
       title1: 'Outils de',
       title2: 'prospection B2B',
       title3: 'au Cameroun',
-      sub: 'Optimisez vos ventes avec Sales Companion : base de données officielle, CRM léger et intelligence commerciale pour le terrain camerounais.',
+      sub: 'Optimisez vos ventes avec Sales Companion 2.0 : base de données officielle, CRM léger et intelligence commerciale pour le terrain camerounais.',
       f1Title: 'Annuaire des entreprises',
       f1Desc:
         'Accédez aux coordonnées de 500K + entreprises camerounaises. Filtrez par secteur, région et ville pour cibler vos prospects.',
@@ -87,7 +87,7 @@ export const fr = {
     plansSection: {
       title1: 'Tarifs de',
       title2: 'votre abonnement',
-      title3: 'Sales Companion',
+      title3: 'Sales Companion 2.0',
       sub: 'Choisissez le plan adapté à votre volume de prospection. Tous nos tarifs sont conçus pour le marché camerounais.',
       free: 'Plan Gratuit',
       freeBadge: 'Toujours disponible',
