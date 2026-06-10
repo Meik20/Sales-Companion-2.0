@@ -1414,7 +1414,7 @@ export function LandingPage() {
               <div className="footer-brand-name">
                 {/*  ScIcon petite taille  */}
                 <ScIcon size={22} className="sc-icon" />
-                Sales <em>Companion</em>
+                Sales <em>Companion 2.0</em>
               </div>
               <p className="footer-brand-desc">{t('landing.footer.desc')}</p>
               <p style={{ marginTop: '12px', fontSize: '12px', color: 'var(--tx3)' }}>
