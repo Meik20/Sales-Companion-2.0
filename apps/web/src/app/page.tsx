@@ -15,6 +15,11 @@ export default function Home() {
     name: 'Sales Companion 2.0',
     applicationCategory: 'BusinessApplication',
     operatingSystem: 'Web, iOS, Android',
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: '4.8',
+      reviewCount: '47'
+    },
     offers: {
       '@type': 'Offer',
       price: '0',

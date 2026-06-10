@@ -30,11 +30,7 @@ export const metadata: Metadata = {
   // ── Canonical & robots ────────────────────────────────────────────────
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'https://salescompanion2-0.com'),
   alternates: {
-    canonical: '/',
-    languages: {
-      'fr-CM': '/fr',
-      'en-CM': '/en'
-    }
+    canonical: '/'
   },
   robots: {
     index: true,
@@ -61,7 +57,15 @@ export const metadata: Metadata = {
     url: '/',
     siteName: 'Sales Companion 2.0',
     locale: 'fr_CM',
-    type: 'website'
+    type: 'website',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Sales Companion 2.0 — Annuaire B2B Cameroun'
+      }
+    ]
   },
 
   // ── Twitter / X Card ─────────────────────────────────────────────────
@@ -69,7 +73,8 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Sales Companion 2.0 — Base de Données Entreprises Cameroun',
     description: 'La plateforme B2B de référence pour la prospection commerciale au Cameroun.',
-    creator: '@SalesCompanion20'
+    creator: '@SalesCompanion20',
+    images: ['/og-image.png']
   }
 }
 
