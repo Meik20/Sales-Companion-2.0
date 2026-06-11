@@ -163,6 +163,11 @@ export function LandingPage() {
                 </a>
               </li>
               <li>
+                <a href="/annuaire" title="Parcourir l'annuaire B2B des entreprises au Cameroun">
+                  Annuaire B2B
+                </a>
+              </li>
+              <li>
                 <a href="#roles" title="Solutions pour commerciaux et managers">
                   {t('landing.roles')}
                 </a>
@@ -1427,6 +1432,9 @@ export function LandingPage() {
               <nav className="footer-col" aria-label="Liens produit">
                 <h4>{t('landing.footer.product')}</h4>
                 <ul role="list">
+                  <li>
+                    <a href="/annuaire">Annuaire B2B</a>
+                  </li>
                   <li>
                     <a href="#features">Fonctionnalités</a>
                   </li>
