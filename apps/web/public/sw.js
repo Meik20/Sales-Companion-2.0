@@ -1,7 +1,6 @@
 // Service Worker for Sales Companion PWA
-// v3 — fixes Response.clone() bug, skips POST/non-GET, login as start
-
-const CACHE_NAME = 'sales-companion-v3'
+// v4 — forces cache clear for new CSP, skips GA/GTM
+const CACHE_NAME = 'sales-companion-v4'
 const STATIC_ASSETS = ['/offline.html']
 
 // Install — cache minimal static assets only
@@ -45,7 +44,10 @@ self.addEventListener('fetch', (event) => {
     url.includes('extension://') ||
     url.includes('googleapis.com') ||
     url.includes('firebaseapp.com') ||
-    url.includes('firebase.googleapis.com')
+    url.includes('firebase.googleapis.com') ||
+    url.includes('googletagmanager.com') ||
+    url.includes('google-analytics.com') ||
+    url.includes('analytics.google.com')
   )
     return
 
