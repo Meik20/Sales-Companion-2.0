@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { ScIcon } from '@/components/ui/ScIcon'
+import '@/features/landing/styles/landing.css' // Import des styles de la landing page
 
 export const metadata: Metadata = {
   title: 'Annuaire B2B des Entreprises au Cameroun',
@@ -27,122 +28,162 @@ export default function AnnuaireHub() {
   ]
 
   return (
-    <div className="min-h-screen bg-[var(--bg)] text-[var(--tx)] flex flex-col">
-      {/* Navbar Minimaliste pour préserver la navigation principale */}
-      <nav className="border-b border-[var(--bd)] sticky top-0 bg-[var(--bg)] z-50">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link
-            href="/"
-            className="flex items-center gap-3 no-underline"
-            title="Retour à l'accueil"
-          >
-            <ScIcon size={28} className="text-[var(--gm)]" />
-            <span className="text-lg font-bold hidden sm:inline-block">
-              Sales <em className="text-[var(--gm)] not-italic">Companion 2.0</em>
+    <div className="landing-root">
+      {/* Navbar identique à la landing page */}
+      <nav className="nav" style={{ position: 'sticky', top: 0, zIndex: 100, borderBottom: '1px solid var(--bd)', backgroundColor: 'var(--bg)' }}>
+        <div className="nav-inner">
+          <Link href="/" className="nav-brand" title="Retour à l'accueil">
+            <ScIcon size={32} className="sc-icon" />
+            <span className="nav-brand-text">
+              Sales <em>Companion 2.0</em>
             </span>
           </Link>
-          <div className="flex gap-4">
-            <Link
-              href="/login"
-              className="text-sm font-medium text-[var(--tx2)] hover:text-[var(--gm)] transition-colors"
-            >
-              Connexion
-            </Link>
-            <Link
-              href="/register"
-              className="text-sm font-medium text-[var(--gm)] hover:text-[#2ea05a] transition-colors"
-            >
-              Essai Gratuit
-            </Link>
+
+          <div className="nav-desktop">
+            <ul className="nav-links" role="list">
+              <li>
+                <Link href="/">Accueil</Link>
+              </li>
+              <li>
+                <Link href="/login">CRM</Link>
+              </li>
+            </ul>
+            <div className="nav-cta">
+              <Link href="/login" className="btn btn-ghost btn-sm">
+                Connexion
+              </Link>
+              <Link href="/register" className="btn btn-primary btn-sm">
+                Essai Gratuit
+              </Link>
+            </div>
           </div>
         </div>
       </nav>
 
-      {/* Contenu Principal */}
-      <main className="flex-1 max-w-5xl mx-auto w-full px-6 py-16">
-        <header className="mb-16 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight">
-            L'Annuaire B2B <span className="text-[var(--gm)]">Camerounais</span>
-          </h1>
-          <p className="text-lg text-[var(--tx2)] max-w-2xl mx-auto">
-            Trouvez vos futurs clients et partenaires. Parcourez notre base de données officielle de
-            plus de 50 000 entreprises camerounaises par région et par secteur d'activité.
-          </p>
-        </header>
+      {/* Hero Section */}
+      <section className="hero" style={{ paddingBottom: '40px', paddingTop: '60px' }}>
+        <div className="hero-glow-tl" aria-hidden="true"></div>
+        <h1 className="hero-title" style={{ fontSize: '3rem', marginBottom: '20px' }}>
+          L'Annuaire B2B <br /> <em>Camerounais</em>
+        </h1>
+        <p className="hero-sub" style={{ maxWidth: '700px', margin: '0 auto', fontSize: '1.1rem' }}>
+          Trouvez vos futurs clients et partenaires. Parcourez notre base de données officielle de
+          plus de 50 000 entreprises camerounaises par région et par secteur d'activité.
+        </p>
+      </section>
 
-        {/* Section Régions */}
-        <section className="mb-16">
-          <h2 className="text-2xl font-semibold mb-8 flex items-center gap-2">
+      {/* Main Content */}
+      <main style={{ maxWidth: '1000px', margin: '0 auto', padding: '0 24px 80px' }}>
+        
+        {/* Regions Grid */}
+        <div style={{ marginBottom: '60px' }}>
+          <h2 style={{ fontSize: '1.5rem', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             📍 Parcourir par Région / Ville
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', 
+            gap: '16px' 
+          }}>
             {regions.map((region) => (
               <Link
                 key={region.slug}
                 href={`/annuaire/${region.slug}`}
-                className="group flex flex-col p-6 rounded-xl border border-[var(--bd)] bg-[var(--dark2)] hover:border-[var(--gm)] hover:bg-[rgba(27,122,62,0.05)] transition-all"
-                title={`Liste des entreprises à ${region.name}`}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  padding: '24px',
+                  borderRadius: '12px',
+                  border: '1px solid var(--bd)',
+                  backgroundColor: 'var(--dark2)',
+                  textDecoration: 'none',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.borderColor = 'var(--gm)')}
+                onMouseOut={(e) => (e.currentTarget.style.borderColor = 'var(--bd)')}
               >
-                <span className="text-lg font-medium group-hover:text-[var(--gm)] transition-colors">
+                <span style={{ fontSize: '1.2rem', fontWeight: '500', color: 'var(--tx)' }}>
                   {region.name}
                 </span>
-                <span className="text-sm text-[var(--tx3)] mt-2">{region.count} entreprises</span>
+                <span style={{ fontSize: '0.9rem', color: 'var(--tx3)', marginTop: '8px' }}>
+                  {region.count} entreprises
+                </span>
               </Link>
             ))}
           </div>
-        </section>
+        </div>
 
-        {/* Section Secteurs */}
-        <section className="mb-16">
-          <h2 className="text-2xl font-semibold mb-8 flex items-center gap-2">
+        {/* Secteurs Grid */}
+        <div style={{ marginBottom: '80px' }}>
+          <h2 style={{ fontSize: '1.5rem', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             🏢 Parcourir par Secteur d'Activité
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', 
+            gap: '16px' 
+          }}>
             {secteurs.map((secteur) => (
               <Link
                 key={secteur.slug}
                 href={`/annuaire/${secteur.slug}`}
-                className="group flex items-center gap-4 p-5 rounded-xl border border-[var(--bd)] bg-[var(--dark2)] hover:border-[var(--gm)] hover:bg-[rgba(27,122,62,0.05)] transition-all"
-                title={`Annuaire des entreprises du secteur : ${secteur.name}`}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '16px',
+                  padding: '20px',
+                  borderRadius: '12px',
+                  border: '1px solid var(--bd)',
+                  backgroundColor: 'var(--dark2)',
+                  textDecoration: 'none',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.borderColor = 'var(--gm)')}
+                onMouseOut={(e) => (e.currentTarget.style.borderColor = 'var(--bd)')}
               >
-                <span className="text-2xl bg-[var(--dark3)] p-3 rounded-lg border border-[var(--bd)]">
+                <span style={{ 
+                  fontSize: '1.8rem', 
+                  backgroundColor: 'var(--dark3)', 
+                  padding: '12px', 
+                  borderRadius: '8px',
+                  border: '1px solid var(--bd)'
+                }}>
                   {secteur.icon}
                 </span>
-                <span className="text-lg font-medium group-hover:text-[var(--gm)] transition-colors">
+                <span style={{ fontSize: '1.1rem', fontWeight: '500', color: 'var(--tx)' }}>
                   {secteur.name}
                 </span>
               </Link>
             ))}
           </div>
-        </section>
+        </div>
 
-        {/* CTA */}
-        <div className="mt-20 p-8 rounded-2xl bg-gradient-to-r from-[var(--dark3)] to-[var(--bg)] border border-[var(--gm)] border-opacity-30 text-center">
-          <h3 className="text-2xl font-bold mb-4">Accès complet à la base de données</h3>
-          <p className="text-[var(--tx2)] mb-6 max-w-xl mx-auto">
+        {/* CTA Section */}
+        <div style={{
+          padding: '48px 32px',
+          borderRadius: '16px',
+          background: 'linear-gradient(135deg, var(--dark3), var(--bg))',
+          border: '1px solid rgba(27, 122, 62, 0.3)',
+          textAlign: 'center'
+        }}>
+          <h3 style={{ fontSize: '1.8rem', marginBottom: '16px' }}>Accès complet à la base de données</h3>
+          <p style={{ color: 'var(--tx2)', marginBottom: '32px', maxWidth: '600px', margin: '0 auto 32px', lineHeight: '1.6' }}>
             Inscrivez-vous gratuitement pour accéder aux contacts des dirigeants, exporter vos
             listes de prospection et gérer votre pipeline directement dans le CRM intégré.
           </p>
-          <Link
-            href="/register"
-            className="inline-block px-8 py-3 bg-[var(--gm)] text-white rounded-lg font-medium hover:bg-[#2ea05a] transition-colors"
-          >
+          <Link href="/register" className="btn btn-primary btn-xl">
             Créer mon compte gratuit
           </Link>
         </div>
+
       </main>
 
-      {/* Footer Minimaliste */}
-      <footer className="border-t border-[var(--bd)] py-8 mt-auto">
-        <div className="max-w-7xl mx-auto px-6 text-center text-sm text-[var(--tx3)] flex flex-col md:flex-row items-center justify-between gap-4">
-          <span>
-            &copy; {new Date().getFullYear()} Sales Companion 2.0. Base de données des entreprises au
-            Cameroun.
-          </span>
-          <div className="flex gap-4">
-            <Link href="/" className="hover:text-[var(--tx)] transition-colors">Accueil</Link>
-            <Link href="/login" className="hover:text-[var(--tx)] transition-colors">CRM</Link>
-          </div>
+      {/* Footer */}
+      <footer className="footer" style={{ borderTop: '1px solid var(--bd)' }}>
+        <div className="footer-inner" style={{ textAlign: 'center', padding: '40px 0' }}>
+          <p style={{ color: 'var(--tx3)', fontSize: '0.9rem' }}>
+            &copy; {new Date().getFullYear()} Sales Companion 2.0. Base de données des entreprises au Cameroun.
+          </p>
         </div>
       </footer>
     </div>
