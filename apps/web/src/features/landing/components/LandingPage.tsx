@@ -1485,7 +1485,7 @@ export function LandingPage() {
                 <ul role="list">
                   <li>
                     <a
-                      href="https://www.linkedin.com/company/121514112"
+                      href="https://www.linkedin.com/company/sales-companion-2-0/"
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
