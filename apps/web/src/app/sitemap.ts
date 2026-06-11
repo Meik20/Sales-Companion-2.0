@@ -28,9 +28,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: now,
       changeFrequency: 'monthly',
       priority: 0.8
+    },
+    {
+      url: `${baseUrl}/annuaire`,
+      lastModified: now,
+      changeFrequency: 'daily',
+      priority: 0.9
     }
-    // Future routes to be indexed as per SEO Strategy:
-    // - /annuaire/ (Companies fiches)
-    // - /blog/ (Editorial content)
   ]
 }
