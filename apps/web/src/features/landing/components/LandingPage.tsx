@@ -168,6 +168,11 @@ export function LandingPage() {
                 </a>
               </li>
               <li>
+                <a href="/blog" title="Découvrir notre blog et nos guides B2B">
+                  Blog
+                </a>
+              </li>
+              <li>
                 <a href="#roles" title="Solutions pour commerciaux et managers">
                   {t('landing.roles')}
                 </a>
@@ -965,6 +970,67 @@ export function LandingPage() {
       <div className="section-divider" aria-hidden="true"></div>
 
       {/*  ═══════════════════════════════════════════════════
+     BLOG & RESSOURCES
+     ═══════════════════════════════════════════════════  */}
+      <section className="section-sm" id="blog" aria-labelledby="blog-title">
+        <div className="container">
+          <header className="section-header reveal">
+            <span className="section-label">Ressources & Guides</span>
+            <h2 className="section-title" id="blog-title">
+              Notre <em>Blog B2B</em>
+            </h2>
+            <p className="section-sub">Découvrez nos derniers articles, guides et conseils pour booster vos ventes au Cameroun.</p>
+          </header>
+
+          <div className="features-grid">
+            <a href="/blog/trouver-clients-b2b-cameroun-2026" style={{ textDecoration: 'none' }}>
+              <article className="feature-card reveal" style={{ textAlign: 'left', height: '100%' }}>
+                <div style={{ fontSize: '28px', marginBottom: '12px' }} aria-hidden="true">🎯</div>
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                  <span className="badge badge-success">Prospection</span>
+                  <span style={{ fontSize: '11px', color: 'var(--tx3)' }}>8 min</span>
+                </div>
+                <h3 className="feature-title" style={{ fontSize: '18px' }}>Comment trouver des clients B2B au Cameroun en 2026</h3>
+                <p className="feature-desc" style={{ marginTop: '8px', fontSize: '13px' }}>Guide complet pour identifier, prospecter et signer des clients B2B au Cameroun.</p>
+              </article>
+            </a>
+
+            <a href="/blog/annuaire-entreprises-btp-douala" style={{ textDecoration: 'none' }}>
+              <article className="feature-card reveal reveal-d1" style={{ textAlign: 'left', height: '100%' }}>
+                <div style={{ fontSize: '28px', marginBottom: '12px' }} aria-hidden="true">🏗️</div>
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                  <span className="badge badge-info">Annuaire</span>
+                  <span style={{ fontSize: '11px', color: 'var(--tx3)' }}>6 min</span>
+                </div>
+                <h3 className="feature-title" style={{ fontSize: '18px' }}>Annuaire des entreprises BTP à Douala : le guide 2026</h3>
+                <p className="feature-desc" style={{ marginTop: '8px', fontSize: '13px' }}>Identifiez les bons interlocuteurs et décrochez des marchés dans le secteur du bâtiment.</p>
+              </article>
+            </a>
+
+            <a href="/blog/niu-rccm-identifier-entreprise-camerounaise" style={{ textDecoration: 'none' }}>
+              <article className="feature-card reveal reveal-d2" style={{ textAlign: 'left', height: '100%' }}>
+                <div style={{ fontSize: '28px', marginBottom: '12px' }} aria-hidden="true">📋</div>
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                  <span className="badge badge-gold">Guide</span>
+                  <span style={{ fontSize: '11px', color: 'var(--tx3)' }}>5 min</span>
+                </div>
+                <h3 className="feature-title" style={{ fontSize: '18px' }}>NIU et RCCM : comment identifier une entreprise</h3>
+                <p className="feature-desc" style={{ marginTop: '8px', fontSize: '13px' }}>Comprendre le NIU et le RCCM pour vérifier et qualifier vos prospects B2B.</p>
+              </article>
+            </a>
+          </div>
+
+          <div style={{ textAlign: 'center', marginTop: '40px' }} className="reveal">
+            <a href="/blog" className="btn btn-outline btn-md">
+              Voir tous les articles du blog →
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <div className="section-divider" aria-hidden="true"></div>
+
+      {/*  ═══════════════════════════════════════════════════
      FAQ (FOIRE AUX QUESTIONS)
      ═══════════════════════════════════════════════════  */}
       <section className="section-sm" id="faq" aria-labelledby="faq-title">
@@ -1434,6 +1500,9 @@ export function LandingPage() {
                 <ul role="list">
                   <li>
                     <a href="/annuaire">Annuaire B2B</a>
+                  </li>
+                  <li>
+                    <a href="/blog">Blog B2B</a>
                   </li>
                   <li>
                     <a href="#features">Fonctionnalités</a>
