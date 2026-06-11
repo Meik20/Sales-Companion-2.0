@@ -102,6 +102,50 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: now,
       changeFrequency: 'daily',
       priority: 0.8
+    },
+    // Blog Hub
+    {
+      url: `${baseUrl}/blog`,
+      lastModified: now,
+      changeFrequency: 'daily',
+      priority: 0.9
+    },
+    // Articles de Blog
+    {
+      url: `${baseUrl}/blog/trouver-clients-b2b-cameroun-2026`,
+      lastModified: now,
+      changeFrequency: 'weekly',
+      priority: 0.8
+    },
+    {
+      url: `${baseUrl}/blog/annuaire-entreprises-btp-douala`,
+      lastModified: now,
+      changeFrequency: 'weekly',
+      priority: 0.8
+    },
+    {
+      url: `${baseUrl}/blog/niu-rccm-identifier-entreprise-camerounaise`,
+      lastModified: now,
+      changeFrequency: 'weekly',
+      priority: 0.7
+    },
+    {
+      url: `${baseUrl}/blog/prospection-commerciale-cameroun-methodes-outils`,
+      lastModified: now,
+      changeFrequency: 'weekly',
+      priority: 0.8
+    },
+    {
+      url: `${baseUrl}/blog/crm-commerciaux-cameroun-comparatif-2026`,
+      lastModified: now,
+      changeFrequency: 'monthly',
+      priority: 0.7
+    },
+    {
+      url: `${baseUrl}/blog/secteurs-actifs-douala-2026`,
+      lastModified: now,
+      changeFrequency: 'monthly',
+      priority: 0.7
     }
   ]
 }
