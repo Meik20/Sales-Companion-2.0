@@ -6,7 +6,7 @@ import type { MetadataRoute } from 'next'
  * qui ne doivent pas être indexées ni archivées.
  */
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://sales-companion.app'
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://salescompanion2-0.com'
 
   return {
     rules: [

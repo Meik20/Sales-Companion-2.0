@@ -7,7 +7,7 @@ import type { MetadataRoute } from 'next'
  * Protected pages (behind auth) are intentionally excluded.
  */
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://sales-companion.app'
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://salescompanion2-0.com'
   const now = new Date()
 
   return [
