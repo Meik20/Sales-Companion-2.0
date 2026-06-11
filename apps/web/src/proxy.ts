@@ -1,9 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-// ── Bot / Scraper User-Agent patterns ─────────────────────────────────────────
+// ── Legitimate search engine bots — NEVER block these ───────────────────────────
+const ALLOWED_BOTS = [
+  /googlebot/i,
+  /google-inspectiontool/i,
+  /adsbot-google/i,
+  /bingbot/i,
+  /slurp/i,        // Yahoo
+  /duckduckbot/i,
+  /baiduspider/i,
+  /yandexbot/i,
+  /facebot/i,
+  /ia_archiver/i
+]
+
+// ── Bot / Scraper User-Agent patterns (malicious) ─────────────────────────────────────────
 const BOT_UA_PATTERNS = [
   // Generic crawlers & scrapers
-  /bot/i,
   /crawl/i,
   /spider/i,
   /scraper/i,
@@ -30,7 +43,7 @@ const BOT_UA_PATTERNS = [
   /phantomjs/i,
   /jsdom/i,
   /cheerio/i,
-  // SEO & indexing bots
+  // SEO audit bots (commercial scrapers)
   /ahrefs/i,
   /semrush/i,
   /mj12bot/i,
@@ -38,10 +51,7 @@ const BOT_UA_PATTERNS = [
   /dataforseo/i,
   /rogerbot/i,
   /exabot/i,
-  /blexbot/i,
-  // Archives
-  /archive\.org/i,
-  /ia_archiver/i
+  /blexbot/i
 ]
 
 // ── In-memory IP rate limiter (Edge-compatible, per-instance) ─────────────────
@@ -79,7 +89,11 @@ export function proxy(req: NextRequest) {
   const ua = req.headers.get('user-agent') ?? ''
   const ip = getClientIp(req)
 
-  // ── 1. Block known bots / scrapers ────────────────────────────────────────
+  // ── 1. Always allow legitimate search engine crawlers ─────────────────────
+  const isAllowedBot = ALLOWED_BOTS.some((pattern) => pattern.test(ua))
+  if (isAllowedBot) return NextResponse.next()
+
+  // ── 2. Block known malicious bots / scrapers ────────────────────────────────
   const isBot = BOT_UA_PATTERNS.some((pattern) => pattern.test(ua))
   if (isBot) {
     return new NextResponse('Access denied', {
@@ -126,7 +140,7 @@ export function proxy(req: NextRequest) {
 
   // ── 4. Anti-scraping response headers ─────────────────────────────────────
   const response = NextResponse.next()
-  response.headers.set('X-Robots-Tag', 'noindex, nofollow, nosnippet, noarchive')
+  // NOTE: X-Robots-Tag is managed per-route in next.config.ts — do NOT set globally here
   response.headers.set('X-Content-Type-Options', 'nosniff')
   response.headers.set('X-Frame-Options', 'DENY')
 
