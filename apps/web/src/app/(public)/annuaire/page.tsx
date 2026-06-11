@@ -99,8 +99,6 @@ export default function AnnuaireHub() {
                   textDecoration: 'none',
                   transition: 'all 0.2s ease'
                 }}
-                onMouseOver={(e) => (e.currentTarget.style.borderColor = 'var(--gm)')}
-                onMouseOut={(e) => (e.currentTarget.style.borderColor = 'var(--bd)')}
               >
                 <span style={{ fontSize: '1.2rem', fontWeight: '500', color: 'var(--tx)' }}>
                   {region.name}
@@ -138,8 +136,6 @@ export default function AnnuaireHub() {
                   textDecoration: 'none',
                   transition: 'all 0.2s ease'
                 }}
-                onMouseOver={(e) => (e.currentTarget.style.borderColor = 'var(--gm)')}
-                onMouseOut={(e) => (e.currentTarget.style.borderColor = 'var(--bd)')}
               >
                 <span style={{ 
                   fontSize: '1.8rem', 
