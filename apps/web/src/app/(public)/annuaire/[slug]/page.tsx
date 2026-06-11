@@ -8,6 +8,24 @@ interface Props {
   params: Promise<{ slug: string }>
 }
 
+export function generateStaticParams() {
+  return [
+    // Villes
+    { slug: 'douala' },
+    { slug: 'yaounde' },
+    { slug: 'bafoussam' },
+    { slug: 'garoua' },
+    { slug: 'bamenda' },
+    // Secteurs
+    { slug: 'btp' },
+    { slug: 'tech' },
+    { slug: 'finance' },
+    { slug: 'logistique' },
+    { slug: 'agro' },
+    { slug: 'commerce' }
+  ]
+}
+
 const DATA_MAP: Record<
   string,
   { title: string; type: 'city' | 'sector'; description: string; count: string }
