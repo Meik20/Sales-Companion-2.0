@@ -1,6 +1,6 @@
 // Service Worker for Sales Companion PWA
-// v4 — forces cache clear for new CSP, skips GA/GTM
-const CACHE_NAME = 'sales-companion-v4'
+// v5 — adds apis.google.com and gstatic.com to bypass, forces cache clear
+const CACHE_NAME = 'sales-companion-v5'
 const STATIC_ASSETS = ['/offline.html']
 
 // Install — cache minimal static assets only
@@ -38,18 +38,10 @@ self.addEventListener('fetch', (event) => {
   //    This was the root cause of the 405 and clone errors
   if (method !== 'GET') return
 
-  // ── 2. Skip cross-origin, chrome-extension requests
-  if (
-    url.includes('chrome-extension://') ||
-    url.includes('extension://') ||
-    url.includes('googleapis.com') ||
-    url.includes('firebaseapp.com') ||
-    url.includes('firebase.googleapis.com') ||
-    url.includes('googletagmanager.com') ||
-    url.includes('google-analytics.com') ||
-    url.includes('analytics.google.com')
-  )
-    return
+  // ── 2. Skip all external/third-party requests — let the browser handle them natively
+  //    This prevents the SW from applying stale CSP rules to external scripts
+  const appOrigin = self.location.origin
+  if (!url.startsWith(appOrigin)) return
 
   // ── 3. API calls — network only, NEVER cache (avoids the clone bug)
   if (url.includes('/api/')) {
