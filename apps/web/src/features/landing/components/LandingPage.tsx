@@ -1514,9 +1514,62 @@ export function LandingPage() {
       </footer>
 
       {/*  ═══════════════════════════════════════════════════
-     JAVASCRIPT
+     SEO: JSON-LD STRUCTURED DATA
      ═══════════════════════════════════════════════════  */}
-      {/* Script moved to useEffect */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify([
+            {
+              '@context': 'https://schema.org',
+              '@type': 'SoftwareApplication',
+              name: 'Sales Companion 2.0',
+              applicationCategory: 'BusinessApplication',
+              operatingSystem: 'Web, Windows, macOS, iOS, Android',
+              aggregateRating: {
+                '@type': 'AggregateRating',
+                ratingValue: '4.8',
+                reviewCount: '47'
+              },
+              offers: {
+                '@type': 'Offer',
+                price: '0',
+                priceCurrency: 'XAF'
+              }
+            },
+            {
+              '@context': 'https://schema.org',
+              '@type': 'FAQPage',
+              mainEntity: [
+                {
+                  '@type': 'Question',
+                  name: "Qu'est-ce que Sales Companion 2.0 ?",
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'Sales Companion 2.0 est la plateforme d’intelligence commerciale et CRM B2B numéro 1 au Cameroun. Elle fournit une base de données de plus de 50 000 entreprises camerounaises vérifiées (RCCM, NIU, Contacts dirigeants) pour aider les commerciaux à prospecter plus efficacement.'
+                  }
+                },
+                {
+                  '@type': 'Question',
+                  name: 'Comment trouver des clients B2B à Douala ou Yaoundé ?',
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'Grâce à notre annuaire intégré et nos filtres de recherche avancés, vous pouvez cibler les entreprises par ville (Douala, Yaoundé), secteur d’activité (BTP, Tech, Finance) et taille, puis obtenir les contacts directs de leurs décideurs.'
+                  }
+                },
+                {
+                  '@type': 'Question',
+                  name: 'L’outil est-il adapté aux commerciaux terrain ?',
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'Oui, Sales Companion 2.0 fonctionne comme une Progressive Web App (PWA) optimisée pour le mobile. Vous pouvez l’installer sur votre téléphone, l’utiliser hors-ligne, et géolocaliser vos prospects lors de vos tournées sur le terrain.'
+                  }
+                }
+              ]
+            }
+          ])
+        }}
+      />
     </div>
   )
 }
