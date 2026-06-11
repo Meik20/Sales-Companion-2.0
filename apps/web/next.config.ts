@@ -1,6 +1,6 @@
 import type { NextConfig } from 'next'
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://sales-companion.app'
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://salescompanion2-0.com'
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -33,14 +33,14 @@ const nextConfig: NextConfig = {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=(self), interest-cohort=()'
           },
-          // Block all search indexing & archiving
-          { key: 'X-Robots-Tag', value: 'noindex, nofollow, nosnippet, noarchive, noimageindex' },
+          // Autoriser l'indexation SEO par défaut (surchargé par route ci-dessous)
+          // { key: 'X-Robots-Tag', value: 'noindex' }, // <-- Supprimé volontairement
           // Prevent cross-origin embedding of resources
           { key: 'Cross-Origin-Resource-Policy', value: 'same-origin' },
           // Isolate browsing context (prevent cross-origin reads)
           { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
-          // Prevent cross-origin embedding of this page
-          { key: 'Cross-Origin-Embedder-Policy', value: 'require-corp' },
+          // Cross-Origin-Embedder-Policy removed globally — overridden per route
+          // { key: 'Cross-Origin-Embedder-Policy', value: 'require-corp' }, // ← bloquait Googlebot
           // Content-Security-Policy: restrict sources to self + Firebase
           {
             key: 'Content-Security-Policy',
@@ -82,6 +82,33 @@ const nextConfig: NextConfig = {
       {
         source: '/favicon.svg',
         headers: [{ key: 'Cache-Control', value: 'public, max-age=604800' }]
+      },
+
+      // ── Sitemap & robots.txt : accès libre pour les crawlers SEO ───────
+      {
+        source: '/(sitemap\.xml|robots\.txt)',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=3600, s-maxage=3600' },
+          { key: 'Cross-Origin-Resource-Policy', value: 'cross-origin' },
+          { key: 'Cross-Origin-Embedder-Policy', value: 'unsafe-none' }
+        ]
+      },
+
+      // ── Pages publiques indexées (landing, annuaire) ─────────────────
+      {
+        source: '/(|annuaire|annuaire/.*)',
+        headers: [
+          { key: 'X-Robots-Tag', value: 'index, follow' },
+          { key: 'Cross-Origin-Embedder-Policy', value: 'unsafe-none' }
+        ]
+      },
+
+      // ── Routes protégées : pas d'indexation ────────────────────────
+      {
+        source: '/(protected|admin)/(.*)',
+        headers: [
+          { key: 'X-Robots-Tag', value: 'noindex, nofollow' }
+        ]
       }
     ]
   }
