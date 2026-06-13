@@ -109,6 +109,17 @@ const nextConfig: NextConfig = {
         headers: [
           { key: 'X-Robots-Tag', value: 'noindex, nofollow' }
         ]
+      },
+
+      // ── Pages auth : COOP relâché pour signInWithPopup (Google OAuth) ────
+      // COOP 'same-origin' casse la communication popup ↔ opener d'OAuth.
+      // 'same-origin-allow-popups' autorise la popup Firebase tout en
+      // bloquant les ouvreurs cross-origin non voulus.
+      {
+        source: '/(login|register)',
+        headers: [
+          { key: 'Cross-Origin-Opener-Policy', value: 'same-origin-allow-popups' }
+        ]
       }
     ]
   }

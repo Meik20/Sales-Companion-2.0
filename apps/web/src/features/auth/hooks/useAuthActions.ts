@@ -5,10 +5,12 @@ import {
   signInWithEmailAndPassword,
   signOut,
   updateProfile,
-  sendEmailVerification
+  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult
 } from 'firebase/auth'
-import { doc, setDoc, Timestamp } from 'firebase/firestore'
-import { auth, firestore } from '@/services/firebase/client'
+import { doc, setDoc, getDoc, Timestamp } from 'firebase/firestore'
+import { auth, firestore, googleProvider } from '@/services/firebase/client'
 
 type RegisterInput = {
   email: string
@@ -17,6 +19,48 @@ type RegisterInput = {
   role: string
   companyName?: string
   sector?: string
+}
+
+/** Upsert the Firestore user document after any Google sign-in */
+async function upsertGoogleUser(user: { uid: string; email: string | null; displayName: string | null; photoURL: string | null }) {
+  const ref = doc(firestore, 'users', user.uid)
+  const snap = await getDoc(ref)
+
+  if (!snap.exists()) {
+    // First-time Google sign-in → create full profile
+    await setDoc(ref, {
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName || '',
+      name: user.displayName || '',
+      role: 'independent',
+      plan: 'free',
+      dailyLimit: 10,
+      dailyUsed: 0,
+      active: true,
+      activated: true,
+      emailVerificationPending: false,
+      provider: 'google',
+      photoURL: user.photoURL || null,
+      companyId: null,
+      managerUid: null,
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
+      lastLogin: Timestamp.now(),
+      preferences: {
+        darkMode: false,
+        emailNotifications: true,
+        language: 'fr'
+      }
+    })
+  } else {
+    // Returning user → only update lastLogin & photoURL
+    await setDoc(
+      ref,
+      { lastLogin: Timestamp.now(), photoURL: user.photoURL || null },
+      { merge: true }
+    )
+  }
 }
 
 export function useAuthActions() {
@@ -40,7 +84,7 @@ export function useAuthActions() {
           dailyUsed: 0,
           active: true,
           activated: true,
-          emailVerificationPending: false, // SUSPENDU: Pas de vérification d'email pour l'instant
+          emailVerificationPending: false,
           createdAt: Timestamp.now(),
           updatedAt: Timestamp.now(),
           lastLogin: Timestamp.now(),
@@ -59,19 +103,6 @@ export function useAuthActions() {
 
       // ✅ FORCE TOKEN REFRESH to get custom claims
       await user.getIdToken(true)
-
-      // SUSPENDU: L'envoi de l'email de vérification est temporairement désactivé
-      /*
-      try {
-        const actionCodeSettings = {
-          url: typeof window !== 'undefined' ? `${window.location.origin}/login` : 'http://localhost:3000/login',
-          handleCodeInApp: false
-        }
-        await sendEmailVerification(user, actionCodeSettings)
-      } catch (emailErr) {
-        console.error('Initial email verification send failed:', emailErr)
-      }
-      */
 
       return user
     } catch (error) {
@@ -99,6 +130,33 @@ export function useAuthActions() {
     }
   }
 
+  /**
+   * Google Sign-In — popup first, redirect fallback if popup is blocked.
+   *
+   * Returns the Firebase user on popup success.
+   * Returns null when a redirect has been initiated (page will reload).
+   */
+  const loginWithGoogle = async (): Promise<{ uid: string } | null> => {
+    try {
+      // Attempt popup first (best UX)
+      const result = await signInWithPopup(auth, googleProvider)
+      const { user } = result
+      await upsertGoogleUser(user)
+      await user.getIdToken(true)
+      return user
+    } catch (err: unknown) {
+      const code = (err as { code?: string })?.code ?? ''
+
+      if (code === 'auth/popup-blocked' || code === 'auth/popup-closed-by-user') {
+        // Popup was blocked by the browser → fall back to redirect
+        await signInWithRedirect(auth, googleProvider)
+        return null // page will reload; result handled by useGoogleRedirectResult
+      }
+
+      throw err
+    }
+  }
+
   const logout = async () => {
     try {
       await signOut(auth)
@@ -107,5 +165,24 @@ export function useAuthActions() {
     }
   }
 
-  return { registerWithEmail, loginWithEmail, logout }
+  return { registerWithEmail, loginWithEmail, loginWithGoogle, logout }
+}
+
+/**
+ * Call once at the top of login/register pages to pick up the Google
+ * redirect result after the page reloads from signInWithRedirect.
+ * Returns the user if a redirect just completed, otherwise null.
+ */
+export async function resolveGoogleRedirect() {
+  try {
+    const result = await getRedirectResult(auth)
+    if (result?.user) {
+      await upsertGoogleUser(result.user)
+      await result.user.getIdToken(true)
+      return result.user
+    }
+    return null
+  } catch {
+    return null
+  }
 }

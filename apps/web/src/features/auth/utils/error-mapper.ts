@@ -31,7 +31,19 @@ export function mapAuthError(error: unknown): string {
     return 'Erreur réseau. Veuillez vérifier votre connexion internet.'
   }
   if (errorString.includes('auth/operation-not-allowed')) {
-    return "Ce mode de connexion n'est pas activé."
+    return "Ce mode de connexion n'est pas activé. Activez Google dans la console Firebase."
+  }
+  if (errorString.includes('auth/popup-blocked')) {
+    return 'La popup a été bloquée par votre navigateur. Redirection en cours…'
+  }
+  if (
+    errorString.includes('auth/popup-closed-by-user') ||
+    errorString.includes('auth/cancelled-popup-request')
+  ) {
+    return 'Connexion Google annulée.'
+  }
+  if (errorString.includes('auth/account-exists-with-different-credential')) {
+    return 'Un compte existe déjà avec cet email. Connectez-vous via email/mot de passe.'
   }
 
   // Fallback for generic firebase errors

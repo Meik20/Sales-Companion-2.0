@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app'
-import { getAuth } from 'firebase/auth'
+import { getAuth, GoogleAuthProvider } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 
 const firebaseConfig = {
@@ -14,3 +14,9 @@ const firebaseConfig = {
 export const app = initializeApp(firebaseConfig)
 export const auth = getAuth(app)
 export const firestore = getFirestore(app)
+
+// Google OAuth provider — scoped to profile + email
+export const googleProvider = new GoogleAuthProvider()
+googleProvider.addScope('profile')
+googleProvider.addScope('email')
+googleProvider.setCustomParameters({ prompt: 'select_account' })
