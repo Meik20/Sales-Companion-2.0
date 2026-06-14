@@ -147,6 +147,30 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'monthly',
       priority: 0.7
     },
+    {
+      url: `${baseUrl}/blog/top-10-secteurs-prospecter-douala-2026`,
+      lastModified: now,
+      changeFrequency: 'monthly',
+      priority: 0.8
+    },
+    {
+      url: `${baseUrl}/blog/annuaire-entreprises-douala-par-quartier`,
+      lastModified: now,
+      changeFrequency: 'weekly',
+      priority: 0.8
+    },
+    {
+      url: `${baseUrl}/blog/prospection-terrain-vs-digital-cameroun`,
+      lastModified: now,
+      changeFrequency: 'weekly',
+      priority: 0.8
+    },
+    {
+      url: `${baseUrl}/blog/liste-entreprises-cameroun-secteur-btp`,
+      lastModified: now,
+      changeFrequency: 'weekly',
+      priority: 0.8
+    },
     // Pages légales
     {
       url: `${baseUrl}/privacy`,

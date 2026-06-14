@@ -15,66 +15,170 @@ const ARTICLES_CONTENT: Record<string, {
   content: React.ReactNode
 }> = {
   'trouver-clients-b2b-cameroun-2026': {
-    title: 'Comment trouver des clients B2B au Cameroun en 2026',
-    description: 'Guide complet pour identifier, prospecter et signer des clients B2B au Cameroun.',
-    date: '11 juin 2026',
-    readTime: '8 min',
+    title: 'Comment trouver des clients B2B au Cameroun en 2026 : guide complet',
+    description: 'Guide complet pour la prospection B2B au Cameroun : secteurs porteurs, méthodes terrain et digitales, pipeline commercial et outils pour trouver des clients professionnels à Douala et Yaoundé.',
+    date: '14 juin 2026',
+    readTime: '12 min',
     category: 'Prospection',
     emoji: '🎯',
     content: (
       <>
         <p className="blog-lead">
-          Le marché B2B camerounais est en pleine mutation. Longtemps dominé par le bouche-à-oreille
-          et les réseaux personnels, l'acquisition de clients B2B se structure aujourd'hui autour
-          de processus de vente hybrides : présence digitale et agressivité terrain. Voici comment
-          réussir votre prospection au Cameroun en 2026.
+          Trouver des clients B2B au Cameroun reste l'un des défis majeurs pour les équipes commerciales
+          et les dirigeants de PME. Contrairement aux marchés occidentaux où les bases de données sont
+          centralisées et accessibles, le tissu économique camerounais est morcelé, peu numérisé et
+          difficile à cartographier sans les bons outils. Ce guide pratique vous présente les méthodes
+          les plus efficaces pour identifier, contacter et convertir des prospects professionnels au
+          Cameroun en 2026.
         </p>
 
-        <h2>1. Ciblez précisément vos prospects (Douala vs Yaoundé)</h2>
+        <h2>Pourquoi la prospection B2B au Cameroun est différente</h2>
         <p>
-          Au Cameroun, la géographie économique est binaire mais très marquée. <strong>Douala</strong> concentre
-          plus de 60% de l'activité économique (industries, logistique, transit, commerce import-export).
-          <strong> Yaoundé</strong> est le centre décisionnel (institutions publiques, ONG, services administratifs).
+          Le marché camerounais présente des spécificités que tout commercial doit intégrer dès le départ :
         </p>
         <ul>
-          <li><strong>Si vous vendez des logiciels de gestion de stock :</strong> Visez la zone industrielle de Bassa et Bonabéri à Douala.</li>
-          <li><strong>Si vous vendez des services de consulting institutionnel :</strong> Ciblez les quartiers administratifs de Yaoundé (Bastos, Centre-Ville).</li>
+          <li><strong>Un tissu économique dominé par les PME :</strong> plus de 95 % des entreprises camerounaises sont des PME, souvent non référencées dans les annuaires officiels.</li>
+          <li><strong>La confiance prime sur le prix :</strong> un prospect camerounais achète d'abord à une personne, ensuite à une entreprise. La relation précède systématiquement la transaction.</li>
+          <li><strong>Le digital reste secondaire :</strong> malgré la croissance d'Internet, la majorité des décisions d'achat B2B se prennent encore lors de rencontres physiques ou par recommandation.</li>
+          <li><strong>La concentration géographique :</strong> Douala concentre à elle seule plus de 60 % de l'activité économique du pays. Yaoundé est incontournable pour le secteur public et les institutions.</li>
         </ul>
 
-        <h2>2. Exploitez les données publiques (NIU & RCCM)</h2>
+        <h2>1. Identifier les secteurs à fort potentiel B2B</h2>
         <p>
-          L'identification légale est le premier filtre d'un bon prospect. Avant de vous déplacer, assurez-vous que
-          l'entreprise est enregistrée. Le <strong>Numéro d'Identifiant Unique (NIU)</strong> et le{' '}
-          <strong>Registre du Commerce et du Crédit Mobilier (RCCM)</strong> sont des données publiques que vous pouvez
-          utiliser pour qualifier un lead et trouver son siège social.
+          Avant de prospecter, il faut cibler les bons secteurs. En 2026, les secteurs les plus actifs
+          en achat B2B au Cameroun sont :
         </p>
 
-        <h2>3. L'importance du "Cold Calling" combiné au Terrain</h2>
+        <h3>Distribution et FMCG</h3>
         <p>
-          La prospection par email ("cold emailing") affiche des taux d'ouverture très faibles au Cameroun (&lt; 5%).
-          Les décideurs camerounais privilégient le contact humain direct et les appels téléphoniques.
+          La grande distribution (supermarchés, grossistes, distributeurs régionaux) est un secteur très
+          actif en achats professionnels. Les acteurs comme MAHIMA, DOVV ou les grossistes du marché de
+          Mboppi à Douala sont des cibles de choix pour les fournisseurs de produits de consommation.
         </p>
+
+        <h3>BTP et immobilier</h3>
+        <p>
+          La construction est en plein essor avec les grands chantiers d'infrastructure (autoroutes,
+          logements sociaux, rénovation urbaine). Les entreprises du BTP achètent en volume : matériaux,
+          équipements, services logistiques.
+        </p>
+
+        <h3>Télécommunications et IT</h3>
+        <p>
+          Orange Cameroun, MTN Cameroun et leurs sous-traitants génèrent d'importants flux d'achats B2B.
+          Les startups tech locales sont également de plus en plus acheteuses de services et d'outils SaaS.
+        </p>
+
+        <h3>Services financiers</h3>
+        <p>
+          Les banques (Ecobank, Afriland, BGFI), les compagnies d'assurance et les microfinances sont des
+          acheteurs réguliers de solutions logicielles, de formation et de conseil.
+        </p>
+
+        <h3>Agroalimentaire et agro-industrie</h3>
+        <p>
+          Le Cameroun est l'un des premiers producteurs africains de cacao, café et huile de palme. Les
+          entreprises de transformation (SOCAPALM, CHOCOCAM, SABC) ont des besoins B2B permanents en
+          matière d'emballage, de logistique et de services industriels.
+        </p>
+
+        <h2>2. Les méthodes de prospection qui fonctionnent au Cameroun</h2>
+
+        <h3>La prospection terrain directe</h3>
+        <p>
+          C'est encore la méthode la plus efficace au Cameroun. Se présenter physiquement dans les zones
+          d'activité (Bonanjo, Akwa, Bali à Douala ; Bastos, Nlongkak à Yaoundé) permet d'obtenir des
+          rendez-vous que les emails n'auraient jamais générés.
+        </p>
+        <ul>
+          <li>Privilégiez les visites en semaine entre 9h et 12h.</li>
+          <li>Apportez toujours une carte de visite et un document de présentation (one-pager).</li>
+          <li>Ne cherchez pas à vendre lors du premier contact : l'objectif est d'obtenir un rendez-vous avec le décideur.</li>
+        </ul>
+
+        <h3>Les recommandations (bouche-à-oreille)</h3>
+        <p>
+          Au Cameroun, un prospect recommandé par un contact commun se convertit 3 à 5 fois plus vite
+          qu'un prospect froid. Chaque client satisfait est un ambassadeur potentiel. Activez
+          systématiquement vos réseaux : associations professionnelles, groupes WhatsApp sectoriels,
+          chambres de commerce.
+        </p>
+
+        <h3>Les événements professionnels</h3>
+        <p>
+          Le Salon Promote à Yaoundé, les forums de la CCIMA, les événements Orange Business ou encore
+          les rencontres organisées par les ambassades sont des lieux de rencontre B2B incontournables.
+          Une présence régulière à ces événements permet de constituer un portefeuille de contacts qualifiés.
+        </p>
+
+        <h3>La prospection digitale (LinkedIn + WhatsApp)</h3>
+        <p>
+          LinkedIn reste peu utilisé au Cameroun, mais c'est précisément un avantage : vos messages sont
+          lus. Une approche personnalisée via LinkedIn, suivie d'un échange WhatsApp, est un combo qui
+          donne d'excellents résultats auprès des cadres et dirigeants.
+        </p>
+
         <blockquote>
           "Le processus idéal : Identifiez via LinkedIn ou un annuaire B2B → Appelez le standard pour obtenir le nom du décideur → Déplacez-vous physiquement avec une plaquette commerciale."
         </blockquote>
 
-        <h2>4. L'outil indispensable : Sales Companion 2.0</h2>
+        <h2>3. Construire une base de données prospects qualifiée</h2>
         <p>
-          Constituer une base de données qualifiée prend des mois aux équipes commerciales. Pour accélérer ce processus,
-          un CRM B2B local est indispensable. <strong>Sales Companion 2.0</strong> intègre une base de données de plus de
-          50 000 entreprises camerounaises avec le nom des dirigeants, les numéros de téléphone et la géolocalisation exacte.
+          La prospection efficace repose sur une base de données fiable. Or, au Cameroun, les sources
+          disponibles sont dispersées :
+        </p>
+        <ul>
+          <li>Le registre de la <strong>CCIMA</strong> (Chambre de Commerce, d'Industrie, des Mines et de l'Artisanat)</li>
+          <li>Les annuaires sectoriels (GICAM, SYNDUSTRICAM)</li>
+          <li>Les plateformes comme <strong>GoAfrica</strong>, <strong>DoualaZoom</strong> ou <strong>Ongola.com</strong></li>
+          <li>Les pages jaunes et répertoires locaux</li>
+        </ul>
+        <p>
+          <strong>Sales Companion 2.0</strong> agrège ces données en une seule plateforme : plus de
+          50 000 entreprises camerounaises vérifiées, filtrables par secteur, ville, taille et statut
+          juridique. C'est la première base de données B2B dédiée au marché camerounais, conçue pour
+          les équipes commerciales locales.
         </p>
 
-        <h3>Fonctionnalités clés pour la prospection :</h3>
-        <ul>
-          <li><strong>Filtre par secteur :</strong> Trouvez toutes les PME de l'agroalimentaire en un clic.</li>
-          <li><strong>Géolocalisation :</strong> Optimisez vos tournées commerciales sur le terrain.</li>
-          <li><strong>Suivi des interactions :</strong> N'oubliez plus jamais de relancer un prospect.</li>
-        </ul>
+        <h2>4. Structurer son pipeline commercial</h2>
+        <p>
+          Identifier des prospects ne suffit pas. Il faut organiser le suivi pour ne laisser aucune
+          opportunité entre les mailles. Un pipeline B2B efficace au Cameroun comprend généralement
+          ces étapes :
+        </p>
+        <ol>
+          <li><strong>Identification</strong> — Le prospect correspond-il à votre cible (secteur, taille, localisation) ?</li>
+          <li><strong>Premier contact</strong> — Visite terrain, appel ou message LinkedIn.</li>
+          <li><strong>Qualification</strong> — A-t-il un besoin réel ? Un budget ? Un calendrier ?</li>
+          <li><strong>Présentation</strong> — Démonstration ou rendez-vous commercial formel.</li>
+          <li><strong>Négociation</strong> — Adaptation de l'offre au contexte local (prix, conditions de paiement).</li>
+          <li><strong>Closing</strong> — Signature ou bon de commande.</li>
+          <li><strong>Fidélisation</strong> — Suivi post-vente et demande de recommandations.</li>
+        </ol>
+
+        <h2>5. Les erreurs à éviter</h2>
+        <p>
+          <strong>Prospecter sans cibler.</strong> Visiter toutes les entreprises d'une zone sans critère
+          de sélection épuise les équipes et dilue les efforts. Définissez un profil de client idéal
+          (secteur, chiffre d'affaires estimé, nombre d'employés) avant de partir sur le terrain.
+        </p>
+        <p>
+          <strong>Négliger le suivi.</strong> Au Cameroun, il est rare qu'un prospect signe dès le premier
+          contact. La relance — effectuée avec tact et régularité — est souvent ce qui fait la différence
+          entre un deal conclu et une opportunité perdue.
+        </p>
+        <p>
+          <strong>Sous-estimer l'importance de la présentation.</strong> L'image compte énormément dans
+          le B2B camerounais. Une tenue professionnelle, des supports de qualité et une posture sérieuse
+          sont des signaux de crédibilité qui influencent directement la décision d'achat.
+        </p>
 
         <div className="blog-cta">
-          <h3>Prêt à booster vos ventes au Cameroun ?</h3>
-          <p>Testez gratuitement Sales Companion 2.0 et accédez à notre base de données d'entreprises.</p>
+          <h3>Passez à l'action dès aujourd'hui</h3>
+          <p>
+            Accédez à plus de 50 000 entreprises camerounaises vérifiées, filtrables par secteur,
+            ville et taille — et gérez votre pipeline directement dans Sales Companion 2.0.
+          </p>
           <Link href="/register" className="btn btn-primary btn-lg">
             Créer un compte gratuit
           </Link>
@@ -377,6 +481,528 @@ const ARTICLES_CONTENT: Record<string, {
         </div>
       </>
     )
+  },
+  'top-10-secteurs-prospecter-douala-2026': {
+    title: 'Top 10 secteurs à prospecter à Douala en 2026',
+    description: 'Découvrez les 10 secteurs d’activité les plus porteurs pour la prospection commerciale B2B à Douala en 2026 : opportunités, acteurs clés et conseils d’approche pour chaque secteur.',
+    date: '14 juin 2026',
+    readTime: '10 min',
+    category: 'Marché',
+    emoji: '🏙️',
+    content: (
+      <>
+        <p className="blog-lead">
+          Douala est le poumon économique du Cameroun. Avec plus de 60 % du PIB industriel du pays
+          concentré dans la capitale économique, c’est ici que se jouent la majorité des décisions
+          d’achat B2B. Mais tous les secteurs ne se valent pas en matière d’opportunités commerciales.
+          Voici les 10 secteurs que tout commercial B2B doit cibler en priorité à Douala en 2026,
+          avec pour chacun les opportunités concrètes, les acteurs clés et la meilleure stratégie
+          d’approche.
+        </p>
+
+        <h2>1. Distribution et commerce de gros</h2>
+        <p><strong>Pourquoi c’est prioritaire :</strong> Le commerce de gros est le secteur le plus
+        dense de Douala. Les marchés de Mboppi, Sandaga et Nkoulouloun concentrent des centaines
+        d’opérateurs qui achètent en volume et de façon régulière.</p>
+        <ul>
+          <li><strong>Opportunités B2B :</strong> fourniture de produits de grande consommation, solutions de gestion des stocks, logistique, emballage, financement de stocks.</li>
+          <li><strong>Acteurs clés :</strong> grossistes indépendants, distributeurs régionaux, centrale d’achat MAHIMA, DOVV Distribution.</li>
+          <li><strong>Approche recommandée :</strong> visite terrain directe tôt le matin (7h–10h), présence régulière dans les marchés, relations de confiance construites sur la durée.</li>
+        </ul>
+
+        <h2>2. BTP et construction</h2>
+        <p><strong>Pourquoi c’est prioritaire :</strong> Les grands chantiers d’infrastructure se
+        multiplient à Douala — extension du port, rénovation des voiries, projets immobiliers privés.
+        Le BTP est en croissance constante.</p>
+        <ul>
+          <li><strong>Opportunités B2B :</strong> matériaux de construction, équipements industriels, services d’ingénierie, location d’engins, logiciels de gestion de chantier.</li>
+          <li><strong>Acteurs clés :</strong> SOCATRAF, RAZEL, SOGEA-SATOM, promoteurs immobiliers (Shelter Afrique, MAETUR), sous-traitants indépendants.</li>
+          <li><strong>Approche recommandée :</strong> identification des appels d’offres publics (ARMP), présence aux salons du BTP, approche des bureaux d’études en amont des projets.</li>
+        </ul>
+
+        <h2>3. Agroalimentaire et agro-industrie</h2>
+        <p><strong>Pourquoi c’est prioritaire :</strong> Le Cameroun est l’un des premiers transformateurs
+        agricoles d’Afrique centrale. Douala abrite les sièges des plus grandes entreprises
+        agroalimentaires du pays.</p>
+        <ul>
+          <li><strong>Opportunités B2B :</strong> emballage industriel, ingrédients alimentaires, équipements de transformation, froid et réfrigération, maintenance industrielle, transport réfrigéré.</li>
+          <li><strong>Acteurs clés :</strong> SABC (Brasseries du Cameroun), CHOCOCAM, SODECOTON, Nestlé Cameroun, FOKOU, SIC CACAOS.</li>
+          <li><strong>Approche recommandée :</strong> cibler les directions des achats via les salons professionnels ou les contacts GICAM, proposer des démonstrations produits en conditions réelles.</li>
+        </ul>
+
+        <h2>4. Télécommunications et tech</h2>
+        <p><strong>Pourquoi c’est prioritaire :</strong> Avec deux opérateurs télécoms majeurs (Orange
+        et MTN) et un écosystème startup en croissance, le secteur tech génère d’importants flux
+        d’achats B2B en matière de services, infrastructure et logiciels.</p>
+        <ul>
+          <li><strong>Opportunités B2B :</strong> développement logiciel, cybersécurité, matériel informatique, services cloud, formation digitale, solutions SaaS.</li>
+          <li><strong>Acteurs clés :</strong> Orange Cameroun, MTN Cameroun, Camtel, startups tech (MESOO, WeCashUp, Maviance), agences digitales locales.</li>
+          <li><strong>Approche recommandée :</strong> LinkedIn ciblé sur les DSI et directeurs techniques, participation aux événements tech (AfricaTech, Cameroon Digital Week), approche via les incubateurs (OBEA, ActivSpaces).</li>
+        </ul>
+
+        <h2>5. Services financiers et banques</h2>
+        <p><strong>Pourquoi c’est prioritaire :</strong> Le secteur bancaire camerounais est en pleine
+        modernisation. Les banques investissent massivement dans la digitalisation et la conformité
+        réglementaire.</p>
+        <ul>
+          <li><strong>Opportunités B2B :</strong> logiciels bancaires, cybersécurité, conseil en conformité (KYC, AML), formation professionnelle, mobilier d’agences, impression sécurisée.</li>
+          <li><strong>Acteurs clés :</strong> Afriland First Bank, Ecobank Cameroun, BGFI Bank, SCB Cameroun, UBA, CCA Bank, Activa, NSIA, Chanas.</li>
+          <li><strong>Approche recommandée :</strong> approche formelle par courrier officiel et rendez-vous avec les directions concernées (DSI, DRH, DAF), passage par les appels d’offres internes.</li>
+        </ul>
+
+        <h2>6. Santé et pharmaceutique</h2>
+        <p><strong>Pourquoi c’est prioritaire :</strong> Le secteur de la santé est en forte expansion
+        avec la construction de nouvelles cliniques privées et la modernisation des établissements
+        existants. Les besoins en approvisionnement sont permanents.</p>
+        <ul>
+          <li><strong>Opportunités B2B :</strong> fourniture de médicaments et consommables médicaux, équipements hospitaliers, solutions de gestion hospitalière, nettoyage et stérilisation.</li>
+          <li><strong>Acteurs clés :</strong> Clinique La Référence, Polyclinique de l’Estuaire, Hôpital Général de Douala, grossistes pharmaceutiques (LABOREX, UBIPHARM, CAPP-Pharma).</li>
+          <li><strong>Approche recommandée :</strong> visite directe des directions administratives des cliniques, approche des grossistes répartiteurs, référencement auprès des centrales d’achat hospitalières.</li>
+        </ul>
+
+        <h2>7. Logistique et transport</h2>
+        <p><strong>Pourquoi c’est prioritaire :</strong> Le Port Autonome de Douala est le premier port
+        d’Afrique centrale. Toute l’activité d’import-export de la sous-région passe par Douala,
+        générant un écosystème logistique extrêmement actif.</p>
+        <ul>
+          <li><strong>Opportunités B2B :</strong> commissionnaires en douane, solutions de tracking et traçabilité, assurance transport, logiciels de gestion logistique, carburant et maintenance de flotte.</li>
+          <li><strong>Acteurs clés :</strong> Bolloré Transport & Logistics, CAMSHIP, DHL Cameroun, transitaires indépendants du quartier Bonanjo, transporteurs routiers.</li>
+          <li><strong>Approche recommandée :</strong> présence à Bonanjo (quartier des affaires et du port), contact via le GICAM et l’association des transitaires.</li>
+        </ul>
+
+        <h2>8. Énergie et industrie</h2>
+        <p><strong>Pourquoi c’est prioritaire :</strong> Les délestages électriques chroniques ont poussé
+        les entreprises camerounaises à investir massivement dans des solutions énergétiques autonomes.
+        C’est un marché en forte croissance.</p>
+        <ul>
+          <li><strong>Opportunités B2B :</strong> groupes électrogènes, panneaux solaires et solutions hybrides, onduleurs et batteries, maintenance électrique industrielle, audit énergétique.</li>
+          <li><strong>Acteurs clés :</strong> AES-SONEL (Eneo), sociétés industrielles de la zone de Bassa, entreprises de travaux électriques, importateurs d’équipements énergétiques.</li>
+          <li><strong>Approche recommandée :</strong> cibler les responsables maintenance et les DAF des entreprises industrielles de la zone de Bassa et Bonabéri, démonstrations terrain des solutions proposées.</li>
+        </ul>
+
+        <h2>9. Éducation et formation professionnelle</h2>
+        <p><strong>Pourquoi c’est prioritaire :</strong> La demande de formation qualifiante explose au
+        Cameroun, portée par les entreprises qui peinent à trouver des profils formés localement.
+        Les institutions d’enseignement privé se multiplient à Douala.</p>
+        <ul>
+          <li><strong>Opportunités B2B :</strong> fournitures scolaires en volume, équipements informatiques pour écoles, solutions e-learning, services de reprographie, mobilier scolaire, gestion scolaire.</li>
+          <li><strong>Acteurs clés :</strong> universités privées (ICY, ISTDI, SUP’Management), écoles de formation professionnelle, centres de formation d’entreprises (Orange Digital Center).</li>
+          <li><strong>Approche recommandée :</strong> cibler les directions administratives en début d’année scolaire (août-septembre), proposer des partenariats institutionnels plutôt que des ventes ponctuelles.</li>
+        </ul>
+
+        <h2>10. Hôtellerie et restauration professionnelle</h2>
+        <p><strong>Pourquoi c’est prioritaire :</strong> Le secteur HORECA de Douala est un acheteur B2B
+        régulier et structuré. Les établissements de standing ont des processus d’achat formalisés
+        et des besoins récurrents.</p>
+        <ul>
+          <li><strong>Opportunités B2B :</strong> denrées alimentaires en gros, équipements de cuisine professionnelle, produits d’entretien, blanchisserie industrielle, logiciels de caisse et de gestion hôtelière.</li>
+          <li><strong>Acteurs clés :</strong> Hôtel Akwa Palace, Hôtel La Falaise, Pullman Douala Rabingha, chaînes de restauration rapide locales, traiteurs professionnels.</li>
+          <li><strong>Approche recommandée :</strong> contact avec les responsables F&B et les économes d’établissements, proposition d’un premier approvisionnement test, facturation mensuelle pour fidéliser.</li>
+        </ul>
+
+        <blockquote>
+          « Le secret d’une prospection réussie à Douala est la segmentation. Ne vendez pas de la même manière à une startup Tech d’Akwa et à une usine agroalimentaire de Bassa. »
+        </blockquote>
+
+        <div className="blog-cta">
+          <h3>Trouvez vos prospects dans chaque secteur</h3>
+          <p>
+            Sales Companion 2.0 vous permet de filtrer plus de 50 000 entreprises camerounaises
+            par secteur d’activité, quartier et taille — et de lancer vos campagnes terrain
+            en quelques clics.
+          </p>
+          <Link href="/register" className="btn btn-primary btn-lg">
+            Accéder à la base de données
+          </Link>
+        </div>
+      </>
+    )
+  },
+  'annuaire-entreprises-douala-par-quartier': {
+    title: 'Annuaire entreprises Douala par quartier : Bonanjo, Akwa, Bali et plus',
+    description: 'Guide complet des entreprises de Douala organisé par quartier. Trouvez les sociétés, secteurs d\'activité et zones d\'affaires de Bonanjo, Akwa, Bali, Bonapriso, Bassa et Bonabéri.',
+    date: '14 juin 2026',
+    readTime: '9 min',
+    category: 'Annuaire',
+    emoji: '🗺️',
+    content: (
+      <>
+        <p className="blog-lead">
+          Douala est une ville dense, tentaculaire et économiquement stratifiée. Pour un commercial B2B,
+          connaître la géographie économique de la ville est aussi important que de connaître ses produits.
+          Chaque quartier a sa spécialité, ses types d'acteurs et ses codes d'approche.
+          Ce guide vous présente les principaux quartiers d'affaires de Douala, les types d'entreprises qu'on y trouve
+          et les stratégies de prospection adaptées à chaque zone.
+        </p>
+
+        <h2>Pourquoi organiser sa prospection par quartier à Douala</h2>
+        <p>
+          Contrairement à des villes comme Paris ou Lagos où les entreprises sont relativement dispersées
+          et accessibles via des bases de données nationales centralisées, Douala fonctionne par clusters géographiques.
+          Les entreprises du même secteur ont tendance à se regrouper dans les mêmes zones, ce qui présente un avantage
+          considérable pour la prospection terrain : une journée bien planifiée dans un quartier permet de visiter 10 à 20
+          prospects en quelques heures.
+        </p>
+        <p>
+          Maîtriser la carte économique de Douala, c'est multiplier l'efficacité de ses tournées commerciales.
+        </p>
+
+        <h2>Bonanjo — Le quartier des affaires et des institutions</h2>
+        <p>
+          Bonanjo est le CBD (Central Business District) historique de Douala. C'est ici que sont établis les sièges sociaux
+          des grandes entreprises, les banques, les ambassades et les institutions internationales.
+        </p>
+        <ul>
+          <li><strong>Profil économique :</strong> Sièges sociaux de multinationales et grandes entreprises camerounaises, agences bancaires principales (Afriland, Ecobank, BGFI, SCB), compagnies d'assurance (Activa, NSIA, Chanas Assurances), représentations diplomatiques et transitaires.</li>
+          <li><strong>Ce qu'on vient y vendre :</strong> Services à haute valeur ajoutée, solutions logicielles, conseil, fournitures de bureau haut de gamme, services financiers, prestations de communication institutionnelle.</li>
+          <li><strong>Comment prospecter :</strong> L'approche à Bonanjo est plus formelle qu'ailleurs. Les décideurs sont souvent inaccessibles sans rendez-vous préalable. Privilégiez le contact via LinkedIn ou par courrier officiel avant de vous présenter physiquement.</li>
+        </ul>
+        <p>
+          <strong>Adresses clés :</strong> Avenue de Gaulle, Rue Joffre, Boulevard de la Liberté (côté port), Immeuble Atrium.
+        </p>
+
+        <h2>Akwa — Le centre commercial et administratif</h2>
+        <p>
+          Akwa est le quartier le plus animé de Douala. C'est le cœur commerçant de la ville, mêlant commerce de détail,
+          services, bureaux administratifs et hôtels d'affaires.
+        </p>
+        <ul>
+          <li><strong>Profil économique :</strong> Commerces de gros et de détail, agences de voyage, hôtels d'affaires (Akwa Palace, La Falaise), opérateurs télécoms (Orange, MTN, Camtel), pharmacies en gros et concessionnaires automobiles.</li>
+          <li><strong>Ce qu'on vient y vendre :</strong> Produits de grande consommation, solutions d'encaissement, services de livraison, matériel informatique, fournitures de bureau, services marketing.</li>
+          <li><strong>Comment prospecter :</strong> Akwa est un quartier de volume. La prospection terrain directe fonctionne très bien ici, à condition d'être présent tôt (avant 10h) avant que l'activité commerciale ne batte son plein.</li>
+        </ul>
+        <p>
+          <strong>Adresses clés :</strong> Boulevard du Général de Gaulle, Carrefour Elf, Avenue Ahmadou Ahidjo.
+        </p>
+
+        <h2>Bali — Le quartier des grossistes et du commerce en gros</h2>
+        <p>
+          Bali est la zone de référence pour le négoce à grande échelle à Douala. C'est ici que s'approvisionnent les commerçants
+          de toute la ville.
+        </p>
+        <ul>
+          <li><strong>Profil économique :</strong> Grossistes en produits alimentaires (riz, huile, sucre, farine), hygiène et cosmétiques, importateurs de matériaux de construction, distributeurs de boissons et entrepôts logistiques.</li>
+          <li><strong>Ce qu'on vient y vendre :</strong> Produits en vrac et palettes, solutions de stockage, équipements de manutention, logiciels de gestion des stocks, transport et emballages industriels.</li>
+          <li><strong>Comment prospecter :</strong> Bali fonctionne à l'aube. Les meilleures opportunités se présentent entre 7h et 10h, au moment des livraisons. La confiance se construit dans la durée : plusieurs passages sont indispensables.</li>
+        </ul>
+        <p>
+          <strong>Adresses clés :</strong> Marché de Bali, Rue du Marché, zones d'entrepôts.
+        </p>
+
+        <h2>Bonapriso — Le quartier résidentiel haut de gamme et des professions libérales</h2>
+        <p>
+          Bonapriso est le quartier le plus résidentiel et huppé de Douala, abritant de nombreuses professions libérales et des sièges de PME.
+        </p>
+        <ul>
+          <li><strong>Profil économique :</strong> Cliniques et cabinets médicaux privés, cabinets d'architectes et bureaux d'études, agences de communication, marques internationales, restaurants haut de gamme.</li>
+          <li><strong>Ce qu'on vient y vendre :</strong> Équipements médicaux, matériel de bureau premium, solutions logicielles, services de communication, fournitures pour la restauration professionnelle.</li>
+          <li><strong>Comment prospecter :</strong> L'approche doit être très soignée. Un rendez-vous préalable est requis. Les réseaux professionnels (clubs d'affaires) sont de bons vecteurs d'introduction.</li>
+        </ul>
+        <p>
+          <strong>Adresses clés :</strong> Avenue Laprade, Rue Coty, abords de l'American School.
+        </p>
+
+        <h2>Bassa — La zone industrielle</h2>
+        <p>
+          Bassa est la principale zone industrielle de Douala et l'une des plus importantes d'Afrique centrale.
+        </p>
+        <ul>
+          <li><strong>Profil économique :</strong> Usines agroalimentaires (CHOCOCAM, SABC, SIC CACAOS), transformation industrielle (plastique, métal, bois), ateliers de maintenance, centrales électriques et dépôts pétroliers.</li>
+          <li><strong>Ce qu'on vient y vendre :</strong> Pièces détachées, équipements de protection (EPI), lubrifiants, solutions de maintenance préventive, logiciels de GMAO, formation technique.</li>
+          <li><strong>Comment prospecter :</strong> C'est un quartier de responsables de production et d'ingénieurs. L'approche technique prime. Les achats sont souvent centralisés : identifiez le bon interlocuteur avant de vous déplacer.</li>
+        </ul>
+        <p>
+          <strong>Adresses clés :</strong> Route de Bassa, Zone Industrielle de Bassa, Boulevard de Bassa.
+        </p>
+
+        <h2>Bonabéri — La rive gauche industrielle et commerciale</h2>
+        <p>
+          Bonabéri est la rive gauche du Wouri, accessible par le pont, en plein développement industriel et commercial.
+        </p>
+        <ul>
+          <li><strong>Profil économique :</strong> Industries légères et unités de conditionnement, entrepôts logistiques, commerce de matériaux de construction, zone franche industrielle (ZFI).</li>
+          <li><strong>Ce qu'on vient y vendre :</strong> Matières premières, matériaux de construction, équipements industriels légers, services logistiques, fournitures industrielles.</li>
+          <li><strong>Comment prospecter :</strong> Bonabéri est encore moins saturé que la rive droite. Prévoyez une demi-journée car les distances entre les cibles y sont plus importantes.</li>
+        </ul>
+        <p>
+          <strong>Adresses clés :</strong> Route de Bonabéri, Zone Franche Industrielle.
+        </p>
+
+        <h2>Deïdo — Le quartier populaire et artisanal</h2>
+        <p>
+          Deïdo est l'un des quartiers les plus denses de Douala, caractérisé par un artisanat dynamique et de nombreuses TPE.
+        </p>
+        <ul>
+          <li><strong>Profil économique :</strong> Artisans (menuisiers, soudeurs, tapissiers), ateliers de réparation électronique, commerce de proximité, petites unités de transformation.</li>
+          <li><strong>Ce qu'on vient y vendre :</strong> Outillage, matières premières pour artisans, solutions de paiement mobile, micro-crédit et services financiers adaptés.</li>
+          <li><strong>Comment prospecter :</strong> Deïdo fonctionne sur la proximité et la confiance directe. Le bouche-à-oreille y est le canal d'influence principal.</li>
+        </ul>
+
+        <h2>Organiser sa tournée commerciale à Douala : conseils pratiques</h2>
+        <ul>
+          <li><strong>Planifier par zone géographique :</strong> Ne mélangez pas les quartiers dans la même journée. Douala est très embouteillée ; un trajet Bassa-Bonanjo en heure de pointe peut prendre plus d'une heure.</li>
+          <li><strong>Horaires :</strong> Bali et marchés (7h-10h), Bonanjo et entreprises (9h-12h), Akwa et commerce (10h-13h), relances et suivis (14h-17h).</li>
+          <li><strong>Utiliser une base de données :</strong> Utilisez <strong>Sales Companion 2.0</strong> pour filtrer les prospects par quartier et obtenir les contacts directs des décideurs.</li>
+        </ul>
+
+        <div className="blog-cta">
+          <h3>Optimisez vos tournées par quartier</h3>
+          <p>
+            Sales Companion 2.0 regroupe plus de 50 000 entreprises camerounaises par localisation et quartier.
+            Préparez vos visites terrain dès aujourd'hui.
+          </p>
+          <Link href="/register" className="btn btn-primary btn-lg">
+            Créer mon compte gratuit
+          </Link>
+        </div>
+      </>
+    )
+  },
+  'prospection-terrain-vs-digital-cameroun': {
+    title: 'Prospection terrain vs digital au Cameroun : ce qui marche vraiment en 2026',
+    description: 'Comparatif complet entre prospection terrain et prospection digitale pour les commerciaux B2B au Cameroun. Avantages, limites et stratégie hybride gagnante pour Douala et Yaoundé.',
+    date: '15 juin 2026',
+    readTime: '8 min',
+    category: 'Stratégie',
+    emoji: '⚖️',
+    content: (
+      <>
+        <p className="blog-lead">
+          La question revient systématiquement dans les équipes commerciales camerounaises : faut-il continuer
+          à prospecter sur le terrain ou basculer vers le digital ? Entre la montée en puissance des réseaux sociaux,
+          l'essor de WhatsApp Business et la réalité d'un tissu économique encore très ancré dans le relationnel physique,
+          la réponse n'est pas aussi simple qu'elle y paraît.
+          Ce guide compare objectivement les deux approches et vous propose une stratégie hybride adaptée au marché camerounais.
+        </p>
+
+        <h2>La réalité du marché B2B camerounais en 2026</h2>
+        <p>
+          Avant de trancher entre terrain et digital, il faut poser quelques réalités du marché :
+        </p>
+        <ul>
+          <li><strong>Le digital progresse mais reste secondaire.</strong> Le taux de pénétration d'Internet au Cameroun dépasse désormais 35 %, mais dans le B2B, la grande majorité des décisions d'achat se prennent encore à l'issue de rencontres physiques ou de recommandations directes. Un email froid reçoit rarement une réponse. Un rendez-vous physique, lui, crée une relation.</li>
+          <li><strong>La confiance est le premier critère d'achat.</strong> Dans le contexte camerounais, un prospect achète d'abord à une personne en qui il a confiance, ensuite à une entreprise. Cette confiance se construit difficilement derrière un écran.</li>
+          <li><strong>Les décideurs sont mobiles et peu disponibles en ligne.</strong> Les dirigeants de PME camerounaises passent peu de temps sur LinkedIn ou à lire leurs emails professionnels. En revanche, ils sont joignables sur WhatsApp et accessibles dans leurs bureaux ou sur les marchés.</li>
+          <li><strong>Le réseau prime sur tout.</strong> Une recommandation d'un contact commun vaut plus que n'importe quelle campagne digitale. Le bouche-à-oreille reste le premier canal de génération de leads au Cameroun.</li>
+        </ul>
+
+        <h2>La prospection terrain : forces et limites</h2>
+
+        <h3>Les forces indéniables</h3>
+        <ul>
+          <li><strong>Taux de conversion supérieur :</strong> Une visite terrain bien préparée génère un taux de transformation en rendez-vous qualifié bien supérieur à n'importe quel canal digital. Le contact physique crée une impression immédiate.</li>
+          <li><strong>Accès direct au décideur :</strong> En se présentant physiquement dans une entreprise, un commercial expérimenté arrive souvent à obtenir un rendez-vous avec le bon interlocuteur le jour même.</li>
+          <li><strong>Lecture du contexte :</strong> Lors d'une visite, le commercial observe l'état des locaux, l'activité en cours, les équipements. Ces informations sont précieuses pour adapter son argumentaire.</li>
+          <li><strong>Crédibilité immédiate :</strong> Se déplacer physiquement envoie un signal fort : vous êtes sérieux, vous investissez du temps.</li>
+        </ul>
+
+        <h3>Les limites à connaître</h3>
+        <ul>
+          <li><strong>Coût et temps élevés :</strong> Une journée de prospection terrain à Douala, avec les embouteillages et les temps d'attente, peut ne produire que 5 à 10 contacts utiles.</li>
+          <li><strong>Dépendance à la disponibilité :</strong> Le décideur n'est pas toujours là. Une visite mal planifiée aboutit à un simple dépôt de carte de visite.</li>
+          <li><strong>Scalabilité limitée :</strong> Un commercial ne peut physiquement visiter qu'un nombre limité de prospects par jour.</li>
+          <li><strong>Épuisement des équipes :</strong> La prospection terrain intensive est éprouvante sans organisation rigoureuse.</li>
+        </ul>
+
+        <h2>La prospection digitale : forces et limites</h2>
+
+        <h3>Les forces réelles</h3>
+        <ul>
+          <li><strong>Volume et échelle :</strong> Un message WhatsApp bien rédigé peut être envoyé à 50 prospects en une heure. Une publication LinkedIn peut toucher des milliers de décideurs.</li>
+          <li><strong>Ciblage précis :</strong> LinkedIn permet de filtrer par poste, secteur, entreprise et localisation pour atteindre exactement les profils recherchés.</li>
+          <li><strong>Traçabilité et mesure :</strong> Le digital laisse des traces (clics, réponses, conversions), permettant d'optimiser ses approches en continu.</li>
+          <li><strong>Disponibilité 24h/24 :</strong> Un article de blog ou une page produit travaillent pour vous même quand votre équipe dort.</li>
+          <li><strong>Coût marginal faible :</strong> Le coût d'un contact supplémentaire est quasi nul.</li>
+        </ul>
+
+        <h3>Les limites au Cameroun</h3>
+        <ul>
+          <li><strong>Faible taux de réponse aux messages froids :</strong> Les décideurs sont méfiants vis-à-vis des approches digitales inconnues.</li>
+          <li><strong>Connectivité inégale :</strong> La qualité d'Internet reste variable selon les zones et les entreprises.</li>
+          <li><strong>Absence de nombreuses entreprises en ligne :</strong> Une grande partie du tissu économique, notamment les PME et le secteur informel, n'a pas de présence digitale.</li>
+          <li><strong>Confiance difficile à établir à distance :</strong> Sans rencontre physique, il est difficile d'atteindre le niveau de confiance nécessaire pour de gros contrats.</li>
+        </ul>
+
+        <h2>La stratégie hybride : la seule approche gagnante au Cameroun</h2>
+        <p>
+          Les meilleures équipes commerciales au Cameroun ne choisissent pas entre terrain et digital — elles combinent les deux de manière séquencée et intelligente.
+        </p>
+
+        <ol>
+          <li><strong>Phase 1 : identification digitale des prospects</strong> — Utilisez une base de données comme Sales Companion 2.0 pour filtrer les entreprises par secteur, localisation et taille avant de partir en tournée.</li>
+          <li><strong>Phase 2 : premier contact digital ou recommandation</strong> — Un message WhatsApp court et personnalisé ou une connexion LinkedIn "réchauffe" le prospect avant votre visite.</li>
+          <li><strong>Phase 3 : visite terrain pour créer la relation</strong> — La visite physique construit la confiance et permet d'exprimer les besoins réels.</li>
+          <li><strong>Phase 4 : suivi digital pour maintenir le lien</strong> — Après la visite, utilisez WhatsApp ou l'email pour maintenir votre présence.</li>
+          <li><strong>Phase 5 : contenu digital pour attirer les prospects entrants</strong> — Un blog SEO et des témoignages en ligne génèrent des leads entrants de manière passive.</li>
+        </ol>
+
+        <h2>Outils recommandés pour chaque phase</h2>
+        <ul>
+          <li><strong>Prospection terrain :</strong> <em>Sales Companion 2.0</em> (base de 50 000+ entreprises), Google Maps (optimisation d'itinéraires) et un CRM simple.</li>
+          <li><strong>Prospection digitale :</strong> <em>WhatsApp Business</em> (incontournable au Cameroun), <em>LinkedIn</em> (décideurs de grandes entreprises) et un <em>blog SEO</em>.</li>
+        </ul>
+
+        <div className="blog-cta">
+          <h3>Adoptez la méthode hybride</h3>
+          <p>
+            Combinez la puissance du ciblage digital et de la gestion de pipeline avec l'efficacité de vos commerciaux terrain
+            grâce à Sales Companion 2.0.
+          </p>
+          <Link href="/register" className="btn btn-primary btn-lg">
+            Créer mon compte d'essai
+          </Link>
+        </div>
+      </>
+    )
+  },
+  'liste-entreprises-cameroun-secteur-btp': {
+    title: 'Liste des entreprises du BTP au Cameroun en 2026 : acteurs, opportunités et contacts',
+    description: 'Liste complète des entreprises du BTP au Cameroun en 2026 : groupes internationaux, PME locales, promoteurs immobiliers et sous-traitants à Douala et Yaoundé. Guide de prospection B2B pour le secteur de la construction.',
+    date: '15 juin 2026',
+    readTime: '10 min',
+    category: 'Annuaire',
+    emoji: '🚧',
+    content: (
+      <>
+        <p className="blog-lead">
+          Le secteur du Bâtiment et des Travaux Publics (BTP) est l'un des plus dynamiques de l'économie camerounaise.
+          Porté par les grands chantiers d'infrastructure, la croissance démographique des villes et les investissements publics et privés,
+          il concentre des opportunités commerciales considérables pour les fournisseurs, prestataires et sous-traitants.
+          Ce guide présente les principaux acteurs du BTP au Cameroun, les segments à cibler en priorité et les stratégies pour approcher efficacement ce secteur.
+        </p>
+
+        <h2>Panorama du secteur BTP au Cameroun</h2>
+        <p>
+          Le BTP camerounais représente environ 8 % du PIB national et emploie directement plus de 300 000 personnes.
+          Il se structure autour de plusieurs segments complémentaires :
+        </p>
+        <ul>
+          <li><strong>Les travaux publics :</strong> routes, ponts, barrages, infrastructures portuaires et ferroviaires.</li>
+          <li><strong>Le bâtiment résidentiel :</strong> logements sociaux, résidences privées, immeubles collectifs.</li>
+          <li><strong>Le bâtiment commercial et industriel :</strong> bureaux, entrepôts, usines, centres commerciaux.</li>
+          <li><strong>La promotion immobilière :</strong> développement et commercialisation de programmes neufs.</li>
+          <li><strong>Les travaux de second œuvre :</strong> électricité, plomberie, menuiserie, peinture, climatisation.</li>
+        </ul>
+        <p>
+          Chaque segment présente des besoins B2B spécifiques et des interlocuteurs différents.
+        </p>
+
+        <h2>Les grands groupes internationaux présents au Cameroun</h2>
+
+        <h3>RAZEL-BEC (groupe Fayat)</h3>
+        <p>
+          Implantée au Cameroun depuis plusieurs décennies, RAZEL est l'un des acteurs majeurs des travaux publics.
+          Elle intervient sur les grands chantiers routiers et d'infrastructure financés par la Banque Mondiale, la BAD et l'État camerounais.
+        </p>
+        <ul>
+          <li><strong>Siège Cameroun :</strong> Douala, Zone Industrielle de Bassa.</li>
+          <li><strong>Marchés types :</strong> routes nationales, ponts, terrassements lourds.</li>
+          <li><strong>Besoins B2B :</strong> carburant en volume, lubrifiants, pièces détachées engins, sous-traitance.</li>
+        </ul>
+
+        <h3>SOGEA-SATOM (groupe Vinci)</h3>
+        <p>
+          Filiale de Vinci Construction, SOGEA-SATOM est présente sur les plus grands chantiers d'Afrique centrale.
+          Au Cameroun, elle intervient notamment sur les chantiers de génie civil liés au port de Douala.
+        </p>
+        <ul>
+          <li><strong>Siège Cameroun :</strong> Douala.</li>
+          <li><strong>Marchés types :</strong> génie civil, ouvrages d'art, construction industrielle.</li>
+          <li><strong>Besoins B2B :</strong> béton prêt à l'emploi, armatures métalliques, équipements de sécurité.</li>
+        </ul>
+
+        <h3>COLAS (groupe Bouygues)</h3>
+        <p>
+          Spécialiste des routes et infrastructures de transport, COLAS est actif sur les chantiers de revêtement routier au Cameroun.
+        </p>
+        <ul>
+          <li><strong>Marchés types :</strong> revêtements routiers, aménagements urbains, pistes aéroportuaires.</li>
+          <li><strong>Besoins B2B :</strong> granulats, bitume, équipements de signalisation, location d'engins.</li>
+        </ul>
+
+        <h3>SOCATRAF</h3>
+        <p>
+          Entreprise camerounaise de référence dans les travaux publics, SOCATRAF est capable de répondre aux grands appels d'offres publics.
+        </p>
+        <ul>
+          <li><strong>Siège :</strong> Douala.</li>
+          <li><strong>Marchés types :</strong> terrassements, voiries, ouvrages hydrauliques.</li>
+          <li><strong>Besoins B2B :</strong> matériaux de construction, carburant, maintenance de flotte d'engins.</li>
+        </ul>
+
+        <h2>Les entreprises de bâtiment et de construction</h2>
+
+        <h3>Catégorie A : grandes entreprises (CA &gt; 5 milliards FCFA)</h3>
+        <p>
+          Ces entreprises disposent de services achats structurés. L'accès passe par les directions des achats ou les chefs de projet.
+          Exemples : Groupement d'Entreprises BUNS, COGEFAR, EIFFAGE Cameroun.
+          Besoins B2B : coffrages industriels, échafaudages, grues, béton prêt à l'emploi.
+        </p>
+
+        <h3>Catégorie B : PME structurées (CA 500 millions à 5 milliards FCFA)</h3>
+        <p>
+          Segment le plus nombreux et accessible. Le dirigeant est souvent directement impliqué dans les décisions.
+          Zones de concentration : Douala (Bassa, Bonabéri, Ndokoti), Yaoundé (Mfandena, Ekounou).
+          Besoins B2B : ciment, fer à béton, bois de coffrage, matériaux de couverture, outillage, EPI.
+        </p>
+
+        <h3>Catégorie C : artisans du bâtiment et petits entrepreneurs</h3>
+        <p>
+          Maçons, électriciens, plombiers, menuisiers qui travaillent en sous-traitance ou en direct avec les particuliers.
+          Besoins B2B : matériaux en détail, outillage électroportatif, consommables.
+        </p>
+
+        <h2>La promotion immobilière au Cameroun</h2>
+
+        <h3>Acteurs publics</h3>
+        <ul>
+          <li><strong>SIC (Société Immobilière du Cameroun) :</strong> Principal opérateur public du logement social, développant des programmes résidentiels.</li>
+          <li><strong>MAETUR :</strong> Assure la viabilisation des terrains et l'aménagement des zones d'urbanisation.</li>
+        </ul>
+
+        <h3>Promoteurs privés actifs</h3>
+        <p>
+          Acteurs significatifs : Shelter Afrique, COGEFAR Immobilier, Immobilière Foncière du Cameroun (IFC).
+          Besoins B2B : matériaux haut de gamme, équipements techniques (ascenseurs, groupes électrogènes), sécurité, domotique.
+        </p>
+
+        <h2>Les acteurs du second œuvre</h2>
+        <ul>
+          <li><strong>Électricité :</strong> Installateurs, intégrateurs (Legrand, Schneider Electric, ABB) ayant des besoins en câblage et appareillages.</li>
+          <li><strong>Plomberie :</strong> Acheteurs réguliers de tuyauterie, robinetterie et chauffe-eau.</li>
+          <li><strong>Menuiserie :</strong> Menuiserie aluminium en forte croissance (profilés, vitrages, quincaillerie).</li>
+          <li><strong>Climatisation :</strong> Installateurs de climatisation résidentielle et tertiaire.</li>
+        </ul>
+
+        <h2>Comment prospecter efficacement dans le BTP au Cameroun</h2>
+        <ul>
+          <li><strong>Suivre les appels d'offres :</strong> Consultez le portail de l'ARMP pour identifier les chantiers et attributaires.</li>
+          <li><strong>Se positionner en amont :</strong> Approchez les bureaux d'études et architectes lors de la phase d'étude.</li>
+          <li><strong>Points de vente :</strong> Fréquentez les grands distributeurs comme FOKOU ou les quincailleries de Bali et Ndokoti.</li>
+          <li><strong>Événements :</strong> Participez au Salon Promote à Yaoundé et aux rencontres de la CCIMA.</li>
+          <li><strong>Base de données :</strong> Utilisez Sales Companion 2.0 pour filtrer par "BTP" et obtenir les listes de prospects.</li>
+        </ul>
+
+        <h2>Opportunités B2B spécifiques dans le BTP en 2026</h2>
+        <ul>
+          <li><strong>Infrastructure routière :</strong> Chantiers routiers mobilisant des centaines de milliards de FCFA.</li>
+          <li><strong>Logements sociaux :</strong> Déficit estimé à plus de 2 millions d'unités résidentielles.</li>
+          <li><strong>Aménagement de Douala :</strong> Rénovation des voiries, Bus Rapid Transit (BRT) et drainage urbain.</li>
+          <li><strong>Construction hôtelière :</strong> Vague de constructions à Douala et Yaoundé.</li>
+        </ul>
+
+        <div className="blog-cta">
+          <h3>Accédez au fichier BTP Cameroun</h3>
+          <p>
+            Trouvez les contacts directs des directeurs d'achats, chefs de chantiers et promoteurs immobiliers du Cameroun
+            sur Sales Companion 2.0.
+          </p>
+          <Link href="/register" className="btn btn-primary btn-lg">
+            Voir les entreprises BTP
+          </Link>
+        </div>
+      </>
+    )
   }
 }
 
@@ -388,7 +1014,11 @@ export async function generateStaticParams() {
     { slug: 'niu-rccm-identifier-entreprise-camerounaise' },
     { slug: 'prospection-commerciale-cameroun-methodes-outils' },
     { slug: 'crm-commerciaux-cameroun-comparatif-2026' },
-    { slug: 'secteurs-actifs-douala-2026' }
+    { slug: 'secteurs-actifs-douala-2026' },
+    { slug: 'top-10-secteurs-prospecter-douala-2026' },
+    { slug: 'annuaire-entreprises-douala-par-quartier' },
+    { slug: 'prospection-terrain-vs-digital-cameroun' },
+    { slug: 'liste-entreprises-cameroun-secteur-btp' }
   ]
 }
 

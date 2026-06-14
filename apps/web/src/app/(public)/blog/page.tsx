@@ -21,12 +21,12 @@ export const metadata: Metadata = {
 const ARTICLES = [
   {
     slug: 'trouver-clients-b2b-cameroun-2026',
-    title: 'Comment trouver des clients B2B au Cameroun en 2026',
+    title: 'Comment trouver des clients B2B au Cameroun en 2026 : guide complet',
     excerpt:
-      "Le marché B2B camerounais est en pleine mutation. Découvrez les méthodes éprouvées et les outils numériques pour identifier et contacter les décideurs d'entreprises à Douala, Yaoundé et dans tout le pays.",
+      "Secteurs porteurs, méthodes terrain, réseaux et outils digitaux : le guide définitif pour identifier, contacter et convertir des prospects B2B à Douala, Yaoundé et dans tout le Cameroun. Avec les 5 erreurs à éviter et un pipeline en 7 étapes.",
     category: 'Prospection',
-    date: '11 juin 2026',
-    readTime: '8 min',
+    date: '14 juin 2026',
+    readTime: '12 min',
     emoji: '🎯',
     featured: true
   },
@@ -83,6 +83,50 @@ const ARTICLES = [
     date: '11 juin 2026',
     readTime: '6 min',
     emoji: '📊',
+    featured: false
+  },
+  {
+    slug: 'top-10-secteurs-prospecter-douala-2026',
+    title: 'Top 10 secteurs à prospecter à Douala en 2026',
+    excerpt:
+      'Pour chacun des 10 secteurs clés de Douala : pourquoi il est prioritaire, les opportunités B2B concrètes, les acteurs clés à cibler (SABC, Bolloré, Afriland, DHL…) et la stratégie d’approche recommandée sur le terrain.',
+    category: 'Marché',
+    date: '14 juin 2026',
+    readTime: '10 min',
+    emoji: '🏙️',
+    featured: false
+  },
+  {
+    slug: 'annuaire-entreprises-douala-par-quartier',
+    title: 'Annuaire entreprises Douala par quartier : Bonanjo, Akwa, Bali et plus',
+    excerpt:
+      'Guide complet des entreprises de Douala organisé par quartier. Trouvez les sociétés, secteurs d\'activité et zones d\'affaires de Bonanjo, Akwa, Bali, Bonapriso, Bassa et Bonabéri.',
+    category: 'Annuaire',
+    date: '14 juin 2026',
+    readTime: '9 min',
+    emoji: '🗺️',
+    featured: false
+  },
+  {
+    slug: 'prospection-terrain-vs-digital-cameroun',
+    title: 'Prospection terrain vs digital au Cameroun : ce qui marche vraiment en 2026',
+    excerpt:
+      'Comparatif complet entre prospection terrain et prospection digitale pour les commerciaux B2B au Cameroun. Avantages, limites et stratégie hybride gagnante pour Douala et Yaoundé.',
+    category: 'Stratégie',
+    date: '15 juin 2026',
+    readTime: '8 min',
+    emoji: '⚖️',
+    featured: false
+  },
+  {
+    slug: 'liste-entreprises-cameroun-secteur-btp',
+    title: 'Liste des entreprises du BTP au Cameroun en 2026 : acteurs, opportunités et contacts',
+    excerpt:
+      'Liste complète des entreprises du BTP au Cameroun en 2026 : groupes internationaux, PME locales, promoteurs immobiliers et sous-traitants à Douala et Yaoundé. Guide de prospection B2B pour le secteur de la construction.',
+    category: 'Annuaire',
+    date: '15 juin 2026',
+    readTime: '10 min',
+    emoji: '🚧',
     featured: false
   }
 ]
