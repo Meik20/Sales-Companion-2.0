@@ -154,45 +154,47 @@ export function LandingPage() {
             </span>
           </a>
 
-          {/*  Desktop nav  */}
+          {/*  Nav links — contrôlées par le hamburger ☰  */}
+          <ul className="nav-links" role="list">
+            <li>
+              <a href="#features" title="Découvrir les outils de prospection">
+                {t('landing.features')}
+              </a>
+            </li>
+            <li>
+              <a href="/annuaire" title="Parcourir l'annuaire B2B des entreprises au Cameroun">
+                Annuaire B2B
+              </a>
+            </li>
+            <li>
+              <a href="/blog" title="Découvrir notre blog et nos guides B2B">
+                Blog
+              </a>
+            </li>
+            <li>
+              <a href="#roles" title="Solutions pour commerciaux et managers">
+                {t('landing.roles')}
+              </a>
+            </li>
+            <li>
+              <a href="#plans" title="Tarifs de l'annuaire entreprises">
+                {t('landing.pricing')}
+              </a>
+            </li>
+            <li>
+              <a href="#testimonials" title="Avis des utilisateurs au Cameroun">
+                {t('landing.testimonials')}
+              </a>
+            </li>
+            <li>
+              <a href="/privacy" title="Politique de confidentialité des données">
+                Confidentialité
+              </a>
+            </li>
+          </ul>
+
+          {/*  Desktop CTA (langue + login + register) — toujours visible  */}
           <div className="nav-desktop" id="nav-desktop">
-            <ul className="nav-links" role="list">
-              <li>
-                <a href="#features" title="Découvrir les outils de prospection">
-                  {t('landing.features')}
-                </a>
-              </li>
-              <li>
-                <a href="/annuaire" title="Parcourir l'annuaire B2B des entreprises au Cameroun">
-                  Annuaire B2B
-                </a>
-              </li>
-              <li>
-                <a href="/blog" title="Découvrir notre blog et nos guides B2B">
-                  Blog
-                </a>
-              </li>
-              <li>
-                <a href="#roles" title="Solutions pour commerciaux et managers">
-                  {t('landing.roles')}
-                </a>
-              </li>
-              <li>
-                <a href="#plans" title="Tarifs de l'annuaire entreprises">
-                  {t('landing.pricing')}
-                </a>
-              </li>
-              <li>
-                <a href="#testimonials" title="Avis des utilisateurs au Cameroun">
-                  {t('landing.testimonials')}
-                </a>
-              </li>
-              <li>
-                <a href="/privacy" title="Politique de confidentialité des données">
-                  Confidentialité
-                </a>
-              </li>
-            </ul>
             <div className="nav-cta">
               <button
                 onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')}
@@ -220,13 +222,13 @@ export function LandingPage() {
             </div>
           </div>
 
-          {/*  Mobile toggle  */}
+          {/*  Hamburger toggle — visible sur tous les écrans  */}
           <button
             className="nav-mobile-toggle"
             id="nav-toggle"
             aria-label="Ouvrir le menu"
             aria-expanded="false"
-            aria-controls="nav-desktop"
+            aria-controls="nav-links"
           >
             ☰
           </button>

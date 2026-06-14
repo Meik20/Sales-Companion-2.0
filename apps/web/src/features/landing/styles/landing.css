@@ -1222,16 +1222,14 @@ body::before {
 
 /* ─── Responsive ────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
+  /* Sur mobile, le nav-desktop (boutons CTA) est caché */
   .nav-desktop {
     display: none;
   }
-  .nav-mobile-toggle {
-    display: inline-flex;
-  }
-  .nav-mobile-open .nav-desktop {
+  /* Quand le menu est ouvert, afficher les liens en panneau plein largeur */
+  .nav-mobile-open .nav-links {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
     position: absolute;
     top: 60px;
     left: 0;
@@ -1239,14 +1237,9 @@ body::before {
     background: var(--dark2);
     border-bottom: 1px solid var(--bd);
     padding: 16px 24px 20px;
-    gap: 8px;
+    gap: 4px;
     z-index: 199;
-  }
-  .nav-mobile-open .nav-links {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    margin-bottom: 12px;
+    list-style: none;
   }
   .nav-mobile-open .nav-links li {
     width: 100%;
@@ -1254,16 +1247,13 @@ body::before {
   .nav-mobile-open .nav-links li a {
     display: block;
     padding: 10px 12px;
+    font-size: 14px;
+    color: var(--tx2);
+    border-radius: var(--r);
   }
-  .nav-mobile-open .nav-cta {
-    flex-direction: column;
-    width: 100%;
-    border-top: 1px solid var(--bd);
-    padding-top: 12px;
-  }
-  .nav-mobile-open .nav-cta .btn {
-    width: 100%;
-    justify-content: center;
+  .nav-mobile-open .nav-links li a:hover {
+    color: var(--tx);
+    background: rgba(255, 255, 255, 0.05);
   }
   .hero {
     padding: 100px 16px 60px;
