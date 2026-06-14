@@ -239,7 +239,7 @@ body::before {
   font-style: normal;
 }
 .nav-links {
-  display: flex;
+  display: none; /* Hidden by default — shown via hamburger */
   align-items: center;
   gap: 4px;
   list-style: none;
@@ -1168,18 +1168,56 @@ body::before {
 
 /* ─── Mobile nav toggle ─────────────────────────────────────────────────── */
 .nav-mobile-toggle {
-  display: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--bd);
   border-radius: var(--r);
-  padding: 7px 10px;
+  padding: 7px 12px;
   color: var(--tx);
   font-size: 16px;
+  cursor: pointer;
+  transition: all var(--tf);
+}
+.nav-mobile-toggle:hover {
+  background: rgba(255, 255, 255, 0.10);
+  border-color: var(--bd2);
+  color: var(--gm);
 }
 .nav-desktop {
   display: flex;
   align-items: center;
   gap: 16px;
+}
+/* .nav-links hidden by default — see base rule above */
+
+/* Desktop dropdown when menu is open */
+@media (min-width: 769px) {
+  .nav-mobile-open .nav-links {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 64px;
+    right: 24px;
+    background: var(--dark2);
+    border: 1.5px solid var(--bd2);
+    border-radius: var(--r2);
+    padding: 16px 20px;
+    box-shadow: var(--sh2);
+    gap: 8px;
+    min-width: 220px;
+    z-index: 199;
+    animation: fadeUp 300ms ease both;
+  }
+  .nav-mobile-open .nav-links li {
+    width: 100%;
+  }
+  .nav-mobile-open .nav-links li a {
+    display: block;
+    padding: 8px 12px;
+    width: 100%;
+  }
 }
 
 /* ─── Responsive ────────────────────────────────────────────────────────── */
@@ -1188,7 +1226,7 @@ body::before {
     display: none;
   }
   .nav-mobile-toggle {
-    display: block;
+    display: inline-flex;
   }
   .nav-mobile-open .nav-desktop {
     display: flex;
@@ -1205,7 +1243,12 @@ body::before {
     z-index: 199;
   }
   .nav-mobile-open .nav-links {
+    display: flex;
     flex-direction: column;
+    width: 100%;
+    margin-bottom: 12px;
+  }
+  .nav-mobile-open .nav-links li {
     width: 100%;
   }
   .nav-mobile-open .nav-links li a {
@@ -1215,6 +1258,8 @@ body::before {
   .nav-mobile-open .nav-cta {
     flex-direction: column;
     width: 100%;
+    border-top: 1px solid var(--bd);
+    padding-top: 12px;
   }
   .nav-mobile-open .nav-cta .btn {
     width: 100%;
