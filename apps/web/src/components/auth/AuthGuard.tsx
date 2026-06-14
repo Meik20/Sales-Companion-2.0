@@ -123,8 +123,7 @@ export function AuthGuard({ children }: PropsWithChildren) {
   if (!user) return null
 
   // ── Email verification pending screen ─────────────────────────────────────
-  // SUSPENDU: On désactive temporairement le blocage
-  const isPending = false // (user as { emailVerificationPending?: boolean }).emailVerificationPending
+  const isPending = !!(user as { emailVerificationPending?: boolean }).emailVerificationPending
   const firebaseEmailVerified = auth.currentUser?.emailVerified
 
   if (isPending && !firebaseEmailVerified && !finalizing) {

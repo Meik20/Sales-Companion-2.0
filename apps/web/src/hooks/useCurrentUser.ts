@@ -51,6 +51,14 @@ export function useCurrentUser() {
         (snapshot) => {
           if (snapshot.exists()) {
             const data = snapshot.data()
+
+            // Sync email if changed & verified in Firebase Auth
+            if (firebaseUser.email && data.email !== firebaseUser.email) {
+              updateDoc(userDocRef, { email: firebaseUser.email }).catch((err) => {
+                console.error("Failed to sync email to Firestore:", err)
+              })
+            }
+
             const today = new Date().toISOString().split('T')[0]
             const currentDailyUsed = data.lastResetDate === today ? (data.dailyUsed ?? 0) : 0
 

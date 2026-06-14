@@ -7,7 +7,10 @@ import {
   updateProfile,
   signInWithPopup,
   signInWithRedirect,
-  getRedirectResult
+  getRedirectResult,
+  sendEmailVerification,
+  sendPasswordResetEmail,
+  verifyBeforeUpdateEmail
 } from 'firebase/auth'
 import { doc, setDoc, getDoc, Timestamp } from 'firebase/firestore'
 import { auth, firestore, googleProvider } from '@/services/firebase/client'
@@ -82,9 +85,9 @@ export function useAuthActions() {
           plan: 'free',
           dailyLimit: 10,
           dailyUsed: 0,
-          active: true,
-          activated: true,
-          emailVerificationPending: false,
+          active: false,
+          activated: false,
+          emailVerificationPending: true,
           createdAt: Timestamp.now(),
           updatedAt: Timestamp.now(),
           lastLogin: Timestamp.now(),
@@ -100,6 +103,17 @@ export function useAuthActions() {
         },
         { merge: false }
       )
+
+      // Send email verification link
+      try {
+        const actionCodeSettings = {
+          url: typeof window !== 'undefined' ? `${window.location.origin}/login` : 'http://localhost:3000/login',
+          handleCodeInApp: false
+        }
+        await sendEmailVerification(user, actionCodeSettings)
+      } catch (emailErr) {
+        console.error('Initial email verification send failed:', emailErr)
+      }
 
       // ✅ FORCE TOKEN REFRESH to get custom claims
       await user.getIdToken(true)
@@ -157,6 +171,32 @@ export function useAuthActions() {
     }
   }
 
+  const sendPasswordReset = async (email: string) => {
+    try {
+      const actionCodeSettings = {
+        url: typeof window !== 'undefined' ? `${window.location.origin}/login` : 'http://localhost:3000/login',
+        handleCodeInApp: false
+      }
+      await sendPasswordResetEmail(auth, email, actionCodeSettings)
+    } catch (error) {
+      throw error
+    }
+  }
+
+  const updateUserEmail = async (newEmail: string) => {
+    try {
+      const currentUser = auth.currentUser
+      if (!currentUser) throw new Error("Aucun utilisateur connecté")
+      const actionCodeSettings = {
+        url: typeof window !== 'undefined' ? `${window.location.origin}/settings` : 'http://localhost:3000/settings',
+        handleCodeInApp: false
+      }
+      await verifyBeforeUpdateEmail(currentUser, newEmail, actionCodeSettings)
+    } catch (error) {
+      throw error
+    }
+  }
+
   const logout = async () => {
     try {
       await signOut(auth)
@@ -165,7 +205,14 @@ export function useAuthActions() {
     }
   }
 
-  return { registerWithEmail, loginWithEmail, loginWithGoogle, logout }
+  return {
+    registerWithEmail,
+    loginWithEmail,
+    loginWithGoogle,
+    sendPasswordReset,
+    updateUserEmail,
+    logout
+  }
 }
 
 /**

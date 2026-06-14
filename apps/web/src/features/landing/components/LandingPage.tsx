@@ -188,7 +188,7 @@ export function LandingPage() {
                 </a>
               </li>
               <li>
-                <a href="#privacy" title="Confidentialité des données commerciales">
+                <a href="/privacy" title="Politique de confidentialité des données">
                   Confidentialité
                 </a>
               </li>
@@ -1545,7 +1545,10 @@ export function LandingPage() {
                     <a href="/login">{t('landing.footer.account')}</a>
                   </li>
                   <li>
-                    <a href="#privacy">Confidentialité des données</a>
+                    <a href="/privacy">Politique de confidentialité</a>
+                  </li>
+                  <li>
+                    <a href="/terms">Conditions d&apos;utilisation</a>
                   </li>
                 </ul>
               </nav>
@@ -1572,11 +1575,15 @@ export function LandingPage() {
 
           <div className="footer-bottom">
             <span>© 2025 Sales Companion 2.0. {t('landing.footer.rights')}</span>
-            <span>
-              <span className="footer-flag" aria-label="Drapeau Cameroun">
-                🇨🇲
+            <span style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap', justifyContent: 'center' }}>
+              <a href="/privacy" style={{ color: 'var(--tx3)', fontSize: '12px', textDecoration: 'none' }}>Confidentialité</a>
+              <span style={{ color: 'var(--tx3)', fontSize: '12px' }}>·</span>
+              <a href="/terms" style={{ color: 'var(--tx3)', fontSize: '12px', textDecoration: 'none' }}>CGU</a>
+              <span style={{ color: 'var(--tx3)', fontSize: '12px' }}>·</span>
+              <span>
+                <span className="footer-flag" aria-label="Drapeau Cameroun">🇨🇲</span>
+                Intelligence B2B Cameroun
               </span>
-              Intelligence B2B Cameroun
             </span>
           </div>
         </div>

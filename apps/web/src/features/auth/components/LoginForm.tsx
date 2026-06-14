@@ -16,7 +16,7 @@ import { useTranslation } from '@/providers/I18nProvider'
 
 export function LoginForm() {
   const { t } = useTranslation()
-  const { loginWithEmail, loginWithGoogle } = useAuthActions()
+  const { loginWithEmail, loginWithGoogle, sendPasswordReset } = useAuthActions()
   const router = useRouter()
   const { user, loading: authLoading } = useCurrentUser()
 
@@ -41,6 +41,11 @@ export function LoginForm() {
   const [accessId, setAccessId] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
 
+  // Reset password mode
+  const [isResetMode, setIsResetMode] = useState(false)
+  const [resetEmail, setResetEmail] = useState('')
+  const [resetSuccess, setResetSuccess] = useState(false)
+
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -64,6 +69,25 @@ export function LoginForm() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+
+    if (isResetMode) {
+      if (!resetEmail) {
+        setError(t('auth.errorFillAll'))
+        return
+      }
+      setLoading(true)
+      setError(null)
+      setResetSuccess(false)
+      try {
+        await sendPasswordReset(resetEmail)
+        setResetSuccess(true)
+      } catch (err) {
+        setError(mapAuthError(err))
+      } finally {
+        setLoading(false)
+      }
+      return
+    }
 
     if (isActivationMode) {
       if (!accessId || !email || !password || !confirmPassword) {
@@ -182,15 +206,23 @@ export function LoginForm() {
             letterSpacing: '-.03em'
           }}
         >
-          {isActivationMode ? t('auth.activateTitle') : t('auth.loginTitle')}
+          {isResetMode
+            ? 'Réinitialiser le mot de passe'
+            : isActivationMode
+              ? t('auth.activateTitle')
+              : t('auth.loginTitle')}
         </h1>
         <p style={{ margin: 0, fontSize: 13, color: colors.textMid }}>
-          {isActivationMode ? t('auth.activateSubtitle') : t('auth.loginSubtitle')}
+          {isResetMode
+            ? 'Saisissez votre e-mail pour recevoir un lien de réinitialisation.'
+            : isActivationMode
+              ? t('auth.activateSubtitle')
+              : t('auth.loginSubtitle')}
         </p>
       </div>
 
-      {/* Google Sign-In button (only in login mode, not activation) */}
-      {!isActivationMode && (
+      {/* Google Sign-In button (only in normal login mode) */}
+      {!isActivationMode && !isResetMode && (
         <>
           <style dangerouslySetInnerHTML={{ __html: `@keyframes spin { to { transform: rotate(360deg); } }` }} />
           <button
@@ -268,93 +300,190 @@ export function LoginForm() {
         </>
       )}
 
-      <form
-        onSubmit={(e) => void handleSubmit(e)}
-        style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
-      >
-        {isActivationMode && (
-          <FormField label={t('auth.accessId')} required>
+      {isResetMode ? (
+        <form
+          onSubmit={(e) => void handleSubmit(e)}
+          style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
+        >
+          <FormField label={t('auth.email')} required>
             <Input
-              type="text"
-              placeholder="Ex: jeandupont@entreprise"
-              value={accessId}
-              onChange={(e) => setAccessId(e.target.value)}
+              type="email"
+              placeholder="vous@exemple.cm"
+              value={resetEmail}
+              onChange={(e) => setResetEmail(e.target.value)}
             />
           </FormField>
-        )}
 
-        <FormField label={t('auth.email')} required>
-          <Input
-            type="email"
-            placeholder="vous@exemple.cm"
-            value={email}
-            autoComplete="email"
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </FormField>
+          {resetSuccess && (
+            <div
+              style={{
+                padding: '10px 14px',
+                background: 'rgba(46,160,90,0.08)',
+                border: '1px solid rgba(46,160,90,0.25)',
+                borderRadius: 8,
+                fontSize: 13,
+                color: colors.greenMid
+              }}
+            >
+              Un email de réinitialisation a été envoyé à l&apos;adresse indiquée.
+            </div>
+          )}
 
-        <FormField label={isActivationMode ? t('auth.newPassword') : t('auth.password')} required>
-          <Input
-            type="password"
-            placeholder="••••••••"
-            value={password}
-            autoComplete={isActivationMode ? 'new-password' : 'current-password'}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </FormField>
+          {error && (
+            <div
+              style={{
+                padding: '10px 14px',
+                background: 'rgba(239,68,68,0.08)',
+                border: '1px solid rgba(239,68,68,0.25)',
+                borderRadius: 8,
+                fontSize: 13,
+                color: '#f87171'
+              }}
+            >
+              {error}
+            </div>
+          )}
 
-        {isActivationMode && (
-          <FormField label={t('auth.confirmPassword')} required>
-            <Input
-              type="password"
-              placeholder="••••••••"
-              value={confirmPassword}
-              autoComplete="new-password"
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
-          </FormField>
-        )}
+          <Button
+            type="submit"
+            variant="primary"
+            size="lg"
+            loading={loading}
+            style={{ width: '100%', marginTop: 4 }}
+          >
+            Envoyer le lien de réinitialisation
+          </Button>
 
-        {error ? (
-          <div
-            style={{
-              padding: '10px 14px',
-              background: 'rgba(239,68,68,0.08)',
-              border: '1px solid rgba(239,68,68,0.25)',
-              borderRadius: 8,
-              fontSize: 13,
-              color: '#f87171'
+          <Button
+            type="button"
+            variant="outline"
+            size="lg"
+            style={{ width: '100%' }}
+            onClick={() => {
+              setIsResetMode(false)
+              setResetSuccess(false)
+              setError(null)
             }}
           >
-            {error}
-          </div>
-        ) : null}
-
-        <Button
-          type="submit"
-          variant="primary"
-          size="lg"
-          loading={loading}
-          style={{ width: '100%', marginTop: 4 }}
+            Retour à la connexion
+          </Button>
+        </form>
+      ) : (
+        <form
+          onSubmit={(e) => void handleSubmit(e)}
+          style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
         >
-          {isActivationMode ? t('auth.activateBtn') : t('auth.loginBtn')}
-        </Button>
+          {isActivationMode && (
+            <FormField label={t('auth.accessId')} required>
+              <Input
+                type="text"
+                placeholder="Ex: jeandupont@entreprise"
+                value={accessId}
+                onChange={(e) => setAccessId(e.target.value)}
+              />
+            </FormField>
+          )}
 
-        <Button
-          type="button"
-          variant="outline"
-          size="lg"
-          style={{ width: '100%' }}
-          onClick={() => {
-            setIsActivationMode(!isActivationMode)
-            setError(null)
-          }}
-        >
-          {isActivationMode ? t('auth.switchToLogin') : t('auth.switchToActivate')}
-        </Button>
-      </form>
+          <FormField label={t('auth.email')} required>
+            <Input
+              type="email"
+              placeholder="vous@exemple.cm"
+              value={email}
+              autoComplete="email"
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </FormField>
 
-      {!isActivationMode && (
+          <FormField label={isActivationMode ? t('auth.newPassword') : t('auth.password')} required>
+            <div style={{ position: 'relative' }}>
+              <Input
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                autoComplete={isActivationMode ? 'new-password' : 'current-password'}
+                onChange={(e) => setPassword(e.target.value)}
+                style={{ paddingRight: 80 }}
+              />
+              {!isActivationMode && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsResetMode(true)
+                    setError(null)
+                  }}
+                  style={{
+                    position: 'absolute',
+                    right: 12,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    color: colors.greenMid,
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    fontFamily: 'inherit'
+                  }}
+                >
+                  Oublié ?
+                </button>
+              )}
+            </div>
+          </FormField>
+
+          {isActivationMode && (
+            <FormField label={t('auth.confirmPassword')} required>
+              <Input
+                type="password"
+                placeholder="••••••••"
+                value={confirmPassword}
+                autoComplete="new-password"
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+            </FormField>
+          )}
+
+          {error ? (
+            <div
+              style={{
+                padding: '10px 14px',
+                background: 'rgba(239,68,68,0.08)',
+                border: '1px solid rgba(239,68,68,0.25)',
+                borderRadius: 8,
+                fontSize: 13,
+                color: '#f87171'
+              }}
+            >
+              {error}
+            </div>
+          ) : null}
+
+          <Button
+            type="submit"
+            variant="primary"
+            size="lg"
+            loading={loading}
+            style={{ width: '100%', marginTop: 4 }}
+          >
+            {isActivationMode ? t('auth.activateBtn') : t('auth.loginBtn')}
+          </Button>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="lg"
+            style={{ width: '100%' }}
+            onClick={() => {
+              setIsActivationMode(!isActivationMode)
+              setError(null)
+            }}
+          >
+            {isActivationMode ? t('auth.switchToLogin') : t('auth.switchToActivate')}
+          </Button>
+        </form>
+      )}
+
+      {!isActivationMode && !isResetMode && (
         <p style={{ textAlign: 'center', marginTop: 24, fontSize: 13, color: colors.textMid }}>
           {t('auth.noAccount')}{' '}
           <Link href={routes.register} style={{ color: colors.greenMid, fontWeight: 600 }}>

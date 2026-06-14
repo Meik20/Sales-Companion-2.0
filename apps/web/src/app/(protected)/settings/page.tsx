@@ -11,6 +11,10 @@ import { useToast } from '@/hooks/useToast'
 import { useTranslation } from '@/providers/I18nProvider'
 import { colors } from '@/styles/tokens'
 import { routes } from '@/constants/routes'
+import { Input } from '@/components/ui/Input'
+import { Button } from '@/components/ui/Button'
+import { useAuthActions } from '@/features/auth/hooks/useAuthActions'
+import { auth } from '@/services/firebase/client'
 
 const planDetails = {
   free: {
@@ -62,6 +66,51 @@ export default function SettingsPage() {
   const { user } = useCurrentUser()
   const { pushToast } = useToast()
   const router = useRouter()
+
+  const { updateUserEmail, sendPasswordReset } = useAuthActions()
+
+  const [newEmail, setNewEmail] = useState('')
+  const [emailLoading, setEmailLoading] = useState(false)
+  const [emailError, setEmailError] = useState<string | null>(null)
+  const [emailSuccess, setEmailSuccess] = useState<string | null>(null)
+
+  const [pwLoading, setPwLoading] = useState(false)
+  const [pwError, setPwError] = useState<string | null>(null)
+  const [pwSuccess, setPwSuccess] = useState<string | null>(null)
+
+  const isGoogleUser = auth.currentUser?.providerData.some(p => p.providerId === 'google.com') ?? false
+
+  const handleUpdateEmail = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newEmail) return
+    setEmailLoading(true)
+    setEmailError(null)
+    setEmailSuccess(null)
+    try {
+      await updateUserEmail(newEmail)
+      setEmailSuccess(`Un e-mail de vérification a été envoyé à ${newEmail}. Veuillez cliquer sur le lien pour confirmer le changement.`)
+      setNewEmail('')
+    } catch (err: any) {
+      setEmailError(err.message || "Erreur lors de la mise à jour de l'e-mail")
+    } finally {
+      setEmailLoading(false)
+    }
+  }
+
+  const handlePasswordReset = async () => {
+    if (!user?.email) return
+    setPwLoading(true)
+    setPwError(null)
+    setPwSuccess(null)
+    try {
+      await sendPasswordReset(user.email)
+      setPwSuccess(`Un e-mail de réinitialisation de mot de passe a été envoyé à ${user.email}`)
+    } catch (err: any) {
+      setPwError(err.message || "Erreur lors de l'envoi de l'e-mail")
+    } finally {
+      setPwLoading(false)
+    }
+  }
 
   const plan = user?.plan ?? 'free'
   const planInfo = planDetails[plan as keyof typeof planDetails] ?? planDetails.free
@@ -285,16 +334,110 @@ export default function SettingsPage() {
             </div>
           </DataCard>
 
-          {/* ── Compte ──────────────────────────────────────────── */}
-          {user?.role !== 'manager' ? (
-            <DataCard title={t('settings.account')}>
-              <EmptyState
-                title={t('settings.noAdvancedParams')}
-                description={t('settings.managerUpgradeHint')}
-                icon="⚙️"
-              />
-            </DataCard>
-          ) : null}
+          {/* ── Sécurité & Compte ────────────────────────────────── */}
+          <DataCard title="Sécurité & Compte" subtitle="Gérez vos informations de connexion et de sécurité">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+              
+              {/* Adresse E-mail Section */}
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 12,
+                borderBottom: `1px solid ${colors.border}`,
+                paddingBottom: 24
+              }}>
+                <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: colors.text }}>
+                  Adresse e-mail
+                </h3>
+                <p style={{ margin: 0, fontSize: 13, color: colors.textMid }}>
+                  Votre adresse e-mail actuelle est : <strong style={{ color: colors.text }}>{user?.email}</strong>
+                </p>
+                
+                {isGoogleUser ? (
+                  <div style={{
+                    padding: '10px 14px',
+                    background: 'rgba(255,255,255,0.03)',
+                    border: `1px solid ${colors.border}`,
+                    borderRadius: 8,
+                    fontSize: 12,
+                    color: colors.textMid
+                  }}>
+                    Votre compte est associé à Google. Les modifications d&apos;adresse e-mail doivent être effectuées depuis votre compte Google.
+                  </div>
+                ) : (
+                  <form onSubmit={handleUpdateEmail} style={{ display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 400 }}>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <Input
+                        type="email"
+                        placeholder="Nouvelle adresse e-mail"
+                        value={newEmail}
+                        onChange={(e) => setNewEmail(e.target.value)}
+                        required
+                      />
+                      <Button
+                        type="submit"
+                        variant="primary"
+                        loading={emailLoading}
+                        style={{ flexShrink: 0 }}
+                      >
+                        Mettre à jour
+                      </Button>
+                    </div>
+                    {emailError && (
+                      <div style={{ fontSize: 12, color: '#f87171' }}>{emailError}</div>
+                    )}
+                    {emailSuccess && (
+                      <div style={{ fontSize: 12, color: colors.greenMid }}>{emailSuccess}</div>
+                    )}
+                    <span style={{ fontSize: 11, color: colors.textDim }}>
+                      Un e-mail de confirmation sera envoyé à la nouvelle adresse pour valider le changement.
+                    </span>
+                  </form>
+                )}
+              </div>
+
+              {/* Mot de passe Section */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: colors.text }}>
+                  Mot de passe
+                </h3>
+                
+                {isGoogleUser ? (
+                  <div style={{
+                    padding: '10px 14px',
+                    background: 'rgba(255,255,255,0.03)',
+                    border: `1px solid ${colors.border}`,
+                    borderRadius: 8,
+                    fontSize: 12,
+                    color: colors.textMid
+                  }}>
+                    Votre compte est associé à Google. Votre mot de passe est géré de manière sécurisée par Google.
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'flex-start' }}>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => void handlePasswordReset()}
+                      loading={pwLoading}
+                    >
+                      Envoyer l&apos;email de réinitialisation
+                    </Button>
+                    {pwError && (
+                      <div style={{ fontSize: 12, color: '#f87171' }}>{pwError}</div>
+                    )}
+                    {pwSuccess && (
+                      <div style={{ fontSize: 12, color: colors.greenMid }}>{pwSuccess}</div>
+                    )}
+                    <span style={{ fontSize: 11, color: colors.textDim }}>
+                      Nous vous enverrons un lien de réinitialisation sécurisé par e-mail.
+                    </span>
+                  </div>
+                )}
+              </div>
+
+            </div>
+          </DataCard>
         </div>
       </AppShell>
     </main>
