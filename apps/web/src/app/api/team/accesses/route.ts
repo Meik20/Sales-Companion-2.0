@@ -136,7 +136,7 @@ export async function POST(request: NextRequest) {
         })
 
         if (emailResult && emailResult.success) {
-          emailStatus = emailResult.simulated ? 'simulated' : 'sent'
+          emailStatus = ('simulated' in emailResult && emailResult.simulated) ? 'simulated' : 'sent'
         } else {
           emailStatus = 'failed'
           emailError = emailResult?.error
