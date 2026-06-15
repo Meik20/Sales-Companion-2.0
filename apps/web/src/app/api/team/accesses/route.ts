@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { adminDb, adminAuth } from '@/lib/firebase-admin'
+import { sendEmail } from '@/utils/email'
 
 function normalizeText(text: string) {
   return (text || '')
@@ -78,7 +79,57 @@ export async function POST(request: NextRequest) {
 
     const docRef = await adminDb.collection('team_accesses').add(newAccess)
 
-    // TODO: Brancher SendGrid ou Brevo ici pour envoyer l'email si "email" est fourni.
+    const magicLink = `${process.env.NEXT_PUBLIC_APP_URL || 'https://salescompanion2-0.com'}/activate?code=${magicCode}`
+
+    if (email) {
+      const emailHtml = `
+        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 550px; margin: 0 auto; padding: 30px; border: 1px solid #eef2f6; border-radius: 12px; background-color: #ffffff; color: #1e293b; line-height: 1.6;">
+          <div style="text-align: center; margin-bottom: 25px;">
+            <span style="font-size: 24px; font-weight: 800; color: #185FA5; letter-spacing: -0.5px;">Sales Companion 2.0</span>
+          </div>
+          
+          <h2 style="font-size: 20px; font-weight: 700; color: #0f172a; margin-top: 0; margin-bottom: 15px;">Invitation à rejoindre l'équipe</h2>
+          
+          <p style="margin-bottom: 20px; font-size: 15px; color: #475569;">
+            Bonjour <strong>${firstname} ${lastname}</strong>,
+          </p>
+          
+          <p style="margin-bottom: 20px; font-size: 15px; color: #475569;">
+            Votre manager vous a généré un accès membre pour rejoindre l'espace commercial de l'entreprise <strong>${company}</strong>.
+          </p>
+          
+          <div style="background-color: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 15px; margin-bottom: 25px; text-align: center;">
+            <span style="display: block; font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 700; margin-bottom: 4px;">Identifiant d'accès (Access ID)</span>
+            <code style="font-family: monospace; font-size: 16px; font-weight: 700; color: #0f172a; letter-spacing: 0.5px;">${accessId}</code>
+          </div>
+
+          <div style="text-align: center; margin-bottom: 30px;">
+            <a href="${magicLink}" target="_blank" style="display: inline-block; background-color: #185FA5; color: #ffffff; font-weight: 600; font-size: 15px; padding: 12px 30px; border-radius: 8px; text-decoration: none; box-shadow: 0 4px 6px -1px rgba(24, 95, 165, 0.2), 0 2px 4px -1px rgba(24, 95, 165, 0.1); transition: all 150ms ease;">
+              Activer mon compte
+            </a>
+          </div>
+
+          <p style="font-size: 13px; color: #64748b; margin-bottom: 25px; text-align: center;">
+            Ou copiez-collez ce lien : <br/>
+            <a href="${magicLink}" style="color: #185FA5; text-decoration: underline; word-break: break-all;">${magicLink}</a>
+          </p>
+
+          <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 25px 0;" />
+          
+          <p style="font-size: 11px; color: #94a3b8; margin: 0; text-align: center;">
+            Cet e-mail est généré automatiquement. Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet e-mail.
+          </p>
+        </div>
+      `
+
+      await sendEmail({
+        to: email.trim(),
+        subject: `Sales Companion 2.0 — Invitation de ${company}`,
+        html: emailHtml
+      }).catch(err => {
+        console.error('[team/accesses] Failed to send activation email:', err)
+      })
+    }
 
     return NextResponse.json({ 
       success: true, 
