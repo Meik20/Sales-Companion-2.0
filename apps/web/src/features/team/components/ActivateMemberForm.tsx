@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { FormField } from '@/components/forms/FormField'
@@ -27,6 +27,12 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
     isError: isErrorInfo,
     error: infoError
   } = useGetAccessInfo(accessId)
+
+  useEffect(() => {
+    if (accessInfo?.email && !email) {
+      setEmail(accessInfo.email)
+    }
+  }, [accessInfo, email])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()

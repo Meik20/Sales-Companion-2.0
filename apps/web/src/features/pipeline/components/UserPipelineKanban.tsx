@@ -61,7 +61,9 @@ export function UserPipelineKanban({ items, onStatusChange, onItemClick }: Props
     }
     items.forEach(item => {
       const status = normalizeStatus(item.status)
-      newCols[status].push(item)
+      if (newCols[status]) {
+        newCols[status].push(item)
+      }
     })
     setColumns(newCols)
   }, [items])

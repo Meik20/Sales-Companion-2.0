@@ -59,7 +59,8 @@ export function TeamAccessManager() {
 
   const [accesses, setAccesses] = useState<any[]>([])
   const [loadingAccesses, setLoadingAccesses] = useState(false)
-  const [formData, setFormData] = useState({ firstname: '', lastname: '', company: '' })
+  const [formData, setFormData] = useState({ firstname: '', lastname: '', company: '', email: '' })
+  const [permissions, setPermissions] = useState({ canExport: false, canDelete: false, canAssign: false })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
@@ -128,20 +129,29 @@ export function TeamAccessManager() {
         body: JSON.stringify({
           firstname: formData.firstname,
           lastname: formData.lastname,
-          company: formData.company || user.companyName || 'Entreprise'
+          company: formData.company || user.companyName || 'Entreprise',
+          email: formData.email,
+          permissions
         })
       })
 
       const data = await res.json()
       if (!res.ok) throw new Error(data.message || data.error || 'Erreur lors de la création')
 
-      pushToast({ type: 'success', title: `Accès créé ! ID: ${data.accessId.toLowerCase()}` })
-      setFormData({ firstname: '', lastname: '', company: '' })
+      pushToast({ type: 'success', title: `Accès créé ! Lien généré.` })
+      setFormData({ firstname: '', lastname: '', company: '', email: '' })
+      setPermissions({ canExport: false, canDelete: false, canAssign: false })
     } catch (e: any) {
       pushToast({ type: 'error', title: `Erreur: ${e.message}` })
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  const copyLink = async (magicCode: string) => {
+    const link = `${window.location.origin}/activate?code=${magicCode}`
+    await navigator.clipboard.writeText(link)
+    pushToast({ type: 'info', title: `Lien magique copié !` })
   }
 
   const copyId = async (id: string) => {
@@ -281,6 +291,57 @@ export function TeamAccessManager() {
                 style={{ borderRadius: 10, padding: '12px 14px' }}
               />
             </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <label
+                style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: colors.textMid,
+                  textTransform: 'uppercase',
+                  paddingLeft: 4
+                }}
+              >
+                Email (Envoi lien direct)
+              </label>
+              <Input
+                type="email"
+                placeholder="email@exemple.com"
+                value={formData.email}
+                onChange={(e) => setFormData((p) => ({ ...p, email: e.target.value }))}
+                style={{ borderRadius: 10, padding: '12px 14px' }}
+              />
+            </div>
+          </div>
+
+          {/* Permissions Toggles */}
+          <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', padding: '12px 16px', background: 'rgba(255,255,255,0.02)', borderRadius: 12, border: `1px solid ${colors.border}` }}>
+             <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, cursor: 'pointer' }}>
+               <input 
+                 type="checkbox" 
+                 checked={permissions.canExport} 
+                 onChange={(e) => setPermissions(p => ({ ...p, canExport: e.target.checked }))} 
+                 style={{ accentColor: '#6366f1', width: 16, height: 16 }}
+               />
+               Peut exporter les données
+             </label>
+             <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, cursor: 'pointer' }}>
+               <input 
+                 type="checkbox" 
+                 checked={permissions.canDelete} 
+                 onChange={(e) => setPermissions(p => ({ ...p, canDelete: e.target.checked }))} 
+                 style={{ accentColor: '#6366f1', width: 16, height: 16 }}
+               />
+               Peut supprimer des prospects
+             </label>
+             <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, cursor: 'pointer' }}>
+               <input 
+                 type="checkbox" 
+                 checked={permissions.canAssign} 
+                 onChange={(e) => setPermissions(p => ({ ...p, canAssign: e.target.checked }))} 
+                 style={{ accentColor: '#6366f1', width: 16, height: 16 }}
+               />
+               Peut réassigner des prospects
+             </label>
           </div>
 
           {/* Quota Collaborateurs */}
@@ -549,16 +610,28 @@ export function TeamAccessManager() {
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                      {/* Copy ID — only for pending */}
-                      {displayStatus === 'pending' && (
-                        <button
-                          title={t('team.copyAccessId')}
-                          onClick={() => copyId(acc.accessId)}
-                          style={btnStyle('#6366f1')}
-                        >
-                          <Copy size={13} /> {t('team.copy')}
-                        </button>
-                      )}
+                      {/* Copy Link / ID — only for pending */}
+                      {displayStatus === 'pending' || displayStatus === 'pending_email' ? (
+                        <>
+                          {acc.magicCode ? (
+                            <button
+                              title="Copier le lien magique d'activation"
+                              onClick={() => copyLink(acc.magicCode)}
+                              style={{ ...btnStyle('#10b981'), fontWeight: 700 }}
+                            >
+                              <Copy size={13} /> Lien d'accès
+                            </button>
+                          ) : (
+                            <button
+                              title={t('team.copyAccessId')}
+                              onClick={() => copyId(acc.accessId)}
+                              style={btnStyle('#6366f1')}
+                            >
+                              <Copy size={13} /> {t('team.copy')} ID
+                            </button>
+                          )}
+                        </>
+                      ) : null}
                       {/* Revoke — only for non-revoked */}
                       {displayStatus !== 'revoked' && (
                         <button

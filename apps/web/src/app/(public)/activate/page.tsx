@@ -23,7 +23,7 @@ function ActivateContent() {
   const { t } = useTranslation()
   const searchParams = useSearchParams()
   const router = useRouter()
-  const urlAccessId = searchParams.get('accessId') ?? ''
+  const urlAccessId = searchParams.get('accessId') ?? searchParams.get('code') ?? ''
   const [accessId, setAccessId] = useState(urlAccessId)
   const [manualAccessId, setManualAccessId] = useState('')
   const [step, setStep] = useState<ActivateStep>('form')
