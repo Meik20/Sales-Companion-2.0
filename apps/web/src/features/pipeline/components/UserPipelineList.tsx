@@ -715,50 +715,50 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
         />
       )}
 
-      {/* View Toggle */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
-         <div style={{ display: 'flex', background: colors.bg3, padding: 4, borderRadius: 8, border: `1px solid ${colors.border}` }}>
+      {/* ── View Toggle ── */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 20 }}>
+        <div
+          style={{
+            display: 'flex',
+            background: colors.bg3,
+            padding: 4,
+            borderRadius: 12,
+            border: `1px solid ${colors.border}`,
+            gap: 2,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+          }}
+        >
+          {(['kanban', 'list'] as const).map((mode) => (
             <button
-               onClick={() => setViewMode('kanban')}
-               style={{
-                  padding: '6px 12px',
-                  borderRadius: 6,
-                  border: 'none',
-                  background: viewMode === 'kanban' ? colors.bg : 'transparent',
-                  color: viewMode === 'kanban' ? colors.text : colors.textMid,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  fontSize: 13,
-                  fontWeight: 600,
-                  boxShadow: viewMode === 'kanban' ? '0 2px 4px rgba(0,0,0,0.1)' : 'none',
-                  transition: 'all 0.2s ease'
-               }}
+              key={mode}
+              onClick={() => setViewMode(mode)}
+              style={{
+                padding: '7px 16px',
+                borderRadius: 8,
+                border: 'none',
+                background:
+                  viewMode === mode
+                    ? 'linear-gradient(135deg, rgba(99,102,241,0.2) 0%, rgba(139,92,246,0.2) 100%)'
+                    : 'transparent',
+                color: viewMode === mode ? '#a5b4fc' : colors.textMid,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 7,
+                fontSize: 13,
+                fontWeight: 700,
+                boxShadow:
+                  viewMode === mode ? '0 2px 8px rgba(99,102,241,0.15)' : 'none',
+                transition: 'all 200ms ease',
+                fontFamily: 'inherit',
+                borderRight: viewMode === mode ? '1px solid rgba(99,102,241,0.3)' : '1px solid transparent'
+              }}
             >
-               <LayoutGrid size={14} /> Kanban
+              {mode === 'kanban' ? <LayoutGrid size={14} /> : <List size={14} />}
+              {mode === 'kanban' ? 'Kanban' : 'Liste'}
             </button>
-            <button
-               onClick={() => setViewMode('list')}
-               style={{
-                  padding: '6px 12px',
-                  borderRadius: 6,
-                  border: 'none',
-                  background: viewMode === 'list' ? colors.bg : 'transparent',
-                  color: viewMode === 'list' ? colors.text : colors.textMid,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  fontSize: 13,
-                  fontWeight: 600,
-                  boxShadow: viewMode === 'list' ? '0 2px 4px rgba(0,0,0,0.1)' : 'none',
-                  transition: 'all 0.2s ease'
-               }}
-            >
-               <List size={14} /> Liste
-            </button>
-         </div>
+          ))}
+        </div>
       </div>
 
       {viewMode === 'kanban' ? (
@@ -768,120 +768,240 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
             onItemClick={setSelectedItem} 
          />
       ) : (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {items.map((item) => (
-          <div
-            key={item.id}
-            onClick={() => setSelectedItem(item)}
-            style={{
-              padding: '14px 18px',
-              background: colors.bg3,
-              border: `1px solid ${colors.border}`,
-              borderRadius: 12,
-              display: 'flex',
-              gap: 16,
-              alignItems: 'flex-start',
-              flexWrap: 'wrap',
-              cursor: 'pointer',
-              transition: 'all 200ms ease'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = 'rgba(99,102,241,0.4)'
-              e.currentTarget.style.background = colors.bg2
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = colors.border
-              e.currentTarget.style.background = colors.bg3
-            }}
-          >
-            {/* Content */}
-            <div style={{ flex: 1, minWidth: 200 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {items.map((item) => {
+          const accentColor =
+            item.status === 'prospection' || item.status === 'prospect'
+              ? '#60a5fa'
+              : item.status === 'negociation' || item.status === 'negotiation'
+                ? '#fb923c'
+                : '#4ade80'
+          const initials = item.companyName
+            .split(' ')
+            .slice(0, 2)
+            .map((w) => w[0])
+            .join('')
+            .toUpperCase()
+
+          return (
+            <div
+              key={item.id}
+              onClick={() => setSelectedItem(item)}
+              style={{
+                background: colors.bg3,
+                border: `1px solid ${colors.border}`,
+                borderLeft: `3px solid ${accentColor}`,
+                borderRadius: 14,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 14,
+                cursor: 'pointer',
+                transition: 'all 200ms ease',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                overflow: 'hidden'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = `${accentColor}66`
+                e.currentTarget.style.background = colors.bg2
+                e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.1)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = colors.border
+                e.currentTarget.style.borderLeftColor = accentColor
+                e.currentTarget.style.background = colors.bg3
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)'
+              }}
+            >
+              {/* Initials avatar */}
+              <div
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 10,
+                  background: `${accentColor}18`,
+                  border: `1px solid ${accentColor}30`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 12,
+                  fontWeight: 900,
+                  color: accentColor,
+                  flexShrink: 0,
+                  fontFamily: "'Syne', sans-serif",
+                  marginLeft: 12
+                }}
+              >
+                {initials}
+              </div>
+
+              {/* Content */}
+              <div style={{ flex: 1, minWidth: 0, padding: '14px 0' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                    marginBottom: 6,
+                    flexWrap: 'wrap'
+                  }}
+                >
+                  <strong
+                    style={{
+                      fontSize: 14,
+                      fontWeight: 800,
+                      color: colors.text,
+                      fontFamily: "'Syne', sans-serif",
+                      letterSpacing: '-0.01em'
+                    }}
+                  >
+                    {item.companyName}
+                  </strong>
+                  <Badge variant={statusVariant[item.status] ?? 'default'}>
+                    {statusLabel[item.status] ?? item.status}
+                  </Badge>
+                </div>
+
+                {/* Chip row */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {item.companySector && (
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        fontSize: 11,
+                        fontWeight: 600,
+                        color: colors.textMid,
+                        background: colors.bg2,
+                        border: `1px solid ${colors.border}`,
+                        borderRadius: 6,
+                        padding: '2px 8px'
+                      }}
+                    >
+                      <Building2 size={10} style={{ opacity: 0.7 }} />
+                      {item.companySector}
+                    </span>
+                  )}
+                  {item.companyCity && (
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        fontSize: 11,
+                        fontWeight: 600,
+                        color: colors.textMid,
+                        background: colors.bg2,
+                        border: `1px solid ${colors.border}`,
+                        borderRadius: 6,
+                        padding: '2px 8px'
+                      }}
+                    >
+                      <MapPin size={10} style={{ opacity: 0.7 }} />
+                      {item.companyCity}
+                    </span>
+                  )}
+                  {item.companyPhone && (
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        fontSize: 11,
+                        fontWeight: 600,
+                        color: '#22c55e',
+                        background: 'rgba(34,197,94,0.08)',
+                        border: '1px solid rgba(34,197,94,0.2)',
+                        borderRadius: 6,
+                        padding: '2px 8px'
+                      }}
+                    >
+                      <Phone size={10} />
+                      {item.companyPhone}
+                    </span>
+                  )}
+                  {(item.notes ?? item.note) && (
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        fontSize: 11,
+                        fontWeight: 600,
+                        color: '#fbbf24',
+                        background: 'rgba(251,191,36,0.08)',
+                        border: '1px solid rgba(251,191,36,0.2)',
+                        borderRadius: 6,
+                        padding: '2px 8px'
+                      }}
+                    >
+                      <MessageSquare size={10} />
+                      {t('pipeline.hasNotes')}
+                    </span>
+                  )}
+                  {item.assignedByName && (
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        fontSize: 11,
+                        fontWeight: 600,
+                        color: 'rgba(139,92,246,0.9)',
+                        background: 'rgba(139,92,246,0.08)',
+                        border: '1px solid rgba(139,92,246,0.2)',
+                        borderRadius: 6,
+                        padding: '2px 8px'
+                      }}
+                    >
+                      👤 {item.assignedByName}
+                    </span>
+                  )}
+                  {item.previousAssignees && item.previousAssignees.length > 0 && (
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        fontSize: 11,
+                        fontWeight: 600,
+                        color: '#f87171',
+                        background: 'rgba(239,68,68,0.08)',
+                        border: '1px solid rgba(239,68,68,0.2)',
+                        borderRadius: 6,
+                        padding: '2px 8px'
+                      }}
+                    >
+                      ⚠️ Déjà visité
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Arrow + Delete */}
               <div
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 10,
-                  marginBottom: 6,
-                  flexWrap: 'wrap'
+                  gap: 8,
+                  paddingRight: 14,
+                  flexShrink: 0
                 }}
               >
-                <strong style={{ fontSize: 14, color: colors.text }}>{item.companyName}</strong>
-                <Badge variant={statusVariant[item.status] ?? 'default'}>
-                  {statusLabel[item.status] ?? item.status}
-                </Badge>
-              </div>
-
-              <div
-                style={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  gap: '8px 16px',
-                  fontSize: 12,
-                  color: colors.textMid,
-                  marginTop: 4
-                }}
-              >
-                {item.companySector && (
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <Building2 size={12} style={{ opacity: 0.7 }} />
-                    {item.companySector}
-                  </span>
-                )}
-                {item.companyCity && (
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <MapPin size={12} style={{ opacity: 0.7 }} />
-                    {item.companyCity}
-                  </span>
-                )}
-                {item.companyPhone && (
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <Phone size={12} style={{ opacity: 0.7 }} />
-                    {item.companyPhone}
-                  </span>
-                )}
-                {item.companyEmail && (
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <Mail size={12} style={{ opacity: 0.7 }} />
-                    {item.companyEmail}
-                  </span>
-                )}
-                {(item.notes ?? item.note) && (
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#fbbf24' }}>
-                    <MessageSquare size={12} />
-                    {t('pipeline.hasNotes')}
-                  </span>
-                )}
-              </div>
-
-              {item.assignedByName && (
-                <div style={{ fontSize: 11, color: 'rgba(99,102,241,0.7)', marginTop: 5 }}>
-                  👤 {t('pipeline.assignedBy')} : {item.assignedByName}
-                </div>
-              )}
-
-              {item.previousAssignees && item.previousAssignees.length > 0 && (
-                <div style={{ fontSize: 11, color: '#f87171', marginTop: 5, fontWeight: 500 }}>
-                  ⚠️ Déjà visité par d'autres membres
-                </div>
-              )}
-
-              <div style={{ fontSize: 11, color: 'rgba(99,102,241,0.7)', marginTop: 5 }}>
-                {t('pipeline.clickForDetails')} →
+                <ChevronRight size={16} style={{ color: colors.textDim, opacity: 0.5 }} />
+                <Button
+                  size="sm"
+                  variant="danger"
+                  loading={deletingId === item.id}
+                  onClick={(e) => void handleDelete(e as React.MouseEvent, item.id)}
+                  style={{ padding: '0 8px', minHeight: 30 }}
+                >
+                  🗑️
+                </Button>
               </div>
             </div>
-
-            {/* Delete button — stop propagation */}
-            <Button
-              size="sm"
-              variant="danger"
-              loading={deletingId === item.id}
-              onClick={(e) => void handleDelete(e as React.MouseEvent, item.id)}
-              style={{ flexShrink: 0 }}
-            >
-              🗑️
-            </Button>
-          </div>
-        ))}
+          )
+        })}
       </div>
       )}
     </>
