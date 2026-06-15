@@ -94,18 +94,26 @@ const nextConfig: NextConfig = {
         ]
       },
 
-      // ── Pages publiques indexées (landing, annuaire) ─────────────────
+      // ── Pages publiques indexées (landing, blog, annuaire) ─────────────
       {
-        source: '/(|annuaire|annuaire/.*)',
+        source: '/(|blog|blog/.*|annuaire|annuaire/.*|terms|privacy)',
         headers: [
           { key: 'X-Robots-Tag', value: 'index, follow' },
           { key: 'Cross-Origin-Embedder-Policy', value: 'unsafe-none' }
         ]
       },
 
-      // ── Routes protégées : pas d'indexation ────────────────────────
+      // ── Routes protégées : pas d'indexation ────────────────────────────
+      // Le groupe de route (protected) est transparent dans l'URL Next.js.
+      // Les vraies URLs doivent être listées explicitement.
       {
-        source: '/(protected|admin)/(.*)',
+        source: '/(admin|settings|pipeline|search|profile|saved|ai|support|upgrade|activate)/:path*',
+        headers: [
+          { key: 'X-Robots-Tag', value: 'noindex, nofollow' }
+        ]
+      },
+      {
+        source: '/(admin|settings|pipeline|search|profile|saved|ai|support|upgrade|activate)',
         headers: [
           { key: 'X-Robots-Tag', value: 'noindex, nofollow' }
         ]

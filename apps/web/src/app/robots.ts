@@ -12,8 +12,35 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: '*',
-        allow: ['/', '/login', '/register'],
-        disallow: ['/api/', '/_next/', '/admin/', '/protected/']
+        // ── Pages publiques indexables ────────────────────────────────
+        allow: [
+          '/',
+          '/login',
+          '/register',
+          '/blog',
+          '/blog/',
+          '/annuaire',
+          '/annuaire/',
+          '/terms',
+          '/privacy'
+        ],
+        // ── Routes à ne pas indexer ───────────────────────────────────
+        // Note : le groupe de route (protected) est transparent dans l'URL.
+        // Les vraies URLs des pages protégées sont listées explicitement.
+        disallow: [
+          '/api/',
+          '/_next/',
+          '/admin/',
+          '/settings',
+          '/pipeline',
+          '/search',
+          '/profile',
+          '/saved',
+          '/ai',
+          '/support',
+          '/upgrade',
+          '/activate'
+        ]
       },
       // Block AI scrapers from all content to protect proprietary database
       { userAgent: 'GPTBot', disallow: ['/'] },
