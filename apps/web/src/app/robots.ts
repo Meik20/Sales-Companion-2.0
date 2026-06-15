@@ -39,7 +39,8 @@ export default function robots(): MetadataRoute.Robots {
           '/ai',
           '/support',
           '/upgrade',
-          '/activate'
+          '/activate',
+          '/reporting'
         ]
       },
       // Block AI scrapers from all content to protect proprietary database

@@ -12,6 +12,7 @@ export const routes = {
   support: '/support',
   ai: '/ai',
   team: '/team',
+  reporting: '/reporting',
   admin: '/admin/dashboard',
   adminDashboard: '/admin/dashboard',
   adminUsers: '/admin/users',

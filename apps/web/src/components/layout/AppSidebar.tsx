@@ -558,6 +558,7 @@ export function AppSidebar({
           <SectionDivider />
           <SectionLabel>{t('sidebar.team')}</SectionLabel>
           <SidebarLink href={routes.team} label={t('sidebar.teamManagement')} icon={Users} />
+          <SidebarLink href={routes.reporting} label="Tableau de bord" icon={BarChart2} />
         </>
       )}
 
