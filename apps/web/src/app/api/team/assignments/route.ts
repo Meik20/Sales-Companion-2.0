@@ -240,9 +240,31 @@ export async function POST(request: NextRequest) {
     // ── Step 2: Get member info ────────────────────────────────────────────
     const memberDoc = await adminDb.collection('users').doc(memberId).get()
     const memberData = memberDoc.data() || {}
-    const memberName = memberData.name ?? memberData.email ?? memberId
-    const memberEmail = memberData.email ?? ''
-    const memberAccessId = memberData.accessId ?? null
+    let memberName: string = memberData.name ?? ''
+    const memberEmail: string = memberData.email ?? ''
+    const memberAccessId: string | null = memberData.accessId ?? null
+
+    // If name is empty, fall back to team_accesses (firstname + lastname)
+    if (!memberName) {
+      const accessKey = memberAccessId || memberId
+      try {
+        const accessDoc = await adminDb
+          .collection('team_accesses')
+          .doc(accessKey.trim().toLowerCase())
+          .get()
+        if (accessDoc.exists) {
+          const ad = accessDoc.data()!
+          memberName = `${ad.firstname ?? ''} ${ad.lastname ?? ''}`.trim()
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+
+    // Final fallback: email or memberId (never expose raw UID — use email instead)
+    if (!memberName) {
+      memberName = memberEmail || ''
+    }
 
     // ── Step 2.5: Find previous assignees ──────────────────────────────────
     const prevAssigneesMap = new Map<
