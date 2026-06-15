@@ -1,7 +1,7 @@
 // Service Worker for Sales Companion PWA
-// v5 — adds apis.google.com and gstatic.com to bypass, forces cache clear
-const CACHE_NAME = 'sales-companion-v5'
-const STATIC_ASSETS = ['/offline.html']
+// v6 — Mobile PWA optimisation update
+const CACHE_NAME = 'sales-companion-v6'
+const STATIC_ASSETS = ['/offline.html', '/manifest.json', '/favicon.svg', '/icon-192.png']
 
 // Install — cache minimal static assets only
 self.addEventListener('install', (event) => {

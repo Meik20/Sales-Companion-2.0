@@ -1,12 +1,12 @@
 {
   "name": "Sales Companion 2.0",
-  "short_name": "SC 2.0",
-  "description": "Intelligence B2B Cameroun — Recherche d'entreprises, pipeline CRM et gestion d'équipe",
-  "start_url": "/login?source=pwa",
+  "short_name": "SalesComp",
+  "description": "Intelligence B2B Cameroun — Prospection, CRM pipeline et gestion d'équipe",
+  "start_url": "/search?source=pwa",
   "scope": "/",
   "display": "standalone",
   "background_color": "#0D1117",
-  "theme_color": "#1B7A3E",
+  "theme_color": "#185FA5",
   "orientation": "portrait-primary",
   "categories": ["business", "productivity"],
   "lang": "fr",
@@ -15,7 +15,7 @@
       "src": "/favicon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/icon-192.png",
@@ -28,18 +28,42 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
     }
   ],
   "screenshots": [],
   "shortcuts": [
     {
-      "name": "Recherche",
+      "name": "Recherche B2B",
+      "short_name": "Recherche",
+      "description": "Rechercher des entreprises camerounaises",
       "url": "/search",
       "icons": [{ "src": "/favicon.svg", "sizes": "any" }]
     },
     {
-      "name": "Pipeline",
+      "name": "Mon Pipeline",
+      "short_name": "Pipeline",
+      "description": "Gérer mes prospects",
       "url": "/pipeline",
+      "icons": [{ "src": "/favicon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Tableau de bord",
+      "short_name": "Dashboard",
+      "description": "Reporting de l'équipe (manager)",
+      "url": "/reporting",
+      "icons": [{ "src": "/favicon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Gestion d'équipe",
+      "short_name": "Équipe",
+      "description": "Gérer les accès de l'équipe",
+      "url": "/team",
       "icons": [{ "src": "/favicon.svg", "sizes": "any" }]
     }
   ]
