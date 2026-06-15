@@ -55,8 +55,12 @@ export async function POST(request: NextRequest) {
     // Génération d'un code magique pour l'activation simplifiée (Magic Link)
     const magicCode = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
 
+    const defaultLimits: Record<string, number> = { free: 10, starter: 50, pro: 200, enterprise: 1000 }
+    const managerPlan = managerData?.plan || 'free'
+
     const newAccess = {
       managerUid,
+      managerEmail: managerData?.email || null,
       accessId,
       firstname,
       lastname,
@@ -65,6 +69,8 @@ export async function POST(request: NextRequest) {
       status: email ? 'pending_email' : 'pending',
       activated: false,
       permissions: perms,
+      plan: managerPlan,
+      dailyLimit: managerData?.dailyLimit || defaultLimits[managerPlan] || 10,
       magicCode,
       createdAt: new Date(),
       updatedAt: new Date()
