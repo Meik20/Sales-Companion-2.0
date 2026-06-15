@@ -284,11 +284,11 @@ export function AssignmentsTable() {
                             fontWeight: 800
                           }}
                         >
-                          {(a.memberName || a.memberId || '?')[0]?.toUpperCase()}
+                          {(a.memberName || a.memberEmail || '?')[0]?.toUpperCase()}
                         </div>
                         <div>
                           <div style={{ fontWeight: 700, fontSize: 13, color: colors.text }}>
-                            {a.memberName || a.memberId?.toLowerCase()}
+                            {a.memberName || a.memberEmail || t('sidebar.member')}
                           </div>
                           <div style={{ fontSize: 11, color: colors.textMid }}>{a.memberEmail}</div>
                         </div>

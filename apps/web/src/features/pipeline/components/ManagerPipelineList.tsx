@@ -54,19 +54,18 @@ type Props = {
 function resolveMemberLabel(item: PipelineItem, members?: Member[]): string | null {
   if (!item.assignedTo) return null
 
-  // 1. Priorité : champs stockés directement dans le doc pipeline
-  if (item.memberName || item.memberAccessId) {
-    const name = item.memberName || ''
-    const id = (item.memberAccessId || '').toLowerCase()
-    return name && id ? `${name} (${id})` : name || id
+  // 1. Priorité : nom stocké directement dans le doc pipeline
+  if (item.memberName) {
+    return item.memberName
   }
 
   // 2. Fallback : chercher dans la liste des membres actifs
   const m = members?.find((m) => m.uid === item.assignedTo)
-  if (!m) return item.assignedTo // fallback ultime : afficher l'UID
-  const name = m.name || ''
-  const id = (m.accessId || m.email || '').toLowerCase()
-  return name && id ? `${name} (${id})` : name || id
+  if (m) {
+    return m.name || m.email || null
+  }
+
+  return null
 }
 
 const statusVariant: Record<string, 'info' | 'warning' | 'success'> = {
@@ -778,7 +777,7 @@ export function ManagerPipelineList({ items, members, managerUid }: Props) {
                       </div>
                       {item.assignedTo && item.assignedTo !== managerUid && (
                         <div style={{ fontSize: 11, color: 'rgba(99,102,241,0.7)', marginTop: 3 }}>
-                          👤 {resolveMemberLabel(item, members) ?? item.assignedTo}
+                          👤 {resolveMemberLabel(item, members) ?? t('sidebar.member')}
                         </div>
                       )}
                     </div>
