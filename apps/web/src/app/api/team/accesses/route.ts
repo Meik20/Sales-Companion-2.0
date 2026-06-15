@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
         emailStatus,
         emailError
       }, { status: 201 })
-
+    }
   } catch (error: any) {
     console.error('[team/accesses] ERREUR:', error.message)
     return NextResponse.json({ error: error.message }, { status: 500 })
