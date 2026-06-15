@@ -30,31 +30,42 @@ export async function POST(request: NextRequest) {
     }
 
     // ── 1. Chercher le document d'accès (plusieurs collections possibles) ──
-    let snap = await adminDb.collection('teamAccesses').doc(accessIdLower).get()
-    let col = 'teamAccesses'
+    let snap: any = null
+    const ACCESS_COLLECTIONS = ['team_accesses', 'teamAccesses', 'accesses'] as const
 
-    if (!snap.exists && accessIdLower !== accessIdRaw) {
-      snap = await adminDb.collection('teamAccesses').doc(accessIdRaw).get()
-    }
+    for (const col of ACCESS_COLLECTIONS) {
+      // 1. Chercher par document ID exact
+      let testSnap = await adminDb.collection(col).doc(accessIdRaw).get()
+      if (testSnap.exists) {
+        snap = testSnap
+        break
+      }
 
-    if (!snap.exists) {
-      snap = await adminDb.collection('accesses').doc(accessIdLower).get()
-      col = 'accesses'
-      if (!snap.exists && accessIdLower !== accessIdRaw) {
-        snap = await adminDb.collection('accesses').doc(accessIdRaw).get()
+      // 1b. Chercher par document ID minuscule
+      if (accessIdLower !== accessIdRaw) {
+        let testSnapLower = await adminDb.collection(col).doc(accessIdLower).get()
+        if (testSnapLower.exists) {
+          snap = testSnapLower
+          break
+        }
+      }
+
+      // 2. Chercher par magicCode (Nouveau système Magic Link)
+      const byMagicCode = await adminDb.collection(col).where('magicCode', '==', accessIdRaw).limit(1).get()
+      if (!byMagicCode.empty && byMagicCode.docs[0]) {
+        snap = byMagicCode.docs[0]
+        break
+      }
+
+      // 3. Chercher par accessId
+      const byAccessId = await adminDb.collection(col).where('accessId', '==', accessIdLower).limit(1).get()
+      if (!byAccessId.empty && byAccessId.docs[0]) {
+        snap = byAccessId.docs[0]
+        break
       }
     }
-    if (!snap.exists) {
-      snap = await adminDb.collection('team_accesses').doc(accessIdLower).get()
-      if (snap.exists) {
-        col = 'team_accesses'
-      } else if (accessIdLower !== accessIdRaw) {
-        snap = await adminDb.collection('team_accesses').doc(accessIdRaw).get()
-        if (snap.exists) col = 'team_accesses'
-      }
-    }
 
-    if (!snap.exists) {
+    if (!snap || !snap.exists) {
       return NextResponse.json(
         {
           message:

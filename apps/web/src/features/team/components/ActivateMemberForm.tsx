@@ -62,7 +62,7 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
 
     setIsPending(true)
     try {
-      const res = await fetch('/api/auth/activate', {
+      const res = await fetch('/api/team/activate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ accessId, email: email.trim(), password })

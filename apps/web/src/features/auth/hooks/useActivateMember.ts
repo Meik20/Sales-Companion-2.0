@@ -11,7 +11,7 @@ type ActivateInput = {
 export function useActivateMember() {
   return useMutation({
     mutationFn: async (input: ActivateInput) => {
-      const response = await fetch('/api/auth/activate', {
+      const response = await fetch('/api/team/activate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
