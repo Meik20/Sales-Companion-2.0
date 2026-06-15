@@ -122,23 +122,37 @@ export async function POST(request: NextRequest) {
         </div>
       `
 
-      await sendEmail({
-        to: email.trim(),
-        subject: `Sales Companion 2.0 — Invitation de ${company}`,
-        html: emailHtml
-      }).catch(err => {
-        console.error('[team/accesses] Failed to send activation email:', err)
-      })
-    }
+      let emailStatus: string = 'skipped'
+      let emailError: any = null
 
-    return NextResponse.json({ 
-      success: true, 
-      accessId, 
-      id: docRef.id,
-      magicCode,
-      magicLink: `${process.env.NEXT_PUBLIC_APP_URL || 'https://salescompanion2-0.com'}/activate?code=${magicCode}`
-    }, { status: 201 })
-    
+      if (email) {
+        const emailResult = await sendEmail({
+          to: email.trim(),
+          subject: `Sales Companion 2.0 — Invitation de ${company}`,
+          html: emailHtml
+        }).catch(err => {
+          console.error('[team/accesses] Failed to send activation email:', err)
+          return { success: false, error: err.message }
+        })
+
+        if (emailResult && emailResult.success) {
+          emailStatus = emailResult.simulated ? 'simulated' : 'sent'
+        } else {
+          emailStatus = 'failed'
+          emailError = emailResult?.error
+        }
+      }
+
+      return NextResponse.json({ 
+        success: true, 
+        accessId, 
+        id: docRef.id,
+        magicCode,
+        magicLink: `${process.env.NEXT_PUBLIC_APP_URL || 'https://salescompanion2-0.com'}/activate?code=${magicCode}`,
+        emailStatus,
+        emailError
+      }, { status: 201 })
+
   } catch (error: any) {
     console.error('[team/accesses] ERREUR:', error.message)
     return NextResponse.json({ error: error.message }, { status: 500 })

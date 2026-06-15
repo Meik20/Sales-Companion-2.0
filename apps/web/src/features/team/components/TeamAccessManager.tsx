@@ -138,7 +138,15 @@ export function TeamAccessManager() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.message || data.error || 'Erreur lors de la création')
 
-      pushToast({ type: 'success', title: `Accès créé ! Lien généré.` })
+      if (data.emailStatus === 'simulated') {
+        pushToast({ type: 'warning', title: `Accès créé, mais e-mail simulé (Clé API Brevo manquante sur Vercel ?)` })
+      } else if (data.emailStatus === 'failed') {
+        pushToast({ type: 'error', title: `Accès créé, mais échec d'envoi de l'e-mail. Erreur: ${data.emailError}` })
+      } else if (data.emailStatus === 'sent') {
+        pushToast({ type: 'success', title: `Accès créé ! E-mail d'activation envoyé avec succès.` })
+      } else {
+        pushToast({ type: 'success', title: `Accès créé ! Lien généré (sans envoi d'e-mail).` })
+      }
       setFormData({ firstname: '', lastname: '', company: '', email: '' })
       setPermissions({ canExport: false, canDelete: false, canAssign: false })
     } catch (e: any) {
