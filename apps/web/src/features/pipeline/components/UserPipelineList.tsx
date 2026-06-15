@@ -22,8 +22,12 @@ import {
   RotateCcw,
   CheckCircle,
   ChevronRight,
-  MessageSquare
+  MessageSquare,
+  LayoutGrid,
+  List
 } from 'lucide-react'
+
+import { UserPipelineKanban } from './UserPipelineKanban'
 
 type PipelineItem = {
   id: string
@@ -650,6 +654,7 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
   const { pushToast } = useToast()
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [selectedItem, setSelectedItem] = useState<PipelineItem | null>(null)
+  const [viewMode, setViewMode] = useState<'list' | 'kanban'>('kanban')
 
   async function handleDelete(e: React.MouseEvent, id: string) {
     e.stopPropagation()
@@ -682,6 +687,59 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
         />
       )}
 
+      {/* View Toggle */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+         <div style={{ display: 'flex', background: colors.bg3, padding: 4, borderRadius: 8, border: `1px solid ${colors.border}` }}>
+            <button
+               onClick={() => setViewMode('kanban')}
+               style={{
+                  padding: '6px 12px',
+                  borderRadius: 6,
+                  border: 'none',
+                  background: viewMode === 'kanban' ? colors.bg : 'transparent',
+                  color: viewMode === 'kanban' ? colors.text : colors.textMid,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  boxShadow: viewMode === 'kanban' ? '0 2px 4px rgba(0,0,0,0.1)' : 'none',
+                  transition: 'all 0.2s ease'
+               }}
+            >
+               <LayoutGrid size={14} /> Kanban
+            </button>
+            <button
+               onClick={() => setViewMode('list')}
+               style={{
+                  padding: '6px 12px',
+                  borderRadius: 6,
+                  border: 'none',
+                  background: viewMode === 'list' ? colors.bg : 'transparent',
+                  color: viewMode === 'list' ? colors.text : colors.textMid,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  boxShadow: viewMode === 'list' ? '0 2px 4px rgba(0,0,0,0.1)' : 'none',
+                  transition: 'all 0.2s ease'
+               }}
+            >
+               <List size={14} /> Liste
+            </button>
+         </div>
+      </div>
+
+      {viewMode === 'kanban' ? (
+         <UserPipelineKanban 
+            items={items} 
+            onStatusChange={onStatusChange!} 
+            onItemClick={setSelectedItem} 
+         />
+      ) : (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {items.map((item) => (
           <div
@@ -797,6 +855,7 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
           </div>
         ))}
       </div>
+      )}
     </>
   )
 }
