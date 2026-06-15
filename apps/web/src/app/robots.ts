@@ -50,8 +50,8 @@ export default function robots(): MetadataRoute.Robots {
       { userAgent: 'anthropic-ai', disallow: ['/'] },
       { userAgent: 'ClaudeBot', disallow: ['/'] },
       { userAgent: 'Bytespider', disallow: ['/'] },
-      { userAgent: 'AhrefsBot', disallow: ['/api/', '/admin/', '/protected/', '/_next/'] },
-      { userAgent: 'SemrushBot', disallow: ['/api/', '/admin/', '/protected/', '/_next/'] }
+      { userAgent: 'AhrefsBot', disallow: ['/api/', '/admin/', '/_next/'] },
+      { userAgent: 'SemrushBot', disallow: ['/api/', '/admin/', '/_next/'] }
     ],
     sitemap: `${baseUrl}/sitemap.xml`
   }
