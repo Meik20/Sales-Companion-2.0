@@ -5,7 +5,7 @@ import { AppProvider } from '@/providers/AppProvider'
 import { ThemeProvider } from '@/providers/ThemeProvider'
 import { I18nProvider } from '@/providers/I18nProvider'
 import { DesignThemeProvider } from '@/providers/DesignThemeProvider'
-import { GoogleAnalytics } from '@next/third-parties/google'
+import { GoogleAnalytics, GoogleTagManager } from '@next/third-parties/google'
 export const metadata: Metadata = {
   // ── Core ──────────────────────────────────────────────────────────────
   title: {
@@ -131,6 +131,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         />
       </head>
       <body>
+        {process.env.NEXT_PUBLIC_GTM_ID && <GoogleTagManager gtmId={process.env.NEXT_PUBLIC_GTM_ID} />}
         <DesignThemeProvider />
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <I18nProvider>
