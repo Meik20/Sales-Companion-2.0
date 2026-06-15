@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
           emailStatus = ('simulated' in emailResult && emailResult.simulated) ? 'simulated' : 'sent'
         } else {
           emailStatus = 'failed'
-          emailError = emailResult?.error
+          emailError = (emailResult && 'error' in emailResult) ? emailResult.error : 'Erreur inconnue'
         }
       }
 
