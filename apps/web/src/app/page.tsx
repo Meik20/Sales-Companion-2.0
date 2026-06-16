@@ -2,9 +2,9 @@ import { Metadata } from 'next'
 import { HomeClient } from './HomeClient'
 
 export const metadata: Metadata = {
-  title: 'Sales Companion 2.0 | Prospectez plus vite, Vendez mieux',
+  title: "Base de données d'entreprises au Cameroun | Sales Companion 2.0",
   description:
-    "Le premier outil d'intelligence commerciale et de prospection B2B au Cameroun. Trouvez vos prospects idéaux et gérez votre pipeline commercial facilement."
+    "Accédez à la meilleure base de données d'entreprises au Cameroun. Trouvez vos prospects B2B idéaux, exportez vos contacts et gérez votre pipeline commercial avec Sales Companion 2.0."
 }
 
 export default function Home() {
@@ -26,7 +26,7 @@ export default function Home() {
       priceCurrency: 'XAF'
     },
     description:
-      'Plateforme B2B dédiée aux commerciaux et managers au Cameroun pour la prospection et la gestion de pipeline.'
+      "La plateforme B2B de référence offrant la plus grande base de données d'entreprises au Cameroun. Conçue pour la prospection et la gestion de pipeline des commerciaux."
   }
 
   return (
