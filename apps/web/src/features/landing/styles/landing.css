@@ -42,6 +42,17 @@ html {
   -webkit-font-smoothing: antialiased;
 }
 .public-layout {
+  /* Override system design tokens locally for all public pages */
+  --bg: #0A0F1A;
+  --bg2: rgba(255, 255, 255, 0.03);
+  --bg3: rgba(255, 255, 255, 0.06);
+  --bg4: rgba(255, 255, 255, 0.1);
+  --tx: #f8fafc;
+  --tx2: #94a3b8;
+  --tx3: #64748b;
+  --bd: rgba(255, 255, 255, 0.08);
+  --bd2: rgba(255, 255, 255, 0.15);
+
   font-family: 'Inter', 'DM Sans', sans-serif;
   background: #0A0F1A !important;
   color: #f8fafc !important;
@@ -51,7 +62,7 @@ html {
   line-height: 1.6;
   position: relative;
 }
-/* Tous les enfants du layout public héritent de la couleur claire */
+/* Tous les enfants héritent naturellement du thème public */
 .public-layout h1,
 .public-layout h2,
 .public-layout h3,
@@ -257,6 +268,35 @@ button {
   padding: 24px 16px;
   position: relative;
   z-index: 1;
+}
+.auth-page > div {
+  background: rgba(10, 15, 26, 0.75) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: #f8fafc !important;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6) !important;
+}
+.auth-page label {
+  color: #94a3b8 !important;
+}
+.auth-page input,
+.auth-page select {
+  background: rgba(255, 255, 255, 0.02) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: #f8fafc !important;
+}
+.auth-page input:focus,
+.auth-page select:focus {
+  border-color: var(--gm) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+}
+.auth-page input::placeholder {
+  color: #64748b !important;
+}
+.auth-page select option {
+  background: #0A0F1A !important;
+  color: #f8fafc !important;
 }
 
 /* ─── Navigation ───────────────────────────────────────────────────────── */
