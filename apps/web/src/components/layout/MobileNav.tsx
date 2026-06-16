@@ -44,13 +44,12 @@ const navStyles = `
 }
 .mobile-nav-btn {
   flex: 1;
-  min-width: 64px;
-  flex-shrink: 0;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 8px 4px;
+  padding: 8px 2px;
   cursor: pointer;
   transition: all 200ms cubic-bezier(0.4, 0.0, 0.2, 1);
   border: none;
@@ -75,12 +74,14 @@ const navStyles = `
   animation: navIconBounce 300ms ease forwards;
 }
 .mobile-nav-btn span {
-  font-size: 10px;
+  font-size: 9.5px;
   font-weight: 500;
   margin-top: 3px;
   font-family: inherit;
   transition: all 200ms ease;
   white-space: nowrap;
+  text-align: center;
+  line-height: 1.1;
 }
 .mobile-nav-btn.active span {
   font-weight: 700;
@@ -228,8 +229,8 @@ export function MobileNav() {
         borderTop: `1px solid ${colors.border}`,
         display: 'flex',
         alignItems: 'stretch',
-        justifyContent: 'flex-start',
-        overflowX: 'auto',
+        justifyContent: 'space-around',
+        overflowX: 'hidden',
         overflowY: 'hidden',
         scrollbarWidth: 'none' as React.CSSProperties['scrollbarWidth'],
         WebkitOverflowScrolling: 'touch' as any,
@@ -238,9 +239,9 @@ export function MobileNav() {
         zIndex: 1000
       }}
     >
-      <NavItem href={routes.search} label={t('header.search')} icon={<SearchIcon />} />
-      <NavItem href={routes.pipeline} label={t('sidebar.pipeline')} icon={<PipelineIcon />} />
-      <NavItem href={routes.saved} label={t('sidebar.saved')} icon={<SavedIcon />} />
+      <NavItem href={routes.search} label="Recherche" icon={<SearchIcon />} />
+      <NavItem href={routes.pipeline} label="Pipeline" icon={<PipelineIcon />} />
+      <NavItem href={routes.saved} label="Sauvegardés" icon={<SavedIcon />} />
 
       {user.role === 'manager' && (
         <>
