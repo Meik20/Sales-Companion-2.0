@@ -51,7 +51,7 @@ export function AppShell({ children }: PropsWithChildren) {
               width: '100%',
               height: '100%',
               overflow: 'hidden',
-              paddingBottom: mounted && !isDesktop ? '84px' : '0'
+              paddingBottom: 0
             }}
           >
             {mounted && isDesktop ? <AppSidebar /> : null}
@@ -63,7 +63,8 @@ export function AppShell({ children }: PropsWithChildren) {
                 minWidth: 0,
                 height: '100%',
                 overflowY: 'auto',
-                padding: mounted && isDesktop ? '28px 28px 28px 24px' : '12px 16px 24px',
+                padding: mounted && isDesktop ? '28px 28px 28px 24px' : '12px 16px',
+                paddingBottom: mounted && !isDesktop ? '84px' : (mounted && isDesktop ? '28px' : '16px'),
                 boxSizing: 'border-box'
               }}
             >

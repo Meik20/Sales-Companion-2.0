@@ -226,7 +226,7 @@ export function MobileNav() {
         background: `${colors.bg2}f0`,
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
-        borderTop: `1px solid ${colors.border}`,
+        borderTop: 'none',
         display: 'flex',
         alignItems: 'stretch',
         justifyContent: 'space-around',
