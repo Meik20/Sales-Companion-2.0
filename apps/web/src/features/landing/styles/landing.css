@@ -9,17 +9,17 @@
   --gold: #f5a623;
   --goldd: #c8841a;
   --goldl: rgba(245, 166, 35, 0.15);
-  /* A richer, slightly lighter dark blue/slate base instead of pitch black */
+  /* Base bleue nuit — plus profonde et riche que le noir pur */
   --dark: #0A0F1A;
-  /* Glassmorphism bases */
-  --dark2: rgba(255, 255, 255, 0.02);
-  --dark3: rgba(255, 255, 255, 0.04);
-  --dark4: rgba(255, 255, 255, 0.08);
+  /* Surfaces solides sombères pour lisibilité — backdrop-filter pour l'effet verre */
+  --dark2: #0e1525;
+  --dark3: #131c2f;
+  --dark4: #1a2540;
   --tx: #f8fafc;
   --tx2: #94a3b8;
   --tx3: #64748b;
-  --bd: rgba(255, 255, 255, 0.06);
-  --bd2: rgba(255, 255, 255, 0.12);
+  --bd: rgba(255, 255, 255, 0.08);
+  --bd2: rgba(255, 255, 255, 0.15);
   --r: 10px;
   --r2: 16px;
   --r3: 20px;
@@ -43,13 +43,26 @@ html {
 }
 .public-layout {
   font-family: 'Inter', 'DM Sans', sans-serif;
-  background: var(--dark);
-  color: var(--tx);
+  background: #0A0F1A !important;
+  color: #f8fafc !important;
   min-height: 100vh;
   overflow-x: hidden;
   font-size: 14px;
   line-height: 1.6;
   position: relative;
+}
+/* Tous les enfants du layout public héritent de la couleur claire */
+.public-layout h1,
+.public-layout h2,
+.public-layout h3,
+.public-layout h4,
+.public-layout h5,
+.public-layout h6,
+.public-layout p,
+.public-layout span,
+.public-layout li,
+.public-layout a:not(.btn) {
+  color: inherit;
 }
 a {
   color: inherit;
