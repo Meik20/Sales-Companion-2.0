@@ -112,6 +112,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     // Articles de Blog
     {
+      url: `${baseUrl}/blog/base-de-donnees-entreprises-cameroun-2026`,
+      lastModified: now,
+      changeFrequency: 'weekly',
+      priority: 0.9
+    },
+    {
       url: `${baseUrl}/blog/trouver-clients-b2b-cameroun-2026`,
       lastModified: now,
       changeFrequency: 'weekly',
