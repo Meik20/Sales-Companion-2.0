@@ -11,10 +11,10 @@
   --goldl: rgba(245, 166, 35, 0.15);
   /* Base bleue nuit — plus profonde et riche que le noir pur */
   --dark: #0A0F1A;
-  /* Surfaces solides sombères pour lisibilité — backdrop-filter pour l'effet verre */
-  --dark2: #0e1525;
-  --dark3: #131c2f;
-  --dark4: #1a2540;
+  /* Surfaces transparentes (effet verre dépoli) */
+  --dark2: rgba(255, 255, 255, 0.03);
+  --dark3: rgba(255, 255, 255, 0.06);
+  --dark4: rgba(255, 255, 255, 0.1);
   --tx: #f8fafc;
   --tx2: #94a3b8;
   --tx3: #64748b;
