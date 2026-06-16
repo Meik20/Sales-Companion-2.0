@@ -3,21 +3,23 @@
   --g: #1b7a3e;
   --gm: #2ea05a;
   --gd: #145f2f;
-  --gl: rgba(27, 122, 62, 0.12);
-  --gl2: rgba(27, 122, 62, 0.08);
+  --gl: rgba(46, 160, 90, 0.15);
+  --gl2: rgba(46, 160, 90, 0.08);
   --accent: #00897b;
   --gold: #f5a623;
   --goldd: #c8841a;
-  --goldl: rgba(245, 166, 35, 0.12);
-  --dark: #0d1117;
-  --dark2: #161b22;
-  --dark3: #21262d;
-  --dark4: #2d333b;
-  --tx: #f0f6fc;
-  --tx2: #8b949e;
-  --tx3: #484f58;
-  --bd: rgba(255, 255, 255, 0.08);
-  --bd2: rgba(255, 255, 255, 0.15);
+  --goldl: rgba(245, 166, 35, 0.15);
+  /* A richer, slightly lighter dark blue/slate base instead of pitch black */
+  --dark: #0A0F1A;
+  /* Glassmorphism bases */
+  --dark2: rgba(255, 255, 255, 0.02);
+  --dark3: rgba(255, 255, 255, 0.04);
+  --dark4: rgba(255, 255, 255, 0.08);
+  --tx: #f8fafc;
+  --tx2: #94a3b8;
+  --tx3: #64748b;
+  --bd: rgba(255, 255, 255, 0.06);
+  --bd2: rgba(255, 255, 255, 0.12);
   --r: 10px;
   --r2: 16px;
   --r3: 20px;
@@ -39,7 +41,7 @@ html {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
 }
-body {
+.public-layout {
   font-family: 'Inter', 'DM Sans', sans-serif;
   background: var(--dark);
   color: var(--tx);
@@ -47,6 +49,7 @@ body {
   overflow-x: hidden;
   font-size: 14px;
   line-height: 1.6;
+  position: relative;
 }
 a {
   color: inherit;
@@ -62,8 +65,8 @@ button {
   outline-offset: 2px;
 }
 
-/* ─── Noise texture subtile (from globals.css) ─────────────────────────── */
-body::before {
+/* ─── Noise texture subtile (scoped to public pages) ───────────────────── */
+.public-layout::before {
   content: '';
   position: fixed;
   inset: 0;
@@ -74,18 +77,56 @@ body::before {
 }
 
 /* ─── Scrollbar ────────────────────────────────────────────────────────── */
-::-webkit-scrollbar {
+.public-layout ::-webkit-scrollbar {
   width: 6px;
 }
-::-webkit-scrollbar-track {
-  background: var(--dark2);
+.public-layout ::-webkit-scrollbar-track {
+  background: rgba(255,255,255,0.03);
 }
-::-webkit-scrollbar-thumb {
-  background: var(--dark4);
+.public-layout ::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.12);
   border-radius: 999px;
 }
-::-webkit-scrollbar-thumb:hover {
-  background: var(--tx3);
+.public-layout ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.22);
+}
+
+/* ─── Halos globaux des pages publiques ────────────────────────────────── */
+/* Ces 3 halos sont injectés via PublicLayout et donnent le fond vivant     */
+.public-glow {
+  position: fixed;
+  pointer-events: none;
+  z-index: 0;
+  border-radius: 50%;
+  will-change: opacity;
+}
+.public-glow-tl {
+  top: -15%;
+  left: -10%;
+  width: 55vw;
+  height: 55vw;
+  background: radial-gradient(circle, rgba(46, 160, 90, 0.22) 0%, transparent 65%);
+  filter: blur(70px);
+  animation: glow 9s ease-in-out infinite alternate;
+}
+.public-glow-br {
+  bottom: -15%;
+  right: -10%;
+  width: 50vw;
+  height: 50vw;
+  background: radial-gradient(circle, rgba(0, 137, 123, 0.18) 0%, transparent 65%);
+  filter: blur(70px);
+  animation: glow 12s ease-in-out infinite alternate-reverse;
+}
+.public-glow-mid {
+  top: 40%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40vw;
+  height: 40vw;
+  background: radial-gradient(circle, rgba(27, 122, 62, 0.08) 0%, transparent 70%);
+  filter: blur(80px);
+  animation: glow 15s ease-in-out infinite;
 }
 
 /* ─── Animations ───────────────────────────────────────────────────────── */
@@ -194,15 +235,26 @@ body::before {
   transition-delay: 400ms;
 }
 
+/* ─── Auth pages (login / register) ────────────────────────────────────── */
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  position: relative;
+  z-index: 1;
+}
+
 /* ─── Navigation ───────────────────────────────────────────────────────── */
 .nav {
   position: sticky;
   top: 0;
   z-index: 200;
   height: 60px;
-  background: rgba(13, 17, 23, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(10, 15, 26, 0.80);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   border-bottom: 1px solid transparent;
   transition:
     border-color var(--t),
@@ -423,23 +475,25 @@ body::before {
 }
 .hero-glow-tl {
   position: absolute;
-  top: -200px;
-  left: -200px;
-  width: 700px;
-  height: 700px;
-  background: radial-gradient(circle, rgba(27, 122, 62, 0.22) 0%, transparent 65%);
+  top: -20%;
+  left: -10%;
+  width: 60vw;
+  height: 60vw;
+  background: radial-gradient(circle, rgba(46, 160, 90, 0.25) 0%, transparent 60%);
   pointer-events: none;
-  animation: glow 5s ease-in-out infinite;
+  animation: glow 8s ease-in-out infinite alternate;
+  filter: blur(60px);
 }
 .hero-glow-br {
   position: absolute;
-  bottom: -200px;
-  right: -150px;
-  width: 500px;
-  height: 500px;
-  background: radial-gradient(circle, rgba(0, 137, 123, 0.14) 0%, transparent 65%);
+  bottom: -20%;
+  right: -10%;
+  width: 50vw;
+  height: 50vw;
+  background: radial-gradient(circle, rgba(0, 137, 123, 0.2) 0%, transparent 60%);
   pointer-events: none;
-  animation: glow 7s ease-in-out infinite 2s;
+  animation: glow 10s ease-in-out infinite alternate-reverse;
+  filter: blur(60px);
 }
 .hero-badge {
   display: inline-flex;
@@ -709,8 +763,12 @@ body::before {
 }
 .feature-card {
   background: var(--dark2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: var(--r2);
+  border: 1px solid var(--bd);
   padding: 36px 32px;
-  transition: background var(--t);
+  transition: all 400ms cubic-bezier(0.25, 0.8, 0.25, 1);
   position: relative;
   overflow: hidden;
 }
@@ -726,9 +784,12 @@ body::before {
 }
 .feature-card:hover {
   background: var(--dark3);
+  transform: translateY(-8px);
+  border-color: rgba(46, 160, 90, 0.4);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.05);
 }
 .feature-card:hover::before {
-  background: linear-gradient(90deg, transparent, rgba(46, 160, 90, 0.5), transparent);
+  background: linear-gradient(90deg, transparent, rgba(46, 160, 90, 0.8), transparent);
 }
 .feature-icon {
   width: 48px;
@@ -771,18 +832,20 @@ body::before {
 }
 .role-card {
   background: var(--dark2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--bd);
   border-radius: var(--r2);
-  padding: 28px 24px;
-  transition:
-    border-color var(--t),
-    box-shadow var(--t);
+  padding: 32px 28px;
+  transition: all 400ms cubic-bezier(0.25, 0.8, 0.25, 1);
   position: relative;
   overflow: hidden;
 }
 .role-card:hover {
-  border-color: rgba(46, 160, 90, 0.3);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  background: var(--dark3);
+  border-color: rgba(46, 160, 90, 0.4);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  transform: translateY(-8px);
 }
 .role-card-accent {
   position: absolute;
@@ -840,30 +903,30 @@ body::before {
 }
 .plan-card {
   background: var(--dark2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--bd);
   border-radius: var(--r2);
-  padding: 28px 24px;
-  transition:
-    border-color var(--t),
-    transform var(--t),
-    box-shadow var(--t);
+  padding: 32px 28px;
+  transition: all 400ms cubic-bezier(0.25, 0.8, 0.25, 1);
   position: relative;
   overflow: hidden;
 }
 .plan-card:hover {
-  border-color: rgba(46, 160, 90, 0.25);
-  box-shadow: var(--sh);
+  background: var(--dark3);
+  border-color: rgba(46, 160, 90, 0.4);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  transform: translateY(-8px);
 }
 .plan-card.featured {
-  border-color: rgba(46, 160, 90, 0.4);
-  box-shadow:
-    0 0 0 1px rgba(46, 160, 90, 0.2),
-    var(--sh);
-  background: linear-gradient(180deg, rgba(27, 122, 62, 0.08) 0%, var(--dark2) 60%);
+  border-color: rgba(46, 160, 90, 0.5);
+  background: linear-gradient(180deg, rgba(46, 160, 90, 0.1) 0%, var(--dark2) 80%);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 .plan-card.featured:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+  border-color: var(--gm);
 }
 .plan-featured-label {
   position: absolute;
