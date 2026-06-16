@@ -20,6 +20,17 @@ export const metadata: Metadata = {
 
 const ARTICLES = [
   {
+    slug: 'base-de-donnees-entreprises-cameroun-2026',
+    title: "Où trouver une base de données d'entreprises fiable au Cameroun en 2026 ?",
+    excerpt:
+      "Fichiers obsolètes, données incomplètes... L'accès à une liste d'entreprises fiable est le principal défi des commerciaux au Cameroun. Découvrez les sources officielles et la nouvelle alternative digitale incontournable.",
+    category: 'Guide',
+    date: '16 juin 2026',
+    readTime: '8 min',
+    emoji: '🗂️',
+    featured: true
+  },
+  {
     slug: 'trouver-clients-b2b-cameroun-2026',
     title: 'Comment trouver des clients B2B au Cameroun en 2026 : guide complet',
     excerpt:
@@ -28,7 +39,7 @@ const ARTICLES = [
     date: '14 juin 2026',
     readTime: '12 min',
     emoji: '🎯',
-    featured: true
+    featured: false
   },
   {
     slug: 'annuaire-entreprises-btp-douala',
