@@ -146,10 +146,11 @@ function SearchContent() {
           display: 'grid',
           gridTemplateColumns: '2fr 1fr',
           gap: 24,
-          alignItems: 'start'
+          alignItems: 'start',
+          width: '100%'
         }}
       >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20, width: '100%' }}>
           {/* Résultats */}
           {hasSearched ? (
             <DataCard
@@ -264,11 +265,20 @@ function SearchContent() {
                 justifyContent: 'center',
                 padding: '16px 8px',
                 textAlign: 'center',
-                gap: 16
+                gap: 16,
+                width: '100%',
+                boxSizing: 'border-box'
               }}
             >
               <div
-                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}
+                style={{ 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  alignItems: 'center', 
+                  gap: 12,
+                  width: '100%',
+                  boxSizing: 'border-box'
+                }}
               >
                 {/* Illustration Desktop (Premium) */}
                 <div
