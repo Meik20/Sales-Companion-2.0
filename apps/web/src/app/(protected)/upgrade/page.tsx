@@ -51,6 +51,7 @@ const PLANS = [
     colorBg: 'rgba(245,158,11,0.08)',
     icon: Shield,
     searches: PLAN_LIMITS.pro,
+    companySize: 'Idéal pour les PME et entreprises de moins de 20 collaborateurs',
     features: [
       'Recherche avancée',
       'Pipeline illimité',
@@ -69,6 +70,7 @@ const PLANS = [
     colorBg: 'rgba(139,92,246,0.08)',
     icon: Users,
     searches: PLAN_LIMITS.enterprise,
+    companySize: 'Conçu pour les grandes entreprises et équipes de plus de 20 commerciaux',
     features: [
       'Tout Pro inclus',
       `${PLAN_LIMITS.enterprise} recherches / jour`,
@@ -104,6 +106,11 @@ export default function UpgradePage() {
 
   const currentPlan = user?.plan ?? 'free'
   const plan = PLANS.find((p) => p.key === selectedPlan)
+
+  // Managers voient uniquement Pro & Enterprise ; les indépendants voient tout
+  const visiblePlans = isNewManager
+    ? PLANS.filter((p) => p.key === 'pro' || p.key === 'enterprise')
+    : PLANS
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text)
@@ -193,7 +200,7 @@ export default function UpgradePage() {
               gap: 24
             }}
           >
-            {PLANS.map((p) => {
+            {visiblePlans.map((p) => {
               const isCurrent = p.key === currentPlan
               return (
                 <div
@@ -215,6 +222,26 @@ export default function UpgradePage() {
                     position: 'relative'
                   }}
                 >
+                  {/* Indice taille d'entreprise — affiché uniquement pour les managers */}
+                  {isNewManager && (p as any).companySize && (
+                    <div
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        padding: '5px 10px',
+                        borderRadius: 8,
+                        background: `${p.color}14`,
+                        border: `1px solid ${p.color}33`,
+                        fontSize: 11,
+                        color: p.color,
+                        fontWeight: 600,
+                        marginBottom: 14
+                      }}
+                    >
+                      🏢 {(p as any).companySize}
+                    </div>
+                  )}
                   {p.badge && (
                     <div
                       style={{
