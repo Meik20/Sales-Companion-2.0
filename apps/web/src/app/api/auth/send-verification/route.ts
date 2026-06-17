@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (!result.success) {
-      console.error('[send-verification] SendEmail returned error', result.error)
+      console.error('[send-verification] SendEmail returned error', (result as any).error)
       return NextResponse.json({ message: 'Erreur lors de l\'envoi (SMTP)' }, { status: 500 })
     }
 
