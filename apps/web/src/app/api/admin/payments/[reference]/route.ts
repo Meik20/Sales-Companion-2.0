@@ -51,6 +51,7 @@ export async function PATCH(
         .update({
           plan: paymentData.plan,
           dailyLimit: planInfo?.dailyLimit ?? 10,
+          active: true,
           updatedAt: FieldValue.serverTimestamp()
         })
 

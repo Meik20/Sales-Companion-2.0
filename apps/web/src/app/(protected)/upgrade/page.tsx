@@ -265,7 +265,7 @@ export default function UpgradePage() {
                       fontSize: 18,
                       color: colors.text,
                       margin: '0 0 4px',
-                      fontFamily: "'Syne',sans-serif"
+                      fontFamily: "sans-serif"
                     }}
                   >
                     {p.label}
@@ -276,7 +276,7 @@ export default function UpgradePage() {
                       fontWeight: 800,
                       color: p.color,
                       margin: '0 0 20px',
-                      fontFamily: "'Syne',sans-serif"
+                      fontFamily: "sans-serif"
                     }}
                   >
                     {p.price}{' '}
@@ -344,7 +344,7 @@ export default function UpgradePage() {
               }}
             >
               <h2
-                style={{ fontFamily: "'Syne',sans-serif", margin: '0 0 20px', textAlign: 'center' }}
+                style={{ fontFamily: "sans-serif", margin: '0 0 20px', textAlign: 'center' }}
               >
                 💳 Instructions de paiement
               </h2>
@@ -493,7 +493,7 @@ export default function UpgradePage() {
               >
                 <Check size={32} color="#4ade80" />
               </div>
-              <h2 style={{ fontFamily: "'Syne',sans-serif", margin: '0 0 12px' }}>
+              <h2 style={{ fontFamily: "sans-serif", margin: '0 0 12px' }}>
                 Demande envoyée !
               </h2>
               <p style={{ color: colors.textMid, fontSize: 14, lineHeight: 1.6, marginBottom: 16 }}>

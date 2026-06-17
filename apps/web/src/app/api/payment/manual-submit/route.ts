@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { adminAuth, adminDb } from '@/lib/firebase-admin'
 import { FieldValue } from 'firebase-admin/firestore'
+import { PLAN_LIMITS, UserPlan } from '@sales-companion/shared'
 
 /**
  * POST /api/payment/manual-submit
@@ -34,6 +35,12 @@ export async function POST(request: NextRequest) {
       status: 'MANUAL_PENDING', // Statut spécial pour validation admin
       createdAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp()
+    })
+
+    // Update the user's plan immediately so the Admin Users Table reflects their choice
+    await adminDb.collection('users').doc(userId).update({
+      plan: plan,
+      dailyLimit: PLAN_LIMITS[plan as UserPlan] ?? 10
     })
 
     return NextResponse.json({ success: true, reference })

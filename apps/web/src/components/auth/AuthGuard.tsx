@@ -187,7 +187,7 @@ export function AuthGuard({ children }: PropsWithChildren) {
               fontSize: 20,
               fontWeight: 800,
               color: colors.text,
-              fontFamily: "'Syne',sans-serif",
+              fontFamily: "sans-serif",
               margin: '0 0 10px'
             }}
           >
@@ -311,7 +311,7 @@ export function AuthGuard({ children }: PropsWithChildren) {
   }
 
   // ── Account pending admin validation (Manager only) ─────────────────────────
-  if (user.role === 'manager' && user.plan === 'free' && !isEmailWallExempt) {
+  if (user.role === 'manager' && (!user.active || user.plan === 'free') && !isEmailWallExempt) {
     return (
       <div
         style={{
@@ -357,7 +357,7 @@ export function AuthGuard({ children }: PropsWithChildren) {
               fontSize: 20,
               fontWeight: 800,
               color: colors.text,
-              fontFamily: "'Syne',sans-serif",
+              fontFamily: "sans-serif",
               margin: '0 0 10px'
             }}
           >
