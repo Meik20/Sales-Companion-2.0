@@ -62,11 +62,19 @@ export function AuthGuard({ children }: PropsWithChildren) {
     setResendLoading(true)
     setStatus(null)
     try {
-      const actionCodeSettings = {
-        url: typeof window !== 'undefined' ? `${window.location.origin}/login` : 'http://localhost:3000/login',
-        handleCodeInApp: false
+      const token = await firebaseUser.getIdToken()
+      const res = await fetch('/api/auth/send-verification', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+      
+      if (!res.ok) {
+        throw new Error("Erreur de l'API")
       }
-      await sendEmailVerification(firebaseUser, actionCodeSettings)
+
       setResendCooldown(60)
       setStatus({
         type: 'success',
@@ -74,15 +82,9 @@ export function AuthGuard({ children }: PropsWithChildren) {
       })
     } catch (error: any) {
       console.error("Erreur d'envoi de l'email de vérification :", error)
-      let customError = error?.message || "Une erreur est survenue lors de l'envoi."
-      if (error?.code === 'auth/too-many-requests') {
-        customError = "Trop de requêtes. Veuillez attendre un moment avant de réessayer."
-      } else if (error?.code === 'auth/unauthorized-continue-uri') {
-        customError = "L'URL de redirection n'est pas autorisée dans la console Firebase."
-      }
       setStatus({
         type: 'error',
-        message: customError
+        message: "Une erreur est survenue lors de l'envoi. Veuillez réessayer."
       })
     } finally {
       setResendLoading(false)

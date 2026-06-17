@@ -104,13 +104,16 @@ export function useAuthActions() {
         { merge: false }
       )
 
-      // Send email verification link
+      // Send email verification link via our backend
       try {
-        const actionCodeSettings = {
-          url: typeof window !== 'undefined' ? `${window.location.origin}/login` : 'http://localhost:3000/login',
-          handleCodeInApp: false
-        }
-        await sendEmailVerification(user, actionCodeSettings)
+        const token = await user.getIdToken()
+        await fetch('/api/auth/send-verification', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        })
       } catch (emailErr) {
         console.error('Initial email verification send failed:', emailErr)
       }
