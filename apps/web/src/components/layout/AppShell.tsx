@@ -40,8 +40,8 @@ export function AppShell({ children }: PropsWithChildren) {
             display: 'flex',
             overflow: 'hidden',
             width: '100%',
-            maxWidth: 1440,
-            margin: '0 auto',
+            maxWidth: mounted && isDesktop ? 1440 : '100%',
+            margin: mounted && isDesktop ? '0 auto' : '0',
             position: 'relative'
           }}
         >

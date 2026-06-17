@@ -232,8 +232,8 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
             top: 60px; /* Exact height of AppHeader */
             z-index: 99;
             background: var(--bg); /* Adapts to light/dark themes */
-            padding: 12px 16px;
-            margin: 0 -16px 8px;
+            padding: 12px 0;
+            margin: 0 0 8px;
             border-bottom: 1px solid var(--bd);
           }
         }
