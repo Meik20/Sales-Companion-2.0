@@ -17,8 +17,8 @@ export function AuthGuard({ children }: PropsWithChildren) {
   const [finalizing, setFinalizing] = useState(false)
   const [status, setStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
 
-  // Pages exemptées du mur de vérification email (ex: paiement obligatoire pour les managers)
-  const isEmailWallExempt = pathname === '/upgrade' || pathname.startsWith('/upgrade?')
+  // Permet d'afficher la page /upgrade (et ses sous-vues) même si le compte manager n'est pas encore actif
+  const isUpgradePage = pathname === '/upgrade' || pathname.startsWith('/upgrade?')
 
   // Check if the Firebase user has verified their email — if yes, finalize activation
   useEffect(() => {
@@ -133,7 +133,7 @@ export function AuthGuard({ children }: PropsWithChildren) {
   const isPending = !!(user as { emailVerificationPending?: boolean }).emailVerificationPending
   const firebaseEmailVerified = auth.currentUser?.emailVerified
 
-  if (isPending && !firebaseEmailVerified && !finalizing && !isEmailWallExempt) {
+  if (isPending && !firebaseEmailVerified && !finalizing) {
     return (
       <div
         style={{
@@ -311,7 +311,7 @@ export function AuthGuard({ children }: PropsWithChildren) {
   }
 
   // ── Account pending admin validation (Manager only) ─────────────────────────
-  if (user.role === 'manager' && (!user.active || user.plan === 'free') && !isEmailWallExempt) {
+  if (user.role === 'manager' && (!user.active || user.plan === 'free') && !isUpgradePage) {
     return (
       <div
         style={{
