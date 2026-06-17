@@ -94,14 +94,36 @@ export default function UpgradePage() {
     if (!userLoading && user) {
       if (user.role !== 'manager' && user.role !== 'independent') {
         router.replace(routes.search)
+        return
+      }
+
+      // Si l'utilisateur a été forcé ici lors de l'inscription/connexion mais qu'il est maintenant actif et payé,
+      // on le redirige automatiquement vers le tableau de bord (ex: l'admin vient de l'activer).
+      const fromParam = searchParams.get('from')
+      const isForced = fromParam === 'register' || fromParam === 'login'
+      
+      if (isForced && user.active && user.plan !== 'free') {
+        router.replace(routes.search)
       }
     }
-  }, [user, userLoading, router])
+  }, [user, userLoading, router, searchParams])
 
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
   const [operator, setOperator] = useState<'MTN' | 'ORANGE'>('MTN')
   const [transactionId, setTransactionId] = useState('')
   const [step, setStep] = useState<'plans' | 'instructions' | 'success'>('plans')
+
+  // Sync state once user is loaded
+  useEffect(() => {
+    if (!userLoading && user) {
+      if (user.plan !== 'free') {
+        setSelectedPlan(user.plan)
+        if (isNewManager && !user.active) {
+          setStep('success')
+        }
+      }
+    }
+  }, [user, userLoading, isNewManager])
   const [loading, setLoading] = useState(false)
 
   const currentPlan = user?.plan ?? 'free'
