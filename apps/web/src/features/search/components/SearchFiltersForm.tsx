@@ -234,7 +234,6 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
             background: var(--bg); /* Adapts to light/dark themes */
             padding: 12px 16px;
             margin: 0 -16px 8px;
-            width: calc(100% + 32px);
             border-bottom: 1px solid var(--bd);
           }
         }

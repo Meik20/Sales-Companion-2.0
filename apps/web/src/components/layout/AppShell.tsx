@@ -63,6 +63,7 @@ export function AppShell({ children }: PropsWithChildren) {
                 minWidth: 0,
                 height: '100%',
                 overflowY: 'auto',
+                overflowX: 'hidden',
                 padding: mounted && isDesktop ? '28px 28px 28px 24px' : '12px 16px',
                 paddingBottom: mounted && !isDesktop ? '84px' : (mounted && isDesktop ? '28px' : '16px'),
                 boxSizing: 'border-box'

@@ -483,7 +483,7 @@ function SearchContent() {
                 display: grid !important;
                 gap: 10px !important;
                 padding: 0 !important;
-                margin: 0 !important;
+                margin: 0 auto !important;
                 overflow: visible !important;
               }
             }
