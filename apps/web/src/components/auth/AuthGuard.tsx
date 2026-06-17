@@ -7,13 +7,18 @@ import { sendEmailVerification } from 'firebase/auth'
 import { colors } from '@/styles/tokens'
 import { Mail, RefreshCw } from 'lucide-react'
 import { ScIcon } from '@/components/ui/ScIcon'
+import { usePathname } from 'next/navigation'
 
 export function AuthGuard({ children }: PropsWithChildren) {
   const { user, loading } = useCurrentUser()
+  const pathname = usePathname()
   const [resendCooldown, setResendCooldown] = useState(0)
   const [resendLoading, setResendLoading] = useState(false)
   const [finalizing, setFinalizing] = useState(false)
   const [status, setStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+
+  // Pages exemptées du mur de vérification email (ex: paiement obligatoire pour les managers)
+  const isEmailWallExempt = pathname === '/upgrade' || pathname.startsWith('/upgrade?')
 
   // Check if the Firebase user has verified their email — if yes, finalize activation
   useEffect(() => {
@@ -126,7 +131,7 @@ export function AuthGuard({ children }: PropsWithChildren) {
   const isPending = !!(user as { emailVerificationPending?: boolean }).emailVerificationPending
   const firebaseEmailVerified = auth.currentUser?.emailVerified
 
-  if (isPending && !firebaseEmailVerified && !finalizing) {
+  if (isPending && !firebaseEmailVerified && !finalizing && !isEmailWallExempt) {
     return (
       <div
         style={{
