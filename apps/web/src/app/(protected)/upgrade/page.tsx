@@ -1,13 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { AppShell } from '@/components/layout/AppShell'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useToast } from '@/hooks/useToast'
 import { colors, shadows } from '@/styles/tokens'
-import { Check, Zap, Shield, Users, Loader2, Copy, ArrowRight, MessageSquare } from 'lucide-react'
+import { Check, Zap, Shield, Users, Loader2, Copy, AlertCircle } from 'lucide-react'
 import { routes } from '@/constants/routes'
 
 import { PLAN_LIMITS, PLAN_PRICES } from '@sales-companion/shared'
@@ -82,6 +82,10 @@ export default function UpgradePage() {
   const { user, loading: userLoading } = useCurrentUser()
   const { pushToast } = useToast()
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // Détecte si l'utilisateur arrive depuis la page d'inscription (nouveau manager)
+  const isNewManager = searchParams.get('from') === 'register' && user?.role === 'manager'
 
   // ── Protection de la page ────────────────────────────────────────────────
   useEffect(() => {
@@ -144,9 +148,41 @@ export default function UpgradePage() {
     <main>
       <AppShell>
         <PageHeader
-          title="Passer à un plan supérieur"
-          subtitle="Choisissez votre abonnement et payez par transfert Mobile Money."
+          title={isNewManager ? '🔐 Activez votre compte Manager' : 'Passer à un plan supérieur'}
+          subtitle={
+            isNewManager
+              ? 'Votre compte a été créé avec succès. Choisissez un plan pour débloquer votre accès.'
+              : 'Choisissez votre abonnement et payez par transfert Mobile Money.'
+          }
         />
+
+        {/* ── Bannière urgente pour les nouveaux managers ─────────────────── */}
+        {isNewManager && step !== 'success' && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 14,
+              padding: '16px 20px',
+              borderRadius: 14,
+              background: 'rgba(245,158,11,0.08)',
+              border: '1.5px solid rgba(245,158,11,0.4)',
+              marginBottom: 28
+            }}
+          >
+            <AlertCircle size={20} color="#f59e0b" style={{ flexShrink: 0, marginTop: 2 }} />
+            <div>
+              <p style={{ margin: '0 0 4px', fontWeight: 700, fontSize: 14, color: '#f59e0b' }}>
+                Accès au tableau de bord suspendu
+              </p>
+              <p style={{ margin: 0, fontSize: 13, color: colors.textMid, lineHeight: 1.6 }}>
+                En tant que <strong>Manager</strong>, votre compte doit être activé via un abonnement payant.
+                Choisissez un plan ci-dessous, effectuez le paiement Mobile Money, puis soumettez votre
+                ID de transaction. Un administrateur validera votre accès sous 24h.
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* ── ÉTAPE 1 : Sélection du plan ─────────────────────────────────── */}
         {step === 'plans' && (
@@ -433,12 +469,28 @@ export default function UpgradePage() {
               <h2 style={{ fontFamily: "'Syne',sans-serif", margin: '0 0 12px' }}>
                 Demande envoyée !
               </h2>
-              <p style={{ color: colors.textMid, fontSize: 14, lineHeight: 1.6, marginBottom: 28 }}>
+              <p style={{ color: colors.textMid, fontSize: 14, lineHeight: 1.6, marginBottom: 16 }}>
                 Votre demande de paiement pour le plan <strong>{plan?.label}</strong> est en cours
                 de vérification.
                 <br />
                 Elle sera validée par un administrateur dans les plus brefs délais.
               </p>
+              {isNewManager && (
+                <div
+                  style={{
+                    padding: '12px 16px',
+                    borderRadius: 10,
+                    background: 'rgba(245,158,11,0.08)',
+                    border: '1px solid rgba(245,158,11,0.3)',
+                    fontSize: 13,
+                    color: '#f59e0b',
+                    marginBottom: 20,
+                    textAlign: 'left'
+                  }}
+                >
+                  ⏳ Votre accès sera débloqué dès qu'un administrateur aura confirmé votre paiement (généralement sous 24h). Vous recevrez un e-mail de confirmation.
+                </div>
+              )}
               <button
                 onClick={() => router.push(routes.search)}
                 style={{
@@ -452,7 +504,7 @@ export default function UpgradePage() {
                   cursor: 'pointer'
                 }}
               >
-                Retour à l'accueil
+                {isNewManager ? 'Aller au tableau de bord' : 'Retour à l\'accueil'}
               </button>
             </div>
           </div>

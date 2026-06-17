@@ -86,7 +86,12 @@ export function RegisterForm() {
         companyName: role === 'manager' ? companyName : undefined,
         sector: sector || undefined
       })
-      router.replace(routes.search)
+      // Managers must choose a plan and pay before accessing the app
+      if (role === 'manager') {
+        router.replace(`${routes.upgrade}?from=register`)
+      } else {
+        router.replace(routes.search)
+      }
     } catch (err) {
       setError(mapAuthError(err))
     } finally {
