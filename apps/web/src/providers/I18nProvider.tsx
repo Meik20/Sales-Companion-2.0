@@ -19,8 +19,8 @@ const I18nContext = createContext<I18nContextType>({
 })
 
 export function I18nProvider({ children }: { children: ReactNode }) {
+  // Start immediately with 'fr' to avoid any invisible-content flash
   const [lang, setLangState] = useState<Language>('fr')
-  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     const savedLang = localStorage.getItem('sc_lang') as Language
@@ -31,7 +31,6 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       const browserLang = navigator.language.startsWith('en') ? 'en' : 'fr'
       setLangState(browserLang)
     }
-    setMounted(true)
   }, [])
 
   const setLang = (newLang: Language) => {
@@ -54,13 +53,9 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     return typeof val === 'string' ? val : key
   }
 
-  // Prevent hydration mismatch by rendering default (fr) or hiding content until mounted
-  // For SEO, we might want to just render with default lang
   return (
     <I18nContext.Provider value={{ lang, t, setLang }}>
-      <div style={{ visibility: mounted ? 'visible' : 'hidden', display: 'contents' }}>
-        {children}
-      </div>
+      {children}
     </I18nContext.Provider>
   )
 }
