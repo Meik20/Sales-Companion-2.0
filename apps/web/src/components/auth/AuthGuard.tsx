@@ -310,5 +310,89 @@ export function AuthGuard({ children }: PropsWithChildren) {
     )
   }
 
+  // ── Account pending admin validation (Manager only) ─────────────────────────
+  if (user.role === 'manager' && user.plan === 'free' && !isEmailWallExempt) {
+    return (
+      <div
+        style={{
+          minHeight: '100vh',
+          background: colors.bg,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '24px 16px'
+        }}
+      >
+        <div
+          style={{
+            background: colors.bg2,
+            border: `1px solid ${colors.border}`,
+            borderRadius: 20,
+            padding: 40,
+            width: '100%',
+            maxWidth: 440,
+            boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
+            textAlign: 'center'
+          }}
+        >
+          <ScIcon size={44} style={{ marginBottom: 16, display: 'block', margin: '0 auto 16px' }} />
+
+          <div
+            style={{
+              width: 68,
+              height: 68,
+              borderRadius: '50%',
+              background: 'rgba(245,158,11,0.1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 20px'
+            }}
+          >
+            <RefreshCw size={30} style={{ color: '#f59e0b' }} />
+          </div>
+
+          <h1
+            style={{
+              fontSize: 20,
+              fontWeight: 800,
+              color: colors.text,
+              fontFamily: "'Syne',sans-serif",
+              margin: '0 0 10px'
+            }}
+          >
+            Paiement en cours de vérification
+          </h1>
+          <p style={{ fontSize: 14, color: colors.textMid, lineHeight: 1.7, margin: '0 0 24px' }}>
+            Votre compte Manager nécessite un abonnement actif. Si vous avez déjà soumis votre paiement, 
+            veuillez patienter pendant qu'un administrateur valide votre accès (généralement sous 24h).
+          </p>
+
+          <button
+            onClick={() => window.location.href = '/upgrade?from=register'}
+            style={{
+              width: '100%',
+              height: 42,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              background: 'transparent',
+              border: `1px solid ${colors.border}`,
+              borderRadius: 10,
+              cursor: 'pointer',
+              color: colors.textMid,
+              fontSize: 13,
+              fontFamily: 'inherit',
+              transition: 'all 150ms ease'
+            }}
+          >
+            Je n&apos;ai pas encore soumis mon paiement
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return <>{children}</>
 }
