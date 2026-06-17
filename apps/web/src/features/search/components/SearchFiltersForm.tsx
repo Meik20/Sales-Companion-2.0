@@ -305,6 +305,8 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
           align-items: center;
           gap: 12px;
           overflow: hidden;
+          width: 100%;
+          min-width: 0;
         }
         .sc-pills-scroll {
           flex: 1;
@@ -312,6 +314,8 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
           -webkit-overflow-scrolling: touch;
           padding-bottom: 4px;
           margin-right: 6px;
+          width: 100%;
+          min-width: 0;
         }
         .sc-pills-scroll::-webkit-scrollbar { display: none; }
         .sc-pills-scroll {

@@ -252,6 +252,15 @@ body {
 
 /* ── Mobile (< 768px) ── */
 @media (max-width: 768px) {
+  /* Masquer scrollbar verticale pour éviter l'asymétrie de 6px sur le centrage */
+  #main-scroll-container::-webkit-scrollbar {
+    display: none;
+  }
+  #main-scroll-container {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
   /* Réduire les paddings globaux */
   body {
     font-size: 87.5%; /* 14px base */
