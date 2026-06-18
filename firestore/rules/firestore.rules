@@ -174,5 +174,9 @@ service cloud.firestore {
     match /import_logs/{logId} {
       allow read, write: if isAdmin();
     }
+
+    match /adminNotifications/{notificationId} {
+      allow read, write: if isAdmin();
+    }
   }
 }
