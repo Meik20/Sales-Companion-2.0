@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 
 async function getAdmin() {
   const { adminDb, adminAuth } = await import('@/lib/firebase-admin')
-  return { adminDb, adminAuth }
+  const { createAdminNotification } = await import('@/lib/admin-notifications')
+  return { adminDb, adminAuth, createAdminNotification }
 }
 
 /**
@@ -17,7 +18,7 @@ async function getAdmin() {
  */
 export async function POST(request: NextRequest) {
   try {
-    const { adminDb, adminAuth } = await getAdmin()
+    const { adminDb, adminAuth, createAdminNotification } = await getAdmin()
 
     const token = request.headers.get('authorization')?.split(' ')[1]
     if (!token) return NextResponse.json({ message: 'Non authentifié' }, { status: 401 })
@@ -53,13 +54,42 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, alreadyActivated: true })
     }
 
+    // ✅ Les managers NE doivent PAS être activés à la vérification email.
+    // Leur active=true viendra uniquement de l'admin via /api/admin/payments/[reference].
+    // Pour les autres rôles (independent, member), on active immédiatement.
+    const isManager = userData.role === 'manager'
+
     await userRef.update({
-      activated: true,
-      active: true,
-      emailVerificationPending: false,
-      emailVerified: true,
-      activatedAt: new Date()
+      ...(isManager
+        ? {
+            // Manager : on vérifie l'email mais on n'active PAS encore
+            emailVerificationPending: false,
+            emailVerified: true,
+            updatedAt: new Date()
+          }
+        : {
+            // Autres rôles : activation complète
+            activated: true,
+            active: true,
+            emailVerificationPending: false,
+            emailVerified: true,
+            activatedAt: new Date(),
+            updatedAt: new Date()
+          })
     })
+
+    // ✅ Notification admin quand un manager vérifie son email
+    // (il va bientôt soumettre un paiement — l'admin peut anticiper)
+    if (isManager) {
+      await createAdminNotification({
+        type: 'new_manager',
+        title: 'Nouveau Manager inscrit',
+        message: `${email} a vérifié son email et est en attente de choix de plan. Un paiement devrait arriver prochainement.`,
+        userId: uid,
+        userEmail: email,
+        link: '/admin/users'
+      })
+    }
 
     // ── 2. Update team_accesses document ──────────────────────────────────
     const collections = ['team_accesses', 'teamAccesses', 'accesses'] as const

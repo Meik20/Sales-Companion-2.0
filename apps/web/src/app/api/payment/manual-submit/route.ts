@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { adminAuth, adminDb } from '@/lib/firebase-admin'
 import { FieldValue } from 'firebase-admin/firestore'
-import { PLAN_LIMITS, UserPlan } from '@sales-companion/shared'
+// PLAN_LIMITS et UserPlan retirés : le plan n'est plus mis à jour ici.
+import { createAdminNotification } from '@/lib/admin-notifications'
 
 /**
  * POST /api/payment/manual-submit
@@ -37,10 +38,26 @@ export async function POST(request: NextRequest) {
       updatedAt: FieldValue.serverTimestamp()
     })
 
-    // Update the user's plan immediately so the Admin Users Table reflects their choice
+    // ✅ Ne PAS activer le plan ici — l'admin doit valider d'abord.
+    // On marque uniquement paymentPending=true pour que l'AuthGuard
+    // puisse afficher l'écran "en attente de validation".
+    // Le plan et le dailyLimit seront mis à jour par /api/admin/payments/[reference]
+    // uniquement après validation manuelle de l'admin.
     await adminDb.collection('users').doc(userId).update({
-      plan: plan,
-      dailyLimit: PLAN_LIMITS[plan as UserPlan] ?? 10
+      paymentPending: true,
+      paymentPendingPlan: plan, // plan souhaité — affiché dans le panel admin
+      updatedAt: FieldValue.serverTimestamp()
+    })
+
+    // ✅ Notification temps réel pour l'admin
+    await createAdminNotification({
+      type: 'payment_submitted',
+      title: 'Nouveau paiement en attente',
+      message: `${userEmail} a soumis une preuve de paiement pour le plan ${plan?.toUpperCase()} (${operator} — ID: ${transactionId})`,
+      userId,
+      userEmail,
+      reference,
+      link: '/admin/payments'
     })
 
     return NextResponse.json({ success: true, reference })

@@ -11,6 +11,7 @@ import { colors, shadows } from '@/styles/tokens'
 import { ScIcon } from '@/components/ui/ScIcon'
 import { Settings, User, LogOut, Menu, ChevronDown } from 'lucide-react'
 import { useTranslation } from '@/providers/I18nProvider'
+import { AdminNotificationBell } from '@/features/admin/components/AdminNotificationBell'
 
 export function AppHeader({ onOpenMenu }: { onOpenMenu?: () => void }) {
   const { t } = useTranslation()
@@ -137,7 +138,11 @@ export function AppHeader({ onOpenMenu }: { onOpenMenu?: () => void }) {
           </Link>
         </div>
 
-        {/* ── RIGHT: User Profile ──────────────────────────────────── */}
+        {/* ── CENTER/RIGHT: Admin notification bell ───────────────────── */}
+        <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 10 }}>
+          {user?.role === 'admin' && <AdminNotificationBell />}
+
+          {/* ── RIGHT: User Profile ──────────────────────────────────── */}
         {user ? (
           <div style={{ position: 'relative' }}>
             <button
@@ -358,6 +363,7 @@ export function AppHeader({ onOpenMenu }: { onOpenMenu?: () => void }) {
             {t('header.login')}
           </Button>
         )}
+        </div>{/* ← fermeture du wrapper bell + profile */}
       </div>
     </header>
   )

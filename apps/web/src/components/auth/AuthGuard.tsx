@@ -3,24 +3,29 @@
 import { PropsWithChildren, useEffect, useState } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { auth } from '@/services/firebase/client'
-import { sendEmailVerification } from 'firebase/auth'
 import { colors } from '@/styles/tokens'
-import { Mail, RefreshCw } from 'lucide-react'
+import { Mail, RefreshCw, Clock } from 'lucide-react'
 import { ScIcon } from '@/components/ui/ScIcon'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
+import { routes } from '@/constants/routes'
 
 export function AuthGuard({ children }: PropsWithChildren) {
   const { user, loading } = useCurrentUser()
   const pathname = usePathname()
+  const router = useRouter()
   const [resendCooldown, setResendCooldown] = useState(0)
   const [resendLoading, setResendLoading] = useState(false)
   const [finalizing, setFinalizing] = useState(false)
   const [status, setStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
 
-  // Permet d'afficher la page /upgrade (et ses sous-vues) même si le compte manager n'est pas encore actif
+  // Permet d'afficher la page /upgrade même si le compte manager n'est pas encore actif
   const isUpgradePage = pathname === '/upgrade' || pathname.startsWith('/upgrade?')
 
-  // Check if the Firebase user has verified their email — if yes, finalize activation
+  // ─────────────────────────────────────────────────────────────────────────
+  // ✅ Email verification finalization
+  // Quand Firebase Auth confirme l'email mais que Firestore a encore
+  // emailVerificationPending=true, on appelle l'API pour mettre à jour Firestore.
+  // ─────────────────────────────────────────────────────────────────────────
   useEffect(() => {
     const firebaseUser = auth.currentUser
     if (!firebaseUser || loading) return
@@ -38,8 +43,7 @@ export function AuthGuard({ children }: PropsWithChildren) {
               method: 'POST',
               headers: { Authorization: `Bearer ${token}` }
             })
-            // Force page reload to re-fetch user doc with activated: true
-            window.location.reload()
+            // useCurrentUser récupère la mise à jour via onSnapshot — pas besoin de reload
           } catch {
             /* ignore */
           }
@@ -48,6 +52,25 @@ export function AuthGuard({ children }: PropsWithChildren) {
         .catch(() => setFinalizing(false))
     }
   }, [user, loading])
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // ✅ Rédirection automatique manager → /upgrade après vérification email
+  // Dès que emailVerificationPending passe à false, si le manager n'a pas
+  // encore soumis de paiement, on le guide vers la page de choix du plan.
+  // ─────────────────────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (loading || finalizing || !user) return
+    if (user.role !== 'manager') return
+
+    const emailVerificationPending = (user as any).emailVerificationPending
+    const paymentPending = (user as any).paymentPending
+
+    // Email vérifié + pas encore de paiement soumis + pas sur /upgrade → rediriger
+    if (!emailVerificationPending && !user.active && !paymentPending && !isUpgradePage) {
+      router.replace(`${routes.upgrade}?from=register`)
+    }
+  }, [user, loading, finalizing, isUpgradePage, router])
+
 
   // Resend cooldown timer
   useEffect(() => {
@@ -311,7 +334,14 @@ export function AuthGuard({ children }: PropsWithChildren) {
   }
 
   // ── Account pending admin validation (Manager only) ─────────────────────────
-  if (user.role === 'manager' && (!user.active || user.plan === 'free') && !isUpgradePage) {
+  // Si le manager a soumis un paiement (paymentPending=true), on affiche
+  // un écran d'attente. La redirection vers le dashboard est automatique
+  // car useCurrentUser écoute Firestore en temps réel via onSnapshot —
+  // dès que l'admin met active=true, le user se met à jour et ce bloc
+  // ne s'affiche plus, libérant l'accès aux pages protégées.
+  const userPaymentPending = (user as any)?.paymentPending === true
+
+  if (user.role === 'manager' && !user.active && userPaymentPending && !isUpgradePage) {
     return (
       <div
         style={{
@@ -349,7 +379,7 @@ export function AuthGuard({ children }: PropsWithChildren) {
               margin: '0 auto 20px'
             }}
           >
-            <RefreshCw size={30} style={{ color: '#f59e0b' }} />
+            <Clock size={30} style={{ color: '#f59e0b' }} />
           </div>
 
           <h1
@@ -361,12 +391,30 @@ export function AuthGuard({ children }: PropsWithChildren) {
               margin: '0 0 10px'
             }}
           >
-            Paiement en cours de vérification
+            En attente de validation
           </h1>
-          <p style={{ fontSize: 14, color: colors.textMid, lineHeight: 1.7, margin: '0 0 24px' }}>
-            Votre compte Manager nécessite un abonnement actif. Si vous avez déjà soumis votre paiement, 
-            veuillez patienter pendant qu'un administrateur valide votre accès (généralement sous 24h).
+          <p style={{ fontSize: 14, color: colors.textMid, lineHeight: 1.7, margin: '0 0 8px' }}>
+            Votre paiement a bien été reçu et est en cours de vérification par notre équipe.
           </p>
+          <p style={{ fontSize: 13, color: colors.textMid, lineHeight: 1.6, margin: '0 0 24px' }}>
+            ⏳ Cette page se met à jour <strong>automatiquement</strong> dès que votre compte est activé.
+            Vous n&apos;avez rien à faire.
+          </p>
+
+          <div
+            style={{
+              background: 'rgba(245,158,11,0.06)',
+              border: '1px solid rgba(245,158,11,0.2)',
+              borderRadius: 10,
+              padding: '12px 16px',
+              fontSize: 12,
+              color: '#f59e0b',
+              marginBottom: 20,
+              lineHeight: 1.6
+            }}
+          >
+            📬 Vous recevrez un email de confirmation une fois votre compte activé par l&apos;équipe Sales Companion.
+          </div>
 
           <button
             onClick={() => window.location.href = '/upgrade?from=register'}
@@ -387,7 +435,7 @@ export function AuthGuard({ children }: PropsWithChildren) {
               transition: 'all 150ms ease'
             }}
           >
-            Je n&apos;ai pas encore soumis mon paiement
+            Modifier ma demande de paiement
           </button>
         </div>
       </div>

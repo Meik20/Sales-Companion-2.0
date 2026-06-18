@@ -86,12 +86,11 @@ export function RegisterForm() {
         companyName: role === 'manager' ? companyName : undefined,
         sector: sector || undefined
       })
-      // Managers must choose a plan and pay before accessing the app
-      if (role === 'manager') {
-        router.replace(`${routes.upgrade}?from=register`)
-      } else {
-        router.replace(routes.search)
-      }
+      // ✅ Tout le monde va sur /search — l'AuthGuard gère la suite :
+      // - si email non vérifié → affiche le mur de vérification email
+      // - si manager + email vérifié + non actif → redirige vers /upgrade
+      // - si independent + email vérifié → accès direct
+      router.replace(routes.search)
     } catch (err) {
       setError(mapAuthError(err))
     } finally {
@@ -181,7 +180,8 @@ export function RegisterForm() {
         id="btn-google-register"
         type="button"
         onClick={() => void handleGoogleSignIn()}
-        disabled={googleLoading || loading}
+        disabled={googleLoading || loading || role === 'manager'}
+        title={role === 'manager' ? 'Le compte Manager nécessite une inscription par email pour le processus de validation' : undefined}
         style={{
           width: '100%',
           display: 'flex',
@@ -192,17 +192,17 @@ export function RegisterForm() {
           borderRadius: 10,
           border: `1.5px solid ${colors.border}`,
           background: 'rgba(255,255,255,0.04)',
-          color: colors.text,
+          color: role === 'manager' ? colors.textDim : colors.text,
           fontSize: 14,
           fontWeight: 600,
           fontFamily: 'inherit',
-          cursor: googleLoading || loading ? 'not-allowed' : 'pointer',
-          opacity: googleLoading || loading ? 0.6 : 1,
+          cursor: googleLoading || loading || role === 'manager' ? 'not-allowed' : 'pointer',
+          opacity: googleLoading || loading || role === 'manager' ? 0.45 : 1,
           transition: 'background 200ms',
-          marginBottom: 4
+          marginBottom: role === 'manager' ? 2 : 4
         }}
         onMouseEnter={(e) => {
-          if (!googleLoading && !loading)
+          if (!googleLoading && !loading && role !== 'manager')
             (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.08)'
         }}
         onMouseLeave={(e) => {
@@ -233,6 +233,11 @@ export function RegisterForm() {
         )}
         {googleLoading ? 'Connexion…' : "S'inscrire avec Google"}
       </button>
+      {role === 'manager' && (
+        <p style={{ fontSize: 11, color: colors.textDim, textAlign: 'center', margin: '0 0 4px' }}>
+          🔒 L&apos;inscription Google n&apos;est pas disponible pour le compte Manager
+        </p>
+      )}
 
       {/* Divider */}
       <div
