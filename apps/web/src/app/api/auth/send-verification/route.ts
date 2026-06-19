@@ -29,7 +29,14 @@ export async function POST(request: NextRequest) {
       handleCodeInApp: false
     }
 
-    const link = await adminAuth.generateEmailVerificationLink(email, actionCodeSettings)
+    let link = await adminAuth.generateEmailVerificationLink(email, actionCodeSettings)
+
+    // Remplacement du domaine Firebase par défaut par le domaine personnalisé
+    // pour éviter les filtres anti-spam qui n'aiment pas les domaines partagés
+    link = link.replace(
+      /https:\/\/[^/]+\.firebaseapp\.com/g,
+      'https://auth.salescompanion2-0.com'
+    )
 
     const html = `
       <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; color: #1a1f36; background-color: #ffffff; border-radius: 12px; border: 1px solid #e5e7eb;">
@@ -58,10 +65,22 @@ export async function POST(request: NextRequest) {
       </div>
     `
 
+    const text = `
+Bonjour,
+
+Merci d'avoir créé un compte sur Sales Companion 2.0. Pour finaliser votre inscription et sécuriser votre compte, veuillez vérifier votre adresse e-mail en copiant/collant le lien ci-dessous dans votre navigateur :
+
+${link}
+
+À très vite,
+L'équipe Sales Companion
+    `
+
     const result = await sendEmail({
       to: email,
-      subject: 'Action requise : Vérifiez votre adresse e-mail - Sales Companion 2.0',
-      html
+      subject: 'Bienvenue sur Sales Companion ! Confirmez votre email',
+      html,
+      text
     })
 
     if (!result.success) {
