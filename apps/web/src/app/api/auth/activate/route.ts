@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getClientIp, checkRateLimit } from '@/lib/rate-limit'
 
 // Lazy import to avoid HTML errors if firebase-admin fails to initialise
 async function getAdminModules() {
@@ -12,6 +13,12 @@ const ACCESS_COLLECTIONS = ['team_accesses', 'teamAccesses', 'accesses'] as cons
 export async function POST(request: NextRequest) {
   // Always return JSON — never let Next.js emit an HTML error page
   try {
+    const ip = getClientIp(request)
+    const ipLimit = await checkRateLimit(ip, { limit: 10, windowMs: 60 * 1000 })
+    if (!ipLimit.success) {
+      return NextResponse.json({ message: 'Trop de tentatives, veuillez réessayer plus tard.' }, { status: 429 })
+    }
+
     const { adminDb, adminAuth } = await getAdminModules()
 
     // ── Parse body ──────────────────────────────────────────────────────────

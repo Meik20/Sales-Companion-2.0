@@ -41,7 +41,12 @@ service cloud.firestore {
         || isOwner(uid)
         || (isManager() && resource.data.managerUid == authUid());
 
-      allow create: if isOwner(uid) || isAdmin();
+      allow create: if isAdmin() || (
+        isOwner(uid) 
+        && request.resource.data.get('role', '') != 'admin'
+        && request.resource.data.get('plan', 'free') == 'free'
+        && request.resource.data.get('dailyLimit', 10) <= 10
+      );
 
       allow update: if isAdmin()
         || (isOwner(uid) 
@@ -70,7 +75,11 @@ service cloud.firestore {
           || request.resource.data.managerUid == null
         );
 
-      allow update, delete: if isAdmin()
+      allow update: if isAdmin()
+        || (isSignedIn() && resource.data.userId == authUid() && request.resource.data.userId == authUid())
+        || (isManagedUser(resource.data.managerUid) && request.resource.data.userId == resource.data.userId);
+        
+      allow delete: if isAdmin()
         || (isSignedIn() && resource.data.userId == authUid())
         || isManagedUser(resource.data.managerUid);
     }
@@ -78,13 +87,14 @@ service cloud.firestore {
     match /saved_searches/{savedSearchId} {
       allow read: if isSignedIn() && resource.data.userId == authUid();
       allow create: if isSignedIn() && request.resource.data.userId == authUid();
-      allow update, delete: if isSignedIn() && resource.data.userId == authUid();
+      allow update: if isSignedIn() && resource.data.userId == authUid() && request.resource.data.userId == authUid();
+      allow delete: if isSignedIn() && resource.data.userId == authUid();
     }
 
     match /support_threads/{threadId} {
       allow read: if isAdmin() || (isSignedIn() && resource.data.userId == authUid());
       allow create: if isSignedIn() && request.resource.data.userId == authUid();
-      allow update: if isAdmin() || (isSignedIn() && resource.data.userId == authUid());
+      allow update: if isAdmin() || (isSignedIn() && resource.data.userId == authUid() && request.resource.data.userId == authUid());
 
       match /messages/{messageId} {
         allow read: if isAdmin() || (

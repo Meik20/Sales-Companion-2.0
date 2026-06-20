@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getClientIp, checkRateLimit } from '@/lib/rate-limit'
 
 /**
  * POST /api/auth/google
@@ -13,6 +14,12 @@ import { NextRequest, NextResponse } from 'next/server'
  */
 export async function POST(request: NextRequest) {
   try {
+    const ip = getClientIp(request)
+    const ipLimit = await checkRateLimit(ip, { limit: 20, windowMs: 60 * 1000 })
+    if (!ipLimit.success) {
+      return NextResponse.json({ error: 'Trop de tentatives, veuillez réessayer plus tard.' }, { status: 429 })
+    }
+
     const body = await request.json().catch(() => null)
     if (!body?.idToken) {
       return NextResponse.json({ error: 'idToken manquant.' }, { status: 400 })

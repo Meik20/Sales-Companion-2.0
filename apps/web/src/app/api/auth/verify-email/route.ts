@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getClientIp, checkRateLimit } from '@/lib/rate-limit'
 
 async function getAdmin() {
   const { adminDb, adminAuth } = await import('@/lib/firebase-admin')
@@ -18,6 +19,12 @@ async function getAdmin() {
  */
 export async function POST(request: NextRequest) {
   try {
+    const ip = getClientIp(request)
+    const ipLimit = await checkRateLimit(ip, { limit: 10, windowMs: 60 * 1000 })
+    if (!ipLimit.success) {
+      return NextResponse.json({ message: 'Trop de tentatives, veuillez réessayer plus tard.' }, { status: 429 })
+    }
+
     const { adminDb, adminAuth, createAdminNotification } = await getAdmin()
 
     const token = request.headers.get('authorization')?.split(' ')[1]
