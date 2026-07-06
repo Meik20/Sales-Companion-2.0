@@ -1104,6 +1104,7 @@ const ARTICLES_CONTENT: Record<string, {
 // ── SSG (Static Site Generation) ──────────────────────────────────────────
 export async function generateStaticParams() {
   return [
+    { slug: 'base-de-donnees-entreprises-cameroun-2026' },
     { slug: 'trouver-clients-b2b-cameroun-2026' },
     { slug: 'annuaire-entreprises-btp-douala' },
     { slug: 'niu-rccm-identifier-entreprise-camerounaise' },
@@ -1134,16 +1135,18 @@ export async function generateMetadata({
     }
   }
 
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://salescompanion2-0.com'
+
   return {
     title: `${article.title} | Blog Sales Companion 2.0`,
     description: article.description,
     alternates: {
-      canonical: `https://salescompanion2-0.com/blog/${resolvedParams.slug}`
+      canonical: `${baseUrl}/blog/${resolvedParams.slug}`
     },
     openGraph: {
       title: article.title,
       description: article.description,
-      url: `https://salescompanion2-0.com/blog/${resolvedParams.slug}`,
+      url: `${baseUrl}/blog/${resolvedParams.slug}`,
       type: 'article',
       publishedTime: new Date().toISOString()
     }

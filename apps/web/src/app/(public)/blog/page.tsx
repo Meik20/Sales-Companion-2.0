@@ -3,16 +3,18 @@ import { Metadata } from 'next'
 import { ScIcon } from '@/components/ui/ScIcon'
 import '@/features/landing/styles/landing.css'
 
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://salescompanion2-0.com'
+
 export const metadata: Metadata = {
   title: 'Blog — Prospection B2B & CRM au Cameroun | Sales Companion 2.0',
   description:
     'Conseils, guides et stratégies pour les commerciaux et managers au Cameroun. Prospection B2B, utilisation des données entreprises, CRM et développement des ventes.',
-  alternates: { canonical: 'https://salescompanion2-0.com/blog' },
+  alternates: { canonical: `${baseUrl}/blog` },
   openGraph: {
     title: 'Blog Sales Companion 2.0 — Conseils B2B Cameroun',
     description:
       'Guides pratiques pour booster votre prospection commerciale au Cameroun.',
-    url: 'https://salescompanion2-0.com/blog',
+    url: `${baseUrl}/blog`,
     siteName: 'Sales Companion 2.0',
     type: 'website'
   }

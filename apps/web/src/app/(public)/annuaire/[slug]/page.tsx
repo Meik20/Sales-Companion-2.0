@@ -172,10 +172,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
   }
 
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://salescompanion2-0.com'
   const prefix = data.type === 'city' ? 'à' : 'du secteur'
+  const titleText = `Entreprises B2B ${prefix} ${data.title} — Annuaire Cameroun`
+  const descText = `${data.description} Accédez à plus de ${data.count} profils vérifiés avec contacts des dirigeants.`
+
   return {
-    title: `Entreprises B2B ${prefix} ${data.title} — Annuaire Cameroun`,
-    description: `${data.description} Accédez à plus de ${data.count} profils vérifiés avec contacts des dirigeants.`
+    title: titleText,
+    description: descText,
+    alternates: {
+      canonical: `${baseUrl}/annuaire/${slug}`
+    },
+    openGraph: {
+      title: titleText,
+      description: descText,
+      url: `${baseUrl}/annuaire/${slug}`,
+      type: 'website'
+    }
   }
 }
 

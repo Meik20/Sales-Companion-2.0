@@ -3,15 +3,17 @@ import { Metadata } from 'next'
 import { ScIcon } from '@/components/ui/ScIcon'
 import '@/features/landing/styles/landing.css'
 
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://salescompanion2-0.com'
+
 export const metadata: Metadata = {
   title: "Conditions Générales d'Utilisation | Sales Companion 2.0",
   description:
     "Conditions Générales d'Utilisation de Sales Companion 2.0 : droits, obligations, abonnements et règles d'utilisation de la plateforme B2B au Cameroun.",
-  alternates: { canonical: 'https://salescompanion2-0.com/terms' },
+  alternates: { canonical: `${baseUrl}/terms` },
   openGraph: {
     title: "CGU — Conditions Générales d'Utilisation — Sales Companion 2.0",
     description: "Droits, obligations et règles d'utilisation de la plateforme Sales Companion 2.0.",
-    url: 'https://salescompanion2-0.com/terms',
+    url: `${baseUrl}/terms`,
     siteName: 'Sales Companion 2.0',
     type: 'website'
   }

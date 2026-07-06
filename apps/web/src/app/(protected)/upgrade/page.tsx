@@ -12,10 +12,16 @@ import { routes } from '@/constants/routes'
 
 import { PLAN_LIMITS, PLAN_PRICES } from '@sales-companion/shared'
 
-// ── Configuration des comptes de réception (À MODIFIER PAR VOUS) ──────────────
+// ── Configuration des comptes de réception ──────────────────────────────────
 const PAYMENT_ACCOUNTS = {
-  MTN: { number: '655 88 60 86', name: 'MBAYE EYOUM IVAN KEVIN' },
-  ORANGE: { number: '655 88 60 86', name: 'MBAYE EYOUM IVAN KEVIN' }
+  MTN: {
+    number: process.env.NEXT_PUBLIC_PAYMENT_MTN_NUMBER || '655 88 60 86',
+    name: process.env.NEXT_PUBLIC_PAYMENT_MTN_NAME || 'MBAYE EYOUM IVAN KEVIN'
+  },
+  ORANGE: {
+    number: process.env.NEXT_PUBLIC_PAYMENT_ORANGE_NUMBER || '655 88 60 86',
+    name: process.env.NEXT_PUBLIC_PAYMENT_ORANGE_NAME || 'MBAYE EYOUM IVAN KEVIN'
+  }
 }
 
 // Helper pour formater les prix
@@ -227,12 +233,12 @@ export default function UpgradePage() {
               return (
                 <div
                   key={p.key}
-                  onClick={() =>
-                    !isCurrent && {
-                      setSelectedPlan: setSelectedPlan(p.key),
-                      setStep: setStep('instructions')
+                  onClick={() => {
+                    if (!isCurrent) {
+                      setSelectedPlan(p.key)
+                      setStep('instructions')
                     }
-                  }
+                  }}
                   style={{
                     background: colors.bg2,
                     border: `2px solid ${isCurrent ? p.color : colors.border}`,

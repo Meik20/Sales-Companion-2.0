@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { ScIcon } from '@/components/ui/ScIcon'
 import '@/features/landing/styles/landing.css' // Import des styles de la landing page
 
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://salescompanion2-0.com'
+
 export const metadata: Metadata = {
   title: 'Base de Données Entreprises Cameroun — 50 000+ Sociétés | Annuaire B2B',
   description:
@@ -17,12 +19,12 @@ export const metadata: Metadata = {
     'RCCM Cameroun',
     'NIU Cameroun'
   ],
-  alternates: { canonical: 'https://salescompanion2-0.com/annuaire' },
+  alternates: { canonical: `${baseUrl}/annuaire` },
   openGraph: {
     title: 'Base de Données Entreprises Cameroun — Annuaire B2B 50 000+ Sociétés',
     description:
       '50 000+ entreprises camerounaises vérifiées. Filtrez par ville et secteur. La référence pour la prospection B2B au Cameroun.',
-    url: 'https://salescompanion2-0.com/annuaire',
+    url: `${baseUrl}/annuaire`,
     siteName: 'Sales Companion 2.0',
     type: 'website'
   }
@@ -78,15 +80,15 @@ export default function AnnuaireHub() {
     name: 'Base de Données Entreprises Cameroun',
     description:
       'Base de données de plus de 50 000 entreprises camerounaises vérifiées, incluant leurs informations légales (RCCM, NIU), contacts et secteurs d\'activité.',
-    url: 'https://salescompanion2-0.com/annuaire',
+    url: `${baseUrl}/annuaire`,
     creator: {
       '@type': 'Organization',
       name: 'Sales Companion 2.0',
-      url: 'https://salescompanion2-0.com'
+      url: baseUrl
     },
     spatialCoverage: 'Cameroun',
     temporalCoverage: '2026',
-    license: 'https://salescompanion2-0.com/terms',
+    license: `${baseUrl}/terms`,
     keywords: 'entreprises cameroun, RCCM, NIU, prospection B2B, Douala, Yaoundé'
   }
 

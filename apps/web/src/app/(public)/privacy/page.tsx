@@ -3,15 +3,17 @@ import { Metadata } from 'next'
 import { ScIcon } from '@/components/ui/ScIcon'
 import '@/features/landing/styles/landing.css'
 
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://salescompanion2-0.com'
+
 export const metadata: Metadata = {
   title: 'Politique de Confidentialité | Sales Companion 2.0',
   description:
     "Politique de confidentialité de Sales Companion 2.0 : collecte, traitement et protection de vos données personnelles conformément à la réglementation en vigueur au Cameroun.",
-  alternates: { canonical: 'https://salescompanion2-0.com/privacy' },
+  alternates: { canonical: `${baseUrl}/privacy` },
   openGraph: {
     title: 'Politique de Confidentialité — Sales Companion 2.0',
     description: 'Comment Sales Companion 2.0 collecte, utilise et protège vos données personnelles.',
-    url: 'https://salescompanion2-0.com/privacy',
+    url: `${baseUrl}/privacy`,
     siteName: 'Sales Companion 2.0',
     type: 'website'
   }
