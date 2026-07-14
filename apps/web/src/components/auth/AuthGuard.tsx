@@ -71,6 +71,23 @@ export function AuthGuard({ children }: PropsWithChildren) {
     }
   }, [user, loading, finalizing, isUpgradePage, router])
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // ✅ Rédirection automatique support_agent vers l'espace CRM unique
+  // L'agent support est restreint aux pages CRM. S'il tente d'accéder
+  // à la prospection, pipeline ou équipe, il est redirigé vers /crm.
+  // ─────────────────────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (loading || !user) return
+    if (user.role !== 'support_agent') return
+
+    const restrictedPaths = ['/pipeline', '/team', '/reporting', '/search', '/saved']
+    const isRestricted = restrictedPaths.some(p => pathname === p || pathname.startsWith(p + '/'))
+
+    if (isRestricted || pathname === '/') {
+      router.replace('/crm')
+    }
+  }, [user, loading, pathname, router])
+
 
   // Resend cooldown timer
   useEffect(() => {

@@ -13,6 +13,7 @@ export const routes = {
   ai: '/ai',
   team: '/team',
   reporting: '/reporting',
+  crm: '/crm',
   admin: '/admin/dashboard',
   adminDashboard: '/admin/dashboard',
   adminUsers: '/admin/users',
@@ -23,3 +24,4 @@ export const routes = {
   adminConfig: '/admin/config',
   adminPayments: '/admin/payments'
 }
+

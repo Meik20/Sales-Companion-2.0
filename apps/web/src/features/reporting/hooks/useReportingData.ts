@@ -23,7 +23,39 @@ export type ReportingData = {
   memberStats: MemberStat[]
   // Monthly totals (last 6 months)
   monthlyTrend: { month: string; conclue: number; total: number }[]
+  supportStats?: {
+    callsCount: number
+    ticketsCount: number
+    resolvedTicketsCount: number
+    openTicketsCount: number
+    recentCalls: Array<{
+      id: string
+      agentUid: string
+      agentName: string
+      agentAccessId: string | null
+      clientId: string
+      clientName: string
+      clientPhone: string
+      status: string
+      notes: string
+      createdAt: string
+    }>
+    recentTickets: Array<{
+      id: string
+      clientId: string
+      clientName: string
+      subject: string
+      description: string
+      priority: 'low' | 'medium' | 'high' | 'urgent'
+      status: 'open' | 'in_progress' | 'resolved' | 'closed'
+      agentUid: string
+      agentName: string
+      createdAt: string
+      updatedAt: string
+    }>
+  }
 }
+
 
 export function useReportingData() {
   const { user } = useCurrentUser()

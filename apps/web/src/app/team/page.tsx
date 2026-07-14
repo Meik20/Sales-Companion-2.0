@@ -7,7 +7,9 @@ import { TeamMembersSection } from '@/features/team/components/TeamMembersSectio
 import { CreateAssignmentForm } from '@/features/team/components/CreateAssignmentForm'
 import { AssignmentsTable } from '@/features/team/components/AssignmentsTable'
 import { TeamAccessManager } from '@/features/team/components/TeamAccessManager'
+import { CrossTeamSupportManager } from '@/features/crm/components/CrossTeamSupportManager'
 import { ImportProspectsForm } from '@/features/imports/components/ImportProspectsForm'
+
 import {
   ManagerProspectsList,
   type Prospect
@@ -123,7 +125,9 @@ export default function TeamPage() {
       {activeTab === 'team' ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <TeamAccessManager />
+          {isManager && <CrossTeamSupportManager />}
           <TeamMembersSection />
+
 
           {/* Assignment form — receives pre-selected prospects from imports tab */}
           <div ref={assignFormRef}>

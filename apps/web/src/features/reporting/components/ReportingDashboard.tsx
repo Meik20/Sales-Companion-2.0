@@ -1,7 +1,9 @@
 'use client'
 
+import { useState } from 'react'
 import { colors } from '@/styles/tokens'
 import type { ReportingData, MemberStat } from '../hooks/useReportingData'
+
 
 // ── KPI Card ──────────────────────────────────────────────────────────────────
 function KpiCard({
@@ -234,81 +236,323 @@ function Leaderboard({ members }: { members: MemberStat[] }) {
   )
 }
 
-// ── Main Dashboard Component ──────────────────────────────────────────────────
-export function ReportingDashboard({ data }: { data: ReportingData }) {
+// ── Support Activity Section ──────────────────────────────────────────────────
+function SupportActivitySection({ stats }: { stats: NonNullable<ReportingData['supportStats']> }) {
+  const resolutionRate = stats.ticketsCount > 0
+    ? Math.round((stats.resolvedTicketsCount / stats.ticketsCount) * 100)
+    : 0
+
+  const CALL_STATUS_LABELS: Record<string, { label: string; color: string; emoji: string }> = {
+    connected:  { label: 'Décroché',    color: '#4ade80', emoji: '✅' },
+    no_answer:  { label: 'Non joint',   color: '#f59e0b', emoji: '📵' },
+    busy:       { label: 'Occupé',      color: '#f97316', emoji: '🔴' },
+    voicemail:  { label: 'Répondeur',   color: '#a78bfa', emoji: '📬' },
+    failed:     { label: 'Échec',       color: '#f87171', emoji: '❌' }
+  }
+
+  const PRIORITY_LABELS: Record<string, { label: string; color: string }> = {
+    low:    { label: 'Basse',   color: '#60a5fa' },
+    medium: { label: 'Moyenne', color: '#f59e0b' },
+    high:   { label: 'Haute',   color: '#f97316' },
+    urgent: { label: 'Urgente', color: '#f87171' }
+  }
+
+  const TICKET_STATUS_LABELS: Record<string, { label: string; color: string }> = {
+    open:        { label: 'Ouvert',    color: '#f87171' },
+    in_progress: { label: 'En cours',  color: '#f59e0b' },
+    resolved:    { label: 'Résolu',    color: '#4ade80' },
+    closed:      { label: 'Fermé',     color: '#94a3b8' }
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      {/* KPI Row */}
+      {/* Support KPIs */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16 }}>
         <KpiCard
-          label="Total prospects"
-          value={data.totalItems}
-          sub={`Toute l'équipe`}
+          label="Appels support"
+          value={stats.callsCount}
+          sub="Passés par vos agents"
           color="#60a5fa"
-          icon="📋"
+          icon="📞"
         />
         <KpiCard
-          label="Affaires conclues"
-          value={data.totalConclue}
-          sub={`Sur ${data.totalItems} prospects`}
-          color="#4ade80"
-          icon="✅"
+          label="Total tickets SAV"
+          value={stats.ticketsCount}
+          sub="Créés pour vos clients"
+          color="#f59e0b"
+          icon="🎫"
         />
         <KpiCard
-          label="Taux de conversion"
-          value={`${data.overallConversionRate}%`}
-          sub="Prospection → Clôture"
-          color={data.overallConversionRate >= 30 ? '#4ade80' : '#fbbf24'}
-          icon="📈"
+          label="Tickets ouverts"
+          value={stats.openTicketsCount}
+          sub="En attente de résolution"
+          color="#f87171"
+          icon="⏳"
         />
         <KpiCard
-          label="Meilleur commercial"
-          value={data.topPerformer ?? '—'}
-          sub="Par nb d'affaires conclues"
-          color="#fbbf24"
-          icon="🏆"
+          label="Taux de résolution"
+          value={`${resolutionRate}%`}
+          sub="Tickets résolus ou fermés"
+          color={resolutionRate >= 70 ? '#4ade80' : '#f59e0b'}
+          icon="✓"
         />
       </div>
 
-      {/* Charts Row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20 }}>
-        <div
-          style={{
-            background: colors.bg2,
-            border: `1px solid ${colors.border}`,
-            borderRadius: 16,
-            padding: 24
-          }}
-        >
-          <PipelineFunnel
-            prospection={data.totalProspection}
-            negociation={data.totalNegociation}
-            conclue={data.totalConclue}
-          />
-        </div>
-        <div
-          style={{
-            background: colors.bg2,
-            border: `1px solid ${colors.border}`,
-            borderRadius: 16,
-            padding: 24
-          }}
-        >
-          <MonthlyTrendChart data={data.monthlyTrend} />
-        </div>
-      </div>
-
-      {/* Leaderboard */}
-      <div
-        style={{
+      {/* Two-column layout for recent logs */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20 }}>
+        {/* Calls Log */}
+        <div style={{
           background: colors.bg2,
           border: `1px solid ${colors.border}`,
           borderRadius: 16,
-          padding: 24
-        }}
-      >
-        <Leaderboard members={data.memberStats} />
+          padding: 24,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 16
+        }}>
+          <div>
+            <h3 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: colors.text }}>
+              📞 Journal des Appels Clients
+            </h3>
+            <p style={{ margin: '4px 0 0', fontSize: 12, color: colors.textMid }}>
+              Les 50 derniers appels de support passés par vos agents.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 400, overflowY: 'auto', paddingRight: 4 }}>
+            {stats.recentCalls.length === 0 ? (
+              <p style={{ fontSize: 13, color: colors.textMid, textAlign: 'center', padding: '30px 0' }}>
+                Aucun appel enregistré pour le moment.
+              </p>
+            ) : stats.recentCalls.map(call => (
+              <div key={call.id} style={{
+                background: 'rgba(255,255,255,0.02)',
+                border: `1px solid ${colors.border}`,
+                borderRadius: 10,
+                padding: '12px 14px'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <strong style={{ fontSize: 13, color: colors.text }}>
+                    {call.clientName || 'Client inconnu'}
+                  </strong>
+                  <span style={{ fontSize: 11, color: colors.textDim }}>
+                    {new Date(call.createdAt).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6 }}>
+                  <span style={{
+                    fontSize: 10.5, fontWeight: 700, padding: '1px 8px', borderRadius: 4,
+                    background: `${CALL_STATUS_LABELS[call.status]?.color}22`,
+                    color: CALL_STATUS_LABELS[call.status]?.color
+                  }}>
+                    {CALL_STATUS_LABELS[call.status]?.emoji} {CALL_STATUS_LABELS[call.status]?.label}
+                  </span>
+                  <span style={{ fontSize: 11, color: colors.textMid }}>
+                    par {call.agentName}
+                  </span>
+                </div>
+                {call.notes && (
+                  <p style={{ fontSize: 12, color: colors.textMid, margin: 0, lineHeight: 1.4, background: 'rgba(0,0,0,0.15)', padding: 8, borderRadius: 6 }}>
+                    {call.notes}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Tickets Log */}
+        <div style={{
+          background: colors.bg2,
+          border: `1px solid ${colors.border}`,
+          borderRadius: 16,
+          padding: 24,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 16
+        }}>
+          <div>
+            <h3 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: colors.text }}>
+              🎫 Tickets SAV / Réclamations
+            </h3>
+            <p style={{ margin: '4px 0 0', fontSize: 12, color: colors.textMid }}>
+              Les 50 derniers tickets de support de vos clients.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 400, overflowY: 'auto', paddingRight: 4 }}>
+            {stats.recentTickets.length === 0 ? (
+              <p style={{ fontSize: 13, color: colors.textMid, textAlign: 'center', padding: '30px 0' }}>
+                Aucun ticket SAV ouvert pour le moment.
+              </p>
+            ) : stats.recentTickets.map(ticket => (
+              <div key={ticket.id} style={{
+                background: 'rgba(255,255,255,0.02)',
+                border: `1px solid ${colors.border}`,
+                borderRadius: 10,
+                padding: '12px 14px'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <strong style={{ fontSize: 13, color: colors.text }}>
+                    {ticket.clientName}
+                  </strong>
+                  <span style={{
+                    fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20,
+                    background: `${PRIORITY_LABELS[ticket.priority]?.color}22`,
+                    color: PRIORITY_LABELS[ticket.priority]?.color
+                  }}>
+                    {PRIORITY_LABELS[ticket.priority]?.label}
+                  </span>
+                </div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: colors.text, marginBottom: 4 }}>
+                  {ticket.subject}
+                </div>
+                {ticket.description && (
+                  <p style={{ fontSize: 12, color: colors.textMid, margin: '0 0 8px', lineHeight: 1.4 }}>
+                    {ticket.description}
+                  </p>
+                )}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11, color: colors.textDim }}>
+                  <span>Par {ticket.agentName}</span>
+                  <span style={{
+                    padding: '2px 8px', borderRadius: 20, fontWeight: 700,
+                    background: `${TICKET_STATUS_LABELS[ticket.status]?.color}22`,
+                    color: TICKET_STATUS_LABELS[ticket.status]?.color
+                  }}>
+                    {TICKET_STATUS_LABELS[ticket.status]?.label}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   )
 }
+
+// ── Main Dashboard Component ──────────────────────────────────────────────────
+export function ReportingDashboard({ data }: { data: ReportingData }) {
+  const [section, setSection] = useState<'sales' | 'support'>('sales')
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      {/* Tab Selector */}
+      <div style={{ display: 'flex', borderBottom: `1px solid ${colors.border}`, gap: 12 }}>
+        <button
+          onClick={() => setSection('sales')}
+          style={{
+            padding: '12px 20px',
+            background: 'transparent',
+            border: 'none',
+            borderBottom: section === 'sales' ? `2px solid ${colors.green}` : '2px solid transparent',
+            color: section === 'sales' ? colors.green : colors.textMid,
+            fontWeight: section === 'sales' ? 700 : 500,
+            cursor: 'pointer',
+            fontSize: 14,
+            transition: 'all 150ms'
+          }}
+        >
+          📊 Ventes & Conversion
+        </button>
+        {data.supportStats && (
+          <button
+            onClick={() => setSection('support')}
+            style={{
+              padding: '12px 20px',
+              background: 'transparent',
+              border: 'none',
+              borderBottom: section === 'support' ? `2px solid ${colors.green}` : '2px solid transparent',
+              color: section === 'support' ? colors.green : colors.textMid,
+              fontWeight: section === 'support' ? 700 : 500,
+              cursor: 'pointer',
+              fontSize: 14,
+              transition: 'all 150ms'
+            }}
+          >
+            🎧 Activité Support SAV
+          </button>
+        )}
+      </div>
+
+      {section === 'sales' ? (
+        <>
+          {/* KPI Row */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16 }}>
+            <KpiCard
+              label="Total prospects"
+              value={data.totalItems}
+              sub={`Toute l'équipe`}
+              color="#60a5fa"
+              icon="📋"
+            />
+            <KpiCard
+              label="Affaires conclues"
+              value={data.totalConclue}
+              sub={`Sur ${data.totalItems} prospects`}
+              color="#4ade80"
+              icon="✅"
+            />
+            <KpiCard
+              label="Taux de conversion"
+              value={`${data.overallConversionRate}%`}
+              sub="Prospection → Clôture"
+              color={data.overallConversionRate >= 30 ? '#4ade80' : '#fbbf24'}
+              icon="📈"
+            />
+            <KpiCard
+              label="Meilleur commercial"
+              value={data.topPerformer ?? '—'}
+              sub="Par nb d'affaires conclues"
+              color="#fbbf24"
+              icon="🏆"
+            />
+          </div>
+
+          {/* Charts Row */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20 }}>
+            <div
+              style={{
+                background: colors.bg2,
+                border: `1px solid ${colors.border}`,
+                borderRadius: 16,
+                padding: 24
+              }}
+            >
+              <PipelineFunnel
+                prospection={data.totalProspection}
+                negociation={data.totalNegociation}
+                conclue={data.totalConclue}
+              />
+            </div>
+            <div
+              style={{
+                background: colors.bg2,
+                border: `1px solid ${colors.border}`,
+                borderRadius: 16,
+                padding: 24
+              }}
+            >
+              <MonthlyTrendChart data={data.monthlyTrend} />
+            </div>
+          </div>
+
+          {/* Leaderboard */}
+          <div
+            style={{
+              background: colors.bg2,
+              border: `1px solid ${colors.border}`,
+              borderRadius: 16,
+              padding: 24
+            }}
+          >
+            <Leaderboard members={data.memberStats} />
+          </div>
+        </>
+      ) : (
+        data.supportStats && <SupportActivitySection stats={data.supportStats} />
+      )}
+    </div>
+  )
+}
+

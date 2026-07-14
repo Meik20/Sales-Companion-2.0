@@ -105,6 +105,56 @@ export async function GET(request: NextRequest) {
       ...monthlyMap[month]
     }))
 
+    // Support Activity - query and sort in JS to prevent Firestore index errors
+    const callsSnap = await adminDb
+      .collection('customer_calls')
+      .where('managerUid', '==', decoded.uid)
+      .get()
+
+    const ticketsSnap = await adminDb
+      .collection('customer_tickets')
+      .where('managerUid', '==', decoded.uid)
+      .get()
+
+    const allCalls = callsSnap.docs.map(doc => {
+      const d = doc.data()
+      return {
+        id: doc.id,
+        ...d,
+        createdAt: d.createdAt?.toDate?.()?.toISOString() ?? (d.createdAt ? new Date(d.createdAt).toISOString() : null)
+      }
+    }) as any[]
+    const recentCalls = allCalls
+      .sort((a, b) => {
+        const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0
+        const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0
+        return timeB - timeA
+      })
+      .slice(0, 50)
+
+    const allTickets = ticketsSnap.docs.map(doc => {
+      const d = doc.data()
+      return {
+        id: doc.id,
+        ...d,
+        createdAt: d.createdAt?.toDate?.()?.toISOString() ?? (d.createdAt ? new Date(d.createdAt).toISOString() : null),
+        updatedAt: d.updatedAt?.toDate?.()?.toISOString() ?? (d.updatedAt ? new Date(d.updatedAt).toISOString() : null)
+      }
+    }) as any[]
+
+    const recentTickets = allTickets
+      .sort((a, b) => {
+        const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0
+        const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0
+        return timeB - timeA
+      })
+      .slice(0, 50)
+
+    const supportCallsCount = allCalls.length
+    const supportTicketsCount = allTickets.length
+    const resolvedTicketsCount = allTickets.filter(t => ['resolved', 'closed'].includes(t.status || '')).length
+    const openTicketsCount = allTickets.filter(t => ['open', 'in_progress'].includes(t.status || '')).length
+
     return NextResponse.json({
       totalItems,
       totalProspection,
@@ -113,8 +163,17 @@ export async function GET(request: NextRequest) {
       overallConversionRate,
       topPerformer,
       memberStats,
-      monthlyTrend
+      monthlyTrend,
+      supportStats: {
+        callsCount: supportCallsCount,
+        ticketsCount: supportTicketsCount,
+        resolvedTicketsCount,
+        openTicketsCount,
+        recentCalls,
+        recentTickets
+      }
     })
+
   } catch (err: any) {
     console.error('[/api/reporting]', err.message)
     return NextResponse.json({ error: err.message }, { status: 500 })

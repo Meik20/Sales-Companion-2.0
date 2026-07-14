@@ -49,7 +49,7 @@ describe('usePipelineItems', () => {
     })
 
     expect(result.current.data).toHaveLength(1)
-    expect(result.current.data?.[0].companyName).toBe('Company A')
+    expect(result.current.data?.[0]?.companyName).toBe('Company A')
   })
 
   it('should handle empty pipeline', async () => {

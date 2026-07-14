@@ -13,7 +13,7 @@ import { Settings, User, LogOut, Menu, ChevronDown } from 'lucide-react'
 import { useTranslation } from '@/providers/I18nProvider'
 import { AdminNotificationBell } from '@/features/admin/components/AdminNotificationBell'
 
-export function AppHeader({ onOpenMenu }: { onOpenMenu?: () => void }) {
+export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void }) {
   const { t } = useTranslation()
   const { user } = useCurrentUser()
   const { logout } = useAuthActions()
@@ -78,9 +78,9 @@ export function AppHeader({ onOpenMenu }: { onOpenMenu?: () => void }) {
       >
         {/* ── LEFT: Hamburger + Logo ──────────────────────────────── */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0 }}>
-          {onOpenMenu && (
+          {onOpenMenuAction && (
             <button
-              onClick={onOpenMenu}
+              onClick={onOpenMenuAction}
               style={{
                 background: 'rgba(255,255,255,0.12)',
                 border: '1px solid rgba(255,255,255,0.18)',

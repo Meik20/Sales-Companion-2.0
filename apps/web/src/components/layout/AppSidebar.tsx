@@ -153,10 +153,10 @@ function SectionDivider() {
 
 export function AppSidebar({
   isMobile = false,
-  onClose
+  onCloseAction
 }: {
   isMobile?: boolean
-  onClose?: () => void
+  onCloseAction?: () => void
 }) {
   const { user } = useCurrentUser()
   const { logout } = useAuthActions()
@@ -191,7 +191,7 @@ export function AppSidebar({
     if (c) params.set('city', c)
     const dest = `/search${params.toString() ? '?' + params.toString() : ''}`
     router.push(dest)
-    onClose?.()
+    onCloseAction?.()
   }
 
   function handleLocateMe() {
@@ -214,7 +214,7 @@ export function AppSidebar({
         if (sector) params.set('sector', sector)
 
         router.push(`/search?${params.toString()}`)
-        onClose?.()
+        onCloseAction?.()
       },
       () => setGeoState('idle'),
       { timeout: 8000, maximumAge: 60000 }
@@ -227,7 +227,7 @@ export function AppSidebar({
     try {
       await logout()
       pushToast({ type: 'success', title: t('sidebar.logoutSuccess') })
-      if (onClose) onClose()
+      if (onCloseAction) onCloseAction()
     } catch {
       pushToast({ type: 'error', title: t('sidebar.logoutError') })
     }
@@ -295,7 +295,9 @@ export function AppSidebar({
                 ? t('sidebar.managerRole')
                 : user.role === 'independent'
                   ? t('sidebar.independentRole')
-                  : t('sidebar.memberRole')}{' '}
+                  : user.role === 'support_agent'
+                    ? 'Agent Support'
+                    : t('sidebar.memberRole')}{' '}
             ·{' '}
             <span style={{ textTransform: 'uppercase' }}>
               {(user.plan || 'free') === 'free' ? t('header.planFree') : user.plan}
@@ -306,251 +308,260 @@ export function AppSidebar({
 
       <SectionDivider />
 
-      {/* ── Filtres rapides ─────────────────────────────────────────── */}
-      <SectionLabel>{t('sidebar.quickFilters')}</SectionLabel>
+      {/* ── CONDITIONAL RENDER ACCORDING TO ROLE ─────────────────── */}
+      {user.role === 'support_agent' ? (
+        <>
+          <SectionLabel>🎧 Espace Relation Client</SectionLabel>
+          <SidebarLink href="/crm" label="Mes Clients CRM" icon={Users} />
+        </>
+      ) : (
+        <>
+          {/* ── Filtres rapides (Sales / Manager / Admin) ────────────── */}
+          <SectionLabel>{t('sidebar.quickFilters')}</SectionLabel>
 
-      {/* Région */}
-      <div style={{ padding: '2px 10px' }}>
-        <label
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            fontSize: 11,
-            color: colors.textMid,
-            marginBottom: 4
-          }}
-        >
-          <MapPin size={12} /> {t('sidebar.region')}
-        </label>
-        <select
-          value={region}
-          onChange={(e) => {
-            setRegion(e.target.value)
-            setCity('')
-          }}
-          style={{
-            width: '100%',
-            height: 32,
-            borderRadius: 8,
-            border: `1px solid ${colors.border}`,
-            background: colors.bg,
-            color: colors.text,
-            fontSize: 12,
-            fontFamily: 'inherit',
-            outline: 'none',
-            padding: '0 8px'
-          }}
-        >
-          <option value="">{t('sidebar.allRegions')}</option>
-          {REGIONS.map((r) => (
-            <option key={r} value={r}>
-              {t(`regions.${REGION_KEYS[r]}` as any)}
-            </option>
-          ))}
-        </select>
-      </div>
+          {/* Région */}
+          <div style={{ padding: '2px 10px' }}>
+            <label
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                fontSize: 11,
+                color: colors.textMid,
+                marginBottom: 4
+              }}
+            >
+              <MapPin size={12} /> {t('sidebar.region')}
+            </label>
+            <select
+              value={region}
+              onChange={(e) => {
+                setRegion(e.target.value)
+                setCity('')
+              }}
+              style={{
+                width: '100%',
+                height: 32,
+                borderRadius: 8,
+                border: `1px solid ${colors.border}`,
+                background: colors.bg,
+                color: colors.text,
+                fontSize: 12,
+                fontFamily: 'inherit',
+                outline: 'none',
+                padding: '0 8px'
+              }}
+            >
+              <option value="">{t('sidebar.allRegions')}</option>
+              {REGIONS.map((r) => (
+                <option key={r} value={r}>
+                  {t(`regions.${REGION_KEYS[r]}` as any)}
+                </option>
+              ))}
+            </select>
+          </div>
 
-      {/* Ville */}
-      {region && (
-        <div style={{ padding: '2px 10px' }}>
-          <label
+          {/* Ville */}
+          {region && (
+            <div style={{ padding: '2px 10px' }}>
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  fontSize: 11,
+                  color: colors.textMid,
+                  marginBottom: 4
+                }}
+              >
+                <MapPin size={12} /> {t('sidebar.city')}
+              </label>
+              <select
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                style={{
+                  width: '100%',
+                  height: 32,
+                  borderRadius: 8,
+                  border: `1px solid ${colors.border}`,
+                  background: colors.bg,
+                  color: colors.text,
+                  fontSize: 12,
+                  fontFamily: 'inherit',
+                  outline: 'none',
+                  padding: '0 8px'
+                }}
+              >
+                <option value="">{t('sidebar.allCities')}</option>
+                {CITIES_BY_REGION[region]?.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Secteur */}
+          <div style={{ padding: '2px 10px' }}>
+            <label
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                fontSize: 11,
+                color: colors.textMid,
+                marginBottom: 4
+              }}
+            >
+              <Filter size={12} /> {t('sidebar.sector')}
+            </label>
+            <select
+              value={sector}
+              onChange={(e) => setSector(e.target.value)}
+              style={{
+                width: '100%',
+                height: 32,
+                borderRadius: 8,
+                border: `1px solid ${colors.border}`,
+                background: colors.bg,
+                color: colors.text,
+                fontSize: 12,
+                fontFamily: 'inherit',
+                outline: 'none',
+                padding: '0 8px'
+              }}
+            >
+              <option value="">{t('sidebar.allSectors')}</option>
+              {SECTORS.map((s) => (
+                <option key={s} value={s}>
+                  {t(`sectors.${SECTOR_KEYS[s]}` as any)}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Buttons */}
+          <div style={{ padding: '4px 10px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <button
+              onClick={() => applyFilters()}
+              style={{
+                height: 34,
+                borderRadius: 8,
+                background: 'var(--color-primary)',
+                color: '#fff',
+                border: 'none',
+                fontSize: 12,
+                fontWeight: 700,
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                transition: 'all 150ms ease'
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--color-blue-600)')}
+              onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--color-primary)')}
+            >
+              <Search size={13} /> {t('sidebar.search')}
+            </button>
+
+            <button
+              onClick={handleLocateMe}
+              disabled={geoState === 'loading'}
+              style={{
+                height: 34,
+                borderRadius: 8,
+                background: geoState === 'done' ? 'rgba(55,138,221,0.12)' : 'transparent',
+                color: 'var(--color-accent)',
+                border: `1px solid rgba(55,138,221,0.3)`,
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: geoState === 'loading' ? 'wait' : 'pointer',
+                fontFamily: 'inherit',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                transition: 'all 150ms ease'
+              }}
+            >
+              <MapPin size={13} />
+              {geoState === 'loading'
+                ? t('sidebar.detecting')
+                : geoState === 'done'
+                  ? `${t('sidebar.aroundMe')} ✓`
+                  : t('sidebar.aroundMe')}
+            </button>
+
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                fontSize: 12,
+                color: colors.textMid,
+                padding: '0 2px'
+              }}
+            >
+              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <Filter size={11} /> {t('sidebar.radius')}
+              </span>
+              <select
+                value={radius}
+                onChange={(e) => setRadius(e.target.value)}
+                style={{
+                  background: 'transparent',
+                  border: `1px solid ${colors.border}`,
+                  borderRadius: 6,
+                  padding: '3px 7px',
+                  color: colors.text,
+                  fontSize: 11,
+                  outline: 'none'
+                }}
+              >
+                <option style={{ background: colors.bg2, color: colors.text }}>5 km</option>
+                <option style={{ background: colors.bg2, color: colors.text }}>10 km</option>
+                <option style={{ background: colors.bg2, color: colors.text }}>50 km</option>
+                <option style={{ background: colors.bg2, color: colors.text }}>National</option>
+              </select>
+            </div>
+          </div>
+
+          <SectionDivider />
+
+          {/* ── P4 — Section: Outils Principaux ─────────────────────────── */}
+          <SectionLabel>{t('sidebar.prospection')}</SectionLabel>
+          <SidebarLink href={routes.search} label={t('sidebar.searchProspects')} icon={Search} />
+          <SidebarLink
+            href={routes.pipeline}
+            label={t('sidebar.pipeline')}
+            icon={BarChart2}
+            badge={totalPipeline > 0 ? totalPipeline : undefined}
+          />
+          <SidebarLink href={routes.saved} label={t('sidebar.savedSearches')} icon={Bookmark} />
+          <SidebarLink href={routes.support} label={t('sidebar.support')} icon={MessageSquare} />
+
+          {/* Disabled item */}
+          <div
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: 6,
-              fontSize: 11,
-              color: colors.textMid,
-              marginBottom: 4
+              gap: 10,
+              padding: '9px 12px',
+              fontSize: 13,
+              color: colors.textDim,
+              cursor: 'not-allowed',
+              opacity: 0.5,
+              userSelect: 'none'
             }}
           >
-            <MapPin size={12} /> {t('sidebar.city')}
-          </label>
-          <select
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-            style={{
-              width: '100%',
-              height: 32,
-              borderRadius: 8,
-              border: `1px solid ${colors.border}`,
-              background: colors.bg,
-              color: colors.text,
-              fontSize: 12,
-              fontFamily: 'inherit',
-              outline: 'none',
-              padding: '0 8px'
-            }}
-          >
-            <option value="">{t('sidebar.allCities')}</option>
-            {CITIES_BY_REGION[region]?.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-        </div>
+            <WifiOff size={16} strokeWidth={1.8} style={{ flexShrink: 0 }} />
+            {t('sidebar.offlineMode')}
+          </div>
+        </>
       )}
-
-      {/* Secteur */}
-      <div style={{ padding: '2px 10px' }}>
-        <label
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            fontSize: 11,
-            color: colors.textMid,
-            marginBottom: 4
-          }}
-        >
-          <Filter size={12} /> {t('sidebar.sector')}
-        </label>
-        <select
-          value={sector}
-          onChange={(e) => setSector(e.target.value)}
-          style={{
-            width: '100%',
-            height: 32,
-            borderRadius: 8,
-            border: `1px solid ${colors.border}`,
-            background: colors.bg,
-            color: colors.text,
-            fontSize: 12,
-            fontFamily: 'inherit',
-            outline: 'none',
-            padding: '0 8px'
-          }}
-        >
-          <option value="">{t('sidebar.allSectors')}</option>
-          {SECTORS.map((s) => (
-            <option key={s} value={s}>
-              {t(`sectors.${SECTOR_KEYS[s]}` as any)}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Buttons */}
-      <div style={{ padding: '4px 10px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-        {/* P1 — Couleur action unifiée : primary blue, pas de vert */}
-        <button
-          onClick={() => applyFilters()}
-          style={{
-            height: 34,
-            borderRadius: 8,
-            background: 'var(--color-primary)',
-            color: '#fff',
-            border: 'none',
-            fontSize: 12,
-            fontWeight: 700,
-            cursor: 'pointer',
-            fontFamily: 'inherit',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 6,
-            transition: 'all 150ms ease'
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--color-blue-600)')}
-          onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--color-primary)')}
-        >
-          <Search size={13} /> {t('sidebar.search')}
-        </button>
-
-        <button
-          onClick={handleLocateMe}
-          disabled={geoState === 'loading'}
-          style={{
-            height: 34,
-            borderRadius: 8,
-            background: geoState === 'done' ? 'rgba(55,138,221,0.12)' : 'transparent',
-            color: 'var(--color-accent)',
-            border: `1px solid rgba(55,138,221,0.3)`,
-            fontSize: 12,
-            fontWeight: 600,
-            cursor: geoState === 'loading' ? 'wait' : 'pointer',
-            fontFamily: 'inherit',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 6,
-            transition: 'all 150ms ease'
-          }}
-        >
-          <MapPin size={13} />
-          {geoState === 'loading'
-            ? t('sidebar.detecting')
-            : geoState === 'done'
-              ? `${t('sidebar.aroundMe')} ✓`
-              : t('sidebar.aroundMe')}
-        </button>
-
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            fontSize: 12,
-            color: colors.textMid,
-            padding: '0 2px'
-          }}
-        >
-          <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <Filter size={11} /> {t('sidebar.radius')}
-          </span>
-          <select
-            value={radius}
-            onChange={(e) => setRadius(e.target.value)}
-            style={{
-              background: 'transparent',
-              border: `1px solid ${colors.border}`,
-              borderRadius: 6,
-              padding: '3px 7px',
-              color: colors.text,
-              fontSize: 11,
-              outline: 'none'
-            }}
-          >
-            <option style={{ background: colors.bg2, color: colors.text }}>5 km</option>
-            <option style={{ background: colors.bg2, color: colors.text }}>10 km</option>
-            <option style={{ background: colors.bg2, color: colors.text }}>50 km</option>
-            <option style={{ background: colors.bg2, color: colors.text }}>National</option>
-          </select>
-        </div>
-      </div>
-
-      <SectionDivider />
-
-      {/* ── P4 — Section: Outils Principaux ─────────────────────────── */}
-      <SectionLabel>{t('sidebar.prospection')}</SectionLabel>
-      <SidebarLink href={routes.search} label={t('sidebar.searchProspects')} icon={Search} />
-      <SidebarLink
-        href={routes.pipeline}
-        label={t('sidebar.pipeline')}
-        icon={BarChart2}
-        badge={totalPipeline > 0 ? totalPipeline : undefined}
-      />
-      <SidebarLink href={routes.saved} label={t('sidebar.savedSearches')} icon={Bookmark} />
-      <SidebarLink href={routes.support} label={t('sidebar.support')} icon={MessageSquare} />
-
-      {/* Disabled item */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-          padding: '9px 12px',
-          fontSize: 13,
-          color: colors.textDim,
-          cursor: 'not-allowed',
-          opacity: 0.5,
-          userSelect: 'none'
-        }}
-      >
-        <WifiOff size={16} strokeWidth={1.8} style={{ flexShrink: 0 }} />
-        {t('sidebar.offlineMode')}
-      </div>
 
       {/* ── P4 — Section: Équipe (Manager uniquement) ─────────────── */}
       {user.role === 'manager' && (
@@ -697,7 +708,7 @@ export function AppSidebar({
       <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex' }}>
         {/* Dark backdrop — tap to close */}
         <div
-          onClick={onClose}
+          onClick={onCloseAction}
           style={{
             position: 'absolute',
             inset: 0,

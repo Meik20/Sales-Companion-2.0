@@ -59,7 +59,7 @@ export function TeamAccessManager() {
 
   const [accesses, setAccesses] = useState<any[]>([])
   const [loadingAccesses, setLoadingAccesses] = useState(false)
-  const [formData, setFormData] = useState({ firstname: '', lastname: '', company: '', email: '' })
+  const [formData, setFormData] = useState({ firstname: '', lastname: '', company: '', email: '', role: 'member' })
   const [permissions, setPermissions] = useState({ canExport: false, canDelete: false, canAssign: false })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -131,6 +131,7 @@ export function TeamAccessManager() {
           lastname: formData.lastname,
           company: formData.company || user.companyName || 'Entreprise',
           email: formData.email,
+          role: formData.role,
           permissions
         })
       })
@@ -147,7 +148,7 @@ export function TeamAccessManager() {
       } else {
         pushToast({ type: 'success', title: `Accès créé ! Lien généré (sans envoi d'e-mail).` })
       }
-      setFormData({ firstname: '', lastname: '', company: '', email: '' })
+      setFormData({ firstname: '', lastname: '', company: '', email: '', role: 'member' })
       setPermissions({ canExport: false, canDelete: false, canAssign: false })
     } catch (e: any) {
       pushToast({ type: 'error', title: `Erreur: ${e.message}` })
@@ -322,34 +323,60 @@ export function TeamAccessManager() {
           </div>
 
           {/* Permissions Toggles */}
-          <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', padding: '12px 16px', background: 'rgba(255,255,255,0.02)', borderRadius: 12, border: `1px solid ${colors.border}` }}>
-             <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, cursor: 'pointer' }}>
-               <input 
-                 type="checkbox" 
-                 checked={permissions.canExport} 
-                 onChange={(e) => setPermissions(p => ({ ...p, canExport: e.target.checked }))} 
-                 style={{ accentColor: '#6366f1', width: 16, height: 16 }}
-               />
-               Peut exporter les données
-             </label>
-             <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, cursor: 'pointer' }}>
-               <input 
-                 type="checkbox" 
-                 checked={permissions.canDelete} 
-                 onChange={(e) => setPermissions(p => ({ ...p, canDelete: e.target.checked }))} 
-                 style={{ accentColor: '#6366f1', width: 16, height: 16 }}
-               />
-               Peut supprimer des prospects
-             </label>
-             <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, cursor: 'pointer' }}>
-               <input 
-                 type="checkbox" 
-                 checked={permissions.canAssign} 
-                 onChange={(e) => setPermissions(p => ({ ...p, canAssign: e.target.checked }))} 
-                 style={{ accentColor: '#6366f1', width: 16, height: 16 }}
-               />
-               Peut réassigner des prospects
-             </label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '16px 20px', background: 'rgba(255,255,255,0.02)', borderRadius: 12, border: `1px solid ${colors.border}` }}>
+             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxWidth: 300, marginBottom: 8 }}>
+               <label style={{ fontSize: 11, fontWeight: 700, color: colors.textMid, textTransform: 'uppercase' }}>
+                 Rôle du collaborateur
+               </label>
+               <select
+                 value={formData.role}
+                 onChange={(e) => setFormData(p => ({ ...p, role: e.target.value }))}
+                 style={{
+                   height: 36,
+                   borderRadius: 8,
+                   border: `1px solid ${colors.border}`,
+                   background: colors.bg,
+                   color: colors.text,
+                   fontSize: 13,
+                   fontFamily: 'inherit',
+                   outline: 'none',
+                   padding: '0 8px'
+                 }}
+               >
+                 <option value="member">👤 Collaborateur commercial (Sales)</option>
+                 <option value="support_agent">🎧 Agent de support CRM (Support)</option>
+               </select>
+             </div>
+
+             <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+               <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, cursor: 'pointer' }}>
+                 <input 
+                   type="checkbox" 
+                   checked={permissions.canExport} 
+                   onChange={(e) => setPermissions(p => ({ ...p, canExport: e.target.checked }))} 
+                   style={{ accentColor: '#6366f1', width: 16, height: 16 }}
+                 />
+                 Peut exporter les données
+               </label>
+               <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, cursor: 'pointer' }}>
+                 <input 
+                   type="checkbox" 
+                   checked={permissions.canDelete} 
+                   onChange={(e) => setPermissions(p => ({ ...p, canDelete: e.target.checked }))} 
+                   style={{ accentColor: '#6366f1', width: 16, height: 16 }}
+                 />
+                 Peut supprimer des prospects
+               </label>
+               <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, cursor: 'pointer' }}>
+                 <input 
+                   type="checkbox" 
+                   checked={permissions.canAssign} 
+                   onChange={(e) => setPermissions(p => ({ ...p, canAssign: e.target.checked }))} 
+                   style={{ accentColor: '#6366f1', width: 16, height: 16 }}
+                 />
+                 Peut réassigner des prospects
+               </label>
+             </div>
           </div>
 
           {/* Quota Collaborateurs */}

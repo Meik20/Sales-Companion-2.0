@@ -9,7 +9,15 @@ import { useTranslation } from '@/providers/I18nProvider'
 import { useSwipe } from '@/hooks/useSwipe'
 
 // All navigation items in order for swipe navigation
+// All navigation items in order for swipe navigation
 const getNavItems = (role: string, t: (key: any) => string) => {
+  if (role === 'support_agent') {
+    return [
+      { href: '/crm', label: 'CRM Clients' },
+      { href: routes.profile, label: t('header.profile') }
+    ]
+  }
+
   const items = [
     { href: routes.search, label: t('header.search') },
     { href: routes.pipeline, label: t('sidebar.pipeline') },
@@ -239,22 +247,31 @@ export function MobileNav() {
         zIndex: 1000
       }}
     >
-      <NavItem href={routes.search} label="Recherche" icon={<SearchIcon />} />
-      <NavItem href={routes.pipeline} label="Pipeline" icon={<PipelineIcon />} />
-      <NavItem href={routes.saved} label="Sauvegardés" icon={<SavedIcon />} />
-
-      {user.role === 'manager' && (
+      {user.role === 'support_agent' ? (
         <>
-          <NavItem href={routes.team} label={t('sidebar.team')} icon={<TeamIcon />} />
-          <NavItem href={routes.reporting} label="Dashboard" icon={<DashboardIcon />} />
+          <NavItem href="/crm" label="CRM Clients" icon={<PipelineIcon />} />
+          <NavItem href={routes.profile} label={t('header.profile')} icon={<ProfileIcon />} />
+        </>
+      ) : (
+        <>
+          <NavItem href={routes.search} label="Recherche" icon={<SearchIcon />} />
+          <NavItem href={routes.pipeline} label="Pipeline" icon={<PipelineIcon />} />
+          <NavItem href={routes.saved} label="Sauvegardés" icon={<SavedIcon />} />
+
+          {user.role === 'manager' && (
+            <>
+              <NavItem href={routes.team} label={t('sidebar.team')} icon={<TeamIcon />} />
+              <NavItem href={routes.reporting} label="Dashboard" icon={<DashboardIcon />} />
+            </>
+          )}
+          {user.role === 'admin' && (
+            <NavItem href={routes.admin} label={t('sidebar.admin')} icon={<AdminIcon />} />
+          )}
+
+          <NavItem href={routes.ai} label="AI" icon={<AiIcon />} />
+          <NavItem href={routes.profile} label={t('header.profile')} icon={<ProfileIcon />} />
         </>
       )}
-      {user.role === 'admin' && (
-        <NavItem href={routes.admin} label={t('sidebar.admin')} icon={<AdminIcon />} />
-      )}
-
-      <NavItem href={routes.ai} label="AI" icon={<AiIcon />} />
-      <NavItem href={routes.profile} label={t('header.profile')} icon={<ProfileIcon />} />
     </nav>
   )
 }

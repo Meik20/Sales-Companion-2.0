@@ -62,10 +62,22 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    function isSupportAgent() {
+      return isSignedIn() && (
+        request.auth.token.role == 'support_agent' ||
+        currentUserDoc().role == 'support_agent'
+      );
+    }
+
     match /pipeline/{pipelineId} {
       allow read: if isAdmin()
         || (isSignedIn() && resource.data.userId == authUid())
-        || isManagedUser(resource.data.managerUid);
+        || isManagedUser(resource.data.managerUid)
+        || (isSupportAgent() 
+            && (resource.data.status == 'conclue' || resource.data.status == 'conclusion')
+            && (resource.data.managerUid == currentUserDoc().managerUid 
+                || (currentUserDoc().linkedManagerUids != null && resource.data.managerUid in currentUserDoc().linkedManagerUids))
+           );
 
       allow create: if isSignedIn()
         && request.resource.data.userId == authUid()
@@ -120,7 +132,7 @@ service cloud.firestore {
         || (
           isManager()
           && request.resource.data.managerUid == authUid()
-          && request.resource.data.role == 'member'
+          && (request.resource.data.role == 'member' || request.resource.data.role == 'support_agent')
         );
 
       allow update: if isAdmin()
@@ -187,6 +199,47 @@ service cloud.firestore {
 
     match /adminNotifications/{notificationId} {
       allow read, write: if isAdmin();
+    }
+
+    // ── CRM Collections ─────────────────────────────────────────────────────
+
+    match /customer_calls/{callId} {
+      allow read: if isAdmin()
+        || (isSignedIn() && resource.data.agentUid == authUid())
+        || (isManager() && resource.data.managerUid == authUid())
+        || isSupportAgent();
+      allow create: if isSignedIn()
+        && (isSupportAgent() || isManager() || isAdmin())
+        && request.resource.data.agentUid == authUid();
+      allow update, delete: if isAdmin()
+        || (isSignedIn() && resource.data.agentUid == authUid());
+    }
+
+    match /customer_tickets/{ticketId} {
+      allow read: if isAdmin()
+        || (isSignedIn() && resource.data.agentUid == authUid())
+        || (isManager() && resource.data.managerUid == authUid())
+        || isSupportAgent();
+      allow create: if isSignedIn()
+        && (isSupportAgent() || isManager() || isAdmin())
+        && request.resource.data.agentUid == authUid();
+      allow update: if isAdmin()
+        || (isSignedIn() && resource.data.agentUid == authUid())
+        || (isManager() && resource.data.managerUid == authUid());
+      allow delete: if isAdmin();
+    }
+
+    match /support_agent_links/{linkId} {
+      allow read: if isAdmin()
+        || (isManager() && resource.data.managerUid == authUid())
+        || (isSupportAgent() && resource.data.agentUid == authUid());
+      allow create: if isManager()
+        && request.resource.data.managerUid == authUid()
+        && request.resource.data.status == 'active';
+      allow update: if isAdmin()
+        || (isManager() && resource.data.managerUid == authUid());
+      allow delete: if isAdmin()
+        || (isManager() && resource.data.managerUid == authUid());
     }
   }
 }

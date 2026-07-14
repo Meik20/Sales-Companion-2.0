@@ -28,10 +28,10 @@ export function AppShell({ children }: PropsWithChildren) {
           background: colors.bg
         }}
       >
-        <AppHeader onOpenMenu={() => setIsDrawerOpen(true)} />
+        <AppHeader onOpenMenuAction={() => setIsDrawerOpen(true)} />
 
         {mounted && !isDesktop && isDrawerOpen && (
-          <AppSidebar isMobile={true} onClose={() => setIsDrawerOpen(false)} />
+          <AppSidebar isMobile={true} onCloseAction={() => setIsDrawerOpen(false)} />
         )}
 
         <div

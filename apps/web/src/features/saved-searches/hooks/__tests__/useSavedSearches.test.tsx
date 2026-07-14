@@ -47,7 +47,7 @@ describe('useSavedSearches', () => {
     })
 
     expect(result.current.data).toHaveLength(1)
-    expect(result.current.data?.[0].label).toBe('Tech Companies')
+    expect(result.current.data?.[0]?.label).toBe('Tech Companies')
   })
 
   it('should handle empty searches list', async () => {

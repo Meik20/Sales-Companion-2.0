@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
        return NextResponse.json({ error: 'Accès refusé. Seul un manager peut créer des accès.' }, { status: 403 })
     }
 
-    const { firstname, lastname, company, email, permissions } = await request.json()
+    const { firstname, lastname, company, email, role, permissions } = await request.json()
 
     if (!firstname || !lastname || !company) {
       return NextResponse.json({ error: 'Informations manquantes' }, { status: 400 })
@@ -45,6 +45,9 @@ export async function POST(request: NextRequest) {
     if (!query.empty) {
        return NextResponse.json({ error: 'Cet identifiant existe déjà (ou le membre a déjà été invité)' }, { status: 400 })
     }
+
+    // Validation du rôle
+    const assignedRole = role === 'support_agent' ? 'support_agent' : 'member'
 
     // Permissions par défaut
     const perms = permissions || {
@@ -67,6 +70,7 @@ export async function POST(request: NextRequest) {
       lastname,
       company,
       email: email || null,
+      role: assignedRole, // ← stocker le rôle choisi
       status: email ? 'pending_email' : 'pending',
       activated: false,
       permissions: perms,

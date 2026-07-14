@@ -19,11 +19,15 @@ describe('AdminUsersTable', () => {
         plan: 'free',
         dailyUsed: 5,
         dailyLimit: 10,
-        active: true
+        active: true,
+        companyId: 'company-1',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       }
     ]
 
     render(<AdminUsersTable users={mockUsers} onDelete={() => {}} />)
+
 
     expect(screen.getByText(/user1@example.com/)).toBeInTheDocument()
     expect(screen.getByText(/User One/)).toBeInTheDocument()
@@ -40,11 +44,15 @@ describe('AdminUsersTable', () => {
         plan: 'free',
         dailyUsed: 5,
         dailyLimit: 10,
-        active: true
+        active: true,
+        companyId: 'company-1',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       }
     ]
 
     render(<AdminUsersTable users={mockUsers} onDelete={() => {}} onUpdate={() => {}} />)
+
 
     // Look for action buttons (Désactiver, Delete)
     expect(screen.getByRole('table')).toBeInTheDocument()
