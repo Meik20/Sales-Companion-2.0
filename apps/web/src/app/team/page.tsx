@@ -4,6 +4,7 @@ import { useState, useRef } from 'react'
 import { AppShell } from '@/components/layout/AppShell'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { TeamMembersSection } from '@/features/team/components/TeamMembersSection'
+import { SupportAgentsSection } from '@/features/team/components/SupportAgentsSection'
 import { CreateAssignmentForm } from '@/features/team/components/CreateAssignmentForm'
 import { AssignmentsTable } from '@/features/team/components/AssignmentsTable'
 import { TeamAccessManager } from '@/features/team/components/TeamAccessManager'
@@ -135,6 +136,7 @@ export default function TeamPage() {
           <TeamAccessManager />
           {isManager && <CrossTeamSupportManager />}
           <TeamMembersSection />
+          <SupportAgentsSection />
 
 
           {/* Assignment form — receives pre-selected prospects from imports tab */}

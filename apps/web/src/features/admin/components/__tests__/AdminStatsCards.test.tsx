@@ -15,9 +15,9 @@ describe('AdminStatsCards', () => {
     render(<AdminStatsCards stats={mockStats} />)
 
     expect(screen.getByText(/Utilisateurs/i)).toBeInTheDocument()
-    expect(screen.getByText(/100/)).toBeInTheDocument()
+    expect(screen.getByText('100')).toBeInTheDocument()
     expect(screen.getByText(/Entreprises/i)).toBeInTheDocument()
-    expect(screen.getByText(/500/)).toBeInTheDocument()
+    expect(screen.getByText('500')).toBeInTheDocument()
   })
 
   it('should render with default values for missing data', () => {
@@ -26,7 +26,7 @@ describe('AdminStatsCards', () => {
     render(<AdminStatsCards stats={mockStats} />)
 
     expect(screen.getByText(/Utilisateurs/i)).toBeInTheDocument()
-    expect(screen.getByText(/0/)).toBeInTheDocument()
+    expect(screen.getAllByText('0').length).toBeGreaterThan(0)
   })
 
   it('should display active users hint when available', () => {
