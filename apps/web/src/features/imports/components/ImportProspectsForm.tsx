@@ -19,39 +19,100 @@ type Props = {
   onImported: (count: number) => void
 }
 
-const EXPECTED_HEADERS = ['name', 'phone', 'email', 'city', 'sector', 'notes']
+/** Normalise un header de colonne vers une clé de lookup :
+ *  - strip accents (NFD)
+ *  - minuscules
+ *  - apostrophes / tirets → espace
+ *  - collapse whitespace → underscore
+ *  Ex: "RAISON SOCIALE" → "raison_sociale"
+ *      "SECTEUR D'ACTIVITE" → "secteur_dactivite"
+ *      "Téléphone" → "telephone"
+ */
+function normalizeHeader(raw: string): string {
+  return raw
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // strip accents
+    .toLowerCase()
+    .replace(/['\'\-]/g, '')                          // remove apostrophes / hyphens
+    .replace(/[^a-z0-9]+/g, '_')                      // non-alphanum → underscore
+    .replace(/^_+|_+$/g, '')                           // trim underscores
+}
+
+/** Table de correspondance : clé normalisée → champ canonique */
 const HEADER_ALIASES: Record<string, string> = {
+  // ── Raison sociale / Nom entreprise ───────────────────────
   nom: 'name',
-  prénom: 'name',
   prenom: 'name',
   entreprise: 'name',
-  société: 'name',
-  téléphone: 'phone',
+  societe: 'name',
+  denomination: 'name',
+  raison_sociale: 'name',
+  raisonsociale: 'name',
+  nom_entreprise: 'name',
+  company_name: 'name',
+  company: 'name',
+  name: 'name',
+
+  // ── Téléphone ──────────────────────────────────────────────
   telephone: 'phone',
   tel: 'phone',
-  numéro: 'phone',
+  phone: 'phone',
+  mobile: 'phone',
+  numero: 'phone',
+  num: 'phone',
+  gsm: 'phone',
+  portable: 'phone',
+
+  // ── Email ─────────────────────────────────────────────────
+  email: 'email',
   mail: 'email',
   courriel: 'email',
+  adresse_email: 'email',
+  adresse_mail: 'email',
+
+  // ── Ville / Adresse ───────────────────────────────────────
   ville: 'city',
-  localité: 'city',
+  localite: 'city',
+  city: 'city',
+  region: 'city',
+  adresse: 'city',
+  address: 'city',
+  lieu: 'city',
+
+  // ── Secteur ───────────────────────────────────────────────
   secteur: 'sector',
-  activité: 'sector',
   activite: 'sector',
+  activite_principale: 'sector',
+  secteur_activite: 'sector',
+  secteur_dactivite: 'sector',
+  secteur_d_activite: 'sector',
+  domaine: 'sector',
+  domaine_activite: 'sector',
+  industry: 'sector',
+  sector: 'sector',
+
+  // ── Notes / Commentaires ──────────────────────────────────
+  notes: 'notes',
+  note: 'notes',
   remarque: 'notes',
   commentaire: 'notes',
-  note: 'notes'
+  observations: 'notes',
+  description: 'notes',
+}
+
+/** Résout un header brut vers le champ canonique (name/phone/email/city/sector/notes) */
+function resolveHeader(raw: string): string {
+  const key = normalizeHeader(raw)
+  return HEADER_ALIASES[key] ?? key
 }
 
 function parseCSV(text: string): ParsedRow[] {
   const lines = text.trim().split(/\r?\n/).filter(Boolean)
   if (lines.length < 1) return []
 
-  // Détecter le séparateur : analyser le header pour trouver le plus fréquent
-  // Supporter : virgule, point-virgule, tabulation, pipe, tilde
   const headerLine = lines[0]!
   let sep = ','
 
-  // Compter les occurrences de chaque séparateur potentiel
+  // Détecter le séparateur le plus fréquent
   const separators = [',', ';', '\t', '|', '~']
   let maxCount = 0
   for (const s of separators) {
@@ -62,15 +123,12 @@ function parseCSV(text: string): ParsedRow[] {
     }
   }
 
-  const raw_headers = headerLine.split(sep).map((h) =>
-    h
-      .replace(/^["'`]|["'`]$/g, '')
-      .trim()
-      .toLowerCase()
-  )
+  const raw_headers = headerLine
+    .split(sep)
+    .map((h) => h.replace(/^["'`]|["'`]$/g, '').trim())
 
-  // Mapper les headers vers les colonnes attendues
-  const mapped = raw_headers.map((h) => HEADER_ALIASES[h] ?? h)
+  // Mapper les headers vers les colonnes attendues via normalisation
+  const mapped = raw_headers.map(resolveHeader)
 
   return lines
     .slice(1)
@@ -90,7 +148,7 @@ function parseCSV(text: string): ParsedRow[] {
         notes: row.notes ?? ''
       }
     })
-    .filter((r) => r.name || r.phone || r.email) // ignorer lignes vides
+    .filter((r) => r.name || r.phone || r.email)
 }
 
 export function ImportProspectsForm({ managerId, onImported }: Props) {
@@ -148,11 +206,11 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
               }
 
               if (rowNumber === 1) {
+                // Appliquer la même normalisation que pour CSV
                 headers = values.slice(1).map((v) =>
                   (v != null ? String(v) : '')
                     .replace(/^["'`]|["'`]$/g, '')
                     .trim()
-                    .toLowerCase()
                 )
                 return
               }
@@ -183,7 +241,8 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
 
               const mappedRow: Record<string, string> = {}
               Object.keys(rowObj).forEach((h) => {
-                const canonicalKey = HEADER_ALIASES[h] ?? h
+                // resolveHeader normalise accents + alias composés (RAISON SOCIALE, SECTEUR D'ACTIVITE…)
+                const canonicalKey = resolveHeader(h)
                 mappedRow[canonicalKey] = rowObj[h] ?? ''
               })
 
