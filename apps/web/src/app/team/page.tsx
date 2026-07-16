@@ -37,46 +37,109 @@ export default function TeamPage() {
   const canImport = isManager || isSupportAgent
 
   useEffect(() => {
-    if (isSupportAgent) {
-      setActiveTab('imports')
-    }
-  }, [isSupportAgent])
+    if (isManager) setActiveTab('team')
+  }, [isManager])
 
-  // Pour un support_agent, l'import se fait au nom de son manager lié
-  // Pour un manager, l'import se fait avec son propre uid
+  // Pour un support_agent, l'import se fait sous son propre UID
+  // (les prospects importés sont affichés directement dans Mes Clients CRM)
   const importManagerId = isManager
     ? user?.uid
-    : (user as any)?.linkedManagerUids?.[0] ?? user?.uid
+    : user?.uid
 
   const tabs: { id: Tab; label: string; icon: string }[] = [
     { id: 'team', label: t('team.tabTeam'), icon: '👥' },
     ...(canImport ? [{ id: 'imports' as Tab, label: t('team.tabImports'), icon: '📋' }] : [])
   ]
 
-  /**
-   * Called when the user clicks "Assigner la sélection" in ManagerProspectsList.
-   * Switches to the "team" tab and scrolls to the assignment form.
-   */
   function handleAssignSelection(prospects: Prospect[]) {
     setSelectedProspects(prospects)
     setActiveTab('team')
-    // Small delay to let React render the team tab before scrolling
     setTimeout(() => {
       assignFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }, 150)
   }
 
-  /** Called after assignments have been created — clears selection */
   function handleAssigned() {
     setSelectedProspects([])
     setImportRefresh((n) => n + 1)
   }
 
+  // ── Vue dédiée pour l'agent support : FICHIER CLIENTS uniquement ──────
+  if (isSupportAgent) {
+    return (
+      <AppShell>
+        <PageHeader
+          title="📁 Fichier Clients"
+          subtitle="Importez votre base de données clients. Les données apparaîtront directement dans Mes Clients CRM."
+        />
+
+        {/* Bloc import */}
+        <div
+          style={{
+            background: colors.surface,
+            borderRadius: 14,
+            border: `1px solid ${colors.border}`,
+            padding: 24
+          }}
+        >
+          <div style={{ marginBottom: 20 }}>
+            <h2 style={{ fontSize: 16, fontWeight: 700, color: colors.text, margin: '0 0 6px' }}>
+              📥 Importer une base de données clients
+            </h2>
+            <p style={{ fontSize: 13, color: colors.textMid, margin: 0, lineHeight: 1.6 }}>
+              Glissez un fichier CSV, Excel ou texte. Les clients importés seront immédiatement
+              visibles dans{' '}
+              <strong style={{ color: colors.text }}>Mes Clients CRM</strong>.
+            </p>
+          </div>
+
+          {importManagerId ? (
+            <ImportProspectsForm
+              managerId={importManagerId}
+              onImported={() => setImportRefresh((n) => n + 1)}
+            />
+          ) : (
+            <div style={{ textAlign: 'center', padding: 32, color: colors.textMid, fontSize: 13 }}>
+              ⚠️ Compte non configuré. Contactez l&apos;administrateur.
+            </div>
+          )}
+        </div>
+
+        {/* Aperçu des clients importés */}
+        {importManagerId && (
+          <div
+            style={{
+              marginTop: 20,
+              background: colors.surface,
+              borderRadius: 14,
+              border: `1px solid ${colors.border}`,
+              padding: 24
+            }}
+          >
+            <h2 style={{ fontSize: 15, fontWeight: 700, color: colors.text, margin: '0 0 4px' }}>
+              📋 Clients importés
+            </h2>
+            <p style={{ fontSize: 12.5, color: colors.textMid, margin: '0 0 16px' }}>
+              Aperçu de votre fichier importé. Ces entrées sont visibles dans Mes Clients CRM.
+            </p>
+            <ManagerProspectsList
+              managerId={importManagerId}
+              members={[]}
+              refreshTrigger={importRefresh}
+              onAssignSelection={() => {}}
+            />
+          </div>
+        )}
+      </AppShell>
+    )
+  }
+
+  // ── Vue manager : onglets Mon équipe / Mes prospects importés ─────────
   return (
     <AppShell>
       <PageHeader title={t('team.title')} subtitle={t('team.subtitle')} />
 
-      {/* ── Onglets (managers + agents support) ── */}
+      {/* Onglets */}
       {canImport && (
         <div
           style={{
@@ -109,7 +172,6 @@ export default function TeamPage() {
               }}
             >
               {tab.icon} {tab.label}
-              {/* Badge on "imports" tab when prospects are selected */}
               {tab.id === 'imports' && selectedProspects.length > 0 && (
                 <span
                   style={{
@@ -136,7 +198,7 @@ export default function TeamPage() {
         </div>
       )}
 
-      {/* ── Contenu ── */}
+      {/* Contenu */}
       {activeTab === 'team' ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <TeamAccessManager />
@@ -144,8 +206,6 @@ export default function TeamPage() {
           <TeamMembersSection />
           <SupportAgentsSection />
 
-
-          {/* Assignment form — receives pre-selected prospects from imports tab */}
           <div ref={assignFormRef}>
             {selectedProspects.length > 0 && (
               <div
@@ -195,7 +255,6 @@ export default function TeamPage() {
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          {/* Import section */}
           <div
             style={{
               background: colors.surface,
@@ -220,7 +279,6 @@ export default function TeamPage() {
             )}
           </div>
 
-          {/* Prospects list with selection */}
           <div
             style={{
               background: colors.surface,

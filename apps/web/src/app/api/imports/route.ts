@@ -115,12 +115,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Sécurité : un support_agent ne peut importer que sous le managerId de son manager lié
+    // Sécurité : un support_agent peut importer sous son propre UID ou sous un manager lié
     if (callerRole === 'support_agent') {
       const linkedManagerUids: string[] = callerData?.linkedManagerUids ?? []
-      if (!linkedManagerUids.includes(managerId)) {
+      const allowedIds = [callerUid, ...linkedManagerUids]
+      if (!allowedIds.includes(managerId)) {
         return NextResponse.json(
-          { message: 'Accès refusé. Vous ne pouvez importer que pour votre manager lié.' },
+          { message: 'Accès refusé. Vous ne pouvez importer que pour votre propre compte ou votre manager lié.' },
           { status: 403 }
         )
       }

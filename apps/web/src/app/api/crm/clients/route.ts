@@ -9,8 +9,15 @@ async function getAdmin() {
 /**
  * GET /api/crm/clients
  *
- * Retourne tous les prospects au statut "conclue/conclusion" pour l'agent support.
- * Agrège les clients de tous les managers liés à l'agent (managerUid + linkedManagerUids).
+ * Pour un support_agent :
+ *   1. Retourne les prospects qu'il a lui-même importés (manager_prospects où importedBy == agentUid)
+ *   2. Retourne aussi les clients pipeline "conclus/conclue" de ses managers liés
+ *
+ * Pour un manager :
+ *   Retourne les clients pipeline "conclus/conclue" de son propre uid
+ *
+ * Pour un admin :
+ *   Retourne tous les clients pipeline conclus
  */
 export async function GET(request: NextRequest) {
   try {
@@ -27,32 +34,20 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: 'Token invalide' }, { status: 401 })
     }
 
-    // Récupérer le profil de l'agent
+    // Récupérer le profil de l'utilisateur
     const agentDoc = await adminDb.collection('users').doc(agentUid).get()
     const agentData = agentDoc.data()
 
     if (!agentData) {
-      return NextResponse.json({ message: 'Profil agent introuvable' }, { status: 404 })
+      return NextResponse.json({ message: 'Profil introuvable' }, { status: 404 })
     }
 
-    // Autoriser managers ET support_agents
     if (!['support_agent', 'manager', 'admin'].includes(agentData.role)) {
       return NextResponse.json({ message: 'Accès refusé' }, { status: 403 })
     }
 
-    // Construire la liste des managerUids accessibles
-    let managerUids: string[] = []
-
-    if (agentData.role === 'support_agent') {
-      managerUids = [
-        agentData.managerUid,
-        ...(agentData.linkedManagerUids ?? [])
-      ].filter(Boolean) as string[]
-    } else if (agentData.role === 'manager') {
-      // Un manager peut aussi accéder à cette API pour voir ses clients conclus
-      managerUids = [agentUid]
-    } else if (agentData.role === 'admin') {
-      // Admin voit tout — pas de filtre par manager
+    // ── Admin : tous les clients conclus ──────────────────────────────────
+    if (agentData.role === 'admin') {
       const allSnap = await adminDb
         .collection('pipeline')
         .where('status', 'in', ['conclue', 'conclusion'])
@@ -68,44 +63,102 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(clients)
     }
 
-    if (managerUids.length === 0) {
-      return NextResponse.json([])
+    // ── Manager : clients pipeline conclus uniquement ──────────────────────
+    if (agentData.role === 'manager') {
+      const snap = await adminDb
+        .collection('pipeline')
+        .where('managerUid', '==', agentUid)
+        .where('status', 'in', ['conclue', 'conclusion'])
+        .get()
+
+      const clients = snap.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt?.toDate?.()?.toISOString() ?? null,
+        updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() ?? null,
+        nextFollowUp: doc.data().nextFollowUp?.toDate?.()?.toISOString() ?? doc.data().nextFollowUp ?? null
+      }))
+
+      clients.sort((a, b) => {
+        const ta = a.updatedAt ? new Date(a.updatedAt as string).getTime() : 0
+        const tb = b.updatedAt ? new Date(b.updatedAt as string).getTime() : 0
+        return tb - ta
+      })
+
+      return NextResponse.json(clients)
     }
 
-    // Requêtes parallèles par managerUid (Firestore ne supporte pas WHERE IN sur 2 champs)
-    const snapshots = await Promise.all(
-      managerUids.map(uid =>
-        adminDb
-          .collection('pipeline')
-          .where('managerUid', '==', uid)
-          .where('status', 'in', ['conclue', 'conclusion'])
-          .get()
-      )
-    )
-
-    // Fusionner et dédupliquer
+    // ── Support Agent : prospects importés + clients conclus des managers liés ──
     const seen = new Set<string>()
     const clients: Record<string, unknown>[] = []
 
-    for (const snap of snapshots) {
-      for (const doc of snap.docs) {
-        if (!seen.has(doc.id)) {
-          seen.add(doc.id)
-          clients.push({
-            id: doc.id,
-            ...doc.data(),
-            createdAt: doc.data().createdAt?.toDate?.()?.toISOString() ?? null,
-            updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() ?? null,
-            nextFollowUp: doc.data().nextFollowUp?.toDate?.()?.toISOString() ?? doc.data().nextFollowUp ?? null
-          })
+    // 1. Prospects que l'agent a importés directement (manager_prospects)
+    const importedSnap = await adminDb
+      .collection('manager_prospects')
+      .where('importedBy', '==', agentUid)
+      .limit(3000)
+      .get()
+
+    for (const doc of importedSnap.docs) {
+      if (!seen.has(doc.id)) {
+        seen.add(doc.id)
+        const data = doc.data()
+        clients.push({
+          id: doc.id,
+          companyName: data.name ?? data.companyName ?? '',
+          companyCity: data.city ?? data.companyCity ?? '',
+          companySector: data.sector ?? data.companySector ?? '',
+          companyPhone: data.phone ?? data.companyPhone ?? '',
+          companyEmail: data.email ?? data.companyEmail ?? '',
+          status: data.status ?? 'imported',
+          notes: data.notes ?? '',
+          importedBy: data.importedBy,
+          managerId: data.managerId,
+          createdAt: data.createdAt?.toDate?.()?.toISOString() ?? null,
+          updatedAt: data.updatedAt?.toDate?.()?.toISOString() ?? null,
+          _source: 'imported'
+        })
+      }
+    }
+
+    // 2. Clients pipeline conclus des managers liés
+    const managerUids: string[] = [
+      agentData.managerUid,
+      ...(agentData.linkedManagerUids ?? [])
+    ].filter(Boolean) as string[]
+
+    if (managerUids.length > 0) {
+      const snapshots = await Promise.all(
+        managerUids.map(uid =>
+          adminDb
+            .collection('pipeline')
+            .where('managerUid', '==', uid)
+            .where('status', 'in', ['conclue', 'conclusion'])
+            .get()
+        )
+      )
+
+      for (const snap of snapshots) {
+        for (const doc of snap.docs) {
+          if (!seen.has(doc.id)) {
+            seen.add(doc.id)
+            clients.push({
+              id: doc.id,
+              ...doc.data(),
+              createdAt: doc.data().createdAt?.toDate?.()?.toISOString() ?? null,
+              updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() ?? null,
+              nextFollowUp: doc.data().nextFollowUp?.toDate?.()?.toISOString() ?? doc.data().nextFollowUp ?? null,
+              _source: 'pipeline'
+            })
+          }
         }
       }
     }
 
-    // Trier par date de mise à jour décroissante
+    // Trier par date de création décroissante (les plus récents en premier)
     clients.sort((a, b) => {
-      const ta = a.updatedAt ? new Date(a.updatedAt as string).getTime() : 0
-      const tb = b.updatedAt ? new Date(b.updatedAt as string).getTime() : 0
+      const ta = a.createdAt ? new Date(a.createdAt as string).getTime() : 0
+      const tb = b.createdAt ? new Date(b.createdAt as string).getTime() : 0
       return tb - ta
     })
 
