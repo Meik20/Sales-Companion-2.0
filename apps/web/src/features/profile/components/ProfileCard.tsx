@@ -101,64 +101,83 @@ export function ProfileCard() {
         </div>
       </Panel>
 
-      {/* Stats */}
-      <StatsGrid>
-        <MetricCard
-          label={t('profile.searchesToday')}
-          value={`${user.dailyUsed} / ${user.dailyLimit}`}
-          hint={`${usagePercent}% ${t('profile.quotaUsed')}`}
-          accent
-        />
-        <MetricCard
-          label={t('profile.dailyQuota')}
-          value={user.dailyLimit}
-          hint={t('profile.resetDaily')}
-        />
-        <MetricCard
-          label={t('profile.status')}
-          value={user.active ? `✓ ${t('profile.active')}` : `✗ ${t('profile.inactive')}`}
-        />
-      </StatsGrid>
-
-      {/* Barre d'utilisation */}
-      <Panel>
-        <div style={{ marginBottom: 10 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-            <span
-              style={{
-                fontSize: 12,
-                fontWeight: 600,
-                color: colors.textMid,
-                textTransform: 'uppercase',
-                letterSpacing: '.04em'
-              }}
-            >
-              {t('profile.dailyQuotaLabel')}
-            </span>
-            <span style={{ fontSize: 12, color: usageColor, fontWeight: 600 }}>
-              {usagePercent}%
-            </span>
-          </div>
-          <div
-            style={{
-              height: 6,
-              background: colors.bg3,
-              borderRadius: 999,
-              overflow: 'hidden'
-            }}
-          >
-            <div
-              style={{
-                height: '100%',
-                width: `${usagePercent}%`,
-                background: usageColor,
-                borderRadius: 999,
-                transition: 'width 600ms ease'
-              }}
+      {/* Stats — masqués pour l'agent support (pas de quota de recherche) */}
+      {user.role !== 'support_agent' ? (
+        <>
+          <StatsGrid>
+            <MetricCard
+              label={t('profile.searchesToday')}
+              value={`${user.dailyUsed} / ${user.dailyLimit}`}
+              hint={`${usagePercent}% ${t('profile.quotaUsed')}`}
+              accent
             />
-          </div>
-        </div>
-      </Panel>
+            <MetricCard
+              label={t('profile.dailyQuota')}
+              value={user.dailyLimit}
+              hint={t('profile.resetDaily')}
+            />
+            <MetricCard
+              label={t('profile.status')}
+              value={user.active ? `✓ ${t('profile.active')}` : `✗ ${t('profile.inactive')}`}
+            />
+          </StatsGrid>
+
+          {/* Barre d'utilisation */}
+          <Panel>
+            <div style={{ marginBottom: 10 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                <span
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: colors.textMid,
+                    textTransform: 'uppercase',
+                    letterSpacing: '.04em'
+                  }}
+                >
+                  {t('profile.dailyQuotaLabel')}
+                </span>
+                <span style={{ fontSize: 12, color: usageColor, fontWeight: 600 }}>
+                  {usagePercent}%
+                </span>
+              </div>
+              <div
+                style={{
+                  height: 6,
+                  background: colors.bg3,
+                  borderRadius: 999,
+                  overflow: 'hidden'
+                }}
+              >
+                <div
+                  style={{
+                    height: '100%',
+                    width: `${usagePercent}%`,
+                    background: usageColor,
+                    borderRadius: 999,
+                    transition: 'width 600ms ease'
+                  }}
+                />
+              </div>
+            </div>
+          </Panel>
+        </>
+      ) : (
+        /* Vue agent support : statut uniquement, sans quota */
+        <StatsGrid>
+          <MetricCard
+            label={t('profile.status')}
+            value={user.active ? `✓ ${t('profile.active')}` : `✗ ${t('profile.inactive')}`}
+          />
+          <MetricCard
+            label="Quota de recherche"
+            value="Illimité"
+            hint="Aucun quota appliqué"
+            accent
+          />
+        </StatsGrid>
+      )}
     </div>
   )
 }
+
