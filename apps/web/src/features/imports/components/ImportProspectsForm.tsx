@@ -107,34 +107,122 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
     setError(null)
     setSuccess(null)
     setRows([])
-    // Accepter tous les formats texte courants
+    
+    const isExcel = file.name.match(/\.(xlsx|xls)$/i)
+    
+    // Accepter tous les formats texte courants + Excel
     if (
       !file.type.startsWith('text/') &&
-      !file.name.match(/\.(csv|txt|tsv|xlsx|xls|json|dat|log)$/i)
+      !isExcel &&
+      !file.name.match(/\.(csv|txt|tsv|json|dat|log)$/i)
     ) {
       setError(t('team.errorFormat'))
       return
     }
+    
     setFileName(file.name)
     const reader = new FileReader()
-    reader.onload = (e) => {
-      const text = e.target?.result as string
+    
+    reader.onload = async (e) => {
       try {
-        const parsed = parseCSV(text)
-        if (parsed.length === 0) {
+        let parsed: ParsedRow[] = []
+        
+        if (isExcel) {
+          const buffer = e.target?.result as ArrayBuffer
+          const ExcelJS = await import('exceljs')
+          const workbook = new ExcelJS.Workbook()
+          await workbook.xlsx.load(buffer)
+          const sheet = workbook.worksheets[0]
+          
+          if (sheet) {
+            let headers: string[] = []
+            sheet.eachRow((row, rowNumber) => {
+              let values: any[] = []
+              if (Array.isArray(row.values)) {
+                values = row.values
+              } else if (row.values && typeof row.values === 'object') {
+                const maxCol = sheet.columnCount
+                for (let c = 0; c <= maxCol; c++) {
+                  values.push((row.values as any)[c])
+                }
+              }
+
+              if (rowNumber === 1) {
+                headers = values.slice(1).map((v) =>
+                  (v != null ? String(v) : '')
+                    .replace(/^["'`]|["'`]$/g, '')
+                    .trim()
+                    .toLowerCase()
+                )
+                return
+              }
+
+              const rowObj: Record<string, string> = {}
+              headers.forEach((header, i) => {
+                const cell = row.getCell(i + 1)
+                let val = ''
+                if (cell.value != null) {
+                  if (typeof cell.value === 'object') {
+                    if ('result' in cell.value) {
+                      val = String(cell.value.result ?? '')
+                    } else if ('text' in cell.value) {
+                      val = String(cell.value.text ?? '')
+                    } else if ('hyperlink' in cell.value) {
+                      val = String((cell.value as any).text ?? cell.value.hyperlink ?? '')
+                    } else {
+                      val = JSON.stringify(cell.value)
+                    }
+                  } else {
+                    val = String(cell.value)
+                  }
+                }
+                if (header) {
+                  rowObj[header] = val.trim()
+                }
+              })
+
+              const mappedRow: Record<string, string> = {}
+              Object.keys(rowObj).forEach((h) => {
+                const canonicalKey = HEADER_ALIASES[h] ?? h
+                mappedRow[canonicalKey] = rowObj[h] ?? ''
+              })
+
+              parsed.push({
+                name: mappedRow.name ?? '',
+                phone: mappedRow.phone ?? '',
+                email: mappedRow.email ?? '',
+                city: mappedRow.city ?? '',
+                sector: mappedRow.sector ?? '',
+                notes: mappedRow.notes ?? ''
+              })
+            })
+          }
+        } else {
+          const text = e.target?.result as string
+          parsed = parseCSV(text)
+        }
+
+        const validParsed = parsed.filter((r) => r.name || r.phone || r.email)
+        if (validParsed.length === 0) {
           setError(t('team.errorNoValid'))
           return
         }
-        if (parsed.length > 3000) {
-          setError(`${parsed.length} ${t('team.errorMaxRows')}`)
+        if (validParsed.length > 3000) {
+          setError(`${validParsed.length} ${t('team.errorMaxRows')}`)
           return
         }
-        setRows(parsed)
-      } catch {
+        setRows(validParsed)
+      } catch (err) {
+        console.error('Error parsing file:', err)
         setError(t('team.errorRead'))
       }
     }
-    reader.readAsText(file, 'UTF-8')
+    
+    if (isExcel) {
+      reader.readAsArrayBuffer(file)
+    } else {
+      reader.readAsText(file, 'UTF-8')
+    }
   }
 
   function handleDrop(e: React.DragEvent) {
@@ -215,7 +303,7 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
         <input
           ref={fileRef}
           type="file"
-          accept=".csv,.txt"
+          accept=".csv,.txt,.tsv,.xlsx,.xls"
           style={{ display: 'none' }}
           onChange={(e) => {
             const f = e.target.files?.[0]
