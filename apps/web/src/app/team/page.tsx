@@ -126,7 +126,7 @@ export default function TeamPage() {
               managerId={importManagerId}
               members={[]}
               refreshTrigger={importRefresh}
-              onAssignSelection={() => {}}
+              hideAssign={true}
             />
           </div>
         )}

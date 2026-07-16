@@ -31,6 +31,8 @@ type Props = {
   refreshTrigger?: number
   /** Called when the user clicks "Assigner la sélection" — passes selected prospects */
   onAssignSelection?: (prospects: Prospect[]) => void
+  /** When true, hides the assign column and all assignment controls (support agent mode) */
+  hideAssign?: boolean
 }
 
 const STATUS_COLOR: Record<string, string> = {
@@ -68,7 +70,8 @@ export function ManagerProspectsList({
   managerId,
   members,
   refreshTrigger = 0,
-  onAssignSelection
+  onAssignSelection,
+  hideAssign = false
 }: Props) {
   const { t } = useTranslation()
   const [prospects, setProspects] = useState<Prospect[]>([])
@@ -194,30 +197,33 @@ export function ManagerProspectsList({
             outline: 'none'
           }}
         />
-        <select
-          value={filterMember}
-          onChange={(e) => setFilterMember(e.target.value)}
-          style={{
-            height: 36,
-            padding: '0 10px',
-            border: `1px solid ${colors.border}`,
-            borderRadius: 8,
-            fontSize: 12,
-            fontFamily: 'inherit',
-            background: colors.bg2,
-            color: colors.text,
-            outline: 'none',
-            cursor: 'pointer'
-          }}
-        >
-          <option value="">{t('team.allMembers')}</option>
-          <option value="__unassigned">{t('team.unassigned')}</option>
-          {activeMembers.map((m) => (
-            <option key={m.uid} value={m.uid}>
-              {m.name ?? m.email}
-            </option>
-          ))}
-        </select>
+        {/* Filtre membre — masqué si hideAssign */}
+        {!hideAssign && (
+          <select
+            value={filterMember}
+            onChange={(e) => setFilterMember(e.target.value)}
+            style={{
+              height: 36,
+              padding: '0 10px',
+              border: `1px solid ${colors.border}`,
+              borderRadius: 8,
+              fontSize: 12,
+              fontFamily: 'inherit',
+              background: colors.bg2,
+              color: colors.text,
+              outline: 'none',
+              cursor: 'pointer'
+            }}
+          >
+            <option value="">{t('team.allMembers')}</option>
+            <option value="__unassigned">{t('team.unassigned')}</option>
+            {activeMembers.map((m) => (
+              <option key={m.uid} value={m.uid}>
+                {m.name ?? m.email}
+              </option>
+            ))}
+          </select>
+        )}
         <button
           onClick={() => void loadProspects()}
           title={t('team.refresh')}
@@ -259,7 +265,7 @@ export function ManagerProspectsList({
           )}
         </span>
 
-        {someSelected && onAssignSelection && (
+        {someSelected && onAssignSelection && !hideAssign && (
           <button
             onClick={() => onAssignSelection(selectedProspects)}
             style={{
@@ -321,7 +327,7 @@ export function ManagerProspectsList({
                   t('field.city'),
                   t('field.sector'),
                   t('pipeline.status'),
-                  t('pipeline.assignedTo')
+                  ...(!hideAssign ? [t('pipeline.assignedTo')] : [])
                 ].map((h) => (
                   <th
                     key={h}
@@ -420,24 +426,27 @@ export function ManagerProspectsList({
                         {getStatusLabel(p.status ?? 'new', t)}
                       </span>
                     </td>
-                    <td style={{ padding: '9px 12px' }}>
-                      {assigning === p.id ? (
-                        <span style={{ fontSize: 11, color: colors.textMid }}>⏳</span>
-                      ) : (
-                        <select
-                          value={p.assignedTo ?? ''}
-                          onChange={(e) => void handleAssign(p.id, e.target.value || null)}
-                          style={SELECT_STYLE}
-                        >
-                          <option value="">{t('team.notAssigned')}</option>
-                          {activeMembers.map((m) => (
-                            <option key={m.uid} value={m.uid}>
-                              {m.name ?? m.email}
-                            </option>
-                          ))}
-                        </select>
-                      )}
-                    </td>
+                    {/* Colonne Assigné à — masquée pour l'agent support */}
+                    {!hideAssign && (
+                      <td style={{ padding: '9px 12px' }}>
+                        {assigning === p.id ? (
+                          <span style={{ fontSize: 11, color: colors.textMid }}>⏳</span>
+                        ) : (
+                          <select
+                            value={p.assignedTo ?? ''}
+                            onChange={(e) => void handleAssign(p.id, e.target.value || null)}
+                            style={SELECT_STYLE}
+                          >
+                            <option value="">{t('team.notAssigned')}</option>
+                            {activeMembers.map((m) => (
+                              <option key={m.uid} value={m.uid}>
+                                {m.name ?? m.email}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                      </td>
+                    )}
                   </tr>
                 )
               })}
