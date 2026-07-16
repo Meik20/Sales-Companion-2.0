@@ -125,6 +125,9 @@ export function useTeamMembers() {
         accessesMap = {}
         snap.docs.forEach((d) => {
           const data = d.data()
+          // Exclure les agents support — ils ne font pas partie de l'équipe commerciale
+          if (data.role === 'support_agent') return
+
           // A member is "active" if activated===true OR status==='active'
           const isActive =
             data.activated === true || data.status === 'active' || data.active === true
@@ -166,6 +169,9 @@ export function useTeamMembers() {
         usersMap = {}
         snap.docs.forEach((d) => {
           const data = d.data()
+          // Exclure les agents support de la liste commerciale
+          if (data.role === 'support_agent') return
+
           const isActive =
             data.activated === true || data.active === true || data.status === 'active'
 

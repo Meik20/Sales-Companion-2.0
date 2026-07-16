@@ -32,10 +32,18 @@ export default function TeamPage() {
   const { t } = useTranslation()
 
   const isManager = user?.role === 'manager'
+  const isSupportAgent = user?.role === 'support_agent'
+  const canImport = isManager || isSupportAgent
+
+  // Pour un support_agent, l'import se fait au nom de son manager lié
+  // Pour un manager, l'import se fait avec son propre uid
+  const importManagerId = isManager
+    ? user?.uid
+    : (user as any)?.linkedManagerUids?.[0] ?? user?.uid
 
   const tabs: { id: Tab; label: string; icon: string }[] = [
     { id: 'team', label: t('team.tabTeam'), icon: '👥' },
-    ...(isManager ? [{ id: 'imports' as Tab, label: t('team.tabImports'), icon: '📋' }] : [])
+    ...(canImport ? [{ id: 'imports' as Tab, label: t('team.tabImports'), icon: '📋' }] : [])
   ]
 
   /**
@@ -61,8 +69,8 @@ export default function TeamPage() {
     <AppShell>
       <PageHeader title={t('team.title')} subtitle={t('team.subtitle')} />
 
-      {/* ── Onglets (managers only) ── */}
-      {isManager && (
+      {/* ── Onglets (managers + agents support) ── */}
+      {canImport && (
         <div
           style={{
             display: 'flex',
@@ -196,9 +204,9 @@ export default function TeamPage() {
                 {t('team.importDesc')}
               </p>
             </div>
-            {user?.uid && (
+            {importManagerId && (
               <ImportProspectsForm
-                managerId={user.uid}
+                managerId={importManagerId}
                 onImported={() => setImportRefresh((n) => n + 1)}
               />
             )}

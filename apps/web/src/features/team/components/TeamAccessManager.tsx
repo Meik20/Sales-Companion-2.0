@@ -73,8 +73,9 @@ export function TeamAccessManager() {
 
   const currentPlan = user?.plan || 'free'
   const maxMembers = currentPlan === 'enterprise' ? 10 : currentPlan === 'pro' ? 3 : 0
+  // Les agents support (support_agent) sont EXCLUS du quota de membres commerciaux
   const activeOrPendingCount = accesses.filter(
-    (acc) => acc.status === 'pending' || acc.status === 'active'
+    (acc) => (acc.status === 'pending' || acc.status === 'active') && acc.role !== 'support_agent'
   ).length
 
   useEffect(() => {

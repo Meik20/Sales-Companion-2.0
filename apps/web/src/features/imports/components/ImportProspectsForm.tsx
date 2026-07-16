@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react'
 import { colors } from '@/styles/tokens'
 import { useTranslation } from '@/providers/I18nProvider'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
 
 type ParsedRow = {
   name: string
@@ -94,6 +95,7 @@ function parseCSV(text: string): ParsedRow[] {
 
 export function ImportProspectsForm({ managerId, onImported }: Props) {
   const { t } = useTranslation()
+  const { user } = useCurrentUser()
   const [rows, setRows] = useState<ParsedRow[]>([])
   const [fileName, setFileName] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -147,9 +149,13 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
     setError(null)
     setSuccess(null)
     try {
+      const token = user ? await user.getIdToken() : null
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+      if (token) headers['Authorization'] = `Bearer ${token}`
+
       const res = await fetch('/api/imports', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ managerId, prospects: rows })
       })
       const json = await res.json()

@@ -60,6 +60,35 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const { adminDb } = await getAdminModules()
+
+    // ── Authentification obligatoire ───────────────────────────────────────
+    const { adminAuth } = await import('@/lib/firebase-admin')
+    const authHeader = request.headers.get('authorization')
+    const token = authHeader?.split(' ')[1]
+    if (!token) {
+      return NextResponse.json({ message: 'Non autorisé' }, { status: 401 })
+    }
+
+    let callerUid: string
+    try {
+      const decoded = await adminAuth.verifyIdToken(token)
+      callerUid = decoded.uid
+    } catch {
+      return NextResponse.json({ message: 'Token invalide' }, { status: 401 })
+    }
+
+    // Vérifier le rôle : seul manager ou support_agent peut importer
+    const callerDoc = await adminDb.collection('users').doc(callerUid).get()
+    const callerData = callerDoc.data()
+    const callerRole = callerData?.role as string | undefined
+
+    if (!['manager', 'support_agent'].includes(callerRole ?? '')) {
+      return NextResponse.json(
+        { message: 'Accès refusé. Seul un manager ou un agent support peut importer des prospects.' },
+        { status: 403 }
+      )
+    }
+
     const body = await request.json().catch(() => null)
 
     if (!body) {
@@ -83,6 +112,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { message: 'managerId et une liste de prospects sont requis' },
         { status: 400 }
+      )
+    }
+
+    // Sécurité : un support_agent ne peut importer que sous le managerId de son manager lié
+    if (callerRole === 'support_agent') {
+      const linkedManagerUids: string[] = callerData?.linkedManagerUids ?? []
+      if (!linkedManagerUids.includes(managerId)) {
+        return NextResponse.json(
+          { message: 'Accès refusé. Vous ne pouvez importer que pour votre manager lié.' },
+          { status: 403 }
+        )
+      }
+    }
+
+    // Sécurité : un manager ne peut importer que sous son propre uid
+    if (callerRole === 'manager' && managerId !== callerUid) {
+      return NextResponse.json(
+        { message: 'Accès refusé. Vous ne pouvez importer que pour votre propre compte.' },
+        { status: 403 }
       )
     }
 
@@ -116,6 +164,8 @@ export async function POST(request: NextRequest) {
         sector: (p.sector ?? '').trim(),
         notes: (p.notes ?? '').trim(),
         assignedTo: p.assignedTo ?? null,
+        importedBy: callerUid,      // traçabilité : qui a fait l'import
+        importedByRole: callerRole, // traçabilité : quel rôle
         status: 'new',
         createdAt: now,
         updatedAt: now
