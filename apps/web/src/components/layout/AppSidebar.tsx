@@ -313,6 +313,7 @@ export function AppSidebar({
         <>
           <SectionLabel>🎧 Espace Relation Client</SectionLabel>
           <SidebarLink href="/crm" label="Mes Clients CRM" icon={Users} />
+          <SidebarLink href="/team" label={t('sidebar.imports')} icon={Upload} />
         </>
       ) : (
         <>

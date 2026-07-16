@@ -551,7 +551,8 @@ export const fr = {
       admin: 'Administrateur',
       manager: 'Manager',
       member: 'Commercial',
-      independent: 'Indépendant'
+      independent: 'Indépendant',
+      support_agent: 'Agent Support'
     }
   },
   settings: {

@@ -17,7 +17,8 @@ const roleLabelKeys: Record<string, string> = {
   admin: 'profile.roles.admin',
   manager: 'profile.roles.manager',
   member: 'profile.roles.member',
-  independent: 'profile.roles.independent'
+  independent: 'profile.roles.independent',
+  support_agent: 'profile.roles.support_agent'
 }
 
 export function ProfileCard() {

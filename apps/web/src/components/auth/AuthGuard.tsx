@@ -80,7 +80,7 @@ export function AuthGuard({ children }: PropsWithChildren) {
     if (loading || !user) return
     if (user.role !== 'support_agent') return
 
-    const restrictedPaths = ['/pipeline', '/team', '/reporting', '/search', '/saved']
+    const restrictedPaths = ['/pipeline', '/reporting', '/search', '/saved']
     const isRestricted = restrictedPaths.some(p => pathname === p || pathname.startsWith(p + '/'))
 
     if (isRestricted || pathname === '/') {

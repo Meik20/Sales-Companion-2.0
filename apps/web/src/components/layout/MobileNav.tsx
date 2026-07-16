@@ -14,6 +14,7 @@ const getNavItems = (role: string, t: (key: any) => string) => {
   if (role === 'support_agent') {
     return [
       { href: '/crm', label: 'CRM Clients' },
+      { href: '/team', label: t('sidebar.imports') },
       { href: routes.profile, label: t('header.profile') }
     ]
   }
@@ -180,6 +181,13 @@ const ProfileIcon = () => (
     <circle cx="12" cy="7" r="4" />
   </svg>
 )
+const UploadIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    <polyline points="17 8 12 3 7 8" />
+    <line x1="12" y1="3" x2="12" y2="15" />
+  </svg>
+)
 const AdminIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
     <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" />
@@ -250,6 +258,7 @@ export function MobileNav() {
       {user.role === 'support_agent' ? (
         <>
           <NavItem href="/crm" label="CRM Clients" icon={<PipelineIcon />} />
+          <NavItem href="/team" label={t('sidebar.imports')} icon={<UploadIcon />} />
           <NavItem href={routes.profile} label={t('header.profile')} icon={<ProfileIcon />} />
         </>
       ) : (

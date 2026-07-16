@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { AppShell } from '@/components/layout/AppShell'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { TeamMembersSection } from '@/features/team/components/TeamMembersSection'
@@ -35,6 +35,12 @@ export default function TeamPage() {
   const isManager = user?.role === 'manager'
   const isSupportAgent = user?.role === 'support_agent'
   const canImport = isManager || isSupportAgent
+
+  useEffect(() => {
+    if (isSupportAgent) {
+      setActiveTab('imports')
+    }
+  }, [isSupportAgent])
 
   // Pour un support_agent, l'import se fait au nom de son manager lié
   // Pour un manager, l'import se fait avec son propre uid
