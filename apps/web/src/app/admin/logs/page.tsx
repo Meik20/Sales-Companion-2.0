@@ -42,7 +42,8 @@ function useSearchLogs() {
       return res.json()
     },
     enabled: !!user?.uid,
-    refetchInterval: 5000
+    staleTime: 2 * 60 * 1000,   // 2 min de cache
+    refetchOnWindowFocus: false  // Le bouton "Actualiser" suffit
   })
 }
 

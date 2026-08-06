@@ -44,8 +44,12 @@ export function useCurrentUser() {
 
       const userDocRef = doc(firestore, 'users', firebaseUser.uid)
 
-      // Update lastLoginAt once per session (simplified)
-      updateDoc(userDocRef, { lastLoginAt: serverTimestamp() }).catch(() => {})
+      // Update lastLoginAt once per browser session (not on every page navigation)
+      const sessionKey = `lastLogin_written_${firebaseUser.uid}`
+      if (typeof sessionStorage !== 'undefined' && !sessionStorage.getItem(sessionKey)) {
+        updateDoc(userDocRef, { lastLoginAt: serverTimestamp() }).catch(() => {})
+        sessionStorage.setItem(sessionKey, '1')
+      }
 
       unsubscribeSnapshot = onSnapshot(
         userDocRef,

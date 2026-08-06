@@ -111,6 +111,14 @@ export default function SupportPage() {
     }
   }, [threads, selectedId])
 
+  // Mark thread as read once when selected — NOT inside the messages listener
+  useEffect(() => {
+    if (!selectedId) return
+    updateDoc(doc(firestore, 'support_threads', selectedId), { unreadByUser: false }).catch(
+      () => {}
+    )
+  }, [selectedId])
+
   // Messages for selected thread
   useEffect(() => {
     if (!selectedId) {
@@ -123,9 +131,6 @@ export default function SupportPage() {
     )
     return onSnapshot(q, (snap) => {
       setMessages(snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Message, 'id'>) })))
-      updateDoc(doc(firestore, 'support_threads', selectedId), { unreadByUser: false }).catch(
-        () => {}
-      )
     })
   }, [selectedId])
 

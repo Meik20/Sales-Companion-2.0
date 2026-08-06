@@ -43,7 +43,7 @@ export function useAdminPayments() {
       return response.json() as Promise<AdminPaymentsResponse>
     },
     enabled: !!user?.uid,
-    refetchInterval: process.env.NODE_ENV === 'production' ? 10000 : 30000,
-    refetchOnWindowFocus: true
+    refetchInterval: 2 * 60 * 1000, // 2 minutes — évite l'épuisement du quota Firestore
+    refetchOnWindowFocus: false
   })
 }

@@ -33,6 +33,8 @@ export function usePipelineStats() {
       return response.json() as Promise<PipelineStats>
     },
     enabled: !!user?.uid,
-    refetchInterval: 10000 // Rafraîchir toutes les 10s pour garder les compteurs à jour
+    staleTime: 30 * 1000,          // 30s de cache — évite les re-fetch lors des re-montages
+    refetchInterval: 30 * 1000,    // 30s suffit — évite l'épuisement du quota Firestore
+    refetchOnWindowFocus: false
   })
 }

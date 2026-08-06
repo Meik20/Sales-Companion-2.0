@@ -33,6 +33,8 @@ export function useSavedCompanies() {
       const data = await res.json()
       return (data.companies || []) as SavedCompany[]
     },
-    enabled: !!user?.uid
+    enabled: !!user?.uid,
+    staleTime: 2 * 60 * 1000,   // 2 min de cache — évite les re-fetch à chaque re-montage
+    refetchOnWindowFocus: false
   })
 }

@@ -24,6 +24,8 @@ export const useManagerPipeline = () => {
 
       return response.json() as Promise<(PipelineDoc & { id: string })[]>
     },
-    enabled: !!user?.uid && user.role === 'manager'
+    enabled: !!user?.uid && user.role === 'manager',
+    staleTime: 2 * 60 * 1000,   // 2 min de cache — évite les re-fetch à chaque re-montage
+    refetchOnWindowFocus: false
   })
 }
