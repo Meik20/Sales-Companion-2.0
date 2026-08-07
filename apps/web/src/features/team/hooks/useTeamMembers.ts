@@ -17,6 +17,7 @@ export type TeamMember = {
   dailyLimit: number
   /** Source document id in team_accesses */
   accessId?: string
+  magicCode?: string
 }
 
 /**
@@ -149,7 +150,8 @@ export function useTeamMembers() {
             managerUid: managerUid,
             active: isActive,
             dailyUsed: currentDailyUsed,
-            dailyLimit: data.dailyLimit ?? 100
+            dailyLimit: data.dailyLimit ?? 100,
+            magicCode: data.magicCode
           }
         })
         merge()

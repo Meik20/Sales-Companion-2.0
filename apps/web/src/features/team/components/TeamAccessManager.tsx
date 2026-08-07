@@ -13,6 +13,7 @@ import {
   serverTimestamp
 } from 'firebase/firestore'
 import { useTeamMembers } from '@/features/team/hooks/useTeamMembers'
+import { useSupportAgents } from '@/features/team/hooks/useSupportAgents'
 import { useTranslation } from '@/providers/I18nProvider'
 import {
   Trash2,
@@ -53,11 +54,19 @@ export function TeamAccessManager() {
   const { pushToast } = useToast()
   const { t } = useTranslation()
 
-  // Réutilise le listener de useTeamMembers — évite un 3ème onSnapshot redondant sur team_accesses
-  const { data: members, isLoading: loadingAccesses } = useTeamMembers()
+  // Réutilise les listeners de useTeamMembers et useSupportAgents — évite un 3ème onSnapshot redondant
+  const { data: members = [], isLoading: loadingMembers } = useTeamMembers()
+  const { data: agents = [], isLoading: loadingAgents } = useSupportAgents()
+  const loadingAccesses = loadingMembers || loadingAgents
+
+  // Fusionner les membres et agents de support
+  const allTeam = [
+    ...members.map(m => ({ ...m, role: 'member' as const })),
+    ...agents.map(a => ({ ...a, role: 'support_agent' as const }))
+  ]
 
   // Convertit les membres (format TeamMember) en format accesses pour la compatibilité de l'UI
-  const accesses = members.map((m) => ({
+  const accesses = allTeam.map((m) => ({
     id: m.accessId || m.uid,
     uid: m.uid,
     accessId: m.accessId,
@@ -68,7 +77,8 @@ export function TeamAccessManager() {
     status: m.active ? 'active' : 'pending',
     activated: m.active,
     managerUid: m.managerUid,
-    createdAt: null
+    createdAt: null,
+    magicCode: m.magicCode
   }))
 
   const [formData, setFormData] = useState({ firstname: '', lastname: '', company: '', email: '', role: 'member' })
@@ -142,13 +152,15 @@ export function TeamAccessManager() {
     }
   }
 
-  const copyLink = async (magicCode: string) => {
+  const copyLink = async (magicCode?: string) => {
+    if (!magicCode) return
     const link = `${window.location.origin}/activate?code=${magicCode}`
     await navigator.clipboard.writeText(link)
     pushToast({ type: 'info', title: `Lien magique copié !` })
   }
 
-  const copyId = async (id: string) => {
+  const copyId = async (id?: string) => {
+    if (!id) return
     const lowerId = id.toLowerCase()
     await navigator.clipboard.writeText(lowerId)
     pushToast({ type: 'info', title: `ID copié: ${lowerId}` })

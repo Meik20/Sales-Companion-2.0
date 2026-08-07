@@ -13,6 +13,7 @@ export type SupportAgent = {
   managerUid: string
   active: boolean
   accessId?: string
+  magicCode?: string
 }
 
 export function useSupportAgents() {
@@ -109,7 +110,8 @@ export function useSupportAgents() {
             name: fullName,
             role: 'support_agent',
             managerUid: managerUid,
-            active: isActive
+            active: isActive,
+            magicCode: data.magicCode
           }
         })
         merge()
