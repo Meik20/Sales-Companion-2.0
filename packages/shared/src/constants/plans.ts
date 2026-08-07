@@ -3,9 +3,9 @@ export type UserPlan = (typeof plans)[number]
 
 export const PLAN_LIMITS: Record<UserPlan, number> = {
   free: 10,
-  starter: 50,
-  pro: 200,
-  enterprise: 1000
+  starter: 10,
+  pro: 20,
+  enterprise: 50
 }
 
 export const PLAN_PRICES: Record<UserPlan, number> = {
