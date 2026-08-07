@@ -57,7 +57,7 @@ export function Hero() {
       <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 lg:grid-cols-[1.05fr_0.95fr]">
         <div className="flex flex-col items-start">
           <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-1 text-xs font-medium text-muted-foreground shadow-sm hover:border-primary/40 transition-colors">
-            <span className="h-2 w-2 rounded-full bg-primary animate-ping" />
+            <span className="h-2 w-2 rounded-full bg-[#1B7A3E] animate-ping" />
             Intelligence B2B Cameroun
           </span>
 
@@ -66,7 +66,7 @@ export function Hero() {
           </h1>
 
           <p className="mt-5 max-w-xl text-lg leading-relaxed text-muted-foreground text-pretty">
-            Sales Companion 2.0 centralise l&apos;annuaire des entreprises camerounaises, votre
+            Sales Companion <span className="text-[#1B7A3E] font-semibold">2.0</span> centralise l&apos;annuaire des entreprises camerounaises, votre
             pipeline CRM et la gestion d&apos;équipe dans un seul outil, accessible partout — même
             hors-ligne.
           </p>

@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { ArrowRight, ShieldCheck, Lock, Server, Smartphone } from 'lucide-react'
+import { ScIcon } from '@/components/ui/ScIcon'
 import { routes } from '@/constants/routes'
 
 const LinkedInIcon = ({ className }: { className?: string }) => (
@@ -91,11 +92,9 @@ export function CtaFooter() {
             {/* Brand column */}
             <div className="sm:col-span-2 md:col-span-1">
               <div className="flex items-center gap-2.5">
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary font-heading text-sm font-semibold text-white shadow-xs">
-                  SC
-                </span>
+                <ScIcon size={34} />
                 <span className="font-heading text-base font-semibold text-foreground">
-                  Sales Companion <span className="text-primary">2.0</span>
+                  Sales Companion <span className="text-[#1B7A3E]">2.0</span>
                 </span>
               </div>
               <p className="mt-3 text-xs leading-relaxed text-muted-foreground">

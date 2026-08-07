@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { ScIcon } from '@/components/ui/ScIcon'
 import { routes } from '@/constants/routes'
 
 const LinkedInIcon = ({ className }: { className?: string }) => (
@@ -22,11 +23,9 @@ export function SiteHeader() {
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/85 backdrop-blur-md transition-all">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-6 px-5">
         <Link href="/" className="flex items-center gap-2.5 group" aria-label="Sales Companion 2.0, accueil">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary font-heading text-sm font-semibold text-primary-foreground shadow-sm group-hover:scale-105 transition-transform">
-            SC
-          </span>
+          <ScIcon size={34} interactive className="group-hover:scale-105 transition-transform" />
           <span className="font-heading text-[15px] font-semibold tracking-tight text-foreground">
-            Sales Companion <span className="text-primary">2.0</span>
+            Sales Companion <span className="text-[#1B7A3E]">2.0</span>
           </span>
         </Link>
 
