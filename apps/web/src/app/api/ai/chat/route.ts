@@ -81,6 +81,14 @@ export async function POST(request: NextRequest) {
         if (userSnap.exists) {
           const data = userSnap.data()!
           const dailyLimit = (data.dailyLimit as number) ?? 10
+          const plan = data.plan || 'free'
+
+          if (plan === 'free') {
+            return NextResponse.json(
+              { error: 'L\'assistant IA n\'est pas disponible pour le plan gratuit.', message: 'AI assistant not available for free plan' },
+              { status: 403 }
+            )
+          }
 
           // Vérification et reset si nouveau jour (Lazy Reset)
           const currentDailyUsed = await ensureDailyReset(userRef, data)

@@ -297,9 +297,11 @@ export default function SettingsPage() {
                     </Badge>
                   </div>
                   <p style={{ margin: 0, fontSize: 13, color: colors.textMid }}>
-                    {planInfo.searches >= 1000
-                      ? t('settings.searchesPerDay1000') || `${planInfo.searches} ${t('settings.searchesPerDay')}`
-                      : `${planInfo.searches} ${t('settings.searchesPerDay')}`}
+                    {plan === 'free'
+                      ? t('landing.plansSection.pFree1' as any)
+                      : planInfo.searches >= 1000
+                        ? t('settings.searchesPerDay1000') || `${planInfo.searches} ${t('settings.searchesPerDay')}`
+                        : `${planInfo.searches} ${t('settings.searchesPerDay')}`}
                   </p>
                 </div>
 

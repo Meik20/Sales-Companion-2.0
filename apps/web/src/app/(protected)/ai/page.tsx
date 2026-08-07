@@ -101,6 +101,50 @@ export default function AIAssistantPage() {
     )
   }
 
+  if (user.plan === 'free') {
+    return (
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100vh',
+          background: colors.bg,
+          padding: '24px',
+          textAlign: 'center',
+          color: colors.text
+        }}
+      >
+        <div className="hero-glow-tl" style={{ opacity: 0.15 }} />
+        <span style={{ fontSize: '4rem', marginBottom: '20px', display: 'block', animation: 'floatSubtle 6s infinite ease-in-out' }}>🤖</span>
+        <h1 style={{ fontSize: '24px', fontWeight: 800, marginBottom: '12px', fontFamily: "'Syne', sans-serif" }}>
+          Companion IA Commercial
+        </h1>
+        <p style={{ maxWidth: '400px', color: colors.textMid, fontSize: '14px', lineHeight: 1.6, marginBottom: '24px' }}>
+          L&apos;assistant de prospection intelligent est réservé aux abonnements payants. Boostez vos ventes en générant des emails et scripts d&apos;approche sur-mesure pour le marché camerounais.
+        </p>
+        <a
+          href="/upgrade"
+          style={{
+            display: 'inline-block',
+            padding: '12px 24px',
+            borderRadius: '8px',
+            background: 'var(--color-primary)',
+            color: 'white',
+            fontWeight: 700,
+            fontSize: '14px',
+            textDecoration: 'none',
+            boxShadow: '0 4px 12px rgba(55,138,221,0.25)',
+            transition: 'all 200ms ease'
+          }}
+        >
+          🚀 Voir les abonnements
+        </a>
+      </div>
+    )
+  }
+
   return (
     <div
       style={{

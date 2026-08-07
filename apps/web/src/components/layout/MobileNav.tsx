@@ -10,7 +10,7 @@ import { useSwipe } from '@/hooks/useSwipe'
 
 // All navigation items in order for swipe navigation
 // All navigation items in order for swipe navigation
-const getNavItems = (role: string, t: (key: any) => string) => {
+const getNavItems = (role: string, plan: string, t: (key: any) => string) => {
   if (role === 'support_agent') {
     return [
       { href: '/crm', label: 'CRM Clients' },
@@ -23,7 +23,7 @@ const getNavItems = (role: string, t: (key: any) => string) => {
     { href: routes.search, label: t('header.search') },
     { href: routes.pipeline, label: t('sidebar.pipeline') },
     { href: routes.saved, label: t('sidebar.saved') },
-    { href: routes.ai, label: t('header.aiAssistant') },
+    ...(plan !== 'free' ? [{ href: routes.ai, label: t('header.aiAssistant') }] : []),
     { href: routes.profile, label: t('header.profile') }
   ]
 
@@ -167,6 +167,7 @@ const DashboardIcon = () => (
     <rect x="3" y="14" width="7" height="7" rx="1" />
   </svg>
 )
+
 const AiIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
     <path d="M12 2a5 5 0 0 1 5 5v3a5 5 0 0 1-10 0V7a5 5 0 0 1 5-5z" />
@@ -175,6 +176,7 @@ const AiIcon = () => (
     <circle cx="16" cy="10" r="1" fill="currentColor" stroke="none" />
   </svg>
 )
+
 const ProfileIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
@@ -201,7 +203,7 @@ export function MobileNav() {
   const router = useRouter()
 
   // Ordered nav items for swipe support
-  const navItems = user ? getNavItems(user.role, t) : []
+  const navItems = user ? getNavItems(user.role, user.plan || 'free', t) : []
   const currentIndex = navItems.findIndex(
     item => pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href))
   )
@@ -277,7 +279,9 @@ export function MobileNav() {
             <NavItem href={routes.admin} label={t('sidebar.admin')} icon={<AdminIcon />} />
           )}
 
-          <NavItem href={routes.ai} label="AI" icon={<AiIcon />} />
+          {user.plan !== 'free' && (
+            <NavItem href={routes.ai} label="AI" icon={<AiIcon />} />
+          )}
           <NavItem href={routes.profile} label={t('header.profile')} icon={<ProfileIcon />} />
         </>
       )}

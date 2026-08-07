@@ -34,6 +34,10 @@ function SearchContent() {
   const [currentPage, setCurrentPage] = useState(1)
   const [isBackAction, setIsBackAction] = useState(false)
 
+  // Pipeline stats
+  const pipelineStats = usePipelineStats()
+  const stats = pipelineStats.data
+
   // AI B2B chat state
   type ChatMsg = { role: 'user' | 'assistant'; text: string }
   const [chatMessages, setChatMessages] = useState<ChatMsg[]>([
@@ -42,24 +46,6 @@ function SearchContent() {
   const [chatInput, setChatInput] = useState('')
   const [isSendingChat, setIsSendingChat] = useState(false)
   const chatEndRef = useRef<HTMLDivElement>(null)
-
-  // Pipeline stats
-  const pipelineStats = usePipelineStats()
-  const stats = pipelineStats.data
-
-  useEffect(() => {
-    const sector = searchParams.get('sector') || undefined
-    const region = searchParams.get('region') || undefined
-    const city = searchParams.get('city') || undefined
-    const query = searchParams.get('query') || undefined
-    const lat = searchParams.get('lat') || undefined
-    const lng = searchParams.get('lng') || undefined
-    const radius = searchParams.get('radius') || undefined
-    if (sector || region || city || query || lat || lng) {
-      setFilters({ sector, region, city, query, lat, lng, radius })
-      setHasSearched(true)
-    }
-  }, [searchParams])
 
   // Scroll chat to bottom when new messages arrive
   useEffect(() => {
@@ -118,6 +104,20 @@ function SearchContent() {
       sendChatMessage(chatInput)
     }
   }
+
+  useEffect(() => {
+    const sector = searchParams.get('sector') || undefined
+    const region = searchParams.get('region') || undefined
+    const city = searchParams.get('city') || undefined
+    const query = searchParams.get('query') || undefined
+    const lat = searchParams.get('lat') || undefined
+    const lng = searchParams.get('lng') || undefined
+    const radius = searchParams.get('radius') || undefined
+    if (sector || region || city || query || lat || lng) {
+      setFilters({ sector, region, city, query, lat, lng, radius })
+      setHasSearched(true)
+    }
+  }, [searchParams])
 
   const searchQuery = useCompaniesSearch({ ...filters, page: currentPage, charge: !isBackAction })
   const searchData = searchQuery.data
@@ -634,163 +634,165 @@ function SearchContent() {
           </DataCard>
 
           {/* Assistant B2B IA */}
-          <DataCard
-            title={t('search.aiAssistant')}
-            style={{
-              boxShadow: '0 8px 30px rgba(0,0,0,0.06)',
-              border: '1px solid rgba(27,122,62,0.15)'
-            }}
-          >
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, height: 380 }}>
-              {/* Zone messages */}
-              <div
-                style={{
-                  flex: 1,
-                  overflowY: 'auto',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 10,
-                  paddingRight: 4,
-                  maxHeight: 260
-                }}
-              >
-                {chatMessages.map((msg, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                      maxWidth: '85%',
-                      background: msg.role === 'user' ? colors.green : colors.greenLight,
-                      color: msg.role === 'user' ? '#fff' : colors.greenDark,
-                      padding: '10px 14px',
-                      borderRadius:
-                        msg.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-                      fontSize: 12.5,
-                      lineHeight: 1.55,
-                      whiteSpace: 'pre-wrap',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
-                    }}
-                  >
-                    {msg.text}
-                  </div>
-                ))}
-                {isSendingChat && (
-                  <div
-                    style={{
-                      alignSelf: 'flex-start',
-                      background: colors.greenLight,
-                      color: colors.greenDark,
-                      padding: '10px 14px',
-                      borderRadius: '16px 16px 16px 4px',
-                      fontSize: 12,
-                      fontStyle: 'italic'
-                    }}
-                  >
-                    {t('search.aiThinking')}
-                  </div>
-                )}
-                <div ref={chatEndRef} />
-              </div>
-
-              {/* Chips suggestions — adaptées au secteur de l'utilisateur */}
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {(() => {
-                  const sector = (user as { sector?: string } | null)?.sector
-                  const chips = sector
-                    ? [
-                        `Tendances ${sector}`,
-                        `Email d'approche ${sector}`,
-                        `Script appel DG ${sector}`
-                      ]
-                    : [
-                        'Tendances BTP Douala',
-                        "Email d'approche Tech",
-                        'Script appel DG Agroalimentaire'
-                      ]
-                  return chips.map((chip) => (
-                    <button
-                      key={chip}
-                      onClick={() => sendChatMessage(chip)}
-                      disabled={isSendingChat}
-                      style={{
-                        fontSize: 11,
-                        padding: '5px 10px',
-                        borderRadius: 999,
-                        border: `1px solid ${colors.greenLight}`,
-                        background: colors.greenLight,
-                        color: colors.greenDark,
-                        cursor: isSendingChat ? 'not-allowed' : 'pointer',
-                        opacity: isSendingChat ? 0.5 : 1,
-                        transition: 'all 150ms ease'
-                      }}
-                    >
-                      {chip}
-                    </button>
-                  ))
-                })()}
-              </div>
-
-              {/* Zone de saisie */}
-              <div style={{ position: 'relative' }}>
-                <textarea
-                  value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  onKeyDown={handleChatKeyDown}
-                  disabled={isSendingChat}
-                  placeholder={t('search.aiPlaceholder')}
-                  rows={3}
+          {user?.plan !== 'free' && (
+            <DataCard
+              title={t('search.aiAssistant')}
+              style={{
+                boxShadow: '0 8px 30px rgba(0,0,0,0.06)',
+                border: '1px solid rgba(27,122,62,0.15)'
+              }}
+            >
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, height: 380 }}>
+                {/* Zone messages */}
+                <div
                   style={{
-                    width: '100%',
-                    padding: '10px 48px 10px 14px',
-                    borderRadius: 14,
-                    border: `1px solid ${colors.border}`,
-                    outline: 'none',
-                    fontSize: 12.5,
-                    resize: 'none',
-                    fontFamily: 'inherit',
-                    background: colors.bg2,
-                    color: colors.text,
-                    boxSizing: 'border-box'
-                  }}
-                />
-                <button
-                  onClick={() => sendChatMessage(chatInput)}
-                  disabled={isSendingChat || !chatInput.trim()}
-                  style={{
-                    position: 'absolute',
-                    right: 8,
-                    bottom: 8,
-                    width: 32,
-                    height: 32,
-                    borderRadius: '50%',
-                    background: isSendingChat || !chatInput.trim() ? colors.border : colors.green,
-                    color: '#fff',
-                    border: 'none',
-                    cursor: isSendingChat || !chatInput.trim() ? 'not-allowed' : 'pointer',
+                    flex: 1,
+                    overflowY: 'auto',
                     display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: '0 4px 12px rgba(0,85,255,0.3)',
-                    transition: 'all 200ms ease'
+                    flexDirection: 'column',
+                    gap: 10,
+                    paddingRight: 4,
+                    maxHeight: 260
                   }}
                 >
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
+                  {chatMessages.map((msg, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
+                        maxWidth: '85%',
+                        background: msg.role === 'user' ? colors.green : colors.greenLight,
+                        color: msg.role === 'user' ? '#fff' : colors.greenDark,
+                        padding: '10px 14px',
+                        borderRadius:
+                          msg.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+                        fontSize: 12.5,
+                        lineHeight: 1.55,
+                        whiteSpace: 'pre-wrap',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+                      }}
+                    >
+                      {msg.text}
+                    </div>
+                  ))}
+                  {isSendingChat && (
+                    <div
+                      style={{
+                        alignSelf: 'flex-start',
+                        background: colors.greenLight,
+                        color: colors.greenDark,
+                        padding: '10px 14px',
+                        borderRadius: '16px 16px 16px 4px',
+                        fontSize: 12,
+                        fontStyle: 'italic'
+                      }}
+                    >
+                      {t('search.aiThinking')}
+                    </div>
+                  )}
+                  <div ref={chatEndRef} />
+                </div>
+
+                {/* Chips suggestions — adaptées au secteur de l'utilisateur */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {(() => {
+                    const sector = (user as { sector?: string } | null)?.sector
+                    const chips = sector
+                      ? [
+                          `Tendances ${sector}`,
+                          `Email d'approche ${sector}`,
+                          `Script appel DG ${sector}`
+                        ]
+                      : [
+                          'Tendances BTP Douala',
+                          "Email d'approche Tech",
+                          'Script appel DG Agroalimentaire'
+                        ]
+                    return chips.map((chip) => (
+                      <button
+                        key={chip}
+                        onClick={() => sendChatMessage(chip)}
+                        disabled={isSendingChat}
+                        style={{
+                          fontSize: 11,
+                          padding: '5px 10px',
+                          borderRadius: 999,
+                          border: `1px solid ${colors.greenLight}`,
+                          background: colors.greenLight,
+                          color: colors.greenDark,
+                          cursor: isSendingChat ? 'not-allowed' : 'pointer',
+                          opacity: isSendingChat ? 0.5 : 1,
+                          transition: 'all 150ms ease'
+                        }}
+                      >
+                        {chip}
+                      </button>
+                    ))
+                  })()}
+                </div>
+
+                {/* Zone de saisie */}
+                <div style={{ position: 'relative' }}>
+                  <textarea
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    onKeyDown={handleChatKeyDown}
+                    disabled={isSendingChat}
+                    placeholder={t('search.aiPlaceholder')}
+                    rows={3}
+                    style={{
+                      width: '100%',
+                      padding: '10px 48px 10px 14px',
+                      borderRadius: 14,
+                      border: `1px solid ${colors.border}`,
+                      outline: 'none',
+                      fontSize: 12.5,
+                      resize: 'none',
+                      fontFamily: 'inherit',
+                      background: colors.bg2,
+                      color: colors.text,
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                  <button
+                    onClick={() => sendChatMessage(chatInput)}
+                    disabled={isSendingChat || !chatInput.trim()}
+                    style={{
+                      position: 'absolute',
+                      right: 8,
+                      bottom: 8,
+                      width: 32,
+                      height: 32,
+                      borderRadius: '50%',
+                      background: isSendingChat || !chatInput.trim() ? colors.border : colors.green,
+                      color: '#fff',
+                      border: 'none',
+                      cursor: isSendingChat || !chatInput.trim() ? 'not-allowed' : 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 4px 12px rgba(0,85,255,0.3)',
+                      transition: 'all 200ms ease'
+                    }}
                   >
-                    <line x1="22" y1="2" x2="11" y2="13" />
-                    <polygon points="22 2 15 22 11 13 2 9 22 2" />
-                  </svg>
-                </button>
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <line x1="22" y1="2" x2="11" y2="13" />
+                      <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                    </svg>
+                  </button>
+                </div>
               </div>
-            </div>
-          </DataCard>
+            </DataCard>
+          )}
         </div>
       </div>
     </AppShell>

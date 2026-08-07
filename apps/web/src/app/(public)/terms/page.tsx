@@ -44,7 +44,6 @@ const SECTIONS = [
     bullets: [
       'Annuaire B2B : accès à une base de données d\'entreprises camerounaises vérifiées (RCCM, NIU, contacts).',
       'CRM Pipeline : gestion et suivi de vos prospects commerciaux.',
-      'Companion IA : assistant commercial basé sur l\'intelligence artificielle (plans payants).',
       'Gestion d\'équipe : création et management d\'équipes commerciales (plans Manager et Enterprise).',
       'Export de données : téléchargement des résultats en format Excel (plans payants).',
       'Application mobile PWA : accès hors-ligne via Progressive Web App.'
@@ -55,9 +54,9 @@ const SECTIONS = [
     title: '4. Abonnements et facturation',
     content: `Sales Companion 2.0 propose plusieurs plans tarifaires :`,
     bullets: [
-      'Plan Gratuit : accès limité à 10 recherches par jour, sans engagement.',
+      'Plan Gratuit : accès limité à 10 recherches par mois, sans engagement.',
       'Plan Starter : 50 recherches/jour avec export Excel, facturation mensuelle.',
-      'Plan Pro : 200 recherches/jour avec Companion IA, pipeline illimité.',
+      'Plan Pro : 200 recherches/jour avec pipeline illimité.',
       'Plan Enterprise : 1 000 recherches/jour avec gestion d\'équipe et support dédié.'
     ],
     extra: 'Les paiements sont effectués via Orange Money, MTN Mobile Money ou virement bancaire. Toute facturation est émise en Francs CFA (XAF). Les abonnements se renouvellent automatiquement sauf résiliation avant la date de renouvellement.'
@@ -333,7 +332,7 @@ export default function TermsPage() {
           }}
         >
           {[
-            { name: 'Gratuit', price: '0 FCFA', searches: '10/jour', color: 'var(--tx3)' },
+            { name: 'Gratuit', price: '0 FCFA', searches: '10/mois', color: 'var(--tx3)' },
             { name: 'Starter', price: 'Sur devis', searches: '50/jour', color: '#60a5fa' },
             { name: 'Pro', price: 'Sur devis', searches: '200/jour', color: 'var(--gm)' },
             { name: 'Enterprise', price: 'Sur devis', searches: '1 000/jour', color: '#f5a623' }

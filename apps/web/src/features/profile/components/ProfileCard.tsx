@@ -106,15 +106,15 @@ export function ProfileCard() {
         <>
           <StatsGrid>
             <MetricCard
-              label={t('profile.searchesToday')}
+              label={user.plan === 'free' ? (t('profile.searchesThisMonth' as any) || "Recherches ce mois") : t('profile.searchesToday')}
               value={`${user.dailyUsed} / ${user.dailyLimit}`}
               hint={`${usagePercent}% ${t('profile.quotaUsed')}`}
               accent
             />
             <MetricCard
-              label={t('profile.dailyQuota')}
+              label={user.plan === 'free' ? (t('profile.monthlyQuota' as any) || "Quota mensuel") : t('profile.dailyQuota')}
               value={user.dailyLimit}
-              hint={t('profile.resetDaily')}
+              hint={user.plan === 'free' ? (t('profile.resetMonthly' as any) || "Réinitialisé chaque mois") : t('profile.resetDaily')}
             />
             <MetricCard
               label={t('profile.status')}
@@ -135,7 +135,7 @@ export function ProfileCard() {
                     letterSpacing: '.04em'
                   }}
                 >
-                  {t('profile.dailyQuotaLabel')}
+                  {user.plan === 'free' ? (t('profile.monthlyQuotaLabel' as any) || "Quota mensuel") : t('profile.dailyQuotaLabel')}
                 </span>
                 <span style={{ fontSize: 12, color: usageColor, fontWeight: 600 }}>
                   {usagePercent}%

@@ -88,9 +88,12 @@ export async function GET(request: NextRequest) {
         const data = userSnap.data()!
         const dailyLimit = (data.dailyLimit as number) ?? 10
         const currentDailyUsed = await ensureDailyReset(userRef, data)
+        const plan = data.plan || 'free'
 
         if (currentDailyUsed >= dailyLimit) {
-          const quotaMessage = `Quota journalier épuisé (${dailyLimit} crédits).`
+          const quotaMessage = plan === 'free'
+            ? `Quota mensuel épuisé (${dailyLimit} crédits).`
+            : `Quota journalier épuisé (${dailyLimit} crédits).`
           return NextResponse.json(
             { error: quotaMessage, message: quotaMessage },
             { status: 429 }
