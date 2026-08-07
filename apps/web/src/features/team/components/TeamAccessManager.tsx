@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { DataCard, Badge } from '@/components/ui/index'
 import { EmptyState, LoadingState } from '@/components/feedback/index'
 import { Input } from '@/components/ui/Input'
@@ -8,15 +8,11 @@ import { useToast } from '@/hooks/useToast'
 import { colors } from '@/styles/tokens'
 import { db } from '@/lib/firebase'
 import {
-  collection,
-  query,
-  where,
   doc,
-  setDoc,
   updateDoc,
-  serverTimestamp,
-  onSnapshot
+  serverTimestamp
 } from 'firebase/firestore'
+import { useTeamMembers } from '@/features/team/hooks/useTeamMembers'
 import { useTranslation } from '@/providers/I18nProvider'
 import {
   Trash2,
@@ -57,8 +53,24 @@ export function TeamAccessManager() {
   const { pushToast } = useToast()
   const { t } = useTranslation()
 
-  const [accesses, setAccesses] = useState<any[]>([])
-  const [loadingAccesses, setLoadingAccesses] = useState(false)
+  // Réutilise le listener de useTeamMembers — évite un 3ème onSnapshot redondant sur team_accesses
+  const { data: members, isLoading: loadingAccesses } = useTeamMembers()
+
+  // Convertit les membres (format TeamMember) en format accesses pour la compatibilité de l'UI
+  const accesses = members.map((m) => ({
+    id: m.accessId || m.uid,
+    uid: m.uid,
+    accessId: m.accessId,
+    firstname: m.name?.split(' ')[0] ?? '',
+    lastname: m.name?.split(' ').slice(1).join(' ') ?? '',
+    email: m.email,
+    role: m.role,
+    status: m.active ? 'active' : 'pending',
+    activated: m.active,
+    managerUid: m.managerUid,
+    createdAt: null
+  }))
+
   const [formData, setFormData] = useState({ firstname: '', lastname: '', company: '', email: '', role: 'member' })
   const [permissions, setPermissions] = useState({ canExport: false, canDelete: false, canAssign: false })
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -77,34 +89,6 @@ export function TeamAccessManager() {
   const activeOrPendingCount = accesses.filter(
     (acc) => (acc.status === 'pending' || acc.status === 'active') && acc.role !== 'support_agent'
   ).length
-
-  useEffect(() => {
-    if (!user || user.role !== 'manager') return
-
-    setLoadingAccesses(true)
-
-    // Set up real-time listener for team accesses
-    const q = query(collection(db, 'team_accesses'), where('managerUid', '==', user.uid))
-
-    const unsubscribe = onSnapshot(
-      q,
-      (snap) => {
-        setAccesses(
-          snap.docs
-            .map((d) => ({ id: d.id, ...d.data() }))
-            .sort((a: any, b: any) => b.createdAt?.toMillis() - a.createdAt?.toMillis())
-        )
-        setLoadingAccesses(false)
-      },
-      (error: any) => {
-        pushToast({ type: 'error', title: `Erreur: ${error.message}` })
-        setLoadingAccesses(false)
-      }
-    )
-
-    // Clean up listener on unmount
-    return () => unsubscribe()
-  }, [user, pushToast])
 
   const handleCreateAccess = async (e: React.FormEvent) => {
     e.preventDefault()

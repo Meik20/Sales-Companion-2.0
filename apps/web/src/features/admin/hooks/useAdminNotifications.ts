@@ -78,7 +78,7 @@ export function useAdminNotifications() {
     )
 
     return () => unsubscribe()
-  }, [user])
+  }, [user?.uid, user?.role])
 
   const unreadCount = notifications.filter((n) => !n.read).length
 
