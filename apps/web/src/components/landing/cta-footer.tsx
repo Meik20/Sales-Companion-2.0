@@ -4,6 +4,12 @@ import Link from 'next/link'
 import { ArrowRight, ShieldCheck, Lock, Server, Smartphone } from 'lucide-react'
 import { routes } from '@/constants/routes'
 
+const LinkedInIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z" />
+  </svg>
+)
+
 const trust = [
   { icon: Lock, label: 'Chiffré en transit (HTTPS/TLS 1.3)' },
   { icon: ShieldCheck, label: 'Zéro revente de vos données' },
@@ -29,7 +35,7 @@ const footerLinks = {
     { label: 'Politique de Confidentialité', href: '/privacy' },
     { label: 'Se connecter', href: routes.login },
     { label: 'Créer un compte', href: routes.register },
-    { label: 'Support & Assistance', href: '/support' }
+    { label: 'Page Officielle LinkedIn', href: 'https://www.linkedin.com/company/sales-companion-2-0/', external: true }
   ]
 }
 
@@ -41,37 +47,37 @@ export function CtaFooter() {
           {/* Subtle background glow */}
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.15),transparent)]"
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.2),transparent)]"
           />
 
-          <h2 className="relative z-10 mx-auto max-w-2xl font-heading text-3xl font-bold tracking-tight text-primary-foreground text-balance sm:text-4xl">
+          <h2 className="relative z-10 mx-auto max-w-2xl font-heading text-3xl font-bold tracking-tight text-white text-balance sm:text-4xl">
             Prospectez plus vite au Cameroun
           </h2>
-          <p className="relative z-10 mx-auto mt-4 max-w-xl leading-relaxed text-primary-foreground/90 text-pretty">
+          <p className="relative z-10 mx-auto mt-4 max-w-xl text-base font-normal leading-relaxed text-white text-pretty">
             Créez votre compte gratuitement et accédez dès aujourd&apos;hui à l&apos;annuaire B2B le
             plus complet du marché.
           </p>
           <div className="relative z-10 mt-8 flex flex-col items-center justify-center gap-3.5 sm:flex-row">
             <Link
               href={routes.register}
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-card px-6 py-3.5 text-sm font-semibold text-foreground shadow-sm transition-all hover:bg-card/90 hover:scale-[1.02] active:scale-[0.98]"
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-white px-6 py-3.5 text-sm font-bold text-primary shadow-md transition-all hover:bg-slate-50 hover:scale-[1.02] active:scale-[0.98]"
             >
               Commencer gratuitement
               <ArrowRight className="h-4 w-4 text-primary" />
             </Link>
             <Link
               href={routes.register}
-              className="inline-flex items-center justify-center gap-2 rounded-lg border border-primary-foreground/30 bg-primary/20 px-5 py-3.5 text-sm font-medium text-primary-foreground transition-all hover:bg-primary-foreground/10"
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-white/40 bg-white/10 px-5 py-3.5 text-sm font-semibold text-white transition-all hover:bg-white/20"
             >
-              <Smartphone className="h-4 w-4" />
+              <Smartphone className="h-4 w-4 text-white" />
               Installer sur mobile (PWA)
             </Link>
           </div>
 
-          <ul className="relative z-10 mx-auto mt-10 flex max-w-3xl flex-wrap items-center justify-center gap-x-8 gap-y-3 border-t border-primary-foreground/20 pt-8">
+          <ul className="relative z-10 mx-auto mt-10 flex max-w-3xl flex-wrap items-center justify-center gap-x-8 gap-y-3 border-t border-white/25 pt-8">
             {trust.map((item) => (
-              <li key={item.label} className="flex items-center gap-2 text-xs font-medium text-primary-foreground/90">
-                <item.icon className="h-4 w-4 shrink-0" />
+              <li key={item.label} className="flex items-center gap-2 text-xs font-semibold text-white">
+                <item.icon className="h-4 w-4 shrink-0 text-white" />
                 <span>{item.label}</span>
               </li>
             ))}
@@ -85,7 +91,7 @@ export function CtaFooter() {
             {/* Brand column */}
             <div className="sm:col-span-2 md:col-span-1">
               <div className="flex items-center gap-2.5">
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary font-heading text-sm font-semibold text-primary-foreground shadow-xs">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary font-heading text-sm font-semibold text-white shadow-xs">
                   SC
                 </span>
                 <span className="font-heading text-base font-semibold text-foreground">
@@ -95,6 +101,17 @@ export function CtaFooter() {
               <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
                 La plateforme d&apos;intelligence commerciale B2B N°1 au Cameroun. 500K+ entreprises vérifiées à Douala, Yaoundé et régions.
               </p>
+              <div className="mt-4">
+                <a
+                  href="https://www.linkedin.com/company/sales-companion-2-0/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-lg border border-border bg-secondary/50 px-3 py-1.5 text-xs font-medium text-foreground transition-all hover:bg-primary hover:text-white hover:border-primary"
+                >
+                  <LinkedInIcon className="h-4 w-4 text-[#0A66C2]" />
+                  Suivez-nous sur LinkedIn
+                </a>
+              </div>
             </div>
 
             {/* Product Column */}
@@ -125,15 +142,27 @@ export function CtaFooter() {
               </ul>
             </div>
 
-            {/* Legal Column */}
+            {/* Legal & Communauté Column */}
             <div>
-              <h3 className="font-heading text-xs font-semibold uppercase tracking-wider text-foreground">Légal & Accès</h3>
+              <h3 className="font-heading text-xs font-semibold uppercase tracking-wider text-foreground">Légal & Communauté</h3>
               <ul className="mt-3 space-y-2 text-xs">
                 {footerLinks.legal.map((link) => (
                   <li key={link.label}>
-                    <Link href={link.href} className="text-muted-foreground transition-colors hover:text-foreground">
-                      {link.label}
-                    </Link>
+                    {link.external ? (
+                      <a
+                        href={link.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-primary font-medium"
+                      >
+                        <LinkedInIcon className="h-3.5 w-3.5 text-[#0A66C2]" />
+                        {link.label}
+                      </a>
+                    ) : (
+                      <Link href={link.href} className="text-muted-foreground transition-colors hover:text-foreground">
+                        {link.label}
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -142,7 +171,20 @@ export function CtaFooter() {
 
           <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border/60 pt-6 text-xs text-muted-foreground sm:flex-row">
             <p>© {new Date().getFullYear()} Sales Companion 2.0. Tous droits réservés.</p>
-            <p>Conçu pour les commerciaux et directeurs de vente au Cameroun 🇨🇲</p>
+            <div className="flex items-center gap-4">
+              <a
+                href="https://www.linkedin.com/company/sales-companion-2-0/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 text-muted-foreground hover:text-[#0A66C2] transition-colors"
+                aria-label="LinkedIn Sales Companion 2.0"
+              >
+                <LinkedInIcon className="h-4 w-4" />
+                <span>LinkedIn</span>
+              </a>
+              <span>·</span>
+              <p>Conçu pour les commerciaux au Cameroun 🇨🇲</p>
+            </div>
           </div>
         </div>
       </footer>
