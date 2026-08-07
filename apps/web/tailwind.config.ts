@@ -65,7 +65,29 @@ const config: Config = {
         /* Semantic Colors */
         danger: 'var(--color-danger)',
         warning: 'var(--color-warning)',
-        success: 'var(--color-success)'
+        success: 'var(--color-success)',
+        destructive: 'var(--destructive)',
+        /* Charts */
+        'chart-1': 'var(--chart-1)',
+        'chart-2': 'var(--chart-2)',
+        'chart-3': 'var(--chart-3)',
+        'chart-4': 'var(--chart-4)',
+        'chart-5': 'var(--chart-5)',
+        /* Sidebar */
+        sidebar: {
+          DEFAULT: 'var(--sidebar)',
+          foreground: 'var(--sidebar-foreground)',
+          primary: {
+            DEFAULT: 'var(--sidebar-primary)',
+            foreground: 'var(--sidebar-primary-foreground)'
+          },
+          accent: {
+            DEFAULT: 'var(--sidebar-accent)',
+            foreground: 'var(--sidebar-accent-foreground)'
+          },
+          border: 'var(--sidebar-border)',
+          ring: 'var(--sidebar-ring)'
+        }
       },
       fontFamily: {
         heading: ['var(--font-outfit)', 'var(--font-heading)', 'sans-serif'],
