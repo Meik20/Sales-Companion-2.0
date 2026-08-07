@@ -83,11 +83,32 @@
   --google-yellow-700: rgb(240, 147, 0);
 }
 
+.dark {
+  color-scheme: dark;
+  --background: oklch(0.14 0.02 260);
+  --foreground: oklch(0.96 0.01 260);
+  --card: oklch(0.18 0.02 260);
+  --card-foreground: oklch(0.96 0.01 260);
+  --popover: oklch(0.18 0.02 260);
+  --popover-foreground: oklch(0.96 0.01 260);
+  --primary: oklch(0.62 0.16 255);
+  --primary-foreground: oklch(0.99 0.01 260);
+  --secondary: oklch(0.22 0.02 260);
+  --secondary-foreground: oklch(0.92 0.01 260);
+  --muted: oklch(0.22 0.02 260);
+  --muted-foreground: oklch(0.68 0.02 260);
+  --accent: oklch(0.75 0.14 78);
+  --accent-foreground: oklch(0.96 0.01 260);
+  --border: oklch(0.26 0.02 260);
+  --input: oklch(0.26 0.02 260);
+  --ring: oklch(0.62 0.16 255);
+}
+
 /* The design system tokens are now imported from theme.css */
 
 body {
-  color: var(--tx);
-  background-color: var(--bg);
+  color: var(--tx, var(--foreground));
+  background-color: var(--bg, var(--background));
 }
 
 /* Force some elements to respect the dark theme */
@@ -95,21 +116,12 @@ input,
 select,
 textarea,
 button {
-  color: var(--tx);
+  color: inherit;
 }
 
 option {
-  background-color: var(--bg2);
-  color: var(--tx);
-}
-
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  color: var(--tx);
+  background-color: var(--bg2, var(--card));
+  color: var(--tx, var(--foreground));
 }
 
 /* ─── Reset ─────────────────────────────────────────────────────────── */
@@ -117,9 +129,6 @@ h6 {
 *::before,
 *::after {
   box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: inherit;
 }
 
 html {
