@@ -11,6 +11,26 @@
 
 /* ─── Palette Google ────────────────────────────────────────────────── */
 :root {
+  color-scheme: light;
+  --background: oklch(0.994 0.002 260);
+  --foreground: oklch(0.24 0.03 260);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.24 0.03 260);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.24 0.03 260);
+  --primary: oklch(0.5 0.13 255);
+  --primary-foreground: oklch(0.99 0.01 260);
+  --secondary: oklch(0.965 0.008 260);
+  --secondary-foreground: oklch(0.34 0.04 260);
+  --muted: oklch(0.965 0.008 260);
+  --muted-foreground: oklch(0.52 0.03 260);
+  --accent: oklch(0.83 0.13 78);
+  --accent-foreground: oklch(0.28 0.06 70);
+  --border: oklch(0.915 0.01 260);
+  --input: oklch(0.915 0.01 260);
+  --ring: oklch(0.5 0.13 255);
+  --radius: 0.75rem;
+
   /* Blue */
   --google-blue-50: rgb(232, 240, 254);
   --google-blue-100: rgb(210, 227, 252);
@@ -163,6 +183,42 @@ body::before {
 }
 
 /* ─── Animations ────────────────────────────────────────────────────── */
+@keyframes floatSubtle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 0.15;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.28;
+    transform: scale(1.05);
+  }
+}
+
+.animate-float {
+  animation: floatSubtle 5s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 6s ease-in-out infinite;
+}
+
+.font-heading {
+  font-family: var(--font-outfit, 'Outfit', var(--font-family));
+}
+
+.font-sans {
+  font-family: var(--font-inter, 'Inter', var(--font-family));
+}
+
 @keyframes fadeUp {
   from {
     opacity: 0;

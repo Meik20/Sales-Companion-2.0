@@ -1,11 +1,15 @@
 import './globals.css'
 import type { Metadata, Viewport } from 'next'
 import { ReactNode } from 'react'
+import { Outfit, Inter } from 'next/font/google'
 import { AppProvider } from '@/providers/AppProvider'
 import { ThemeProvider } from '@/providers/ThemeProvider'
 import { I18nProvider } from '@/providers/I18nProvider'
 import { DesignThemeProvider } from '@/providers/DesignThemeProvider'
 import { GoogleAnalytics, GoogleTagManager } from '@next/third-parties/google'
+
+const outfit = Outfit({ subsets: ['latin'], variable: '--font-outfit', display: 'swap' })
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
 export const metadata: Metadata = {
   // ── Core ──────────────────────────────────────────────────────────────
   title: {
@@ -117,7 +121,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <html lang="fr-CM" data-scroll-behavior="smooth" suppressHydrationWarning>
+    <html lang="fr-CM" className={`${outfit.variable} ${inter.variable}`} data-scroll-behavior="smooth" suppressHydrationWarning>
       <head>
         <script
           type="application/ld+json"
