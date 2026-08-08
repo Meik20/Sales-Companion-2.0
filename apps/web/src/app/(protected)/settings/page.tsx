@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { AppShell } from '@/components/layout/AppShell'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { DataCard, Badge } from '@/components/ui/index'
-import { EmptyState } from '@/components/feedback/index'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useToast } from '@/hooks/useToast'
 import { useTranslation } from '@/providers/I18nProvider'
@@ -87,10 +86,10 @@ export default function SettingsPage() {
     setEmailSuccess(null)
     try {
       await updateUserEmail(newEmail)
-      setEmailSuccess(`Un e-mail de vérification a été envoyé à ${newEmail}. Veuillez cliquer sur le lien pour confirmer le changement.`)
+      setEmailSuccess(t('settings.emailUpdateSuccess'))
       setNewEmail('')
     } catch (err: any) {
-      setEmailError(err.message || "Erreur lors de la mise à jour de l'e-mail")
+      setEmailError(err.message || t('settings.emailUpdateError'))
     } finally {
       setEmailLoading(false)
     }
@@ -103,9 +102,9 @@ export default function SettingsPage() {
     setPwSuccess(null)
     try {
       await sendPasswordReset(user.email)
-      setPwSuccess(`Un e-mail de réinitialisation de mot de passe a été envoyé à ${user.email}`)
+      setPwSuccess(t('settings.passwordResetSuccess'))
     } catch (err: any) {
-      setPwError(err.message || "Erreur lors de l'envoi de l'e-mail")
+      setPwError(err.message || t('settings.passwordResetError'))
     } finally {
       setPwLoading(false)
     }
@@ -141,22 +140,22 @@ export default function SettingsPage() {
 
     pushToast({
       type: 'success',
-      title: `Thème "${design === 'firebase' ? '🔥 Firebase Console' : '💼 LinkedIn'}" activé`
+      title: t('settings.themeActivatedToast')
     })
   }
 
-  const themes: { id: DesignTheme; label: string; desc: string; swatches: string[]; accent: string }[] = [
+  const themes: { id: DesignTheme; label: string; descKey: string; swatches: string[]; accent: string }[] = [
     {
       id: 'linkedin',
       label: 'LinkedIn Design',
-      desc: 'Épuré et professionnel. Bleu LinkedIn, arrondis discrets.',
+      descKey: 'settings.themeLinkedinDesc',
       swatches: ['#0a66c2', '#f3f2ef', '#ffffff'],
       accent: '#0a66c2'
     },
     {
       id: 'firebase',
       label: 'Firebase Console',
-      desc: 'Amber & Navy. Dark-first, moderne et technique.',
+      descKey: 'settings.themeFirebaseDesc',
       swatches: ['#FFA611', '#1967D2', '#1C1F27'],
       accent: '#FFA611'
     }
@@ -167,18 +166,14 @@ export default function SettingsPage() {
       <AppShell>
         <PageHeader title={t('settings.title')} subtitle={t('settings.subtitle')} />
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div className="flex flex-col gap-5">
 
           {/* ── Apparence ───────────────────────────────────────── */}
-          <DataCard title="Apparence" subtitle="Personnalisez le style visuel de votre interface">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <DataCard title={t('settings.appearanceTitle')} subtitle={t('settings.appearanceSubtitle')}>
+            <div className="flex flex-col gap-4">
 
               {/* Cartes de thème */}
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                gap: 12
-              }}>
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-3">
                 {themes.map((th) => {
                   const isActive = activeDesign === th.id
                   return (
@@ -186,34 +181,23 @@ export default function SettingsPage() {
                       key={th.id}
                       id={`design-theme-${th.id}`}
                       onClick={() => handleDesignChange(th.id)}
-                      style={{
-                        padding: '16px 18px',
-                        borderRadius: 14,
-                        border: `2px solid ${isActive ? th.accent : 'var(--border, rgba(255,255,255,0.1))'}`,
-                        background: isActive ? `${th.accent}0f` : 'var(--card, #131c2e)',
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                        transition: 'all 220ms ease',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 10,
-                        boxShadow: isActive ? `0 0 0 3px ${th.accent}22` : 'none'
-                      }}
+                      className={`flex cursor-pointer flex-col gap-2.5 rounded-2xl border-2 p-4 text-left transition-all duration-200 ${
+                        isActive
+                          ? 'border-primary bg-primary/5 shadow-[0_0_0_3px_rgba(55,138,221,0.15)]'
+                          : 'border-border bg-card hover:border-border/80'
+                      }`}
                     >
                       {/* Swatches */}
-                      <div style={{ display: 'flex', gap: 6 }}>
+                      <div className="flex gap-1.5">
                         {th.swatches.map((c, i) => (
                           <span
                             key={i}
+                            className={`block h-6 w-6 rounded-md transition-transform duration-150 ${
+                              isActive ? 'scale-110' : 'scale-100'
+                            }`}
                             style={{
-                              width: 26, height: 26, borderRadius: 6,
                               background: c,
-                              border: c === '#ffffff' || c === '#f3f2ef'
-                                ? '1px solid rgba(0,0,0,0.12)'
-                                : 'none',
-                              display: 'block',
-                              transition: 'transform 150ms ease',
-                              transform: isActive ? 'scale(1.1)' : 'scale(1)'
+                              border: c === '#ffffff' || c === '#f3f2ef' ? '1px solid rgba(0,0,0,0.12)' : 'none'
                             }}
                           />
                         ))}
@@ -221,26 +205,16 @@ export default function SettingsPage() {
 
                       {/* Label + badge actif */}
                       <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                          <strong style={{ fontSize: 13, color: 'var(--foreground, #f1f5f9)' }}>{th.label}</strong>
+                        <div className="mb-1 flex items-center gap-2">
+                          <strong className="text-[13px] text-foreground">{th.label}</strong>
                           {isActive && (
-                            <span style={{
-                              fontSize: 9, fontWeight: 800,
-                              color: th.accent,
-                              background: `${th.accent}20`,
-                              padding: '2px 7px',
-                              borderRadius: 99,
-                              letterSpacing: '0.4px'
-                            }}>
-                              ACTIF
+                            <span className="rounded-full bg-primary/20 px-2 py-0.5 text-[9px] font-extrabold tracking-wider text-primary">
+                              {t('settings.activeBadge')}
                             </span>
                           )}
                         </div>
-                        <p style={{
-                          fontSize: 11.5, color: 'var(--muted-foreground, #94a3b8)',
-                          margin: 0, lineHeight: 1.5
-                        }}>
-                          {th.desc}
+                        <p className="m-0 text-[11.5px] leading-relaxed text-muted-foreground">
+                          {t(th.descKey as any)}
                         </p>
                       </div>
                     </button>
@@ -249,30 +223,19 @@ export default function SettingsPage() {
               </div>
 
               {/* Barre de switch rapide */}
-              <div style={{
-                display: 'flex', alignItems: 'center',
-                justifyContent: 'space-between', flexWrap: 'wrap', gap: 10,
-                padding: '12px 16px', borderRadius: 10,
-                background: 'var(--secondary, #1e2a3b)', border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
-              }}>
-                <span style={{ fontSize: 13, color: 'var(--muted-foreground, #94a3b8)', fontWeight: 500 }}>
-                  Thème actif :{' '}
-                  <strong style={{ color: 'var(--foreground, #f1f5f9)' }}>
+              <div className="flex flex-wrap items-center justify-between gap-2.5 rounded-xl border border-border bg-secondary p-3.5">
+                <span className="text-[13px] font-medium text-muted-foreground">
+                  {t('settings.activeThemeLabel')}{' '}
+                  <strong className="text-foreground">
                     {activeDesign === 'firebase' ? '🔥 Firebase Console' : '💼 LinkedIn Design'}
                   </strong>
                 </span>
                 <button
                   id="design-theme-toggle"
                   onClick={() => handleDesignChange(activeDesign === 'linkedin' ? 'firebase' : 'linkedin')}
-                  style={{
-                    padding: '6px 16px', borderRadius: 8,
-                    fontSize: 12, fontWeight: 700,
-                    border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
-                    background: 'var(--card, #131c2e)', color: 'var(--foreground, #f1f5f9)',
-                    cursor: 'pointer', transition: 'all 150ms ease'
-                  }}
+                  className="cursor-pointer rounded-lg border border-border bg-card px-4 py-1.5 text-[12px] font-bold text-foreground transition-colors hover:bg-secondary"
                 >
-                  Basculer →
+                  {t('settings.switchThemeBtn')}
                 </button>
               </div>
             </div>
@@ -281,21 +244,17 @@ export default function SettingsPage() {
           {/* ── Abonnement (masqué pour l'agent support car pas de quota) ── */}
           {user?.role !== 'support_agent' && (
             <DataCard title={t('settings.currentSubscription')}>
-              <div style={{
-                display: 'flex', alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: 16, flexWrap: 'wrap', marginBottom: 20
-              }}>
+              <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-                    <span style={{ fontSize: 20, fontWeight: 800, color: 'var(--foreground, #f1f5f9)', fontFamily: 'inherit' }}>
+                  <div className="mb-1.5 flex items-center gap-2.5">
+                    <span className="text-[20px] font-extrabold text-foreground">
                       {t('settings.planLabel')} {t(planInfo.labelKey as any)}
                     </span>
                     <Badge variant={plan === 'enterprise' ? 'gold' : plan === 'pro' ? 'success' : 'default'}>
                       {t(planInfo.labelKey as any)}
                     </Badge>
                   </div>
-                  <p style={{ margin: 0, fontSize: 13, color: 'var(--muted-foreground, #94a3b8)' }}>
+                  <p className="m-0 text-[13px] text-muted-foreground">
                     {plan === 'free'
                       ? t('landing.plansSection.pFree1' as any)
                       : planInfo.searches >= 1000
@@ -307,28 +266,18 @@ export default function SettingsPage() {
                 {plan !== 'enterprise' && (user?.role === 'manager' || user?.role === 'independent') ? (
                   <button
                     onClick={() => router.push(routes.upgrade)}
-                    style={{
-                      display: 'inline-flex', alignItems: 'center', gap: 8,
-                      padding: '9px 18px', borderRadius: 10,
-                      background: 'var(--color-primary)', color: '#fff',
-                      fontSize: 13, fontWeight: 600, border: 'none',
-                      cursor: 'pointer', transition: 'all 200ms ease'
-                    }}
+                    className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-[13px] font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
                   >
                     ⬆️ {t('settings.upgradeBtn')}
                   </button>
                 ) : null}
               </div>
 
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              <div className="flex flex-wrap gap-2">
                 {planInfo.featureKeys.map((fk) => (
                   <span
                     key={fk}
-                    style={{
-                      padding: '5px 12px', background: 'var(--bg3)',
-                      border: '1px solid var(--bd)', borderRadius: 999,
-                      fontSize: 12, color: 'var(--tx2)', fontWeight: 500
-                    }}
+                    className="rounded-full border border-border bg-secondary px-3 py-1 text-[12px] font-medium text-muted-foreground"
                   >
                     ✓ {t(fk as any)}
                   </span>
@@ -338,41 +287,28 @@ export default function SettingsPage() {
           )}
 
           {/* ── Sécurité & Compte ────────────────────────────────── */}
-          <DataCard title="Sécurité & Compte" subtitle="Gérez vos informations de connexion et de sécurité">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-              
+          <DataCard title={t('settings.securityTitle')} subtitle={t('settings.securitySubtitle')}>
+            <div className="flex flex-col gap-6">
+
               {/* Adresse E-mail Section */}
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 12,
-                borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
-                paddingBottom: 24
-              }}>
-                <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: 'var(--foreground, #f1f5f9)' }}>
-                  Adresse e-mail
+              <div className="flex flex-col gap-3 border-b border-border pb-6">
+                <h3 className="m-0 text-[15px] font-bold text-foreground">
+                  {t('settings.emailTitle')}
                 </h3>
-                <p style={{ margin: 0, fontSize: 13, color: 'var(--muted-foreground, #94a3b8)' }}>
-                  Votre adresse e-mail actuelle est : <strong style={{ color: 'var(--foreground, #f1f5f9)' }}>{user?.email}</strong>
+                <p className="m-0 text-[13px] text-muted-foreground">
+                  {t('settings.currentEmailLabel')} <strong className="text-foreground">{user?.email}</strong>
                 </p>
-                
+
                 {isGoogleUser ? (
-                  <div style={{
-                    padding: '10px 14px',
-                    background: 'rgba(255,255,255,0.03)',
-                    border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
-                    borderRadius: 8,
-                    fontSize: 12,
-                    color: 'var(--muted-foreground, #94a3b8)'
-                  }}>
-                    Votre compte est associé à Google. Les modifications d&apos;adresse e-mail doivent être effectuées depuis votre compte Google.
+                  <div className="rounded-lg border border-border bg-secondary/30 p-3 text-[12px] text-muted-foreground">
+                    {t('settings.googleEmailNote')}
                   </div>
                 ) : (
-                  <form onSubmit={handleUpdateEmail} style={{ display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 400 }}>
-                    <div style={{ display: 'flex', gap: 8 }}>
+                  <form onSubmit={handleUpdateEmail} className="flex max-w-[400px] flex-col gap-2.5">
+                    <div className="flex gap-2">
                       <Input
                         type="email"
-                        placeholder="Nouvelle adresse e-mail"
+                        placeholder={t('settings.newEmailPlaceholder')}
                         value={newEmail}
                         onChange={(e) => setNewEmail(e.target.value)}
                         required
@@ -383,57 +319,50 @@ export default function SettingsPage() {
                         loading={emailLoading}
                         style={{ flexShrink: 0 }}
                       >
-                        Mettre à jour
+                        {t('settings.updateBtn')}
                       </Button>
                     </div>
                     {emailError && (
-                      <div style={{ fontSize: 12, color: '#f87171' }}>{emailError}</div>
+                      <div className="text-[12px] text-red-400">{emailError}</div>
                     )}
                     {emailSuccess && (
-                      <div style={{ fontSize: 12, color: '#22c55e' }}>{emailSuccess}</div>
+                      <div className="text-[12px] text-green-400">{emailSuccess}</div>
                     )}
-                    <span style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)' }}>
-                      Un e-mail de confirmation sera envoyé à la nouvelle adresse pour valider le changement.
+                    <span className="text-[11px] text-muted-foreground/80">
+                      {t('settings.emailHint')}
                     </span>
                   </form>
                 )}
               </div>
 
               {/* Mot de passe Section */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: 'var(--foreground, #f1f5f9)' }}>
-                  Mot de passe
+              <div className="flex flex-col gap-3">
+                <h3 className="m-0 text-[15px] font-bold text-foreground">
+                  {t('settings.passwordTitle')}
                 </h3>
-                
+
                 {isGoogleUser ? (
-                  <div style={{
-                    padding: '10px 14px',
-                    background: 'rgba(255,255,255,0.03)',
-                    border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
-                    borderRadius: 8,
-                    fontSize: 12,
-                    color: 'var(--muted-foreground, #94a3b8)'
-                  }}>
-                    Votre compte est associé à Google. Votre mot de passe est géré de manière sécurisée par Google.
+                  <div className="rounded-lg border border-border bg-secondary/30 p-3 text-[12px] text-muted-foreground">
+                    {t('settings.googlePasswordNote')}
                   </div>
                 ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'flex-start' }}>
+                  <div className="flex flex-col items-start gap-2.5">
                     <Button
                       type="button"
                       variant="outline"
                       onClick={() => void handlePasswordReset()}
                       loading={pwLoading}
                     >
-                      Envoyer l&apos;email de réinitialisation
+                      {t('settings.sendResetBtn')}
                     </Button>
                     {pwError && (
-                      <div style={{ fontSize: 12, color: '#f87171' }}>{pwError}</div>
+                      <div className="text-[12px] text-red-400">{pwError}</div>
                     )}
                     {pwSuccess && (
-                      <div style={{ fontSize: 12, color: '#22c55e' }}>{pwSuccess}</div>
+                      <div className="text-[12px] text-green-400">{pwSuccess}</div>
                     )}
-                    <span style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)' }}>
-                      Nous vous enverrons un lien de réinitialisation sécurisé par e-mail.
+                    <span className="text-[11px] text-muted-foreground/80">
+                      {t('settings.passwordHint')}
                     </span>
                   </div>
                 )}
