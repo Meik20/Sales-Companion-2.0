@@ -44,41 +44,41 @@ export function CtaFooter() {
   return (
     <>
       <section id="pwa-install" className="mx-auto max-w-6xl px-5 pb-20 md:pb-28">
-        <div className="relative overflow-hidden rounded-3xl border border-border bg-primary px-6 py-14 text-center md:px-12 md:py-20 shadow-xl">
+        <div className="relative overflow-hidden rounded-3xl border border-[#1B7A3E]/40 bg-gradient-to-br from-[#135A2E] via-[#1B7A3E] to-[#0D3B1E] px-6 py-14 text-center md:px-12 md:py-20 shadow-2xl">
           {/* Subtle background glow */}
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.2),transparent)]"
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.15),transparent_60%)]"
           />
 
           <h2 className="relative z-10 mx-auto max-w-2xl font-heading text-3xl font-bold tracking-tight text-white text-balance sm:text-4xl">
             Prospectez plus vite au Cameroun
           </h2>
-          <p className="relative z-10 mx-auto mt-4 max-w-xl text-base font-normal leading-relaxed text-white text-pretty">
+          <p className="relative z-10 mx-auto mt-4 max-w-xl text-base font-normal leading-relaxed text-emerald-100 text-pretty">
             Créez votre compte gratuitement et accédez dès aujourd&apos;hui à l&apos;annuaire B2B le
             plus complet du marché.
           </p>
           <div className="relative z-10 mt-8 flex flex-col items-center justify-center gap-3.5 sm:flex-row">
             <Link
               href={routes.register}
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-white px-6 py-3.5 text-sm font-bold text-primary shadow-md transition-all hover:bg-slate-50 hover:scale-[1.02] active:scale-[0.98]"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3.5 text-sm font-bold text-[#1B7A3E] shadow-lg transition-all hover:bg-emerald-50 hover:scale-[1.02] active:scale-[0.98]"
             >
               Commencer gratuitement
-              <ArrowRight className="h-4 w-4 text-primary" />
+              <ArrowRight className="h-4 w-4 text-[#1B7A3E]" />
             </Link>
             <Link
               href={routes.register}
-              className="inline-flex items-center justify-center gap-2 rounded-lg border border-white/40 bg-white/10 px-5 py-3.5 text-sm font-semibold text-white transition-all hover:bg-white/20"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/30 bg-white/10 px-5 py-3.5 text-sm font-semibold text-white backdrop-blur-md transition-all hover:bg-white/20 hover:border-white/50"
             >
               <Smartphone className="h-4 w-4 text-white" />
               Installer sur mobile (PWA)
             </Link>
           </div>
 
-          <ul className="relative z-10 mx-auto mt-10 flex max-w-3xl flex-wrap items-center justify-center gap-x-8 gap-y-3 border-t border-white/25 pt-8">
+          <ul className="relative z-10 mx-auto mt-10 flex max-w-3xl flex-wrap items-center justify-center gap-x-8 gap-y-3 border-t border-white/20 pt-8">
             {trust.map((item) => (
-              <li key={item.label} className="flex items-center gap-2 text-xs font-semibold text-white">
-                <item.icon className="h-4 w-4 shrink-0 text-white" />
+              <li key={item.label} className="flex items-center gap-2 text-xs font-medium text-emerald-100/90">
+                <item.icon className="h-4 w-4 shrink-0 text-emerald-300" />
                 <span>{item.label}</span>
               </li>
             ))}
