@@ -171,7 +171,7 @@ export async function POST(request: NextRequest) {
 
     // ── Neither key available ──
     const notConfiguredMessage =
-      'Companion IA non configuré. Veuillez ajouter GEMINI_API_KEY dans les variables Railway, ou renseigner une clé Groq dans le panel Admin → Configuration.'
+      'Companion IA non configuré. Veuillez ajouter GEMINI_API_KEY dans les variables Vercel, ou renseigner une clé Groq dans le panel Admin → Configuration.'
     return NextResponse.json(
       {
         error: notConfiguredMessage,

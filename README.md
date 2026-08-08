@@ -14,7 +14,7 @@ La plateforme B2B dédiée aux commerciaux et managers camerounais. Recherchez d
 - **Backend** : Express.js + TypeScript + Node.js
 - **Database** : Firebase/Firestore
 - **Authentication** : Firebase Authentication
-- **Deployment** : Railway
+- **Deployment** : Vercel
 - **Type** : Progressive Web App (PWA)
 
 **Architecture :**
@@ -264,45 +264,27 @@ L'app peut être installée comme native sur :
 
 ## 🚀 Déploiement
 
-### Frontend (Vercel/Railway)
+### Application Web & API (Vercel)
+
+L'application Next.js (Web + API Routes) est déployée entièrement sur **Vercel**.
 
 ```bash
 npm run build:web
 # Build génère: .next/
-
-npm run start  # Next.js production
 ```
 
-### Backend (Railway)
-
-```bash
-npm run build:server
-# Build génère: dist/
-
-npm start      # Node production
-```
-
-### Variables d'environnement
-
-**Frontend (.env.local)**
+### Variables d'environnement (Vercel)
 
 ```env
 NEXT_PUBLIC_FIREBASE_API_KEY=...
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=sales-companion-237
-NEXT_PUBLIC_API_URL=https://api.salescompanion.cm
-```
-
-**Backend (.env)**
-
-```env
-PORT=8080
-NODE_ENV=production
 FIREBASE_PROJECT_ID=sales-companion-237
 FIREBASE_CLIENT_EMAIL=...
 FIREBASE_PRIVATE_KEY=...
-WEB_ORIGIN=https://salescompanion.cm
-CORS_ORIGIN=https://salescompanion.cm
+GEMINI_API_KEY=...
+CAMPAY_USERNAME=...
+CAMPAY_PASSWORD=...
 ```
 
 ---

@@ -1,12 +1,5 @@
-/** Default matches apps/server PORT (see config/env.ts). Override via BACKEND_URL in .env.local */
-const DEFAULT_DEV_BACKEND_URL = 'http://localhost:3001'
-
-/**
- * Production Railway (Express) — port 8080 en interne ; URL publique sans port.
- * @see https://sales-companion-20-production.up.railway.app
- */
-export const RAILWAY_PRODUCTION_BACKEND_URL =
-  'https://sales-companion-20-production.up.railway.app'
+/** Default matches dev server PORT. Override via BACKEND_URL or NEXT_PUBLIC_API_URL */
+const DEFAULT_DEV_BACKEND_URL = 'http://localhost:3000'
 
 /**
  * Base URL for Express API proxies (team, support).
