@@ -1191,29 +1191,155 @@ export default async function BlogPostPage({
       />
 
       {/* Hero Article */}
-      <header className="border-b border-border bg-card/40 py-12 text-center">
+      <header className="border-b border-border bg-card/40 py-14 text-center">
         <div className="mx-auto max-w-3xl px-5">
           <div className="text-5xl mb-5">{article.emoji}</div>
           <div className="mb-5 flex flex-wrap items-center justify-center gap-3">
-            <span className="inline-flex items-center rounded-full border border-border bg-secondary px-3 py-1 text-xs font-semibold text-muted-foreground">
+            <span className="inline-flex items-center rounded-full border border-[#1B7A3E]/30 bg-[#1B7A3E]/10 px-3.5 py-1 text-xs font-semibold text-[#1B7A3E]">
               {article.category}
             </span>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-xs font-medium text-muted-foreground">
               Publié le {article.date} · {article.readTime} de lecture
             </span>
           </div>
-          <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground text-balance sm:text-4xl md:text-5xl leading-tight">
+          <h1 className="font-heading text-3xl font-extrabold tracking-tight text-foreground text-balance sm:text-4xl md:text-5xl leading-tight">
             {article.title}
           </h1>
         </div>
       </header>
 
       {/* Contenu Article */}
-      <main className="mx-auto max-w-3xl px-5 py-10 pb-20 prose dark:prose-invert max-w-none text-foreground prose-headings:font-heading prose-headings:tracking-tight prose-headings:text-foreground prose-p:text-foreground/90 prose-p:leading-relaxed prose-strong:text-foreground prose-li:text-foreground/90 prose-a:text-[#1B7A3E] prose-a:font-semibold hover:prose-a:underline prose-blockquote:border-l-4 prose-blockquote:border-[#1B7A3E] prose-blockquote:bg-[#1B7A3E]/10 prose-blockquote:text-foreground prose-blockquote:py-3 prose-blockquote:px-5 prose-blockquote:rounded-r-xl prose-blockquote:not-italic [&_.blog-lead]:text-lg [&_.blog-lead]:font-medium [&_.blog-lead]:leading-relaxed [&_.blog-lead]:text-foreground [&_.blog-lead]:mb-8 [&_.blog-lead]:pb-4 [&_.blog-lead]:border-b [&_.blog-lead]:border-border/60 [&_.blog-cta]:my-12 [&_.blog-cta]:rounded-2xl [&_.blog-cta]:border [&_.blog-cta]:border-[#1B7A3E]/30 [&_.blog-cta]:bg-card [&_.blog-cta]:p-8 [&_.blog-cta]:text-center [&_.blog-cta]:shadow-sm [&_.blog-cta_h3]:font-heading [&_.blog-cta_h3]:text-xl [&_.blog-cta_h3]:font-bold [&_.blog-cta_h3]:text-foreground [&_.blog-cta_h3]:mb-3 [&_.blog-cta_p]:text-sm [&_.blog-cta_p]:text-muted-foreground [&_.blog-cta_p]:mb-6 [&_.blog-cta_.btn]:inline-flex [&_.blog-cta_.btn]:items-center [&_.blog-cta_.btn]:rounded-xl [&_.blog-cta_.btn]:bg-primary [&_.blog-cta_.btn]:px-6 [&_.blog-cta_.btn]:py-3 [&_.blog-cta_.btn]:text-sm [&_.blog-cta_.btn]:font-semibold [&_.blog-cta_.btn]:text-primary-foreground [&_.blog-cta_.btn]:shadow-sm hover:[&_.blog-cta_.btn]:bg-primary/90">
-        {article.content}
+      <main className="mx-auto max-w-3xl px-5 py-12 pb-24">
+        <div className="blog-article-body">
+          {article.content}
+        </div>
       </main>
 
       <PublicFooter />
+
+      <style dangerouslySetInnerHTML={{
+        __html: `
+        .blog-article-body {
+          font-size: 17px;
+          line-height: 1.85;
+          color: var(--foreground);
+        }
+        .blog-article-body h2 {
+          font-family: var(--font-heading), 'Outfit', sans-serif;
+          font-size: 28px;
+          font-weight: 700;
+          line-height: 1.3;
+          letter-spacing: -0.02em;
+          color: var(--foreground);
+          margin-top: 48px;
+          margin-bottom: 20px;
+          padding-bottom: 8px;
+          border-bottom: 1px solid var(--border);
+        }
+        .blog-article-body h3 {
+          font-family: var(--font-heading), 'Outfit', sans-serif;
+          font-size: 22px;
+          font-weight: 600;
+          line-height: 1.35;
+          color: var(--foreground);
+          margin-top: 32px;
+          margin-bottom: 16px;
+        }
+        .blog-article-body p {
+          font-size: 17px;
+          line-height: 1.85;
+          margin-bottom: 24px;
+          color: var(--foreground);
+          opacity: 0.95;
+        }
+        .blog-article-body .blog-lead {
+          font-size: 20px;
+          font-weight: 500;
+          line-height: 1.75;
+          color: var(--foreground);
+          margin-bottom: 40px;
+          padding-bottom: 24px;
+          border-bottom: 1px solid var(--border);
+        }
+        .blog-article-body ul,
+        .blog-article-body ol {
+          margin-bottom: 28px;
+          padding-left: 24px;
+        }
+        .blog-article-body ul {
+          list-style-type: disc;
+        }
+        .blog-article-body ol {
+          list-style-type: decimal;
+        }
+        .blog-article-body li {
+          font-size: 17px;
+          line-height: 1.8;
+          margin-bottom: 12px;
+          color: var(--foreground);
+          opacity: 0.95;
+        }
+        .blog-article-body strong {
+          font-weight: 700;
+          color: var(--foreground);
+        }
+        .blog-article-body blockquote {
+          border-left: 4px solid #1B7A3E;
+          background: rgba(27, 122, 62, 0.08);
+          padding: 20px 24px;
+          border-radius: 0 12px 12px 0;
+          font-size: 18px;
+          font-style: italic;
+          line-height: 1.75;
+          color: var(--foreground);
+          margin: 36px 0;
+        }
+        .blog-article-body .blog-cta {
+          margin-top: 56px;
+          padding: 40px 32px;
+          background: var(--card);
+          border: 1px solid rgba(27, 122, 62, 0.35);
+          border-radius: 20px;
+          text-align: center;
+          box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+        }
+        .blog-article-body .blog-cta h3 {
+          font-family: var(--font-heading), 'Outfit', sans-serif;
+          font-size: 24px;
+          font-weight: 700;
+          color: var(--foreground);
+          margin-top: 0;
+          margin-bottom: 12px;
+          border-bottom: none;
+          padding-bottom: 0;
+        }
+        .blog-article-body .blog-cta p {
+          font-size: 15px;
+          color: var(--muted-foreground);
+          margin-bottom: 24px;
+          opacity: 1;
+        }
+        .blog-article-body .blog-cta .btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 12px;
+          background: #1B7A3E;
+          padding: 12px 24px;
+          font-size: 15px;
+          font-weight: 600;
+          color: #ffffff;
+          text-decoration: none;
+          transition: all 200ms ease;
+          box-shadow: 0 2px 8px rgba(27, 122, 62, 0.3);
+        }
+        .blog-article-body .blog-cta .btn:hover {
+          background: #156232;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(27, 122, 62, 0.4);
+        }
+      `
+      }} />
     </div>
   )
 }
