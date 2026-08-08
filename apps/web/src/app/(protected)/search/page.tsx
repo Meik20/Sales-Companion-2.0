@@ -582,7 +582,7 @@ function SearchContent() {
             title={t('search.commercialPipeline')}
             style={{
               boxShadow: '0 8px 30px rgba(0,0,0,0.06)',
-              border: '1px solid rgba(55,138,221,0.15)'
+              border: '1px solid var(--border)'
             }}
           >
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -592,33 +592,28 @@ function SearchContent() {
                   {
                     label: t('search.prospection'),
                     value: stats?.prospection ?? 0,
-                    color: '#60a5fa',
-                    bg: 'rgba(96,165,250,0.1)'
+                    textClass: 'text-blue-600 dark:text-blue-400',
+                    bgClass: 'bg-blue-500/10 border-blue-500/20'
                   },
                   {
                     label: t('search.negotiation'),
                     value: stats?.negotiation ?? 0,
-                    color: '#fbbf24',
-                    bg: 'rgba(251,191,36,0.1)'
+                    textClass: 'text-amber-600 dark:text-amber-400',
+                    bgClass: 'bg-amber-500/10 border-amber-500/20'
                   },
                   {
                     label: t('search.conclusion'),
                     value: stats?.conclusion ?? 0,
-                    color: '#4ade80',
-                    bg: 'rgba(74,222,128,0.1)'
+                    textClass: 'text-emerald-600 dark:text-emerald-400',
+                    bgClass: 'bg-emerald-500/10 border-emerald-500/20'
                   }
-                ].map(({ label, value, color, bg }) => (
+                ].map(({ label, value, textClass, bgClass }) => (
                   <div
                     key={label}
-                    style={{
-                      background: bg,
-                      borderRadius: 10,
-                      padding: '10px 8px',
-                      textAlign: 'center'
-                    }}
+                    className={`rounded-xl border p-2.5 text-center ${bgClass}`}
                   >
-                    <div style={{ fontSize: 22, fontWeight: 800, color }}>{value}</div>
-                    <div style={{ fontSize: 10, color: 'var(--muted-foreground, #94a3b8)', marginTop: 2 }}>{label}</div>
+                    <div className={`text-[22px] font-extrabold ${textClass}`}>{value}</div>
+                    <div className="mt-0.5 text-[10px] font-semibold text-muted-foreground">{label}</div>
                   </div>
                 ))}
               </div>
@@ -638,7 +633,7 @@ function SearchContent() {
               title={t('search.aiAssistant')}
               style={{
                 boxShadow: '0 8px 30px rgba(0,0,0,0.06)',
-                border: '1px solid rgba(27,122,62,0.15)'
+                border: '1px solid var(--border)'
               }}
             >
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12, height: 380 }}>
@@ -657,35 +652,18 @@ function SearchContent() {
                   {chatMessages.map((msg, i) => (
                     <div
                       key={i}
-                      style={{
-                        alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                        maxWidth: '85%',
-                        background: msg.role === 'user' ? '#4ade80' : 'rgba(34,197,94,0.1)',
-                        color: msg.role === 'user' ? '#fff' : '#16a34a',
-                        padding: '10px 14px',
-                        borderRadius:
-                          msg.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-                        fontSize: 12.5,
-                        lineHeight: 1.55,
-                        whiteSpace: 'pre-wrap',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
-                      }}
+                      className={
+                        msg.role === 'user'
+                          ? 'self-end max-w-[85%] rounded-[16px_16px_4px_16px] bg-primary px-3.5 py-2.5 text-[12.5px] leading-relaxed text-primary-foreground shadow-sm'
+                          : 'self-start max-w-[85%] rounded-[16px_16px_16px_4px] border border-border bg-secondary/80 px-3.5 py-2.5 text-[12.5px] leading-relaxed text-foreground shadow-sm'
+                      }
+                      style={{ whiteSpace: 'pre-wrap' }}
                     >
                       {msg.text}
                     </div>
                   ))}
                   {isSendingChat && (
-                    <div
-                      style={{
-                        alignSelf: 'flex-start',
-                        background: 'rgba(34,197,94,0.1)',
-                        color: '#16a34a',
-                        padding: '10px 14px',
-                        borderRadius: '16px 16px 16px 4px',
-                        fontSize: 12,
-                        fontStyle: 'italic'
-                      }}
-                    >
+                    <div className="self-start rounded-[16px_16px_16px_4px] border border-border bg-secondary/60 px-3.5 py-2.5 text-[12px] italic text-muted-foreground">
                       {t('search.aiThinking')}
                     </div>
                   )}
@@ -712,17 +690,7 @@ function SearchContent() {
                         key={chip}
                         onClick={() => sendChatMessage(chip)}
                         disabled={isSendingChat}
-                        style={{
-                          fontSize: 11,
-                          padding: '5px 10px',
-                          borderRadius: 999,
-                          border: `1px solid ${'rgba(34,197,94,0.1)'}`,
-                          background: 'rgba(34,197,94,0.1)',
-                          color: '#16a34a',
-                          cursor: isSendingChat ? 'not-allowed' : 'pointer',
-                          opacity: isSendingChat ? 0.5 : 1,
-                          transition: 'all 150ms ease'
-                        }}
+                        className="cursor-pointer rounded-full border border-border bg-secondary/70 px-2.5 py-1 text-[11px] font-medium text-foreground transition-all hover:border-primary/40 hover:bg-primary/10 hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         {chip}
                       </button>

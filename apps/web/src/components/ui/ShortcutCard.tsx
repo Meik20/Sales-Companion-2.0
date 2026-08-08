@@ -15,12 +15,50 @@ interface ShortcutCardProps {
   onClick?: () => void
 }
 
-const sectorConfig: Record<Sector, { icon: React.ReactNode; label: string; color: string; bg: string }> = {
-  btp:       { icon: <Building2 size={16} strokeWidth={2} />, label: 'BTP & Construction',    color: '#f97316', bg: 'rgba(249,115,22,0.10)'  },
-  tech:      { icon: <Monitor   size={16} strokeWidth={2} />, label: 'Technologies',           color: '#3b82f6', bg: 'rgba(59,130,246,0.10)'  },
-  agro:      { icon: <Leaf      size={16} strokeWidth={2} />, label: 'Agroalimentaire',        color: '#22c55e', bg: 'rgba(34,197,94,0.10)'   },
-  transport: { icon: <Truck     size={16} strokeWidth={2} />, label: 'Transport & Logistique', color: '#a855f7', bg: 'rgba(168,85,247,0.10)'  },
-  default:   { icon: <Briefcase size={16} strokeWidth={2} />, label: 'Secteur',                color: '#64748b', bg: 'rgba(100,116,139,0.10)' }
+const sectorConfig: Record<
+  Sector,
+  { icon: React.ReactNode; label: string; color: string; bgClass: string; textClass: string; borderLeftClass: string }
+> = {
+  btp: {
+    icon: <Building2 size={16} strokeWidth={2.2} />,
+    label: 'BTP & Construction',
+    color: '#f97316',
+    bgClass: 'bg-orange-500/10 dark:bg-orange-500/15',
+    textClass: 'text-orange-600 dark:text-orange-400',
+    borderLeftClass: 'border-l-orange-500'
+  },
+  tech: {
+    icon: <Monitor size={16} strokeWidth={2.2} />,
+    label: 'Technologies',
+    color: '#3b82f6',
+    bgClass: 'bg-blue-500/10 dark:bg-blue-500/15',
+    textClass: 'text-blue-600 dark:text-blue-400',
+    borderLeftClass: 'border-l-blue-500'
+  },
+  agro: {
+    icon: <Leaf size={16} strokeWidth={2.2} />,
+    label: 'Agroalimentaire',
+    color: '#22c55e',
+    bgClass: 'bg-emerald-500/10 dark:bg-emerald-500/15',
+    textClass: 'text-emerald-600 dark:text-emerald-400',
+    borderLeftClass: 'border-l-emerald-500'
+  },
+  transport: {
+    icon: <Truck size={16} strokeWidth={2.2} />,
+    label: 'Transport & Logistique',
+    color: '#a855f7',
+    bgClass: 'bg-purple-500/10 dark:bg-purple-500/15',
+    textClass: 'text-purple-600 dark:text-purple-400',
+    borderLeftClass: 'border-l-purple-500'
+  },
+  default: {
+    icon: <Briefcase size={16} strokeWidth={2.2} />,
+    label: 'Secteur',
+    color: '#64748b',
+    bgClass: 'bg-slate-500/10 dark:bg-slate-500/15',
+    textClass: 'text-slate-600 dark:text-slate-400',
+    borderLeftClass: 'border-l-slate-500'
+  }
 }
 
 export function ShortcutCard({
@@ -38,82 +76,23 @@ export function ShortcutCard({
     <button
       type="button"
       onClick={onClick}
-      style={{
-        display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 10,
-        padding: '10px 12px',
-        background: 'var(--bg2)',
-        border: '1px solid var(--bd)',
-        borderLeft: `3px solid ${cfg.color}`,
-        borderRadius: 10,
-        cursor: 'pointer',
-        transition: 'all 150ms ease',
-        textAlign: 'left',
-        width: '100%',
-        boxShadow: '0 1px 4px rgba(0,0,0,0.06)'
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.background = cfg.bg
-        e.currentTarget.style.borderColor = cfg.color
-        e.currentTarget.style.borderLeftColor = cfg.color
-        e.currentTarget.style.transform = 'translateY(-1px)'
-        e.currentTarget.style.boxShadow = '0 4px 14px rgba(0,0,0,0.10)'
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.background = 'var(--bg2)'
-        e.currentTarget.style.borderColor = 'var(--bd)'
-        e.currentTarget.style.borderLeftColor = cfg.color
-        e.currentTarget.style.transform = 'translateY(0)'
-        e.currentTarget.style.boxShadow = '0 1px 4px rgba(0,0,0,0.06)'
-      }}
+      className={`group flex w-full cursor-pointer items-center gap-3 rounded-xl border border-border border-l-[3px] ${cfg.borderLeftClass} bg-card p-3 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-secondary/70 hover:shadow-md`}
     >
       {/* Icône colorée par secteur */}
-      <div
-        style={{
-          width: 32,
-          height: 32,
-          borderRadius: 8,
-          background: cfg.bg,
-          color: cfg.color,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0
-        }}
-      >
+      <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${cfg.bgClass} ${cfg.textClass}`}>
         {cfg.icon}
       </div>
 
       {/* Texte */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0, flex: 1 }}>
-        <span
-          style={{
-            fontWeight: 600,
-            fontSize: 12.5,
-            color: 'var(--foreground, #f1f5f9)',
-            lineHeight: 1.3,
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis'
-          }}
-        >
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="truncate text-[13px] font-bold leading-tight text-foreground transition-colors group-hover:text-primary">
           {title}
         </span>
-        <span
-          style={{
-            fontSize: 11,
-            color: 'var(--muted-foreground, #94a3b8)',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis'
-          }}
-        >
+        <span className="truncate text-[11px] font-medium text-muted-foreground">
           {subtitle}
         </span>
         {(count != null || updatedAt) && (
-          <div style={{ display: 'flex', gap: 8, marginTop: 2, fontSize: 10, color: 'var(--muted-foreground, #64748b)' }}>
+          <div className="mt-1 flex gap-2 text-[10px] font-medium text-muted-foreground/80">
             {count != null && (
               <span>
                 {count.toLocaleString()} {t('search.companies')}
@@ -130,15 +109,15 @@ export function ShortcutCard({
 
       {/* Flèche indicatrice */}
       <svg
-        width="12"
-        height="12"
+        width="14"
+        height="14"
         viewBox="0 0 24 24"
         fill="none"
-        stroke={cfg.color}
+        stroke="currentColor"
         strokeWidth="2.5"
         strokeLinecap="round"
         strokeLinejoin="round"
-        style={{ flexShrink: 0, opacity: 0.6 }}
+        className={`shrink-0 opacity-40 transition-all duration-200 group-hover:translate-x-0.5 group-hover:opacity-100 ${cfg.textClass}`}
       >
         <polyline points="9 18 15 12 9 6" />
       </svg>

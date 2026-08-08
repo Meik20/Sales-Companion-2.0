@@ -87,7 +87,7 @@ export function AdminNotificationBell() {
         <button
           onClick={() => setIsOpen((v) => !v)}
           title="Notifications admin"
-          className={`relative flex h-[38px] w-[38px] cursor-pointer items-center justify-center rounded-[10px] border border-white/18 text-white transition-colors duration-200 ${isOpen ? 'bg-white/20' : 'bg-white/10 hover:bg-white/20'}`}
+          className={`relative flex h-[38px] w-[38px] cursor-pointer items-center justify-center rounded-[10px] border border-border text-foreground transition-colors duration-200 ${isOpen ? 'bg-secondary' : 'bg-secondary/60 hover:bg-secondary'}`}
           style={{ animation: shake ? 'bellShake 0.6s ease' : 'none' }}
         >
           <Bell size={17} strokeWidth={2} />
