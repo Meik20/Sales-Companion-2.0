@@ -292,6 +292,11 @@ export const fr = {
     managerRole: '🟡 Manager',
     independentRole: '🟢 Indépendant',
     memberRole: '🔵 Membre',
+    supportRole: '🎧 Support',
+    supportAgentRole: '🎧 Agent Support',
+    crmSection: '🎧 Espace Relation Client',
+    crmClients: 'Mes Clients CRM',
+    crm: 'CRM Clients',
     detecting: '⏳ Détection…',
     saved: 'Sauvegardés'
   },
@@ -965,6 +970,25 @@ export const fr = {
     paymentStatusPending: 'En attente',
     paymentStatusDone: 'Validé',
     paymentStatusFailed: 'Échoué'
+  },
+  crm: {
+    title: '🎧 Mes Clients CRM',
+    subtitleSingular: 'client conclu · Cliquez pour gérer',
+    subtitlePlural: 'clients conclus · Cliquez pour gérer',
+    searchPlaceholder: '🔍 Rechercher un client, ville, secteur…',
+    totalClients: 'Total clients',
+    displayed: 'Affichés',
+    loading: 'Chargement des clients…',
+    noResult: 'Aucun résultat',
+    noClients: 'Aucun client conclu pour le moment',
+    noResultDesc: 'Essayez un autre terme de recherche',
+    noClientsDesc: "Les clients conclus par l'équipe apparaîtront ici automatiquement.",
+    colCompany: 'Entreprise',
+    colCity: 'Ville',
+    colSector: 'Secteur',
+    colPhone: 'Téléphone',
+    colAction: 'Action',
+    viewDetails: 'Consulter'
   },
   common: {
     next: 'Suivant',

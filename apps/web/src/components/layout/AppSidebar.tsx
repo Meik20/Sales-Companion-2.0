@@ -241,7 +241,7 @@ export function AppSidebar({
                 : user.role === 'independent'
                   ? t('sidebar.independentRole')
                   : user.role === 'support_agent'
-                    ? 'Agent Support'
+                    ? t('sidebar.supportAgentRole')
                     : t('sidebar.memberRole')}{' '}
             ·{' '}
             <span className="uppercase">
@@ -256,8 +256,8 @@ export function AppSidebar({
       {/* ── CONDITIONAL RENDER ACCORDING TO ROLE ─────────────────── */}
       {user.role === 'support_agent' ? (
         <>
-          <SectionLabel>🎧 Espace Relation Client</SectionLabel>
-          <SidebarLink href="/crm" label="Mes Clients CRM" icon={Users} />
+          <SectionLabel>{t('sidebar.crmSection')}</SectionLabel>
+          <SidebarLink href="/crm" label={t('sidebar.crmClients')} icon={Users} />
           <SidebarLink href="/team" label={t('sidebar.imports')} icon={Upload} />
         </>
       ) : (

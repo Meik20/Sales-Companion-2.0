@@ -292,6 +292,11 @@ export const en = {
     managerRole: '🟡 Manager',
     independentRole: '🟢 Independent',
     memberRole: '🔵 Member',
+    supportRole: '🎧 Support',
+    supportAgentRole: '🎧 Support Agent',
+    crmSection: '🎧 Customer Support Workspace',
+    crmClients: 'My CRM Clients',
+    crm: 'CRM Clients',
     detecting: '⏳ Detecting...',
     saved: 'Saved'
   },
@@ -961,6 +966,25 @@ export const en = {
     paymentStatusPending: 'Pending',
     paymentStatusDone: 'Validated',
     paymentStatusFailed: 'Failed'
+  },
+  crm: {
+    title: '🎧 My CRM Clients',
+    subtitleSingular: 'closed client · Click to manage',
+    subtitlePlural: 'closed clients · Click to manage',
+    searchPlaceholder: '🔍 Search client, city, sector...',
+    totalClients: 'Total clients',
+    displayed: 'Displayed',
+    loading: 'Loading clients...',
+    noResult: 'No results',
+    noClients: 'No closed clients at the moment',
+    noResultDesc: 'Try another search term',
+    noClientsDesc: 'Closed leads from the team will appear here automatically.',
+    colCompany: 'Company',
+    colCity: 'City',
+    colSector: 'Sector',
+    colPhone: 'Phone',
+    colAction: 'Action',
+    viewDetails: 'View'
   },
   common: {
     next: 'Next',

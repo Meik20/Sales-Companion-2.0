@@ -3,11 +3,13 @@
 import { AppShell } from '@/components/layout/AppShell'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { useTranslation } from '@/providers/I18nProvider'
 import { useState, useEffect, useCallback } from 'react'
 import { ClientDrawer } from '@/features/crm/components/ClientDrawer'
 import type { CrmClient } from '@/features/crm/types'
 
 export default function CrmPage() {
+  const { t } = useTranslation()
   const { user } = useCurrentUser()
   const [clients, setClients] = useState<CrmClient[]>([])
   const [loading, setLoading] = useState(true)
@@ -42,104 +44,65 @@ export default function CrmPage() {
     c.companySector?.toLowerCase().includes(search.toLowerCase())
   )
 
+  const subtitleText = `${clients.length} ${clients.length > 1 ? t('crm.subtitlePlural') : t('crm.subtitleSingular')}`
+
   return (
     <AppShell>
       <PageHeader
-        title="🎧 Mes Clients CRM"
-        subtitle={`${clients.length} client${clients.length > 1 ? 's' : ''} conclu${clients.length > 1 ? 's' : ''} · Cliquez pour gérer`}
+        title={t('crm.title')}
+        subtitle={subtitleText}
       />
 
       {/* Search */}
-      <div style={{ marginBottom: 16 }}>
+      <div className="mb-4">
         <input
           type="text"
-          placeholder="🔍 Rechercher un client, ville, secteur…"
+          placeholder={t('crm.searchPlaceholder')}
           value={search}
           onChange={e => setSearch(e.target.value)}
-          style={{
-            width: '100%',
-            boxSizing: 'border-box',
-            padding: '10px 16px',
-            borderRadius: 10,
-            border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
-            background: 'var(--card, #131c2e)',
-            color: 'var(--foreground, #f1f5f9)',
-            fontSize: 13,
-            fontFamily: 'inherit',
-            outline: 'none',
-            transition: 'border-color 200ms'
-          }}
-          onFocus={e => { e.currentTarget.style.borderColor = 'var(--color-accent)' }}
-          onBlur={e => { e.currentTarget.style.borderColor = 'var(--border, rgba(255,255,255,0.1))' }}
+          className="h-10 w-full rounded-xl border border-border bg-card px-4 text-[13px] text-foreground outline-none transition-colors focus:border-primary"
         />
       </div>
 
       {/* Stats bar */}
-      <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
+      <div className="mb-5 flex flex-wrap gap-3">
         {[
-          { label: 'Total clients', value: clients.length, color: 'var(--color-accent)' },
-          { label: 'Affichés', value: filtered.length, color: 'var(--color-success)' }
+          { label: t('crm.totalClients'), value: clients.length, color: 'var(--color-accent)' },
+          { label: t('crm.displayed'), value: filtered.length, color: 'var(--color-success)' }
         ].map(stat => (
-          <div key={stat.label} style={{
-            background: 'var(--card, #131c2e)',
-            border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
-            borderRadius: 10,
-            padding: '10px 18px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10
-          }}>
-            <span style={{ fontSize: 22, fontWeight: 800, color: stat.color, fontFamily: "'Syne',sans-serif" }}>
+          <div key={stat.label} className="flex items-center gap-2.5 rounded-xl border border-border bg-card px-4 py-2.5">
+            <span className="font-['Syne',sans-serif] text-[22px] font-extrabold" style={{ color: stat.color }}>
               {stat.value}
             </span>
-            <span style={{ fontSize: 12, color: 'var(--muted-foreground, #94a3b8)' }}>{stat.label}</span>
+            <span className="text-[12px] text-muted-foreground">{stat.label}</span>
           </div>
         ))}
       </div>
 
       {/* Table */}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: 40, color: 'var(--muted-foreground, #94a3b8)', fontSize: 14 }}>
-          Chargement des clients…
+        <div className="p-10 text-center text-[14px] text-muted-foreground">
+          {t('crm.loading')}
         </div>
       ) : filtered.length === 0 ? (
-        <div style={{
-          textAlign: 'center', padding: 60,
-          background: 'var(--card, #131c2e)', borderRadius: 16,
-          border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`, color: 'var(--muted-foreground, #94a3b8)'
-        }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>🎧</div>
-          <p style={{ fontWeight: 700, color: 'var(--foreground, #f1f5f9)', margin: '0 0 4px' }}>
-            {search ? 'Aucun résultat' : 'Aucun client conclu pour le moment'}
+        <div className="rounded-2xl border border-border bg-card p-14 text-center text-muted-foreground">
+          <div className="mb-3 text-[40px]">🎧</div>
+          <p className="mb-1 mt-0 text-[15px] font-bold text-foreground">
+            {search ? t('crm.noResult') : t('crm.noClients')}
           </p>
-          <p style={{ fontSize: 13, margin: 0 }}>
-            {search ? 'Essayez un autre terme de recherche' : "Les clients conclus par l'équipe apparaîtront ici automatiquement."}
+          <p className="m-0 text-[13px]">
+            {search ? t('crm.noResultDesc') : t('crm.noClientsDesc')}
           </p>
         </div>
       ) : (
-        <div style={{
-          background: 'var(--card, #131c2e)',
-          border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
-          borderRadius: 14,
-          overflow: 'hidden'
-        }}>
+        <div className="overflow-hidden rounded-xl border border-border bg-card">
           {/* Header */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 130px 160px 120px 100px',
-            padding: '10px 20px',
-            borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
-            fontSize: 11,
-            fontWeight: 700,
-            color: 'var(--muted-foreground, #94a3b8)',
-            textTransform: 'uppercase',
-            letterSpacing: '.06em'
-          }}>
-            <span>Entreprise</span>
-            <span>Ville</span>
-            <span>Secteur</span>
-            <span>Téléphone</span>
-            <span>Action</span>
+          <div className="grid grid-cols-[1fr_130px_160px_120px_100px] border-b border-border px-5 py-2.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+            <span>{t('crm.colCompany')}</span>
+            <span>{t('crm.colCity')}</span>
+            <span>{t('crm.colSector')}</span>
+            <span>{t('crm.colPhone')}</span>
+            <span>{t('crm.colAction')}</span>
           </div>
 
           {/* Rows */}
@@ -175,57 +138,37 @@ function ClientRow({
   onSelect: () => void
   isSelected: boolean
 }) {
-  const [hovered, setHovered] = useState(false)
-
   return (
     <div
       onClick={onSelect}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 130px 160px 120px 100px',
-        padding: '14px 20px',
-        borderBottom: isLast ? 'none' : `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
-        cursor: 'pointer',
-        background: isSelected
-          ? 'rgba(55,138,221,0.08)'
-          : hovered ? 'var(--secondary, #1e2a3b)' : 'transparent',
-        transition: 'background 150ms',
-        alignItems: 'center'
-      }}
+      className={`grid cursor-pointer grid-cols-[1fr_130px_160px_120px_100px] items-center px-5 py-3.5 transition-colors duration-150 ${
+        isLast ? '' : 'border-b border-border'
+      } ${isSelected ? 'bg-primary/10' : 'hover:bg-secondary'}`}
     >
       <div>
-        <div style={{ fontWeight: 700, fontSize: 13.5, color: 'var(--foreground, #f1f5f9)' }}>
+        <div className="text-[13.5px] font-bold text-foreground">
           {client.companyName}
         </div>
         {client.companyEmail && (
-          <div style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)', marginTop: 2 }}>
+          <div className="mt-0.5 text-[11px] text-muted-foreground">
             {client.companyEmail}
           </div>
         )}
       </div>
-      <span style={{ fontSize: 13, color: 'var(--muted-foreground, #94a3b8)' }}>{client.companyCity || '—'}</span>
-      <span style={{ fontSize: 13, color: 'var(--muted-foreground, #94a3b8)' }}>{client.companySector || '—'}</span>
-      <span style={{ fontSize: 13, color: 'var(--muted-foreground, #94a3b8)', fontFamily: 'monospace' }}>
+      <span className="text-[13px] text-muted-foreground">{client.companyCity || '—'}</span>
+      <span className="text-[13px] text-muted-foreground">{client.companySector || '—'}</span>
+      <span className="font-mono text-[13px] text-muted-foreground">
         {client.companyPhone || '—'}
       </span>
       <button
         onClick={e => { e.stopPropagation(); onSelect() }}
-        style={{
-          padding: '6px 14px',
-          borderRadius: 8,
-          background: isSelected ? 'var(--color-primary)' : 'transparent',
-          border: `1px solid ${isSelected ? 'var(--color-primary)' : 'var(--border, rgba(255,255,255,0.1))'}`,
-          color: isSelected ? '#fff' : 'var(--muted-foreground, #94a3b8)',
-          fontSize: 12,
-          fontWeight: 600,
-          cursor: 'pointer',
-          fontFamily: 'inherit',
-          transition: 'all 150ms'
-        }}
+        className={`cursor-pointer rounded-lg px-3.5 py-1.5 text-[12px] font-semibold transition-all duration-150 ${
+          isSelected
+            ? 'bg-primary text-primary-foreground'
+            : 'border border-border bg-transparent text-muted-foreground hover:bg-secondary hover:text-foreground'
+        }`}
       >
-        {isSelected ? '✓ Ouvert' : 'Gérer →'}
+        {isSelected ? '✓' : 'Gérer →'}
       </button>
     </div>
   )

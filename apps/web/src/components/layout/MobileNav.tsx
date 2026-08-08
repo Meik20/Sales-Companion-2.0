@@ -11,7 +11,7 @@ import { useSwipe } from '@/hooks/useSwipe'
 const getNavItems = (role: string, plan: string, t: (key: any) => string) => {
   if (role === 'support_agent') {
     return [
-      { href: '/crm', label: 'CRM Clients' },
+      { href: '/crm', label: t('sidebar.crm') },
       { href: '/team', label: t('sidebar.imports') },
       { href: routes.profile, label: t('header.profile') }
     ]
@@ -236,15 +236,15 @@ export function MobileNav() {
       >
       {user.role === 'support_agent' ? (
         <>
-          <NavItem href="/crm" label="CRM Clients" icon={<PipelineIcon />} />
+          <NavItem href="/crm" label={t('sidebar.crm')} icon={<PipelineIcon />} />
           <NavItem href="/team" label={t('sidebar.imports')} icon={<UploadIcon />} />
           <NavItem href={routes.profile} label={t('header.profile')} icon={<ProfileIcon />} />
         </>
       ) : (
         <>
-          <NavItem href={routes.search} label="Recherche" icon={<SearchIcon />} />
-          <NavItem href={routes.pipeline} label="Pipeline" icon={<PipelineIcon />} />
-          <NavItem href={routes.saved} label="Sauvegardés" icon={<SavedIcon />} />
+          <NavItem href={routes.search} label={t('header.search')} icon={<SearchIcon />} />
+          <NavItem href={routes.pipeline} label={t('sidebar.pipeline')} icon={<PipelineIcon />} />
+          <NavItem href={routes.saved} label={t('sidebar.saved')} icon={<SavedIcon />} />
 
           {user.role === 'manager' && (
             <>

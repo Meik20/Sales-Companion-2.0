@@ -34,7 +34,7 @@ export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void 
     manager: { label: t('sidebar.manager'), bg: 'rgba(251,191,36,0.22)' },
     member: { label: t('sidebar.member'), bg: 'rgba(96,165,250,0.22)' },
     independent: { label: t('sidebar.independent'), bg: 'rgba(34,197,94,0.22)' },
-    support_agent: { label: 'Support', bg: 'rgba(235,133,18,0.25)' }
+    support_agent: { label: t('sidebar.support'), bg: 'rgba(235,133,18,0.25)' }
   }
   const badge = user?.role ? (roleBadge[user.role] ?? null) : null
 
