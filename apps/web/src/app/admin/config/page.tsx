@@ -6,6 +6,8 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useTranslation } from '@/providers/I18nProvider'
 
+import { PLAN_LIMITS } from '@sales-companion/shared'
+
 const PLAN_COLOR: Record<string, string> = {
   Gratuit: '#888',
   Starter: '#1a73e8',
@@ -26,25 +28,25 @@ export default function AdminConfigPage() {
   const PLAN_ROWS = [
     {
       plan: 'Gratuit',
-      daily: '10',
+      daily: `${PLAN_LIMITS.free} / mois`,
       price: '—',
       target: t('admin.targetFree') || 'Essai / découverte'
     },
     {
       plan: 'Starter',
-      daily: '50',
+      daily: `${PLAN_LIMITS.starter}`,
       price: '5 000 FCFA',
       target: t('admin.targetStarter') || 'Commerciaux indépendants'
     },
     {
       plan: 'Pro',
-      daily: '200',
+      daily: `${PLAN_LIMITS.pro}`,
       price: '15 000 FCFA',
       target: t('admin.targetPro') || 'Équipes commerciales, PME'
     },
     {
       plan: 'Entreprise',
-      daily: '1 000',
+      daily: `${PLAN_LIMITS.enterprise}`,
       price: '50 000 FCFA',
       target: t('admin.targetEnterprise') || 'Grandes entreprises, cabinets'
     }
