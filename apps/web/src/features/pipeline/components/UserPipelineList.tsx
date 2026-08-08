@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { Badge } from '@/components/ui/index'
 import { Button } from '@/components/ui/Button'
-import { colors, shadows } from '@/styles/tokens'
 import { useDeletePipelineItem } from '@/features/pipeline/hooks/useDeletePipelineItem'
 import { useUpdatePipelineItem } from '@/features/pipeline/hooks/useUpdatePipelineItem'
 import { getWhatsAppUrl } from '@/utils/whatsapp'
@@ -133,8 +132,8 @@ function ProspectModal({
       >
         <div
           style={{
-            background: colors.bg2,
-            border: `1px solid ${colors.border}`,
+            background: 'var(--card, #131c2e)',
+            border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
             borderRadius: 16,
             width: '100%',
             maxWidth: 520,
@@ -160,7 +159,7 @@ function ProspectModal({
                   margin: 0,
                   fontSize: 20,
                   fontWeight: 800,
-                  color: colors.text,
+                  color: 'var(--foreground, #f1f5f9)',
                   fontFamily: "'Syne', sans-serif",
                   lineHeight: 1.2,
                   letterSpacing: '-0.02em'
@@ -177,10 +176,10 @@ function ProspectModal({
             <button
               onClick={onClose}
               style={{
-                background: colors.bg3,
-                border: `1px solid ${colors.border}`,
+                background: 'var(--secondary, #1e2a3b)',
+                border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                 cursor: 'pointer',
-                color: colors.textMid,
+                color: 'var(--muted-foreground, #94a3b8)',
                 padding: 8,
                 borderRadius: 10,
                 display: 'flex',
@@ -191,11 +190,11 @@ function ProspectModal({
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.background = colors.bg4
-                e.currentTarget.style.color = colors.text
+                e.currentTarget.style.color = 'var(--foreground, #f1f5f9)'
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = colors.bg3
-                e.currentTarget.style.color = colors.textMid
+                e.currentTarget.style.background = 'var(--secondary, #1e2a3b)'
+                e.currentTarget.style.color = 'var(--muted-foreground, #94a3b8)'
               }}
             >
               <X size={18} />
@@ -208,11 +207,11 @@ function ProspectModal({
               display: 'flex',
               flexDirection: 'column',
               gap: 12,
-              background: colors.bg3,
+              background: 'var(--secondary, #1e2a3b)',
               borderRadius: 12,
               padding: 20,
               marginBottom: 20,
-              border: `1px solid ${colors.border}`,
+              border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
               boxShadow: 'inset 0 0 20px rgba(0,0,0,0.1)'
             }}
           >
@@ -222,7 +221,7 @@ function ProspectModal({
                 fontWeight: 800,
                 textTransform: 'uppercase',
                 letterSpacing: '.1em',
-                color: colors.textMid,
+                color: 'var(--muted-foreground, #94a3b8)',
                 marginBottom: 4,
                 display: 'flex',
                 alignItems: 'center',
@@ -237,7 +236,7 @@ function ProspectModal({
               <div
                 style={{
                   fontSize: 13,
-                  color: colors.text,
+                  color: 'var(--foreground, #f1f5f9)',
                   fontWeight: 500,
                   background: 'rgba(96, 165, 250, 0.08)',
                   padding: '12px 14px',
@@ -304,7 +303,7 @@ function ProspectModal({
                       </a>
                     </div>
                   ) : (
-                    <span style={{ color: colors.textDim, fontStyle: 'italic' }}>
+                    <span style={{ color: 'var(--muted-foreground, #64748b)', fontStyle: 'italic' }}>
                       {t('pipeline.notSpecified')}
                     </span>
                   )
@@ -329,7 +328,7 @@ function ProspectModal({
                       {item.companyEmail}
                     </a>
                   ) : (
-                    <span style={{ color: colors.textDim, fontStyle: 'italic' }}>
+                    <span style={{ color: 'var(--muted-foreground, #64748b)', fontStyle: 'italic' }}>
                       {t('pipeline.notSpecified')}
                     </span>
                   )
@@ -450,12 +449,12 @@ function ProspectModal({
                   style={{
                     width: '100%',
                     boxSizing: 'border-box',
-                    background: colors.bg2,
+                    background: 'var(--card, #131c2e)',
                     border: '1px solid rgba(251,191,36,0.3)',
                     borderRadius: 10,
                     padding: '12px 14px',
                     fontSize: 14,
-                    color: colors.text,
+                    color: 'var(--foreground, #f1f5f9)',
                     resize: 'vertical',
                     outline: 'none',
                     fontFamily: 'inherit',
@@ -484,7 +483,7 @@ function ProspectModal({
               <div
                 style={{
                   fontSize: 14,
-                  color: colors.text,
+                  color: 'var(--foreground, #f1f5f9)',
                   lineHeight: 1.6,
                   whiteSpace: 'pre-wrap',
                   minHeight: noteText ? 'auto' : 40,
@@ -526,7 +525,7 @@ function ProspectModal({
             <div
               style={{
                 fontSize: 12,
-                color: colors.textMid,
+                color: 'var(--muted-foreground, #94a3b8)',
                 marginBottom: 20,
                 display: 'flex',
                 alignItems: 'center',
@@ -537,7 +536,7 @@ function ProspectModal({
               <User size={14} style={{ opacity: 0.6 }} />
               <span>
                 {t('pipeline.assignedBy')} :{' '}
-                <strong style={{ color: colors.text }}>{item.assignedByName}</strong>
+                <strong style={{ color: 'var(--foreground, #f1f5f9)' }}>{item.assignedByName}</strong>
               </span>
             </div>
           )}
@@ -639,11 +638,11 @@ function InfoRow({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: colors.bg2,
+          background: 'var(--card, #131c2e)',
           borderRadius: 8,
-          color: colors.textMid,
+          color: 'var(--muted-foreground, #94a3b8)',
           flexShrink: 0,
-          border: `1px solid ${colors.border}`
+          border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
         }}
       >
         {icon}
@@ -651,7 +650,7 @@ function InfoRow({
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         <span
           style={{
-            color: colors.textDim,
+            color: 'var(--muted-foreground, #64748b)',
             fontSize: 11,
             fontWeight: 700,
             textTransform: 'uppercase',
@@ -660,7 +659,7 @@ function InfoRow({
         >
           {label}
         </span>
-        <span style={{ color: colors.text, fontWeight: 500, lineHeight: 1.4 }}>{value}</span>
+        <span style={{ color: 'var(--foreground, #f1f5f9)', fontWeight: 500, lineHeight: 1.4 }}>{value}</span>
       </div>
     </div>
   )
@@ -720,10 +719,10 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
         <div
           style={{
             display: 'flex',
-            background: colors.bg3,
+            background: 'var(--secondary, #1e2a3b)',
             padding: 4,
             borderRadius: 12,
-            border: `1px solid ${colors.border}`,
+            border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
             gap: 2,
             boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
           }}
@@ -740,7 +739,7 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
                   viewMode === mode
                     ? 'linear-gradient(135deg, rgba(99,102,241,0.2) 0%, rgba(139,92,246,0.2) 100%)'
                     : 'transparent',
-                color: viewMode === mode ? '#a5b4fc' : colors.textMid,
+                color: viewMode === mode ? '#a5b4fc' : 'var(--muted-foreground, #94a3b8)',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
@@ -788,8 +787,8 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
               key={item.id}
               onClick={() => setSelectedItem(item)}
               style={{
-                background: colors.bg3,
-                border: `1px solid ${colors.border}`,
+                background: 'var(--secondary, #1e2a3b)',
+                border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                 borderLeft: `3px solid ${accentColor}`,
                 borderRadius: 14,
                 display: 'flex',
@@ -802,13 +801,13 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.borderColor = `${accentColor}66`
-                e.currentTarget.style.background = colors.bg2
+                e.currentTarget.style.background = 'var(--card, #131c2e)'
                 e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.1)'
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = colors.border
+                e.currentTarget.style.borderColor = 'var(--border, rgba(255,255,255,0.1))'
                 e.currentTarget.style.borderLeftColor = accentColor
-                e.currentTarget.style.background = colors.bg3
+                e.currentTarget.style.background = 'var(--secondary, #1e2a3b)'
                 e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)'
               }}
             >
@@ -849,7 +848,7 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
                     style={{
                       fontSize: 14,
                       fontWeight: 800,
-                      color: colors.text,
+                      color: 'var(--foreground, #f1f5f9)',
                       fontFamily: "'Syne', sans-serif",
                       letterSpacing: '-0.01em'
                     }}
@@ -871,9 +870,9 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
                         gap: 4,
                         fontSize: 11,
                         fontWeight: 600,
-                        color: colors.textMid,
-                        background: colors.bg2,
-                        border: `1px solid ${colors.border}`,
+                        color: 'var(--muted-foreground, #94a3b8)',
+                        background: 'var(--card, #131c2e)',
+                        border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                         borderRadius: 6,
                         padding: '2px 8px'
                       }}
@@ -890,9 +889,9 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
                         gap: 4,
                         fontSize: 11,
                         fontWeight: 600,
-                        color: colors.textMid,
-                        background: colors.bg2,
-                        border: `1px solid ${colors.border}`,
+                        color: 'var(--muted-foreground, #94a3b8)',
+                        background: 'var(--card, #131c2e)',
+                        border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                         borderRadius: 6,
                         padding: '2px 8px'
                       }}
@@ -988,7 +987,7 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
                   flexShrink: 0
                 }}
               >
-                <ChevronRight size={16} style={{ color: colors.textDim, opacity: 0.5 }} />
+                <ChevronRight size={16} style={{ color: 'var(--muted-foreground, #64748b)', opacity: 0.5 }} />
                 <Button
                   size="sm"
                   variant="danger"

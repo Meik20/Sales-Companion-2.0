@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useAdminImports, AdminImport } from '../hooks/useAdminImports'
 import { SectionCard } from '@/features/team/components/SectionCard'
-import { colors, shadows } from '@/styles/tokens'
 import { Badge } from '@/components/ui/index'
 import {
   FileText,
@@ -23,7 +22,7 @@ export function AdminImportsTable() {
   if (isLoading) {
     return (
       <SectionCard title="Historique des imports" subtitle="Suivi des imports de données">
-        <div style={{ textAlign: 'center', color: colors.textMid, padding: 20 }}>Chargement...</div>
+        <div style={{ textAlign: 'center', color: 'var(--muted-foreground, #94a3b8)', padding: 20 }}>Chargement...</div>
       </SectionCard>
     )
   }
@@ -46,7 +45,7 @@ export function AdminImportsTable() {
   return (
     <SectionCard title="Historique des imports" subtitle={`${total} import${total > 1 ? 's' : ''}`}>
       {items.length === 0 ? (
-        <div style={{ textAlign: 'center', color: colors.textMid, padding: 20, fontSize: 13 }}>
+        <div style={{ textAlign: 'center', color: 'var(--muted-foreground, #94a3b8)', padding: 20, fontSize: 13 }}>
           Aucun import n'a été effectué.
         </div>
       ) : (
@@ -60,12 +59,12 @@ export function AdminImportsTable() {
               }}
             >
               <thead>
-                <tr style={{ borderBottom: `1px solid ${colors.border}` }}>
+                <tr style={{ borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}` }}>
                   <th
                     style={{
                       textAlign: 'left',
                       padding: '12px 0',
-                      color: colors.textMid,
+                      color: 'var(--muted-foreground, #94a3b8)',
                       fontWeight: 600,
                       fontSize: 12,
                       textTransform: 'uppercase',
@@ -78,7 +77,7 @@ export function AdminImportsTable() {
                     style={{
                       textAlign: 'right',
                       padding: '12px 16px 12px 0',
-                      color: colors.textMid,
+                      color: 'var(--muted-foreground, #94a3b8)',
                       fontWeight: 600,
                       fontSize: 12,
                       textTransform: 'uppercase',
@@ -91,7 +90,7 @@ export function AdminImportsTable() {
                     style={{
                       textAlign: 'center',
                       padding: '12px 0',
-                      color: colors.textMid,
+                      color: 'var(--muted-foreground, #94a3b8)',
                       fontWeight: 600,
                       fontSize: 12,
                       textTransform: 'uppercase',
@@ -104,7 +103,7 @@ export function AdminImportsTable() {
                     style={{
                       textAlign: 'center',
                       padding: '12px 16px 12px 0',
-                      color: colors.textMid,
+                      color: 'var(--muted-foreground, #94a3b8)',
                       fontWeight: 600,
                       fontSize: 12,
                       textTransform: 'uppercase',
@@ -117,7 +116,7 @@ export function AdminImportsTable() {
                     style={{
                       textAlign: 'right',
                       padding: '12px 0',
-                      color: colors.textMid,
+                      color: 'var(--muted-foreground, #94a3b8)',
                       fontWeight: 600,
                       fontSize: 12,
                       textTransform: 'uppercase',
@@ -144,7 +143,7 @@ export function AdminImportsTable() {
                 gap: 8,
                 marginTop: 16,
                 paddingTop: 16,
-                borderTop: `1px solid ${colors.border}`
+                borderTop: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
               }}
             >
               <button
@@ -153,10 +152,10 @@ export function AdminImportsTable() {
                 style={{
                   padding: '8px 12px',
                   fontSize: 12,
-                  border: `1px solid ${colors.border}`,
+                  border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                   borderRadius: 6,
-                  background: colors.bg,
-                  color: colors.text,
+                  background: 'var(--background, #0b1120)',
+                  color: 'var(--foreground, #f1f5f9)',
                   cursor: page === 1 ? 'not-allowed' : 'pointer',
                   opacity: page === 1 ? 0.5 : 1
                 }}
@@ -170,10 +169,10 @@ export function AdminImportsTable() {
                   style={{
                     padding: '8px 12px',
                     fontSize: 12,
-                    border: `1px solid ${p === page ? '#2ea05a' : colors.border}`,
+                    border: `1px solid ${p === page ? '#2ea05a' : 'var(--border, rgba(255,255,255,0.1))'}`,
                     borderRadius: 6,
-                    background: p === page ? 'rgba(46,160,90,0.1)' : colors.bg,
-                    color: colors.text,
+                    background: p === page ? 'rgba(46,160,90,0.1)' : 'var(--background, #0b1120)',
+                    color: 'var(--foreground, #f1f5f9)',
                     cursor: 'pointer',
                     fontWeight: p === page ? 600 : 400
                   }}
@@ -187,10 +186,10 @@ export function AdminImportsTable() {
                 style={{
                   padding: '8px 12px',
                   fontSize: 12,
-                  border: `1px solid ${colors.border}`,
+                  border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                   borderRadius: 6,
-                  background: colors.bg,
-                  color: colors.text,
+                  background: 'var(--background, #0b1120)',
+                  color: 'var(--foreground, #f1f5f9)',
                   cursor: page === totalPages ? 'not-allowed' : 'pointer',
                   opacity: page === totalPages ? 0.5 : 1
                 }}
@@ -215,7 +214,7 @@ function ImportRow({ import: importItem }: { import: AdminImport }) {
   })
 
   const statusConfigs: Record<string, { color: string; icon: any; label: string; variant: any }> = {
-    pending: { color: colors.textMid, icon: Clock, label: 'En attente', variant: 'default' },
+    pending: { color: 'var(--muted-foreground, #94a3b8)', icon: Clock, label: 'En attente', variant: 'default' },
     processing: { color: '#fbbf24', icon: AlertCircle, label: 'En cours', variant: 'gold' },
     completed: { color: '#2ea05a', icon: CheckCircle2, label: 'Terminé', variant: 'success' },
     failed: { color: '#f87171', icon: XCircle, label: 'Échoué', variant: 'danger' }
@@ -229,11 +228,11 @@ function ImportRow({ import: importItem }: { import: AdminImport }) {
   return (
     <tr
       style={{
-        borderBottom: `1px solid ${colors.border}`,
+        borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
         transition: 'all 200ms ease'
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.backgroundColor = colors.bg2
+        e.currentTarget.style.backgroundColor = 'var(--card, #131c2e)'
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.backgroundColor = 'transparent'
@@ -255,7 +254,7 @@ function ImportRow({ import: importItem }: { import: AdminImport }) {
           >
             <FileText size={16} />
           </div>
-          <span style={{ color: colors.text, fontWeight: 700, fontSize: 13 }}>
+          <span style={{ color: 'var(--foreground, #f1f5f9)', fontWeight: 700, fontSize: 13 }}>
             {importItem.fileName}
           </span>
         </div>
@@ -263,7 +262,7 @@ function ImportRow({ import: importItem }: { import: AdminImport }) {
       <td
         style={{
           padding: '16px 16px 16px 0',
-          color: colors.textMid,
+          color: 'var(--muted-foreground, #94a3b8)',
           textAlign: 'right',
           fontWeight: 600
         }}
@@ -294,10 +293,10 @@ function ImportRow({ import: importItem }: { import: AdminImport }) {
             style={{
               width: 80,
               height: 4,
-              background: colors.bg3,
+              background: 'var(--secondary, #1e2a3b)',
               borderRadius: 2,
               overflow: 'hidden',
-              border: `1px solid ${colors.border}`
+              border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
             }}
           >
             <div
@@ -308,7 +307,7 @@ function ImportRow({ import: importItem }: { import: AdminImport }) {
               }}
             />
           </div>
-          <span style={{ fontSize: 10, color: colors.textMid, fontWeight: 600 }}>
+          <span style={{ fontSize: 10, color: 'var(--muted-foreground, #94a3b8)', fontWeight: 600 }}>
             {successRate}% réussi
           </span>
         </div>
@@ -340,7 +339,7 @@ function ImportRow({ import: importItem }: { import: AdminImport }) {
           )
         })()}
       </td>
-      <td style={{ padding: '16px 0', color: colors.textMid, textAlign: 'right', fontSize: 12 }}>
+      <td style={{ padding: '16px 0', color: 'var(--muted-foreground, #94a3b8)', textAlign: 'right', fontSize: 12 }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
           <span style={{ fontWeight: 600 }}>
             {dateStr.split(' ')[0]} {dateStr.split(' ')[1]}

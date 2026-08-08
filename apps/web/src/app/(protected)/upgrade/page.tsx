@@ -6,7 +6,6 @@ import { AppShell } from '@/components/layout/AppShell'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useToast } from '@/hooks/useToast'
-import { colors, shadows } from '@/styles/tokens'
 import { Check, Zap, Shield, Users, Loader2, Copy, AlertCircle } from 'lucide-react'
 import { routes } from '@/constants/routes'
 
@@ -210,7 +209,7 @@ export default function UpgradePage() {
               <p style={{ margin: '0 0 4px', fontWeight: 700, fontSize: 14, color: '#f59e0b' }}>
                 Accès au tableau de bord suspendu
               </p>
-              <p style={{ margin: 0, fontSize: 13, color: colors.textMid, lineHeight: 1.6 }}>
+              <p style={{ margin: 0, fontSize: 13, color: 'var(--muted-foreground, #94a3b8)', lineHeight: 1.6 }}>
                 En tant que <strong>Manager</strong>, votre compte doit être activé via un abonnement payant.
                 Choisissez un plan ci-dessous, effectuez le paiement Mobile Money, puis soumettez votre
                 ID de transaction. Un administrateur validera votre accès sous 24h.
@@ -240,8 +239,8 @@ export default function UpgradePage() {
                     }
                   }}
                   style={{
-                    background: colors.bg2,
-                    border: `2px solid ${isCurrent ? p.color : colors.border}`,
+                    background: 'var(--card, #131c2e)',
+                    border: `2px solid ${isCurrent ? p.color : 'var(--border, rgba(255,255,255,0.1))'}`,
                     borderRadius: 16,
                     padding: '28px 24px',
                     cursor: isCurrent ? 'default' : 'pointer',
@@ -291,7 +290,7 @@ export default function UpgradePage() {
                     style={{
                       fontWeight: 800,
                       fontSize: 18,
-                      color: colors.text,
+                      color: 'var(--foreground, #f1f5f9)',
                       margin: '0 0 4px',
                       fontFamily: "sans-serif"
                     }}
@@ -308,7 +307,7 @@ export default function UpgradePage() {
                     }}
                   >
                     {p.price}{' '}
-                    <span style={{ fontSize: 14, fontWeight: 400, color: colors.textMid }}>
+                    <span style={{ fontSize: 14, fontWeight: 400, color: 'var(--muted-foreground, #94a3b8)' }}>
                       {p.period}
                     </span>
                   </p>
@@ -331,7 +330,7 @@ export default function UpgradePage() {
                           alignItems: 'center',
                           gap: 8,
                           fontSize: 13,
-                          color: colors.text
+                          color: 'var(--foreground, #f1f5f9)'
                         }}
                       >
                         <Check size={14} color={p.color} /> {f}
@@ -346,7 +345,7 @@ export default function UpgradePage() {
                       padding: '12px 0',
                       borderRadius: 10,
                       border: 'none',
-                      background: isCurrent ? colors.border : p.color,
+                      background: isCurrent ? 'var(--border, rgba(255,255,255,0.1))' : p.color,
                       color: '#fff',
                       fontWeight: 700,
                       cursor: isCurrent ? 'default' : 'pointer'
@@ -365,10 +364,10 @@ export default function UpgradePage() {
           <div style={{ maxWidth: 500, margin: '0 auto' }}>
             <div
               style={{
-                background: colors.bg2,
+                background: 'var(--card, #131c2e)',
                 borderRadius: 20,
                 padding: 32,
-                border: `1px solid ${colors.border}`
+                border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
               }}
             >
               <h2
@@ -387,14 +386,14 @@ export default function UpgradePage() {
                       flex: 1,
                       padding: '12px 0',
                       borderRadius: 10,
-                      border: `2px solid ${operator === op ? (op === 'MTN' ? '#fde047' : '#f97316') : colors.border}`,
+                      border: `2px solid ${operator === op ? (op === 'MTN' ? '#fde047' : '#f97316') : 'var(--border, rgba(255,255,255,0.1))'}`,
                       background:
                         operator === op
                           ? op === 'MTN'
                             ? 'rgba(253,224,71,0.1)'
                             : 'rgba(249,115,22,0.1)'
                           : 'transparent',
-                      color: colors.text,
+                      color: 'var(--foreground, #f1f5f9)',
                       fontWeight: 700,
                       cursor: 'pointer'
                     }}
@@ -406,9 +405,9 @@ export default function UpgradePage() {
 
               {/* Détails du transfert */}
               <div
-                style={{ background: colors.bg3, borderRadius: 12, padding: 20, marginBottom: 24 }}
+                style={{ background: 'var(--secondary, #1e2a3b)', borderRadius: 12, padding: 20, marginBottom: 24 }}
               >
-                <p style={{ margin: '0 0 16px', fontSize: 14, color: colors.textMid }}>
+                <p style={{ margin: '0 0 16px', fontSize: 14, color: 'var(--muted-foreground, #94a3b8)' }}>
                   Envoyez exactement <strong>{plan.price} FCFA</strong> au numéro suivant :
                 </p>
 
@@ -420,7 +419,7 @@ export default function UpgradePage() {
                     marginBottom: 12
                   }}
                 >
-                  <span style={{ fontSize: 22, fontWeight: 800, color: colors.text }}>
+                  <span style={{ fontSize: 22, fontWeight: 800, color: 'var(--foreground, #f1f5f9)' }}>
                     {PAYMENT_ACCOUNTS[operator].number}
                   </span>
                   <button
@@ -428,7 +427,7 @@ export default function UpgradePage() {
                     style={{
                       background: 'transparent',
                       border: 'none',
-                      color: colors.textMid,
+                      color: 'var(--muted-foreground, #94a3b8)',
                       cursor: 'pointer'
                     }}
                   >
@@ -436,7 +435,7 @@ export default function UpgradePage() {
                   </button>
                 </div>
 
-                <div style={{ fontSize: 13, color: colors.textMid }}>
+                <div style={{ fontSize: 13, color: 'var(--muted-foreground, #94a3b8)' }}>
                   Nom du compte : <strong>{PAYMENT_ACCOUNTS[operator].name}</strong>
                 </div>
               </div>
@@ -457,13 +456,13 @@ export default function UpgradePage() {
                     width: '100%',
                     padding: '12px 14px',
                     borderRadius: 10,
-                    background: colors.bg,
-                    border: `1px solid ${colors.border}`,
-                    color: colors.text,
+                    background: 'var(--background, #0b1120)',
+                    border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+                    color: 'var(--foreground, #f1f5f9)',
                     outline: 'none'
                   }}
                 />
-                <p style={{ fontSize: 11, color: colors.textMid, marginTop: 6 }}>
+                <p style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)', marginTop: 6 }}>
                   Recopiez l'ID contenu dans le SMS de confirmation de {operator}.
                 </p>
               </div>
@@ -501,7 +500,7 @@ export default function UpgradePage() {
           <div style={{ maxWidth: 460, margin: '0 auto', textAlign: 'center' }}>
             <div
               style={{
-                background: colors.bg2,
+                background: 'var(--card, #131c2e)',
                 borderRadius: 20,
                 padding: 40,
                 border: `1px solid #4ade80`
@@ -524,7 +523,7 @@ export default function UpgradePage() {
               <h2 style={{ fontFamily: "sans-serif", margin: '0 0 12px' }}>
                 Demande envoyée !
               </h2>
-              <p style={{ color: colors.textMid, fontSize: 14, lineHeight: 1.6, marginBottom: 16 }}>
+              <p style={{ color: 'var(--muted-foreground, #94a3b8)', fontSize: 14, lineHeight: 1.6, marginBottom: 16 }}>
                 Votre demande de paiement pour le plan <strong>{plan?.label}</strong> est en cours
                 de vérification.
                 <br />
@@ -552,8 +551,8 @@ export default function UpgradePage() {
                   width: '100%',
                   padding: '12px 0',
                   borderRadius: 10,
-                  background: colors.text,
-                  color: colors.bg,
+                  background: 'var(--foreground, #f1f5f9)',
+                  color: 'var(--background, #0b1120)',
                   fontWeight: 700,
                   border: 'none',
                   cursor: 'pointer'

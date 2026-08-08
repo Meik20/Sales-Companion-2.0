@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { FormField } from '@/components/forms/FormField'
 import { ScIcon } from '@/components/ui/ScIcon'
-import { colors } from '@/styles/tokens'
 import { mapAuthError } from '@/features/auth/utils/error-mapper'
 
 function AuthActionContent() {
@@ -89,8 +88,8 @@ function AuthActionContent() {
       style={{
         width: '100%',
         maxWidth: 420,
-        background: colors.bg2,
-        border: `1.5px solid ${colors.border}`,
+        background: 'var(--card, #131c2e)',
+        border: `1.5px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
         borderRadius: 20,
         padding: '40px 32px',
         boxShadow: '0 8px 32px rgba(0, 0, 0, 0.24)'
@@ -105,7 +104,7 @@ function AuthActionContent() {
           fontSize: 24,
           fontWeight: 800,
           textAlign: 'center',
-          color: colors.text,
+          color: 'var(--foreground, #f1f5f9)',
           marginBottom: 8
         }}
       >
@@ -118,7 +117,7 @@ function AuthActionContent() {
   // 1. Loading State
   if (loading && mode === 'verifyEmail') {
     return renderCard("Validation de l'e-mail", (
-      <div style={{ textAlign: 'center', padding: '24px 0', color: colors.textMid }}>
+      <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--muted-foreground, #94a3b8)' }}>
         <p>Validation de votre adresse e-mail en cours...</p>
       </div>
     ))
@@ -128,7 +127,7 @@ function AuthActionContent() {
   if (!mode || !oobCode) {
     return renderCard("Action requise", (
       <div style={{ textAlign: 'center', padding: '20px 0' }}>
-        <p style={{ color: colors.textMid, fontSize: 14, marginBottom: 24 }}>
+        <p style={{ color: 'var(--muted-foreground, #94a3b8)', fontSize: 14, marginBottom: 24 }}>
           Aucune action valide n&apos;a été détectée. Veuillez utiliser le lien reçu par e-mail.
         </p>
         <Button onClick={() => router.push('/login')} style={{ width: '100%' }}>
@@ -183,7 +182,7 @@ function AuthActionContent() {
     return renderCard("Réinitialisation", (
       <form onSubmit={handlePasswordReset} style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 16 }}>
         {emailAddress && (
-          <p style={{ fontSize: 13, color: colors.textMid, textAlign: 'center', marginBottom: 8 }}>
+          <p style={{ fontSize: 13, color: 'var(--muted-foreground, #94a3b8)', textAlign: 'center', marginBottom: 8 }}>
             Pour le compte : <strong>{emailAddress}</strong>
           </p>
         )}
@@ -227,7 +226,7 @@ function AuthActionContent() {
           Enregistrer le nouveau mot de passe
         </Button>
 
-        <Link href="/login" style={{ textAlign: 'center', fontSize: 13, color: colors.greenMid, textDecoration: 'none', fontWeight: 600, marginTop: 8 }}>
+        <Link href="/login" style={{ textAlign: 'center', fontSize: 13, color: '#22c55e', textDecoration: 'none', fontWeight: 600, marginTop: 8 }}>
           Retour à la connexion
         </Link>
       </form>
@@ -237,7 +236,7 @@ function AuthActionContent() {
   // 5. Fallback for other modes
   return renderCard("Action d'authentification", (
     <div style={{ textAlign: 'center', padding: '10px 0' }}>
-      <p style={{ color: colors.textMid, fontSize: 14, marginBottom: 24 }}>
+      <p style={{ color: 'var(--muted-foreground, #94a3b8)', fontSize: 14, marginBottom: 24 }}>
         Traitement de votre demande d&apos;authentification...
       </p>
       <Button onClick={() => router.push('/login')} style={{ width: '100%' }}>
@@ -252,7 +251,7 @@ export default function AuthActionPage() {
     <main
       style={{
         minHeight: '100vh',
-        background: colors.bg,
+        background: 'var(--background, #0b1120)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',

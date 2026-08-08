@@ -1,5 +1,4 @@
 import { ReactNode } from 'react'
-import { colors } from '@/styles/tokens'
 
 type Props = {
   title: string
@@ -9,33 +8,12 @@ type Props = {
 
 export function PageHeader({ title, subtitle, actions }: Props) {
   return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        gap: 16,
-        marginBottom: 28,
-        flexWrap: 'wrap'
-      }}
-    >
+    <div className="mb-7 flex flex-wrap items-start justify-between gap-4">
       <div>
-        <h1
-          style={{
-            margin: 0,
-            fontSize: 24,
-            fontWeight: 800,
-            color: colors.text,
-            fontFamily: 'inherit'
-          }}
-        >
-          {title}
-        </h1>
-        {subtitle ? (
-          <p style={{ margin: '6px 0 0', fontSize: 14, color: colors.textMid }}>{subtitle}</p>
-        ) : null}
+        <h1 className="m-0 text-2xl font-extrabold text-foreground">{title}</h1>
+        {subtitle ? <p className="mt-1.5 text-[14px] text-muted-foreground">{subtitle}</p> : null}
       </div>
-      {actions ? <div style={{ display: 'flex', gap: 8 }}>{actions}</div> : null}
+      {actions ? <div className="flex gap-2">{actions}</div> : null}
     </div>
   )
 }

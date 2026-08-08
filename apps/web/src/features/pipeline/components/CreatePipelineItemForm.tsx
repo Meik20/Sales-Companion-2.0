@@ -7,7 +7,6 @@ import { Input } from '@/components/ui/Input'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { getErrorMessage } from '@/lib/errors'
 import { useCreatePipelineItem } from '../hooks/useCreatePipelineItem'
-import { colors } from '@/styles/tokens'
 import { useTranslation } from '@/providers/I18nProvider'
 
 type Props = {
@@ -131,9 +130,9 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
                   flex: 1,
                   padding: '8px 10px',
                   borderRadius: 8,
-                  border: `1px solid ${status === opt.value ? 'rgba(46,160,90,0.5)' : colors.border}`,
+                  border: `1px solid ${status === opt.value ? 'rgba(46,160,90,0.5)' : 'var(--border, rgba(255,255,255,0.1))'}`,
                   background: status === opt.value ? 'rgba(27,122,62,0.15)' : 'transparent',
-                  color: status === opt.value ? colors.greenMid : colors.textMid,
+                  color: status === opt.value ? '#22c55e' : 'var(--muted-foreground, #94a3b8)',
                   fontSize: 12,
                   fontWeight: 600,
                   cursor: 'pointer',
@@ -203,7 +202,7 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
             borderRadius: 8,
             padding: '10px 12px',
             fontSize: 13,
-            color: colors.text,
+            color: 'var(--foreground, #f1f5f9)',
             resize: 'vertical',
             outline: 'none',
             fontFamily: 'inherit',

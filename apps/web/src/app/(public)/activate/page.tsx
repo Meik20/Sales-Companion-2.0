@@ -6,7 +6,6 @@ import { signInWithEmailAndPassword, sendEmailVerification } from 'firebase/auth
 import { auth } from '@/services/firebase/client'
 import { ActivateMemberForm } from '@/features/team/components/ActivateMemberForm'
 import { ScIcon } from '@/components/ui/ScIcon'
-import { colors } from '@/styles/tokens'
 import { routes } from '@/constants/routes'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
@@ -183,7 +182,7 @@ function ActivateContent() {
             <p style={sub}>
               {t('auth.verificationEmailSent')}
               <br />
-              <strong style={{ color: colors.text }}>{pendingEmail}</strong>
+              <strong style={{ color: 'var(--foreground, #f1f5f9)' }}>{pendingEmail}</strong>
             </p>
           </div>
 
@@ -194,12 +193,12 @@ function ActivateContent() {
               borderRadius: 12,
               padding: '16px 18px',
               fontSize: 13.5,
-              color: colors.textMid,
+              color: 'var(--muted-foreground, #94a3b8)',
               lineHeight: 1.7,
               marginBottom: 20
             }}
           >
-            <p style={{ margin: '0 0 8px', fontWeight: 600, color: colors.text }}>
+            <p style={{ margin: '0 0 8px', fontWeight: 600, color: 'var(--foreground, #f1f5f9)' }}>
               {t('auth.howToProceed')}
             </p>
             <ol style={{ margin: 0, paddingLeft: 18 }}>
@@ -209,19 +208,19 @@ function ActivateContent() {
             </ol>
           </div>
 
-          <p style={{ fontSize: 12, color: colors.textDim, textAlign: 'center', marginBottom: 12 }}>
+          <p style={{ fontSize: 12, color: 'var(--muted-foreground, #64748b)', textAlign: 'center', marginBottom: 12 }}>
             {t('auth.noEmail')}
           </p>
 
           {status && (
             <div
               style={{
-                background: status.type === 'success' ? colors.successBg : colors.dangerBg,
-                border: `1px solid ${status.type === 'success' ? colors.successBorder : colors.dangerBorder}`,
+                background: status.type === 'success' ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
+                border: `1px solid ${status.type === 'success' ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
                 borderRadius: 10,
                 padding: '10px 14px',
                 fontSize: 13,
-                color: status.type === 'success' ? colors.success : colors.danger,
+                color: status.type === 'success' ? '#4ade80' : '#f87171',
                 textAlign: 'center',
                 marginBottom: 16
               }}
@@ -240,11 +239,11 @@ function ActivateContent() {
               alignItems: 'center',
               justifyContent: 'center',
               gap: 8,
-              background: resendCooldown > 0 ? colors.bg3 : 'transparent',
-              border: `1px solid ${colors.border}`,
+              background: resendCooldown > 0 ? 'var(--secondary, #1e2a3b)' : 'transparent',
+              border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
               borderRadius: 10,
               cursor: resendCooldown > 0 ? 'not-allowed' : 'pointer',
-              color: colors.textMid,
+              color: 'var(--muted-foreground, #94a3b8)',
               fontSize: 13,
               fontFamily: 'inherit',
               transition: 'all 150ms ease'
@@ -259,7 +258,7 @@ function ActivateContent() {
               : t('auth.resend')}
           </button>
 
-          <p style={{ fontSize: 11, color: colors.textDim, textAlign: 'center', marginTop: 16 }}>
+          <p style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)', textAlign: 'center', marginTop: 16 }}>
             {t('auth.pageAutoUpdates')}
           </p>
         </div>
@@ -272,10 +271,10 @@ function ActivateContent() {
     return (
       <main style={{ ...cardPage, flexDirection: 'column', gap: 16 }}>
         <CheckCircle size={52} style={{ color: 'var(--color-success)' }} />
-        <h2 style={{ fontSize: 20, fontWeight: 700, color: colors.text, margin: 0 }}>
+        <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--foreground, #f1f5f9)', margin: 0 }}>
           {t('auth.emailVerified')}
         </h2>
-        <p style={{ fontSize: 14, color: colors.textMid, margin: 0 }}>{t('auth.accountActive')}</p>
+        <p style={{ fontSize: 14, color: 'var(--muted-foreground, #94a3b8)', margin: 0 }}>{t('auth.accountActive')}</p>
       </main>
     )
   }
@@ -320,15 +319,15 @@ function ActivateContent() {
 // ── Style constants ───────────────────────────────────────────────────────────
 const cardPage: React.CSSProperties = {
   minHeight: '100vh',
-  background: colors.bg,
+  background: 'var(--background, #0b1120)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
   padding: '24px 16px'
 }
 const card: React.CSSProperties = {
-  background: colors.bg2,
-  border: `1px solid ${colors.border}`,
+  background: 'var(--card, #131c2e)',
+  border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
   borderRadius: 20,
   padding: 40,
   width: '100%',
@@ -340,10 +339,10 @@ const h1: React.CSSProperties = {
   margin: '0 0 8px',
   fontSize: 22,
   fontWeight: 800,
-  color: colors.text,
+  color: 'var(--foreground, #f1f5f9)',
   fontFamily: "'Syne',sans-serif"
 }
-const sub: React.CSSProperties = { margin: 0, fontSize: 13, color: colors.textMid }
+const sub: React.CSSProperties = { margin: 0, fontSize: 13, color: 'var(--muted-foreground, #94a3b8)' }
 
 export default function ActivatePage() {
   return (

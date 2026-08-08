@@ -4,7 +4,6 @@ import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useTranslation } from '@/providers/I18nProvider'
 import { Panel, Badge, MetricCard, StatsGrid } from '@/components/ui/index'
 import { ScIcon } from '@/components/ui/ScIcon'
-import { colors } from '@/styles/tokens'
 
 const planBadge: Record<string, 'default' | 'info' | 'success' | 'gold'> = {
   free: 'default',
@@ -28,7 +27,7 @@ export function ProfileCard() {
   if (loading) {
     return (
       <Panel>
-        <p style={{ color: colors.textMid, textAlign: 'center', padding: 32 }}>
+        <p style={{ color: 'var(--muted-foreground, #94a3b8)', textAlign: 'center', padding: 32 }}>
           {t('profile.loading')}
         </p>
       </Panel>
@@ -85,7 +84,7 @@ export function ProfileCard() {
                   margin: 0,
                   fontSize: 20,
                   fontWeight: 800,
-                  color: colors.text,
+                  color: 'var(--foreground, #f1f5f9)',
                   fontFamily: 'inherit'
                 }}
               >
@@ -93,8 +92,8 @@ export function ProfileCard() {
               </h2>
               <Badge variant={planBadge[user.plan] ?? 'default'}>{user.plan?.toUpperCase()}</Badge>
             </div>
-            <p style={{ margin: 0, fontSize: 13, color: colors.textMid }}>{user.email}</p>
-            <p style={{ margin: '4px 0 0', fontSize: 12, color: colors.textDim }}>
+            <p style={{ margin: 0, fontSize: 13, color: 'var(--muted-foreground, #94a3b8)' }}>{user.email}</p>
+            <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--muted-foreground, #64748b)' }}>
               {t(roleLabelKeys[user.role] as any) || user.role}
             </p>
           </div>
@@ -130,7 +129,7 @@ export function ProfileCard() {
                   style={{
                     fontSize: 12,
                     fontWeight: 600,
-                    color: colors.textMid,
+                    color: 'var(--muted-foreground, #94a3b8)',
                     textTransform: 'uppercase',
                     letterSpacing: '.04em'
                   }}
@@ -144,7 +143,7 @@ export function ProfileCard() {
               <div
                 style={{
                   height: 6,
-                  background: colors.bg3,
+                  background: 'var(--secondary, #1e2a3b)',
                   borderRadius: 999,
                   overflow: 'hidden'
                 }}

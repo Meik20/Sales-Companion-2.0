@@ -1,4 +1,3 @@
-import { colors } from '@/styles/tokens'
 
 type Message = {
   id: string
@@ -16,7 +15,7 @@ type Props = {
 export function SupportMessageList({ messages, currentUserId }: Props) {
   if (!messages.length) {
     return (
-      <p style={{ textAlign: 'center', color: colors.textMid, fontSize: 13, padding: '24px 0' }}>
+      <p style={{ textAlign: 'center', color: 'var(--muted-foreground, #94a3b8)', fontSize: 13, padding: '24px 0' }}>
         Aucun message — commencez la conversation ci-dessous.
       </p>
     )
@@ -55,9 +54,9 @@ export function SupportMessageList({ messages, currentUserId }: Props) {
                   : isAdmin
                     ? 'rgba(245,166,35,0.12)'
                     : colors.bg4,
-                border: `1px solid ${isMe ? 'rgba(46,160,90,0.3)' : isAdmin ? 'rgba(245,166,35,0.25)' : colors.border}`,
+                border: `1px solid ${isMe ? 'rgba(46,160,90,0.3)' : isAdmin ? 'rgba(245,166,35,0.25)' : 'var(--border, rgba(255,255,255,0.1))'}`,
                 fontSize: 13,
-                color: colors.text,
+                color: 'var(--foreground, #f1f5f9)',
                 lineHeight: 1.55
               }}
             >

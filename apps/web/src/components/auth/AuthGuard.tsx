@@ -3,7 +3,6 @@
 import { PropsWithChildren, useEffect, useState } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { auth } from '@/services/firebase/client'
-import { colors } from '@/styles/tokens'
 import { Mail, RefreshCw, Clock } from 'lucide-react'
 import { ScIcon } from '@/components/ui/ScIcon'
 import { usePathname, useRouter } from 'next/navigation'
@@ -55,8 +54,6 @@ export function AuthGuard({ children }: PropsWithChildren) {
 
   // ─────────────────────────────────────────────────────────────────────────
   // ✅ Rédirection automatique manager → /upgrade après vérification email
-  // Dès que emailVerificationPending passe à false, si le manager n'a pas
-  // encore soumis de paiement, on le guide vers la page de choix du plan.
   // ─────────────────────────────────────────────────────────────────────────
   useEffect(() => {
     if (loading || finalizing || !user) return
@@ -65,7 +62,6 @@ export function AuthGuard({ children }: PropsWithChildren) {
     const emailVerificationPending = (user as any).emailVerificationPending
     const paymentPending = (user as any).paymentPending
 
-    // Email vérifié + pas encore de paiement soumis + pas sur /upgrade → rediriger
     if (!emailVerificationPending && !user.active && !paymentPending && !isUpgradePage) {
       router.replace(`${routes.upgrade}?from=register`)
     }
@@ -73,8 +69,6 @@ export function AuthGuard({ children }: PropsWithChildren) {
 
   // ─────────────────────────────────────────────────────────────────────────
   // ✅ Rédirection automatique support_agent vers l'espace CRM unique
-  // L'agent support est restreint aux pages CRM. S'il tente d'accéder
-  // à la prospection, pipeline ou équipe, il est redirigé vers /crm.
   // ─────────────────────────────────────────────────────────────────────────
   useEffect(() => {
     if (loading || !user) return
@@ -87,7 +81,6 @@ export function AuthGuard({ children }: PropsWithChildren) {
       router.replace('/crm')
     }
   }, [user, loading, pathname, router])
-
 
   // Resend cooldown timer
   useEffect(() => {
@@ -110,22 +103,14 @@ export function AuthGuard({ children }: PropsWithChildren) {
           'Content-Type': 'application/json'
         }
       })
-      
-      if (!res.ok) {
-        throw new Error("Erreur de l'API")
-      }
+
+      if (!res.ok) throw new Error("Erreur de l'API")
 
       setResendCooldown(60)
-      setStatus({
-        type: 'success',
-        message: 'Un nouvel email de vérification a été envoyé avec succès.'
-      })
+      setStatus({ type: 'success', message: 'Un nouvel email de vérification a été envoyé avec succès.' })
     } catch (error: any) {
       console.error("Erreur d'envoi de l'email de vérification :", error)
-      setStatus({
-        type: 'error',
-        message: "Une erreur est survenue lors de l'envoi. Veuillez réessayer."
-      })
+      setStatus({ type: 'error', message: "Une erreur est survenue lors de l'envoi. Veuillez réessayer." })
     } finally {
       setResendLoading(false)
     }
@@ -139,146 +124,63 @@ export function AuthGuard({ children }: PropsWithChildren) {
 
   if (loading) {
     return (
-      <div
-        style={{
-          minHeight: '100vh',
-          background: colors.bg,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexDirection: 'column',
-          gap: 16,
-          color: colors.textMid
-        }}
-      >
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background text-muted-foreground">
+        <style dangerouslySetInnerHTML={{ __html: `@keyframes spin { to { transform: rotate(360deg); } }` }} />
         <span
-          style={{
-            width: 32,
-            height: 32,
-            border: '3px solid rgba(255,255,255,0.1)',
-            borderTopColor: colors.greenMid,
-            borderRadius: '50%',
-            display: 'inline-block',
-            animation: 'spin 0.8s linear infinite'
-          }}
+          className="inline-block h-8 w-8 rounded-full border-[3px] border-white/10"
+          style={{ borderTopColor: 'hsl(var(--primary))', animation: 'spin 0.8s linear infinite' }}
         />
-        <p style={{ margin: 0, fontSize: 14 }}>Chargement…</p>
+        <p className="m-0 text-[14px]">Chargement…</p>
       </div>
     )
   }
 
   if (!user) return null
 
-  // ── Email verification pending screen ─────────────────────────────────────
+  // ── Email verification pending screen ────────────────────────────────────
   const isPending = !!(user as { emailVerificationPending?: boolean }).emailVerificationPending
   const firebaseEmailVerified = auth.currentUser?.emailVerified
 
   if (isPending && !firebaseEmailVerified && !finalizing) {
     return (
-      <div
-        style={{
-          minHeight: '100vh',
-          background: colors.bg,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '24px 16px'
-        }}
-      >
-        <style
-          dangerouslySetInnerHTML={{
-            __html: `
+      <div className="flex min-h-screen items-center justify-center bg-background px-4 py-6">
+        <style dangerouslySetInnerHTML={{ __html: `
           @keyframes spin { to { transform: rotate(360deg); } }
           @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.5;} }
-        `
-          }}
-        />
-        <div
-          style={{
-            background: colors.bg2,
-            border: `1px solid ${colors.border}`,
-            borderRadius: 20,
-            padding: 40,
-            width: '100%',
-            maxWidth: 440,
-            boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
-            textAlign: 'center'
-          }}
-        >
+        ` }} />
+        <div className="w-full max-w-[440px] rounded-[20px] border border-border bg-card p-10 text-center shadow-[0_20px_60px_rgba(0,0,0,0.4)]">
           <ScIcon size={44} style={{ marginBottom: 16, display: 'block', margin: '0 auto 16px' }} />
 
-          <div
-            style={{
-              width: 68,
-              height: 68,
-              borderRadius: '50%',
-              background: 'rgba(55,138,221,0.1)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 20px'
-            }}
-          >
-            <Mail size={30} style={{ color: 'var(--color-accent)' }} />
+          <div className="mx-auto mb-5 flex h-[68px] w-[68px] items-center justify-center rounded-full bg-primary/10">
+            <Mail size={30} className="text-primary" />
           </div>
 
-          <h1
-            style={{
-              fontSize: 20,
-              fontWeight: 800,
-              color: colors.text,
-              fontFamily: "sans-serif",
-              margin: '0 0 10px'
-            }}
-          >
+          <h1 className="mb-2.5 mt-0 text-[20px] font-extrabold text-foreground">
             Vérification email requise
           </h1>
-          <p style={{ fontSize: 14, color: colors.textMid, lineHeight: 1.7, margin: '0 0 24px' }}>
+          <p className="mb-6 mt-0 text-[14px] leading-relaxed text-muted-foreground">
             Votre compte a été créé mais votre email
             <br />
-            <strong style={{ color: colors.text }}>{user.email}</strong>
+            <strong className="text-foreground">{user.email}</strong>
             <br />
             n&apos;est pas encore vérifié. Consultez votre boîte de réception.
           </p>
 
-          <div
-            style={{
-              background: 'rgba(55,138,221,0.05)',
-              border: '1px solid rgba(55,138,221,0.15)',
-              borderRadius: 10,
-              padding: '14px 16px',
-              fontSize: 13,
-              color: colors.textMid,
-              lineHeight: 1.7,
-              textAlign: 'left',
-              marginBottom: 20
-            }}
-          >
-            <strong style={{ color: colors.text }}>Étapes :</strong>
-            <ol style={{ margin: '8px 0 0', paddingLeft: 16 }}>
-              <li>
-                Ouvrez l&apos;email de <strong>Sales Companion 2.0</strong>
-              </li>
-              <li>
-                Cliquez sur <strong>« Vérifier mon adresse email »</strong>
-              </li>
+          <div className="mb-5 rounded-[10px] border border-primary/15 bg-primary/5 px-4 py-3.5 text-left text-[13px] leading-relaxed text-muted-foreground">
+            <strong className="text-foreground">Étapes :</strong>
+            <ol className="mb-0 mt-2 pl-4">
+              <li>Ouvrez l&apos;email de <strong>Sales Companion 2.0</strong></li>
+              <li>Cliquez sur <strong>« Vérifier mon adresse email »</strong></li>
               <li>Revenez ici — votre accès s&apos;ouvrira automatiquement</li>
             </ol>
           </div>
 
           {status && (
-            <div
-              style={{
-                background: status.type === 'success' ? colors.successBg : colors.dangerBg,
-                border: `1px solid ${status.type === 'success' ? colors.successBorder : colors.dangerBorder}`,
-                borderRadius: 10,
-                padding: '10px 14px',
-                fontSize: 13,
-                color: status.type === 'success' ? colors.success : colors.danger,
-                textAlign: 'center',
-                marginBottom: 16
-              }}
-            >
+            <div className={`mb-4 rounded-[10px] border px-3.5 py-2.5 text-center text-[13px] ${
+              status.type === 'success'
+                ? 'border-green-500/30 bg-green-500/10 text-green-400'
+                : 'border-red-500/30 bg-red-500/10 text-red-400'
+            }`}>
               {status.message}
             </div>
           )}
@@ -286,33 +188,16 @@ export function AuthGuard({ children }: PropsWithChildren) {
           <button
             onClick={() => void handleResend()}
             disabled={resendCooldown > 0 || resendLoading}
-            style={{
-              width: '100%',
-              height: 42,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 8,
-              background: resendCooldown > 0 ? colors.bg3 : 'transparent',
-              border: `1px solid ${colors.border}`,
-              borderRadius: 10,
-              cursor: resendCooldown > 0 ? 'not-allowed' : 'pointer',
-              color: colors.textMid,
-              fontSize: 13,
-              fontFamily: 'inherit',
-              transition: 'all 150ms ease'
-            }}
+            className={`flex h-[42px] w-full items-center justify-center gap-2 rounded-[10px] border border-border text-[13px] text-muted-foreground transition-all duration-150 ${resendCooldown > 0 ? 'cursor-not-allowed bg-secondary' : 'cursor-pointer bg-transparent hover:bg-secondary'}`}
           >
             <RefreshCw
               size={14}
               style={{ animation: resendLoading ? 'spin 1s linear infinite' : 'none' }}
             />
-            {resendCooldown > 0
-              ? `Renvoyer dans ${resendCooldown}s`
-              : "Renvoyer l'email de vérification"}
+            {resendCooldown > 0 ? `Renvoyer dans ${resendCooldown}s` : "Renvoyer l'email de vérification"}
           </button>
 
-          <p style={{ fontSize: 11, color: colors.textDim, marginTop: 14 }}>
+          <p className="mt-3.5 text-[11px] text-muted-foreground/60">
             Cette page se rafraîchit automatiquement dès que votre email est confirmé.
           </p>
         </div>
@@ -322,135 +207,47 @@ export function AuthGuard({ children }: PropsWithChildren) {
 
   if (finalizing) {
     return (
-      <div
-        style={{
-          minHeight: '100vh',
-          background: colors.bg,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexDirection: 'column',
-          gap: 16,
-          color: colors.textMid
-        }}
-      >
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background text-muted-foreground">
         <span
-          style={{
-            width: 32,
-            height: 32,
-            border: '3px solid rgba(255,255,255,0.1)',
-            borderTopColor: 'var(--color-accent)',
-            borderRadius: '50%',
-            display: 'inline-block',
-            animation: 'spin 0.8s linear infinite'
-          }}
+          className="inline-block h-8 w-8 rounded-full border-[3px] border-white/10"
+          style={{ borderTopColor: 'hsl(var(--primary))', animation: 'spin 0.8s linear infinite' }}
         />
-        <p style={{ margin: 0, fontSize: 14 }}>Finalisation de l&apos;activation…</p>
+        <p className="m-0 text-[14px]">Finalisation de l&apos;activation…</p>
       </div>
     )
   }
 
-  // ── Account pending admin validation (Manager only) ─────────────────────────
-  // Si le manager a soumis un paiement (paymentPending=true), on affiche
-  // un écran d'attente. La redirection vers le dashboard est automatique
-  // car useCurrentUser écoute Firestore en temps réel via onSnapshot —
-  // dès que l'admin met active=true, le user se met à jour et ce bloc
-  // ne s'affiche plus, libérant l'accès aux pages protégées.
+  // ── Account pending admin validation (Manager only) ──────────────────────
   const userPaymentPending = (user as any)?.paymentPending === true
 
   if (user.role === 'manager' && !user.active && userPaymentPending && !isUpgradePage) {
     return (
-      <div
-        style={{
-          minHeight: '100vh',
-          background: colors.bg,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '24px 16px'
-        }}
-      >
-        <div
-          style={{
-            background: colors.bg2,
-            border: `1px solid ${colors.border}`,
-            borderRadius: 20,
-            padding: 40,
-            width: '100%',
-            maxWidth: 440,
-            boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
-            textAlign: 'center'
-          }}
-        >
+      <div className="flex min-h-screen items-center justify-center bg-background px-4 py-6">
+        <div className="w-full max-w-[440px] rounded-[20px] border border-border bg-card p-10 text-center shadow-[0_20px_60px_rgba(0,0,0,0.4)]">
           <ScIcon size={44} style={{ marginBottom: 16, display: 'block', margin: '0 auto 16px' }} />
 
-          <div
-            style={{
-              width: 68,
-              height: 68,
-              borderRadius: '50%',
-              background: 'rgba(245,158,11,0.1)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 20px'
-            }}
-          >
-            <Clock size={30} style={{ color: '#f59e0b' }} />
+          <div className="mx-auto mb-5 flex h-[68px] w-[68px] items-center justify-center rounded-full bg-amber-500/10">
+            <Clock size={30} className="text-amber-500" />
           </div>
 
-          <h1
-            style={{
-              fontSize: 20,
-              fontWeight: 800,
-              color: colors.text,
-              fontFamily: "sans-serif",
-              margin: '0 0 10px'
-            }}
-          >
+          <h1 className="mb-2.5 mt-0 text-[20px] font-extrabold text-foreground">
             En attente de validation
           </h1>
-          <p style={{ fontSize: 14, color: colors.textMid, lineHeight: 1.7, margin: '0 0 8px' }}>
+          <p className="mb-2 mt-0 text-[14px] leading-relaxed text-muted-foreground">
             Votre paiement a bien été reçu et est en cours de vérification par notre équipe.
           </p>
-          <p style={{ fontSize: 13, color: colors.textMid, lineHeight: 1.6, margin: '0 0 24px' }}>
+          <p className="mb-6 mt-0 text-[13px] leading-relaxed text-muted-foreground">
             ⏳ Cette page se met à jour <strong>automatiquement</strong> dès que votre compte est activé.
             Vous n&apos;avez rien à faire.
           </p>
 
-          <div
-            style={{
-              background: 'rgba(245,158,11,0.06)',
-              border: '1px solid rgba(245,158,11,0.2)',
-              borderRadius: 10,
-              padding: '12px 16px',
-              fontSize: 12,
-              color: '#f59e0b',
-              marginBottom: 20,
-              lineHeight: 1.6
-            }}
-          >
+          <div className="mb-5 rounded-[10px] border border-amber-500/20 bg-amber-500/6 px-4 py-3 text-[12px] leading-relaxed text-amber-500">
             📬 Vous recevrez un email de confirmation une fois votre compte activé par l&apos;équipe Sales Companion.
           </div>
 
           <button
             onClick={() => window.location.href = '/upgrade?from=register'}
-            style={{
-              width: '100%',
-              height: 42,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 8,
-              background: 'transparent',
-              border: `1px solid ${colors.border}`,
-              borderRadius: 10,
-              cursor: 'pointer',
-              color: colors.textMid,
-              fontSize: 13,
-              fontFamily: 'inherit',
-              transition: 'all 150ms ease'
-            }}
+            className="flex h-[42px] w-full cursor-pointer items-center justify-center gap-2 rounded-[10px] border border-border bg-transparent text-[13px] text-muted-foreground transition-all duration-150 hover:bg-secondary"
           >
             Modifier ma demande de paiement
           </button>

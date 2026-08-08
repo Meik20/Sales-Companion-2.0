@@ -1,6 +1,5 @@
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/index'
-import { colors, shadows } from '@/styles/tokens'
 import { Search, History, Trash2, Filter, RotateCcw, Bookmark } from 'lucide-react'
 
 type SavedSearch = {
@@ -34,8 +33,8 @@ export function SavedSearchesList({ items, onRestore, onDelete }: Props) {
               alignItems: 'center',
               gap: 20,
               padding: '18px 20px',
-              background: colors.surface,
-              border: `1px solid ${colors.border}`,
+              background: 'var(--secondary, #1e2a3b)',
+              border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
               borderRadius: 16,
               boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
               transition: 'all 200ms ease',
@@ -67,7 +66,7 @@ export function SavedSearchesList({ items, onRestore, onDelete }: Props) {
             </div>
 
             <div style={{ flex: 1, minWidth: 200 }}>
-              <div style={{ fontWeight: 800, fontSize: 15, color: colors.text, marginBottom: 8 }}>
+              <div style={{ fontWeight: 800, fontSize: 15, color: 'var(--foreground, #f1f5f9)', marginBottom: 8 }}>
                 {item.label}
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -79,9 +78,9 @@ export function SavedSearchesList({ items, onRestore, onDelete }: Props) {
                       fontWeight: 700,
                       padding: '2px 8px',
                       borderRadius: 6,
-                      background: colors.bg2,
-                      border: `1px solid ${colors.border}`,
-                      color: colors.textMid,
+                      background: 'var(--card, #131c2e)',
+                      border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+                      color: 'var(--muted-foreground, #94a3b8)',
                       textTransform: 'uppercase',
                       letterSpacing: '0.02em',
                       display: 'flex',

@@ -18,7 +18,6 @@ import {
   serverTimestamp,
   Timestamp
 } from 'firebase/firestore'
-import { colors } from '@/styles/tokens'
 import { Trash2 } from 'lucide-react'
 import { useTranslation } from '@/providers/I18nProvider'
 
@@ -267,12 +266,12 @@ export default function AdminSupportPage() {
             minWidth: 200,
             height: 38,
             padding: '0 12px',
-            border: `1px solid ${colors.border}`,
+            border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
             borderRadius: 8,
             fontSize: 13,
             fontFamily: 'inherit',
-            background: colors.surface,
-            color: colors.text,
+            background: 'var(--secondary, #1e2a3b)',
+            color: 'var(--foreground, #f1f5f9)',
             outline: 'none'
           }}
         />
@@ -284,9 +283,9 @@ export default function AdminSupportPage() {
               height: 38,
               padding: '0 14px',
               borderRadius: 8,
-              border: `1px solid ${filterStatus === s ? 'rgba(46,160,90,0.5)' : colors.border}`,
-              background: filterStatus === s ? 'rgba(27,122,62,0.12)' : colors.surface,
-              color: filterStatus === s ? colors.green : colors.textMid,
+              border: `1px solid ${filterStatus === s ? 'rgba(46,160,90,0.5)' : 'var(--border, rgba(255,255,255,0.1))'}`,
+              background: filterStatus === s ? 'rgba(27,122,62,0.12)' : 'var(--secondary, #1e2a3b)',
+              color: filterStatus === s ? '#4ade80' : 'var(--muted-foreground, #94a3b8)',
               fontSize: 12,
               fontWeight: 600,
               cursor: 'pointer',
@@ -305,9 +304,9 @@ export default function AdminSupportPage() {
           style={{
             height: 38,
             padding: '0 14px',
-            background: colors.greenLight,
-            color: colors.green,
-            border: `1px solid ${colors.successBorder}`,
+            background: 'rgba(34,197,94,0.1)',
+            color: '#4ade80',
+            border: `1px solid ${'rgba(34,197,94,0.3)'}`,
             borderRadius: 8,
             fontSize: 12,
             fontWeight: 600,
@@ -325,9 +324,9 @@ export default function AdminSupportPage() {
         {/* ── Liste des threads ─────────────────────────────────────── */}
         <div
           style={{
-            background: colors.surface,
+            background: 'var(--secondary, #1e2a3b)',
             borderRadius: 12,
-            border: `1px solid ${colors.border}`,
+            border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
             maxHeight: 680,
             display: 'flex',
             flexDirection: 'column',
@@ -337,9 +336,9 @@ export default function AdminSupportPage() {
           <div
             style={{
               padding: '12px 16px',
-              borderBottom: `1px solid ${colors.border}`,
+              borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
               fontSize: 12,
-              color: colors.textMid
+              color: 'var(--muted-foreground, #94a3b8)'
             }}
           >
             {filteredThreads.length} ticket{filteredThreads.length !== 1 ? 's' : ''} affichés
@@ -347,13 +346,13 @@ export default function AdminSupportPage() {
           <div style={{ overflowY: 'auto', flex: 1 }}>
             {loading ? (
               <div
-                style={{ textAlign: 'center', padding: 40, color: colors.textMid, fontSize: 13 }}
+                style={{ textAlign: 'center', padding: 40, color: 'var(--muted-foreground, #94a3b8)', fontSize: 13 }}
               >
                 {t('team.loading')}
               </div>
             ) : filteredThreads.length === 0 ? (
               <div
-                style={{ textAlign: 'center', padding: 40, color: colors.textMid, fontSize: 13 }}
+                style={{ textAlign: 'center', padding: 40, color: 'var(--muted-foreground, #94a3b8)', fontSize: 13 }}
               >
                 <div style={{ fontSize: 28, marginBottom: 8 }}>💬</div>
                 {t('admin.noTickets')}
@@ -370,10 +369,10 @@ export default function AdminSupportPage() {
                       width: '100%',
                       textAlign: 'left',
                       padding: '13px 16px',
-                      borderBottom: `1px solid ${colors.border}`,
+                      borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                       background:
                         selected?.id === t.id
-                          ? colors.greenLight
+                          ? 'rgba(34,197,94,0.1)'
                           : t.unreadByAdmin
                             ? '#FFFDE7'
                             : 'transparent',
@@ -394,7 +393,7 @@ export default function AdminSupportPage() {
                         style={{
                           fontWeight: 600,
                           fontSize: 13,
-                          color: colors.text,
+                          color: 'var(--foreground, #f1f5f9)',
                           flex: 1,
                           paddingRight: 8
                         }}
@@ -428,14 +427,14 @@ export default function AdminSupportPage() {
                         {STATUS_LABEL[status] ?? status}
                       </span>
                     </div>
-                    <div style={{ fontSize: 11.5, color: colors.textMid, marginBottom: 2 }}>
+                    <div style={{ fontSize: 11.5, color: 'var(--muted-foreground, #94a3b8)', marginBottom: 2 }}>
                       👤 {t.userName || t.userEmail || '—'}
                     </div>
                     {t.lastMessage && (
                       <div
                         style={{
                           fontSize: 11.5,
-                          color: colors.textDim,
+                          color: 'var(--muted-foreground, #64748b)',
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap',
@@ -453,7 +452,7 @@ export default function AdminSupportPage() {
                         marginTop: 4
                       }}
                     >
-                      <div style={{ fontSize: 10.5, color: colors.textDim }}>
+                      <div style={{ fontSize: 10.5, color: 'var(--muted-foreground, #64748b)' }}>
                         {fmtDate(t.updatedAt)}
                       </div>
                       <button
@@ -462,7 +461,7 @@ export default function AdminSupportPage() {
                           background: 'none',
                           border: 'none',
                           cursor: 'pointer',
-                          color: colors.textDim,
+                          color: 'var(--muted-foreground, #64748b)',
                           padding: 4,
                           borderRadius: 4,
                           display: 'flex',
@@ -471,7 +470,7 @@ export default function AdminSupportPage() {
                           transition: 'all 150ms ease'
                         }}
                         onMouseEnter={(e) => (e.currentTarget.style.color = '#ef4444')}
-                        onMouseLeave={(e) => (e.currentTarget.style.color = colors.textDim)}
+                        onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--muted-foreground, #64748b)')}
                         title="Supprimer définitivement"
                       >
                         <Trash2 size={12} />
@@ -487,9 +486,9 @@ export default function AdminSupportPage() {
         {/* ── Panneau de détail ─────────────────────────────────────── */}
         <div
           style={{
-            background: colors.surface,
+            background: 'var(--secondary, #1e2a3b)',
             borderRadius: 12,
-            border: `1px solid ${colors.border}`,
+            border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
             maxHeight: 680,
             display: 'flex',
             flexDirection: 'column',
@@ -503,7 +502,7 @@ export default function AdminSupportPage() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: colors.textMid,
+                color: 'var(--muted-foreground, #94a3b8)',
                 fontSize: 13,
                 padding: 40
               }}
@@ -516,12 +515,12 @@ export default function AdminSupportPage() {
               <div
                 style={{
                   padding: '14px 18px',
-                  borderBottom: `1px solid ${colors.border}`,
-                  background: colors.bg2
+                  borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+                  background: 'var(--card, #131c2e)'
                 }}
               >
                 <div
-                  style={{ fontWeight: 700, fontSize: 15, color: colors.text, marginBottom: 10 }}
+                  style={{ fontWeight: 700, fontSize: 15, color: 'var(--foreground, #f1f5f9)', marginBottom: 10 }}
                 >
                   {selected.subject ?? 'Ticket'}
                 </div>
@@ -543,7 +542,7 @@ export default function AdminSupportPage() {
                     <div
                       style={{
                         fontSize: 10,
-                        color: colors.textDim,
+                        color: 'var(--muted-foreground, #64748b)',
                         textTransform: 'uppercase',
                         letterSpacing: '.04em',
                         marginBottom: 2
@@ -556,12 +555,12 @@ export default function AdminSupportPage() {
                         fontSize: 11.5,
                         fontFamily: 'monospace',
                         fontWeight: 600,
-                        color: colors.text,
+                        color: 'var(--foreground, #f1f5f9)',
                         wordBreak: 'break-all',
                         padding: '2px 6px',
-                        background: colors.bg3,
+                        background: 'var(--secondary, #1e2a3b)',
                         borderRadius: 4,
-                        border: `1px solid ${colors.border}`,
+                        border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                         cursor: 'copy'
                       }}
                       onClick={() => navigator.clipboard.writeText(selected.userId ?? '')}
@@ -575,7 +574,7 @@ export default function AdminSupportPage() {
                     <div
                       style={{
                         fontSize: 10,
-                        color: colors.textDim,
+                        color: 'var(--muted-foreground, #64748b)',
                         textTransform: 'uppercase',
                         letterSpacing: '.04em',
                         marginBottom: 2
@@ -583,7 +582,7 @@ export default function AdminSupportPage() {
                     >
                       Nom
                     </div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: colors.text }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--foreground, #f1f5f9)' }}>
                       {selected.userName || '—'}
                     </div>
                   </div>
@@ -592,7 +591,7 @@ export default function AdminSupportPage() {
                     <div
                       style={{
                         fontSize: 10,
-                        color: colors.textDim,
+                        color: 'var(--muted-foreground, #64748b)',
                         textTransform: 'uppercase',
                         letterSpacing: '.04em',
                         marginBottom: 2
@@ -600,7 +599,7 @@ export default function AdminSupportPage() {
                     >
                       Email
                     </div>
-                    <div style={{ fontSize: 12, color: colors.textMid }}>
+                    <div style={{ fontSize: 12, color: 'var(--muted-foreground, #94a3b8)' }}>
                       {selected.userEmail || '—'}
                     </div>
                   </div>
@@ -609,7 +608,7 @@ export default function AdminSupportPage() {
                     <div
                       style={{
                         fontSize: 10,
-                        color: colors.textDim,
+                        color: 'var(--muted-foreground, #64748b)',
                         textTransform: 'uppercase',
                         letterSpacing: '.04em',
                         marginBottom: 2
@@ -649,7 +648,7 @@ export default function AdminSupportPage() {
                     style={{
                       textAlign: 'center',
                       padding: 24,
-                      color: colors.textMid,
+                      color: 'var(--muted-foreground, #94a3b8)',
                       fontSize: 13
                     }}
                   >
@@ -677,8 +676,8 @@ export default function AdminSupportPage() {
                             maxWidth: '78%',
                             padding: '10px 14px',
                             borderRadius: isUser ? '4px 14px 14px 14px' : '14px 4px 14px 14px',
-                            background: isUser ? colors.bg3 : colors.green,
-                            color: isUser ? colors.text : '#fff',
+                            background: isUser ? 'var(--secondary, #1e2a3b)' : '#4ade80',
+                            color: isUser ? 'var(--foreground, #f1f5f9)' : '#fff',
                             fontSize: 13,
                             lineHeight: 1.65,
                             wordBreak: 'break-word',
@@ -687,7 +686,7 @@ export default function AdminSupportPage() {
                         >
                           {m.content}
                         </div>
-                        <div style={{ fontSize: 10.5, color: colors.textDim, marginTop: 3 }}>
+                        <div style={{ fontSize: 10.5, color: 'var(--muted-foreground, #64748b)', marginTop: 3 }}>
                           {isUser ? `👤 ${selected.userName || 'Utilisateur'}` : '🎧 Support'} ·{' '}
                           {time}
                         </div>
@@ -701,7 +700,7 @@ export default function AdminSupportPage() {
               <div
                 style={{
                   padding: '12px 16px',
-                  borderTop: `1px solid ${colors.border}`,
+                  borderTop: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                   display: 'flex',
                   gap: 8
                 }}
@@ -716,15 +715,15 @@ export default function AdminSupportPage() {
                   style={{
                     flex: 1,
                     padding: '10px 12px',
-                    border: `1.5px solid ${colors.border}`,
+                    border: `1.5px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                     borderRadius: 8,
                     fontSize: 13,
                     resize: 'none',
                     minHeight: 64,
                     fontFamily: 'inherit',
                     outline: 'none',
-                    background: colors.bg2,
-                    color: colors.text
+                    background: 'var(--card, #131c2e)',
+                    color: 'var(--foreground, #f1f5f9)'
                   }}
                 />
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -733,7 +732,7 @@ export default function AdminSupportPage() {
                     disabled={sending || !replyText.trim()}
                     style={{
                       padding: '10px 16px',
-                      background: colors.green,
+                      background: '#4ade80',
                       color: '#fff',
                       border: 'none',
                       borderRadius: 8,
@@ -752,9 +751,9 @@ export default function AdminSupportPage() {
                       onClick={() => void resolveThread()}
                       style={{
                         padding: '8px 12px',
-                        background: colors.greenLight,
-                        color: colors.green,
-                        border: `1px solid ${colors.successBorder}`,
+                        background: 'rgba(34,197,94,0.1)',
+                        color: '#4ade80',
+                        border: `1px solid ${'rgba(34,197,94,0.3)'}`,
                         borderRadius: 8,
                         cursor: 'pointer',
                         fontSize: 12,

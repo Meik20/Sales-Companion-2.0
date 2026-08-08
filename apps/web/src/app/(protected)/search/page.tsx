@@ -11,7 +11,6 @@ import { SaveCurrentSearchButton } from '@/features/search/components/SaveCurren
 import { useCompaniesSearch } from '@/features/search/hooks/useCompaniesSearch'
 import { usePipelineStats } from '@/features/pipeline/hooks/usePipelineStats'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
-import { colors } from '@/styles/tokens'
 import { ShortcutCard } from '@/components/ui/ShortcutCard'
 import { Button } from '@/components/ui/Button'
 import { useTranslation } from '@/providers/I18nProvider'
@@ -215,7 +214,7 @@ function SearchContent() {
                       style={{
                         marginTop: 24,
                         paddingTop: 20,
-                        borderTop: `1px solid ${colors.border}`,
+                        borderTop: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -235,7 +234,7 @@ function SearchContent() {
                         {t('common.previous' as any) || 'Précédent'}
                       </Button>
 
-                      <span style={{ fontSize: 13, color: colors.textMid, fontWeight: 600 }}>
+                      <span style={{ fontSize: 13, color: 'var(--muted-foreground, #94a3b8)', fontWeight: 600 }}>
                         Page {currentPage} / {totalPages}
                       </span>
 
@@ -292,7 +291,7 @@ function SearchContent() {
                     alignItems: 'center',
                     justifyContent: 'center',
                     marginBottom: 16,
-                    background: `radial-gradient(50% 50% at 50% 50%, ${colors.greenLight} 0%, transparent 100%)`
+                    background: `radial-gradient(50% 50% at 50% 50%, ${'rgba(34,197,94,0.1)'} 0%, transparent 100%)`
                   }}
                 >
                   <style
@@ -378,7 +377,7 @@ function SearchContent() {
                       position: 'absolute',
                       inset: 0,
                       borderRadius: '50%',
-                      background: colors.greenLight,
+                      background: 'rgba(34,197,94,0.1)',
                       animation: 'pulseSimple 2s infinite ease-in-out',
                       opacity: 0.5
                     }}
@@ -394,18 +393,18 @@ function SearchContent() {
                     <path
                       d="M70 40 L100 20 L130 50 L140 90 L120 140 L80 160 L50 120 L40 80 Z"
                       fill={colors.border2}
-                      stroke={colors.border}
+                      stroke={'var(--border, rgba(255,255,255,0.1))'}
                       strokeWidth="2"
                       strokeLinejoin="round"
                     />
-                    <circle cx="80" cy="60" r="5" fill={colors.green} />
-                    <circle cx="110" cy="80" r="7" fill={colors.greenDark} />
-                    <circle cx="90" cy="110" r="4" fill={colors.green} />
-                    <circle cx="120" cy="120" r="6" fill={colors.green} />
-                    <circle cx="60" cy="100" r="3" fill={colors.green} />
+                    <circle cx="80" cy="60" r="5" fill={'#4ade80'} />
+                    <circle cx="110" cy="80" r="7" fill={'#16a34a'} />
+                    <circle cx="90" cy="110" r="4" fill={'#4ade80'} />
+                    <circle cx="120" cy="120" r="6" fill={'#4ade80'} />
+                    <circle cx="60" cy="100" r="3" fill={'#4ade80'} />
                     <path
                       d="M80 60 L110 80 L120 120 L90 110 Z"
-                      stroke={colors.green}
+                      stroke={'#4ade80'}
                       strokeWidth="1.2"
                       strokeDasharray="3 3"
                     />
@@ -414,7 +413,7 @@ function SearchContent() {
                       cy="140"
                       r="20"
                       fill="none"
-                      stroke={colors.text}
+                      stroke={'var(--foreground, #f1f5f9)'}
                       strokeWidth="5"
                     />
                     <line
@@ -422,14 +421,14 @@ function SearchContent() {
                       y1="155"
                       x2="165"
                       y2="175"
-                      stroke={colors.text}
+                      stroke={'var(--foreground, #f1f5f9)'}
                       strokeWidth="7"
                       strokeLinecap="round"
                     />
-                    <circle cx="130" cy="135" r="8" fill={colors.textMid} />
+                    <circle cx="130" cy="135" r="8" fill={'var(--muted-foreground, #94a3b8)'} />
                     <path
                       d="M118 152 C118 145 142 145 142 152"
-                      stroke={colors.textMid}
+                      stroke={'var(--muted-foreground, #94a3b8)'}
                       strokeWidth="4"
                       strokeLinecap="round"
                     />
@@ -450,7 +449,7 @@ function SearchContent() {
                     style={{
                       fontSize: 'clamp(18px, 5vw, 24px)',
                       fontWeight: 700,
-                      color: colors.text,
+                      color: 'var(--foreground, #f1f5f9)',
                       margin: 0,
                       wordBreak: 'break-word',
                       overflowWrap: 'anywhere'
@@ -460,7 +459,7 @@ function SearchContent() {
                   </h2>
                   <p
                     style={{
-                      color: colors.textMid,
+                      color: 'var(--muted-foreground, #94a3b8)',
                       fontSize: 'clamp(13px, 3.5vw, 15px)',
                       maxWidth: 400,
                       margin: '0 auto',
@@ -619,7 +618,7 @@ function SearchContent() {
                     }}
                   >
                     <div style={{ fontSize: 22, fontWeight: 800, color }}>{value}</div>
-                    <div style={{ fontSize: 10, color: colors.textMid, marginTop: 2 }}>{label}</div>
+                    <div style={{ fontSize: 10, color: 'var(--muted-foreground, #94a3b8)', marginTop: 2 }}>{label}</div>
                   </div>
                 ))}
               </div>
@@ -661,8 +660,8 @@ function SearchContent() {
                       style={{
                         alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
                         maxWidth: '85%',
-                        background: msg.role === 'user' ? colors.green : colors.greenLight,
-                        color: msg.role === 'user' ? '#fff' : colors.greenDark,
+                        background: msg.role === 'user' ? '#4ade80' : 'rgba(34,197,94,0.1)',
+                        color: msg.role === 'user' ? '#fff' : '#16a34a',
                         padding: '10px 14px',
                         borderRadius:
                           msg.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
@@ -679,8 +678,8 @@ function SearchContent() {
                     <div
                       style={{
                         alignSelf: 'flex-start',
-                        background: colors.greenLight,
-                        color: colors.greenDark,
+                        background: 'rgba(34,197,94,0.1)',
+                        color: '#16a34a',
                         padding: '10px 14px',
                         borderRadius: '16px 16px 16px 4px',
                         fontSize: 12,
@@ -717,9 +716,9 @@ function SearchContent() {
                           fontSize: 11,
                           padding: '5px 10px',
                           borderRadius: 999,
-                          border: `1px solid ${colors.greenLight}`,
-                          background: colors.greenLight,
-                          color: colors.greenDark,
+                          border: `1px solid ${'rgba(34,197,94,0.1)'}`,
+                          background: 'rgba(34,197,94,0.1)',
+                          color: '#16a34a',
                           cursor: isSendingChat ? 'not-allowed' : 'pointer',
                           opacity: isSendingChat ? 0.5 : 1,
                           transition: 'all 150ms ease'
@@ -744,13 +743,13 @@ function SearchContent() {
                       width: '100%',
                       padding: '10px 48px 10px 14px',
                       borderRadius: 14,
-                      border: `1px solid ${colors.border}`,
+                      border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                       outline: 'none',
                       fontSize: 12.5,
                       resize: 'none',
                       fontFamily: 'inherit',
-                      background: colors.bg2,
-                      color: colors.text,
+                      background: 'var(--card, #131c2e)',
+                      color: 'var(--foreground, #f1f5f9)',
                       boxSizing: 'border-box'
                     }}
                   />
@@ -764,7 +763,7 @@ function SearchContent() {
                       width: 32,
                       height: 32,
                       borderRadius: '50%',
-                      background: isSendingChat || !chatInput.trim() ? colors.border : colors.green,
+                      background: isSendingChat || !chatInput.trim() ? 'var(--border, rgba(255,255,255,0.1))' : '#4ade80',
                       color: '#fff',
                       border: 'none',
                       cursor: isSendingChat || !chatInput.trim() ? 'not-allowed' : 'pointer',

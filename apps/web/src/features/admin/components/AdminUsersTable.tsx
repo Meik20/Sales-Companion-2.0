@@ -1,6 +1,5 @@
 import { Badge } from '@/components/ui/index'
 import { Button } from '@/components/ui/Button'
-import { colors, shadows } from '@/styles/tokens'
 import type { UserDoc, UserPlan } from '@sales-companion/shared'
 import { PLAN_LIMITS } from '@sales-companion/shared'
 import { useTranslation } from '@/providers/I18nProvider'
@@ -69,7 +68,7 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
 
   if (!users.length) {
     return (
-      <p style={{ color: colors.textMid, textAlign: 'center', padding: '32px 0' }}>
+      <p style={{ color: 'var(--muted-foreground, #94a3b8)', textAlign: 'center', padding: '32px 0' }}>
         {t('team.noUserMatch') || 'Aucun utilisateur.'}
       </p>
     )
@@ -100,7 +99,7 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
         }}
       >
         <thead>
-          <tr style={{ background: colors.bg3 }}>
+          <tr style={{ background: 'var(--secondary, #1e2a3b)' }}>
             {headers.map((h) => (
               <th
                 key={h.label}
@@ -109,10 +108,10 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
                   textAlign: 'left',
                   fontSize: 10.5,
                   fontWeight: 700,
-                  color: colors.textMid,
+                  color: 'var(--muted-foreground, #94a3b8)',
                   letterSpacing: '.06em',
                   textTransform: 'uppercase',
-                  borderBottom: `2px solid ${colors.border}`,
+                  borderBottom: `2px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                   whiteSpace: 'nowrap'
                 }}
               >
@@ -129,10 +128,10 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
             <tr
               key={user.uid}
               style={{
-                borderBottom: `1px solid ${colors.border}`,
+                borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                 transition: 'background 150ms ease'
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = colors.bg3)}
+              onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--secondary, #1e2a3b)')}
               onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
             >
               {/* Nom & Email */}
@@ -160,7 +159,7 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
                     <span
                       style={{
                         fontWeight: 700,
-                        color: colors.text,
+                        color: 'var(--foreground, #f1f5f9)',
                         fontSize: 13,
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
@@ -172,7 +171,7 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
                     <span
                       style={{
                         fontSize: 11,
-                        color: colors.textMid,
+                        color: 'var(--muted-foreground, #94a3b8)',
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis'
@@ -209,9 +208,9 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
                     style={{
                       padding: '4px 8px',
                       borderRadius: 6,
-                      border: `1px solid ${colors.border}`,
-                      background: colors.bg2,
-                      color: colors.text,
+                      border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+                      background: 'var(--card, #131c2e)',
+                      color: 'var(--foreground, #f1f5f9)',
                       fontSize: 11,
                       fontWeight: 600,
                       fontFamily: 'inherit',
@@ -238,11 +237,11 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
                     marginBottom: 6
                   }}
                 >
-                  <span style={{ fontSize: 13, fontWeight: 800, color: colors.text }}>
+                  <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--foreground, #f1f5f9)' }}>
                     {user.dailyUsed}
                     <span
                       style={{
-                        color: colors.textDim,
+                        color: 'var(--muted-foreground, #64748b)',
                         fontWeight: 400,
                         marginLeft: 2,
                         fontSize: 11
@@ -262,17 +261,17 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
                         width: 50,
                         padding: '2px 4px',
                         fontSize: 11,
-                        background: colors.bg2,
-                        border: `1px solid ${colors.border}`,
+                        background: 'var(--card, #131c2e)',
+                        border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                         borderRadius: 4,
-                        color: colors.text,
+                        color: 'var(--foreground, #f1f5f9)',
                         fontWeight: 700,
                         textAlign: 'right',
                         outline: 'none'
                       }}
                     />
                   ) : (
-                    <span style={{ fontSize: 11, fontWeight: 700, color: colors.textMid }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted-foreground, #94a3b8)' }}>
                       {user.dailyLimit}
                     </span>
                   )}
@@ -281,10 +280,10 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
                   style={{
                     height: 6,
                     width: '100%',
-                    background: colors.bg2,
+                    background: 'var(--card, #131c2e)',
                     borderRadius: 10,
                     overflow: 'hidden',
-                    border: `1px solid ${colors.border}`
+                    border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
                   }}
                 >
                   <div
@@ -306,9 +305,9 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
                 </Badge>
               </td>
               {/* Région / Secteur */}
-              <td style={{ padding: '11px 12px', color: colors.textMid, fontSize: 12 }}>
+              <td style={{ padding: '11px 12px', color: 'var(--muted-foreground, #94a3b8)', fontSize: 12 }}>
                 <div>{user.region ?? '—'}</div>
-                <div style={{ fontSize: 11, color: colors.textDim, marginTop: 2 }}>
+                <div style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)', marginTop: 2 }}>
                   {user.sector ?? ''}
                 </div>
               </td>
@@ -316,7 +315,7 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
               <td
                 style={{
                   padding: '11px 12px',
-                  color: colors.textMid,
+                  color: 'var(--muted-foreground, #94a3b8)',
                   whiteSpace: 'nowrap',
                   fontSize: 12
                 }}
@@ -327,7 +326,7 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
               <td
                 style={{
                   padding: '11px 12px',
-                  color: colors.textMid,
+                  color: 'var(--muted-foreground, #94a3b8)',
                   whiteSpace: 'nowrap',
                   fontSize: 12
                 }}

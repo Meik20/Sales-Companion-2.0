@@ -5,7 +5,6 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useTeamAssignments } from '../hooks/useTeamAssignments'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { SectionCard } from './SectionCard'
-import { colors, shadows } from '@/styles/tokens'
 import { useTranslation } from '@/providers/I18nProvider'
 import {
   Wrench,
@@ -79,7 +78,7 @@ export function AssignmentsTable() {
   if (isLoading) {
     return (
       <SectionCard title={t('team.activeAssignments')} subtitle={`0 ${t('team.prospectAssigned')}`}>
-        <div style={{ textAlign: 'center', color: colors.textMid, padding: 20 }}>
+        <div style={{ textAlign: 'center', color: 'var(--muted-foreground, #94a3b8)', padding: 20 }}>
           {t('team.loading')}
         </div>
       </SectionCard>
@@ -118,7 +117,7 @@ export function AssignmentsTable() {
               border: `1px solid ${repairResult.uidFixed > 0 || repairResult.nameFixed > 0 ? 'rgba(46,160,90,0.25)' : 'rgba(99,102,241,0.2)'}`,
               fontSize: 12.5,
               color:
-                repairResult.uidFixed > 0 || repairResult.nameFixed > 0 ? '#2ea05a' : colors.textMid
+                repairResult.uidFixed > 0 || repairResult.nameFixed > 0 ? '#2ea05a' : 'var(--muted-foreground, #94a3b8)'
             }}
           >
             {repairResult.uidFixed > 0 ||
@@ -153,9 +152,9 @@ export function AssignmentsTable() {
             fontSize: 12,
             padding: '8px 16px',
             borderRadius: 10,
-            border: `1px solid ${colors.border}`,
-            background: colors.surface,
-            color: colors.textMid,
+            border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+            background: 'var(--secondary, #1e2a3b)',
+            color: 'var(--muted-foreground, #94a3b8)',
             cursor: repairing ? 'wait' : 'pointer',
             transition: 'all 200ms ease',
             fontFamily: 'inherit',
@@ -166,12 +165,12 @@ export function AssignmentsTable() {
             boxShadow: shadows.sm
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = colors.bg2
-            e.currentTarget.style.color = colors.text
+            e.currentTarget.style.background = 'var(--card, #131c2e)'
+            e.currentTarget.style.color = 'var(--foreground, #f1f5f9)'
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.background = colors.surface
-            e.currentTarget.style.color = colors.textMid
+            e.currentTarget.style.background = 'var(--secondary, #1e2a3b)'
+            e.currentTarget.style.color = 'var(--muted-foreground, #94a3b8)'
           }}
         >
           <Wrench size={14} style={{ animation: repairing ? 'spin 2s linear infinite' : 'none' }} />
@@ -180,14 +179,14 @@ export function AssignmentsTable() {
       </div>
 
       {count === 0 ? (
-        <div style={{ textAlign: 'center', color: colors.textMid, padding: 20, fontSize: 13 }}>
+        <div style={{ textAlign: 'center', color: 'var(--muted-foreground, #94a3b8)', padding: 20, fontSize: 13 }}>
           {t('team.noAssignmentCreated')}
         </div>
       ) : (
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
             <thead>
-              <tr style={{ borderBottom: `1px solid ${colors.border}` }}>
+              <tr style={{ borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}` }}>
                 {[
                   { label: t('team.prospect'), icon: <Building2 size={12} /> },
                   { label: t('pipeline.assignedTo'), icon: <User size={12} /> },
@@ -198,7 +197,7 @@ export function AssignmentsTable() {
                     style={{
                       textAlign: i === 2 ? 'right' : 'left',
                       padding: '12px 0',
-                      color: colors.textMid,
+                      color: 'var(--muted-foreground, #94a3b8)',
                       fontWeight: 700,
                       fontSize: 11,
                       textTransform: 'uppercase',
@@ -233,10 +232,10 @@ export function AssignmentsTable() {
                   <tr
                     key={a.id}
                     style={{
-                      borderBottom: `1px solid ${colors.border}`,
+                      borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                       transition: 'all 200ms ease'
                     }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = colors.bg3)}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--secondary, #1e2a3b)')}
                     onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                   >
                     {/* Prospect / Company */}
@@ -257,10 +256,10 @@ export function AssignmentsTable() {
                           <Building2 size={16} />
                         </div>
                         <div>
-                          <div style={{ fontWeight: 800, fontSize: 13, color: colors.text }}>
+                          <div style={{ fontWeight: 800, fontSize: 13, color: 'var(--foreground, #f1f5f9)' }}>
                             {a.companyName || a.pipelineItemId}
                           </div>
-                          <div style={{ fontSize: 11, color: colors.textMid, marginTop: 2 }}>
+                          <div style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)', marginTop: 2 }}>
                             {t('team.prospectAssignedSub')}
                           </div>
                         </div>
@@ -287,10 +286,10 @@ export function AssignmentsTable() {
                           {(a.memberName || a.memberEmail || '?')[0]?.toUpperCase()}
                         </div>
                         <div>
-                          <div style={{ fontWeight: 700, fontSize: 13, color: colors.text }}>
+                          <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--foreground, #f1f5f9)' }}>
                             {a.memberName || a.memberEmail || t('sidebar.member')}
                           </div>
-                          <div style={{ fontSize: 11, color: colors.textMid }}>{a.memberEmail}</div>
+                          <div style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)' }}>{a.memberEmail}</div>
                         </div>
                       </div>
                     </td>
@@ -299,7 +298,7 @@ export function AssignmentsTable() {
                     <td
                       style={{
                         padding: '16px 0',
-                        color: colors.textMid,
+                        color: 'var(--muted-foreground, #94a3b8)',
                         textAlign: 'right',
                         whiteSpace: 'nowrap'
                       }}

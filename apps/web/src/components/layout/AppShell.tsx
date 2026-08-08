@@ -5,7 +5,6 @@ import { AppHeader } from './AppHeader'
 import { AppSidebar } from './AppSidebar'
 import { MobileNav } from './MobileNav'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
-import { colors } from '@/styles/tokens'
 import { AuthGuard } from '@/components/auth/AuthGuard'
 
 export function AppShell({ children }: PropsWithChildren) {
@@ -19,55 +18,20 @@ export function AppShell({ children }: PropsWithChildren) {
 
   return (
     <AuthGuard>
-      <div
-        style={{
-          height: '100vh',
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-          background: colors.bg
-        }}
-      >
+      <div className="flex h-[100dvh] flex-col overflow-hidden bg-background">
         <AppHeader onOpenMenuAction={() => setIsDrawerOpen(true)} />
 
         {mounted && !isDesktop && isDrawerOpen && (
           <AppSidebar isMobile={true} onCloseAction={() => setIsDrawerOpen(false)} />
         )}
 
-        <div
-          style={{
-            flex: 1,
-            display: 'flex',
-            overflow: 'hidden',
-            width: '100%',
-            maxWidth: mounted && isDesktop ? 1440 : '100%',
-            margin: mounted && isDesktop ? '0 auto' : '0',
-            position: 'relative'
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              width: '100%',
-              height: '100%',
-              overflow: 'hidden',
-              paddingBottom: 0
-            }}
-          >
+        <div className="relative mx-auto flex w-full flex-1 overflow-hidden lg:max-w-[1440px]">
+          <div className="flex h-full w-full overflow-hidden pb-0">
             {mounted && isDesktop ? <AppSidebar /> : null}
 
             <main
               id="main-scroll-container"
-              style={{
-                flex: 1,
-                minWidth: 0,
-                height: '100%',
-                overflowY: 'auto',
-                overflowX: 'hidden',
-                padding: mounted && isDesktop ? '28px 28px 28px 24px' : '12px 16px',
-                paddingBottom: mounted && !isDesktop ? '84px' : (mounted && isDesktop ? '28px' : '16px'),
-                boxSizing: 'border-box'
-              }}
+              className="flex-1 min-w-0 h-full overflow-y-auto overflow-x-hidden box-border px-4 py-3 pb-[84px] lg:p-7 lg:pl-6 lg:pb-7"
             >
               {children}
             </main>

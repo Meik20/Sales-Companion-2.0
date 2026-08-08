@@ -1,7 +1,6 @@
 'use client'
 
 import React from 'react'
-import { colors, transitions } from '@/styles/tokens'
 import { Building2, Monitor, Leaf, Truck, Briefcase } from 'lucide-react'
 import { useTranslation } from '@/providers/I18nProvider'
 
@@ -93,7 +92,7 @@ export function ShortcutCard({
           style={{
             fontWeight: 600,
             fontSize: 12.5,
-            color: colors.text,
+            color: 'var(--foreground, #f1f5f9)',
             lineHeight: 1.3,
             whiteSpace: 'nowrap',
             overflow: 'hidden',
@@ -105,7 +104,7 @@ export function ShortcutCard({
         <span
           style={{
             fontSize: 11,
-            color: colors.textMid,
+            color: 'var(--muted-foreground, #94a3b8)',
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             textOverflow: 'ellipsis'
@@ -114,7 +113,7 @@ export function ShortcutCard({
           {subtitle}
         </span>
         {(count != null || updatedAt) && (
-          <div style={{ display: 'flex', gap: 8, marginTop: 2, fontSize: 10, color: colors.textDim }}>
+          <div style={{ display: 'flex', gap: 8, marginTop: 2, fontSize: 10, color: 'var(--muted-foreground, #64748b)' }}>
             {count != null && (
               <span>
                 {count.toLocaleString()} {t('search.companies')}

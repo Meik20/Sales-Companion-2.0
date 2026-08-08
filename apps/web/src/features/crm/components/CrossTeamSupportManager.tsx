@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useToast } from '@/hooks/useToast'
-import { colors } from '@/styles/tokens'
 
 type SupportLink = {
   id: string
@@ -78,8 +77,8 @@ export function CrossTeamSupportManager() {
 
   return (
     <div style={{
-      background: colors.bg2,
-      border: `1px solid ${colors.border}`,
+      background: 'var(--card, #131c2e)',
+      border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
       borderRadius: 16,
       padding: 24,
       marginTop: 24
@@ -87,14 +86,14 @@ export function CrossTeamSupportManager() {
       {/* Header */}
       <div style={{ marginBottom: 20 }}>
         <h3 style={{
-          margin: '0 0 4px', fontSize: 15, fontWeight: 800, color: colors.text,
+          margin: '0 0 4px', fontSize: 15, fontWeight: 800, color: 'var(--foreground, #f1f5f9)',
           display: 'flex', alignItems: 'center', gap: 8
         }}>
           🔗 Agents Support — Accès Cross-Équipe
         </h3>
-        <p style={{ margin: 0, fontSize: 13, color: colors.textMid, lineHeight: 1.6 }}>
+        <p style={{ margin: 0, fontSize: 13, color: 'var(--muted-foreground, #94a3b8)', lineHeight: 1.6 }}>
           Invitez un agent support d'une autre équipe (même organisation) à accéder aux clients conclus de votre équipe.
-          L'agent doit vous fournir son <strong style={{ color: colors.text }}>Access ID</strong> (ex : <code style={{ background: 'rgba(255,255,255,0.06)', padding: '1px 6px', borderRadius: 4 }}>prenomnom@entreprise</code>).
+          L'agent doit vous fournir son <strong style={{ color: 'var(--foreground, #f1f5f9)' }}>Access ID</strong> (ex : <code style={{ background: 'rgba(255,255,255,0.06)', padding: '1px 6px', borderRadius: 4 }}>prenomnom@entreprise</code>).
         </p>
       </div>
 
@@ -112,8 +111,8 @@ export function CrossTeamSupportManager() {
           onKeyDown={e => e.key === 'Enter' && void handleLink()}
           style={{
             flex: 1, padding: '10px 14px', borderRadius: 8,
-            border: `1px solid ${colors.border}`, background: colors.bg,
-            color: colors.text, fontSize: 13, fontFamily: 'inherit', outline: 'none'
+            border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`, background: 'var(--background, #0b1120)',
+            color: 'var(--foreground, #f1f5f9)', fontSize: 13, fontFamily: 'inherit', outline: 'none'
           }}
         />
         <button
@@ -121,7 +120,7 @@ export function CrossTeamSupportManager() {
           disabled={linking || !inputId.trim()}
           style={{
             padding: '10px 20px', borderRadius: 8,
-            background: linking || !inputId.trim() ? colors.bg3 : 'var(--color-primary)',
+            background: linking || !inputId.trim() ? 'var(--secondary, #1e2a3b)' : 'var(--color-primary)',
             border: 'none', color: '#fff', fontSize: 13, fontWeight: 700,
             cursor: linking || !inputId.trim() ? 'not-allowed' : 'pointer',
             fontFamily: 'inherit', transition: 'all 150ms', whiteSpace: 'nowrap'
@@ -133,21 +132,21 @@ export function CrossTeamSupportManager() {
 
       {/* Linked agents list */}
       {loading ? (
-        <p style={{ color: colors.textMid, fontSize: 13, textAlign: 'center' }}>Chargement…</p>
+        <p style={{ color: 'var(--muted-foreground, #94a3b8)', fontSize: 13, textAlign: 'center' }}>Chargement…</p>
       ) : links.length === 0 ? (
         <div style={{
           textAlign: 'center', padding: '24px 16px',
-          color: colors.textMid, fontSize: 13
+          color: 'var(--muted-foreground, #94a3b8)', fontSize: 13
         }}>
           <div style={{ fontSize: 28, marginBottom: 8 }}>🤝</div>
-          <p style={{ margin: 0, fontWeight: 600, color: colors.text }}>Aucun agent lié pour l'instant</p>
+          <p style={{ margin: 0, fontWeight: 600, color: 'var(--foreground, #f1f5f9)' }}>Aucun agent lié pour l'instant</p>
           <p style={{ margin: '4px 0 0', fontSize: 12 }}>
             Saisissez l'Access ID d'un agent support pour lui accorder l'accès à vos clients.
           </p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <p style={{ fontSize: 11, fontWeight: 700, color: colors.textMid, textTransform: 'uppercase', letterSpacing: '.06em', margin: '0 0 4px' }}>
+          <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted-foreground, #94a3b8)', textTransform: 'uppercase', letterSpacing: '.06em', margin: '0 0 4px' }}>
             {links.length} agent{links.length > 1 ? 's' : ''} lié{links.length > 1 ? 's' : ''} à votre équipe
           </p>
           {links.map(link => (
@@ -158,10 +157,10 @@ export function CrossTeamSupportManager() {
               border: `1px solid rgba(74,222,128,0.15)`
             }}>
               <div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: colors.text }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--foreground, #f1f5f9)' }}>
                   🎧 {link.agentName}
                 </div>
-                <div style={{ fontSize: 11, color: colors.textMid, marginTop: 2 }}>
+                <div style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)', marginTop: 2 }}>
                   {link.agentAccessId} · Lié le {new Date(link.grantedAt).toLocaleDateString('fr-FR')}
                 </div>
               </div>

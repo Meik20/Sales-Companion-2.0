@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Bell, CreditCard, UserCheck, HeadphonesIcon, CheckCheck, X } from 'lucide-react'
-import { colors } from '@/styles/tokens'
 import { useAdminNotifications } from '@/features/admin/hooks/useAdminNotifications'
 import type { AdminNotification } from '@/features/admin/hooks/useAdminNotifications'
 
@@ -14,26 +13,24 @@ function formatRelativeTime(iso: string): string {
   if (min < 60) return `Il y a ${min} min`
   const h = Math.floor(min / 60)
   if (h < 24) return `Il y a ${h}h`
-  const d = Math.floor(h / 24)
-  return `Il y a ${d}j`
+  return `Il y a ${Math.floor(h / 24)}j`
 }
 
 const notifIcon: Record<AdminNotification['type'], React.ReactNode> = {
-  payment_submitted: <CreditCard size={14} color="#f59e0b" />,
-  new_manager: <UserCheck size={14} color="#3b82f6" />,
-  support_ticket: <HeadphonesIcon size={14} color="#8b5cf6" />
+  payment_submitted: <CreditCard size={14} className="text-amber-400" />,
+  new_manager: <UserCheck size={14} className="text-blue-400" />,
+  support_ticket: <HeadphonesIcon size={14} className="text-violet-400" />
 }
 
-const notifAccent: Record<AdminNotification['type'], string> = {
-  payment_submitted: 'rgba(245,158,11,0.12)',
-  new_manager: 'rgba(59,130,246,0.12)',
-  support_ticket: 'rgba(139,92,246,0.12)'
+const notifBg: Record<AdminNotification['type'], string> = {
+  payment_submitted: 'bg-amber-500/10',
+  new_manager: 'bg-blue-500/10',
+  support_ticket: 'bg-violet-500/10'
 }
 
 /**
  * Cloche de notifications temps réel pour l'admin.
  * Affichée uniquement dans l'AppHeader quand user.role === 'admin'.
- * Les mises à jour arrivent via onSnapshot Firestore sans aucun polling.
  */
 export function AdminNotificationBell() {
   const router = useRouter()
@@ -43,7 +40,6 @@ export function AdminNotificationBell() {
   const [shake, setShake] = useState(false)
   const panelRef = useRef<HTMLDivElement>(null)
 
-  // Animation de secousse quand une nouvelle notification arrive
   useEffect(() => {
     if (unreadCount > prevCount && prevCount !== 0) {
       setShake(true)
@@ -52,12 +48,9 @@ export function AdminNotificationBell() {
     setPrevCount(unreadCount)
   }, [unreadCount, prevCount])
 
-  // Fermer en cliquant à l'extérieur
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
-        setIsOpen(false)
-      }
+      if (panelRef.current && !panelRef.current.contains(e.target as Node)) setIsOpen(false)
     }
     if (isOpen) document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
@@ -65,10 +58,7 @@ export function AdminNotificationBell() {
 
   async function handleNotifClick(notif: AdminNotification) {
     if (!notif.read) await markAsRead(notif.id)
-    if (notif.link) {
-      setIsOpen(false)
-      router.push(notif.link)
-    }
+    if (notif.link) { setIsOpen(false); router.push(notif.link) }
   }
 
   return (
@@ -92,126 +82,48 @@ export function AdminNotificationBell() {
         }
       ` }} />
 
-      <div ref={panelRef} style={{ position: 'relative' }}>
-        {/* ── Bouton cloche ──────────────────────────────────────────── */}
+      <div ref={panelRef} className="relative">
+        {/* Bell button */}
         <button
           onClick={() => setIsOpen((v) => !v)}
           title="Notifications admin"
-          style={{
-            position: 'relative',
-            background: isOpen ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)',
-            border: '1px solid rgba(255,255,255,0.18)',
-            borderRadius: 10,
-            width: 38,
-            height: 38,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            color: '#fff',
-            transition: 'background 200ms ease',
-            animation: shake ? 'bellShake 0.6s ease' : 'none'
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.22)')}
-          onMouseLeave={(e) => (e.currentTarget.style.background = isOpen ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)')}
+          className={`relative flex h-[38px] w-[38px] cursor-pointer items-center justify-center rounded-[10px] border border-white/18 text-white transition-colors duration-200 ${isOpen ? 'bg-white/20' : 'bg-white/10 hover:bg-white/20'}`}
+          style={{ animation: shake ? 'bellShake 0.6s ease' : 'none' }}
         >
           <Bell size={17} strokeWidth={2} />
           {unreadCount > 0 && (
             <span
-              style={{
-                position: 'absolute',
-                top: -4,
-                right: -4,
-                background: '#ef4444',
-                color: '#fff',
-                borderRadius: 9999,
-                minWidth: 17,
-                height: 17,
-                fontSize: 10,
-                fontWeight: 700,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '0 4px',
-                animation: 'badgePop 300ms ease',
-                border: '2px solid var(--color-primary)'
-              }}
+              className="absolute -right-1 -top-1 flex min-w-[17px] h-[17px] items-center justify-center rounded-full border-2 border-primary bg-red-500 px-1 text-[10px] font-bold text-white"
+              style={{ animation: 'badgePop 300ms ease' }}
             >
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
         </button>
 
-        {/* ── Panneau de notifications ────────────────────────────────── */}
+        {/* Notification panel */}
         {isOpen && (
           <div
-            style={{
-              position: 'absolute',
-              top: 46,
-              right: 0,
-              width: 340,
-              maxHeight: 480,
-              background: colors.bg2,
-              border: `1px solid ${colors.border}`,
-              borderRadius: 16,
-              boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
-              zIndex: 300,
-              display: 'flex',
-              flexDirection: 'column',
-              overflow: 'hidden',
-              animation: 'notifSlide 200ms ease'
-            }}
+            className="absolute right-0 top-[46px] z-[300] flex max-h-[480px] w-[340px] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-[0_20px_60px_rgba(0,0,0,0.5)]"
+            style={{ animation: 'notifSlide 200ms ease' }}
           >
-            {/* Header du panneau */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '14px 16px',
-                borderBottom: `1px solid ${colors.border}`
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Bell size={15} style={{ color: colors.textMid }} />
-                <span style={{ fontWeight: 700, fontSize: 14, color: colors.text }}>
-                  Notifications
-                </span>
+            {/* Panel header */}
+            <div className="flex items-center justify-between border-b border-border px-4 py-3.5">
+              <div className="flex items-center gap-2">
+                <Bell size={15} className="text-muted-foreground" />
+                <span className="text-[14px] font-bold text-foreground">Notifications</span>
                 {unreadCount > 0 && (
-                  <span
-                    style={{
-                      background: 'rgba(239,68,68,0.15)',
-                      color: '#ef4444',
-                      borderRadius: 9999,
-                      padding: '1px 7px',
-                      fontSize: 11,
-                      fontWeight: 700
-                    }}
-                  >
+                  <span className="rounded-full bg-red-500/15 px-[7px] py-px text-[11px] font-bold text-red-400">
                     {unreadCount} non lu{unreadCount > 1 ? 's' : ''}
                   </span>
                 )}
               </div>
-              <div style={{ display: 'flex', gap: 4 }}>
+              <div className="flex gap-1">
                 {unreadCount > 0 && (
                   <button
                     onClick={() => void markAllAsRead()}
                     title="Tout marquer comme lu"
-                    style={{
-                      background: 'transparent',
-                      border: 'none',
-                      color: colors.textMid,
-                      cursor: 'pointer',
-                      padding: '4px 6px',
-                      borderRadius: 6,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 4,
-                      fontSize: 11,
-                      transition: 'all 150ms'
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = colors.bg3)}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                    className="flex items-center gap-1 rounded-md px-1.5 py-1 text-[11px] text-muted-foreground transition-colors hover:bg-secondary"
                   >
                     <CheckCheck size={13} />
                     Tout lire
@@ -219,125 +131,48 @@ export function AdminNotificationBell() {
                 )}
                 <button
                   onClick={() => setIsOpen(false)}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    color: colors.textMid,
-                    cursor: 'pointer',
-                    padding: 4,
-                    borderRadius: 6,
-                    display: 'flex'
-                  }}
+                  className="flex rounded-md p-1 text-muted-foreground transition-colors hover:bg-secondary"
                 >
                   <X size={15} />
                 </button>
               </div>
             </div>
 
-            {/* Liste des notifications */}
-            <div style={{ overflowY: 'auto', flex: 1 }}>
+            {/* Notification list */}
+            <div className="flex-1 overflow-y-auto">
               {notifications.length === 0 ? (
-                <div
-                  style={{
-                    padding: '32px 16px',
-                    textAlign: 'center',
-                    color: colors.textDim,
-                    fontSize: 13
-                  }}
-                >
-                  <Bell size={28} style={{ opacity: 0.2, marginBottom: 8 }} />
-                  <p style={{ margin: 0 }}>Aucune notification</p>
+                <div className="px-4 py-8 text-center text-[13px] text-muted-foreground/60">
+                  <Bell size={28} className="mx-auto mb-2 opacity-20" />
+                  <p className="m-0">Aucune notification</p>
                 </div>
               ) : (
                 notifications.map((notif) => (
                   <div
                     key={notif.id}
                     onClick={() => void handleNotifClick(notif)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      gap: 12,
-                      padding: '12px 16px',
-                      borderBottom: `1px solid ${colors.border}`,
-                      background: notif.read ? 'transparent' : notifAccent[notif.type],
-                      cursor: notif.link ? 'pointer' : 'default',
-                      transition: 'background 150ms ease'
-                    }}
-                    onMouseEnter={(e) => {
-                      if (notif.link) e.currentTarget.style.background = colors.bg3
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = notif.read
-                        ? 'transparent'
-                        : notifAccent[notif.type]
-                    }}
+                    className={`flex items-start gap-3 border-b border-border px-4 py-3 transition-colors duration-150 ${
+                      notif.read ? 'bg-transparent hover:bg-secondary' : `${notifBg[notif.type]} hover:bg-secondary`
+                    } ${notif.link ? 'cursor-pointer' : 'cursor-default'}`}
                   >
-                    {/* Icône type */}
-                    <div
-                      style={{
-                        width: 32,
-                        height: 32,
-                        borderRadius: '50%',
-                        background: colors.bg3,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0
-                      }}
-                    >
+                    {/* Type icon */}
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-secondary">
                       {notifIcon[notif.type]}
                     </div>
 
-                    {/* Contenu */}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          gap: 8,
-                          marginBottom: 2
-                        }}
-                      >
-                        <span
-                          style={{
-                            fontWeight: notif.read ? 500 : 700,
-                            fontSize: 13,
-                            color: colors.text,
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap'
-                          }}
-                        >
+                    {/* Content */}
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-0.5 flex items-center justify-between gap-2">
+                        <span className={`truncate text-[13px] text-foreground ${notif.read ? 'font-medium' : 'font-bold'}`}>
                           {notif.title}
                         </span>
                         {!notif.read && (
-                          <span
-                            style={{
-                              width: 7,
-                              height: 7,
-                              borderRadius: '50%',
-                              background: '#ef4444',
-                              flexShrink: 0
-                            }}
-                          />
+                          <span className="h-[7px] w-[7px] shrink-0 rounded-full bg-red-500" />
                         )}
                       </div>
-                      <p
-                        style={{
-                          margin: 0,
-                          fontSize: 12,
-                          color: colors.textMid,
-                          lineHeight: 1.5,
-                          overflow: 'hidden',
-                          display: '-webkit-box',
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: 'vertical'
-                        }}
-                      >
+                      <p className="m-0 line-clamp-2 text-[12px] leading-relaxed text-muted-foreground">
                         {notif.message}
                       </p>
-                      <span style={{ fontSize: 11, color: colors.textDim, marginTop: 4, display: 'block' }}>
+                      <span className="mt-1 block text-[11px] text-muted-foreground/60">
                         {formatRelativeTime(notif.createdAt)}
                       </span>
                     </div>

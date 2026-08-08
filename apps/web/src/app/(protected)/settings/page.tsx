@@ -9,7 +9,6 @@ import { EmptyState } from '@/components/feedback/index'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useToast } from '@/hooks/useToast'
 import { useTranslation } from '@/providers/I18nProvider'
-import { colors } from '@/styles/tokens'
 import { routes } from '@/constants/routes'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
@@ -190,8 +189,8 @@ export default function SettingsPage() {
                       style={{
                         padding: '16px 18px',
                         borderRadius: 14,
-                        border: `2px solid ${isActive ? th.accent : colors.border}`,
-                        background: isActive ? `${th.accent}0f` : colors.bg2,
+                        border: `2px solid ${isActive ? th.accent : 'var(--border, rgba(255,255,255,0.1))'}`,
+                        background: isActive ? `${th.accent}0f` : 'var(--card, #131c2e)',
                         cursor: 'pointer',
                         textAlign: 'left',
                         transition: 'all 220ms ease',
@@ -223,7 +222,7 @@ export default function SettingsPage() {
                       {/* Label + badge actif */}
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                          <strong style={{ fontSize: 13, color: colors.text }}>{th.label}</strong>
+                          <strong style={{ fontSize: 13, color: 'var(--foreground, #f1f5f9)' }}>{th.label}</strong>
                           {isActive && (
                             <span style={{
                               fontSize: 9, fontWeight: 800,
@@ -238,7 +237,7 @@ export default function SettingsPage() {
                           )}
                         </div>
                         <p style={{
-                          fontSize: 11.5, color: colors.textMid,
+                          fontSize: 11.5, color: 'var(--muted-foreground, #94a3b8)',
                           margin: 0, lineHeight: 1.5
                         }}>
                           {th.desc}
@@ -254,11 +253,11 @@ export default function SettingsPage() {
                 display: 'flex', alignItems: 'center',
                 justifyContent: 'space-between', flexWrap: 'wrap', gap: 10,
                 padding: '12px 16px', borderRadius: 10,
-                background: colors.bg3, border: `1px solid ${colors.border}`
+                background: 'var(--secondary, #1e2a3b)', border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
               }}>
-                <span style={{ fontSize: 13, color: colors.textMid, fontWeight: 500 }}>
+                <span style={{ fontSize: 13, color: 'var(--muted-foreground, #94a3b8)', fontWeight: 500 }}>
                   Thème actif :{' '}
-                  <strong style={{ color: colors.text }}>
+                  <strong style={{ color: 'var(--foreground, #f1f5f9)' }}>
                     {activeDesign === 'firebase' ? '🔥 Firebase Console' : '💼 LinkedIn Design'}
                   </strong>
                 </span>
@@ -268,8 +267,8 @@ export default function SettingsPage() {
                   style={{
                     padding: '6px 16px', borderRadius: 8,
                     fontSize: 12, fontWeight: 700,
-                    border: `1px solid ${colors.border}`,
-                    background: colors.bg2, color: colors.text,
+                    border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+                    background: 'var(--card, #131c2e)', color: 'var(--foreground, #f1f5f9)',
                     cursor: 'pointer', transition: 'all 150ms ease'
                   }}
                 >
@@ -289,14 +288,14 @@ export default function SettingsPage() {
               }}>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-                    <span style={{ fontSize: 20, fontWeight: 800, color: colors.text, fontFamily: 'inherit' }}>
+                    <span style={{ fontSize: 20, fontWeight: 800, color: 'var(--foreground, #f1f5f9)', fontFamily: 'inherit' }}>
                       {t('settings.planLabel')} {t(planInfo.labelKey as any)}
                     </span>
                     <Badge variant={plan === 'enterprise' ? 'gold' : plan === 'pro' ? 'success' : 'default'}>
                       {t(planInfo.labelKey as any)}
                     </Badge>
                   </div>
-                  <p style={{ margin: 0, fontSize: 13, color: colors.textMid }}>
+                  <p style={{ margin: 0, fontSize: 13, color: 'var(--muted-foreground, #94a3b8)' }}>
                     {plan === 'free'
                       ? t('landing.plansSection.pFree1' as any)
                       : planInfo.searches >= 1000
@@ -347,24 +346,24 @@ export default function SettingsPage() {
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 12,
-                borderBottom: `1px solid ${colors.border}`,
+                borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                 paddingBottom: 24
               }}>
-                <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: colors.text }}>
+                <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: 'var(--foreground, #f1f5f9)' }}>
                   Adresse e-mail
                 </h3>
-                <p style={{ margin: 0, fontSize: 13, color: colors.textMid }}>
-                  Votre adresse e-mail actuelle est : <strong style={{ color: colors.text }}>{user?.email}</strong>
+                <p style={{ margin: 0, fontSize: 13, color: 'var(--muted-foreground, #94a3b8)' }}>
+                  Votre adresse e-mail actuelle est : <strong style={{ color: 'var(--foreground, #f1f5f9)' }}>{user?.email}</strong>
                 </p>
                 
                 {isGoogleUser ? (
                   <div style={{
                     padding: '10px 14px',
                     background: 'rgba(255,255,255,0.03)',
-                    border: `1px solid ${colors.border}`,
+                    border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                     borderRadius: 8,
                     fontSize: 12,
-                    color: colors.textMid
+                    color: 'var(--muted-foreground, #94a3b8)'
                   }}>
                     Votre compte est associé à Google. Les modifications d&apos;adresse e-mail doivent être effectuées depuis votre compte Google.
                   </div>
@@ -391,9 +390,9 @@ export default function SettingsPage() {
                       <div style={{ fontSize: 12, color: '#f87171' }}>{emailError}</div>
                     )}
                     {emailSuccess && (
-                      <div style={{ fontSize: 12, color: colors.greenMid }}>{emailSuccess}</div>
+                      <div style={{ fontSize: 12, color: '#22c55e' }}>{emailSuccess}</div>
                     )}
-                    <span style={{ fontSize: 11, color: colors.textDim }}>
+                    <span style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)' }}>
                       Un e-mail de confirmation sera envoyé à la nouvelle adresse pour valider le changement.
                     </span>
                   </form>
@@ -402,7 +401,7 @@ export default function SettingsPage() {
 
               {/* Mot de passe Section */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: colors.text }}>
+                <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: 'var(--foreground, #f1f5f9)' }}>
                   Mot de passe
                 </h3>
                 
@@ -410,10 +409,10 @@ export default function SettingsPage() {
                   <div style={{
                     padding: '10px 14px',
                     background: 'rgba(255,255,255,0.03)',
-                    border: `1px solid ${colors.border}`,
+                    border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                     borderRadius: 8,
                     fontSize: 12,
-                    color: colors.textMid
+                    color: 'var(--muted-foreground, #94a3b8)'
                   }}>
                     Votre compte est associé à Google. Votre mot de passe est géré de manière sécurisée par Google.
                   </div>
@@ -431,9 +430,9 @@ export default function SettingsPage() {
                       <div style={{ fontSize: 12, color: '#f87171' }}>{pwError}</div>
                     )}
                     {pwSuccess && (
-                      <div style={{ fontSize: 12, color: colors.greenMid }}>{pwSuccess}</div>
+                      <div style={{ fontSize: 12, color: '#22c55e' }}>{pwSuccess}</div>
                     )}
-                    <span style={{ fontSize: 11, color: colors.textDim }}>
+                    <span style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)' }}>
                       Nous vous enverrons un lien de réinitialisation sécurisé par e-mail.
                     </span>
                   </div>

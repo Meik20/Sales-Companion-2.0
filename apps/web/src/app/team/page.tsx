@@ -17,7 +17,6 @@ import {
 } from '@/features/imports/components/ManagerProspectsList'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useTeamMembers } from '@/features/team/hooks/useTeamMembers'
-import { colors } from '@/styles/tokens'
 import { useTranslation } from '@/providers/I18nProvider'
 
 type Tab = 'team' | 'imports'
@@ -76,20 +75,20 @@ export default function TeamPage() {
         {/* Bloc import */}
         <div
           style={{
-            background: colors.surface,
+            background: 'var(--secondary, #1e2a3b)',
             borderRadius: 14,
-            border: `1px solid ${colors.border}`,
+            border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
             padding: 24
           }}
         >
           <div style={{ marginBottom: 20 }}>
-            <h2 style={{ fontSize: 16, fontWeight: 700, color: colors.text, margin: '0 0 6px' }}>
+            <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--foreground, #f1f5f9)', margin: '0 0 6px' }}>
               📥 Importer une base de données clients
             </h2>
-            <p style={{ fontSize: 13, color: colors.textMid, margin: 0, lineHeight: 1.6 }}>
+            <p style={{ fontSize: 13, color: 'var(--muted-foreground, #94a3b8)', margin: 0, lineHeight: 1.6 }}>
               Glissez un fichier CSV, Excel ou texte. Les clients importés seront immédiatement
               visibles dans{' '}
-              <strong style={{ color: colors.text }}>Mes Clients CRM</strong>.
+              <strong style={{ color: 'var(--foreground, #f1f5f9)' }}>Mes Clients CRM</strong>.
             </p>
           </div>
 
@@ -99,7 +98,7 @@ export default function TeamPage() {
               onImported={() => setImportRefresh((n) => n + 1)}
             />
           ) : (
-            <div style={{ textAlign: 'center', padding: 32, color: colors.textMid, fontSize: 13 }}>
+            <div style={{ textAlign: 'center', padding: 32, color: 'var(--muted-foreground, #94a3b8)', fontSize: 13 }}>
               ⚠️ Compte non configuré. Contactez l&apos;administrateur.
             </div>
           )}
@@ -110,16 +109,16 @@ export default function TeamPage() {
           <div
             style={{
               marginTop: 20,
-              background: colors.surface,
+              background: 'var(--secondary, #1e2a3b)',
               borderRadius: 14,
-              border: `1px solid ${colors.border}`,
+              border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
               padding: 24
             }}
           >
-            <h2 style={{ fontSize: 15, fontWeight: 700, color: colors.text, margin: '0 0 4px' }}>
+            <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--foreground, #f1f5f9)', margin: '0 0 4px' }}>
               📋 Clients importés
             </h2>
-            <p style={{ fontSize: 12.5, color: colors.textMid, margin: '0 0 16px' }}>
+            <p style={{ fontSize: 12.5, color: 'var(--muted-foreground, #94a3b8)', margin: '0 0 16px' }}>
               Aperçu de votre fichier importé. Ces entrées sont visibles dans Mes Clients CRM.
             </p>
             <ManagerProspectsList
@@ -146,7 +145,7 @@ export default function TeamPage() {
             display: 'flex',
             gap: 4,
             marginBottom: 20,
-            borderBottom: `1px solid ${colors.border}`
+            borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
           }}
         >
           {tabs.map((tab) => (
@@ -159,8 +158,8 @@ export default function TeamPage() {
                 border: 'none',
                 background: 'transparent',
                 borderBottom:
-                  activeTab === tab.id ? `2px solid ${colors.green}` : '2px solid transparent',
-                color: activeTab === tab.id ? colors.green : colors.textMid,
+                  activeTab === tab.id ? `2px solid ${'#4ade80'}` : '2px solid transparent',
+                color: activeTab === tab.id ? '#4ade80' : 'var(--muted-foreground, #94a3b8)',
                 fontWeight: activeTab === tab.id ? 700 : 500,
                 fontSize: 13,
                 cursor: 'pointer',
@@ -181,7 +180,7 @@ export default function TeamPage() {
                     minWidth: 16,
                     height: 16,
                     borderRadius: 8,
-                    background: colors.green,
+                    background: '#4ade80',
                     color: '#fff',
                     fontSize: 10,
                     fontWeight: 700,
@@ -216,7 +215,7 @@ export default function TeamPage() {
                   background: 'rgba(46,160,90,0.08)',
                   border: '1px solid rgba(46,160,90,0.2)',
                   fontSize: 12.5,
-                  color: colors.textMid,
+                  color: 'var(--muted-foreground, #94a3b8)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
@@ -224,7 +223,7 @@ export default function TeamPage() {
                 }}
               >
                 <span>
-                  <span style={{ color: colors.green, fontWeight: 700 }}>
+                  <span style={{ color: '#4ade80', fontWeight: 700 }}>
                     {selectedProspects.length}
                   </span>{' '}
                   {t('team.prospectsSelected')}
@@ -236,7 +235,7 @@ export default function TeamPage() {
                     border: 'none',
                     cursor: 'pointer',
                     fontSize: 18,
-                    color: colors.textMid,
+                    color: 'var(--muted-foreground, #94a3b8)',
                     lineHeight: 1
                   }}
                   title={t('team.clearSelection')}
@@ -257,17 +256,17 @@ export default function TeamPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div
             style={{
-              background: colors.surface,
+              background: 'var(--secondary, #1e2a3b)',
               borderRadius: 14,
-              border: `1px solid ${colors.border}`,
+              border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
               padding: 20
             }}
           >
             <div style={{ marginBottom: 16 }}>
-              <h2 style={{ fontSize: 15, fontWeight: 700, color: colors.text, margin: '0 0 4px' }}>
+              <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--foreground, #f1f5f9)', margin: '0 0 4px' }}>
                 {t('team.importTitle')}
               </h2>
-              <p style={{ fontSize: 12.5, color: colors.textMid, margin: 0 }}>
+              <p style={{ fontSize: 12.5, color: 'var(--muted-foreground, #94a3b8)', margin: 0 }}>
                 {t('team.importDesc')}
               </p>
             </div>
@@ -281,9 +280,9 @@ export default function TeamPage() {
 
           <div
             style={{
-              background: colors.surface,
+              background: 'var(--secondary, #1e2a3b)',
               borderRadius: 14,
-              border: `1px solid ${colors.border}`,
+              border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
               padding: 20
             }}
           >
@@ -298,11 +297,11 @@ export default function TeamPage() {
             >
               <div>
                 <h2
-                  style={{ fontSize: 15, fontWeight: 700, color: colors.text, margin: '0 0 4px' }}
+                  style={{ fontSize: 15, fontWeight: 700, color: 'var(--foreground, #f1f5f9)', margin: '0 0 4px' }}
                 >
                   {t('team.myProspects')}
                 </h2>
-                <p style={{ fontSize: 12.5, color: colors.textMid, margin: 0 }}>
+                <p style={{ fontSize: 12.5, color: 'var(--muted-foreground, #94a3b8)', margin: 0 }}>
                   {t('team.myProspectsDesc')}
                 </p>
               </div>
@@ -319,7 +318,7 @@ export default function TeamPage() {
                     flexShrink: 0,
                     height: 34,
                     padding: '0 14px',
-                    background: colors.green,
+                    background: '#4ade80',
                     color: '#fff',
                     border: 'none',
                     borderRadius: 8,

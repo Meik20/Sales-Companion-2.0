@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { colors } from '@/styles/tokens'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 
 interface Message {
@@ -95,7 +94,7 @@ export default function AIAssistantPage() {
 
   if (!user) {
     return (
-      <div style={{ padding: '20px', textAlign: 'center', color: colors.text }}>
+      <div style={{ padding: '20px', textAlign: 'center', color: 'var(--foreground, #f1f5f9)' }}>
         ⏳ Chargement...
       </div>
     )
@@ -110,10 +109,10 @@ export default function AIAssistantPage() {
           alignItems: 'center',
           justifyContent: 'center',
           height: '100vh',
-          background: colors.bg,
+          background: 'var(--background, #0b1120)',
           padding: '24px',
           textAlign: 'center',
-          color: colors.text
+          color: 'var(--foreground, #f1f5f9)'
         }}
       >
         <div className="hero-glow-tl" style={{ opacity: 0.15 }} />
@@ -121,7 +120,7 @@ export default function AIAssistantPage() {
         <h1 style={{ fontSize: '24px', fontWeight: 800, marginBottom: '12px', fontFamily: "'Syne', sans-serif" }}>
           Companion IA Commercial
         </h1>
-        <p style={{ maxWidth: '400px', color: colors.textMid, fontSize: '14px', lineHeight: 1.6, marginBottom: '24px' }}>
+        <p style={{ maxWidth: '400px', color: 'var(--muted-foreground, #94a3b8)', fontSize: '14px', lineHeight: 1.6, marginBottom: '24px' }}>
           L&apos;assistant de prospection intelligent est réservé aux abonnements payants. Boostez vos ventes en générant des emails et scripts d&apos;approche sur-mesure pour le marché camerounais.
         </p>
         <a
@@ -151,7 +150,7 @@ export default function AIAssistantPage() {
         display: 'flex',
         flexDirection: 'column',
         height: '100vh',
-        background: colors.bg,
+        background: 'var(--background, #0b1120)',
         position: 'relative'
       }}
     >
@@ -159,18 +158,18 @@ export default function AIAssistantPage() {
       <div
         style={{
           padding: '16px',
-          borderBottom: `1px solid ${colors.border}`,
-          background: colors.bg2,
+          borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+          background: 'var(--card, #131c2e)',
           display: 'flex',
           alignItems: 'center',
           gap: '12px'
         }}
       >
         <div>
-          <h1 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: colors.text }}>
+          <h1 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: 'var(--foreground, #f1f5f9)' }}>
             Companion IA
           </h1>
-          <p style={{ margin: 0, fontSize: '12px', color: colors.textMid }}>
+          <p style={{ margin: 0, fontSize: '12px', color: 'var(--muted-foreground, #94a3b8)' }}>
             Conseils commerciaux en temps réel
           </p>
         </div>
@@ -203,8 +202,8 @@ export default function AIAssistantPage() {
                 maxWidth: '85%',
                 padding: '12px 16px',
                 borderRadius: '12px',
-                background: msg.role === 'user' ? colors.greenMid : colors.bg2,
-                color: msg.role === 'user' ? 'white' : colors.text,
+                background: msg.role === 'user' ? '#22c55e' : 'var(--card, #131c2e)',
+                color: msg.role === 'user' ? 'white' : 'var(--foreground, #f1f5f9)',
                 fontSize: '14px',
                 lineHeight: '1.5',
                 wordBreak: 'break-word'
@@ -226,8 +225,8 @@ export default function AIAssistantPage() {
               style={{
                 padding: '12px 16px',
                 borderRadius: '12px',
-                background: colors.bg2,
-                color: colors.textMid,
+                background: 'var(--card, #131c2e)',
+                color: 'var(--muted-foreground, #94a3b8)',
                 fontSize: '14px'
               }}
             >
@@ -247,8 +246,8 @@ export default function AIAssistantPage() {
           left: 0,
           right: 0,
           padding: '12px 16px',
-          background: colors.bg2,
-          borderTop: `1px solid ${colors.border}`,
+          background: 'var(--card, #131c2e)',
+          borderTop: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
           display: 'flex',
           gap: '8px',
           paddingBottom: 'max(12px, env(safe-area-inset-bottom, 0px))'
@@ -263,9 +262,9 @@ export default function AIAssistantPage() {
             flex: 1,
             padding: '10px 12px',
             borderRadius: '8px',
-            border: `1px solid ${colors.border}`,
-            background: colors.bg,
-            color: colors.text,
+            border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+            background: 'var(--background, #0b1120)',
+            color: 'var(--foreground, #f1f5f9)',
             fontSize: '14px',
             fontFamily: 'inherit',
             resize: 'none',
@@ -282,7 +281,7 @@ export default function AIAssistantPage() {
             padding: '10px 16px',
             borderRadius: '8px',
             border: 'none',
-            background: input.trim() && !loading ? colors.greenMid : colors.textDim,
+            background: input.trim() && !loading ? '#22c55e' : 'var(--muted-foreground, #64748b)',
             color: 'white',
             cursor: input.trim() && !loading ? 'pointer' : 'not-allowed',
             fontWeight: 600,

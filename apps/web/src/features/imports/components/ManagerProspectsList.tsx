@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { colors } from '@/styles/tokens'
 import { useTranslation } from '@/providers/I18nProvider'
 
 export type Prospect = {
@@ -55,12 +54,12 @@ function getStatusLabel(status: string, t: any) {
 const SELECT_STYLE: React.CSSProperties = {
   height: 28,
   padding: '0 6px',
-  border: `1px solid ${colors.border}`,
+  border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
   borderRadius: 6,
   fontSize: 11,
   fontFamily: 'inherit',
-  background: colors.bg2,
-  color: colors.text,
+  background: 'var(--card, #131c2e)',
+  color: 'var(--foreground, #f1f5f9)',
   cursor: 'pointer',
   outline: 'none',
   maxWidth: 150
@@ -171,7 +170,7 @@ export function ManagerProspectsList({
     width: 15,
     height: 15,
     cursor: 'pointer',
-    accentColor: colors.green
+    accentColor: '#4ade80'
   }
 
   return (
@@ -188,12 +187,12 @@ export function ManagerProspectsList({
             minWidth: 180,
             height: 36,
             padding: '0 12px',
-            border: `1px solid ${colors.border}`,
+            border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
             borderRadius: 8,
             fontSize: 13,
             fontFamily: 'inherit',
-            background: colors.bg2,
-            color: colors.text,
+            background: 'var(--card, #131c2e)',
+            color: 'var(--foreground, #f1f5f9)',
             outline: 'none'
           }}
         />
@@ -205,12 +204,12 @@ export function ManagerProspectsList({
             style={{
               height: 36,
               padding: '0 10px',
-              border: `1px solid ${colors.border}`,
+              border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
               borderRadius: 8,
               fontSize: 12,
               fontFamily: 'inherit',
-              background: colors.bg2,
-              color: colors.text,
+              background: 'var(--card, #131c2e)',
+              color: 'var(--foreground, #f1f5f9)',
               outline: 'none',
               cursor: 'pointer'
             }}
@@ -230,9 +229,9 @@ export function ManagerProspectsList({
           style={{
             height: 36,
             padding: '0 12px',
-            background: colors.greenLight,
-            color: colors.green,
-            border: `1px solid ${colors.successBorder}`,
+            background: 'rgba(34,197,94,0.1)',
+            color: '#4ade80',
+            border: `1px solid ${'rgba(34,197,94,0.3)'}`,
             borderRadius: 8,
             fontSize: 14,
             fontWeight: 700,
@@ -254,12 +253,12 @@ export function ManagerProspectsList({
           gap: 8
         }}
       >
-        <span style={{ fontSize: 12, color: colors.textMid }}>
+        <span style={{ fontSize: 12, color: 'var(--muted-foreground, #94a3b8)' }}>
           {loading
             ? t('team.loading')
             : `${filtered.length} ${t('team.prospectsOn')} ${prospects.length}`}
           {someSelected && (
-            <span style={{ marginLeft: 8, color: colors.green, fontWeight: 600 }}>
+            <span style={{ marginLeft: 8, color: '#4ade80', fontWeight: 600 }}>
               · {selected.size} {t('team.selected')}
             </span>
           )}
@@ -271,7 +270,7 @@ export function ManagerProspectsList({
             style={{
               height: 32,
               padding: '0 14px',
-              background: colors.green,
+              background: '#4ade80',
               color: '#fff',
               border: 'none',
               borderRadius: 8,
@@ -291,22 +290,22 @@ export function ManagerProspectsList({
 
       {/* ── Table ── */}
       {!loading && filtered.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: 32, color: colors.textMid, fontSize: 13 }}>
+        <div style={{ textAlign: 'center', padding: 32, color: 'var(--muted-foreground, #94a3b8)', fontSize: 13 }}>
           <div style={{ fontSize: 28, marginBottom: 8 }}>📋</div>
           {prospects.length === 0 ? t('team.noProspectImported') : t('team.noProspectMatch')}
         </div>
       ) : (
-        <div style={{ overflowX: 'auto', borderRadius: 10, border: `1px solid ${colors.border}` }}>
+        <div style={{ overflowX: 'auto', borderRadius: 10, border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}` }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12.5 }}>
             <thead>
-              <tr style={{ background: colors.bg3 }}>
+              <tr style={{ background: 'var(--secondary, #1e2a3b)' }}>
                 {/* Select-all checkbox */}
                 <th
                   style={{
                     padding: '9px 12px',
                     width: 36,
                     textAlign: 'center',
-                    borderBottom: `1px solid ${colors.border}`
+                    borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
                   }}
                 >
                   <input
@@ -334,10 +333,10 @@ export function ManagerProspectsList({
                     style={{
                       textAlign: 'left',
                       padding: '9px 12px',
-                      color: colors.textMid,
+                      color: 'var(--muted-foreground, #94a3b8)',
                       fontWeight: 600,
                       fontSize: 11,
-                      borderBottom: `1px solid ${colors.border}`,
+                      borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                       whiteSpace: 'nowrap'
                     }}
                   >
@@ -354,12 +353,12 @@ export function ManagerProspectsList({
                   <tr
                     key={p.id}
                     style={{
-                      borderBottom: `1px solid ${colors.border}`,
+                      borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                       background: isSelected
-                        ? `${colors.green}12`
+                        ? `${'#4ade80'}12`
                         : i % 2 === 0
                           ? 'transparent'
-                          : colors.bg2,
+                          : 'var(--card, #131c2e)',
                       transition: 'background 150ms ease'
                     }}
                   >
@@ -372,14 +371,14 @@ export function ManagerProspectsList({
                         style={checkboxStyle}
                       />
                     </td>
-                    <td style={{ padding: '9px 12px', fontWeight: 600, color: colors.text }}>
+                    <td style={{ padding: '9px 12px', fontWeight: 600, color: 'var(--foreground, #f1f5f9)' }}>
                       {p.name || '—'}
                     </td>
-                    <td style={{ padding: '9px 12px', color: colors.textMid }}>
+                    <td style={{ padding: '9px 12px', color: 'var(--muted-foreground, #94a3b8)' }}>
                       {p.phone ? (
                         <a
                           href={`tel:${p.phone}`}
-                          style={{ color: colors.green, textDecoration: 'none' }}
+                          style={{ color: '#4ade80', textDecoration: 'none' }}
                         >
                           {p.phone}
                         </a>
@@ -390,7 +389,7 @@ export function ManagerProspectsList({
                     <td
                       style={{
                         padding: '9px 12px',
-                        color: colors.textMid,
+                        color: 'var(--muted-foreground, #94a3b8)',
                         maxWidth: 180,
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
@@ -400,7 +399,7 @@ export function ManagerProspectsList({
                       {p.email ? (
                         <a
                           href={`mailto:${p.email}`}
-                          style={{ color: colors.green, textDecoration: 'none' }}
+                          style={{ color: '#4ade80', textDecoration: 'none' }}
                         >
                           {p.email}
                         </a>
@@ -408,8 +407,8 @@ export function ManagerProspectsList({
                         '—'
                       )}
                     </td>
-                    <td style={{ padding: '9px 12px', color: colors.textMid }}>{p.city || '—'}</td>
-                    <td style={{ padding: '9px 12px', color: colors.textMid }}>
+                    <td style={{ padding: '9px 12px', color: 'var(--muted-foreground, #94a3b8)' }}>{p.city || '—'}</td>
+                    <td style={{ padding: '9px 12px', color: 'var(--muted-foreground, #94a3b8)' }}>
                       {p.sector || '—'}
                     </td>
                     <td style={{ padding: '9px 12px' }}>
@@ -430,7 +429,7 @@ export function ManagerProspectsList({
                     {!hideAssign && (
                       <td style={{ padding: '9px 12px' }}>
                         {assigning === p.id ? (
-                          <span style={{ fontSize: 11, color: colors.textMid }}>⏳</span>
+                          <span style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)' }}>⏳</span>
                         ) : (
                           <select
                             value={p.assignedTo ?? ''}

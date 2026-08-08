@@ -11,11 +11,12 @@ import { useAuthActions, resolveGoogleRedirect } from '../hooks/useAuthActions'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { mapAuthError } from '../utils/error-mapper'
 import { routes } from '@/constants/routes'
-import { colors } from '@/styles/tokens'
 import { BUSINESS_SECTORS } from '@sales-companion/shared'
 import { useTranslation } from '@/providers/I18nProvider'
 
 type RoleOption = 'independent' | 'manager'
+
+const SPIN_CSS = `@keyframes spin { to { transform: rotate(360deg); } }`
 
 export function RegisterForm() {
   const { t } = useTranslation()
@@ -23,17 +24,12 @@ export function RegisterForm() {
   const router = useRouter()
   const { user, loading: authLoading } = useCurrentUser()
 
-  // Handle Google redirect result on page load (post-signInWithRedirect)
   useEffect(() => {
-    resolveGoogleRedirect().then((u) => {
-      if (u) router.replace(routes.search)
-    })
+    resolveGoogleRedirect().then((u) => { if (u) router.replace(routes.search) })
   }, [router])
 
   useEffect(() => {
-    if (!authLoading && user) {
-      router.replace(routes.search)
-    }
+    if (!authLoading && user) router.replace(routes.search)
   }, [user, authLoading, router])
 
   const roleOptions: { value: RoleOption; label: string; desc: string }[] = [
@@ -52,8 +48,7 @@ export function RegisterForm() {
   const [error, setError] = useState<string | null>(null)
 
   async function handleGoogleSignIn() {
-    setGoogleLoading(true)
-    setError(null)
+    setGoogleLoading(true); setError(null)
     try {
       const result = await loginWithGoogle()
       if (result) router.replace(routes.search)
@@ -66,30 +61,15 @@ export function RegisterForm() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!name || !email || !password) {
-      setError(t('auth.errorFillAll'))
-      return
-    }
-    if (password.length < 6) {
-      setError(t('auth.errorPasswordLength'))
-      return
-    }
-    setLoading(true)
-    setError(null)
-
+    if (!name || !email || !password) { setError(t('auth.errorFillAll')); return }
+    if (password.length < 6) { setError(t('auth.errorPasswordLength')); return }
+    setLoading(true); setError(null)
     try {
       await registerWithEmail({
-        email,
-        password,
-        name,
-        role,
+        email, password, name, role,
         companyName: role === 'manager' ? companyName : undefined,
         sector: sector || undefined
       })
-      // ✅ Tout le monde va sur /search — l'AuthGuard gère la suite :
-      // - si email non vérifié → affiche le mur de vérification email
-      // - si manager + email vérifié + non actif → redirige vers /upgrade
-      // - si independent + email vérifié → accès direct
       router.replace(routes.search)
     } catch (err) {
       setError(mapAuthError(err))
@@ -100,130 +80,52 @@ export function RegisterForm() {
 
   if (authLoading || user) {
     return (
-      <div
-        style={{
-          background: colors.bg2,
-          border: `1px solid ${colors.border}`,
-          borderRadius: 20,
-          padding: 40,
-          width: '100%',
-          maxWidth: 460,
-          boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: 300,
-          color: colors.textMid
-        }}
-      >
-        <style
-          dangerouslySetInnerHTML={{
-            __html: `
-              @keyframes spin { to { transform: rotate(360deg); } }
-            `
-          }}
-        />
+      <div className="flex min-h-[300px] w-full max-w-[460px] flex-col items-center justify-center rounded-[20px] border border-border bg-card p-10 text-muted-foreground shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
+        <style dangerouslySetInnerHTML={{ __html: SPIN_CSS }} />
         <span
-          style={{
-            width: 32,
-            height: 32,
-            border: '3px solid rgba(255,255,255,0.1)',
-            borderTopColor: colors.greenMid,
-            borderRadius: '50%',
-            display: 'inline-block',
-            animation: 'spin 0.8s linear infinite'
-          }}
+          className="inline-block h-8 w-8 rounded-full border-[3px] border-white/10"
+          style={{ borderTopColor: 'hsl(var(--primary))', animation: 'spin 0.8s linear infinite' }}
         />
-        <p style={{ margin: '16px 0 0', fontSize: 14 }}>
-          {t('auth.loading' as any) || 'Chargement…'}
-        </p>
+        <p className="mt-4 text-[14px]">{t('auth.loading' as any) || 'Chargement…'}</p>
       </div>
     )
   }
 
+  const isGoogleDisabled = googleLoading || loading || role === 'manager'
+
   return (
-    <div
-      style={{
-        background: colors.bg2,
-        border: `1px solid ${colors.border}`,
-        borderRadius: 20,
-        padding: 40,
-        width: '100%',
-        maxWidth: 460,
-        boxShadow: '0 20px 60px rgba(0,0,0,0.5)'
-      }}
-    >
+    <div className="w-full max-w-[460px] rounded-[20px] border border-border bg-card p-10 shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
+      <style dangerouslySetInnerHTML={{ __html: SPIN_CSS }} />
+
       {/* Header */}
-      <div style={{ textAlign: 'center', marginBottom: 32 }}>
+      <div className="mb-8 text-center">
         <ScIcon size={48} interactive style={{ marginBottom: 16 }} />
-        <h1
-          style={{
-            margin: '0 0 8px',
-            fontSize: 22,
-            fontWeight: 800,
-            color: colors.text,
-            fontFamily: "'Syne',sans-serif",
-            letterSpacing: '-.03em'
-          }}
-        >
+        <h1 className="mb-2 mt-0 font-['Syne',sans-serif] text-[22px] font-extrabold tracking-[-0.03em] text-foreground">
           {t('auth.registerTitle')}
         </h1>
-        <p style={{ margin: 0, fontSize: 13, color: colors.textMid }}>
-          {t('auth.registerSubtitle')}
-        </p>
+        <p className="m-0 text-[13px] text-muted-foreground">{t('auth.registerSubtitle')}</p>
       </div>
 
-      {/* Google Sign-In button */}
-      <style dangerouslySetInnerHTML={{ __html: `@keyframes spin { to { transform: rotate(360deg); } }` }} />
+      {/* Google Sign-In */}
       <button
         id="btn-google-register"
         type="button"
         onClick={() => void handleGoogleSignIn()}
-        disabled={googleLoading || loading || role === 'manager'}
-        title={role === 'manager' ? 'Le compte Manager nécessite une inscription par email pour le processus de validation' : undefined}
-        style={{
-          width: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 10,
-          padding: '11px 16px',
-          borderRadius: 10,
-          border: `1.5px solid ${colors.border}`,
-          background: 'rgba(255,255,255,0.04)',
-          color: role === 'manager' ? colors.textDim : colors.text,
-          fontSize: 14,
-          fontWeight: 600,
-          fontFamily: 'inherit',
-          cursor: googleLoading || loading || role === 'manager' ? 'not-allowed' : 'pointer',
-          opacity: googleLoading || loading || role === 'manager' ? 0.45 : 1,
-          transition: 'background 200ms',
-          marginBottom: role === 'manager' ? 2 : 4
-        }}
-        onMouseEnter={(e) => {
-          if (!googleLoading && !loading && role !== 'manager')
-            (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.08)'
-        }}
-        onMouseLeave={(e) => {
-          ;(e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.04)'
-        }}
+        disabled={isGoogleDisabled}
+        title={role === 'manager' ? 'Le compte Manager nécessite une inscription par email' : undefined}
+        className={`mb-1 flex w-full items-center justify-center gap-2.5 rounded-[10px] border border-border bg-white/[0.04] px-4 py-[11px] text-[14px] font-semibold text-foreground transition-colors ${
+          isGoogleDisabled
+            ? 'cursor-not-allowed opacity-45'
+            : 'cursor-pointer hover:bg-white/[0.08]'
+        }`}
       >
         {googleLoading ? (
           <span
-            style={{
-              width: 18,
-              height: 18,
-              border: '2px solid rgba(255,255,255,0.15)',
-              borderTopColor: colors.greenMid,
-              borderRadius: '50%',
-              display: 'inline-block',
-              animation: 'spin 0.7s linear infinite',
-              flexShrink: 0
-            }}
+            className="inline-block h-[18px] w-[18px] shrink-0 rounded-full border-2 border-white/15"
+            style={{ borderTopColor: 'hsl(var(--primary))', animation: 'spin 0.7s linear infinite' }}
           />
         ) : (
-          <svg width="18" height="18" viewBox="0 0 48 48" style={{ flexShrink: 0 }}>
+          <svg width="18" height="18" viewBox="0 0 48 48" className="shrink-0">
             <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
             <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
             <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
@@ -233,165 +135,91 @@ export function RegisterForm() {
         )}
         {googleLoading ? 'Connexion…' : "S'inscrire avec Google"}
       </button>
+
       {role === 'manager' && (
-        <p style={{ fontSize: 11, color: colors.textDim, textAlign: 'center', margin: '0 0 4px' }}>
+        <p className="mb-1 mt-0 text-center text-[11px] text-muted-foreground/60">
           🔒 L&apos;inscription Google n&apos;est pas disponible pour le compte Manager
         </p>
       )}
 
       {/* Divider */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-          margin: '16px 0',
-          color: colors.textMid,
-          fontSize: 12
-        }}
-      >
-        <div style={{ flex: 1, height: 1, background: colors.border }} />
+      <div className="my-4 flex items-center gap-2.5 text-[12px] text-muted-foreground">
+        <div className="h-px flex-1 bg-border" />
         <span>ou avec un email</span>
-        <div style={{ flex: 1, height: 1, background: colors.border }} />
+        <div className="h-px flex-1 bg-border" />
       </div>
 
-      <form
-        onSubmit={(e) => void handleSubmit(e)}
-        style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
-      >
+      <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-col gap-4">
         <FormField label={t('auth.fullName')} required>
-          <Input
-            placeholder="Jean Dupont"
-            value={name}
-            autoComplete="name"
-            onChange={(e) => setName(e.target.value)}
-          />
+          <Input placeholder="Jean Dupont" value={name} autoComplete="name" onChange={(e) => setName(e.target.value)} />
         </FormField>
 
         <FormField label={t('auth.email')} required>
-          <Input
-            type="email"
-            placeholder="vous@exemple.cm"
-            value={email}
-            autoComplete="email"
-            onChange={(e) => setEmail(e.target.value)}
-          />
+          <Input type="email" placeholder="vous@exemple.cm" value={email} autoComplete="email" onChange={(e) => setEmail(e.target.value)} />
         </FormField>
 
         <FormField label={t('auth.password')} required hint="Minimum 6 caractères">
-          <Input
-            type="password"
-            placeholder="••••••••"
-            value={password}
-            autoComplete="new-password"
-            onChange={(e) => setPassword(e.target.value)}
-          />
+          <Input type="password" placeholder="••••••••" value={password} autoComplete="new-password" onChange={(e) => setPassword(e.target.value)} />
         </FormField>
 
         {/* Rôle */}
         <FormField label={t('auth.accountType')}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+          <div className="grid grid-cols-2 gap-2">
             {roleOptions.map((opt) => (
               <button
                 key={opt.value}
                 type="button"
                 onClick={() => setRole(opt.value)}
-                style={{
-                  padding: '12px 14px',
-                  borderRadius: 10,
-                  border: `1px solid ${role === opt.value ? 'rgba(46,160,90,0.5)' : colors.border}`,
-                  background:
-                    role === opt.value ? 'rgba(27,122,62,0.12)' : 'rgba(255,255,255,0.03)',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  transition: 'all 200ms ease',
-                  fontFamily: 'inherit'
-                }}
+                className={`rounded-[10px] border px-3.5 py-3 text-left transition-all duration-200 ${
+                  role === opt.value
+                    ? 'border-green-500/50 bg-green-500/10'
+                    : 'border-border bg-white/[0.03] hover:bg-white/[0.06]'
+                }`}
               >
-                <div
-                  style={{
-                    fontWeight: 600,
-                    fontSize: 13,
-                    color: role === opt.value ? colors.greenMid : colors.text
-                  }}
-                >
+                <div className={`text-[13px] font-semibold ${role === opt.value ? 'text-green-400' : 'text-foreground'}`}>
                   {opt.label}
                 </div>
-                <div style={{ fontSize: 11, color: colors.textMid, marginTop: 2 }}>{opt.desc}</div>
+                <div className="mt-0.5 text-[11px] text-muted-foreground">{opt.desc}</div>
               </button>
             ))}
           </div>
         </FormField>
 
-        {/* Secteur d'activité */}
+        {/* Secteur */}
         <FormField label={t('auth.sector')} required>
           <select
             value={sector}
             onChange={(e) => setSector(e.target.value)}
-            style={{
-              width: '100%',
-              height: 40,
-              padding: '0 12px',
-              borderRadius: 10,
-              border: `1.5px solid ${colors.border}`,
-              background: colors.bg2,
-              color: colors.text,
-              fontSize: 13,
-              fontFamily: 'inherit',
-              cursor: 'pointer',
-              outline: 'none',
-              boxSizing: 'border-box'
-            }}
+            className="h-10 w-full cursor-pointer rounded-[10px] border border-border bg-card px-3 text-[13px] text-foreground outline-none"
           >
             <option value="">{t('auth.selectSector')}</option>
             {BUSINESS_SECTORS.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
+              <option key={s} value={s}>{s}</option>
             ))}
           </select>
         </FormField>
 
-        {/* Nom de l'entreprise (uniquement pour Manager) */}
+        {/* Nom entreprise (Manager only) */}
         {role === 'manager' && (
           <FormField label={t('auth.companyName')} required>
-            <Input
-              placeholder="Ex: Acme Corp"
-              value={companyName}
-              onChange={(e) => setCompanyName(e.target.value)}
-            />
+            <Input placeholder="Ex: Acme Corp" value={companyName} onChange={(e) => setCompanyName(e.target.value)} />
           </FormField>
         )}
 
-        {error ? (
-          <div
-            style={{
-              padding: '10px 14px',
-              background: 'rgba(239,68,68,0.08)',
-              border: '1px solid rgba(239,68,68,0.25)',
-              borderRadius: 8,
-              fontSize: 13,
-              color: '#f87171'
-            }}
-          >
+        {error && (
+          <div className="rounded-lg border border-red-500/25 bg-red-500/8 px-3.5 py-2.5 text-[13px] text-red-400">
             {error}
           </div>
-        ) : null}
+        )}
 
-        <Button
-          type="submit"
-          variant="primary"
-          size="lg"
-          loading={loading}
-          style={{ width: '100%', marginTop: 4 }}
-        >
+        <Button type="submit" variant="primary" size="lg" loading={loading} style={{ width: '100%', marginTop: 4 }}>
           {t('auth.createAccount')}
         </Button>
       </form>
 
-      <p style={{ textAlign: 'center', marginTop: 24, fontSize: 13, color: colors.textMid }}>
+      <p className="mt-6 text-center text-[13px] text-muted-foreground">
         {t('auth.alreadyAccount')}{' '}
-        <Link href={routes.login} style={{ color: colors.greenMid, fontWeight: 600 }}>
+        <Link href={routes.login} className="font-semibold text-primary">
           {t('auth.loginBtn')}
         </Link>
       </p>

@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { colors } from '@/styles/tokens'
 import type { ReportingData, MemberStat } from '../hooks/useReportingData'
 
 
@@ -22,8 +21,8 @@ function KpiCard({
   return (
     <div
       style={{
-        background: colors.bg2,
-        border: `1px solid ${colors.border}`,
+        background: 'var(--card, #131c2e)',
+        border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
         borderRadius: 16,
         padding: '20px 24px',
         position: 'relative',
@@ -43,14 +42,14 @@ function KpiCard({
       >
         {icon}
       </div>
-      <div style={{ fontSize: 11, fontWeight: 700, color: colors.textMid, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted-foreground, #94a3b8)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10 }}>
         {label}
       </div>
       <div style={{ fontSize: 36, fontWeight: 800, color, fontFamily: "'Syne', sans-serif", lineHeight: 1 }}>
         {value}
       </div>
       {sub && (
-        <div style={{ fontSize: 12, color: colors.textMid, marginTop: 6 }}>{sub}</div>
+        <div style={{ fontSize: 12, color: 'var(--muted-foreground, #94a3b8)', marginTop: 6 }}>{sub}</div>
       )}
     </div>
   )
@@ -67,7 +66,7 @@ function PipelineFunnel({ prospection, negociation, conclue }: { prospection: nu
 
   return (
     <div>
-      <div style={{ fontSize: 13, fontWeight: 700, color: colors.textMid, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 16 }}>
+      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--muted-foreground, #94a3b8)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 16 }}>
         Entonnoir de conversion
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -75,7 +74,7 @@ function PipelineFunnel({ prospection, negociation, conclue }: { prospection: nu
           const width = Math.max(30, 100 - i * 18)
           return (
             <div key={stage.label} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{ width: 90, fontSize: 12, color: colors.textMid, textAlign: 'right', flexShrink: 0 }}>
+              <div style={{ width: 90, fontSize: 12, color: 'var(--muted-foreground, #94a3b8)', textAlign: 'right', flexShrink: 0 }}>
                 {stage.label}
               </div>
               <div style={{ flex: 1, position: 'relative', height: 36 }}>
@@ -107,7 +106,7 @@ function PipelineFunnel({ prospection, negociation, conclue }: { prospection: nu
                 </div>
               </div>
               <div style={{ width: 60, fontSize: 13, fontWeight: 700, color: stage.color, flexShrink: 0 }}>
-                {stage.value} <span style={{ fontSize: 11, color: colors.textDim }}>({stage.pct}%)</span>
+                {stage.value} <span style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)' }}>({stage.pct}%)</span>
               </div>
             </div>
           )
@@ -124,7 +123,7 @@ function MonthlyTrendChart({ data }: { data: { month: string; conclue: number; t
 
   return (
     <div>
-      <div style={{ fontSize: 13, fontWeight: 700, color: colors.textMid, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 16 }}>
+      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--muted-foreground, #94a3b8)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 16 }}>
         Activité mensuelle (6 derniers mois)
       </div>
       <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, height: chartH + 32 }}>
@@ -133,7 +132,7 @@ function MonthlyTrendChart({ data }: { data: { month: string; conclue: number; t
           const conclueH = d.total > 0 ? Math.round((d.conclue / d.total) * totalH) : 0
           return (
             <div key={d.month} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-              <div style={{ fontSize: 10, color: colors.textDim }}>{d.total > 0 ? d.total : ''}</div>
+              <div style={{ fontSize: 10, color: 'var(--muted-foreground, #64748b)' }}>{d.total > 0 ? d.total : ''}</div>
               <div
                 style={{
                   width: '100%',
@@ -158,16 +157,16 @@ function MonthlyTrendChart({ data }: { data: { month: string; conclue: number; t
                   }}
                 />
               </div>
-              <div style={{ fontSize: 10, color: colors.textMid, textAlign: 'center' }}>{d.month}</div>
+              <div style={{ fontSize: 10, color: 'var(--muted-foreground, #94a3b8)', textAlign: 'center' }}>{d.month}</div>
             </div>
           )
         })}
       </div>
       <div style={{ display: 'flex', gap: 16, marginTop: 8 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: colors.textMid }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--muted-foreground, #94a3b8)' }}>
           <div style={{ width: 10, height: 10, borderRadius: 2, background: 'rgba(96,165,250,0.4)' }} /> Total prospects
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: colors.textMid }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--muted-foreground, #94a3b8)' }}>
           <div style={{ width: 10, height: 10, borderRadius: 2, background: '#4ade80' }} /> Affaires conclues
         </div>
       </div>
@@ -181,7 +180,7 @@ function Leaderboard({ members }: { members: MemberStat[] }) {
 
   return (
     <div>
-      <div style={{ fontSize: 13, fontWeight: 700, color: colors.textMid, textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 16 }}>
+      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--muted-foreground, #94a3b8)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 16 }}>
         Classement de l'équipe
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -196,9 +195,9 @@ function Leaderboard({ members }: { members: MemberStat[] }) {
                 alignItems: 'center',
                 gap: 12,
                 padding: '10px 14px',
-                background: i === 0 ? 'rgba(74,222,128,0.06)' : colors.bg3,
+                background: i === 0 ? 'rgba(74,222,128,0.06)' : 'var(--secondary, #1e2a3b)',
                 borderRadius: 10,
-                border: `1px solid ${i === 0 ? 'rgba(74,222,128,0.2)' : colors.border}`,
+                border: `1px solid ${i === 0 ? 'rgba(74,222,128,0.2)' : 'var(--border, rgba(255,255,255,0.1))'}`,
                 transition: 'all 0.2s ease'
               }}
             >
@@ -206,28 +205,28 @@ function Leaderboard({ members }: { members: MemberStat[] }) {
                 {medals[i] ?? `${i + 1}.`}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: colors.text, marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--foreground, #f1f5f9)', marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {member.name}
                 </div>
-                <div style={{ height: 4, background: colors.bg2, borderRadius: 4, overflow: 'hidden' }}>
+                <div style={{ height: 4, background: 'var(--card, #131c2e)', borderRadius: 4, overflow: 'hidden' }}>
                   <div style={{ width: `${barWidth}%`, height: '100%', background: '#4ade80', borderRadius: 4, transition: 'width 0.8s ease' }} />
                 </div>
               </div>
               <div style={{ textAlign: 'right', flexShrink: 0 }}>
                 <div style={{ fontSize: 18, fontWeight: 800, color: '#4ade80', lineHeight: 1 }}>{member.conclue}</div>
-                <div style={{ fontSize: 10, color: colors.textMid }}>conclues</div>
+                <div style={{ fontSize: 10, color: 'var(--muted-foreground, #94a3b8)' }}>conclues</div>
               </div>
               <div style={{ textAlign: 'right', flexShrink: 0, minWidth: 40 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: member.conversionRate >= 50 ? '#4ade80' : member.conversionRate >= 25 ? '#fbbf24' : colors.textMid }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: member.conversionRate >= 50 ? '#4ade80' : member.conversionRate >= 25 ? '#fbbf24' : 'var(--muted-foreground, #94a3b8)' }}>
                   {member.conversionRate}%
                 </div>
-                <div style={{ fontSize: 10, color: colors.textMid }}>taux</div>
+                <div style={{ fontSize: 10, color: 'var(--muted-foreground, #94a3b8)' }}>taux</div>
               </div>
             </div>
           )
         })}
         {members.length === 0 && (
-          <div style={{ textAlign: 'center', color: colors.textMid, fontSize: 13, padding: '24px 0' }}>
+          <div style={{ textAlign: 'center', color: 'var(--muted-foreground, #94a3b8)', fontSize: 13, padding: '24px 0' }}>
             Aucune donnée disponible. Les statistiques apparaîtront ici dès que votre équipe commencera à enregistrer des prospects.
           </div>
         )}
@@ -302,8 +301,8 @@ function SupportActivitySection({ stats }: { stats: NonNullable<ReportingData['s
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20 }}>
         {/* Calls Log */}
         <div style={{
-          background: colors.bg2,
-          border: `1px solid ${colors.border}`,
+          background: 'var(--card, #131c2e)',
+          border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
           borderRadius: 16,
           padding: 24,
           display: 'flex',
@@ -311,31 +310,31 @@ function SupportActivitySection({ stats }: { stats: NonNullable<ReportingData['s
           gap: 16
         }}>
           <div>
-            <h3 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: colors.text }}>
+            <h3 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: 'var(--foreground, #f1f5f9)' }}>
               📞 Journal des Appels Clients
             </h3>
-            <p style={{ margin: '4px 0 0', fontSize: 12, color: colors.textMid }}>
+            <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--muted-foreground, #94a3b8)' }}>
               Les 50 derniers appels de support passés par vos agents.
             </p>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 400, overflowY: 'auto', paddingRight: 4 }}>
             {stats.recentCalls.length === 0 ? (
-              <p style={{ fontSize: 13, color: colors.textMid, textAlign: 'center', padding: '30px 0' }}>
+              <p style={{ fontSize: 13, color: 'var(--muted-foreground, #94a3b8)', textAlign: 'center', padding: '30px 0' }}>
                 Aucun appel enregistré pour le moment.
               </p>
             ) : stats.recentCalls.map(call => (
               <div key={call.id} style={{
                 background: 'rgba(255,255,255,0.02)',
-                border: `1px solid ${colors.border}`,
+                border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                 borderRadius: 10,
                 padding: '12px 14px'
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                  <strong style={{ fontSize: 13, color: colors.text }}>
+                  <strong style={{ fontSize: 13, color: 'var(--foreground, #f1f5f9)' }}>
                     {call.clientName || 'Client inconnu'}
                   </strong>
-                  <span style={{ fontSize: 11, color: colors.textDim }}>
+                  <span style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)' }}>
                     {new Date(call.createdAt).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>
@@ -347,12 +346,12 @@ function SupportActivitySection({ stats }: { stats: NonNullable<ReportingData['s
                   }}>
                     {CALL_STATUS_LABELS[call.status]?.emoji} {CALL_STATUS_LABELS[call.status]?.label}
                   </span>
-                  <span style={{ fontSize: 11, color: colors.textMid }}>
+                  <span style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)' }}>
                     par {call.agentName}
                   </span>
                 </div>
                 {call.notes && (
-                  <p style={{ fontSize: 12, color: colors.textMid, margin: 0, lineHeight: 1.4, background: 'rgba(0,0,0,0.15)', padding: 8, borderRadius: 6 }}>
+                  <p style={{ fontSize: 12, color: 'var(--muted-foreground, #94a3b8)', margin: 0, lineHeight: 1.4, background: 'rgba(0,0,0,0.15)', padding: 8, borderRadius: 6 }}>
                     {call.notes}
                   </p>
                 )}
@@ -363,8 +362,8 @@ function SupportActivitySection({ stats }: { stats: NonNullable<ReportingData['s
 
         {/* Tickets Log */}
         <div style={{
-          background: colors.bg2,
-          border: `1px solid ${colors.border}`,
+          background: 'var(--card, #131c2e)',
+          border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
           borderRadius: 16,
           padding: 24,
           display: 'flex',
@@ -372,28 +371,28 @@ function SupportActivitySection({ stats }: { stats: NonNullable<ReportingData['s
           gap: 16
         }}>
           <div>
-            <h3 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: colors.text }}>
+            <h3 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: 'var(--foreground, #f1f5f9)' }}>
               🎫 Tickets SAV / Réclamations
             </h3>
-            <p style={{ margin: '4px 0 0', fontSize: 12, color: colors.textMid }}>
+            <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--muted-foreground, #94a3b8)' }}>
               Les 50 derniers tickets de support de vos clients.
             </p>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 400, overflowY: 'auto', paddingRight: 4 }}>
             {stats.recentTickets.length === 0 ? (
-              <p style={{ fontSize: 13, color: colors.textMid, textAlign: 'center', padding: '30px 0' }}>
+              <p style={{ fontSize: 13, color: 'var(--muted-foreground, #94a3b8)', textAlign: 'center', padding: '30px 0' }}>
                 Aucun ticket SAV ouvert pour le moment.
               </p>
             ) : stats.recentTickets.map(ticket => (
               <div key={ticket.id} style={{
                 background: 'rgba(255,255,255,0.02)',
-                border: `1px solid ${colors.border}`,
+                border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                 borderRadius: 10,
                 padding: '12px 14px'
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                  <strong style={{ fontSize: 13, color: colors.text }}>
+                  <strong style={{ fontSize: 13, color: 'var(--foreground, #f1f5f9)' }}>
                     {ticket.clientName}
                   </strong>
                   <span style={{
@@ -404,15 +403,15 @@ function SupportActivitySection({ stats }: { stats: NonNullable<ReportingData['s
                     {PRIORITY_LABELS[ticket.priority]?.label}
                   </span>
                 </div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: colors.text, marginBottom: 4 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--foreground, #f1f5f9)', marginBottom: 4 }}>
                   {ticket.subject}
                 </div>
                 {ticket.description && (
-                  <p style={{ fontSize: 12, color: colors.textMid, margin: '0 0 8px', lineHeight: 1.4 }}>
+                  <p style={{ fontSize: 12, color: 'var(--muted-foreground, #94a3b8)', margin: '0 0 8px', lineHeight: 1.4 }}>
                     {ticket.description}
                   </p>
                 )}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11, color: colors.textDim }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11, color: 'var(--muted-foreground, #64748b)' }}>
                   <span>Par {ticket.agentName}</span>
                   <span style={{
                     padding: '2px 8px', borderRadius: 20, fontWeight: 700,
@@ -438,15 +437,15 @@ export function ReportingDashboard({ data }: { data: ReportingData }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       {/* Tab Selector */}
-      <div style={{ display: 'flex', borderBottom: `1px solid ${colors.border}`, gap: 12 }}>
+      <div style={{ display: 'flex', borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`, gap: 12 }}>
         <button
           onClick={() => setSection('sales')}
           style={{
             padding: '12px 20px',
             background: 'transparent',
             border: 'none',
-            borderBottom: section === 'sales' ? `2px solid ${colors.green}` : '2px solid transparent',
-            color: section === 'sales' ? colors.green : colors.textMid,
+            borderBottom: section === 'sales' ? `2px solid ${'#4ade80'}` : '2px solid transparent',
+            color: section === 'sales' ? '#4ade80' : 'var(--muted-foreground, #94a3b8)',
             fontWeight: section === 'sales' ? 700 : 500,
             cursor: 'pointer',
             fontSize: 14,
@@ -462,8 +461,8 @@ export function ReportingDashboard({ data }: { data: ReportingData }) {
               padding: '12px 20px',
               background: 'transparent',
               border: 'none',
-              borderBottom: section === 'support' ? `2px solid ${colors.green}` : '2px solid transparent',
-              color: section === 'support' ? colors.green : colors.textMid,
+              borderBottom: section === 'support' ? `2px solid ${'#4ade80'}` : '2px solid transparent',
+              color: section === 'support' ? '#4ade80' : 'var(--muted-foreground, #94a3b8)',
               fontWeight: section === 'support' ? 700 : 500,
               cursor: 'pointer',
               fontSize: 14,
@@ -513,8 +512,8 @@ export function ReportingDashboard({ data }: { data: ReportingData }) {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20 }}>
             <div
               style={{
-                background: colors.bg2,
-                border: `1px solid ${colors.border}`,
+                background: 'var(--card, #131c2e)',
+                border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                 borderRadius: 16,
                 padding: 24
               }}
@@ -527,8 +526,8 @@ export function ReportingDashboard({ data }: { data: ReportingData }) {
             </div>
             <div
               style={{
-                background: colors.bg2,
-                border: `1px solid ${colors.border}`,
+                background: 'var(--card, #131c2e)',
+                border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                 borderRadius: 16,
                 padding: 24
               }}
@@ -540,8 +539,8 @@ export function ReportingDashboard({ data }: { data: ReportingData }) {
           {/* Leaderboard */}
           <div
             style={{
-              background: colors.bg2,
-              border: `1px solid ${colors.border}`,
+              background: 'var(--card, #131c2e)',
+              border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
               borderRadius: 16,
               padding: 24
             }}

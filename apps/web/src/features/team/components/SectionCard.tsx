@@ -1,5 +1,4 @@
 import { PropsWithChildren, ReactNode } from 'react'
-import { colors } from '@/styles/tokens'
 
 type Props = PropsWithChildren<{
   title: string
@@ -9,30 +8,11 @@ type Props = PropsWithChildren<{
 
 export function SectionCard({ title, subtitle, actions, children }: Props) {
   return (
-    <div
-      style={{
-        background: colors.bg2,
-        border: `1px solid ${colors.border}`,
-        borderRadius: 14,
-        padding: 20,
-        boxShadow: '0 4px 12px rgba(0,0,0,0.25)'
-      }}
-    >
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
-          gap: 12,
-          marginBottom: children ? 16 : 0,
-          flexWrap: 'wrap'
-        }}
-      >
+    <div className="rounded-[14px] border border-border bg-card p-5 shadow-[0_4px_12px_rgba(0,0,0,0.25)]">
+      <div className={`flex flex-wrap items-start justify-between gap-3 ${children ? 'mb-4' : ''}`}>
         <div>
-          <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: colors.text }}>{title}</h3>
-          {subtitle ? (
-            <p style={{ margin: '3px 0 0', fontSize: 12, color: colors.textMid }}>{subtitle}</p>
-          ) : null}
+          <h3 className="m-0 text-[14px] font-bold text-foreground">{title}</h3>
+          {subtitle ? <p className="mt-[3px] m-0 text-[12px] text-muted-foreground">{subtitle}</p> : null}
         </div>
         {actions ? <div>{actions}</div> : null}
       </div>

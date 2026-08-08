@@ -4,7 +4,6 @@ import { AppShell } from '@/components/layout/AppShell'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useState, useEffect, useCallback } from 'react'
-import { colors } from '@/styles/tokens'
 import { ClientDrawer } from '@/features/crm/components/ClientDrawer'
 import type { CrmClient } from '@/features/crm/types'
 
@@ -62,16 +61,16 @@ export default function CrmPage() {
             boxSizing: 'border-box',
             padding: '10px 16px',
             borderRadius: 10,
-            border: `1px solid ${colors.border}`,
-            background: colors.bg2,
-            color: colors.text,
+            border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+            background: 'var(--card, #131c2e)',
+            color: 'var(--foreground, #f1f5f9)',
             fontSize: 13,
             fontFamily: 'inherit',
             outline: 'none',
             transition: 'border-color 200ms'
           }}
           onFocus={e => { e.currentTarget.style.borderColor = 'var(--color-accent)' }}
-          onBlur={e => { e.currentTarget.style.borderColor = colors.border }}
+          onBlur={e => { e.currentTarget.style.borderColor = 'var(--border, rgba(255,255,255,0.1))' }}
         />
       </div>
 
@@ -82,8 +81,8 @@ export default function CrmPage() {
           { label: 'Affichés', value: filtered.length, color: 'var(--color-success)' }
         ].map(stat => (
           <div key={stat.label} style={{
-            background: colors.bg2,
-            border: `1px solid ${colors.border}`,
+            background: 'var(--card, #131c2e)',
+            border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
             borderRadius: 10,
             padding: '10px 18px',
             display: 'flex',
@@ -93,24 +92,24 @@ export default function CrmPage() {
             <span style={{ fontSize: 22, fontWeight: 800, color: stat.color, fontFamily: "'Syne',sans-serif" }}>
               {stat.value}
             </span>
-            <span style={{ fontSize: 12, color: colors.textMid }}>{stat.label}</span>
+            <span style={{ fontSize: 12, color: 'var(--muted-foreground, #94a3b8)' }}>{stat.label}</span>
           </div>
         ))}
       </div>
 
       {/* Table */}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: 40, color: colors.textMid, fontSize: 14 }}>
+        <div style={{ textAlign: 'center', padding: 40, color: 'var(--muted-foreground, #94a3b8)', fontSize: 14 }}>
           Chargement des clients…
         </div>
       ) : filtered.length === 0 ? (
         <div style={{
           textAlign: 'center', padding: 60,
-          background: colors.bg2, borderRadius: 16,
-          border: `1px solid ${colors.border}`, color: colors.textMid
+          background: 'var(--card, #131c2e)', borderRadius: 16,
+          border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`, color: 'var(--muted-foreground, #94a3b8)'
         }}>
           <div style={{ fontSize: 40, marginBottom: 12 }}>🎧</div>
-          <p style={{ fontWeight: 700, color: colors.text, margin: '0 0 4px' }}>
+          <p style={{ fontWeight: 700, color: 'var(--foreground, #f1f5f9)', margin: '0 0 4px' }}>
             {search ? 'Aucun résultat' : 'Aucun client conclu pour le moment'}
           </p>
           <p style={{ fontSize: 13, margin: 0 }}>
@@ -119,8 +118,8 @@ export default function CrmPage() {
         </div>
       ) : (
         <div style={{
-          background: colors.bg2,
-          border: `1px solid ${colors.border}`,
+          background: 'var(--card, #131c2e)',
+          border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
           borderRadius: 14,
           overflow: 'hidden'
         }}>
@@ -129,10 +128,10 @@ export default function CrmPage() {
             display: 'grid',
             gridTemplateColumns: '1fr 130px 160px 120px 100px',
             padding: '10px 20px',
-            borderBottom: `1px solid ${colors.border}`,
+            borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
             fontSize: 11,
             fontWeight: 700,
-            color: colors.textMid,
+            color: 'var(--muted-foreground, #94a3b8)',
             textTransform: 'uppercase',
             letterSpacing: '.06em'
           }}>
@@ -187,28 +186,28 @@ function ClientRow({
         display: 'grid',
         gridTemplateColumns: '1fr 130px 160px 120px 100px',
         padding: '14px 20px',
-        borderBottom: isLast ? 'none' : `1px solid ${colors.border}`,
+        borderBottom: isLast ? 'none' : `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
         cursor: 'pointer',
         background: isSelected
           ? 'rgba(55,138,221,0.08)'
-          : hovered ? colors.hoverBg : 'transparent',
+          : hovered ? 'var(--secondary, #1e2a3b)' : 'transparent',
         transition: 'background 150ms',
         alignItems: 'center'
       }}
     >
       <div>
-        <div style={{ fontWeight: 700, fontSize: 13.5, color: colors.text }}>
+        <div style={{ fontWeight: 700, fontSize: 13.5, color: 'var(--foreground, #f1f5f9)' }}>
           {client.companyName}
         </div>
         {client.companyEmail && (
-          <div style={{ fontSize: 11, color: colors.textDim, marginTop: 2 }}>
+          <div style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)', marginTop: 2 }}>
             {client.companyEmail}
           </div>
         )}
       </div>
-      <span style={{ fontSize: 13, color: colors.textMid }}>{client.companyCity || '—'}</span>
-      <span style={{ fontSize: 13, color: colors.textMid }}>{client.companySector || '—'}</span>
-      <span style={{ fontSize: 13, color: colors.textMid, fontFamily: 'monospace' }}>
+      <span style={{ fontSize: 13, color: 'var(--muted-foreground, #94a3b8)' }}>{client.companyCity || '—'}</span>
+      <span style={{ fontSize: 13, color: 'var(--muted-foreground, #94a3b8)' }}>{client.companySector || '—'}</span>
+      <span style={{ fontSize: 13, color: 'var(--muted-foreground, #94a3b8)', fontFamily: 'monospace' }}>
         {client.companyPhone || '—'}
       </span>
       <button
@@ -217,8 +216,8 @@ function ClientRow({
           padding: '6px 14px',
           borderRadius: 8,
           background: isSelected ? 'var(--color-primary)' : 'transparent',
-          border: `1px solid ${isSelected ? 'var(--color-primary)' : colors.border}`,
-          color: isSelected ? '#fff' : colors.textMid,
+          border: `1px solid ${isSelected ? 'var(--color-primary)' : 'var(--border, rgba(255,255,255,0.1))'}`,
+          color: isSelected ? '#fff' : 'var(--muted-foreground, #94a3b8)',
           fontSize: 12,
           fontWeight: 600,
           cursor: 'pointer',

@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useToast } from '@/hooks/useToast'
-import { colors } from '@/styles/tokens'
 import { db } from '@/lib/firebase'
 import {
   doc,
@@ -243,7 +242,7 @@ export function TeamAccessManager() {
                 style={{
                   fontSize: 11,
                   fontWeight: 700,
-                  color: colors.textMid,
+                  color: 'var(--muted-foreground, #94a3b8)',
                   textTransform: 'uppercase',
                   paddingLeft: 4
                 }}
@@ -263,7 +262,7 @@ export function TeamAccessManager() {
                 style={{
                   fontSize: 11,
                   fontWeight: 700,
-                  color: colors.textMid,
+                  color: 'var(--muted-foreground, #94a3b8)',
                   textTransform: 'uppercase',
                   paddingLeft: 4
                 }}
@@ -283,7 +282,7 @@ export function TeamAccessManager() {
                 style={{
                   fontSize: 11,
                   fontWeight: 700,
-                  color: colors.textMid,
+                  color: 'var(--muted-foreground, #94a3b8)',
                   textTransform: 'uppercase',
                   paddingLeft: 4
                 }}
@@ -302,7 +301,7 @@ export function TeamAccessManager() {
                 style={{
                   fontSize: 11,
                   fontWeight: 700,
-                  color: colors.textMid,
+                  color: 'var(--muted-foreground, #94a3b8)',
                   textTransform: 'uppercase',
                   paddingLeft: 4
                 }}
@@ -320,9 +319,9 @@ export function TeamAccessManager() {
           </div>
 
           {/* Permissions Toggles */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '16px 20px', background: 'rgba(255,255,255,0.02)', borderRadius: 12, border: `1px solid ${colors.border}` }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '16px 20px', background: 'rgba(255,255,255,0.02)', borderRadius: 12, border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}` }}>
              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxWidth: 300, marginBottom: 8 }}>
-               <label style={{ fontSize: 11, fontWeight: 700, color: colors.textMid, textTransform: 'uppercase' }}>
+               <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted-foreground, #94a3b8)', textTransform: 'uppercase' }}>
                  Rôle du collaborateur
                </label>
                <select
@@ -331,9 +330,9 @@ export function TeamAccessManager() {
                  style={{
                    height: 36,
                    borderRadius: 8,
-                   border: `1px solid ${colors.border}`,
-                   background: colors.bg,
-                   color: colors.text,
+                   border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+                   background: 'var(--background, #0b1120)',
+                   color: 'var(--foreground, #f1f5f9)',
                    fontSize: 13,
                    fontFamily: 'inherit',
                    outline: 'none',
@@ -390,19 +389,19 @@ export function TeamAccessManager() {
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: colors.text }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--foreground, #f1f5f9)' }}>
                 {t('team.quotaLabel') || 'Quota de collaborateurs :'}
                 <span
                   style={{
                     marginLeft: 6,
-                    color: activeOrPendingCount >= maxMembers ? '#ef4444' : colors.green,
+                    color: activeOrPendingCount >= maxMembers ? '#ef4444' : '#4ade80',
                     fontWeight: 800
                   }}
                 >
                   {activeOrPendingCount}
                 </span>{' '}
-                <span style={{ color: colors.textDim, fontWeight: 400 }}>/ {maxMembers}</span>
-                <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 600, color: colors.textMid }}>
+                <span style={{ color: 'var(--muted-foreground, #64748b)', fontWeight: 400 }}>/ {maxMembers}</span>
+                <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 600, color: 'var(--muted-foreground, #94a3b8)' }}>
                   ({currentPlan.toUpperCase()})
                 </span>
               </span>
@@ -417,17 +416,17 @@ export function TeamAccessManager() {
               style={{
                 height: 6,
                 width: '100%',
-                background: colors.bg2,
+                background: 'var(--card, #131c2e)',
                 borderRadius: 10,
                 overflow: 'hidden',
-                border: `1px solid ${colors.border}`
+                border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
               }}
             >
               <div
                 style={{
                   width: `${Math.min((activeOrPendingCount / (maxMembers || 1)) * 100, 100)}%`,
                   height: '100%',
-                  background: activeOrPendingCount >= maxMembers ? '#ef4444' : colors.green,
+                  background: activeOrPendingCount >= maxMembers ? '#ef4444' : '#4ade80',
                   borderRadius: 10,
                   transition: 'width 400ms ease-out'
                 }}
@@ -442,10 +441,10 @@ export function TeamAccessManager() {
               justifyContent: 'space-between',
               flexWrap: 'wrap',
               gap: 16,
-              background: colors.bg2,
+              background: 'var(--card, #131c2e)',
               padding: '16px 20px',
               borderRadius: 12,
-              border: `1px solid ${colors.border}`,
+              border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
               boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)'
             }}
           >
@@ -459,7 +458,7 @@ export function TeamAccessManager() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: colors.green,
+                  color: '#4ade80',
                   boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
                 }}
               >
@@ -467,14 +466,14 @@ export function TeamAccessManager() {
               </div>
               <div>
                 <span
-                  style={{ fontSize: 11, color: colors.textMid, fontWeight: 600, display: 'block' }}
+                  style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)', fontWeight: 600, display: 'block' }}
                 >
                   {t('team.accessIdPreview')}
                 </span>
                 <strong
                   style={{
                     fontSize: 16,
-                    color: colors.green,
+                    color: '#4ade80',
                     fontFamily: 'monospace',
                     letterSpacing: '0.02em'
                   }}
@@ -534,9 +533,9 @@ export function TeamAccessManager() {
                   key={acc.id}
                   style={{
                     borderRadius: 14,
-                    border: `1px solid ${colors.border}`,
+                    border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                     overflow: 'hidden',
-                    background: colors.surface,
+                    background: 'var(--secondary, #1e2a3b)',
                     boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
                     transition: 'all 200ms ease'
                   }}
@@ -568,11 +567,11 @@ export function TeamAccessManager() {
                           height: 40,
                           borderRadius: 10,
                           background: isRevoked
-                            ? colors.bg3
+                            ? 'var(--secondary, #1e2a3b)'
                             : isActivated
                               ? 'rgba(34,197,94,0.1)'
                               : 'rgba(99,102,241,0.1)',
-                          color: isRevoked ? colors.textDim : isActivated ? '#16a34a' : '#6366f1',
+                          color: isRevoked ? 'var(--muted-foreground, #64748b)' : isActivated ? '#16a34a' : '#6366f1',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -616,7 +615,7 @@ export function TeamAccessManager() {
                         <div
                           style={{
                             fontSize: 12,
-                            color: colors.textMid,
+                            color: 'var(--muted-foreground, #94a3b8)',
                             fontFamily: 'monospace',
                             fontWeight: 600,
                             textTransform: 'lowercase'
@@ -628,7 +627,7 @@ export function TeamAccessManager() {
                           <div
                             style={{
                               fontSize: 11,
-                              color: colors.textDim,
+                              color: 'var(--muted-foreground, #64748b)',
                               marginTop: 2,
                               display: 'flex',
                               alignItems: 'center',
@@ -721,7 +720,7 @@ export function TeamAccessManager() {
                       <div style={{ display: 'flex', gap: 8 }}>
                         <button
                           onClick={() => setConfirmDeleteId(null)}
-                          style={btnStyle(colors.textMid)}
+                          style={btnStyle('var(--muted-foreground, #94a3b8)')}
                         >
                           {t('team.cancel')}
                         </button>

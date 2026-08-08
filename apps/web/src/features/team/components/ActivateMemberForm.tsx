@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { FormField } from '@/components/forms/FormField'
 import { useGetAccessInfo } from '@/features/auth/hooks/useGetAccessInfo'
-import { colors } from '@/styles/tokens'
 import { useTranslation } from '@/providers/I18nProvider'
 
 type Props = {
@@ -83,7 +82,7 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
   /* ── États de chargement / erreur du lien ── */
   if (isLoadingInfo) {
     return (
-      <div style={{ textAlign: 'center', color: colors.textMid, padding: 20 }}>
+      <div style={{ textAlign: 'center', color: 'var(--muted-foreground, #94a3b8)', padding: 20 }}>
         {t('auth.verifyingLink')}
       </div>
     )
@@ -106,7 +105,7 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
           {t('auth.accessImpossible')}
         </div>
         <div style={{ fontSize: 13, color: '#fca5a5', lineHeight: 1.5 }}>{errMsg}</div>
-        <div style={{ fontSize: 12, color: colors.textMid, marginTop: 12 }}>
+        <div style={{ fontSize: 12, color: 'var(--muted-foreground, #94a3b8)', marginTop: 12 }}>
           {t('auth.contactManager')}
         </div>
       </div>
@@ -115,7 +114,7 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
 
   if (!accessInfo) {
     return (
-      <div style={{ textAlign: 'center', color: colors.textMid, padding: 20 }}>
+      <div style={{ textAlign: 'center', color: 'var(--muted-foreground, #94a3b8)', padding: 20 }}>
         {t('auth.unableToLoadAccess')}
       </div>
     )
@@ -129,7 +128,7 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
           display: 'flex',
           flexDirection: 'column',
           gap: 10,
-          background: colors.bg,
+          background: 'var(--background, #0b1120)',
           padding: 14,
           borderRadius: 10
         }}
@@ -138,7 +137,7 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
           <div
             style={{
               fontSize: 11,
-              color: colors.textDim,
+              color: 'var(--muted-foreground, #64748b)',
               letterSpacing: '.04em',
               textTransform: 'uppercase',
               marginBottom: 3
@@ -150,7 +149,7 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
             style={{
               fontSize: 12,
               fontWeight: 600,
-              color: colors.text,
+              color: 'var(--foreground, #f1f5f9)',
               fontFamily: 'monospace',
               wordBreak: 'break-all',
               textTransform: 'lowercase'
@@ -163,7 +162,7 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
           <div
             style={{
               fontSize: 11,
-              color: colors.textDim,
+              color: 'var(--muted-foreground, #64748b)',
               letterSpacing: '.04em',
               textTransform: 'uppercase',
               marginBottom: 3
@@ -171,7 +170,7 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
           >
             {t('auth.name')}
           </div>
-          <div style={{ fontSize: 14, fontWeight: 600, color: colors.text }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--foreground, #f1f5f9)' }}>
             {accessInfo.firstname} {accessInfo.lastname}
           </div>
         </div>
@@ -180,7 +179,7 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
             <div
               style={{
                 fontSize: 11,
-                color: colors.textDim,
+                color: 'var(--muted-foreground, #64748b)',
                 letterSpacing: '.04em',
                 textTransform: 'uppercase',
                 marginBottom: 3
@@ -188,7 +187,7 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
             >
               {t('auth.company')}
             </div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: colors.text }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--foreground, #f1f5f9)' }}>
               {accessInfo.company}
             </div>
           </div>
@@ -250,7 +249,7 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
         </div>
       )}
 
-      <div style={{ fontSize: 12, color: colors.textMid, lineHeight: 1.7 }}>
+      <div style={{ fontSize: 12, color: 'var(--muted-foreground, #94a3b8)', lineHeight: 1.7 }}>
         <p style={{ margin: '0 0 4px' }}>{t('auth.atLeast6Chars')}</p>
         <p style={{ margin: 0 }}>{t('auth.allowedChars')}</p>
       </div>

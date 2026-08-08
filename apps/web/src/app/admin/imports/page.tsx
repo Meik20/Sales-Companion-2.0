@@ -5,7 +5,6 @@ import { AppShell } from '@/components/layout/AppShell'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useAdminImports } from '@/features/admin/hooks/useAdminImports'
-import { colors } from '@/styles/tokens'
 import { useTranslation } from '@/providers/I18nProvider'
 
 /* ── types ── */
@@ -123,8 +122,8 @@ export default function AdminImportsPage() {
   }
 
   /* ── styles ── */
-  const zoneBg = isDragging ? colors.greenLight : colors.bg3
-  const zoneBorder = isDragging ? colors.green : colors.border2
+  const zoneBg = isDragging ? 'rgba(34,197,94,0.1)' : 'var(--secondary, #1e2a3b)'
+  const zoneBorder = isDragging ? '#4ade80' : colors.border2
 
   const items = data?.items ?? []
   const total = data?.total ?? 0
@@ -132,7 +131,7 @@ export default function AdminImportsPage() {
   const totalPages = Math.ceil(total / pageSize)
 
   const statusColors: Record<string, string> = {
-    pending: colors.textMid,
+    pending: 'var(--muted-foreground, #94a3b8)',
     processing: '#fbbf24',
     completed: '#2ea05a',
     failed: '#f87171'
@@ -152,9 +151,9 @@ export default function AdminImportsPage() {
         {/* ── Upload zone ── */}
         <div
           style={{
-            background: colors.surface,
+            background: 'var(--secondary, #1e2a3b)',
             borderRadius: 14,
-            border: `1px solid ${colors.border}`,
+            border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
             padding: 24,
             display: 'flex',
             flexDirection: 'column',
@@ -165,9 +164,9 @@ export default function AdminImportsPage() {
             style={{
               fontWeight: 700,
               fontSize: 14,
-              color: colors.text,
+              color: 'var(--foreground, #f1f5f9)',
               paddingBottom: 12,
-              borderBottom: `1px solid ${colors.border}`
+              borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
             }}
           >
             📤 {t('admin.newImport')}
@@ -193,10 +192,10 @@ export default function AdminImportsPage() {
             }}
           >
             <div style={{ fontSize: 42, marginBottom: 12 }}>📊</div>
-            <div style={{ fontWeight: 600, fontSize: 15, color: colors.text, marginBottom: 6 }}>
+            <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--foreground, #f1f5f9)', marginBottom: 6 }}>
               Glissez votre fichier ici
             </div>
-            <div style={{ fontSize: 13, color: colors.textMid, marginBottom: 18 }}>
+            <div style={{ fontSize: 13, color: 'var(--muted-foreground, #94a3b8)', marginBottom: 18 }}>
               ou cliquez pour parcourir
             </div>
             <button
@@ -207,7 +206,7 @@ export default function AdminImportsPage() {
               }}
               style={{
                 padding: '9px 24px',
-                background: colors.green,
+                background: '#4ade80',
                 color: '#fff',
                 border: 'none',
                 borderRadius: 8,
@@ -231,13 +230,13 @@ export default function AdminImportsPage() {
           {/* Progress / Result */}
           {uploadState.status === 'uploading' && (
             <div>
-              <div style={{ fontSize: 12, color: colors.textMid, marginBottom: 6 }}>
+              <div style={{ fontSize: 12, color: 'var(--muted-foreground, #94a3b8)', marginBottom: 6 }}>
                 Traitement de « {uploadState.fileName} »…
               </div>
               <div
                 style={{
                   height: 6,
-                  background: colors.border,
+                  background: 'var(--border, rgba(255,255,255,0.1))',
                   borderRadius: 3,
                   overflow: 'hidden'
                 }}
@@ -246,7 +245,7 @@ export default function AdminImportsPage() {
                   style={{
                     height: '100%',
                     width: `${uploadState.progress}%`,
-                    background: colors.green,
+                    background: '#4ade80',
                     borderRadius: 3,
                     transition: 'width 300ms ease'
                   }}
@@ -258,36 +257,36 @@ export default function AdminImportsPage() {
           {uploadState.status === 'success' && (
             <div
               style={{
-                background: colors.greenLight,
-                border: `1px solid ${colors.successBorder}`,
+                background: 'rgba(34,197,94,0.1)',
+                border: `1px solid ${'rgba(34,197,94,0.3)'}`,
                 borderRadius: 10,
                 padding: '14px 16px'
               }}
             >
-              <div style={{ fontWeight: 700, color: colors.green, marginBottom: 10 }}>
+              <div style={{ fontWeight: 700, color: '#4ade80', marginBottom: 10 }}>
                 ✅ Import réussi — {uploadState.fileName}
               </div>
               <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
                 {[
-                  { label: 'Lignes lues', val: uploadState.result.total ?? 0, color: colors.text },
+                  { label: 'Lignes lues', val: uploadState.result.total ?? 0, color: 'var(--foreground, #f1f5f9)' },
                   {
                     label: 'Nouvelles',
                     val: uploadState.result.imported ?? 0,
-                    color: colors.green
+                    color: '#4ade80'
                   },
                   { label: 'Mises à jour', val: uploadState.result.updated ?? 0, color: '#1a73e8' },
                   { label: 'Doublons', val: uploadState.result.skipped ?? 0, color: '#f39c12' },
-                  { label: 'Erreurs', val: uploadState.result.errors ?? 0, color: colors.danger }
+                  { label: 'Erreurs', val: uploadState.result.errors ?? 0, color: '#f87171' }
                 ].map(({ label, val, color }) => (
                   <div key={label} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                     <span style={{ fontSize: 20, fontWeight: 700, color }}>{val}</span>
-                    <span style={{ fontSize: 11, color: colors.textMid }}>{label}</span>
+                    <span style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)' }}>{label}</span>
                   </div>
                 ))}
               </div>
               {uploadState.result.columns_detected &&
                 Object.keys(uploadState.result.columns_detected).length > 0 && (
-                  <div style={{ marginTop: 10, fontSize: 12, color: colors.textMid }}>
+                  <div style={{ marginTop: 10, fontSize: 12, color: 'var(--muted-foreground, #94a3b8)' }}>
                     <strong>Colonnes mappées :</strong>{' '}
                     {Object.entries(uploadState.result.columns_detected)
                       .map(([k, v]) => `${k} → "${v}"`)
@@ -299,7 +298,7 @@ export default function AdminImportsPage() {
                 style={{
                   marginTop: 10,
                   fontSize: 12,
-                  color: colors.green,
+                  color: '#4ade80',
                   background: 'none',
                   border: 'none',
                   cursor: 'pointer',
@@ -314,11 +313,11 @@ export default function AdminImportsPage() {
           {uploadState.status === 'error' && (
             <div
               style={{
-                background: colors.dangerBg,
-                border: `1px solid ${colors.dangerBorder}`,
+                background: 'rgba(239,68,68,0.1)',
+                border: `1px solid ${'rgba(239,68,68,0.3)'}`,
                 borderRadius: 10,
                 padding: '12px 16px',
-                color: colors.danger,
+                color: '#f87171',
                 fontSize: 13
               }}
             >
@@ -328,7 +327,7 @@ export default function AdminImportsPage() {
                 style={{
                   marginLeft: 12,
                   fontSize: 12,
-                  color: colors.danger,
+                  color: '#f87171',
                   background: 'none',
                   border: 'none',
                   cursor: 'pointer',
@@ -373,9 +372,9 @@ export default function AdminImportsPage() {
         {/* ── History table ── */}
         <div
           style={{
-            background: colors.surface,
+            background: 'var(--secondary, #1e2a3b)',
             borderRadius: 14,
-            border: `1px solid ${colors.border}`,
+            border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
             padding: 24,
             display: 'flex',
             flexDirection: 'column',
@@ -388,15 +387,15 @@ export default function AdminImportsPage() {
               justifyContent: 'space-between',
               alignItems: 'center',
               paddingBottom: 12,
-              borderBottom: `1px solid ${colors.border}`
+              borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
             }}
           >
             <div>
-              <span style={{ fontWeight: 700, fontSize: 14, color: colors.text }}>
+              <span style={{ fontWeight: 700, fontSize: 14, color: 'var(--foreground, #f1f5f9)' }}>
                 📂 {t('admin.allImports')}
               </span>
               {total > 0 && (
-                <span style={{ marginLeft: 8, fontSize: 12, color: colors.textMid }}>
+                <span style={{ marginLeft: 8, fontSize: 12, color: 'var(--muted-foreground, #94a3b8)' }}>
                   {total} import{total > 1 ? 's' : ''}
                 </span>
               )}
@@ -406,9 +405,9 @@ export default function AdminImportsPage() {
                 onClick={handleClearHistory}
                 disabled={items.length === 0}
                 style={{
-                  background: colors.dangerBg,
-                  color: colors.danger,
-                  border: `1px solid ${colors.dangerBorder}`,
+                  background: 'rgba(239,68,68,0.1)',
+                  color: '#f87171',
+                  border: `1px solid ${'rgba(239,68,68,0.3)'}`,
                   borderRadius: 6,
                   padding: '4px 10px',
                   fontSize: 12,
@@ -422,9 +421,9 @@ export default function AdminImportsPage() {
               <button
                 onClick={() => refetch()}
                 style={{
-                  background: colors.greenLight,
-                  color: colors.green,
-                  border: `1px solid ${colors.successBorder}`,
+                  background: 'rgba(34,197,94,0.1)',
+                  color: '#4ade80',
+                  border: `1px solid ${'rgba(34,197,94,0.3)'}`,
                   borderRadius: 6,
                   padding: '4px 10px',
                   fontSize: 12,
@@ -438,17 +437,17 @@ export default function AdminImportsPage() {
           </div>
 
           {isLoading && (
-            <div style={{ textAlign: 'center', padding: 40, color: colors.textMid, fontSize: 13 }}>
+            <div style={{ textAlign: 'center', padding: 40, color: 'var(--muted-foreground, #94a3b8)', fontSize: 13 }}>
               {t('team.loading')}
             </div>
           )}
           {isError && (
-            <div style={{ textAlign: 'center', padding: 40, color: colors.danger, fontSize: 13 }}>
+            <div style={{ textAlign: 'center', padding: 40, color: '#f87171', fontSize: 13 }}>
               {t('support.errorLoad')}
             </div>
           )}
           {!isLoading && !isError && items.length === 0 && (
-            <div style={{ textAlign: 'center', padding: 40, color: colors.textMid, fontSize: 13 }}>
+            <div style={{ textAlign: 'center', padding: 40, color: 'var(--muted-foreground, #94a3b8)', fontSize: 13 }}>
               <div style={{ fontSize: 32, marginBottom: 10 }}>📂</div>
               {t('admin.noImports')}
             </div>
@@ -473,10 +472,10 @@ export default function AdminImportsPage() {
                             textAlign: 'left',
                             fontSize: 11,
                             fontWeight: 700,
-                            color: colors.textMid,
+                            color: 'var(--muted-foreground, #94a3b8)',
                             textTransform: 'uppercase',
                             letterSpacing: '.05em',
-                            borderBottom: `1px solid ${colors.border}`
+                            borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
                           }}
                         >
                           {h}
@@ -497,12 +496,12 @@ export default function AdminImportsPage() {
                           ? Math.round((item.successCount / item.totalRecords) * 100)
                           : 0
                       return (
-                        <tr key={item.id} style={{ borderBottom: `1px solid ${colors.border}` }}>
+                        <tr key={item.id} style={{ borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}` }}>
                           <td
                             style={{
                               padding: '11px 10px',
                               fontWeight: 500,
-                              color: colors.text,
+                              color: 'var(--foreground, #f1f5f9)',
                               maxWidth: 160,
                               overflow: 'hidden',
                               textOverflow: 'ellipsis',
@@ -512,7 +511,7 @@ export default function AdminImportsPage() {
                           >
                             📄 {item.fileName}
                           </td>
-                          <td style={{ padding: '11px 10px', color: colors.textMid }}>
+                          <td style={{ padding: '11px 10px', color: 'var(--muted-foreground, #94a3b8)' }}>
                             {item.totalRecords}
                           </td>
                           <td style={{ padding: '11px 10px' }}>
@@ -522,7 +521,7 @@ export default function AdminImportsPage() {
                                 <span style={{ color: '#f87171' }}>✗ {item.errorCount}</span>
                               )}
                             </div>
-                            <div style={{ fontSize: 10, color: colors.textMid, marginTop: 1 }}>
+                            <div style={{ fontSize: 10, color: 'var(--muted-foreground, #94a3b8)', marginTop: 1 }}>
                               {successRate}% réussi
                             </div>
                           </td>
@@ -531,13 +530,13 @@ export default function AdminImportsPage() {
                               style={{
                                 fontSize: 11,
                                 fontWeight: 600,
-                                color: statusColors[item.status] ?? colors.textMid
+                                color: statusColors[item.status] ?? 'var(--muted-foreground, #94a3b8)'
                               }}
                             >
                               {statusLabels[item.status] ?? item.status}
                             </span>
                           </td>
-                          <td style={{ padding: '11px 10px', color: colors.textMid, fontSize: 12 }}>
+                          <td style={{ padding: '11px 10px', color: 'var(--muted-foreground, #94a3b8)', fontSize: 12 }}>
                             {dateStr}
                           </td>
                         </tr>
@@ -554,7 +553,7 @@ export default function AdminImportsPage() {
                     justifyContent: 'center',
                     gap: 6,
                     paddingTop: 12,
-                    borderTop: `1px solid ${colors.border}`
+                    borderTop: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
                   }}
                 >
                   <button
@@ -563,10 +562,10 @@ export default function AdminImportsPage() {
                     style={{
                       padding: '6px 12px',
                       fontSize: 12,
-                      border: `1px solid ${colors.border}`,
+                      border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                       borderRadius: 6,
-                      background: colors.bg,
-                      color: colors.text,
+                      background: 'var(--background, #0b1120)',
+                      color: 'var(--foreground, #f1f5f9)',
                       cursor: historyPage === 1 ? 'not-allowed' : 'pointer',
                       opacity: historyPage === 1 ? 0.5 : 1
                     }}
@@ -580,10 +579,10 @@ export default function AdminImportsPage() {
                       style={{
                         padding: '6px 12px',
                         fontSize: 12,
-                        border: `1px solid ${p === historyPage ? colors.green : colors.border}`,
+                        border: `1px solid ${p === historyPage ? '#4ade80' : 'var(--border, rgba(255,255,255,0.1))'}`,
                         borderRadius: 6,
-                        background: p === historyPage ? colors.greenLight : colors.bg,
-                        color: colors.text,
+                        background: p === historyPage ? 'rgba(34,197,94,0.1)' : 'var(--background, #0b1120)',
+                        color: 'var(--foreground, #f1f5f9)',
                         cursor: 'pointer',
                         fontWeight: p === historyPage ? 700 : 400
                       }}
@@ -597,10 +596,10 @@ export default function AdminImportsPage() {
                     style={{
                       padding: '6px 12px',
                       fontSize: 12,
-                      border: `1px solid ${colors.border}`,
+                      border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                       borderRadius: 6,
-                      background: colors.bg,
-                      color: colors.text,
+                      background: 'var(--background, #0b1120)',
+                      color: 'var(--foreground, #f1f5f9)',
                       cursor: historyPage === totalPages ? 'not-allowed' : 'pointer',
                       opacity: historyPage === totalPages ? 0.5 : 1
                     }}

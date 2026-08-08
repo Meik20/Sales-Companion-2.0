@@ -1,6 +1,5 @@
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/index'
-import { colors, shadows } from '@/styles/tokens'
 import { SavedCompany } from '../hooks/useSavedCompanies'
 import { Building2, MapPin, Trash2, Briefcase, Hash, ExternalLink } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -27,8 +26,8 @@ export function SavedCompaniesList({ items, onDelete }: Props) {
               alignItems: 'center',
               gap: 20,
               padding: '20px',
-              background: colors.surface,
-              border: `1px solid ${colors.border}`,
+              background: 'var(--secondary, #1e2a3b)',
+              border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
               borderRadius: 16,
               boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
               transition: 'all 200ms ease',
@@ -64,7 +63,7 @@ export function SavedCompaniesList({ items, onDelete }: Props) {
                 style={{
                   fontWeight: 800,
                   fontSize: 16,
-                  color: colors.text,
+                  color: 'var(--foreground, #f1f5f9)',
                   marginBottom: 6,
                   display: 'flex',
                   alignItems: 'center',
@@ -84,7 +83,7 @@ export function SavedCompaniesList({ items, onDelete }: Props) {
                       display: 'flex',
                       alignItems: 'center',
                       gap: 4,
-                      color: colors.textMid,
+                      color: 'var(--muted-foreground, #94a3b8)',
                       fontSize: 13
                     }}
                   >
@@ -98,7 +97,7 @@ export function SavedCompaniesList({ items, onDelete }: Props) {
                       display: 'flex',
                       alignItems: 'center',
                       gap: 4,
-                      color: colors.textMid,
+                      color: 'var(--muted-foreground, #94a3b8)',
                       fontSize: 13
                     }}
                   >

@@ -2,9 +2,7 @@
 
 import { useState } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
-import { colors } from '@/styles/tokens'
 import { useTranslation } from '@/providers/I18nProvider'
-
 import { Company } from '@/features/search/hooks/useCompaniesSearch'
 
 type Props = { company: Company }
@@ -17,17 +15,12 @@ export function SaveCompanyButton({ company }: Props) {
 
   async function handleSave() {
     if (!user || status === 'loading' || status === 'done' || status === 'duplicate') return
-    setStatus('loading')
-    setErrorMsg(null)
-
+    setStatus('loading'); setErrorMsg(null)
     try {
       const token = await user.getIdToken()
       const res = await fetch('/api/saved-companies', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           companyId: company.id,
           raisonSociale: company.raisonSociale ?? '—',
@@ -39,9 +32,7 @@ export function SaveCompanyButton({ company }: Props) {
         })
       })
       const json = await res.json().catch(() => ({}))
-      if (!res.ok) {
-        throw new Error((json as { message?: string }).message ?? `Erreur ${res.status}`)
-      }
+      if (!res.ok) throw new Error((json as { message?: string }).message ?? `Erreur ${res.status}`)
       setStatus((json as { duplicate?: boolean }).duplicate ? 'duplicate' : 'done')
     } catch (err) {
       console.error('[SaveCompany]', err)
@@ -51,66 +42,29 @@ export function SaveCompanyButton({ company }: Props) {
   }
 
   const isDone = status === 'done' || status === 'duplicate'
-
   if (isDone) {
     return (
-      <span style={{ fontSize: 12, color: colors.green, fontWeight: 600, whiteSpace: 'nowrap' }}>
+      <span className="whitespace-nowrap text-[12px] font-semibold text-green-400">
         {status === 'duplicate' ? t('search.alreadySaved') : `✓ ${t('search.saved')}`}
       </span>
     )
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+    <div className="flex flex-col items-end gap-1">
       <button
         onClick={() => void handleSave()}
         disabled={status === 'loading'}
-        style={{
-          height: 32,
-          padding: '0 12px',
-          borderRadius: 8,
-          border: `1px solid ${status === 'error' ? '#ef4444' : colors.border}`,
-          background: status === 'error' ? 'rgba(239,68,68,0.08)' : colors.surface,
-          color: status === 'error' ? '#ef4444' : colors.text,
-          fontSize: 12,
-          fontWeight: 600,
-          cursor: status === 'loading' ? 'not-allowed' : 'pointer',
-          opacity: status === 'loading' ? 0.6 : 1,
-          transition: 'all 150ms ease',
-          whiteSpace: 'nowrap',
-          fontFamily: 'inherit'
-        }}
-        onMouseEnter={(e) => {
-          if (status === 'idle') {
-            ;(e.currentTarget as HTMLButtonElement).style.background = 'rgba(96,165,250,0.08)'
-            ;(e.currentTarget as HTMLButtonElement).style.borderColor = '#60a5fa'
-            ;(e.currentTarget as HTMLButtonElement).style.color = '#3b82f6'
-          }
-        }}
-        onMouseLeave={(e) => {
-          if (status === 'idle') {
-            ;(e.currentTarget as HTMLButtonElement).style.background = colors.surface
-            ;(e.currentTarget as HTMLButtonElement).style.borderColor = colors.border
-            ;(e.currentTarget as HTMLButtonElement).style.color = colors.text
-          }
-        }}
+        className={`h-8 whitespace-nowrap rounded-lg px-3 text-[12px] font-semibold transition-all duration-150 ${
+          status === 'error'
+            ? 'border border-red-500/40 bg-red-500/8 text-red-400'
+            : 'border border-border bg-secondary text-foreground hover:border-blue-400/60 hover:bg-blue-400/8 hover:text-blue-400'
+        } ${status === 'loading' ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
       >
-        {status === 'loading'
-          ? t('search.saving')
-          : status === 'error'
-            ? t('search.retry')
-            : `🔖 ${t('search.save')}`}
+        {status === 'loading' ? t('search.saving') : status === 'error' ? t('search.retry') : `🔖 ${t('search.save')}`}
       </button>
       {errorMsg && (
-        <span
-          style={{
-            fontSize: 10.5,
-            color: '#ef4444',
-            maxWidth: 120,
-            textAlign: 'right',
-            lineHeight: 1.3
-          }}
-        >
+        <span className="max-w-[120px] text-right text-[10.5px] leading-tight text-red-400">
           {errorMsg}
         </span>
       )}

@@ -6,7 +6,6 @@ import { DataCard } from '@/components/ui/index'
 import { Badge } from '@/components/ui/index'
 import { useQuery } from '@tanstack/react-query'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
-import { colors } from '@/styles/tokens'
 import { useTranslation } from '@/providers/I18nProvider'
 
 type SearchLog = {
@@ -63,9 +62,9 @@ export default function AdminLogsPage() {
             onClick={() => refetch()}
             style={{
               padding: '5px 12px',
-              background: colors.greenLight,
-              color: colors.green,
-              border: `1px solid ${colors.successBorder}`,
+              background: 'rgba(34,197,94,0.1)',
+              color: '#4ade80',
+              border: `1px solid ${'rgba(34,197,94,0.3)'}`,
               borderRadius: 6,
               fontSize: 12,
               fontWeight: 600,
@@ -77,12 +76,12 @@ export default function AdminLogsPage() {
         }
       >
         {isLoading && (
-          <div style={{ textAlign: 'center', padding: 40, color: colors.textMid, fontSize: 13 }}>
+          <div style={{ textAlign: 'center', padding: 40, color: 'var(--muted-foreground, #94a3b8)', fontSize: 13 }}>
             {t('team.loading')}
           </div>
         )}
         {isError && (
-          <div style={{ textAlign: 'center', padding: 40, color: colors.danger, fontSize: 13 }}>
+          <div style={{ textAlign: 'center', padding: 40, color: '#f87171', fontSize: 13 }}>
             {t('admin.loadingLogs')}
           </div>
         )}
@@ -100,10 +99,10 @@ export default function AdminLogsPage() {
                           textAlign: i === 5 ? 'right' : 'left',
                           fontSize: 11,
                           fontWeight: 700,
-                          color: colors.textMid,
+                          color: 'var(--muted-foreground, #94a3b8)',
                           letterSpacing: '.06em',
                           textTransform: 'uppercase',
-                          borderBottom: `2px solid ${colors.border}`
+                          borderBottom: `2px solid ${'var(--border, rgba(255,255,255,0.1))'}`
                         }}
                       >
                         {h}
@@ -120,7 +119,7 @@ export default function AdminLogsPage() {
                       style={{
                         textAlign: 'center',
                         padding: '40px 0',
-                        color: colors.textMid,
+                        color: 'var(--muted-foreground, #94a3b8)',
                         fontSize: 13
                       }}
                     >
@@ -133,10 +132,10 @@ export default function AdminLogsPage() {
                     <tr
                       key={log.id}
                       style={{
-                        borderBottom: `1px solid ${colors.border}`,
+                        borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                         transition: 'background 200ms ease'
                       }}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = colors.bg2)}
+                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--card, #131c2e)')}
                       onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                     >
                       <td style={{ padding: '12px' }}>
@@ -158,18 +157,18 @@ export default function AdminLogsPage() {
                           >
                             {(log.userName || log.userEmail || '?')[0]!.toUpperCase()}
                           </div>
-                          <span style={{ fontWeight: 700, color: colors.text, fontSize: 13 }}>
+                          <span style={{ fontWeight: 700, color: 'var(--foreground, #f1f5f9)', fontSize: 13 }}>
                             {log.userName || '—'}
                           </span>
                         </div>
                       </td>
-                      <td style={{ padding: '12px', color: colors.textMid, fontSize: 12 }}>
+                      <td style={{ padding: '12px', color: 'var(--muted-foreground, #94a3b8)', fontSize: 12 }}>
                         {log.userEmail || '—'}
                       </td>
                       <td
                         style={{
                           padding: '12px',
-                          color: colors.text,
+                          color: 'var(--foreground, #f1f5f9)',
                           maxWidth: 220,
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
@@ -190,7 +189,7 @@ export default function AdminLogsPage() {
                             display: 'inline-flex',
                             alignItems: 'center',
                             gap: 6,
-                            color: log.resultsCount > 0 ? colors.green : colors.textDim,
+                            color: log.resultsCount > 0 ? '#4ade80' : 'var(--muted-foreground, #64748b)',
                             fontWeight: 800,
                             fontSize: 14
                           }}
@@ -209,7 +208,7 @@ export default function AdminLogsPage() {
                       <td
                         style={{
                           padding: '12px',
-                          color: colors.textMid,
+                          color: 'var(--muted-foreground, #94a3b8)',
                           fontSize: 11,
                           textAlign: 'right'
                         }}

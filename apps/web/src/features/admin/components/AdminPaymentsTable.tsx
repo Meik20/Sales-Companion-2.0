@@ -2,7 +2,6 @@
 
 import { Badge } from '@/components/ui/index'
 import { Button } from '@/components/ui/Button'
-import { colors } from '@/styles/tokens'
 import { useTranslation } from '@/providers/I18nProvider'
 import type { AdminPaymentItem } from '../hooks/useAdminPayments'
 import {
@@ -43,7 +42,7 @@ export function AdminPaymentsTable({ payments, onValidate, onReject }: Props) {
 
   if (!payments.length) {
     return (
-      <p style={{ color: colors.textMid, textAlign: 'center', padding: '32px 0' }}>
+      <p style={{ color: 'var(--muted-foreground, #94a3b8)', textAlign: 'center', padding: '32px 0' }}>
         {t('admin.noPayments') || 'Aucune demande de paiement.'}
       </p>
     )
@@ -69,7 +68,7 @@ export function AdminPaymentsTable({ payments, onValidate, onReject }: Props) {
         }}
       >
         <thead>
-          <tr style={{ background: colors.bg3 }}>
+          <tr style={{ background: 'var(--secondary, #1e2a3b)' }}>
             {headers.map((h) => (
               <th
                 key={h.label}
@@ -78,10 +77,10 @@ export function AdminPaymentsTable({ payments, onValidate, onReject }: Props) {
                   textAlign: 'left',
                   fontSize: 10.5,
                   fontWeight: 700,
-                  color: colors.textMid,
+                  color: 'var(--muted-foreground, #94a3b8)',
                   letterSpacing: '.06em',
                   textTransform: 'uppercase',
-                  borderBottom: `2px solid ${colors.border}`,
+                  borderBottom: `2px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                   whiteSpace: 'nowrap'
                 }}
               >
@@ -101,14 +100,14 @@ export function AdminPaymentsTable({ payments, onValidate, onReject }: Props) {
               <tr
                 key={payment.reference}
                 style={{
-                  borderBottom: `1px solid ${colors.border}`,
+                  borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                   transition: 'background 150ms ease'
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = colors.bg3)}
+                onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--secondary, #1e2a3b)')}
                 onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
               >
                 {/* Date */}
-                <td style={{ padding: '16px 12px', color: colors.textMid, whiteSpace: 'nowrap' }}>
+                <td style={{ padding: '16px 12px', color: 'var(--muted-foreground, #94a3b8)', whiteSpace: 'nowrap' }}>
                   {formatDate(payment.createdAt)}
                 </td>
 
@@ -118,7 +117,7 @@ export function AdminPaymentsTable({ payments, onValidate, onReject }: Props) {
                     <span
                       style={{
                         fontWeight: 700,
-                        color: colors.text,
+                        color: 'var(--foreground, #f1f5f9)',
                         fontSize: 13,
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
@@ -131,7 +130,7 @@ export function AdminPaymentsTable({ payments, onValidate, onReject }: Props) {
                     <span
                       style={{
                         fontSize: 10,
-                        color: colors.textDim,
+                        color: 'var(--muted-foreground, #64748b)',
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis'
@@ -160,14 +159,14 @@ export function AdminPaymentsTable({ payments, onValidate, onReject }: Props) {
                 </td>
 
                 {/* Montant */}
-                <td style={{ padding: '16px 12px', fontWeight: 700, color: colors.text }}>
+                <td style={{ padding: '16px 12px', fontWeight: 700, color: 'var(--foreground, #f1f5f9)' }}>
                   {payment.amount !== null ? `${payment.amount.toLocaleString('fr-FR')} FCFA` : '—'}
                 </td>
 
                 {/* Opérateur / Transaction */}
-                <td style={{ padding: '16px 12px', color: colors.textMid }}>
+                <td style={{ padding: '16px 12px', color: 'var(--muted-foreground, #94a3b8)' }}>
                   <div style={{ fontWeight: 600 }}>{payment.operator || '—'}</div>
-                  <div style={{ fontSize: 11, color: colors.textDim, marginTop: 2 }}>
+                  <div style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)', marginTop: 2 }}>
                     ID: {payment.transactionId || '—'}
                   </div>
                 </td>
@@ -227,7 +226,7 @@ export function AdminPaymentsTable({ payments, onValidate, onReject }: Props) {
                       </Button>
                     </div>
                   ) : (
-                    <span style={{ fontSize: 11, color: colors.textDim, fontStyle: 'italic' }}>
+                    <span style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)', fontStyle: 'italic' }}>
                       —
                     </span>
                   )}

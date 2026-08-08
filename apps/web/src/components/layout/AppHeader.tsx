@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/Button'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useAuthActions } from '@/features/auth/hooks/useAuthActions'
 import { routes } from '@/constants/routes'
-import { colors, shadows } from '@/styles/tokens'
 import { ScIcon } from '@/components/ui/ScIcon'
 import { Settings, User, LogOut, Menu, ChevronDown } from 'lucide-react'
 import { useTranslation } from '@/providers/I18nProvider'
@@ -40,19 +39,7 @@ export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void 
   const badge = user?.role ? (roleBadge[user.role] ?? null) : null
 
   return (
-    <header
-      style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 100,
-        background: `var(--color-primary)`,
-        boxShadow: shadows.sm,
-        padding: '0 12px',
-        height: 60,
-        display: 'flex',
-        alignItems: 'center'
-      }}
-    >
+    <header className="sticky top-0 z-50 flex h-16 items-center border-b border-border/70 bg-background/85 px-4 backdrop-blur-md transition-all">
       <style
         dangerouslySetInnerHTML={{
           __html: `
@@ -66,36 +53,13 @@ export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void 
       `
         }}
       />
-      <div
-        style={{
-          maxWidth: 1440,
-          margin: '0 auto',
-          width: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 16
-        }}
-      >
+      <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between gap-4">
         {/* ── LEFT: Hamburger + Logo ──────────────────────────────── */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0 }}>
+        <div className="flex shrink-0 items-center gap-3.5">
           {onOpenMenuAction && (
             <button
               onClick={onOpenMenuAction}
-              style={{
-                background: 'rgba(255,255,255,0.12)',
-                border: '1px solid rgba(255,255,255,0.18)',
-                borderRadius: 8,
-                color: '#fff',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: 6,
-                transition: 'all 200ms ease'
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.2)')}
-              onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.12)')}
+              className="flex items-center justify-center rounded-lg border border-border/50 bg-secondary/50 p-1.5 text-foreground transition-all hover:bg-secondary"
               aria-label="Ouvrir le menu"
             >
               <Menu size={18} />
@@ -104,35 +68,15 @@ export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void 
 
           <Link
             href={routes.search}
-            style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}
+            className="group flex items-center gap-2.5"
+            aria-label="Sales Companion 2.0"
           >
-            <ScIcon size={30} />
-            <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
-              <span
-                style={{
-                  fontFamily: 'inherit',
-                  fontWeight: 800,
-                  fontSize: 15,
-                  color: '#ffffff',
-                  letterSpacing: '.05em',
-                  textTransform: 'uppercase'
-                }}
-              >
-                Sales{' '}
-                <em style={{ opacity: 0.75, fontStyle: 'normal', fontWeight: 400 }}>Companion</em>{' '}
-                <em style={{ opacity: 0.55, fontStyle: 'normal', fontWeight: 400, fontSize: 12 }}>
-                  2.0
-                </em>
+            <ScIcon size={30} className="transition-transform group-hover:scale-105" />
+            <div className="flex flex-col leading-[1.1]">
+              <span className="font-heading text-[15px] font-semibold tracking-tight text-foreground uppercase">
+                Sales <em className="not-italic font-normal opacity-75">Companion</em> <em className="text-[12px] not-italic font-normal opacity-55">2.0</em>
               </span>
-              <span
-                className="hdr-logo-sub"
-                style={{
-                  fontSize: 9.5,
-                  color: 'rgba(255,255,255,0.55)',
-                  letterSpacing: '.12em',
-                  textTransform: 'uppercase'
-                }}
-              >
+              <span className="hdr-logo-sub text-[9.5px] uppercase tracking-[.12em] text-muted-foreground">
                 B2B Cameroun
               </span>
             </div>
@@ -140,84 +84,36 @@ export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void 
         </div>
 
         {/* ── CENTER/RIGHT: Admin notification bell ───────────────────── */}
-        <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 10 }}>
+        <div className="flex flex-1 items-center justify-end gap-2.5">
           {user?.role === 'admin' && <AdminNotificationBell />}
 
           {/* ── RIGHT: User Profile ──────────────────────────────────── */}
         {user ? (
-          <div style={{ position: 'relative' }}>
+          <div className="relative">
             <button
               onClick={() => setIsProfileOpen(!isProfileOpen)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                background: 'rgba(255,255,255,0.1)',
-                border: '1px solid rgba(255,255,255,0.18)',
-                borderRadius: 10,
-                padding: '6px 10px 6px 6px',
-                cursor: 'pointer',
-                color: '#fff',
-                transition: 'all 200ms ease'
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.18)')}
-              onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.1)')}
+              className="flex items-center gap-2.5 rounded-xl border border-border/50 bg-secondary/30 py-1.5 pl-1.5 pr-2.5 text-foreground transition-all hover:bg-secondary/70"
             >
               {/* Avatar */}
-              <div
-                style={{
-                  width: 30,
-                  height: 30,
-                  borderRadius: '50%',
-                  background: 'rgba(255,255,255,0.25)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontWeight: 700,
-                  fontSize: 13,
-                  flexShrink: 0
-                }}
-              >
+              <div className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full bg-primary/10 text-[13px] font-bold text-primary">
                 {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || '?'}
               </div>
 
               {/* Name + Role — hidden on mobile */}
-              <div
-                className="hdr-name-block"
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  textAlign: 'left',
-                  lineHeight: 1.2
-                }}
-              >
-                <span style={{ fontSize: 13, fontWeight: 600 }}>
+              <div className="hdr-name-block flex flex-col text-left leading-[1.2]">
+                <span className="text-[13px] font-semibold">
                   {user.name || user.email?.split('@')[0] || t('sidebar.user')}
                 </span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 1 }}>
+                <div className="mt-[2px] flex items-center gap-1.5">
                   {badge && (
                     <span
-                      style={{
-                        fontSize: 9,
-                        fontWeight: 700,
-                        padding: '1px 6px',
-                        borderRadius: 9999,
-                        background: badge.bg,
-                        color: '#fff',
-                        letterSpacing: '.06em',
-                        textTransform: 'uppercase'
-                      }}
+                      style={{ backgroundColor: badge.bg }}
+                      className="rounded-full px-1.5 py-[1px] text-[9px] font-bold uppercase tracking-[.06em] text-foreground"
                     >
                       {badge.label}
                     </span>
                   )}
-                  <span
-                    style={{
-                      fontSize: 10,
-                      color: 'rgba(255,255,255,0.55)',
-                      textTransform: 'uppercase'
-                    }}
-                  >
+                  <span className="text-[10px] uppercase text-muted-foreground">
                     {(user.plan || 'free') === 'free' ? t('header.planFree') : user.plan}
                   </span>
                 </div>
@@ -225,12 +121,7 @@ export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void 
 
               <ChevronDown
                 size={14}
-                style={{
-                  opacity: 0.6,
-                  transform: isProfileOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                  transition: 'transform 200ms ease',
-                  flexShrink: 0
-                }}
+                className={`shrink-0 opacity-60 transition-transform duration-200 ${isProfileOpen ? 'rotate-180' : 'rotate-0'}`}
               />
             </button>
 
@@ -239,44 +130,21 @@ export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void 
               <>
                 <div
                   onClick={() => setIsProfileOpen(false)}
-                  style={{ position: 'fixed', inset: 0, zIndex: 99 }}
+                  className="fixed inset-0 z-[99]"
                 />
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: 46,
-                    right: 0,
-                    width: 220,
-                    background: colors.bg,
-                    borderRadius: 12,
-                    boxShadow: shadows.md,
-                    border: `1px solid ${colors.border}`,
-                    overflow: 'hidden',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    zIndex: 200,
-                    animation: 'fadeIn 150ms ease'
-                  }}
-                >
+                <div className="absolute right-0 top-[46px] z-[200] flex w-[220px] animate-in fade-in zoom-in-95 flex-col overflow-hidden rounded-xl border border-border bg-popover shadow-md duration-150">
                   {/* User Info */}
-                  <div
-                    style={{
-                      padding: '14px 16px 12px',
-                      borderBottom: `1px solid ${colors.border}`
-                    }}
-                  >
-                    <div style={{ fontWeight: 600, color: colors.text, fontSize: 14 }}>
+                  <div className="border-b border-border px-4 pb-3 pt-3.5">
+                    <div className="text-[14px] font-semibold text-foreground">
                       {user.name || t('sidebar.user')}
                     </div>
-                    <div style={{ fontSize: 11, color: colors.textMid, marginTop: 2 }}>
+                    <div className="mt-0.5 text-[11px] text-muted-foreground">
                       {user.email}
                     </div>
                   </div>
 
                   {/* Menu Items */}
-                  <div
-                    style={{ padding: '6px 8px', display: 'flex', flexDirection: 'column', gap: 2 }}
-                  >
+                  <div className="flex flex-col gap-0.5 p-1.5">
                     {[
                       {
                         icon: User,
@@ -298,55 +166,20 @@ export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void 
                       <button
                         key={label}
                         onClick={action}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 9,
-                          padding: '8px 10px',
-                          textAlign: 'left',
-                          background: 'transparent',
-                          border: 'none',
-                          borderRadius: 8,
-                          fontSize: 13,
-                          cursor: 'pointer',
-                          color: colors.text,
-                          transition: 'all 150ms ease'
-                        }}
-                        onMouseEnter={(e) => (e.currentTarget.style.background = colors.hoverBg)}
-                        onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                        className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[13px] text-foreground transition-all hover:bg-secondary"
                       >
-                        <Icon
-                          size={15}
-                          strokeWidth={1.8}
-                          style={{ color: colors.textMid, flexShrink: 0 }}
-                        />
+                        <Icon size={15} strokeWidth={1.8} className="shrink-0 text-muted-foreground" />
                         {label}
                       </button>
                     ))}
 
-                    <div style={{ borderTop: `1px solid ${colors.border}`, margin: '4px 0' }} />
+                    <div className="my-1 border-t border-border" />
 
                     <button
                       onClick={handleLogout}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 9,
-                        padding: '8px 10px',
-                        textAlign: 'left',
-                        background: 'transparent',
-                        border: 'none',
-                        borderRadius: 8,
-                        fontSize: 13,
-                        cursor: 'pointer',
-                        color: colors.danger,
-                        fontWeight: 500,
-                        transition: 'all 150ms ease'
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = colors.dangerBg)}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                      className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[13px] font-medium text-destructive transition-all hover:bg-destructive/10"
                     >
-                      <LogOut size={15} strokeWidth={1.8} style={{ flexShrink: 0 }} />
+                      <LogOut size={15} strokeWidth={1.8} className="shrink-0" />
                       {t('header.logout')}
                     </button>
                   </div>
@@ -359,7 +192,6 @@ export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void 
             variant="outline"
             size="sm"
             onClick={() => router.push(routes.login)}
-            style={{ borderColor: 'rgba(255,255,255,0.3)', color: '#fff' }}
           >
             {t('header.login')}
           </Button>

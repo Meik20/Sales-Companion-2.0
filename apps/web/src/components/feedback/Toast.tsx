@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect } from 'react'
-import { colors } from '@/styles/tokens'
 
 export type ToastData = {
   id: string
@@ -15,28 +14,38 @@ type Props = {
   onDismiss: (id: string) => void
 }
 
-const toastStyles: Record<
+const TOAST_MAP: Record<
   ToastData['type'],
-  { bg: string; border: string; icon: string; color: string }
+  { wrapper: string; icon: string; iconWrapper: string; iconColor: string }
 > = {
   success: {
-    bg: 'rgba(27,122,62,0.12)',
-    border: 'rgba(46,160,90,0.3)',
+    wrapper: 'border-green-500/30',
+    iconWrapper: 'bg-green-500/10 border border-green-500/30',
     icon: '✓',
-    color: '#4ade80'
+    iconColor: 'text-green-400'
   },
-  error: { bg: 'rgba(239,68,68,0.1)', border: 'rgba(239,68,68,0.3)', icon: '✕', color: '#f87171' },
+  error: {
+    wrapper: 'border-red-500/30',
+    iconWrapper: 'bg-red-500/10 border border-red-500/30',
+    icon: '✕',
+    iconColor: 'text-red-400'
+  },
   warning: {
-    bg: 'rgba(245,166,35,0.1)',
-    border: 'rgba(245,166,35,0.3)',
+    wrapper: 'border-amber-500/30',
+    iconWrapper: 'bg-amber-500/10 border border-amber-500/30',
     icon: '!',
-    color: '#fbbf24'
+    iconColor: 'text-amber-400'
   },
-  info: { bg: 'rgba(96,165,250,0.1)', border: 'rgba(96,165,250,0.3)', icon: 'i', color: '#60a5fa' }
+  info: {
+    wrapper: 'border-blue-400/30',
+    iconWrapper: 'bg-blue-400/10 border border-blue-400/30',
+    icon: 'i',
+    iconColor: 'text-blue-400'
+  }
 }
 
 export function Toast({ toast, onDismiss }: Props) {
-  const s = toastStyles[toast.type]
+  const s = TOAST_MAP[toast.type]
 
   useEffect(() => {
     const t = setTimeout(() => onDismiss(toast.id), 4000)
@@ -45,49 +54,19 @@ export function Toast({ toast, onDismiss }: Props) {
 
   return (
     <div
-      style={{
-        display: 'flex',
-        alignItems: 'flex-start',
-        gap: 12,
-        padding: '14px 16px',
-        background: colors.bg2,
-        border: `1px solid ${s.border}`,
-        borderRadius: 12,
-        boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-        minWidth: 300,
-        maxWidth: 420,
-        animation: 'fadeIn 200ms ease',
-        cursor: 'pointer'
-      }}
       onClick={() => onDismiss(toast.id)}
+      className={`flex min-w-[300px] max-w-[420px] cursor-pointer items-start gap-3 rounded-xl border bg-card px-4 py-3.5 shadow-[0_8px_32px_rgba(0,0,0,0.5)] ${s.wrapper}`}
+      style={{ animation: 'fadeIn 200ms ease' }}
     >
       <span
-        style={{
-          width: 22,
-          height: 22,
-          borderRadius: '50%',
-          background: s.bg,
-          border: `1px solid ${s.border}`,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: 11,
-          fontWeight: 700,
-          color: s.color,
-          flexShrink: 0,
-          marginTop: 1
-        }}
+        className={`mt-px flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${s.iconWrapper} ${s.iconColor}`}
       >
         {s.icon}
       </span>
       <div>
-        <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: colors.text }}>
-          {toast.title}
-        </p>
+        <p className="m-0 text-[13px] font-semibold text-foreground">{toast.title}</p>
         {toast.description ? (
-          <p style={{ margin: '2px 0 0', fontSize: 12, color: colors.textMid }}>
-            {toast.description}
-          </p>
+          <p className="m-0 mt-0.5 text-[12px] text-muted-foreground">{toast.description}</p>
         ) : null}
       </div>
     </div>

@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { colors } from '@/styles/tokens'
 import type { CrmClient, CustomerCall, CustomerTicket, CallStatus, TicketPriority } from '../types'
 import type { CurrentUser } from '@/hooks/useCurrentUser'
 
@@ -157,8 +156,8 @@ export function ClientDrawer({ client, onClose, user }: Props) {
     right: 0,
     bottom: 0,
     width: 'min(480px, 100vw)',
-    background: colors.bg2,
-    borderLeft: `1px solid ${colors.border}`,
+    background: 'var(--card, #131c2e)',
+    borderLeft: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
     boxShadow: '-12px 0 60px rgba(0,0,0,0.4)',
     zIndex: 900,
     display: 'flex',
@@ -182,23 +181,23 @@ export function ClientDrawer({ client, onClose, user }: Props) {
         {/* Header */}
         <div style={{
           padding: '20px 20px 16px',
-          borderBottom: `1px solid ${colors.border}`,
+          borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
           background: 'rgba(55,138,221,0.05)'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
               <h2 style={{
-                margin: 0, fontSize: 18, fontWeight: 800, color: colors.text,
+                margin: 0, fontSize: 18, fontWeight: 800, color: 'var(--foreground, #f1f5f9)',
                 fontFamily: "'Syne',sans-serif"
               }}>
                 {client.companyName}
               </h2>
               <div style={{ display: 'flex', gap: 12, marginTop: 6, flexWrap: 'wrap' }}>
                 {client.companyCity && (
-                  <span style={{ fontSize: 12, color: colors.textMid }}>📍 {client.companyCity}</span>
+                  <span style={{ fontSize: 12, color: 'var(--muted-foreground, #94a3b8)' }}>📍 {client.companyCity}</span>
                 )}
                 {client.companySector && (
-                  <span style={{ fontSize: 12, color: colors.textMid }}>🏭 {client.companySector}</span>
+                  <span style={{ fontSize: 12, color: 'var(--muted-foreground, #94a3b8)' }}>🏭 {client.companySector}</span>
                 )}
               </div>
             </div>
@@ -206,9 +205,9 @@ export function ClientDrawer({ client, onClose, user }: Props) {
               onClick={onClose}
               style={{
                 width: 32, height: 32, borderRadius: '50%',
-                border: `1px solid ${colors.border}`,
+                border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                 background: 'transparent', cursor: 'pointer',
-                color: colors.textMid, fontSize: 16, display: 'flex',
+                color: 'var(--muted-foreground, #94a3b8)', fontSize: 16, display: 'flex',
                 alignItems: 'center', justifyContent: 'center'
               }}
             >×</button>
@@ -240,7 +239,7 @@ export function ClientDrawer({ client, onClose, user }: Props) {
         </div>
 
         {/* Tabs */}
-        <div style={{ display: 'flex', borderBottom: `1px solid ${colors.border}` }}>
+        <div style={{ display: 'flex', borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}` }}>
           {([
             { id: 'appels', label: `📞 Appels (${calls.length})` },
             { id: 'tickets', label: `🎫 SAV (${tickets.length})` },
@@ -253,7 +252,7 @@ export function ClientDrawer({ client, onClose, user }: Props) {
                 flex: 1, padding: '12px 8px',
                 border: 'none', borderBottom: tab === t.id ? '2px solid var(--color-accent)' : '2px solid transparent',
                 background: 'transparent', cursor: 'pointer',
-                color: tab === t.id ? 'var(--color-accent)' : colors.textMid,
+                color: tab === t.id ? 'var(--color-accent)' : 'var(--muted-foreground, #94a3b8)',
                 fontSize: 12, fontWeight: tab === t.id ? 700 : 500,
                 fontFamily: 'inherit', transition: 'all 150ms'
               }}
@@ -269,23 +268,23 @@ export function ClientDrawer({ client, onClose, user }: Props) {
           {tab === 'appels' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {loadingCalls ? (
-                <p style={{ color: colors.textMid, fontSize: 13, textAlign: 'center' }}>Chargement…</p>
+                <p style={{ color: 'var(--muted-foreground, #94a3b8)', fontSize: 13, textAlign: 'center' }}>Chargement…</p>
               ) : calls.length === 0 ? (
                 <EmptyState emoji="📞" msg="Aucun appel enregistré" sub="Cliquez sur 'Appeler' pour initier un appel" />
               ) : calls.map(call => (
                 <div key={call.id} style={cardStyle}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: colors.text }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--foreground, #f1f5f9)' }}>
                       {CALL_STATUS_LABELS[call.status]?.emoji} {CALL_STATUS_LABELS[call.status]?.label}
                     </span>
-                    <span style={{ fontSize: 11, color: colors.textDim }}>
+                    <span style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)' }}>
                       {new Date(call.createdAt).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </div>
                   {call.notes && (
-                    <p style={{ fontSize: 12, color: colors.textMid, margin: 0, lineHeight: 1.5 }}>{call.notes}</p>
+                    <p style={{ fontSize: 12, color: 'var(--muted-foreground, #94a3b8)', margin: 0, lineHeight: 1.5 }}>{call.notes}</p>
                   )}
-                  <div style={{ fontSize: 11, color: colors.textDim, marginTop: 4 }}>
+                  <div style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)', marginTop: 4 }}>
                     Par {call.agentName} · {call.clientPhone}
                   </div>
                 </div>
@@ -299,7 +298,7 @@ export function ClientDrawer({ client, onClose, user }: Props) {
               <button
                 onClick={() => setShowTicketModal(true)}
                 style={{
-                  padding: '10px 16px', borderRadius: 10, border: `1px dashed ${colors.border}`,
+                  padding: '10px 16px', borderRadius: 10, border: `1px dashed ${'var(--border, rgba(255,255,255,0.1))'}`,
                   background: 'transparent', cursor: 'pointer', color: 'var(--color-accent)',
                   fontSize: 13, fontWeight: 600, fontFamily: 'inherit', marginBottom: 4
                 }}
@@ -307,13 +306,13 @@ export function ClientDrawer({ client, onClose, user }: Props) {
                 + Ouvrir un nouveau ticket SAV
               </button>
               {loadingTickets ? (
-                <p style={{ color: colors.textMid, fontSize: 13, textAlign: 'center' }}>Chargement…</p>
+                <p style={{ color: 'var(--muted-foreground, #94a3b8)', fontSize: 13, textAlign: 'center' }}>Chargement…</p>
               ) : tickets.length === 0 ? (
                 <EmptyState emoji="🎫" msg="Aucun ticket ouvert" sub="Créez un ticket pour suivre une réclamation" />
               ) : tickets.map(ticket => (
                 <div key={ticket.id} style={cardStyle}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: colors.text }}>{ticket.subject}</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--foreground, #f1f5f9)' }}>{ticket.subject}</span>
                     <span style={{
                       fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20,
                       background: `${PRIORITY_LABELS[ticket.priority]?.color}22`,
@@ -323,7 +322,7 @@ export function ClientDrawer({ client, onClose, user }: Props) {
                     </span>
                   </div>
                   {ticket.description && (
-                    <p style={{ fontSize: 12, color: colors.textMid, margin: '0 0 8px', lineHeight: 1.5 }}>{ticket.description}</p>
+                    <p style={{ fontSize: 12, color: 'var(--muted-foreground, #94a3b8)', margin: '0 0 8px', lineHeight: 1.5 }}>{ticket.description}</p>
                   )}
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 6 }}>
                     {(['open', 'in_progress', 'resolved', 'closed'] as const).map(s => {
@@ -343,9 +342,9 @@ export function ClientDrawer({ client, onClose, user }: Props) {
                           style={{
                             padding: '3px 10px', borderRadius: 20, fontSize: 10, fontWeight: 700,
                             cursor: isActive ? 'default' : 'pointer', fontFamily: 'inherit',
-                            border: `1px solid ${isActive ? statusColors[s] : colors.border}`,
+                            border: `1px solid ${isActive ? statusColors[s] : 'var(--border, rgba(255,255,255,0.1))'}`,
                             background: isActive ? `${statusColors[s]}22` : 'transparent',
-                            color: isActive ? statusColors[s] : colors.textDim,
+                            color: isActive ? statusColors[s] : 'var(--muted-foreground, #64748b)',
                             transition: 'all 150ms'
                           }}
                         >
@@ -354,7 +353,7 @@ export function ClientDrawer({ client, onClose, user }: Props) {
                       )
                     })}
                   </div>
-                  <div style={{ fontSize: 11, color: colors.textDim }}>
+                  <div style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)' }}>
                     {new Date(ticket.createdAt).toLocaleDateString('fr-FR')} · Par {ticket.agentName}
                   </div>
                 </div>
@@ -383,17 +382,17 @@ export function ClientDrawer({ client, onClose, user }: Props) {
                       {item.type === 'call' ? '📞' : '🎫'}
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: colors.text }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--foreground, #f1f5f9)' }}>
                         {item.type === 'call'
                           ? `Appel · ${CALL_STATUS_LABELS[(item.data as CustomerCall).status]?.label}`
                           : `Ticket · ${(item.data as CustomerTicket).subject}`}
                       </div>
                       {item.type === 'call' && (item.data as CustomerCall).notes && (
-                        <p style={{ fontSize: 12, color: colors.textMid, margin: '2px 0 0' }}>
+                        <p style={{ fontSize: 12, color: 'var(--muted-foreground, #94a3b8)', margin: '2px 0 0' }}>
                           {(item.data as CustomerCall).notes}
                         </p>
                       )}
-                      <div style={{ fontSize: 11, color: colors.textDim, marginTop: 3 }}>
+                      <div style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)', marginTop: 3 }}>
                         {new Date(item.date).toLocaleString('fr-FR', {
                           day: '2-digit', month: '2-digit', year: 'numeric',
                           hour: '2-digit', minute: '2-digit'
@@ -414,10 +413,10 @@ export function ClientDrawer({ client, onClose, user }: Props) {
       {showCallModal && (
         <div style={modalOverlay}>
           <div style={modalCard}>
-            <h3 style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 800, color: colors.text }}>
+            <h3 style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 800, color: 'var(--foreground, #f1f5f9)' }}>
               📞 Appel avec {client.companyName}
             </h3>
-            <p style={{ margin: '0 0 16px', fontSize: 13, color: colors.textMid }}>
+            <p style={{ margin: '0 0 16px', fontSize: 13, color: 'var(--muted-foreground, #94a3b8)' }}>
               {client.companyPhone} · Qualifiez l'appel
             </p>
 
@@ -430,9 +429,9 @@ export function ClientDrawer({ client, onClose, user }: Props) {
                   style={{
                     padding: '7px 14px', borderRadius: 8, fontSize: 12, fontWeight: 600,
                     cursor: 'pointer', fontFamily: 'inherit', transition: 'all 150ms',
-                    border: `1px solid ${callStatus === key ? val.color : colors.border}`,
+                    border: `1px solid ${callStatus === key ? val.color : 'var(--border, rgba(255,255,255,0.1))'}`,
                     background: callStatus === key ? `${val.color}22` : 'transparent',
-                    color: callStatus === key ? val.color : colors.textMid
+                    color: callStatus === key ? val.color : 'var(--muted-foreground, #94a3b8)'
                   }}
                 >
                   {val.emoji} {val.label}
@@ -448,8 +447,8 @@ export function ClientDrawer({ client, onClose, user }: Props) {
               rows={4}
               style={{
                 width: '100%', boxSizing: 'border-box', padding: '10px 12px',
-                borderRadius: 8, border: `1px solid ${colors.border}`,
-                background: colors.bg, color: colors.text, fontSize: 13,
+                borderRadius: 8, border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+                background: 'var(--background, #0b1120)', color: 'var(--foreground, #f1f5f9)', fontSize: 13,
                 fontFamily: 'inherit', resize: 'vertical', outline: 'none', marginBottom: 16
               }}
             />
@@ -470,10 +469,10 @@ export function ClientDrawer({ client, onClose, user }: Props) {
       {showTicketModal && (
         <div style={modalOverlay}>
           <div style={modalCard}>
-            <h3 style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 800, color: colors.text }}>
+            <h3 style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 800, color: 'var(--foreground, #f1f5f9)' }}>
               🎫 Nouveau Ticket SAV
             </h3>
-            <p style={{ margin: '0 0 16px', fontSize: 13, color: colors.textMid }}>
+            <p style={{ margin: '0 0 16px', fontSize: 13, color: 'var(--muted-foreground, #94a3b8)' }}>
               Pour {client.companyName}
             </p>
 
@@ -493,8 +492,8 @@ export function ClientDrawer({ client, onClose, user }: Props) {
               rows={3}
               style={{
                 width: '100%', boxSizing: 'border-box', padding: '10px 12px',
-                borderRadius: 8, border: `1px solid ${colors.border}`,
-                background: colors.bg, color: colors.text, fontSize: 13,
+                borderRadius: 8, border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+                background: 'var(--background, #0b1120)', color: 'var(--foreground, #f1f5f9)', fontSize: 13,
                 fontFamily: 'inherit', resize: 'vertical', outline: 'none', marginBottom: 12
               }}
             />
@@ -508,9 +507,9 @@ export function ClientDrawer({ client, onClose, user }: Props) {
                   style={{
                     flex: 1, padding: '7px 8px', borderRadius: 8, fontSize: 11, fontWeight: 600,
                     cursor: 'pointer', fontFamily: 'inherit', transition: 'all 150ms',
-                    border: `1px solid ${ticketPriority === key ? val.color : colors.border}`,
+                    border: `1px solid ${ticketPriority === key ? val.color : 'var(--border, rgba(255,255,255,0.1))'}`,
                     background: ticketPriority === key ? `${val.color}22` : 'transparent',
-                    color: ticketPriority === key ? val.color : colors.textMid
+                    color: ticketPriority === key ? val.color : 'var(--muted-foreground, #94a3b8)'
                   }}
                 >
                   {val.label}
@@ -540,7 +539,7 @@ export function ClientDrawer({ client, onClose, user }: Props) {
 // ── Shared styles ──────────────────────────────────────────────────────────────
 const cardStyle: React.CSSProperties = {
   background: 'rgba(255,255,255,0.03)',
-  border: `1px solid ${colors.border}`,
+  border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
   borderRadius: 10,
   padding: '12px 14px'
 }
@@ -549,18 +548,18 @@ const modalOverlay: React.CSSProperties = {
   zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16
 }
 const modalCard: React.CSSProperties = {
-  background: colors.bg2, border: `1px solid ${colors.border}`,
+  background: 'var(--card, #131c2e)', border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
   borderRadius: 16, padding: 24, width: '100%', maxWidth: 440,
   boxShadow: '0 20px 60px rgba(0,0,0,0.5)'
 }
 const labelStyle: React.CSSProperties = {
-  display: 'block', fontSize: 11, fontWeight: 700, color: colors.textMid,
+  display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--muted-foreground, #94a3b8)',
   textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 6
 }
 const inputStyle: React.CSSProperties = {
   width: '100%', boxSizing: 'border-box', padding: '10px 12px',
-  borderRadius: 8, border: `1px solid ${colors.border}`,
-  background: colors.bg, color: colors.text, fontSize: 13,
+  borderRadius: 8, border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+  background: 'var(--background, #0b1120)', color: 'var(--foreground, #f1f5f9)', fontSize: 13,
   fontFamily: 'inherit', outline: 'none'
 }
 const primaryBtn: React.CSSProperties = {
@@ -571,8 +570,8 @@ const primaryBtn: React.CSSProperties = {
 }
 const secondaryBtn: React.CSSProperties = {
   padding: '10px 16px', borderRadius: 8,
-  background: 'transparent', border: `1px solid ${colors.border}`,
-  color: colors.textMid, fontSize: 13, fontWeight: 500,
+  background: 'transparent', border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+  color: 'var(--muted-foreground, #94a3b8)', fontSize: 13, fontWeight: 500,
   cursor: 'pointer', fontFamily: 'inherit'
 }
 
@@ -586,9 +585,9 @@ function callBtn(color: string): React.CSSProperties {
 
 function EmptyState({ emoji, msg, sub }: { emoji: string; msg: string; sub: string }) {
   return (
-    <div style={{ textAlign: 'center', padding: '30px 16px', color: colors.textMid }}>
+    <div style={{ textAlign: 'center', padding: '30px 16px', color: 'var(--muted-foreground, #94a3b8)' }}>
       <div style={{ fontSize: 32, marginBottom: 8 }}>{emoji}</div>
-      <p style={{ fontWeight: 600, color: colors.text, margin: '0 0 4px', fontSize: 14 }}>{msg}</p>
+      <p style={{ fontWeight: 600, color: 'var(--foreground, #f1f5f9)', margin: '0 0 4px', fontSize: 14 }}>{msg}</p>
       <p style={{ fontSize: 12, margin: 0 }}>{sub}</p>
     </div>
   )

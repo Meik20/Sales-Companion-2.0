@@ -5,7 +5,6 @@ import { useRouter, usePathname } from 'next/navigation'
 import { routes } from '@/constants/routes'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { SidebarLink } from './SidebarLink'
-import { colors } from '@/styles/tokens'
 import { useAuthActions } from '@/features/auth/hooks/useAuthActions'
 import { useToast } from '@/hooks/useToast'
 import { usePipelineStats } from '@/features/pipeline/hooks/usePipelineStats'
@@ -127,28 +126,14 @@ function nearestZone(lat: number, lng: number) {
 // ── Section label separator ─────────────────────────────────────────────
 function SectionLabel({ children }: { children: string }) {
   return (
-    <div
-      style={{
-        fontSize: 10,
-        fontWeight: 700,
-        color: colors.textDim,
-        textTransform: 'uppercase',
-        letterSpacing: '.09em',
-        padding: '10px 12px 4px',
-        userSelect: 'none'
-      }}
-    >
+    <div className="px-3 pb-1 pt-2.5 text-[10px] font-bold uppercase tracking-[.09em] text-muted-foreground select-none">
       {children}
     </div>
   )
 }
 
 function SectionDivider() {
-  return (
-    <hr
-      style={{ border: 'none', borderTop: `1px solid ${colors.border}`, margin: '14px 0 8px 0' }}
-    />
-  )
+  return <hr className="my-2 border-0 border-t border-border/70" />
 }
 
 export function AppSidebar({
@@ -235,60 +220,20 @@ export function AppSidebar({
 
   const content = (
     <div
-      style={{
-        width: '100%',
-        minWidth: 0,
-        height: '100%',
-        background: 'transparent',
-        borderRight: isMobile ? 'none' : `1px solid ${colors.border}`,
-        padding: '20px 12px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 4,
-        overflowY: 'auto'
-      }}
+      className={`flex h-full w-full min-w-0 flex-col gap-1 overflow-y-auto bg-transparent px-3 py-5 ${
+        isMobile ? 'border-none' : 'border-r border-border/70'
+      }`}
     >
       {/* ── User Profile Card ───────────────────────────────────────── */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-          padding: '10px 10px 14px',
-          marginBottom: 4
-        }}
-      >
-        <div
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: '50%',
-            background: 'rgba(55,138,221,0.15)',
-            color: 'var(--color-accent)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: 17,
-            fontWeight: 700,
-            flexShrink: 0
-          }}
-        >
+      <div className="mb-1 flex items-center gap-2.5 px-2.5 pb-3.5 pt-2.5">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/15 text-[17px] font-bold text-primary">
           {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || '?'}
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-          <span
-            style={{
-              fontWeight: 700,
-              color: colors.text,
-              fontSize: 13.5,
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis'
-            }}
-          >
+        <div className="flex min-w-0 flex-col">
+          <span className="truncate text-[13.5px] font-bold text-foreground">
             {user.name || t('sidebar.user')}
           </span>
-          <span style={{ fontSize: 11, color: colors.textMid }}>
+          <span className="text-[11px] text-muted-foreground">
             {user.role === 'admin'
               ? t('sidebar.adminRole')
               : user.role === 'manager'
@@ -299,7 +244,7 @@ export function AppSidebar({
                     ? 'Agent Support'
                     : t('sidebar.memberRole')}{' '}
             ·{' '}
-            <span style={{ textTransform: 'uppercase' }}>
+            <span className="uppercase">
               {(user.plan || 'free') === 'free' ? t('header.planFree') : user.plan}
             </span>
           </span>
@@ -321,17 +266,8 @@ export function AppSidebar({
           <SectionLabel>{t('sidebar.quickFilters')}</SectionLabel>
 
           {/* Région */}
-          <div style={{ padding: '2px 10px' }}>
-            <label
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                fontSize: 11,
-                color: colors.textMid,
-                marginBottom: 4
-              }}
-            >
+          <div className="px-2.5 py-0.5">
+            <label className="mb-1 flex items-center gap-1.5 text-[11px] text-muted-foreground">
               <MapPin size={12} /> {t('sidebar.region')}
             </label>
             <select
@@ -340,18 +276,7 @@ export function AppSidebar({
                 setRegion(e.target.value)
                 setCity('')
               }}
-              style={{
-                width: '100%',
-                height: 32,
-                borderRadius: 8,
-                border: `1px solid ${colors.border}`,
-                background: colors.bg,
-                color: colors.text,
-                fontSize: 12,
-                fontFamily: 'inherit',
-                outline: 'none',
-                padding: '0 8px'
-              }}
+              className="h-8 w-full rounded-lg border border-border bg-background px-2 text-[12px] text-foreground outline-none"
             >
               <option value="">{t('sidebar.allRegions')}</option>
               {REGIONS.map((r) => (
@@ -364,34 +289,14 @@ export function AppSidebar({
 
           {/* Ville */}
           {region && (
-            <div style={{ padding: '2px 10px' }}>
-              <label
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  fontSize: 11,
-                  color: colors.textMid,
-                  marginBottom: 4
-                }}
-              >
+            <div className="px-2.5 py-0.5">
+              <label className="mb-1 flex items-center gap-1.5 text-[11px] text-muted-foreground">
                 <MapPin size={12} /> {t('sidebar.city')}
               </label>
               <select
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
-                style={{
-                  width: '100%',
-                  height: 32,
-                  borderRadius: 8,
-                  border: `1px solid ${colors.border}`,
-                  background: colors.bg,
-                  color: colors.text,
-                  fontSize: 12,
-                  fontFamily: 'inherit',
-                  outline: 'none',
-                  padding: '0 8px'
-                }}
+                className="h-8 w-full rounded-lg border border-border bg-background px-2 text-[12px] text-foreground outline-none"
               >
                 <option value="">{t('sidebar.allCities')}</option>
                 {CITIES_BY_REGION[region]?.map((c) => (
@@ -404,34 +309,14 @@ export function AppSidebar({
           )}
 
           {/* Secteur */}
-          <div style={{ padding: '2px 10px' }}>
-            <label
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                fontSize: 11,
-                color: colors.textMid,
-                marginBottom: 4
-              }}
-            >
+          <div className="px-2.5 py-0.5">
+            <label className="mb-1 flex items-center gap-1.5 text-[11px] text-muted-foreground">
               <Filter size={12} /> {t('sidebar.sector')}
             </label>
             <select
               value={sector}
               onChange={(e) => setSector(e.target.value)}
-              style={{
-                width: '100%',
-                height: 32,
-                borderRadius: 8,
-                border: `1px solid ${colors.border}`,
-                background: colors.bg,
-                color: colors.text,
-                fontSize: 12,
-                fontFamily: 'inherit',
-                outline: 'none',
-                padding: '0 8px'
-              }}
+              className="h-8 w-full rounded-lg border border-border bg-background px-2 text-[12px] text-foreground outline-none"
             >
               <option value="">{t('sidebar.allSectors')}</option>
               {SECTORS.map((s) => (
@@ -443,27 +328,10 @@ export function AppSidebar({
           </div>
 
           {/* Buttons */}
-          <div style={{ padding: '4px 10px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div className="flex flex-col gap-1.5 px-2.5 py-1">
             <button
               onClick={() => applyFilters()}
-              style={{
-                height: 34,
-                borderRadius: 8,
-                background: 'var(--color-primary)',
-                color: '#fff',
-                border: 'none',
-                fontSize: 12,
-                fontWeight: 700,
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 6,
-                transition: 'all 150ms ease'
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--color-blue-600)')}
-              onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--color-primary)')}
+              className="flex h-[34px] items-center justify-center gap-1.5 rounded-lg bg-primary text-[12px] font-bold text-primary-foreground transition-all duration-150 hover:bg-primary/90"
             >
               <Search size={13} /> {t('sidebar.search')}
             </button>
@@ -471,22 +339,7 @@ export function AppSidebar({
             <button
               onClick={handleLocateMe}
               disabled={geoState === 'loading'}
-              style={{
-                height: 34,
-                borderRadius: 8,
-                background: geoState === 'done' ? 'rgba(55,138,221,0.12)' : 'transparent',
-                color: 'var(--color-accent)',
-                border: `1px solid rgba(55,138,221,0.3)`,
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: geoState === 'loading' ? 'wait' : 'pointer',
-                fontFamily: 'inherit',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 6,
-                transition: 'all 150ms ease'
-              }}
+              className={`flex h-[34px] items-center justify-center gap-1.5 rounded-lg border border-primary/30 text-[12px] font-semibold text-primary transition-all duration-150 ${geoState === 'done' ? 'bg-primary/10' : 'bg-transparent'} ${geoState === 'loading' ? 'cursor-wait' : 'cursor-pointer hover:bg-primary/5'}`}
             >
               <MapPin size={13} />
               {geoState === 'loading'
@@ -496,36 +349,19 @@ export function AppSidebar({
                   : t('sidebar.aroundMe')}
             </button>
 
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                fontSize: 12,
-                color: colors.textMid,
-                padding: '0 2px'
-              }}
-            >
-              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <div className="flex items-center justify-between px-0.5 text-[12px] text-muted-foreground">
+              <span className="flex items-center gap-1">
                 <Filter size={11} /> {t('sidebar.radius')}
               </span>
               <select
                 value={radius}
                 onChange={(e) => setRadius(e.target.value)}
-                style={{
-                  background: 'transparent',
-                  border: `1px solid ${colors.border}`,
-                  borderRadius: 6,
-                  padding: '3px 7px',
-                  color: colors.text,
-                  fontSize: 11,
-                  outline: 'none'
-                }}
+                className="rounded-md border border-border bg-transparent px-1.5 py-0.5 text-[11px] text-foreground outline-none"
               >
-                <option style={{ background: colors.bg2, color: colors.text }}>5 km</option>
-                <option style={{ background: colors.bg2, color: colors.text }}>10 km</option>
-                <option style={{ background: colors.bg2, color: colors.text }}>50 km</option>
-                <option style={{ background: colors.bg2, color: colors.text }}>National</option>
+                <option className="bg-popover text-foreground">5 km</option>
+                <option className="bg-popover text-foreground">10 km</option>
+                <option className="bg-popover text-foreground">50 km</option>
+                <option className="bg-popover text-foreground">National</option>
               </select>
             </div>
           </div>
@@ -545,20 +381,8 @@ export function AppSidebar({
           <SidebarLink href={routes.support} label={t('sidebar.support')} icon={MessageSquare} />
 
           {/* Disabled item */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              padding: '9px 12px',
-              fontSize: 13,
-              color: colors.textDim,
-              cursor: 'not-allowed',
-              opacity: 0.5,
-              userSelect: 'none'
-            }}
-          >
-            <WifiOff size={16} strokeWidth={1.8} style={{ flexShrink: 0 }} />
+          <div className="flex cursor-not-allowed select-none items-center gap-2.5 px-3 py-2 text-[13px] text-muted-foreground opacity-50">
+            <WifiOff size={16} strokeWidth={1.8} className="shrink-0" />
             {t('sidebar.offlineMode')}
           </div>
         </>
@@ -581,32 +405,9 @@ export function AppSidebar({
 
       <button
         onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '9px 12px',
-          borderRadius: 9,
-          background: 'transparent',
-          border: 'none',
-          cursor: 'pointer',
-          width: '100%',
-          textAlign: 'left',
-          transition: 'all 200ms ease'
-        }}
-        onMouseEnter={(e) => (e.currentTarget.style.background = colors.hoverBg)}
-        onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+        className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left transition-all duration-200 hover:bg-secondary"
       >
-        <span
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            fontSize: 13,
-            color: colors.textDim,
-            fontWeight: 500
-          }}
-        >
+        <span className="flex items-center gap-2.5 text-[13px] font-medium text-muted-foreground">
           {theme === 'dark' ? (
             <Sun size={16} strokeWidth={1.8} />
           ) : (
@@ -618,32 +419,9 @@ export function AppSidebar({
 
       <button
         onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '9px 12px',
-          borderRadius: 9,
-          background: 'transparent',
-          border: 'none',
-          cursor: 'pointer',
-          width: '100%',
-          textAlign: 'left',
-          transition: 'all 200ms ease'
-        }}
-        onMouseEnter={(e) => (e.currentTarget.style.background = colors.hoverBg)}
-        onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+        className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left transition-all duration-200 hover:bg-secondary"
       >
-        <span
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            fontSize: 13,
-            color: colors.textDim,
-            fontWeight: 500
-          }}
-        >
+        <span className="flex items-center gap-2.5 text-[13px] font-medium text-muted-foreground">
           <Globe size={16} strokeWidth={1.8} />
           {lang === 'fr' ? 'English (EN)' : 'Français (FR)'}
         </span>
@@ -674,30 +452,13 @@ export function AppSidebar({
       )}
 
       {/* ── Logout ──────────────────────────────────────────────────── */}
-      <div style={{ marginTop: 'auto', paddingTop: 8 }}>
+      <div className="mt-auto pt-2">
         <SectionDivider />
         <button
           onClick={handleLogout}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            padding: '9px 12px',
-            borderRadius: 9,
-            background: 'transparent',
-            color: colors.danger,
-            border: 'none',
-            fontSize: 13,
-            fontWeight: 500,
-            cursor: 'pointer',
-            textAlign: 'left',
-            width: '100%',
-            transition: 'all 200ms ease'
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = colors.dangerBg)}
-          onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+          className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-[13px] font-medium text-destructive transition-all duration-200 hover:bg-destructive/10"
         >
-          <LogOut size={15} strokeWidth={1.8} style={{ flexShrink: 0 }} />
+          <LogOut size={15} strokeWidth={1.8} className="shrink-0" />
           {t('sidebar.logout')}
         </button>
       </div>
@@ -706,30 +467,16 @@ export function AppSidebar({
 
   if (isMobile) {
     return (
-      <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex' }}>
+      <div className="fixed inset-0 z-[9999] flex">
         {/* Dark backdrop — tap to close */}
         <div
           onClick={onCloseAction}
-          style={{
-            position: 'absolute',
-            inset: 0,
-            background: 'rgba(0,0,0,0.65)',
-            backdropFilter: 'blur(3px)',
-            WebkitBackdropFilter: 'blur(3px)'
-          }}
+          className="absolute inset-0 bg-black/65 backdrop-blur-[3px]"
         />
 
         <div
-          style={{
-            position: 'relative',
-            background: colors.bg,
-            width: 300,
-            maxWidth: '85vw',
-            height: '100%',
-            boxShadow: '4px 0 32px rgba(0,0,0,0.45)',
-            animation: 'slideInLeft 280ms cubic-bezier(0.16, 1, 0.3, 1)',
-            overflowY: 'auto'
-          }}
+          className="relative h-full w-[300px] max-w-[85vw] overflow-y-auto bg-background shadow-[4px_0_32px_rgba(0,0,0,0.45)]"
+          style={{ animation: 'slideInLeft 280ms cubic-bezier(0.16, 1, 0.3, 1)' }}
         >
           {content}
         </div>
@@ -749,16 +496,7 @@ export function AppSidebar({
   }
 
   return (
-    <aside
-      style={{
-        position: 'sticky',
-        top: 60,
-        height: 'calc(100vh - 60px)',
-        width: 300,
-        flexShrink: 0,
-        overflow: 'hidden'
-      }}
-    >
+    <aside className="sticky top-[60px] h-[calc(100vh-60px)] w-[300px] shrink-0 overflow-hidden">
       {content}
     </aside>
   )

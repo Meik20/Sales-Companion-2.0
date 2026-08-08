@@ -6,7 +6,6 @@ import { LoadingState, EmptyState } from '@/components/feedback/index'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useReportingData } from '@/features/reporting/hooks/useReportingData'
 import { ReportingDashboard } from '@/features/reporting/components/ReportingDashboard'
-import { colors } from '@/styles/tokens'
 import { BarChart2, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 
@@ -47,7 +46,7 @@ export default function ReportingPage() {
 
       {/* Last updated info */}
       {data && (
-        <div style={{ fontSize: 11, color: colors.textDim, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 6 }}>
+        <div style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 6 }}>
           <BarChart2 size={12} />
           Données en temps réel · {data.totalItems} prospects analysés
         </div>

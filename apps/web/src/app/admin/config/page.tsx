@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { AppShell } from '@/components/layout/AppShell'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
-import { colors } from '@/styles/tokens'
 import { useTranslation } from '@/providers/I18nProvider'
 
 const PLAN_COLOR: Record<string, string> = {
@@ -108,23 +107,23 @@ export default function AdminConfigPage() {
   }
 
   const card: React.CSSProperties = {
-    background: colors.surface,
+    background: 'var(--secondary, #1e2a3b)',
     borderRadius: 12,
-    border: `1px solid ${colors.border}`,
+    border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
     padding: '20px 22px'
   }
   const labelStyle: React.CSSProperties = {
     display: 'block',
     fontSize: 13,
     fontWeight: 600,
-    color: colors.text,
+    color: 'var(--foreground, #f1f5f9)',
     marginBottom: 6
   }
   const inputStyle: React.CSSProperties = {
     width: '100%',
     maxWidth: 480,
     padding: '10px 14px',
-    border: `1.5px solid ${colors.border}`,
+    border: `1.5px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
     borderRadius: 8,
     fontSize: 13,
     fontFamily: 'monospace',
@@ -132,7 +131,7 @@ export default function AdminConfigPage() {
   }
   const btnStyle: React.CSSProperties = {
     padding: '9px 20px',
-    background: colors.green,
+    background: '#4ade80',
     color: '#fff',
     border: 'none',
     borderRadius: 8,
@@ -146,7 +145,7 @@ export default function AdminConfigPage() {
     marginTop: 10,
     fontSize: 13,
     fontWeight: 600,
-    color: type === 'ok' ? colors.success : colors.danger
+    color: type === 'ok' ? '#4ade80' : '#f87171'
   })
 
   return (
@@ -160,10 +159,10 @@ export default function AdminConfigPage() {
             style={{
               fontWeight: 700,
               fontSize: 14,
-              color: colors.text,
+              color: 'var(--foreground, #f1f5f9)',
               marginBottom: 16,
               paddingBottom: 12,
-              borderBottom: `1px solid ${colors.border}`
+              borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
             }}
           >
             🔑 {t('admin.apiKeyGroq')}
@@ -182,7 +181,7 @@ export default function AdminConfigPage() {
           <p
             style={{
               fontSize: 12,
-              color: colors.textMid,
+              color: 'var(--muted-foreground, #94a3b8)',
               marginTop: 6,
               lineHeight: 1.5,
               maxWidth: 480
@@ -204,10 +203,10 @@ export default function AdminConfigPage() {
             style={{
               fontWeight: 700,
               fontSize: 14,
-              color: colors.text,
+              color: 'var(--foreground, #f1f5f9)',
               marginBottom: 16,
               paddingBottom: 12,
-              borderBottom: `1px solid ${colors.border}`
+              borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
             }}
           >
             🔒 {t('admin.adminSecurity')}
@@ -226,7 +225,7 @@ export default function AdminConfigPage() {
           <p
             style={{
               fontSize: 12,
-              color: colors.textMid,
+              color: 'var(--muted-foreground, #94a3b8)',
               marginTop: 6,
               lineHeight: 1.5,
               maxWidth: 480
@@ -247,10 +246,10 @@ export default function AdminConfigPage() {
           style={{
             fontWeight: 700,
             fontSize: 14,
-            color: colors.text,
+            color: 'var(--foreground, #f1f5f9)',
             marginBottom: 16,
             paddingBottom: 12,
-            borderBottom: `1px solid ${colors.border}`
+            borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
           }}
         >
           💳 {t('admin.pricingPlans')}
@@ -272,10 +271,10 @@ export default function AdminConfigPage() {
                       textAlign: 'left',
                       fontSize: 11,
                       fontWeight: 700,
-                      color: colors.textMid,
+                      color: 'var(--muted-foreground, #94a3b8)',
                       textTransform: 'uppercase',
                       letterSpacing: '.06em',
-                      borderBottom: `1px solid ${colors.border}`
+                      borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
                     }}
                   >
                     {h}
@@ -285,7 +284,7 @@ export default function AdminConfigPage() {
             </thead>
             <tbody>
               {PLAN_ROWS.map((row) => (
-                <tr key={row.plan} style={{ borderBottom: `1px solid ${colors.border}` }}>
+                <tr key={row.plan} style={{ borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}` }}>
                   <td style={{ padding: '12px 14px' }}>
                     <span
                       style={{
@@ -301,11 +300,11 @@ export default function AdminConfigPage() {
                       {row.plan}
                     </span>
                   </td>
-                  <td style={{ padding: '12px 14px', fontWeight: 600, color: colors.text }}>
+                  <td style={{ padding: '12px 14px', fontWeight: 600, color: 'var(--foreground, #f1f5f9)' }}>
                     {row.daily}
                   </td>
-                  <td style={{ padding: '12px 14px', color: colors.textMid }}>{row.price}</td>
-                  <td style={{ padding: '12px 14px', color: colors.textMid }}>{row.target}</td>
+                  <td style={{ padding: '12px 14px', color: 'var(--muted-foreground, #94a3b8)' }}>{row.price}</td>
+                  <td style={{ padding: '12px 14px', color: 'var(--muted-foreground, #94a3b8)' }}>{row.target}</td>
                 </tr>
               ))}
             </tbody>

@@ -1,7 +1,6 @@
 // ─── Badge ───────────────────────────────────────────────────────────────────
 
 import { CSSProperties, PropsWithChildren, ReactNode } from 'react'
-import { colors, radius, shadows, spacing } from '@/styles/tokens'
 
 type BadgeVariant = 'default' | 'success' | 'warning' | 'danger' | 'info' | 'gold'
 
@@ -113,8 +112,8 @@ export function Panel({ children, padded = true, style }: PanelProps) {
   return (
     <div
       style={{
-        background: colors.bg2,
-        border: `1px solid ${colors.border}`,
+        background: 'var(--card, #131c2e)',
+        border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
         borderRadius: radius.lg,
         boxShadow: shadows.sm,
         padding: padded ? spacing.xl : 0,
@@ -162,14 +161,14 @@ export function DataCard({ title, subtitle, actions, children, style }: DataCard
                 margin: 0,
                 fontSize: 16,
                 fontWeight: 700,
-                color: colors.text,
+                color: 'var(--foreground, #f1f5f9)',
                 letterSpacing: '-.01em'
               }}
             >
               {title}
             </h2>
             {subtitle ? (
-              <p style={{ margin: '4px 0 0', fontSize: 13, color: colors.textMid }}>{subtitle}</p>
+              <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--muted-foreground, #94a3b8)' }}>{subtitle}</p>
             ) : null}
           </div>
           {actions ? <div>{actions}</div> : null}
@@ -196,7 +195,7 @@ export function MetricCard({ label, value, hint, accent }: MetricCardProps) {
         style={{
           fontSize: 12,
           fontWeight: 500,
-          color: colors.textMid,
+          color: 'var(--muted-foreground, #94a3b8)',
           letterSpacing: '.04em',
           textTransform: 'uppercase'
         }}
@@ -208,7 +207,7 @@ export function MetricCard({ label, value, hint, accent }: MetricCardProps) {
           fontSize: 32,
           fontWeight: 800,
           marginTop: 8,
-          color: accent ? 'var(--color-primary)' : colors.text,
+          color: accent ? 'var(--color-primary)' : 'var(--foreground, #f1f5f9)',
           letterSpacing: '-.03em',
           fontFamily: 'inherit'
         }}
@@ -216,7 +215,7 @@ export function MetricCard({ label, value, hint, accent }: MetricCardProps) {
         {value}
       </div>
       {hint ? (
-        <div style={{ marginTop: 6, fontSize: 12, color: colors.textMid }}>{hint}</div>
+        <div style={{ marginTop: 6, fontSize: 12, color: 'var(--muted-foreground, #94a3b8)' }}>{hint}</div>
       ) : null}
     </Panel>
   )

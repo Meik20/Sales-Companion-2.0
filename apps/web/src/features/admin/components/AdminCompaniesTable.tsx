@@ -7,7 +7,6 @@ import { useDeleteAllAdminCompanies } from '../hooks/useDeleteAllAdminCompanies'
 import { SectionCard } from '@/features/team/components/SectionCard'
 import { useToast } from '@/hooks/useToast'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
-import { colors, shadows } from '@/styles/tokens'
 import { useTranslation } from '@/providers/I18nProvider'
 import {
   Building2,
@@ -41,7 +40,7 @@ export function AdminCompaniesTable() {
   if (isLoading) {
     return (
       <SectionCard title={t('admin.companies')} subtitle={t('admin.companiesSubtitle')}>
-        <div style={{ textAlign: 'center', color: colors.textMid, padding: 20 }}>
+        <div style={{ textAlign: 'center', color: 'var(--muted-foreground, #94a3b8)', padding: 20 }}>
           {t('team.loading')}
         </div>
       </SectionCard>
@@ -183,7 +182,7 @@ export function AdminCompaniesTable() {
   return (
     <SectionCard title={t('admin.companies')} subtitle={`${total} ${t('admin.inDatabase')}`}>
       {items.length === 0 ? (
-        <div style={{ textAlign: 'center', color: colors.textMid, padding: 20, fontSize: 13 }}>
+        <div style={{ textAlign: 'center', color: 'var(--muted-foreground, #94a3b8)', padding: 20, fontSize: 13 }}>
           {t('admin.noCompanyMatch')}
         </div>
       ) : (
@@ -198,7 +197,7 @@ export function AdminCompaniesTable() {
               flexWrap: 'wrap'
             }}
           >
-            <div style={{ color: colors.textMid, fontSize: 13 }}>
+            <div style={{ color: 'var(--muted-foreground, #94a3b8)', fontSize: 13 }}>
               {selectedIds.length > 0
                 ? `${selectedIds.length} entreprise${selectedIds.length > 1 ? 's' : ''} sélectionnée${selectedIds.length > 1 ? 's' : ''}`
                 : 'Sélectionnez des entreprises à supprimer.'}
@@ -212,9 +211,9 @@ export function AdminCompaniesTable() {
                   padding: '10px 18px',
                   fontSize: 13,
                   borderRadius: 10,
-                  border: `1px solid ${colors.border}`,
-                  background: colors.bg,
-                  color: colors.text,
+                  border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+                  background: 'var(--background, #0b1120)',
+                  color: 'var(--foreground, #f1f5f9)',
                   cursor: items.length === 0 || isDeleting ? 'not-allowed' : 'pointer',
                   opacity: items.length === 0 || isDeleting ? 0.5 : 1,
                   display: 'flex',
@@ -235,9 +234,9 @@ export function AdminCompaniesTable() {
                   padding: '10px 18px',
                   fontSize: 13,
                   borderRadius: 10,
-                  border: `1px solid ${colors.green}`,
+                  border: `1px solid ${'#4ade80'}`,
                   background: 'rgba(46,160,90,0.1)',
-                  color: colors.green,
+                  color: '#4ade80',
                   cursor: items.length === 0 ? 'not-allowed' : 'pointer',
                   opacity: items.length === 0 ? 0.5 : 1,
                   fontWeight: 700,
@@ -258,9 +257,9 @@ export function AdminCompaniesTable() {
                   padding: '10px 18px',
                   fontSize: 13,
                   borderRadius: 10,
-                  border: `1px solid ${selectedIds.length === 0 ? colors.border : colors.dangerBorder}`,
-                  background: selectedIds.length === 0 ? colors.bg : colors.dangerBg,
-                  color: selectedIds.length === 0 ? colors.textMid : colors.danger,
+                  border: `1px solid ${selectedIds.length === 0 ? 'var(--border, rgba(255,255,255,0.1))' : 'rgba(239,68,68,0.3)'}`,
+                  background: selectedIds.length === 0 ? 'var(--background, #0b1120)' : 'rgba(239,68,68,0.1)',
+                  color: selectedIds.length === 0 ? 'var(--muted-foreground, #94a3b8)' : '#f87171',
                   cursor: selectedIds.length === 0 || isDeleting ? 'not-allowed' : 'pointer',
                   opacity: selectedIds.length === 0 || isDeleting ? 0.5 : 1,
                   display: 'flex',
@@ -285,7 +284,7 @@ export function AdminCompaniesTable() {
               }}
             >
               <thead>
-                <tr style={{ borderBottom: `1px solid ${colors.border}` }}>
+                <tr style={{ borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}` }}>
                   <th style={{ padding: '12px' }}>
                     <input
                       type="checkbox"
@@ -314,7 +313,7 @@ export function AdminCompaniesTable() {
                       style={{
                         textAlign: 'left',
                         padding: '12px',
-                        color: colors.textMid,
+                        color: 'var(--muted-foreground, #94a3b8)',
                         fontWeight: 700,
                         fontSize: 10.5,
                         textTransform: 'uppercase',
@@ -352,7 +351,7 @@ export function AdminCompaniesTable() {
                 gap: 6,
                 marginTop: 16,
                 paddingTop: 16,
-                borderTop: `1px solid ${colors.border}`,
+                borderTop: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                 flexWrap: 'wrap'
               }}
             >
@@ -366,9 +365,9 @@ export function AdminCompaniesTable() {
                   width: 36,
                   height: 36,
                   borderRadius: 10,
-                  border: `1px solid ${colors.border}`,
-                  background: colors.bg,
-                  color: colors.text,
+                  border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+                  background: 'var(--background, #0b1120)',
+                  color: 'var(--foreground, #f1f5f9)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -390,9 +389,9 @@ export function AdminCompaniesTable() {
                   width: 36,
                   height: 36,
                   borderRadius: 10,
-                  border: `1px solid ${colors.border}`,
-                  background: colors.bg,
-                  color: colors.text,
+                  border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+                  background: 'var(--background, #0b1120)',
+                  color: 'var(--foreground, #f1f5f9)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -410,7 +409,7 @@ export function AdminCompaniesTable() {
                   return (
                     <span
                       key={`ellipsis-${index}`}
-                      style={{ color: colors.textDim, padding: '0 8px', fontWeight: 700 }}
+                      style={{ color: 'var(--muted-foreground, #64748b)', padding: '0 8px', fontWeight: 700 }}
                     >
                       ...
                     </span>
@@ -428,9 +427,9 @@ export function AdminCompaniesTable() {
                       height: 36,
                       borderRadius: 10,
                       padding: '0 8px',
-                      border: `1px solid ${p === page ? colors.green : colors.border}`,
-                      background: p === page ? 'rgba(46,160,90,0.1)' : colors.bg,
-                      color: p === page ? colors.green : colors.text,
+                      border: `1px solid ${p === page ? '#4ade80' : 'var(--border, rgba(255,255,255,0.1))'}`,
+                      background: p === page ? 'rgba(46,160,90,0.1)' : 'var(--background, #0b1120)',
+                      color: p === page ? '#4ade80' : 'var(--foreground, #f1f5f9)',
                       cursor: 'pointer',
                       fontWeight: 700,
                       fontSize: 13,
@@ -452,9 +451,9 @@ export function AdminCompaniesTable() {
                   width: 36,
                   height: 36,
                   borderRadius: 10,
-                  border: `1px solid ${colors.border}`,
-                  background: colors.bg,
-                  color: colors.text,
+                  border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+                  background: 'var(--background, #0b1120)',
+                  color: 'var(--foreground, #f1f5f9)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -476,9 +475,9 @@ export function AdminCompaniesTable() {
                   width: 36,
                   height: 36,
                   borderRadius: 10,
-                  border: `1px solid ${colors.border}`,
-                  background: colors.bg,
-                  color: colors.text,
+                  border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+                  background: 'var(--background, #0b1120)',
+                  color: 'var(--foreground, #f1f5f9)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -525,11 +524,11 @@ function CompanyRow({
   return (
     <tr
       style={{
-        borderBottom: `1px solid ${colors.border}`,
+        borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
         transition: 'all 200ms ease'
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.backgroundColor = colors.bg2
+        e.currentTarget.style.backgroundColor = 'var(--card, #131c2e)'
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.backgroundColor = 'transparent'
@@ -550,7 +549,7 @@ function CompanyRow({
           <span
             style={{
               fontWeight: 700,
-              color: colors.text,
+              color: 'var(--foreground, #f1f5f9)',
               fontSize: 13.5,
               whiteSpace: 'nowrap',
               overflow: 'hidden',
@@ -561,7 +560,7 @@ function CompanyRow({
           </span>
           {displaySigle && (
             <span
-              style={{ fontSize: 10, color: colors.textDim, fontStyle: 'italic', opacity: 0.8 }}
+              style={{ fontSize: 10, color: 'var(--muted-foreground, #64748b)', fontStyle: 'italic', opacity: 0.8 }}
             >
               {displaySigle}
             </span>
@@ -577,13 +576,13 @@ function CompanyRow({
             gap: 6,
             padding: '2px 8px',
             borderRadius: 6,
-            background: colors.bg3,
-            border: `1px solid ${colors.border}`
+            background: 'var(--secondary, #1e2a3b)',
+            border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
           }}
         >
           <span
             style={{
-              color: colors.textMid,
+              color: 'var(--muted-foreground, #94a3b8)',
               fontSize: 11.5,
               fontFamily: 'monospace',
               fontWeight: 600
@@ -598,7 +597,7 @@ function CompanyRow({
         <span
           style={{
             fontSize: 12,
-            color: colors.textMid,
+            color: 'var(--muted-foreground, #94a3b8)',
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
@@ -611,9 +610,9 @@ function CompanyRow({
       {/* Ville / Région */}
       <td style={{ padding: '14px 12px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <span style={{ fontSize: 12, color: colors.text, fontWeight: 600 }}>{displayCity}</span>
+          <span style={{ fontSize: 12, color: 'var(--foreground, #f1f5f9)', fontWeight: 600 }}>{displayCity}</span>
           {displayRegion && displayRegion !== displayCity && (
-            <span style={{ fontSize: 10.5, color: colors.textDim }}>{displayRegion}</span>
+            <span style={{ fontSize: 10.5, color: 'var(--muted-foreground, #64748b)' }}>{displayRegion}</span>
           )}
         </div>
       </td>
@@ -638,14 +637,14 @@ function CompanyRow({
             VERIFIED
           </div>
         ) : (
-          <span style={{ fontSize: 11, color: colors.textDim, opacity: 0.6 }}>—</span>
+          <span style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)', opacity: 0.6 }}>—</span>
         )}
       </td>
       {/* Date */}
       <td
         style={{
           padding: '14px 12px',
-          color: colors.textMid,
+          color: 'var(--muted-foreground, #94a3b8)',
           textAlign: 'right',
           fontSize: 12,
           whiteSpace: 'nowrap',

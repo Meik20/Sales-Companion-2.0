@@ -2,7 +2,6 @@
 
 import { useCompanyStats } from '../hooks/useCompanyStats'
 import { SectionCard } from '@/features/team/components/SectionCard'
-import { colors } from '@/styles/tokens'
 import { useTranslation } from '@/providers/I18nProvider'
 
 function BarChart({
@@ -21,7 +20,7 @@ function BarChart({
           fontSize: 12,
           fontWeight: 600,
           textTransform: 'uppercase',
-          color: colors.textMid,
+          color: 'var(--muted-foreground, #94a3b8)',
           marginBottom: 12,
           letterSpacing: '.04em'
         }}
@@ -34,19 +33,19 @@ function BarChart({
             <div
               style={{
                 fontSize: 12,
-                color: colors.text,
+                color: 'var(--foreground, #f1f5f9)',
                 marginBottom: 4,
                 display: 'flex',
                 justifyContent: 'space-between'
               }}
             >
               <span style={{ fontWeight: 500 }}>{item.label}</span>
-              <span style={{ fontWeight: 600, color: colors.green }}>{item.value}</span>
+              <span style={{ fontWeight: 600, color: '#4ade80' }}>{item.value}</span>
             </div>
             <div
               style={{
                 height: 6,
-                background: colors.bg2,
+                background: 'var(--card, #131c2e)',
                 borderRadius: 3,
                 overflow: 'hidden'
               }}
@@ -55,7 +54,7 @@ function BarChart({
                 style={{
                   height: '100%',
                   width: `${Math.max(5, (item.value / maxValue) * 100)}%`,
-                  background: colors.green,
+                  background: '#4ade80',
                   borderRadius: 3,
                   transition: 'width 300ms ease-out'
                 }}
@@ -75,7 +74,7 @@ export function CompanyStatsChart() {
   if (isLoading) {
     return (
       <SectionCard title={t('admin.companyStats') || 'Statistiques des entreprises'}>
-        <div style={{ textAlign: 'center', color: colors.textMid, padding: 20 }}>
+        <div style={{ textAlign: 'center', color: 'var(--muted-foreground, #94a3b8)', padding: 20 }}>
           {t('team.loading')}
         </div>
       </SectionCard>

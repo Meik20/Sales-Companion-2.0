@@ -4,11 +4,9 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { routes } from '@/constants/routes'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
-import { colors } from '@/styles/tokens'
 import { useTranslation } from '@/providers/I18nProvider'
 import { useSwipe } from '@/hooks/useSwipe'
 
-// All navigation items in order for swipe navigation
 // All navigation items in order for swipe navigation
 const getNavItems = (role: string, plan: string, t: (key: any) => string) => {
   if (role === 'support_agent') {
@@ -40,7 +38,7 @@ const getNavItems = (role: string, plan: string, t: (key: any) => string) => {
   return items
 }
 
-const navStyles = `
+const NAV_STYLES = `
 @keyframes navPillIn {
   from { transform: scaleX(0); opacity: 0; }
   to { transform: scaleX(1); opacity: 1; }
@@ -63,14 +61,14 @@ const navStyles = `
   transition: all 200ms cubic-bezier(0.4, 0.0, 0.2, 1);
   border: none;
   background: transparent;
-  color: ${colors.textDim};
+  color: hsl(var(--muted-foreground));
   position: relative;
   text-decoration: none;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
 }
 .mobile-nav-btn.active {
-  color: var(--color-accent);
+  color: hsl(var(--primary));
 }
 .mobile-nav-btn svg {
   width: 22px;
@@ -94,7 +92,7 @@ const navStyles = `
 }
 .mobile-nav-btn.active span {
   font-weight: 700;
-  color: var(--color-accent);
+  color: hsl(var(--primary));
 }
 .nav-active-pill {
   position: absolute;
@@ -103,7 +101,7 @@ const navStyles = `
   transform: translateX(-50%);
   width: 36px;
   height: 30px;
-  background: rgba(55, 138, 221, 0.14);
+  background: hsl(var(--primary) / 0.14);
   border-radius: 10px;
   animation: navPillIn 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
   pointer-events: none;
@@ -225,38 +223,17 @@ export function MobileNav() {
 
   if (!user) return null
 
-  // Inject styles
-  if (typeof document !== 'undefined' && !document.getElementById('mobile-nav-styles')) {
-    const style = document.createElement('style')
-    style.id = 'mobile-nav-styles'
-    style.innerHTML = navStyles
-    document.head.appendChild(style)
-  }
-
   return (
-    <nav
-      ref={swipeRef}
-      style={{
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        background: `${colors.bg2}f0`,
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        borderTop: 'none',
-        display: 'flex',
-        alignItems: 'stretch',
-        justifyContent: 'space-around',
-        overflowX: 'hidden',
-        overflowY: 'hidden',
-        scrollbarWidth: 'none' as React.CSSProperties['scrollbarWidth'],
-        WebkitOverflowScrolling: 'touch' as any,
-        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-        boxShadow: '0 -1px 0 rgba(255,255,255,0.04), 0 -8px 32px rgba(0,0,0,0.15)',
-        zIndex: 1000
-      }}
-    >
+    <>
+      <style dangerouslySetInnerHTML={{ __html: NAV_STYLES }} />
+      <nav
+        ref={swipeRef}
+        className="fixed bottom-0 left-0 right-0 z-[1000] flex items-stretch justify-around overflow-hidden bg-background/85 pb-[env(safe-area-inset-bottom,0px)] shadow-[0_-1px_0_rgba(255,255,255,0.04),0_-8px_32px_rgba(0,0,0,0.15)] backdrop-blur-[20px]"
+        style={{
+          scrollbarWidth: 'none',
+          WebkitOverflowScrolling: 'touch'
+        }}
+      >
       {user.role === 'support_agent' ? (
         <>
           <NavItem href="/crm" label="CRM Clients" icon={<PipelineIcon />} />
@@ -286,5 +263,6 @@ export function MobileNav() {
         </>
       )}
     </nav>
+    </>
   )
 }

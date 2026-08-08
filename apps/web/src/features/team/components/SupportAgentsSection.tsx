@@ -2,7 +2,6 @@
 
 import { useSupportAgents, SupportAgent } from '../hooks/useSupportAgents'
 import { SectionCard } from './SectionCard'
-import { colors } from '@/styles/tokens'
 import { useTranslation } from '@/providers/I18nProvider'
 import { Mail, Shield, CheckCircle2, XCircle } from 'lucide-react'
 import { Badge } from '@/components/ui/index'
@@ -14,7 +13,7 @@ export function SupportAgentsSection() {
   if (isLoading) {
     return (
       <SectionCard title="Agents Support" subtitle="Chargement…">
-        <div style={{ textAlign: 'center', color: colors.textMid, padding: 20 }}>
+        <div style={{ textAlign: 'center', color: 'var(--muted-foreground, #94a3b8)', padding: 20 }}>
           {t('team.loading')}
         </div>
       </SectionCard>
@@ -42,7 +41,7 @@ export function SupportAgentsSection() {
         <div
           style={{
             textAlign: 'center',
-            color: colors.textMid,
+            color: 'var(--muted-foreground, #94a3b8)',
             padding: 20,
             fontSize: 13
           }}
@@ -66,8 +65,8 @@ function AgentCard({ agent }: { agent: SupportAgent }) {
   return (
     <div
       style={{
-        background: colors.surface,
-        border: `1px solid ${colors.border}`,
+        background: 'var(--secondary, #1e2a3b)',
+        border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
         borderRadius: 14,
         padding: '16px 20px',
         display: 'flex',
@@ -107,7 +106,7 @@ function AgentCard({ agent }: { agent: SupportAgent }) {
           {agent.name[0]?.toUpperCase() || 'A'}
         </div>
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 14, fontWeight: 800, color: colors.text, marginBottom: 2, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--foreground, #f1f5f9)', marginBottom: 2, display: 'flex', alignItems: 'center', gap: 6 }}>
             {agent.name}
             <Badge
               variant="default"
@@ -126,7 +125,7 @@ function AgentCard({ agent }: { agent: SupportAgent }) {
           <div
             style={{
               fontSize: 12,
-              color: colors.textMid,
+              color: 'var(--muted-foreground, #94a3b8)',
               display: 'flex',
               alignItems: 'center',
               gap: 4
@@ -140,7 +139,7 @@ function AgentCard({ agent }: { agent: SupportAgent }) {
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexShrink: 0 }}>
         {/* Info Message instead of quota */}
-        <div style={{ fontSize: 12, color: colors.textDim, fontWeight: 500, textAlign: 'right' }}>
+        <div style={{ fontSize: 12, color: 'var(--muted-foreground, #64748b)', fontWeight: 500, textAlign: 'right' }}>
           Aucune limite de recherche
         </div>
 

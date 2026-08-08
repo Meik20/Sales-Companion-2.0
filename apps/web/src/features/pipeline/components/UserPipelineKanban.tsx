@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd'
-import { colors } from '@/styles/tokens'
 import { useTranslation } from '@/providers/I18nProvider'
 import { Building2, MapPin, Phone, MessageSquare, GripVertical, TrendingUp, Handshake, CheckCircle2, ChevronRight } from 'lucide-react'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
@@ -108,8 +107,8 @@ function KanbanCard({
       onClick={() => onItemClick(item)}
       style={{
         marginBottom: 10,
-        background: isDragging ? colors.bg4 : colors.bg3,
-        border: `1px solid ${isDragging ? col.accent : colors.border}`,
+        background: isDragging ? colors.bg4 : 'var(--secondary, #1e2a3b)',
+        border: `1px solid ${isDragging ? col.accent : 'var(--border, rgba(255,255,255,0.1))'}`,
         borderLeft: `3px solid ${col.accent}`,
         borderRadius: 14,
         boxShadow: isDragging
@@ -129,7 +128,7 @@ function KanbanCard({
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               width: 24, flexShrink: 0, cursor: 'grab',
-              color: colors.textDim, opacity: 0.4, paddingLeft: 6
+              color: 'var(--muted-foreground, #64748b)', opacity: 0.4, paddingLeft: 6
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -152,7 +151,7 @@ function KanbanCard({
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{
-                fontSize: 13, fontWeight: 800, color: colors.text,
+                fontSize: 13, fontWeight: 800, color: 'var(--foreground, #f1f5f9)',
                 lineHeight: 1.3, letterSpacing: '-0.01em',
                 fontFamily: "'Syne', sans-serif", wordBreak: 'break-word'
               }}>
@@ -160,7 +159,7 @@ function KanbanCard({
               </div>
               {item.companySector && (
                 <div style={{
-                  fontSize: 11, color: colors.textMid, marginTop: 2,
+                  fontSize: 11, color: 'var(--muted-foreground, #94a3b8)', marginTop: 2,
                   display: 'flex', alignItems: 'center', gap: 4
                 }}>
                   <Building2 size={10} style={{ opacity: 0.7 }} />
@@ -175,8 +174,8 @@ function KanbanCard({
             {item.companyCity && (
               <span style={{
                 display: 'inline-flex', alignItems: 'center', gap: 4,
-                fontSize: 11, fontWeight: 600, color: colors.textMid,
-                background: colors.bg2, border: `1px solid ${colors.border}`,
+                fontSize: 11, fontWeight: 600, color: 'var(--muted-foreground, #94a3b8)',
+                background: 'var(--card, #131c2e)', border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                 borderRadius: 6, padding: '2px 8px'
               }}>
                 <MapPin size={10} style={{ opacity: 0.7 }} />{item.companyCity}
@@ -265,11 +264,11 @@ function MobileKanban({
       {/* Tab bar */}
       <div style={{
         display: 'flex',
-        background: colors.bg2,
+        background: 'var(--card, #131c2e)',
         borderRadius: 14,
         padding: 4,
         gap: 4,
-        border: `1px solid ${colors.border}`,
+        border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
         marginBottom: 16
       }}>
         {COLUMNS.map(col => {
@@ -305,17 +304,17 @@ function MobileKanban({
                 <ColIcon size={14} color={col.accent} strokeWidth={2.5} />
               </div>
               <span style={{
-                fontSize: 11, fontWeight: 700, color: isActive ? col.color : colors.textMid,
+                fontSize: 11, fontWeight: 700, color: isActive ? col.color : 'var(--muted-foreground, #94a3b8)',
                 lineHeight: 1, fontFamily: "'Syne', sans-serif"
               }}>
                 {col.label}
               </span>
               <div style={{
                 minWidth: 20, height: 18, borderRadius: 6,
-                background: isActive ? `${col.accent}33` : colors.bg3,
-                border: `1px solid ${isActive ? col.accent + '44' : colors.border}`,
+                background: isActive ? `${col.accent}33` : 'var(--secondary, #1e2a3b)',
+                border: `1px solid ${isActive ? col.accent + '44' : 'var(--border, rgba(255,255,255,0.1))'}`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 11, fontWeight: 800, color: isActive ? col.accent : colors.textDim,
+                fontSize: 11, fontWeight: 800, color: isActive ? col.accent : 'var(--muted-foreground, #64748b)',
                 padding: '0 5px'
               }}>
                 {count}
@@ -354,7 +353,7 @@ function MobileKanban({
 
       {/* Cards area */}
       <div style={{
-        background: colors.bg2,
+        background: 'var(--card, #131c2e)',
         border: `1px solid ${activeCol.border}`,
         borderRadius: '0 0 14px 14px',
         padding: 12,
@@ -372,7 +371,7 @@ function MobileKanban({
             <span style={{ fontSize: 13, fontWeight: 600, color: activeCol.color, textAlign: 'center' }}>
               {activeCol.emptyText}
             </span>
-            <span style={{ fontSize: 11, color: colors.textDim, textAlign: 'center' }}>
+            <span style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)', textAlign: 'center' }}>
               Utilisez les boutons sur les cartes pour déplacer vos prospects
             </span>
           </div>
@@ -466,7 +465,7 @@ export function UserPipelineKanban({ items, onStatusChange, onItemClick }: Props
           return (
             <div key={col.id} style={{
               display: 'flex', flexDirection: 'column',
-              background: colors.bg2,
+              background: 'var(--card, #131c2e)',
               border: `1px solid ${col.border}`,
               borderRadius: 20, overflow: 'hidden',
               boxShadow: `0 4px 24px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.04)`
@@ -527,7 +526,7 @@ export function UserPipelineKanban({ items, onStatusChange, onItemClick }: Props
                         <span style={{ fontSize: 12, fontWeight: 600, color: col.color, textAlign: 'center' }}>
                           {col.emptyText}
                         </span>
-                        <span style={{ fontSize: 11, color: colors.textDim, textAlign: 'center' }}>
+                        <span style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)', textAlign: 'center' }}>
                           Glissez un prospect ici
                         </span>
                       </div>

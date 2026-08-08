@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { colors } from '@/styles/tokens'
 import { useTranslation } from '@/providers/I18nProvider'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 
@@ -334,28 +333,28 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
         onDragOver={(e) => e.preventDefault()}
         onClick={() => fileRef.current?.click()}
         style={{
-          border: `2px dashed ${rows.length ? 'rgba(46,160,90,0.5)' : colors.border}`,
+          border: `2px dashed ${rows.length ? 'rgba(46,160,90,0.5)' : 'var(--border, rgba(255,255,255,0.1))'}`,
           borderRadius: 12,
           padding: '28px 20px',
           textAlign: 'center',
           cursor: 'pointer',
-          background: rows.length ? 'rgba(27,122,62,0.05)' : colors.bg2,
+          background: rows.length ? 'rgba(27,122,62,0.05)' : 'var(--card, #131c2e)',
           transition: 'all 200ms ease'
         }}
       >
         <div style={{ fontSize: 28, marginBottom: 8 }}>{rows.length ? '✅' : '📁'}</div>
         {fileName ? (
-          <div style={{ fontSize: 13, fontWeight: 600, color: colors.text }}>{fileName}</div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--foreground, #f1f5f9)' }}>{fileName}</div>
         ) : (
           <>
-            <div style={{ fontSize: 13, fontWeight: 600, color: colors.text, marginBottom: 4 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--foreground, #f1f5f9)', marginBottom: 4 }}>
               {t('team.dragDrop')}
             </div>
-            <div style={{ fontSize: 12, color: colors.textMid }}>{t('team.orClick')}</div>
+            <div style={{ fontSize: 12, color: 'var(--muted-foreground, #94a3b8)' }}>{t('team.orClick')}</div>
           </>
         )}
         {rows.length > 0 && (
-          <div style={{ fontSize: 12, color: colors.green, marginTop: 6, fontWeight: 600 }}>
+          <div style={{ fontSize: 12, color: '#4ade80', marginTop: 6, fontWeight: 600 }}>
             {rows.length} {t('team.prospectsDetected')}
           </div>
         )}
@@ -375,19 +374,19 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
       <div
         style={{
           fontSize: 11.5,
-          color: colors.textMid,
+          color: 'var(--muted-foreground, #94a3b8)',
           lineHeight: 1.65,
           padding: '8px 12px',
-          background: colors.bg2,
+          background: 'var(--card, #131c2e)',
           borderRadius: 8,
-          border: `1px solid ${colors.border}`
+          border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
         }}
       >
         <strong>📄 {t('team.supportedFormats')}</strong> CSV, TSV, TXT, XLSX, XLS, JSON, etc.
         <br />
         <strong>{t('team.autoSeparators')}</strong> {t('team.separatorsList')}
         <br />
-        <code style={{ fontSize: 11, background: colors.bg3, padding: '1px 4px', borderRadius: 3 }}>
+        <code style={{ fontSize: 11, background: 'var(--secondary, #1e2a3b)', padding: '1px 4px', borderRadius: 3 }}>
           Nom ; Téléphone | Email , Ville
         </code>
         <br />
@@ -417,7 +416,7 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
             borderRadius: 8,
             background: 'rgba(27,122,62,0.08)',
             border: '1px solid rgba(46,160,90,0.25)',
-            color: colors.green
+            color: '#4ade80'
           }}
         >
           {success}
@@ -427,7 +426,7 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
       {/* Aperçu (5 premières lignes) */}
       {rows.length > 0 && (
         <div>
-          <div style={{ fontSize: 12, fontWeight: 600, color: colors.textMid, marginBottom: 8 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted-foreground, #94a3b8)', marginBottom: 8 }}>
             {t('team.preview')} ({Math.min(rows.length, 5)} / {rows.length})
           </div>
           <div style={{ overflowX: 'auto' }}>
@@ -446,11 +445,11 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
                       style={{
                         textAlign: 'left',
                         padding: '6px 10px',
-                        background: colors.bg3,
-                        color: colors.textMid,
+                        background: 'var(--secondary, #1e2a3b)',
+                        color: 'var(--muted-foreground, #94a3b8)',
                         fontWeight: 600,
                         fontSize: 11,
-                        borderBottom: `1px solid ${colors.border}`
+                        borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
                       }}
                     >
                       {h}
@@ -460,18 +459,18 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
               </thead>
               <tbody>
                 {rows.slice(0, 5).map((row, i) => (
-                  <tr key={i} style={{ borderBottom: `1px solid ${colors.border}` }}>
-                    <td style={{ padding: '6px 10px', color: colors.text }}>{row.name || '—'}</td>
-                    <td style={{ padding: '6px 10px', color: colors.textMid }}>
+                  <tr key={i} style={{ borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}` }}>
+                    <td style={{ padding: '6px 10px', color: 'var(--foreground, #f1f5f9)' }}>{row.name || '—'}</td>
+                    <td style={{ padding: '6px 10px', color: 'var(--muted-foreground, #94a3b8)' }}>
                       {row.phone || '—'}
                     </td>
-                    <td style={{ padding: '6px 10px', color: colors.textMid }}>
+                    <td style={{ padding: '6px 10px', color: 'var(--muted-foreground, #94a3b8)' }}>
                       {row.email || '—'}
                     </td>
-                    <td style={{ padding: '6px 10px', color: colors.textMid }}>
+                    <td style={{ padding: '6px 10px', color: 'var(--muted-foreground, #94a3b8)' }}>
                       {row.city || '—'}
                     </td>
-                    <td style={{ padding: '6px 10px', color: colors.textMid }}>
+                    <td style={{ padding: '6px 10px', color: 'var(--muted-foreground, #94a3b8)' }}>
                       {row.sector || '—'}
                     </td>
                   </tr>
@@ -492,8 +491,8 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
             height: 40,
             borderRadius: 10,
             background:
-              rows.length > 0 ? 'linear-gradient(135deg, #1b7a3e, #137333)' : colors.border,
-            color: rows.length > 0 ? '#fff' : colors.textMid,
+              rows.length > 0 ? 'linear-gradient(135deg, #1b7a3e, #137333)' : 'var(--border, rgba(255,255,255,0.1))',
+            color: rows.length > 0 ? '#fff' : 'var(--muted-foreground, #94a3b8)',
             border: 'none',
             cursor: rows.length > 0 ? 'pointer' : 'not-allowed',
             fontWeight: 700,
@@ -514,8 +513,8 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
               padding: '0 16px',
               borderRadius: 10,
               background: 'transparent',
-              border: `1px solid ${colors.border}`,
-              color: colors.textMid,
+              border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+              color: 'var(--muted-foreground, #94a3b8)',
               cursor: 'pointer',
               fontWeight: 600,
               fontSize: 12,

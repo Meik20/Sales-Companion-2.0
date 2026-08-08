@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { Badge } from '@/components/ui/index'
 import { Button } from '@/components/ui/Button'
-import { colors, shadows } from '@/styles/tokens'
 import { useDeletePipelineItem } from '@/features/pipeline/hooks/useDeletePipelineItem'
 import { useUpdatePipelineItem } from '@/features/pipeline/hooks/useUpdatePipelineItem'
 import { useToast } from '@/hooks/useToast'
@@ -124,8 +123,8 @@ function ProspectModal({
       >
         <div
           style={{
-            background: colors.bg2,
-            border: `1px solid ${colors.border}`,
+            background: 'var(--card, #131c2e)',
+            border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
             borderRadius: 16,
             width: '100%',
             maxWidth: 520,
@@ -151,7 +150,7 @@ function ProspectModal({
                   margin: 0,
                   fontSize: 20,
                   fontWeight: 800,
-                  color: colors.text,
+                  color: 'var(--foreground, #f1f5f9)',
                   fontFamily: "'Syne', sans-serif",
                   lineHeight: 1.2,
                   letterSpacing: '-0.02em'
@@ -168,10 +167,10 @@ function ProspectModal({
             <button
               onClick={onClose}
               style={{
-                background: colors.bg3,
-                border: `1px solid ${colors.border}`,
+                background: 'var(--secondary, #1e2a3b)',
+                border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                 cursor: 'pointer',
-                color: colors.textMid,
+                color: 'var(--muted-foreground, #94a3b8)',
                 padding: 8,
                 borderRadius: 10,
                 display: 'flex',
@@ -182,11 +181,11 @@ function ProspectModal({
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.background = colors.bg4
-                e.currentTarget.style.color = colors.text
+                e.currentTarget.style.color = 'var(--foreground, #f1f5f9)'
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = colors.bg3
-                e.currentTarget.style.color = colors.textMid
+                e.currentTarget.style.background = 'var(--secondary, #1e2a3b)'
+                e.currentTarget.style.color = 'var(--muted-foreground, #94a3b8)'
               }}
             >
               <X size={18} />
@@ -196,14 +195,14 @@ function ProspectModal({
           {/* Contact Info */}
           <div
             style={{
-              background: colors.bg3,
+              background: 'var(--secondary, #1e2a3b)',
               borderRadius: 12,
               padding: 20,
               marginBottom: 20,
               display: 'flex',
               flexDirection: 'column',
               gap: 12,
-              border: `1px solid ${colors.border}`,
+              border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
               boxShadow: 'inset 0 0 20px rgba(0,0,0,0.1)'
             }}
           >
@@ -213,7 +212,7 @@ function ProspectModal({
                 fontWeight: 800,
                 textTransform: 'uppercase',
                 letterSpacing: '.1em',
-                color: colors.textMid,
+                color: 'var(--muted-foreground, #94a3b8)',
                 marginBottom: 4,
                 display: 'flex',
                 alignItems: 'center',
@@ -228,7 +227,7 @@ function ProspectModal({
               <div
                 style={{
                   fontSize: 13,
-                  color: colors.text,
+                  color: 'var(--foreground, #f1f5f9)',
                   fontWeight: 500,
                   background: 'rgba(96, 165, 250, 0.08)',
                   padding: '12px 14px',
@@ -295,7 +294,7 @@ function ProspectModal({
                       </a>
                     </div>
                   ) : (
-                    <span style={{ color: colors.textDim, fontStyle: 'italic' }}>
+                    <span style={{ color: 'var(--muted-foreground, #64748b)', fontStyle: 'italic' }}>
                       {t('pipeline.notSpecified')}
                     </span>
                   )
@@ -320,7 +319,7 @@ function ProspectModal({
                       {item.companyEmail}
                     </a>
                   ) : (
-                    <span style={{ color: colors.textDim, fontStyle: 'italic' }}>
+                    <span style={{ color: 'var(--muted-foreground, #64748b)', fontStyle: 'italic' }}>
                       {t('pipeline.notSpecified')}
                     </span>
                   )
@@ -370,7 +369,7 @@ function ProspectModal({
               <div
                 style={{
                   fontSize: 14,
-                  color: colors.text,
+                  color: 'var(--foreground, #f1f5f9)',
                   lineHeight: 1.6,
                   whiteSpace: 'pre-wrap',
                   opacity: 1
@@ -425,11 +424,11 @@ function InfoRow({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: colors.bg2,
+          background: 'var(--card, #131c2e)',
           borderRadius: 8,
-          color: colors.textMid,
+          color: 'var(--muted-foreground, #94a3b8)',
           flexShrink: 0,
-          border: `1px solid ${colors.border}`
+          border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
         }}
       >
         {icon}
@@ -437,7 +436,7 @@ function InfoRow({
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         <span
           style={{
-            color: colors.textDim,
+            color: 'var(--muted-foreground, #64748b)',
             fontSize: 11,
             fontWeight: 700,
             textTransform: 'uppercase',
@@ -446,7 +445,7 @@ function InfoRow({
         >
           {label}
         </span>
-        <span style={{ color: colors.text, fontWeight: 500, lineHeight: 1.4 }}>{value}</span>
+        <span style={{ color: 'var(--foreground, #f1f5f9)', fontWeight: 500, lineHeight: 1.4 }}>{value}</span>
       </div>
     </div>
   )
@@ -462,12 +461,12 @@ function ExportPanel({ members }: { members?: Member[] }) {
   const [to, setTo] = useState('')
 
   const inputStyle: React.CSSProperties = {
-    background: colors.bg3,
-    border: `1px solid ${colors.border}`,
+    background: 'var(--secondary, #1e2a3b)',
+    border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
     borderRadius: 8,
     padding: '7px 10px',
     fontSize: 13,
-    color: colors.text,
+    color: 'var(--foreground, #f1f5f9)',
     outline: 'none',
     width: '100%',
     boxSizing: 'border-box'
@@ -478,7 +477,7 @@ function ExportPanel({ members }: { members?: Member[] }) {
     fontWeight: 700,
     textTransform: 'uppercase',
     letterSpacing: '.05em',
-    color: colors.textMid,
+    color: 'var(--muted-foreground, #94a3b8)',
     marginBottom: 4,
     display: 'block'
   }
@@ -526,8 +525,8 @@ function ExportPanel({ members }: { members?: Member[] }) {
         <div
           style={{
             marginTop: 10,
-            background: colors.bg2,
-            border: `1px solid ${colors.border}`,
+            background: 'var(--card, #131c2e)',
+            border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
             borderRadius: 12,
             padding: '18px 20px',
             display: 'flex',
@@ -537,7 +536,7 @@ function ExportPanel({ members }: { members?: Member[] }) {
           }}
         >
           {/* Header */}
-          <div style={{ fontSize: 13, color: colors.textMid, lineHeight: 1.5 }}>
+          <div style={{ fontSize: 13, color: 'var(--muted-foreground, #94a3b8)', lineHeight: 1.5 }}>
             {t('pipeline.exportDesc')}
           </div>
 
@@ -701,19 +700,19 @@ export function ManagerPipelineList({ items, members, managerUid }: Props) {
                   onClick={() => setSelectedItem(item)}
                   style={{
                     padding: '12px 14px',
-                    background: colors.bg3,
-                    border: `1px solid ${colors.border}`,
+                    background: 'var(--secondary, #1e2a3b)',
+                    border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                     borderRadius: 10,
                     cursor: 'pointer',
                     transition: 'all 200ms ease'
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.borderColor = 'rgba(99,102,241,0.4)'
-                    e.currentTarget.style.background = colors.bg2
+                    e.currentTarget.style.background = 'var(--card, #131c2e)'
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = colors.border
-                    e.currentTarget.style.background = colors.bg3
+                    e.currentTarget.style.borderColor = 'var(--border, rgba(255,255,255,0.1))'
+                    e.currentTarget.style.background = 'var(--secondary, #1e2a3b)'
                   }}
                 >
                   <div
@@ -729,7 +728,7 @@ export function ManagerPipelineList({ items, members, managerUid }: Props) {
                         style={{
                           fontWeight: 600,
                           fontSize: 13,
-                          color: colors.text,
+                          color: 'var(--foreground, #f1f5f9)',
                           marginBottom: 4
                         }}
                       >
@@ -741,7 +740,7 @@ export function ManagerPipelineList({ items, members, managerUid }: Props) {
                         <div
                           style={{
                             fontSize: 11,
-                            color: colors.textMid,
+                            color: 'var(--muted-foreground, #94a3b8)',
                             display: 'flex',
                             flexWrap: 'wrap',
                             gap: '4px 10px'
@@ -798,12 +797,12 @@ export function ManagerPipelineList({ items, members, managerUid }: Props) {
                 <div
                   style={{
                     padding: '20px 14px',
-                    background: colors.bg3,
-                    border: `1px dashed ${colors.border}`,
+                    background: 'var(--secondary, #1e2a3b)',
+                    border: `1px dashed ${'var(--border, rgba(255,255,255,0.1))'}`,
                     borderRadius: 10,
                     textAlign: 'center',
                     fontSize: 12,
-                    color: colors.textMid
+                    color: 'var(--muted-foreground, #94a3b8)'
                   }}
                 >
                   {t('pipeline.noProspect')}

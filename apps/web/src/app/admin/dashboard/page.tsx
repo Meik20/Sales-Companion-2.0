@@ -6,7 +6,6 @@ import { LoadingState, ErrorState } from '@/components/feedback/index'
 import { AdminStatsCards } from '@/features/admin/components/AdminStatsCards'
 import { useAdminStats } from '@/features/admin/hooks/useAdminStats'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
-import { colors, shadows } from '@/styles/tokens'
 import { useTranslation } from '@/providers/I18nProvider'
 import {
   Users,
@@ -75,7 +74,7 @@ function BarChart({ data }: { data: { label: string; value: number; color: strin
                 textAnchor="middle"
                 fontSize={10}
                 fontWeight="600"
-                fill={colors.textMid}
+                fill={'var(--muted-foreground, #94a3b8)'}
                 style={{ textTransform: 'uppercase', letterSpacing: '0.02em' }}
               >
                 {d.label}
@@ -133,11 +132,11 @@ function DonutChart({
           textAnchor="middle"
           fontSize={20}
           fontWeight="800"
-          fill={colors.text}
+          fill={'var(--foreground, #f1f5f9)'}
         >
           {total}
         </text>
-        <text x={cx} y={cy + 12} textAnchor="middle" fontSize={9} fill={colors.textMid}>
+        <text x={cx} y={cy + 12} textAnchor="middle" fontSize={9} fill={'var(--muted-foreground, #94a3b8)'}>
           TOTAL
         </text>
       </svg>
@@ -156,11 +155,11 @@ function DonutChart({
                 flexShrink: 0
               }}
             />
-            <span style={{ color: colors.textMid }}>{seg.label}</span>
+            <span style={{ color: 'var(--muted-foreground, #94a3b8)' }}>{seg.label}</span>
             <span
               style={{
                 fontWeight: 700,
-                color: colors.text,
+                color: 'var(--foreground, #f1f5f9)',
                 marginLeft: 'auto',
                 minWidth: 24,
                 textAlign: 'right'
@@ -168,7 +167,7 @@ function DonutChart({
             >
               {seg.value}
             </span>
-            <span style={{ color: colors.textDim, fontSize: 10 }}>
+            <span style={{ color: 'var(--muted-foreground, #64748b)', fontSize: 10 }}>
               ({Math.round((seg.value / total) * 100)}%)
             </span>
           </div>
@@ -188,8 +187,8 @@ function ChartCard({ title, children }: { title: string; children: React.ReactNo
   return (
     <div
       style={{
-        background: colors.surface,
-        border: `1px solid ${colors.border}`,
+        background: 'var(--secondary, #1e2a3b)',
+        border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
         borderRadius: 14,
         padding: 24,
         boxShadow: shadows.sm
@@ -199,10 +198,10 @@ function ChartCard({ title, children }: { title: string; children: React.ReactNo
         style={{
           fontSize: 13,
           fontWeight: 700,
-          color: colors.text,
+          color: 'var(--foreground, #f1f5f9)',
           marginBottom: 20,
           paddingBottom: 12,
-          borderBottom: `1px solid ${colors.border}`
+          borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
         }}
       >
         {title}
@@ -231,8 +230,8 @@ function TrendCard({
   return (
     <div
       style={{
-        background: colors.surface,
-        border: `1px solid ${colors.border}`,
+        background: 'var(--secondary, #1e2a3b)',
+        border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
         borderRadius: 16,
         padding: '24px',
         boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
@@ -246,7 +245,7 @@ function TrendCard({
           top: -10,
           right: -10,
           opacity: 0.05,
-          color: colors.text
+          color: 'var(--foreground, #f1f5f9)'
         }}
       >
         <Icon size={80} />
@@ -271,7 +270,7 @@ function TrendCard({
           style={{
             fontSize: 11,
             fontWeight: 700,
-            color: colors.textMid,
+            color: 'var(--muted-foreground, #94a3b8)',
             textTransform: 'uppercase',
             letterSpacing: '.06em'
           }}
@@ -284,7 +283,7 @@ function TrendCard({
         style={{
           fontSize: 36,
           fontWeight: 800,
-          color: colors.text,
+          color: 'var(--foreground, #f1f5f9)',
           fontFamily: "'Syne',sans-serif",
           lineHeight: 1,
           marginBottom: 8
@@ -298,7 +297,7 @@ function TrendCard({
           <div
             style={{
               fontSize: 12,
-              color: colors.textMid,
+              color: 'var(--muted-foreground, #94a3b8)',
               display: 'flex',
               alignItems: 'center',
               gap: 4
@@ -311,7 +310,7 @@ function TrendCard({
           <div
             style={{
               fontSize: 11,
-              color: colors.green,
+              color: '#4ade80',
               fontWeight: 700,
               display: 'flex',
               alignItems: 'center',
@@ -374,7 +373,7 @@ export default function AdminDashboardPage() {
               value={stats.totalUsers ?? 0}
               hint={`${stats.activeUsers ?? 0} ${t('admin.activeThisWeek')}`}
               trend={`+${stats.newUsersThisWeek ?? 0} ${t('admin.thisWeek')}`}
-              color={colors.green}
+              color={'#4ade80'}
               icon={Users}
             />
             <TrendCard
@@ -414,8 +413,8 @@ export default function AdminDashboardPage() {
           {/* Activity timeline (simplified) */}
           <div
             style={{
-              background: colors.surface,
-              border: `1px solid ${colors.border}`,
+              background: 'var(--secondary, #1e2a3b)',
+              border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
               borderRadius: 14,
               padding: 24,
               boxShadow: shadows.sm
@@ -425,10 +424,10 @@ export default function AdminDashboardPage() {
               style={{
                 fontSize: 13,
                 fontWeight: 700,
-                color: colors.text,
+                color: 'var(--foreground, #f1f5f9)',
                 marginBottom: 16,
                 paddingBottom: 12,
-                borderBottom: `1px solid ${colors.border}`
+                borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
               }}
             >
               {t('admin.recentActivity')}
@@ -446,7 +445,7 @@ export default function AdminDashboardPage() {
                   label: t('admin.newUsers'),
                   value: stats.newUsersThisWeek ?? 0,
                   unit: t('admin.thisWeek'),
-                  color: colors.green
+                  color: '#4ade80'
                 },
                 {
                   icon: <Search size={20} />,
@@ -477,13 +476,13 @@ export default function AdminDashboardPage() {
                 <div
                   key={idx}
                   style={{
-                    background: colors.bg2,
+                    background: 'var(--card, #131c2e)',
                     borderRadius: 14,
                     padding: '16px 20px',
                     display: 'flex',
                     alignItems: 'center',
                     gap: 16,
-                    border: `1px solid ${colors.border}`,
+                    border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                     transition: 'transform 200ms ease'
                   }}
                 >
@@ -504,13 +503,13 @@ export default function AdminDashboardPage() {
                   </div>
                   <div>
                     <div
-                      style={{ fontSize: 22, fontWeight: 900, color: colors.text, lineHeight: 1.1 }}
+                      style={{ fontSize: 22, fontWeight: 900, color: 'var(--foreground, #f1f5f9)', lineHeight: 1.1 }}
                     >
                       {item.value}
                       <span
                         style={{
                           fontSize: 11,
-                          color: colors.textDim,
+                          color: 'var(--muted-foreground, #64748b)',
                           marginLeft: 4,
                           fontWeight: 600
                         }}
@@ -521,7 +520,7 @@ export default function AdminDashboardPage() {
                     <div
                       style={{
                         fontSize: 11,
-                        color: colors.textMid,
+                        color: 'var(--muted-foreground, #94a3b8)',
                         fontWeight: 700,
                         textTransform: 'uppercase',
                         marginTop: 2,

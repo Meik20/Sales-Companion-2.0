@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
-import { colors } from '@/styles/tokens'
 
 type Props = { onSend: (content: string) => Promise<void> }
 
@@ -34,11 +33,11 @@ export function SupportComposer({ onSend }: Props) {
         style={{
           flex: 1,
           background: 'rgba(255,255,255,0.04)',
-          border: `1px solid ${colors.border}`,
+          border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
           borderRadius: 10,
           padding: '10px 14px',
           fontSize: 13,
-          color: colors.text,
+          color: 'var(--foreground, #f1f5f9)',
           fontFamily: 'inherit',
           outline: 'none',
           resize: 'none',

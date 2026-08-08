@@ -1,7 +1,6 @@
 import { Badge } from '@/components/ui/index'
 import { AddToPipelineButton } from './AddToPipelineButton'
 import { SaveCompanyButton } from './SaveCompanyButton'
-import { colors } from '@/styles/tokens'
 import { Company } from '@/features/search/hooks/useCompaniesSearch'
 import { useTranslation } from '@/providers/I18nProvider'
 
@@ -171,7 +170,7 @@ export function CompaniesSearchResults({ items }: Props) {
                 <a
                   href={`tel:${company.telephone}`}
                   style={{
-                    color: colors.green,
+                    color: '#4ade80',
                     textDecoration: 'none',
                     display: 'flex',
                     alignItems: 'center',
@@ -186,7 +185,7 @@ export function CompaniesSearchResults({ items }: Props) {
                 <a
                   href={`mailto:${company.email}`}
                   style={{
-                    color: colors.green,
+                    color: '#4ade80',
                     textDecoration: 'none',
                     display: 'flex',
                     alignItems: 'center',
@@ -200,7 +199,7 @@ export function CompaniesSearchResults({ items }: Props) {
               )}
               {(company.region || company.city) && (
                 <div
-                  style={{ color: colors.textMid, display: 'flex', alignItems: 'center', gap: 6 }}
+                  style={{ color: 'var(--muted-foreground, #94a3b8)', display: 'flex', alignItems: 'center', gap: 6 }}
                 >
                   <span style={{ fontSize: 14 }}>📍</span> {String(company.region)}
                   {company.city ? ` · ${String(company.city)}` : ''}
@@ -208,7 +207,7 @@ export function CompaniesSearchResults({ items }: Props) {
               )}
               {company.dirigeant && (
                 <div
-                  style={{ color: colors.textMid, display: 'flex', alignItems: 'center', gap: 6 }}
+                  style={{ color: 'var(--muted-foreground, #94a3b8)', display: 'flex', alignItems: 'center', gap: 6 }}
                 >
                   <span style={{ fontSize: 14 }}>👤</span> {String(company.dirigeant)}
                 </div>
@@ -216,7 +215,7 @@ export function CompaniesSearchResults({ items }: Props) {
               {company.adresse && (
                 <div
                   style={{
-                    color: colors.textDim,
+                    color: 'var(--muted-foreground, #64748b)',
                     fontSize: 12,
                     display: 'flex',
                     alignItems: 'center',
@@ -237,23 +236,23 @@ export function CompaniesSearchResults({ items }: Props) {
                   flexWrap: 'wrap',
                   gap: 12,
                   paddingTop: 4,
-                  borderTop: `1px dashed ${colors.border}`,
+                  borderTop: `1px dashed ${'var(--border, rgba(255,255,255,0.1))'}`,
                   marginTop: 4
                 }}
               >
                 {company.niu && (
-                  <span style={{ fontSize: 11, color: colors.textDim }}>
+                  <span style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)' }}>
                     <span style={{ fontWeight: 600 }}>{t('field.niu')}:</span> {String(company.niu)}
                   </span>
                 )}
                 {company.rccm && (
-                  <span style={{ fontSize: 11, color: colors.textDim }}>
+                  <span style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)' }}>
                     <span style={{ fontWeight: 600 }}>{t('field.rccm')}:</span>{' '}
                     {String(company.rccm)}
                   </span>
                 )}
                 {company.capital && (
-                  <span style={{ fontSize: 11, color: colors.textDim }}>
+                  <span style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)' }}>
                     <span style={{ fontWeight: 600 }}>{t('field.capital')}:</span>{' '}
                     {String(company.capital)}
                   </span>
@@ -269,15 +268,15 @@ export function CompaniesSearchResults({ items }: Props) {
                   flexWrap: 'wrap',
                   gap: '4px 16px',
                   fontSize: 11,
-                  color: colors.textDim,
-                  background: colors.bg2,
+                  color: 'var(--muted-foreground, #64748b)',
+                  background: 'var(--card, #131c2e)',
                   padding: '8px 12px',
                   borderRadius: 8
                 }}
               >
                 {extraFields.map(([key, val]) => (
                   <span key={key}>
-                    <span style={{ fontWeight: 600, color: colors.textMid }}>
+                    <span style={{ fontWeight: 600, color: 'var(--muted-foreground, #94a3b8)' }}>
                       {formatFieldLabel(key, t)}:
                     </span>{' '}
                     {String(val)}

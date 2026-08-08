@@ -19,7 +19,6 @@ import {
   Timestamp,
   getDocs
 } from 'firebase/firestore'
-import { colors } from '@/styles/tokens'
 import { MessageSquare, Send, Plus, X, ArrowLeft, Headphones, Trash2 } from 'lucide-react'
 
 type Thread = {
@@ -238,18 +237,18 @@ export default function SupportPage() {
           min-height: 480px;
           border-radius: 16px;
           overflow: hidden;
-          border: 1px solid ${colors.border};
+          border: 1px solid ${'var(--border, rgba(255,255,255,0.1))'};
         }
         @media (max-width: 768px) {
           .sup-layout { grid-template-columns: 1fr; height: auto; }
           .sup-list   { display: var(--list-display, flex); }
           .sup-chat   { display: var(--chat-display, flex); }
         }
-        .thr-item { width:100%; text-align:left; padding:12px 14px; border:none; cursor:pointer; transition:background 150ms; display:block; border-bottom:1px solid ${colors.border}; }
+        .thr-item { width:100%; text-align:left; padding:12px 14px; border:none; cursor:pointer; transition:background 150ms; display:block; border-bottom:1px solid ${'var(--border, rgba(255,255,255,0.1))'}; }
         .thr-item:hover { background: rgba(55,138,221,0.06); }
         .thr-item.sel  { background: rgba(55,138,221,0.1); border-left: 3px solid var(--color-accent); }
         .msg-user  { background:var(--color-primary); color:#fff; border-radius:18px 18px 4px 18px; align-self:flex-end; }
-        .msg-admin { background:${colors.bg3}; color:${colors.text}; border-radius:18px 18px 18px 4px; align-self:flex-start; }
+        .msg-admin { background:${'var(--secondary, #1e2a3b)'}; color:${'var(--foreground, #f1f5f9)'}; border-radius:18px 18px 18px 4px; align-self:flex-start; }
       `
         }}
       />
@@ -271,14 +270,14 @@ export default function SupportPage() {
               style={{
                 fontSize: 20,
                 fontWeight: 800,
-                color: colors.text,
+                color: 'var(--foreground, #f1f5f9)',
                 margin: 0,
                 fontFamily: "'Syne',sans-serif"
               }}
             >
               {t('support.title')}
             </h1>
-            <p style={{ fontSize: 12.5, color: colors.textMid, margin: '2px 0 0' }}>
+            <p style={{ fontSize: 12.5, color: 'var(--muted-foreground, #94a3b8)', margin: '2px 0 0' }}>
               {t('support.subtitle')}
             </p>
           </div>
@@ -288,9 +287,9 @@ export default function SupportPage() {
           style={{
             height: 36,
             padding: '0 14px',
-            background: showNew ? colors.bg3 : 'var(--color-primary)',
-            color: showNew ? colors.textMid : '#fff',
-            border: showNew ? `1px solid ${colors.border}` : 'none',
+            background: showNew ? 'var(--secondary, #1e2a3b)' : 'var(--color-primary)',
+            color: showNew ? 'var(--muted-foreground, #94a3b8)' : '#fff',
+            border: showNew ? `1px solid ${'var(--border, rgba(255,255,255,0.1))'}` : 'none',
             borderRadius: 10,
             cursor: 'pointer',
             fontWeight: 600,
@@ -320,8 +319,8 @@ export default function SupportPage() {
           onSubmit={handleCreateThread}
           style={{
             marginBottom: 16,
-            background: colors.surface,
-            border: `1px solid ${colors.border}`,
+            background: 'var(--secondary, #1e2a3b)',
+            border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
             borderRadius: 12,
             padding: '16px 20px',
             display: 'flex',
@@ -334,7 +333,7 @@ export default function SupportPage() {
               style={{
                 fontSize: 12,
                 fontWeight: 600,
-                color: colors.textMid,
+                color: 'var(--muted-foreground, #94a3b8)',
                 display: 'block',
                 marginBottom: 6
               }}
@@ -351,12 +350,12 @@ export default function SupportPage() {
                 width: '100%',
                 height: 40,
                 padding: '0 14px',
-                border: `1.5px solid ${colors.border}`,
+                border: `1.5px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                 borderRadius: 8,
                 fontSize: 13,
                 fontFamily: 'inherit',
-                background: colors.bg2,
-                color: colors.text,
+                background: 'var(--card, #131c2e)',
+                color: 'var(--foreground, #f1f5f9)',
                 outline: 'none',
                 boxSizing: 'border-box'
               }}
@@ -368,8 +367,8 @@ export default function SupportPage() {
             style={{
               height: 40,
               padding: '0 20px',
-              background: newSubject.trim() ? 'var(--color-primary)' : colors.border,
-              color: newSubject.trim() ? '#fff' : colors.textMid,
+              background: newSubject.trim() ? 'var(--color-primary)' : 'var(--border, rgba(255,255,255,0.1))',
+              color: newSubject.trim() ? '#fff' : 'var(--muted-foreground, #94a3b8)',
               border: 'none',
               borderRadius: 8,
               fontWeight: 700,
@@ -407,7 +406,7 @@ export default function SupportPage() {
           className="sup-list"
           style={{
             flexDirection: 'column',
-            borderRight: `1px solid ${colors.border}`,
+            borderRight: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
             overflow: 'hidden'
           }}
         >
@@ -416,11 +415,11 @@ export default function SupportPage() {
               padding: '12px 14px',
               fontSize: 11,
               fontWeight: 700,
-              color: colors.textMid,
+              color: 'var(--muted-foreground, #94a3b8)',
               textTransform: 'uppercase',
               letterSpacing: '.06em',
-              borderBottom: `1px solid ${colors.border}`,
-              background: colors.bg2,
+              borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+              background: 'var(--card, #131c2e)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between'
@@ -444,7 +443,7 @@ export default function SupportPage() {
           <div style={{ flex: 1, overflowY: 'auto' }}>
             {threads.length === 0 ? (
               <div
-                style={{ padding: 32, textAlign: 'center', color: colors.textMid, fontSize: 13 }}
+                style={{ padding: 32, textAlign: 'center', color: 'var(--muted-foreground, #94a3b8)', fontSize: 13 }}
               >
                 <MessageSquare
                   size={32}
@@ -473,7 +472,7 @@ export default function SupportPage() {
                       style={{
                         fontWeight: 600,
                         fontSize: 13,
-                        color: colors.text,
+                        color: 'var(--foreground, #f1f5f9)',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
@@ -495,7 +494,7 @@ export default function SupportPage() {
                       )}
                       {thread.subject}
                     </span>
-                    <span style={{ fontSize: 10, flexShrink: 0, color: colors.textDim }}>
+                    <span style={{ fontSize: 10, flexShrink: 0, color: 'var(--muted-foreground, #64748b)' }}>
                       {fmtTime(thread.updatedAt)}
                     </span>
                   </div>
@@ -515,8 +514,8 @@ export default function SupportPage() {
                           fontWeight: 700,
                           padding: '2px 6px',
                           borderRadius: 4,
-                          background: `${STATUS_COLOR[thread.status] ?? colors.border}22`,
-                          color: STATUS_COLOR[thread.status] ?? colors.textMid
+                          background: `${STATUS_COLOR[thread.status] ?? 'var(--border, rgba(255,255,255,0.1))'}22`,
+                          color: STATUS_COLOR[thread.status] ?? 'var(--muted-foreground, #94a3b8)'
                         }}
                       >
                         {getStatusLabel(thread.status, t)}
@@ -525,7 +524,7 @@ export default function SupportPage() {
                         <span
                           style={{
                             fontSize: 11,
-                            color: colors.textDim,
+                            color: 'var(--muted-foreground, #64748b)',
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',
                             whiteSpace: 'nowrap',
@@ -542,7 +541,7 @@ export default function SupportPage() {
                         background: 'none',
                         border: 'none',
                         cursor: 'pointer',
-                        color: colors.textDim,
+                        color: 'var(--muted-foreground, #64748b)',
                         padding: 4,
                         borderRadius: 4,
                         display: 'flex',
@@ -551,7 +550,7 @@ export default function SupportPage() {
                         transition: 'all 150ms ease'
                       }}
                       onMouseEnter={(e) => (e.currentTarget.style.color = '#ef4444')}
-                      onMouseLeave={(e) => (e.currentTarget.style.color = colors.textDim)}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--muted-foreground, #64748b)')}
                       title={t('support.deleteTitle')}
                     >
                       <Trash2 size={13} />
@@ -573,7 +572,7 @@ export default function SupportPage() {
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: colors.textMid,
+                color: 'var(--muted-foreground, #94a3b8)',
                 fontSize: 13,
                 gap: 12,
                 padding: 40
@@ -604,8 +603,8 @@ export default function SupportPage() {
               <div
                 style={{
                   padding: '12px 18px',
-                  borderBottom: `1px solid ${colors.border}`,
-                  background: colors.bg2,
+                  borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+                  background: 'var(--card, #131c2e)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between'
@@ -619,7 +618,7 @@ export default function SupportPage() {
                       background: 'none',
                       border: 'none',
                       cursor: 'pointer',
-                      color: colors.textMid,
+                      color: 'var(--muted-foreground, #94a3b8)',
                       fontSize: 18
                     }}
                     className="mob-back"
@@ -632,10 +631,10 @@ export default function SupportPage() {
                     }}
                   />
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: 14, color: colors.text }}>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--foreground, #f1f5f9)' }}>
                       {selectedThread?.subject}
                     </div>
-                    <div style={{ fontSize: 11, color: colors.textMid, marginTop: 2 }}>
+                    <div style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)', marginTop: 2 }}>
                       {selectedThread?.createdAt
                         ?.toDate?.()
                         .toLocaleDateString('fr-FR', {
@@ -669,14 +668,14 @@ export default function SupportPage() {
                   display: 'flex',
                   flexDirection: 'column',
                   gap: 10,
-                  background: colors.bg
+                  background: 'var(--background, #0b1120)'
                 }}
               >
                 {messages.length === 0 ? (
                   <div
                     style={{
                       textAlign: 'center',
-                      color: colors.textMid,
+                      color: 'var(--muted-foreground, #94a3b8)',
                       fontSize: 13,
                       marginTop: 40
                     }}
@@ -716,7 +715,7 @@ export default function SupportPage() {
                         <div
                           style={{
                             fontSize: 10.5,
-                            color: colors.textDim,
+                            color: 'var(--muted-foreground, #64748b)',
                             marginTop: 3,
                             padding: '0 4px'
                           }}
@@ -735,8 +734,8 @@ export default function SupportPage() {
               <div
                 style={{
                   padding: '10px 14px',
-                  borderTop: `1px solid ${colors.border}`,
-                  background: colors.surface
+                  borderTop: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+                  background: 'var(--secondary, #1e2a3b)'
                 }}
               >
                 {isResolved ? (
@@ -748,7 +747,7 @@ export default function SupportPage() {
                       gap: 12
                     }}
                   >
-                    <span style={{ fontSize: 13, color: colors.textMid }}>
+                    <span style={{ fontSize: 13, color: 'var(--muted-foreground, #94a3b8)' }}>
                       <span style={{ color: 'var(--color-success)', fontWeight: 600 }}>
                         {t('support.resolvedThread')}
                       </span>{' '}
@@ -785,20 +784,20 @@ export default function SupportPage() {
                       style={{
                         flex: 1,
                         padding: '10px 14px',
-                        border: `1.5px solid ${colors.border}`,
+                        border: `1.5px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                         borderRadius: 20,
                         fontSize: 13.5,
                         resize: 'none',
                         fontFamily: 'inherit',
-                        background: colors.bg2,
-                        color: colors.text,
+                        background: 'var(--card, #131c2e)',
+                        color: 'var(--foreground, #f1f5f9)',
                         outline: 'none',
                         boxSizing: 'border-box',
                         lineHeight: 1.5,
                         transition: 'border-color 150ms ease'
                       }}
                       onFocus={(e) => (e.target.style.borderColor = 'var(--color-accent)')}
-                      onBlur={(e) => (e.target.style.borderColor = colors.border)}
+                      onBlur={(e) => (e.target.style.borderColor = 'var(--border, rgba(255,255,255,0.1))')}
                     />
                     <button
                       onClick={() => void handleSend()}
@@ -808,7 +807,7 @@ export default function SupportPage() {
                         height: 42,
                         flexShrink: 0,
                         borderRadius: '50%',
-                        background: inputText.trim() ? 'var(--color-primary)' : colors.border,
+                        background: inputText.trim() ? 'var(--color-primary)' : 'var(--border, rgba(255,255,255,0.1))',
                         color: '#fff',
                         border: 'none',
                         cursor: inputText.trim() ? 'pointer' : 'not-allowed',

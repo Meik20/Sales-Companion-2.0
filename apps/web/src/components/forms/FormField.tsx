@@ -1,5 +1,4 @@
 import { ReactNode } from 'react'
-import { colors } from '@/styles/tokens'
 
 type Props = {
   label: string
@@ -11,22 +10,14 @@ type Props = {
 
 export function FormField({ label, children, error, hint, required }: Props) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <label
-        style={{
-          fontSize: 12,
-          fontWeight: 600,
-          color: colors.textMid,
-          letterSpacing: '.04em',
-          textTransform: 'uppercase'
-        }}
-      >
+    <div className="flex flex-col gap-1.5">
+      <label className="text-[12px] font-semibold uppercase tracking-[.04em] text-muted-foreground">
         {label}
-        {required ? <span style={{ color: '#f87171', marginLeft: 3 }}>*</span> : null}
+        {required ? <span className="ml-[3px] text-red-400">*</span> : null}
       </label>
       {children}
-      {error ? <span style={{ fontSize: 12, color: '#f87171' }}>{error}</span> : null}
-      {hint && !error ? <span style={{ fontSize: 12, color: colors.textDim }}>{hint}</span> : null}
+      {error ? <span className="text-[12px] text-red-400">{error}</span> : null}
+      {hint && !error ? <span className="text-[12px] text-muted-foreground/70">{hint}</span> : null}
     </div>
   )
 }

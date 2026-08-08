@@ -2,7 +2,6 @@
 
 import { useTeamMembers, TeamMember } from '../hooks/useTeamMembers'
 import { SectionCard } from './SectionCard'
-import { colors, shadows } from '@/styles/tokens'
 import { useTranslation } from '@/providers/I18nProvider'
 import {
   User,
@@ -23,7 +22,7 @@ export function TeamMembersSection() {
   if (isLoading) {
     return (
       <SectionCard title={t('team.teamMembers')} subtitle={`${0} ${t('team.activeMembersCount')}`}>
-        <div style={{ textAlign: 'center', color: colors.textMid, padding: 20 }}>
+        <div style={{ textAlign: 'center', color: 'var(--muted-foreground, #94a3b8)', padding: 20 }}>
           {t('team.loading')}
         </div>
       </SectionCard>
@@ -51,7 +50,7 @@ export function TeamMembersSection() {
         <div
           style={{
             textAlign: 'center',
-            color: colors.textMid,
+            color: 'var(--muted-foreground, #94a3b8)',
             padding: 20,
             fontSize: 13
           }}
@@ -76,8 +75,8 @@ function MemberCard({ member }: { member: TeamMember }) {
   return (
     <div
       style={{
-        background: colors.surface,
-        border: `1px solid ${colors.border}`,
+        background: 'var(--secondary, #1e2a3b)',
+        border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
         borderRadius: 14,
         padding: '16px 20px',
         display: 'flex',
@@ -117,13 +116,13 @@ function MemberCard({ member }: { member: TeamMember }) {
           {member.name[0]?.toUpperCase()}
         </div>
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 14, fontWeight: 800, color: colors.text, marginBottom: 2 }}>
+          <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--foreground, #f1f5f9)', marginBottom: 2 }}>
             {member.name}
           </div>
           <div
             style={{
               fontSize: 12,
-              color: colors.textMid,
+              color: 'var(--muted-foreground, #94a3b8)',
               display: 'flex',
               alignItems: 'center',
               gap: 4
@@ -143,25 +142,25 @@ function MemberCard({ member }: { member: TeamMember }) {
               style={{
                 fontSize: 11,
                 fontWeight: 700,
-                color: colors.textMid,
+                color: 'var(--muted-foreground, #94a3b8)',
                 textTransform: 'uppercase'
               }}
             >
               {t('team.dailyQuota')}
             </span>
-            <span style={{ fontSize: 11, fontWeight: 800, color: colors.text }}>
+            <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--foreground, #f1f5f9)' }}>
               {member.dailyUsed}
-              <span style={{ color: colors.textDim, fontWeight: 400 }}>/{member.dailyLimit}</span>
+              <span style={{ color: 'var(--muted-foreground, #64748b)', fontWeight: 400 }}>/{member.dailyLimit}</span>
             </span>
           </div>
           <div
             style={{
               height: 6,
               width: '100%',
-              background: colors.bg2,
+              background: 'var(--card, #131c2e)',
               borderRadius: 10,
               overflow: 'hidden',
-              border: `1px solid ${colors.border}`
+              border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
             }}
           >
             <div

@@ -8,7 +8,6 @@ import { SectionCard } from './SectionCard'
 import { useCreateTeamAssignment } from '../hooks/useCreateTeamAssignment'
 import { useActiveTeamMembers } from '../hooks/useTeamMembers'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
-import { colors, shadows } from '@/styles/tokens'
 import type { Prospect } from '@/features/imports/components/ManagerProspectsList'
 import { useTranslation } from '@/providers/I18nProvider'
 import {
@@ -42,9 +41,9 @@ const SELECT_STYLE: React.CSSProperties = {
   fontSize: 14,
   padding: '12px 14px',
   borderRadius: 12,
-  border: `1px solid ${colors.border}`,
-  background: colors.bg2,
-  color: colors.text,
+  border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+  background: 'var(--card, #131c2e)',
+  color: 'var(--foreground, #f1f5f9)',
   fontFamily: 'inherit',
   cursor: 'pointer',
   transition: 'all 200ms ease',
@@ -224,7 +223,7 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
               style={{
                 fontSize: 11,
                 fontWeight: 700,
-                color: colors.textMid,
+                color: 'var(--muted-foreground, #94a3b8)',
                 textTransform: 'uppercase',
                 paddingLeft: 4
               }}
@@ -235,8 +234,8 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
               style={{
                 padding: '12px',
                 borderRadius: 12,
-                background: colors.bg3,
-                border: `1px solid ${colors.border}`,
+                background: 'var(--secondary, #1e2a3b)',
+                border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                 maxHeight: 180,
                 overflowY: 'auto',
                 display: 'flex',
@@ -250,14 +249,14 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
                   key={p.id}
                   style={{
                     fontSize: 12.5,
-                    color: colors.text,
+                    color: 'var(--foreground, #f1f5f9)',
                     display: 'flex',
                     alignItems: 'center',
                     gap: 10,
                     padding: '8px 10px',
                     background: 'white',
                     borderRadius: 8,
-                    border: `1px solid ${colors.border}`
+                    border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
                   }}
                 >
                   <Building size={14} style={{ color: colors.info, opacity: 0.7 }} />
@@ -266,7 +265,7 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
                     <span
                       style={{
                         fontSize: 11,
-                        color: colors.textMid,
+                        color: 'var(--muted-foreground, #94a3b8)',
                         display: 'flex',
                         alignItems: 'center',
                         gap: 3
@@ -286,7 +285,7 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
               style={{
                 fontSize: 11,
                 fontWeight: 700,
-                color: colors.textMid,
+                color: 'var(--muted-foreground, #94a3b8)',
                 textTransform: 'uppercase',
                 paddingLeft: 4
               }}
@@ -300,7 +299,7 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
                 disabled={isPending || loadingPipeline}
                 style={SELECT_STYLE}
                 onFocus={(e) => focusStyle(e.currentTarget)}
-                onBlur={(e) => blurStyle(e.currentTarget, colors.border)}
+                onBlur={(e) => blurStyle(e.currentTarget, 'var(--border, rgba(255,255,255,0.1))')}
               >
                 <option value="">
                   {loadingPipeline
@@ -322,7 +321,7 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
                   top: '50%',
                   transform: 'translateY(-50%)',
                   pointerEvents: 'none',
-                  color: colors.textDim
+                  color: 'var(--muted-foreground, #64748b)'
                 }}
               >
                 <ChevronDown size={18} />
@@ -340,7 +339,7 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
             style={{
               fontSize: 11,
               fontWeight: 700,
-              color: colors.textMid,
+              color: 'var(--muted-foreground, #94a3b8)',
               textTransform: 'uppercase',
               paddingLeft: 4
             }}
@@ -354,7 +353,7 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
               disabled={isPending || (members?.length || 0) === 0}
               style={SELECT_STYLE}
               onFocus={(e) => focusStyle(e.currentTarget)}
-              onBlur={(e) => blurStyle(e.currentTarget, colors.border)}
+              onBlur={(e) => blurStyle(e.currentTarget, 'var(--border, rgba(255,255,255,0.1))')}
             >
               <option value="">
                 {(members?.length || 0) === 0 ? t('team.noActiveMember') : t('team.selectMember')}
@@ -372,14 +371,14 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
                 top: '50%',
                 transform: 'translateY(-50%)',
                 pointerEvents: 'none',
-                color: colors.textDim
+                color: 'var(--muted-foreground, #64748b)'
               }}
             >
               <ChevronDown size={18} />
             </div>
           </div>
           {(members?.length || 0) === 0 && (
-            <p style={{ fontSize: 11, color: colors.textDim, margin: '4px 0 0', paddingLeft: 4 }}>
+            <p style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)', margin: '4px 0 0', paddingLeft: 4 }}>
               {t('team.noActiveMemberDesc')}
             </p>
           )}

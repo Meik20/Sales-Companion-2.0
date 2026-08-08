@@ -14,7 +14,6 @@ import { UserPipelineList } from '@/features/pipeline/components/UserPipelineLis
 import { useUpdatePipelineItem } from '@/features/pipeline/hooks/useUpdatePipelineItem'
 import { useTeamMembers } from '@/features/team/hooks/useTeamMembers'
 import { useState } from 'react'
-import { colors } from '@/styles/tokens'
 import { useTranslation } from '@/providers/I18nProvider'
 
 export default function PipelinePage() {
@@ -86,8 +85,8 @@ export default function PipelinePage() {
             <div
               key={label}
               style={{
-                background: colors.bg2,
-                border: `1px solid ${colors.border}`,
+                background: 'var(--card, #131c2e)',
+                border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                 borderRadius: 12,
                 padding: '14px 18px',
                 textAlign: 'center'
