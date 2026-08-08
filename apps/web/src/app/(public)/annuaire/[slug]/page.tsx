@@ -1,8 +1,8 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ScIcon } from '@/components/ui/ScIcon'
-import '@/features/landing/styles/landing.css'
+import { PublicNav } from '@/components/landing/PublicNav'
+import { PublicFooter } from '@/components/landing/PublicFooter'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -101,7 +101,6 @@ const DATA_MAP: Record<
   }
 }
 
-// Pool d'entreprises de test réalistes pour l'indexation
 const MOCK_COMPANIES = [
   {
     name: 'Kamer IT Solutions',
@@ -200,12 +199,10 @@ export default async function AnnuaireSlugPage({ params }: Props) {
     notFound()
   }
 
-  // Filtrer les entreprises de test correspondantes à la ville ou au secteur
   const filteredCompanies = MOCK_COMPANIES.filter(
     (c) => c.city === slug || c.sector === slug
   )
 
-  // Si aucune entreprise spécifique, générer une liste générique
   const companiesToDisplay =
     filteredCompanies.length > 0
       ? filteredCompanies
@@ -215,77 +212,69 @@ export default async function AnnuaireSlugPage({ params }: Props) {
         }))
 
   return (
-    <div className="landing-root">
-      {/* Navbar */}
-      <nav className="nav">
-        <div className="nav-inner">
-          <Link href="/" className="nav-brand" title="Retour à l'accueil">
-            <ScIcon size={32} className="sc-icon" />
-            <span className="nav-brand-text">
-              Sales <em>Companion 2.0</em>
-            </span>
-          </Link>
-
-          <div className="nav-desktop">
-            <ul className="nav-links" role="list">
-              <li>
-                <Link href="/">Accueil</Link>
-              </li>
-              <li>
-                <Link href="/annuaire">Annuaire B2B</Link>
-              </li>
-            </ul>
-            <div className="nav-cta">
-              <Link href="/login" className="btn btn-ghost btn-sm">
-                Connexion
-              </Link>
-              <Link href="/register" className="btn btn-primary btn-sm">
-                Essai Gratuit
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+    <div className="min-h-dvh bg-background text-foreground">
+      <PublicNav
+        activePage="annuaire"
+        backLink={{ href: '/annuaire', label: 'Annuaire principal' }}
+      />
 
       {/* Hero Header */}
-      <section className="hero hero-compact">
-        <div className="hero-glow-tl" aria-hidden="true"></div>
-        <h1 className="hero-title">
-          Entreprises {data.type === 'city' ? 'à' : 'de'} <br />
-          <em>{data.title}</em>
-        </h1>
-        <p className="hero-sub">
-          {data.description} Découvrez notre sélection de professionnels et
-          d'opportunités de prospection. Accès complet à plus de{' '}
-          <strong>{data.count}</strong> entreprises dans cette catégorie via
-          notre CRM.
-        </p>
+      <section className="relative overflow-hidden border-b border-border bg-white py-16 text-center">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(60%_50%_at_50%_0%,color-mix(in_oklch,#1B7A3E_8%,transparent),transparent)]"
+        />
+        <div className="mx-auto max-w-3xl px-5">
+          <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-1 text-xs font-medium text-muted-foreground shadow-sm">
+            <span className="h-2 w-2 rounded-full bg-[#1B7A3E] animate-pulse" />
+            {data.type === 'city' ? 'Ville' : 'Secteur d\'activité'}
+          </span>
+          <h1 className="mt-5 font-heading text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+            Entreprises {data.type === 'city' ? 'à' : 'de'}{' '}
+            <span className="text-[#1B7A3E]">{data.title}</span>
+          </h1>
+          <p className="mt-4 text-base leading-relaxed text-muted-foreground">
+            {data.description} Découvrez notre sélection de professionnels et
+            d&apos;opportunités de prospection. Accès complet à plus de{' '}
+            <strong className="text-foreground">{data.count}</strong> entreprises dans cette catégorie.
+          </p>
+        </div>
       </section>
 
       {/* Main Content */}
-      <main className="container" style={{ paddingBottom: '80px' }}>
+      <main className="mx-auto max-w-6xl px-5 py-12 pb-20 space-y-12">
         {/* Breadcrumb retour */}
-        <Link href="/annuaire" className="breadcrumb">
-          ← Retour à l'annuaire principal
+        <Link
+          href="/annuaire"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-[#1B7A3E] transition-colors hover:underline"
+        >
+          ← Retour à l&apos;annuaire principal
         </Link>
 
         {/* Liste des Entreprises */}
-        <div style={{ marginBottom: '60px' }}>
-          <h2 className="annuaire-section-title">
-            🏢 Profils d'entreprises disponibles ({companiesToDisplay.length})
+        <div>
+          <h2 className="font-heading text-2xl font-bold tracking-tight text-foreground mb-6 flex items-center gap-2">
+            🏢 Profils d&apos;entreprises disponibles ({companiesToDisplay.length})
           </h2>
 
-          <div className="company-list">
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {companiesToDisplay.map((company, index) => (
-              <div key={index} className="company-card">
-                <div className="company-card-header">
-                  <h3 className="company-name">{company.name}</h3>
-                  <span className="badge badge-success">{company.status}</span>
+              <div
+                key={index}
+                className="flex flex-col rounded-xl border border-border bg-card p-6 shadow-sm transition-all hover:border-[#1B7A3E]/40 hover:shadow-md"
+              >
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <h3 className="font-heading text-base font-semibold text-foreground">
+                    {company.name}
+                  </h3>
+                  <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700 shrink-0">
+                    {company.status}
+                  </span>
                 </div>
-                <p className="company-activity">
-                  <strong>Activité :</strong> {company.activity}
+                <p className="text-xs text-muted-foreground leading-relaxed flex-1 mb-4">
+                  <strong className="text-foreground">Activité :</strong> {company.activity}
                 </p>
-                <div className="company-meta">
+                <div className="flex items-center gap-3 text-xs text-muted-foreground border-t border-border pt-3">
                   <span>📍 {company.city.charAt(0).toUpperCase() + company.city.slice(1)}</span>
                   <span>📁 {company.sector.toUpperCase()}</span>
                 </div>
@@ -295,58 +284,25 @@ export default async function AnnuaireSlugPage({ params }: Props) {
         </div>
 
         {/* CTA */}
-        <div className="cta-section">
-          <div className="cta-glow" aria-hidden="true"></div>
-          <h3 className="cta-title">Accéder aux contacts des dirigeants</h3>
-          <p className="cta-sub">
-            Téléphone, e-mail direct, numéro d'immatriculation et bien plus.
+        <div className="overflow-hidden rounded-3xl bg-gradient-to-br from-[#135A2E] via-[#1B7A3E] to-[#0D3B1E] px-8 py-14 text-center shadow-xl">
+          <h3 className="font-heading text-2xl font-bold tracking-tight text-white sm:text-3xl">
+            Accéder aux contacts des dirigeants
+          </h3>
+          <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-emerald-100">
+            Téléphone, e-mail direct, numéro d&apos;immatriculation et bien plus.
             Débloquez tous les détails pour lancer vos campagnes de prospection
             ciblées.
           </p>
-          <Link href="/register" className="btn btn-primary btn-xl">
-            Débloquer la base de données
+          <Link
+            href="/register"
+            className="mt-8 inline-flex items-center rounded-xl bg-white px-6 py-3 text-sm font-semibold text-[#1B7A3E] shadow-md transition-all hover:bg-emerald-50 hover:shadow-lg hover:scale-[1.02]"
+          >
+            Débloquer la base de données →
           </Link>
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="footer">
-        <div className="footer-inner">
-          <div className="footer-bottom">
-            <p>
-              &copy; {new Date().getFullYear()} Sales Companion 2.0 · Base de
-              données des entreprises au Cameroun.
-            </p>
-            <nav aria-label="Liens internes">
-              <ul
-                role="list"
-                style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', listStyle: 'none' }}
-              >
-                <li>
-                  <Link href="/" className="footer-link">
-                    Accueil
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/annuaire" className="footer-link">
-                    Annuaire B2B
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/blog" className="footer-link">
-                    Blog B2B
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/register" className="footer-link">
-                    Essai gratuit
-                  </Link>
-                </li>
-              </ul>
-            </nav>
-          </div>
-        </div>
-      </footer>
+      <PublicFooter />
     </div>
   )
 }

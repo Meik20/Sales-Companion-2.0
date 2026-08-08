@@ -1,8 +1,8 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
-import { ScIcon } from '@/components/ui/ScIcon'
-import '@/features/landing/styles/landing.css'
+import { PublicNav } from '@/components/landing/PublicNav'
+import { PublicFooter } from '@/components/landing/PublicFooter'
 
 // ── Données des Articles (Simulation DB/CMS) ─────────────────────────────
 const ARTICLES_CONTENT: Record<string, {
@@ -1164,148 +1164,56 @@ export default async function BlogPostPage({
 
   if (!article) {
     return (
-      <div className="landing-root" style={{ textAlign: 'center', padding: '100px 24px' }}>
-        <h2>⏳ Article en cours de rédaction</h2>
-        <p style={{ color: 'var(--tx2)', marginBottom: '24px' }}>
-          L'article "{resolvedParams.slug}" sera bientôt disponible.
-        </p>
-        <Link href="/blog" className="btn btn-primary btn-md">← Retour au blog</Link>
+      <div className="min-h-dvh bg-background text-foreground flex flex-col">
+        <PublicNav activePage="blog" backLink={{ href: '/blog', label: 'Retour au blog' }} />
+        <div className="flex flex-1 flex-col items-center justify-center px-5 py-24 text-center">
+          <div className="text-5xl mb-4">⏳</div>
+          <h2 className="font-heading text-2xl font-bold text-foreground mb-3">
+            Article en cours de rédaction
+          </h2>
+          <p className="text-muted-foreground mb-6 max-w-sm">
+            L&apos;article &quot;{resolvedParams.slug}&quot; sera bientôt disponible.
+          </p>
+          <Link href="/blog" className="inline-flex items-center rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-all hover:bg-primary/90">
+            ← Retour au blog
+          </Link>
+        </div>
+        <PublicFooter />
       </div>
     )
   }
 
   return (
-    <div className="landing-root">
-      {/* Navbar Minimaliste */}
-      <nav className="nav">
-        <div className="nav-inner">
-          <Link href="/" className="nav-brand">
-            <ScIcon size={24} className="sc-icon" />
-            <span className="nav-brand-text">
-              Sales <em>Companion</em>
-            </span>
-          </Link>
-          <div className="nav-links">
-            <Link href="/blog" style={{ color: 'var(--tx2)', fontSize: '13px' }}>
-              ← Retour au blog
-            </Link>
-          </div>
-        </div>
-      </nav>
+    <div className="min-h-dvh bg-background text-foreground">
+      <PublicNav
+        activePage="blog"
+        backLink={{ href: '/blog', label: 'Retour au blog' }}
+      />
 
       {/* Hero Article */}
-      <header
-        style={{
-          padding: '80px 24px 40px',
-          maxWidth: '800px',
-          margin: '0 auto',
-          textAlign: 'center'
-        }}
-      >
-        <div style={{ fontSize: '3rem', marginBottom: '16px' }}>{article.emoji}</div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '24px' }}>
-          <span
-            style={{
-              background: 'rgba(255,255,255,0.05)',
-              color: 'var(--tx2)',
-              padding: '2px 10px',
-              borderRadius: '999px',
-              fontSize: '12px',
-              fontWeight: '500'
-            }}
-          >
-            {article.category}
-          </span>
-          <span style={{ fontSize: '12px', color: 'var(--tx3)' }}>
-            Publié le {article.date} · {article.readTime} de lecture
-          </span>
+      <header className="border-b border-border bg-white py-12 text-center">
+        <div className="mx-auto max-w-2xl px-5">
+          <div className="text-5xl mb-5">{article.emoji}</div>
+          <div className="mb-5 flex flex-wrap items-center justify-center gap-3">
+            <span className="inline-flex items-center rounded-full border border-border bg-secondary px-2.5 py-0.5 text-[11px] font-semibold text-muted-foreground">
+              {article.category}
+            </span>
+            <span className="text-xs text-muted-foreground">
+              Publié le {article.date} · {article.readTime} de lecture
+            </span>
+          </div>
+          <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground text-balance sm:text-4xl md:text-5xl">
+            {article.title}
+          </h1>
         </div>
-        <h1
-          style={{
-            fontFamily: "'Syne', sans-serif",
-            fontSize: 'clamp(28px, 4vw, 46px)',
-            fontWeight: '800',
-            lineHeight: '1.2',
-            letterSpacing: '-0.02em',
-            color: 'var(--tx)'
-          }}
-        >
-          {article.title}
-        </h1>
       </header>
 
       {/* Contenu Article */}
-      <main
-        className="blog-content"
-        style={{
-          maxWidth: '720px',
-          margin: '0 auto',
-          padding: '0 24px 100px'
-        }}
-      >
+      <main className="mx-auto max-w-2xl px-5 py-10 pb-20 prose prose-slate prose-headings:font-heading prose-headings:tracking-tight prose-a:text-[#1B7A3E] prose-strong:text-foreground">
         {article.content}
       </main>
 
-      {/* Styles inline rapides pour la typographie du blog */}
-      <style dangerouslySetInnerHTML={{
-        __html: `
-        .blog-content {
-          font-size: 16px;
-          line-height: 1.8;
-          color: var(--tx2);
-        }
-        .blog-content h2 {
-          font-family: 'Syne', sans-serif;
-          color: var(--tx);
-          font-size: 24px;
-          margin: 48px 0 20px;
-          letter-spacing: -0.01em;
-        }
-        .blog-content h3 {
-          font-family: 'Syne', sans-serif;
-          color: var(--tx);
-          font-size: 20px;
-          margin: 32px 0 16px;
-        }
-        .blog-content p {
-          margin-bottom: 24px;
-        }
-        .blog-content ul {
-          margin-bottom: 24px;
-          padding-left: 24px;
-        }
-        .blog-content li {
-          margin-bottom: 10px;
-        }
-        .blog-lead {
-          font-size: 19px;
-          color: var(--tx);
-          font-weight: 500;
-          line-height: 1.6;
-          margin-bottom: 40px !important;
-        }
-        .blog-content blockquote {
-          border-left: 4px solid var(--gm);
-          padding: 16px 24px;
-          background: rgba(46, 160, 90, 0.05);
-          border-radius: 0 12px 12px 0;
-          font-style: italic;
-          color: var(--tx);
-          margin: 32px 0;
-          font-size: 17px;
-        }
-        .blog-cta {
-          margin-top: 60px;
-          padding: 40px 32px;
-          background: var(--dark2);
-          border: 1px solid var(--bd);
-          border-radius: 16px;
-          text-align: center;
-        }
-        .blog-cta h3 {
-          margin-top: 0;
-        }
-      `}} />
+      <PublicFooter />
     </div>
   )
 }

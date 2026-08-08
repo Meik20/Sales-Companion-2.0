@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
-import { ScIcon } from '@/components/ui/ScIcon'
-import '@/features/landing/styles/landing.css' // Import des styles de la landing page
+import { PublicNav } from '@/components/landing/PublicNav'
+import { PublicFooter } from '@/components/landing/PublicFooter'
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://salescompanion2-0.com'
 
@@ -59,7 +59,6 @@ const FAQ_ITEMS = [
 ]
 
 export default function AnnuaireHub() {
-  // FAQ Schema JSON-LD pour la Position Zéro Google
   const faqJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
@@ -73,7 +72,6 @@ export default function AnnuaireHub() {
     }))
   }
 
-  // Dataset Schema pour signaler une base de données à Google
   const datasetJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Dataset',
@@ -117,8 +115,7 @@ export default function AnnuaireHub() {
   ]
 
   return (
-    <div className="landing-root">
-      {/* FAQ & Dataset Schema JSON-LD */}
+    <div className="min-h-dvh bg-background text-foreground">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
@@ -128,197 +125,164 @@ export default function AnnuaireHub() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(datasetJsonLd) }}
       />
 
-      {/* Navbar */}
-      <nav className="nav">
-        <div className="nav-inner">
-          <Link href="/" className="nav-brand" title="Retour à l'accueil">
-            <ScIcon size={32} className="sc-icon" />
-            <span className="nav-brand-text">
-              Sales <em>Companion 2.0</em>
-            </span>
-          </Link>
-
-          <div className="nav-desktop">
-            <ul className="nav-links" role="list">
-              <li>
-                <Link href="/">Accueil</Link>
-              </li>
-              <li>
-                <Link href="/annuaire">Annuaire B2B</Link>
-              </li>
-            </ul>
-            <div className="nav-cta">
-              <Link href="/login" className="btn btn-ghost btn-sm">
-                Connexion
-              </Link>
-              <Link href="/register" className="btn btn-primary btn-sm">
-                Essai Gratuit
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <PublicNav activePage="annuaire" />
 
       {/* Hero Section */}
-      <section className="hero hero-compact">
-        <div className="hero-glow-tl" aria-hidden="true"></div>
-        <h1 className="hero-title">
-          Base de Données <em>Entreprises Cameroun</em>
-        </h1>
-        <p className="hero-sub">
-          L'annuaire B2B le plus complet du Cameroun.{' '}
-          <strong>50 000+ sociétés vérifiées</strong> à Douala, Yaoundé et dans
-          toute la CEMAC. Filtrez par ville et secteur, accédez aux contacts des
-          dirigeants et exportez vos listes de prospection.
-        </p>
+      <section className="relative overflow-hidden border-b border-border bg-white py-16 text-center">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(60%_50%_at_50%_0%,color-mix(in_oklch,#1B7A3E_8%,transparent),transparent)]"
+        />
+        <div className="mx-auto max-w-3xl px-5">
+          <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-1 text-xs font-medium text-muted-foreground shadow-sm">
+            <span className="h-2 w-2 rounded-full bg-[#1B7A3E] animate-pulse" />
+            Base de Données Cameroun
+          </span>
+          <h1 className="mt-5 font-heading text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+            Base de Données <span className="text-[#1B7A3E]">Entreprises Cameroun</span>
+          </h1>
+          <p className="mt-4 text-base leading-relaxed text-muted-foreground">
+            L&apos;annuaire B2B le plus complet du Cameroun.{' '}
+            <strong className="text-foreground">50 000+ sociétés vérifiées</strong> à Douala, Yaoundé et dans
+            toute la CEMAC. Filtrez par ville et secteur, accédez aux contacts des
+            dirigeants et exportez vos listes de prospection.
+          </p>
 
-        {/* Statistiques clés — signal de confiance pour Google */}
-        <div className="hero-stats">
-          {STATS.map((stat) => (
-            <div key={stat.label} className="hero-stat">
-              <div className="hero-stat-value">{stat.value}</div>
-              <div className="hero-stat-label">{stat.label}</div>
-            </div>
-          ))}
+          <dl className="mt-10 grid grid-cols-2 gap-4 border-t border-border pt-6 sm:grid-cols-4">
+            {STATS.map((stat) => (
+              <div key={stat.label} className="p-3">
+                <dt className="font-heading text-2xl font-bold text-[#1B7A3E]">{stat.value}</dt>
+                <dd className="mt-1 text-xs text-muted-foreground">{stat.label}</dd>
+              </div>
+            ))}
+          </dl>
         </div>
       </section>
 
       {/* Main Content */}
-      <main className="container" style={{ paddingBottom: '80px' }}>
-
+      <main className="mx-auto max-w-6xl px-5 py-12 pb-20 space-y-16">
         {/* Régions Grid */}
-        <div style={{ marginBottom: '60px' }}>
-          <h2 className="annuaire-section-title">📍 Parcourir par Région / Ville</h2>
-          <div className="annuaire-grid-cities">
+        <section>
+          <h2 className="font-heading text-2xl font-bold tracking-tight text-foreground mb-6 flex items-center gap-2">
+            📍 Parcourir par Région / Ville
+          </h2>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {regions.map((region) => (
               <Link
                 key={region.slug}
                 href={`/annuaire/${region.slug}`}
-                className="annuaire-card annuaire-card-city"
+                className="group flex items-center justify-between rounded-xl border border-border bg-card p-5 shadow-sm transition-all hover:border-[#1B7A3E]/40 hover:shadow-md"
               >
-                <span className="annuaire-card-title">{region.name}</span>
-                <span className="annuaire-card-count">{region.count} entreprises</span>
+                <span className="font-heading text-base font-semibold text-foreground group-hover:text-[#1B7A3E] transition-colors">
+                  {region.name}
+                </span>
+                <span className="rounded-full bg-secondary px-3 py-1 text-xs font-medium text-muted-foreground">
+                  {region.count} entreprises
+                </span>
               </Link>
             ))}
           </div>
-        </div>
+        </section>
 
         {/* Secteurs Grid */}
-        <div style={{ marginBottom: '80px' }}>
-          <h2 className="annuaire-section-title">🏢 Parcourir par Secteur d'Activité</h2>
-          <div className="annuaire-grid-sectors">
+        <section>
+          <h2 className="font-heading text-2xl font-bold tracking-tight text-foreground mb-6 flex items-center gap-2">
+            🏢 Parcourir par Secteur d&apos;Activité
+          </h2>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {secteurs.map((secteur) => (
               <Link
                 key={secteur.slug}
                 href={`/annuaire/${secteur.slug}`}
-                className="annuaire-card annuaire-card-sector"
+                className="group flex items-center gap-4 rounded-xl border border-border bg-card p-5 shadow-sm transition-all hover:border-[#1B7A3E]/40 hover:shadow-md"
               >
-                <span className="annuaire-card-icon">{secteur.icon}</span>
-                <span className="annuaire-card-title">{secteur.name}</span>
+                <span className="text-3xl">{secteur.icon}</span>
+                <span className="font-heading text-sm font-semibold text-foreground group-hover:text-[#1B7A3E] transition-colors">
+                  {secteur.name}
+                </span>
               </Link>
             ))}
           </div>
-        </div>
+        </section>
 
-        {/* Bloc SEO textuel — contenu dense pour l'indexation */}
-        <div className="seo-block">
-          <h2>La base de données d'entreprises camerounaises de référence</h2>
+        {/* Bloc SEO textuel */}
+        <section className="rounded-2xl border border-border bg-secondary/30 p-8 sm:p-10 space-y-4 text-sm leading-relaxed text-muted-foreground">
+          <h2 className="font-heading text-2xl font-bold text-foreground">
+            La base de données d&apos;entreprises camerounaises de référence
+          </h2>
           <p>
             Trouver une{' '}
-            <strong>base de données d'entreprises au Cameroun</strong> fiable et
+            <strong className="text-foreground">base de données d&apos;entreprises au Cameroun</strong> fiable et
             à jour est le premier défi de tout commercial ou directeur des ventes.
             Sales Companion 2.0 a été conçu pour y répondre : notre annuaire B2B
             centralise plus de{' '}
-            <strong style={{ color: 'var(--gm)' }}>50 000 entreprises camerounaises</strong>{' '}
+            <strong className="text-[#1B7A3E]">50 000 entreprises camerounaises</strong>{' '}
             vérifiées à partir des sources officielles (RCCM, Direction Générale
             des Impôts).
           </p>
           <p>
             Contrairement aux fichiers Excel vendus sous le manteau ou aux
             annuaires PDF obsolètes, notre base de données est{' '}
-            <strong>mise à jour en continu</strong>. Chaque fiche entreprise inclut
-            le numéro RCCM, le NIU (Numéro d'Identifiant Unique), le secteur
-            d'activité, la localisation et — pour les abonnés — les contacts
+            <strong className="text-foreground">mise à jour en continu</strong>. Chaque fiche entreprise inclut
+            le numéro RCCM, le NIU (Numéro d&apos;Identifiant Unique), le secteur
+            d&apos;activité, la localisation et — pour les abonnés — les contacts
             directs des dirigeants.
           </p>
           <p>
             Que vous cherchiez une{' '}
-            <strong>liste d'entreprises à Douala</strong>, un annuaire des
-            sociétés de Yaoundé, ou une vue complète d'un secteur précis comme le
+            <strong className="text-foreground">liste d&apos;entreprises à Douala</strong>, un annuaire des
+            sociétés de Yaoundé, ou une vue complète d&apos;un secteur précis comme le
             BTP, la finance ou la logistique, cet annuaire est votre point de
             départ pour une prospection B2B efficace au Cameroun.
           </p>
-        </div>
+        </section>
 
-        {/* FAQ Section — visible pour les utilisateurs ET pour Google */}
-        <div style={{ marginBottom: '60px' }}>
-          <h2 className="annuaire-section-title">❓ Questions fréquentes sur notre base de données</h2>
-          <div className="faq-list">
+        {/* FAQ Section */}
+        <section>
+          <h2 className="font-heading text-2xl font-bold tracking-tight text-foreground mb-6">
+            ❓ Questions fréquentes sur notre base de données
+          </h2>
+          <div className="space-y-4">
             {FAQ_ITEMS.map((item, i) => (
-              <div key={i} className="faq-item">
-                <h3 className="faq-question">{item.question}</h3>
-                <p className="faq-answer">{item.answer}</p>
-              </div>
+              <details
+                key={i}
+                className="group rounded-xl border border-border bg-card p-5 [&_summary::-webkit-details-marker]:hidden"
+                open={i === 0}
+              >
+                <summary className="flex cursor-pointer items-center justify-between font-heading text-base font-semibold text-foreground">
+                  {item.question}
+                  <span className="ml-2 transition-transform group-open:rotate-180 text-muted-foreground">
+                    ↓
+                  </span>
+                </summary>
+                <p className="mt-3 text-sm leading-relaxed text-muted-foreground border-t border-border pt-3">
+                  {item.answer}
+                </p>
+              </details>
             ))}
           </div>
-        </div>
+        </section>
 
         {/* CTA Section */}
-        <div className="cta-section">
-          <div className="cta-glow" aria-hidden="true"></div>
-          <h3 className="cta-title">Accédez à la base de données complète</h3>
-          <p className="cta-sub">
+        <div className="overflow-hidden rounded-3xl bg-gradient-to-br from-[#135A2E] via-[#1B7A3E] to-[#0D3B1E] px-8 py-14 text-center shadow-xl">
+          <h3 className="font-heading text-2xl font-bold tracking-tight text-white sm:text-3xl">
+            Accédez à la base de données complète
+          </h3>
+          <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-emerald-100">
             Inscrivez-vous gratuitement pour accéder aux contacts des dirigeants,
             exporter vos listes de prospection B2B et gérer votre pipeline
             directement dans le CRM intégré.
           </p>
-          <Link href="/register" className="btn btn-primary btn-xl">
-            Créer mon compte gratuit
+          <Link
+            href="/register"
+            className="mt-8 inline-flex items-center rounded-xl bg-white px-6 py-3 text-sm font-semibold text-[#1B7A3E] shadow-md transition-all hover:bg-emerald-50 hover:shadow-lg hover:scale-[1.02]"
+          >
+            Créer mon compte gratuit →
           </Link>
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="footer">
-        <div className="footer-inner">
-          <div className="footer-bottom">
-            <p>
-              &copy; {new Date().getFullYear()} Sales Companion 2.0 · Base de
-              données entreprises Cameroun · Annuaire B2B
-            </p>
-            <nav aria-label="Liens internes">
-              <ul
-                role="list"
-                style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', listStyle: 'none' }}
-              >
-                <li>
-                  <Link href="/" className="footer-link">
-                    Accueil
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/blog" className="footer-link">
-                    Blog B2B
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/blog/base-de-donnees-entreprises-cameroun-2026"
-                    className="footer-link"
-                  >
-                    Guide base de données
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/register" className="footer-link">
-                    Essai gratuit
-                  </Link>
-                </li>
-              </ul>
-            </nav>
-          </div>
-        </div>
-      </footer>
+      <PublicFooter />
     </div>
   )
 }

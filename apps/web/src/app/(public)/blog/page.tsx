@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { Metadata } from 'next'
-import { ScIcon } from '@/components/ui/ScIcon'
-import '@/features/landing/styles/landing.css'
+import { PublicNav } from '@/components/landing/PublicNav'
+import { PublicFooter } from '@/components/landing/PublicFooter'
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://salescompanion2-0.com'
 
@@ -36,7 +36,7 @@ const ARTICLES = [
     slug: 'trouver-clients-b2b-cameroun-2026',
     title: 'Comment trouver des clients B2B au Cameroun en 2026 : guide complet',
     excerpt:
-      "Secteurs porteurs, méthodes terrain, réseaux et outils digitaux : le guide définitif pour identifier, contacter et convertir des prospects B2B à Douala, Yaoundé et dans tout le Cameroun. Avec les 5 erreurs à éviter et un pipeline en 7 étapes.",
+      "Secteurs porteurs, méthodes terrain, réseaux et outils digitaux : le guide définitif pour identifier, contacter et convertir des prospects B2B à Douala, Yaoundé et dans tout le Cameroun.",
     category: 'Prospection',
     date: '14 juin 2026',
     readTime: '12 min',
@@ -47,7 +47,7 @@ const ARTICLES = [
     slug: 'annuaire-entreprises-btp-douala',
     title: 'Annuaire des entreprises BTP à Douala : le guide complet 2026',
     excerpt:
-      'Le secteur du Bâtiment et Travaux Publics à Douala compte plus de 4 200 entreprises actives. Ce guide vous donne les clés pour identifier les bons interlocuteurs et décrocher des marchés.',
+      'Le secteur du Bâtiment et Travaux Publics à Douala compte plus de 4 200 entreprises actives. Ce guide vous donne les clés pour identifier les bons interlocuteurs.',
     category: 'Annuaire',
     date: '11 juin 2026',
     readTime: '6 min',
@@ -58,7 +58,7 @@ const ARTICLES = [
     slug: 'niu-rccm-identifier-entreprise-camerounaise',
     title: 'NIU et RCCM : comment identifier une entreprise camerounaise',
     excerpt:
-      "Comprendre le NIU (Numéro d'Identification Unique) et le RCCM (Registre du Commerce et du Crédit Mobilier) est essentiel pour tout commercial B2B. Ce guide vous explique comment les utiliser pour vérifier et qualifier vos prospects.",
+      "Comprendre le NIU et le RCCM est essentiel pour tout commercial B2B. Ce guide vous explique comment les utiliser pour vérifier et qualifier vos prospects.",
     category: 'Guide',
     date: '11 juin 2026',
     readTime: '5 min',
@@ -69,7 +69,7 @@ const ARTICLES = [
     slug: 'prospection-commerciale-cameroun-methodes-outils',
     title: 'Prospection commerciale terrain au Cameroun : méthodes et outils',
     excerpt:
-      "Le terrain reste le principal canal de vente au Cameroun. Comment combiner la prospection physique avec les outils numériques pour maximiser votre taux de conversion ? Découvrez les meilleures pratiques des équipes commerciales les plus performantes.",
+      "Le terrain reste le principal canal de vente au Cameroun. Comment combiner la prospection physique avec les outils numériques pour maximiser votre taux de conversion ?",
     category: 'Stratégie',
     date: '11 juin 2026',
     readTime: '7 min',
@@ -80,7 +80,7 @@ const ARTICLES = [
     slug: 'crm-commerciaux-cameroun-comparatif-2026',
     title: 'CRM pour commerciaux au Cameroun : comparatif 2026',
     excerpt:
-      'Salesforce, HubSpot, ou une solution locale adaptée au marché camerounais ? Ce comparatif honnête vous aide à choisir le bon outil CRM selon votre taille d\'équipe et votre budget.',
+      "Salesforce, HubSpot, ou une solution locale adaptée au marché camerounais ? Ce comparatif honnête vous aide à choisir le bon outil CRM selon votre taille d'équipe et votre budget.",
     category: 'Outils',
     date: '11 juin 2026',
     readTime: '9 min',
@@ -89,9 +89,9 @@ const ARTICLES = [
   },
   {
     slug: 'secteurs-actifs-douala-2026',
-    title: 'Les 10 secteurs d\'activité les plus actifs à Douala en 2026',
+    title: "Les 10 secteurs d'activité les plus actifs à Douala en 2026",
     excerpt:
-      'Douala concentre 60% du tissu économique camerounais. Quels secteurs affichent la plus forte croissance ? Commerce, BTP, Tech, Finance, Agroalimentaire : une analyse des opportunités pour les commerciaux B2B.',
+      "Douala concentre 60% du tissu économique camerounais. Quels secteurs affichent la plus forte croissance ? Commerce, BTP, Tech, Finance, Agroalimentaire.",
     category: 'Marché',
     date: '11 juin 2026',
     readTime: '6 min',
@@ -102,7 +102,7 @@ const ARTICLES = [
     slug: 'top-10-secteurs-prospecter-douala-2026',
     title: 'Top 10 secteurs à prospecter à Douala en 2026',
     excerpt:
-      'Pour chacun des 10 secteurs clés de Douala : pourquoi il est prioritaire, les opportunités B2B concrètes, les acteurs clés à cibler (SABC, Bolloré, Afriland, DHL…) et la stratégie d’approche recommandée sur le terrain.',
+      "Pour chacun des 10 secteurs clés de Douala : pourquoi il est prioritaire, les opportunités B2B concrètes, les acteurs clés à cibler et la stratégie d'approche.",
     category: 'Marché',
     date: '14 juin 2026',
     readTime: '10 min',
@@ -113,7 +113,7 @@ const ARTICLES = [
     slug: 'annuaire-entreprises-douala-par-quartier',
     title: 'Annuaire entreprises Douala par quartier : Bonanjo, Akwa, Bali et plus',
     excerpt:
-      'Guide complet des entreprises de Douala organisé par quartier. Trouvez les sociétés, secteurs d\'activité et zones d\'affaires de Bonanjo, Akwa, Bali, Bonapriso, Bassa et Bonabéri.',
+      "Guide complet des entreprises de Douala organisé par quartier. Trouvez les sociétés, secteurs d'activité et zones d'affaires de Bonanjo, Akwa, Bali, Bonapriso, Bassa et Bonabéri.",
     category: 'Annuaire',
     date: '14 juin 2026',
     readTime: '9 min',
@@ -124,7 +124,7 @@ const ARTICLES = [
     slug: 'prospection-terrain-vs-digital-cameroun',
     title: 'Prospection terrain vs digital au Cameroun : ce qui marche vraiment en 2026',
     excerpt:
-      'Comparatif complet entre prospection terrain et prospection digitale pour les commerciaux B2B au Cameroun. Avantages, limites et stratégie hybride gagnante pour Douala et Yaoundé.',
+      "Comparatif complet entre prospection terrain et prospection digitale pour les commerciaux B2B au Cameroun. Stratégie hybride gagnante pour Douala et Yaoundé.",
     category: 'Stratégie',
     date: '15 juin 2026',
     readTime: '8 min',
@@ -135,7 +135,7 @@ const ARTICLES = [
     slug: 'liste-entreprises-cameroun-secteur-btp',
     title: 'Liste des entreprises du BTP au Cameroun en 2026 : acteurs, opportunités et contacts',
     excerpt:
-      'Liste complète des entreprises du BTP au Cameroun en 2026 : groupes internationaux, PME locales, promoteurs immobiliers et sous-traitants à Douala et Yaoundé. Guide de prospection B2B pour le secteur de la construction.',
+      "Liste complète des entreprises du BTP au Cameroun en 2026 : groupes internationaux, PME locales, promoteurs immobiliers et sous-traitants à Douala et Yaoundé.",
     category: 'Annuaire',
     date: '15 juin 2026',
     readTime: '10 min',
@@ -144,21 +144,28 @@ const ARTICLES = [
   }
 ]
 
-const CATEGORY_COLORS: Record<string, string> = {
-  Prospection: 'rgba(46, 160, 90, 0.15)',
-  Annuaire: 'rgba(29, 78, 216, 0.15)',
-  Guide: 'rgba(245, 166, 35, 0.15)',
-  Stratégie: 'rgba(147, 51, 234, 0.15)',
-  Outils: 'rgba(0, 137, 123, 0.15)',
-  Marché: 'rgba(239, 68, 68, 0.15)'
+const CATEGORY_STYLES: Record<string, { bg: string; text: string; border: string }> = {
+  Prospection: { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
+  Annuaire:    { bg: 'bg-blue-50',    text: 'text-blue-700',    border: 'border-blue-200'    },
+  Guide:       { bg: 'bg-amber-50',   text: 'text-amber-700',   border: 'border-amber-200'   },
+  Stratégie:   { bg: 'bg-purple-50',  text: 'text-purple-700',  border: 'border-purple-200'  },
+  Outils:      { bg: 'bg-teal-50',    text: 'text-teal-700',    border: 'border-teal-200'    },
+  Marché:      { bg: 'bg-red-50',     text: 'text-red-700',     border: 'border-red-200'     }
 }
-const CATEGORY_TEXT: Record<string, string> = {
-  Prospection: '#4ade80',
-  Annuaire: '#60a5fa',
-  Guide: '#f5a623',
-  Stratégie: '#c084fc',
-  Outils: '#2dd4bf',
-  Marché: '#f87171'
+
+function CategoryBadge({ category }: { category: string }) {
+  const s = CATEGORY_STYLES[category] ?? {
+    bg: 'bg-secondary',
+    text: 'text-muted-foreground',
+    border: 'border-border'
+  }
+  return (
+    <span
+      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${s.bg} ${s.text} ${s.border}`}
+    >
+      {category}
+    </span>
+  )
 }
 
 export default function BlogPage() {
@@ -166,215 +173,80 @@ export default function BlogPage() {
   const rest = ARTICLES.filter((a) => !a.featured)
 
   return (
-    <div className="landing-root">
-      {/* Navbar */}
-      <nav className="nav">
-        <div className="nav-inner">
-          <Link href="/" className="nav-brand">
-            <ScIcon size={32} className="sc-icon" />
-            <span className="nav-brand-text">
-              Sales <em>Companion 2.0</em>
-            </span>
-          </Link>
-          <div className="nav-desktop">
-            <ul className="nav-links" role="list">
-              <li><Link href="/">Accueil</Link></li>
-              <li><Link href="/annuaire">Annuaire B2B</Link></li>
-              <li><Link href="/blog" aria-current="page" style={{ color: 'var(--gm)' }}>Blog</Link></li>
-            </ul>
-            <div className="nav-cta">
-              <Link href="/login" className="btn btn-ghost btn-sm">Connexion</Link>
-              <Link href="/register" className="btn btn-primary btn-sm">Essai Gratuit</Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+    <div className="min-h-dvh bg-background text-foreground">
+      <PublicNav activePage="blog" />
 
-      {/* Header */}
-      <section
-        style={{
-          padding: '80px 24px 60px',
-          textAlign: 'center',
-          position: 'relative',
-          overflow: 'hidden'
-        }}
-      >
-        <div className="hero-glow-tl" aria-hidden="true" />
-        <span
-          className="hero-badge"
-          style={{ marginBottom: '24px', display: 'inline-flex' }}
-        >
-          <span className="hero-badge-dot" />
-          Ressources & Conseils B2B
-        </span>
-        <h1
-          className="hero-title"
-          style={{ fontSize: 'clamp(36px, 5vw, 60px)', marginBottom: '20px' }}
-        >
-          Le Blog <em>Sales Companion</em>
-        </h1>
-        <p
-          className="hero-sub"
-          style={{ maxWidth: '600px', margin: '0 auto', fontSize: '1rem' }}
-        >
-          Stratégies, guides et outils pour les commerciaux et managers qui veulent
-          développer leur activité B2B au Cameroun.
-        </p>
+      {/* Hero */}
+      <section className="relative overflow-hidden border-b border-border bg-white py-16 text-center">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(60%_50%_at_50%_0%,color-mix(in_oklch,#1B7A3E_8%,transparent),transparent)]"
+        />
+        <div className="mx-auto max-w-3xl px-5">
+          <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-1 text-xs font-medium text-muted-foreground shadow-sm">
+            <span className="h-2 w-2 rounded-full bg-[#1B7A3E] animate-pulse" />
+            Ressources &amp; Conseils B2B
+          </span>
+          <h1 className="mt-5 font-heading text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+            Le Blog <span className="text-[#1B7A3E]">Sales Companion</span>
+          </h1>
+          <p className="mt-4 text-base leading-relaxed text-muted-foreground">
+            Stratégies, guides et outils pour les commerciaux et managers qui veulent développer
+            leur activité B2B au Cameroun.
+          </p>
+        </div>
       </section>
 
       {/* Main Content */}
-      <main
-        style={{
-          maxWidth: '1100px',
-          margin: '0 auto',
-          padding: '0 24px 100px'
-        }}
-      >
-        {/* Featured Article */}
+      <main className="mx-auto max-w-6xl px-5 py-12 pb-20">
+        {/* Article à la une */}
         {featured && (
-          <Link
-            href={`/blog/${featured.slug}`}
-            style={{ display: 'block', marginBottom: '48px', textDecoration: 'none' }}
-          >
-            <article
-              style={{
-                background:
-                  'linear-gradient(135deg, var(--dark2) 0%, var(--dark3) 100%)',
-                border: '1px solid rgba(46, 160, 90, 0.25)',
-                borderRadius: '20px',
-                padding: '48px',
-                position: 'relative',
-                overflow: 'hidden',
-                transition: 'border-color 300ms, box-shadow 300ms',
-                cursor: 'pointer'
-              }}
-            >
+          <Link href={`/blog/${featured.slug}`} className="group mb-10 block">
+            <article className="relative overflow-hidden rounded-2xl border border-border bg-card p-8 shadow-sm transition-all hover:border-[#1B7A3E]/40 hover:shadow-md md:p-10">
+              {/* Glow subtil */}
               <div
-                style={{
-                  position: 'absolute',
-                  top: '-80px',
-                  right: '-80px',
-                  width: '300px',
-                  height: '300px',
-                  background:
-                    'radial-gradient(circle, rgba(27,122,62,0.12) 0%, transparent 70%)',
-                  pointerEvents: 'none'
-                }}
+                aria-hidden
+                className="pointer-events-none absolute -right-20 -top-20 h-60 w-60 rounded-full bg-[radial-gradient(circle,color-mix(in_oklch,#1B7A3E_10%,transparent),transparent_70%)]"
               />
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
-                <span
-                  style={{
-                    background: 'rgba(46, 160, 90, 0.15)',
-                    color: '#4ade80',
-                    border: '1px solid rgba(46,160,90,0.3)',
-                    padding: '3px 10px',
-                    borderRadius: '999px',
-                    fontSize: '11px',
-                    fontWeight: '600'
-                  }}
-                >
+              <div className="relative flex flex-wrap items-center gap-3 mb-5">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700">
                   ⭐ Article à la une
                 </span>
-                <span style={{ fontSize: '11px', color: 'var(--tx3)' }}>
+                <span className="text-xs text-muted-foreground">
                   {featured.date} · {featured.readTime} de lecture
                 </span>
               </div>
-              <div style={{ fontSize: '3rem', marginBottom: '16px' }}>{featured.emoji}</div>
-              <h2
-                style={{
-                  fontFamily: "'Syne', sans-serif",
-                  fontSize: 'clamp(22px, 3vw, 32px)',
-                  fontWeight: '800',
-                  color: 'var(--tx)',
-                  marginBottom: '16px',
-                  letterSpacing: '-0.02em',
-                  lineHeight: '1.2'
-                }}
-              >
+              <div className="text-4xl mb-4">{featured.emoji}</div>
+              <h2 className="font-heading text-2xl font-semibold tracking-tight text-foreground text-balance mb-4 group-hover:text-[#1B7A3E] transition-colors sm:text-3xl">
                 {featured.title}
               </h2>
-              <p style={{ color: 'var(--tx2)', lineHeight: '1.7', maxWidth: '700px', marginBottom: '24px' }}>
+              <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground mb-6">
                 {featured.excerpt}
               </p>
-              <span
-                className="btn btn-primary btn-md"
-                style={{ display: 'inline-flex' }}
-              >
+              <span className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-all group-hover:bg-primary/90">
                 Lire l'article →
               </span>
             </article>
           </Link>
         )}
 
-        {/* Articles Grid */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(310px, 1fr))',
-            gap: '20px'
-          }}
-        >
+        {/* Grille articles */}
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {rest.map((article) => (
-            <Link
-              key={article.slug}
-              href={`/blog/${article.slug}`}
-              style={{ textDecoration: 'none' }}
-            >
-              <article
-                style={{
-                  background: 'var(--dark2)',
-                  border: '1px solid var(--bd)',
-                  borderRadius: '16px',
-                  padding: '28px',
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '14px',
-                  transition: 'border-color 300ms, transform 300ms',
-                  cursor: 'pointer'
-                }}
-              >
-                <div style={{ fontSize: '2rem' }}>{article.emoji}</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                  <span
-                    style={{
-                      background: CATEGORY_COLORS[article.category] ?? 'rgba(255,255,255,0.05)',
-                      color: CATEGORY_TEXT[article.category] ?? 'var(--tx2)',
-                      padding: '2px 9px',
-                      borderRadius: '999px',
-                      fontSize: '11px',
-                      fontWeight: '600'
-                    }}
-                  >
-                    {article.category}
-                  </span>
-                  <span style={{ fontSize: '11px', color: 'var(--tx3)' }}>
-                    {article.readTime}
-                  </span>
+            <Link key={article.slug} href={`/blog/${article.slug}`} className="group block">
+              <article className="flex h-full flex-col rounded-xl border border-border bg-card p-6 shadow-sm transition-all hover:border-[#1B7A3E]/40 hover:shadow-md">
+                <div className="text-3xl mb-3">{article.emoji}</div>
+                <div className="mb-3 flex flex-wrap items-center gap-2">
+                  <CategoryBadge category={article.category} />
+                  <span className="text-[11px] text-muted-foreground">{article.readTime}</span>
                 </div>
-                <h2
-                  style={{
-                    fontFamily: "'Syne', sans-serif",
-                    fontSize: '16px',
-                    fontWeight: '700',
-                    color: 'var(--tx)',
-                    lineHeight: '1.35',
-                    letterSpacing: '-0.01em'
-                  }}
-                >
+                <h2 className="font-heading text-[15px] font-semibold leading-snug tracking-tight text-foreground mb-3 group-hover:text-[#1B7A3E] transition-colors flex-1">
                   {article.title}
                 </h2>
-                <p
-                  style={{
-                    fontSize: '13px',
-                    color: 'var(--tx2)',
-                    lineHeight: '1.65',
-                    flex: 1
-                  }}
-                >
+                <p className="text-xs leading-relaxed text-muted-foreground mb-4 line-clamp-3">
                   {article.excerpt}
                 </p>
-                <span style={{ color: 'var(--gm)', fontSize: '13px', fontWeight: '600' }}>
+                <span className="text-xs font-semibold text-[#1B7A3E] group-hover:underline">
                   Lire l'article →
                 </span>
               </article>
@@ -383,53 +255,29 @@ export default function BlogPage() {
         </div>
 
         {/* CTA Section */}
-        <div
-          style={{
-            marginTop: '80px',
-            padding: '48px 32px',
-            borderRadius: '20px',
-            background: 'linear-gradient(135deg, var(--dark3), var(--bg))',
-            border: '1px solid rgba(27, 122, 62, 0.3)',
-            textAlign: 'center'
-          }}
-        >
-          <h3
-            style={{
-              fontFamily: "'Syne', sans-serif",
-              fontSize: '1.8rem',
-              marginBottom: '16px',
-              letterSpacing: '-0.02em'
-            }}
-          >
+        <div className="mt-16 overflow-hidden rounded-3xl bg-gradient-to-br from-[#135A2E] via-[#1B7A3E] to-[#0D3B1E] px-8 py-14 text-center shadow-xl">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.12),transparent_60%)]"
+          />
+          <h3 className="relative font-heading text-2xl font-bold tracking-tight text-white sm:text-3xl">
             Passez à l'action
           </h3>
-          <p
-            style={{
-              color: 'var(--tx2)',
-              maxWidth: '500px',
-              margin: '0 auto 32px',
-              lineHeight: '1.65'
-            }}
-          >
+          <p className="relative mx-auto mt-4 max-w-lg text-sm leading-relaxed text-emerald-100">
             Accédez à la base de données de plus de{' '}
-            <strong style={{ color: 'var(--tx)' }}>50 000 entreprises camerounaises</strong>{' '}
+            <strong className="text-white">50 000 entreprises camerounaises</strong>{' '}
             avec contacts des dirigeants, numéros RCCM et NIU.
           </p>
-          <Link href="/register" className="btn btn-primary btn-xl">
-            Créer un compte gratuit
+          <Link
+            href="/register"
+            className="relative mt-8 inline-flex items-center rounded-xl bg-white px-6 py-3 text-sm font-semibold text-[#1B7A3E] shadow-md transition-all hover:bg-emerald-50 hover:shadow-lg hover:scale-[1.02]"
+          >
+            Créer un compte gratuit →
           </Link>
         </div>
       </main>
 
-      {/* Footer */}
-      <footer
-        className="footer"
-        style={{ borderTop: '1px solid var(--bd)', padding: '40px 24px', textAlign: 'center' }}
-      >
-        <p style={{ color: 'var(--tx3)', fontSize: '0.9rem' }}>
-          &copy; {new Date().getFullYear()} Sales Companion 2.0 · Blog B2B Cameroun
-        </p>
-      </footer>
+      <PublicFooter />
     </div>
   )
 }
