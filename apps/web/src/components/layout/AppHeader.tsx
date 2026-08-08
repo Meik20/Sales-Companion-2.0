@@ -92,10 +92,10 @@ export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void 
           <div className="relative">
             <button
               onClick={() => setIsProfileOpen(!isProfileOpen)}
-              className="flex items-center gap-2.5 rounded-xl border border-border/50 bg-secondary/30 py-1.5 pl-1.5 pr-2.5 text-foreground transition-all hover:bg-secondary/70"
+              className="flex items-center gap-2.5 rounded-xl border-2 border-border/80 dark:border-white/20 bg-secondary/50 py-1.5 pl-1.5 pr-2.5 text-foreground transition-all hover:bg-secondary/90 hover:border-primary/60 shadow-xs"
             >
               {/* Avatar */}
-              <div className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full bg-primary/10 text-[13px] font-bold text-primary">
+              <div className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-full border-2 border-primary/50 bg-primary/20 text-[13px] font-bold text-primary shadow-xs ring-2 ring-primary/10">
                 {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || '?'}
               </div>
 
