@@ -417,7 +417,7 @@ export default function AdminImportsPage() {
                   cursor: 'pointer'
                 }}
               >
-                {t('admin.refresh')}
+                {t('admin.importRefresh')}
               </button>
             </div>
           </div>
@@ -447,9 +447,9 @@ export default function AdminImportsPage() {
                       {[
                         t('admin.filename'),
                         t('admin.count'),
-                        t('admin.resultsCount'),
-                        t('admin.status'),
-                        t('admin.date')
+                        t('admin.importResultsCount'),
+                        t('admin.importStatus'),
+                        t('admin.importFileDate')
                       ].map((h) => (
                         <th
                           key={h}
