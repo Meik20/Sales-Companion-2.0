@@ -68,8 +68,8 @@ export default function TeamPage() {
     return (
       <AppShell>
         <PageHeader
-          title="📁 Fichier Clients"
-          subtitle="Importez votre base de données clients. Les données apparaîtront directement dans Mes Clients CRM."
+          title={t('team.supportTitle')}
+          subtitle={t('team.supportSubtitle')}
         />
 
         {/* Bloc import */}
@@ -83,12 +83,11 @@ export default function TeamPage() {
         >
           <div style={{ marginBottom: 20 }}>
             <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--foreground, #f1f5f9)', margin: '0 0 6px' }}>
-              📥 Importer une base de données clients
+              {t('team.supportImportTitle')}
             </h2>
             <p style={{ fontSize: 13, color: 'var(--muted-foreground, #94a3b8)', margin: 0, lineHeight: 1.6 }}>
-              Glissez un fichier CSV, Excel ou texte. Les clients importés seront immédiatement
-              visibles dans{' '}
-              <strong style={{ color: 'var(--foreground, #f1f5f9)' }}>Mes Clients CRM</strong>.
+              {t('team.supportImportSubtitlePrefix')}{' '}
+              <strong style={{ color: 'var(--foreground, #f1f5f9)' }}>{t('sidebar.crmClients')}</strong>.
             </p>
           </div>
 
@@ -99,7 +98,7 @@ export default function TeamPage() {
             />
           ) : (
             <div style={{ textAlign: 'center', padding: 32, color: 'var(--muted-foreground, #94a3b8)', fontSize: 13 }}>
-              ⚠️ Compte non configuré. Contactez l&apos;administrateur.
+              {t('team.accountNotConfigured')}
             </div>
           )}
         </div>
@@ -116,10 +115,11 @@ export default function TeamPage() {
             }}
           >
             <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--foreground, #f1f5f9)', margin: '0 0 4px' }}>
-              📋 Clients importés
+              {t('team.supportImportedTitle')}
             </h2>
             <p style={{ fontSize: 12.5, color: 'var(--muted-foreground, #94a3b8)', margin: '0 0 16px' }}>
-              Aperçu de votre fichier importé. Ces entrées sont visibles dans Mes Clients CRM.
+              {t('team.supportImportedSubtitlePrefix')}{' '}
+              <strong style={{ color: 'var(--foreground, #f1f5f9)' }}>{t('sidebar.crmClients')}</strong>.
             </p>
             <ManagerProspectsList
               managerId={importManagerId}

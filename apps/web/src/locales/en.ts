@@ -747,7 +747,15 @@ export const en = {
     prospectAssignedSub: 'Assigned prospect',
     deactivate: 'Deactivate',
     activate: 'Activate',
-    remove: 'Remove'
+    remove: 'Remove',
+    supportTitle: '📁 Client Database',
+    supportSubtitle: 'Import your client database. The data will appear directly in My CRM Clients.',
+    supportImportTitle: '📥 Import a client database',
+    supportImportSubtitlePrefix: 'Drag a CSV, Excel or text file. Imported clients will be immediately visible in',
+    supportImportedTitle: '📋 Imported clients',
+    supportImportedSubtitlePrefix: 'Preview of your imported file. These entries are visible in',
+    accountNotConfigured: '⚠️ Account not configured. Please contact the administrator.',
+    exampleColumns: 'Name ; Phone | Email , City'
   },
   support: {
     title: 'Support',

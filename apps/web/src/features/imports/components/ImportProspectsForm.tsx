@@ -387,7 +387,7 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
         <strong>{t('team.autoSeparators')}</strong> {t('team.separatorsList')}
         <br />
         <code style={{ fontSize: 11, background: 'var(--secondary, #1e2a3b)', padding: '1px 4px', borderRadius: 3 }}>
-          Nom ; Téléphone | Email , Ville
+          {t('team.exampleColumns')}
         </code>
         <br />
         ℹ️ {t('team.flexibleColumns')}
