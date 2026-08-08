@@ -219,7 +219,7 @@ export default async function AnnuaireSlugPage({ params }: Props) {
       />
 
       {/* Hero Header */}
-      <section className="relative overflow-hidden border-b border-border bg-white py-16 text-center">
+      <section className="relative overflow-hidden border-b border-border bg-card/30 py-16 text-center">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(60%_50%_at_50%_0%,color-mix(in_oklch,#1B7A3E_8%,transparent),transparent)]"

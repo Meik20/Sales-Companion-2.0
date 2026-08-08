@@ -24,7 +24,7 @@ export function PublicNav({ activePage, backLink }: PublicNavProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border/70 bg-white/90 backdrop-blur-md transition-all">
+    <header className="sticky top-0 z-50 border-b border-border/70 bg-background/85 backdrop-blur-md transition-all">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5">
         {/* Brand */}
         <Link
@@ -53,7 +53,7 @@ export function PublicNav({ activePage, backLink }: PublicNavProps) {
                 href={link.href}
                 className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                   isActive
-                    ? 'bg-[#1B7A3E]/8 text-[#1B7A3E]'
+                    ? 'bg-[#1B7A3E]/10 text-[#1B7A3E] font-semibold'
                     : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
                 }`}
                 aria-current={isActive ? 'page' : undefined}
@@ -70,7 +70,7 @@ export function PublicNav({ activePage, backLink }: PublicNavProps) {
           {backLink && (
             <Link
               href={backLink.href}
-              className="hidden text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:inline-flex items-center gap-1"
+              className="hidden text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:inline-flex items-center gap-1 mr-1"
             >
               ← {backLink.label}
             </Link>
@@ -109,7 +109,7 @@ export function PublicNav({ activePage, backLink }: PublicNavProps) {
 
       {/* Menu mobile */}
       {mobileOpen && (
-        <div className="border-t border-border bg-white px-5 pb-4 md:hidden">
+        <div className="border-t border-border bg-background px-5 pb-4 md:hidden">
           <nav className="mt-3 flex flex-col gap-1" aria-label="Navigation mobile">
             {navLinks.map((link) => {
               const isActive = 'id' in link && link.id === activePage
@@ -120,7 +120,7 @@ export function PublicNav({ activePage, backLink }: PublicNavProps) {
                   onClick={() => setMobileOpen(false)}
                   className={`rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                     isActive
-                      ? 'bg-[#1B7A3E]/8 text-[#1B7A3E]'
+                      ? 'bg-[#1B7A3E]/10 text-[#1B7A3E] font-semibold'
                       : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
                   }`}
                 >

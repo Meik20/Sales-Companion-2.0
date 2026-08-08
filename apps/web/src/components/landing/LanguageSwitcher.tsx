@@ -41,7 +41,7 @@ export function LanguageSwitcher() {
         onClick={() => switchLocale('fr')}
         className={`rounded-md px-2.5 py-1 transition-all ${
           locale === 'fr'
-            ? 'bg-white text-[#1B7A3E] shadow-sm'
+            ? 'bg-card text-[#1B7A3E] font-bold shadow-xs border border-border/80'
             : 'text-muted-foreground hover:text-foreground'
         }`}
         aria-pressed={locale === 'fr'}
@@ -53,7 +53,7 @@ export function LanguageSwitcher() {
         onClick={() => switchLocale('en')}
         className={`rounded-md px-2.5 py-1 transition-all ${
           locale === 'en'
-            ? 'bg-white text-[#1B7A3E] shadow-sm'
+            ? 'bg-card text-[#1B7A3E] font-bold shadow-xs border border-border/80'
             : 'text-muted-foreground hover:text-foreground'
         }`}
         aria-pressed={locale === 'en'}

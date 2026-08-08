@@ -1191,25 +1191,25 @@ export default async function BlogPostPage({
       />
 
       {/* Hero Article */}
-      <header className="border-b border-border bg-white py-12 text-center">
-        <div className="mx-auto max-w-2xl px-5">
+      <header className="border-b border-border bg-card/40 py-12 text-center">
+        <div className="mx-auto max-w-3xl px-5">
           <div className="text-5xl mb-5">{article.emoji}</div>
           <div className="mb-5 flex flex-wrap items-center justify-center gap-3">
-            <span className="inline-flex items-center rounded-full border border-border bg-secondary px-2.5 py-0.5 text-[11px] font-semibold text-muted-foreground">
+            <span className="inline-flex items-center rounded-full border border-border bg-secondary px-3 py-1 text-xs font-semibold text-muted-foreground">
               {article.category}
             </span>
             <span className="text-xs text-muted-foreground">
               Publié le {article.date} · {article.readTime} de lecture
             </span>
           </div>
-          <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground text-balance sm:text-4xl md:text-5xl">
+          <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground text-balance sm:text-4xl md:text-5xl leading-tight">
             {article.title}
           </h1>
         </div>
       </header>
 
       {/* Contenu Article */}
-      <main className="mx-auto max-w-2xl px-5 py-10 pb-20 prose prose-slate prose-headings:font-heading prose-headings:tracking-tight prose-a:text-[#1B7A3E] prose-strong:text-foreground">
+      <main className="mx-auto max-w-3xl px-5 py-10 pb-20 prose dark:prose-invert max-w-none text-foreground prose-headings:font-heading prose-headings:tracking-tight prose-headings:text-foreground prose-p:text-foreground/90 prose-p:leading-relaxed prose-strong:text-foreground prose-li:text-foreground/90 prose-a:text-[#1B7A3E] prose-a:font-semibold hover:prose-a:underline prose-blockquote:border-l-4 prose-blockquote:border-[#1B7A3E] prose-blockquote:bg-[#1B7A3E]/10 prose-blockquote:text-foreground prose-blockquote:py-3 prose-blockquote:px-5 prose-blockquote:rounded-r-xl prose-blockquote:not-italic [&_.blog-lead]:text-lg [&_.blog-lead]:font-medium [&_.blog-lead]:leading-relaxed [&_.blog-lead]:text-foreground [&_.blog-lead]:mb-8 [&_.blog-lead]:pb-4 [&_.blog-lead]:border-b [&_.blog-lead]:border-border/60 [&_.blog-cta]:my-12 [&_.blog-cta]:rounded-2xl [&_.blog-cta]:border [&_.blog-cta]:border-[#1B7A3E]/30 [&_.blog-cta]:bg-card [&_.blog-cta]:p-8 [&_.blog-cta]:text-center [&_.blog-cta]:shadow-sm [&_.blog-cta_h3]:font-heading [&_.blog-cta_h3]:text-xl [&_.blog-cta_h3]:font-bold [&_.blog-cta_h3]:text-foreground [&_.blog-cta_h3]:mb-3 [&_.blog-cta_p]:text-sm [&_.blog-cta_p]:text-muted-foreground [&_.blog-cta_p]:mb-6 [&_.blog-cta_.btn]:inline-flex [&_.blog-cta_.btn]:items-center [&_.blog-cta_.btn]:rounded-xl [&_.blog-cta_.btn]:bg-primary [&_.blog-cta_.btn]:px-6 [&_.blog-cta_.btn]:py-3 [&_.blog-cta_.btn]:text-sm [&_.blog-cta_.btn]:font-semibold [&_.blog-cta_.btn]:text-primary-foreground [&_.blog-cta_.btn]:shadow-sm hover:[&_.blog-cta_.btn]:bg-primary/90">
         {article.content}
       </main>
 
