@@ -96,70 +96,43 @@ export function CompaniesSearchResults({ items }: Props) {
         return (
           <div
             key={company.id}
-            style={{
-              padding: '16px',
-              background: colors.surface,
-              border: `1px solid ${colors.border}`,
-              borderRadius: 12,
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 12,
-              transition: 'all 200ms ease',
-              position: 'relative'
-            }}
-            onMouseEnter={(e) => {
-              ;(e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(46,160,90,0.4)'
-              ;(e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)'
-            }}
-            onMouseLeave={(e) => {
-              ;(e.currentTarget as HTMLDivElement).style.borderColor = colors.border
-              ;(e.currentTarget as HTMLDivElement).style.boxShadow = 'none'
-            }}
+            className="group relative flex flex-col gap-3.5 p-4 md:p-5 rounded-xl border border-border/80 bg-card/90 backdrop-blur-md shadow-2xs hover:shadow-md hover:border-primary/40 transition-all duration-200"
           >
-            {/* Header: Nom + Actions */}
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'flex-start',
-                gap: 12,
-                flexWrap: 'wrap'
-              }}
-            >
-              <div style={{ flex: 1, minWidth: 200 }}>
-                <strong
-                  style={{
-                    fontSize: 16,
-                    color: colors.text,
-                    fontWeight: 700,
-                    display: 'block',
-                    marginBottom: 4,
-                    lineHeight: 1.2
-                  }}
-                >
-                  {company.raisonSociale || '—'}
-                </strong>
+            {/* Header: Icon + Nom + Actions */}
+            <div className="flex items-start justify-between gap-3 flex-wrap">
+              <div className="flex items-start gap-3.5 flex-1 min-w-[220px]">
+                {/* Icône Bâtiment / Entreprise style Mockup Landing */}
+                <div className="h-10 w-10 shrink-0 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary group-hover:scale-105 transition-transform">
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h5m-5 0V11m0-4h.01M11 11h.01M11 15h.01M15 11h.01M15 15h.01" />
+                  </svg>
+                </div>
 
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
-                  {company.sigle && <Badge variant="default">{String(company.sigle)}</Badge>}
-                  {company.formeJuridique && (
-                    <span
-                      style={{
-                        fontSize: 10,
-                        color: colors.textDim,
-                        background: colors.bg3,
-                        padding: '1px 6px',
-                        borderRadius: 4
-                      }}
-                    >
-                      {String(company.formeJuridique)}
-                    </span>
-                  )}
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <strong className="text-base font-semibold text-foreground group-hover:text-primary transition-colors leading-snug">
+                      {company.raisonSociale || '—'}
+                    </strong>
+                    {company.verified !== false && (
+                      <span className="inline-flex items-center justify-center h-4 w-4 rounded-full bg-emerald-500/15 text-emerald-600 text-[10px]" title="Entreprise Vérifiée">
+                        ✓
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex flex-wrap gap-1.5 items-center mt-1">
+                    {company.sigle && <Badge variant="default">{String(company.sigle)}</Badge>}
+                    {company.formeJuridique && (
+                      <span className="text-[11px] text-muted-foreground bg-secondary px-2 py-0.5 rounded-md font-medium">
+                        {String(company.formeJuridique)}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
 
               {/* Actions : côte à côte en haut à droite */}
-              <div style={{ display: 'flex', gap: 6 }}>
+              <div className="flex gap-2 shrink-0">
                 <SaveCompanyButton company={company} />
                 <AddToPipelineButton company={company} />
               </div>

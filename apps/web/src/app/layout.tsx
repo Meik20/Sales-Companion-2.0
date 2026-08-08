@@ -2,7 +2,6 @@ import './globals.css'
 import type { Metadata, Viewport } from 'next'
 import { ReactNode } from 'react'
 import { Outfit, Inter } from 'next/font/google'
-import { Analytics } from '@vercel/analytics/next'
 import { AppProvider } from '@/providers/AppProvider'
 import { ThemeProvider } from '@/providers/ThemeProvider'
 import { I18nProvider } from '@/providers/I18nProvider'
@@ -144,7 +143,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           </I18nProvider>
         </ThemeProvider>
         {process.env.NEXT_PUBLIC_GA_ID && <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />}
-        {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
   )

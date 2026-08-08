@@ -1,7 +1,6 @@
 import { ButtonHTMLAttributes, CSSProperties } from 'react'
-import { colors } from '@/styles/tokens'
 
-type Variant = 'primary' | 'ghost' | 'danger' | 'outline'
+type Variant = 'primary' | 'ghost' | 'danger' | 'outline' | 'secondary'
 type Size = 'sm' | 'md' | 'lg'
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -10,49 +9,23 @@ type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
   loading?: boolean
 }
 
-const base: CSSProperties = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: 8,
-  border: 'none',
-  borderRadius: 10,
-  fontFamily: 'inherit',
-  fontWeight: 600,
-  cursor: 'pointer',
-  transition: 'all 300ms ease',
-  whiteSpace: 'nowrap',
-  letterSpacing: '.01em'
+const variantClasses: Record<Variant, string> = {
+  primary:
+    'bg-primary text-primary-foreground border border-primary/20 shadow-sm hover:bg-primary/90 hover:shadow-md hover:scale-[1.02] active:scale-[0.98]',
+  secondary:
+    'bg-secondary text-secondary-foreground border border-border hover:bg-secondary/80 hover:border-primary/30 hover:scale-[1.01] active:scale-[0.98]',
+  ghost:
+    'bg-transparent text-muted-foreground hover:bg-secondary/60 hover:text-foreground hover:scale-[1.01] active:scale-[0.98]',
+  outline:
+    'bg-card text-foreground border border-border hover:bg-secondary/80 hover:border-primary/40 shadow-xs hover:scale-[1.01] active:scale-[0.98]',
+  danger:
+    'bg-destructive/15 text-destructive border border-destructive/30 hover:bg-destructive/25 hover:scale-[1.02] active:scale-[0.98]'
 }
 
-const variants: Record<Variant, CSSProperties> = {
-  primary: {
-    background: colors.green,
-    color: '#fff',
-    border: `1px solid var(--color-accent)`,
-    boxShadow: `0 4px 16px rgba(133, 183, 235, 0.35)`
-  },
-  ghost: {
-    background: 'transparent',
-    color: colors.textMid,
-    border: '1px solid transparent'
-  },
-  outline: {
-    background: 'transparent',
-    color: colors.green,
-    border: `1px solid var(--color-accent)`
-  },
-  danger: {
-    background: colors.dangerBg,
-    color: colors.danger,
-    border: `1px solid ${colors.dangerBorder}`
-  }
-}
-
-const sizes: Record<Size, CSSProperties> = {
-  sm: { padding: '6px 12px', fontSize: 12 },
-  md: { padding: '9px 18px', fontSize: 13 },
-  lg: { padding: '12px 24px', fontSize: 14 }
+const sizeClasses: Record<Size, string> = {
+  sm: 'px-3 py-1.5 text-xs rounded-md gap-1.5',
+  md: 'px-4 py-2.5 text-sm rounded-lg gap-2',
+  lg: 'px-6 py-3 text-base rounded-xl gap-2.5'
 }
 
 export function Button({
@@ -60,6 +33,7 @@ export function Button({
   size = 'md',
   loading = false,
   disabled,
+  className = '',
   style,
   children,
   ...props
@@ -69,30 +43,17 @@ export function Button({
   return (
     <button
       disabled={isDisabled}
-      style={{
-        ...base,
-        ...variants[variant],
-        ...sizes[size],
-        opacity: isDisabled ? 0.5 : 1,
-        cursor: isDisabled ? 'not-allowed' : 'pointer',
-        ...style
-      }}
+      className={`inline-flex items-center justify-center font-medium font-sans cursor-pointer transition-all duration-200 select-none ${
+        variantClasses[variant]
+      } ${sizeClasses[size]} ${isDisabled ? 'opacity-50 !cursor-not-allowed pointer-events-none' : ''} ${className}`}
+      style={style}
       {...props}
     >
       {loading ? (
-        <span
-          style={{
-            width: 14,
-            height: 14,
-            border: '2px solid currentColor',
-            borderTopColor: 'transparent',
-            borderRadius: '50%',
-            display: 'inline-block',
-            animation: 'spin 0.7s linear infinite'
-          }}
-        />
+        <span className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin inline-block" />
       ) : null}
       {children}
     </button>
   )
 }
+
