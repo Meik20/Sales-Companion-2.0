@@ -313,18 +313,21 @@ function SearchContent() {
                   .illustration-dark { display: none; }
                   
                   /* Mode Sombre : visibilité maximale */
+                  .dark .illustration-light,
                   [data-theme='dark'] .illustration-light {
-                    display: none;
+                    display: none !important;
                   }
+                  .dark .illustration-dark,
                   [data-theme='dark'] .illustration-dark {
-                    display: block;
-                    animation: floatSubtle 6s infinite ease-in-out;
-                    /* Inversion pour transformer le sombre en clair + boost luminosité */
-                    filter: invert(0.8) brightness(1.8) contrast(1.2) drop-shadow(0 0 12px rgba(255, 255, 255, 0.2));
-                    opacity: 1;
+                    display: block !important;
+                    animation: floatSubtle 6s infinite ease-in-out !important;
+                    mix-blend-mode: normal !important;
+                    filter: brightness(1.6) contrast(1.15) saturate(1.1) drop-shadow(0 0 18px rgba(74, 222, 128, 0.35)) !important;
+                    opacity: 1 !important;
                   }
+                  .dark .desktop-illustration,
                   [data-theme='dark'] .desktop-illustration {
-                    background: radial-gradient(50% 50% at 50% 50%, rgba(96, 165, 250, 0.1) 0%, transparent 100%) !important;
+                    background: radial-gradient(50% 50% at 50% 50%, rgba(34, 197, 94, 0.15) 0%, transparent 100%) !important;
                   }
 
                   .mobile-illustration { display: none; }
