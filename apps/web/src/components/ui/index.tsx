@@ -114,9 +114,9 @@ export function Panel({ children, padded = true, style }: PanelProps) {
       style={{
         background: 'var(--card, #131c2e)',
         border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
-        borderRadius: radius.lg,
-        boxShadow: shadows.sm,
-        padding: padded ? spacing.xl : 0,
+        borderRadius: 16,
+        boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
+        padding: padded ? 24 : 0,
         ...style
       }}
     >
@@ -229,7 +229,7 @@ export function StatsGrid({ children }: PropsWithChildren) {
       style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-        gap: spacing.lg
+        gap: 16
       }}
     >
       {children}
@@ -240,5 +240,5 @@ export function StatsGrid({ children }: PropsWithChildren) {
 // ─── PageGrid ────────────────────────────────────────────────────────────────
 
 export function PageGrid({ children }: PropsWithChildren) {
-  return <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.xl }}>{children}</div>
+  return <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>{children}</div>
 }

@@ -49,7 +49,7 @@ export function ShortcutCard({
         borderLeft: `3px solid ${cfg.color}`,
         borderRadius: 10,
         cursor: 'pointer',
-        transition: `all ${transitions.fast}`,
+        transition: 'all 150ms ease',
         textAlign: 'left',
         width: '100%',
         boxShadow: '0 1px 4px rgba(0,0,0,0.06)'

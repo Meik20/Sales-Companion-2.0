@@ -162,7 +162,7 @@ export function AssignmentsTable() {
             alignItems: 'center',
             gap: 8,
             fontWeight: 600,
-            boxShadow: shadows.sm
+            boxShadow: '0 1px 4px rgba(0,0,0,0.1)'
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.background = 'var(--card, #131c2e)'
