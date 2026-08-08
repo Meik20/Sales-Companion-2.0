@@ -132,7 +132,7 @@ const MOCK_COMPANIES = [
     status: 'Vérifiée RCCM'
   },
   {
-    name: 'L\'Ouest Finance & Crédit',
+    name: "L'Ouest Finance & Crédit",
     sector: 'finance',
     city: 'bafoussam',
     activity: 'Microfinance de 2ème catégorie et crédits agricoles',
@@ -217,16 +217,7 @@ export default async function AnnuaireSlugPage({ params }: Props) {
   return (
     <div className="landing-root">
       {/* Navbar */}
-      <nav
-        className="nav"
-        style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 100,
-          borderBottom: '1px solid var(--bd)',
-          backgroundColor: 'var(--bg)'
-        }}
-      >
+      <nav className="nav">
         <div className="nav-inner">
           <Link href="/" className="nav-brand" title="Retour à l'accueil">
             <ScIcon size={32} className="sc-icon" />
@@ -257,109 +248,44 @@ export default async function AnnuaireSlugPage({ params }: Props) {
       </nav>
 
       {/* Hero Header */}
-      <section className="hero" style={{ paddingBottom: '40px', paddingTop: '60px' }}>
+      <section className="hero hero-compact">
         <div className="hero-glow-tl" aria-hidden="true"></div>
-        <h1 className="hero-title" style={{ fontSize: '2.8rem', marginBottom: '20px' }}>
-          Entreprises {data.type === 'city' ? 'à' : 'de'} <br /> <em>{data.title}</em>
+        <h1 className="hero-title">
+          Entreprises {data.type === 'city' ? 'à' : 'de'} <br />
+          <em>{data.title}</em>
         </h1>
-        <p
-          className="hero-sub"
-          style={{ maxWidth: '750px', margin: '0 auto', fontSize: '1.1rem' }}
-        >
-          {data.description} Découvrez notre sélection de professionnels et d'opportunités de
-          prospection. Accès complet à plus de {data.count} entreprises dans cette catégorie via notre CRM.
+        <p className="hero-sub">
+          {data.description} Découvrez notre sélection de professionnels et
+          d'opportunités de prospection. Accès complet à plus de{' '}
+          <strong>{data.count}</strong> entreprises dans cette catégorie via
+          notre CRM.
         </p>
       </section>
 
       {/* Main Content */}
-      <main style={{ maxWidth: '1000px', margin: '0 auto', padding: '0 24px 80px' }}>
-        <div style={{ marginBottom: '24px' }}>
-          <Link
-            href="/annuaire"
-            style={{
-              color: 'var(--gm)',
-              textDecoration: 'none',
-              fontWeight: '500',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              marginBottom: '32px'
-            }}
-          >
-            ← Retour à l'annuaire principal
-          </Link>
-        </div>
+      <main className="container" style={{ paddingBottom: '80px' }}>
+        {/* Breadcrumb retour */}
+        <Link href="/annuaire" className="breadcrumb">
+          ← Retour à l'annuaire principal
+        </Link>
 
         {/* Liste des Entreprises */}
         <div style={{ marginBottom: '60px' }}>
-          <h2 style={{ fontSize: '1.4rem', marginBottom: '24px' }}>
+          <h2 className="annuaire-section-title">
             🏢 Profils d'entreprises disponibles ({companiesToDisplay.length})
           </h2>
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '16px'
-            }}
-          >
+
+          <div className="company-list">
             {companiesToDisplay.map((company, index) => (
-              <div
-                key={index}
-                style={{
-                  padding: '24px',
-                  borderRadius: '12px',
-                  border: '1px solid var(--bd)',
-                  backgroundColor: 'var(--dark2)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '8px'
-                }}
-              >
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'flex-start',
-                    flexWrap: 'wrap',
-                    gap: '8px'
-                  }}
-                >
-                  <h3
-                    style={{
-                      fontSize: '1.25rem',
-                      fontWeight: '600',
-                      color: 'var(--tx)',
-                      margin: 0
-                    }}
-                  >
-                    {company.name}
-                  </h3>
-                  <span
-                    style={{
-                      fontSize: '0.8rem',
-                      padding: '4px 8px',
-                      borderRadius: '4px',
-                      backgroundColor: 'rgba(46, 160, 90, 0.15)',
-                      color: 'var(--gm)',
-                      border: '1px solid rgba(46, 160, 90, 0.3)',
-                      fontWeight: '500'
-                    }}
-                  >
-                    {company.status}
-                  </span>
+              <div key={index} className="company-card">
+                <div className="company-card-header">
+                  <h3 className="company-name">{company.name}</h3>
+                  <span className="badge badge-success">{company.status}</span>
                 </div>
-                <p style={{ color: 'var(--tx2)', fontSize: '0.95rem', margin: '4px 0' }}>
+                <p className="company-activity">
                   <strong>Activité :</strong> {company.activity}
                 </p>
-                <div
-                  style={{
-                    display: 'flex',
-                    gap: '16px',
-                    fontSize: '0.85rem',
-                    color: 'var(--tx3)',
-                    marginTop: '8px'
-                  }}
-                >
+                <div className="company-meta">
                   <span>📍 {company.city.charAt(0).toUpperCase() + company.city.slice(1)}</span>
                   <span>📁 {company.sector.toUpperCase()}</span>
                 </div>
@@ -369,29 +295,13 @@ export default async function AnnuaireSlugPage({ params }: Props) {
         </div>
 
         {/* CTA */}
-        <div
-          style={{
-            padding: '48px 32px',
-            borderRadius: '16px',
-            background: 'linear-gradient(135deg, var(--dark3), var(--bg))',
-            border: '1px solid rgba(27, 122, 62, 0.3)',
-            textAlign: 'center'
-          }}
-        >
-          <h3 style={{ fontSize: '1.8rem', marginBottom: '16px' }}>
-            Accéder aux contacts des dirigeants
-          </h3>
-          <p
-            style={{
-              color: 'var(--tx2)',
-              marginBottom: '32px',
-              maxWidth: '600px',
-              margin: '0 auto 32px',
-              lineHeight: '1.6'
-            }}
-          >
-            Téléphone, e-mail direct, numéro d'immatriculation et bien plus. Débloquez tous les
-            détails pour lancer vos campagnes de prospection ciblées.
+        <div className="cta-section">
+          <div className="cta-glow" aria-hidden="true"></div>
+          <h3 className="cta-title">Accéder aux contacts des dirigeants</h3>
+          <p className="cta-sub">
+            Téléphone, e-mail direct, numéro d'immatriculation et bien plus.
+            Débloquez tous les détails pour lancer vos campagnes de prospection
+            ciblées.
           </p>
           <Link href="/register" className="btn btn-primary btn-xl">
             Débloquer la base de données
@@ -400,12 +310,41 @@ export default async function AnnuaireSlugPage({ params }: Props) {
       </main>
 
       {/* Footer */}
-      <footer className="footer" style={{ borderTop: '1px solid var(--bd)' }}>
-        <div className="footer-inner" style={{ textAlign: 'center', padding: '40px 0' }}>
-          <p style={{ color: 'var(--tx3)', fontSize: '0.9rem' }}>
-            &copy; {new Date().getFullYear()} Sales Companion 2.0. Base de données des entreprises au
-            Cameroun.
-          </p>
+      <footer className="footer">
+        <div className="footer-inner">
+          <div className="footer-bottom">
+            <p>
+              &copy; {new Date().getFullYear()} Sales Companion 2.0 · Base de
+              données des entreprises au Cameroun.
+            </p>
+            <nav aria-label="Liens internes">
+              <ul
+                role="list"
+                style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', listStyle: 'none' }}
+              >
+                <li>
+                  <Link href="/" className="footer-link">
+                    Accueil
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/annuaire" className="footer-link">
+                    Annuaire B2B
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/blog" className="footer-link">
+                    Blog B2B
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/register" className="footer-link">
+                    Essai gratuit
+                  </Link>
+                </li>
+              </ul>
+            </nav>
+          </div>
         </div>
       </footer>
     </div>
