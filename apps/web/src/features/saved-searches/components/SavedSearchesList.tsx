@@ -55,7 +55,7 @@ export function SavedSearchesList({ items, onRestore, onDelete }: Props) {
                 height: 44,
                 borderRadius: 12,
                 background: 'rgba(245,158,11,0.1)',
-                color: colors.gold,
+                color: '#f59e0b',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',

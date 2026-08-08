@@ -259,7 +259,7 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
                     border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
                   }}
                 >
-                  <Building size={14} style={{ color: colors.info, opacity: 0.7 }} />
+                  <Building size={14} style={{ color: '#60a5fa', opacity: 0.7 }} />
                   <span style={{ fontWeight: 700 }}>{p.name}</span>
                   {p.city && (
                     <span

@@ -380,14 +380,14 @@ export default function AdminDashboardPage() {
               label={t('admin.companies')}
               value={stats.totalCompanies ?? 0}
               hint={t('admin.inDatabase')}
-              color={colors.info}
+              color={'#60a5fa'}
               icon={Building2}
             />
             <TrendCard
               label={t('admin.pipelineItems')}
               value={stats.totalPipelineItems ?? 0}
               hint={t('admin.allReps')}
-              color={colors.gold}
+              color={'#f59e0b'}
               icon={ListTodo}
             />
             <TrendCard
@@ -452,7 +452,7 @@ export default function AdminDashboardPage() {
                   label: t('admin.searches'),
                   value: stats.totalSearchesToday ?? 0,
                   unit: t('admin.today'),
-                  color: colors.info
+                  color: '#60a5fa'
                 },
                 {
                   icon: <Activity size={20} />,
@@ -461,7 +461,7 @@ export default function AdminDashboardPage() {
                     ? Math.round(((stats.activeUsers ?? 0) / stats.totalUsers) * 100)
                     : 0,
                   unit: t('admin.activePct'),
-                  color: colors.gold
+                  color: '#f59e0b'
                 },
                 {
                   icon: <Globe size={20} />,

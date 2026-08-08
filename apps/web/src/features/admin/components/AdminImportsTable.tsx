@@ -246,7 +246,7 @@ function ImportRow({ import: importItem }: { import: AdminImport }) {
               height: 32,
               borderRadius: 8,
               background: 'rgba(55,138,221,0.1)',
-              color: colors.info,
+              color: '#60a5fa',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'

@@ -123,7 +123,7 @@ export default function AdminImportsPage() {
 
   /* ── styles ── */
   const zoneBg = isDragging ? 'rgba(34,197,94,0.1)' : 'var(--secondary, #1e2a3b)'
-  const zoneBorder = isDragging ? '#4ade80' : colors.border2
+  const zoneBorder = isDragging ? '#4ade80' : 'rgba(255,255,255,0.07)'
 
   const items = data?.items ?? []
   const total = data?.total ?? 0
@@ -342,12 +342,12 @@ export default function AdminImportsPage() {
           {/* Info block */}
           <div
             style={{
-              background: colors.infoBg,
-              border: `1px solid ${colors.infoBorder}`,
+              background: 'rgba(59,130,246,0.08)',
+              border: `1px solid ${'rgba(59,130,246,0.25)'}`,
               borderRadius: 10,
               padding: '12px 16px',
               fontSize: 12.5,
-              color: colors.info
+              color: '#60a5fa'
             }}
           >
             <strong>📋 Colonnes reconnues automatiquement :</strong>

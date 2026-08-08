@@ -189,7 +189,7 @@ function ProspectModal({
                 marginLeft: 16
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = colors.bg4
+                e.currentTarget.style.background = 'rgba(255,255,255,0.05)'
                 e.currentTarget.style.color = 'var(--foreground, #f1f5f9)'
               }}
               onMouseLeave={(e) => {

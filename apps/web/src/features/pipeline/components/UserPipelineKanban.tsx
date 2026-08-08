@@ -107,7 +107,7 @@ function KanbanCard({
       onClick={() => onItemClick(item)}
       style={{
         marginBottom: 10,
-        background: isDragging ? colors.bg4 : 'var(--secondary, #1e2a3b)',
+        background: isDragging ? 'rgba(255,255,255,0.05)' : 'var(--secondary, #1e2a3b)',
         border: `1px solid ${isDragging ? col.accent : 'var(--border, rgba(255,255,255,0.1))'}`,
         borderLeft: `3px solid ${col.accent}`,
         borderRadius: 14,

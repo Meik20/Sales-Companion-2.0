@@ -87,7 +87,7 @@ export function SavedCompaniesList({ items, onDelete }: Props) {
                       fontSize: 13
                     }}
                   >
-                    <MapPin size={14} style={{ color: colors.info }} />
+                    <MapPin size={14} style={{ color: '#60a5fa' }} />
                     {city}
                   </div>
                 )}
@@ -101,7 +101,7 @@ export function SavedCompaniesList({ items, onDelete }: Props) {
                       fontSize: 13
                     }}
                   >
-                    <Briefcase size={14} style={{ color: colors.gold }} />
+                    <Briefcase size={14} style={{ color: '#f59e0b' }} />
                     {sector}
                   </div>
                 )}

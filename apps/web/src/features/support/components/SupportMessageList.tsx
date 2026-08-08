@@ -53,7 +53,7 @@ export function SupportMessageList({ messages, currentUserId }: Props) {
                   ? 'rgba(27,122,62,0.25)'
                   : isAdmin
                     ? 'rgba(245,166,35,0.12)'
-                    : colors.bg4,
+                    : 'rgba(255,255,255,0.05)',
                 border: `1px solid ${isMe ? 'rgba(46,160,90,0.3)' : isAdmin ? 'rgba(245,166,35,0.25)' : 'var(--border, rgba(255,255,255,0.1))'}`,
                 fontSize: 13,
                 color: 'var(--foreground, #f1f5f9)',

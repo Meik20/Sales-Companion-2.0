@@ -392,7 +392,7 @@ function SearchContent() {
                   >
                     <path
                       d="M70 40 L100 20 L130 50 L140 90 L120 140 L80 160 L50 120 L40 80 Z"
-                      fill={colors.border2}
+                      fill="rgba(255,255,255,0.07)"
                       stroke={'var(--border, rgba(255,255,255,0.1))'}
                       strokeWidth="2"
                       strokeLinejoin="round"
