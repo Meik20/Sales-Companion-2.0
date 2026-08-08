@@ -138,6 +138,7 @@ function ClientRow({
   onSelect: () => void
   isSelected: boolean
 }) {
+  const { t } = useTranslation()
   return (
     <div
       onClick={onSelect}
@@ -168,7 +169,7 @@ function ClientRow({
             : 'border border-border bg-transparent text-muted-foreground hover:bg-secondary hover:text-foreground'
         }`}
       >
-        {isSelected ? '✓' : 'Gérer →'}
+        {isSelected ? `✓ ${t('crm.open')}` : `${t('crm.manage')} →`}
       </button>
     </div>
   )

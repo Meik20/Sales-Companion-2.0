@@ -41,7 +41,7 @@ export default function AdminImportsPage() {
     if (!['xlsx', 'xls', 'csv'].includes(ext ?? '')) {
       setUploadState({
         status: 'error',
-        message: 'Format non pris en charge. Utilisez .xlsx, .xls ou .csv'
+        message: t('admin.errorFormat')
       })
       return
     }
@@ -71,14 +71,14 @@ export default function AdminImportsPage() {
       }
 
       if (!res.ok) {
-        setUploadState({ status: 'error', message: json.error ?? `Erreur serveur (${res.status})` })
+        setUploadState({ status: 'error', message: json.error ?? `${t('admin.errorServer')} (${res.status})` })
         return
       }
 
       setUploadState({ status: 'success', fileName: file.name, result: json })
       refetch()
     } catch (e) {
-      setUploadState({ status: 'error', message: e instanceof Error ? e.message : 'Erreur réseau' })
+      setUploadState({ status: 'error', message: e instanceof Error ? e.message : t('admin.errorNetwork') })
     }
 
     // Reset file input
@@ -87,9 +87,7 @@ export default function AdminImportsPage() {
 
   async function handleClearHistory() {
     if (
-      !window.confirm(
-        "Voulez-vous vraiment effacer tout l'historique des imports ? Cette action ne supprime pas les entreprises importées."
-      )
+      !window.confirm(t('admin.confirmClearHistory'))
     ) {
       return
     }
@@ -101,11 +99,11 @@ export default function AdminImportsPage() {
         headers: { Authorization: `Bearer ${token ?? ''}` }
       })
 
-      if (!res.ok) throw new Error('Erreur lors de la suppression')
+      if (!res.ok) throw new Error(t('admin.errorDelete'))
 
       refetch()
     } catch (e) {
-      alert(e instanceof Error ? e.message : 'Erreur réseau')
+      alert(e instanceof Error ? e.message : t('admin.errorNetwork'))
     }
   }
 
@@ -137,10 +135,10 @@ export default function AdminImportsPage() {
     failed: '#f87171'
   }
   const statusLabels: Record<string, string> = {
-    pending: 'En attente',
-    processing: 'En cours',
-    completed: 'Terminé',
-    failed: 'Échoué'
+    pending: t('admin.statusPending'),
+    processing: t('admin.statusProcessing'),
+    completed: t('admin.statusCompleted'),
+    failed: t('admin.statusFailed')
   }
 
   return (
@@ -193,10 +191,10 @@ export default function AdminImportsPage() {
           >
             <div style={{ fontSize: 42, marginBottom: 12 }}>📊</div>
             <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--foreground, #f1f5f9)', marginBottom: 6 }}>
-              Glissez votre fichier ici
+              {t('admin.dragFile')}
             </div>
             <div style={{ fontSize: 13, color: 'var(--muted-foreground, #94a3b8)', marginBottom: 18 }}>
-              ou cliquez pour parcourir
+              {t('admin.orBrowse')}
             </div>
             <button
               type="button"
@@ -216,7 +214,7 @@ export default function AdminImportsPage() {
                 fontFamily: 'inherit'
               }}
             >
-              Choisir un fichier
+              {t('admin.chooseFile')}
             </button>
             <input
               ref={fileInputRef}
@@ -231,7 +229,7 @@ export default function AdminImportsPage() {
           {uploadState.status === 'uploading' && (
             <div>
               <div style={{ fontSize: 12, color: 'var(--muted-foreground, #94a3b8)', marginBottom: 6 }}>
-                Traitement de « {uploadState.fileName} »…
+                {t('admin.processing')} « {uploadState.fileName} »…
               </div>
               <div
                 style={{
@@ -264,19 +262,15 @@ export default function AdminImportsPage() {
               }}
             >
               <div style={{ fontWeight: 700, color: '#4ade80', marginBottom: 10 }}>
-                ✅ Import réussi — {uploadState.fileName}
+                ✅ {t('admin.importSuccess')} — {uploadState.fileName}
               </div>
               <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
                 {[
-                  { label: 'Lignes lues', val: uploadState.result.total ?? 0, color: 'var(--foreground, #f1f5f9)' },
-                  {
-                    label: 'Nouvelles',
-                    val: uploadState.result.imported ?? 0,
-                    color: '#4ade80'
-                  },
-                  { label: 'Mises à jour', val: uploadState.result.updated ?? 0, color: '#1a73e8' },
-                  { label: 'Doublons', val: uploadState.result.skipped ?? 0, color: '#f39c12' },
-                  { label: 'Erreurs', val: uploadState.result.errors ?? 0, color: '#f87171' }
+                  { label: t('admin.rowsRead'), val: uploadState.result.total ?? 0, color: 'var(--foreground, #f1f5f9)' },
+                  { label: t('admin.newRows'), val: uploadState.result.imported ?? 0, color: '#4ade80' },
+                  { label: t('admin.updatedRows'), val: uploadState.result.updated ?? 0, color: '#1a73e8' },
+                  { label: t('admin.skippedRows'), val: uploadState.result.skipped ?? 0, color: '#f39c12' },
+                  { label: t('admin.errorRows'), val: uploadState.result.errors ?? 0, color: '#f87171' }
                 ].map(({ label, val, color }) => (
                   <div key={label} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                     <span style={{ fontSize: 20, fontWeight: 700, color }}>{val}</span>
@@ -287,7 +281,7 @@ export default function AdminImportsPage() {
               {uploadState.result.columns_detected &&
                 Object.keys(uploadState.result.columns_detected).length > 0 && (
                   <div style={{ marginTop: 10, fontSize: 12, color: 'var(--muted-foreground, #94a3b8)' }}>
-                    <strong>Colonnes mappées :</strong>{' '}
+                    <strong>{t('admin.mappedColumns')} :</strong>{' '}
                     {Object.entries(uploadState.result.columns_detected)
                       .map(([k, v]) => `${k} → "${v}"`)
                       .join(', ')}
@@ -305,7 +299,7 @@ export default function AdminImportsPage() {
                   textDecoration: 'underline'
                 }}
               >
-                Importer un autre fichier
+                {t('admin.importAnother')}
               </button>
             </div>
           )}
@@ -334,7 +328,7 @@ export default function AdminImportsPage() {
                   textDecoration: 'underline'
                 }}
               >
-                Réessayer
+                {t('admin.retry')}
               </button>
             </div>
           )}
@@ -350,21 +344,13 @@ export default function AdminImportsPage() {
               color: '#60a5fa'
             }}
           >
-            <strong>📋 Colonnes reconnues automatiquement :</strong>
+            <strong>📋 {t('admin.autoColumns')}</strong>
             <ul style={{ paddingLeft: 16, marginTop: 6, lineHeight: 1.9 }}>
-              <li>
-                <strong>RAISON_SOCIALE</strong> — Nom de l'entreprise (obligatoire)
-              </li>
-              <li>
-                <strong>NIU</strong> — Numéro d'identification unique (optionnel, clé dédoublonnage)
-              </li>
-              <li>
-                <strong>ACTIVITE_PRINCIPALE</strong> — Secteur auto-détecté
-              </li>
-              <li>
-                <strong>CENTRE_DE_RATTACHEMENT</strong> — Région / Ville auto-détectées
-              </li>
-              <li>+ SIGLE, TELEPHONE, EMAIL, DIRIGEANT, RCCM (si disponibles)</li>
+              <li><strong>RAISON_SOCIALE</strong> {t('admin.autoColumnsDesc1')}</li>
+              <li><strong>NIU</strong> {t('admin.autoColumnsDesc2')}</li>
+              <li><strong>ACTIVITE_PRINCIPALE</strong> {t('admin.autoColumnsDesc3')}</li>
+              <li><strong>CENTRE_DE_RATTACHEMENT</strong> {t('admin.autoColumnsDesc4')}</li>
+              <li>{t('admin.autoColumnsDesc5')}</li>
             </ul>
           </div>
         </div>
@@ -522,7 +508,7 @@ export default function AdminImportsPage() {
                               )}
                             </div>
                             <div style={{ fontSize: 10, color: 'var(--muted-foreground, #94a3b8)', marginTop: 1 }}>
-                              {successRate}% réussi
+                              {successRate}% {t('admin.successRate')}
                             </div>
                           </td>
                           <td style={{ padding: '11px 10px' }}>
