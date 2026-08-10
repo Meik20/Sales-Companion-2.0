@@ -20,7 +20,7 @@ const navLinks = [
 
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-50 border-b border-border/70 bg-background/85 backdrop-blur-md transition-all">
+    <header className="sticky top-0 z-[100] border-b border-border/70 bg-background/85 backdrop-blur-md transition-all">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-6 px-5">
         <Link href="/" className="flex items-center gap-2.5 group" aria-label="Sales Companion 2.0, accueil">
           <ScIcon size={34} interactive className="group-hover:scale-105 transition-transform" />

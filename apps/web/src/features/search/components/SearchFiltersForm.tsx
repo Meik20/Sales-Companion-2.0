@@ -230,7 +230,7 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
           .sc-filters-container {
             position: sticky;
             top: 60px; /* Exact height of AppHeader */
-            z-index: 99;
+            z-index: 30;
             background: var(--bg); /* Adapts to light/dark themes */
             padding: 12px 0;
             margin: 0 0 8px;

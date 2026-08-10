@@ -39,7 +39,7 @@ export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void 
   const badge = user?.role ? (roleBadge[user.role] ?? null) : null
 
   return (
-    <header className="sticky top-0 z-50 flex h-16 items-center border-b border-border/70 bg-background/85 px-4 backdrop-blur-md transition-all">
+    <header className="sticky top-0 z-[100] flex h-16 items-center border-b border-border/70 bg-background/85 px-4 backdrop-blur-md transition-all">
       <style
         dangerouslySetInnerHTML={{
           __html: `
