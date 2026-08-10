@@ -143,7 +143,7 @@ export function useTeamMembers() {
 
           accessesMap[uid] = {
             uid,
-            accessId: d.id,
+            accessId: data.accessId || d.id,
             email: data.email ?? '',
             name: fullName,
             role: 'member',

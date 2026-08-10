@@ -105,7 +105,7 @@ export function useSupportAgents() {
 
           accessesMap[uid] = {
             uid,
-            accessId: d.id,
+            accessId: data.accessId || d.id,
             email: data.email ?? '',
             name: fullName,
             role: 'support_agent',

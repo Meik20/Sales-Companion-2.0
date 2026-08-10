@@ -38,11 +38,21 @@ export async function GET(request: NextRequest) {
       .where('activated', '==', true)
       .get()
 
-    const membersMap: Record<string, string> = {}
+    // Map by uid AND by accessId for robust resolution
+    const membersMap: Record<string, { name: string; accessId: string }> = {}
     membersSnap.docs.forEach(d => {
       const data = d.data()
+      const fullName = [data.firstname, data.lastname].filter(Boolean).join(' ') || data.name || ''
+      const accessId = data.accessId || d.id
+      if (data.firebaseUid) {
+        membersMap[data.firebaseUid] = { name: fullName, accessId }
+      }
       if (data.uid) {
-        membersMap[data.uid] = `${data.firstname} ${data.lastname}`
+        membersMap[data.uid] = { name: fullName, accessId }
+      }
+      // Also index by accessId itself for cross-ref lookups
+      if (accessId) {
+        membersMap[accessId] = { name: fullName, accessId }
       }
     })
 
@@ -66,9 +76,14 @@ export async function GET(request: NextRequest) {
       const n = memberItems.filter(i => normalizeStatus(i.status) === 'negociation').length
       const c = memberItems.filter(i => normalizeStatus(i.status) === 'conclue').length
       const total = memberItems.length
+      const memberInfo = membersMap[uid]
+      // Display by accessId (prenomnom@entreprise) — fallback to name, then Manager label
+      const displayName = uid === decoded.uid
+        ? 'Manager'
+        : memberInfo?.accessId || memberInfo?.name || null
       return {
         uid,
-        name: membersMap[uid] || (uid === decoded.uid ? 'Manager' : uid.slice(0, 8)),
+        name: displayName ?? uid,
         prospection: p,
         negociation: n,
         conclue: c,
