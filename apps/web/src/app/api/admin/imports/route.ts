@@ -1,15 +1,12 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
-import { adminDb, adminAuth } from '@/lib/firebase-admin'
+import { adminDb } from '@/lib/firebase-admin'
+import { verifyAdminCached } from '@/lib/api-admin-auth'
 import ExcelJS from 'exceljs'
 
 async function verifyAdmin(request: NextRequest) {
   const token = request.headers.get('authorization')?.split(' ')[1]
-  if (!token) throw new Error('unauthenticated')
-  const decoded = await adminAuth.verifyIdToken(token)
-  const doc = await adminDb.collection('users').doc(decoded.uid).get()
-  if (doc.data()?.role !== 'admin') throw new Error('forbidden')
-  return decoded
+  return verifyAdminCached(token)
 }
 
 /* ── GET /api/admin/imports — history ── */
@@ -71,7 +68,7 @@ export async function DELETE(request: NextRequest) {
 /* ── POST /api/admin/imports — upload + parse CSV/Excel and save to Firestore ── */
 export async function POST(request: NextRequest) {
   try {
-    const decoded = await verifyAdmin(request)
+    const adminUid = await verifyAdmin(request)
 
     const formData = await request.formData()
     const file = formData.get('file') as File | null
@@ -230,7 +227,7 @@ export async function POST(request: NextRequest) {
           currentBatch.update(ref, { ...company, updatedAt: new Date() })
           updated++
         } else {
-          currentBatch.set(ref, { ...company, createdAt: new Date(), importedBy: decoded.uid })
+          currentBatch.set(ref, { ...company, createdAt: new Date(), importedBy: adminUid })
           imported++
         }
 
@@ -262,7 +259,7 @@ export async function POST(request: NextRequest) {
       skipped,
       errors,
       status: 'completed',
-      importedBy: decoded.uid,
+      importedBy: adminUid,
       importedAt: new Date(),
       columnsDetected: detectedColumns
     })

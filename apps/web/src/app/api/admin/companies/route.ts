@@ -1,15 +1,14 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
-import { adminDb, adminAuth } from '@/lib/firebase-admin'
+import { adminDb } from '@/lib/firebase-admin'
+import { verifyAdminCached } from '@/lib/api-admin-auth'
 
 export async function GET(request: NextRequest) {
   try {
     const token = request.headers.get('authorization')?.split(' ')[1]
-    if (!token) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
-
-    const decoded = await adminAuth.verifyIdToken(token)
-    const callerDoc = await adminDb.collection('users').doc(decoded.uid).get()
-    if (callerDoc.data()?.role !== 'admin') {
+    try { await verifyAdminCached(token) } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : ''
+      if (msg === 'unauthenticated') return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
     }
 
@@ -53,11 +52,9 @@ async function deleteAllCompanies() {
 export async function DELETE(request: NextRequest) {
   try {
     const token = request.headers.get('authorization')?.split(' ')[1]
-    if (!token) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
-
-    const decoded = await adminAuth.verifyIdToken(token)
-    const callerDoc = await adminDb.collection('users').doc(decoded.uid).get()
-    if (callerDoc.data()?.role !== 'admin') {
+    try { await verifyAdminCached(token) } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : ''
+      if (msg === 'unauthenticated') return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
     }
 

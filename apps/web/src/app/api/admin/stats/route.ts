@@ -1,30 +1,30 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
-import { adminDb, adminAuth } from '@/lib/firebase-admin'
+import { adminDb } from '@/lib/firebase-admin'
 import { Timestamp } from 'firebase-admin/firestore'
+import { verifyAdminCached } from '@/lib/api-admin-auth'
 
 export async function GET(request: NextRequest) {
   try {
     // Verify the caller is an authenticated admin
     const token = request.headers.get('authorization')?.split(' ')[1]
-    if (!token) {
-      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
-    }
-
-    const decoded = await adminAuth.verifyIdToken(token)
-    const callerDoc = await adminDb.collection('users').doc(decoded.uid).get()
-    const callerRole = callerDoc.data()?.role
-    if (callerRole !== 'admin') {
+    try {
+      await verifyAdminCached(token)
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : ''
+      if (msg === 'unauthenticated') return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
     }
 
-    // Run all count queries in parallel
     const oneWeekAgo = new Date()
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7)
 
     const todayStart = new Date()
     todayStart.setHours(0, 0, 0, 0)
 
+    // ── Agrégations de comptage (count) ────────────────────────────────────
+    // count() Firestore ne facture qu'une seule lecture quelle que soit la
+    // taille de la collection — c'est incomparablement moins coûteux qu'un .get()
     const [
       usersSnap,
       companiesSnap,
@@ -32,7 +32,17 @@ export async function GET(request: NextRequest) {
       activeUsersSnap,
       newUsersSnap,
       searchesTodaySnap,
-      usersDataSnap
+      // Répartition par rôle — count() par valeur de rôle (6 requêtes au lieu de N lectures)
+      memberCount,
+      managerCount,
+      independentCount,
+      adminCount,
+      supportAgentCount,
+      // Répartition par plan — count() par valeur de plan
+      freePlanCount,
+      starterPlanCount,
+      proPlanCount,
+      enterprisePlanCount
     ] = await Promise.all([
       adminDb.collection('users').count().get(),
       adminDb.collection('companies').count().get(),
@@ -52,20 +62,33 @@ export async function GET(request: NextRequest) {
         .where('createdAt', '>=', Timestamp.fromDate(todayStart))
         .count()
         .get(),
-      adminDb.collection('users').select('role', 'plan').get()
+      // Role distribution via count() — 1 opération d'index par requête
+      adminDb.collection('users').where('role', '==', 'member').count().get(),
+      adminDb.collection('users').where('role', '==', 'manager').count().get(),
+      adminDb.collection('users').where('role', '==', 'independent').count().get(),
+      adminDb.collection('users').where('role', '==', 'admin').count().get(),
+      adminDb.collection('users').where('role', '==', 'support_agent').count().get(),
+      // Plan distribution via count()
+      adminDb.collection('users').where('plan', '==', 'free').count().get(),
+      adminDb.collection('users').where('plan', '==', 'starter').count().get(),
+      adminDb.collection('users').where('plan', '==', 'pro').count().get(),
+      adminDb.collection('users').where('plan', '==', 'enterprise').count().get()
     ])
 
-    const roles: Record<string, number> = {}
-    const plans: Record<string, number> = {}
+    const roles: Record<string, number> = {
+      member: memberCount.data().count,
+      manager: managerCount.data().count,
+      independent: independentCount.data().count,
+      admin: adminCount.data().count,
+      support_agent: supportAgentCount.data().count
+    }
 
-    const allUsersSnap = usersDataSnap as FirebaseFirestore.QuerySnapshot
-    allUsersSnap.forEach((doc) => {
-      const data = doc.data()
-      const role = data.role || 'member'
-      const plan = (data.plan || 'free').toUpperCase()
-      roles[role] = (roles[role] || 0) + 1
-      plans[plan] = (plans[plan] || 0) + 1
-    })
+    const plans: Record<string, number> = {
+      FREE: freePlanCount.data().count,
+      STARTER: starterPlanCount.data().count,
+      PRO: proPlanCount.data().count,
+      ENTERPRISE: enterprisePlanCount.data().count
+    }
 
     return NextResponse.json({
       totalUsers: usersSnap.data().count,

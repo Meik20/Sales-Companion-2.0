@@ -1,20 +1,13 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
-import { adminDb, adminAuth } from '@/lib/firebase-admin'
-
-async function verifyAdmin(token: string | null) {
-  if (!token) throw new Error('unauthenticated')
-  const decoded = await adminAuth.verifyIdToken(token)
-  const d = await adminDb.collection('users').doc(decoded.uid).get()
-  if (d.data()?.role !== 'admin') throw new Error('forbidden')
-  return decoded
-}
+import { adminDb } from '@/lib/firebase-admin'
+import { verifyAdminCached } from '@/lib/api-admin-auth'
 
 /** POST /api/admin/config — store a config key/value in Firestore */
 export async function POST(request: NextRequest) {
   try {
     const token = request.headers.get('authorization')?.split(' ')[1] ?? null
-    await verifyAdmin(token)
+    await verifyAdminCached(token)
 
     const { key, value } = await request.json()
     if (!key || !value) {
@@ -41,7 +34,7 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const token = request.headers.get('authorization')?.split(' ')[1] ?? null
-    await verifyAdmin(token)
+    await verifyAdminCached(token)
 
     const snap = await adminDb.collection('config').doc('admin').get()
     const data = snap.data() ?? {}

@@ -1,14 +1,11 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
-import { adminDb, adminAuth } from '@/lib/firebase-admin'
+import { adminDb } from '@/lib/firebase-admin'
+import { verifyAdminCached } from '@/lib/api-admin-auth'
 
 async function verifyAdmin(request: NextRequest) {
   const token = request.headers.get('authorization')?.split(' ')[1]
-  if (!token) throw new Error('unauthenticated')
-  const decoded = await adminAuth.verifyIdToken(token)
-  const doc = await adminDb.collection('users').doc(decoded.uid).get()
-  if (doc.data()?.role !== 'admin') throw new Error('forbidden')
-  return decoded
+  return verifyAdminCached(token)
 }
 
 export async function GET(request: NextRequest) {

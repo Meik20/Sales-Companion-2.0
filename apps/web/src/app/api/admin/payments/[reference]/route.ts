@@ -1,16 +1,13 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
-import { adminDb, adminAuth } from '@/lib/firebase-admin'
+import { adminDb } from '@/lib/firebase-admin'
 import { FieldValue } from 'firebase-admin/firestore'
 import { PLANS } from '@/lib/payment-plans'
 import { sendEmail } from '@/utils/email'
+import { verifyAdminCached } from '@/lib/api-admin-auth'
 
 async function verifyAdmin(token: string | null) {
-  if (!token) throw new Error('unauthenticated')
-  const decoded = await adminAuth.verifyIdToken(token)
-  const doc = await adminDb.collection('users').doc(decoded.uid).get()
-  if (doc.data()?.role !== 'admin') throw new Error('forbidden')
-  return decoded
+  return verifyAdminCached(token)
 }
 
 export async function PATCH(

@@ -1,19 +1,12 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
-import { adminDb, adminAuth } from '@/lib/firebase-admin'
-
-async function verifyAdmin(token: string | null) {
-  if (!token) throw new Error('unauthenticated')
-  const decoded = await adminAuth.verifyIdToken(token)
-  const doc = await adminDb.collection('users').doc(decoded.uid).get()
-  if (doc.data()?.role !== 'admin') throw new Error('forbidden')
-  return decoded
-}
+import { adminDb } from '@/lib/firebase-admin'
+import { verifyAdminCached } from '@/lib/api-admin-auth'
 
 export async function GET(request: NextRequest) {
   try {
     const token = request.headers.get('authorization')?.split(' ')[1] ?? null
-    await verifyAdmin(token)
+    await verifyAdminCached(token)
 
     const page = parseInt(request.nextUrl.searchParams.get('page') || '1', 10)
     const pageSize = parseInt(request.nextUrl.searchParams.get('pageSize') || '50', 10)
