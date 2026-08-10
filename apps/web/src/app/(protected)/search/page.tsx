@@ -307,27 +307,7 @@ function SearchContent() {
                   }
                   .illustration-refined {
                     animation: floatSubtle 6s infinite ease-in-out;
-                    mix-blend-mode: multiply;
                     transition: all 0.3s ease;
-                  }
-                  .illustration-dark { display: none; }
-                  
-                  /* Mode Sombre : visibilité maximale */
-                  .dark .illustration-light,
-                  [data-theme='dark'] .illustration-light {
-                    display: none !important;
-                  }
-                  .dark .illustration-dark,
-                  [data-theme='dark'] .illustration-dark {
-                    display: block !important;
-                    animation: floatSubtle 6s infinite ease-in-out !important;
-                    mix-blend-mode: normal !important;
-                    filter: brightness(1.6) contrast(1.15) saturate(1.1) drop-shadow(0 0 18px rgba(74, 222, 128, 0.35)) !important;
-                    opacity: 1 !important;
-                  }
-                  .dark .desktop-illustration,
-                  [data-theme='dark'] .desktop-illustration {
-                    background: radial-gradient(50% 50% at 50% 50%, rgba(34, 197, 94, 0.15) 0%, transparent 100%) !important;
                   }
 
                   .mobile-illustration { display: none; }
@@ -342,22 +322,12 @@ function SearchContent() {
                   <img
                     src="/illustrations/search-prospects.png"
                     alt="Prospection B2B au Cameroun — Trouvez vos clients avec Sales Companion"
-                    className="illustration-refined illustration-light"
+                    className="illustration-refined"
                     style={{
                       width: '100%',
                       height: '100%',
                       objectFit: 'contain',
                       opacity: 0.95
-                    }}
-                  />
-                  <img
-                    src="/illustrations/search-prospects-dark.png"
-                    alt="Annuaire des entreprises du Cameroun — Intelligence commerciale B2B"
-                    className="illustration-refined illustration-dark"
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'contain'
                     }}
                   />
                 </div>
