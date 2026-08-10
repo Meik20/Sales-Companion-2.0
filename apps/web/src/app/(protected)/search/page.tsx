@@ -310,6 +310,27 @@ function SearchContent() {
                     transition: all 0.3s ease;
                   }
 
+                  /* Mode Clair : le fond blanc de l'image se fond parfaitement dans la page */
+                  :root:not(.dark) .illustration-refined,
+                  html:not(.dark) .illustration-refined,
+                  [data-theme='light'] .illustration-refined {
+                    mix-blend-mode: multiply;
+                  }
+
+                  /* Mode Sombre : l'image est encapsulée dans une carte UI élégante aux coins arrondis */
+                  .dark .desktop-illustration,
+                  [data-theme='dark'] .desktop-illustration {
+                    background: #ffffff !important;
+                    border-radius: 20px !important;
+                    padding: 12px !important;
+                    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.12) !important;
+                    overflow: hidden !important;
+                  }
+                  .dark .illustration-refined,
+                  [data-theme='dark'] .illustration-refined {
+                    border-radius: 12px !important;
+                  }
+
                   .mobile-illustration { display: none; }
                   @media (max-width: 768px) {
                     .desktop-illustration { display: none !important; }
