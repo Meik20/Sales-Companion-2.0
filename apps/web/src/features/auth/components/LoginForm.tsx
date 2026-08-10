@@ -24,7 +24,9 @@ export function LoginForm() {
   }, [router])
 
   useEffect(() => {
-    if (!authLoading && user) router.replace(routes.search)
+    if (!authLoading && user) {
+      router.replace(user.role === 'support_agent' ? routes.crm : routes.search)
+    }
   }, [user, authLoading, router])
 
   const [email, setEmail] = useState('')
@@ -43,8 +45,7 @@ export function LoginForm() {
     setGoogleLoading(true)
     setError(null)
     try {
-      const result = await loginWithGoogle()
-      if (result) router.replace(routes.search)
+      await loginWithGoogle()
     } catch (err) {
       setError(mapAuthError(err))
     } finally {
@@ -82,7 +83,6 @@ export function LoginForm() {
         const data = await res.json()
         if (!res.ok) throw new Error(data.error || data.message || "Erreur d'activation")
         await loginWithEmail(email, password)
-        router.replace(routes.search)
       } catch (err: any) {
         setError(err.message || 'Erreur réseau')
       } finally {
@@ -95,7 +95,6 @@ export function LoginForm() {
     setLoading(true); setError(null)
     try {
       await loginWithEmail(email, password)
-      router.replace(routes.search)
     } catch (err) {
       setError(mapAuthError(err))
     } finally {

@@ -67,7 +67,7 @@ export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void 
           )}
 
           <Link
-            href={routes.search}
+            href={user?.role === 'support_agent' ? routes.crm : routes.search}
             className="group flex items-center gap-2.5"
             aria-label="Sales Companion 2.0"
           >

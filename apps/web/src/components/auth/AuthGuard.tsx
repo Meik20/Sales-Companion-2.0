@@ -70,17 +70,16 @@ export function AuthGuard({ children }: PropsWithChildren) {
   // ─────────────────────────────────────────────────────────────────────────
   // ✅ Rédirection automatique support_agent vers l'espace CRM unique
   // ─────────────────────────────────────────────────────────────────────────
+  const isSupportAgent = user?.role === 'support_agent'
+  const restrictedPaths = ['/pipeline', '/reporting', '/search', '/saved']
+  const isRestrictedForSupport = isSupportAgent && (pathname === '/' || restrictedPaths.some(p => pathname === p || pathname.startsWith(p + '/')))
+
   useEffect(() => {
     if (loading || !user) return
-    if (user.role !== 'support_agent') return
-
-    const restrictedPaths = ['/pipeline', '/reporting', '/search', '/saved']
-    const isRestricted = restrictedPaths.some(p => pathname === p || pathname.startsWith(p + '/'))
-
-    if (isRestricted || pathname === '/') {
+    if (isRestrictedForSupport) {
       router.replace('/crm')
     }
-  }, [user, loading, pathname, router])
+  }, [user, loading, isRestrictedForSupport, router])
 
   // Resend cooldown timer
   useEffect(() => {
@@ -252,6 +251,19 @@ export function AuthGuard({ children }: PropsWithChildren) {
             Modifier ma demande de paiement
           </button>
         </div>
+      </div>
+    )
+  }
+
+  if (isRestrictedForSupport) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background text-muted-foreground">
+        <style dangerouslySetInnerHTML={{ __html: `@keyframes spin { to { transform: rotate(360deg); } }` }} />
+        <span
+          className="inline-block h-8 w-8 rounded-full border-[3px] border-white/10"
+          style={{ borderTopColor: 'hsl(var(--primary))', animation: 'spin 0.8s linear infinite' }}
+        />
+        <p className="m-0 text-[14px]">Redirection vers l&apos;espace CRM…</p>
       </div>
     )
   }
