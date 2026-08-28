@@ -5,6 +5,7 @@ import { User as FirebaseUser } from 'firebase/auth'
 import { doc, onSnapshot } from 'firebase/firestore'
 import { auth, firestore } from '@/services/firebase/client'
 import { updateDoc, serverTimestamp } from 'firebase/firestore'
+import { PLAN_LIMITS } from '@sales-companion/shared'
 
 export type CurrentUser = {
   uid: string
@@ -71,11 +72,19 @@ export function useCurrentUser() {
             }
 
             const today = new Date().toISOString().split('T')[0]
-            const currentDailyUsed = data.lastResetDate === today ? (data.dailyUsed ?? 0) : 0
+            const userPlan = (data.plan || 'free') as keyof typeof PLAN_LIMITS
+            const isMonthly = userPlan === 'free'
+            const isSamePeriod = isMonthly
+              ? (data.lastResetDate ? data.lastResetDate.slice(0, 7) === today.slice(0, 7) : false)
+              : (data.lastResetDate === today)
+            const currentDailyUsed = isSamePeriod ? (data.dailyUsed ?? 0) : 0
+            const resolvedDailyLimit = PLAN_LIMITS[userPlan] ?? 10
 
             setUser({
               uid: firebaseUser.uid,
               ...data,
+              plan: userPlan,
+              dailyLimit: resolvedDailyLimit,
               dailyUsed: currentDailyUsed,
               getIdToken: (forceRefresh?: boolean) => firebaseUser.getIdToken(forceRefresh)
             } as CurrentUser)

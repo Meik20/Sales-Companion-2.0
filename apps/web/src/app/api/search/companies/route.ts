@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { getClientIp, checkRateLimit, checkRateLimitByUser } from '@/lib/rate-limit'
+import { PLAN_LIMITS } from '@sales-companion/shared'
 
 
 // Lazy import pour éviter les erreurs si firebase-admin ne s'initialise pas
@@ -86,9 +87,11 @@ export async function GET(request: NextRequest) {
       const userSnap = await userRef.get()
       if (userSnap.exists) {
         const data = userSnap.data() ?? {}
-        const dailyLimit = (data.dailyLimit as number) ?? 10
+        const plan = (data.plan || 'free') as keyof typeof PLAN_LIMITS
+        // Toujours lire le quota depuis PLAN_LIMITS — source de vérité unique,
+        // indépendante du champ dailyLimit potentiellement obsolète en Firestore.
+        const dailyLimit = PLAN_LIMITS[plan] ?? 10
         const currentDailyUsed = await ensureDailyReset(userRef, data)
-        const plan = data.plan || 'free'
 
         if (currentDailyUsed >= dailyLimit) {
           const quotaMessage = plan === 'free'

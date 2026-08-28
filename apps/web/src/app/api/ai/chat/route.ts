@@ -4,6 +4,7 @@ import { ensureDailyReset } from '@/lib/quota-utils'
 import { getClientIp, checkRateLimit, checkRateLimitByUser } from '@/lib/rate-limit'
 import { GEMINI_TOOLS, GROQ_TOOLS, executeAITool } from '@/lib/ai-tools'
 import { searchCompanies, type CompanyRecord } from '@/lib/company-search'
+import { PLAN_LIMITS } from '@sales-companion/shared'
 
 function detectSectorFromText(text: string): string | undefined {
   const t = text.toLowerCase()
@@ -147,8 +148,8 @@ export async function POST(request: NextRequest) {
         const userSnap = await userRef.get()
         if (userSnap.exists) {
           const data = userSnap.data() ?? {}
-          const dailyLimit = (data.dailyLimit as number) ?? 10
-          const plan = data.plan || 'free'
+          const plan = (data.plan || 'free') as keyof typeof PLAN_LIMITS
+          const dailyLimit = PLAN_LIMITS[plan] ?? 10
 
           if (plan === 'free') {
             return NextResponse.json(

@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { adminDb } from '@/lib/firebase-admin'
 import { verifyAdminCached } from '@/lib/api-admin-auth'
+import { PLAN_LIMITS } from '@sales-companion/shared'
 
 export async function GET(request: NextRequest) {
   try {
@@ -24,7 +25,12 @@ export async function GET(request: NextRequest) {
     const items = usersSnap.docs.map((doc) => {
       const data = doc.data()
       const today = new Date().toISOString().split('T')[0]
-      const currentDailyUsed = data.lastResetDate === today ? (data.dailyUsed ?? 0) : 0
+      const plan = (data.plan || 'free') as keyof typeof PLAN_LIMITS
+      const isMonthly = plan === 'free'
+      const isSamePeriod = isMonthly
+        ? (data.lastResetDate ? data.lastResetDate.slice(0, 7) === today.slice(0, 7) : false)
+        : (data.lastResetDate === today)
+      const currentDailyUsed = isSamePeriod ? (data.dailyUsed ?? 0) : 0
       return {
         uid: doc.id,
         name: data.name ?? null,
@@ -33,7 +39,7 @@ export async function GET(request: NextRequest) {
         plan: data.plan ?? 'free',
         active: data.active ?? true,
         dailyUsed: currentDailyUsed,
-        dailyLimit: data.dailyLimit ?? 10,
+        dailyLimit: PLAN_LIMITS[plan] ?? 10,
         company: data.company ?? null,
         sector: data.sector ?? null,
         region: data.region ?? null,

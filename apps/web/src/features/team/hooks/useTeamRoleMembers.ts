@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { db } from '@/lib/firebase'
 import { collection, query, where, onSnapshot } from 'firebase/firestore'
+import { PLAN_LIMITS } from '@sales-companion/shared'
 
 /**
  * Generic member shape — shared by TeamMember and SupportAgent.
@@ -106,7 +107,7 @@ export function useTeamRoleMembers(options: UseTeamRoleMembersOptions = {}) {
             managerUid,
             active: u.active ?? false,
             dailyUsed: u.dailyUsed ?? 0,
-            dailyLimit: u.dailyLimit ?? 100
+            dailyLimit: u.dailyLimit ?? PLAN_LIMITS.enterprise
           }
         }
       }
@@ -159,7 +160,7 @@ export function useTeamRoleMembers(options: UseTeamRoleMembersOptions = {}) {
             managerUid,
             active: isActive,
             dailyUsed: currentDailyUsed,
-            dailyLimit: data.dailyLimit ?? 100,
+            dailyLimit: data.dailyLimit ?? PLAN_LIMITS.enterprise,
             magicCode: data.magicCode
           }
         })
@@ -200,7 +201,7 @@ export function useTeamRoleMembers(options: UseTeamRoleMembersOptions = {}) {
             name: data.name ?? '',
             active: isActive,
             dailyUsed: currentDailyUsed,
-            dailyLimit: data.dailyLimit ?? 100,
+            dailyLimit: data.dailyLimit ?? PLAN_LIMITS.enterprise,
             managerUid: data.managerUid ?? managerUid
           }
         })

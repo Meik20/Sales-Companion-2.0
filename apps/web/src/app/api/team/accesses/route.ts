@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
       activated: false,
       permissions: perms,
       plan: managerPlan,
-      dailyLimit: managerData?.dailyLimit || PLAN_LIMITS[managerPlan] || 10,
+      dailyLimit: PLAN_LIMITS[managerPlan as keyof typeof PLAN_LIMITS] ?? 10,
       magicCode,
       createdAt: new Date(),
       updatedAt: new Date()
