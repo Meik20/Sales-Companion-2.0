@@ -71,7 +71,7 @@ export function useCurrentUser() {
               })
             }
 
-            const today = new Date().toISOString().split('T')[0]
+            const today = new Date().toISOString().slice(0, 10)
             const userPlan = (data.plan || 'free') as keyof typeof PLAN_LIMITS
             const isMonthly = userPlan === 'free'
             const isSamePeriod = isMonthly

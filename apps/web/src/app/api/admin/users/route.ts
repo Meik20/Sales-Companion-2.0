@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
 
     const items = usersSnap.docs.map((doc) => {
       const data = doc.data()
-      const today = new Date().toISOString().split('T')[0]
+      const today = new Date().toISOString().slice(0, 10)
       const plan = (data.plan || 'free') as keyof typeof PLAN_LIMITS
       const isMonthly = plan === 'free'
       const isSamePeriod = isMonthly

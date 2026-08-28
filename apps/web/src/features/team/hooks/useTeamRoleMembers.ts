@@ -148,7 +148,7 @@ export function useTeamRoleMembers(options: UseTeamRoleMembersOptions = {}) {
             [data.firstname, data.lastname].filter(Boolean).join(' ') || data.name || ''
 
           const uid = data.firebaseUid || d.id
-          const today = new Date().toISOString().split('T')[0]
+          const today = new Date().toISOString().slice(0, 10)
           const currentDailyUsed = data.lastResetDate === today ? (data.dailyUsed ?? 0) : 0
 
           accessesMap[uid] = {
@@ -192,7 +192,7 @@ export function useTeamRoleMembers(options: UseTeamRoleMembersOptions = {}) {
           const isActive =
             data.activated === true || data.active === true || data.status === 'active'
 
-          const today = new Date().toISOString().split('T')[0]
+          const today = new Date().toISOString().slice(0, 10)
           const currentDailyUsed = data.lastResetDate === today ? (data.dailyUsed ?? 0) : 0
 
           usersMap[d.id] = {
