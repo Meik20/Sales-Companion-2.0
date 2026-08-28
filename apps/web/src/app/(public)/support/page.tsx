@@ -1,10 +1,12 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { AppShell } from '@/components/layout/AppShell'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { firestore } from '@/services/firebase/client'
 import { useTranslation } from '@/providers/I18nProvider'
+import { PublicSupportForm } from '@/features/support/components/PublicSupportForm'
 import {
   collection,
   query,
@@ -19,7 +21,7 @@ import {
   Timestamp,
   getDocs
 } from 'firebase/firestore'
-import { MessageSquare, Send, Plus, X, ArrowLeft, Headphones, Trash2 } from 'lucide-react'
+import { MessageSquare, Send, Plus, X, ArrowLeft, Headphones, Trash2, HelpCircle } from 'lucide-react'
 
 type Thread = {
   id: string
@@ -61,7 +63,7 @@ function fmtTime(ts?: Timestamp) {
   return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })
 }
 
-export default function SupportPage() {
+function AuthenticatedSupportView() {
   const { t } = useTranslation()
   const { user } = useCurrentUser()
   const [threads, setThreads] = useState<Thread[]>([])
@@ -79,7 +81,7 @@ export default function SupportPage() {
   const selectedThread = threads.find((t) => t.id === selectedId)
   const isResolved = selectedThread ? selectedThread.status !== 'open' : false
 
-  // Real-time threads — sort client-side to avoid composite index requirement
+  // Real-time threads — sort client-side
   useEffect(() => {
     if (!user?.uid) return
     const q = query(collection(firestore, 'support_threads'), where('userId', '==', user.uid))
@@ -110,7 +112,7 @@ export default function SupportPage() {
     }
   }, [threads, selectedId])
 
-  // Mark thread as read once when selected — NOT inside the messages listener
+  // Mark thread as read once when selected
   useEffect(() => {
     if (!selectedId) return
     updateDoc(doc(firestore, 'support_threads', selectedId), { unreadByUser: false }).catch(
@@ -200,13 +202,10 @@ export default function SupportPage() {
     if (!window.confirm(t('support.confirmDelete'))) return
 
     try {
-      // 1. Delete all messages first (subcollection)
       const messagesRef = collection(firestore, 'support_threads', id, 'messages')
       const messagesSnap = await getDocs(messagesRef)
       const deletePromises = messagesSnap.docs.map((d) => deleteDoc(d.ref))
       await Promise.all(deletePromises)
-
-      // 2. Delete the thread itself
       await deleteDoc(doc(firestore, 'support_threads', id))
 
       if (selectedId === id) {
@@ -237,18 +236,18 @@ export default function SupportPage() {
           min-height: 480px;
           border-radius: 16px;
           overflow: hidden;
-          border: 1px solid ${'var(--border, rgba(255,255,255,0.1))'};
+          border: 1px solid var(--border, rgba(255,255,255,0.1));
         }
         @media (max-width: 768px) {
           .sup-layout { grid-template-columns: 1fr; height: auto; }
           .sup-list   { display: var(--list-display, flex); }
           .sup-chat   { display: var(--chat-display, flex); }
         }
-        .thr-item { width:100%; text-align:left; padding:12px 14px; border:none; cursor:pointer; transition:background 150ms; display:block; border-bottom:1px solid ${'var(--border, rgba(255,255,255,0.1))'}; }
+        .thr-item { width:100%; text-align:left; padding:12px 14px; border:none; cursor:pointer; transition:background 150ms; display:block; border-bottom:1px solid var(--border, rgba(255,255,255,0.1)); }
         .thr-item:hover { background: rgba(55,138,221,0.06); }
         .thr-item.sel  { background: rgba(55,138,221,0.1); border-left: 3px solid var(--color-accent); }
         .msg-user  { background:var(--color-primary); color:#fff; border-radius:18px 18px 4px 18px; align-self:flex-end; }
-        .msg-admin { background:${'var(--secondary, #1e2a3b)'}; color:${'var(--foreground, #f1f5f9)'}; border-radius:18px 18px 18px 4px; align-self:flex-start; }
+        .msg-admin { background:var(--secondary, #1e2a3b); color:var(--foreground, #f1f5f9); border-radius:18px 18px 18px 4px; align-self:flex-start; }
       `
         }}
       />
@@ -289,7 +288,7 @@ export default function SupportPage() {
             padding: '0 14px',
             background: showNew ? 'var(--secondary, #1e2a3b)' : 'var(--color-primary)',
             color: showNew ? 'var(--muted-foreground, #94a3b8)' : '#fff',
-            border: showNew ? `1px solid ${'var(--border, rgba(255,255,255,0.1))'}` : 'none',
+            border: showNew ? '1px solid var(--border, rgba(255,255,255,0.1))' : 'none',
             borderRadius: 10,
             cursor: 'pointer',
             fontWeight: 600,
@@ -320,7 +319,7 @@ export default function SupportPage() {
           style={{
             marginBottom: 16,
             background: 'var(--secondary, #1e2a3b)',
-            border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+            border: '1px solid var(--border, rgba(255,255,255,0.1))',
             borderRadius: 12,
             padding: '16px 20px',
             display: 'flex',
@@ -350,7 +349,7 @@ export default function SupportPage() {
                 width: '100%',
                 height: 40,
                 padding: '0 14px',
-                border: `1.5px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+                border: '1.5px solid var(--border, rgba(255,255,255,0.1))',
                 borderRadius: 8,
                 fontSize: 13,
                 fontFamily: 'inherit',
@@ -401,12 +400,12 @@ export default function SupportPage() {
 
       {/* Main layout */}
       <div className="sup-layout">
-        {/* ── Left: thread list ── */}
+        {/* Left: thread list */}
         <div
           className="sup-list"
           style={{
             flexDirection: 'column',
-            borderRight: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+            borderRight: '1px solid var(--border, rgba(255,255,255,0.1))',
             overflow: 'hidden'
           }}
         >
@@ -418,7 +417,7 @@ export default function SupportPage() {
               color: 'var(--muted-foreground, #94a3b8)',
               textTransform: 'uppercase',
               letterSpacing: '.06em',
-              borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+              borderBottom: '1px solid var(--border, rgba(255,255,255,0.1))',
               background: 'var(--card, #131c2e)',
               display: 'flex',
               alignItems: 'center',
@@ -562,7 +561,7 @@ export default function SupportPage() {
           </div>
         </div>
 
-        {/* ── Right: chat area ── */}
+        {/* Right: chat area */}
         <div className="sup-chat" style={{ flexDirection: 'column', overflow: 'hidden' }}>
           {!selectedId ? (
             <div
@@ -603,7 +602,7 @@ export default function SupportPage() {
               <div
                 style={{
                   padding: '12px 18px',
-                  borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+                  borderBottom: '1px solid var(--border, rgba(255,255,255,0.1))',
                   background: 'var(--card, #131c2e)',
                   display: 'flex',
                   alignItems: 'center',
@@ -730,11 +729,11 @@ export default function SupportPage() {
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Input zone — always rendered, disabled when resolved */}
+              {/* Input zone */}
               <div
                 style={{
                   padding: '10px 14px',
-                  borderTop: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+                  borderTop: '1px solid var(--border, rgba(255,255,255,0.1))',
                   background: 'var(--secondary, #1e2a3b)'
                 }}
               >
@@ -784,7 +783,7 @@ export default function SupportPage() {
                       style={{
                         flex: 1,
                         padding: '10px 14px',
-                        border: `1.5px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+                        border: '1.5px solid var(--border, rgba(255,255,255,0.1))',
                         borderRadius: 20,
                         fontSize: 13.5,
                         resize: 'none',
@@ -803,22 +802,21 @@ export default function SupportPage() {
                       onClick={() => void handleSend()}
                       disabled={sending || !inputText.trim()}
                       style={{
-                        width: 42,
-                        height: 42,
-                        flexShrink: 0,
+                        width: 38,
+                        height: 38,
                         borderRadius: '50%',
                         background: inputText.trim() ? 'var(--color-primary)' : 'var(--border, rgba(255,255,255,0.1))',
-                        color: '#fff',
+                        color: inputText.trim() ? '#fff' : 'var(--muted-foreground, #94a3b8)',
                         border: 'none',
-                        cursor: inputText.trim() ? 'pointer' : 'not-allowed',
+                        cursor: inputText.trim() ? 'pointer' : 'default',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        boxShadow: inputText.trim() ? '0 4px 12px rgba(24,95,165,0.35)' : 'none',
+                        flexShrink: 0,
                         transition: 'all 150ms ease'
                       }}
                     >
-                      {sending ? <span style={{ fontSize: 14 }}>…</span> : <Send size={16} />}
+                      <Send size={15} />
                     </button>
                   </div>
                 )}
@@ -828,5 +826,45 @@ export default function SupportPage() {
         </div>
       </div>
     </AppShell>
+  )
+}
+
+function SupportContent() {
+  const { user, loading } = useCurrentUser()
+  const searchParams = useSearchParams()
+
+  const typeParam = searchParams.get('type')
+  const modeParam = searchParams.get('mode')
+
+  // If explicitly requesting public support form (e.g. from registration corporate domain link)
+  // or user is not logged in, show the Public Support Form
+  const showForm = !user || typeParam === 'corporate_domain' || modeParam === 'form'
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      </div>
+    )
+  }
+
+  if (user && !showForm) {
+    return <AuthenticatedSupportView />
+  }
+
+  return <PublicSupportForm />
+}
+
+export default function SupportPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+        </div>
+      }
+    >
+      <SupportContent />
+    </Suspense>
   )
 }

@@ -32,6 +32,10 @@ type Thread = {
   updatedAt?: Timestamp
   unreadByAdmin?: boolean
   type?: string
+  companyName?: string
+  phone?: string
+  sector?: string
+  isGuest?: boolean
 }
 
 type Message = {
@@ -209,6 +213,8 @@ export default function AdminSupportPage() {
       (t.subject ?? '').toLowerCase().includes(term) ||
       (t.userName ?? '').toLowerCase().includes(term) ||
       (t.userEmail ?? '').toLowerCase().includes(term) ||
+      (t.companyName ?? '').toLowerCase().includes(term) ||
+      (t.phone ?? '').toLowerCase().includes(term) ||
       (t.userId ?? '').toLowerCase().includes(term)
     return matchStatus && matchSearch
   })
@@ -395,10 +401,28 @@ export default function AdminSupportPage() {
                           fontSize: 13,
                           color: 'var(--foreground, #f1f5f9)',
                           flex: 1,
-                          paddingRight: 8
+                          paddingRight: 8,
+                          display: 'flex',
+                          alignItems: 'center',
+                          flexWrap: 'wrap',
+                          gap: 4
                         }}
                       >
-                        {t.subject ?? '—'}
+                        <span>{t.subject ?? '—'}</span>
+                        {t.type === 'corporate_domain_request' && (
+                          <span
+                            style={{
+                              fontSize: 9.5,
+                              padding: '1px 5px',
+                              background: 'rgba(234, 179, 8, 0.15)',
+                              color: '#facc15',
+                              borderRadius: 4,
+                              fontWeight: 700
+                            }}
+                          >
+                            🏢 Dérogation Domaine
+                          </span>
+                        )}
                         {t.unreadByAdmin && (
                           <span
                             style={{
@@ -408,7 +432,7 @@ export default function AdminSupportPage() {
                               background: '#E53935',
                               borderRadius: '50%',
                               verticalAlign: 'middle',
-                              marginLeft: 6
+                              marginLeft: 2
                             }}
                           />
                         )}
@@ -429,6 +453,7 @@ export default function AdminSupportPage() {
                     </div>
                     <div style={{ fontSize: 11.5, color: 'var(--muted-foreground, #94a3b8)', marginBottom: 2 }}>
                       👤 {t.userName || t.userEmail || '—'}
+                      {t.companyName && <span style={{ marginLeft: 6, color: '#94a3b8' }}>· 🏢 {t.companyName}</span>}
                     </div>
                     {t.lastMessage && (
                       <div
@@ -603,6 +628,65 @@ export default function AdminSupportPage() {
                       {selected.userEmail || '—'}
                     </div>
                   </div>
+                  {/* Entreprise */}
+                  {selected.companyName && (
+                    <div>
+                      <div
+                        style={{
+                          fontSize: 10,
+                          color: 'var(--muted-foreground, #64748b)',
+                          textTransform: 'uppercase',
+                          letterSpacing: '.04em',
+                          marginBottom: 2
+                        }}
+                      >
+                        Entreprise
+                      </div>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--foreground, #f1f5f9)' }}>
+                        🏢 {selected.companyName}
+                      </div>
+                    </div>
+                  )}
+                  {/* Téléphone */}
+                  {selected.phone && (
+                    <div>
+                      <div
+                        style={{
+                          fontSize: 10,
+                          color: 'var(--muted-foreground, #64748b)',
+                          textTransform: 'uppercase',
+                          letterSpacing: '.04em',
+                          marginBottom: 2
+                        }}
+                      >
+                        Téléphone / WhatsApp
+                      </div>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: '#4ade80' }}>
+                        <a href={`tel:${selected.phone}`} style={{ color: 'inherit', textDecoration: 'none' }}>
+                          📱 {selected.phone}
+                        </a>
+                      </div>
+                    </div>
+                  )}
+                  {/* Secteur */}
+                  {selected.sector && (
+                    <div>
+                      <div
+                        style={{
+                          fontSize: 10,
+                          color: 'var(--muted-foreground, #64748b)',
+                          textTransform: 'uppercase',
+                          letterSpacing: '.04em',
+                          marginBottom: 2
+                        }}
+                      >
+                        Secteur
+                      </div>
+                      <div style={{ fontSize: 12, color: 'var(--foreground, #f1f5f9)' }}>
+                        {selected.sector}
+                      </div>
+                    </div>
+                  )}
                   {/* Statut */}
                   <div>
                     <div
@@ -630,6 +714,28 @@ export default function AdminSupportPage() {
                     </span>
                   </div>
                 </div>
+
+                {selected.type === 'corporate_domain_request' && (
+                  <div
+                    style={{
+                      marginTop: 10,
+                      padding: '8px 12px',
+                      borderRadius: 6,
+                      background: 'rgba(234, 179, 8, 0.1)',
+                      border: '1px solid rgba(234, 179, 8, 0.3)',
+                      color: '#facc15',
+                      fontSize: 11.5,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8
+                    }}
+                  >
+                    <span>💡</span>
+                    <span>
+                      <strong>Demande d'inscription Manager sans domaine :</strong> Cet utilisateur souhaite créer un compte Manager pour son équipe. Vous pouvez lui répondre par message ou créer directement son accès dans la section Équipe/Users.
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Messages */}

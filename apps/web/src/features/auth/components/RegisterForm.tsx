@@ -180,7 +180,10 @@ export function RegisterForm() {
           {role === 'manager' && (
             <p className="mt-1.5 text-[11px] text-muted-foreground/80">
               💡 {t('auth.noCorporateEmailContactSupport' as any) || "Votre entreprise n'a pas de nom de domaine propre ?"}{' '}
-              <Link href={routes.support} className="font-semibold text-primary underline underline-offset-2">
+              <Link
+                href={`${routes.support}?type=corporate_domain${email.trim() ? `&email=${encodeURIComponent(email.trim())}` : ''}${name.trim() ? `&name=${encodeURIComponent(name.trim())}` : ''}${companyName.trim() ? `&company=${encodeURIComponent(companyName.trim())}` : ''}${sector.trim() ? `&sector=${encodeURIComponent(sector.trim())}` : ''}`}
+                className="font-semibold text-primary underline underline-offset-2"
+              >
                 {t('sidebar.support')}
               </Link>
             </p>
