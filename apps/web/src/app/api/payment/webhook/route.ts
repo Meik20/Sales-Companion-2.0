@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { adminDb } from '@/lib/firebase-admin'
 import { FieldValue } from 'firebase-admin/firestore'
 import { PLANS } from '@/lib/payment-plans'
+import { PLAN_LIMITS } from '@sales-companion/shared'
 
 /**
  * POST /api/payment/webhook
@@ -46,7 +47,7 @@ export async function POST(request: NextRequest) {
         .doc(paymentData.userId)
         .update({
           plan: paymentData.plan,
-          dailyLimit: planInfo?.dailyLimit ?? 1000,
+          dailyLimit: planInfo?.dailyLimit ?? PLAN_LIMITS.enterprise,
           updatedAt: FieldValue.serverTimestamp()
         })
 

@@ -3,6 +3,7 @@ import { adminDb } from '@/lib/firebase-admin'
 import { campayGetTransaction } from '@/lib/campay'
 import { FieldValue } from 'firebase-admin/firestore'
 import { PLANS } from '@/lib/payment-plans'
+import { PLAN_LIMITS } from '@sales-companion/shared'
 
 /**
  * GET /api/payment/status/[ref]
@@ -40,7 +41,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         .doc(paymentData.userId)
         .update({
           plan: paymentData.plan,
-          dailyLimit: planInfo?.dailyLimit ?? 1000,
+          dailyLimit: planInfo?.dailyLimit ?? PLAN_LIMITS.enterprise,
           updatedAt: FieldValue.serverTimestamp()
         })
 

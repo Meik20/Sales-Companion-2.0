@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { adminDb, adminAuth } from '@/lib/firebase-admin'
 import { sendEmail } from '@/utils/email'
+import { PLAN_LIMITS } from '@sales-companion/shared'
 
 function normalizeText(text: string) {
   return (text || '')
@@ -59,8 +60,7 @@ export async function POST(request: NextRequest) {
     // Génération d'un code magique pour l'activation simplifiée (Magic Link)
     const magicCode = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
 
-    const defaultLimits: Record<string, number> = { free: 10, starter: 50, pro: 200, enterprise: 1000 }
-    const managerPlan = managerData?.plan || 'free'
+    const managerPlan = (managerData?.plan || 'free') as keyof typeof PLAN_LIMITS
 
     const newAccess = {
       managerUid,
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
       activated: false,
       permissions: perms,
       plan: managerPlan,
-      dailyLimit: managerData?.dailyLimit || defaultLimits[managerPlan] || 10,
+      dailyLimit: managerData?.dailyLimit || PLAN_LIMITS[managerPlan] || 10,
       magicCode,
       createdAt: new Date(),
       updatedAt: new Date()

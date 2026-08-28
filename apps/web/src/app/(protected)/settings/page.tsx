@@ -13,16 +13,15 @@ import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { useAuthActions } from '@/features/auth/hooks/useAuthActions'
 import { auth } from '@/services/firebase/client'
+import { PLAN_LIMITS } from '@sales-companion/shared'
 
-const planDetails = {
+const planDetails: Record<string, { labelKey: string; featureKeys: string[] }> = {
   free: {
     labelKey: 'settings.plans.free',
-    searches: 10,
     featureKeys: ['settings.features.basicSearch', 'settings.features.personalPipeline']
   },
   starter: {
     labelKey: 'settings.plans.starter',
-    searches: 50,
     featureKeys: [
       'settings.features.advancedSearch',
       'settings.features.personalPipeline',
@@ -31,7 +30,6 @@ const planDetails = {
   },
   pro: {
     labelKey: 'settings.plans.pro',
-    searches: 200,
     featureKeys: [
       'settings.features.allStarter',
       'settings.features.pipelineUnlimited',
@@ -41,7 +39,6 @@ const planDetails = {
   },
   enterprise: {
     labelKey: 'settings.plans.enterprise',
-    searches: 1000,
     featureKeys: [
       'settings.features.allPro',
       'settings.features.oneThousandSearches',
@@ -111,7 +108,7 @@ export default function SettingsPage() {
   }
 
   const plan = user?.plan ?? 'free'
-  const planInfo = planDetails[plan as keyof typeof planDetails] ?? planDetails.free
+  const planInfo = (planDetails[plan as keyof typeof planDetails] ?? planDetails['free'])!
 
   // ── Design Theme ────────────────────────────────────────────────
   const [activeDesign, setActiveDesign] = useState<DesignTheme>('linkedin')
@@ -257,9 +254,7 @@ export default function SettingsPage() {
                   <p className="m-0 text-[13px] text-muted-foreground">
                     {plan === 'free'
                       ? t('landing.plansSection.pFree1' as any)
-                      : planInfo.searches >= 1000
-                        ? t('settings.searchesPerDay1000') || `${planInfo.searches} ${t('settings.searchesPerDay')}`
-                        : `${planInfo.searches} ${t('settings.searchesPerDay')}`}
+                      : `${user?.dailyLimit ?? PLAN_LIMITS[plan as keyof typeof PLAN_LIMITS] ?? 10} ${t('settings.searchesPerDay')}`}
                   </p>
                 </div>
 
