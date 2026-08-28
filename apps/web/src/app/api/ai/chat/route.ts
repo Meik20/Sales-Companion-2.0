@@ -191,75 +191,91 @@ export async function POST(request: NextRequest) {
   }
 }
 
-/* ── Gemini 1.5 Flash ── */
+/* ── Gemini (with fallback models) ── */
 async function callGemini(
   apiKey: string,
   contents: { role: string; parts: [{ text: string }] }[],
   systemPrompt: string
 ): Promise<string | null> {
-  try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          systemInstruction: { parts: [{ text: systemPrompt }] },
-          contents,
-          generationConfig: { temperature: 0.7, maxOutputTokens: 1024 }
-        })
+  const models = ['gemini-3.5-flash', 'gemini-3.6-flash', 'gemini-flash-latest', 'gemini-1.5-flash']
+
+  for (const model of models) {
+    try {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: systemPrompt }] },
+            contents,
+            generationConfig: { temperature: 0.7, maxOutputTokens: 1024 }
+          })
+        }
+      )
+      if (res.ok) {
+        const data = await res.json()
+        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text
+        if (text) return text
+      } else {
+        console.warn(`[AI] Gemini ${model} error: ${res.status}`)
       }
-    )
-    if (!res.ok) {
-      console.error('Gemini error:', res.status, await res.text())
-      return null
+    } catch (e) {
+      console.warn(`[AI] Gemini ${model} fetch failed:`, e)
     }
-    const data = await res.json()
-    return data?.candidates?.[0]?.content?.parts?.[0]?.text ?? null
-  } catch (e) {
-    console.error('Gemini fetch failed:', e)
-    return null
   }
+  return null
 }
 
-/* ── Groq (llama-3.3-70b) ── */
+/* ── Groq (with fallback models) ── */
 async function callGroq(
   apiKey: string,
   message: string,
   history: { role: 'user' | 'model'; parts: [{ text: string }] }[],
   systemPrompt: string
 ): Promise<string | null> {
-  try {
-    const messages = [
-      { role: 'system', content: systemPrompt },
-      ...history.map((h) => ({
-        role: h.role === 'model' ? 'assistant' : 'user',
-        content: h.parts[0].text
-      })),
-      { role: 'user', content: message }
-    ]
+  const models = [
+    'openai/gpt-oss-120b',
+    'qwen/qwen3.8-27b',
+    'groq/compound',
+    'openai/gpt-oss-20b',
+    'llama-3.3-70b-versatile'
+  ]
 
-    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages,
-        max_tokens: 1024,
-        temperature: 0.7
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    ...history.map((h) => ({
+      role: h.role === 'model' ? 'assistant' : 'user',
+      content: h.parts[0].text
+    })),
+    { role: 'user', content: message }
+  ]
+
+  for (const model of models) {
+    try {
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model,
+          messages,
+          max_tokens: 1024,
+          temperature: 0.7
+        })
       })
-    })
-    if (!res.ok) {
-      console.error('Groq error:', res.status, await res.text())
-      return null
+      if (res.ok) {
+        const data = await res.json()
+        const text = data?.choices?.[0]?.message?.content
+        if (text) return text
+      } else {
+        console.warn(`[AI] Groq ${model} error: ${res.status}`)
+      }
+    } catch (e) {
+      console.warn(`[AI] Groq ${model} fetch failed:`, e)
     }
-    const data = await res.json()
-    return data?.choices?.[0]?.message?.content ?? null
-  } catch (e) {
-    console.error('Groq fetch failed:', e)
-    return null
   }
+  return null
 }
