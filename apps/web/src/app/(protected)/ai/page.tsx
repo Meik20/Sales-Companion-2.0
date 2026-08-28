@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { useTranslation } from '@/providers/I18nProvider'
 
 interface Message {
   id: string
@@ -12,19 +13,26 @@ interface Message {
 
 export default function AIAssistantPage() {
   const { user } = useCurrentUser()
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      role: 'assistant',
-      content:
-        '👋 Bonjour! Je suis votre Companion IA. Je peux vous aider avec des conseils commerciaux, des stratégies de prospection, et bien plus. Comment puis-je vous aider?',
-      timestamp: new Date()
-    }
-  ])
+  const { lang, t } = useTranslation()
+  const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+
+  useEffect(() => {
+    setMessages([
+      {
+        id: '1',
+        role: 'assistant',
+        content:
+          lang === 'en'
+            ? '👋 Hello! I am your AI Sales Companion. I can help you with B2B prospecting, finding companies in our database, and drafting outreach pitches. How can I help you today?'
+            : '👋 Bonjour ! Je suis votre Companion IA. Je peux vous aider avec des conseils commerciaux, la recherche d\'entreprises dans la base et la prospection B2B au Cameroun. Comment puis-je vous aider ?',
+        timestamp: new Date()
+      }
+    ])
+  }, [lang])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -53,7 +61,7 @@ export default function AIAssistantPage() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ message: input })
+        body: JSON.stringify({ message: input, lang })
       })
 
       if (!response.ok) {
@@ -167,10 +175,10 @@ export default function AIAssistantPage() {
       >
         <div>
           <h1 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: 'var(--foreground, #f1f5f9)' }}>
-            Companion IA
+            {lang === 'en' ? 'AI Sales Companion' : 'Companion IA'}
           </h1>
           <p style={{ margin: 0, fontSize: '12px', color: 'var(--muted-foreground, #94a3b8)' }}>
-            Conseils commerciaux en temps réel
+            {lang === 'en' ? 'Real-time sales insights & prospecting' : 'Conseils commerciaux et prospection en temps réel'}
           </p>
         </div>
       </div>
@@ -230,7 +238,7 @@ export default function AIAssistantPage() {
                 fontSize: '14px'
               }}
             >
-              ⏳ Réflexion en cours...
+              {lang === 'en' ? '⏳ Searching database & thinking...' : '⏳ Recherche dans la base & réflexion...'}
             </div>
           </div>
         )}
@@ -257,7 +265,11 @@ export default function AIAssistantPage() {
           ref={inputRef}
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Posez votre question..."
+          placeholder={
+            lang === 'en'
+              ? 'Ask for companies, email pitches, sales advice...'
+              : 'Demandez des entreprises, un pitch email, des conseils...'
+          }
           style={{
             flex: 1,
             padding: '10px 12px',
@@ -290,7 +302,7 @@ export default function AIAssistantPage() {
             transition: 'all 200ms ease'
           }}
         >
-          Envoyer
+          {lang === 'en' ? 'Send' : 'Envoyer'}
         </button>
       </form>
     </div>

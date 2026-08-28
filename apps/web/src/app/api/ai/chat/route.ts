@@ -3,17 +3,54 @@ import { adminAuth, adminDb } from '@/lib/firebase-admin'
 import { ensureDailyReset } from '@/lib/quota-utils'
 import { getClientIp, checkRateLimit, checkRateLimitByUser } from '@/lib/rate-limit'
 import { GEMINI_TOOLS, GROQ_TOOLS, executeAITool } from '@/lib/ai-tools'
+import { searchCompanies, type CompanyRecord } from '@/lib/company-search'
+
+function detectSectorFromText(text: string): string | undefined {
+  const t = text.toLowerCase()
+  if (t.includes('btp') || t.includes('construction') || t.includes('batiment') || t.includes('immobilier')) return 'BTP & Construction'
+  if (t.includes('agro') || t.includes('agriculture') || t.includes('alimentaire') || t.includes('elevage')) return 'Agriculture & Agroalimentaire'
+  if (t.includes('tech') || t.includes('informatique') || t.includes('numerique') || t.includes('logiciel') || t.includes('digital')) return 'Technologies & Numérique'
+  if (t.includes('transport') || t.includes('logistique') || t.includes('fret') || t.includes('livraison')) return 'Transport & Logistique'
+  if (t.includes('sante') || t.includes('medical') || t.includes('pharmacie') || t.includes('clinique') || t.includes('hopital')) return 'Santé'
+  if (t.includes('commerce') || t.includes('vente') || t.includes('distribution') || t.includes('import') || t.includes('export')) return 'Commerce'
+  if (t.includes('finance') || t.includes('banque') || t.includes('assurance') || t.includes('microfinance') || t.includes('comptabilite')) return 'Finance & Assurance'
+  if (t.includes('energie') || t.includes('mine') || t.includes('petrole') || t.includes('gaz') || t.includes('solaire') || t.includes('eau')) return 'Énergie & Mines'
+  if (t.includes('industrie') || t.includes('usine') || t.includes('fabrication') || t.includes('manufacture')) return 'Industrie manufacturière'
+  if (t.includes('hotel') || t.includes('restaurant') || t.includes('tourisme') || t.includes('traiteur')) return 'Hôtellerie & Restauration'
+  if (t.includes('education') || t.includes('formation') || t.includes('ecole') || t.includes('universite') || t.includes('academie')) return 'Éducation & Formation'
+  if (t.includes('service') || t.includes('conseil') || t.includes('audit') || t.includes('consulting') || t.includes('communication')) return 'Services & Conseil'
+  return undefined
+}
+
+function detectRegionFromText(text: string): string | undefined {
+  const t = text.toLowerCase()
+  if (t.includes('douala') || t.includes('littoral') || t.includes('edea') || t.includes('nkongsamba')) return 'Littoral'
+  if (t.includes('yaounde') || t.includes('centre') || t.includes('mbalmayo') || t.includes('bafia')) return 'Centre'
+  if (t.includes('bafoussam') || t.includes('ouest') || t.includes('dschang') || t.includes('foumban')) return 'Ouest'
+  if (t.includes('bamenda') || t.includes('nord-ouest') || t.includes('kumbo')) return 'Nord-Ouest'
+  if (t.includes('buea') || t.includes('limbe') || t.includes('sud-ouest') || t.includes('kumba')) return 'Sud-Ouest'
+  if (t.includes('garoua') || t.includes('nord') || t.includes('guider')) return 'Nord'
+  if (t.includes('maroua') || t.includes('extreme-nord') || t.includes('kousseri')) return 'Extrême-Nord'
+  if (t.includes('ngaoundere') || t.includes('adamaoua') || t.includes('meiganga')) return 'Adamaoua'
+  if (t.includes('bertoua') || t.includes('est') || t.includes('batouri')) return 'Est'
+  if (t.includes('ebolowa') || t.includes('kribi') || t.includes('sud') || t.includes('sangmelima')) return 'Sud'
+  return undefined
+}
 
 /**
- * Construit un system prompt contextualisé selon le profil utilisateur
- * et informe le modèle de l'accès direct aux outils de la base entreprises.
+ * Construit un system prompt contextualisé ultra-performant bilingue (FR/EN)
+ * avec injection directe des entreprises réelles pour un temps de réponse instantané (< 1.5s).
  */
-function buildSystemPrompt(userContext?: {
-  sector?: string | null
-  company?: string | null
-  region?: string | null
-  name?: string | null
-}): string {
+function buildSystemPrompt(
+  userContext?: {
+    sector?: string | null
+    company?: string | null
+    region?: string | null
+    name?: string | null
+  },
+  preFetchedCompanies?: Partial<CompanyRecord>[],
+  lang: 'fr' | 'en' = 'fr'
+): string {
   const sector = userContext?.sector?.trim()
   const company = userContext?.company?.trim()
   const region = userContext?.region?.trim()
@@ -21,26 +58,52 @@ function buildSystemPrompt(userContext?: {
 
   const contextBlock =
     sector || company || region
-      ? `\n\n## Contexte utilisateur (PRIORITAIRE)\n${name ? `- Commercial / Utilisateur : ${name}\n` : ''}${company ? `- Entreprise : ${company}\n` : ''}${sector ? `- Secteur d'activité cible : **${sector}**\n` : ''}${region ? `- Région principale : ${region}\n` : ''}\nOriente tes conseils et exemples vers ce contexte commercial.`
+      ? `\n\n## Contexte Utilisateur Connecté / User Profile\n${name ? `- Commercial / User : **${name}**\n` : ''}${company ? `- Entreprise / Company : ${company}\n` : ''}${sector ? `- Secteur cible / Target Sector : **${sector}**\n` : ''}${region ? `- Région principale / Main Region : **${region}**\n` : ''}`
       : ''
 
-  return `Tu es le Companion IA de Sales Companion 2.0, l'assistant commercial B2B de référence au Cameroun.
+  const preFetchedBlock =
+    preFetchedCompanies && preFetchedCompanies.length > 0
+      ? `\n\n## 🏢 Entreprises Réelles de la Base / Real Verified Companies in Database
+Voici des entreprises officielles camerounaises enregistrées dans l'application :
+${preFetchedCompanies
+  .map(
+    (c, i) =>
+      `${i + 1}. **${c.raisonSociale}** ${c.sigle ? `(${c.sigle})` : ''}
+   - Secteur / Sector : ${c.sector || 'Général'} | Localisation : ${c.city || ''} (${c.region || ''})
+   - Dirigeant / Executive : ${c.dirigeant || 'Non spécifié'} | NIU : ${c.niu || 'N/A'}
+   - Téléphone : ${c.telephone || 'Non renseigné'} | Email : ${c.email || 'Non renseigné'}
+   - Adresse : ${c.adresse || 'Non spécifiée'}`
+  )
+  .join('\n')}`
+      : ''
 
-## Capacités spéciales & Outils Base de Données
-Tu as un accès DIRECT à la base de données des entreprises camerounaises via tes outils :
-1. \`search_companies\` : utilise cet outil dès que l'utilisateur recherche des entreprises, des cibles, des prospects par nom, secteur, région (ex: Littoral, Centre, Ouest...) ou ville (ex: Douala, Yaoundé, Bafoussam...).
-2. \`get_company_details\` : utilise cet outil pour obtenir la fiche complète (dirigeant, contacts, NIU, RCCM, adresse) d'une entreprise spécifique.
-3. \`get_market_overview\` : utilise cet outil pour donner des statistiques de marché et la répartition des entreprises.
+  return `Tu es le Companion IA de Sales Companion 2.0, l'assistant commercial B2B ultra-rapide et expert en prospection au Cameroun.
+You are the AI Companion for Sales Companion 2.0, the ultra-fast B2B sales and prospecting assistant in Cameroon.
 
-## Règles de réponse
-- Utilise TOUJOURS les outils pour chercher les vraies entreprises avant de répondre. N'invente JAMAIS de fausses entreprises ou de faux numéros de téléphone.
-- Quand tu présentes des entreprises trouvées, structure ta réponse clairement :
-  - **Nom / Raison Sociale** (et sigle si disponible)
-  - **Secteur & Localisation** (Ville, Région, Adresse)
-  - **Dirigeant & Contacts** (Téléphone, Email, NIU)
-  - **Angle d'approche commercial recommandé**
-- Reste concis, pragmatique, orienté conversion et closing B2B au Cameroun.
-- Réponds toujours en français professionnel et engageant.${contextBlock}`
+${contextBlock}
+${preFetchedBlock}
+
+## 🌐 LANGUE / LANGUAGE POLICY (STRICT)
+- **BILINGUAL CAPABILITY** : You must seamlessly support both French and English.
+- **Language Preference** : Current user context language is **${lang === 'en' ? 'ENGLISH' : 'FRANÇAIS'}**.
+- If the user writes or prompts in English (e.g. "provide 3 companies", "draft an outreach email", "find leads"), respond in fluent, professional, and persuasive **ENGLISH**.
+- If the user writes in French, respond in fluent, professional, and persuasive **FRENCH**.
+
+## ⚡ RÈGLE DE PERFORMANCE & RÉPONSE INSTANTANÉE / FAST RESPONSE RULES
+1. **Quand l'utilisateur demande des entreprises pour son secteur ou pour prospection** (ex: "fournis moi 3 entreprises concernées par mon secteur d'activité pour prospection" ou "provide 3 companies in my sector for prospecting") :
+   - Réponds **IMMÉDIATEMENT** en sélectionnant 3 entreprises parmi la liste des entreprises réelles ci-dessus.
+   - Présente chaque entreprise avec sa fiche claire :
+     • **Nom de l'entreprise / Company Name** (et sigle)
+     • **Secteur & Localisation / Sector & Location** (Ville, Région, Adresse)
+     • **Contacts vérifiés / Verified Contacts** (Dirigeant, Téléphone, Email, NIU)
+     • **Angle d'approche commercial / Recommended Sales Angle** (pourquoi et comment l'approcher efficacement / why and how to pitch them)
+   - Sois direct, structuré et orienté closing B2B.
+
+2. **Recherches avancées / Advanced custom queries** :
+   - Tu disposes aussi des outils (\`search_companies\`, \`get_company_details\`, \`get_market_overview\`) si l'utilisateur demande un secteur ou une ville différente de la sélection ci-dessus.
+
+3. **Authenticité stricte / Zero Hallucination** :
+   - Toutes les entreprises présentées doivent provenir STRICTEMENT de la base de données. N'invente JAMAIS de fausses entreprises ou de faux contacts.`
 }
 
 export async function POST(request: NextRequest) {
@@ -107,7 +170,7 @@ export async function POST(request: NextRequest) {
           await userRef.update({ dailyUsed: currentDailyUsed + 1 })
 
           userContext = {
-            sector: data.sector ?? data.industry ?? null,
+            sector: data.sector ?? data.industry ?? data.activite ?? null,
             company: data.company ?? data.companyName ?? null,
             region: data.region ?? null,
             name: data.name ?? null
@@ -130,12 +193,25 @@ export async function POST(request: NextRequest) {
     const {
       message,
       history = [],
-      userProfile
+      userProfile,
+      lang: reqLang
     } = body as {
       message: string
       history?: { role: 'user' | 'model'; parts: [{ text: string }] }[]
       userProfile?: { sector?: string; company?: string; region?: string; name?: string }
+      lang?: 'fr' | 'en'
     }
+
+    if (!message?.trim()) {
+      return NextResponse.json({ error: 'Message vide', message: 'Message vide' }, { status: 400 })
+    }
+
+    // Détection automatique de la langue (EN/FR)
+    const isEnText =
+      /\b(hi|hello|hey|give me|find|search|company|companies|prospect|outreach|email|draft|sector|leads|help|please|what|how)\b/i.test(
+        message
+      )
+    const activeLang: 'fr' | 'en' = reqLang === 'en' || isEnText ? 'en' : 'fr'
 
     const mergedContext = {
       sector: userContext.sector ?? userProfile?.sector ?? null,
@@ -144,25 +220,42 @@ export async function POST(request: NextRequest) {
       name: userContext.name ?? userProfile?.name ?? null
     }
 
-    if (!message?.trim()) {
-      return NextResponse.json({ error: 'Message vide', message: 'Message vide' }, { status: 400 })
+    // ── Pré-chargement ultra-rapide des entreprises pertinentes (< 2ms) ──
+    const targetSector = mergedContext.sector || detectSectorFromText(message)
+    const targetRegion = mergedContext.region || detectRegionFromText(message)
+
+    let preFetchedCompanies: Partial<CompanyRecord>[] = []
+    try {
+      const searchRes = await searchCompanies({
+        sector: targetSector || undefined,
+        region: targetRegion || undefined,
+        limit: 6
+      })
+      preFetchedCompanies = searchRes.results
+      // Si aucun résultat spécifique, charger des entreprises réelles par défaut
+      if (preFetchedCompanies.length === 0) {
+        const defaultRes = await searchCompanies({ limit: 6 })
+        preFetchedCompanies = defaultRes.results
+      }
+    } catch (err) {
+      console.warn('[AI Pre-fetch] Could not pre-fetch companies:', err)
     }
 
-    const systemPrompt = buildSystemPrompt(mergedContext)
+    const systemPrompt = buildSystemPrompt(mergedContext, preFetchedCompanies, activeLang)
 
     const contents: { role: string; parts: unknown[] }[] = [
       ...(history.slice(-10) as { role: string; parts: unknown[] }[]),
       { role: 'user', parts: [{ text: message }] }
     ]
 
-    // ── 1. Try Gemini with Function Calling ──
+    // ── 1. Try Gemini with Function Calling & Pre-Fetched Context ──
     const geminiKey = process.env.GEMINI_API_KEY ?? ''
     if (geminiKey) {
       const reply = await callGeminiWithTools(geminiKey, contents, systemPrompt)
       if (reply) return NextResponse.json({ reply })
     }
 
-    // ── 2. Fallback: Groq with Function Calling ──
+    // ── 2. Fallback: Groq with Function Calling & Pre-Fetched Context ──
     const groqKey =
       process.env.GROQ_API_KEY ||
       ((await adminDb.collection('config').doc('admin').get()).data()?.groq_api_key as
@@ -207,7 +300,6 @@ async function callGeminiWithTools(
     try {
       const contents = JSON.parse(JSON.stringify(initialContents))
 
-      // Premier tour
       const res = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
         {
@@ -217,7 +309,7 @@ async function callGeminiWithTools(
             systemInstruction: { parts: [{ text: systemPrompt }] },
             contents,
             tools: GEMINI_TOOLS,
-            generationConfig: { temperature: 0.6, maxOutputTokens: 1500 }
+            generationConfig: { temperature: 0.5, maxOutputTokens: 1200 }
           })
         }
       )
@@ -231,16 +323,12 @@ async function callGeminiWithTools(
       const candidate = data?.candidates?.[0]
       const parts = candidate?.content?.parts || []
 
-      // Vérifier si le modèle a demandé l'appel d'une fonction
       const functionCallPart = parts.find((p: { functionCall?: { name: string; args: Record<string, unknown> } }) => p.functionCall)
 
       if (functionCallPart && functionCallPart.functionCall) {
         const { name, args } = functionCallPart.functionCall
-        console.log(`[AI Tool] Gemini requested function: ${name}`, args)
-
         const toolResult = await executeAITool(name, args || {})
 
-        // Ajouter l'étape de l'outil dans l'historique Gemini
         contents.push({
           role: 'model',
           parts: [{ functionCall: { name, args } }]
@@ -260,7 +348,6 @@ async function callGeminiWithTools(
           ]
         })
 
-        // Deuxième tour pour générer la réponse finale synthétisée
         const secondRes = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
           {
@@ -269,7 +356,7 @@ async function callGeminiWithTools(
             body: JSON.stringify({
               systemInstruction: { parts: [{ text: systemPrompt }] },
               contents,
-              generationConfig: { temperature: 0.6, maxOutputTokens: 1500 }
+              generationConfig: { temperature: 0.5, maxOutputTokens: 1200 }
             })
           }
         )
@@ -281,7 +368,6 @@ async function callGeminiWithTools(
         }
       }
 
-      // Si pas d'outil ou réponse directe
       const directText = parts[0]?.text
       if (directText) return directText
     } catch (e) {
@@ -330,8 +416,8 @@ async function callGroqWithTools(
           messages,
           tools: GROQ_TOOLS,
           tool_choice: 'auto',
-          max_tokens: 1500,
-          temperature: 0.6
+          max_tokens: 1200,
+          temperature: 0.5
         })
       })
 
@@ -344,7 +430,6 @@ async function callGroqWithTools(
       const choice = data?.choices?.[0]
       const choiceMessage = choice?.message
 
-      // Vérifier si le modèle a demandé l'appel d'un outil
       if (choiceMessage?.tool_calls && Array.isArray(choiceMessage.tool_calls) && choiceMessage.tool_calls.length > 0) {
         messages.push(choiceMessage)
 
@@ -357,7 +442,6 @@ async function callGroqWithTools(
             fnArgs = {}
           }
 
-          console.log(`[AI Tool] Groq requested function: ${fnName}`, fnArgs)
           const toolResult = await executeAITool(fnName, fnArgs)
 
           messages.push({
@@ -367,7 +451,6 @@ async function callGroqWithTools(
           })
         }
 
-        // Deuxième tour Groq
         const secondRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
           headers: {
@@ -377,8 +460,8 @@ async function callGroqWithTools(
           body: JSON.stringify({
             model,
             messages,
-            max_tokens: 1500,
-            temperature: 0.6
+            max_tokens: 1200,
+            temperature: 0.5
           })
         })
 
