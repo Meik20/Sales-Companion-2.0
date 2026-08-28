@@ -8,10 +8,15 @@ export type UserDoc = {
   email: string
   name: string
   role: UserRole
-  companyId: string | null
+  companyId?: string | null
+  company?: string | null
+  companyName?: string | null
+  sector?: string | null
+  region?: string | null
+  phone?: string | null
+  city?: string | null
   managerUid?: string | null
   teamAccessId?: string | null
-  sector?: string | null
   plan: UserPlan
   dailyLimit: number
   dailyUsed: number

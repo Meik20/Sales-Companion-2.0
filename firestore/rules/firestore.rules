@@ -49,10 +49,20 @@ service cloud.firestore {
       );
 
       allow update: if isAdmin()
-        || (isOwner(uid) 
-            && !request.resource.data.diff(resource.data).affectedKeys()
-                .hasAny(['role', 'plan', 'dailyLimit', 'activated', 'managerUid', 'managerEmail'])
-           );
+        || (
+          isOwner(uid)
+          // Champs protégés (jamais modifiables directement par l'utilisateur)
+          && !request.resource.data.diff(resource.data).affectedKeys()
+              .hasAny(['role', 'plan', 'dailyLimit', 'activated', 'managerUid', 'managerEmail'])
+          // Membres d'équipe : profil complètement verrouillé (géré par le manager)
+          && resource.data.get('role', '') != 'member'
+          // Managers : ne peuvent pas modifier les champs d'entreprise directement
+          && (
+            resource.data.get('role', '') != 'manager'
+            || !request.resource.data.diff(resource.data).affectedKeys()
+                .hasAny(['company', 'companyName', 'sector', 'region', 'industry'])
+          )
+        );
 
       allow delete: if isAdmin();
     }

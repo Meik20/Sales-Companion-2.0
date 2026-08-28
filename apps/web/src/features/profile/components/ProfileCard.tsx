@@ -1,9 +1,15 @@
 'use client'
 
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { routes } from '@/constants/routes'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useTranslation } from '@/providers/I18nProvider'
+import { useToast } from '@/hooks/useToast'
 import { Panel, Badge, MetricCard, StatsGrid } from '@/components/ui/index'
-import { ScIcon } from '@/components/ui/ScIcon'
+import { firestore } from '@/services/firebase/client'
+import { doc, updateDoc, serverTimestamp } from 'firebase/firestore'
+import { Building2, Briefcase, MapPin, Edit3, Phone, User, Check, X, ShieldCheck } from 'lucide-react'
 
 const planBadge: Record<string, 'default' | 'info' | 'success' | 'gold'> = {
   free: 'default',
@@ -20,9 +26,95 @@ const roleLabelKeys: Record<string, string> = {
   support_agent: 'profile.roles.support_agent'
 }
 
+const CAMEROON_SECTORS = [
+  'Commerce',
+  'BTP & Construction',
+  'Industrie manufacturière',
+  'Agriculture & Agroalimentaire',
+  'Services & Conseil',
+  'Transport & Logistique',
+  'Hôtellerie & Restauration',
+  'Santé',
+  'Éducation & Formation',
+  'Technologies & Numérique',
+  'Finance & Assurance',
+  'Énergie & Mines'
+]
+
+const CAMEROON_REGIONS = [
+  'Adamaoua',
+  'Centre',
+  'Est',
+  'Extrême-Nord',
+  'Littoral',
+  'Nord',
+  'Nord-Ouest',
+  'Ouest',
+  'Sud',
+  'Sud-Ouest'
+]
+
 export function ProfileCard() {
-  const { t } = useTranslation()
+  const { t, lang } = useTranslation()
   const { user, loading } = useCurrentUser()
+  const { pushToast } = useToast()
+  const router = useRouter()
+
+  const [isEditing, setIsEditing] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [formData, setFormData] = useState({
+    name: '',
+    company: '',
+    sector: '',
+    region: '',
+    phone: ''
+  })
+
+  const openEditModal = () => {
+    if (!user) return
+    setFormData({
+      name: user.name || '',
+      company: user.company || user.companyName || '',
+      sector: user.sector || user.industry || '',
+      region: user.region || '',
+      phone: user.phone || ''
+    })
+    setIsEditing(true)
+  }
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!user?.uid) return
+
+    setSaving(true)
+    try {
+      const userRef = doc(firestore, 'users', user.uid)
+      await updateDoc(userRef, {
+        name: formData.name.trim(),
+        company: formData.company.trim() || null,
+        companyName: formData.company.trim() || null,
+        sector: formData.sector || null,
+        industry: formData.sector || null,
+        region: formData.region || null,
+        phone: formData.phone.trim() || null,
+        updatedAt: serverTimestamp()
+      })
+
+      pushToast({
+        type: 'success',
+        title: t('profile.profileUpdatedToast' as any) || 'Profil mis à jour avec succès !'
+      })
+      setIsEditing(false)
+    } catch (err) {
+      console.error('[ProfileCard] Error updating profile:', err)
+      pushToast({
+        type: 'error',
+        title: t('profile.profileUpdateErrorToast' as any) || 'Erreur lors de la mise à jour du profil.'
+      })
+    } finally {
+      setSaving(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -42,25 +134,28 @@ export function ProfileCard() {
   const usageColor =
     usagePercent > 80 ? '#f87171' : usagePercent > 60 ? '#fbbf24' : 'var(--color-primary)'
 
+  const displayCompany = user.company || user.companyName
+  const displaySector = user.sector || user.industry
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      {/* Header card */}
+      {/* Header card with Company & Sector */}
       <Panel>
-        <div style={{ display: 'flex', gap: 20, alignItems: 'center', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start', flexWrap: 'wrap', position: 'relative' }}>
           {/* Avatar */}
           <div
             style={{
-              width: 64,
-              height: 64,
+              width: 68,
+              height: 68,
               borderRadius: '50%',
               background: 'rgba(55,138,221,0.15)',
               border: '2px solid rgba(55,138,221,0.3)',
-              color: 'var(--color-accent)',
+              color: 'var(--color-primary)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               flexShrink: 0,
-              fontSize: 24,
+              fontSize: 26,
               fontWeight: 800,
               fontFamily: 'inherit'
             }}
@@ -69,7 +164,7 @@ export function ProfileCard() {
           </div>
 
           {/* Infos */}
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: 1, minWidth: '280px' }}>
             <div
               style={{
                 display: 'flex',
@@ -82,7 +177,7 @@ export function ProfileCard() {
               <h2
                 style={{
                   margin: 0,
-                  fontSize: 20,
+                  fontSize: 22,
                   fontWeight: 800,
                   color: 'var(--foreground, #f1f5f9)',
                   fontFamily: 'inherit'
@@ -92,13 +187,261 @@ export function ProfileCard() {
               </h2>
               <Badge variant={planBadge[user.plan] ?? 'default'}>{user.plan?.toUpperCase()}</Badge>
             </div>
+            
             <p style={{ margin: 0, fontSize: 13, color: 'var(--muted-foreground, #94a3b8)' }}>{user.email}</p>
-            <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--muted-foreground, #64748b)' }}>
+            <p style={{ margin: '4px 0 12px', fontSize: 12, color: 'var(--muted-foreground, #64748b)' }}>
               {t(roleLabelKeys[user.role] as any) || user.role}
             </p>
+
+            {/* Badges Entreprise & Secteur d'activité */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 8 }}>
+              {/* Entreprise */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  background: 'var(--secondary, #1e2a3b)',
+                  border: '1px solid var(--border, rgba(255,255,255,0.1))',
+                  padding: '6px 12px',
+                  borderRadius: 8,
+                  fontSize: 13,
+                  color: 'var(--foreground, #f1f5f9)'
+                }}
+              >
+                <Building2 size={15} style={{ color: 'var(--color-primary, #3b82f6)' }} />
+                <span>
+                  <strong style={{ color: 'var(--muted-foreground, #94a3b8)', fontWeight: 500 }}>
+                    {t('profile.companyLabel' as any) || 'Entreprise'} :
+                  </strong>{' '}
+                  {displayCompany ? (
+                    <span style={{ fontWeight: 600 }}>{displayCompany}</span>
+                  ) : (
+                    <span style={{ color: 'var(--muted-foreground, #64748b)', fontStyle: 'italic' }}>
+                      {t('profile.noCompany' as any) || 'Non renseignée'}
+                    </span>
+                  )}
+                </span>
+              </div>
+
+              {/* Secteur d'activité */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  background: 'var(--secondary, #1e2a3b)',
+                  border: '1px solid var(--border, rgba(255,255,255,0.1))',
+                  padding: '6px 12px',
+                  borderRadius: 8,
+                  fontSize: 13,
+                  color: 'var(--foreground, #f1f5f9)'
+                }}
+              >
+                <Briefcase size={15} style={{ color: '#10b981' }} />
+                <span>
+                  <strong style={{ color: 'var(--muted-foreground, #94a3b8)', fontWeight: 500 }}>
+                    {t('profile.sectorLabel' as any) || "Secteur d'activité"} :
+                  </strong>{' '}
+                  {displaySector ? (
+                    <span style={{ fontWeight: 600 }}>{displaySector}</span>
+                  ) : (
+                    <span style={{ color: 'var(--muted-foreground, #64748b)', fontStyle: 'italic' }}>
+                      {t('profile.noSector' as any) || 'Non renseigné'}
+                    </span>
+                  )}
+                </span>
+              </div>
+
+              {/* Région */}
+              {user.region && (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    background: 'var(--secondary, #1e2a3b)',
+                    border: '1px solid var(--border, rgba(255,255,255,0.1))',
+                    padding: '6px 12px',
+                    borderRadius: 8,
+                    fontSize: 13,
+                    color: 'var(--foreground, #f1f5f9)'
+                  }}
+                >
+                  <MapPin size={15} style={{ color: '#f59e0b' }} />
+                  <span>
+                    <strong style={{ color: 'var(--muted-foreground, #94a3b8)', fontWeight: 500 }}>
+                      {t('profile.regionLabel' as any) || 'Région'} :
+                    </strong>{' '}
+                    <span style={{ fontWeight: 600 }}>{user.region}</span>
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
+
+          {/* Actions selon le rôle */}
+          {user.role === 'independent' || user.role === 'admin' ? (
+            <button
+              onClick={openEditModal}
+              className="flex items-center gap-2 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 px-3.5 py-2 text-xs font-semibold transition-all cursor-pointer"
+            >
+              <Edit3 size={14} />
+              {t('profile.editProfileBtn' as any) || 'Modifier mes informations'}
+            </button>
+          ) : user.role === 'manager' ? (
+            <div className="flex flex-col items-end gap-1.5">
+              <button
+                onClick={() =>
+                  router.push(
+                    `${routes.support}?category=profile_change&subject=${encodeURIComponent(
+                      t('profile.supportSubjectProfileChange' as any) ||
+                        "Demande de modification des informations d'entreprise"
+                    )}`
+                  )
+                }
+                className="flex items-center gap-2 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 px-3.5 py-2 text-xs font-semibold transition-all cursor-pointer"
+              >
+                <ShieldCheck size={14} />
+                {t('profile.requestChangeViaSupportBtn' as any) || 'Demander une modification au support'}
+              </button>
+              <span className="text-[11px] text-muted-foreground/70 max-w-[260px] text-right">
+                {t('profile.managerProfileLockedNotice' as any)}
+              </span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 rounded-xl border border-border bg-secondary/50 px-3 py-2 text-xs text-muted-foreground">
+              <ShieldCheck size={14} className="text-muted-foreground" />
+              <span>{t('profile.memberProfileLockedNotice' as any)}</span>
+            </div>
+          )}
         </div>
       </Panel>
+
+      {/* Modal / Formulaire d'édition du profil */}
+      {isEditing && (
+        <Panel>
+          <form onSubmit={handleSave} className="flex flex-col gap-4">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+                <Edit3 size={16} className="text-primary" />
+                {t('profile.editProfileTitle' as any) || 'Modifier le profil professionnel'}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsEditing(false)}
+                className="text-muted-foreground hover:text-foreground cursor-pointer p-1"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+              {/* Nom complet */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                  <User size={13} /> {t('profile.fullNameLabel' as any) || 'Nom complet'}
+                </label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="Ex: Jean Dupont"
+                  className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+                  required
+                />
+              </div>
+
+              {/* Nom de l'entreprise */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                  <Building2 size={13} /> {t('profile.companyLabel' as any) || 'Nom de l\'entreprise'}
+                </label>
+                <input
+                  type="text"
+                  value={formData.company}
+                  onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                  placeholder="Ex: BatiCameroun SARL, AgriPlus, etc."
+                  className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+                />
+              </div>
+
+              {/* Secteur d'activité */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                  <Briefcase size={13} /> {t('profile.sectorLabel' as any) || "Secteur d'activité"}
+                </label>
+                <select
+                  value={formData.sector}
+                  onChange={(e) => setFormData({ ...formData, sector: e.target.value })}
+                  className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+                >
+                  <option value="">-- {t('profile.noSector' as any) || 'Sélectionner un secteur'} --</option>
+                  {CAMEROON_SECTORS.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Région */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                  <MapPin size={13} /> {t('profile.regionLabel' as any) || 'Région principale'}
+                </label>
+                <select
+                  value={formData.region}
+                  onChange={(e) => setFormData({ ...formData, region: e.target.value })}
+                  className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+                >
+                  <option value="">-- {t('profile.selectRegion' as any) || 'Sélectionner une région'} --</option>
+                  {CAMEROON_REGIONS.map((r) => (
+                    <option key={r} value={r}>
+                      {r}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Téléphone */}
+              <div className="flex flex-col gap-1.5 md:col-span-2">
+                <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                  <Phone size={13} /> {t('profile.phoneLabel' as any) || 'Numéro de téléphone'}
+                </label>
+                <input
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  placeholder="Ex: +237 6XX XX XX XX"
+                  className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary max-w-md"
+                />
+              </div>
+            </div>
+
+            {/* Boutons d'action */}
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-border">
+              <button
+                type="button"
+                onClick={() => setIsEditing(false)}
+                className="rounded-lg border border-border bg-transparent px-4 py-2 text-xs font-semibold text-muted-foreground hover:bg-secondary transition-colors cursor-pointer"
+              >
+                {t('profile.cancelBtn' as any) || 'Annuler'}
+              </button>
+              <button
+                type="submit"
+                disabled={saving}
+                className="flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-bold text-primary-foreground hover:bg-primary/90 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                <Check size={14} />
+                {saving
+                  ? t('profile.loading')
+                  : t('profile.saveBtn' as any) || 'Enregistrer les modifications'}
+              </button>
+            </div>
+          </form>
+        </Panel>
+      )}
 
       {/* Stats — masqués pour l'agent support (pas de quota de recherche) */}
       {user.role !== 'support_agent' ? (
@@ -179,4 +522,3 @@ export function ProfileCard() {
     </div>
   )
 }
-

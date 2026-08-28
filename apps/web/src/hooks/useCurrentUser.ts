@@ -11,8 +11,14 @@ export type CurrentUser = {
   email: string
   name: string
   role: 'independent' | 'manager' | 'member' | 'admin' | 'support_agent'
-  companyId: string | null
+  companyId?: string | null
   companyName?: string | null
+  company?: string | null
+  sector?: string | null
+  industry?: string | null
+  region?: string | null
+  phone?: string | null
+  city?: string | null
   managerUid: string | null
   linkedManagerUids?: string[] // ← Managers liés pour l'agent support
   accessId?: string | null // ← Access ID généré par le Manager (ex: "prenomnom@entreprise")

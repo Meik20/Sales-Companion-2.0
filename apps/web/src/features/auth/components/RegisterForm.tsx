@@ -13,6 +13,7 @@ import { mapAuthError } from '../utils/error-mapper'
 import { routes } from '@/constants/routes'
 import { BUSINESS_SECTORS } from '@sales-companion/shared'
 import { useTranslation } from '@/providers/I18nProvider'
+import { isCorporateEmail } from '../utils/email-validator'
 
 type RoleOption = 'independent' | 'manager'
 
@@ -63,6 +64,16 @@ export function RegisterForm() {
     e.preventDefault()
     if (!name || !email || !password) { setError(t('auth.errorFillAll')); return }
     if (password.length < 6) { setError(t('auth.errorPasswordLength')); return }
+
+    // Règle de sécurité : Compte Manager avec email professionnel obligatoire
+    if (role === 'manager' && !isCorporateEmail(email)) {
+      setError(
+        t('auth.corporateEmailRequired' as any) ||
+          "L'inscription Manager requiert une adresse email professionnelle d'entreprise (ex: prenom.nom@votre-entreprise.com). Les adresses grand public (Gmail, Yahoo, Outlook...) ne sont pas autorisées."
+      )
+      return
+    }
+
     setLoading(true); setError(null)
     try {
       await registerWithEmail({
@@ -154,8 +165,26 @@ export function RegisterForm() {
           <Input placeholder="Jean Dupont" value={name} autoComplete="name" onChange={(e) => setName(e.target.value)} />
         </FormField>
 
-        <FormField label={t('auth.email')} required>
-          <Input type="email" placeholder="vous@exemple.cm" value={email} autoComplete="email" onChange={(e) => setEmail(e.target.value)} />
+        <FormField
+          label={t('auth.email')}
+          required
+          hint={role === 'manager' ? t('auth.corporateEmailHint' as any) || 'Adresse professionnelle requise (ex: contact@societe.cm)' : undefined}
+        >
+          <Input
+            type="email"
+            placeholder={role === 'manager' ? 'prenom.nom@entreprise.cm' : 'vous@exemple.cm'}
+            value={email}
+            autoComplete="email"
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          {role === 'manager' && (
+            <p className="mt-1.5 text-[11px] text-muted-foreground/80">
+              💡 {t('auth.noCorporateEmailContactSupport' as any) || "Votre entreprise n'a pas de nom de domaine propre ?"}{' '}
+              <Link href={routes.support} className="font-semibold text-primary underline underline-offset-2">
+                {t('sidebar.support')}
+              </Link>
+            </p>
+          )}
         </FormField>
 
         <FormField label={t('auth.password')} required hint="Minimum 6 caractères">
