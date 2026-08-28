@@ -89,6 +89,21 @@ export async function POST(request: Request) {
       createdAt: now
     })
 
+    // 3. Activer la notification temps réel pour l'administrateur
+    const { createAdminNotification } = await import('@/lib/admin-notifications')
+    await createAdminNotification({
+      type: 'support_ticket',
+      title:
+        requestType === 'corporate_domain_request'
+          ? '🏢 Demande dérogation domaine Manager'
+          : '🎧 Nouveau ticket support public',
+      message: `${sanitizedName}${sanitizedCompany ? ` (${sanitizedCompany})` : ''} : ${sanitizedSubject}`,
+      userId: 'guest_unregistered',
+      userEmail: sanitizedEmail,
+      reference: threadRef.id,
+      link: '/admin/support'
+    })
+
     return NextResponse.json({
       success: true,
       threadId: threadRef.id,

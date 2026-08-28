@@ -18,7 +18,7 @@ import {
   serverTimestamp,
   Timestamp
 } from 'firebase/firestore'
-import { Trash2 } from 'lucide-react'
+import { Trash2, CheckCircle2, Sparkles, Send, Mail, RefreshCw } from 'lucide-react'
 import { useTranslation } from '@/providers/I18nProvider'
 
 type Thread = {
@@ -36,6 +36,8 @@ type Thread = {
   phone?: string
   sector?: string
   isGuest?: boolean
+  domainExemptionStatus?: 'approved' | 'pending' | null
+  domainExemptionToken?: string
 }
 
 type Message = {
@@ -65,6 +67,8 @@ export default function AdminSupportPage() {
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [approving, setApproving] = useState(false)
+  const [actionSuccess, setActionSuccess] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [filterStatus, setFilterStatus] = useState<'all' | 'open' | 'resolved'>('all')
@@ -79,6 +83,65 @@ export default function AdminSupportPage() {
   useEffect(() => {
     if (user?.uid) loadThreads()
   }, [user?.uid])
+
+  async function handleApproveDomain(thread: Thread) {
+    if (!user || !thread.userEmail) return
+    const confirmMsg = `Confirmez-vous la validation de la dérogation pour ${thread.userName || thread.userEmail} (${thread.companyName || 'Entreprise'}) ?\n\nUn email contenant le lien d'inscription sécurisé lui sera envoyé immédiatement.`
+    if (!window.confirm(confirmMsg)) return
+
+    setApproving(true)
+    setError(null)
+    setActionSuccess(null)
+
+    try {
+      const token = await user.getIdToken()
+      const res = await fetch('/api/admin/support/approve-domain', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          threadId: thread.id,
+          email: thread.userEmail,
+          name: thread.userName,
+          companyName: thread.companyName,
+          sector: thread.sector
+        })
+      })
+
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || "Erreur lors de l'approbation.")
+      }
+
+      setActionSuccess(`✅ Dérogation validée ! Le lien d'inscription a été envoyé par email à ${thread.userEmail}.`)
+      setSelected((prev) =>
+        prev
+          ? {
+              ...prev,
+              status: 'resolved',
+              domainExemptionStatus: 'approved',
+              domainExemptionToken: data.token
+            }
+          : null
+      )
+      await loadThreads()
+      if (selected) {
+        await openThread({
+          ...selected,
+          status: 'resolved',
+          domainExemptionStatus: 'approved',
+          domainExemptionToken: data.token
+        })
+      }
+    } catch (err: any) {
+      console.error('Approve domain error:', err)
+      setError(err.message || "Erreur lors de l'envoi du lien d'inscription.")
+    } finally {
+      setApproving(false)
+    }
+  }
 
   async function loadThreads() {
     setLoading(true)
@@ -251,6 +314,38 @@ export default function AdminSupportPage() {
               background: 'none',
               border: 'none',
               color: '#C62828',
+              cursor: 'pointer',
+              fontSize: 16
+            }}
+          >
+            ×
+          </button>
+        </div>
+      )}
+
+      {/* Message de succès */}
+      {actionSuccess && (
+        <div
+          style={{
+            padding: '12px 16px',
+            marginBottom: 16,
+            borderRadius: 8,
+            background: 'rgba(34, 197, 94, 0.1)',
+            border: '1px solid rgba(34, 197, 94, 0.3)',
+            color: '#4ade80',
+            fontSize: 13,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}
+        >
+          <span>{actionSuccess}</span>
+          <button
+            onClick={() => setActionSuccess(null)}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#4ade80',
               cursor: 'pointer',
               fontSize: 16
             }}
@@ -715,25 +810,106 @@ export default function AdminSupportPage() {
                   </div>
                 </div>
 
-                {selected.type === 'corporate_domain_request' && (
+                {(selected.type === 'corporate_domain_request' || selected.isGuest) && (
                   <div
                     style={{
-                      marginTop: 10,
-                      padding: '8px 12px',
-                      borderRadius: 6,
-                      background: 'rgba(234, 179, 8, 0.1)',
-                      border: '1px solid rgba(234, 179, 8, 0.3)',
-                      color: '#facc15',
-                      fontSize: 11.5,
+                      marginTop: 12,
+                      padding: '12px 14px',
+                      borderRadius: 8,
+                      background:
+                        selected.domainExemptionStatus === 'approved'
+                          ? 'rgba(34, 197, 94, 0.08)'
+                          : 'rgba(234, 179, 8, 0.08)',
+                      border: `1px solid ${
+                        selected.domainExemptionStatus === 'approved'
+                          ? 'rgba(34, 197, 94, 0.3)'
+                          : 'rgba(234, 179, 8, 0.3)'
+                      }`,
                       display: 'flex',
                       alignItems: 'center',
-                      gap: 8
+                      justifyContent: 'space-between',
+                      flexWrap: 'wrap',
+                      gap: 10
                     }}
                   >
-                    <span>💡</span>
-                    <span>
-                      <strong>Demande d'inscription Manager sans domaine :</strong> Cet utilisateur souhaite créer un compte Manager pour son équipe. Vous pouvez lui répondre par message ou créer directement son accès dans la section Équipe/Users.
-                    </span>
+                    <div style={{ flex: 1, minWidth: 240 }}>
+                      <div
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 700,
+                          color:
+                            selected.domainExemptionStatus === 'approved' ? '#4ade80' : '#facc15',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          marginBottom: 2
+                        }}
+                      >
+                        {selected.domainExemptionStatus === 'approved' ? (
+                          <>
+                            <CheckCircle2 size={15} />
+                            <span>Dérogation validée & Email d'invitation envoyé</span>
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles size={15} />
+                            <span>Demande de création de compte Manager sans domaine propre</span>
+                          </>
+                        )}
+                      </div>
+                      <div style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)' }}>
+                        {selected.domainExemptionStatus === 'approved'
+                          ? `Le demandeur a reçu son lien sécurisé pour créer son compte Manager (${selected.userEmail}).`
+                          : "Cliquez sur le bouton ci-contre pour valider l'accès et envoyer automatiquement le lien d'inscription par email."}
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => handleApproveDomain(selected)}
+                      disabled={approving}
+                      style={{
+                        padding: '8px 16px',
+                        background:
+                          selected.domainExemptionStatus === 'approved'
+                            ? 'rgba(34, 197, 94, 0.15)'
+                            : '#22c55e',
+                        color: selected.domainExemptionStatus === 'approved' ? '#4ade80' : '#ffffff',
+                        border:
+                          selected.domainExemptionStatus === 'approved'
+                            ? '1px solid rgba(34, 197, 94, 0.4)'
+                            : 'none',
+                        borderRadius: 8,
+                        fontSize: 12,
+                        fontWeight: 700,
+                        cursor: approving ? 'wait' : 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        boxShadow:
+                          selected.domainExemptionStatus === 'approved'
+                            ? 'none'
+                            : '0 2px 10px rgba(34, 197, 94, 0.3)',
+                        transition: 'all 150ms ease',
+                        flexShrink: 0
+                      }}
+                    >
+                      {approving ? (
+                        <>
+                          <RefreshCw size={13} className="animate-spin" />
+                          <span>Validation en cours…</span>
+                        </>
+                      ) : selected.domainExemptionStatus === 'approved' ? (
+                        <>
+                          <Mail size={13} />
+                          <span>Renvoyer le lien par email</span>
+                        </>
+                      ) : (
+                        <>
+                          <Send size={13} />
+                          <span>Valider & Envoyer le lien par email</span>
+                        </>
+                      )}
+                    </button>
                   </div>
                 )}
               </div>

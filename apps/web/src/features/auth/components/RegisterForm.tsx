@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { FormField } from '@/components/forms/FormField'
@@ -14,6 +14,7 @@ import { routes } from '@/constants/routes'
 import { BUSINESS_SECTORS } from '@sales-companion/shared'
 import { useTranslation } from '@/providers/I18nProvider'
 import { isCorporateEmail } from '../utils/email-validator'
+import { ShieldCheck } from 'lucide-react'
 
 type RoleOption = 'independent' | 'manager'
 
@@ -23,7 +24,29 @@ export function RegisterForm() {
   const { t } = useTranslation()
   const { registerWithEmail, loginWithGoogle } = useAuthActions()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { user, loading: authLoading } = useCurrentUser()
+
+  const exemptionParam = searchParams.get('exemption') || searchParams.get('token')
+  const emailParam = searchParams.get('email')
+  const roleParam = searchParams.get('role')
+  const nameParam = searchParams.get('name')
+  const companyParam = searchParams.get('company')
+  const sectorParam = searchParams.get('sector')
+
+  const [name, setName] = useState(nameParam || '')
+  const [role, setRole] = useState<RoleOption>(roleParam === 'manager' || exemptionParam ? 'manager' : 'independent')
+  const [email, setEmail] = useState(emailParam || '')
+  const [password, setPassword] = useState('')
+  const [companyName, setCompanyName] = useState(companyParam || '')
+  const [sector, setSector] = useState<string>(sectorParam || '')
+  const [loading, setLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const [exemptionToken, setExemptionToken] = useState<string | null>(exemptionParam)
+  const [exemptionValid, setExemptionValid] = useState<boolean | null>(null)
+  const [exemptionInfo, setExemptionInfo] = useState<{ companyName?: string; name?: string } | null>(null)
 
   useEffect(() => {
     resolveGoogleRedirect().then((u) => { if (u) router.replace(routes.search) })
@@ -33,20 +56,35 @@ export function RegisterForm() {
     if (!authLoading && user) router.replace(routes.search)
   }, [user, authLoading, router])
 
+  // Vérifier et appliquer le jeton de dérogation si présent
+  useEffect(() => {
+    if (!exemptionParam) return
+    setExemptionToken(exemptionParam)
+    fetch(`/api/auth/validate-exemption?token=${encodeURIComponent(exemptionParam)}${emailParam ? `&email=${encodeURIComponent(emailParam)}` : ''}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.valid) {
+          setExemptionValid(true)
+          setExemptionInfo(data.exemption)
+          setRole('manager')
+          if (data.exemption.name && !name) setName(data.exemption.name)
+          if (data.exemption.email && !email) setEmail(data.exemption.email)
+          if (data.exemption.companyName && !companyName) setCompanyName(data.exemption.companyName)
+          if (data.exemption.sector && !sector) setSector(data.exemption.sector)
+        } else {
+          setExemptionValid(false)
+          setError(data.error || 'Lien de dérogation invalide ou expiré.')
+        }
+      })
+      .catch(() => {
+        setExemptionValid(false)
+      })
+  }, [exemptionParam, emailParam])
+
   const roleOptions: { value: RoleOption; label: string; desc: string }[] = [
     { value: 'independent', label: t('auth.independent'), desc: t('auth.independentDesc') },
     { value: 'manager', label: t('auth.manager'), desc: t('auth.managerDesc') }
   ]
-
-  const [name, setName] = useState('')
-  const [role, setRole] = useState<RoleOption>('independent')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [companyName, setCompanyName] = useState('')
-  const [sector, setSector] = useState<string>('')
-  const [loading, setLoading] = useState(false)
-  const [googleLoading, setGoogleLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   async function handleGoogleSignIn() {
     setGoogleLoading(true); setError(null)
@@ -66,21 +104,32 @@ export function RegisterForm() {
     if (password.length < 6) { setError(t('auth.errorPasswordLength')); return }
 
     // Règle de sécurité : Compte Manager avec email professionnel obligatoire
-    if (role === 'manager' && !isCorporateEmail(email)) {
+    // Sauf si dérogation validée par l'administrateur
+    if (role === 'manager' && !isCorporateEmail(email) && !exemptionValid) {
       setError(
         t('auth.corporateEmailRequired' as any) ||
-          "L'inscription Manager requiert une adresse email professionnelle d'entreprise (ex: prenom.nom@votre-entreprise.com). Les adresses grand public (Gmail, Yahoo, Outlook...) ne sont pas autorisées."
+          "L'inscription Manager requiert une adresse email professionnelle d'entreprise (ex: prenom.nom@votre-entreprise.com). Les adresses grand public (Gmail, Yahoo, Outlook...) ne sont pas autorisées sans dérogation préalable."
       )
       return
     }
 
     setLoading(true); setError(null)
     try {
-      await registerWithEmail({
+      const createdUser = await registerWithEmail({
         email, password, name, role,
         companyName: role === 'manager' ? companyName : undefined,
         sector: sector || undefined
       })
+
+      // Marquer le jeton de dérogation comme consommé
+      if (exemptionToken && exemptionValid && createdUser?.uid) {
+        fetch('/api/auth/consume-exemption', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token: exemptionToken, uid: createdUser.uid, email })
+        }).catch(() => {})
+      }
+
       router.replace(routes.search)
     } catch (err) {
       setError(mapAuthError(err))
@@ -116,6 +165,22 @@ export function RegisterForm() {
         </h1>
         <p className="m-0 text-[13px] text-muted-foreground">{t('auth.registerSubtitle')}</p>
       </div>
+
+      {/* Dérogation autorisée par l'admin */}
+      {exemptionValid && (
+        <div className="mb-6 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3.5 text-xs text-emerald-300 flex items-start gap-2.5">
+          <ShieldCheck size={18} className="text-emerald-400 shrink-0 mt-0.5" />
+          <div>
+            <div className="font-semibold text-emerald-400 text-[13px]">
+              Dérogation de domaine approuvée ✨
+            </div>
+            <div className="text-[11px] text-emerald-200/80 mt-0.5 leading-relaxed">
+              Votre demande de compte Manager pour l'entreprise{' '}
+              <strong>{companyName || exemptionInfo?.companyName || 'votre organisation'}</strong> a été validée par l'administration.
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Google Sign-In */}
       <button

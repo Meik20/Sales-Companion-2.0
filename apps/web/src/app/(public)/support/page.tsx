@@ -162,6 +162,19 @@ function AuthenticatedSupportView() {
       setNewSubject('')
       setShowNew(false)
       setTimeout(() => textareaRef.current?.focus(), 200)
+
+      // Déclencher la notification admin en tâche de fond
+      fetch('/api/support/notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          threadId: ref.id,
+          subject: newSubject.trim(),
+          userName: (user as { name?: string }).name ?? user.email ?? 'Utilisateur',
+          userEmail: user.email ?? '',
+          userId: user.uid
+        })
+      }).catch(() => {})
     } catch (err) {
       console.error('Failed to create thread:', err)
     } finally {
