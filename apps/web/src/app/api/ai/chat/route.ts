@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { adminAuth, adminDb } from '@/lib/firebase-admin'
 import { ensureDailyReset } from '@/lib/quota-utils'
 import { getClientIp, checkRateLimit, checkRateLimitByUser } from '@/lib/rate-limit'
-
+import { GEMINI_TOOLS, GROQ_TOOLS, executeAITool } from '@/lib/ai-tools'
 
 /**
- * Construit un system prompt contextualisé selon le profil utilisateur.
- * Si le secteur/industrie de l'utilisateur est connu, l'IA adapte TOUTES ses réponses.
+ * Construit un system prompt contextualisé selon le profil utilisateur
+ * et informe le modèle de l'accès direct aux outils de la base entreprises.
  */
 function buildSystemPrompt(userContext?: {
   sector?: string | null
@@ -19,22 +19,28 @@ function buildSystemPrompt(userContext?: {
   const region = userContext?.region?.trim()
   const name = userContext?.name?.trim()
 
-  // Contexte dynamique injecté si disponible
   const contextBlock =
     sector || company || region
-      ? `\n\n## Contexte utilisateur (PRIORITAIRE)\n${name ? `- Utilisateur : ${name}\n` : ''}${company ? `- Entreprise : ${company}\n` : ''}${sector ? `- Secteur d'activité / Industrie : **${sector}**\n` : ''}${region ? `- Région / Marché principal : ${region}\n` : ''}\n⚠️ Tu dois adapter TOUTES tes réponses à ce contexte. Si l'utilisateur demande un email, un script ou une analyse, oriente systématiquement vers son secteur (${sector ?? 'son secteur'}) et sa réalité terrain. N'utilise pas d'exemples génériques si tu connais son secteur.`
+      ? `\n\n## Contexte utilisateur (PRIORITAIRE)\n${name ? `- Commercial / Utilisateur : ${name}\n` : ''}${company ? `- Entreprise : ${company}\n` : ''}${sector ? `- Secteur d'activité cible : **${sector}**\n` : ''}${region ? `- Région principale : ${region}\n` : ''}\nOriente tes conseils et exemples vers ce contexte commercial.`
       : ''
 
-  return `Tu es le Companion IA de Sales Companion 2.0, une plateforme de prospection commerciale au Cameroun.
-Tu aides les commerciaux camerounais à :
-- Identifier et approcher des entreprises cibles
-- Rédiger des emails et scripts d'approche B2B professionnels
-- Analyser les secteurs d'activité (BTP, Tech, Agroalimentaire, Transport, Santé, etc.)
-- Comprendre les dynamiques du marché camerounais (Douala, Yaoundé, et autres régions)
+  return `Tu es le Companion IA de Sales Companion 2.0, l'assistant commercial B2B de référence au Cameroun.
 
-Réponds toujours en français. Sois concis, pratique et actionnable.
-Utilise des emojis avec modération pour rendre tes réponses plus lisibles.
-Quand tu rédiges un email, utilise un format professionnel complet.${contextBlock}`
+## Capacités spéciales & Outils Base de Données
+Tu as un accès DIRECT à la base de données des entreprises camerounaises via tes outils :
+1. \`search_companies\` : utilise cet outil dès que l'utilisateur recherche des entreprises, des cibles, des prospects par nom, secteur, région (ex: Littoral, Centre, Ouest...) ou ville (ex: Douala, Yaoundé, Bafoussam...).
+2. \`get_company_details\` : utilise cet outil pour obtenir la fiche complète (dirigeant, contacts, NIU, RCCM, adresse) d'une entreprise spécifique.
+3. \`get_market_overview\` : utilise cet outil pour donner des statistiques de marché et la répartition des entreprises.
+
+## Règles de réponse
+- Utilise TOUJOURS les outils pour chercher les vraies entreprises avant de répondre. N'invente JAMAIS de fausses entreprises ou de faux numéros de téléphone.
+- Quand tu présentes des entreprises trouvées, structure ta réponse clairement :
+  - **Nom / Raison Sociale** (et sigle si disponible)
+  - **Secteur & Localisation** (Ville, Région, Adresse)
+  - **Dirigeant & Contacts** (Téléphone, Email, NIU)
+  - **Angle d'approche commercial recommandé**
+- Reste concis, pragmatique, orienté conversion et closing B2B au Cameroun.
+- Réponds toujours en français professionnel et engageant.${contextBlock}`
 }
 
 export async function POST(request: NextRequest) {
@@ -53,7 +59,6 @@ export async function POST(request: NextRequest) {
     const token = request.headers.get('authorization')?.split(' ')[1]
     let userId: string | null = null
     let userContext: {
-
       sector?: string | null
       company?: string | null
       region?: string | null
@@ -74,7 +79,6 @@ export async function POST(request: NextRequest) {
           )
         }
 
-
         // Lire le profil utilisateur pour le contexte ET vérifier les crédits
         const userRef = adminDb.collection('users').doc(userId)
         const userSnap = await userRef.get()
@@ -85,7 +89,7 @@ export async function POST(request: NextRequest) {
 
           if (plan === 'free') {
             return NextResponse.json(
-              { error: 'L\'assistant IA n\'est pas disponible pour le plan gratuit.', message: 'AI assistant not available for free plan' },
+              { error: "L'assistant IA n'est pas disponible pour le plan gratuit.", message: 'AI assistant not available for free plan' },
               { status: 403 }
             )
           }
@@ -102,7 +106,6 @@ export async function POST(request: NextRequest) {
           }
           await userRef.update({ dailyUsed: currentDailyUsed + 1 })
 
-          // Extraire le contexte métier de l'utilisateur
           userContext = {
             sector: data.sector ?? data.industry ?? null,
             company: data.company ?? data.companyName ?? null,
@@ -134,7 +137,6 @@ export async function POST(request: NextRequest) {
       userProfile?: { sector?: string; company?: string; region?: string; name?: string }
     }
 
-    // Fusionner contexte Firestore + contexte envoyé par le client (priorité Firestore)
     const mergedContext = {
       sector: userContext.sector ?? userProfile?.sector ?? null,
       company: userContext.company ?? userProfile?.company ?? null,
@@ -148,19 +150,19 @@ export async function POST(request: NextRequest) {
 
     const systemPrompt = buildSystemPrompt(mergedContext)
 
-    const contents: { role: string; parts: [{ text: string }] }[] = [
-      ...(history.slice(-10) as { role: string; parts: [{ text: string }] }[]),
+    const contents: { role: string; parts: unknown[] }[] = [
+      ...(history.slice(-10) as { role: string; parts: unknown[] }[]),
       { role: 'user', parts: [{ text: message }] }
     ]
 
-    // ── Try Gemini first (env var) ──
+    // ── 1. Try Gemini with Function Calling ──
     const geminiKey = process.env.GEMINI_API_KEY ?? ''
     if (geminiKey) {
-      const reply = await callGemini(geminiKey, contents, systemPrompt)
+      const reply = await callGeminiWithTools(geminiKey, contents, systemPrompt)
       if (reply) return NextResponse.json({ reply })
     }
 
-    // ── Fallback: Groq key — env var first, then Firestore admin config ──
+    // ── 2. Fallback: Groq with Function Calling ──
     const groqKey =
       process.env.GROQ_API_KEY ||
       ((await adminDb.collection('config').doc('admin').get()).data()?.groq_api_key as
@@ -168,13 +170,13 @@ export async function POST(request: NextRequest) {
         | undefined)
 
     if (groqKey) {
-      const reply = await callGroq(groqKey, message, history, systemPrompt)
+      const reply = await callGroqWithTools(groqKey, message, history, systemPrompt)
       if (reply) return NextResponse.json({ reply })
     }
 
-    // ── Neither key available ──
+    // ── Neither key available or both failed ──
     const notConfiguredMessage =
-      'Companion IA non configuré. Veuillez ajouter GEMINI_API_KEY dans les variables Vercel, ou renseigner une clé Groq dans le panel Admin → Configuration.'
+      'Companion IA temporairement indisponible. Veuillez vérifier vos clés API Gemini / Groq.'
     return NextResponse.json(
       {
         error: notConfiguredMessage,
@@ -191,16 +193,21 @@ export async function POST(request: NextRequest) {
   }
 }
 
-/* ── Gemini (with fallback models) ── */
-async function callGemini(
+/**
+ * Appel Gemini avec support du Function Calling
+ */
+async function callGeminiWithTools(
   apiKey: string,
-  contents: { role: string; parts: [{ text: string }] }[],
+  initialContents: { role: string; parts: unknown[] }[],
   systemPrompt: string
 ): Promise<string | null> {
   const models = ['gemini-3.5-flash', 'gemini-3.6-flash', 'gemini-flash-latest', 'gemini-1.5-flash']
 
   for (const model of models) {
     try {
+      const contents = JSON.parse(JSON.stringify(initialContents))
+
+      // Premier tour
       const res = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
         {
@@ -209,26 +216,86 @@ async function callGemini(
           body: JSON.stringify({
             systemInstruction: { parts: [{ text: systemPrompt }] },
             contents,
-            generationConfig: { temperature: 0.7, maxOutputTokens: 1024 }
+            tools: GEMINI_TOOLS,
+            generationConfig: { temperature: 0.6, maxOutputTokens: 1500 }
           })
         }
       )
-      if (res.ok) {
-        const data = await res.json()
-        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text
-        if (text) return text
-      } else {
+
+      if (!res.ok) {
         console.warn(`[AI] Gemini ${model} error: ${res.status}`)
+        continue
       }
+
+      const data = await res.json()
+      const candidate = data?.candidates?.[0]
+      const parts = candidate?.content?.parts || []
+
+      // Vérifier si le modèle a demandé l'appel d'une fonction
+      const functionCallPart = parts.find((p: { functionCall?: { name: string; args: Record<string, unknown> } }) => p.functionCall)
+
+      if (functionCallPart && functionCallPart.functionCall) {
+        const { name, args } = functionCallPart.functionCall
+        console.log(`[AI Tool] Gemini requested function: ${name}`, args)
+
+        const toolResult = await executeAITool(name, args || {})
+
+        // Ajouter l'étape de l'outil dans l'historique Gemini
+        contents.push({
+          role: 'model',
+          parts: [{ functionCall: { name, args } }]
+        })
+
+        contents.push({
+          role: 'function',
+          parts: [
+            {
+              functionResponse: {
+                name,
+                response: {
+                  output: toolResult
+                }
+              }
+            }
+          ]
+        })
+
+        // Deuxième tour pour générer la réponse finale synthétisée
+        const secondRes = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              systemInstruction: { parts: [{ text: systemPrompt }] },
+              contents,
+              generationConfig: { temperature: 0.6, maxOutputTokens: 1500 }
+            })
+          }
+        )
+
+        if (secondRes.ok) {
+          const secondData = await secondRes.json()
+          const finalText = secondData?.candidates?.[0]?.content?.parts?.[0]?.text
+          if (finalText) return finalText
+        }
+      }
+
+      // Si pas d'outil ou réponse directe
+      const directText = parts[0]?.text
+      if (directText) return directText
     } catch (e) {
       console.warn(`[AI] Gemini ${model} fetch failed:`, e)
     }
   }
+
   return null
 }
 
-/* ── Groq (with fallback models) ── */
-async function callGroq(
+/**
+ * Appel Groq avec support du Function Calling (OpenAI compatible)
+ */
+async function callGroqWithTools(
   apiKey: string,
   message: string,
   history: { role: 'user' | 'model'; parts: [{ text: string }] }[],
@@ -238,11 +305,10 @@ async function callGroq(
     'openai/gpt-oss-120b',
     'qwen/qwen3.8-27b',
     'groq/compound',
-    'openai/gpt-oss-20b',
-    'llama-3.3-70b-versatile'
+    'openai/gpt-oss-20b'
   ]
 
-  const messages = [
+  const messages: { role: string; content?: string | null; tool_calls?: unknown; tool_call_id?: string }[] = [
     { role: 'system', content: systemPrompt },
     ...history.map((h) => ({
       role: h.role === 'model' ? 'assistant' : 'user',
@@ -262,20 +328,73 @@ async function callGroq(
         body: JSON.stringify({
           model,
           messages,
-          max_tokens: 1024,
-          temperature: 0.7
+          tools: GROQ_TOOLS,
+          tool_choice: 'auto',
+          max_tokens: 1500,
+          temperature: 0.6
         })
       })
-      if (res.ok) {
-        const data = await res.json()
-        const text = data?.choices?.[0]?.message?.content
-        if (text) return text
-      } else {
+
+      if (!res.ok) {
         console.warn(`[AI] Groq ${model} error: ${res.status}`)
+        continue
       }
+
+      const data = await res.json()
+      const choice = data?.choices?.[0]
+      const choiceMessage = choice?.message
+
+      // Vérifier si le modèle a demandé l'appel d'un outil
+      if (choiceMessage?.tool_calls && Array.isArray(choiceMessage.tool_calls) && choiceMessage.tool_calls.length > 0) {
+        messages.push(choiceMessage)
+
+        for (const toolCall of choiceMessage.tool_calls) {
+          const fnName = toolCall.function?.name
+          let fnArgs: Record<string, unknown> = {}
+          try {
+            fnArgs = JSON.parse(toolCall.function?.arguments || '{}')
+          } catch {
+            fnArgs = {}
+          }
+
+          console.log(`[AI Tool] Groq requested function: ${fnName}`, fnArgs)
+          const toolResult = await executeAITool(fnName, fnArgs)
+
+          messages.push({
+            role: 'tool',
+            tool_call_id: toolCall.id,
+            content: JSON.stringify(toolResult)
+          })
+        }
+
+        // Deuxième tour Groq
+        const secondRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            model,
+            messages,
+            max_tokens: 1500,
+            temperature: 0.6
+          })
+        })
+
+        if (secondRes.ok) {
+          const secondData = await secondRes.json()
+          const finalText = secondData?.choices?.[0]?.message?.content
+          if (finalText) return finalText
+        }
+      }
+
+      const directText = choiceMessage?.content
+      if (directText) return directText
     } catch (e) {
       console.warn(`[AI] Groq ${model} fetch failed:`, e)
     }
   }
+
   return null
 }
