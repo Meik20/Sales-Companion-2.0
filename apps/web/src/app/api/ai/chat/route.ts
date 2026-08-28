@@ -160,9 +160,12 @@ export async function POST(request: NextRequest) {
       if (reply) return NextResponse.json({ reply })
     }
 
-    // ── Fallback: Groq key from Firestore config ──
-    const configSnap = await adminDb.collection('config').doc('admin').get()
-    const groqKey = configSnap.data()?.groq_api_key as string | undefined
+    // ── Fallback: Groq key — env var first, then Firestore admin config ──
+    const groqKey =
+      process.env.GROQ_API_KEY ||
+      ((await adminDb.collection('config').doc('admin').get()).data()?.groq_api_key as
+        | string
+        | undefined)
 
     if (groqKey) {
       const reply = await callGroq(groqKey, message, history, systemPrompt)
