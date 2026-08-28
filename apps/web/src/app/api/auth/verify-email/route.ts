@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Utilisateur non trouvé' }, { status: 404 })
     }
 
-    const userData = userSnap.data()!
+    const userData = userSnap.data() ?? {}
     if (userData.activated === true && !userData.emailVerificationPending) {
       // Already activated — idempotent OK
       return NextResponse.json({ success: true, alreadyActivated: true })
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    console.log('[auth/verify-email] Activation finalized', { uid, email })
+    // Activation finalized — no sensitive data logged in production
 
     return NextResponse.json({ success: true })
   } catch (error) {

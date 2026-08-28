@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
         const userRef = adminDb.collection('users').doc(userId)
         const userSnap = await userRef.get()
         if (userSnap.exists) {
-          const data = userSnap.data()!
+          const data = userSnap.data() ?? {}
           const dailyLimit = (data.dailyLimit as number) ?? 10
           const plan = data.plan || 'free'
 

@@ -281,7 +281,7 @@ export function AppSidebar({
               <option value="">{t('sidebar.allRegions')}</option>
               {REGIONS.map((r) => (
                 <option key={r} value={r}>
-                  {t(`regions.${REGION_KEYS[r]}` as any)}
+                  {t(`regions.${REGION_KEYS[r]}` as `regions.${string}`)}
                 </option>
               ))}
             </select>
@@ -321,7 +321,7 @@ export function AppSidebar({
               <option value="">{t('sidebar.allSectors')}</option>
               {SECTORS.map((s) => (
                 <option key={s} value={s}>
-                  {t(`sectors.${SECTOR_KEYS[s]}` as any)}
+                  {t(`sectors.${SECTOR_KEYS[s]}` as `sectors.${string}`)}
                 </option>
               ))}
             </select>

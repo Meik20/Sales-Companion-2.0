@@ -75,7 +75,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const data = snap.data()!
+    const data = snap.data()
+    if (!data) {
+      return NextResponse.json(
+        { message: "Document d'activation invalide ou corrompu." },
+        { status: 404 }
+      )
+    }
 
     if (data.activated === true || data.status === 'activated' || data.status === 'active') {
       return NextResponse.json(
@@ -87,7 +93,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const requestedEmail = ((body as any).email as string | undefined)?.trim()
+    const requestedEmail = (body as { email?: string }).email?.trim()
     const email = requestedEmail ?? data.email?.trim()
     if (!email) {
       return NextResponse.json(
@@ -108,23 +114,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log('[team/activate] Activation initiated:', {
-      accessId: accessIdLower,
-      email,
-      hasDocEmail: !!data.email,
-      hasFormEmail: !!(body as any).email
-    })
-
     // ── 2. Créer ou mettre à jour l'utilisateur Firebase Auth ──
     let uid: string
     try {
       const existing = await adminAuth.getUserByEmail(email)
       await adminAuth.updateUser(existing.uid, { password })
       uid = existing.uid
-      console.log('[team/activate] Updated existing user:', { uid, email })
     } catch (authErr: unknown) {
-      const code = (authErr as { code?: string })?.code
-      if (code === 'auth/user-not-found') {
+      const authCode = typeof (authErr as Record<string, unknown>).code === 'string'
+        ? (authErr as Record<string, unknown>).code as string
+        : ''
+      if (authCode === 'auth/user-not-found') {
         const newUser = await adminAuth.createUser({
           email,
           password,
@@ -134,11 +134,10 @@ export async function POST(request: NextRequest) {
               .trim() || undefined
         })
         uid = newUser.uid
-        console.log('[team/activate] Created new user:', { uid, email })
       } else {
         console.error('[team/activate] Firebase Auth error:', {
-          code,
-          message: (authErr as Error).message
+          code: authCode,
+          message: authErr instanceof Error ? authErr.message : String(authErr)
         })
         throw authErr
       }
@@ -192,15 +191,15 @@ export async function POST(request: NextRequest) {
       activatedUid: uid
     })
 
-    console.log('[team/activate] Account activated successfully:', { accessId: accessIdLower, email, uid })
+    // Activation successful — no sensitive log in production
 
     return NextResponse.json({ success: true, uid })
   } catch (error) {
-    console.error('[team/activate] Error:', error)
-    console.error('[team/activate] Error details:', {
+    console.error('[team/activate] Error:', {
       message: error instanceof Error ? error.message : String(error),
-      code: (error as any)?.code,
-      stack: error instanceof Error ? error.stack : undefined
+      code: typeof (error as Record<string, unknown>)?.code === 'string'
+        ? (error as Record<string, unknown>).code
+        : undefined
     })
 
     const msg =

@@ -73,7 +73,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const data = snap.data()!
+    const data = snap.data()
+    if (!data) {
+      return NextResponse.json(
+        { message: "Document d'activation invalide ou corrompu." },
+        { status: 404 }
+      )
+    }
 
     const email = requestedEmail ?? data.email?.trim().toLowerCase()
     if (!email) {
@@ -114,11 +120,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log('[auth/activate] Activation started', {
-      accessId,
-      email,
-      collection: foundCollection
-    })
+    // Activation started — no sensitive data logged in production
 
     // ── 4. Create or update Firebase Auth user ──────────────────────────────
     let uid: string
@@ -126,10 +128,11 @@ export async function POST(request: NextRequest) {
       const existing = await adminAuth.getUserByEmail(email)
       await adminAuth.updateUser(existing.uid, { password })
       uid = existing.uid
-      console.log('[auth/activate] Updated existing Auth user', { uid, email })
     } catch (authErr: unknown) {
-      const code = (authErr as { code?: string })?.code
-      if (code === 'auth/user-not-found') {
+      const authCode = typeof (authErr as Record<string, unknown>).code === 'string'
+        ? (authErr as Record<string, unknown>).code as string
+        : ''
+      if (authCode === 'auth/user-not-found') {
         const newUser = await adminAuth.createUser({
           email,
           password,
@@ -139,9 +142,11 @@ export async function POST(request: NextRequest) {
               .trim() || undefined
         })
         uid = newUser.uid
-        console.log('[auth/activate] Created new Auth user', { uid, email })
       } else {
-        console.error('[auth/activate] Firebase Auth error', authErr)
+        console.error('[auth/activate] Firebase Auth error', {
+          code: authCode,
+          message: authErr instanceof Error ? authErr.message : String(authErr)
+        })
         throw authErr
       }
     }
@@ -195,12 +200,7 @@ export async function POST(request: NextRequest) {
       activatedUid: uid
     })
 
-    console.log('[auth/activate] Activation pending email verification', {
-      accessId,
-      email,
-      uid,
-      collection: foundCollection
-    })
+    // Activation pending email verification — no sensitive data logged in production
 
     return NextResponse.json({
       success: true,

@@ -85,7 +85,7 @@ export async function GET(request: NextRequest) {
       const userRef = adminDb.collection('users').doc(userId)
       const userSnap = await userRef.get()
       if (userSnap.exists) {
-        const data = userSnap.data()!
+        const data = userSnap.data() ?? {}
         const dailyLimit = (data.dailyLimit as number) ?? 10
         const currentDailyUsed = await ensureDailyReset(userRef, data)
         const plan = data.plan || 'free'
@@ -155,7 +155,6 @@ export async function GET(request: NextRequest) {
 
     // ── 3. Récupération des données (avec Cache) ──
     if (!cachedCompanies || Date.now() - lastCacheUpdate > CACHE_DURATION) {
-      console.log('[search/companies] Refreshing companies cache...')
       const snap = await adminDb.collection('companies').limit(500000).get()
       cachedCompanies = snap.docs.map((d) => {
         const data = d.data()
@@ -178,7 +177,6 @@ export async function GET(request: NextRequest) {
         }
       })
       lastCacheUpdate = Date.now()
-      console.log(`[search/companies] Cache updated with ${cachedCompanies.length} companies.`)
     }
 
     let internalCompanies = [...(cachedCompanies || [])]
@@ -259,7 +257,7 @@ export async function GET(request: NextRequest) {
       if (userId) {
         const uDoc = await adminDb.collection('users').doc(userId).get()
         if (uDoc.exists) {
-          const ud = uDoc.data()!
+          const ud = uDoc.data() ?? {}
           userName = ud.name || ud.email || userName
           userEmail = ud.email || userEmail
           plan = ud.plan || plan
