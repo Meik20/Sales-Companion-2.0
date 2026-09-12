@@ -1131,6 +1131,15 @@ export const fr = {
       ticketClosed: 'Fermé'
     }
   },
+  offline: {
+    banner: 'Vous êtes hors ligne — Les données en cache restent accessibles',
+    reconnected: 'Connexion rétablie — Synchronisation en cours…',
+    searchUnavailable: 'Recherche indisponible hors ligne',
+    cachedResults: 'Résultats en cache (mode hors ligne)',
+    aiUnavailable: "L'assistant IA nécessite une connexion internet",
+    lastSync: 'Dernière synchronisation :',
+    pendingChanges: 'modifications en attente de synchronisation'
+  },
   common: {
     next: 'Suivant',
     previous: 'Précédent',
@@ -1138,3 +1147,4 @@ export const fr = {
     cancel: 'Annuler'
   }
 }
+

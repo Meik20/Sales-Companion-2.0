@@ -4,18 +4,58 @@ import { useState } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useTranslation } from '@/providers/I18nProvider'
 import { Company } from '@/features/search/hooks/useCompaniesSearch'
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
+import { firestore } from '@/services/firebase/client'
+import { useQueryClient } from '@tanstack/react-query'
 
 type Props = { company: Company }
 
 export function AddToPipelineButton({ company }: Props) {
   const { t } = useTranslation()
   const { user } = useCurrentUser()
+  const queryClient = useQueryClient()
   const [status, setStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   async function handleAdd() {
     if (!user || status === 'loading' || status === 'done') return
     setStatus('loading'); setErrorMsg(null)
+
+    const isOffline = typeof navigator !== 'undefined' && !navigator.onLine
+
+    const pipelineData = {
+      userId: user.uid,
+      companyId: company.id,
+      companyName: company.raisonSociale ?? '—',
+      name: company.raisonSociale ?? '—',
+      companySector: company.sector ?? null,
+      companyCity: company.city ?? company.region ?? null,
+      companyPhone: company.telephone ?? null,
+      companyEmail: company.email ?? null,
+      managerUid: user.role === 'member' ? (user.managerUid ?? null) : user.uid,
+      assignedTo: user.uid,
+      memberName: user.name || user.email,
+      memberAccessId: user.accessId ?? null,
+      googlePlaceId: company._source === 'google_places' ? company.id : null,
+      status: 'prospection',
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    }
+
+    if (isOffline) {
+      try {
+        await addDoc(collection(firestore, 'pipeline'), pipelineData)
+        await queryClient.invalidateQueries({ queryKey: ['pipeline'] })
+        await queryClient.invalidateQueries({ queryKey: ['pipeline-stats'] })
+        setStatus('done')
+      } catch (err) {
+        console.error('[AddToPipeline offline]', err)
+        setErrorMsg(err instanceof Error ? err.message : 'Erreur inconnue')
+        setStatus('error')
+      }
+      return
+    }
+
     try {
       const token = await user.getIdToken()
       const res = await fetch('/api/pipeline/add', {
@@ -37,13 +77,24 @@ export function AddToPipelineButton({ company }: Props) {
       })
       const json = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error((json as { message?: string }).message ?? `Erreur ${res.status}`)
+      await queryClient.invalidateQueries({ queryKey: ['pipeline'] })
+      await queryClient.invalidateQueries({ queryKey: ['pipeline-stats'] })
       setStatus('done')
     } catch (err) {
-      console.error('[AddToPipeline]', err)
-      setErrorMsg(err instanceof Error ? err.message : 'Erreur inconnue')
-      setStatus('error')
+      // If network fails, try direct offline save
+      try {
+        await addDoc(collection(firestore, 'pipeline'), pipelineData)
+        await queryClient.invalidateQueries({ queryKey: ['pipeline'] })
+        await queryClient.invalidateQueries({ queryKey: ['pipeline-stats'] })
+        setStatus('done')
+      } catch (addErr) {
+        console.error('[AddToPipeline]', addErr)
+        setErrorMsg(err instanceof Error ? err.message : 'Erreur inconnue')
+        setStatus('error')
+      }
     }
   }
+
 
   if (status === 'done') {
     return (

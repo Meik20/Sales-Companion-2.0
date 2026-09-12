@@ -3,6 +3,7 @@ import { renderHook, waitFor, act } from '@testing-library/react'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { createTestQueryClient } from '@/test/query-client'
 import { useUpdatePipelineItem } from '../useUpdatePipelineItem'
+import { updateDoc } from 'firebase/firestore'
 
 vi.mock('@/hooks/useCurrentUser', () => ({
   useCurrentUser: () => ({
@@ -11,6 +12,16 @@ vi.mock('@/hooks/useCurrentUser', () => ({
       getIdToken: vi.fn().mockResolvedValue('test-token'),
     },
   }),
+}))
+
+vi.mock('@/services/firebase/client', () => ({
+  firestore: {},
+}))
+
+vi.mock('firebase/firestore', () => ({
+  doc: vi.fn(),
+  updateDoc: vi.fn().mockResolvedValue(undefined),
+  serverTimestamp: vi.fn().mockReturnValue('mock-timestamp'),
 }))
 
 describe('useUpdatePipelineItem', () => {
@@ -28,14 +39,6 @@ describe('useUpdatePipelineItem', () => {
   )
 
   it('should update pipeline item successfully', async () => {
-    global.fetch = vi.fn().mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        id: 'item-1',
-        status: 'negotiation',
-      }),
-    })
-
     const { result } = renderHook(() => useUpdatePipelineItem(), { wrapper })
 
     await act(async () => {
@@ -48,5 +51,8 @@ describe('useUpdatePipelineItem', () => {
     await waitFor(() => {
       expect(result.current.isSuccess).toBe(true)
     })
+
+    expect(updateDoc).toHaveBeenCalled()
   })
 })
+

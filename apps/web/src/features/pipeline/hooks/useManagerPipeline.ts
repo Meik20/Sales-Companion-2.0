@@ -1,7 +1,10 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
+import { collection, query, where } from 'firebase/firestore'
+import { firestore } from '@/services/firebase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { getDocsWithOfflineFallback, formatTimestamp } from '@/lib/firestore-offline'
 import type { PipelineDoc } from '@sales-companion/shared'
 
 export const useManagerPipeline = () => {
@@ -9,23 +12,37 @@ export const useManagerPipeline = () => {
 
   return useQuery({
     queryKey: ['manager-pipeline', user?.uid],
-    queryFn: async () => {
-      const token = await user?.getIdToken()
+    queryFn: async (): Promise<(PipelineDoc & { id: string })[]> => {
+      if (!user?.uid) return []
 
-      const response = await fetch('/api/pipeline/manager', {
-        headers: {
-          Authorization: `Bearer ${token || ''}`
-        }
+      const q = query(collection(firestore, 'pipeline'), where('managerUid', '==', user.uid))
+      const snap = await getDocsWithOfflineFallback(q)
+
+      const items = snap.docs.map((docSnap) => {
+        const data = docSnap.data()
+        return {
+          id: docSnap.id,
+          ...data,
+          companyName: (data.companyName || data.name || '') as string,
+          companyId: (data.companyId || docSnap.id) as string,
+          status: data.status || 'prospection',
+          userId: (data.userId || user.uid) as string,
+          createdAt: formatTimestamp(data.createdAt) || new Date().toISOString(),
+          updatedAt: formatTimestamp(data.updatedAt) || new Date().toISOString()
+        } as unknown as (PipelineDoc & { id: string })
       })
 
-      if (!response.ok) {
-        throw new Error('Impossible de charger le pipeline équipe')
-      }
+      items.sort((a, b) => {
+        const ta = a.createdAt ? new Date(a.createdAt as unknown as string).getTime() : 0
+        const tb = b.createdAt ? new Date(b.createdAt as unknown as string).getTime() : 0
+        return tb - ta
+      })
 
-      return response.json() as Promise<(PipelineDoc & { id: string })[]>
+      return items
     },
     enabled: !!user?.uid && user.role === 'manager',
-    staleTime: 2 * 60 * 1000,   // 2 min de cache — évite les re-fetch à chaque re-montage
+    staleTime: 2 * 60 * 1000,
     refetchOnWindowFocus: false
   })
 }
+

@@ -1127,6 +1127,15 @@ export const en = {
       ticketClosed: 'Closed'
     }
   },
+  offline: {
+    banner: 'You are offline — Cached data remains accessible',
+    reconnected: 'Connection restored — Synchronizing…',
+    searchUnavailable: 'Search is unavailable offline',
+    cachedResults: 'Cached results (offline mode)',
+    aiUnavailable: 'AI Assistant requires an internet connection',
+    lastSync: 'Last sync:',
+    pendingChanges: 'pending changes waiting to sync'
+  },
   common: {
     next: 'Next',
     previous: 'Previous',
@@ -1134,3 +1143,4 @@ export const en = {
     cancel: 'Cancel'
   }
 }
+

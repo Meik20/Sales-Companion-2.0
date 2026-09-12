@@ -4,8 +4,23 @@ import { ReactNode, useEffect } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ToastProvider } from './ToastProvider'
 import { PWAInitializer } from '@/components/PWAInitializer'
+import { NetworkStatusBanner } from '@/components/ui/NetworkStatusBanner'
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      networkMode: 'offlineFirst',
+      retry: (failureCount) => {
+        if (typeof navigator !== 'undefined' && !navigator.onLine) return false
+        return failureCount < 2
+      },
+      staleTime: 5 * 60 * 1000
+    },
+    mutations: {
+      networkMode: 'offlineFirst'
+    }
+  }
+})
 
 export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
@@ -29,9 +44,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
+        <NetworkStatusBanner />
         <PWAInitializer />
         {children}
       </ToastProvider>
     </QueryClientProvider>
   )
 }
+

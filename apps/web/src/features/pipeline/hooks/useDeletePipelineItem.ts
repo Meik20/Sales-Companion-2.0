@@ -1,29 +1,17 @@
 'use client'
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { doc, deleteDoc } from 'firebase/firestore'
+import { firestore } from '@/services/firebase/client'
 
 export function useDeletePipelineItem() {
-  const { user } = useCurrentUser()
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: async (itemId: string) => {
-      const token = await user?.getIdToken()
-
-      const response = await fetch(`/api/pipeline/${itemId}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token || ''}`
-        }
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData?.message || 'Erreur lors de la suppression')
-      }
-
-      return response.json()
+      const docRef = doc(firestore, 'pipeline', itemId)
+      await deleteDoc(docRef)
+      return { success: true, id: itemId }
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['pipeline'] })
@@ -32,3 +20,4 @@ export function useDeletePipelineItem() {
     }
   })
 }
+

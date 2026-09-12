@@ -3,6 +3,7 @@ import { renderHook, waitFor, act } from '@testing-library/react'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { createTestQueryClient } from '@/test/query-client'
 import { useDeletePipelineItem } from '../useDeletePipelineItem'
+import { deleteDoc } from 'firebase/firestore'
 
 vi.mock('@/hooks/useCurrentUser', () => ({
   useCurrentUser: () => ({
@@ -11,6 +12,15 @@ vi.mock('@/hooks/useCurrentUser', () => ({
       getIdToken: vi.fn().mockResolvedValue('test-token'),
     },
   }),
+}))
+
+vi.mock('@/services/firebase/client', () => ({
+  firestore: {},
+}))
+
+vi.mock('firebase/firestore', () => ({
+  doc: vi.fn(),
+  deleteDoc: vi.fn().mockResolvedValue(undefined),
 }))
 
 describe('useDeletePipelineItem', () => {
@@ -28,11 +38,6 @@ describe('useDeletePipelineItem', () => {
   )
 
   it('should delete pipeline item successfully', async () => {
-    global.fetch = vi.fn().mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ success: true, id: 'item-1' }),
-    })
-
     const { result } = renderHook(() => useDeletePipelineItem(), { wrapper })
 
     await act(async () => {
@@ -42,5 +47,8 @@ describe('useDeletePipelineItem', () => {
     await waitFor(() => {
       expect(result.current.isSuccess).toBe(true)
     })
+
+    expect(deleteDoc).toHaveBeenCalled()
   })
 })
+

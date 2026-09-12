@@ -3,6 +3,7 @@ import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { createTestQueryClient } from '@/test/query-client'
 import { usePipelineItems } from '../usePipelineItems'
+import { getDocsWithOfflineFallback } from '@/lib/firestore-offline'
 
 vi.mock('@/hooks/useCurrentUser', () => ({
   useCurrentUser: () => ({
@@ -12,6 +13,22 @@ vi.mock('@/hooks/useCurrentUser', () => ({
     },
   }),
 }))
+
+vi.mock('@/services/firebase/client', () => ({
+  firestore: {},
+}))
+
+vi.mock('firebase/firestore', () => ({
+  collection: vi.fn(),
+  query: vi.fn(),
+  where: vi.fn(),
+}))
+
+vi.mock('@/lib/firestore-offline', () => ({
+  getDocsWithOfflineFallback: vi.fn(),
+  formatTimestamp: (v: any) => v || '2026-09-12T00:00:00.000Z',
+}))
+
 
 describe('usePipelineItems', () => {
   let queryClient: ReturnType<typeof createTestQueryClient>
@@ -28,18 +45,19 @@ describe('usePipelineItems', () => {
   )
 
   it('should fetch pipeline items successfully', async () => {
-    const mockItems = [
+    const mockDocs = [
       {
         id: 'item-1',
-        userId: 'test-user-id',
-        companyName: 'Company A',
-        status: 'prospection',
+        data: () => ({
+          userId: 'test-user-id',
+          companyName: 'Company A',
+          status: 'prospection',
+        }),
       },
     ]
 
-    global.fetch = vi.fn().mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockItems,
+    vi.mocked(getDocsWithOfflineFallback).mockImplementation(async (q: any) => {
+      return { docs: mockDocs } as any
     })
 
     const { result } = renderHook(() => usePipelineItems(), { wrapper })
@@ -53,12 +71,12 @@ describe('usePipelineItems', () => {
   })
 
   it('should handle empty pipeline', async () => {
-    global.fetch = vi.fn().mockResolvedValueOnce({
-      ok: true,
-      json: async () => [],
-    })
+    vi.mocked(getDocsWithOfflineFallback).mockResolvedValue({
+      docs: [],
+    } as any)
 
     const { result } = renderHook(() => usePipelineItems(), { wrapper })
+
 
     await waitFor(() => {
       expect(result.current.isSuccess).toBe(true)
@@ -68,9 +86,7 @@ describe('usePipelineItems', () => {
   })
 
   it('should handle fetch errors', async () => {
-    global.fetch = vi.fn().mockResolvedValueOnce({
-      ok: false,
-    })
+    vi.mocked(getDocsWithOfflineFallback).mockRejectedValueOnce(new Error('Firestore error'))
 
     const { result } = renderHook(() => usePipelineItems(), { wrapper })
 
@@ -79,3 +95,4 @@ describe('usePipelineItems', () => {
     })
   })
 })
+

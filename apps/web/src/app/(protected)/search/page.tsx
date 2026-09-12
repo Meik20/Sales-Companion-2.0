@@ -53,12 +53,21 @@ function SearchContent() {
 
   async function sendChatMessage(msg: string) {
     if (!msg.trim() || isSendingChat) return
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      setChatMessages((prev) => [
+        ...prev,
+        { role: 'user', text: msg.trim() },
+        { role: 'assistant', text: `❌ ${t('offline.aiUnavailable')}` }
+      ])
+      return
+    }
     const userMsg = msg.trim()
     setChatInput('')
     setChatMessages((prev) => [...prev, { role: 'user', text: userMsg }])
     setIsSendingChat(true)
     try {
       const token = await user?.getIdToken()
+
       const history = chatMessages
         .filter((m) => m.role !== 'assistant' || m !== chatMessages[0])
         .map((m) => ({
@@ -156,7 +165,7 @@ function SearchContent() {
               title={t('search.results')}
               subtitle={
                 !searchQuery.isLoading && !searchQuery.isError
-                  ? `${totalResults} ${t('search.companiesFound')}`
+                  ? `${totalResults} ${t('search.companiesFound')}${searchData?.fromCache ? ` • 💾 ${t('offline.cachedResults')}` : ''}`
                   : undefined
               }
               actions={<SaveCurrentSearchButton filters={filters} results={results} />}
@@ -191,12 +200,16 @@ function SearchContent() {
                     fontSize: 13
                   }}
                 >
-                  {(searchQuery.error as Error)?.message?.includes('429') ||
-                  (searchQuery.error as Error)?.message?.includes('Quota')
-                    ? t('search.quotaExceeded')
-                    : t('search.searchError')}
+                  {(searchQuery.error as Error)?.message?.includes('hors ligne') ||
+                  (searchQuery.error as Error)?.message?.includes('offline')
+                    ? (searchQuery.error as Error).message
+                    : (searchQuery.error as Error)?.message?.includes('429') ||
+                    (searchQuery.error as Error)?.message?.includes('Quota')
+                      ? t('search.quotaExceeded')
+                      : t('search.searchError')}
                 </div>
               ) : null}
+
               {!searchQuery.isLoading && !searchQuery.isError && results.length === 0 ? (
                 <EmptyState
                   title={t('search.noResult')}

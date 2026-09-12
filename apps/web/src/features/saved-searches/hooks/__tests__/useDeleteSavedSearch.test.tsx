@@ -2,14 +2,12 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { renderHook, waitFor, act } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useDeleteSavedSearch } from '../useDeleteSavedSearch'
+import { savedSearchesRepository } from '@/repositories/saved-searches.repository'
 
-vi.mock('@/hooks/useCurrentUser', () => ({
-  useCurrentUser: () => ({
-    user: {
-      uid: 'test-user-id',
-      getIdToken: vi.fn().mockResolvedValue('test-token')
-    }
-  })
+vi.mock('@/repositories/saved-searches.repository', () => ({
+  savedSearchesRepository: {
+    delete: vi.fn().mockResolvedValue(undefined)
+  }
 }))
 
 describe('useDeleteSavedSearch', () => {
@@ -25,11 +23,6 @@ describe('useDeleteSavedSearch', () => {
   )
 
   it('should delete saved search successfully', async () => {
-    global.fetch = vi.fn().mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ success: true })
-    })
-
     const { result } = renderHook(() => useDeleteSavedSearch(), { wrapper })
 
     await act(async () => {
@@ -39,5 +32,8 @@ describe('useDeleteSavedSearch', () => {
     await waitFor(() => {
       expect(result.current.isSuccess).toBe(true)
     })
+
+    expect(savedSearchesRepository.delete).toHaveBeenCalledWith('search-1')
   })
 })
+

@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { getCachedSearchResults, saveSearchResults } from '@/lib/search-cache'
 
 export type Company = {
   id: string
@@ -32,6 +33,7 @@ export type SearchResponse = {
   page: number
   pageSize: number
   totalPages: number
+  fromCache?: boolean
 }
 
 export type SearchFilters = {
@@ -57,6 +59,26 @@ export function useCompaniesSearch(filters: SearchFilters & { page?: number; cha
   return useQuery({
     queryKey: ['companies-search', filters],
     queryFn: async (): Promise<SearchResponse> => {
+      const isOffline = typeof navigator !== 'undefined' && !navigator.onLine
+
+      if (isOffline) {
+        const cached = await getCachedSearchResults(filters)
+        if (cached) {
+          const pageSize = 20
+          const page = filters.page || 1
+          const total = cached.total ?? cached.results.length
+          return {
+            items: cached.results as Company[],
+            total,
+            page,
+            pageSize,
+            totalPages: Math.ceil(total / pageSize) || 1,
+            fromCache: true
+          }
+        }
+        throw new Error('Recherche indisponible hors ligne. Seules les recherches préalablement consultées sont disponibles.')
+      }
+
       const params = new URLSearchParams()
       if (filters.sector) params.append('sector', filters.sector)
       if (filters.region) params.append('region', filters.region)
@@ -71,21 +93,47 @@ export function useCompaniesSearch(filters: SearchFilters & { page?: number; cha
       // Passer le token pour déduire un crédit côté serveur
       const token = user ? await user.getIdToken() : null
 
-      const response = await fetch(`/api/search/companies?${params}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {}
-      })
+      try {
+        const response = await fetch(`/api/search/companies?${params}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        })
 
-      if (!response.ok) {
-        let errMessage = 'Failed to search companies'
-        try {
-          const errData = await response.json()
-          if (errData?.message) errMessage = errData.message
-        } catch (e) {}
-        throw new Error(errMessage)
+        if (!response.ok) {
+          let errMessage = 'Failed to search companies'
+          try {
+            const errData = await response.json()
+            if (errData?.message) errMessage = errData.message
+          } catch (e) {}
+          throw new Error(errMessage)
+        }
+
+        const data = (await response.json()) as SearchResponse
+        if (data.items) {
+          // Asynchronously save results in IndexedDB for offline retrieval
+          saveSearchResults(filters, data.items, data.total).catch(() => {})
+        }
+        return data
+      } catch (err: any) {
+        // If network error occurred, try fallback to cached search
+        const cached = await getCachedSearchResults(filters)
+        if (cached) {
+          const pageSize = 20
+          const page = filters.page || 1
+          const total = cached.total ?? cached.results.length
+          return {
+            items: cached.results as Company[],
+            total,
+            page,
+            pageSize,
+            totalPages: Math.ceil(total / pageSize) || 1,
+            fromCache: true
+          }
+        }
+        throw err
       }
-      return response.json()
     },
     enabled: hasFilters,
     staleTime: 1000 * 60 * 2
   })
 }
+

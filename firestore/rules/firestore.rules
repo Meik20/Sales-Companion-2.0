@@ -81,8 +81,9 @@ service cloud.firestore {
 
     match /pipeline/{pipelineId} {
       allow read: if isAdmin()
-        || (isSignedIn() && resource.data.userId == authUid())
+        || (isSignedIn() && (resource.data.userId == authUid() || resource.data.assignedTo == authUid()))
         || isManagedUser(resource.data.managerUid)
+
         || (isSupportAgent() 
             && (resource.data.status == 'conclue' || resource.data.status == 'conclusion')
             && (resource.data.managerUid == currentUserDoc().managerUid 
@@ -112,6 +113,14 @@ service cloud.firestore {
       allow update: if isSignedIn() && resource.data.userId == authUid() && request.resource.data.userId == authUid();
       allow delete: if isSignedIn() && resource.data.userId == authUid();
     }
+
+    match /saved_companies/{companyId} {
+      allow read: if isSignedIn() && resource.data.userId == authUid();
+      allow create: if isSignedIn() && request.resource.data.userId == authUid();
+      allow update: if isSignedIn() && resource.data.userId == authUid() && request.resource.data.userId == authUid();
+      allow delete: if isSignedIn() && resource.data.userId == authUid();
+    }
+
 
     match /support_threads/{threadId} {
       allow read: if isAdmin() || (isSignedIn() && resource.data.userId == authUid());

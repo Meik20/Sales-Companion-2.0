@@ -33,6 +33,8 @@ export function AuthGuard({ children }: PropsWithChildren) {
       ?.emailVerificationPending
 
     if (firebaseUser.emailVerified && isPending) {
+      if (typeof navigator !== 'undefined' && !navigator.onLine) return
+
       setFinalizing(true)
       firebaseUser
         .getIdToken(true)
@@ -50,6 +52,7 @@ export function AuthGuard({ children }: PropsWithChildren) {
         })
         .catch(() => setFinalizing(false))
     }
+
   }, [user, loading])
 
   // ─────────────────────────────────────────────────────────────────────────

@@ -1,6 +1,8 @@
 'use client'
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { doc, deleteDoc } from 'firebase/firestore'
+import { firestore } from '@/services/firebase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 
 export function useDeleteSavedCompany() {
@@ -9,19 +11,8 @@ export function useDeleteSavedCompany() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      if (!user?.uid) throw new Error('Not authenticated')
-      const token = await user.getIdToken()
-
-      const res = await fetch(`/api/saved-companies/${id}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      })
-      if (!res.ok) {
-        const errData = await res.json().catch(() => null)
-        throw new Error(errData?.error || 'Failed to delete saved company')
-      }
+      const docRef = doc(firestore, 'saved_companies', id)
+      await deleteDoc(docRef)
       return true
     },
     onSuccess: () => {
@@ -29,3 +20,4 @@ export function useDeleteSavedCompany() {
     }
   })
 }
+

@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useSavedSearches } from '../useSavedSearches'
+import { savedSearchesRepository } from '@/repositories/saved-searches.repository'
 
 vi.mock('@/hooks/useCurrentUser', () => ({
   useCurrentUser: () => ({
@@ -10,6 +11,14 @@ vi.mock('@/hooks/useCurrentUser', () => ({
       getIdToken: vi.fn().mockResolvedValue('test-token')
     }
   })
+}))
+
+vi.mock('@/repositories/saved-searches.repository', () => ({
+  savedSearchesRepository: {
+    findByUserId: vi.fn(),
+    delete: vi.fn(),
+    create: vi.fn()
+  }
 }))
 
 describe('useSavedSearches', () => {
@@ -31,14 +40,12 @@ describe('useSavedSearches', () => {
         userId: 'test-user-id',
         label: 'Tech Companies',
         filters: { sector: 'technology' },
-        resultCount: 50
+        resultCount: 50,
+        createdAt: '2026-09-12T00:00:00.000Z'
       }
     ]
 
-    global.fetch = vi.fn().mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockSearches
-    })
+    vi.mocked(savedSearchesRepository.findByUserId).mockResolvedValueOnce(mockSearches as any)
 
     const { result } = renderHook(() => useSavedSearches(), { wrapper })
 
@@ -51,10 +58,7 @@ describe('useSavedSearches', () => {
   })
 
   it('should handle empty searches list', async () => {
-    global.fetch = vi.fn().mockResolvedValueOnce({
-      ok: true,
-      json: async () => []
-    })
+    vi.mocked(savedSearchesRepository.findByUserId).mockResolvedValueOnce([])
 
     const { result } = renderHook(() => useSavedSearches(), { wrapper })
 
@@ -65,3 +69,4 @@ describe('useSavedSearches', () => {
     expect(result.current.data).toHaveLength(0)
   })
 })
+

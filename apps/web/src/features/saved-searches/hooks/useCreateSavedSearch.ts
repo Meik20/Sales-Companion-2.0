@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { savedSearchesRepository } from '@/repositories/saved-searches.repository'
 
 type Input = {
   label: string
@@ -17,28 +18,19 @@ export function useCreateSavedSearch() {
     mutationFn: async (input: Input) => {
       if (!user?.uid) throw new Error('Non authentifié')
 
-      const token = await user.getIdToken()
-      const res = await fetch('/api/saved-searches', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          label: input.label,
-          filters: input.filters,
-          resultCount: input.resultCount ?? 0
-        })
+      const docRef = await savedSearchesRepository.create({
+        userId: user.uid,
+        label: input.label,
+        filters: input.filters,
+        resultCount: input.resultCount ?? 0,
+        createdAt: new Date()
       })
 
-      const json = await res.json().catch(() => ({}))
-      if (!res.ok) {
-        throw new Error((json as { message?: string }).message ?? `Erreur ${res.status}`)
-      }
-      return json
+      return { id: docRef.id, success: true }
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['saved-searches'] })
     }
   })
 }
+
