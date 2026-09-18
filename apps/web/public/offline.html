@@ -32,10 +32,14 @@
         text-align: center;
       }
 
-      .icon {
-        font-size: 80px;
-        margin-bottom: 24px;
-        animation: float 3s ease-in-out infinite;
+      .illustration {
+        max-width: 210px;
+        width: 100%;
+        height: auto;
+        margin: 0 auto 20px auto;
+        display: block;
+        animation: float 4s ease-in-out infinite;
+        filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.25));
       }
 
       @keyframes float {
@@ -129,7 +133,7 @@
   </head>
   <body>
     <div class="container">
-      <div class="icon">📡</div>
+      <img src="/illustrations/empty-states/offline-state.png" alt="Hors connexion" class="illustration" />
       <h1>Vous êtes hors ligne</h1>
       <p>
         Nous ne pouvons pas accéder à la plateforme actuellement. Vérifiez votre connexion internet

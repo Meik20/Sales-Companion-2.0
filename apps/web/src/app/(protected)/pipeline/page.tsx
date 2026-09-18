@@ -109,9 +109,9 @@ export default function PipelinePage() {
           {managerPipelineQuery.isLoading ? <LoadingState /> : null}
           {!managerPipelineQuery.isLoading && !managerPipelineQuery.data?.length ? (
             <EmptyState
+              illustration="/illustrations/empty-states/empty-pipeline.png"
               title={t('pipeline.noProspect')}
               description={t('pipeline.teamNoProspect')}
-              icon="📊"
             />
           ) : null}
           {managerPipelineQuery.data?.length ? (
@@ -140,9 +140,14 @@ export default function PipelinePage() {
             {userPipelineQuery.isLoading ? <LoadingState /> : null}
             {!userPipelineQuery.isLoading && items.length === 0 ? (
               <EmptyState
+                illustration="/illustrations/empty-states/empty-pipeline.png"
                 title={t('pipeline.emptyPipeline')}
                 description={t('pipeline.emptyPipelineDesc')}
-                icon="📋"
+                action={{
+                  label: t('pipeline.addProspectTitle') || 'Ajouter une opportunité',
+                  onClick: () => setShowForm(true),
+                  variant: 'primary'
+                }}
               />
             ) : null}
             {items.length > 0 ? (

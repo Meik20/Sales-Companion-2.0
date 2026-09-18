@@ -14,6 +14,7 @@ import {
   UserCheck
 } from 'lucide-react'
 import { Badge } from '@/components/ui/index'
+import { EmptyState } from '@/components/feedback'
 
 export function TeamMembersSection() {
   const { data: members, isLoading, isError } = useTeamMembers()
@@ -47,16 +48,12 @@ export function TeamMembersSection() {
       subtitle={`${activeMembers.length} ${t('team.activeMembersCount')}`}
     >
       {activeMembers.length === 0 ? (
-        <div
-          style={{
-            textAlign: 'center',
-            color: 'var(--muted-foreground, #94a3b8)',
-            padding: 20,
-            fontSize: 13
-          }}
-        >
-          {t('team.noMemberAssigned')}
-        </div>
+        <EmptyState
+          illustration="/illustrations/empty-states/empty-team.png"
+          title={t('team.emptyTeam' as any) || 'Équipe vide'}
+          description={t('team.noMemberAssigned') || 'Invitez des membres pour collaborer et suivre les performances.'}
+          illustrationSize="sm"
+        />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {activeMembers.map((member) => (

@@ -212,9 +212,17 @@ function SearchContent() {
 
               {!searchQuery.isLoading && !searchQuery.isError && results.length === 0 ? (
                 <EmptyState
+                  illustration="/illustrations/empty-states/empty-search.png"
                   title={t('search.noResult')}
                   description={t('search.noResultDesc')}
-                  icon="🔍"
+                  action={{
+                    label: t('common.reset' as any) || 'Réinitialiser les filtres',
+                    onClick: () => {
+                      setFilters({})
+                      setCurrentPage(1)
+                    },
+                    variant: 'outline'
+                  }}
                 />
               ) : null}
               {!searchQuery.isLoading && !searchQuery.isError && results.length > 0 ? (

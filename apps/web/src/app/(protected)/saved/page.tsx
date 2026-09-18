@@ -85,9 +85,14 @@ export default function SavedPage() {
           !savedCompaniesQuery.isError &&
           companyItems.length === 0 ? (
             <EmptyState
+              illustration="/illustrations/empty-states/empty-saved.png"
               title={t('saved.noCompany')}
               description={t('saved.noCompanyDesc')}
-              icon="🏢"
+              action={{
+                label: t('search.title') || 'Rechercher des entreprises',
+                href: '/search',
+                variant: 'primary'
+              }}
             />
           ) : null}
           {companyItems.length > 0 ? (
@@ -108,9 +113,14 @@ export default function SavedPage() {
           !savedSearchesQuery.isError &&
           searchItems.length === 0 ? (
             <EmptyState
+              illustration="/illustrations/empty-states/empty-prospects.png"
               title={t('saved.noSearch')}
               description={t('saved.noSearchDesc')}
-              icon="🔖"
+              action={{
+                label: t('search.title') || 'Lancer une recherche',
+                href: '/search',
+                variant: 'outline'
+              }}
             />
           ) : null}
           {searchItems.length > 0 ? (
