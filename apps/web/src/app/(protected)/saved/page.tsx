@@ -89,7 +89,7 @@ export default function SavedPage() {
               title={t('saved.noCompany')}
               description={t('saved.noCompanyDesc')}
               action={{
-                label: t('search.title') || 'Rechercher des entreprises',
+                label: t('saved.searchCompanies' as any) || 'Rechercher des entreprises',
                 href: '/search',
                 variant: 'primary'
               }}
@@ -117,7 +117,7 @@ export default function SavedPage() {
               title={t('saved.noSearch')}
               description={t('saved.noSearchDesc')}
               action={{
-                label: t('search.title') || 'Lancer une recherche',
+                label: t('saved.startSearch' as any) || 'Lancer une recherche',
                 href: '/search',
                 variant: 'outline'
               }}

@@ -311,6 +311,7 @@ export const fr = {
     aiAssistant: 'Companion IA'
   },
   search: {
+    title: "Recherche d'entreprises",
     placeholder: 'Entreprise, secteur, ville…',
     quickAll: 'Tous',
     btp: 'BTP',
@@ -758,6 +759,7 @@ export const fr = {
     assignSelectedBtn: 'Assigner',
     teamMembers: "Membres de l'équipe",
     activeMembersCount: 'membre(s) actif(s)',
+    emptyTeam: "Aucun membre dans l'équipe",
     noMemberAssigned: "Aucun membre n'a été assigné à cette équipe.",
     dailyQuota: 'Quota quotidien',
     inactive: 'Inactif',
@@ -857,6 +859,8 @@ export const fr = {
     errorLoadCompanies: 'Erreur lors du chargement des entreprises',
     noCompany: 'Aucune entreprise sauvegardée',
     noCompanyDesc: "Vous n'avez pas encore sauvegardé d'entreprises individuelles.",
+    searchCompanies: 'Rechercher des entreprises',
+    startSearch: 'Lancer une recherche',
     deleteCompanySuccess: 'Entreprise supprimée de vos favoris',
     deleteCompanyError: 'Erreur de suppression'
   },

@@ -311,6 +311,7 @@ export const en = {
     aiAssistant: 'Companion IA'
   },
   search: {
+    title: 'Company Search',
     placeholder: 'Company, sector, city...',
     quickAll: 'All',
     btp: 'BTP',
@@ -755,6 +756,7 @@ export const en = {
     assignSelectedBtn: 'Assign',
     teamMembers: 'Team members',
     activeMembersCount: 'active member(s)',
+    emptyTeam: 'No team members yet',
     noMemberAssigned: 'No member has been assigned to this team.',
     dailyQuota: 'Daily quota',
     inactive: 'Inactive',
@@ -853,6 +855,8 @@ export const en = {
     errorLoadCompanies: 'Error loading companies',
     noCompany: 'No saved company',
     noCompanyDesc: "You haven't saved any individual companies yet.",
+    searchCompanies: 'Search companies',
+    startSearch: 'Start a search',
     deleteCompanySuccess: 'Company removed from favorites',
     deleteCompanyError: 'Error deleting company'
   },
