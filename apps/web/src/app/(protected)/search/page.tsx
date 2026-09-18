@@ -216,7 +216,7 @@ function SearchContent() {
                   title={t('search.noResult')}
                   description={t('search.noResultDesc')}
                   action={{
-                    label: t('common.reset' as any) || 'Réinitialiser les filtres',
+                    label: t('search.clearFilters' as any) || 'Effacer les filtres',
                     onClick: () => {
                       setFilters({})
                       setCurrentPage(1)

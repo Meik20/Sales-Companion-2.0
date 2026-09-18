@@ -340,6 +340,8 @@ export const en = {
     searchError: 'Unable to perform the search. Please try again.',
     noResult: 'No result',
     noResultDesc: 'Try broadening your search criteria.',
+    clearFilters: 'Clear filters',
+    resetSearch: 'Reset search',
     findIdealProspects: 'Find your ideal prospects',
     findIdealProspectsDesc: 'Search by name, sector, city or use quick filters below to start.',
     startFirstSearch: 'Start your first search →',
@@ -1140,7 +1142,9 @@ export const en = {
     next: 'Next',
     previous: 'Previous',
     edit: 'Edit',
-    cancel: 'Cancel'
+    cancel: 'Cancel',
+    reset: 'Reset',
+    retry: 'Retry'
   }
 }
 

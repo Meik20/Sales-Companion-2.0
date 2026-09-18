@@ -340,6 +340,8 @@ export const fr = {
     searchError: "Impossible d'exécuter la recherche. Veuillez réessayer.",
     noResult: 'Aucun résultat',
     noResultDesc: "Essayez d'élargir vos critères de recherche.",
+    clearFilters: 'Effacer les filtres',
+    resetSearch: 'Réinitialiser la recherche',
     findIdealProspects: 'Trouvez vos prospects idéaux',
     findIdealProspectsDesc:
       'Recherchez par nom, secteur, ville ou utilisez les filtres rapides ci-dessous pour démarrer.',
@@ -1144,7 +1146,9 @@ export const fr = {
     next: 'Suivant',
     previous: 'Précédent',
     edit: 'Modifier',
-    cancel: 'Annuler'
+    cancel: 'Annuler',
+    reset: 'Réinitialiser',
+    retry: 'Réessayer'
   }
 }
 
