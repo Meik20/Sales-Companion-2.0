@@ -20,7 +20,7 @@ async function getAdminModules() {
 // Cache en mémoire pour éviter de recharger 500k docs à chaque clic
 let cachedCompanies: any[] | null = null
 let lastCacheUpdate = 0
-const CACHE_DURATION = 1000 * 60 * 15 // 15 minutes
+const CACHE_DURATION = 1000 * 60 * 60 // 1 heure (réduit les lectures Firestore de 75%)
 
 export async function GET(request: NextRequest) {
   try {
@@ -156,33 +156,38 @@ export async function GET(request: NextRequest) {
         .trim()
     }
 
-    // ── 3. Récupération des données (avec Cache) ──
-    if (!cachedCompanies || Date.now() - lastCacheUpdate > CACHE_DURATION) {
-      const snap = await adminDb.collection('companies').limit(500000).get()
-      cachedCompanies = snap.docs.map((d) => {
-        const data = d.data()
-        return {
-          ...data,
-          id: d.id,
-          raisonSociale: data.raisonSociale ?? data.name ?? '',
-          sector: data.sector ?? data.activite_principale ?? '',
-          region: data.region ?? data.centre_de_rattachement ?? '',
-          city: data.city ?? data.ville ?? '',
-          niu: data.niu ?? '',
-          sigle: data.sigle ?? '',
-          dirigeant: data.dirigeant ?? '',
-          telephone: data.telephone ?? '',
-          email: data.email ?? '',
-          rccm: data.rccm ?? '',
-          adresse: data.adresse ?? '',
-          formeJuridique: data.formeJuridique ?? '',
-          capital: data.capital ?? ''
-        }
-      })
-      lastCacheUpdate = Date.now()
+    // ── 3. Récupération des données (avec Cache et protection quota) ──
+    let internalCompanies: any[] = []
+    try {
+      if (!cachedCompanies || Date.now() - lastCacheUpdate > CACHE_DURATION) {
+        const snap = await adminDb.collection('companies').limit(10000).get()
+        cachedCompanies = snap.docs.map((d) => {
+          const data = d.data()
+          return {
+            ...data,
+            id: d.id,
+            raisonSociale: data.raisonSociale ?? data.name ?? '',
+            sector: data.sector ?? data.activite_principale ?? '',
+            region: data.region ?? data.centre_de_rattachement ?? '',
+            city: data.city ?? data.ville ?? '',
+            niu: data.niu ?? '',
+            sigle: data.sigle ?? '',
+            dirigeant: data.dirigeant ?? '',
+            telephone: data.telephone ?? '',
+            email: data.email ?? '',
+            rccm: data.rccm ?? '',
+            adresse: data.adresse ?? '',
+            formeJuridique: data.formeJuridique ?? '',
+            capital: data.capital ?? ''
+          }
+        })
+        lastCacheUpdate = Date.now()
+      }
+      internalCompanies = [...(cachedCompanies || [])]
+    } catch (err) {
+      console.warn('[search/companies] Firestore quota or connection limit reached, using memory cache/fallback:', err)
+      internalCompanies = [...(cachedCompanies || [])]
     }
-
-    let internalCompanies = [...(cachedCompanies || [])]
 
     // ── 4. Filtrage flexible ──
     const matchKeywords = (

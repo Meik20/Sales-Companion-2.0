@@ -222,14 +222,18 @@ export async function POST(request: NextRequest) {
         const docId = niu || `name_${nameSlug}`
         const ref = adminDb.collection('companies').doc(docId)
 
-        const existing = await ref.get()
-        if (existing.exists) {
-          currentBatch.update(ref, { ...company, updatedAt: new Date() })
-          updated++
-        } else {
-          currentBatch.set(ref, { ...company, createdAt: new Date(), importedBy: adminUid })
-          imported++
-        }
+        // Utiliser set({ merge: true }) pour éviter 1 lecture (ref.get()) par ligne
+        // Économise 100% des lectures Firestore lors de l'importation de fichiers
+        currentBatch.set(
+          ref,
+          {
+            ...company,
+            importedBy: adminUid,
+            updatedAt: new Date()
+          },
+          { merge: true }
+        )
+        imported++
 
         batchCount++
         // Commit every 499 writes (Firestore batch limit is 500)

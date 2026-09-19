@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ToastProvider } from './ToastProvider'
 import { PWAInitializer } from '@/components/PWAInitializer'
 import { NetworkStatusBanner } from '@/components/ui/NetworkStatusBanner'
+import { UserProvider } from '@/hooks/useCurrentUser'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -43,11 +44,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ToastProvider>
-        <NetworkStatusBanner />
-        <PWAInitializer />
-        {children}
-      </ToastProvider>
+      <UserProvider>
+        <ToastProvider>
+          <NetworkStatusBanner />
+          <PWAInitializer />
+          {children}
+        </ToastProvider>
+      </UserProvider>
     </QueryClientProvider>
   )
 }

@@ -20,7 +20,7 @@ export interface CompanyRecord {
 
 let cachedCompanies: CompanyRecord[] | null = null
 let lastCacheUpdate = 0
-const CACHE_DURATION = 1000 * 60 * 15 // 15 minutes
+const CACHE_DURATION = 1000 * 60 * 60 // 1 heure (réduit les lectures Firestore de 75%)
 
 /**
  * Normalise une chaîne pour une recherche insensible aux accents et à la casse
@@ -39,7 +39,7 @@ export function normalizeString(str: string): string {
 export async function getCachedCompanies(): Promise<CompanyRecord[]> {
   if (!cachedCompanies || Date.now() - lastCacheUpdate > CACHE_DURATION) {
     try {
-      const snap = await adminDb.collection('companies').limit(500000).get()
+      const snap = await adminDb.collection('companies').limit(10000).get()
       cachedCompanies = snap.docs.map((d) => {
         const data = d.data()
         return {

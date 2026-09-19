@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { User as FirebaseUser } from 'firebase/auth'
 import { doc, onSnapshot } from 'firebase/firestore'
 import { auth, firestore } from '@/services/firebase/client'
@@ -30,7 +30,14 @@ export type CurrentUser = {
   getIdToken: (forceRefresh?: boolean) => Promise<string>
 }
 
-export function useCurrentUser() {
+interface UserContextValue {
+  user: CurrentUser | null
+  loading: boolean
+}
+
+const UserContext = createContext<UserContextValue | null>(null)
+
+function useCurrentUserSource(): UserContextValue {
   const [user, setUser] = useState<CurrentUser | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -122,4 +129,29 @@ export function useCurrentUser() {
   }, [])
 
   return { user, loading }
+}
+
+/**
+ * Fournisseur React Context pour l'utilisateur courant.
+ * Garantit qu'un SEUL écouteur onSnapshot Firestore est actif pour toute l'application,
+ * évitant ainsi d'épuiser les quotas de lecture Firestore.
+ */
+export function UserProvider({ children }: { children: ReactNode }) {
+  const value = useCurrentUserSource()
+  return <UserContext.Provider value={value}>{children}</UserContext.Provider>
+}
+
+/**
+ * Hook d'accès à l'utilisateur courant.
+ * Lit directement depuis le UserContext partagé (0 requête Firestore supplémentaire).
+ * Dispose d'un fallback direct si utilisé en dehors du UserProvider (ex: tests).
+ */
+export function useCurrentUser() {
+  const context = useContext(UserContext)
+  if (context !== null) {
+    return context
+  }
+  // Fallback si appelé hors d'un UserProvider
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  return useCurrentUserSource()
 }
