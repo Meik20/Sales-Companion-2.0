@@ -329,29 +329,11 @@ function SearchContent() {
                   .illustration-refined {
                     animation: floatSubtle 6s infinite ease-in-out;
                     transition: all 0.3s ease;
-                    border-radius: 16px;
                   }
 
-                  /* Mode Clair : le fond blanc de l'image se fond dans la page */
-                  :root:not(.dark) .illustration-refined,
-                  html:not(.dark) .illustration-refined,
-                  [data-theme='light'] .illustration-refined {
-                    mix-blend-mode: multiply;
-                  }
-
-                  /* Mode Sombre : carte blanche élégante pour encapsuler l'image */
-                  .dark .desktop-illustration,
-                  [data-theme='dark'] .desktop-illustration {
-                    background: #ffffff !important;
-                    border-radius: 20px !important;
-                    padding: 16px !important;
-                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.15) !important;
-                    overflow: hidden !important;
-                  }
-                  .dark .illustration-refined,
-                  [data-theme='dark'] .illustration-refined {
-                    border-radius: 8px !important;
-                    animation: floatSubtle 6s infinite ease-in-out;
+                  /* Image transparente — fond natif de la page dans tous les modes */
+                  .desktop-illustration {
+                    background: transparent !important;
                   }
 
                   .mobile-illustration { display: none; }
