@@ -149,6 +149,28 @@ export async function POST(request: NextRequest) {
       ? (userDocSnap.data()?.createdAt ?? new Date())
       : new Date()
 
+    // ── 2.5. Récupérer dynamiquement le plan actuel du manager si membre normal ──
+    let memberPlan = data.plan ?? 'free'
+    let memberDailyLimit = data.dailyLimit ?? 10
+    const mUid = data.managerUid ?? data.managerId
+    const userRole = data.role ?? 'member'
+
+    if (userRole !== 'support_agent' && mUid) {
+      try {
+        const mDoc = await adminDb.collection('users').doc(mUid).get()
+        if (mDoc.exists) {
+          const mData = mDoc.data()
+          if (mData?.plan) {
+            memberPlan = mData.plan
+            const { PLAN_LIMITS } = await import('@sales-companion/shared')
+            memberDailyLimit = PLAN_LIMITS[mData.plan as keyof typeof PLAN_LIMITS] ?? memberDailyLimit
+          }
+        }
+      } catch (err) {
+        console.warn('[team/activate] Failed to fetch manager plan:', err)
+      }
+    }
+
     // ── 3. Écrire / fusionner le document utilisateur Firestore ──
     await userDocRef.set(
       {
@@ -158,8 +180,8 @@ export async function POST(request: NextRequest) {
           [data.firstname ?? data.firstName ?? '', data.lastname ?? data.lastName ?? '']
             .join(' ')
             .trim() || null,
-        role: data.role ?? 'member',
-        plan: data.plan ?? 'free',
+        role: userRole,
+        plan: memberPlan,
         active: true,
         activated: true,
         company: data.company ?? null,
@@ -170,7 +192,7 @@ export async function POST(request: NextRequest) {
         managerEmail: data.managerEmail ?? null,
         accessId: accessIdLower, // ← Access ID (ex: "prenomnom@entreprise")
         dailyUsed: 0,
-        dailyLimit: data.dailyLimit ?? 10,
+        dailyLimit: memberDailyLimit,
         createdAt,
         activatedAt: new Date()
       },
@@ -178,7 +200,6 @@ export async function POST(request: NextRequest) {
     )
 
     // ── 3.5. SET CUSTOM CLAIMS for Firestore rules ──────────────────────────
-    const userRole = data.role ?? 'member'
     await adminAuth.setCustomUserClaims(uid, { role: userRole })
 
     // ── 4. Marquer l'accès comme activé ──
@@ -188,7 +209,8 @@ export async function POST(request: NextRequest) {
       email,
       firebaseUid: uid,
       activatedAt: new Date(),
-      activatedUid: uid
+      activatedUid: uid,
+      ...(userRole !== 'support_agent' ? { plan: memberPlan, dailyLimit: memberDailyLimit } : {})
     })
 
     // Activation successful — no sensitive log in production

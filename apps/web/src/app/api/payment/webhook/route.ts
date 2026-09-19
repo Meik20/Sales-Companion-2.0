@@ -3,6 +3,7 @@ import { adminDb } from '@/lib/firebase-admin'
 import { FieldValue } from 'firebase-admin/firestore'
 import { PLANS } from '@/lib/payment-plans'
 import { PLAN_LIMITS } from '@sales-companion/shared'
+import { syncTeamMemberPlans } from '@/lib/sync-team-plan'
 
 /**
  * POST /api/payment/webhook
@@ -62,6 +63,18 @@ export async function POST(request: NextRequest) {
       console.log(
         `[webhook/campay] ✅ plan "${paymentData.plan}" activé pour user ${paymentData.userId}`
       )
+
+      // ── Propagation automatique du plan aux membres de l'équipe ──────────
+      // Les support_agents sont intentionnellement exclus (accès illimité par design)
+      try {
+        const syncResult = await syncTeamMemberPlans(paymentData.userId, paymentData.plan)
+        console.log(
+          `[webhook/campay] 👥 sync équipe: ${syncResult.updatedUsers} membres mis à jour`
+        )
+      } catch (syncErr) {
+        // Non-bloquant : le paiement est validé même si la sync échoue
+        console.error('[webhook/campay] sync team plan failed (non-blocking):', syncErr)
+      }
     } else if (status === 'FAILED') {
       await paymentRef.update({
         status: 'FAILED',

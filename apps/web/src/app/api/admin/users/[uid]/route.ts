@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { adminDb, adminAuth } from '@/lib/firebase-admin'
 import { verifyAdminCached } from '@/lib/api-admin-auth'
+import { syncTeamMemberPlans } from '@/lib/sync-team-plan'
 
 async function verifyAdmin(token: string | null) {
   return verifyAdminCached(token)
@@ -30,26 +31,24 @@ export async function PATCH(
       updatedAt: new Date()
     })
 
-    // ── Plan & Limit Propagation ──
-    // If a manager's plan or limit is updated, propagate to all their members
+    // ── Propagation du plan aux membres de l'équipe ─────────────────────────
+    // Déclenché si le plan OU le dailyLimit du manager change
+    // Les support_agents sont exclus (accès illimité sans quota de recherche)
     if ((safeFields.plan || safeFields.dailyLimit !== undefined) && oldData?.role === 'manager') {
-      const membersSnap = await adminDb
-        .collection('users')
-        .where('managerUid', '==', uid)
-        .where('role', '==', 'member')
-        .get()
-
-      const batch = adminDb.batch()
-      membersSnap.docs.forEach((doc) => {
-        const updateData: Record<string, any> = {
-          updatedAt: new Date()
+      try {
+        // Si plan explicite fourni, on l'utilise directement
+        // Sinon on récupère le plan actuel du manager pour passer le bon
+        const planToSync = safeFields.plan ?? oldData?.plan
+        if (planToSync) {
+          const syncResult = await syncTeamMemberPlans(uid, planToSync)
+          console.log(
+            `[admin/users] 👥 sync équipe manager=${uid}: ${syncResult.updatedUsers} membres, ${syncResult.updatedAccesses} accès mis à jour`
+          )
         }
-        if (safeFields.plan) updateData.plan = safeFields.plan
-        if (safeFields.dailyLimit !== undefined) updateData.dailyLimit = safeFields.dailyLimit
-
-        batch.update(doc.ref, updateData)
-      })
-      await batch.commit()
+      } catch (syncErr) {
+        // Non-bloquant
+        console.error('[admin/users] sync team plan failed (non-blocking):', syncErr)
+      }
     }
 
     // If role change is included, update custom claims too

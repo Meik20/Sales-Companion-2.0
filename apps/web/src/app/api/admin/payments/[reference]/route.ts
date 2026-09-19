@@ -5,6 +5,7 @@ import { FieldValue } from 'firebase-admin/firestore'
 import { PLANS } from '@/lib/payment-plans'
 import { sendEmail } from '@/utils/email'
 import { verifyAdminCached } from '@/lib/api-admin-auth'
+import { syncTeamMemberPlans } from '@/lib/sync-team-plan'
 
 async function verifyAdmin(token: string | null) {
   return verifyAdminCached(token)
@@ -61,6 +62,18 @@ export async function PATCH(
         status: 'SUCCESSFUL',
         updatedAt: FieldValue.serverTimestamp()
       })
+
+      // ── Propagation automatique du plan aux membres de l'équipe ──────────
+      // Les support_agents sont intentionnellement exclus (accès illimité par design)
+      try {
+        const syncResult = await syncTeamMemberPlans(paymentData.userId, paymentData.plan)
+        console.log(
+          `[admin/payments] 👥 sync équipe: ${syncResult.updatedUsers} membres, ${syncResult.updatedAccesses} accès mis à jour`
+        )
+      } catch (syncErr) {
+        // Non-bloquant : la validation est confirmée même si la sync échoue
+        console.error('[admin/payments] sync team plan failed (non-blocking):', syncErr)
+      }
 
       // ✅ Fix 6 — Email de confirmation d'activation
       const planLabel = paymentData.plan?.toUpperCase() ?? 'PREMIUM'
