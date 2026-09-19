@@ -105,7 +105,7 @@ export function CtaFooter() {
               </div>
               <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
                 {isEn
-                  ? '#1 B2B sales intelligence platform in Cameroon. 500K+ verified companies in Douala, Yaoundé and regions.'
+                  ? 'The leading B2B sales intelligence platform in Cameroon. 500K+ verified companies in Douala, Yaoundé and regions.'
                   : "La plateforme d'intelligence commerciale B2B N°1 au Cameroun. 500K+ entreprises vérifiées à Douala, Yaoundé et régions."}
               </p>
               <div className="mt-4">
