@@ -306,13 +306,13 @@ function SearchContent() {
                   style={{
                     position: 'relative',
                     width: '100%',
-                    maxWidth: 360,
-                    height: 280,
+                    maxWidth: 420,
+                    height: 320,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     marginBottom: 16,
-                    background: `radial-gradient(50% 50% at 50% 50%, ${'rgba(34,197,94,0.1)'} 0%, transparent 100%)`
+                    background: 'transparent'
                   }}
                 >
                   <style
@@ -329,27 +329,29 @@ function SearchContent() {
                   .illustration-refined {
                     animation: floatSubtle 6s infinite ease-in-out;
                     transition: all 0.3s ease;
+                    border-radius: 16px;
                   }
 
-                  /* Mode Clair : le fond blanc de l'image se fond parfaitement dans la page */
+                  /* Mode Clair : le fond blanc de l'image se fond dans la page */
                   :root:not(.dark) .illustration-refined,
                   html:not(.dark) .illustration-refined,
                   [data-theme='light'] .illustration-refined {
                     mix-blend-mode: multiply;
                   }
 
-                  /* Mode Sombre : l'image est encapsulée dans une carte UI élégante aux coins arrondis */
+                  /* Mode Sombre : carte blanche élégante pour encapsuler l'image */
                   .dark .desktop-illustration,
                   [data-theme='dark'] .desktop-illustration {
                     background: #ffffff !important;
                     border-radius: 20px !important;
-                    padding: 12px !important;
-                    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.12) !important;
+                    padding: 16px !important;
+                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.15) !important;
                     overflow: hidden !important;
                   }
                   .dark .illustration-refined,
                   [data-theme='dark'] .illustration-refined {
-                    border-radius: 12px !important;
+                    border-radius: 8px !important;
+                    animation: floatSubtle 6s infinite ease-in-out;
                   }
 
                   .mobile-illustration { display: none; }
@@ -369,7 +371,7 @@ function SearchContent() {
                       width: '100%',
                       height: '100%',
                       objectFit: 'contain',
-                      opacity: 0.95
+                      opacity: 1
                     }}
                   />
                 </div>
