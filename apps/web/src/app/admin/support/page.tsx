@@ -186,20 +186,24 @@ export default function AdminSupportPage() {
     setSending(true)
     setError(null)
     try {
-      const now = serverTimestamp()
-      await addDoc(collection(firestore, 'support_threads', selected.id, 'messages'), {
-        content: replyText.trim(),
-        senderId: 'admin',
-        senderRole: 'admin',
-        createdAt: now
+      const token = await user?.getIdToken()
+      const res = await fetch('/api/admin/support/reply', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token || ''}`
+        },
+        body: JSON.stringify({
+          threadId: selected.id,
+          message: replyText.trim()
+        })
       })
-      await updateDoc(doc(firestore, 'support_threads', selected.id), {
-        lastMessage: replyText.trim().slice(0, 80),
-        updatedAt: now,
-        unreadByUser: true,
-        unreadByAdmin: false,
-        status: 'open'
-      })
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data?.error || data?.message || "Erreur lors de l'envoi de la réponse")
+      }
+
       setReplyText('')
       await openThread(selected)
     } catch (err) {

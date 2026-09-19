@@ -66,6 +66,9 @@ function fmtTime(ts?: Timestamp) {
 function AuthenticatedSupportView() {
   const { t } = useTranslation()
   const { user } = useCurrentUser()
+  const searchParams = useSearchParams()
+  const ticketParam = searchParams.get('ticket') || searchParams.get('id')
+
   const [threads, setThreads] = useState<Thread[]>([])
   const [threadError, setThreadError] = useState<string | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -105,12 +108,16 @@ function AuthenticatedSupportView() {
     )
   }, [user?.uid])
 
-  // Auto-select first thread
+  // Auto-select thread from query param or default to first thread
   useEffect(() => {
-    if (threads.length > 0 && !selectedId) {
-      setSelectedId(threads[0]!.id)
+    if (threads.length > 0) {
+      if (ticketParam && threads.some((t) => t.id === ticketParam)) {
+        setSelectedId(ticketParam)
+      } else if (!selectedId) {
+        setSelectedId(threads[0]!.id)
+      }
     }
-  }, [threads, selectedId])
+  }, [threads, selectedId, ticketParam])
 
   // Mark thread as read once when selected
   useEffect(() => {
