@@ -511,7 +511,12 @@ export function TeamAccessManager() {
         {loadingAccesses ? (
           <LoadingState />
         ) : accesses.length === 0 ? (
-          <EmptyState title={t('team.noAccess')} description={t('team.noAccessDesc')} icon="🔑" />
+          <EmptyState
+            illustration="/illustrations/empty-states/no-access.png"
+            title={t('team.noAccess')}
+            description={t('team.noAccessDesc')}
+            illustrationSize="sm"
+          />
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {accesses.map((acc) => {

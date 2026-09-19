@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useToast } from '@/hooks/useToast'
+import { EmptyState } from '@/components/feedback'
 
 type SupportLink = {
   id: string
@@ -134,16 +135,12 @@ export function CrossTeamSupportManager() {
       {loading ? (
         <p style={{ color: 'var(--muted-foreground, #94a3b8)', fontSize: 13, textAlign: 'center' }}>Chargement…</p>
       ) : links.length === 0 ? (
-        <div style={{
-          textAlign: 'center', padding: '24px 16px',
-          color: 'var(--muted-foreground, #94a3b8)', fontSize: 13
-        }}>
-          <div style={{ fontSize: 28, marginBottom: 8 }}>🤝</div>
-          <p style={{ margin: 0, fontWeight: 600, color: 'var(--foreground, #f1f5f9)' }}>Aucun agent lié pour l'instant</p>
-          <p style={{ margin: '4px 0 0', fontSize: 12 }}>
-            Saisissez l'Access ID d'un agent support pour lui accorder l'accès à vos clients.
-          </p>
-        </div>
+        <EmptyState
+          illustration="/illustrations/empty-states/no-support-agent.png"
+          title="Aucun agent lié pour l'instant"
+          description="Saisissez l'Access ID d'un agent support pour lui accorder l'accès à vos clients."
+          illustrationSize="sm"
+        />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted-foreground, #94a3b8)', textTransform: 'uppercase', letterSpacing: '.06em', margin: '0 0 4px' }}>
