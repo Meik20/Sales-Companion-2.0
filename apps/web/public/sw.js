@@ -1,6 +1,6 @@
 // Service Worker for Sales Companion PWA
-// v6 — Mobile PWA optimisation update
-const CACHE_NAME = 'sales-companion-v6'
+// v7 — Network-first for illustrations & fresh assets
+const CACHE_NAME = 'sales-companion-v7'
 const STATIC_ASSETS = ['/offline.html', '/manifest.json', '/favicon.svg', '/icon-192.png']
 
 // Install — cache minimal static assets only
@@ -79,7 +79,26 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  // ── 5. Static assets — cache first, then network
+  // ── 5. Illustrations & images — network first, cache fallback (prevents stale visuals)
+  if (url.includes('/illustrations/')) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const clone = response.clone()
+            caches.open(CACHE_NAME).then((c) => c.put(request, clone))
+          }
+          return response
+        })
+        .catch(async () => {
+          const cached = await caches.match(request)
+          return cached || new Response('Asset offline', { status: 503 })
+        })
+    )
+    return
+  }
+
+  // ── 6. Other static assets (manifest, favicon, fonts) — cache first, then network
   event.respondWith(
     caches.match(request).then((cached) => {
       if (cached) return cached
