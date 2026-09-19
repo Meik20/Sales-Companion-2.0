@@ -3,80 +3,100 @@
 import Link from 'next/link'
 import { Check, Sparkles } from 'lucide-react'
 import { routes } from '@/constants/routes'
-
-const plans = [
-  {
-    name: 'Gratuit',
-    price: '0',
-    period: 'Pour toujours',
-    description: 'Pour découvrir la plateforme et gérer un pipeline personnel.',
-    features: ['10 recherches par mois', 'Accès à la base entreprises', 'Pipeline personnel', 'PWA mobile installable'],
-    cta: 'Commencer gratuitement',
-    highlighted: false,
-    badge: null
-  },
-  {
-    name: 'Starter',
-    price: '5 000',
-    period: 'FCFA / mois',
-    description: 'Pour les commerciaux indépendants qui veulent accélérer leurs recherches.',
-    features: [
-      '10 recherches par jour',
-      'Filtres avancés',
-      'Export Excel 1-Click',
-      'Pipeline personnel',
-      'Support standard'
-    ],
-    cta: 'Choisir Starter',
-    highlighted: false,
-    badge: 'Standard'
-  },
-  {
-    name: 'Pro',
-    price: '15 000',
-    period: 'FCFA / mois',
-    description: 'Pour les commerciaux exigeants recherchant performance et accompagnement IA.',
-    features: [
-      '20 recherches par jour',
-      'Companion IA commercial',
-      'Pipeline illimité',
-      'Recherches sauvegardées',
-      'Export Excel illimité',
-      'Support prioritaire'
-    ],
-    cta: 'Choisir Pro',
-    highlighted: true,
-    badge: '⭐ Recommandé'
-  },
-  {
-    name: 'Enterprise',
-    price: '50 000',
-    period: 'FCFA / mois',
-    description: 'Pour les équipes et directeurs commerciaux à Douala, Yaoundé et régions.',
-    features: [
-      '50 recherches par jour',
-      'Tout le plan Pro inclus',
-      'Dashboard manager temps réel',
-      'Gestion d\'équipe & accès',
-      'Assignation des prospects',
-      'Import Excel de prospects'
-    ],
-    cta: 'Contacter l\'équipe',
-    highlighted: false,
-    badge: '💎 Équipes'
-  }
-]
+import { useTranslation } from '@/providers/I18nProvider'
 
 export function Pricing() {
+  const { t, lang } = useTranslation()
+
+  const plans = [
+    {
+      name: t('landing.plansSection.free'),
+      price: t('landing.plansSection.freePrice'),
+      period: t('landing.plansSection.freePeriod'),
+      description: lang === 'en'
+        ? 'Discover the platform and manage a personal pipeline.'
+        : 'Pour découvrir la plateforme et gérer un pipeline personnel.',
+      features: [
+        t('landing.plansSection.pFree1'),
+        t('landing.plansSection.pFree2'),
+        t('landing.plansSection.pFree3'),
+        t('landing.plansSection.pFree4')
+      ],
+      cta: t('landing.plansSection.startFreeBtn'),
+      highlighted: false,
+      badge: null
+    },
+    {
+      name: t('landing.plansSection.starter'),
+      price: t('landing.plansSection.starterPrice'),
+      period: `FCFA / ${t('landing.plansSection.starterPeriod')}`,
+      description: lang === 'en'
+        ? 'For independent sales reps who want to accelerate their searches.'
+        : 'Pour les commerciaux indépendants qui veulent accélérer leurs recherches.',
+      features: [
+        t('landing.plansSection.pStarter1'),
+        t('landing.plansSection.pStarter2'),
+        t('landing.plansSection.pStarter3'),
+        t('landing.plansSection.pStarter4'),
+        lang === 'en' ? 'Standard support' : 'Support standard'
+      ],
+      cta: t('landing.plansSection.chooseStarterBtn'),
+      highlighted: false,
+      badge: t('landing.plansSection.starterBadge')
+    },
+    {
+      name: t('landing.plansSection.pro'),
+      price: t('landing.plansSection.proPrice'),
+      period: `FCFA / ${t('landing.plansSection.proPeriod')}`,
+      description: lang === 'en'
+        ? 'For top sales reps seeking performance and AI assistance.'
+        : 'Pour les commerciaux exigeants recherchant performance et accompagnement IA.',
+      features: [
+        t('landing.plansSection.pPro1'),
+        t('landing.plansSection.pPro2'),
+        t('landing.plansSection.pPro3'),
+        t('landing.plansSection.pPro4'),
+        t('landing.plansSection.pPro5'),
+        t('landing.plansSection.pPro6')
+      ],
+      cta: t('landing.plansSection.chooseProBtn'),
+      highlighted: true,
+      badge: `⭐ ${t('landing.plansSection.proBadge')}`
+    },
+    {
+      name: t('landing.plansSection.enterprise'),
+      price: t('landing.plansSection.enterprisePrice'),
+      period: `FCFA / ${t('landing.plansSection.enterprisePeriod')}`,
+      description: lang === 'en'
+        ? 'For teams and sales directors in Douala, Yaoundé and beyond.'
+        : "Pour les équipes et directeurs commerciaux à Douala, Yaoundé et régions.",
+      features: [
+        t('landing.plansSection.pEnterprise1'),
+        t('landing.plansSection.pEnterprise2'),
+        t('landing.plansSection.pEnterprise3'),
+        t('landing.plansSection.pEnterprise4'),
+        t('landing.plansSection.pEnterprise5'),
+        t('landing.plansSection.pEnterprise6')
+      ],
+      cta: t('landing.plansSection.contactEnterpriseBtn'),
+      highlighted: false,
+      badge: `💎 ${t('landing.plansSection.enterpriseBadge')}`
+    }
+  ]
+
   return (
     <section id="tarifs" className="mx-auto max-w-6xl px-5 py-20 md:py-28">
       <div className="mx-auto max-w-2xl text-center">
-        <p className="text-sm font-semibold uppercase tracking-wider text-primary">Tarifs transparents</p>
+        <p className="text-sm font-semibold uppercase tracking-wider text-primary">
+          {lang === 'en' ? 'Transparent pricing' : 'Tarifs transparents'}
+        </p>
         <h2 className="mt-3 font-heading text-3xl font-semibold tracking-tight text-foreground text-balance sm:text-4xl">
-          Un plan qui s&apos;adapte à vos besoins
+          {lang === 'en' ? 'A plan that fits your needs' : "Un plan qui s'adapte à vos besoins"}
         </h2>
         <p className="mt-4 text-lg leading-relaxed text-muted-foreground text-pretty">
-          Commencez gratuitement avec 10 recherches par mois, passez à la vitesse supérieure quand vous êtes prêt.
+          {lang === 'en'
+            ? 'Start for free with 10 searches per month, upgrade when you are ready.'
+            : 'Commencez gratuitement avec 10 recherches par mois, passez à la vitesse supérieure quand vous êtes prêt.'}
         </p>
       </div>
 
@@ -105,7 +125,7 @@ export function Pricing() {
 
               <h3 className="font-heading text-xl font-semibold text-foreground flex items-center gap-2">
                 {plan.name}
-                {plan.name === 'Pro' && <Sparkles className="h-4 w-4 text-amber-500" />}
+                {plan.highlighted && <Sparkles className="h-4 w-4 text-amber-500" />}
               </h3>
               <p className="mt-2 min-h-[40px] text-xs leading-relaxed text-muted-foreground">{plan.description}</p>
 

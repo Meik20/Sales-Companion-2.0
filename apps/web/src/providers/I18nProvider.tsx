@@ -1,6 +1,6 @@
 'use client'
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react'
 import { fr } from '@/locales/fr'
 import { en } from '@/locales/en'
 
@@ -14,33 +14,41 @@ interface I18nContextType {
 
 const I18nContext = createContext<I18nContextType>({
   lang: 'fr',
-  t: () => '',
+  t: (key: string) => key,
   setLang: () => {}
 })
 
 export function I18nProvider({ children }: { children: ReactNode }) {
-  // Start immediately with 'fr' to avoid any invisible-content flash
   const [lang, setLangState] = useState<Language>('fr')
 
   useEffect(() => {
-    const savedLang = localStorage.getItem('sc_lang') as Language
+    const savedLang = (typeof window !== 'undefined' ? localStorage.getItem('sc_lang') : null) as Language
     if (savedLang && (savedLang === 'fr' || savedLang === 'en')) {
       setLangState(savedLang)
     } else {
-      // Auto-detect browser language
-      const browserLang = navigator.language.startsWith('en') ? 'en' : 'fr'
-      setLangState(browserLang)
+      const match = typeof document !== 'undefined' ? document.cookie.match(/(?:^|;\s*)locale=([^;]+)/) : null
+      const cookieLang = match?.[1] as Language
+      if (cookieLang && (cookieLang === 'fr' || cookieLang === 'en')) {
+        setLangState(cookieLang)
+      } else {
+        // Auto-detect browser language
+        const browserLang = typeof navigator !== 'undefined' && navigator.language.startsWith('en') ? 'en' : 'fr'
+        setLangState(browserLang)
+      }
     }
   }, [])
 
-  const setLang = (newLang: Language) => {
+  const setLang = useCallback((newLang: Language) => {
     setLangState(newLang)
-    localStorage.setItem('sc_lang', newLang)
-  }
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('sc_lang', newLang)
+      document.cookie = `locale=${newLang}; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax`
+    }
+  }, [])
 
   const translations = lang === 'fr' ? fr : en
 
-  const t = (key: string): string => {
+  const t = useCallback((key: string): string => {
     const keys = key.split('.')
     let val: any = translations
     for (const k of keys) {
@@ -51,10 +59,13 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       }
     }
     return typeof val === 'string' ? val : key
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lang])
+
+  const value = useMemo(() => ({ lang, t, setLang }), [lang, t, setLang])
 
   return (
-    <I18nContext.Provider value={{ lang, t, setLang }}>
+    <I18nContext.Provider value={value}>
       {children}
     </I18nContext.Provider>
   )

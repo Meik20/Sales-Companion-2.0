@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Menu, X } from 'lucide-react'
 import { ScIcon } from '@/components/ui/ScIcon'
 import { LanguageSwitcher } from '@/components/landing/LanguageSwitcher'
+import { useTranslation } from '@/providers/I18nProvider'
 import { routes } from '@/constants/routes'
 
 const LinkedInIcon = ({ className }: { className?: string }) => (
@@ -13,16 +14,17 @@ const LinkedInIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-const navLinks = [
-  { label: 'Fonctionnalités', href: '#fonctionnalites' },
-  { label: 'Tarifs', href: '#tarifs' },
-  { label: 'Blog', href: '#blog' },
-  { label: 'Témoignages', href: '#temoignages' },
-  { label: 'FAQ', href: '#faq' }
-]
-
 export function SiteHeader() {
+  const { lang, t } = useTranslation()
   const [mobileOpen, setMobileOpen] = useState(false)
+
+  const navLinks = [
+    { label: t('landing.features'), href: '#fonctionnalites' },
+    { label: t('landing.pricing'), href: '#tarifs' },
+    { label: 'Blog', href: '#blog' },
+    { label: t('landing.testimonials'), href: '#temoignages' },
+    { label: 'FAQ', href: '#faq' }
+  ]
 
   return (
     <header className="sticky top-0 z-[100] border-b border-border/70 bg-background/85 backdrop-blur-md transition-all">
@@ -65,15 +67,15 @@ export function SiteHeader() {
             href={routes.login}
             className="hidden rounded-lg px-3.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground hover:bg-secondary sm:inline-flex"
           >
-            Connexion
+            {t('landing.login')}
           </Link>
 
           <Link
             href={routes.register}
             className="inline-flex items-center rounded-lg bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-all hover:bg-primary/90 hover:shadow-md hover:scale-[1.02] active:scale-[0.98]"
           >
-            <span className="sm:hidden">Essayer</span>
-            <span className="hidden sm:inline">Commencer gratuitement</span>
+            <span className="sm:hidden">{lang === 'en' ? 'Try' : 'Essayer'}</span>
+            <span className="hidden sm:inline">{t('landing.startFree')}</span>
           </Link>
 
           {/* Toggle menu mobile */}
@@ -109,14 +111,14 @@ export function SiteHeader() {
               className="w-full rounded-lg border border-border px-4 py-2.5 text-center text-sm font-medium text-foreground transition-colors hover:bg-secondary"
               onClick={() => setMobileOpen(false)}
             >
-              Connexion
+              {t('landing.login')}
             </Link>
             <Link
               href={routes.register}
               className="w-full rounded-lg bg-primary px-4 py-2.5 text-center text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
               onClick={() => setMobileOpen(false)}
             >
-              Commencer gratuitement
+              {t('landing.startFree')}
             </Link>
           </div>
         </div>

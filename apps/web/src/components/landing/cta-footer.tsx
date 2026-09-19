@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { ArrowRight, ShieldCheck, Lock, Server, Smartphone } from 'lucide-react'
 import { ScIcon } from '@/components/ui/ScIcon'
 import { LanguageSwitcher } from '@/components/landing/LanguageSwitcher'
+import { useTranslation } from '@/providers/I18nProvider'
 import { routes } from '@/constants/routes'
 
 const LinkedInIcon = ({ className }: { className?: string }) => (
@@ -12,36 +13,39 @@ const LinkedInIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
-const trust = [
-  { icon: Lock, label: 'Chiffré en transit (HTTPS/TLS 1.3)' },
-  { icon: ShieldCheck, label: 'Zéro revente de vos données' },
-  { icon: Server, label: 'Hébergement certifié ISO 27001' }
-]
-
-const footerLinks = {
-  product: [
-    { label: 'Annuaire B2B Cameroun', href: '#fonctionnalites' },
-    { label: 'Pipeline Commercial CRM', href: '#fonctionnalites' },
-    { label: 'Companion IA Pro', href: '#fonctionnalites' },
-    { label: 'Application Mobile (PWA)', href: '#pwa-install' },
-    { label: 'Tarifs & Abonnements', href: '#tarifs' }
-  ],
-  resources: [
-    { label: 'Blog & Conseils Vente', href: '/blog' },
-    { label: 'Guide NIU & RCCM', href: '/blog/niu-rccm-identifier-entreprise-camerounaise' },
-    { label: 'Annuaire BTP Douala', href: '/blog/annuaire-entreprises-btp-douala' },
-    { label: 'Prospection B2B 2026', href: '/blog/trouver-clients-b2b-cameroun-2026' }
-  ],
-  legal: [
-    { label: 'Conditions Générales (CGU)', href: '/terms' },
-    { label: 'Politique de Confidentialité', href: '/privacy' },
-    { label: 'Se connecter', href: routes.login },
-    { label: 'Créer un compte', href: routes.register },
-    { label: 'Page Officielle LinkedIn', href: 'https://www.linkedin.com/company/sales-companion-2-0/', external: true }
-  ]
-}
-
 export function CtaFooter() {
+  const { lang, t } = useTranslation()
+  const isEn = lang === 'en'
+
+  const trust = [
+    { icon: Lock, label: isEn ? 'Encrypted in transit (HTTPS/TLS 1.3)' : 'Chiffré en transit (HTTPS/TLS 1.3)' },
+    { icon: ShieldCheck, label: isEn ? 'Zero resale of your data' : 'Zéro revente de vos données' },
+    { icon: Server, label: isEn ? 'ISO 27001 certified hosting' : 'Hébergement certifié ISO 27001' }
+  ]
+
+  const footerLinks = {
+    product: [
+      { label: isEn ? 'Cameroon B2B Directory' : 'Annuaire B2B Cameroun', href: '#fonctionnalites' },
+      { label: isEn ? 'CRM Sales Pipeline' : 'Pipeline Commercial CRM', href: '#fonctionnalites' },
+      { label: isEn ? 'Companion AI Pro' : 'Companion IA Pro', href: '#fonctionnalites' },
+      { label: isEn ? 'Mobile App (PWA)' : 'Application Mobile (PWA)', href: '#pwa-install' },
+      { label: isEn ? 'Pricing & Plans' : 'Tarifs & Abonnements', href: '#tarifs' }
+    ],
+    resources: [
+      { label: isEn ? 'Blog & Sales Tips' : 'Blog & Conseils Vente', href: '/blog' },
+      { label: 'Guide NIU & RCCM', href: '/blog/niu-rccm-identifier-entreprise-camerounaise' },
+      { label: 'Annuaire BTP Douala', href: '/blog/annuaire-entreprises-btp-douala' },
+      { label: 'Prospection B2B 2026', href: '/blog/trouver-clients-b2b-cameroun-2026' }
+    ],
+    legal: [
+      { label: isEn ? 'Terms of Service (CGU)' : 'Conditions Générales (CGU)', href: '/terms' },
+      { label: isEn ? 'Privacy Policy' : 'Politique de Confidentialité', href: '/privacy' },
+      { label: t('landing.login') || (isEn ? 'Log in' : 'Se connecter'), href: routes.login },
+      { label: isEn ? 'Create an account' : 'Créer un compte', href: routes.register },
+      { label: isEn ? 'Official LinkedIn Page' : 'Page Officielle LinkedIn', href: 'https://www.linkedin.com/company/sales-companion-2-0/', external: true }
+    ]
+  }
+
   return (
     <>
       <section id="pwa-install" className="mx-auto max-w-6xl px-5 pb-20 md:pb-28">
@@ -53,18 +57,19 @@ export function CtaFooter() {
           />
 
           <h2 className="relative z-10 mx-auto max-w-2xl font-heading text-3xl font-bold tracking-tight text-white text-balance sm:text-4xl">
-            Prospectez plus vite au Cameroun
+            {isEn ? 'Prospect faster in Cameroon' : 'Prospectez plus vite au Cameroun'}
           </h2>
           <p className="relative z-10 mx-auto mt-4 max-w-xl text-base font-normal leading-relaxed text-emerald-100 text-pretty">
-            Créez votre compte gratuitement et accédez dès aujourd&apos;hui à l&apos;annuaire B2B le
-            plus complet du marché.
+            {isEn
+              ? 'Create your free account and access the most complete B2B directory today.'
+              : "Créez votre compte gratuitement et accédez dès aujourd'hui à l'annuaire B2B le plus complet du marché."}
           </p>
           <div className="relative z-10 mt-8 flex flex-col items-center justify-center gap-3.5 sm:flex-row">
             <Link
               href={routes.register}
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3.5 text-sm font-bold text-[#1B7A3E] shadow-lg transition-all hover:bg-emerald-50 hover:scale-[1.02] active:scale-[0.98]"
             >
-              Commencer gratuitement
+              {t('landing.startFree') || (isEn ? 'Start for free' : 'Commencer gratuitement')}
               <ArrowRight className="h-4 w-4 text-[#1B7A3E]" />
             </Link>
             <Link
@@ -72,7 +77,7 @@ export function CtaFooter() {
               className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/30 bg-white/10 px-5 py-3.5 text-sm font-semibold text-white backdrop-blur-md transition-all hover:bg-white/20 hover:border-white/50"
             >
               <Smartphone className="h-4 w-4 text-white" />
-              Installer sur mobile (PWA)
+              {isEn ? 'Install on mobile (PWA)' : 'Installer sur mobile (PWA)'}
             </Link>
           </div>
 
@@ -99,7 +104,9 @@ export function CtaFooter() {
                 </span>
               </div>
               <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-                La plateforme d&apos;intelligence commerciale B2B N°1 au Cameroun. 500K+ entreprises vérifiées à Douala, Yaoundé et régions.
+                {isEn
+                  ? '#1 B2B sales intelligence platform in Cameroon. 500K+ verified companies in Douala, Yaoundé and regions.'
+                  : "La plateforme d'intelligence commerciale B2B N°1 au Cameroun. 500K+ entreprises vérifiées à Douala, Yaoundé et régions."}
               </p>
               <div className="mt-4">
                 <a
@@ -109,14 +116,16 @@ export function CtaFooter() {
                   className="inline-flex items-center gap-2 rounded-lg border border-border bg-secondary/50 px-3 py-1.5 text-xs font-medium text-foreground transition-all hover:bg-primary hover:text-white hover:border-primary"
                 >
                   <LinkedInIcon className="h-4 w-4 text-[#0A66C2]" />
-                  Suivez-nous sur LinkedIn
+                  {isEn ? 'Follow us on LinkedIn' : 'Suivez-nous sur LinkedIn'}
                 </a>
               </div>
             </div>
 
             {/* Product Column */}
             <div>
-              <h3 className="font-heading text-xs font-semibold uppercase tracking-wider text-foreground">Produit</h3>
+              <h3 className="font-heading text-xs font-semibold uppercase tracking-wider text-foreground">
+                {isEn ? 'Product' : 'Produit'}
+              </h3>
               <ul className="mt-3 space-y-2 text-xs">
                 {footerLinks.product.map((link) => (
                   <li key={link.label}>
@@ -130,7 +139,9 @@ export function CtaFooter() {
 
             {/* Resources Column */}
             <div>
-              <h3 className="font-heading text-xs font-semibold uppercase tracking-wider text-foreground">Ressources SEO</h3>
+              <h3 className="font-heading text-xs font-semibold uppercase tracking-wider text-foreground">
+                {isEn ? 'SEO Resources' : 'Ressources SEO'}
+              </h3>
               <ul className="mt-3 space-y-2 text-xs">
                 {footerLinks.resources.map((link) => (
                   <li key={link.label}>
@@ -144,7 +155,9 @@ export function CtaFooter() {
 
             {/* Legal & Communauté Column */}
             <div>
-              <h3 className="font-heading text-xs font-semibold uppercase tracking-wider text-foreground">Légal & Communauté</h3>
+              <h3 className="font-heading text-xs font-semibold uppercase tracking-wider text-foreground">
+                {isEn ? 'Legal & Community' : 'Légal & Communauté'}
+              </h3>
               <ul className="mt-3 space-y-2 text-xs">
                 {footerLinks.legal.map((link) => (
                   <li key={link.label}>
@@ -170,7 +183,7 @@ export function CtaFooter() {
           </div>
 
           <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border/60 pt-6 text-xs text-muted-foreground sm:flex-row">
-            <p>© {new Date().getFullYear()} Sales Companion 2.0. Tous droits réservés.</p>
+            <p>© {new Date().getFullYear()} Sales Companion 2.0. {isEn ? 'All rights reserved.' : 'Tous droits réservés.'}</p>
             <div className="flex flex-wrap items-center gap-3.5">
               <LanguageSwitcher />
               <span>·</span>
@@ -185,7 +198,7 @@ export function CtaFooter() {
                 <span>LinkedIn</span>
               </a>
               <span>·</span>
-              <p>Conçu pour les commerciaux au Cameroun 🇨🇲</p>
+              <p>{isEn ? 'Designed for sales teams in Cameroon 🇨🇲' : 'Conçu pour les commerciaux au Cameroun 🇨🇲'}</p>
             </div>
           </div>
         </div>
