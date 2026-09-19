@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { ArrowRight, ShieldCheck, Lock, Server, Smartphone } from 'lucide-react'
 import { ScIcon } from '@/components/ui/ScIcon'
+import { LanguageSwitcher } from '@/components/landing/LanguageSwitcher'
 import { routes } from '@/constants/routes'
 
 const LinkedInIcon = ({ className }: { className?: string }) => (
@@ -170,7 +171,9 @@ export function CtaFooter() {
 
           <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border/60 pt-6 text-xs text-muted-foreground sm:flex-row">
             <p>© {new Date().getFullYear()} Sales Companion 2.0. Tous droits réservés.</p>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-3.5">
+              <LanguageSwitcher />
+              <span>·</span>
               <a
                 href="https://www.linkedin.com/company/sales-companion-2-0/"
                 target="_blank"
