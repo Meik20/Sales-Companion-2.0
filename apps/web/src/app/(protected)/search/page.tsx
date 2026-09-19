@@ -346,7 +346,7 @@ function SearchContent() {
                   />
 
                   <img
-                    src="/illustrations/search-prospects.png?v=20260919"
+                    src="/illustrations/search-prospects.png?v=20260919b"
                     alt="Prospection B2B au Cameroun — Trouvez vos clients avec Sales Companion"
                     className="illustration-refined"
                     style={{
