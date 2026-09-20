@@ -46,7 +46,7 @@ export function PublicFooter() {
             >
               <ScIcon size={30} interactive className="group-hover:scale-105 transition-transform" />
               <span className="font-heading text-[14px] font-semibold tracking-tight text-foreground">
-                Sales Companion 2.0{' '}
+                Sales Companion{' '}
                 <span className="text-[#1B7A3E]">2.0</span>
               </span>
             </Link>
