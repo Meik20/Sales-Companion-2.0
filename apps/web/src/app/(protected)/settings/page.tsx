@@ -298,6 +298,13 @@ export default function SettingsPage() {
                   <div className="rounded-lg border border-border bg-secondary/30 p-3 text-[12px] text-muted-foreground">
                     {t('settings.googleEmailNote')}
                   </div>
+                ) : user?.role === 'member' ? (
+                  <div className="flex items-center gap-2.5 rounded-lg border border-border bg-secondary/40 p-3.5 text-[13px] text-muted-foreground">
+                    <span className="text-base shrink-0">🔒</span>
+                    <span>
+                      {t('settings.memberEmailLocked')}
+                    </span>
+                  </div>
                 ) : (
                   <form onSubmit={handleUpdateEmail} className="flex max-w-[400px] flex-col gap-2.5">
                     <div className="flex gap-2">

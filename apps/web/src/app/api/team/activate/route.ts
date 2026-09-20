@@ -93,8 +93,22 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const officialEmail = data.email?.trim()
     const requestedEmail = (body as { email?: string }).email?.trim()
-    const email = requestedEmail ?? data.email?.trim()
+
+    // Si une adresse email professionnelle est liée à cette invitation, elle est obligatoire et immuable
+    if (officialEmail) {
+      if (requestedEmail && requestedEmail.toLowerCase() !== officialEmail.toLowerCase()) {
+        return NextResponse.json(
+          {
+            message: `Vous devez obligatoirement activer votre accès avec l'adresse email professionnelle invitée (${officialEmail}).`
+          },
+          { status: 400 }
+        )
+      }
+    }
+
+    const email = officialEmail || requestedEmail
     if (!email) {
       return NextResponse.json(
         {

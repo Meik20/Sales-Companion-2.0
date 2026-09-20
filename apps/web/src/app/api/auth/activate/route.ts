@@ -81,7 +81,19 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const email = requestedEmail ?? data.email?.trim().toLowerCase()
+    const officialEmail = data.email?.trim().toLowerCase()
+    if (officialEmail) {
+      if (requestedEmail && requestedEmail.toLowerCase() !== officialEmail) {
+        return NextResponse.json(
+          {
+            message: `Vous devez obligatoirement activer votre accès avec l'adresse email professionnelle invitée (${officialEmail}).`
+          },
+          { status: 400 }
+        )
+      }
+    }
+
+    const email = officialEmail || requestedEmail
     if (!email) {
       return NextResponse.json(
         {

@@ -190,6 +190,12 @@ export function useAuthActions() {
     try {
       const currentUser = auth.currentUser
       if (!currentUser) throw new Error("Aucun utilisateur connecté")
+
+      const tokenResult = await currentUser.getIdTokenResult().catch(() => null)
+      if (tokenResult?.claims?.role === 'member') {
+        throw new Error("Votre adresse email professionnelle est gérée par votre organisation et ne peut pas être modifiée.")
+      }
+
       const actionCodeSettings = {
         url: typeof window !== 'undefined' ? `${window.location.origin}/settings` : 'http://localhost:3000/settings',
         handleCodeInApp: false

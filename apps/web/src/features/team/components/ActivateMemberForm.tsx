@@ -46,6 +46,12 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
       setError(t('auth.invalidEmailFormat'))
       return
     }
+    if (accessInfo?.email && email.trim().toLowerCase() !== accessInfo.email.trim().toLowerCase()) {
+      setError(
+        `Vous devez obligatoirement utiliser l'adresse e-mail professionnelle associée à cette invitation (${accessInfo.email}).`
+      )
+      return
+    }
     if (!password || !confirmPassword) {
       setError(t('auth.errorFillAll'))
       return
@@ -194,16 +200,53 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
         )}
       </div>
 
-      {/* Email — TOUJOURS OBLIGATOIRE */}
-      <FormField label={t('auth.yourEmailAddress')} required hint={t('auth.emailHint')}>
-        <Input
-          type="email"
-          placeholder="vous@exemple.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          disabled={isPending}
-          autoComplete="email"
-        />
+      {/* Email — OBLIGATOIRE et VERROUILLÉ à l'adresse professionnelle */}
+      <FormField
+        label={t('auth.yourEmailAddress')}
+        required
+        hint={
+          accessInfo?.email
+            ? t('auth.professionalEmailLocked')
+            : t('auth.emailHint')
+        }
+      >
+        <div style={{ position: 'relative', width: '100%' }}>
+          <Input
+            type="email"
+            placeholder="vous@exemple.com"
+            value={email}
+            onChange={(e) => !accessInfo?.email && setEmail(e.target.value)}
+            readOnly={!!accessInfo?.email}
+            disabled={isPending}
+            autoComplete="email"
+            style={
+              accessInfo?.email
+                ? {
+                    background: 'rgba(255,255,255,0.03)',
+                    cursor: 'not-allowed',
+                    opacity: 0.9,
+                    paddingRight: 38
+                  }
+                : undefined
+            }
+          />
+          {accessInfo?.email && (
+            <span
+              style={{
+                position: 'absolute',
+                right: 12,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                fontSize: 14,
+                opacity: 0.6,
+                pointerEvents: 'none'
+              }}
+              title="Adresse e-mail professionnelle verrouillée"
+            >
+              🔒
+            </span>
+          )}
+        </div>
       </FormField>
 
       <FormField label={t('auth.newPassword')} required>
