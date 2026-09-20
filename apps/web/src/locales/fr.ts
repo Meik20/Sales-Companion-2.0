@@ -347,6 +347,14 @@ export const fr = {
     findIdealProspectsDesc:
       'Recherchez par nom, secteur, ville ou utilisez les filtres rapides ci-dessous pour démarrer.',
     startFirstSearch: 'Lancez votre première recherche →',
+    findProspectsCta: 'Trouver des prospects →',
+    searchingProspects: 'Recherche en cours…',
+    activeOpportunities: 'opportunités actives',
+    filterByStage: 'Filtré par :',
+    allStages: 'Tous les stades',
+    clearStageFilter: 'Effacer le filtre',
+    noProspectInStage: 'Aucun prospect dans ce stade.',
+    showAllProspects: 'Afficher tous les prospects',
     myPipelineFull: '→ Voir mon pipeline complet',
     aiAssistant: 'Companion IA',
     aiGreeting:

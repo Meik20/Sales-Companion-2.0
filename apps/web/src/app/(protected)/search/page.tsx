@@ -473,13 +473,27 @@ function SearchContent() {
                 <Button
                   variant="primary"
                   size="md"
+                  disabled={searchQuery.isLoading}
                   onClick={() => {
-                    const input = document.getElementById('main-search-input')
-                    if (input) input.focus()
+                    const input = document.getElementById('main-search-input') as HTMLInputElement | null
+                    const form = input?.closest('form')
+                    if (input) {
+                      input.focus()
+                    }
+                    if (form && (input?.value.trim() || filters.sector || filters.city || filters.region)) {
+                      form.requestSubmit()
+                    }
                   }}
-                  style={{ marginTop: 8 }}
+                  style={{ marginTop: 8, display: 'inline-flex', alignItems: 'center', gap: 8 }}
                 >
-                  {t('search.startFirstSearch')}
+                  {searchQuery.isLoading ? (
+                    <>
+                      <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                      {t('search.searchingProspects')}
+                    </>
+                  ) : (
+                    t('search.findProspectsCta')
+                  )}
                 </Button>
               </div>
 
@@ -582,6 +596,7 @@ function SearchContent() {
           {/* Pipeline commercial */}
           <DataCard
             title={t('search.commercialPipeline')}
+            subtitle={`${(stats?.prospection ?? 0) + (stats?.negotiation ?? 0) + (stats?.conclusion ?? 0)} ${t('search.activeOpportunities')}`}
             style={{
               boxShadow: '0 8px 30px rgba(0,0,0,0.06)',
               border: '1px solid var(--border)'
@@ -592,31 +607,40 @@ function SearchContent() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
                 {[
                   {
+                    stage: 'prospection',
                     label: t('search.prospection'),
                     value: stats?.prospection ?? 0,
                     textClass: 'text-blue-600 dark:text-blue-400',
-                    bgClass: 'bg-blue-500/10 border-blue-500/20'
+                    bgClass:
+                      'bg-blue-500/10 border-blue-500/20 hover:border-blue-500/50 hover:bg-blue-500/15'
                   },
                   {
+                    stage: 'negociation',
                     label: t('search.negotiation'),
                     value: stats?.negotiation ?? 0,
                     textClass: 'text-amber-600 dark:text-amber-400',
-                    bgClass: 'bg-amber-500/10 border-amber-500/20'
+                    bgClass:
+                      'bg-amber-500/10 border-amber-500/20 hover:border-amber-500/50 hover:bg-amber-500/15'
                   },
                   {
+                    stage: 'conclue',
                     label: t('search.conclusion'),
                     value: stats?.conclusion ?? 0,
-                    textClass: 'text-blue-600 dark:text-blue-400',
-                    bgClass: 'bg-blue-500/10 border-blue-500/20'
+                    textClass: 'text-emerald-600 dark:text-emerald-400',
+                    bgClass:
+                      'bg-emerald-500/10 border-emerald-500/20 hover:border-emerald-500/50 hover:bg-emerald-500/15'
                   }
-                ].map(({ label, value, textClass, bgClass }) => (
-                  <div
+                ].map(({ stage, label, value, textClass, bgClass }) => (
+                  <button
                     key={label}
-                    className={`rounded-xl border p-2.5 text-center ${bgClass}`}
+                    type="button"
+                    onClick={() => router.push(`/pipeline?stage=${stage}`)}
+                    className={`rounded-xl border p-2.5 text-center transition-all cursor-pointer outline-none hover:scale-[1.02] active:scale-[0.98] ${bgClass}`}
+                    title={`${label}: ${value}`}
                   >
-                    <div className={`text-[22px] font-extrabold ${textClass}`}>{value}</div>
+                    <div className={`text-[22px] font-extrabold leading-tight ${textClass}`}>{value}</div>
                     <div className="mt-0.5 text-[10px] font-semibold text-muted-foreground">{label}</div>
-                  </div>
+                  </button>
                 ))}
               </div>
               <Button
@@ -672,21 +696,47 @@ function SearchContent() {
                   <div ref={chatEndRef} />
                 </div>
 
-                {/* Chips suggestions — adaptées au secteur de l'utilisateur */}
+                {/* Chips suggestions — adaptées au secteur, à la ville et aux résultats de recherche */}
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                   {(() => {
-                    const sector = (user as { sector?: string } | null)?.sector
-                    const chips = sector
-                      ? [
-                          `Tendances ${sector}`,
-                          `Email d'approche ${sector}`,
-                          `Script appel DG ${sector}`
-                        ]
-                      : [
-                          'Tendances BTP Douala',
-                          "Email d'approche Tech",
-                          'Script appel DG Agroalimentaire'
-                        ]
+                    const sector = filters.sector || (user as { sector?: string } | null)?.sector
+                    const city = filters.city
+                    const hasResults = results.length > 0
+
+                    let chips: string[] = []
+
+                    if (hasResults) {
+                      chips = [
+                        `Script d'appel pour ces ${results.length} prospects`,
+                        sector ? `Pitch d'accroche ${sector}` : "Email d'approche personnalisé",
+                        'Questions de qualification B2B'
+                      ]
+                    } else if (sector && city) {
+                      chips = [
+                        `Opportunités ${sector} à ${city}`,
+                        `Email d'approche ${sector} ${city}`,
+                        `Script appel DG ${sector}`
+                      ]
+                    } else if (sector) {
+                      chips = [
+                        `Tendances marché ${sector}`,
+                        `Email d'approche ${sector}`,
+                        `Script appel DG ${sector}`
+                      ]
+                    } else if (city) {
+                      chips = [
+                        `Marché B2B à ${city}`,
+                        `Email prospection ${city}`,
+                        `Comment aborder un DG à ${city}`
+                      ]
+                    } else {
+                      chips = [
+                        'Tendances BTP Douala',
+                        "Email d'approche Tech Yaoundé",
+                        'Script appel DG Agroalimentaire'
+                      ]
+                    }
+
                     return chips.map((chip) => (
                       <button
                         key={chip}
