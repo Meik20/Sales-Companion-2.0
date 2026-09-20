@@ -124,7 +124,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html
       lang="fr-CM"
       className={`${outfit.variable} ${inter.variable}`}
-      data-design="linkedin"
+      data-design="firebase"
       data-scroll-behavior="smooth"
       suppressHydrationWarning
     >
@@ -140,8 +140,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           }}
         />
       </head>
-      {process.env.NEXT_PUBLIC_GTM_ID && <GoogleTagManager gtmId={process.env.NEXT_PUBLIC_GTM_ID} />}
       <body suppressHydrationWarning>
+        {process.env.NEXT_PUBLIC_GTM_ID && <GoogleTagManager gtmId={process.env.NEXT_PUBLIC_GTM_ID} />}
         <DesignThemeProvider />
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <I18nProvider>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { AppShell } from '@/components/layout/AppShell'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
@@ -18,12 +18,33 @@ const PLAN_COLOR: Record<string, string> = {
 export default function AdminConfigPage() {
   const { user } = useCurrentUser()
   const [apiKey, setApiKey] = useState('')
+  const [hasGroqKey, setHasGroqKey] = useState<boolean | null>(null)
   const [newPass, setNewPass] = useState('')
   const [apiMsg, setApiMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
   const [passMsg, setPassMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
   const [saving, setSaving] = useState(false)
   const [changingPass, setChangingPass] = useState(false)
   const { t } = useTranslation()
+
+  useEffect(() => {
+    if (!user) return
+    let cancelled = false
+    user.getIdToken().then((token) => {
+      fetch('/api/admin/config', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (!cancelled && typeof data.groq_api_key === 'boolean') {
+            setHasGroqKey(data.groq_api_key)
+          }
+        })
+        .catch(() => {})
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [user])
 
   const PLAN_ROWS = [
     {
@@ -69,6 +90,7 @@ export default function AdminConfigPage() {
       if (res.ok) {
         setApiMsg({ type: 'ok', text: '✅ Clé API enregistrée — tableau de bord mis à jour' })
         setApiKey('')
+        setHasGroqKey(true)
       } else {
         const d = await res.json()
         setApiMsg({ type: 'err', text: `❌ ${d.error ?? 'Erreur serveur'}` })
@@ -159,15 +181,31 @@ export default function AdminConfigPage() {
         <div style={card}>
           <div
             style={{
-              fontWeight: 700,
-              fontSize: 14,
-              color: 'var(--foreground, #f1f5f9)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
               marginBottom: 16,
               paddingBottom: 12,
               borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
             }}
           >
-            🔑 {t('admin.apiKeyGroq')}
+            <span style={{ fontWeight: 700, fontSize: 14, color: 'var(--foreground, #f1f5f9)' }}>
+              🔑 {t('admin.apiKeyGroq')}
+            </span>
+            {hasGroqKey !== null && (
+              <span
+                style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  padding: '3px 10px',
+                  borderRadius: 12,
+                  background: hasGroqKey ? 'rgba(34, 197, 94, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                  color: hasGroqKey ? '#22c55e' : '#ef4444'
+                }}
+              >
+                {hasGroqKey ? '● Configurée' : '○ Non configurée'}
+              </span>
+            )}
           </div>
           <label style={labelStyle}>{t('admin.apiKeyGroqLabel')}</label>
           <input

@@ -21,12 +21,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true })
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : 'unknown'
+    const msg = error instanceof Error ? error.message : String(error)
     if (msg === 'unauthenticated')
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
     if (msg === 'forbidden') return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
-    console.error('Admin config error:', error)
-    return NextResponse.json({ error: 'Erreur interne' }, { status: 500 })
+    console.error('[POST /api/admin/config] Admin config error:', error)
+    return NextResponse.json({ error: `Erreur interne: ${msg}` }, { status: 500 })
   }
 }
 
