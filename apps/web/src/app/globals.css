@@ -339,6 +339,12 @@ body {
   /* Pas de landing page — géré JS-side dans page.tsx */
 }
 
+
+/* ── Grid de recherche — colonnes gérées uniquement par CSS (pas de style inline) ── */
+.search-page-grid {
+  grid-template-columns: 2fr 1fr;
+}
+
 /* ── Tablette (< 1024px) ── */
 @media (max-width: 1024px) {
   .search-page-grid {
@@ -348,6 +354,7 @@ body {
     display: none !important;
   }
 }
+
 
 /* ── Mobile (< 768px) ── */
 @media (max-width: 768px) {

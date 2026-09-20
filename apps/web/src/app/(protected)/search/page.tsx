@@ -152,7 +152,6 @@ function SearchContent() {
         className="search-page-grid"
         style={{
           display: 'grid',
-          gridTemplateColumns: '2fr 1fr',
           gap: 24,
           alignItems: 'start',
           width: '100%'
@@ -567,16 +566,7 @@ function SearchContent() {
             paddingRight: 4
           }}
         >
-          <style
-            dangerouslySetInnerHTML={{
-              __html: `
-          @media (max-width: 1024px) {
-            .desktop-only-panels { display: none !important; }
-            .search-page-grid { grid-template-columns: 1fr !important; }
-          }
-        `
-            }}
-          />
+
 
           {/* Pipeline commercial */}
           <DataCard
