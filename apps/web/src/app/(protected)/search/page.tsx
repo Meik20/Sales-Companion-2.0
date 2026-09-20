@@ -283,7 +283,7 @@ function SearchContent() {
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: '16px 8px',
+                padding: '16px',
                 textAlign: 'center',
                 gap: 16,
                 width: '100%',
@@ -492,6 +492,7 @@ function SearchContent() {
                 gap: 10px !important;
                 padding: 0 !important;
                 margin: 0 auto !important;
+                max-width: calc(100% - 16px) !important;
                 overflow: visible !important;
               }
             }
@@ -506,7 +507,8 @@ function SearchContent() {
                   gridTemplateColumns: 'repeat(2, 1fr)',
                   gap: 12,
                   width: '100%',
-                  maxWidth: 600
+                  maxWidth: 600,
+                  margin: '0 auto'
                 }}
               >
                 <ShortcutCard
