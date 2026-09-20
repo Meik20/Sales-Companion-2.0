@@ -19,7 +19,7 @@ export interface CampayCollectRequest {
   currency: string // Toujours "XAF" pour le Cameroun
   from: string // Numéro Mobile Money (ex: "237690000000")
   description: string // Description de la transaction
-  external_reference: string // Référence unique côté Sales Companion
+  external_reference: string // Référence unique côté Sales Companion 2.0
 }
 
 export interface CampayCollectResponse {

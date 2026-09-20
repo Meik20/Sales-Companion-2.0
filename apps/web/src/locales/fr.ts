@@ -813,7 +813,7 @@ export const fr = {
     statusResolved: 'Résolu',
     statusClosed: 'Fermé',
     publicTitle: 'Assistance & Validation de Compte',
-    publicSubtitle: "Soumettez votre demande directement à l'équipe support Sales Companion.",
+    publicSubtitle: "Soumettez votre demande directement à l'équipe support Sales Companion 2.0.",
     corporateDomainBannerTitle: "Création de compte Manager sans domaine d'entreprise personnalisé",
     corporateDomainBannerDesc: "Par mesure de sécurité, les comptes Manager requièrent habituellement un domaine email d'entreprise. Si vous utilisez une messagerie sans nom de domaine personnalisé, notre équipe d'administration peut valider manuellement votre profil pour vous donner l'accès.",
     nameLabel: 'Nom complet',

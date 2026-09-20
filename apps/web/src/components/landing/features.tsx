@@ -156,8 +156,8 @@ export function Features() {
       illustration: '/illustrations/landing/team-collaboration.png',
       alt:
         lang === 'en'
-          ? 'Sales team management and collaboration on Sales Companion'
-          : 'Gestion et collaboration d’équipe commerciale sur Sales Companion',
+          ? 'Sales team management and collaboration on Sales Companion 2.0'
+          : 'Gestion et collaboration d’équipe commerciale sur Sales Companion 2.0',
       ctaText: lang === 'en' ? 'Manage your team' : 'Gérer votre équipe',
       ctaLink: routes.register,
       reverse: true
@@ -171,8 +171,8 @@ export function Features() {
           : 'Prospectez partout, même sans aucune connexion Internet',
       description:
         lang === 'en'
-          ? 'Network drops and dead zones in Cameroon will never stall your sales again. Sales Companion installs directly on your smartphone and remains fully functional offline.'
-          : 'Les coupures de réseau ou les zones blanches au Cameroun ne doivent plus freiner vos ventes. Sales Companion s’installe directement sur votre smartphone et reste 100% opérationnel hors-ligne.',
+          ? 'Network drops and dead zones in Cameroon will never stall your sales again. Sales Companion 2.0 installs directly on your smartphone and remains fully functional offline.'
+          : 'Les coupures de réseau ou les zones blanches au Cameroun ne doivent plus freiner vos ventes. Sales Companion 2.0 s’installe directement sur votre smartphone et reste 100% opérationnel hors-ligne.',
       bullets:
         lang === 'en'
           ? [
@@ -199,7 +199,7 @@ export function Features() {
   const complementaryFeatures = [
     {
       icon: Sparkles,
-      title: lang === 'en' ? 'AI Sales Companion' : 'Companion IA Pro',
+      title: lang === 'en' ? 'AI Sales Companion 2.0' : 'Companion IA Pro',
       description:
         lang === 'en'
           ? 'An AI assistant specialized in the Cameroonian market that drafts outreach emails and analyzes business opportunities.'

@@ -188,7 +188,7 @@ export default function BlogPage() {
             Ressources &amp; Conseils B2B
           </span>
           <h1 className="mt-5 font-heading text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
-            Le Blog <span className="text-[#1B7A3E]">Sales Companion</span>
+            Le Blog <span className="text-[#1B7A3E]">Sales Companion 2.0</span>
           </h1>
           <p className="mt-4 text-base leading-relaxed text-muted-foreground">
             Stratégies, guides et outils pour les commerciaux et managers qui veulent développer

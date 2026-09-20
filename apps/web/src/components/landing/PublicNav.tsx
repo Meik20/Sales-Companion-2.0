@@ -38,7 +38,7 @@ export function PublicNav({ activePage, backLink }: PublicNavProps) {
             className="group-hover:scale-105 transition-transform"
           />
           <span className="font-heading text-[15px] font-semibold tracking-tight text-foreground">
-            Sales Companion{' '}
+            Sales Companion 2.0{' '}
             <span className="text-[#1B7A3E]">2.0</span>
           </span>
         </Link>

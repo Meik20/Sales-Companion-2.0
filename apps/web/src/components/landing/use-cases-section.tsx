@@ -65,7 +65,7 @@ export function UseCasesSection() {
             'Accès immédiat à un annuaire riche de 50 000+ entreprises locales',
             'Passez du bouche-à-oreille à une prospection commerciale structurée'
           ],
-      ctaText: isEn ? 'Discover Sales Companion' : 'Découvrir Sales Companion'
+      ctaText: isEn ? 'Discover Sales Companion 2.0' : 'Découvrir Sales Companion 2.0'
     }
   ]
 

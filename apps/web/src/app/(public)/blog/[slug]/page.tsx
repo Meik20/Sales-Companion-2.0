@@ -320,7 +320,7 @@ const ARTICLES_CONTENT: Record<string, {
           Les entreprises de BTP sont souvent difficiles à joindre car leurs équipes sont sur le terrain. Les emails non sollicités ont peu de chance d'aboutir. Il est impératif d'adopter une approche terrain et de se rendre sur les bases vie ou de participer aux salons professionnels spécialisés.
         </p>
 
-        <h2>4. L'avantage d'un annuaire spécialisé avec Sales Companion</h2>
+        <h2>4. L'avantage d'un annuaire spécialisé avec Sales Companion 2.0</h2>
         <p>
           Trouver les coordonnées à jour des entreprises du BTP à Douala peut être un véritable parcours du combattant. <strong>Sales Companion 2.0</strong> vous facilite la tâche.
         </p>
@@ -380,7 +380,7 @@ const ARTICLES_CONTENT: Record<string, {
           <li>Assurez-vous que l'activité déclarée correspond bien aux services ou produits que vous souhaitez leur vendre.</li>
         </ol>
 
-        <h2>4. Automatisez vos vérifications avec Sales Companion</h2>
+        <h2>4. Automatisez vos vérifications avec Sales Companion 2.0</h2>
         <p>
           Récolter ces informations manuellement prend un temps précieux. <strong>Sales Companion 2.0</strong> centralise ces données légales pour vous.
         </p>

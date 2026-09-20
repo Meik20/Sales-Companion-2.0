@@ -10,19 +10,19 @@ export function Faq() {
   const faqs = [
     {
       question: isEn
-        ? 'What is Sales Companion?'
-        : 'Qu’est-ce que Sales Companion ?',
+        ? 'What is Sales Companion 2.0?'
+        : 'Qu’est-ce que Sales Companion 2.0 ?',
       answer: isEn
-        ? 'Sales Companion is a B2B sales intelligence platform tailored for the Cameroonian market. It allows you to search local companies, qualify prospects with legal and contact data, and manage your deals in an intuitive CRM pipeline.'
-        : 'Sales Companion est une plateforme de prospection B2B conçue pour le marché camerounais. Elle permet de rechercher des entreprises locales, d’identifier des prospects qualifiés et de suivre vos opportunités commerciales dans un CRM intégré.'
+        ? 'Sales Companion 2.0 is a B2B sales intelligence platform tailored for the Cameroonian market. It allows you to search local companies, qualify prospects with legal and contact data, and manage your deals in an intuitive CRM pipeline.'
+        : 'Sales Companion 2.0 est une plateforme de prospection B2B conçue pour le marché camerounais. Elle permet de rechercher des entreprises locales, d’identifier des prospects qualifiés et de suivre vos opportunités commerciales dans un CRM intégré.'
     },
     {
       question: isEn
         ? 'How many companies are listed in the database?'
         : 'Combien d’entreprises sont disponibles dans la base ?',
       answer: isEn
-        ? 'Sales Companion currently references over 50,000 Cameroonian companies across Douala, Yaoundé, Bafoussam, and all economic regions, with continuous updates and additions.'
-        : 'Sales Companion référence actuellement plus de 50 000 entreprises camerounaises réparties à Douala, Yaoundé, Bafoussam et dans toutes les régions économiques, avec une actualisation continue.'
+        ? 'Sales Companion 2.0 currently references over 50,000 Cameroonian companies across Douala, Yaoundé, Bafoussam, and all economic regions, with continuous updates and additions.'
+        : 'Sales Companion 2.0 référence actuellement plus de 50 000 entreprises camerounaises réparties à Douala, Yaoundé, Bafoussam et dans toutes les régions économiques, avec une actualisation continue.'
     },
     {
       question: isEn
@@ -34,11 +34,11 @@ export function Faq() {
     },
     {
       question: isEn
-        ? 'Can I use Sales Companion on my smartphone?'
-        : 'Puis-je utiliser Sales Companion sur mon téléphone ?',
+        ? 'Can I use Sales Companion 2.0 on my smartphone?'
+        : 'Puis-je utiliser Sales Companion 2.0 sur mon téléphone ?',
       answer: isEn
-        ? 'Yes. Sales Companion is designed as a Progressive Web App (PWA). You can install it directly onto your Android or iPhone home screen without needing an app store, perfectly suited for mobile sales reps.'
-        : 'Oui. Sales Companion est conçu comme une Progressive Web App (PWA). Vous pouvez l’installer directement sur l’écran d’accueil de votre téléphone (Android ou iPhone) sans passer par un store, idéal pour les commerciaux sur le terrain.'
+        ? 'Yes. Sales Companion 2.0 is designed as a Progressive Web App (PWA). You can install it directly onto your Android or iPhone home screen without needing an app store, perfectly suited for mobile sales reps.'
+        : 'Oui. Sales Companion 2.0 est conçu comme une Progressive Web App (PWA). Vous pouvez l’installer directement sur l’écran d’accueil de votre téléphone (Android ou iPhone) sans passer par un store, idéal pour les commerciaux sur le terrain.'
     },
     {
       question: isEn
@@ -69,8 +69,8 @@ export function Faq() {
         ? 'Is there a free plan available?'
         : 'Existe-t-il une offre gratuite ?',
       answer: isEn
-        ? 'Yes! Our free plan allows you to explore Sales Companion with no credit card required, including 10 free searches per month and full access to core pipeline management.'
-        : 'Oui ! Notre offre gratuite permet de découvrir Sales Companion sans carte bancaire, avec 10 recherches offertes par mois et un accès complet aux fonctionnalités de base du pipeline.'
+        ? 'Yes! Our free plan allows you to explore Sales Companion 2.0 with no credit card required, including 10 free searches per month and full access to core pipeline management.'
+        : 'Oui ! Notre offre gratuite permet de découvrir Sales Companion 2.0 sans carte bancaire, avec 10 recherches offertes par mois et un accès complet aux fonctionnalités de base du pipeline.'
     }
   ]
 

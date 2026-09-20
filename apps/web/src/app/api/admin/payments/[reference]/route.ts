@@ -96,7 +96,7 @@ export async function PATCH(
                 <a href="${appUrl}/search" style="background-color:#2ea05a;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:8px;font-weight:600;font-size:16px;display:inline-block;">Accéder à mon tableau de bord</a>
               </div>
               <div style="border-top:1px solid #e5e7eb;padding-top:24px;">
-                <p style="font-size:14px;color:#6b7280;margin:0;">À très vite,<br/><strong>L'équipe Sales Companion</strong></p>
+                <p style="font-size:14px;color:#6b7280;margin:0;">À très vite,<br/><strong>L'équipe Sales Companion 2.0</strong></p>
               </div>
             </div>
           `
@@ -141,7 +141,7 @@ export async function PATCH(
                 <a href="${appUrlReject}/upgrade?from=register" style="background-color:#f59e0b;color:#ffffff;padding:14px 28px;text-decoration:none;border-radius:8px;font-weight:600;font-size:16px;display:inline-block;">Soumettre un nouveau paiement</a>
               </div>
               <div style="border-top:1px solid #e5e7eb;padding-top:24px;">
-                <p style="font-size:14px;color:#6b7280;margin:0;">Pour toute question, contactez-nous.<br/><strong>L'équipe Sales Companion</strong></p>
+                <p style="font-size:14px;color:#6b7280;margin:0;">Pour toute question, contactez-nous.<br/><strong>L'équipe Sales Companion 2.0</strong></p>
               </div>
             </div>
           `

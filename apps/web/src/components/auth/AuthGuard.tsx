@@ -244,7 +244,7 @@ export function AuthGuard({ children }: PropsWithChildren) {
           </p>
 
           <div className="mb-5 rounded-[10px] border border-amber-500/20 bg-amber-500/6 px-4 py-3 text-[12px] leading-relaxed text-amber-500">
-            📬 Vous recevrez un email de confirmation une fois votre compte activé par l&apos;équipe Sales Companion.
+            📬 Vous recevrez un email de confirmation une fois votre compte activé par l&apos;équipe Sales Companion 2.0.
           </div>
 
           <button

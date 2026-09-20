@@ -1,4 +1,4 @@
-// ─── Design Tokens — Sales Companion ───────────────────────────────────────
+// ─── Design Tokens — Sales Companion 2.0 ───────────────────────────────────────
 // Toutes les valeurs pointent vers les CSS Variables du theme.css (Deep Blue Tech)
 // → modifier une couleur dans theme.css suffit à changer tout le projet.
 

@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nouvelle réponse du Support Sales Companion</title>
+  <title>Nouvelle réponse du Support Sales Companion 2.0</title>
 </head>
 <body style="margin:0;padding:0;background-color:#0b1120;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#f1f5f9;">
   <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color:#0b1120;padding:30px 15px;">
@@ -173,7 +173,7 @@ export async function POST(request: NextRequest) {
               </p>
 
               <div style="border-top:1px solid #1e293b;padding-top:16px;font-size:11.5px;color:#64748b;line-height:1.5;">
-                ℹ️ <strong>Rappel :</strong> Vous pouvez également retrouver tous vos tickets à tout moment depuis votre espace Sales Companion dans l'onglet <strong>Support</strong>.
+                ℹ️ <strong>Rappel :</strong> Vous pouvez également retrouver tous vos tickets à tout moment depuis votre espace Sales Companion 2.0 dans l'onglet <strong>Support</strong>.
               </div>
             </td>
           </tr>
@@ -193,12 +193,12 @@ export async function POST(request: NextRequest) {
 </html>
       `
 
-      const textFallback = `Bonjour ${recipientName},\n\nNotre équipe support vient de répondre à votre ticket : « ${threadSubject} ».\n\nRéponse du support :\n${trimmedMessage}\n\nPour consulter l'historique et répondre :\n${ticketUrl}\n\nCordialement,\nL'équipe Support Sales Companion\n(Email automatique envoyé via noreply@salescompanion2-0.com - ne pas répondre directement)`
+      const textFallback = `Bonjour ${recipientName},\n\nNotre équipe support vient de répondre à votre ticket : « ${threadSubject} ».\n\nRéponse du support :\n${trimmedMessage}\n\nPour consulter l'historique et répondre :\n${ticketUrl}\n\nCordialement,\nL'équipe Support Sales Companion 2.0\n(Email automatique envoyé via noreply@salescompanion2-0.com - ne pas répondre directement)`
 
       try {
         const emailResult = await sendEmail({
           to: recipientEmail,
-          subject: `🎧 [Support Sales Companion] Réponse à votre ticket : ${threadSubject}`,
+          subject: `🎧 [Support Sales Companion 2.0] Réponse à votre ticket : ${threadSubject}`,
           html: emailHtml,
           text: textFallback
         })

@@ -209,7 +209,7 @@ export function PublicSupportForm() {
               </h1>
               <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
                 {t('support.publicSubtitle') ||
-                  "Soumettez votre demande directement à l'équipe support Sales Companion."}
+                  "Soumettez votre demande directement à l'équipe support Sales Companion 2.0."}
               </p>
             </div>
           </div>

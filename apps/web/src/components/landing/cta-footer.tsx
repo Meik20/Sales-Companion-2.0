@@ -107,7 +107,7 @@ export function CtaFooter() {
               <div className="flex items-center gap-2.5">
                 <ScIcon size={34} />
                 <span className="font-heading text-base font-semibold text-foreground">
-                  Sales Companion <span className="text-[#1B7A3E]">2.0</span>
+                  Sales Companion 2.0 <span className="text-[#1B7A3E]">2.0</span>
                 </span>
               </div>
               <p className="mt-3 text-xs leading-relaxed text-muted-foreground">

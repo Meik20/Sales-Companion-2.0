@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
                 Bonjour <strong>${sanitizedName || sanitizedEmail}</strong>,
               </p>
               <p style="margin:0 0 20px;font-size:14px;line-height:1.6;color:#94a3b8;">
-                L'équipe administrative de Sales Companion a examiné et approuvé votre demande d'inscription pour votre organisation <strong>${sanitizedCompany ? sanitizedCompany : 'commerciale'}</strong>.
+                L'équipe administrative de Sales Companion 2.0 a examiné et approuvé votre demande d'inscription pour votre organisation <strong>${sanitizedCompany ? sanitizedCompany : 'commerciale'}</strong>.
               </p>
 
               <!-- Recap Box -->
@@ -193,9 +193,9 @@ export async function POST(request: NextRequest) {
 
     const emailResult = await sendEmail({
       to: sanitizedEmail,
-      subject: `🎉 Votre compte Manager Sales Companion a été validé !`,
+      subject: `🎉 Votre compte Manager Sales Companion 2.0 a été validé !`,
       html: emailHtml,
-      text: `Bonjour ${sanitizedName || sanitizedEmail},\n\nVotre demande de création de compte Manager pour ${sanitizedCompany || 'votre entreprise'} a été approuvée par l'administrateur Sales Companion.\n\nFinalisez votre inscription ici : ${registerLink}\n\nCe lien est valide pendant 7 jours.`
+      text: `Bonjour ${sanitizedName || sanitizedEmail},\n\nVotre demande de création de compte Manager pour ${sanitizedCompany || 'votre entreprise'} a été approuvée par l'administrateur Sales Companion 2.0.\n\nFinalisez votre inscription ici : ${registerLink}\n\nCe lien est valide pendant 7 jours.`
     })
 
     return NextResponse.json({

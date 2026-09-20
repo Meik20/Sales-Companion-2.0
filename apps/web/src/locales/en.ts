@@ -810,7 +810,7 @@ export const en = {
     statusResolved: 'Resolved',
     statusClosed: 'Closed',
     publicTitle: 'Support & Account Validation',
-    publicSubtitle: 'Submit your request directly to the Sales Companion support team.',
+    publicSubtitle: 'Submit your request directly to the Sales Companion 2.0 support team.',
     corporateDomainBannerTitle: 'Manager account request without custom company domain',
     corporateDomainBannerDesc: 'For security reasons, Manager accounts typically require a corporate email domain. If your company uses standard email addresses, our administration team can manually review and validate your profile.',
     nameLabel: 'Full name',

@@ -27,7 +27,7 @@ export default function AIAssistantPage() {
         role: 'assistant',
         content:
           lang === 'en'
-            ? '👋 Hello! I am your AI Sales Companion. I can help you with B2B prospecting, finding companies in our database, and drafting outreach pitches. How can I help you today?'
+            ? '👋 Hello! I am your AI Sales Companion 2.0. I can help you with B2B prospecting, finding companies in our database, and drafting outreach pitches. How can I help you today?'
             : '👋 Bonjour ! Je suis votre Companion IA. Je peux vous aider avec des conseils commerciaux, la recherche d\'entreprises dans la base et la prospection B2B au Cameroun. Comment puis-je vous aider ?',
         timestamp: new Date()
       }
@@ -175,7 +175,7 @@ export default function AIAssistantPage() {
       >
         <div>
           <h1 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: 'var(--foreground, #f1f5f9)' }}>
-            {lang === 'en' ? 'AI Sales Companion' : 'Companion IA'}
+            {lang === 'en' ? 'AI Sales Companion 2.0' : 'Companion IA'}
           </h1>
           <p style={{ margin: 0, fontSize: '12px', color: 'var(--muted-foreground, #94a3b8)' }}>
             {lang === 'en' ? 'Real-time sales insights & prospecting' : 'Conseils commerciaux et prospection en temps réel'}

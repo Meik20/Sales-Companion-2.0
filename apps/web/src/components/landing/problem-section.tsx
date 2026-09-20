@@ -69,17 +69,17 @@ export function ProblemSection() {
           ))}
         </div>
 
-        {/* Transition banner to Sales Companion */}
+        {/* Transition banner to Sales Companion 2.0 */}
         <div className="mt-12 rounded-2xl border border-[#1B7A3E]/30 bg-[#1B7A3E]/5 p-6 text-center sm:p-8">
           <p className="font-heading text-lg font-bold text-foreground sm:text-xl">
             {isEn ? (
               <>
-                Sales Companion brings all these steps together into{' '}
+                Sales Companion 2.0 brings all these steps together into{' '}
                 <span className="text-[#1B7A3E]">one unified workspace.</span>
               </>
             ) : (
               <>
-                Sales Companion rassemble toutes ces étapes dans{' '}
+                Sales Companion 2.0 rassemble toutes ces étapes dans{' '}
                 <span className="text-[#1B7A3E]">un seul espace unifié.</span>
               </>
             )}

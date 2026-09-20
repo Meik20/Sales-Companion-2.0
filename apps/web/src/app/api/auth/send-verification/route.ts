@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
           <p style="word-break: break-all; color: #374151; font-size: 13px; margin: 0;">${link}</p>
         </div>
         <div style="border-top: 1px solid #e5e7eb; padding-top: 24px;">
-          <p style="font-size: 14px; color: #6b7280; margin: 0;">À très vite,<br/><strong>L'équipe Sales Companion</strong></p>
+          <p style="font-size: 14px; color: #6b7280; margin: 0;">À très vite,<br/><strong>L'équipe Sales Companion 2.0</strong></p>
         </div>
       </div>
     `
@@ -73,12 +73,12 @@ Merci d'avoir créé un compte sur Sales Companion 2.0. Pour finaliser votre ins
 ${link}
 
 À très vite,
-L'équipe Sales Companion
+L'équipe Sales Companion 2.0
     `
 
     const result = await sendEmail({
       to: email,
-      subject: 'Bienvenue sur Sales Companion ! Confirmez votre email',
+      subject: 'Bienvenue sur Sales Companion 2.0 ! Confirmez votre email',
       html,
       text
     })

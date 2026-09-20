@@ -35,8 +35,8 @@ export async function sendEmail({
 async function sendViaBrevo(to: string, subject: string, html: string, apiKey: string, text?: string) {
   try {
     const payload: any = {
-      sender: { name: 'Sales Companion', email: 'noreply@salescompanion2-0.com' },
-      replyTo: { name: 'Support Sales Companion', email: 'noreply@salescompanion2-0.com' },
+      sender: { name: 'Sales Companion 2.0', email: 'noreply@salescompanion2-0.com' },
+      replyTo: { name: 'Support Sales Companion 2.0', email: 'noreply@salescompanion2-0.com' },
       to: [{ email: to }],
       subject,
       htmlContent: html
@@ -80,8 +80,8 @@ async function sendViaSendGrid(to: string, subject: string, html: string, apiKey
       },
       body: JSON.stringify({
         personalizations: [{ to: [{ email: to }] }],
-        from: { email: 'noreply@salescompanion2-0.com', name: 'Sales Companion' },
-        reply_to: { email: 'noreply@salescompanion2-0.com', name: 'Support Sales Companion' },
+        from: { email: 'noreply@salescompanion2-0.com', name: 'Sales Companion 2.0' },
+        reply_to: { email: 'noreply@salescompanion2-0.com', name: 'Support Sales Companion 2.0' },
         subject,
         content
       })
