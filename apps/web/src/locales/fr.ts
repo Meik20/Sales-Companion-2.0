@@ -41,7 +41,7 @@ export const fr = {
       sub: 'Optimisez vos ventes avec Sales Companion 2.0 : base de données officielle, CRM léger et intelligence commerciale pour le terrain camerounais.',
       f1Title: 'Annuaire des entreprises',
       f1Desc:
-        'Accédez aux coordonnées de 500K + entreprises camerounaises. Filtrez par secteur, région et ville pour cibler vos prospects.',
+        'Accédez aux coordonnées de 50 000+ entreprises camerounaises. Filtrez par secteur, région et ville pour cibler vos prospects.',
       f1Tag: '→ Données RCCM & NIU',
       f2Title: 'Pipeline Commercial CRM',
       f2Desc:

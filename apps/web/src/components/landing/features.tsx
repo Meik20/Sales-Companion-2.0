@@ -39,8 +39,8 @@ export function Features() {
       icon: Building2,
       title:
         lang === 'en'
-          ? '500,000+ verified Cameroonian companies at your fingertips'
-          : '500 000+ entreprises camerounaises répertoriées et vérifiées',
+          ? '50,000+ verified Cameroonian companies at your fingertips'
+          : '50 000+ entreprises camerounaises répertoriées et vérifiées',
       description:
         lang === 'en'
           ? 'Direct access to the largest B2B directory in the country. Filter by city (Douala, Yaoundé, Bafoussam...), business sector and company type to identify and reach decision-makers directly.'

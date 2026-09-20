@@ -17,7 +17,7 @@ async function getAdminModules() {
  * Recherche dans la collection Firestore "companies" importée par l'admin.
  * Déduit 1 crédit par recherche pour l'utilisateur authentifié.
  */
-// Cache en mémoire pour éviter de recharger 500k docs à chaque clic
+// Cache en mémoire pour éviter de recharger 50k docs à chaque clic
 let cachedCompanies: any[] | null = null
 let lastCacheUpdate = 0
 const CACHE_DURATION = 1000 * 60 * 60 // 1 heure (réduit les lectures Firestore de 75%)

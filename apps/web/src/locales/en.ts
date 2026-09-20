@@ -41,7 +41,7 @@ export const en = {
       sub: 'Optimize your sales with Sales Companion 2.0: official database, lightweight CRM and sales intelligence for the Cameroonian market.',
       f1Title: 'Company Directory',
       f1Desc:
-        'Access contact details for 500K + Cameroonian companies. Filter by sector, region and city to target your prospects.',
+        'Access contact details for 50,000+ Cameroonian companies. Filter by sector, region and city to target your prospects.',
       f1Tag: '→ RCCM & NIU Data',
       f2Title: 'CRM Sales Pipeline',
       f2Desc:
