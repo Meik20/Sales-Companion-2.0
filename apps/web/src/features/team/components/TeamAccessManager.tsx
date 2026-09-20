@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { DataCard, Badge } from '@/components/ui/index'
 import { EmptyState, LoadingState } from '@/components/feedback/index'
 import { Input } from '@/components/ui/Input'
@@ -85,6 +85,8 @@ export function TeamAccessManager() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const [copiedId, setCopiedId] = useState<string | null>(null)
+  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const previewId = buildAccessId(
     formData.firstname,
@@ -151,10 +153,15 @@ export function TeamAccessManager() {
     }
   }
 
-  const copyLink = async (magicCode?: string) => {
+  const copyLink = async (magicCode?: string, accessId?: string) => {
     if (!magicCode) return
     const link = `${window.location.origin}/activate?code=${magicCode}`
     await navigator.clipboard.writeText(link)
+    if (accessId) {
+      setCopiedId(accessId)
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current)
+      copyTimeoutRef.current = setTimeout(() => setCopiedId(null), 2000)
+    }
     pushToast({ type: 'info', title: `Lien magique copié !` })
   }
 
@@ -646,16 +653,25 @@ export function TeamAccessManager() {
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                      {/* Copy Link / ID — only for pending */}
                       {displayStatus === 'pending' || displayStatus === 'pending_email' ? (
                         <>
                           {acc.magicCode ? (
                             <button
                               title="Copier le lien magique d'activation"
-                              onClick={() => copyLink(acc.magicCode)}
-                              style={{ ...btnStyle('#10b981'), fontWeight: 700 }}
+                              onClick={() => copyLink(acc.magicCode, acc.id)}
+                              style={{
+                                ...btnStyle(copiedId === acc.id ? '#10b981' : '#10b981'),
+                                background: copiedId === acc.id ? 'rgba(16,185,129,0.15)' : 'rgba(16,185,129,0.08)',
+                                border: `1px solid ${copiedId === acc.id ? 'rgba(16,185,129,0.5)' : 'rgba(16,185,129,0.2)'}`,
+                                fontWeight: 700,
+                                transition: 'all 200ms ease'
+                              }}
                             >
-                              <Copy size={13} /> Lien d'accès
+                              {copiedId === acc.id ? (
+                                <><CheckCircle2 size={13} /> Copié !</>
+                              ) : (
+                                <><Copy size={13} /> Lien d'accès</>
+                              )}
                             </button>
                           ) : (
                             <button

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useTranslation } from '@/providers/I18nProvider'
+import { useToast } from '@/hooks/useToast'
 import { Company } from '@/features/search/hooks/useCompaniesSearch'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { firestore } from '@/services/firebase/client'
@@ -13,9 +14,19 @@ type Props = { company: Company }
 export function AddToPipelineButton({ company }: Props) {
   const { t } = useTranslation()
   const { user } = useCurrentUser()
+  const { pushToast } = useToast()
   const queryClient = useQueryClient()
   const [status, setStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+
+  function notifySuccess() {
+    setStatus('done')
+    pushToast({
+      type: 'success',
+      title: t('search.prospectAddedToast'),
+      description: `${company.raisonSociale || 'Prospect'}`
+    })
+  }
 
   async function handleAdd() {
     if (!user || status === 'loading' || status === 'done') return
@@ -47,7 +58,7 @@ export function AddToPipelineButton({ company }: Props) {
         await addDoc(collection(firestore, 'pipeline'), pipelineData)
         await queryClient.invalidateQueries({ queryKey: ['pipeline'] })
         await queryClient.invalidateQueries({ queryKey: ['pipeline-stats'] })
-        setStatus('done')
+        notifySuccess()
       } catch (err) {
         console.error('[AddToPipeline offline]', err)
         setErrorMsg(err instanceof Error ? err.message : 'Erreur inconnue')
@@ -79,14 +90,14 @@ export function AddToPipelineButton({ company }: Props) {
       if (!res.ok) throw new Error((json as { message?: string }).message ?? `Erreur ${res.status}`)
       await queryClient.invalidateQueries({ queryKey: ['pipeline'] })
       await queryClient.invalidateQueries({ queryKey: ['pipeline-stats'] })
-      setStatus('done')
+      notifySuccess()
     } catch (err) {
       // If network fails, try direct offline save
       try {
         await addDoc(collection(firestore, 'pipeline'), pipelineData)
         await queryClient.invalidateQueries({ queryKey: ['pipeline'] })
         await queryClient.invalidateQueries({ queryKey: ['pipeline-stats'] })
-        setStatus('done')
+        notifySuccess()
       } catch (addErr) {
         console.error('[AddToPipeline]', addErr)
         setErrorMsg(err instanceof Error ? err.message : 'Erreur inconnue')

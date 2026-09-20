@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useTranslation } from '@/providers/I18nProvider'
+import { useToast } from '@/hooks/useToast'
 import { Company } from '@/features/search/hooks/useCompaniesSearch'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { firestore } from '@/services/firebase/client'
@@ -13,9 +14,21 @@ type Props = { company: Company }
 export function SaveCompanyButton({ company }: Props) {
   const { t } = useTranslation()
   const { user } = useCurrentUser()
+  const { pushToast } = useToast()
   const queryClient = useQueryClient()
   const [status, setStatus] = useState<'idle' | 'loading' | 'done' | 'duplicate' | 'error'>('idle')
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+
+  function notifyDone(isDuplicate = false) {
+    setStatus(isDuplicate ? 'duplicate' : 'done')
+    if (!isDuplicate) {
+      pushToast({
+        type: 'success',
+        title: t('search.companySavedToast'),
+        description: `${company.raisonSociale || 'Entreprise'}`
+      })
+    }
+  }
 
   async function handleSave() {
     if (!user || status === 'loading' || status === 'done' || status === 'duplicate') return
@@ -37,7 +50,7 @@ export function SaveCompanyButton({ company }: Props) {
           savedAt: serverTimestamp()
         })
         await queryClient.invalidateQueries({ queryKey: ['saved-companies', user.uid] })
-        setStatus('done')
+        notifyDone()
       } catch (err) {
         console.error('[SaveCompany offline]', err)
         setErrorMsg(err instanceof Error ? err.message : 'Erreur inconnue')

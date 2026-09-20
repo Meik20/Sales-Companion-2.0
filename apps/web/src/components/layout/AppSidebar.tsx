@@ -37,26 +37,57 @@ import { useNetworkStatus } from '@/hooks/useNetworkStatus'
 
 // ── Indicateur & bascule du mode hors connexion dans la sidebar ───────────────
 function OfflineModeIndicator() {
-  const { isOnline, isManualOffline, toggleManualOffline } = useNetworkStatus()
+  const { isOnline, isManualOffline, isChecking, wasOffline, dismissReconnected, toggleManualOffline } =
+    useNetworkStatus()
   const { t } = useTranslation()
   const { pushToast } = useToast()
 
   const handleToggle = () => {
     toggleManualOffline()
-    if (isOnline) {
+    if (isOnline && !isManualOffline) {
       pushToast({
         type: 'info',
         title: 'Mode hors connexion activé',
-        description: 'L’application bascule sur les données en cache local.'
+        description: "L'application bascule sur les données en cache local."
       })
     } else {
       pushToast({
         type: 'success',
         title: 'Mode en ligne rétabli',
-        description: 'L’application se reconnecte et synchronise avec le réseau.'
+        description: "L'application se reconnecte et synchronise avec le réseau."
       })
     }
   }
+
+  // ── Reconnexion : bannière flash ──────────────────────────────────────────
+  if (wasOffline && isOnline) {
+    return (
+      <div
+        className="flex w-full items-center gap-2.5 px-3 py-2.5 text-[13px] rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-medium shadow-sm cursor-pointer"
+        onClick={dismissReconnected}
+        title="Cliquer pour fermer"
+      >
+        <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(34,197,94,0.8)] animate-pulse shrink-0" />
+        <Activity size={15} strokeWidth={2} className="shrink-0" />
+        <span className="flex-1">Connexion rétablie</span>
+        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full uppercase tracking-wider bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">
+          En ligne
+        </span>
+      </div>
+    )
+  }
+
+  // ── Vérification en cours ──────────────────────────────────────────────────
+  const dot = !isOnline ? (
+    // Offline (automatique ou manuel) — voyant ambre animé
+    <span className="h-2 w-2 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.8)] animate-pulse shrink-0" />
+  ) : isChecking ? (
+    // En ligne mais en train de vérifier — voyant bleu clignotant
+    <span className="h-2 w-2 rounded-full bg-blue-400 shadow-[0_0_6px_rgba(96,165,250,0.7)] animate-pulse shrink-0" />
+  ) : (
+    // En ligne stable — voyant vert fixe
+    <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_4px_rgba(34,197,94,0.5)] shrink-0" />
+  )
 
   return (
     <button
@@ -67,30 +98,35 @@ function OfflineModeIndicator() {
           ? 'bg-amber-500/10 dark:bg-amber-500/15 border-amber-500/30 text-amber-600 dark:text-amber-400 font-medium shadow-sm'
           : 'bg-transparent hover:bg-secondary/60 border-transparent text-muted-foreground hover:text-foreground'
       }`}
-      title={isOnline ? "Cliquer pour activer le mode hors connexion" : "Cliquer pour repasser en mode en ligne"}
+      title={
+        !isOnline
+          ? isManualOffline
+            ? 'Mode hors connexion simulé — cliquer pour repasser en ligne'
+            : 'Hors connexion détecté automatiquement — cliquer pour forcer le mode en ligne'
+          : 'Connexion active — cliquer pour simuler le mode hors connexion'
+      }
     >
       <div className="flex items-center gap-2.5">
-        {!isOnline ? (
-          <span className="h-2 w-2 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.8)] animate-pulse shrink-0" />
-        ) : (
-          <span className="h-2 w-2 rounded-full bg-emerald-500/60 shrink-0" />
-        )}
+        {dot}
         <WifiOff size={16} strokeWidth={1.8} className="shrink-0" />
         <span>{t('sidebar.offlineMode')}</span>
       </div>
 
       <span
-        className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full uppercase tracking-wider ${
+        className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full uppercase tracking-wider transition-colors ${
           !isOnline
             ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300'
-            : 'bg-secondary text-muted-foreground'
+            : isChecking
+              ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400'
+              : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400'
         }`}
       >
-        {!isOnline ? (isManualOffline ? 'Simulé' : 'Actif') : 'En ligne'}
+        {!isOnline ? (isManualOffline ? 'Simulé' : 'Hors ligne') : isChecking ? 'Vérif…' : 'En ligne'}
       </span>
     </button>
   )
 }
+
 
 const REGIONS = [
   'Adamaoua',
