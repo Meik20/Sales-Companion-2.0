@@ -126,6 +126,7 @@ service cloud.firestore {
       allow read: if isAdmin() || (isSignedIn() && resource.data.userId == authUid());
       allow create: if isSignedIn() && request.resource.data.userId == authUid();
       allow update: if isAdmin() || (isSignedIn() && resource.data.userId == authUid() && request.resource.data.userId == authUid());
+      allow delete: if isAdmin() || (isSignedIn() && resource.data.userId == authUid());
 
       match /messages/{messageId} {
         allow read: if isAdmin() || (
@@ -134,6 +135,11 @@ service cloud.firestore {
         );
 
         allow create: if isAdmin() || (
+          isSignedIn() &&
+          get(/databases/$(database)/documents/support_threads/$(threadId)).data.userId == authUid()
+        );
+
+        allow delete: if isAdmin() || (
           isSignedIn() &&
           get(/databases/$(database)/documents/support_threads/$(threadId)).data.userId == authUid()
         );

@@ -121,7 +121,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <html lang="fr-CM" className={`${outfit.variable} ${inter.variable}`} data-scroll-behavior="smooth" suppressHydrationWarning>
+    <html
+      lang="fr-CM"
+      className={`${outfit.variable} ${inter.variable}`}
+      data-design="linkedin"
+      data-scroll-behavior="smooth"
+      suppressHydrationWarning
+    >
       <head>
         <script
           type="application/ld+json"
@@ -134,7 +140,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           }}
         />
       </head>
-      <body>
+      <body suppressHydrationWarning>
         {process.env.NEXT_PUBLIC_GTM_ID && <GoogleTagManager gtmId={process.env.NEXT_PUBLIC_GTM_ID} />}
         <DesignThemeProvider />
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>

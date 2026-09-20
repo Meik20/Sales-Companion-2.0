@@ -225,13 +225,27 @@ export default function AdminSupportPage() {
       return
 
     try {
-      // 1. Delete messages
-      const messagesSnap = await getDocs(collection(firestore, 'support_threads', id, 'messages'))
-      const deletePromises = messagesSnap.docs.map((d) => deleteDoc(d.ref))
-      await Promise.all(deletePromises)
-
-      // 2. Delete thread
-      await deleteDoc(doc(firestore, 'support_threads', id))
+      if (user) {
+        const token = await user.getIdToken()
+        const res = await fetch('/api/admin/support/delete', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ threadId: id })
+        })
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}))
+          throw new Error(errData.error || 'Erreur lors de la suppression')
+        }
+      } else {
+        // Fallback SDK direct
+        const messagesSnap = await getDocs(collection(firestore, 'support_threads', id, 'messages'))
+        const deletePromises = messagesSnap.docs.map((d) => deleteDoc(d.ref))
+        await Promise.all(deletePromises)
+        await deleteDoc(doc(firestore, 'support_threads', id))
+      }
 
       if (selected?.id === id) setSelected(null)
       await loadThreads()
