@@ -111,7 +111,13 @@ export default function SettingsPage() {
   const planInfo = (planDetails[plan as keyof typeof planDetails] ?? planDetails['free'])!
 
   // ── Design Theme ────────────────────────────────────────────────
-  const [activeDesign, setActiveDesign] = useState<DesignTheme>('firebase')
+  const [activeDesign, setActiveDesign] = useState<DesignTheme>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem(STORAGE_KEY) as DesignTheme | null
+      if (stored === 'firebase' || stored === 'linkedin') return stored
+    }
+    return 'firebase'
+  })
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY) as DesignTheme | null

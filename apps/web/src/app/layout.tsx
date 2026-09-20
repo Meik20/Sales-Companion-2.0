@@ -133,10 +133,23 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
-        {/* ── No-flash design theme script — runs synchronously before first paint ── */}
+        {/* ── No-flash theme, dark-mode & language script — runs synchronously before first paint ── */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var d=localStorage.getItem('sc-design-theme')||'firebase';document.documentElement.setAttribute('data-design',d);}catch(e){}})();`
+            __html: `(function(){try{
+var d=localStorage.getItem('sc-design-theme')||'firebase';
+document.documentElement.setAttribute('data-design',d);
+var t=localStorage.getItem('theme');
+var isDark=false;
+if(t==='dark'){isDark=true;}
+else if(t==='light'){isDark=false;}
+else{isDark=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches;}
+if(isDark){document.documentElement.classList.add('dark');}
+else{document.documentElement.classList.remove('dark');}
+var l=localStorage.getItem('sc_lang');
+if(!l){var m=document.cookie.match(/(?:^|;\\s*)locale=([^;]+)/);if(m&&(m[1]==='fr'||m[1]==='en')){l=m[1];}}
+if(l==='en'||l==='fr'){document.documentElement.setAttribute('lang',l==='en'?'en':'fr-CM');}
+}catch(e){}})();`
           }}
         />
       </head>

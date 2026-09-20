@@ -18,24 +18,28 @@ const I18nContext = createContext<I18nContextType>({
   setLang: () => {}
 })
 
+function getInitialLang(): Language {
+  if (typeof window === 'undefined') return 'fr'
+  try {
+    const savedLang = localStorage.getItem('sc_lang') as Language | null
+    if (savedLang === 'fr' || savedLang === 'en') return savedLang
+
+    const match = document.cookie.match(/(?:^|;\s*)locale=([^;]+)/)
+    const cookieLang = match?.[1] as Language | undefined
+    if (cookieLang === 'fr' || cookieLang === 'en') return cookieLang
+
+    return navigator.language.startsWith('en') ? 'en' : 'fr'
+  } catch {
+    return 'fr'
+  }
+}
+
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Language>('fr')
+  const [lang, setLangState] = useState<Language>(() => getInitialLang())
 
   useEffect(() => {
-    const savedLang = (typeof window !== 'undefined' ? localStorage.getItem('sc_lang') : null) as Language
-    if (savedLang && (savedLang === 'fr' || savedLang === 'en')) {
-      setLangState(savedLang)
-    } else {
-      const match = typeof document !== 'undefined' ? document.cookie.match(/(?:^|;\s*)locale=([^;]+)/) : null
-      const cookieLang = match?.[1] as Language
-      if (cookieLang && (cookieLang === 'fr' || cookieLang === 'en')) {
-        setLangState(cookieLang)
-      } else {
-        // Auto-detect browser language
-        const browserLang = typeof navigator !== 'undefined' && navigator.language.startsWith('en') ? 'en' : 'fr'
-        setLangState(browserLang)
-      }
-    }
+    const current = getInitialLang()
+    setLangState((prev) => (prev !== current ? current : prev))
   }, [])
 
   const setLang = useCallback((newLang: Language) => {
@@ -43,6 +47,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     if (typeof window !== 'undefined') {
       localStorage.setItem('sc_lang', newLang)
       document.cookie = `locale=${newLang}; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax`
+      document.documentElement.setAttribute('lang', newLang === 'en' ? 'en' : 'fr-CM')
     }
   }, [])
 
