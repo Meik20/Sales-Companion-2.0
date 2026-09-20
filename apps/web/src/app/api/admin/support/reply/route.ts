@@ -113,8 +113,8 @@ export async function POST(request: NextRequest) {
         <table width="100%" style="max-width:580px;background-color:#131c2e;border:1px solid #1e293b;border-radius:16px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,0.5);">
           <!-- Header -->
           <tr>
-            <td style="padding:32px 32px 20px;text-align:center;border-bottom:1px solid #1e293b;background:linear-gradient(180deg, rgba(27,122,62,0.15) 0%, rgba(19,28,46,0) 100%);">
-              <div style="display:inline-block;padding:6px 14px;background:rgba(27,122,62,0.2);border:1px solid rgba(27,122,62,0.4);border-radius:8px;font-weight:700;font-size:14px;color:#4ade80;letter-spacing:0.5px;">
+            <td style="padding:32px 32px 20px;text-align:center;border-bottom:1px solid #1e293b;background:linear-gradient(180deg, rgba(37,99,235,0.15) 0%, rgba(19,28,46,0) 100%);">
+              <div style="display:inline-block;padding:6px 14px;background:rgba(37,99,235,0.2);border:1px solid rgba(37,99,235,0.4);border-radius:8px;font-weight:700;font-size:14px;color:#60a5fa;letter-spacing:0.5px;">
                 SALES COMPANION 2.0 · SUPPORT
               </div>
               <h1 style="margin:18px 0 6px;font-size:20px;font-weight:700;color:#ffffff;">
@@ -137,10 +137,10 @@ export async function POST(request: NextRequest) {
               </p>
 
               <!-- Message Preview Card -->
-              <table width="100%" style="background-color:#1e2a3b;border-left:4px solid #1B7A3E;border-radius:8px;padding:16px;margin-bottom:24px;">
+              <table width="100%" style="background-color:#1e2a3b;border-left:4px solid #2563eb;border-radius:8px;padding:16px;margin-bottom:24px;">
                 <tr>
                   <td>
-                    <div style="font-size:11px;font-weight:700;color:#4ade80;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">
+                    <div style="font-size:11px;font-weight:700;color:#60a5fa;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">
                       Réponse de l'agent Support
                     </div>
                     <div style="font-size:13.5px;color:#f1f5f9;line-height:1.6;">
@@ -158,7 +158,7 @@ export async function POST(request: NextRequest) {
               <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom:24px;">
                 <tr>
                   <td align="center">
-                    <a href="${ticketUrl}" target="_blank" style="display:inline-block;padding:13px 28px;background-color:#1B7A3E;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;border-radius:10px;box-shadow:0 4px 14px rgba(27,122,62,0.4);">
+                    <a href="${ticketUrl}" target="_blank" style="display:inline-block;padding:13px 28px;background-color:#2563eb;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;border-radius:10px;box-shadow:0 4px 14px rgba(37,99,235,0.4);">
                       Accéder à mon ticket →
                     </a>
                   </td>

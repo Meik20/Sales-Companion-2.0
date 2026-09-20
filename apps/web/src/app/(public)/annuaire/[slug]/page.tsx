@@ -267,7 +267,7 @@ export default async function AnnuaireSlugPage({ params }: Props) {
                   <h3 className="font-heading text-base font-semibold text-foreground">
                     {company.name}
                   </h3>
-                  <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700 shrink-0">
+                  <span className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-[11px] font-semibold text-blue-700 shrink-0">
                     {company.status}
                   </span>
                 </div>

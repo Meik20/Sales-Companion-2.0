@@ -310,7 +310,7 @@ function TrendCard({
           <div
             style={{
               fontSize: 11,
-              color: '#4ade80',
+              color: '#3b82f6',
               fontWeight: 700,
               display: 'flex',
               alignItems: 'center',
@@ -373,7 +373,7 @@ export default function AdminDashboardPage() {
               value={stats.totalUsers ?? 0}
               hint={`${stats.activeUsers ?? 0} ${t('admin.activeThisWeek')}`}
               trend={`+${stats.newUsersThisWeek ?? 0} ${t('admin.thisWeek')}`}
-              color={'#4ade80'}
+              color={'#2563eb'}
               icon={Users}
             />
             <TrendCard
@@ -445,7 +445,7 @@ export default function AdminDashboardPage() {
                   label: t('admin.newUsers'),
                   value: stats.newUsersThisWeek ?? 0,
                   unit: t('admin.thisWeek'),
-                  color: '#4ade80'
+                  color: '#2563eb'
                 },
                 {
                   icon: <Search size={20} />,

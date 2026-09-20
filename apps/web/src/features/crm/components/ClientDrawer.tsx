@@ -35,7 +35,7 @@ export function ClientDrawer({ client, onClose, user }: Props) {
   const [savingTicket, setSavingTicket] = useState(false)
 
   const callStatusLabels: Record<CallStatus, { label: string; color: string; emoji: string }> = {
-    connected:  { label: t('crm.drawer.statusConnected'),  color: '#4ade80', emoji: '✅' },
+    connected:  { label: t('crm.drawer.statusConnected'),  color: '#3b82f6', emoji: '🔵' },
     no_answer:  { label: t('crm.drawer.statusNoAnswer'), color: '#f59e0b', emoji: '📵' },
     busy:       { label: t('crm.drawer.statusBusy'),     color: '#f97316', emoji: '🔴' },
     voicemail:  { label: t('crm.drawer.statusVoicemail'),color: '#a78bfa', emoji: '📬' },
@@ -204,7 +204,7 @@ export function ClientDrawer({ client, onClose, user }: Props) {
               </button>
               <button
                 onClick={() => handleCallClick('whatsapp')}
-                className="cursor-pointer rounded-lg border border-emerald-500/40 bg-emerald-500/15 px-3.5 py-2 text-[12px] font-bold text-emerald-600 dark:text-emerald-400 transition-colors hover:bg-emerald-500/25"
+                className="cursor-pointer rounded-lg border border-blue-500/40 bg-blue-500/15 px-3.5 py-2 text-[12px] font-bold text-blue-600 dark:text-blue-400 transition-colors hover:bg-blue-500/25"
               >
                 💬 WhatsApp
               </button>
@@ -304,7 +304,7 @@ export function ClientDrawer({ client, onClose, user }: Props) {
                       const isActive = ticket.status === s
                       const statusColors: Record<string, string> = {
                         open: '#f87171', in_progress: '#f59e0b',
-                        resolved: '#4ade80', closed: '#94a3b8'
+                        resolved: '#0284c7', closed: '#94a3b8'
                       }
                       return (
                         <button

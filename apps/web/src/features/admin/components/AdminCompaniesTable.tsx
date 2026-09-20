@@ -234,9 +234,9 @@ export function AdminCompaniesTable() {
                   padding: '10px 18px',
                   fontSize: 13,
                   borderRadius: 10,
-                  border: `1px solid ${'#4ade80'}`,
-                  background: 'rgba(46,160,90,0.1)',
-                  color: '#4ade80',
+                  border: `1px solid ${'#2563eb'}`,
+                  background: 'rgba(37,99,235,0.1)',
+                  color: '#60a5fa',
                   cursor: items.length === 0 ? 'not-allowed' : 'pointer',
                   opacity: items.length === 0 ? 0.5 : 1,
                   fontWeight: 700,
@@ -427,9 +427,9 @@ export function AdminCompaniesTable() {
                       height: 36,
                       borderRadius: 10,
                       padding: '0 8px',
-                      border: `1px solid ${p === page ? '#4ade80' : 'var(--border, rgba(255,255,255,0.1))'}`,
-                      background: p === page ? 'rgba(46,160,90,0.1)' : 'var(--background, #0b1120)',
-                      color: p === page ? '#4ade80' : 'var(--foreground, #f1f5f9)',
+                      border: `1px solid ${p === page ? '#2563eb' : 'var(--border, rgba(255,255,255,0.1))'}`,
+                      background: p === page ? 'rgba(37,99,235,0.15)' : 'var(--background, #0b1120)',
+                      color: p === page ? '#60a5fa' : 'var(--foreground, #f1f5f9)',
                       cursor: 'pointer',
                       fontWeight: 700,
                       fontSize: 13,
@@ -626,11 +626,11 @@ function CompanyRow({
               gap: 4,
               padding: '2px 8px',
               borderRadius: 6,
-              background: 'rgba(34,197,94,0.1)',
-              color: '#16a34a',
+              background: 'rgba(37,99,235,0.1)',
+              color: '#2563eb',
               fontSize: 11,
               fontWeight: 700,
-              border: '1px solid rgba(34,197,94,0.2)'
+              border: '1px solid rgba(37,99,235,0.2)'
             }}
           >
             <CheckCircle2 size={12} />

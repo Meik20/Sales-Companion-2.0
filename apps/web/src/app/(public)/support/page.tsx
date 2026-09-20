@@ -43,7 +43,7 @@ type Message = {
 
 const STATUS_COLOR: Record<string, string> = {
   open: 'var(--color-accent)',
-  resolved: 'var(--color-success)',
+  resolved: '#0284c7',
   closed: '#9E9E9E'
 }
 
@@ -846,7 +846,7 @@ function AuthenticatedSupportView() {
                     }}
                   >
                     <span style={{ fontSize: 13, color: 'var(--muted-foreground, #94a3b8)' }}>
-                      <span style={{ color: 'var(--color-success)', fontWeight: 600 }}>
+                      <span style={{ color: '#0284c7', fontWeight: 600 }}>
                         {t('support.resolvedThread')}
                       </span>{' '}
                       {t('support.needMoreHelp')}

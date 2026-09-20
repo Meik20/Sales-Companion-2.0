@@ -38,10 +38,10 @@ const sectorConfig: Record<
   agro: {
     icon: <Leaf size={16} strokeWidth={2.2} />,
     label: 'Agroalimentaire',
-    color: '#22c55e',
-    bgClass: 'bg-emerald-500/10 dark:bg-emerald-500/15',
-    textClass: 'text-emerald-600 dark:text-emerald-400',
-    borderLeftClass: 'border-l-emerald-500'
+    color: '#2563eb',
+    bgClass: 'bg-blue-500/10 dark:bg-blue-500/15',
+    textClass: 'text-blue-600 dark:text-blue-400',
+    borderLeftClass: 'border-l-blue-500'
   },
   transport: {
     icon: <Truck size={16} strokeWidth={2.2} />,

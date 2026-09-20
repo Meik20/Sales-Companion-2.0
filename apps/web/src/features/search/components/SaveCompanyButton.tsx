@@ -93,7 +93,7 @@ export function SaveCompanyButton({ company }: Props) {
   const isDone = status === 'done' || status === 'duplicate'
   if (isDone) {
     return (
-      <span className="whitespace-nowrap text-[12px] font-semibold text-green-400">
+      <span className="whitespace-nowrap text-[12px] font-semibold text-blue-400">
         {status === 'duplicate' ? t('search.alreadySaved') : `✓ ${t('search.saved')}`}
       </span>
     )

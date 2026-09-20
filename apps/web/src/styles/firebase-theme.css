@@ -40,8 +40,8 @@
   --color-accent:    #1967D2 !important;
   --color-secondary: #1967D2 !important;
 
-  --color-success:    #1E8E3E !important;
-  --color-success-bg: #E6F4EA !important;
+  --color-success:    #0284C7 !important;
+  --color-success-bg: #E0F2FE !important;
   --color-warning:    #8A6500 !important;
   --color-warning-bg: #FEF7E0 !important;
   --color-danger:     #D93025 !important;
@@ -94,8 +94,8 @@
   --color-accent:    #AABFFF !important;
   --color-secondary: #AABFFF !important;
 
-  --color-success:    #34A853 !important;
-  --color-success-bg: rgba(5,118,66,.2) !important;
+  --color-success:    #38BDF8 !important;
+  --color-success-bg: rgba(2,132,199,.2) !important;
   --color-warning:    #FBBC04 !important;
   --color-warning-bg: rgba(251,188,4,.15) !important;
   --color-danger:     #EA4335 !important;

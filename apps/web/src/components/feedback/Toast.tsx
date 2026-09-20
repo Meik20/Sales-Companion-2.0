@@ -19,10 +19,10 @@ const TOAST_MAP: Record<
   { wrapper: string; icon: string; iconWrapper: string; iconColor: string }
 > = {
   success: {
-    wrapper: 'border-green-500/30',
-    iconWrapper: 'bg-green-500/10 border border-green-500/30',
+    wrapper: 'border-blue-500/30',
+    iconWrapper: 'bg-blue-500/10 border border-blue-500/30',
     icon: '✓',
-    iconColor: 'text-green-400'
+    iconColor: 'text-blue-400'
   },
   error: {
     wrapper: 'border-red-500/30',

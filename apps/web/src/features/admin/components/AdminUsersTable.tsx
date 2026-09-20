@@ -346,7 +346,7 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
                         minWidth: 32,
                         height: 32,
                         borderRadius: 8,
-                        color: user.active ? '#f87171' : '#22c55e'
+                        color: user.active ? '#f87171' : '#2563eb'
                       }}
                       title={
                         user.active

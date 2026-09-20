@@ -61,7 +61,7 @@ function PipelineFunnel({ prospection, negociation, conclue }: { prospection: nu
   const stages = [
     { label: 'Prospection', value: prospection, color: '#60a5fa', pct: Math.round((prospection / total) * 100) },
     { label: 'Négociation', value: negociation, color: '#fbbf24', pct: Math.round((negociation / total) * 100) },
-    { label: 'Conclue', value: conclue, color: '#4ade80', pct: Math.round((conclue / total) * 100) }
+    { label: 'Conclue', value: conclue, color: '#0284c7', pct: Math.round((conclue / total) * 100) }
   ]
 
   return (
@@ -151,7 +151,7 @@ function MonthlyTrendChart({ data }: { data: { month: string; conclue: number; t
                   style={{
                     width: '100%',
                     height: Math.max(conclueH, d.conclue > 0 ? 4 : 0),
-                    background: '#4ade80',
+                    background: '#0284c7',
                     borderRadius: '4px 4px 0 0',
                     transition: 'height 0.6s ease'
                   }}
@@ -167,7 +167,7 @@ function MonthlyTrendChart({ data }: { data: { month: string; conclue: number; t
           <div style={{ width: 10, height: 10, borderRadius: 2, background: 'rgba(96,165,250,0.4)' }} /> Total prospects
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--muted-foreground, #94a3b8)' }}>
-          <div style={{ width: 10, height: 10, borderRadius: 2, background: '#4ade80' }} /> Affaires conclues
+          <div style={{ width: 10, height: 10, borderRadius: 2, background: '#0284c7' }} /> Affaires conclues
         </div>
       </div>
     </div>
@@ -209,15 +209,15 @@ function Leaderboard({ members }: { members: MemberStat[] }) {
                   {member.name}
                 </div>
                 <div style={{ height: 4, background: 'var(--card, #131c2e)', borderRadius: 4, overflow: 'hidden' }}>
-                  <div style={{ width: `${barWidth}%`, height: '100%', background: '#4ade80', borderRadius: 4, transition: 'width 0.8s ease' }} />
+                  <div style={{ width: `${barWidth}%`, height: '100%', background: '#0284c7', borderRadius: 4, transition: 'width 0.8s ease' }} />
                 </div>
               </div>
               <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                <div style={{ fontSize: 18, fontWeight: 800, color: '#4ade80', lineHeight: 1 }}>{member.conclue}</div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: '#0284c7', lineHeight: 1 }}>{member.conclue}</div>
                 <div style={{ fontSize: 10, color: 'var(--muted-foreground, #94a3b8)' }}>conclues</div>
               </div>
               <div style={{ textAlign: 'right', flexShrink: 0, minWidth: 40 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: member.conversionRate >= 50 ? '#4ade80' : member.conversionRate >= 25 ? '#fbbf24' : 'var(--muted-foreground, #94a3b8)' }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: member.conversionRate >= 50 ? '#0284c7' : member.conversionRate >= 25 ? '#fbbf24' : 'var(--muted-foreground, #94a3b8)' }}>
                   {member.conversionRate}%
                 </div>
                 <div style={{ fontSize: 10, color: 'var(--muted-foreground, #94a3b8)' }}>taux</div>
@@ -242,7 +242,7 @@ function SupportActivitySection({ stats }: { stats: NonNullable<ReportingData['s
     : 0
 
   const CALL_STATUS_LABELS: Record<string, { label: string; color: string; emoji: string }> = {
-    connected:  { label: 'Décroché',    color: '#4ade80', emoji: '✅' },
+    connected:  { label: 'Décroché',    color: '#3b82f6', emoji: '🔵' },
     no_answer:  { label: 'Non joint',   color: '#f59e0b', emoji: '📵' },
     busy:       { label: 'Occupé',      color: '#f97316', emoji: '🔴' },
     voicemail:  { label: 'Répondeur',   color: '#a78bfa', emoji: '📬' },
@@ -259,7 +259,7 @@ function SupportActivitySection({ stats }: { stats: NonNullable<ReportingData['s
   const TICKET_STATUS_LABELS: Record<string, { label: string; color: string }> = {
     open:        { label: 'Ouvert',    color: '#f87171' },
     in_progress: { label: 'En cours',  color: '#f59e0b' },
-    resolved:    { label: 'Résolu',    color: '#4ade80' },
+    resolved:    { label: 'Résolu',    color: '#0284c7' },
     closed:      { label: 'Fermé',     color: '#94a3b8' }
   }
 
@@ -292,7 +292,7 @@ function SupportActivitySection({ stats }: { stats: NonNullable<ReportingData['s
           label="Taux de résolution"
           value={`${resolutionRate}%`}
           sub="Tickets résolus ou fermés"
-          color={resolutionRate >= 70 ? '#4ade80' : '#f59e0b'}
+          color={resolutionRate >= 70 ? '#0284c7' : '#f59e0b'}
           icon="✓"
         />
       </div>
@@ -444,8 +444,8 @@ export function ReportingDashboard({ data }: { data: ReportingData }) {
             padding: '12px 20px',
             background: 'transparent',
             border: 'none',
-            borderBottom: section === 'sales' ? `2px solid ${'#4ade80'}` : '2px solid transparent',
-            color: section === 'sales' ? '#4ade80' : 'var(--muted-foreground, #94a3b8)',
+            borderBottom: section === 'sales' ? `2px solid ${'#3b82f6'}` : '2px solid transparent',
+            color: section === 'sales' ? '#3b82f6' : 'var(--muted-foreground, #94a3b8)',
             fontWeight: section === 'sales' ? 700 : 500,
             cursor: 'pointer',
             fontSize: 14,
@@ -461,8 +461,8 @@ export function ReportingDashboard({ data }: { data: ReportingData }) {
               padding: '12px 20px',
               background: 'transparent',
               border: 'none',
-              borderBottom: section === 'support' ? `2px solid ${'#4ade80'}` : '2px solid transparent',
-              color: section === 'support' ? '#4ade80' : 'var(--muted-foreground, #94a3b8)',
+              borderBottom: section === 'support' ? `2px solid ${'#3b82f6'}` : '2px solid transparent',
+              color: section === 'support' ? '#3b82f6' : 'var(--muted-foreground, #94a3b8)',
               fontWeight: section === 'support' ? 700 : 500,
               cursor: 'pointer',
               fontSize: 14,
@@ -489,14 +489,14 @@ export function ReportingDashboard({ data }: { data: ReportingData }) {
               label="Affaires conclues"
               value={data.totalConclue}
               sub={`Sur ${data.totalItems} prospects`}
-              color="#4ade80"
+              color="#0284c7"
               icon="✅"
             />
             <KpiCard
               label="Taux de conversion"
               value={`${data.overallConversionRate}%`}
               sub="Prospection → Clôture"
-              color={data.overallConversionRate >= 30 ? '#4ade80' : '#fbbf24'}
+              color={data.overallConversionRate >= 30 ? '#0284c7' : '#fbbf24'}
               icon="📈"
             />
             <KpiCard

@@ -16,12 +16,12 @@ function applyDesign(d: DesignTheme) {
  * 1. Immédiatement depuis localStorage → zéro flash au chargement
  * 2. Puis synchronisation Firestore pour cohérence multi-appareils
  *
- * Note : si aucune préférence n'est enregistrée, linkedin est appliqué par défaut.
+ * Note : si aucune préférence n'est enregistrée, firebase est appliqué par défaut.
  */
 export function DesignThemeProvider() {
   useEffect(() => {
     // 1. Lecture du localStorage — applique immédiatement, avant tout rendu
-    const stored = (localStorage.getItem(STORAGE_KEY) as DesignTheme | null) ?? 'linkedin'
+    const stored = (localStorage.getItem(STORAGE_KEY) as DesignTheme | null) ?? 'firebase'
     applyDesign(stored)
 
     // 2. Synchronisation Firestore asynchrone (best-effort, non-bloquant)

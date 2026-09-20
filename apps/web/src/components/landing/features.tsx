@@ -270,7 +270,7 @@ export function Features() {
                   />
                   <div
                     aria-hidden
-                    className="pointer-events-none absolute -left-12 -top-12 h-44 w-44 rounded-full bg-emerald-500/10 blur-3xl group-hover:bg-emerald-500/15 transition-all duration-500"
+                    className="pointer-events-none absolute -left-12 -top-12 h-44 w-44 rounded-full bg-blue-500/10 blur-3xl group-hover:bg-blue-500/15 transition-all duration-500"
                   />
 
                   <Image

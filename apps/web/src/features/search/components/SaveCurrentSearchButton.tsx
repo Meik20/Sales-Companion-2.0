@@ -43,7 +43,7 @@ export function SaveCurrentSearchButton({ filters, results }: Props) {
 
   if (saved) {
     return (
-      <span style={{ fontSize: 12, color: '#4ade80', fontWeight: 600 }}>
+      <span style={{ fontSize: 12, color: '#3b82f6', fontWeight: 600 }}>
         ✓ {t('search.savedSearch')}
       </span>
     )

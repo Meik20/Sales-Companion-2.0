@@ -40,7 +40,7 @@ function BarChart({
               }}
             >
               <span style={{ fontWeight: 500 }}>{item.label}</span>
-              <span style={{ fontWeight: 600, color: '#4ade80' }}>{item.value}</span>
+              <span style={{ fontWeight: 600, color: '#60a5fa' }}>{item.value}</span>
             </div>
             <div
               style={{
@@ -54,7 +54,7 @@ function BarChart({
                 style={{
                   height: '100%',
                   width: `${Math.max(5, (item.value / maxValue) * 100)}%`,
-                  background: '#4ade80',
+                  background: '#2563eb',
                   borderRadius: 3,
                   transition: 'width 300ms ease-out'
                 }}

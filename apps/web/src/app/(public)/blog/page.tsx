@@ -145,7 +145,7 @@ const ARTICLES = [
 ]
 
 const CATEGORY_STYLES: Record<string, { bg: string; text: string; border: string }> = {
-  Prospection: { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
+  Prospection: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
   Annuaire:    { bg: 'bg-blue-50',    text: 'text-blue-700',    border: 'border-blue-200'    },
   Guide:       { bg: 'bg-amber-50',   text: 'text-amber-700',   border: 'border-amber-200'   },
   Stratégie:   { bg: 'bg-purple-50',  text: 'text-purple-700',  border: 'border-purple-200'  },
@@ -209,7 +209,7 @@ export default function BlogPage() {
                 className="pointer-events-none absolute -right-20 -top-20 h-60 w-60 rounded-full bg-[radial-gradient(circle,color-mix(in_oklch,#1B7A3E_10%,transparent),transparent_70%)]"
               />
               <div className="relative flex flex-wrap items-center gap-3 mb-5">
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-[11px] font-semibold text-blue-700">
                   ⭐ Article à la une
                 </span>
                 <span className="text-xs text-muted-foreground">

@@ -180,7 +180,7 @@ export function AuthGuard({ children }: PropsWithChildren) {
           {status && (
             <div className={`mb-4 rounded-[10px] border px-3.5 py-2.5 text-center text-[13px] ${
               status.type === 'success'
-                ? 'border-green-500/30 bg-green-500/10 text-green-400'
+                ? 'border-blue-500/30 bg-blue-500/10 text-blue-400'
                 : 'border-red-500/30 bg-red-500/10 text-red-400'
             }`}>
               {status.message}

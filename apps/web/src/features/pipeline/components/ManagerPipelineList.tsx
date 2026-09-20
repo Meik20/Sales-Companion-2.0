@@ -353,12 +353,12 @@ function ProspectModal({
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
-                <MessageSquare size={12} strokeWidth={3} style={{ color: '#22c55e' }} />
+                <MessageSquare size={12} strokeWidth={3} style={{ color: '#2563eb' }} />
                 <div
                   style={{
                     fontSize: 11,
                     fontWeight: 800,
-                    color: '#22c55e',
+                    color: '#2563eb',
                     textTransform: 'uppercase',
                     letterSpacing: '.1em'
                   }}

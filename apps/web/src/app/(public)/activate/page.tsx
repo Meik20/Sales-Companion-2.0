@@ -215,12 +215,12 @@ function ActivateContent() {
           {status && (
             <div
               style={{
-                background: status.type === 'success' ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
-                border: `1px solid ${status.type === 'success' ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                background: status.type === 'success' ? 'rgba(37,99,235,0.1)' : 'rgba(239,68,68,0.1)',
+                border: `1px solid ${status.type === 'success' ? 'rgba(37,99,235,0.3)' : 'rgba(239,68,68,0.3)'}`,
                 borderRadius: 10,
                 padding: '10px 14px',
                 fontSize: 13,
-                color: status.type === 'success' ? '#4ade80' : '#f87171',
+                color: status.type === 'success' ? '#60a5fa' : '#f87171',
                 textAlign: 'center',
                 marginBottom: 16
               }}
@@ -270,7 +270,7 @@ function ActivateContent() {
   if (step === 'verified') {
     return (
       <main style={{ ...cardPage, flexDirection: 'column', gap: 16 }}>
-        <CheckCircle size={52} style={{ color: 'var(--color-success)' }} />
+        <CheckCircle size={52} style={{ color: '#2563eb' }} />
         <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--foreground, #f1f5f9)', margin: 0 }}>
           {t('auth.emailVerified')}
         </h2>

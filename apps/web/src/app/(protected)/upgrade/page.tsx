@@ -503,14 +503,14 @@ export default function UpgradePage() {
                 background: 'var(--card, #131c2e)',
                 borderRadius: 20,
                 padding: 40,
-                border: `1px solid #4ade80`
+                border: `1px solid #2563eb`
               }}
             >
               <div
                 style={{
                   width: 64,
                   height: 64,
-                  background: 'rgba(74,222,128,0.1)',
+                  background: 'rgba(37,99,235,0.1)',
                   borderRadius: '50%',
                   display: 'flex',
                   alignItems: 'center',
@@ -518,7 +518,7 @@ export default function UpgradePage() {
                   margin: '0 auto 24px'
                 }}
               >
-                <Check size={32} color="#4ade80" />
+                <Check size={32} color="#3b82f6" />
               </div>
               <h2 style={{ fontFamily: "sans-serif", margin: '0 0 12px' }}>
                 Demande envoyée !

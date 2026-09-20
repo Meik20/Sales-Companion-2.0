@@ -158,8 +158,8 @@ export default function TeamPage() {
                 border: 'none',
                 background: 'transparent',
                 borderBottom:
-                  activeTab === tab.id ? `2px solid ${'#4ade80'}` : '2px solid transparent',
-                color: activeTab === tab.id ? '#4ade80' : 'var(--muted-foreground, #94a3b8)',
+                  activeTab === tab.id ? `2px solid ${'#2563eb'}` : '2px solid transparent',
+                color: activeTab === tab.id ? '#3b82f6' : 'var(--muted-foreground, #94a3b8)',
                 fontWeight: activeTab === tab.id ? 700 : 500,
                 fontSize: 13,
                 cursor: 'pointer',
@@ -180,7 +180,7 @@ export default function TeamPage() {
                     minWidth: 16,
                     height: 16,
                     borderRadius: 8,
-                    background: '#4ade80',
+                    background: '#2563eb',
                     color: '#fff',
                     fontSize: 10,
                     fontWeight: 700,
@@ -212,8 +212,8 @@ export default function TeamPage() {
                   padding: '10px 14px',
                   borderRadius: 8,
                   marginBottom: 4,
-                  background: 'rgba(46,160,90,0.08)',
-                  border: '1px solid rgba(46,160,90,0.2)',
+                  background: 'rgba(37,99,235,0.08)',
+                  border: '1px solid rgba(37,99,235,0.2)',
                   fontSize: 12.5,
                   color: 'var(--muted-foreground, #94a3b8)',
                   display: 'flex',
@@ -223,7 +223,7 @@ export default function TeamPage() {
                 }}
               >
                 <span>
-                  <span style={{ color: '#4ade80', fontWeight: 700 }}>
+                  <span style={{ color: '#3b82f6', fontWeight: 700 }}>
                     {selectedProspects.length}
                   </span>{' '}
                   {t('team.prospectsSelected')}
@@ -318,7 +318,7 @@ export default function TeamPage() {
                     flexShrink: 0,
                     height: 34,
                     padding: '0 14px',
-                    background: '#4ade80',
+                    background: '#2563eb',
                     color: '#fff',
                     border: 'none',
                     borderRadius: 8,

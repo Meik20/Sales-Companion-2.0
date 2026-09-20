@@ -15,8 +15,8 @@ const STORAGE_KEY = 'sc-design-theme'
  */
 export function useDesignTheme() {
   const [design, setDesignState] = useState<DesignTheme>(() => {
-    if (typeof window === 'undefined') return 'linkedin'
-    return (localStorage.getItem(STORAGE_KEY) as DesignTheme) ?? 'linkedin'
+    if (typeof window === 'undefined') return 'firebase'
+    return (localStorage.getItem(STORAGE_KEY) as DesignTheme) ?? 'firebase'
   })
 
   /** Applique l'attribut data-design sur <html> */

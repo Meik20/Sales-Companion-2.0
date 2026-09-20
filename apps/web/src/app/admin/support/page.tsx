@@ -54,7 +54,7 @@ const STATUS_LABEL: Record<string, string> = {
 }
 const STATUS_COLOR: Record<string, string> = {
   open: '#1E88E5',
-  resolved: '#43A047',
+  resolved: '#0284c7',
   closed: '#9E9E9E'
 }
 
@@ -379,9 +379,9 @@ export default function AdminSupportPage() {
             padding: '12px 16px',
             marginBottom: 16,
             borderRadius: 8,
-            background: 'rgba(34, 197, 94, 0.1)',
-            border: '1px solid rgba(34, 197, 94, 0.3)',
-            color: '#4ade80',
+            background: 'rgba(37, 99, 235, 0.1)',
+            border: '1px solid rgba(37, 99, 235, 0.3)',
+            color: '#60a5fa',
             fontSize: 13,
             display: 'flex',
             justifyContent: 'space-between',
@@ -394,7 +394,7 @@ export default function AdminSupportPage() {
             style={{
               background: 'none',
               border: 'none',
-              color: '#4ade80',
+              color: '#60a5fa',
               cursor: 'pointer',
               fontSize: 16
             }}
@@ -433,9 +433,9 @@ export default function AdminSupportPage() {
               height: 38,
               padding: '0 14px',
               borderRadius: 8,
-              border: `1px solid ${filterStatus === s ? 'rgba(46,160,90,0.5)' : 'var(--border, rgba(255,255,255,0.1))'}`,
-              background: filterStatus === s ? 'rgba(27,122,62,0.12)' : 'var(--secondary, #1e2a3b)',
-              color: filterStatus === s ? '#4ade80' : 'var(--muted-foreground, #94a3b8)',
+              border: `1px solid ${filterStatus === s ? 'rgba(37,99,235,0.5)' : 'var(--border, rgba(255,255,255,0.1))'}`,
+              background: filterStatus === s ? 'rgba(37,99,235,0.12)' : 'var(--secondary, #1e2a3b)',
+              color: filterStatus === s ? '#60a5fa' : 'var(--muted-foreground, #94a3b8)',
               fontSize: 12,
               fontWeight: 600,
               cursor: 'pointer',
@@ -454,9 +454,9 @@ export default function AdminSupportPage() {
           style={{
             height: 38,
             padding: '0 14px',
-            background: 'rgba(34,197,94,0.1)',
-            color: '#4ade80',
-            border: `1px solid ${'rgba(34,197,94,0.3)'}`,
+            background: 'rgba(37,99,235,0.1)',
+            color: '#60a5fa',
+            border: `1px solid ${'rgba(37,99,235,0.3)'}`,
             borderRadius: 8,
             fontSize: 12,
             fontWeight: 600,
@@ -522,7 +522,7 @@ export default function AdminSupportPage() {
                       borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                       background:
                         selected?.id === t.id
-                          ? 'rgba(34,197,94,0.1)'
+                          ? 'rgba(37,99,235,0.1)'
                           : t.unreadByAdmin
                             ? '#FFFDE7'
                             : 'transparent',
@@ -805,7 +805,7 @@ export default function AdminSupportPage() {
                       >
                         Téléphone / WhatsApp
                       </div>
-                      <div style={{ fontSize: 12, fontWeight: 600, color: '#4ade80' }}>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: '#60a5fa' }}>
                         <a href={`tel:${selected.phone}`} style={{ color: 'inherit', textDecoration: 'none' }}>
                           📱 {selected.phone}
                         </a>
@@ -867,11 +867,11 @@ export default function AdminSupportPage() {
                       borderRadius: 8,
                       background:
                         selected.domainExemptionStatus === 'approved'
-                          ? 'rgba(34, 197, 94, 0.08)'
+                          ? 'rgba(37, 99, 235, 0.08)'
                           : 'rgba(234, 179, 8, 0.08)',
                       border: `1px solid ${
                         selected.domainExemptionStatus === 'approved'
-                          ? 'rgba(34, 197, 94, 0.3)'
+                          ? 'rgba(37, 99, 235, 0.3)'
                           : 'rgba(234, 179, 8, 0.3)'
                       }`,
                       display: 'flex',
@@ -887,7 +887,7 @@ export default function AdminSupportPage() {
                           fontSize: 12,
                           fontWeight: 700,
                           color:
-                            selected.domainExemptionStatus === 'approved' ? '#4ade80' : '#facc15',
+                            selected.domainExemptionStatus === 'approved' ? '#60a5fa' : '#facc15',
                           display: 'flex',
                           alignItems: 'center',
                           gap: 6,
@@ -920,12 +920,12 @@ export default function AdminSupportPage() {
                         padding: '8px 16px',
                         background:
                           selected.domainExemptionStatus === 'approved'
-                            ? 'rgba(34, 197, 94, 0.15)'
-                            : '#22c55e',
-                        color: selected.domainExemptionStatus === 'approved' ? '#4ade80' : '#ffffff',
+                            ? 'rgba(37, 99, 235, 0.15)'
+                            : '#2563eb',
+                        color: selected.domainExemptionStatus === 'approved' ? '#60a5fa' : '#ffffff',
                         border:
                           selected.domainExemptionStatus === 'approved'
-                            ? '1px solid rgba(34, 197, 94, 0.4)'
+                            ? '1px solid rgba(37, 99, 235, 0.4)'
                             : 'none',
                         borderRadius: 8,
                         fontSize: 12,
@@ -937,7 +937,7 @@ export default function AdminSupportPage() {
                         boxShadow:
                           selected.domainExemptionStatus === 'approved'
                             ? 'none'
-                            : '0 2px 10px rgba(34, 197, 94, 0.3)',
+                            : '0 2px 10px rgba(37, 99, 235, 0.3)',
                         transition: 'all 150ms ease',
                         flexShrink: 0
                       }}
@@ -1007,7 +1007,7 @@ export default function AdminSupportPage() {
                             maxWidth: '78%',
                             padding: '10px 14px',
                             borderRadius: isUser ? '4px 14px 14px 14px' : '14px 4px 14px 14px',
-                            background: isUser ? 'var(--secondary, #1e2a3b)' : '#4ade80',
+                            background: isUser ? 'var(--secondary, #1e2a3b)' : '#2563eb',
                             color: isUser ? 'var(--foreground, #f1f5f9)' : '#fff',
                             fontSize: 13,
                             lineHeight: 1.65,
@@ -1099,7 +1099,7 @@ export default function AdminSupportPage() {
                     disabled={sending || !replyText.trim()}
                     style={{
                       padding: '10px 16px',
-                      background: '#4ade80',
+                      background: '#2563eb',
                       color: '#fff',
                       border: 'none',
                       borderRadius: 8,
@@ -1118,9 +1118,9 @@ export default function AdminSupportPage() {
                       onClick={() => void resolveThread()}
                       style={{
                         padding: '8px 12px',
-                        background: 'rgba(34,197,94,0.1)',
-                        color: '#4ade80',
-                        border: `1px solid ${'rgba(34,197,94,0.3)'}`,
+                        background: 'rgba(37,99,235,0.1)',
+                        color: '#60a5fa',
+                        border: `1px solid ${'rgba(37,99,235,0.3)'}`,
                         borderRadius: 8,
                         cursor: 'pointer',
                         fontSize: 12,

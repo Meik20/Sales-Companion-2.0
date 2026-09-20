@@ -133,7 +133,7 @@ export default function AdminConfigPage() {
   }
   const btnStyle: React.CSSProperties = {
     padding: '9px 20px',
-    background: '#4ade80',
+    background: '#2563eb',
     color: '#fff',
     border: 'none',
     borderRadius: 8,
@@ -147,7 +147,7 @@ export default function AdminConfigPage() {
     marginTop: 10,
     fontSize: 13,
     fontWeight: 600,
-    color: type === 'ok' ? '#4ade80' : '#f87171'
+    color: type === 'ok' ? '#60a5fa' : '#f87171'
   })
 
   return (

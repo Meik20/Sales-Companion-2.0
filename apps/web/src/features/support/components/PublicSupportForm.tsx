@@ -123,11 +123,11 @@ export function PublicSupportForm() {
     return (
       <div className="mx-auto w-full max-w-xl animate-fade-in px-4 py-12">
         <div className="relative overflow-hidden rounded-2xl border border-border/80 bg-card/95 p-8 sm:p-10 shadow-2xl backdrop-blur-xl">
-          <div className="absolute -top-24 -right-24 h-48 w-48 rounded-full bg-emerald-500/10 blur-3xl" />
+          <div className="absolute -top-24 -right-24 h-48 w-48 rounded-full bg-blue-500/10 blur-3xl" />
           <div className="absolute -bottom-24 -left-24 h-48 w-48 rounded-full bg-primary/10 blur-3xl" />
 
           <div className="relative text-center">
-            <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-400 ring-8 ring-emerald-500/5">
+            <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-400 ring-8 ring-blue-500/5">
               <CheckCircle2 size={36} />
             </div>
 
@@ -143,7 +143,7 @@ export function PublicSupportForm() {
             <div className="mt-6 rounded-xl border border-border/60 bg-secondary/30 p-4 text-left text-xs text-muted-foreground">
               <div className="flex items-center justify-between border-b border-border/40 pb-2 mb-2 font-medium text-foreground">
                 <span>{t('support.recapTitle') || 'Récapitulatif de votre demande'}</span>
-                <span className="rounded bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-400">
+                <span className="rounded bg-blue-500/10 px-2 py-0.5 text-[11px] font-semibold text-blue-400">
                   En attente admin
                 </span>
               </div>
@@ -194,7 +194,7 @@ export function PublicSupportForm() {
 
       <div className="relative overflow-hidden rounded-2xl border border-border bg-card/95 p-6 sm:p-10 shadow-2xl backdrop-blur-xl">
         {/* Glow background accents */}
-        <div className="pointer-events-none absolute -top-32 -right-32 h-64 w-64 rounded-full bg-emerald-500/10 blur-3xl" />
+        <div className="pointer-events-none absolute -top-32 -right-32 h-64 w-64 rounded-full bg-blue-500/10 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-32 -left-32 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
 
         {/* Header */}

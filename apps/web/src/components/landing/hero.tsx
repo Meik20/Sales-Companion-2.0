@@ -174,7 +174,7 @@ export function Hero() {
                     onClick={() => setAddedToPipeline(true)}
                     className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition-all shadow-xs shrink-0 ${
                       addedToPipeline
-                        ? 'bg-emerald-600 text-white cursor-default'
+                        ? 'bg-blue-600 text-white cursor-default'
                         : 'bg-[#1B7A3E] text-white hover:bg-[#135A2E] hover:scale-105 active:scale-95'
                     }`}
                   >
@@ -203,11 +203,11 @@ export function Hero() {
                     <span>NIU: <strong className="text-foreground font-mono font-medium">M051912783451A</strong></span>
                   </div>
                   <div className="flex items-center gap-1.5 text-muted-foreground">
-                    <Phone className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                    <Phone className="h-3.5 w-3.5 text-blue-500 shrink-0" />
                     <span className="font-mono text-foreground font-medium">+237 699 45 28 XX</span>
                   </div>
                   <div className="flex items-center gap-1.5 text-muted-foreground">
-                    <Mail className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                    <Mail className="h-3.5 w-3.5 text-blue-500 shrink-0" />
                     <span className="font-mono text-foreground truncate font-medium">contact@abc-btp.cm</span>
                   </div>
                 </div>
@@ -257,11 +257,11 @@ export function Hero() {
                   </div>
 
                   {/* Column 4: Opportunité */}
-                  <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-2 text-center">
-                    <span className="block font-bold text-emerald-600 truncate">
+                  <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 p-2 text-center">
+                    <span className="block font-bold text-blue-600 truncate">
                       {isEn ? 'Opportunity' : 'Opportunité'}
                     </span>
-                    <span className="mt-1 inline-block rounded bg-card px-1.5 py-0.5 font-bold text-emerald-600 shadow-2xs border border-emerald-500/20 truncate max-w-full">
+                    <span className="mt-1 inline-block rounded bg-card px-1.5 py-0.5 font-bold text-blue-600 shadow-2xs border border-blue-500/20 truncate max-w-full">
                       TechCam
                     </span>
                   </div>

@@ -396,14 +396,14 @@ function SearchContent() {
                       strokeWidth="2"
                       strokeLinejoin="round"
                     />
-                    <circle cx="80" cy="60" r="5" fill={'#4ade80'} />
-                    <circle cx="110" cy="80" r="7" fill={'#16a34a'} />
-                    <circle cx="90" cy="110" r="4" fill={'#4ade80'} />
-                    <circle cx="120" cy="120" r="6" fill={'#4ade80'} />
-                    <circle cx="60" cy="100" r="3" fill={'#4ade80'} />
+                    <circle cx="80" cy="60" r="5" fill={'#60a5fa'} />
+                    <circle cx="110" cy="80" r="7" fill={'#2563eb'} />
+                    <circle cx="90" cy="110" r="4" fill={'#60a5fa'} />
+                    <circle cx="120" cy="120" r="6" fill={'#60a5fa'} />
+                    <circle cx="60" cy="100" r="3" fill={'#60a5fa'} />
                     <path
                       d="M80 60 L110 80 L120 120 L90 110 Z"
-                      stroke={'#4ade80'}
+                      stroke={'#3b82f6'}
                       strokeWidth="1.2"
                       strokeDasharray="3 3"
                     />
@@ -603,8 +603,8 @@ function SearchContent() {
                   {
                     label: t('search.conclusion'),
                     value: stats?.conclusion ?? 0,
-                    textClass: 'text-emerald-600 dark:text-emerald-400',
-                    bgClass: 'bg-emerald-500/10 border-emerald-500/20'
+                    textClass: 'text-blue-600 dark:text-blue-400',
+                    bgClass: 'bg-blue-500/10 border-blue-500/20'
                   }
                 ].map(({ label, value, textClass, bgClass }) => (
                   <div
@@ -730,7 +730,7 @@ function SearchContent() {
                       width: 32,
                       height: 32,
                       borderRadius: '50%',
-                      background: isSendingChat || !chatInput.trim() ? 'var(--border, rgba(255,255,255,0.1))' : '#4ade80',
+                      background: isSendingChat || !chatInput.trim() ? 'var(--border, rgba(255,255,255,0.1))' : '#2563eb',
                       color: '#fff',
                       border: 'none',
                       cursor: isSendingChat || !chatInput.trim() ? 'not-allowed' : 'pointer',

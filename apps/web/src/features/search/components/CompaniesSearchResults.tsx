@@ -113,7 +113,7 @@ export function CompaniesSearchResults({ items }: Props) {
                       {company.raisonSociale || '—'}
                     </strong>
                     {company.verified !== false && (
-                      <span className="inline-flex items-center justify-center h-4 w-4 rounded-full bg-emerald-500/15 text-emerald-600 text-[10px]" title="Entreprise Vérifiée">
+                      <span className="inline-flex items-center justify-center h-4 w-4 rounded-full bg-blue-500/15 text-blue-600 dark:text-blue-400 text-[10px]" title="Entreprise Vérifiée">
                         ✓
                       </span>
                     )}
@@ -170,7 +170,7 @@ export function CompaniesSearchResults({ items }: Props) {
                 <a
                   href={`tel:${company.telephone}`}
                   style={{
-                    color: '#4ade80',
+                    color: '#3b82f6',
                     textDecoration: 'none',
                     display: 'flex',
                     alignItems: 'center',
@@ -185,7 +185,7 @@ export function CompaniesSearchResults({ items }: Props) {
                 <a
                   href={`mailto:${company.email}`}
                   style={{
-                    color: '#4ade80',
+                    color: '#3b82f6',
                     textDecoration: 'none',
                     display: 'flex',
                     alignItems: 'center',

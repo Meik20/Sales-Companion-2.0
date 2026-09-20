@@ -184,7 +184,7 @@ export function LoginForm() {
           </FormField>
 
           {resetSuccess && (
-            <div className="rounded-lg border border-green-500/25 bg-green-500/8 px-3.5 py-2.5 text-[13px] text-green-400">
+            <div className="rounded-lg border border-blue-500/25 bg-blue-500/8 px-3.5 py-2.5 text-[13px] text-blue-400">
               Un email de réinitialisation a été envoyé à l&apos;adresse indiquée.
             </div>
           )}

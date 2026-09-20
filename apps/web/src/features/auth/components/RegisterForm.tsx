@@ -168,13 +168,13 @@ export function RegisterForm() {
 
       {/* Dérogation autorisée par l'admin */}
       {exemptionValid && (
-        <div className="mb-6 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3.5 text-xs text-emerald-300 flex items-start gap-2.5">
-          <ShieldCheck size={18} className="text-emerald-400 shrink-0 mt-0.5" />
+        <div className="mb-6 rounded-xl border border-blue-500/30 bg-blue-500/10 p-3.5 text-xs text-blue-300 flex items-start gap-2.5">
+          <ShieldCheck size={18} className="text-blue-400 shrink-0 mt-0.5" />
           <div>
-            <div className="font-semibold text-emerald-400 text-[13px]">
+            <div className="font-semibold text-blue-400 text-[13px]">
               Dérogation de domaine approuvée ✨
             </div>
-            <div className="text-[11px] text-emerald-200/80 mt-0.5 leading-relaxed">
+            <div className="text-[11px] text-blue-200/80 mt-0.5 leading-relaxed">
               Votre demande de compte Manager pour l'entreprise{' '}
               <strong>{companyName || exemptionInfo?.companyName || 'votre organisation'}</strong> a été validée par l'administration.
             </div>
@@ -269,11 +269,11 @@ export function RegisterForm() {
                 onClick={() => setRole(opt.value)}
                 className={`rounded-[10px] border px-3.5 py-3 text-left transition-all duration-200 ${
                   role === opt.value
-                    ? 'border-green-500/50 bg-green-500/10'
+                    ? 'border-blue-500/50 bg-blue-500/10'
                     : 'border-border bg-white/[0.03] hover:bg-white/[0.06]'
                 }`}
               >
-                <div className={`text-[13px] font-semibold ${role === opt.value ? 'text-green-400' : 'text-foreground'}`}>
+                <div className={`text-[13px] font-semibold ${role === opt.value ? 'text-blue-400' : 'text-foreground'}`}>
                   {opt.label}
                 </div>
                 <div className="mt-0.5 text-[11px] text-muted-foreground">{opt.desc}</div>

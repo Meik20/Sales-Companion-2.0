@@ -44,7 +44,7 @@ export const colors = {
   // ── États sémantiques ─────────────────────────────────────────────
   success: 'var(--color-success)',
   successBg: 'var(--color-success-bg)',
-  successBorder: 'rgba(5, 118, 66, 0.3)',
+  successBorder: 'rgba(37, 99, 235, 0.3)',
 
   warning: 'var(--color-warning)',
   warningBg: 'var(--color-warning-bg)',

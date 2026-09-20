@@ -394,7 +394,7 @@ export function TeamAccessManager() {
                 <span
                   style={{
                     marginLeft: 6,
-                    color: activeOrPendingCount >= maxMembers ? '#ef4444' : '#4ade80',
+                    color: activeOrPendingCount >= maxMembers ? '#ef4444' : '#3b82f6',
                     fontWeight: 800
                   }}
                 >
@@ -426,7 +426,7 @@ export function TeamAccessManager() {
                 style={{
                   width: `${Math.min((activeOrPendingCount / (maxMembers || 1)) * 100, 100)}%`,
                   height: '100%',
-                  background: activeOrPendingCount >= maxMembers ? '#ef4444' : '#4ade80',
+                  background: activeOrPendingCount >= maxMembers ? '#ef4444' : '#3b82f6',
                   borderRadius: 10,
                   transition: 'width 400ms ease-out'
                 }}
@@ -458,7 +458,7 @@ export function TeamAccessManager() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: '#4ade80',
+                  color: '#3b82f6',
                   boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
                 }}
               >
@@ -473,7 +473,7 @@ export function TeamAccessManager() {
                 <strong
                   style={{
                     fontSize: 16,
-                    color: '#4ade80',
+                    color: '#3b82f6',
                     fontFamily: 'monospace',
                     letterSpacing: '0.02em'
                   }}
@@ -574,9 +574,9 @@ export function TeamAccessManager() {
                           background: isRevoked
                             ? 'var(--secondary, #1e2a3b)'
                             : isActivated
-                              ? 'rgba(34,197,94,0.1)'
+                              ? 'rgba(37,99,235,0.1)'
                               : 'rgba(99,102,241,0.1)',
-                          color: isRevoked ? 'var(--muted-foreground, #64748b)' : isActivated ? '#16a34a' : '#6366f1',
+                          color: isRevoked ? 'var(--muted-foreground, #64748b)' : isActivated ? '#2563eb' : '#6366f1',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',

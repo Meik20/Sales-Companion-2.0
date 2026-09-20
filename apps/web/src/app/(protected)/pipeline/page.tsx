@@ -78,7 +78,7 @@ export default function PipelinePage() {
             {
               label: t('pipeline.closed'),
               count: counts.conclue,
-              color: '#4ade80',
+              color: '#0284c7',
               variant: 'success' as const
             }
           ].map(({ label, count, color, variant }) => (

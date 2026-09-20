@@ -170,7 +170,7 @@ export function ManagerProspectsList({
     width: 15,
     height: 15,
     cursor: 'pointer',
-    accentColor: '#4ade80'
+    accentColor: '#2563eb'
   }
 
   return (
@@ -229,9 +229,9 @@ export function ManagerProspectsList({
           style={{
             height: 36,
             padding: '0 12px',
-            background: 'rgba(34,197,94,0.1)',
-            color: '#4ade80',
-            border: `1px solid ${'rgba(34,197,94,0.3)'}`,
+            background: 'rgba(37,99,235,0.1)',
+            color: '#3b82f6',
+            border: `1px solid ${'rgba(37,99,235,0.3)'}`,
             borderRadius: 8,
             fontSize: 14,
             fontWeight: 700,
@@ -258,7 +258,7 @@ export function ManagerProspectsList({
             ? t('team.loading')
             : `${filtered.length} ${t('team.prospectsOn')} ${prospects.length}`}
           {someSelected && (
-            <span style={{ marginLeft: 8, color: '#4ade80', fontWeight: 600 }}>
+            <span style={{ marginLeft: 8, color: '#3b82f6', fontWeight: 600 }}>
               · {selected.size} {t('team.selected')}
             </span>
           )}
@@ -270,7 +270,7 @@ export function ManagerProspectsList({
             style={{
               height: 32,
               padding: '0 14px',
-              background: '#4ade80',
+              background: '#2563eb',
               color: '#fff',
               border: 'none',
               borderRadius: 8,
@@ -355,7 +355,7 @@ export function ManagerProspectsList({
                     style={{
                       borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                       background: isSelected
-                        ? `${'#4ade80'}12`
+                        ? `${'#2563eb'}18`
                         : i % 2 === 0
                           ? 'transparent'
                           : 'var(--card, #131c2e)',
@@ -378,7 +378,7 @@ export function ManagerProspectsList({
                       {p.phone ? (
                         <a
                           href={`tel:${p.phone}`}
-                          style={{ color: '#4ade80', textDecoration: 'none' }}
+                          style={{ color: '#3b82f6', textDecoration: 'none' }}
                         >
                           {p.phone}
                         </a>
@@ -399,7 +399,7 @@ export function ManagerProspectsList({
                       {p.email ? (
                         <a
                           href={`mailto:${p.email}`}
-                          style={{ color: '#4ade80', textDecoration: 'none' }}
+                          style={{ color: '#3b82f6', textDecoration: 'none' }}
                         >
                           {p.email}
                         </a>

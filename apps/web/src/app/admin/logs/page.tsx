@@ -62,9 +62,9 @@ export default function AdminLogsPage() {
             onClick={() => refetch()}
             style={{
               padding: '5px 12px',
-              background: 'rgba(34,197,94,0.1)',
-              color: '#4ade80',
-              border: `1px solid ${'rgba(34,197,94,0.3)'}`,
+              background: 'rgba(37,99,235,0.1)',
+              color: '#60a5fa',
+              border: `1px solid ${'rgba(37,99,235,0.3)'}`,
               borderRadius: 6,
               fontSize: 12,
               fontWeight: 600,
@@ -189,7 +189,7 @@ export default function AdminLogsPage() {
                             display: 'inline-flex',
                             alignItems: 'center',
                             gap: 6,
-                            color: log.resultsCount > 0 ? '#4ade80' : 'var(--muted-foreground, #64748b)',
+                            color: log.resultsCount > 0 ? '#60a5fa' : 'var(--muted-foreground, #64748b)',
                             fontWeight: 800,
                             fontSize: 14
                           }}

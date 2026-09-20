@@ -111,7 +111,7 @@ export default function SettingsPage() {
   const planInfo = (planDetails[plan as keyof typeof planDetails] ?? planDetails['free'])!
 
   // ── Design Theme ────────────────────────────────────────────────
-  const [activeDesign, setActiveDesign] = useState<DesignTheme>('linkedin')
+  const [activeDesign, setActiveDesign] = useState<DesignTheme>('firebase')
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY) as DesignTheme | null
@@ -321,7 +321,7 @@ export default function SettingsPage() {
                       <div className="text-[12px] text-red-400">{emailError}</div>
                     )}
                     {emailSuccess && (
-                      <div className="text-[12px] text-green-400">{emailSuccess}</div>
+                      <div className="text-[12px] text-blue-400">{emailSuccess}</div>
                     )}
                     <span className="text-[11px] text-muted-foreground/80">
                       {t('settings.emailHint')}
@@ -354,7 +354,7 @@ export default function SettingsPage() {
                       <div className="text-[12px] text-red-400">{pwError}</div>
                     )}
                     {pwSuccess && (
-                      <div className="text-[12px] text-green-400">{pwSuccess}</div>
+                      <div className="text-[12px] text-blue-400">{pwSuccess}</div>
                     )}
                     <span className="text-[11px] text-muted-foreground/80">
                       {t('settings.passwordHint')}

@@ -354,7 +354,7 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
           </>
         )}
         {rows.length > 0 && (
-          <div style={{ fontSize: 12, color: '#4ade80', marginTop: 6, fontWeight: 600 }}>
+          <div style={{ fontSize: 12, color: '#3b82f6', marginTop: 6, fontWeight: 600 }}>
             {rows.length} {t('team.prospectsDetected')}
           </div>
         )}
@@ -414,9 +414,9 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
             fontSize: 13,
             padding: '10px 14px',
             borderRadius: 8,
-            background: 'rgba(27,122,62,0.08)',
-            border: '1px solid rgba(46,160,90,0.25)',
-            color: '#4ade80'
+            background: 'rgba(37,99,235,0.08)',
+            border: '1px solid rgba(37,99,235,0.25)',
+            color: '#3b82f6'
           }}
         >
           {success}

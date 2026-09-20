@@ -120,8 +120,8 @@ export default function AdminImportsPage() {
   }
 
   /* ── styles ── */
-  const zoneBg = isDragging ? 'rgba(34,197,94,0.1)' : 'var(--secondary, #1e2a3b)'
-  const zoneBorder = isDragging ? '#4ade80' : 'rgba(255,255,255,0.07)'
+  const zoneBg = isDragging ? 'rgba(37,99,235,0.1)' : 'var(--secondary, #1e2a3b)'
+  const zoneBorder = isDragging ? '#3b82f6' : 'rgba(255,255,255,0.07)'
 
   const items = data?.items ?? []
   const total = data?.total ?? 0
@@ -131,7 +131,7 @@ export default function AdminImportsPage() {
   const statusColors: Record<string, string> = {
     pending: 'var(--muted-foreground, #94a3b8)',
     processing: '#fbbf24',
-    completed: '#2ea05a',
+    completed: '#0284c7',
     failed: '#f87171'
   }
   const statusLabels: Record<string, string> = {
@@ -204,7 +204,7 @@ export default function AdminImportsPage() {
               }}
               style={{
                 padding: '9px 24px',
-                background: '#4ade80',
+                background: '#2563eb',
                 color: '#fff',
                 border: 'none',
                 borderRadius: 8,
@@ -243,7 +243,7 @@ export default function AdminImportsPage() {
                   style={{
                     height: '100%',
                     width: `${uploadState.progress}%`,
-                    background: '#4ade80',
+                    background: '#2563eb',
                     borderRadius: 3,
                     transition: 'width 300ms ease'
                   }}
@@ -255,19 +255,19 @@ export default function AdminImportsPage() {
           {uploadState.status === 'success' && (
             <div
               style={{
-                background: 'rgba(34,197,94,0.1)',
-                border: `1px solid ${'rgba(34,197,94,0.3)'}`,
+                background: 'rgba(37,99,235,0.1)',
+                border: `1px solid ${'rgba(37,99,235,0.3)'}`,
                 borderRadius: 10,
                 padding: '14px 16px'
               }}
             >
-              <div style={{ fontWeight: 700, color: '#4ade80', marginBottom: 10 }}>
+              <div style={{ fontWeight: 700, color: '#60a5fa', marginBottom: 10 }}>
                 ✅ {t('admin.importSuccess')} — {uploadState.fileName}
               </div>
               <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
                 {[
                   { label: t('admin.rowsRead'), val: uploadState.result.total ?? 0, color: 'var(--foreground, #f1f5f9)' },
-                  { label: t('admin.newRows'), val: uploadState.result.imported ?? 0, color: '#4ade80' },
+                  { label: t('admin.newRows'), val: uploadState.result.imported ?? 0, color: '#3b82f6' },
                   { label: t('admin.updatedRows'), val: uploadState.result.updated ?? 0, color: '#1a73e8' },
                   { label: t('admin.skippedRows'), val: uploadState.result.skipped ?? 0, color: '#f39c12' },
                   { label: t('admin.errorRows'), val: uploadState.result.errors ?? 0, color: '#f87171' }
@@ -292,7 +292,7 @@ export default function AdminImportsPage() {
                 style={{
                   marginTop: 10,
                   fontSize: 12,
-                  color: '#4ade80',
+                  color: '#60a5fa',
                   background: 'none',
                   border: 'none',
                   cursor: 'pointer',
@@ -407,9 +407,9 @@ export default function AdminImportsPage() {
               <button
                 onClick={() => refetch()}
                 style={{
-                  background: 'rgba(34,197,94,0.1)',
-                  color: '#4ade80',
-                  border: `1px solid ${'rgba(34,197,94,0.3)'}`,
+                  background: 'rgba(37,99,235,0.1)',
+                  color: '#60a5fa',
+                  border: `1px solid ${'rgba(37,99,235,0.3)'}`,
                   borderRadius: 6,
                   padding: '4px 10px',
                   fontSize: 12,
@@ -565,9 +565,9 @@ export default function AdminImportsPage() {
                       style={{
                         padding: '6px 12px',
                         fontSize: 12,
-                        border: `1px solid ${p === historyPage ? '#4ade80' : 'var(--border, rgba(255,255,255,0.1))'}`,
+                        border: `1px solid ${p === historyPage ? '#2563eb' : 'var(--border, rgba(255,255,255,0.1))'}`,
                         borderRadius: 6,
-                        background: p === historyPage ? 'rgba(34,197,94,0.1)' : 'var(--background, #0b1120)',
+                        background: p === historyPage ? 'rgba(37,99,235,0.15)' : 'var(--background, #0b1120)',
                         color: 'var(--foreground, #f1f5f9)',
                         cursor: 'pointer',
                         fontWeight: p === historyPage ? 700 : 400

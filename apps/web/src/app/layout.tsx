@@ -136,7 +136,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         {/* ── No-flash design theme script — runs synchronously before first paint ── */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var d=localStorage.getItem('sc-design-theme')||'linkedin';document.documentElement.setAttribute('data-design',d);}catch(e){}})();`
+            __html: `(function(){try{var d=localStorage.getItem('sc-design-theme')||'firebase';document.documentElement.setAttribute('data-design',d);}catch(e){}})();`
           }}
         />
       </head>

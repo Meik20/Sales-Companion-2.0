@@ -55,10 +55,10 @@ const COLUMNS = [
     id: 'conclue',
     labelKey: 'pipeline.closed',
     label: 'Conclus',
-    color: '#4ade80',
-    gradient: 'linear-gradient(135deg, rgba(74,222,128,0.15) 0%, rgba(34,197,94,0.08) 100%)',
-    border: 'rgba(74,222,128,0.25)',
-    accent: '#4ade80',
+    color: '#0284c7',
+    gradient: 'linear-gradient(135deg, rgba(2,132,199,0.15) 0%, rgba(2,132,199,0.08) 100%)',
+    border: 'rgba(2,132,199,0.25)',
+    accent: '#0284c7',
     icon: CheckCircle2,
     emptyIcon: '🏆',
     emptyText: 'Aucune vente conclue'
@@ -184,8 +184,8 @@ function KanbanCard({
             {item.companyPhone && (
               <span style={{
                 display: 'inline-flex', alignItems: 'center', gap: 4,
-                fontSize: 11, fontWeight: 600, color: '#22c55e',
-                background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)',
+                fontSize: 11, fontWeight: 600, color: '#2563eb',
+                background: 'rgba(37,99,235,0.08)', border: '1px solid rgba(37,99,235,0.2)',
                 borderRadius: 6, padding: '2px 8px'
               }}>
                 <Phone size={10} />Tél

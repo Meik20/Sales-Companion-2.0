@@ -142,7 +142,7 @@ function AuthActionContent() {
     if (success) {
       return renderCard("E-mail validé !", (
         <div style={{ textAlign: 'center', padding: '10px 0' }}>
-          <p style={{ color: '#4ade80', fontSize: 14, marginBottom: 24, lineHeight: 1.6 }}>
+          <p style={{ color: '#60a5fa', fontSize: 14, marginBottom: 24, lineHeight: 1.6 }}>
             Félicitations ! Votre adresse e-mail a été validée avec succès. Vous pouvez maintenant vous connecter à la plateforme.
           </p>
           <Button onClick={() => router.push('/login')} variant="primary" style={{ width: '100%' }}>
@@ -169,7 +169,7 @@ function AuthActionContent() {
     if (success) {
       return renderCard("Mot de passe modifié !", (
         <div style={{ textAlign: 'center', padding: '10px 0' }}>
-          <p style={{ color: '#4ade80', fontSize: 14, marginBottom: 24, lineHeight: 1.6 }}>
+          <p style={{ color: '#60a5fa', fontSize: 14, marginBottom: 24, lineHeight: 1.6 }}>
             Votre mot de passe a été réinitialisé avec succès. Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.
           </p>
           <Button onClick={() => router.push('/login')} variant="primary" style={{ width: '100%' }}>
@@ -226,7 +226,7 @@ function AuthActionContent() {
           Enregistrer le nouveau mot de passe
         </Button>
 
-        <Link href="/login" style={{ textAlign: 'center', fontSize: 13, color: '#22c55e', textDecoration: 'none', fontWeight: 600, marginTop: 8 }}>
+        <Link href="/login" style={{ textAlign: 'center', fontSize: 13, color: '#2563eb', textDecoration: 'none', fontWeight: 600, marginTop: 8 }}>
           Retour à la connexion
         </Link>
       </form>

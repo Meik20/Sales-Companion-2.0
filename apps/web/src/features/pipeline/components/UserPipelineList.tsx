@@ -362,7 +362,7 @@ function ProspectModal({
                 style={{
                   fontSize: 11,
                   fontWeight: 800,
-                  color: isEditing ? '#fbbf24' : '#22c55e',
+                  color: isEditing ? '#fbbf24' : '#2563eb',
                   textTransform: 'uppercase',
                   letterSpacing: '.1em',
                   display: 'flex',
@@ -383,8 +383,8 @@ function ProspectModal({
                     fontSize: 11,
                     padding: '4px 10px',
                     minHeight: 26,
-                    color: '#22c55e',
-                    borderColor: 'rgba(34,197,94,0.2)',
+                    color: '#2563eb',
+                    borderColor: 'rgba(37,99,235,0.2)',
                     display: 'flex',
                     alignItems: 'center',
                     gap: 4
@@ -424,8 +424,8 @@ function ProspectModal({
                       fontSize: 11,
                       padding: '4px 10px',
                       minHeight: 26,
-                      background: '#22c55e',
-                      borderColor: '#22c55e',
+                      background: '#2563eb',
+                      borderColor: '#2563eb',
                       display: 'flex',
                       alignItems: 'center',
                       gap: 4
@@ -774,7 +774,7 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
               ? '#60a5fa'
               : item.status === 'negociation' || item.status === 'negotiation'
                 ? '#fb923c'
-                : '#4ade80'
+                : '#0284c7'
           const initials = item.companyName
             .split(' ')
             .slice(0, 2)
@@ -908,9 +908,9 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
                         gap: 4,
                         fontSize: 11,
                         fontWeight: 600,
-                        color: '#22c55e',
-                        background: 'rgba(34,197,94,0.08)',
-                        border: '1px solid rgba(34,197,94,0.2)',
+                        color: '#2563eb',
+                        background: 'rgba(37,99,235,0.08)',
+                        border: '1px solid rgba(37,99,235,0.2)',
                         borderRadius: 6,
                         padding: '2px 8px'
                       }}
