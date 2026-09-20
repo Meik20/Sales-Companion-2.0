@@ -62,9 +62,8 @@ export async function POST(request: NextRequest) {
       used: false
     })
 
-    // Mise à jour de l'utilisateur pour autoriser l'édition
+    // Mise à jour de l'utilisateur avec la référence du jeton
     await adminDb.collection('users').doc(userId).update({
-      profileEditAuthorizedUntil: expiresAtTimestamp,
       profileEditToken: editToken
     })
 
@@ -81,7 +80,7 @@ export async function POST(request: NextRequest) {
 Vous pouvez dès maintenant mettre à jour les informations de votre compte Manager en cliquant sur ce lien sécurisé :
 ${editLink}
 
-⏳ Note : Pour des raisons de sécurité et de conformité d'entreprise, ce lien d'autorisation est valable pendant 24 heures.`
+🔒 Usage unique strict (valable 24h) : Dès que vous enregistrez vos modifications ou en cas d'actualisation de la page, le formulaire disparaît et ne sera plus accessible.`
 
     await threadRef.collection('messages').add({
       content: chatMessage,
@@ -155,7 +154,7 @@ ${editLink}
               <!-- Warning Callout -->
               <div style="background-color: #eff6ff; border-left: 4px solid #2563eb; padding: 14px 16px; border-radius: 6px; margin: 0 0 28px;">
                 <p style="margin: 0; font-size: 13.5px; color: #1e40af; line-height: 1.5;">
-                  ⏱️ <strong>Validité :</strong> Ce lien sécurisé est actif pendant <strong>${expirationHoursFormatted}</strong> (jusqu'au ${expirationDateFormatted}).
+                  🔒 <strong>Usage unique strict :</strong> Ce lien sécurisé est valable pendant <strong>${expirationHoursFormatted}</strong> (jusqu'au ${expirationDateFormatted}). Une fois les modifications enregistrées ou si vous actualisez la page, le formulaire disparaît et ne sera plus accessible.
                 </p>
               </div>
 

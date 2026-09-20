@@ -65,6 +65,15 @@ export function ProfileCard() {
   const [isAuthorizedBySupport, setIsAuthorizedBySupport] = useState(false)
   const [requestingSupport, setRequestingSupport] = useState(false)
 
+  // Données locales optimistes pour affichage instantané dès l'enregistrement
+  const [localProfile, setLocalProfile] = useState<{
+    name?: string
+    company?: string
+    sector?: string
+    region?: string
+    phone?: string
+  } | null>(null)
+
   const [isEditing, setIsEditing] = useState(false)
   const [saving, setSaving] = useState(false)
   const [formData, setFormData] = useState({
@@ -75,21 +84,17 @@ export function ProfileCard() {
     phone: ''
   })
 
-  // Vérifier si une autorisation est active pour ce compte
+  // Vérification du jeton à usage unique si passé dans l'URL
   useEffect(() => {
-    // 1. Vérification via les métadonnées utilisateur
-    const userAuthUntil = (user as any)?.profileEditAuthorizedUntil
-    const isDocAuthorized =
-      userAuthUntil?.toDate
-        ? userAuthUntil.toDate().getTime() > Date.now()
-        : false
-
-    if (isDocAuthorized) {
-      setIsAuthorizedBySupport(true)
-    }
-
-    // 2. Si un edit_token est passé dans l'URL
     if (editTokenParam && user) {
+      // 1. Nettoyer immédiatement l'URL pour supprimer le jeton et empêcher toute réutilisation lors d'un rafraîchissement (F5)
+      if (typeof window !== 'undefined') {
+        const url = new URL(window.location.href)
+        url.searchParams.delete('edit_token')
+        window.history.replaceState(null, '', url.pathname + (url.search ? url.search : ''))
+      }
+
+      // 2. Consommer le jeton sur le serveur (usage unique strict)
       user.getIdToken().then((idToken) => {
         fetch('/api/profile/verify-edit-token', {
           method: 'POST',
@@ -105,17 +110,29 @@ export function ProfileCard() {
               setIsAuthorizedBySupport(true)
               pushToast({
                 type: 'success',
-                title: '✅ Autorisation de modification accordée par le support !'
+                title: '✅ Autorisation à usage unique validée ! Vous pouvez modifier vos informations.'
               })
-              openEditModal()
+              setFormData({
+                name: localProfile?.name ?? user.name ?? '',
+                company: localProfile?.company ?? user.company ?? user.companyName ?? '',
+                sector: localProfile?.sector ?? user.sector ?? user.industry ?? '',
+                region: localProfile?.region ?? user.region ?? '',
+                phone: localProfile?.phone ?? user.phone ?? ''
+              })
+              setIsEditing(true)
             } else if (data.error) {
+              setIsAuthorizedBySupport(false)
+              setIsEditing(false)
               pushToast({
                 type: 'error',
                 title: data.error
               })
             }
           })
-          .catch(() => {})
+          .catch(() => {
+            setIsAuthorizedBySupport(false)
+            setIsEditing(false)
+          })
       })
     }
   }, [editTokenParam, user?.uid])
@@ -166,11 +183,11 @@ export function ProfileCard() {
   const openEditModal = () => {
     if (!user) return
     setFormData({
-      name: user.name || '',
-      company: user.company || user.companyName || '',
-      sector: user.sector || user.industry || '',
-      region: user.region || '',
-      phone: user.phone || ''
+      name: localProfile?.name ?? user.name ?? '',
+      company: localProfile?.company ?? user.company ?? user.companyName ?? '',
+      sector: localProfile?.sector ?? user.sector ?? user.industry ?? '',
+      region: localProfile?.region ?? user.region ?? '',
+      phone: localProfile?.phone ?? user.phone ?? ''
     })
     setIsEditing(true)
   }
@@ -180,24 +197,44 @@ export function ProfileCard() {
     if (!user?.uid) return
 
     setSaving(true)
+    const newName = formData.name.trim()
+    const newCompany = formData.company.trim()
+    const newSector = formData.sector
+    const newRegion = formData.region
+    const newPhone = formData.phone.trim()
+
     try {
       const userRef = doc(firestore, 'users', user.uid)
       await updateDoc(userRef, {
-        name: formData.name.trim(),
-        company: formData.company.trim() || null,
-        companyName: formData.company.trim() || null,
-        sector: formData.sector || null,
-        industry: formData.sector || null,
-        region: formData.region || null,
-        phone: formData.phone.trim() || null,
+        name: newName,
+        company: newCompany || null,
+        companyName: newCompany || null,
+        sector: newSector || null,
+        industry: newSector || null,
+        region: newRegion || null,
+        phone: newPhone || null,
+        profileEditAuthorizedUntil: null,
+        profileEditToken: null,
         updatedAt: serverTimestamp()
       })
+
+      // 1. Mise à jour immédiate de l'affichage local (0ms de latence)
+      setLocalProfile({
+        name: newName,
+        company: newCompany,
+        sector: newSector,
+        region: newRegion,
+        phone: newPhone
+      })
+
+      // 2. Disparition immédiate du formulaire et révocation de l'accès
+      setIsEditing(false)
+      setIsAuthorizedBySupport(false)
 
       pushToast({
         type: 'success',
         title: t('profile.profileUpdatedToast' as any) || 'Profil mis à jour avec succès !'
       })
-      setIsEditing(false)
     } catch (err) {
       console.error('[ProfileCard] Error updating profile:', err)
       pushToast({
@@ -227,8 +264,11 @@ export function ProfileCard() {
   const usageColor =
     usagePercent > 80 ? '#f87171' : usagePercent > 60 ? '#fbbf24' : 'var(--color-primary)'
 
-  const displayCompany = user.company || user.companyName
-  const displaySector = user.sector || user.industry
+  const displayName = localProfile?.name ?? user.name ?? t('profile.defaultName')
+  const displayCompany = localProfile?.company !== undefined ? localProfile.company : (user.company || user.companyName)
+  const displaySector = localProfile?.sector !== undefined ? localProfile.sector : (user.sector || user.industry)
+  const displayRegion = localProfile?.region !== undefined ? localProfile.region : user.region
+  const displayPhone = localProfile?.phone !== undefined ? localProfile.phone : user.phone
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -253,7 +293,7 @@ export function ProfileCard() {
               fontFamily: 'inherit'
             }}
           >
-            {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || '?'}
+            {(localProfile?.name || user.name)?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || '?'}
           </div>
 
           {/* Infos */}
@@ -276,7 +316,7 @@ export function ProfileCard() {
                   fontFamily: 'inherit'
                 }}
               >
-                {user.name || t('profile.defaultName')}
+                {displayName}
               </h2>
               <Badge variant={planBadge[user.plan] ?? 'default'}>{user.plan?.toUpperCase()}</Badge>
             </div>
@@ -286,7 +326,7 @@ export function ProfileCard() {
               {t(roleLabelKeys[user.role] as any) || user.role}
             </p>
 
-            {/* Badges Entreprise & Secteur d'activité */}
+            {/* Badges Entreprise, Secteur, Région & Téléphone */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 8 }}>
               {/* Entreprise */}
               <div
@@ -347,7 +387,7 @@ export function ProfileCard() {
               </div>
 
               {/* Région */}
-              {user.region && (
+              {displayRegion && (
                 <div
                   style={{
                     display: 'flex',
@@ -366,7 +406,32 @@ export function ProfileCard() {
                     <strong style={{ color: 'var(--muted-foreground, #94a3b8)', fontWeight: 500 }}>
                       {t('profile.regionLabel' as any) || 'Région'} :
                     </strong>{' '}
-                    <span style={{ fontWeight: 600 }}>{user.region}</span>
+                    <span style={{ fontWeight: 600 }}>{displayRegion}</span>
+                  </span>
+                </div>
+              )}
+
+              {/* Téléphone */}
+              {displayPhone && (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    background: 'var(--secondary, #1e2a3b)',
+                    border: '1px solid var(--border, rgba(255,255,255,0.1))',
+                    padding: '6px 12px',
+                    borderRadius: 8,
+                    fontSize: 13,
+                    color: 'var(--foreground, #f1f5f9)'
+                  }}
+                >
+                  <Phone size={15} style={{ color: 'var(--color-primary, #3b82f6)' }} />
+                  <span>
+                    <strong style={{ color: 'var(--muted-foreground, #94a3b8)', fontWeight: 500 }}>
+                      {t('profile.phoneLabel' as any) || 'Téléphone'} :
+                    </strong>{' '}
+                    <span style={{ fontWeight: 600 }}>{displayPhone}</span>
                   </span>
                 </div>
               )}
