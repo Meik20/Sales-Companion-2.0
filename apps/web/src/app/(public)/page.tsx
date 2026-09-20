@@ -2,9 +2,20 @@ import { Metadata } from 'next'
 import { HomeClient } from './HomeClient'
 
 export const metadata: Metadata = {
-  title: "Base de données d'entreprises au Cameroun | Sales Companion 2.0",
+  title: "Base de données d'entreprises & prospection B2B au Cameroun | Sales Companion 2.0",
   description:
-    "Accédez à la meilleure base de données d'entreprises au Cameroun. Trouvez vos prospects B2B idéaux, exportez vos contacts et gérez votre pipeline commercial avec Sales Companion 2.0."
+    "Trouvez des entreprises à prospecter au Cameroun, filtrez vos prospects et gérez votre pipeline commercial avec Sales Companion 2.0.",
+  openGraph: {
+    title: "Base de données d'entreprises & prospection B2B au Cameroun | Sales Companion 2.0",
+    description:
+      "Trouvez des entreprises à prospecter au Cameroun, filtrez vos prospects et gérez votre pipeline commercial avec Sales Companion 2.0.",
+    type: 'website',
+    locale: 'fr_CM',
+    siteName: 'Sales Companion 2.0'
+  },
+  alternates: {
+    canonical: 'https://salescompanion2-0.com'
+  }
 }
 
 export default function Home() {
@@ -26,7 +37,7 @@ export default function Home() {
       priceCurrency: 'XAF'
     },
     description:
-      "La plateforme B2B de référence offrant la plus grande base de données d'entreprises au Cameroun. Conçue pour la prospection et la gestion de pipeline des commerciaux."
+      "La plateforme de prospection B2B conçue pour le marché camerounais. Recherchez parmi plus de 50 000 entreprises et suivez vos opportunités commerciales."
   }
 
   return (

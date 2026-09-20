@@ -32,8 +32,8 @@ export function HomeClient() {
     }
   }, [user, loading])
 
-  if (loading || user) return null
+  if (user) return null
 
-  // Navigateur classique, non connecté → landing marketing
+  // Navigateur classique ou visiteur non connecté → landing marketing rendue immédiatement en SSR
   return <LandingPage />
 }

@@ -57,12 +57,14 @@ export function CtaFooter() {
           />
 
           <h2 className="relative z-10 mx-auto max-w-2xl font-heading text-3xl font-bold tracking-tight text-white text-balance sm:text-4xl">
-            {isEn ? 'Prospect faster in Cameroon' : 'Prospectez plus vite au Cameroun'}
+            {isEn
+              ? 'Start your next B2B prospecting campaign.'
+              : 'Commencez votre prochaine campagne de prospection.'}
           </h2>
           <p className="relative z-10 mx-auto mt-4 max-w-xl text-base font-normal leading-relaxed text-emerald-100 text-pretty">
             {isEn
-              ? 'Create your free account and access the most complete B2B directory today.'
-              : "Créez votre compte gratuitement et accédez dès aujourd'hui à l'annuaire B2B le plus complet du marché."}
+              ? 'Find companies matching your target audience and start building your sales pipeline today.'
+              : 'Trouvez les entreprises qui correspondent à votre cible et commencez à construire votre pipeline commercial dès aujourd’hui.'}
           </p>
           <div className="relative z-10 mt-8 flex flex-col items-center justify-center gap-3.5 sm:flex-row">
             <Link
@@ -80,6 +82,11 @@ export function CtaFooter() {
               {isEn ? 'Install on mobile (PWA)' : 'Installer sur mobile (PWA)'}
             </Link>
           </div>
+          <p className="relative z-10 mx-auto mt-4 text-xs text-emerald-200/90 font-medium">
+            {isEn
+              ? '10 free searches per month · No credit card required'
+              : '10 recherches gratuites par mois · Sans engagement'}
+          </p>
 
           <ul className="relative z-10 mx-auto mt-10 flex max-w-3xl flex-wrap items-center justify-center gap-x-8 gap-y-3 border-t border-white/20 pt-8">
             {trust.map((item) => (

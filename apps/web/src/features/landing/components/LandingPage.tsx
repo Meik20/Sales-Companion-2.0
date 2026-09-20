@@ -2,7 +2,12 @@
 
 import { SiteHeader } from '@/components/landing/site-header'
 import { Hero } from '@/components/landing/hero'
+import { StatsSection } from '@/components/landing/stats-section'
+import { ProblemSection } from '@/components/landing/problem-section'
+import { WorkflowSection } from '@/components/landing/workflow-section'
 import { Features } from '@/components/landing/features'
+import { DataTrustSection } from '@/components/landing/data-trust-section'
+import { UseCasesSection } from '@/components/landing/use-cases-section'
 import { Testimonials } from '@/components/landing/testimonials'
 import { Pricing } from '@/components/landing/pricing'
 import { BlogSection } from '@/components/landing/blog-section'
@@ -15,7 +20,12 @@ export function LandingPage() {
       <SiteHeader />
       <main>
         <Hero />
+        <StatsSection />
+        <ProblemSection />
+        <WorkflowSection />
         <Features />
+        <DataTrustSection />
+        <UseCasesSection />
         <Testimonials />
         <Pricing />
         <BlogSection />
