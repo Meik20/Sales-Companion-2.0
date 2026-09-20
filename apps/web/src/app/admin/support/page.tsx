@@ -19,7 +19,7 @@ import {
   Timestamp,
   onSnapshot
 } from 'firebase/firestore'
-import { Trash2, CheckCircle2, Sparkles, Send, Mail, RefreshCw } from 'lucide-react'
+import { Trash2, CheckCircle2, Sparkles, Send, Mail, RefreshCw, X } from 'lucide-react'
 import { useTranslation } from '@/providers/I18nProvider'
 
 type Thread = {
@@ -39,6 +39,9 @@ type Thread = {
   isGuest?: boolean
   domainExemptionStatus?: 'approved' | 'pending' | null
   domainExemptionToken?: string
+  profileChangeStatus?: 'approved' | 'rejected' | 'pending' | null
+  profileChangeToken?: string
+  profileChangeRejectedReason?: string
 }
 
 type Message = {
@@ -201,6 +204,97 @@ export default function AdminSupportPage() {
     } catch (err: any) {
       console.error('Approve domain error:', err)
       setError(err.message || "Erreur lors de l'envoi du lien d'inscription.")
+    } finally {
+      setApproving(false)
+    }
+  }
+
+  async function handleApproveProfileChange(thread: Thread) {
+    if (!user || !thread.id) return
+    const confirmMsg = `Confirmez-vous la validation de la modification de profil pour ${thread.userName || thread.userEmail} (${thread.companyName || 'Entreprise'}) ?\n\nUn lien sécurisé valable 24h lui sera envoyé par email et dans cette discussion.`
+    if (!window.confirm(confirmMsg)) return
+
+    setApproving(true)
+    setError(null)
+    setActionSuccess(null)
+
+    try {
+      const token = await user.getIdToken()
+      const res = await fetch('/api/admin/support/approve-profile-change', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ threadId: thread.id })
+      })
+
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || "Erreur lors de l'approbation.")
+      }
+
+      setActionSuccess(`✅ Modification de profil validée ! Lien envoyé par email et dans la discussion.`)
+      setSelected((prev) =>
+        prev
+          ? {
+              ...prev,
+              status: 'resolved',
+              profileChangeStatus: 'approved',
+              profileChangeToken: data.token
+            }
+          : null
+      )
+    } catch (err: any) {
+      console.error('Approve profile error:', err)
+      setError(err.message || "Erreur lors de l'approbation.")
+    } finally {
+      setApproving(false)
+    }
+  }
+
+  async function handleRejectProfileChange(thread: Thread) {
+    if (!user || !thread.id) return
+    const reason = window.prompt(
+      'Indiquez le motif du refus (optionnel) :',
+      "Informations non conformes aux politiques de gouvernance d'entreprise."
+    )
+    if (reason === null) return
+
+    setApproving(true)
+    setError(null)
+    setActionSuccess(null)
+
+    try {
+      const token = await user.getIdToken()
+      const res = await fetch('/api/admin/support/reject-profile-change', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ threadId: thread.id, reason })
+      })
+
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || 'Erreur lors du rejet.')
+      }
+
+      setActionSuccess(`❌ Demande rejetée. L'utilisateur a été notifié par email et dans la discussion.`)
+      setSelected((prev) =>
+        prev
+          ? {
+              ...prev,
+              status: 'resolved',
+              profileChangeStatus: 'rejected',
+              profileChangeRejectedReason: reason
+            }
+          : null
+      )
+    } catch (err: any) {
+      console.error('Reject profile error:', err)
+      setError(err.message || 'Erreur lors du rejet.')
     } finally {
       setApproving(false)
     }
@@ -642,6 +736,20 @@ export default function AdminSupportPage() {
                             🏢 Dérogation Domaine
                           </span>
                         )}
+                        {t.type === 'profile_change_request' && (
+                          <span
+                            style={{
+                              fontSize: 9.5,
+                              padding: '1px 5px',
+                              background: 'rgba(37, 99, 235, 0.15)',
+                              color: '#60a5fa',
+                              borderRadius: 4,
+                              fontWeight: 700
+                            }}
+                          >
+                            ⚙️ Modif Profil
+                          </span>
+                        )}
                         {t.unreadByAdmin && (
                           <span
                             style={{
@@ -1034,6 +1142,163 @@ export default function AdminSupportPage() {
                         </>
                       )}
                     </button>
+                  </div>
+                )}
+
+                {selected.type === 'profile_change_request' && (
+                  <div
+                    style={{
+                      marginTop: 12,
+                      padding: '14px 16px',
+                      borderRadius: 8,
+                      background:
+                        selected.profileChangeStatus === 'approved'
+                          ? 'rgba(37, 99, 235, 0.08)'
+                          : selected.profileChangeStatus === 'rejected'
+                            ? 'rgba(239, 68, 68, 0.08)'
+                            : 'rgba(37, 99, 235, 0.06)',
+                      border: `1px solid ${
+                        selected.profileChangeStatus === 'approved'
+                          ? 'rgba(37, 99, 235, 0.3)'
+                          : selected.profileChangeStatus === 'rejected'
+                            ? 'rgba(239, 68, 68, 0.3)'
+                            : 'rgba(37, 99, 235, 0.25)'
+                      }`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      flexWrap: 'wrap',
+                      gap: 12
+                    }}
+                  >
+                    <div style={{ flex: 1, minWidth: 260 }}>
+                      <div
+                        style={{
+                          fontSize: 13,
+                          fontWeight: 700,
+                          color:
+                            selected.profileChangeStatus === 'approved'
+                              ? '#60a5fa'
+                              : selected.profileChangeStatus === 'rejected'
+                                ? '#f87171'
+                                : '#60a5fa',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          marginBottom: 3
+                        }}
+                      >
+                        {selected.profileChangeStatus === 'approved' ? (
+                          <>
+                            <CheckCircle2 size={16} />
+                            <span>Demande de modification approuvée (Lien 24h envoyé)</span>
+                          </>
+                        ) : selected.profileChangeStatus === 'rejected' ? (
+                          <>
+                            <X size={16} />
+                            <span>Demande de modification rejetée</span>
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles size={16} />
+                            <span>Demande d'autorisation de modification du profil d'entreprise</span>
+                          </>
+                        )}
+                      </div>
+                      <div style={{ fontSize: 11.5, color: 'var(--muted-foreground, #94a3b8)', lineHeight: 1.5 }}>
+                        {selected.profileChangeStatus === 'approved'
+                          ? `Le client a reçu son lien sécurisé de déverrouillage par email (${selected.userEmail}) et dans ce fil de discussion.`
+                          : selected.profileChangeStatus === 'rejected'
+                            ? `Motif de rejet : ${selected.profileChangeRejectedReason || 'Informations non conformes.'}`
+                            : "Après échange avec le client, validez ou rejetez sa demande. Si vous validez, un lien sécurisé valable 24h lui sera instantanément envoyé par email et dans cette messagerie."}
+                      </div>
+                    </div>
+
+                    {/* Boutons d'action (Valider / Rejeter) */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                      {selected.profileChangeStatus !== 'approved' && selected.profileChangeStatus !== 'rejected' && (
+                        <>
+                          {/* Bouton Rejeter */}
+                          <button
+                            onClick={() => handleRejectProfileChange(selected)}
+                            disabled={approving}
+                            style={{
+                              padding: '8px 14px',
+                              background: 'rgba(239, 68, 68, 0.12)',
+                              color: '#f87171',
+                              border: '1px solid rgba(239, 68, 68, 0.3)',
+                              borderRadius: 8,
+                              fontSize: 12,
+                              fontWeight: 700,
+                              cursor: approving ? 'wait' : 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 6,
+                              transition: 'all 150ms ease'
+                            }}
+                          >
+                            <X size={13} />
+                            <span>Rejeter</span>
+                          </button>
+
+                          {/* Bouton Valider */}
+                          <button
+                            onClick={() => handleApproveProfileChange(selected)}
+                            disabled={approving}
+                            style={{
+                              padding: '8px 16px',
+                              background: '#2563eb',
+                              color: '#ffffff',
+                              border: 'none',
+                              borderRadius: 8,
+                              fontSize: 12,
+                              fontWeight: 700,
+                              cursor: approving ? 'wait' : 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 6,
+                              boxShadow: '0 2px 10px rgba(37, 99, 235, 0.35)',
+                              transition: 'all 150ms ease'
+                            }}
+                          >
+                            {approving ? (
+                              <>
+                                <RefreshCw size={13} className="animate-spin" />
+                                <span>Validation en cours…</span>
+                              </>
+                            ) : (
+                              <>
+                                <CheckCircle2 size={13} />
+                                <span>Valider la demande</span>
+                              </>
+                            )}
+                          </button>
+                        </>
+                      )}
+
+                      {selected.profileChangeStatus === 'approved' && (
+                        <button
+                          onClick={() => handleApproveProfileChange(selected)}
+                          disabled={approving}
+                          style={{
+                            padding: '8px 14px',
+                            background: 'rgba(37, 99, 235, 0.15)',
+                            color: '#60a5fa',
+                            border: '1px solid rgba(37, 99, 235, 0.4)',
+                            borderRadius: 8,
+                            fontSize: 12,
+                            fontWeight: 700,
+                            cursor: approving ? 'wait' : 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 6
+                          }}
+                        >
+                          <Mail size={13} />
+                          <span>Renvoyer le lien par email</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>

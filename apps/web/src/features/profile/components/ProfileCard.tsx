@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { routes } from '@/constants/routes'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useTranslation } from '@/providers/I18nProvider'
@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/useToast'
 import { Panel, Badge, MetricCard, StatsGrid } from '@/components/ui/index'
 import { firestore } from '@/services/firebase/client'
 import { doc, updateDoc, serverTimestamp } from 'firebase/firestore'
-import { Building2, Briefcase, MapPin, Edit3, Phone, User, Check, X, ShieldCheck } from 'lucide-react'
+import { Building2, Briefcase, MapPin, Edit3, Phone, User, Check, X, ShieldCheck, RefreshCw, Sparkles } from 'lucide-react'
 
 const planBadge: Record<string, 'default' | 'info' | 'success' | 'gold'> = {
   free: 'default',
@@ -59,6 +59,11 @@ export function ProfileCard() {
   const { user, loading } = useCurrentUser()
   const { pushToast } = useToast()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const editTokenParam = searchParams.get('edit_token')
+
+  const [isAuthorizedBySupport, setIsAuthorizedBySupport] = useState(false)
+  const [requestingSupport, setRequestingSupport] = useState(false)
 
   const [isEditing, setIsEditing] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -69,6 +74,94 @@ export function ProfileCard() {
     region: '',
     phone: ''
   })
+
+  // Vérifier si une autorisation est active pour ce compte
+  useEffect(() => {
+    // 1. Vérification via les métadonnées utilisateur
+    const userAuthUntil = (user as any)?.profileEditAuthorizedUntil
+    const isDocAuthorized =
+      userAuthUntil?.toDate
+        ? userAuthUntil.toDate().getTime() > Date.now()
+        : false
+
+    if (isDocAuthorized) {
+      setIsAuthorizedBySupport(true)
+    }
+
+    // 2. Si un edit_token est passé dans l'URL
+    if (editTokenParam && user) {
+      user.getIdToken().then((idToken) => {
+        fetch('/api/profile/verify-edit-token', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${idToken}`
+          },
+          body: JSON.stringify({ token: editTokenParam })
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.valid) {
+              setIsAuthorizedBySupport(true)
+              pushToast({
+                type: 'success',
+                title: '✅ Autorisation de modification accordée par le support !'
+              })
+              openEditModal()
+            } else if (data.error) {
+              pushToast({
+                type: 'error',
+                title: data.error
+              })
+            }
+          })
+          .catch(() => {})
+      })
+    }
+  }, [editTokenParam, user?.uid])
+
+  const handleRequestProfileChange = async () => {
+    if (!user) return
+    const reason = window.prompt(
+      'Précisez brièvement les informations que vous souhaitez modifier (ex: changement de numéro, nouvelle raison sociale, etc.) :'
+    )
+    if (reason === null) return // Annulé par l'utilisateur
+
+    setRequestingSupport(true)
+    try {
+      const token = await user.getIdToken()
+      const res = await fetch('/api/support/profile-change/request', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ reason })
+      })
+
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || 'Erreur lors de la création du ticket.')
+      }
+
+      pushToast({
+        type: 'success',
+        title: '✅ Demande transmise au support ! Redirection en cours...'
+      })
+
+      if (data.threadId) {
+        router.push(`${routes.support}?ticket=${encodeURIComponent(data.threadId)}`)
+      }
+    } catch (err: any) {
+      console.error('Request profile change error:', err)
+      pushToast({
+        type: 'error',
+        title: err.message || 'Erreur lors de la demande au support.'
+      })
+    } finally {
+      setRequestingSupport(false)
+    }
+  }
 
   const openEditModal = () => {
     if (!user) return
@@ -291,23 +384,44 @@ export function ProfileCard() {
             </button>
           ) : user.role === 'manager' ? (
             <div className="flex flex-col items-end gap-1.5">
-              <button
-                onClick={() =>
-                  router.push(
-                    `${routes.support}?category=profile_change&subject=${encodeURIComponent(
-                      t('profile.supportSubjectProfileChange' as any) ||
-                        "Demande de modification des informations d'entreprise"
-                    )}`
-                  )
-                }
-                className="flex items-center gap-2 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 px-3.5 py-2 text-xs font-semibold transition-all cursor-pointer"
-              >
-                <ShieldCheck size={14} />
-                {t('profile.requestChangeViaSupportBtn' as any) || 'Demander une modification au support'}
-              </button>
-              <span className="text-[11px] text-muted-foreground/70 max-w-[260px] text-right">
-                {t('profile.managerProfileLockedNotice' as any)}
-              </span>
+              {isAuthorizedBySupport ? (
+                <>
+                  <button
+                    onClick={openEditModal}
+                    className="flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-2 text-xs font-semibold transition-all cursor-pointer shadow-sm"
+                  >
+                    <Edit3 size={14} />
+                    {t('profile.editProfileBtn' as any) || 'Modifier mes informations'}
+                  </button>
+                  <span className="text-[11px] text-blue-600 dark:text-blue-400 font-semibold flex items-center gap-1">
+                    <Check size={13} />
+                    Autorisation active accordée par le support
+                  </span>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={handleRequestProfileChange}
+                    disabled={requestingSupport}
+                    className="flex items-center gap-2 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 px-3.5 py-2 text-xs font-semibold transition-all cursor-pointer"
+                  >
+                    {requestingSupport ? (
+                      <>
+                        <RefreshCw size={14} className="animate-spin" />
+                        <span>Envoi au support…</span>
+                      </>
+                    ) : (
+                      <>
+                        <ShieldCheck size={14} />
+                        {t('profile.requestChangeViaSupportBtn' as any) || 'Demander une modification au support'}
+                      </>
+                    )}
+                  </button>
+                  <span className="text-[11px] text-muted-foreground/70 max-w-[260px] text-right">
+                    {t('profile.managerProfileLockedNotice' as any)}
+                  </span>
+                </>
+              )}
             </div>
           ) : (
             <div className="flex items-center gap-1.5 rounded-xl border border-border bg-secondary/50 px-3 py-2 text-xs text-muted-foreground">
