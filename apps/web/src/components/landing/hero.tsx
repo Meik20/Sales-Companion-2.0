@@ -34,15 +34,6 @@ export function Hero() {
       <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 lg:grid-cols-[1.1fr_0.9fr]">
         {/* Left column: Text & Value Proposition */}
         <div className="flex flex-col items-start">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#1B7A3E]/30 bg-[#1B7A3E]/10 px-3.5 py-1.5 text-xs font-semibold text-[#1B7A3E] shadow-xs">
-            <span>🇨🇲</span>
-            <span>
-              {isEn
-                ? 'DESIGNED FOR B2B SALES IN CAMEROON'
-                : 'CONÇU POUR LA PROSPECTION B2B AU CAMEROUN'}
-            </span>
-          </div>
 
           {/* H1 */}
           <h1 className="mt-5 font-heading text-3xl font-extrabold leading-[1.12] tracking-tight text-foreground text-balance sm:text-4xl lg:text-5xl">
