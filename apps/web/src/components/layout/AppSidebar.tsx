@@ -33,6 +33,42 @@ import {
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useTranslation } from '@/providers/I18nProvider'
+import { useNetworkStatus } from '@/hooks/useNetworkStatus'
+
+// ── Indicateur d'état réseau dans la sidebar ──────────────────────────────────
+function OfflineModeIndicator() {
+  const { isOnline } = useNetworkStatus()
+  const { t } = useTranslation()
+  return (
+    <div
+      className="flex items-center gap-2.5 px-3 py-2 text-[13px] rounded-lg transition-all duration-300"
+      style={{
+        opacity: isOnline ? 0.4 : 1,
+        cursor: 'default',
+        color: isOnline ? 'var(--muted-foreground)' : 'var(--google-green-400, #5BB974)',
+        background: isOnline ? 'transparent' : 'rgba(52,168,83,0.08)',
+        border: isOnline ? 'none' : '1px solid rgba(52,168,83,0.2)'
+      }}
+      title={isOnline ? t('sidebar.offlineMode') : t('offline.banner')}
+    >
+      {!isOnline && (
+        <span
+          style={{
+            width: 6,
+            height: 6,
+            borderRadius: '50%',
+            background: '#5BB974',
+            boxShadow: '0 0 6px rgba(52,168,83,0.8)',
+            animation: 'pulse 2s infinite',
+            flexShrink: 0
+          }}
+        />
+      )}
+      <WifiOff size={16} strokeWidth={1.8} className="shrink-0" />
+      {t('sidebar.offlineMode')}
+    </div>
+  )
+}
 
 const REGIONS = [
   'Adamaoua',
@@ -380,11 +416,9 @@ export function AppSidebar({
           <SidebarLink href={routes.saved} label={t('sidebar.savedSearches')} icon={Bookmark} />
           <SidebarLink href={routes.support} label={t('sidebar.support')} icon={MessageSquare} />
 
-          {/* Disabled item */}
-          <div className="flex cursor-not-allowed select-none items-center gap-2.5 px-3 py-2 text-[13px] text-muted-foreground opacity-50">
-            <WifiOff size={16} strokeWidth={1.8} className="shrink-0" />
-            {t('sidebar.offlineMode')}
-          </div>
+
+          {/* Indicateur Offline — actif automatiquement si hors connexion */}
+          <OfflineModeIndicator />
         </>
       )}
 
