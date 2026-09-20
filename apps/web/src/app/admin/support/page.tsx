@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { AppShell } from '@/components/layout/AppShell'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
@@ -16,7 +16,8 @@ import {
   deleteDoc,
   addDoc,
   serverTimestamp,
-  Timestamp
+  Timestamp,
+  onSnapshot
 } from 'firebase/firestore'
 import { Trash2, CheckCircle2, Sparkles, Send, Mail, RefreshCw } from 'lucide-react'
 import { useTranslation } from '@/providers/I18nProvider'
@@ -73,6 +74,7 @@ export default function AdminSupportPage() {
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [filterStatus, setFilterStatus] = useState<'all' | 'open' | 'resolved'>('all')
   const { t } = useTranslation()
+  const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // Debounce search term (500ms)
   useEffect(() => {
@@ -80,9 +82,70 @@ export default function AdminSupportPage() {
     return () => clearTimeout(timer)
   }, [searchTerm])
 
+  // Défilement automatique vers le bas lors de l'arrivée d'un message
   useEffect(() => {
-    if (user?.uid) loadThreads()
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
+
+  // Écoute temps réel des tickets de support
+  useEffect(() => {
+    if (!user?.uid) return
+    setLoading(true)
+    const q = query(
+      collection(firestore, 'support_threads'),
+      orderBy('updatedAt', 'desc'),
+      limit(200)
+    )
+    const unsubscribe = onSnapshot(
+      q,
+      (snap) => {
+        setThreads(snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Thread, 'id'>) })))
+        setLoading(false)
+      },
+      (err) => {
+        console.error('Failed to listen to support threads:', err)
+        setLoading(false)
+      }
+    )
+    return () => unsubscribe()
   }, [user?.uid])
+
+  // Écoute temps réel des messages du ticket sélectionné
+  useEffect(() => {
+    if (!selected?.id) {
+      setMessages([])
+      return
+    }
+
+    const q = query(
+      collection(firestore, 'support_threads', selected.id, 'messages'),
+      orderBy('createdAt', 'asc')
+    )
+
+    const unsubscribe = onSnapshot(
+      q,
+      (snap) => {
+        const serverMessages = snap.docs.map((d) => ({
+          id: d.id,
+          ...(d.data({ serverTimestamps: 'estimate' }) as Omit<Message, 'id'>)
+        }))
+        setMessages((prev) => {
+          // Conserver les messages optimistes non encore confirmés par le serveur
+          const pendingOptimistic = prev.filter(
+            (m) =>
+              m.id.startsWith('temp-') &&
+              !serverMessages.some((sm) => sm.content === m.content && sm.senderRole === m.senderRole)
+          )
+          return [...serverMessages, ...pendingOptimistic]
+        })
+      },
+      (err) => {
+        console.error('Support messages snapshot error:', err)
+      }
+    )
+
+    return () => unsubscribe()
+  }, [selected?.id])
 
   async function handleApproveDomain(thread: Thread) {
     if (!user || !thread.userEmail) return
@@ -162,29 +225,41 @@ export default function AdminSupportPage() {
 
   async function openThread(thread: Thread) {
     setSelected(thread)
-    setMessages([])
     setReplyText('')
     setError(null)
     try {
       await updateDoc(doc(firestore, 'support_threads', thread.id), { unreadByAdmin: false })
-      const snap = await getDocs(
-        query(
-          collection(firestore, 'support_threads', thread.id, 'messages'),
-          orderBy('createdAt', 'asc')
-        )
-      )
-      setMessages(snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Message, 'id'>) })))
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Erreur lors de l'ouverture du ticket"
-      setError(msg)
-      console.error('Failed to open thread:', err)
+    } catch {
+      // Non-bloquant
     }
   }
 
   async function sendReply() {
-    if (!selected || !replyText.trim()) return
+    if (!selected || !replyText.trim() || sending) return
+    const textToSend = replyText.trim()
     setSending(true)
     setError(null)
+
+    // 1. Affichage instantané immédiat (mise à jour optimiste 0ms)
+    const tempId = 'temp-' + Date.now()
+    const optimisticMsg: Message = {
+      id: tempId,
+      content: textToSend,
+      senderRole: 'admin',
+      createdAt: Timestamp.now()
+    }
+    setMessages((prev) => [...prev, optimisticMsg])
+    setReplyText('')
+
+    // Mise à jour immédiate du résumé dans la liste des tickets
+    setThreads((prev) =>
+      prev.map((t) =>
+        t.id === selected.id
+          ? { ...t, lastMessage: textToSend.slice(0, 80), updatedAt: Timestamp.now() }
+          : t
+      )
+    )
+
     try {
       const token = await user?.getIdToken()
       const res = await fetch('/api/admin/support/reply', {
@@ -195,7 +270,7 @@ export default function AdminSupportPage() {
         },
         body: JSON.stringify({
           threadId: selected.id,
-          message: replyText.trim()
+          message: textToSend
         })
       })
 
@@ -203,12 +278,12 @@ export default function AdminSupportPage() {
         const data = await res.json().catch(() => ({}))
         throw new Error(data?.error || data?.message || "Erreur lors de l'envoi de la réponse")
       }
-
-      setReplyText('')
-      await openThread(selected)
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Erreur lors de l'envoi"
       setError(msg)
+      // Annulation du message optimiste en cas d'échec
+      setMessages((prev) => prev.filter((m) => m.id !== tempId))
+      setReplyText(textToSend)
       console.error('Failed to send reply:', err)
     } finally {
       setSending(false)
@@ -1061,6 +1136,7 @@ export default function AdminSupportPage() {
                     )
                   })
                 )}
+                <div ref={messagesEndRef} />
               </div>
 
               {/* Zone de réponse */}

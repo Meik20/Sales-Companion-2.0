@@ -137,9 +137,27 @@ function AuthenticatedSupportView() {
       collection(firestore, 'support_threads', selectedId, 'messages'),
       orderBy('createdAt', 'asc')
     )
-    return onSnapshot(q, (snap) => {
-      setMessages(snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Message, 'id'>) })))
-    })
+    return onSnapshot(
+      q,
+      (snap) => {
+        const serverMessages = snap.docs.map((d) => ({
+          id: d.id,
+          ...(d.data({ serverTimestamps: 'estimate' }) as Omit<Message, 'id'>)
+        }))
+        setMessages((prev) => {
+          // Conserver les messages optimistes non encore confirmés par le serveur
+          const pendingOptimistic = prev.filter(
+            (m) =>
+              m.id.startsWith('temp-') &&
+              !serverMessages.some((sm) => sm.content === m.content && sm.senderRole === m.senderRole)
+          )
+          return [...serverMessages, ...pendingOptimistic]
+        })
+      },
+      (err) => {
+        console.error('Support messages snapshot error:', err)
+      }
+    )
   }, [selectedId])
 
   // Auto-scroll
@@ -194,6 +212,18 @@ function AuthenticatedSupportView() {
     const text = inputText.trim()
     setInputText('')
     setSending(true)
+
+    // Affichage instantané dans le chat (mise à jour optimiste 0ms)
+    const tempId = 'temp-' + Date.now()
+    const optimisticMsg: Message = {
+      id: tempId,
+      content: text,
+      senderId: user.uid,
+      senderRole: 'user',
+      createdAt: Timestamp.now()
+    }
+    setMessages((prev) => [...prev, optimisticMsg])
+
     try {
       const now = serverTimestamp()
       await addDoc(collection(firestore, 'support_threads', selectedId, 'messages'), {
@@ -210,6 +240,8 @@ function AuthenticatedSupportView() {
       })
     } catch (err) {
       console.error('Failed to send:', err)
+      // Annuler le message optimiste en cas d'erreur
+      setMessages((prev) => prev.filter((m) => m.id !== tempId))
       setInputText(text)
     } finally {
       setSending(false)
