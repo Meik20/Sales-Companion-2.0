@@ -255,6 +255,37 @@ export default function AdminSupportPage() {
     }
   }
 
+  async function handleDeleteMessage(messageId: string) {
+    if (!selected) return
+    if (!window.confirm('Voulez-vous vraiment supprimer ce message ?')) return
+
+    try {
+      if (user) {
+        const token = await user.getIdToken()
+        const res = await fetch('/api/admin/support/delete-message', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ threadId: selected.id, messageId })
+        })
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}))
+          throw new Error(errData.error || 'Erreur lors de la suppression')
+        }
+      } else {
+        await deleteDoc(doc(firestore, 'support_threads', selected.id, 'messages', messageId))
+      }
+
+      setMessages((prev) => prev.filter((m) => m.id !== messageId))
+      await loadThreads()
+    } catch (err) {
+      console.error('Failed to delete message:', err)
+      setError('Erreur lors de la suppression du message.')
+    }
+  }
+
   async function resolveThread() {
     if (!selected) return
     setError(null)
@@ -986,9 +1017,45 @@ export default function AdminSupportPage() {
                         >
                           {m.content}
                         </div>
-                        <div style={{ fontSize: 10.5, color: 'var(--muted-foreground, #64748b)', marginTop: 3 }}>
-                          {isUser ? `👤 ${selected.userName || 'Utilisateur'}` : '🎧 Support'} ·{' '}
-                          {time}
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 6,
+                            fontSize: 10.5,
+                            color: 'var(--muted-foreground, #64748b)',
+                            marginTop: 3
+                          }}
+                        >
+                          <span>
+                            {isUser ? `👤 ${selected.userName || 'Utilisateur'}` : '🎧 Support'} · {time}
+                          </span>
+                          <button
+                            onClick={() => handleDeleteMessage(m.id)}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              cursor: 'pointer',
+                              color: 'inherit',
+                              padding: '2px 4px',
+                              borderRadius: 4,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              opacity: 0.6,
+                              transition: 'all 150ms ease'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.color = '#ef4444'
+                              e.currentTarget.style.opacity = '1'
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.color = 'inherit'
+                              e.currentTarget.style.opacity = '0.6'
+                            }}
+                            title="Supprimer ce message"
+                          >
+                            <Trash2 size={11} />
+                          </button>
                         </div>
                       </div>
                     )

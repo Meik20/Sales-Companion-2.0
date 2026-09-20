@@ -258,6 +258,34 @@ function AuthenticatedSupportView() {
     }
   }
 
+  async function handleDeleteMessage(messageId: string) {
+    if (!selectedId) return
+    if (!window.confirm(t('support.confirmDeleteMessage') || 'Voulez-vous vraiment supprimer ce message ?')) return
+
+    try {
+      if (user) {
+        const token = await user.getIdToken()
+        const res = await fetch('/api/support/messages/delete', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ threadId: selectedId, messageId })
+        })
+
+        if (!res.ok) {
+          await deleteDoc(doc(firestore, 'support_threads', selectedId, 'messages', messageId))
+        }
+      } else {
+        await deleteDoc(doc(firestore, 'support_threads', selectedId, 'messages', messageId))
+      }
+    } catch (err) {
+      console.error('Failed to delete message:', err)
+      alert(t('support.errorDeleteMessage') || 'Une erreur est survenue lors de la suppression du message.')
+    }
+  }
+
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
@@ -754,14 +782,44 @@ function AuthenticatedSupportView() {
                         </div>
                         <div
                           style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 6,
                             fontSize: 10.5,
                             color: 'var(--muted-foreground, #64748b)',
                             marginTop: 3,
                             padding: '0 4px'
                           }}
                         >
-                          {isMe ? t('support.me') : t('support.supportTeam')} ·{' '}
-                          {fmtTime(m.createdAt)}
+                          <span>
+                            {isMe ? t('support.me') : t('support.supportTeam')} · {fmtTime(m.createdAt)}
+                          </span>
+                          <button
+                            onClick={() => handleDeleteMessage(m.id)}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              cursor: 'pointer',
+                              color: 'inherit',
+                              padding: '2px 4px',
+                              borderRadius: 4,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              opacity: 0.6,
+                              transition: 'all 150ms ease'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.color = '#ef4444'
+                              e.currentTarget.style.opacity = '1'
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.color = 'inherit'
+                              e.currentTarget.style.opacity = '0.6'
+                            }}
+                            title={t('support.deleteMessage')}
+                          >
+                            <Trash2 size={11} />
+                          </button>
                         </div>
                       </div>
                     )
