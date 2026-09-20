@@ -32,7 +32,7 @@ export function SiteHeader() {
         <Link href="/" className="flex items-center gap-2.5 group shrink-0" aria-label="Sales Companion 2.0, accueil">
           <ScIcon size={34} interactive className="group-hover:scale-105 transition-transform" />
           <span className="font-heading text-[15px] font-semibold tracking-tight text-foreground">
-            Sales Companion 2.0 <span className="text-[#1B7A3E]">2.0</span>
+            Sales Companion <span className="text-[#1B7A3E]">2.0</span>
           </span>
         </Link>
 
@@ -72,7 +72,7 @@ export function SiteHeader() {
 
           <Link
             href={routes.register}
-            className="inline-flex items-center rounded-lg bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-all hover:bg-primary/90 hover:shadow-md hover:scale-[1.02] active:scale-[0.98]"
+            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-[13px] font-medium text-primary-foreground tracking-wide transition-all hover:bg-primary/85 hover:shadow-sm active:scale-[0.97]"
           >
             <span className="sm:hidden">{lang === 'en' ? 'Try' : 'Essayer'}</span>
             <span className="hidden sm:inline">{t('landing.startFree')}</span>
