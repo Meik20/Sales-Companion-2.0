@@ -222,11 +222,32 @@ function AuthenticatedSupportView() {
     if (!window.confirm(t('support.confirmDelete'))) return
 
     try {
-      const messagesRef = collection(firestore, 'support_threads', id, 'messages')
-      const messagesSnap = await getDocs(messagesRef)
-      const deletePromises = messagesSnap.docs.map((d) => deleteDoc(d.ref))
-      await Promise.all(deletePromises)
-      await deleteDoc(doc(firestore, 'support_threads', id))
+      if (user) {
+        const token = await user.getIdToken()
+        const res = await fetch('/api/support/threads/delete', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ threadId: id })
+        })
+
+        if (!res.ok) {
+          // Fallback SDK direct si l'API renvoie une erreur
+          const messagesRef = collection(firestore, 'support_threads', id, 'messages')
+          const messagesSnap = await getDocs(messagesRef)
+          const deletePromises = messagesSnap.docs.map((d) => deleteDoc(d.ref))
+          await Promise.all(deletePromises)
+          await deleteDoc(doc(firestore, 'support_threads', id))
+        }
+      } else {
+        const messagesRef = collection(firestore, 'support_threads', id, 'messages')
+        const messagesSnap = await getDocs(messagesRef)
+        const deletePromises = messagesSnap.docs.map((d) => deleteDoc(d.ref))
+        await Promise.all(deletePromises)
+        await deleteDoc(doc(firestore, 'support_threads', id))
+      }
 
       if (selectedId === id) {
         setSelectedId(null)
