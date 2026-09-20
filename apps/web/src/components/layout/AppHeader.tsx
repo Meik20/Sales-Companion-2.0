@@ -8,12 +8,14 @@ import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useAuthActions } from '@/features/auth/hooks/useAuthActions'
 import { routes } from '@/constants/routes'
 import { ScIcon } from '@/components/ui/ScIcon'
-import { Settings, User, LogOut, Menu, ChevronDown } from 'lucide-react'
+import { Settings, User, LogOut, Menu, ChevronDown, WifiOff } from 'lucide-react'
 import { useTranslation } from '@/providers/I18nProvider'
 import { AdminNotificationBell } from '@/features/admin/components/AdminNotificationBell'
+import { useNetworkStatus } from '@/hooks/useNetworkStatus'
 
 export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void }) {
   const { t } = useTranslation()
+  const { isOnline } = useNetworkStatus()
   const { user } = useCurrentUser()
   const { logout } = useAuthActions()
   const router = useRouter()
@@ -83,8 +85,19 @@ export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void 
           </Link>
         </div>
 
-        {/* ── CENTER/RIGHT: Admin notification bell ───────────────────── */}
-        <div className="flex flex-1 items-center justify-end gap-2.5">
+        {/* ── CENTER/RIGHT: Admin notification bell + Offline Voyant ─────── */}
+        <div className="flex flex-1 items-center justify-end gap-2 sm:gap-2.5">
+          {!isOnline && (
+            <div
+              className="flex items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 px-2 sm:px-2.5 py-1 text-[11px] font-semibold text-amber-600 dark:text-amber-400 shadow-sm animate-pulse shrink-0"
+              title="Application en mode hors connexion : l'appareil est hors ligne ou manque de data. Données en cache local actives."
+            >
+              <span className="h-2 w-2 rounded-full bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.8)] shrink-0" />
+              <WifiOff size={13} strokeWidth={2.2} className="shrink-0" />
+              <span className="hidden sm:inline">Hors ligne</span>
+            </div>
+          )}
+
           {user?.role === 'admin' && <AdminNotificationBell />}
 
           {/* ── RIGHT: User Profile ──────────────────────────────────── */}
