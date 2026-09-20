@@ -30,6 +30,41 @@ export type CurrentUser = {
   getIdToken: (forceRefresh?: boolean) => Promise<string>
 }
 
+const SESSION_CACHE_KEY = 'sc_user_profile_cache'
+
+function getCachedUser(): CurrentUser | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = sessionStorage.getItem(SESSION_CACHE_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw)
+    if (!parsed || !parsed.uid) return null
+    return {
+      ...parsed,
+      getIdToken: async (forceRefresh?: boolean) => {
+        if (auth.currentUser) return auth.currentUser.getIdToken(forceRefresh)
+        return ''
+      }
+    }
+  } catch {
+    return null
+  }
+}
+
+function saveCachedUser(u: CurrentUser | null) {
+  if (typeof window === 'undefined') return
+  try {
+    if (!u) {
+      sessionStorage.removeItem(SESSION_CACHE_KEY)
+    } else {
+      const { getIdToken: _, ...serializable } = u
+      sessionStorage.setItem(SESSION_CACHE_KEY, JSON.stringify(serializable))
+    }
+  } catch {
+    // Ignore storage quota errors
+  }
+}
+
 interface UserContextValue {
   user: CurrentUser | null
   loading: boolean
@@ -38,8 +73,8 @@ interface UserContextValue {
 const UserContext = createContext<UserContextValue | null>(null)
 
 function useCurrentUserSource(): UserContextValue {
-  const [user, setUser] = useState<CurrentUser | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState<CurrentUser | null>(() => getCachedUser())
+  const [loading, setLoading] = useState<boolean>(() => !getCachedUser())
 
   useEffect(() => {
     let unsubscribeSnapshot: (() => void) | null = null
@@ -52,6 +87,7 @@ function useCurrentUserSource(): UserContextValue {
 
       if (!firebaseUser) {
         setUser(null)
+        saveCachedUser(null)
         setLoading(false)
         return
       }
@@ -87,16 +123,19 @@ function useCurrentUserSource(): UserContextValue {
             const currentDailyUsed = isSamePeriod ? (data.dailyUsed ?? 0) : 0
             const resolvedDailyLimit = PLAN_LIMITS[userPlan] ?? 10
 
-            setUser({
+            const currentUserObj = {
               uid: firebaseUser.uid,
               ...data,
               plan: userPlan,
               dailyLimit: resolvedDailyLimit,
               dailyUsed: currentDailyUsed,
               getIdToken: (forceRefresh?: boolean) => firebaseUser.getIdToken(forceRefresh)
-            } as CurrentUser)
+            } as CurrentUser
+
+            setUser(currentUserObj)
+            saveCachedUser(currentUserObj)
           } else {
-            setUser({
+            const fallbackUser: CurrentUser = {
               uid: firebaseUser.uid,
               email: firebaseUser.email || '',
               name: firebaseUser.displayName || '',
@@ -108,13 +147,16 @@ function useCurrentUserSource(): UserContextValue {
               dailyUsed: 0,
               active: true,
               getIdToken: (forceRefresh?: boolean) => firebaseUser.getIdToken(forceRefresh)
-            })
+            }
+            setUser(fallbackUser)
+            saveCachedUser(fallbackUser)
           }
           setLoading(false)
         },
         (error) => {
           console.error('Error fetching user data:', error)
           setUser(null)
+          saveCachedUser(null)
           setLoading(false)
         }
       )

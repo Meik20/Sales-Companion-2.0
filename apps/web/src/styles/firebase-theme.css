@@ -127,14 +127,6 @@
   --color-teal-900: #AABFFF !important;
 }
 
-/* ── Transitions globales lors du changement de thème ─────────── */
-html[data-design] *,
-html[data-design] *::before,
-html[data-design] *::after {
-  transition-property: background-color, border-color, color, box-shadow;
-  transition-duration: 250ms;
-  transition-timing-function: ease;
-}
 
 /* ── Custom Scrollbars (Firebase Design) ───────────────────────── */
 [data-design="firebase"] ::-webkit-scrollbar {

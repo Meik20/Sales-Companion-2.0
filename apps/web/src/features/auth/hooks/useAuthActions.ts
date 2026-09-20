@@ -208,6 +208,9 @@ export function useAuthActions() {
 
   const logout = async () => {
     try {
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('sc_user_profile_cache')
+      }
       await signOut(auth)
     } catch (error) {
       throw error

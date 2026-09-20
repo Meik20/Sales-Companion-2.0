@@ -124,7 +124,7 @@ export function AuthGuard({ children }: PropsWithChildren) {
     }
   }, [user, loading])
 
-  if (loading) {
+  if (loading && !user) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background text-muted-foreground">
         <style dangerouslySetInnerHTML={{ __html: `@keyframes spin { to { transform: rotate(360deg); } }` }} />
