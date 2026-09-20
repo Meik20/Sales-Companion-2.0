@@ -35,38 +35,60 @@ import { useTheme } from 'next-themes'
 import { useTranslation } from '@/providers/I18nProvider'
 import { useNetworkStatus } from '@/hooks/useNetworkStatus'
 
-// ── Indicateur d'état réseau dans la sidebar ──────────────────────────────────
+// ── Indicateur & bascule du mode hors connexion dans la sidebar ───────────────
 function OfflineModeIndicator() {
-  const { isOnline } = useNetworkStatus()
+  const { isOnline, isManualOffline, toggleManualOffline } = useNetworkStatus()
   const { t } = useTranslation()
+  const { pushToast } = useToast()
+
+  const handleToggle = () => {
+    toggleManualOffline()
+    if (isOnline) {
+      pushToast({
+        type: 'info',
+        title: 'Mode hors connexion activé',
+        description: 'L’application bascule sur les données en cache local.'
+      })
+    } else {
+      pushToast({
+        type: 'success',
+        title: 'Mode en ligne rétabli',
+        description: 'L’application se reconnecte et synchronise avec le réseau.'
+      })
+    }
+  }
+
   return (
-    <div
-      className="flex items-center gap-2.5 px-3 py-2 text-[13px] rounded-lg transition-all duration-300"
-      style={{
-        opacity: isOnline ? 0.4 : 1,
-        cursor: 'default',
-        color: isOnline ? 'var(--muted-foreground)' : 'var(--google-green-400, #5BB974)',
-        background: isOnline ? 'transparent' : 'rgba(52,168,83,0.08)',
-        border: isOnline ? 'none' : '1px solid rgba(52,168,83,0.2)'
-      }}
-      title={isOnline ? t('sidebar.offlineMode') : t('offline.banner')}
+    <button
+      type="button"
+      onClick={handleToggle}
+      className={`group flex w-full items-center justify-between px-3 py-2.5 text-[13px] rounded-lg border transition-all duration-200 cursor-pointer text-left ${
+        !isOnline
+          ? 'bg-amber-500/10 dark:bg-amber-500/15 border-amber-500/30 text-amber-600 dark:text-amber-400 font-medium shadow-sm'
+          : 'bg-transparent hover:bg-secondary/60 border-transparent text-muted-foreground hover:text-foreground'
+      }`}
+      title={isOnline ? "Cliquer pour activer le mode hors connexion" : "Cliquer pour repasser en mode en ligne"}
     >
-      {!isOnline && (
-        <span
-          style={{
-            width: 6,
-            height: 6,
-            borderRadius: '50%',
-            background: '#5BB974',
-            boxShadow: '0 0 6px rgba(52,168,83,0.8)',
-            animation: 'pulse 2s infinite',
-            flexShrink: 0
-          }}
-        />
-      )}
-      <WifiOff size={16} strokeWidth={1.8} className="shrink-0" />
-      {t('sidebar.offlineMode')}
-    </div>
+      <div className="flex items-center gap-2.5">
+        {!isOnline ? (
+          <span className="h-2 w-2 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.8)] animate-pulse shrink-0" />
+        ) : (
+          <span className="h-2 w-2 rounded-full bg-emerald-500/60 shrink-0" />
+        )}
+        <WifiOff size={16} strokeWidth={1.8} className="shrink-0" />
+        <span>{t('sidebar.offlineMode')}</span>
+      </div>
+
+      <span
+        className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full uppercase tracking-wider ${
+          !isOnline
+            ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300'
+            : 'bg-secondary text-muted-foreground'
+        }`}
+      >
+        {!isOnline ? (isManualOffline ? 'Simulé' : 'Actif') : 'En ligne'}
+      </span>
+    </button>
   )
 }
 

@@ -26,7 +26,8 @@ try {
   firestoreInstance = initializeFirestore(app, {
     localCache: typeof window !== 'undefined'
       ? persistentLocalCache({ tabManager: persistentMultipleTabManager() })
-      : undefined
+      : undefined,
+    ignoreUndefinedProperties: true
   })
 } catch {
   firestoreInstance = getFirestore(app)

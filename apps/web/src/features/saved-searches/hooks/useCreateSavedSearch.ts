@@ -18,13 +18,17 @@ export function useCreateSavedSearch() {
     mutationFn: async (input: Input) => {
       if (!user?.uid) throw new Error('Non authentifié')
 
-      const docRef = await savedSearchesRepository.create({
-        userId: user.uid,
-        label: input.label,
-        filters: input.filters,
-        resultCount: input.resultCount ?? 0,
-        createdAt: new Date()
-      })
+      const token = await user.getIdToken().catch(() => undefined)
+      const docRef = await savedSearchesRepository.create(
+        {
+          userId: user.uid,
+          label: input.label,
+          filters: input.filters,
+          resultCount: input.resultCount ?? 0,
+          createdAt: new Date()
+        },
+        token
+      )
 
       return { id: docRef.id, success: true }
     },

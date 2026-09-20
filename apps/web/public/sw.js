@@ -1,6 +1,13 @@
 // Service Worker for Sales Companion PWA
-// v8 — Cache-first for app shell + stale-while-revalidate navigation
-const CACHE_NAME = 'sales-companion-v8'
+// v9 — Cache-first for app shell + stale-while-revalidate navigation
+const CACHE_NAME = 'sales-companion-v9'
+
+// Listen for explicit skip waiting request
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting()
+  }
+})
 
 // Core app shell routes pre-cached at install time
 const STATIC_ASSETS = [

@@ -282,10 +282,12 @@ function SearchContent() {
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: '16px',
+                padding: '16px 0',
                 textAlign: 'center',
                 gap: 16,
                 width: '100%',
+                maxWidth: 600,
+                margin: '0 auto',
                 boxSizing: 'border-box'
               }}
             >
@@ -484,15 +486,23 @@ function SearchContent() {
               <style
                 dangerouslySetInnerHTML={{
                   __html: `
+            .shortcut-grid {
+              display: grid !important;
+              grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+              gap: 12px !important;
+              width: 100% !important;
+              max-width: 600px !important;
+              margin: 0 auto !important;
+              box-sizing: border-box !important;
+            }
             @media (max-width: 640px) {
               .shortcut-grid {
-                grid-template-columns: repeat(2, 1fr) !important;
-                display: grid !important;
-                gap: 10px !important;
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                gap: 8px !important;
                 padding: 0 !important;
                 margin: 0 auto !important;
-                max-width: calc(100% - 16px) !important;
-                overflow: visible !important;
+                width: 100% !important;
+                max-width: 100% !important;
               }
             }
             `
@@ -503,11 +513,12 @@ function SearchContent() {
                 className="shortcut-grid"
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(2, 1fr)',
+                  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
                   gap: 12,
                   width: '100%',
                   maxWidth: 600,
-                  margin: '0 auto'
+                  margin: '0 auto',
+                  boxSizing: 'border-box'
                 }}
               >
                 <ShortcutCard

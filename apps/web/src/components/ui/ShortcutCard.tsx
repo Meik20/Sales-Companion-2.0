@@ -76,19 +76,19 @@ export function ShortcutCard({
     <button
       type="button"
       onClick={onClick}
-      className={`group flex w-full cursor-pointer items-center gap-3 rounded-xl border border-border border-l-[3px] ${cfg.borderLeftClass} bg-card p-3 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-secondary/70 hover:shadow-md`}
+      className={`group flex w-full min-w-0 cursor-pointer items-center gap-2.5 sm:gap-3 rounded-xl border border-border border-l-[3px] ${cfg.borderLeftClass} bg-card p-2.5 sm:p-3 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-secondary/70 hover:shadow-md`}
     >
       {/* Icône colorée par secteur */}
-      <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${cfg.bgClass} ${cfg.textClass}`}>
+      <div className={`flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-lg ${cfg.bgClass} ${cfg.textClass}`}>
         {cfg.icon}
       </div>
 
       {/* Texte */}
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="truncate text-[13px] font-bold leading-tight text-foreground transition-colors group-hover:text-primary">
+        <span className="truncate text-[12px] sm:text-[13px] font-bold leading-tight text-foreground transition-colors group-hover:text-primary">
           {title}
         </span>
-        <span className="truncate text-[11px] font-medium text-muted-foreground">
+        <span className="truncate text-[10px] sm:text-[11px] font-medium text-muted-foreground">
           {subtitle}
         </span>
         {(count != null || updatedAt) && (

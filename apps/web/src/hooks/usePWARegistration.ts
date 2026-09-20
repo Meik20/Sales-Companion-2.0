@@ -44,12 +44,12 @@ export function usePWARegistration() {
 
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              // New service worker is ready
               console.log('[PWA] New service worker ready to activate')
+              newWorker.postMessage({ type: 'SKIP_WAITING' })
               pushToast({
                 type: 'info',
-                title: 'Mise à jour disponible',
-                description: "Une nouvelle version est prête. Rechargez la page pour l'activer."
+                title: 'Mise à jour en cours',
+                description: 'Nouvelle version détectée. Actualisation...'
               })
               setState('installed')
             }
@@ -75,10 +75,12 @@ export function usePWARegistration() {
       return
     }
 
+    let refreshing = false
     const handleControllerChange = () => {
-      console.log('[PWA] Service Worker controller changed')
-      // Optionally refresh the page
-      // window.location.reload()
+      if (refreshing) return
+      refreshing = true
+      console.log('[PWA] Service Worker controller changed, reloading...')
+      window.location.reload()
     }
 
     navigator.serviceWorker?.addEventListener('controllerchange', handleControllerChange)
