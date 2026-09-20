@@ -7,8 +7,6 @@ import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useTranslation } from '@/providers/I18nProvider'
 import { useToast } from '@/hooks/useToast'
 import { Panel, Badge, MetricCard, StatsGrid } from '@/components/ui/index'
-import { firestore } from '@/services/firebase/client'
-import { doc, updateDoc, serverTimestamp } from 'firebase/firestore'
 import { Building2, Briefcase, MapPin, Edit3, Phone, User, Check, X, ShieldCheck, RefreshCw, Sparkles } from 'lucide-react'
 
 const planBadge: Record<string, 'default' | 'info' | 'success' | 'gold'> = {
@@ -63,6 +61,7 @@ export function ProfileCard() {
   const editTokenParam = searchParams.get('edit_token')
 
   const [isAuthorizedBySupport, setIsAuthorizedBySupport] = useState(false)
+  const [activeEditToken, setActiveEditToken] = useState<string | null>(editTokenParam)
   const [requestingSupport, setRequestingSupport] = useState(false)
 
   // Données locales optimistes pour affichage instantané dès l'enregistrement
@@ -87,6 +86,9 @@ export function ProfileCard() {
   // Vérification du jeton à usage unique si passé dans l'URL
   useEffect(() => {
     if (editTokenParam && user) {
+      const tokenToVerify = editTokenParam
+      setActiveEditToken(tokenToVerify)
+
       // 1. Nettoyer immédiatement l'URL pour supprimer le jeton et empêcher toute réutilisation lors d'un rafraîchissement (F5)
       if (typeof window !== 'undefined') {
         const url = new URL(window.location.href)
@@ -102,7 +104,7 @@ export function ProfileCard() {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${idToken}`
           },
-          body: JSON.stringify({ token: editTokenParam })
+          body: JSON.stringify({ token: tokenToVerify })
         })
           .then((res) => res.json())
           .then((data) => {
@@ -121,6 +123,7 @@ export function ProfileCard() {
               })
               setIsEditing(true)
             } else if (data.error) {
+              setActiveEditToken(null)
               setIsAuthorizedBySupport(false)
               setIsEditing(false)
               pushToast({
@@ -130,6 +133,7 @@ export function ProfileCard() {
             }
           })
           .catch(() => {
+            setActiveEditToken(null)
             setIsAuthorizedBySupport(false)
             setIsEditing(false)
           })
@@ -204,19 +208,27 @@ export function ProfileCard() {
     const newPhone = formData.phone.trim()
 
     try {
-      const userRef = doc(firestore, 'users', user.uid)
-      await updateDoc(userRef, {
-        name: newName,
-        company: newCompany || null,
-        companyName: newCompany || null,
-        sector: newSector || null,
-        industry: newSector || null,
-        region: newRegion || null,
-        phone: newPhone || null,
-        profileEditAuthorizedUntil: null,
-        profileEditToken: null,
-        updatedAt: serverTimestamp()
+      const idToken = await user.getIdToken()
+      const res = await fetch('/api/profile/update', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${idToken}`
+        },
+        body: JSON.stringify({
+          token: activeEditToken,
+          name: newName,
+          company: newCompany,
+          sector: newSector,
+          region: newRegion,
+          phone: newPhone
+        })
       })
+
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || 'Erreur lors de la mise à jour du profil.')
+      }
 
       // 1. Mise à jour immédiate de l'affichage local (0ms de latence)
       setLocalProfile({
@@ -230,16 +242,17 @@ export function ProfileCard() {
       // 2. Disparition immédiate du formulaire et révocation de l'accès
       setIsEditing(false)
       setIsAuthorizedBySupport(false)
+      setActiveEditToken(null)
 
       pushToast({
         type: 'success',
         title: t('profile.profileUpdatedToast' as any) || 'Profil mis à jour avec succès !'
       })
-    } catch (err) {
+    } catch (err: any) {
       console.error('[ProfileCard] Error updating profile:', err)
       pushToast({
         type: 'error',
-        title: t('profile.profileUpdateErrorToast' as any) || 'Erreur lors de la mise à jour du profil.'
+        title: err?.message || t('profile.profileUpdateErrorToast' as any) || 'Erreur lors de la mise à jour du profil.'
       })
     } finally {
       setSaving(false)
