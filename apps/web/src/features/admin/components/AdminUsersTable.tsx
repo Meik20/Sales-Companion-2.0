@@ -1,8 +1,11 @@
+import { useState } from 'react'
 import { Badge } from '@/components/ui/index'
 import { Button } from '@/components/ui/Button'
 import type { UserDoc, UserPlan } from '@sales-companion/shared'
 import { PLAN_LIMITS } from '@sales-companion/shared'
 import { useTranslation } from '@/providers/I18nProvider'
+import { useToast } from '@/hooks/useToast'
+import { ContactUserModal } from './ContactUserModal'
 import {
   User,
   Mail,
@@ -16,7 +19,8 @@ import {
   MapPin,
   Activity,
   Calendar,
-  Clock
+  Clock,
+  MessageSquare
 } from 'lucide-react'
 
 type UserWithId = UserDoc & {
@@ -65,6 +69,8 @@ function formatDate(iso: string | null | undefined): string {
 
 export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
   const { t } = useTranslation()
+  const [contactTarget, setContactTarget] = useState<UserWithId | null>(null)
+  const { pushToast } = useToast()
 
   if (!users.length) {
     return (
@@ -335,7 +341,24 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
               </td>
               {/* Actions */}
               <td style={{ padding: '16px 12px' }}>
-                <div style={{ display: 'flex', gap: 8 }}>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setContactTarget(user)}
+                    style={{
+                      padding: '6px',
+                      minWidth: 32,
+                      height: 32,
+                      borderRadius: 8,
+                      color: '#10b981',
+                      background: 'rgba(16, 185, 129, 0.12)',
+                      border: '1px solid rgba(16, 185, 129, 0.25)'
+                    }}
+                    title={t('support.contactUser') || "Contacter l'utilisateur via le support"}
+                  >
+                    <MessageSquare size={14} />
+                  </Button>
                   {onUpdate && (
                     <Button
                       size="sm"
@@ -372,6 +395,19 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
           ))}
         </tbody>
       </table>
+
+      <ContactUserModal
+        isOpen={!!contactTarget}
+        user={contactTarget}
+        onClose={() => setContactTarget(null)}
+        onSuccess={(_, userName) => {
+          pushToast({
+            type: 'success',
+            title: 'Message envoyé !',
+            description: `Le ticket de support avec ${userName} a été ouvert avec succès.`
+          })
+        }}
+      />
     </div>
   )
 }

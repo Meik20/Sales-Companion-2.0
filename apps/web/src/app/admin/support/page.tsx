@@ -113,6 +113,19 @@ export default function AdminSupportPage() {
     return () => unsubscribe()
   }, [user?.uid])
 
+  // Sélection automatique du ticket depuis les paramètres d'URL (?ticket= ou ?id=)
+  useEffect(() => {
+    if (typeof window === 'undefined' || threads.length === 0) return
+    const params = new URLSearchParams(window.location.search)
+    const ticketId = params.get('ticket') || params.get('id')
+    if (ticketId && (!selected || selected.id !== ticketId)) {
+      const match = threads.find((t) => t.id === ticketId)
+      if (match) {
+        openThread(match)
+      }
+    }
+  }, [threads, selected])
+
   // Écoute temps réel des messages du ticket sélectionné
   useEffect(() => {
     if (!selected?.id) {
