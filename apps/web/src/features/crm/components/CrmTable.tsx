@@ -5,6 +5,20 @@ import type { CrmClient, CrmClientStatus } from '../types'
 import { CRM_STATUS_CONFIG } from '../types'
 import { CrmStatusBadge } from './CrmStatusBadge'
 import { useTranslation } from '@/providers/I18nProvider'
+import {
+  Phone,
+  PhoneCall,
+  MessageCircle,
+  Eye,
+  Trash2,
+  Plus,
+  Check,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  FolderOpen,
+  AlertCircle
+} from 'lucide-react'
 
 type Props = {
   clients: CrmClient[]
@@ -87,9 +101,9 @@ export function CrmTable({
         {/* Rows */}
         {clients.length === 0 ? (
           <div className="py-16 text-center">
-            <p className="text-[32px]">🗂️</p>
-            <p className="mt-2 text-[15px] font-semibold text-foreground">{t('crm.noResult')}</p>
-            <p className="text-[13px] text-muted-foreground">{t('crm.noResultDesc')}</p>
+            <FolderOpen size={40} strokeWidth={1.5} className="mx-auto text-muted-foreground/40 mb-2" />
+            <p className="text-[15px] font-semibold text-foreground">{t('crm.noResult')}</p>
+            <p className="mt-1 text-[13px] text-muted-foreground">{t('crm.noResultDesc')}</p>
           </div>
         ) : clients.map((client, i) => (
           <div
@@ -114,10 +128,11 @@ export function CrmTable({
               {client.companyPhone ? (
                 <a
                   href={`tel:${client.companyPhone}`}
-                  className="block truncate text-[12px] text-primary hover:underline"
+                  className="inline-flex items-center gap-1.5 truncate text-[12px] text-primary hover:underline"
                   onClick={e => e.stopPropagation()}
                 >
-                  📞 {client.companyPhone}
+                  <Phone size={12} strokeWidth={2} className="shrink-0 opacity-70" />
+                  <span className="truncate">{client.companyPhone}</span>
                 </a>
               ) : (
                 <span className="text-[12px] text-muted-foreground">—</span>
@@ -148,7 +163,8 @@ export function CrmTable({
                         className="flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-[12px] font-semibold transition-colors hover:bg-secondary"
                         style={{ color: CRM_STATUS_CONFIG[s].color }}
                       >
-                        {CRM_STATUS_CONFIG[s].emoji} {t(CRM_STATUS_CONFIG[s].labelKey)}
+                        <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: CRM_STATUS_CONFIG[s].color }} />
+                        <span>{t(CRM_STATUS_CONFIG[s].labelKey)}</span>
                       </button>
                     ))}
                   </div>
@@ -188,15 +204,15 @@ export function CrmTable({
                   <button
                     disabled={savingAction === client.id}
                     onClick={() => void handleSaveAction(client.id)}
-                    className="cursor-pointer rounded-lg bg-primary px-2.5 py-1 text-[11px] font-bold text-primary-foreground disabled:opacity-50"
+                    className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg bg-primary text-primary-foreground disabled:opacity-50"
                   >
-                    {savingAction === client.id ? '…' : '✓'}
+                    {savingAction === client.id ? '…' : <Check size={13} strokeWidth={2.5} />}
                   </button>
                   <button
                     onClick={() => { setEditingAction(null); setActionDraft('') }}
-                    className="cursor-pointer rounded-lg border border-border px-2 py-1 text-[11px] text-muted-foreground"
+                    className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-border text-muted-foreground hover:bg-secondary"
                   >
-                    ✕
+                    <X size={13} strokeWidth={2.5} />
                   </button>
                 </div>
               ) : (
@@ -206,15 +222,18 @@ export function CrmTable({
                 >
                   {client.nextAction ? (
                     <span className={`line-clamp-2 text-[12px] font-medium transition-colors group-hover/next:text-primary ${isOverdue(client.nextActionAt) ? 'text-red-500 dark:text-red-400' : 'text-foreground'}`}>
-                      {isOverdue(client.nextActionAt) && '⚠️ '}
+                      {isOverdue(client.nextActionAt) && (
+                        <AlertCircle size={12} strokeWidth={2.5} className="inline mr-1 text-red-500 shrink-0 align-middle" />
+                      )}
                       {client.nextAction}
                       {client.nextActionAt && (
                         <span className="ml-1 text-[10px] font-normal text-muted-foreground">({formatDate(client.nextActionAt)})</span>
                       )}
                     </span>
                   ) : (
-                    <span className="text-[12px] text-muted-foreground/60 italic group-hover/next:text-primary">
-                      + {t('crm.table.addNextAction')}
+                    <span className="inline-flex items-center gap-1 text-[12px] text-muted-foreground/60 italic group-hover/next:text-primary">
+                      <Plus size={12} strokeWidth={2} />
+                      {t('crm.table.addNextAction')}
                     </span>
                   )}
                 </button>
@@ -224,13 +243,13 @@ export function CrmTable({
             {/* Actions */}
             <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
               <ActionBtn
-                emoji="👁"
+                icon={<Eye size={14} strokeWidth={1.8} />}
                 label={t('crm.table.view')}
                 color="var(--color-accent)"
                 onClick={() => onSelect(client)}
               />
               <ActionBtn
-                emoji="📞"
+                icon={<PhoneCall size={14} strokeWidth={1.8} />}
                 label={t('crm.table.call')}
                 color="#22c55e"
                 onClick={() => {
@@ -239,7 +258,7 @@ export function CrmTable({
                 }}
               />
               <ActionBtn
-                emoji="💬"
+                icon={<MessageCircle size={14} strokeWidth={1.8} />}
                 label="WhatsApp"
                 color="#25d366"
                 onClick={() => {
@@ -248,23 +267,25 @@ export function CrmTable({
                 }}
               />
               {confirmDelete === client.id ? (
-                <>
+                <div className="flex items-center gap-1">
                   <button
                     onClick={() => { onDelete(client.id); setConfirmDelete(null) }}
-                    className="cursor-pointer rounded-lg border border-red-500/40 bg-red-500/15 px-2.5 py-1.5 text-[11px] font-bold text-red-500 transition-colors hover:bg-red-500/25"
+                    title={t('common.confirm')}
+                    className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-red-500/40 bg-red-500/15 text-red-500 transition-colors hover:bg-red-500/25"
                   >
-                    ✓
+                    <Check size={13} strokeWidth={2.5} />
                   </button>
                   <button
                     onClick={() => setConfirmDelete(null)}
-                    className="cursor-pointer rounded-lg border border-border bg-transparent px-2 py-1.5 text-[11px] text-muted-foreground"
+                    title={t('common.cancel')}
+                    className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-border bg-transparent text-muted-foreground transition-colors hover:bg-secondary"
                   >
-                    ✕
+                    <X size={13} strokeWidth={2.5} />
                   </button>
-                </>
+                </div>
               ) : (
                 <ActionBtn
-                  emoji="🗑"
+                  icon={<Trash2 size={14} strokeWidth={1.8} />}
                   label={t('crm.table.delete')}
                   color="#ef4444"
                   onClick={() => setConfirmDelete(client.id)}
@@ -281,8 +302,12 @@ export function CrmTable({
           <p className="text-[12px] text-muted-foreground">
             {t('crm.table.showing')} {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, totalCount)} / {totalCount}
           </p>
-          <div className="flex gap-1.5">
-            <PaginationBtn label="←" disabled={page <= 1} onClick={() => onPageChange(page - 1)} />
+          <div className="flex items-center gap-1.5">
+            <PaginationBtn
+              label={<ChevronLeft size={14} strokeWidth={2} />}
+              disabled={page <= 1}
+              onClick={() => onPageChange(page - 1)}
+            />
             {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
               const p = i + 1
               return (
@@ -294,7 +319,11 @@ export function CrmTable({
                 />
               )
             })}
-            <PaginationBtn label="→" disabled={page >= totalPages} onClick={() => onPageChange(page + 1)} />
+            <PaginationBtn
+              label={<ChevronRight size={14} strokeWidth={2} />}
+              disabled={page >= totalPages}
+              onClick={() => onPageChange(page + 1)}
+            />
           </div>
         </div>
       )}
@@ -302,20 +331,20 @@ export function CrmTable({
   )
 }
 
-function ActionBtn({ emoji, label, color, onClick }: { emoji: string; label: string; color: string; onClick: () => void }) {
+function ActionBtn({ icon, label, color, onClick }: { icon: React.ReactNode; label: string; color: string; onClick: () => void }) {
   return (
     <button
       title={label}
       onClick={onClick}
-      className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-transparent text-[14px] transition-all hover:scale-110 active:scale-95"
-      style={{ background: `${color}18` }}
+      className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-transparent transition-all hover:scale-105 active:scale-95"
+      style={{ background: `${color}18`, color }}
     >
-      {emoji}
+      {icon}
     </button>
   )
 }
 
-function PaginationBtn({ label, active, disabled, onClick }: { label: string; active?: boolean; disabled?: boolean; onClick: () => void }) {
+function PaginationBtn({ label, active, disabled, onClick }: { label: React.ReactNode; active?: boolean; disabled?: boolean; onClick: () => void }) {
   return (
     <button
       onClick={onClick}

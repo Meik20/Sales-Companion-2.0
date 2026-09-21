@@ -280,13 +280,14 @@ export function AddClientModal({ isOpen, onClose, onSuccess, userToken, user }: 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
               <label className="block text-xs font-semibold text-foreground mb-1.5 flex items-center gap-1.5">
-                ⚡ {t('crm.colNextAction') || 'Prochaine action'}
+                <Sparkles size={13} className="text-primary" />
+                {t('crm.colNextAction') || 'Prochaine action'}
               </label>
               <input
                 type="text"
                 value={nextAction}
                 onChange={(e) => setNextAction(e.target.value)}
-                placeholder="Ex: 📞 Appeler pour confirmation"
+                placeholder="Ex: Appeler pour confirmation d'offre"
                 className="w-full px-3 py-2 rounded-lg text-xs border bg-background text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
                 style={{ borderColor: 'var(--border, rgba(255, 255, 255, 0.12))' }}
               />

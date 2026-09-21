@@ -3,6 +3,7 @@
 import type { CrmClient, CrmClientStatus } from '../types'
 import { CrmStatusBadge } from './CrmStatusBadge'
 import { useTranslation } from '@/providers/I18nProvider'
+import { FolderOpen, Phone, PhoneCall, MessageCircle, Clock } from 'lucide-react'
 
 type Props = {
   clients: CrmClient[]
@@ -26,9 +27,9 @@ export function CrmMobileCard({ clients, onSelect }: Props) {
   if (clients.length === 0) {
     return (
       <div className="py-16 text-center">
-        <p className="text-[32px]">🗂️</p>
-        <p className="mt-2 text-[15px] font-semibold text-foreground">{t('crm.noResult')}</p>
-        <p className="text-[13px] text-muted-foreground">{t('crm.noResultDesc')}</p>
+        <FolderOpen size={40} strokeWidth={1.5} className="mx-auto text-muted-foreground/40 mb-2" />
+        <p className="text-[15px] font-semibold text-foreground">{t('crm.noResult')}</p>
+        <p className="mt-1 text-[13px] text-muted-foreground">{t('crm.noResultDesc')}</p>
       </div>
     )
   }
@@ -54,9 +55,10 @@ export function CrmMobileCard({ clients, onSelect }: Props) {
 
           {/* Phone */}
           {client.companyPhone && (
-            <p className="text-[12px] text-muted-foreground mb-2">
-              📞 {client.companyPhone}
-            </p>
+            <div className="flex items-center gap-1.5 text-[12px] text-muted-foreground mb-2">
+              <Phone size={12} strokeWidth={2} className="shrink-0 opacity-70" />
+              <span className="truncate">{client.companyPhone}</span>
+            </div>
           )}
 
           {/* Next action */}
@@ -72,8 +74,9 @@ export function CrmMobileCard({ clients, onSelect }: Props) {
           {/* Footer */}
           <div className="flex items-center justify-between">
             {client.lastActivityAt ? (
-              <span className="text-[11px] text-muted-foreground">
-                🕐 {formatRelative(client.lastActivityAt)}
+              <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                <Clock size={12} className="shrink-0 opacity-70" />
+                <span>{formatRelative(client.lastActivityAt)}</span>
               </span>
             ) : (
               <span className="text-[11px] text-muted-foreground/50">{t('crm.table.noActivity')}</span>
@@ -83,17 +86,19 @@ export function CrmMobileCard({ clients, onSelect }: Props) {
                 <>
                   <a
                     href={`tel:${client.companyPhone.replace(/\s+/g, '')}`}
-                    className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/15 text-[14px] transition-colors hover:bg-blue-500/25"
+                    className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/15 text-blue-500 transition-colors hover:bg-blue-500/25"
+                    title="Appeler"
                   >
-                    📞
+                    <PhoneCall size={14} strokeWidth={1.8} />
                   </a>
                   <a
                     href={`https://wa.me/${client.companyPhone.replace(/\s+/g, '').replace('+', '')}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-500/15 text-[14px] transition-colors hover:bg-green-500/25"
+                    className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-500/15 text-green-500 transition-colors hover:bg-green-500/25"
+                    title="WhatsApp"
                   >
-                    💬
+                    <MessageCircle size={14} strokeWidth={1.8} />
                   </a>
                 </>
               )}

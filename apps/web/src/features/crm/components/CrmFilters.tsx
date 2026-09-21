@@ -1,5 +1,6 @@
 'use client'
 
+import { Search, Plus, X } from 'lucide-react'
 import { useTranslation } from '@/providers/I18nProvider'
 import { CRM_STATUS_LIST, CRM_SECTORS, CRM_CITIES } from '../constants'
 
@@ -46,7 +47,7 @@ export function CrmFilters({ filters, onChange, onAddClient, totalCount, activeC
           onClick={onAddClient}
           className="flex cursor-pointer items-center gap-2 rounded-xl border border-primary/40 bg-primary/10 px-4 py-2 text-[13px] font-bold text-primary transition-all hover:bg-primary/20 active:scale-95"
         >
-          <span className="text-[16px]">+</span>
+          <Plus size={16} strokeWidth={2.5} />
           {t('crm.addClient')}
         </button>
       </div>
@@ -55,7 +56,7 @@ export function CrmFilters({ filters, onChange, onAddClient, totalCount, activeC
       <div className="flex flex-wrap gap-2">
         {/* Search */}
         <div className="relative flex-1 min-w-[200px]">
-          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[14px] text-muted-foreground">🔍</span>
+          <Search size={15} strokeWidth={2} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <input
             type="text"
             placeholder={t('crm.searchPlaceholder')}
@@ -117,9 +118,10 @@ export function CrmFilters({ filters, onChange, onAddClient, totalCount, activeC
         {hasActiveFilters && (
           <button
             onClick={resetFilters}
-            className="h-10 cursor-pointer rounded-xl border border-border bg-card px-3 text-[12px] text-muted-foreground transition-colors hover:bg-secondary"
+            className="flex h-10 cursor-pointer items-center gap-1.5 rounded-xl border border-border bg-card px-3 text-[12px] text-muted-foreground transition-colors hover:bg-secondary"
           >
-            ✕ {t('common.reset')}
+            <X size={13} />
+            <span>{t('common.reset')}</span>
           </button>
         )}
       </div>

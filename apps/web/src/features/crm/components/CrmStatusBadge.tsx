@@ -46,7 +46,7 @@ export function CrmStatusBadge({ status, size = 'sm', compact = false, className
         lineHeight: 1.4
       }}
     >
-      <span className="text-[10px] leading-none">{cfg.emoji}</span>
+      <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: cfg.color }} />
       {!compact && <span>{label}</span>}
     </span>
   )
