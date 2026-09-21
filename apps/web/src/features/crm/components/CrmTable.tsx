@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import type { CrmClient, CrmClientStatus } from '../types'
 import { CRM_STATUS_CONFIG } from '../types'
 import { CrmStatusBadge } from './CrmStatusBadge'
@@ -44,12 +45,29 @@ export function CrmTable({
   const { user } = useCurrentUser()
   const isSupportAgent = user?.role === 'support_agent'
 
-  const [statusPopup, setStatusPopup] = useState<{ id: string; openUp: boolean } | null>(null)
+  const [statusPopup, setStatusPopup] = useState<{
+    id: string
+    top: number
+    left: number
+    openUp: boolean
+  } | null>(null)
   const [editingAction, setEditingAction] = useState<string | null>(null)
   const [actionDraft, setActionDraft] = useState('')
   const [savingAction, setSavingAction] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
   const [contactModal, setContactModal] = useState<CrmClient | null>(null)
+
+  // Close dropdown on scroll / resize
+  useEffect(() => {
+    if (!statusPopup) return
+    const close = () => setStatusPopup(null)
+    window.addEventListener('scroll', close, true)
+    window.addEventListener('resize', close)
+    return () => {
+      window.removeEventListener('scroll', close, true)
+      window.removeEventListener('resize', close)
+    }
+  }, [statusPopup])
 
   const totalPages = Math.ceil(totalCount / pageSize)
 
@@ -89,9 +107,9 @@ export function CrmTable({
   return (
     <div>
       {/* Desktop table */}
-      <div className="hidden md:block overflow-hidden rounded-xl border border-border bg-card">
+      <div className="hidden md:block rounded-xl border border-border bg-card">
         {/* Header */}
-        <div className="grid grid-cols-[2fr_1.2fr_0.9fr_1.3fr_1.4fr_1.4fr] border-b border-border bg-secondary/30 px-4 py-3 gap-3">
+        <div className="grid grid-cols-[2fr_1.2fr_0.9fr_1.3fr_1.4fr_1.4fr] border-b border-border bg-secondary/30 px-4 py-3 gap-3 rounded-t-xl">
           {[
             t('crm.table.colCompany'),
             t('crm.table.colContact'),
@@ -120,7 +138,7 @@ export function CrmTable({
           return (
           <div
             key={client.id}
-            className={`group grid grid-cols-[2fr_1.2fr_0.9fr_1.3fr_1.4fr_1.4fr] items-center gap-3 px-4 py-3.5 transition-colors hover:bg-secondary/20 ${i < clients.length - 1 ? 'border-b border-border' : ''}`}
+            className={`group grid grid-cols-[2fr_1.2fr_0.9fr_1.3fr_1.4fr_1.4fr] items-center gap-3 px-4 py-3.5 transition-colors hover:bg-secondary/20 ${i === clients.length - 1 ? 'rounded-b-xl' : 'border-b border-border'}`}
           >
             {/* Company */}
             <div
@@ -162,43 +180,21 @@ export function CrmTable({
                     setStatusPopup(null)
                   } else {
                     const rect = e.currentTarget.getBoundingClientRect()
+                    const DROPDOWN_HEIGHT = 200
                     const spaceBelow = window.innerHeight - rect.bottom
-                    const isNearBottomRow = clients.length > 2 && (i >= clients.length - 3)
-                    const openUp = spaceBelow < 220 || isNearBottomRow
-                    setStatusPopup({ id: client.id, openUp })
+                    const openUp = spaceBelow < DROPDOWN_HEIGHT + 16
+                    setStatusPopup({
+                      id: client.id,
+                      top: openUp ? rect.top : rect.bottom + 6,
+                      left: rect.left,
+                      openUp,
+                    })
                   }
                 }}
                 className="cursor-pointer transition-opacity hover:opacity-80"
               >
                 <CrmStatusBadge status={client.status as CrmClientStatus} />
               </button>
-
-              {/* Status dropdown */}
-              {statusPopup?.id === client.id && (
-                <>
-                  <div className="fixed inset-0 z-10" onClick={() => setStatusPopup(null)} />
-                  <div
-                    className={`absolute left-0 z-20 min-w-[185px] max-h-[195px] overflow-y-auto overscroll-contain rounded-xl border border-border bg-card p-1.5 shadow-[0_8px_40px_rgba(0,0,0,0.4)] [scrollbar-width:thin] ${
-                      statusPopup.openUp ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
-                    }`}
-                  >
-                    {CRM_STATUSES.map(s => (
-                      <button
-                        key={s}
-                        onClick={() => {
-                          void handleStatusChange(client.id, s)
-                          setStatusPopup(null)
-                        }}
-                        className="flex w-full cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-[12px] font-semibold transition-colors hover:bg-secondary shrink-0"
-                        style={{ color: CRM_STATUS_CONFIG[s].color }}
-                      >
-                        <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: CRM_STATUS_CONFIG[s].color }} />
-                        <span className="truncate">{t(CRM_STATUS_CONFIG[s].labelKey)}</span>
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
             </div>
 
             {/* Last activity */}
@@ -363,6 +359,42 @@ export function CrmTable({
           client={contactModal}
           onClose={() => setContactModal(null)}
         />
+      )}
+
+      {/* Status dropdown portal — renders outside any overflow:hidden containers */}
+      {statusPopup && typeof document !== 'undefined' && createPortal(
+        <>
+          {/* Backdrop */}
+          <div className="fixed inset-0 z-40" onClick={() => setStatusPopup(null)} />
+          {/* Dropdown */}
+          <div
+            className="fixed z-50 min-w-[185px] max-h-[200px] overflow-y-auto overscroll-contain rounded-xl border border-border bg-card p-1.5 shadow-[0_12px_44px_rgba(0,0,0,0.55)] [scrollbar-width:thin]"
+            style={
+              statusPopup.openUp
+                ? { bottom: `calc(100vh - ${statusPopup.top}px + 6px)`, left: statusPopup.left }
+                : { top: statusPopup.top, left: statusPopup.left }
+            }
+          >
+            {CRM_STATUSES.map(s => (
+              <button
+                key={s}
+                onClick={() => {
+                  void handleStatusChange(
+                    statusPopup.id,
+                    s
+                  )
+                  setStatusPopup(null)
+                }}
+                className="flex w-full cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-[12px] font-semibold transition-colors hover:bg-secondary"
+                style={{ color: CRM_STATUS_CONFIG[s].color }}
+              >
+                <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: CRM_STATUS_CONFIG[s].color }} />
+                <span className="truncate">{t(CRM_STATUS_CONFIG[s].labelKey)}</span>
+              </button>
+            ))}
+          </div>
+        </>,
+        document.body
       )}
     </div>
   )
