@@ -56,11 +56,15 @@ export function CrmTable({
   const [savingAction, setSavingAction] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
   const [contactModal, setContactModal] = useState<CrmClient | null>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
-  // Close dropdown on scroll / resize
+  // Close dropdown on scroll / resize — but NOT when scrolling inside the dropdown itself
   useEffect(() => {
     if (!statusPopup) return
-    const close = () => setStatusPopup(null)
+    const close = (e: Event) => {
+      if (dropdownRef.current && dropdownRef.current.contains(e.target as Node)) return
+      setStatusPopup(null)
+    }
     window.addEventListener('scroll', close, true)
     window.addEventListener('resize', close)
     return () => {
@@ -368,6 +372,7 @@ export function CrmTable({
           <div className="fixed inset-0 z-40" onClick={() => setStatusPopup(null)} />
           {/* Dropdown */}
           <div
+            ref={dropdownRef}
             className="fixed z-50 min-w-[185px] max-h-[200px] overflow-y-auto overscroll-contain rounded-xl border border-border bg-card p-1.5 shadow-[0_12px_44px_rgba(0,0,0,0.55)] [scrollbar-width:thin]"
             style={
               statusPopup.openUp
