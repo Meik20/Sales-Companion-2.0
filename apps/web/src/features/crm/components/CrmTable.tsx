@@ -4,11 +4,12 @@ import { useState } from 'react'
 import type { CrmClient, CrmClientStatus } from '../types'
 import { CRM_STATUS_CONFIG } from '../types'
 import { CrmStatusBadge } from './CrmStatusBadge'
+import { SupportContactModal } from './SupportContactModal'
 import { useTranslation } from '@/providers/I18nProvider'
 import {
   Phone,
   PhoneCall,
-  MessageCircle,
+  Mail,
   Eye,
   Trash2,
   Plus,
@@ -44,6 +45,7 @@ export function CrmTable({
   const [actionDraft, setActionDraft] = useState('')
   const [savingAction, setSavingAction] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
+  const [contactModal, setContactModal] = useState<CrmClient | null>(null)
 
   const totalPages = Math.ceil(totalCount / pageSize)
 
@@ -258,13 +260,10 @@ export function CrmTable({
                 }}
               />
               <ActionBtn
-                icon={<MessageCircle size={14} strokeWidth={1.8} />}
-                label="WhatsApp"
-                color="#25d366"
-                onClick={() => {
-                  const phone = client.companyPhone?.replace(/\s+/g, '').replace('+', '')
-                  if (phone) window.open(`https://wa.me/${phone}`, '_blank')
-                }}
+                icon={<Mail size={14} strokeWidth={1.8} />}
+                label="Envoyer un email"
+                color="#6366f1"
+                onClick={() => setContactModal(client)}
               />
               {confirmDelete === client.id ? (
                 <div className="flex items-center gap-1">
@@ -326,6 +325,14 @@ export function CrmTable({
             />
           </div>
         </div>
+      )}
+
+      {/* Support contact modal */}
+      {contactModal && (
+        <SupportContactModal
+          client={contactModal}
+          onClose={() => setContactModal(null)}
+        />
       )}
     </div>
   )
