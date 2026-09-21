@@ -647,6 +647,7 @@ export const fr = {
     emailTitle: 'Adresse e-mail',
     currentEmailLabel: 'Votre adresse e-mail actuelle est :',
     memberEmailLocked: "En tant que membre d'équipe, votre adresse e-mail professionnelle est gérée par votre organisation et ne peut pas être modifiée.",
+    supportEmailLocked: "En tant qu'agent de support, votre adresse e-mail professionnelle est gérée par votre organisation et ne peut pas être modifiée.",
     googleEmailNote: "Votre compte est associé à Google. Les modifications d'adresse e-mail doivent être effectuées depuis votre compte Google.",
     newEmailPlaceholder: 'Nouvelle adresse e-mail',
     updateBtn: 'Mettre à jour',

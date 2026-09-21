@@ -74,10 +74,16 @@ export default function SettingsPage() {
   const [pwSuccess, setPwSuccess] = useState<string | null>(null)
 
   const isGoogleUser = auth.currentUser?.providerData.some(p => p.providerId === 'google.com') ?? false
+  const isSupport = user?.role === 'support_agent' || (user?.role as string) === 'support'
+  const isEmailLocked = user?.role === 'member' || isSupport
 
   const handleUpdateEmail = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newEmail) return
+    if (isEmailLocked) {
+      setEmailError(t(isSupport ? 'settings.supportEmailLocked' : 'settings.memberEmailLocked'))
+      return
+    }
     setEmailLoading(true)
     setEmailError(null)
     setEmailSuccess(null)
@@ -245,7 +251,7 @@ export default function SettingsPage() {
           </DataCard>
 
           {/* ── Abonnement (masqué pour l'agent support car pas de quota) ── */}
-          {user?.role !== 'support_agent' && (
+          {!isSupport && (
             <DataCard title={t('settings.currentSubscription')}>
               <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
                 <div>
@@ -304,11 +310,13 @@ export default function SettingsPage() {
                   <div className="rounded-lg border border-border bg-secondary/30 p-3 text-[12px] text-muted-foreground">
                     {t('settings.googleEmailNote')}
                   </div>
-                ) : user?.role === 'member' ? (
+                ) : isEmailLocked ? (
                   <div className="flex items-center gap-2.5 rounded-lg border border-border bg-secondary/40 p-3.5 text-[13px] text-muted-foreground">
                     <span className="text-base shrink-0">🔒</span>
                     <span>
-                      {t('settings.memberEmailLocked')}
+                      {isSupport
+                        ? t('settings.supportEmailLocked')
+                        : t('settings.memberEmailLocked')}
                     </span>
                   </div>
                 ) : (

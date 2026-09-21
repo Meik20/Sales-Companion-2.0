@@ -644,6 +644,7 @@ export const en = {
     emailTitle: 'Email address',
     currentEmailLabel: 'Your current email address is:',
     memberEmailLocked: 'As a team member, your professional email address is managed by your organization and cannot be changed.',
+    supportEmailLocked: 'As a support agent, your professional email address is managed by your organization and cannot be changed.',
     googleEmailNote: 'Your account is linked to Google. Email address changes must be done from your Google account.',
     newEmailPlaceholder: 'New email address',
     updateBtn: 'Update',
