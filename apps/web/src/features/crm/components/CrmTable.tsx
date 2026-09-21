@@ -164,7 +164,7 @@ export function CrmTable({
                     const rect = e.currentTarget.getBoundingClientRect()
                     const spaceBelow = window.innerHeight - rect.bottom
                     const isNearBottomRow = clients.length > 2 && (i >= clients.length - 3)
-                    const openUp = spaceBelow < 280 || isNearBottomRow
+                    const openUp = spaceBelow < 220 || isNearBottomRow
                     setStatusPopup({ id: client.id, openUp })
                   }
                 }}
@@ -178,7 +178,7 @@ export function CrmTable({
                 <>
                   <div className="fixed inset-0 z-10" onClick={() => setStatusPopup(null)} />
                   <div
-                    className={`absolute left-0 z-20 min-w-[180px] rounded-xl border border-border bg-card p-2 shadow-[0_8px_40px_rgba(0,0,0,0.3)] ${
+                    className={`absolute left-0 z-20 min-w-[185px] max-h-[195px] overflow-y-auto overscroll-contain rounded-xl border border-border bg-card p-1.5 shadow-[0_8px_40px_rgba(0,0,0,0.4)] [scrollbar-width:thin] ${
                       statusPopup.openUp ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
                     }`}
                   >
@@ -189,11 +189,11 @@ export function CrmTable({
                           void handleStatusChange(client.id, s)
                           setStatusPopup(null)
                         }}
-                        className="flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-[12px] font-semibold transition-colors hover:bg-secondary"
+                        className="flex w-full cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-[12px] font-semibold transition-colors hover:bg-secondary shrink-0"
                         style={{ color: CRM_STATUS_CONFIG[s].color }}
                       >
                         <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: CRM_STATUS_CONFIG[s].color }} />
-                        <span>{t(CRM_STATUS_CONFIG[s].labelKey)}</span>
+                        <span className="truncate">{t(CRM_STATUS_CONFIG[s].labelKey)}</span>
                       </button>
                     ))}
                   </div>
