@@ -4,8 +4,9 @@ import { useState } from 'react'
 import type { CrmClient, CrmClientStatus } from '../types'
 import { CrmStatusBadge } from './CrmStatusBadge'
 import { SupportContactModal } from './SupportContactModal'
+import { EmptyState } from '@/components/feedback'
 import { useTranslation } from '@/providers/I18nProvider'
-import { FolderOpen, Phone, PhoneCall, Mail, Clock } from 'lucide-react'
+import { Phone, PhoneCall, Mail, Clock } from 'lucide-react'
 
 type Props = {
   clients: CrmClient[]
@@ -29,11 +30,13 @@ export function CrmMobileCard({ clients, onSelect }: Props) {
 
   if (clients.length === 0) {
     return (
-      <div className="py-16 text-center">
-        <FolderOpen size={40} strokeWidth={1.5} className="mx-auto text-muted-foreground/40 mb-2" />
-        <p className="text-[15px] font-semibold text-foreground">{t('crm.noResult')}</p>
-        <p className="mt-1 text-[13px] text-muted-foreground">{t('crm.noResultDesc')}</p>
-      </div>
+      <EmptyState
+        illustration="/illustrations/empty-states/empty-crm-support.png"
+        illustrationSize="md"
+        title={t('crm.noResult')}
+        description={t('crm.noResultDesc')}
+        className="py-12"
+      />
     )
   }
 

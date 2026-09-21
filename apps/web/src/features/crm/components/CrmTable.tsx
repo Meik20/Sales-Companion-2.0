@@ -5,6 +5,7 @@ import type { CrmClient, CrmClientStatus } from '../types'
 import { CRM_STATUS_CONFIG } from '../types'
 import { CrmStatusBadge } from './CrmStatusBadge'
 import { SupportContactModal } from './SupportContactModal'
+import { EmptyState } from '@/components/feedback'
 import { useTranslation } from '@/providers/I18nProvider'
 import {
   Phone,
@@ -17,7 +18,6 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
-  FolderOpen,
   AlertCircle
 } from 'lucide-react'
 
@@ -102,11 +102,13 @@ export function CrmTable({
 
         {/* Rows */}
         {clients.length === 0 ? (
-          <div className="py-16 text-center">
-            <FolderOpen size={40} strokeWidth={1.5} className="mx-auto text-muted-foreground/40 mb-2" />
-            <p className="text-[15px] font-semibold text-foreground">{t('crm.noResult')}</p>
-            <p className="mt-1 text-[13px] text-muted-foreground">{t('crm.noResultDesc')}</p>
-          </div>
+          <EmptyState
+            illustration="/illustrations/empty-states/empty-crm-support.png"
+            illustrationSize="md"
+            title={t('crm.noResult')}
+            description={t('crm.noResultDesc')}
+            className="py-12"
+          />
         ) : clients.map((client, i) => (
           <div
             key={client.id}
