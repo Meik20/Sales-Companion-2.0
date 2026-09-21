@@ -102,48 +102,52 @@ export function CrmTable({
 
   async function handleSaveAction(clientId: string) {
     setSavingAction(clientId)
-    await onNextActionSave(clientId, actionDraft)
-    setSavingAction(null)
-    setEditingAction(null)
-    setActionDraft('')
+    try {
+      await onNextActionSave(clientId, actionDraft)
+    } finally {
+      setSavingAction(null)
+      setEditingAction(null)
+      setActionDraft('')
+    }
   }
 
   return (
     <div>
       {/* Desktop table */}
-      <div className="hidden md:block rounded-xl border border-border bg-card">
-        {/* Header */}
-        <div className="grid grid-cols-[2fr_1.2fr_0.9fr_1.3fr_1.4fr_1.4fr] border-b border-border bg-secondary/30 px-4 py-3 gap-3 rounded-t-xl">
-          {[
-            t('crm.table.colCompany'),
-            t('crm.table.colContact'),
-            t('crm.table.colStatus'),
-            t('crm.table.colLastActivity'),
-            t('crm.table.colNextAction'),
-            t('crm.table.colActions')
-          ].map(col => (
-            <span key={col} className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{col}</span>
-          ))}
-        </div>
+      <div className="hidden md:block rounded-xl border border-border bg-card overflow-x-auto">
+        <div className="min-w-[850px]">
+          {/* Header */}
+          <div className="grid grid-cols-[1.8fr_1.1fr_0.9fr_1.2fr_1.8fr_148px] border-b border-border bg-secondary/30 px-4 py-3 gap-3 rounded-t-xl">
+            {[
+              t('crm.table.colCompany'),
+              t('crm.table.colContact'),
+              t('crm.table.colStatus'),
+              t('crm.table.colLastActivity'),
+              t('crm.table.colNextAction'),
+              t('crm.table.colActions')
+            ].map(col => (
+              <span key={col} className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{col}</span>
+            ))}
+          </div>
 
-        {/* Rows */}
-        {clients.length === 0 ? (
-          <EmptyState
-            illustration="/illustrations/empty-states/empty-crm-support.png"
-            illustrationSize="md"
-            title={t('crm.noResult')}
-            description={t('crm.noResultDesc')}
-            className="py-12"
-          />
-        ) : clients.map((client, i) => {
-          const isPipelineClient = client._source === 'pipeline'
-          const canDelete = !(isSupportAgent && isPipelineClient)
+          {/* Rows */}
+          {clients.length === 0 ? (
+            <EmptyState
+              illustration="/illustrations/empty-states/empty-crm-support.png"
+              illustrationSize="md"
+              title={t('crm.noResult')}
+              description={t('crm.noResultDesc')}
+              className="py-12"
+            />
+          ) : clients.map((client, i) => {
+            const isPipelineClient = client._source === 'pipeline'
+            const canDelete = !(isSupportAgent && isPipelineClient)
 
-          return (
-          <div
-            key={client.id}
-            className={`group grid grid-cols-[2fr_1.2fr_0.9fr_1.3fr_1.4fr_1.4fr] items-center gap-3 px-4 py-3.5 transition-colors hover:bg-secondary/20 ${i === clients.length - 1 ? 'rounded-b-xl' : 'border-b border-border'}`}
-          >
+            return (
+            <div
+              key={client.id}
+              className={`group grid grid-cols-[1.8fr_1.1fr_0.9fr_1.2fr_1.8fr_148px] items-center gap-3 px-4 py-3.5 transition-colors hover:bg-secondary/20 ${i === clients.length - 1 ? 'rounded-b-xl' : 'border-b border-border'}`}
+            >
             {/* Company */}
             <div
               className="cursor-pointer min-w-0"
@@ -218,7 +222,7 @@ export function CrmTable({
             {/* Next action */}
             <div className="min-w-0">
               {editingAction === client.id ? (
-                <div className="flex gap-1.5" onClick={e => e.stopPropagation()}>
+                <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
                   <input
                     autoFocus
                     value={actionDraft}
@@ -228,18 +232,28 @@ export function CrmTable({
                       if (e.key === 'Escape') { setEditingAction(null); setActionDraft('') }
                     }}
                     placeholder={t('crm.table.nextActionPlaceholder')}
-                    className="flex-1 rounded-lg border border-primary bg-background px-2 py-1 text-[12px] text-foreground outline-none"
+                    className="min-w-0 flex-1 rounded-lg border border-primary bg-background px-2.5 py-1 text-[12px] text-foreground outline-none shadow-sm focus:ring-1 focus:ring-primary"
                   />
                   <button
+                    type="button"
                     disabled={savingAction === client.id}
                     onClick={() => void handleSaveAction(client.id)}
-                    className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg bg-primary text-primary-foreground disabled:opacity-50"
+                    title={t('common.confirm')}
+                    aria-label={t('common.confirm')}
+                    className="flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
                   >
-                    {savingAction === client.id ? '…' : <Check size={13} strokeWidth={2.5} />}
+                    {savingAction === client.id ? (
+                      <span className="text-[11px] leading-none">…</span>
+                    ) : (
+                      <Check size={13} strokeWidth={2.5} />
+                    )}
                   </button>
                   <button
+                    type="button"
                     onClick={() => { setEditingAction(null); setActionDraft('') }}
-                    className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-border text-muted-foreground hover:bg-secondary"
+                    title={t('common.cancel')}
+                    aria-label={t('common.cancel')}
+                    className="flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
                   >
                     <X size={13} strokeWidth={2.5} />
                   </button>
@@ -296,16 +310,20 @@ export function CrmTable({
                 confirmDelete === client.id ? (
                   <div className="flex items-center gap-1">
                     <button
+                      type="button"
                       onClick={() => { onDelete(client.id); setConfirmDelete(null) }}
                       title={t('common.confirm')}
-                      className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-red-500/40 bg-red-500/15 text-red-500 transition-colors hover:bg-red-500/25"
+                      aria-label={t('common.confirm')}
+                      className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-red-500/40 bg-red-500/15 text-red-500 transition-colors hover:bg-red-500/25"
                     >
                       <Check size={13} strokeWidth={2.5} />
                     </button>
                     <button
+                      type="button"
                       onClick={() => setConfirmDelete(null)}
                       title={t('common.cancel')}
-                      className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-border bg-transparent text-muted-foreground transition-colors hover:bg-secondary"
+                      aria-label={t('common.cancel')}
+                      className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-border bg-transparent text-muted-foreground transition-colors hover:bg-secondary"
                     >
                       <X size={13} strokeWidth={2.5} />
                     </button>
@@ -323,6 +341,7 @@ export function CrmTable({
           </div>
           )
         })}
+        </div>
       </div>
 
       {/* Pagination */}
@@ -408,9 +427,11 @@ export function CrmTable({
 function ActionBtn({ icon, label, color, onClick }: { icon: React.ReactNode; label: string; color: string; onClick: () => void }) {
   return (
     <button
+      type="button"
       title={label}
+      aria-label={label}
       onClick={onClick}
-      className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-transparent transition-all hover:scale-105 active:scale-95"
+      className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-transparent transition-all hover:scale-105 active:scale-95"
       style={{ background: `${color}18`, color }}
     >
       {icon}
