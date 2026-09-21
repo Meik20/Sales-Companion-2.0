@@ -1,21 +1,42 @@
 'use client'
 
 import { AppShell } from '@/components/layout/AppShell'
-import { PageHeader } from '@/components/layout/PageHeader'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useTranslation } from '@/providers/I18nProvider'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { ClientDrawer } from '@/features/crm/components/ClientDrawer'
-import type { CrmClient } from '@/features/crm/types'
+import { CrmTable } from '@/features/crm/components/CrmTable'
+import { CrmMobileCard } from '@/features/crm/components/CrmMobileCard'
+import { CrmFilters, type CrmFiltersState } from '@/features/crm/components/CrmFilters'
+import { CrmSkeleton, CrmMobileSkeleton } from '@/features/crm/components/CrmSkeleton'
+import { AddClientModal } from '@/features/crm/components/AddClientModal'
+import type { CrmClient, CrmClientStatus } from '@/features/crm/types'
+
+const PAGE_SIZE = 20
+
+const ACTIVE_STATUSES = new Set(['new', 'to_contact', 'contacted', 'in_discussion', 'proposal_sent'])
 
 export default function CrmPage() {
   const { t } = useTranslation()
   const { user } = useCurrentUser()
+
+  // Data
   const [clients, setClients] = useState<CrmClient[]>([])
   const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
   const [selectedClient, setSelectedClient] = useState<CrmClient | null>(null)
+  const [showAddModal, setShowAddModal] = useState(false)
 
+  // Filters + pagination
+  const [filters, setFilters] = useState<CrmFiltersState>({
+    search: '',
+    status: '',
+    sector: '',
+    city: '',
+    sortBy: 'lastActivityAt'
+  })
+  const [page, setPage] = useState(1)
+
+  // ── Fetch ──────────────────────────────────────────────────────────────────
   const fetchClients = useCallback(async () => {
     if (!user) return
     setLoading(true)
@@ -37,88 +58,176 @@ export default function CrmPage() {
 
   useEffect(() => { void fetchClients() }, [fetchClients])
 
-  const filtered = clients.filter(c =>
-    !search ||
-    c.companyName?.toLowerCase().includes(search.toLowerCase()) ||
-    c.companyCity?.toLowerCase().includes(search.toLowerCase()) ||
-    c.companySector?.toLowerCase().includes(search.toLowerCase())
+  // Reset page on filter change
+  useEffect(() => { setPage(1) }, [filters])
+
+  // ── Stats ──────────────────────────────────────────────────────────────────
+  const activeCount = useMemo(() => clients.filter(c => ACTIVE_STATUSES.has(c.status)).length, [clients])
+  const toFollowUpCount = useMemo(() => clients.filter(c => c.status === 'to_contact').length, [clients])
+
+  // ── Filter + Sort ──────────────────────────────────────────────────────────
+  const filtered = useMemo(() => {
+    let list = [...clients]
+
+    if (filters.search) {
+      const q = filters.search.toLowerCase()
+      list = list.filter(c =>
+        c.companyName?.toLowerCase().includes(q) ||
+        c.companyCity?.toLowerCase().includes(q) ||
+        c.companySector?.toLowerCase().includes(q) ||
+        c.companyPhone?.includes(q) ||
+        c.contactName?.toLowerCase().includes(q)
+      )
+    }
+
+    if (filters.status === 'active_group') {
+      list = list.filter(c => ACTIVE_STATUSES.has(c.status))
+    } else if (filters.status) {
+      list = list.filter(c => c.status === filters.status)
+    }
+
+    if (filters.sector) list = list.filter(c => c.companySector === filters.sector || c.sector === filters.sector)
+    if (filters.city) list = list.filter(c => c.companyCity === filters.city || c.city === filters.city)
+
+    // Sort
+    list.sort((a, b) => {
+      if (filters.sortBy === 'companyName') return (a.companyName || '').localeCompare(b.companyName || '')
+      if (filters.sortBy === 'status') return (a.status || '').localeCompare(b.status || '')
+      if (filters.sortBy === 'nextActionAt') {
+        if (!a.nextActionAt) return 1
+        if (!b.nextActionAt) return -1
+        return new Date(a.nextActionAt).getTime() - new Date(b.nextActionAt).getTime()
+      }
+      // lastActivityAt (default)
+      if (!a.lastActivityAt) return 1
+      if (!b.lastActivityAt) return -1
+      return new Date(b.lastActivityAt).getTime() - new Date(a.lastActivityAt).getTime()
+    })
+
+    return list
+  }, [clients, filters])
+
+  // Paginate
+  const paginated = useMemo(
+    () => filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+    [filtered, page]
   )
 
-  const subtitleText = `${clients.length} ${clients.length > 1 ? t('crm.subtitlePlural') : t('crm.subtitleSingular')}`
+  // ── Actions ────────────────────────────────────────────────────────────────
+  const handleStatusChange = useCallback(async (clientId: string, newStatus: CrmClientStatus) => {
+    if (!user) return
+    // Optimistic update
+    setClients(prev => prev.map(c => c.id === clientId ? { ...c, status: newStatus } : c))
+    if (selectedClient?.id === clientId) setSelectedClient(s => s ? { ...s, status: newStatus } : s)
+    try {
+      const token = await user.getIdToken()
+      await fetch(`/api/crm/clients/${clientId}`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      })
+    } catch (e) {
+      console.error('[CRM] status update error', e)
+      void fetchClients()
+    }
+  }, [user, selectedClient, fetchClients])
 
+  const handleNextActionSave = useCallback(async (clientId: string, text: string) => {
+    if (!user) return
+    setClients(prev => prev.map(c => c.id === clientId ? { ...c, nextAction: text } : c))
+    try {
+      const token = await user.getIdToken()
+      await fetch(`/api/crm/clients/${clientId}`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nextAction: text })
+      })
+    } catch (e) {
+      console.error('[CRM] next action error', e)
+    }
+  }, [user])
+
+  const handleDelete = useCallback(async (clientId: string) => {
+    if (!user) return
+    setClients(prev => prev.filter(c => c.id !== clientId))
+    if (selectedClient?.id === clientId) setSelectedClient(null)
+    try {
+      const token = await user.getIdToken()
+      await fetch(`/api/crm/clients/${clientId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      })
+    } catch (e) {
+      console.error('[CRM] delete error', e)
+      void fetchClients()
+    }
+  }, [user, selectedClient, fetchClients])
+
+  const handleClientAdded = useCallback(() => {
+    setShowAddModal(false)
+    void fetchClients()
+  }, [fetchClients])
+
+  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <AppShell>
-      <PageHeader
-        title={t('crm.title')}
-        subtitle={subtitleText}
+      {/* Page Title */}
+      <div className="mb-6">
+        <h1 className="font-['Syne',sans-serif] text-[24px] font-extrabold text-foreground">
+          {t('crm.title')}
+        </h1>
+        {!loading && (
+          <p className="mt-1 text-[13px] text-muted-foreground">
+            {clients.length} {t('crm.headerClients')} ·{' '}
+            <span className="font-semibold text-green-600 dark:text-green-400">{activeCount} {t('crm.headerActive')}</span> ·{' '}
+            <span className="font-semibold text-amber-600 dark:text-amber-400">{toFollowUpCount} {t('crm.headerToFollowUp')}</span>
+          </p>
+        )}
+      </div>
+
+      {/* Filters + Add button */}
+      <CrmFilters
+        filters={filters}
+        onChange={setFilters}
+        onAddClient={() => setShowAddModal(true)}
+        totalCount={clients.length}
+        activeCount={activeCount}
+        toFollowUpCount={toFollowUpCount}
       />
 
-      {/* Search */}
-      <div className="mb-4">
-        <input
-          type="text"
-          placeholder={t('crm.searchPlaceholder')}
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          className="h-10 w-full rounded-xl border border-border bg-card px-4 text-[13px] text-foreground outline-none transition-colors focus:border-primary"
-        />
-      </div>
-
-      {/* Stats bar */}
-      <div className="mb-5 flex flex-wrap gap-3">
-        {[
-          { label: t('crm.totalClients'), value: clients.length, color: 'var(--color-accent)' },
-          { label: t('crm.displayed'), value: filtered.length, color: '#0284c7' }
-        ].map(stat => (
-          <div key={stat.label} className="flex items-center gap-2.5 rounded-xl border border-border bg-card px-4 py-2.5">
-            <span className="font-['Syne',sans-serif] text-[22px] font-extrabold" style={{ color: stat.color }}>
-              {stat.value}
-            </span>
-            <span className="text-[12px] text-muted-foreground">{stat.label}</span>
-          </div>
-        ))}
-      </div>
-
-      {/* Table */}
+      {/* Content */}
       {loading ? (
-        <div className="p-10 text-center text-[14px] text-muted-foreground">
-          {t('crm.loading')}
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="rounded-2xl border border-border bg-card p-14 text-center text-muted-foreground">
-          <div className="mb-3 text-[40px]">🎧</div>
-          <p className="mb-1 mt-0 text-[15px] font-bold text-foreground">
-            {search ? t('crm.noResult') : t('crm.noClients')}
-          </p>
-          <p className="m-0 text-[13px]">
-            {search ? t('crm.noResultDesc') : t('crm.noClientsDesc')}
-          </p>
-        </div>
+        <>
+          <CrmSkeleton />
+          <CrmMobileSkeleton />
+        </>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-border bg-card">
-          {/* Header */}
-          <div className="grid grid-cols-[1fr_130px_160px_120px_100px] border-b border-border px-5 py-2.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-            <span>{t('crm.colCompany')}</span>
-            <span>{t('crm.colCity')}</span>
-            <span>{t('crm.colSector')}</span>
-            <span>{t('crm.colPhone')}</span>
-            <span>{t('crm.colAction')}</span>
+        <>
+          {/* Desktop table */}
+          <div className="hidden md:block">
+            <CrmTable
+              clients={paginated}
+              onSelect={setSelectedClient}
+              onStatusChange={handleStatusChange}
+              onNextActionSave={handleNextActionSave}
+              onDelete={handleDelete}
+              page={page}
+              pageSize={PAGE_SIZE}
+              totalCount={filtered.length}
+              onPageChange={setPage}
+            />
           </div>
 
-          {/* Rows */}
-          {filtered.map((client, idx) => (
-            <ClientRow
-              key={client.id}
-              client={client}
-              isLast={idx === filtered.length - 1}
-              onSelect={() => setSelectedClient(client)}
-              isSelected={selectedClient?.id === client.id}
-            />
-          ))}
-        </div>
+          {/* Mobile cards */}
+          <CrmMobileCard
+            clients={paginated}
+            onSelect={setSelectedClient}
+            onStatusChange={handleStatusChange}
+          />
+        </>
       )}
 
-      {/* Drawer */}
+      {/* Client Drawer */}
       {selectedClient && (
         <ClientDrawer
           client={selectedClient}
@@ -126,51 +235,15 @@ export default function CrmPage() {
           user={user}
         />
       )}
-    </AppShell>
-  )
-}
 
-function ClientRow({
-  client, isLast, onSelect, isSelected
-}: {
-  client: CrmClient
-  isLast: boolean
-  onSelect: () => void
-  isSelected: boolean
-}) {
-  const { t } = useTranslation()
-  return (
-    <div
-      onClick={onSelect}
-      className={`grid cursor-pointer grid-cols-[1fr_130px_160px_120px_100px] items-center px-5 py-3.5 transition-colors duration-150 ${
-        isLast ? '' : 'border-b border-border'
-      } ${isSelected ? 'bg-primary/10' : 'hover:bg-secondary'}`}
-    >
-      <div>
-        <div className="text-[13.5px] font-bold text-foreground">
-          {client.companyName}
-        </div>
-        {client.companyEmail && (
-          <div className="mt-0.5 text-[11px] text-muted-foreground">
-            {client.companyEmail}
-          </div>
-        )}
-      </div>
-      <span className="text-[13px] text-muted-foreground">{client.companyCity || '—'}</span>
-      <span className="text-[13px] text-muted-foreground">{client.companySector || '—'}</span>
-      <span className="font-mono text-[13px] text-muted-foreground">
-        {client.companyPhone || '—'}
-      </span>
-      <button
-        onClick={e => { e.stopPropagation(); onSelect() }}
-        className={`cursor-pointer rounded-lg px-3.5 py-1.5 text-[12px] font-semibold transition-all duration-150 ${
-          isSelected
-            ? 'bg-primary text-primary-foreground'
-            : 'border border-border bg-transparent text-muted-foreground hover:bg-secondary hover:text-foreground'
-        }`}
-      >
-        {isSelected ? `✓ ${t('crm.open')}` : `${t('crm.manage')} →`}
-      </button>
-    </div>
+      {/* Add Client Modal */}
+      {showAddModal && (
+        <AddClientModal
+          user={user}
+          onClose={() => setShowAddModal(false)}
+          onSuccess={handleClientAdded}
+        />
+      )}
+    </AppShell>
   )
 }
