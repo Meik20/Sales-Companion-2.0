@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useTranslation } from '@/providers/I18nProvider'
+import { EmptyState } from '@/components/feedback'
+import { RotateCw, Loader2 } from 'lucide-react'
 
 export type Prospect = {
   id: string
@@ -236,10 +238,13 @@ export function ManagerProspectsList({
             fontSize: 14,
             fontWeight: 700,
             cursor: 'pointer',
-            fontFamily: 'inherit'
+            fontFamily: 'inherit',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
           }}
         >
-          ↻
+          <RotateCw size={14} className={loading ? 'animate-spin' : ''} />
         </button>
       </div>
 
@@ -290,10 +295,12 @@ export function ManagerProspectsList({
 
       {/* ── Table ── */}
       {!loading && filtered.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: 32, color: 'var(--muted-foreground, #94a3b8)', fontSize: 13 }}>
-          <div style={{ fontSize: 28, marginBottom: 8 }}>📋</div>
-          {prospects.length === 0 ? t('team.noProspectImported') : t('team.noProspectMatch')}
-        </div>
+        <EmptyState
+          illustration={prospects.length === 0 ? '/illustrations/empty-states/empty-team.png' : '/illustrations/empty-states/empty-search.png'}
+          illustrationSize="sm"
+          title={prospects.length === 0 ? t('team.noProspectImported') : t('team.noProspectMatch')}
+          className="py-10"
+        />
       ) : (
         <div style={{ overflowX: 'auto', borderRadius: 10, border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}` }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12.5 }}>
@@ -429,7 +436,9 @@ export function ManagerProspectsList({
                     {!hideAssign && (
                       <td style={{ padding: '9px 12px' }}>
                         {assigning === p.id ? (
-                          <span style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)' }}>⏳</span>
+                          <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                            <Loader2 size={13} className="animate-spin" style={{ color: 'var(--muted-foreground, #94a3b8)' }} />
+                          </span>
                         ) : (
                           <select
                             value={p.assignedTo ?? ''}

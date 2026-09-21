@@ -4,6 +4,7 @@ import React from 'react'
 import Link from 'next/link'
 import { useTranslation } from '@/providers/I18nProvider'
 import { Button } from '@/components/ui/Button'
+import { Inbox } from 'lucide-react'
 
 type LoadingProps = { title?: string; description?: string }
 
@@ -56,7 +57,7 @@ type EmptyProps = {
 export function EmptyState({
   title,
   description,
-  icon = '📭',
+  icon = <Inbox size={36} strokeWidth={1.5} className="mb-1 text-muted-foreground/60" />,
   illustration,
   illustrationAlt,
   illustrationSize = 'md',

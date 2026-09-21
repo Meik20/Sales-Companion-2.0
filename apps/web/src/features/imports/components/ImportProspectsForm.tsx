@@ -3,6 +3,16 @@
 import { useState, useRef } from 'react'
 import { useTranslation } from '@/providers/I18nProvider'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import {
+  FolderOpen,
+  CheckCircle2,
+  FileText,
+  Info,
+  AlertTriangle,
+  Upload,
+  Loader2,
+  X
+} from 'lucide-react'
 
 type ParsedRow = {
   name: string
@@ -342,7 +352,12 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
           transition: 'all 200ms ease'
         }}
       >
-        <div style={{ fontSize: 28, marginBottom: 8 }}>{rows.length ? '✅' : '📁'}</div>
+        <div style={{ marginBottom: 8, display: 'flex', justifyContent: 'center' }}>
+          {rows.length
+            ? <CheckCircle2 size={32} strokeWidth={1.5} style={{ color: '#22c55e' }} />
+            : <FolderOpen size={32} strokeWidth={1.5} style={{ color: 'var(--muted-foreground, #94a3b8)', opacity: 0.6 }} />
+          }
+        </div>
         {fileName ? (
           <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--foreground, #f1f5f9)' }}>{fileName}</div>
         ) : (
@@ -382,7 +397,10 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
           border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
         }}
       >
-        <strong>📄 {t('team.supportedFormats')}</strong> CSV, TSV, TXT, XLSX, XLS, JSON, etc.
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, marginBottom: 4 }}>
+          <FileText size={13} strokeWidth={2} style={{ color: 'var(--muted-foreground, #94a3b8)', marginTop: 1, flexShrink: 0 }} />
+          <span><strong>{t('team.supportedFormats')}</strong> CSV, TSV, TXT, XLSX, XLS, JSON, etc.</span>
+        </div>
         <br />
         <strong>{t('team.autoSeparators')}</strong> {t('team.separatorsList')}
         <br />
@@ -390,7 +408,10 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
           {t('team.exampleColumns')}
         </code>
         <br />
-        ℹ️ {t('team.flexibleColumns')}
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, marginTop: 4 }}>
+          <Info size={12} strokeWidth={2} style={{ color: 'var(--muted-foreground, #94a3b8)', marginTop: 1, flexShrink: 0 }} />
+          <span>{t('team.flexibleColumns')}</span>
+        </div>
       </div>
 
       {/* Messages */}
@@ -405,7 +426,10 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
             color: '#ef4444'
           }}
         >
-          ⚠️ {error}
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+          <AlertTriangle size={14} strokeWidth={2} style={{ color: '#ef4444', marginTop: 1, flexShrink: 0 }} />
+          <span>{error}</span>
+        </div>
         </div>
       )}
       {success && (
@@ -419,7 +443,10 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
             color: '#3b82f6'
           }}
         >
-          {success}
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+          <CheckCircle2 size={14} strokeWidth={2} style={{ color: '#3b82f6', marginTop: 1, flexShrink: 0 }} />
+          <span>{success.replace('✅ ', '')}</span>
+        </div>
         </div>
       )}
 
@@ -501,9 +528,17 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
             transition: 'all 200ms ease'
           }}
         >
-          {loading
-            ? t('team.importing')
-            : `${t('team.importBtn')} ${rows.length > 0 ? `(${rows.length})` : ''}`}
+          {loading ? (
+            <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+              <Loader2 size={14} strokeWidth={2} style={{ animation: 'spin 1s linear infinite' }} />
+              {t('team.importing')}
+            </span>
+          ) : (
+            <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+              <Upload size={14} strokeWidth={2} />
+              {t('team.importBtn')}{rows.length > 0 ? ` (${rows.length})` : ''}
+            </span>
+          )}
         </button>
         {(rows.length > 0 || fileName) && (
           <button

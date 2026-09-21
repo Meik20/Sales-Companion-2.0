@@ -806,13 +806,13 @@ export const fr = {
     deactivate: 'Désactiver',
     activate: 'Activer',
     remove: 'Supprimer',
-    supportTitle: '📁 Fichier Clients',
+    supportTitle: 'Fichier Clients',
     supportSubtitle: 'Importez votre base de données clients. Les données apparaîtront directement dans Mes Clients CRM.',
-    supportImportTitle: '📥 Importer une base de données clients',
+    supportImportTitle: 'Importer une base de données clients',
     supportImportSubtitlePrefix: 'Glissez un fichier CSV, Excel ou texte. Les clients importés seront immédiatement visibles dans',
-    supportImportedTitle: '📋 Clients importés',
+    supportImportedTitle: 'Clients importés',
     supportImportedSubtitlePrefix: 'Aperçu de votre fichier importé. Ces entrées sont visibles dans',
-    accountNotConfigured: "⚠️ Compte non configuré. Contactez l'administrateur.",
+    accountNotConfigured: "Compte non configuré. Contactez l'administrateur.",
     exampleColumns: 'Nom ; Téléphone | Email , Ville'
   },
   support: {
