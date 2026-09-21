@@ -139,11 +139,25 @@ export async function DELETE(
     const decoded = await adminAuth.verifyIdToken(token)
     const agentDoc = await adminDb.collection('users').doc(decoded.uid).get()
     const agentData = agentDoc.data()
-    if (!agentData || !['admin', 'manager'].includes(agentData.role)) {
-      return NextResponse.json({ message: 'Seul un administrateur ou manager peut supprimer un client' }, { status: 403 })
+    if (!agentData || !['admin', 'manager', 'support_agent'].includes(agentData.role)) {
+      return NextResponse.json({ message: 'Action non autorisée' }, { status: 403 })
     }
 
-    // Tenter suppression dans crm_clients
+    // 1. Vérifier si le client provient de la collection 'pipeline'
+    const pipeRef = adminDb.collection('pipeline').doc(id)
+    const pipeSnap = await pipeRef.get()
+    if (pipeSnap.exists) {
+      if (agentData.role === 'support_agent') {
+        return NextResponse.json(
+          { message: 'Un agent support ne peut pas supprimer un client issu du pipeline du manager' },
+          { status: 403 }
+        )
+      }
+      await pipeRef.delete()
+      return NextResponse.json({ success: true })
+    }
+
+    // 2. Tenter suppression dans crm_clients
     const crmRef = adminDb.collection('crm_clients').doc(id)
     const crmSnap = await crmRef.get()
     if (crmSnap.exists) {
@@ -151,6 +165,7 @@ export async function DELETE(
       return NextResponse.json({ success: true })
     }
 
+    // 3. Tenter suppression dans manager_prospects
     const impRef = adminDb.collection('manager_prospects').doc(id)
     const impSnap = await impRef.get()
     if (impSnap.exists) {

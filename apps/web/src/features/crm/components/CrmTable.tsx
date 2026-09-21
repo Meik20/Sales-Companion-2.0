@@ -7,6 +7,7 @@ import { CrmStatusBadge } from './CrmStatusBadge'
 import { SupportContactModal } from './SupportContactModal'
 import { EmptyState } from '@/components/feedback'
 import { useTranslation } from '@/providers/I18nProvider'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
 import {
   Phone,
   PhoneCall,
@@ -40,7 +41,10 @@ export function CrmTable({
   page, pageSize, totalCount, onPageChange
 }: Props) {
   const { t } = useTranslation()
-  const [statusPopup, setStatusPopup] = useState<string | null>(null)
+  const { user } = useCurrentUser()
+  const isSupportAgent = user?.role === 'support_agent'
+
+  const [statusPopup, setStatusPopup] = useState<{ id: string; openUp: boolean } | null>(null)
   const [editingAction, setEditingAction] = useState<string | null>(null)
   const [actionDraft, setActionDraft] = useState('')
   const [savingAction, setSavingAction] = useState<string | null>(null)
@@ -109,7 +113,11 @@ export function CrmTable({
             description={t('crm.noResultDesc')}
             className="py-12"
           />
-        ) : clients.map((client, i) => (
+        ) : clients.map((client, i) => {
+          const isPipelineClient = client._source === 'pipeline'
+          const canDelete = !(isSupportAgent && isPipelineClient)
+
+          return (
           <div
             key={client.id}
             className={`group grid grid-cols-[2fr_1.2fr_0.9fr_1.3fr_1.4fr_1.4fr] items-center gap-3 px-4 py-3.5 transition-colors hover:bg-secondary/20 ${i < clients.length - 1 ? 'border-b border-border' : ''}`}
@@ -149,21 +157,38 @@ export function CrmTable({
             {/* Status */}
             <div className="relative">
               <button
-                onClick={() => setStatusPopup(statusPopup === client.id ? null : client.id)}
+                onClick={(e) => {
+                  if (statusPopup?.id === client.id) {
+                    setStatusPopup(null)
+                  } else {
+                    const rect = e.currentTarget.getBoundingClientRect()
+                    const spaceBelow = window.innerHeight - rect.bottom
+                    const isNearBottomRow = clients.length > 2 && (i >= clients.length - 3)
+                    const openUp = spaceBelow < 280 || isNearBottomRow
+                    setStatusPopup({ id: client.id, openUp })
+                  }
+                }}
                 className="cursor-pointer transition-opacity hover:opacity-80"
               >
                 <CrmStatusBadge status={client.status as CrmClientStatus} />
               </button>
 
               {/* Status dropdown */}
-              {statusPopup === client.id && (
+              {statusPopup?.id === client.id && (
                 <>
                   <div className="fixed inset-0 z-10" onClick={() => setStatusPopup(null)} />
-                  <div className="absolute left-0 top-full z-20 mt-1.5 min-w-[180px] rounded-xl border border-border bg-card p-2 shadow-[0_8px_40px_rgba(0,0,0,0.3)]">
+                  <div
+                    className={`absolute left-0 z-20 min-w-[180px] rounded-xl border border-border bg-card p-2 shadow-[0_8px_40px_rgba(0,0,0,0.3)] ${
+                      statusPopup.openUp ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
+                    }`}
+                  >
                     {CRM_STATUSES.map(s => (
                       <button
                         key={s}
-                        onClick={() => void handleStatusChange(client.id, s)}
+                        onClick={() => {
+                          void handleStatusChange(client.id, s)
+                          setStatusPopup(null)
+                        }}
                         className="flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-[12px] font-semibold transition-colors hover:bg-secondary"
                         style={{ color: CRM_STATUS_CONFIG[s].color }}
                       >
@@ -267,34 +292,37 @@ export function CrmTable({
                 color="#6366f1"
                 onClick={() => setContactModal(client)}
               />
-              {confirmDelete === client.id ? (
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => { onDelete(client.id); setConfirmDelete(null) }}
-                    title={t('common.confirm')}
-                    className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-red-500/40 bg-red-500/15 text-red-500 transition-colors hover:bg-red-500/25"
-                  >
-                    <Check size={13} strokeWidth={2.5} />
-                  </button>
-                  <button
-                    onClick={() => setConfirmDelete(null)}
-                    title={t('common.cancel')}
-                    className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-border bg-transparent text-muted-foreground transition-colors hover:bg-secondary"
-                  >
-                    <X size={13} strokeWidth={2.5} />
-                  </button>
-                </div>
-              ) : (
-                <ActionBtn
-                  icon={<Trash2 size={14} strokeWidth={1.8} />}
-                  label={t('crm.table.delete')}
-                  color="#ef4444"
-                  onClick={() => setConfirmDelete(client.id)}
-                />
+              {canDelete && (
+                confirmDelete === client.id ? (
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => { onDelete(client.id); setConfirmDelete(null) }}
+                      title={t('common.confirm')}
+                      className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-red-500/40 bg-red-500/15 text-red-500 transition-colors hover:bg-red-500/25"
+                    >
+                      <Check size={13} strokeWidth={2.5} />
+                    </button>
+                    <button
+                      onClick={() => setConfirmDelete(null)}
+                      title={t('common.cancel')}
+                      className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-border bg-transparent text-muted-foreground transition-colors hover:bg-secondary"
+                    >
+                      <X size={13} strokeWidth={2.5} />
+                    </button>
+                  </div>
+                ) : (
+                  <ActionBtn
+                    icon={<Trash2 size={14} strokeWidth={1.8} />}
+                    label={t('crm.table.delete')}
+                    color="#ef4444"
+                    onClick={() => setConfirmDelete(client.id)}
+                  />
+                )
               )}
             </div>
           </div>
-        ))}
+          )
+        })}
       </div>
 
       {/* Pagination */}

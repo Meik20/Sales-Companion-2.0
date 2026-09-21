@@ -810,7 +810,15 @@ export const en = {
     supportImportedTitle: 'Imported clients',
     supportImportedSubtitlePrefix: 'Preview of your imported file. These entries are visible in',
     accountNotConfigured: 'Account not configured. Please contact the administrator.',
-    exampleColumns: 'Name ; Phone | Email , City'
+    exampleColumns: 'Name ; Phone | Email , City',
+    clearImports: 'Clear list',
+    clearImportsConfirm: 'Are you sure you want to delete all imported prospects? This action cannot be undone.',
+    deleteProspect: 'Delete this prospect',
+    deleteProspectConfirm: 'Delete this prospect?',
+    deleteSelected: 'Delete selected',
+    deleteSelectedConfirm: 'Are you sure you want to delete the selected prospects?',
+    cannotDeletePipelineClient: 'Clients from the manager pipeline cannot be deleted by a support agent.',
+    actionsCol: 'Actions'
   },
   support: {
     title: 'Support',

@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useTranslation } from '@/providers/I18nProvider'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { EmptyState } from '@/components/feedback'
-import { RotateCw, Loader2 } from 'lucide-react'
+import { RotateCw, Loader2, Trash2, Check, X } from 'lucide-react'
 
 export type Prospect = {
   id: string
@@ -75,12 +76,19 @@ export function ManagerProspectsList({
   hideAssign = false
 }: Props) {
   const { t } = useTranslation()
+  const { user } = useCurrentUser()
   const [prospects, setProspects] = useState<Prospect[]>([])
   const [loading, setLoading] = useState(false)
   const [search, setSearch] = useState('')
   const [filterMember, setFilterMember] = useState('')
   const [assigning, setAssigning] = useState<string | null>(null)
   const [selected, setSelected] = useState<Set<string>>(new Set())
+
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const [clearingAll, setClearingAll] = useState(false)
+  const [confirmClearAll, setConfirmClearAll] = useState(false)
+  const [deletingSelected, setDeletingSelected] = useState(false)
 
   // Only active members can receive assignments
   const activeMembers = members.filter((m) => m.active !== false)
@@ -121,6 +129,82 @@ export function ManagerProspectsList({
       )
     } finally {
       setAssigning(null)
+    }
+  }
+
+  async function handleDeleteOne(prospectId: string) {
+    if (!user) return
+    setDeletingId(prospectId)
+    setConfirmDeleteId(null)
+    setProspects((prev) => prev.filter((p) => p.id !== prospectId))
+    setSelected((prev) => {
+      const next = new Set(prev)
+      next.delete(prospectId)
+      return next
+    })
+    try {
+      const token = await user.getIdToken()
+      await fetch('/api/imports', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ prospectId, managerId })
+      })
+    } catch (err) {
+      console.error('[imports] delete error', err)
+      void loadProspects()
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
+  async function handleClearAll() {
+    if (!user) return
+    setClearingAll(true)
+    setConfirmClearAll(false)
+    setProspects([])
+    setSelected(new Set())
+    try {
+      const token = await user.getIdToken()
+      await fetch('/api/imports', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ clearAll: true, managerId })
+      })
+    } catch (err) {
+      console.error('[imports] clear error', err)
+      void loadProspects()
+    } finally {
+      setClearingAll(false)
+    }
+  }
+
+  async function handleDeleteSelected() {
+    if (!user || selected.size === 0) return
+    const ids = Array.from(selected)
+    setDeletingSelected(true)
+    setProspects((prev) => prev.filter((p) => !selected.has(p.id)))
+    setSelected(new Set())
+    try {
+      const token = await user.getIdToken()
+      await fetch('/api/imports', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ prospectIds: ids, managerId })
+      })
+    } catch (err) {
+      console.error('[imports] delete selected error', err)
+      void loadProspects()
+    } finally {
+      setDeletingSelected(false)
     }
   }
 
@@ -248,7 +332,7 @@ export function ManagerProspectsList({
         </button>
       </div>
 
-      {/* ── Compteur + action sélection ── */}
+      {/* ── Compteur + action sélection & vider la liste ── */}
       <div
         style={{
           display: 'flex',
@@ -269,28 +353,127 @@ export function ManagerProspectsList({
           )}
         </span>
 
-        {someSelected && onAssignSelection && !hideAssign && (
-          <button
-            onClick={() => onAssignSelection(selectedProspects)}
-            style={{
-              height: 32,
-              padding: '0 14px',
-              background: '#2563eb',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 8,
-              fontSize: 12,
-              fontWeight: 700,
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6
-            }}
-          >
-            {t('team.assignSelection')} ({selected.size})
-          </button>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+          {/* Supprimer la sélection */}
+          {someSelected && (
+            <button
+              onClick={() => void handleDeleteSelected()}
+              disabled={deletingSelected}
+              style={{
+                height: 32,
+                padding: '0 12px',
+                background: 'rgba(239, 68, 68, 0.12)',
+                color: '#ef4444',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                borderRadius: 8,
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6
+              }}
+            >
+              {deletingSelected ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} strokeWidth={2} />}
+              {t('team.deleteSelected')} ({selected.size})
+            </button>
+          )}
+
+          {/* Assigner la sélection */}
+          {someSelected && onAssignSelection && !hideAssign && (
+            <button
+              onClick={() => onAssignSelection(selectedProspects)}
+              style={{
+                height: 32,
+                padding: '0 14px',
+                background: '#2563eb',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 8,
+                fontSize: 12,
+                fontWeight: 700,
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6
+              }}
+            >
+              {t('team.assignSelection')} ({selected.size})
+            </button>
+          )}
+
+          {/* Vider toute la liste des imports */}
+          {prospects.length > 0 && (
+            confirmClearAll ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(239, 68, 68, 0.08)', padding: '4px 8px', borderRadius: 8, border: '1px solid rgba(239, 68, 68, 0.25)' }}>
+                <span style={{ fontSize: 11.5, color: '#ef4444', fontWeight: 600 }}>
+                  {t('team.clearImportsConfirm')}
+                </span>
+                <button
+                  onClick={() => void handleClearAll()}
+                  disabled={clearingAll}
+                  style={{
+                    height: 26,
+                    padding: '0 8px',
+                    background: '#ef4444',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 6,
+                    fontSize: 11,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4
+                  }}
+                >
+                  {clearingAll ? <Loader2 size={11} className="animate-spin" /> : <Check size={11} strokeWidth={2.5} />}
+                  {t('common.confirm')}
+                </button>
+                <button
+                  onClick={() => setConfirmClearAll(false)}
+                  style={{
+                    height: 26,
+                    padding: '0 8px',
+                    background: 'transparent',
+                    border: '1px solid var(--border)',
+                    borderRadius: 6,
+                    color: 'var(--muted-foreground)',
+                    fontSize: 11,
+                    cursor: 'pointer'
+                  }}
+                >
+                  {t('common.cancel')}
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setConfirmClearAll(true)}
+                title={t('team.clearImports')}
+                style={{
+                  height: 32,
+                  padding: '0 12px',
+                  background: 'rgba(239, 68, 68, 0.08)',
+                  color: '#ef4444',
+                  border: '1px solid rgba(239, 68, 68, 0.2)',
+                  borderRadius: 8,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6
+                }}
+              >
+                <Trash2 size={13} strokeWidth={1.8} />
+                {t('team.clearImports')}
+              </button>
+            )
+          )}
+        </div>
       </div>
 
       {/* ── Table ── */}
@@ -333,18 +516,20 @@ export function ManagerProspectsList({
                   t('field.city'),
                   t('field.sector'),
                   t('pipeline.status'),
-                  ...(!hideAssign ? [t('pipeline.assignedTo')] : [])
+                  ...(!hideAssign ? [t('pipeline.assignedTo')] : []),
+                  t('team.actionsCol')
                 ].map((h) => (
                   <th
                     key={h}
                     style={{
-                      textAlign: 'left',
+                      textAlign: h === t('team.actionsCol') ? 'center' : 'left',
                       padding: '9px 12px',
                       color: 'var(--muted-foreground, #94a3b8)',
                       fontWeight: 600,
                       fontSize: 11,
                       borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
-                      whiteSpace: 'nowrap'
+                      whiteSpace: 'nowrap',
+                      width: h === t('team.actionsCol') ? 70 : undefined
                     }}
                   >
                     {h}
@@ -455,6 +640,71 @@ export function ManagerProspectsList({
                         )}
                       </td>
                     )}
+
+                    {/* Colonne Actions (Suppression individuelle) */}
+                    <td style={{ padding: '9px 12px', textAlign: 'center' }}>
+                      {confirmDeleteId === p.id ? (
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                          <button
+                            onClick={() => void handleDeleteOne(p.id)}
+                            disabled={deletingId === p.id}
+                            title={t('common.confirm')}
+                            style={{
+                              width: 26,
+                              height: 26,
+                              borderRadius: 6,
+                              border: '1px solid rgba(239,68,68,0.4)',
+                              background: 'rgba(239,68,68,0.15)',
+                              color: '#ef4444',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}
+                          >
+                            {deletingId === p.id ? <Loader2 size={11} className="animate-spin" /> : <Check size={12} strokeWidth={2.5} />}
+                          </button>
+                          <button
+                            onClick={() => setConfirmDeleteId(null)}
+                            title={t('common.cancel')}
+                            style={{
+                              width: 26,
+                              height: 26,
+                              borderRadius: 6,
+                              border: '1px solid var(--border)',
+                              background: 'transparent',
+                              color: 'var(--muted-foreground)',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}
+                          >
+                            <X size={12} strokeWidth={2.5} />
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setConfirmDeleteId(p.id)}
+                          title={t('team.deleteProspect')}
+                          style={{
+                            width: 28,
+                            height: 28,
+                            borderRadius: 6,
+                            border: 'none',
+                            background: 'rgba(239,68,68,0.08)',
+                            color: '#ef4444',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'all 150ms ease'
+                          }}
+                        >
+                          <Trash2 size={13} strokeWidth={1.8} />
+                        </button>
+                      )}
+                    </td>
                   </tr>
                 )
               })}

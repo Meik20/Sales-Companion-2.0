@@ -223,3 +223,136 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ message: msg }, { status: 500 })
   }
 }
+
+// ── DELETE /api/imports — Supprimer des prospects ou vider la liste ───
+export async function DELETE(request: NextRequest) {
+  try {
+    const { adminDb } = await getAdminModules()
+    const { adminAuth } = await import('@/lib/firebase-admin')
+
+    const authHeader = request.headers.get('authorization')
+    const token = authHeader?.split(' ')[1]
+    if (!token) {
+      return NextResponse.json({ message: 'Non autorisé' }, { status: 401 })
+    }
+
+    let callerUid: string
+    try {
+      const decoded = await adminAuth.verifyIdToken(token)
+      callerUid = decoded.uid
+    } catch {
+      return NextResponse.json({ message: 'Token invalide' }, { status: 401 })
+    }
+
+    const callerDoc = await adminDb.collection('users').doc(callerUid).get()
+    const callerData = callerDoc.data()
+    const callerRole = callerData?.role as string | undefined
+
+    if (!['manager', 'support_agent', 'admin'].includes(callerRole ?? '')) {
+      return NextResponse.json({ message: 'Accès refusé' }, { status: 403 })
+    }
+
+    const body = await request.json().catch(() => ({}))
+    const { searchParams } = new URL(request.url)
+
+    const managerId = (body.managerId || searchParams.get('managerId')) as string | undefined
+    const prospectId = (body.prospectId || searchParams.get('prospectId')) as string | undefined
+    const prospectIds = body.prospectIds as string[] | undefined
+    const clearAll = body.clearAll === true || searchParams.get('clearAll') === 'true'
+
+    if (!managerId) {
+      return NextResponse.json({ message: 'managerId requis' }, { status: 400 })
+    }
+
+    // Sécurité permissions
+    if (callerRole === 'manager' && managerId !== callerUid) {
+      return NextResponse.json({ message: 'Accès refusé' }, { status: 403 })
+    }
+    if (callerRole === 'support_agent') {
+      const linkedManagerUids: string[] = callerData?.linkedManagerUids ?? []
+      const allowed = [callerUid, ...linkedManagerUids]
+      if (!allowed.includes(managerId)) {
+        return NextResponse.json({ message: 'Accès refusé' }, { status: 403 })
+      }
+    }
+
+    // 1. Vider toute la liste pour ce managerId
+    if (clearAll) {
+      const snap = await adminDb
+        .collection('manager_prospects')
+        .where('managerId', '==', managerId)
+        .limit(3000)
+        .get()
+
+      if (snap.empty) {
+        return NextResponse.json({ success: true, count: 0 })
+      }
+
+      let deletedCount = 0
+      let batch = adminDb.batch()
+      let ops = 0
+
+      for (const doc of snap.docs) {
+        batch.delete(doc.ref)
+        ops++
+        deletedCount++
+        if (ops >= 499) {
+          await batch.commit()
+          batch = adminDb.batch()
+          ops = 0
+        }
+      }
+      if (ops > 0) {
+        await batch.commit()
+      }
+
+      return NextResponse.json({ success: true, count: deletedCount })
+    }
+
+    // 2. Suppression multiple (prospectIds)
+    if (Array.isArray(prospectIds) && prospectIds.length > 0) {
+      let deletedCount = 0
+      let batch = adminDb.batch()
+      let ops = 0
+
+      for (const id of prospectIds) {
+        const ref = adminDb.collection('manager_prospects').doc(id)
+        batch.delete(ref)
+        ops++
+        deletedCount++
+        if (ops >= 499) {
+          await batch.commit()
+          batch = adminDb.batch()
+          ops = 0
+        }
+      }
+      if (ops > 0) {
+        await batch.commit()
+      }
+
+      return NextResponse.json({ success: true, count: deletedCount })
+    }
+
+    // 3. Suppression individuelle (prospectId)
+    if (prospectId) {
+      const ref = adminDb.collection('manager_prospects').doc(prospectId)
+      const snap = await ref.get()
+      if (!snap.exists) {
+        return NextResponse.json({ success: true, count: 0 })
+      }
+      const data = snap.data()
+      if (data?.managerId !== managerId && callerRole !== 'admin') {
+        return NextResponse.json({ message: 'Accès refusé' }, { status: 403 })
+      }
+      await ref.delete()
+      return NextResponse.json({ success: true, count: 1 })
+    }
+
+    return NextResponse.json({ message: 'Action de suppression non spécifiée' }, { status: 400 })
+  } catch (error) {
+    console.error('[imports DELETE] Error deleting prospects:', error)
+    const msg = error instanceof Error ? error.message : 'Erreur serveur inconnue'
+    return NextResponse.json({ message: msg }, { status: 500 })
+  }
+}
+

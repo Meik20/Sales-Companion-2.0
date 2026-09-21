@@ -813,7 +813,15 @@ export const fr = {
     supportImportedTitle: 'Clients importés',
     supportImportedSubtitlePrefix: 'Aperçu de votre fichier importé. Ces entrées sont visibles dans',
     accountNotConfigured: "Compte non configuré. Contactez l'administrateur.",
-    exampleColumns: 'Nom ; Téléphone | Email , Ville'
+    exampleColumns: 'Nom ; Téléphone | Email , Ville',
+    clearImports: 'Vider la liste',
+    clearImportsConfirm: 'Êtes-vous sûr de vouloir vider tous les prospects importés ? Cette action est irréversible.',
+    deleteProspect: 'Supprimer ce prospect',
+    deleteProspectConfirm: 'Supprimer ce prospect ?',
+    deleteSelected: 'Supprimer la sélection',
+    deleteSelectedConfirm: 'Voulez-vous supprimer les prospects sélectionnés ?',
+    cannotDeletePipelineClient: 'Les clients issus du pipeline du manager ne peuvent pas être supprimés par un agent support.',
+    actionsCol: 'Actions'
   },
   support: {
     title: 'Support',
