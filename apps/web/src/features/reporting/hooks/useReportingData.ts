@@ -13,6 +13,17 @@ export type MemberStat = {
   conversionRate: number // % items "conclue"
 }
 
+export type SupportAgentStat = {
+  uid: string
+  name: string
+  email?: string
+  callsCount: number
+  ticketsCount: number
+  resolvedTicketsCount: number
+  openTicketsCount: number
+  resolutionRate: number
+}
+
 export type ReportingData = {
   totalItems: number
   totalProspection: number
@@ -28,6 +39,7 @@ export type ReportingData = {
     ticketsCount: number
     resolvedTicketsCount: number
     openTicketsCount: number
+    agentsBreakdown?: SupportAgentStat[]
     recentCalls: Array<{
       id: string
       agentUid: string

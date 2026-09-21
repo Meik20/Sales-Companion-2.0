@@ -145,7 +145,7 @@ export async function GET(request: NextRequest) {
         const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0
         return timeB - timeA
       })
-      .slice(0, 50)
+      .slice(0, 100)
 
     const allTickets = ticketsSnap.docs.map(doc => {
       const d = doc.data()
@@ -163,7 +163,83 @@ export async function GET(request: NextRequest) {
         const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0
         return timeB - timeA
       })
-      .slice(0, 50)
+      .slice(0, 100)
+
+    // Discover all support agents (from team_accesses, support_links, and call/ticket history)
+    const supportAgentsMap = new Map<string, { uid: string; name: string; email?: string }>()
+
+    membersSnap.docs.forEach(d => {
+      const data = d.data()
+      if (data.role === 'support_agent') {
+        const fullName = [data.firstname, data.lastname].filter(Boolean).join(' ') || data.name || data.email || 'Agent Support'
+        const uid = data.firebaseUid || data.uid || d.id
+        supportAgentsMap.set(uid, {
+          uid,
+          name: fullName,
+          email: data.email
+        })
+      }
+    })
+
+    // Also check cross-team support links
+    try {
+      const supportLinksSnap = await adminDb
+        .collection('support_links')
+        .where('managerUid', '==', decoded.uid)
+        .where('status', '==', 'active')
+        .get()
+      supportLinksSnap.docs.forEach(doc => {
+        const d = doc.data()
+        if (d.agentUid && !supportAgentsMap.has(d.agentUid)) {
+          supportAgentsMap.set(d.agentUid, {
+            uid: d.agentUid,
+            name: d.agentName || 'Agent Support',
+            email: d.agentEmail
+          })
+        }
+      })
+    } catch (e) {
+      console.warn('[reporting support_links lookup]', e)
+    }
+
+    // Add any agents from calls or tickets not already detected
+    allCalls.forEach(call => {
+      if (call.agentUid && !supportAgentsMap.has(call.agentUid)) {
+        supportAgentsMap.set(call.agentUid, {
+          uid: call.agentUid,
+          name: call.agentName || 'Agent Support'
+        })
+      }
+    })
+
+    allTickets.forEach(ticket => {
+      if (ticket.agentUid && !supportAgentsMap.has(ticket.agentUid)) {
+        supportAgentsMap.set(ticket.agentUid, {
+          uid: ticket.agentUid,
+          name: ticket.agentName || 'Agent Support'
+        })
+      }
+    })
+
+    // Compute stats per support agent
+    const agentsBreakdown = Array.from(supportAgentsMap.values()).map(agent => {
+      const agentCalls = allCalls.filter(c => c.agentUid === agent.uid || c.agentName === agent.name)
+      const agentTickets = allTickets.filter(t => t.agentUid === agent.uid || t.agentName === agent.name)
+      const resolvedCount = agentTickets.filter(t => ['resolved', 'closed'].includes(t.status || '')).length
+      const openCount = agentTickets.filter(t => ['open', 'in_progress'].includes(t.status || '')).length
+      const resolutionRate = agentTickets.length > 0 ? Math.round((resolvedCount / agentTickets.length) * 100) : 0
+
+      return {
+        uid: agent.uid,
+        name: agent.name,
+        email: agent.email,
+        callsCount: agentCalls.length,
+        ticketsCount: agentTickets.length,
+        resolvedTicketsCount: resolvedCount,
+        openTicketsCount: openCount,
+        resolutionRate
+      }
+    }).sort((a, b) => (b.callsCount + b.ticketsCount) - (a.callsCount + a.ticketsCount))
 
     const supportCallsCount = allCalls.length
     const supportTicketsCount = allTickets.length
@@ -185,7 +261,8 @@ export async function GET(request: NextRequest) {
         resolvedTicketsCount,
         openTicketsCount,
         recentCalls,
-        recentTickets
+        recentTickets,
+        agentsBreakdown
       }
     })
 

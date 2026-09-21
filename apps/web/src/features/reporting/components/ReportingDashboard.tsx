@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import type { ReportingData, MemberStat } from '../hooks/useReportingData'
+import { useSearchParams } from 'next/navigation'
+import type { ReportingData, MemberStat, SupportAgentStat } from '../hooks/useReportingData'
 
 
 // ── KPI Card ──────────────────────────────────────────────────────────────────
@@ -236,10 +237,33 @@ function Leaderboard({ members }: { members: MemberStat[] }) {
 }
 
 // ── Support Activity Section ──────────────────────────────────────────────────
-function SupportActivitySection({ stats }: { stats: NonNullable<ReportingData['supportStats']> }) {
-  const resolutionRate = stats.ticketsCount > 0
-    ? Math.round((stats.resolvedTicketsCount / stats.ticketsCount) * 100)
-    : 0
+function SupportActivitySection({
+  stats,
+  initialAgentUid
+}: {
+  stats: NonNullable<ReportingData['supportStats']>
+  initialAgentUid?: string
+}) {
+  const agents = stats.agentsBreakdown || []
+  const [selectedAgentUid, setSelectedAgentUid] = useState<string>(initialAgentUid || 'all')
+
+  const selectedAgent = agents.find(a => a.uid === selectedAgentUid)
+
+  // Filter logs according to selected agent
+  const displayedCalls = selectedAgentUid === 'all'
+    ? stats.recentCalls
+    : stats.recentCalls.filter(c => c.agentUid === selectedAgentUid || (selectedAgent && c.agentName === selectedAgent.name))
+
+  const displayedTickets = selectedAgentUid === 'all'
+    ? stats.recentTickets
+    : stats.recentTickets.filter(t => t.agentUid === selectedAgentUid || (selectedAgent && t.agentName === selectedAgent.name))
+
+  // Dynamically compute KPIs
+  const callsCount = selectedAgent ? selectedAgent.callsCount : stats.callsCount
+  const ticketsCount = selectedAgent ? selectedAgent.ticketsCount : stats.ticketsCount
+  const resolvedTicketsCount = selectedAgent ? selectedAgent.resolvedTicketsCount : stats.resolvedTicketsCount
+  const openTicketsCount = selectedAgent ? selectedAgent.openTicketsCount : stats.openTicketsCount
+  const resolutionRate = ticketsCount > 0 ? Math.round((resolvedTicketsCount / ticketsCount) * 100) : 0
 
   const CALL_STATUS_LABELS: Record<string, { label: string; color: string; emoji: string }> = {
     connected:  { label: 'Décroché',    color: '#3b82f6', emoji: '🔵' },
@@ -265,25 +289,136 @@ function SupportActivitySection({ stats }: { stats: NonNullable<ReportingData['s
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      {/* Agent Selector Bar */}
+      {agents.length > 0 && (
+        <div style={{
+          background: 'var(--card, #131c2e)',
+          border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+          borderRadius: 16,
+          padding: '16px 20px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 12
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--muted-foreground, #94a3b8)', textTransform: 'uppercase', letterSpacing: '.06em', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span>👥 Filtrer l'activité par agent support</span>
+              {selectedAgentUid !== 'all' && (
+                <span style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  background: 'rgba(59,130,246,0.15)',
+                  color: '#60a5fa',
+                  padding: '2px 8px',
+                  borderRadius: 12,
+                  border: '1px solid rgba(59,130,246,0.3)'
+                }}>
+                  Filtre actif : {selectedAgent?.name}
+                </span>
+              )}
+            </div>
+
+            {selectedAgentUid !== 'all' && (
+              <button
+                onClick={() => setSelectedAgentUid('all')}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#94a3b8',
+                  fontSize: 12,
+                  cursor: 'pointer',
+                  textDecoration: 'underline'
+                }}
+              >
+                Afficher toute l'équipe
+              </button>
+            )}
+          </div>
+
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <button
+              onClick={() => setSelectedAgentUid('all')}
+              style={{
+                padding: '7px 14px',
+                borderRadius: 10,
+                border: `1px solid ${selectedAgentUid === 'all' ? '#3b82f6' : 'var(--border, rgba(255,255,255,0.1))'}`,
+                background: selectedAgentUid === 'all' ? 'rgba(59,130,246,0.15)' : 'rgba(255,255,255,0.02)',
+                color: selectedAgentUid === 'all' ? '#60a5fa' : 'var(--foreground, #f1f5f9)',
+                fontWeight: selectedAgentUid === 'all' ? 700 : 500,
+                fontSize: 12,
+                cursor: 'pointer',
+                transition: 'all 150ms'
+              }}
+            >
+              👥 Tous ({stats.callsCount} appels · {stats.ticketsCount} tickets)
+            </button>
+
+            {agents.map(ag => {
+              const isSelected = selectedAgentUid === ag.uid
+              return (
+                <button
+                  key={ag.uid}
+                  onClick={() => setSelectedAgentUid(ag.uid)}
+                  style={{
+                    padding: '7px 14px',
+                    borderRadius: 10,
+                    border: `1px solid ${isSelected ? '#3b82f6' : 'var(--border, rgba(255,255,255,0.1))'}`,
+                    background: isSelected ? 'rgba(59,130,246,0.15)' : 'rgba(255,255,255,0.02)',
+                    color: isSelected ? '#60a5fa' : 'var(--foreground, #f1f5f9)',
+                    fontWeight: isSelected ? 700 : 500,
+                    fontSize: 12,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    transition: 'all 150ms'
+                  }}
+                >
+                  <span style={{
+                    width: 18,
+                    height: 18,
+                    borderRadius: '50%',
+                    background: isSelected ? '#3b82f6' : 'rgba(235,133,18,0.2)',
+                    color: isSelected ? '#fff' : '#eb8512',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 10,
+                    fontWeight: 700
+                  }}>
+                    {ag.name[0]?.toUpperCase() || 'A'}
+                  </span>
+                  <span>{ag.name}</span>
+                  <span style={{ fontSize: 11, opacity: 0.7 }}>
+                    ({ag.callsCount} 📞 · {ag.ticketsCount} 🎫)
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Support KPIs */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16 }}>
         <KpiCard
           label="Appels support"
-          value={stats.callsCount}
-          sub="Passés par vos agents"
+          value={callsCount}
+          sub={selectedAgent ? `Passés par ${selectedAgent.name}` : "Passés par vos agents"}
           color="#60a5fa"
           icon="📞"
         />
         <KpiCard
           label="Total tickets SAV"
-          value={stats.ticketsCount}
-          sub="Créés pour vos clients"
+          value={ticketsCount}
+          sub={selectedAgent ? `Traités par ${selectedAgent.name}` : "Créés pour vos clients"}
           color="#f59e0b"
           icon="🎫"
         />
         <KpiCard
           label="Tickets ouverts"
-          value={stats.openTicketsCount}
+          value={openTicketsCount}
           sub="En attente de résolution"
           color="#f87171"
           icon="⏳"
@@ -296,6 +431,102 @@ function SupportActivitySection({ stats }: { stats: NonNullable<ReportingData['s
           icon="✓"
         />
       </div>
+
+      {/* Agents Performance Leaderboard (Only when viewing 'all' or multiple agents exist) */}
+      {agents.length > 0 && selectedAgentUid === 'all' && (
+        <div style={{
+          background: 'var(--card, #131c2e)',
+          border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+          borderRadius: 16,
+          padding: 24,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 16
+        }}>
+          <div>
+            <h3 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: 'var(--foreground, #f1f5f9)' }}>
+              🏆 Performances individuelles des agents support
+            </h3>
+            <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--muted-foreground, #94a3b8)' }}>
+              Volume d'appels, réclamations traitées et efficacité de clôture par agent.
+            </p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 14 }}>
+            {agents.map((ag, idx) => (
+              <div
+                key={ag.uid}
+                onClick={() => setSelectedAgentUid(ag.uid)}
+                style={{
+                  background: 'rgba(255,255,255,0.02)',
+                  border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+                  borderRadius: 12,
+                  padding: 16,
+                  cursor: 'pointer',
+                  transition: 'all 200ms ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(59,130,246,0.5)'
+                  e.currentTarget.style.transform = 'translateY(-2px)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--border, rgba(255,255,255,0.1))'
+                  e.currentTarget.style.transform = 'translateY(0)'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{
+                      width: 34,
+                      height: 34,
+                      borderRadius: 10,
+                      background: 'rgba(235,133,18,0.15)',
+                      color: '#eb8512',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 800,
+                      fontSize: 14
+                    }}>
+                      {ag.name[0]?.toUpperCase() || 'A'}
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--foreground, #f1f5f9)' }}>
+                        {ag.name}
+                      </div>
+                      {ag.email && (
+                        <div style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)' }}>
+                          {ag.email}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <span style={{ fontSize: 11, color: '#60a5fa', fontWeight: 600 }}>
+                    Filtrer →
+                  </span>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, textAlign: 'center', background: 'rgba(0,0,0,0.15)', padding: '10px 8px', borderRadius: 8 }}>
+                  <div>
+                    <div style={{ fontSize: 16, fontWeight: 800, color: '#60a5fa' }}>{ag.callsCount}</div>
+                    <div style={{ fontSize: 10, color: 'var(--muted-foreground, #94a3b8)' }}>Appels</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 16, fontWeight: 800, color: '#f59e0b' }}>{ag.ticketsCount}</div>
+                    <div style={{ fontSize: 10, color: 'var(--muted-foreground, #94a3b8)' }}>Tickets</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 16, fontWeight: 800, color: ag.resolutionRate >= 70 ? '#0284c7' : '#f59e0b' }}>
+                      {ag.resolutionRate}%
+                    </div>
+                    <div style={{ fontSize: 10, color: 'var(--muted-foreground, #94a3b8)' }}>Résolus</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Two-column layout for recent logs */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20 }}>
@@ -314,16 +545,18 @@ function SupportActivitySection({ stats }: { stats: NonNullable<ReportingData['s
               📞 Journal des Appels Clients
             </h3>
             <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--muted-foreground, #94a3b8)' }}>
-              Les 50 derniers appels de support passés par vos agents.
+              {selectedAgent
+                ? `Historique des appels passés par ${selectedAgent.name}.`
+                : "Les appels de support récents passés par vos agents."}
             </p>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 400, overflowY: 'auto', paddingRight: 4 }}>
-            {stats.recentCalls.length === 0 ? (
+            {displayedCalls.length === 0 ? (
               <p style={{ fontSize: 13, color: 'var(--muted-foreground, #94a3b8)', textAlign: 'center', padding: '30px 0' }}>
-                Aucun appel enregistré pour le moment.
+                {selectedAgent ? `Aucun appel enregistré pour ${selectedAgent.name}.` : 'Aucun appel enregistré pour le moment.'}
               </p>
-            ) : stats.recentCalls.map(call => (
+            ) : displayedCalls.map(call => (
               <div key={call.id} style={{
                 background: 'rgba(255,255,255,0.02)',
                 border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
@@ -375,16 +608,18 @@ function SupportActivitySection({ stats }: { stats: NonNullable<ReportingData['s
               🎫 Tickets SAV / Réclamations
             </h3>
             <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--muted-foreground, #94a3b8)' }}>
-              Les 50 derniers tickets de support de vos clients.
+              {selectedAgent
+                ? `Tickets pris en charge par ${selectedAgent.name}.`
+                : "Les tickets de support récents de vos clients."}
             </p>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 400, overflowY: 'auto', paddingRight: 4 }}>
-            {stats.recentTickets.length === 0 ? (
+            {displayedTickets.length === 0 ? (
               <p style={{ fontSize: 13, color: 'var(--muted-foreground, #94a3b8)', textAlign: 'center', padding: '30px 0' }}>
-                Aucun ticket SAV ouvert pour le moment.
+                {selectedAgent ? `Aucun ticket SAV enregistré pour ${selectedAgent.name}.` : 'Aucun ticket SAV ouvert pour le moment.'}
               </p>
-            ) : stats.recentTickets.map(ticket => (
+            ) : displayedTickets.map(ticket => (
               <div key={ticket.id} style={{
                 background: 'rgba(255,255,255,0.02)',
                 border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
@@ -432,7 +667,10 @@ function SupportActivitySection({ stats }: { stats: NonNullable<ReportingData['s
 
 // ── Main Dashboard Component ──────────────────────────────────────────────────
 export function ReportingDashboard({ data }: { data: ReportingData }) {
-  const [section, setSection] = useState<'sales' | 'support'>('sales')
+  const searchParams = useSearchParams()
+  const tabParam = searchParams.get('tab')
+  const initialAgentUid = searchParams.get('agentUid') || undefined
+  const [section, setSection] = useState<'sales' | 'support'>(tabParam === 'support' ? 'support' : 'sales')
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -549,7 +787,12 @@ export function ReportingDashboard({ data }: { data: ReportingData }) {
           </div>
         </>
       ) : (
-        data.supportStats && <SupportActivitySection stats={data.supportStats} />
+        data.supportStats && (
+          <SupportActivitySection
+            stats={data.supportStats}
+            initialAgentUid={initialAgentUid}
+          />
+        )
       )}
     </div>
   )
