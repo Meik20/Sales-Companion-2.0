@@ -86,10 +86,22 @@ export async function PATCH(
     if (body.notes !== undefined) updates.notes = body.notes.trim()
 
     if (body.status !== undefined && body.status !== prevData.status) {
+      const STATUS_LABELS: Record<string, string> = {
+        new: 'Nouveau',
+        to_contact: 'À contacter',
+        contacted: 'Contacté',
+        in_discussion: 'En discussion',
+        proposal_sent: 'Proposition envoyée',
+        won: 'Gagné',
+        lost: 'Perdu',
+        imported: 'Importé',
+      }
+      const statusLabel = STATUS_LABELS[body.status] ?? body.status
+
       updates.status = body.status
       updates.lastActivityAt = now
       updates.lastActivityType = 'status_change'
-      updates.lastActivityTitle = `Changement de statut vers ${body.status}`
+      updates.lastActivityTitle = `Statut : ${statusLabel}`
 
       // Tracer l'activité
       await adminDb.collection('crm_activities').add({

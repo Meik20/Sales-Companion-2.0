@@ -202,12 +202,12 @@ export function CrmTable({
             </div>
 
             {/* Last activity */}
-            <div>
+            <div className="min-w-0">
               {client.lastActivityAt ? (
                 <>
                   <p className="text-[12px] font-semibold text-foreground">{formatRelative(client.lastActivityAt)}</p>
                   {client.lastActivityTitle && (
-                    <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{client.lastActivityTitle}</p>
+                    <p className="mt-0.5 truncate text-[11px] text-muted-foreground" title={client.lastActivityTitle}>{client.lastActivityTitle}</p>
                   )}
                 </>
               ) : (
@@ -216,7 +216,7 @@ export function CrmTable({
             </div>
 
             {/* Next action */}
-            <div>
+            <div className="min-w-0">
               {editingAction === client.id ? (
                 <div className="flex gap-1.5" onClick={e => e.stopPropagation()}>
                   <input
