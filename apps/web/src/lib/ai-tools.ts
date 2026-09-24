@@ -14,7 +14,7 @@ export const GEMINI_TOOLS = [
       {
         name: 'search_companies',
         description:
-          "Recherche des entreprises camerounaises dans la base de données officielle (RCCM/NIU). Utilise cette fonction dès que l'utilisateur demande des entreprises, des cibles, des prospects, ou filtre par secteur, région ou ville.",
+          "Recherche les entreprises du pays associé au compte utilisateur dans la base de données officielle (RCCM/NIU). Utilise cette fonction dès que l'utilisateur demande des entreprises, des cibles, des prospects, ou filtre par secteur, région ou ville.",
         parameters: {
           type: 'OBJECT',
           properties: {
@@ -30,7 +30,7 @@ export const GEMINI_TOOLS = [
             region: {
               type: 'STRING',
               description:
-                "Région du Cameroun (ex: 'Littoral', 'Centre', 'Ouest', 'Nord-Ouest', 'Sud-Ouest', 'Adamaoua', 'Nord', 'Extrême-Nord', 'Est', 'Sud')"
+                "Région du pays associé au compte utilisateur"
             },
             city: {
               type: 'STRING',
@@ -89,7 +89,7 @@ export const GROQ_TOOLS = [
     function: {
       name: 'search_companies',
       description:
-        "Recherche des entreprises camerounaises dans la base de données officielle (RCCM/NIU). Utilise cette fonction dès que l'utilisateur demande des entreprises, des cibles, des prospects, ou filtre par secteur, région ou ville.",
+        "Recherche les entreprises du pays associé au compte utilisateur dans la base de données officielle (RCCM/NIU). Utilise cette fonction dès que l'utilisateur demande des entreprises, des cibles, des prospects, ou filtre par secteur, région ou ville.",
       parameters: {
         type: 'object',
         properties: {
@@ -105,7 +105,7 @@ export const GROQ_TOOLS = [
           region: {
             type: 'string',
             description:
-              "Région du Cameroun (ex: 'Littoral', 'Centre', 'Ouest', 'Nord-Ouest', 'Sud-Ouest', 'Adamaoua', 'Nord', 'Extrême-Nord', 'Est', 'Sud')"
+              "Région du pays associé au compte utilisateur"
           },
           city: {
             type: 'string',
@@ -124,7 +124,7 @@ export const GROQ_TOOLS = [
     function: {
       name: 'get_company_details',
       description:
-        "Récupère la fiche détaillée d'une entreprise camerounaise spécifique par son nom exact, son sigle, son NIU ou son numéro RCCM.",
+        "Récupère la fiche détaillée d'une entreprise du pays associé au compte utilisateur par son nom exact, son sigle, son NIU ou son numéro RCCM.",
       parameters: {
         type: 'object',
         properties: {
@@ -142,7 +142,7 @@ export const GROQ_TOOLS = [
     function: {
       name: 'get_market_overview',
       description:
-        "Fournit une vue d'ensemble statistique du marché des entreprises camerounaises enregistrées (nombre total, répartition par secteur et par ville).",
+        "Fournit une vue d'ensemble statistique du marché du pays associé au compte utilisateur (nombre total, répartition par secteur et par ville).",
       parameters: {
         type: 'object',
         properties: {

@@ -34,6 +34,7 @@ import {
 import { useTheme } from 'next-themes'
 import { useTranslation } from '@/providers/I18nProvider'
 import { useNetworkStatus } from '@/hooks/useNetworkStatus'
+import { GEOGRAPHY } from '@sales-companion/shared'
 import { isMobileRuntime } from '@/lib/runtime'
 
 // ── Indicateur & bascule du mode hors connexion dans la sidebar ───────────────
@@ -131,18 +132,6 @@ function OfflineModeIndicator() {
 }
 
 
-const REGIONS = [
-  'Adamaoua',
-  'Centre',
-  'Est',
-  'Extrême-Nord',
-  'Littoral',
-  'Nord',
-  'Nord-Ouest',
-  'Ouest',
-  'Sud',
-  'Sud-Ouest'
-]
 const REGION_KEYS: Record<string, string> = {
   Adamaoua: 'adamaoua',
   Centre: 'centre',
@@ -154,18 +143,6 @@ const REGION_KEYS: Record<string, string> = {
   Ouest: 'ouest',
   Sud: 'sud',
   'Sud-Ouest': 'sudOuest'
-}
-const CITIES_BY_REGION: Record<string, string[]> = {
-  Adamaoua: ['Ngaoundéré', 'Meiganga', 'Tibati', 'Ngaoundal', 'Banyo'],
-  Centre: ['Yaoundé', 'Mbalmayo', 'Bafia', 'Eséka', 'Nanga-Eboko', 'Obala', 'Monatélé'],
-  Est: ['Bertoua', 'Abong-Mbang', 'Batouri', 'Yokadouma', 'Dimako'],
-  'Extrême-Nord': ['Maroua', 'Mokolo', 'Kousseri', 'Yagoua', 'Mora'],
-  Littoral: ['Douala', 'Nkongsamba', 'Edéa', 'Loum', 'Mbanga'],
-  Nord: ['Garoua', 'Guider', 'Pitoa', 'Lagdo', 'Ngong'],
-  'Nord-Ouest': ['Bamenda', 'Kumbo', 'Wum', 'Mbengwi', 'Fundong'],
-  Ouest: ['Bafoussam', 'Dschang', 'Mbouda', 'Foumban', 'Bangangté'],
-  Sud: ['Ebolowa', 'Sangmélima', 'Kribi', 'Ambam', 'Lolodorf'],
-  'Sud-Ouest': ['Buea', 'Limbe', 'Kumba', 'Mamfe', 'Tiko']
 }
 const SECTORS = [
   'Commerce',
@@ -277,6 +254,7 @@ export function AppSidebar({
   }
 
   function handleLocateMe() {
+    if ((user?.country || 'CM') !== 'CM') return
     if (!navigator.geolocation) return
     setGeoState('loading')
     navigator.geolocation.getCurrentPosition(
@@ -304,6 +282,8 @@ export function AppSidebar({
   }
 
   if (!user) return null
+
+  const geography = GEOGRAPHY[user.country || 'CM'] ?? GEOGRAPHY.CM!
 
   const handleLogout = async () => {
     try {
@@ -376,9 +356,9 @@ export function AppSidebar({
               className="h-8 w-full rounded-lg border border-border bg-background px-2 text-[12px] text-foreground outline-none"
             >
               <option value="">{t('sidebar.allRegions')}</option>
-              {REGIONS.map((r) => (
+              {geography.regions.map((r) => (
                 <option key={r} value={r}>
-                  {t(`regions.${REGION_KEYS[r]}` as `regions.${string}`)}
+                  {REGION_KEYS[r] ? t(`regions.${REGION_KEYS[r]}` as `regions.${string}`) : r}
                 </option>
               ))}
             </select>
@@ -396,7 +376,7 @@ export function AppSidebar({
                 className="h-8 w-full rounded-lg border border-border bg-background px-2 text-[12px] text-foreground outline-none"
               >
                 <option value="">{t('sidebar.allCities')}</option>
-                {CITIES_BY_REGION[region]?.map((c) => (
+                {geography.citiesByRegion[region]?.map((c) => (
                   <option key={c} value={c}>
                     {c}
                   </option>

@@ -11,15 +11,29 @@ import { SaveCurrentSearchButton } from '@/features/search/components/SaveCurren
 import { useCompaniesSearch } from '@/features/search/hooks/useCompaniesSearch'
 import { usePipelineStats } from '@/features/pipeline/hooks/usePipelineStats'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { COUNTRY_NAMES } from '@sales-companion/shared'
 import { ShortcutCard } from '@/components/ui/ShortcutCard'
 import { Button } from '@/components/ui/Button'
 import { useTranslation } from '@/providers/I18nProvider'
+
+const COUNTRY_HIGHLIGHT_CITIES: Record<string, { btp: string; tech: string }> = {
+  CM: { btp: 'Douala', tech: 'Yaoundé' },
+  SN: { btp: 'Dakar', tech: 'Dakar' },
+  CI: { btp: 'Abidjan', tech: 'Abidjan' },
+  BJ: { btp: 'Cotonou', tech: 'Cotonou' },
+  TG: { btp: 'Lomé', tech: 'Lomé' },
+  TD: { btp: "N'Djaména", tech: "N'Djaména" },
+  CF: { btp: 'Bangui', tech: 'Bangui' }
+}
 
 function SearchContent() {
   const { t } = useTranslation()
   const searchParams = useSearchParams()
   const router = useRouter()
   const { user } = useCurrentUser()
+  const userCountry = user?.country || 'CM'
+  const countryName = COUNTRY_NAMES[userCountry] || 'Cameroun'
+  const highlightCities = COUNTRY_HIGHLIGHT_CITIES[userCountry] ?? COUNTRY_HIGHLIGHT_CITIES.CM!
   const [filters, setFilters] = useState<{
     sector?: string
     region?: string
@@ -348,7 +362,7 @@ function SearchContent() {
 
                   <img
                     src="/illustrations/search-prospects.png?v=20260919b"
-                    alt="Prospection B2B au Cameroun — Trouvez vos clients avec Sales Companion 2.0"
+                    alt={`Prospection B2B au ${countryName} — Trouvez vos clients avec Sales Companion 2.0`}
                     className="illustration-refined"
                     style={{
                       width: '100%',
@@ -537,26 +551,26 @@ function SearchContent() {
               >
                 <ShortcutCard
                   sector="btp"
-                  title={t('search.btpDouala')}
+                  title={`${t('search.btp')} ${highlightCities.btp}`}
                   subtitle={t('search.newCompanies')}
                   onClick={() => {
-                    setFilters({ sector: 'BTP & Construction', city: 'Douala' })
+                    setFilters({ sector: 'BTP & Construction', city: highlightCities.btp })
                     setHasSearched(true)
                   }}
                 />
                 <ShortcutCard
                   sector="tech"
-                  title={t('search.techYaounde')}
+                  title={`${t('search.tech')} ${highlightCities.tech}`}
                   subtitle={t('search.startupsPme')}
                   onClick={() => {
-                    setFilters({ sector: 'Technologies & Numérique', city: 'Yaoundé' })
+                    setFilters({ sector: 'Technologies & Numérique', city: highlightCities.tech })
                     setHasSearched(true)
                   }}
                 />
                 <ShortcutCard
                   sector="agro"
                   title={t('search.agro')}
-                  subtitle={t('search.allCameroon')}
+                  subtitle={countryName}
                   onClick={() => {
                     setFilters({ sector: 'Agriculture & Agroalimentaire' })
                     setHasSearched(true)
@@ -565,7 +579,7 @@ function SearchContent() {
                 <ShortcutCard
                   sector="transport"
                   title={t('search.transport')}
-                  subtitle={t('search.allCameroon')}
+                  subtitle={countryName}
                   onClick={() => {
                     setFilters({ sector: 'Transport & Logistique' })
                     setHasSearched(true)
@@ -731,8 +745,8 @@ function SearchContent() {
                       ]
                     } else {
                       chips = [
-                        'Tendances BTP Douala',
-                        "Email d'approche Tech Yaoundé",
+                        `Tendances BTP ${highlightCities.btp}`,
+                        `Email d'approche Tech ${highlightCities.tech}`,
                         'Script appel DG Agroalimentaire'
                       ]
                     }

@@ -5,7 +5,7 @@ import { getClientIp, checkRateLimit, checkRateLimitByUser } from '@/lib/rate-li
 import { GEMINI_TOOLS, GROQ_TOOLS, executeAITool } from '@/lib/ai-tools'
 import { searchCompanies, type CompanyRecord } from '@/lib/company-search'
 import { PLAN_LIMITS } from '@sales-companion/shared'
-import { COUNTRY_NAMES } from '@sales-companion/shared'
+import { COUNTRY_NAMES, GEOGRAPHY } from '@sales-companion/shared'
 
 function detectSectorFromText(text: string): string | undefined {
   const t = text.toLowerCase()
@@ -24,18 +24,27 @@ function detectSectorFromText(text: string): string | undefined {
   return undefined
 }
 
-function detectRegionFromText(text: string): string | undefined {
-  const t = text.toLowerCase()
-  if (t.includes('douala') || t.includes('littoral') || t.includes('edea') || t.includes('nkongsamba')) return 'Littoral'
-  if (t.includes('yaounde') || t.includes('centre') || t.includes('mbalmayo') || t.includes('bafia')) return 'Centre'
-  if (t.includes('bafoussam') || t.includes('ouest') || t.includes('dschang') || t.includes('foumban')) return 'Ouest'
-  if (t.includes('bamenda') || t.includes('nord-ouest') || t.includes('kumbo')) return 'Nord-Ouest'
-  if (t.includes('buea') || t.includes('limbe') || t.includes('sud-ouest') || t.includes('kumba')) return 'Sud-Ouest'
-  if (t.includes('garoua') || t.includes('nord') || t.includes('guider')) return 'Nord'
-  if (t.includes('maroua') || t.includes('extreme-nord') || t.includes('kousseri')) return 'Extrême-Nord'
-  if (t.includes('ngaoundere') || t.includes('adamaoua') || t.includes('meiganga')) return 'Adamaoua'
-  if (t.includes('bertoua') || t.includes('est') || t.includes('batouri')) return 'Est'
-  if (t.includes('ebolowa') || t.includes('kribi') || t.includes('sud') || t.includes('sangmelima')) return 'Sud'
+function detectRegionFromText(text: string, country: string): string | undefined {
+  const geography = GEOGRAPHY[country] ?? GEOGRAPHY.CM!
+  const normalizedText = text.toLocaleLowerCase()
+
+  return geography.regions.find((region) => {
+    if (normalizedText.includes(region.toLocaleLowerCase())) return true
+    return (geography.citiesByRegion[region] ?? []).some((city) =>
+      normalizedText.includes(city.toLocaleLowerCase())
+    )
+  })
+}
+
+function detectCityFromText(text: string, country: string): string | undefined {
+  const geography = GEOGRAPHY[country] ?? GEOGRAPHY.CM!
+  const normalizedText = text.toLocaleLowerCase()
+
+  for (const cities of Object.values(geography.citiesByRegion)) {
+    const city = cities.find((candidate) => normalizedText.includes(candidate.toLocaleLowerCase()))
+    if (city) return city
+  }
+
   return undefined
 }
 
@@ -228,13 +237,15 @@ export async function POST(request: NextRequest) {
 
     // ── Pré-chargement ultra-rapide des entreprises pertinentes (< 2ms) ──
     const targetSector = mergedContext.sector || detectSectorFromText(message)
-    const targetRegion = mergedContext.region || detectRegionFromText(message)
+    const targetRegion = mergedContext.region || detectRegionFromText(message, userCountry)
+    const targetCity = detectCityFromText(message, userCountry)
 
     let preFetchedCompanies: Partial<CompanyRecord>[] = []
     try {
       const searchRes = await searchCompanies({
         sector: targetSector || undefined,
         region: targetRegion || undefined,
+        city: targetCity || undefined,
         limit: 6,
         country: userCountry
       })
