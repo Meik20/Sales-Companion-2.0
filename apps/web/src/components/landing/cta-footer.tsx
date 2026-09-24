@@ -6,6 +6,7 @@ import { ScIcon } from '@/components/ui/ScIcon'
 import { LanguageSwitcher } from '@/components/landing/LanguageSwitcher'
 import { useTranslation } from '@/providers/I18nProvider'
 import { routes } from '@/constants/routes'
+import { useLandingCountry } from '@/features/landing/landing-country'
 
 const LinkedInIcon = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="currentColor">
@@ -15,6 +16,7 @@ const LinkedInIcon = ({ className }: { className?: string }) => (
 
 export function CtaFooter() {
   const { lang, t } = useTranslation()
+  const { country } = useLandingCountry()
   const isEn = lang === 'en'
 
   const trust = [
@@ -25,17 +27,20 @@ export function CtaFooter() {
 
   const footerLinks = {
     product: [
-      { label: isEn ? 'Cameroon B2B Directory' : 'Annuaire B2B Cameroun', href: '#fonctionnalites' },
+      { label: isEn ? `${country.name} B2B Directory` : `Annuaire B2B ${country.name}`, href: '#fonctionnalites' },
       { label: isEn ? 'CRM Sales Pipeline' : 'Pipeline Commercial CRM', href: '#fonctionnalites' },
       { label: isEn ? 'Companion AI Pro' : 'Companion IA Pro', href: '#fonctionnalites' },
       { label: isEn ? 'Mobile App (PWA)' : 'Application Mobile (PWA)', href: '#pwa-install' },
       { label: isEn ? 'Pricing & Plans' : 'Tarifs & Abonnements', href: '#tarifs' }
     ],
-    resources: [
+    resources: country.code === 'CM' ? [
       { label: isEn ? 'Blog & Sales Tips' : 'Blog & Conseils Vente', href: '/blog' },
       { label: 'Guide NIU & RCCM', href: '/blog/niu-rccm-identifier-entreprise-camerounaise' },
       { label: 'Annuaire BTP Douala', href: '/blog/annuaire-entreprises-btp-douala' },
       { label: 'Prospection B2B 2026', href: '/blog/trouver-clients-b2b-cameroun-2026' }
+    ] : [
+      { label: isEn ? `${country.name} B2B Blog` : `Blog B2B ${country.name}`, href: '/blog' },
+      { label: isEn ? 'Prospecting guides' : 'Guides de prospection', href: '/blog' }
     ],
     legal: [
       { label: isEn ? 'Terms of Service (CGU)' : 'Conditions Générales (CGU)', href: '/terms' },
@@ -112,8 +117,8 @@ export function CtaFooter() {
               </div>
               <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
                 {isEn
-                  ? 'The leading B2B sales intelligence platform in Cameroon. 50,000+ verified companies in Douala, Yaoundé and regions.'
-                  : "La plateforme d'intelligence commerciale B2B N°1 au Cameroun. 50 000+ entreprises répertoriées à Douala, Yaoundé et régions."}
+                  ? `B2B sales intelligence for ${country.name}. ${country.companyCount} companies across ${country.cities.join(', ')} and the main regions.`
+                  : `Intelligence commerciale B2B pour ${country.name}. ${country.companyCount} entreprises à ${country.cities.join(', ')} et dans les principales régions.`}
               </p>
               <div className="mt-4">
                 <a
@@ -205,7 +210,7 @@ export function CtaFooter() {
                 <span>LinkedIn</span>
               </a>
               <span>·</span>
-              <p>{isEn ? 'Designed for sales teams in Cameroon 🇨🇲' : 'Conçu pour les commerciaux au Cameroun 🇨🇲'}</p>
+              <p>{isEn ? `Designed for sales teams in ${country.name} ${country.flag}` : `Conçu pour les commerciaux de ${country.name} ${country.flag}`}</p>
             </div>
           </div>
         </div>

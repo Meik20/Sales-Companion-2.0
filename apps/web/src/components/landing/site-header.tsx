@@ -7,6 +7,7 @@ import { ScIcon } from '@/components/ui/ScIcon'
 import { LanguageSwitcher } from '@/components/landing/LanguageSwitcher'
 import { useTranslation } from '@/providers/I18nProvider'
 import { routes } from '@/constants/routes'
+import { useLandingCountry } from '@/features/landing/landing-country'
 
 const LinkedInIcon = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="currentColor">
@@ -16,6 +17,7 @@ const LinkedInIcon = ({ className }: { className?: string }) => (
 
 export function SiteHeader() {
   const { lang, t } = useTranslation()
+  const { country, countries, setCountry } = useLandingCountry()
   const [mobileOpen, setMobileOpen] = useState(false)
 
   const navLinks = [
@@ -49,6 +51,22 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-2.5 sm:gap-3">
+          <label className="flex items-center rounded-lg border border-border bg-secondary/60 px-2 text-xs font-semibold text-foreground">
+            <span className="mr-1.5" aria-hidden="true">{country.flag}</span>
+            <select
+              value={country.code}
+              onChange={(event) => setCountry(event.target.value as typeof country.code)}
+              className="h-8 max-w-[130px] cursor-pointer bg-transparent text-xs font-semibold outline-none"
+              aria-label="Pays de la homepage"
+            >
+              {countries.map((option) => (
+                <option key={option.code} value={option.code} className="bg-background text-foreground">
+                  {option.flag} {option.name}
+                </option>
+              ))}
+            </select>
+          </label>
+
           {/* Sélecteur de langue */}
           <LanguageSwitcher />
 

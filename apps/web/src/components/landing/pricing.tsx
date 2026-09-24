@@ -4,10 +4,12 @@ import Link from 'next/link'
 import { Check, Sparkles } from 'lucide-react'
 import { routes } from '@/constants/routes'
 import { useTranslation } from '@/providers/I18nProvider'
+import { useLandingCountry } from '@/features/landing/landing-country'
 
 export function Pricing() {
   const { t, lang } = useTranslation()
 
+  const { country } = useLandingCountry()
   const plans = [
     {
       name: t('landing.plansSection.free'),
@@ -29,7 +31,7 @@ export function Pricing() {
     {
       name: t('landing.plansSection.starter'),
       price: t('landing.plansSection.starterPrice'),
-      period: `FCFA / ${t('landing.plansSection.starterPeriod')}`,
+      period: `${country.currency} / ${t('landing.plansSection.starterPeriod')}`,
       description: lang === 'en'
         ? 'For independent sales reps who want to accelerate their searches.'
         : 'Pour les commerciaux indépendants qui veulent accélérer leurs recherches.',
@@ -47,7 +49,7 @@ export function Pricing() {
     {
       name: t('landing.plansSection.pro'),
       price: t('landing.plansSection.proPrice'),
-      period: `FCFA / ${t('landing.plansSection.proPeriod')}`,
+      period: `${country.currency} / ${t('landing.plansSection.proPeriod')}`,
       description: lang === 'en'
         ? 'For top sales reps seeking performance and AI assistance.'
         : 'Pour les commerciaux exigeants recherchant performance et accompagnement IA.',
@@ -66,10 +68,10 @@ export function Pricing() {
     {
       name: t('landing.plansSection.enterprise'),
       price: t('landing.plansSection.enterprisePrice'),
-      period: `FCFA / ${t('landing.plansSection.enterprisePeriod')}`,
+      period: `${country.currency} / ${t('landing.plansSection.enterprisePeriod')}`,
       description: lang === 'en'
-        ? 'For teams and sales directors in Douala, Yaoundé and beyond.'
-        : "Pour les équipes et directeurs commerciaux à Douala, Yaoundé et régions.",
+        ? `For teams and sales directors in ${country.cities.join(', ')} and beyond.`
+        : `Pour les équipes et directeurs commerciaux à ${country.cities.join(', ')} et dans les autres régions.`,
       features: [
         t('landing.plansSection.pEnterprise1'),
         t('landing.plansSection.pEnterprise2'),

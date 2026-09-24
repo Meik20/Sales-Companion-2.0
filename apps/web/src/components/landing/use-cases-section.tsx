@@ -4,9 +4,11 @@ import Link from 'next/link'
 import { Briefcase, Users, Building, ArrowRight, Check } from 'lucide-react'
 import { useTranslation } from '@/providers/I18nProvider'
 import { routes } from '@/constants/routes'
+import { useLandingCountry } from '@/features/landing/landing-country'
 
 export function UseCasesSection() {
   const { lang } = useTranslation()
+  const { country } = useLandingCountry()
   const isEn = lang === 'en'
 
   const personas = [
@@ -57,12 +59,12 @@ export function UseCasesSection() {
       bullets: isEn
         ? [
             'No need to pay for 4 different software subscriptions or complex CRMs',
-            'Immediate access to 50,000+ businesses ready to be prospected',
+            `Immediate access to ${country.companyCount.toLowerCase()} businesses ready to be prospected`,
             'Turn every commercial meeting into structured, trackable revenue'
           ]
         : [
             'Inutile d’empiler 4 abonnements logiciels coûteux ou un CRM complexe',
-            'Accès immédiat à un annuaire riche de 50 000+ entreprises locales',
+            `Accès immédiat à un annuaire riche d’entreprises locales de ${country.name}`,
             'Passez du bouche-à-oreille à une prospection commerciale structurée'
           ],
       ctaText: isEn ? 'Discover Sales Companion 2.0' : 'Découvrir Sales Companion 2.0'
@@ -78,7 +80,7 @@ export function UseCasesSection() {
           </span>
           <h2 className="mt-3 font-heading text-2xl font-bold tracking-tight text-foreground sm:text-3xl md:text-4xl text-balance">
             {isEn
-              ? 'Built for teams driving B2B sales in Cameroon.'
+              ? `Built for teams driving B2B sales in ${country.name}.`
               : 'Pensé pour ceux qui vivent de la prospection B2B.'}
           </h2>
           <p className="mt-4 text-base text-muted-foreground text-pretty">

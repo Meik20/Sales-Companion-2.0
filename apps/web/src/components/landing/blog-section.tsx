@@ -3,28 +3,30 @@
 import Link from 'next/link'
 import { ArrowRight, BookOpen, Building, ShieldCheck } from 'lucide-react'
 import { useTranslation } from '@/providers/I18nProvider'
+import { useLandingCountry } from '@/features/landing/landing-country'
 
 export function BlogSection() {
   const { lang } = useTranslation()
+  const { country } = useLandingCountry()
 
   const articles = [
     {
-      slug: 'trouver-clients-b2b-cameroun-2026',
+      slug: country.code === 'CM' ? 'trouver-clients-b2b-cameroun-2026' : 'blog',
       title: lang === 'en'
-        ? 'How to find B2B clients in Cameroon in 2026'
-        : 'Comment trouver des clients B2B au Cameroun en 2026',
+        ? `How to find B2B clients in ${country.name} in 2026`
+        : `Comment trouver des clients B2B en ${country.name} en 2026`,
       desc: lang === 'en'
-        ? 'Complete guide to identify, prospect and close B2B clients on the Cameroonian market.'
-        : 'Guide complet pour identifier, prospecter et signer des clients B2B sur le marché camerounais.',
+        ? `Complete guide to identify, prospect and close B2B clients on the ${country.name} market.`
+        : `Guide complet pour identifier, prospecter et signer des clients B2B sur le marché de ${country.name}.`,
       badge: lang === 'en' ? 'B2B Prospecting' : 'Prospection B2B',
       readTime: '8 min',
       icon: BookOpen
     },
     {
-      slug: 'annuaire-entreprises-btp-douala',
+      slug: country.code === 'CM' ? 'annuaire-entreprises-btp-douala' : 'blog',
       title: lang === 'en'
-        ? 'Construction company directory in Douala: 2026 guide'
-        : 'Annuaire des entreprises BTP à Douala : le guide 2026',
+        ? country.code === 'CM' ? 'Construction company directory in Douala: 2026 guide' : `Construction companies in ${country.name}: 2026 guide`
+        : country.code === 'CM' ? 'Annuaire des entreprises BTP à Douala : le guide 2026' : `Annuaire des entreprises BTP en ${country.name} : guide 2026`,
       desc: lang === 'en'
         ? 'Find the right contacts and win deals in the construction sector.'
         : 'Identifiez les bons interlocuteurs et décrochez des marchés dans le secteur du bâtiment.',
@@ -33,7 +35,7 @@ export function BlogSection() {
       icon: Building
     },
     {
-      slug: 'niu-rccm-identifier-entreprise-camerounaise',
+      slug: country.code === 'CM' ? 'niu-rccm-identifier-entreprise-camerounaise' : 'blog',
       title: lang === 'en'
         ? 'NIU and RCCM: how to identify and qualify a company'
         : 'NIU et RCCM : comment identifier et qualifier une entreprise',
@@ -54,7 +56,7 @@ export function BlogSection() {
             {lang === 'en' ? 'Resources & Guides' : 'Ressources & Guides'}
           </p>
           <h2 className="mt-3 font-heading text-3xl font-semibold tracking-tight text-foreground text-balance sm:text-4xl">
-            {lang === 'en' ? 'Tips & B2B Sales in Cameroon' : 'Conseils & Vente B2B au Cameroun'}
+            {lang === 'en' ? `Tips & B2B Sales in ${country.name}` : `Conseils & Vente B2B en ${country.name}`}
           </h2>
         </div>
         <Link

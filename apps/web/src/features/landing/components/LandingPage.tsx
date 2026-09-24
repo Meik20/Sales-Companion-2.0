@@ -13,25 +13,28 @@ import { Pricing } from '@/components/landing/pricing'
 import { BlogSection } from '@/components/landing/blog-section'
 import { Faq } from '@/components/landing/faq'
 import { CtaFooter } from '@/components/landing/cta-footer'
+import { LandingCountryProvider } from '../landing-country'
 
 export function LandingPage() {
   return (
-    <div className="min-h-dvh bg-background text-foreground selection:bg-primary/20 selection:text-primary">
-      <SiteHeader />
-      <main>
-        <Hero />
-        <StatsSection />
-        <ProblemSection />
-        <WorkflowSection />
-        <Features />
-        <DataTrustSection />
-        <UseCasesSection />
-        <Testimonials />
-        <Pricing />
-        <BlogSection />
-        <Faq />
-        <CtaFooter />
-      </main>
-    </div>
+    <LandingCountryProvider>
+      <div className="min-h-dvh bg-background text-foreground selection:bg-primary/20 selection:text-primary">
+        <SiteHeader />
+        <main>
+          <Hero />
+          <StatsSection />
+          <ProblemSection />
+          <WorkflowSection />
+          <Features />
+          <DataTrustSection />
+          <UseCasesSection />
+          <Testimonials />
+          <Pricing />
+          <BlogSection />
+          <Faq />
+          <CtaFooter />
+        </main>
+      </div>
+    </LandingCountryProvider>
   )
 }

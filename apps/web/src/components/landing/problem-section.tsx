@@ -2,9 +2,11 @@
 
 import { FileSpreadsheet, SearchX, Clock, ArrowRight } from 'lucide-react'
 import { useTranslation } from '@/providers/I18nProvider'
+import { useLandingCountry } from '@/features/landing/landing-country'
 
 export function ProblemSection() {
   const { lang } = useTranslation()
+  const { country } = useLandingCountry()
   const isEn = lang === 'en'
 
   const problems = [
@@ -45,8 +47,8 @@ export function ProblemSection() {
           </h2>
           <p className="mt-4 text-base text-muted-foreground text-pretty">
             {isEn
-              ? 'Sales teams in Cameroon often lose up to 40% of their prospecting time because tools are fragmented and unsuited to the local market.'
-              : 'Au Cameroun, les équipes commerciales perdent souvent jusqu’à 40% de leur temps de prospection à cause d’outils inadaptés et dispersés.'}
+              ? `Sales teams in ${country.name} often lose valuable prospecting time because tools are fragmented and unsuited to the local market.`
+              : `En ${country.name}, les équipes commerciales perdent souvent du temps de prospection à cause d’outils inadaptés et dispersés.`}
           </p>
         </div>
 
@@ -87,7 +89,7 @@ export function ProblemSection() {
           <p className="mt-2 text-sm text-muted-foreground max-w-xl mx-auto">
             {isEn
               ? 'Find qualified businesses, verify decision-makers, and organize follow-ups in an intuitive CRM designed for our market.'
-              : 'Identifiez les bonnes entreprises, préparez vos approches et suivez vos relances dans un outil pensé pour le terrain camerounais.'}
+              : `Identifiez les bonnes entreprises, préparez vos approches et suivez vos relances dans un outil pensé pour le terrain de ${country.name}.`}
           </p>
         </div>
       </div>

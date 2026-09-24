@@ -16,9 +16,11 @@ import {
 } from 'lucide-react'
 import { useTranslation } from '@/providers/I18nProvider'
 import { routes } from '@/constants/routes'
+import { useLandingCountry } from '@/features/landing/landing-country'
 
 export function Hero() {
   const { lang, t } = useTranslation()
+  const { country } = useLandingCountry()
   const isEn = lang === 'en'
 
   const [addedToPipeline, setAddedToPipeline] = useState(false)
@@ -39,11 +41,11 @@ export function Hero() {
           <h1 className="mt-5 font-heading text-3xl font-extrabold leading-[1.12] tracking-tight text-foreground text-balance sm:text-4xl lg:text-5xl">
             {isEn ? (
               <>
-                Find your next <span className="text-[#1B7A3E]">B2B clients</span> in Cameroon.
+                Find your next <span className="text-[#1B7A3E]">B2B clients</span> in {country.name}.
               </>
             ) : (
               <>
-                Trouvez vos prochains <span className="text-[#1B7A3E]">clients B2B</span> au Cameroun.
+                Trouvez vos prochains <span className="text-[#1B7A3E]">clients B2B</span> au {country.name}.
               </>
             )}
           </h1>
@@ -141,7 +143,7 @@ export function Hero() {
                     <span className="block text-[10px] text-muted-foreground font-medium">
                       {isEn ? 'City' : 'Ville'}
                     </span>
-                    <span className="font-semibold text-foreground truncate block">Douala</span>
+                    <span className="font-semibold text-foreground truncate block">{country.cities[0]}</span>
                   </div>
                   <div className="rounded-lg border border-border bg-card p-2">
                     <span className="block text-[10px] text-muted-foreground font-medium">
@@ -164,7 +166,7 @@ export function Hero() {
                         ABC CONSTRUCTION SARL
                       </h4>
                       <p className="text-xs text-muted-foreground">
-                        BTP & Génie Civil · Douala, Bonanjo
+                        BTP & Génie Civil · {country.cities[0]}
                       </p>
                     </div>
                   </div>
@@ -204,7 +206,7 @@ export function Hero() {
                   </div>
                   <div className="flex items-center gap-1.5 text-muted-foreground">
                     <Phone className="h-3.5 w-3.5 text-blue-500 shrink-0" />
-                    <span className="font-mono text-foreground font-medium">+237 699 45 28 XX</span>
+                    <span className="font-mono text-foreground font-medium">{country.name} · B2B</span>
                   </div>
                   <div className="flex items-center gap-1.5 text-muted-foreground">
                     <Mail className="h-3.5 w-3.5 text-blue-500 shrink-0" />

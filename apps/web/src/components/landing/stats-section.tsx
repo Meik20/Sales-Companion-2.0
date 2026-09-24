@@ -2,15 +2,17 @@
 
 import { Building2, Layers, MapPin, Smartphone } from 'lucide-react'
 import { useTranslation } from '@/providers/I18nProvider'
+import { useLandingCountry } from '@/features/landing/landing-country'
 
 export function StatsSection() {
   const { lang } = useTranslation()
+  const { country } = useLandingCountry()
   const isEn = lang === 'en'
 
   const stats = [
     {
       icon: Building2,
-      value: '50 000+',
+      value: country.companyCount,
       label: isEn ? 'Listed companies' : 'Entreprises référencées',
       desc: isEn ? 'Structured & updated B2B data' : 'Données B2B structurées et à jour'
     },
@@ -22,9 +24,9 @@ export function StatsSection() {
     },
     {
       icon: MapPin,
-      value: '10',
+      value: String(country.regions),
       label: isEn ? 'Regions & main hubs' : 'Régions & métropoles',
-      desc: isEn ? 'Douala, Yaoundé, Bafoussam, Garoua...' : 'Douala, Yaoundé, Bafoussam, Garoua...'
+      desc: country.cities.join(', '),
     },
     {
       icon: Smartphone,
@@ -45,8 +47,8 @@ export function StatsSection() {
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
             {isEn
-              ? 'Real, structured data designed specifically for sales reps and managers in Cameroon.'
-              : 'Des données réelles, structurées et pensées pour les commerciaux et dirigeants au Cameroun.'}
+              ? `Real, structured data designed for sales reps and managers in ${country.name}.`
+              : `Des données réelles, structurées et pensées pour les commerciaux et dirigeants de ${country.name}.`}
           </p>
         </div>
 

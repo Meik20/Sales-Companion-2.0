@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { useTranslation } from '@/providers/I18nProvider'
 import { routes } from '@/constants/routes'
+import { useLandingCountry } from '@/features/landing/landing-country'
 
 interface DeepDiveFeature {
   tag: string
@@ -33,18 +34,20 @@ interface DeepDiveFeature {
 export function Features() {
   const { lang } = useTranslation()
 
+  const { country } = useLandingCountry()
+  const cities = country.cities.join(', ')
   const deepDiveFeatures: DeepDiveFeature[] = [
     {
-      tag: lang === 'en' ? 'Cameroon B2B Directory' : 'Annuaire B2B Cameroun',
+        tag: lang === 'en' ? `${country.name} B2B Directory` : `Annuaire B2B ${country.name}`,
       icon: Building2,
       title:
         lang === 'en'
-          ? '50,000+ verified Cameroonian companies at your fingertips'
-          : '50 000+ entreprises camerounaises répertoriées et vérifiées',
+          ? `${country.companyCount} verified ${country.name} companies at your fingertips`
+          : `${country.companyCount} entreprises de ${country.name} répertoriées et vérifiées`,
       description:
         lang === 'en'
-          ? 'Direct access to the largest B2B directory in the country. Filter by city (Douala, Yaoundé, Bafoussam...), business sector and company type to identify and reach decision-makers directly.'
-          : 'Accédez en direct au plus vaste annuaire B2B du pays. Filtrez par ville (Douala, Yaoundé, Bafoussam...), secteur d’activité et type de structure pour identifier et contacter directement les bons décideurs.',
+          ? `Direct access to the B2B directory in ${country.name}. Filter by city (${cities}), business sector and company type to identify and reach decision-makers directly.`
+          : `Accédez en direct à l’annuaire B2B de ${country.name}. Filtrez par ville (${cities}), secteur d’activité et type de structure pour identifier et contacter directement les bons décideurs.`,
       bullets:
         lang === 'en'
           ? [
@@ -60,8 +63,8 @@ export function Features() {
       illustration: '/illustrations/landing/cameroon-directory.png',
       alt:
         lang === 'en'
-          ? 'Verified Cameroonian company directory on Sales Companion 2.0'
-          : 'Annuaire des entreprises camerounaises vérifiées avec Sales Companion 2.0',
+          ? `Verified ${country.name} company directory on Sales Companion 2.0`
+          : `Annuaire des entreprises de ${country.name} vérifiées avec Sales Companion 2.0`,
       ctaText: lang === 'en' ? 'Explore directory' : 'Explorer l’annuaire',
       ctaLink: routes.register,
       reverse: false
@@ -124,8 +127,8 @@ export function Features() {
       illustration: '/illustrations/landing/search-prospection.png',
       alt:
         lang === 'en'
-          ? 'Targeted search and prospecting of companies in Cameroon'
-          : 'Recherche et prospection ciblée d’entreprises au Cameroun',
+          ? `Targeted search and prospecting of companies in ${country.name}`
+          : `Recherche et prospection ciblée d’entreprises en ${country.name}`,
       ctaText: lang === 'en' ? 'Search companies' : 'Lancer une recherche',
       ctaLink: routes.register,
       reverse: false
@@ -171,8 +174,8 @@ export function Features() {
           : 'Prospectez partout, même sans aucune connexion Internet',
       description:
         lang === 'en'
-          ? 'Network drops and dead zones in Cameroon will never stall your sales again. Sales Companion 2.0 installs directly on your smartphone and remains fully functional offline.'
-          : 'Les coupures de réseau ou les zones blanches au Cameroun ne doivent plus freiner vos ventes. Sales Companion 2.0 s’installe directement sur votre smartphone et reste 100% opérationnel hors-ligne.',
+          ? `Network drops and dead zones in ${country.name} will never stall your sales again. Sales Companion 2.0 installs directly on your smartphone and remains fully functional offline.`
+          : `Les coupures de réseau ou les zones blanches en ${country.name} ne doivent plus freiner vos ventes. Sales Companion 2.0 s’installe directement sur votre smartphone et reste 100% opérationnel hors-ligne.`,
       bullets:
         lang === 'en'
           ? [
@@ -188,8 +191,8 @@ export function Features() {
       illustration: '/illustrations/landing/offline-pwa.png',
       alt:
         lang === 'en'
-          ? 'Offline-ready mobile PWA application for Cameroon'
-          : 'Application mobile PWA fonctionnant 100% hors-ligne au Cameroun',
+          ? `Offline-ready mobile PWA application for ${country.name}`
+          : `Application mobile PWA fonctionnant 100% hors-ligne en ${country.name}`,
       ctaText: lang === 'en' ? 'Install mobile app' : 'Installer sur mobile',
       ctaLink: '#pwa-install',
       reverse: false
@@ -202,8 +205,8 @@ export function Features() {
       title: lang === 'en' ? 'AI Sales Companion 2.0' : 'Companion IA Pro',
       description:
         lang === 'en'
-          ? 'An AI assistant specialized in the Cameroonian market that drafts outreach emails and analyzes business opportunities.'
-          : 'Un assistant IA spécialisé dans le marché camerounais qui rédige vos messages de prospection et analyse vos opportunités.'
+            ? `An AI assistant specialized in the ${country.name} market that drafts outreach emails and analyzes business opportunities.`
+          : `Un assistant IA spécialisé dans le marché de ${country.name} qui rédige vos messages de prospection et analyse vos opportunités.`
     },
     {
       icon: FileSpreadsheet,
@@ -239,8 +242,8 @@ export function Features() {
           </span>
           <h2 className="mt-4 font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl lg:text-5xl text-balance">
             {lang === 'en'
-              ? 'Everything to prospect, sell and lead in Cameroon'
-              : 'Tout pour prospecter, vendre et piloter au Cameroun'}
+              ? `Everything to prospect, sell and lead in ${country.name}`
+              : `Tout pour prospecter, vendre et piloter en ${country.name}`}
           </h2>
           <p className="mt-4 text-base sm:text-lg leading-relaxed text-muted-foreground text-pretty">
             {lang === 'en'

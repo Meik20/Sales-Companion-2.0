@@ -2,9 +2,11 @@
 
 import { Plus } from 'lucide-react'
 import { useTranslation } from '@/providers/I18nProvider'
+import { useLandingCountry } from '@/features/landing/landing-country'
 
 export function Faq() {
   const { lang } = useTranslation()
+  const { country } = useLandingCountry()
   const isEn = lang === 'en'
 
   const faqs = [
@@ -13,16 +15,16 @@ export function Faq() {
         ? 'What is Sales Companion 2.0?'
         : 'Qu’est-ce que Sales Companion 2.0 ?',
       answer: isEn
-        ? 'Sales Companion 2.0 is a B2B sales intelligence platform tailored for the Cameroonian market. It allows you to search local companies, qualify prospects with legal and contact data, and manage your deals in an intuitive CRM pipeline.'
-        : 'Sales Companion 2.0 est une plateforme de prospection B2B conçue pour le marché camerounais. Elle permet de rechercher des entreprises locales, d’identifier des prospects qualifiés et de suivre vos opportunités commerciales dans un CRM intégré.'
+        ? `Sales Companion 2.0 is a B2B sales intelligence platform tailored for the ${country.name} market. It allows you to search local companies, qualify prospects with legal and contact data, and manage your deals in an intuitive CRM pipeline.`
+        : `Sales Companion 2.0 est une plateforme de prospection B2B conçue pour le marché de ${country.name}. Elle permet de rechercher des entreprises locales, d’identifier des prospects qualifiés et de suivre vos opportunités commerciales dans un CRM intégré.`
     },
     {
       question: isEn
         ? 'How many companies are listed in the database?'
         : 'Combien d’entreprises sont disponibles dans la base ?',
       answer: isEn
-        ? 'Sales Companion 2.0 currently references over 50,000 Cameroonian companies across Douala, Yaoundé, Bafoussam, and all economic regions, with continuous updates and additions.'
-        : 'Sales Companion 2.0 référence actuellement plus de 50 000 entreprises camerounaises réparties à Douala, Yaoundé, Bafoussam et dans toutes les régions économiques, avec une actualisation continue.'
+        ? `Sales Companion 2.0 currently provides access to ${country.companyCount.toLowerCase()} companies across ${country.cities.join(', ')}, with continuous updates and additions.`
+        : `Sales Companion 2.0 donne accès à ${country.companyCount.toLowerCase()} entreprises réparties à ${country.cities.join(', ')}, avec une actualisation continue.`
     },
     {
       question: isEn

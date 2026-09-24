@@ -2,9 +2,11 @@
 
 import { Search, ShieldCheck, UserPlus, Kanban, ArrowRight } from 'lucide-react'
 import { useTranslation } from '@/providers/I18nProvider'
+import { useLandingCountry } from '@/features/landing/landing-country'
 
 export function WorkflowSection() {
   const { lang } = useTranslation()
+  const { country } = useLandingCountry()
   const isEn = lang === 'en'
 
   const steps = [
@@ -15,8 +17,8 @@ export function WorkflowSection() {
         ? 'Search for companies that match your ideal target.'
         : 'Recherchez les entreprises qui correspondent à votre cible.',
       details: isEn
-        ? 'Filter by city (Douala, Yaoundé...), business sector, and company size.'
-        : 'Filtrez par ville (Douala, Yaoundé...), secteur d’activité et type de structure.',
+        ? `Filter by city (${country.cities.join(', ')}), business sector, and company size.`
+        : `Filtrez par ville (${country.cities.join(', ')}), secteur d’activité et type de structure.`,
       icon: Search,
       tag: isEn ? 'Smart Filters' : 'Filtres multicritères'
     },

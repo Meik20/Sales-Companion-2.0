@@ -2,9 +2,11 @@
 
 import { FileCheck, Shield, MapPin, RefreshCw, AlertCircle } from 'lucide-react'
 import { useTranslation } from '@/providers/I18nProvider'
+import { useLandingCountry } from '@/features/landing/landing-country'
 
 export function DataTrustSection() {
   const { lang } = useTranslation()
+  const { country } = useLandingCountry()
   const isEn = lang === 'en'
 
   const pillars = [
@@ -19,8 +21,8 @@ export function DataTrustSection() {
       icon: MapPin,
       title: isEn ? 'Granular Geographic Mapping' : 'Localisation par ville & quartier',
       desc: isEn
-        ? 'Filter companies across Douala, Yaoundé, Bafoussam and economic hubs by industrial zones and key neighborhoods (Akwa, Bonanjo, Bastos...).'
-        : 'Repérez les entreprises par zone industrielle et quartier clé (Akwa, Bonanjo, Bassa, Bastos...) pour optimiser vos tournées terrain.'
+        ? `Filter companies across ${country.cities.join(', ')} and economic hubs by industrial zones and key neighborhoods.`
+        : `Repérez les entreprises dans ${country.cities.join(', ')} et les principaux pôles économiques pour optimiser vos tournées terrain.`
     },
     {
       icon: RefreshCw,
