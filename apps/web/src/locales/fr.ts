@@ -499,6 +499,8 @@ export const fr = {
     manager: 'Manager',
     managerDesc: 'Gérez une équipe de commerciaux',
     sector: "Secteur d'activité",
+    selectSector: "Sélectionnez votre secteur…",
+    companyName: "Nom de l'entreprise",
     country: 'Pays',
     selectCountry: 'Sélectionner votre pays...',
     countryLockedNote: 'Votre pays est défini une seule fois à l\'inscription pour filtrer vos données.',

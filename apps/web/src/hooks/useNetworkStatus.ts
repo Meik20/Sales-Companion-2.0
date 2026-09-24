@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { isMobileRuntime } from '@/lib/runtime'
 
 export interface NetworkStatus {
   isOnline: boolean
@@ -16,8 +17,9 @@ export interface NetworkStatus {
 const MANUAL_OFFLINE_KEY = 'sc_manual_offline'
 
 export function useNetworkStatus(): NetworkStatus {
+  const mobileRuntime = isMobileRuntime()
   const [isBrowserOnline, setIsBrowserOnline] = useState<boolean>(() => {
-    if (typeof navigator !== 'undefined') {
+    if (mobileRuntime && typeof navigator !== 'undefined') {
       return navigator.onLine
     }
     return true
@@ -28,7 +30,7 @@ export function useNetworkStatus(): NetworkStatus {
   const [isChecking, setIsChecking] = useState<boolean>(false)
 
   const [isManualOffline, setIsManualOfflineState] = useState<boolean>(() => {
-    if (typeof window !== 'undefined') {
+    if (mobileRuntime && typeof window !== 'undefined') {
       try {
         return sessionStorage.getItem(MANUAL_OFFLINE_KEY) === 'true'
       } catch {
@@ -82,7 +84,7 @@ export function useNetworkStatus(): NetworkStatus {
   }, [])
 
   useEffect(() => {
-    if (typeof window === 'undefined') return
+    if (typeof window === 'undefined' || !isMobileRuntime()) return
 
     // Run active probe on mount to detect current data status
     checkConnectivity()

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useToast } from '@/hooks/useToast'
+import { isMobileRuntime } from '@/lib/runtime'
 
 type ServiceWorkerState = 'idle' | 'installing' | 'installed' | 'updating' | 'error'
 
@@ -12,6 +13,21 @@ export function usePWARegistration() {
 
   useEffect(() => {
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
+      return
+    }
+    if (!isMobileRuntime()) {
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        Promise.all(registrations.map((registration) => registration.unregister())).then(() => {
+          const cleanupKey = 'sc_desktop_sw_cleanup_attempted'
+          if (navigator.serviceWorker.controller && sessionStorage.getItem(cleanupKey) !== '1') {
+            sessionStorage.setItem(cleanupKey, '1')
+            window.location.reload()
+          }
+        })
+      })
+      caches.keys().then((keys) => {
+        keys.filter((key) => key.startsWith('sales-companion-')).forEach((key) => caches.delete(key))
+      })
       return
     }
 
@@ -74,6 +90,7 @@ export function usePWARegistration() {
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
       return
     }
+    if (!isMobileRuntime()) return
 
     let refreshing = false
     const handleControllerChange = () => {
@@ -95,6 +112,7 @@ export function usePWARegistration() {
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
       return
     }
+    if (!isMobileRuntime()) return
 
     const handleMessage = (event: MessageEvent) => {
       const { data } = event
@@ -118,7 +136,7 @@ export function usePWARegistration() {
   return {
     state,
     registration,
-    isSupported: typeof window !== 'undefined' && 'serviceWorker' in navigator,
+    isSupported: typeof window !== 'undefined' && isMobileRuntime() && 'serviceWorker' in navigator,
     isInstalled: state === 'installed'
   }
 }
@@ -126,6 +144,7 @@ export function usePWARegistration() {
 export function requestPushPermission() {
   if (
     typeof window === 'undefined' ||
+    !isMobileRuntime() ||
     !('serviceWorker' in navigator) ||
     !('Notification' in window)
   ) {
@@ -146,7 +165,7 @@ export function requestPushPermission() {
 }
 
 export function triggerBackgroundSync(tag = 'sync-pending-actions') {
-  if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
+  if (typeof window === 'undefined' || !isMobileRuntime() || !('serviceWorker' in navigator)) {
     return Promise.reject(new Error('Service Worker not supported'))
   }
 

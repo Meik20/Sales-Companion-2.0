@@ -8,6 +8,7 @@ import { Company } from '@/features/search/hooks/useCompaniesSearch'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { firestore } from '@/services/firebase/client'
 import { useQueryClient } from '@tanstack/react-query'
+import { isMobileRuntime } from '@/lib/runtime'
 
 type Props = { company: Company }
 
@@ -34,7 +35,7 @@ export function SaveCompanyButton({ company }: Props) {
     if (!user || status === 'loading' || status === 'done' || status === 'duplicate') return
     setStatus('loading'); setErrorMsg(null)
 
-    const isOffline = typeof navigator !== 'undefined' && !navigator.onLine
+    const isOffline = isMobileRuntime() && typeof navigator !== 'undefined' && !navigator.onLine
 
     if (isOffline) {
       try {
@@ -80,6 +81,11 @@ export function SaveCompanyButton({ company }: Props) {
       setStatus((json as { duplicate?: boolean }).duplicate ? 'duplicate' : 'done')
     } catch (err) {
       // If network error, try offline save directly
+      if (!isMobileRuntime()) {
+        setErrorMsg(err instanceof Error ? err.message : 'Erreur inconnue')
+        setStatus('error')
+        return
+      }
       try {
         await addDoc(collection(firestore, 'saved_companies'), {
           userId: user.uid,

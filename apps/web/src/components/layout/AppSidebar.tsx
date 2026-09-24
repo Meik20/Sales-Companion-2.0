@@ -34,6 +34,7 @@ import {
 import { useTheme } from 'next-themes'
 import { useTranslation } from '@/providers/I18nProvider'
 import { useNetworkStatus } from '@/hooks/useNetworkStatus'
+import { isMobileRuntime } from '@/lib/runtime'
 
 // ── Indicateur & bascule du mode hors connexion dans la sidebar ───────────────
 function OfflineModeIndicator() {
@@ -41,6 +42,8 @@ function OfflineModeIndicator() {
     useNetworkStatus()
   const { t } = useTranslation()
   const { pushToast } = useToast()
+
+  if (!isMobileRuntime()) return null
 
   const handleToggle = () => {
     toggleManualOffline()

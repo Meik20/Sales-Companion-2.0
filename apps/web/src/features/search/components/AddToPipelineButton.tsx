@@ -8,6 +8,7 @@ import { Company } from '@/features/search/hooks/useCompaniesSearch'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { firestore } from '@/services/firebase/client'
 import { useQueryClient } from '@tanstack/react-query'
+import { isMobileRuntime } from '@/lib/runtime'
 
 type Props = { company: Company }
 
@@ -32,7 +33,7 @@ export function AddToPipelineButton({ company }: Props) {
     if (!user || status === 'loading' || status === 'done') return
     setStatus('loading'); setErrorMsg(null)
 
-    const isOffline = typeof navigator !== 'undefined' && !navigator.onLine
+    const isOffline = isMobileRuntime() && typeof navigator !== 'undefined' && !navigator.onLine
 
     const pipelineData = {
       userId: user.uid,
@@ -93,6 +94,11 @@ export function AddToPipelineButton({ company }: Props) {
       notifySuccess()
     } catch (err) {
       // If network fails, try direct offline save
+      if (!isMobileRuntime()) {
+        setErrorMsg(err instanceof Error ? err.message : 'Erreur inconnue')
+        setStatus('error')
+        return
+      }
       try {
         await addDoc(collection(firestore, 'pipeline'), pipelineData)
         await queryClient.invalidateQueries({ queryKey: ['pipeline'] })

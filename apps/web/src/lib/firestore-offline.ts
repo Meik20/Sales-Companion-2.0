@@ -1,4 +1,5 @@
 import { Query, QuerySnapshot, getDocs, getDocsFromCache } from 'firebase/firestore'
+import { isMobileRuntime } from '@/lib/runtime'
 
 /**
  * Execute a Firestore query with offline fallback.
@@ -6,7 +7,7 @@ import { Query, QuerySnapshot, getDocs, getDocsFromCache } from 'firebase/firest
  * results from the local IndexedDB persistent cache.
  */
 export async function getDocsWithOfflineFallback(q: Query): Promise<QuerySnapshot> {
-  const isOffline = typeof navigator !== 'undefined' && !navigator.onLine
+  const isOffline = isMobileRuntime() && typeof navigator !== 'undefined' && !navigator.onLine
 
   if (isOffline) {
     try {
@@ -21,6 +22,7 @@ export async function getDocsWithOfflineFallback(q: Query): Promise<QuerySnapsho
   try {
     return await getDocs(q)
   } catch (networkError) {
+    if (!isMobileRuntime()) throw networkError
     try {
       return await getDocsFromCache(q)
     } catch {

@@ -497,6 +497,8 @@ export const en = {
     manager: 'Manager',
     managerDesc: 'Manage a sales team',
     sector: 'Business sector',
+    selectSector: 'Select your sector…',
+    companyName: 'Company name',
     country: 'Country',
     selectCountry: 'Select your country...',
     countryLockedNote: 'Your country is defined once upon registration to filter your data.',

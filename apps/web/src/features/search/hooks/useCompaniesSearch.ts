@@ -3,6 +3,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { getCachedSearchResults, saveSearchResults } from '@/lib/search-cache'
+import { isMobileRuntime } from '@/lib/runtime'
 
 export type Company = {
   id: string
@@ -48,6 +49,7 @@ export type SearchFilters = {
 
 export function useCompaniesSearch(filters: SearchFilters & { page?: number; charge?: boolean }) {
   const { user } = useCurrentUser()
+  const mobileRuntime = isMobileRuntime()
   const userCountry = user?.country || 'CM'
   const cacheFilters = { ...filters, country: userCountry }
   const hasFilters = !!(
@@ -63,7 +65,7 @@ export function useCompaniesSearch(filters: SearchFilters & { page?: number; cha
     queryFn: async (): Promise<SearchResponse> => {
       const isOffline = typeof navigator !== 'undefined' && !navigator.onLine
 
-      if (isOffline) {
+      if (mobileRuntime && isOffline) {
         const cached = await getCachedSearchResults(cacheFilters)
         if (cached) {
           const pageSize = 20
@@ -111,14 +113,14 @@ export function useCompaniesSearch(filters: SearchFilters & { page?: number; cha
         }
 
         const data = (await response.json()) as SearchResponse
-        if (data.items) {
+        if (mobileRuntime && data.items) {
           // Asynchronously save results in IndexedDB for offline retrieval
           saveSearchResults(cacheFilters, data.items, data.total).catch(() => {})
         }
         return data
       } catch (err: any) {
         // If network error occurred, try fallback to cached search
-        const cached = await getCachedSearchResults(cacheFilters)
+        const cached = mobileRuntime ? await getCachedSearchResults(cacheFilters) : null
         if (cached) {
           const pageSize = 20
           const page = filters.page || 1

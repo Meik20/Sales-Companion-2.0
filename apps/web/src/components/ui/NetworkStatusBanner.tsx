@@ -4,12 +4,13 @@ import React from 'react'
 import { WifiOff, Wifi, CheckCircle2, X } from 'lucide-react'
 import { useNetworkStatus } from '@/hooks/useNetworkStatus'
 import { useTranslation } from '@/providers/I18nProvider'
+import { isMobileRuntime } from '@/lib/runtime'
 
 export function NetworkStatusBanner() {
   const { isOnline, wasOffline, dismissReconnected } = useNetworkStatus()
   const { t } = useTranslation()
 
-  if (isOnline && !wasOffline) {
+  if (!isMobileRuntime() || (isOnline && !wasOffline)) {
     return null
   }
 
