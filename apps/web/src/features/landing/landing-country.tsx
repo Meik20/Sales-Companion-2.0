@@ -1,13 +1,16 @@
 'use client'
 
 import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from 'react'
-import { COUNTRY_NAMES, SUPPORTED_COUNTRIES, type CountryCode } from '@sales-companion/shared'
+import { COUNTRY_FRENCH_ADJECTIVE, COUNTRY_FRENCH_IN, COUNTRY_FRENCH_MARKET_ADJECTIVE, COUNTRY_NAMES, SUPPORTED_COUNTRIES, type CountryCode } from '@sales-companion/shared'
 
 const COUNTRY_COOKIE = 'sc_country'
 
 type LandingCountry = {
   code: CountryCode
   name: string
+  frenchIn: string
+  frenchAdjective: string
+  frenchMarketAdjective: string
   flag: string
   currency: string
   cities: string[]
@@ -15,7 +18,7 @@ type LandingCountry = {
   companyCount: string
 }
 
-const COUNTRY_DETAILS: Record<CountryCode, Omit<LandingCountry, 'code' | 'name' | 'flag'>> = {
+const COUNTRY_DETAILS: Record<CountryCode, Omit<LandingCountry, 'code' | 'name' | 'flag' | 'frenchIn' | 'frenchAdjective' | 'frenchMarketAdjective'>> = {
   CM: { currency: 'XAF', cities: ['Douala', 'Yaoundé', 'Bafoussam'], regions: 10, companyCount: '50 000+' },
   SN: { currency: 'XOF', cities: ['Dakar', 'Thiès', 'Saint-Louis'], regions: 14, companyCount: 'Base en expansion' },
   CI: { currency: 'XOF', cities: ['Abidjan', 'Bouaké', 'Yamoussoukro'], regions: 14, companyCount: 'Base en expansion' },
@@ -34,7 +37,15 @@ function readCountryCookie(): CountryCode | null {
 
 function buildLandingCountry(code: CountryCode): LandingCountry {
   const country = SUPPORTED_COUNTRIES.find((item) => item.code === code) ?? SUPPORTED_COUNTRIES[0]
-  return { code, name: country.name, flag: country.flag, ...COUNTRY_DETAILS[code] }
+  return {
+    code,
+    name: country.name,
+    flag: country.flag,
+    ...COUNTRY_DETAILS[code],
+    frenchIn: COUNTRY_FRENCH_IN[code],
+    frenchAdjective: COUNTRY_FRENCH_ADJECTIVE[code],
+    frenchMarketAdjective: COUNTRY_FRENCH_MARKET_ADJECTIVE[code]
+  }
 }
 
 type LandingCountryContextValue = {

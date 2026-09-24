@@ -43,11 +43,11 @@ export function Features() {
       title:
         lang === 'en'
           ? `${country.companyCount} verified ${country.name} companies at your fingertips`
-          : `${country.companyCount} entreprises de ${country.name} répertoriées et vérifiées`,
+          : `${country.companyCount} entreprises ${country.frenchAdjective} répertoriées et vérifiées`,
       description:
         lang === 'en'
           ? `Direct access to the B2B directory in ${country.name}. Filter by city (${cities}), business sector and company type to identify and reach decision-makers directly.`
-          : `Accédez en direct à l’annuaire B2B de ${country.name}. Filtrez par ville (${cities}), secteur d’activité et type de structure pour identifier et contacter directement les bons décideurs.`,
+          : `Accédez en direct à l’annuaire B2B ${country.frenchIn}. Filtrez par ville (${cities}), secteur d’activité et type de structure pour identifier et contacter directement les bons décideurs.`,
       bullets:
         lang === 'en'
           ? [
@@ -64,7 +64,7 @@ export function Features() {
       alt:
         lang === 'en'
           ? `Verified ${country.name} company directory on Sales Companion 2.0`
-          : `Annuaire des entreprises de ${country.name} vérifiées avec Sales Companion 2.0`,
+          : `Annuaire des entreprises ${country.frenchAdjective} vérifiées avec Sales Companion 2.0`,
       ctaText: lang === 'en' ? 'Explore directory' : 'Explorer l’annuaire',
       ctaLink: routes.register,
       reverse: false
@@ -128,7 +128,7 @@ export function Features() {
       alt:
         lang === 'en'
           ? `Targeted search and prospecting of companies in ${country.name}`
-          : `Recherche et prospection ciblée d’entreprises en ${country.name}`,
+          : `Recherche et prospection ciblée d’entreprises ${country.frenchIn}`,
       ctaText: lang === 'en' ? 'Search companies' : 'Lancer une recherche',
       ctaLink: routes.register,
       reverse: false
@@ -175,7 +175,7 @@ export function Features() {
       description:
         lang === 'en'
           ? `Network drops and dead zones in ${country.name} will never stall your sales again. Sales Companion 2.0 installs directly on your smartphone and remains fully functional offline.`
-          : `Les coupures de réseau ou les zones blanches en ${country.name} ne doivent plus freiner vos ventes. Sales Companion 2.0 s’installe directement sur votre smartphone et reste 100% opérationnel hors-ligne.`,
+          : `Les coupures de réseau ou les zones blanches ${country.frenchIn} ne doivent plus freiner vos ventes. Sales Companion 2.0 s’installe directement sur votre smartphone et reste 100% opérationnel hors-ligne.`,
       bullets:
         lang === 'en'
           ? [
@@ -192,7 +192,7 @@ export function Features() {
       alt:
         lang === 'en'
           ? `Offline-ready mobile PWA application for ${country.name}`
-          : `Application mobile PWA fonctionnant 100% hors-ligne en ${country.name}`,
+          : `Application mobile PWA fonctionnant 100% hors-ligne ${country.frenchIn}`,
       ctaText: lang === 'en' ? 'Install mobile app' : 'Installer sur mobile',
       ctaLink: '#pwa-install',
       reverse: false
@@ -206,7 +206,7 @@ export function Features() {
       description:
         lang === 'en'
             ? `An AI assistant specialized in the ${country.name} market that drafts outreach emails and analyzes business opportunities.`
-          : `Un assistant IA spécialisé dans le marché de ${country.name} qui rédige vos messages de prospection et analyse vos opportunités.`
+          : `Un assistant IA spécialisé dans le marché ${country.frenchAdjective} qui rédige vos messages de prospection et analyse vos opportunités.`
     },
     {
       icon: FileSpreadsheet,
@@ -243,7 +243,7 @@ export function Features() {
           <h2 className="mt-4 font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl lg:text-5xl text-balance">
             {lang === 'en'
               ? `Everything to prospect, sell and lead in ${country.name}`
-              : `Tout pour prospecter, vendre et piloter en ${country.name}`}
+              : `Tout pour prospecter, vendre et piloter ${country.frenchIn}`}
           </h2>
           <p className="mt-4 text-base sm:text-lg leading-relaxed text-muted-foreground text-pretty">
             {lang === 'en'

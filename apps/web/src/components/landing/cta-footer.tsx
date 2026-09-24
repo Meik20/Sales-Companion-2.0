@@ -118,7 +118,7 @@ export function CtaFooter() {
               <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
                 {isEn
                   ? `B2B sales intelligence for ${country.name}. ${country.companyCount} companies across ${country.cities.join(', ')} and the main regions.`
-                  : `Intelligence commerciale B2B pour ${country.name}. ${country.companyCount} entreprises à ${country.cities.join(', ')} et dans les principales régions.`}
+                  : `Intelligence commerciale B2B ${country.frenchIn}. ${country.companyCount} entreprises à ${country.cities.join(', ')} et dans les principales régions.`}
               </p>
               <div className="mt-4">
                 <a
@@ -210,7 +210,7 @@ export function CtaFooter() {
                 <span>LinkedIn</span>
               </a>
               <span>·</span>
-              <p>{isEn ? `Designed for sales teams in ${country.name} ${country.flag}` : `Conçu pour les commerciaux de ${country.name} ${country.flag}`}</p>
+              <p>{isEn ? `Designed for sales teams in ${country.name} ${country.flag}` : `Conçu pour les commerciaux ${country.frenchIn} ${country.flag}`}</p>
             </div>
           </div>
         </div>

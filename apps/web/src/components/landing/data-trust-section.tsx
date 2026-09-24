@@ -22,7 +22,7 @@ export function DataTrustSection() {
       title: isEn ? 'Granular Geographic Mapping' : 'Localisation par ville & quartier',
       desc: isEn
         ? `Filter companies across ${country.cities.join(', ')} and economic hubs by industrial zones and key neighborhoods.`
-        : `Repérez les entreprises dans ${country.cities.join(', ')} et les principaux pôles économiques pour optimiser vos tournées terrain.`
+        : `Repérez les entreprises ${country.frenchIn}, notamment à ${country.cities.join(', ')}, pour optimiser vos tournées terrain.`
     },
     {
       icon: RefreshCw,

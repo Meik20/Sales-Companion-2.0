@@ -64,6 +64,37 @@ export const SUPPORTED_COUNTRIES = [
 
 export type CountryCode = (typeof SUPPORTED_COUNTRIES)[number]['code']
 
+/** Formes grammaticales utilisées dans les contenus publics et les messages IA. */
+export const COUNTRY_FRENCH_IN: Record<CountryCode, string> = {
+  CM: 'au Cameroun',
+  SN: 'au Sénégal',
+  CI: "en Côte d'Ivoire",
+  BJ: 'au Bénin',
+  TG: 'au Togo',
+  TD: 'au Tchad',
+  CF: 'en République centrafricaine'
+}
+
+export const COUNTRY_FRENCH_ADJECTIVE: Record<CountryCode, string> = {
+  CM: 'camerounaises',
+  SN: 'sénégalaises',
+  CI: 'ivoiriennes',
+  BJ: 'béninoises',
+  TG: 'togolaises',
+  TD: 'tchadiennes',
+  CF: 'centrafricaines'
+}
+
+export const COUNTRY_FRENCH_MARKET_ADJECTIVE: Record<CountryCode, string> = {
+  CM: 'camerounais',
+  SN: 'sénégalais',
+  CI: 'ivoirien',
+  BJ: 'béninois',
+  TG: 'togolais',
+  TD: 'tchadien',
+  CF: 'centrafricain'
+}
+
 /** Map code → nom du pays (pour affichage rapide) */
 export const COUNTRY_NAMES: Record<string, string> = Object.fromEntries(
   SUPPORTED_COUNTRIES.map((c) => [c.code, c.name])

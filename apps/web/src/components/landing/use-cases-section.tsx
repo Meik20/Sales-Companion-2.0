@@ -64,7 +64,7 @@ export function UseCasesSection() {
           ]
         : [
             'Inutile d’empiler 4 abonnements logiciels coûteux ou un CRM complexe',
-            `Accès immédiat à un annuaire riche d’entreprises locales de ${country.name}`,
+            `Accès immédiat à un annuaire riche d’entreprises locales ${country.frenchIn}`,
             'Passez du bouche-à-oreille à une prospection commerciale structurée'
           ],
       ctaText: isEn ? 'Discover Sales Companion 2.0' : 'Découvrir Sales Companion 2.0'

@@ -5,7 +5,7 @@ import { getClientIp, checkRateLimit, checkRateLimitByUser } from '@/lib/rate-li
 import { GEMINI_TOOLS, GROQ_TOOLS, executeAITool } from '@/lib/ai-tools'
 import { searchCompanies, type CompanyRecord } from '@/lib/company-search'
 import { PLAN_LIMITS } from '@sales-companion/shared'
-import { COUNTRY_NAMES, GEOGRAPHY } from '@sales-companion/shared'
+import { COUNTRY_FRENCH_ADJECTIVE, COUNTRY_FRENCH_IN, COUNTRY_NAMES, GEOGRAPHY, type CountryCode } from '@sales-companion/shared'
 
 function detectSectorFromText(text: string): string | undefined {
   const t = text.toLowerCase()
@@ -61,7 +61,9 @@ function buildSystemPrompt(
   },
   preFetchedCompanies?: Partial<CompanyRecord>[],
   lang: 'fr' | 'en' = 'fr',
-  countryName = 'Cameroun'
+  countryName = 'Cameroun',
+  countryIn = 'au Cameroun',
+  countryAdjective = 'camerounais'
 ): string {
   const sector = userContext?.sector?.trim()
   const company = userContext?.company?.trim()
@@ -76,7 +78,7 @@ function buildSystemPrompt(
   const preFetchedBlock =
     preFetchedCompanies && preFetchedCompanies.length > 0
       ? `\n\n## 🏢 Entreprises Réelles de la Base / Real Verified Companies in Database
-Voici des entreprises officielles de ${countryName} enregistrées dans l'application :
+Voici des entreprises officielles ${countryAdjective} enregistrées dans l'application :
 ${preFetchedCompanies
   .map(
     (c, i) =>
@@ -89,7 +91,7 @@ ${preFetchedCompanies
   .join('\n')}`
       : ''
 
-  return `Tu es le Companion IA de Sales Companion 2.0, l'assistant commercial B2B ultra-rapide et expert en prospection au ${countryName}.
+  return `Tu es le Companion IA de Sales Companion 2.0, l'assistant commercial B2B ultra-rapide et expert en prospection ${countryIn}.
 You are the AI Companion for Sales Companion 2.0, the ultra-fast B2B sales and prospecting assistant in ${countryName}.
 
 ${contextBlock}
@@ -263,7 +265,9 @@ export async function POST(request: NextRequest) {
       mergedContext,
       preFetchedCompanies,
       activeLang,
-      COUNTRY_NAMES[userCountry] || 'Cameroun'
+      COUNTRY_NAMES[userCountry] || 'Cameroun',
+      COUNTRY_FRENCH_IN[userCountry as CountryCode] || 'au Cameroun',
+      COUNTRY_FRENCH_ADJECTIVE[userCountry as CountryCode] || 'camerounaises'
     )
 
     const contents: { role: string; parts: unknown[] }[] = [

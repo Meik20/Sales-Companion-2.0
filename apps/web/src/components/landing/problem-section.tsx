@@ -48,7 +48,7 @@ export function ProblemSection() {
           <p className="mt-4 text-base text-muted-foreground text-pretty">
             {isEn
               ? `Sales teams in ${country.name} often lose valuable prospecting time because tools are fragmented and unsuited to the local market.`
-              : `En ${country.name}, les équipes commerciales perdent souvent du temps de prospection à cause d’outils inadaptés et dispersés.`}
+              : `${country.frenchIn.charAt(0).toUpperCase() + country.frenchIn.slice(1)}, les équipes commerciales perdent souvent du temps de prospection à cause d’outils inadaptés et dispersés.`}
           </p>
         </div>
 
@@ -89,7 +89,7 @@ export function ProblemSection() {
           <p className="mt-2 text-sm text-muted-foreground max-w-xl mx-auto">
             {isEn
               ? 'Find qualified businesses, verify decision-makers, and organize follow-ups in an intuitive CRM designed for our market.'
-              : `Identifiez les bonnes entreprises, préparez vos approches et suivez vos relances dans un outil pensé pour le terrain de ${country.name}.`}
+              : `Identifiez les bonnes entreprises, préparez vos approches et suivez vos relances dans un outil pensé pour le terrain ${country.frenchIn}.`}
           </p>
         </div>
       </div>

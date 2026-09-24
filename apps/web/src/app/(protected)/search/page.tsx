@@ -11,7 +11,7 @@ import { SaveCurrentSearchButton } from '@/features/search/components/SaveCurren
 import { useCompaniesSearch } from '@/features/search/hooks/useCompaniesSearch'
 import { usePipelineStats } from '@/features/pipeline/hooks/usePipelineStats'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
-import { COUNTRY_NAMES } from '@sales-companion/shared'
+import { COUNTRY_FRENCH_IN, COUNTRY_NAMES, type CountryCode } from '@sales-companion/shared'
 import { ShortcutCard } from '@/components/ui/ShortcutCard'
 import { Button } from '@/components/ui/Button'
 import { useTranslation } from '@/providers/I18nProvider'
@@ -31,8 +31,9 @@ function SearchContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const { user } = useCurrentUser()
-  const userCountry = user?.country || 'CM'
+  const userCountry = (user?.country || 'CM') as CountryCode
   const countryName = COUNTRY_NAMES[userCountry] || 'Cameroun'
+  const countryIn = COUNTRY_FRENCH_IN[userCountry] || 'au Cameroun'
   const highlightCities = COUNTRY_HIGHLIGHT_CITIES[userCountry] ?? COUNTRY_HIGHLIGHT_CITIES.CM!
   const [filters, setFilters] = useState<{
     sector?: string
@@ -362,7 +363,7 @@ function SearchContent() {
 
                   <img
                     src="/illustrations/search-prospects.png?v=20260919b"
-                    alt={`Prospection B2B au ${countryName} — Trouvez vos clients avec Sales Companion 2.0`}
+                    alt={`Prospection B2B ${countryIn} — Trouvez vos clients avec Sales Companion 2.0`}
                     className="illustration-refined"
                     style={{
                       width: '100%',

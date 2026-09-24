@@ -48,7 +48,7 @@ export function StatsSection() {
           <p className="mt-2 text-sm text-muted-foreground">
             {isEn
               ? `Real, structured data designed for sales reps and managers in ${country.name}.`
-              : `Des données réelles, structurées et pensées pour les commerciaux et dirigeants de ${country.name}.`}
+              : `Des données réelles, structurées et pensées pour les commerciaux et dirigeants ${country.frenchIn}.`}
           </p>
         </div>
 

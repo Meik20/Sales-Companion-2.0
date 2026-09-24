@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useTranslation } from '@/providers/I18nProvider'
-import { COUNTRY_NAMES } from '@sales-companion/shared'
+import { COUNTRY_FRENCH_IN, COUNTRY_FRENCH_MARKET_ADJECTIVE, COUNTRY_NAMES, type CountryCode } from '@sales-companion/shared'
 
 interface Message {
   id: string
@@ -15,7 +15,10 @@ interface Message {
 export default function AIAssistantPage() {
   const { user } = useCurrentUser()
   const { lang, t } = useTranslation()
-  const countryName = COUNTRY_NAMES[user?.country || 'CM'] || 'Cameroun'
+  const countryCode = (user?.country || 'CM') as CountryCode
+  const countryName = COUNTRY_NAMES[countryCode] || 'Cameroun'
+  const countryIn = COUNTRY_FRENCH_IN[countryCode] || 'au Cameroun'
+  const countryAdjective = COUNTRY_FRENCH_MARKET_ADJECTIVE[countryCode] || 'camerounais'
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -30,7 +33,7 @@ export default function AIAssistantPage() {
         content:
           lang === 'en'
             ? '👋 Hello! I am your AI Sales Companion 2.0. I can help you with B2B prospecting, finding companies in our database, and drafting outreach pitches. How can I help you today?'
-            : `👋 Bonjour ! Je suis votre Companion IA. Je peux vous aider avec des conseils commerciaux, la recherche d'entreprises dans la base et la prospection B2B au ${countryName}. Comment puis-je vous aider ?`,
+            : `👋 Bonjour ! Je suis votre Companion IA. Je peux vous aider avec des conseils commerciaux, la recherche d'entreprises dans la base et la prospection B2B ${countryIn}. Comment puis-je vous aider ?`,
         timestamp: new Date()
       }
     ])
@@ -131,7 +134,7 @@ export default function AIAssistantPage() {
           Companion IA Commercial
         </h1>
         <p style={{ maxWidth: '400px', color: 'var(--muted-foreground, #94a3b8)', fontSize: '14px', lineHeight: 1.6, marginBottom: '24px' }}>
-          L&apos;assistant de prospection intelligent est réservé aux abonnements payants. Boostez vos ventes en générant des emails et scripts d&apos;approche sur-mesure pour le marché de {countryName}.
+          L&apos;assistant de prospection intelligent est réservé aux abonnements payants. Boostez vos ventes en générant des emails et scripts d&apos;approche sur-mesure pour le marché {countryAdjective}.
         </p>
         <a
           href="/upgrade"
