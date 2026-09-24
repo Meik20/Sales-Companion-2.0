@@ -7,6 +7,7 @@ import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useTranslation } from '@/providers/I18nProvider'
 import { useToast } from '@/hooks/useToast'
 import { Panel, Badge, MetricCard, StatsGrid } from '@/components/ui/index'
+import { BUSINESS_SECTORS, GEOGRAPHY, SUPPORTED_COUNTRIES } from '@sales-companion/shared'
 import { Building2, Briefcase, MapPin, Edit3, Phone, User, Check, X, ShieldCheck, RefreshCw, Sparkles } from 'lucide-react'
 
 const planBadge: Record<string, 'default' | 'info' | 'success' | 'gold'> = {
@@ -23,34 +24,6 @@ const roleLabelKeys: Record<string, string> = {
   independent: 'profile.roles.independent',
   support_agent: 'profile.roles.support_agent'
 }
-
-const CAMEROON_SECTORS = [
-  'Commerce',
-  'BTP & Construction',
-  'Industrie manufacturière',
-  'Agriculture & Agroalimentaire',
-  'Services & Conseil',
-  'Transport & Logistique',
-  'Hôtellerie & Restauration',
-  'Santé',
-  'Éducation & Formation',
-  'Technologies & Numérique',
-  'Finance & Assurance',
-  'Énergie & Mines'
-]
-
-const CAMEROON_REGIONS = [
-  'Adamaoua',
-  'Centre',
-  'Est',
-  'Extrême-Nord',
-  'Littoral',
-  'Nord',
-  'Nord-Ouest',
-  'Ouest',
-  'Sud',
-  'Sud-Ouest'
-]
 
 export function ProfileCard() {
   const { t, lang } = useTranslation()
@@ -271,6 +244,10 @@ export function ProfileCard() {
 
   if (!user) return null
 
+  const userCountry = user.country || 'CM'
+  const countryName = SUPPORTED_COUNTRIES.find((country) => country.code === userCountry)?.name ?? 'Cameroun'
+  const geography = GEOGRAPHY[userCountry] ?? GEOGRAPHY.CM!
+
   const usagePercent =
     user.dailyLimit > 0 ? Math.round((user.dailyUsed / user.dailyLimit) * 100) : 0
 
@@ -448,6 +425,27 @@ export function ProfileCard() {
                   </span>
                 </div>
               )}
+
+              {/* Pays, lecture seule */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  background: 'var(--secondary, #1e2a3b)',
+                  border: '1px solid var(--border, rgba(255,255,255,0.1))',
+                  padding: '6px 12px',
+                  borderRadius: 8,
+                  fontSize: 13,
+                  color: 'var(--foreground, #f1f5f9)'
+                }}
+              >
+                <span aria-hidden="true">{SUPPORTED_COUNTRIES.find((country) => country.code === userCountry)?.flag ?? '🌍'}</span>
+                <span>
+                  <strong style={{ color: 'var(--muted-foreground, #94a3b8)', fontWeight: 500 }}>Pays :</strong>{' '}
+                  <span style={{ fontWeight: 600 }}>{countryName}</span>
+                </span>
+              </div>
             </div>
           </div>
 
@@ -569,7 +567,7 @@ export function ProfileCard() {
                   className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
                 >
                   <option value="">-- {t('profile.noSector' as any) || 'Sélectionner un secteur'} --</option>
-                  {CAMEROON_SECTORS.map((s) => (
+                  {BUSINESS_SECTORS.map((s) => (
                     <option key={s} value={s}>
                       {s}
                     </option>
@@ -588,7 +586,7 @@ export function ProfileCard() {
                   className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
                 >
                   <option value="">-- {t('profile.selectRegion' as any) || 'Sélectionner une région'} --</option>
-                  {CAMEROON_REGIONS.map((r) => (
+                  {geography.regions.map((r) => (
                     <option key={r} value={r}>
                       {r}
                     </option>

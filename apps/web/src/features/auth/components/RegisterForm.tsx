@@ -11,10 +11,10 @@ import { useAuthActions, resolveGoogleRedirect } from '../hooks/useAuthActions'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { mapAuthError } from '../utils/error-mapper'
 import { routes } from '@/constants/routes'
-import { BUSINESS_SECTORS } from '@sales-companion/shared'
+import { BUSINESS_SECTORS, SUPPORTED_COUNTRIES, validatePhoneForCountry } from '@sales-companion/shared'
 import { useTranslation } from '@/providers/I18nProvider'
 import { isCorporateEmail } from '../utils/email-validator'
-import { ShieldCheck } from 'lucide-react'
+import { ShieldCheck, Globe2, Phone } from 'lucide-react'
 
 type RoleOption = 'independent' | 'manager'
 
@@ -36,6 +36,8 @@ export function RegisterForm() {
 
   const [name, setName] = useState(nameParam || '')
   const [role, setRole] = useState<RoleOption>(roleParam === 'manager' || exemptionParam ? 'manager' : 'independent')
+  const [country, setCountry] = useState<string>('CM')
+  const [phone, setPhone] = useState('')
   const [email, setEmail] = useState(emailParam || '')
   const [password, setPassword] = useState('')
   const [companyName, setCompanyName] = useState(companyParam || '')
@@ -98,10 +100,24 @@ export function RegisterForm() {
     }
   }
 
+  const selectedCountryObj = SUPPORTED_COUNTRIES.find((c) => c.code === country) ?? SUPPORTED_COUNTRIES[0]
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!name || !email || !password) { setError(t('auth.errorFillAll')); return }
-    if (password.length < 6) { setError(t('auth.errorPasswordLength')); return }
+    if (!name || !email || !password || !phone.trim() || !country) {
+      setError(t('auth.errorFillAll'))
+      return
+    }
+    if (password.length < 6) {
+      setError(t('auth.errorPasswordLength'))
+      return
+    }
+
+    // Validation du numéro de téléphone obligatoire et cohérent avec l'indicatif pays
+    if (!validatePhoneForCountry(phone, country)) {
+      setError(t('auth.invalidPhone' as any) || 'Numéro de téléphone invalide pour le pays sélectionné.')
+      return
+    }
 
     // Règle de sécurité : Compte Manager avec email professionnel obligatoire
     // Sauf si dérogation validée par l'administrateur
@@ -117,6 +133,8 @@ export function RegisterForm() {
     try {
       const createdUser = await registerWithEmail({
         email, password, name, role,
+        country,
+        phone: phone.trim(),
         companyName: role === 'manager' ? companyName : undefined,
         sector: sector || undefined
       })
@@ -257,6 +275,50 @@ export function RegisterForm() {
 
         <FormField label={t('auth.password')} required hint="Minimum 6 caractères">
           <Input type="password" placeholder="••••••••" value={password} autoComplete="new-password" onChange={(e) => setPassword(e.target.value)} />
+        </FormField>
+
+        {/* Pays & Téléphone pour validation */}
+        <FormField
+          label={t('auth.country' as any) || 'Pays'}
+          required
+          hint={t('auth.countryLockedNote' as any) || 'Défini une seule fois à l\'inscription pour filtrer vos données.'}
+        >
+          <div className="relative">
+            <select
+              value={country}
+              onChange={(e) => {
+                setCountry(e.target.value)
+                // If phone had old dial code or was empty, adjust or let user type
+              }}
+              className="h-10 w-full cursor-pointer rounded-[10px] border border-border bg-card px-3 text-[13px] font-medium text-foreground outline-none focus:border-primary"
+            >
+              {SUPPORTED_COUNTRIES.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.flag} {c.name} ({c.dialCode})
+                </option>
+              ))}
+            </select>
+          </div>
+        </FormField>
+
+        <FormField
+          label={t('auth.phone' as any) || 'Numéro de téléphone'}
+          required
+          hint={t('auth.phoneHint' as any) || 'Obligatoire — valide et confirme votre pays.'}
+        >
+          <div className="flex items-center gap-2">
+            <div className="flex h-10 items-center justify-center rounded-[10px] border border-border bg-muted/40 px-3 text-[13px] font-semibold text-foreground/80 shrink-0">
+              <span className="mr-1.5">{selectedCountryObj.flag}</span>
+              <span>{selectedCountryObj.dialCode}</span>
+            </div>
+            <Input
+              type="tel"
+              placeholder={selectedCountryObj.examplePhone}
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="flex-1"
+            />
+          </div>
         </FormField>
 
         {/* Rôle */}

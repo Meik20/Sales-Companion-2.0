@@ -46,14 +46,15 @@ service cloud.firestore {
         && request.resource.data.get('role', '') != 'admin'
         && request.resource.data.get('plan', 'free') == 'free'
         && request.resource.data.get('dailyLimit', 10) <= 10
+        && request.resource.data.get('country', 'CM') in ['CM', 'SN', 'CI', 'BJ', 'TG', 'TD', 'CF']
       );
 
       allow update: if isAdmin()
         || (
           isOwner(uid)
           // Champs protégés (jamais modifiables directement par l'utilisateur)
-          && !request.resource.data.diff(resource.data).affectedKeys()
-              .hasAny(['role', 'plan', 'dailyLimit', 'activated', 'managerUid', 'managerEmail'])
+            && !request.resource.data.diff(resource.data).affectedKeys()
+              .hasAny(['role', 'plan', 'dailyLimit', 'activated', 'managerUid', 'managerEmail', 'country'])
           // Membres d'équipe : profil complètement verrouillé (géré par le manager)
           && resource.data.get('role', '') != 'member'
           // Managers : ne peuvent pas modifier les champs d'entreprise directement

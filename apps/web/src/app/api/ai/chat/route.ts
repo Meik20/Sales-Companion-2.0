@@ -5,6 +5,7 @@ import { getClientIp, checkRateLimit, checkRateLimitByUser } from '@/lib/rate-li
 import { GEMINI_TOOLS, GROQ_TOOLS, executeAITool } from '@/lib/ai-tools'
 import { searchCompanies, type CompanyRecord } from '@/lib/company-search'
 import { PLAN_LIMITS } from '@sales-companion/shared'
+import { COUNTRY_NAMES } from '@sales-companion/shared'
 
 function detectSectorFromText(text: string): string | undefined {
   const t = text.toLowerCase()
@@ -50,7 +51,8 @@ function buildSystemPrompt(
     name?: string | null
   },
   preFetchedCompanies?: Partial<CompanyRecord>[],
-  lang: 'fr' | 'en' = 'fr'
+  lang: 'fr' | 'en' = 'fr',
+  countryName = 'Cameroun'
 ): string {
   const sector = userContext?.sector?.trim()
   const company = userContext?.company?.trim()
@@ -65,7 +67,7 @@ function buildSystemPrompt(
   const preFetchedBlock =
     preFetchedCompanies && preFetchedCompanies.length > 0
       ? `\n\n## 🏢 Entreprises Réelles de la Base / Real Verified Companies in Database
-Voici des entreprises officielles camerounaises enregistrées dans l'application :
+Voici des entreprises officielles de ${countryName} enregistrées dans l'application :
 ${preFetchedCompanies
   .map(
     (c, i) =>
@@ -78,8 +80,8 @@ ${preFetchedCompanies
   .join('\n')}`
       : ''
 
-  return `Tu es le Companion IA de Sales Companion 2.0, l'assistant commercial B2B ultra-rapide et expert en prospection au Cameroun.
-You are the AI Companion for Sales Companion 2.0, the ultra-fast B2B sales and prospecting assistant in Cameroon.
+  return `Tu es le Companion IA de Sales Companion 2.0, l'assistant commercial B2B ultra-rapide et expert en prospection au ${countryName}.
+You are the AI Companion for Sales Companion 2.0, the ultra-fast B2B sales and prospecting assistant in ${countryName}.
 
 ${contextBlock}
 ${preFetchedBlock}
@@ -122,6 +124,7 @@ export async function POST(request: NextRequest) {
     // Auth check + credit deduction
     const token = request.headers.get('authorization')?.split(' ')[1]
     let userId: string | null = null
+    let userCountry = 'CM'
     let userContext: {
       sector?: string | null
       company?: string | null
@@ -148,6 +151,8 @@ export async function POST(request: NextRequest) {
         const userSnap = await userRef.get()
         if (userSnap.exists) {
           const data = userSnap.data() ?? {}
+          userCountry = String(data.country || 'CM').toUpperCase()
+          if (!COUNTRY_NAMES[userCountry]) userCountry = 'CM'
           const plan = (data.plan || 'free') as keyof typeof PLAN_LIMITS
           const dailyLimit = PLAN_LIMITS[plan] ?? 10
 
@@ -230,19 +235,25 @@ export async function POST(request: NextRequest) {
       const searchRes = await searchCompanies({
         sector: targetSector || undefined,
         region: targetRegion || undefined,
-        limit: 6
+        limit: 6,
+        country: userCountry
       })
       preFetchedCompanies = searchRes.results
       // Si aucun résultat spécifique, charger des entreprises réelles par défaut
       if (preFetchedCompanies.length === 0) {
-        const defaultRes = await searchCompanies({ limit: 6 })
+        const defaultRes = await searchCompanies({ limit: 6, country: userCountry })
         preFetchedCompanies = defaultRes.results
       }
     } catch (err) {
       console.warn('[AI Pre-fetch] Could not pre-fetch companies:', err)
     }
 
-    const systemPrompt = buildSystemPrompt(mergedContext, preFetchedCompanies, activeLang)
+    const systemPrompt = buildSystemPrompt(
+      mergedContext,
+      preFetchedCompanies,
+      activeLang,
+      COUNTRY_NAMES[userCountry] || 'Cameroun'
+    )
 
     const contents: { role: string; parts: unknown[] }[] = [
       ...(history.slice(-10) as { role: string; parts: unknown[] }[]),
@@ -252,7 +263,7 @@ export async function POST(request: NextRequest) {
     // ── 1. Try Gemini with Function Calling & Pre-Fetched Context ──
     const geminiKey = process.env.GEMINI_API_KEY ?? ''
     if (geminiKey) {
-      const reply = await callGeminiWithTools(geminiKey, contents, systemPrompt)
+      const reply = await callGeminiWithTools(geminiKey, contents, systemPrompt, userCountry)
       if (reply) return NextResponse.json({ reply })
     }
 
@@ -264,7 +275,7 @@ export async function POST(request: NextRequest) {
         | undefined)
 
     if (groqKey) {
-      const reply = await callGroqWithTools(groqKey, message, history, systemPrompt)
+      const reply = await callGroqWithTools(groqKey, message, history, systemPrompt, userCountry)
       if (reply) return NextResponse.json({ reply })
     }
 
@@ -293,7 +304,8 @@ export async function POST(request: NextRequest) {
 async function callGeminiWithTools(
   apiKey: string,
   initialContents: { role: string; parts: unknown[] }[],
-  systemPrompt: string
+  systemPrompt: string,
+  country: string
 ): Promise<string | null> {
   const models = ['gemini-3.5-flash', 'gemini-3.6-flash', 'gemini-flash-latest', 'gemini-1.5-flash']
 
@@ -328,7 +340,7 @@ async function callGeminiWithTools(
 
       if (functionCallPart && functionCallPart.functionCall) {
         const { name, args } = functionCallPart.functionCall
-        const toolResult = await executeAITool(name, args || {})
+        const toolResult = await executeAITool(name, args || {}, country)
 
         contents.push({
           role: 'model',
@@ -386,7 +398,8 @@ async function callGroqWithTools(
   apiKey: string,
   message: string,
   history: { role: 'user' | 'model'; parts: [{ text: string }] }[],
-  systemPrompt: string
+  systemPrompt: string,
+  country: string
 ): Promise<string | null> {
   const models = [
     'openai/gpt-oss-120b',
@@ -443,7 +456,7 @@ async function callGroqWithTools(
             fnArgs = {}
           }
 
-          const toolResult = await executeAITool(fnName, fnArgs)
+          const toolResult = await executeAITool(fnName, fnArgs, country)
 
           messages.push({
             role: 'tool',

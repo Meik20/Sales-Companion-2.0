@@ -1,5 +1,6 @@
 export type CompanyImportRow = {
   raisonSociale?: string
+  country?: string
   sigle?: string
   niu?: string | null
   activitePrincipale?: string
@@ -16,6 +17,7 @@ export type CompanyImportRow = {
 
 export type CompanyImportColumnMapping = {
   raisonSociale?: string[]
+  country?: string[]
   sigle?: string[]
   niu?: string[]
   activitePrincipale?: string[]

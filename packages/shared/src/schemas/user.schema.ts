@@ -7,6 +7,8 @@ export const userSchema = z.object({
   email: z.string().email(),
   name: z.string().min(1),
   role: z.enum(roles),
+  country: z.string().min(2).max(2).optional().nullable(),
+  phone: z.string().optional().nullable(),
   companyId: z.string().nullable(),
   managerUid: z.string().nullable().optional(),
   teamAccessId: z.string().nullable().optional(),

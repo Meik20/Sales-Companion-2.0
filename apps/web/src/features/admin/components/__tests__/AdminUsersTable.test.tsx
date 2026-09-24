@@ -1,6 +1,10 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { AdminUsersTable } from '../AdminUsersTable'
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn() })
+}))
 
 // Derive the user row type directly from the component props — stays in sync automatically
 type UserRow = React.ComponentProps<typeof AdminUsersTable>['users'][number]

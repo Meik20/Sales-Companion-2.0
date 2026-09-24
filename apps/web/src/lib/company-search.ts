@@ -15,6 +15,7 @@ export interface CompanyRecord {
   adresse: string
   formeJuridique: string
   capital: string
+  country: string
   [key: string]: unknown
 }
 
@@ -57,7 +58,8 @@ export async function getCachedCompanies(): Promise<CompanyRecord[]> {
           rccm: (data.rccm ?? '') as string,
           adresse: (data.adresse ?? '') as string,
           formeJuridique: (data.formeJuridique ?? '') as string,
-          capital: (data.capital ?? '') as string
+          capital: (data.capital ?? '') as string,
+          country: String(data.country || 'CM').toUpperCase()
         }
       })
       lastCacheUpdate = Date.now()
@@ -75,6 +77,7 @@ export interface SearchCompaniesOptions {
   region?: string
   city?: string
   limit?: number
+  country?: string
 }
 
 /**
@@ -85,7 +88,7 @@ export async function searchCompanies(options: SearchCompaniesOptions): Promise<
   results: Partial<CompanyRecord>[]
 }> {
   const companies = await getCachedCompanies()
-  const { query, sector, region, city, limit = 5 } = options
+  const { query, sector, region, city, limit = 5, country = 'CM' } = options
 
   const matchKeywords = (
     dataValue: string,
@@ -100,7 +103,7 @@ export async function searchCompanies(options: SearchCompaniesOptions): Promise<
     return kws[logic]((kw) => nData.includes(kw))
   }
 
-  let filtered = companies
+  let filtered = companies.filter((company) => company.country === country.toUpperCase())
 
   if (region) {
     filtered = filtered.filter((c) => matchKeywords(c.region, region, 'some'))
@@ -150,7 +153,8 @@ export async function searchCompanies(options: SearchCompaniesOptions): Promise<
     email: c.email || undefined,
     adresse: c.adresse || undefined,
     rccm: c.rccm || undefined,
-    formeJuridique: c.formeJuridique || undefined
+    formeJuridique: c.formeJuridique || undefined,
+    country: c.country
   }))
 
   return {
@@ -162,14 +166,15 @@ export async function searchCompanies(options: SearchCompaniesOptions): Promise<
 /**
  * Recherche une entreprise spécifique par identifiant, nom, sigle ou NIU
  */
-export async function getCompanyDetails(identifier: string): Promise<Partial<CompanyRecord> | null> {
+export async function getCompanyDetails(identifier: string, country = 'CM'): Promise<Partial<CompanyRecord> | null> {
   const companies = await getCachedCompanies()
+  const countryCompanies = companies.filter((company) => company.country === country.toUpperCase())
   const target = normalizeString(identifier)
 
   if (!target) return null
 
   // 1. Recherche par ID exact ou NIU exact
-  let found = companies.find(
+  let found = countryCompanies.find(
     (c) =>
       c.id === identifier ||
       (c.niu && normalizeString(c.niu) === target) ||
@@ -178,7 +183,7 @@ export async function getCompanyDetails(identifier: string): Promise<Partial<Com
 
   // 2. Recherche par raison sociale exacte ou sigle exact
   if (!found) {
-    found = companies.find(
+    found = countryCompanies.find(
       (c) =>
         normalizeString(c.raisonSociale) === target ||
         (c.sigle && normalizeString(c.sigle) === target)
@@ -187,7 +192,7 @@ export async function getCompanyDetails(identifier: string): Promise<Partial<Com
 
   // 3. Recherche par inclusion
   if (!found) {
-    found = companies.find(
+    found = countryCompanies.find(
       (c) =>
         normalizeString(c.raisonSociale).includes(target) ||
         (c.sigle && normalizeString(c.sigle).includes(target))
@@ -210,21 +215,22 @@ export async function getCompanyDetails(identifier: string): Promise<Partial<Com
     adresse: found.adresse || undefined,
     rccm: found.rccm || undefined,
     formeJuridique: found.formeJuridique || undefined,
-    capital: found.capital || undefined
+    capital: found.capital || undefined,
+    country: found.country
   }
 }
 
 /**
  * Génère des statistiques globales ou par région/secteur pour donner une vue du marché
  */
-export async function getMarketOverview(options?: { region?: string; sector?: string }): Promise<{
+export async function getMarketOverview(options?: { region?: string; sector?: string; country?: string }): Promise<{
   totalCompaniesInDatabase: number
   filteredCount: number
   topSectors: { sector: string; count: number }[]
   topCities: { city: string; count: number }[]
 }> {
   const companies = await getCachedCompanies()
-  let filtered = companies
+  let filtered = companies.filter((company) => company.country === (options?.country || 'CM').toUpperCase())
 
   if (options?.region) {
     const r = normalizeString(options.region)

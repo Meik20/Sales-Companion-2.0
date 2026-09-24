@@ -48,6 +48,8 @@ export type SearchFilters = {
 
 export function useCompaniesSearch(filters: SearchFilters & { page?: number; charge?: boolean }) {
   const { user } = useCurrentUser()
+  const userCountry = user?.country || 'CM'
+  const cacheFilters = { ...filters, country: userCountry }
   const hasFilters = !!(
     filters.sector ||
     filters.region ||
@@ -57,12 +59,12 @@ export function useCompaniesSearch(filters: SearchFilters & { page?: number; cha
   )
 
   return useQuery({
-    queryKey: ['companies-search', filters],
+    queryKey: ['companies-search', cacheFilters],
     queryFn: async (): Promise<SearchResponse> => {
       const isOffline = typeof navigator !== 'undefined' && !navigator.onLine
 
       if (isOffline) {
-        const cached = await getCachedSearchResults(filters)
+        const cached = await getCachedSearchResults(cacheFilters)
         if (cached) {
           const pageSize = 20
           const page = filters.page || 1
@@ -80,6 +82,7 @@ export function useCompaniesSearch(filters: SearchFilters & { page?: number; cha
       }
 
       const params = new URLSearchParams()
+      params.append('country', userCountry)
       if (filters.sector) params.append('sector', filters.sector)
       if (filters.region) params.append('region', filters.region)
       if (filters.city) params.append('city', filters.city)
@@ -110,12 +113,12 @@ export function useCompaniesSearch(filters: SearchFilters & { page?: number; cha
         const data = (await response.json()) as SearchResponse
         if (data.items) {
           // Asynchronously save results in IndexedDB for offline retrieval
-          saveSearchResults(filters, data.items, data.total).catch(() => {})
+          saveSearchResults(cacheFilters, data.items, data.total).catch(() => {})
         }
         return data
       } catch (err: any) {
         // If network error occurred, try fallback to cached search
-        const cached = await getCachedSearchResults(filters)
+        const cached = await getCachedSearchResults(cacheFilters)
         if (cached) {
           const pageSize = 20
           const page = filters.page || 1

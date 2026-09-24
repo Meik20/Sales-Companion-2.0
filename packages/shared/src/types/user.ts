@@ -8,6 +8,7 @@ export type UserDoc = {
   email: string
   name: string
   role: UserRole
+  country?: string | null   // Code ISO 3166-1 alpha-2 ex: "CM", "SN", "TD", "CF"
   companyId?: string | null
   company?: string | null
   companyName?: string | null

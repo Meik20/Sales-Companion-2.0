@@ -16,6 +16,7 @@ export type CompanyDoc = {
   dirigeant?: string
   rccm?: string
   active: boolean
+  country: string
   sourceFile?: string
   createdAt: FirestoreTimestampLike
   updatedAt: FirestoreTimestampLike

@@ -2,21 +2,11 @@
 
 import { FormEvent, useState, useEffect } from 'react'
 import { useTranslation } from '@/providers/I18nProvider'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { GEOGRAPHY } from '@sales-companion/shared'
 import { HardHat, ShoppingBag, Laptop, Sprout, Truck, Stethoscope, LayoutGrid } from 'lucide-react'
 
 // ─── Data ────────────────────────────────────────────────────────────────────
-const REGIONS = [
-  'Adamaoua',
-  'Centre',
-  'Est',
-  'Extrême-Nord',
-  'Littoral',
-  'Nord',
-  'Nord-Ouest',
-  'Ouest',
-  'Sud',
-  'Sud-Ouest'
-]
 const REGION_KEYS: Record<string, string> = {
   Adamaoua: 'adamaoua',
   Centre: 'centre',
@@ -28,19 +18,6 @@ const REGION_KEYS: Record<string, string> = {
   Ouest: 'ouest',
   Sud: 'sud',
   'Sud-Ouest': 'sudOuest'
-}
-
-const CITIES_BY_REGION: Record<string, string[]> = {
-  Adamaoua: ['Ngaoundéré', 'Meiganga', 'Tibati', 'Ngaoundal', 'Banyo'],
-  Centre: ['Yaoundé', 'Mbalmayo', 'Bafia', 'Eséka', 'Nanga-Eboko', 'Obala', 'Monatélé'],
-  Est: ['Bertoua', 'Abong-Mbang', 'Batouri', 'Yokadouma', 'Dimako'],
-  'Extrême-Nord': ['Maroua', 'Mokolo', 'Kousseri', 'Yagoua', 'Mora'],
-  Littoral: ['Douala', 'Nkongsamba', 'Edéa', 'Loum', 'Mbanga'],
-  Nord: ['Garoua', 'Guider', 'Pitoa', 'Lagdo', 'Ngong'],
-  'Nord-Ouest': ['Bamenda', 'Kumbo', 'Wum', 'Mbengwi', 'Fundong'],
-  Ouest: ['Bafoussam', 'Dschang', 'Mbouda', 'Foumban', 'Bangangté'],
-  Sud: ['Ebolowa', 'Sangmélima', 'Kribi', 'Ambam', 'Lolodorf'],
-  'Sud-Ouest': ['Buea', 'Limbe', 'Kumba', 'Mamfe', 'Tiko']
 }
 
 const SECTORS = [
@@ -122,6 +99,10 @@ type Props = { initialValues?: Filters; onSubmit: (v: Filters) => void }
 // ─── Component ───────────────────────────────────────────────────────────────
 export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
   const { t } = useTranslation()
+  const { user } = useCurrentUser()
+  const userCountry = user?.country || 'CM'
+  const geography = GEOGRAPHY[userCountry] ?? GEOGRAPHY.CM!
+  const regions = geography.regions
   const [query, setQuery] = useState(initialValues.query ?? '')
   const [sector, setSector] = useState(initialValues.sector ?? '')
   const [region, setRegion] = useState(initialValues.region ?? '')
@@ -131,7 +112,7 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
   const [geoMsg, setGeoMsg] = useState('')
 
   // Cities available for the selected region
-  const availableCities = region ? (CITIES_BY_REGION[region] ?? []) : []
+  const availableCities = region ? (geography.citiesByRegion[region] ?? []) : []
 
   useEffect(() => {
     setQuery(initialValues.query ?? '')
@@ -180,6 +161,11 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
   }
 
   function handleLocateMe() {
+    if (userCountry !== 'CM') {
+      setGeoState('error')
+      setGeoMsg(t('search.locationUnavailable'))
+      return
+    }
     if (!navigator.geolocation) {
       setGeoState('error')
       setGeoMsg(t('search.locationNotSupported'))
@@ -536,7 +522,7 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
                 )}
                 {region && (
                   <ActiveChip
-                    label={t(`regions.${REGION_KEYS[region]}` as any)}
+                    label={REGION_KEYS[region] ? t(`regions.${REGION_KEYS[region]}` as any) : region}
                     onRemove={() => {
                       setRegion('')
                       setCity('')

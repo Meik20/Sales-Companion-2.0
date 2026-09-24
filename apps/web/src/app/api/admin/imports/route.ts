@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { adminDb } from '@/lib/firebase-admin'
 import { verifyAdminCached } from '@/lib/api-admin-auth'
+import { SUPPORTED_COUNTRIES } from '@sales-companion/shared'
 import ExcelJS from 'exceljs'
 
 async function verifyAdmin(request: NextRequest) {
@@ -116,6 +117,11 @@ export async function POST(request: NextRequest) {
       DENOMINATION: 'raisonSociale',
       COMPANY_NAME: 'raisonSociale',
       COMPANY: 'raisonSociale',
+      COUNTRY: 'country',
+      PAYS: 'country',
+      COUNTRY_CODE: 'country',
+      COUNTRYCODE: 'country',
+      CODE_PAYS: 'country',
       NIU: 'niu',
       N_I_U: 'niu',
       N_U_I: 'niu',
@@ -211,6 +217,13 @@ export async function POST(request: NextRequest) {
           skipped++
           continue
         }
+
+        const country = String(company.country ?? '').trim().toUpperCase()
+        if (!SUPPORTED_COUNTRIES.some((supported) => supported.code === country)) {
+          skipped++
+          continue
+        }
+        company.country = country
 
         // Use NIU as document ID for deduplication, or generate a stable one from name
         const niu = (company.niu as string)?.replace(/\s+/g, '').toUpperCase()

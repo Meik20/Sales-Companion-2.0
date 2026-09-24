@@ -2,6 +2,7 @@ import type { CompanyImportColumnMapping } from '../types/import'
 
 export const defaultCompanyImportMapping: CompanyImportColumnMapping = {
   raisonSociale: ['raisonSociale', 'raison sociale', 'company', 'companyName', 'nom', 'name'],
+  country: ['country', 'pays', 'countryCode', 'code pays'],
   sigle: ['sigle', 'abreviation', 'abbreviation'],
   niu: ['niu', 'nif', 'taxId'],
   activitePrincipale: ['activitePrincipale', 'activité principale', 'activite', 'activity'],

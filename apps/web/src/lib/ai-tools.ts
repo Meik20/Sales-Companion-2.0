@@ -163,7 +163,11 @@ export const GROQ_TOOLS = [
 /**
  * Exécute un outil demandé par le LLM et renvoie le résultat JSON
  */
-export async function executeAITool(name: string, args: Record<string, unknown>): Promise<unknown> {
+export async function executeAITool(
+  name: string,
+  args: Record<string, unknown>,
+  country = 'CM'
+): Promise<unknown> {
   switch (name) {
     case 'search_companies': {
       const options: SearchCompaniesOptions = {
@@ -171,14 +175,15 @@ export async function executeAITool(name: string, args: Record<string, unknown>)
         sector: typeof args.sector === 'string' ? args.sector : undefined,
         region: typeof args.region === 'string' ? args.region : undefined,
         city: typeof args.city === 'string' ? args.city : undefined,
-        limit: typeof args.limit === 'number' ? args.limit : 5
+        limit: typeof args.limit === 'number' ? args.limit : 5,
+        country
       }
       return await searchCompanies(options)
     }
 
     case 'get_company_details': {
       const identifier = typeof args.identifier === 'string' ? args.identifier : ''
-      const details = await getCompanyDetails(identifier)
+      const details = await getCompanyDetails(identifier, country)
       if (!details) {
         return { found: false, message: `Aucune entreprise trouvée pour l'identifiant: "${identifier}"` }
       }
@@ -188,7 +193,7 @@ export async function executeAITool(name: string, args: Record<string, unknown>)
     case 'get_market_overview': {
       const region = typeof args.region === 'string' ? args.region : undefined
       const sector = typeof args.sector === 'string' ? args.sector : undefined
-      return await getMarketOverview({ region, sector })
+      return await getMarketOverview({ region, sector, country })
     }
 
     default:

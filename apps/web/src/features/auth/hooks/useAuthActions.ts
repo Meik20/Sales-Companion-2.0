@@ -22,6 +22,8 @@ type RegisterInput = {
   role: string
   companyName?: string
   sector?: string
+  country?: string
+  phone?: string
 }
 
 /** Upsert the Firestore user document after any Google sign-in */
@@ -37,6 +39,8 @@ async function upsertGoogleUser(user: { uid: string; email: string | null; displ
       displayName: user.displayName || '',
       name: user.displayName || '',
       role: 'independent',
+      country: 'CM',
+      phone: null,
       plan: 'free',
       dailyLimit: 10,
       dailyUsed: 0,
@@ -81,6 +85,8 @@ export function useAuthActions() {
           displayName: input.name,
           name: input.name,
           role: input.role || 'independent',
+          country: input.country || 'CM',
+          phone: input.phone || null,
           sector: input.sector || null,
           plan: 'free',
           dailyLimit: 10,

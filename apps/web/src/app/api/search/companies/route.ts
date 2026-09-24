@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { getClientIp, checkRateLimit, checkRateLimitByUser } from '@/lib/rate-limit'
-import { PLAN_LIMITS } from '@sales-companion/shared'
+import { PLAN_LIMITS, COUNTRY_NAMES } from '@sales-companion/shared'
 
 
 // Lazy import pour éviter les erreurs si firebase-admin ne s'initialise pas
@@ -21,6 +21,20 @@ async function getAdminModules() {
 let cachedCompanies: any[] | null = null
 let lastCacheUpdate = 0
 const CACHE_DURATION = 1000 * 60 * 60 // 1 heure (réduit les lectures Firestore de 75%)
+const COUNTRY_BOUNDS: Record<string, { minLat: number; maxLat: number; minLng: number; maxLng: number }> = {
+  CM: { minLat: 1.5, maxLat: 13.2, minLng: 8.0, maxLng: 16.3 },
+  SN: { minLat: 12.2, maxLat: 16.8, minLng: -17.8, maxLng: -11.2 },
+  CI: { minLat: 4.2, maxLat: 10.8, minLng: -8.7, maxLng: -2.4 },
+  BJ: { minLat: 6.1, maxLat: 12.6, minLng: 0.6, maxLng: 3.9 },
+  TG: { minLat: 5.8, maxLat: 11.3, minLng: -0.3, maxLng: 1.9 },
+  TD: { minLat: 7.0, maxLat: 23.6, minLng: 14.0, maxLng: 24.1 },
+  CF: { minLat: 2.1, maxLat: 11.1, minLng: 14.0, maxLng: 27.6 }
+}
+
+function isWithinCountry(lat: number, lng: number, country: string) {
+  const bounds = COUNTRY_BOUNDS[country]
+  return Boolean(bounds && lat >= bounds.minLat && lat <= bounds.maxLat && lng >= bounds.minLng && lng <= bounds.maxLng)
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -59,6 +73,10 @@ export async function GET(request: NextRequest) {
     }
 
     let userId: string
+    let userCountry = 'CM'
+    let userData: any = {}
+    let userRef: any = null
+
     try {
       const decoded = await adminAuth.verifyIdToken(token)
       userId = decoded.uid
@@ -71,8 +89,14 @@ export async function GET(request: NextRequest) {
           { status: 429 }
         )
       }
+      userRef = adminDb.collection('users').doc(userId)
+      const userSnap = await userRef.get()
+      if (userSnap.exists) {
+        userData = userSnap.data() ?? {}
+        userCountry = (userData.country || 'CM').toUpperCase()
+        if (!COUNTRY_NAMES[userCountry]) userCountry = 'CM'
+      }
     } catch (err) {
-
       console.error('[search/companies] Auth verification error:', err)
       return NextResponse.json(
         { error: 'Session invalide ou expirée.', message: 'Session expirée.' },
@@ -81,29 +105,24 @@ export async function GET(request: NextRequest) {
     }
 
     // Déduire un crédit seulement si charge !== 'false'
-    if (searchParams.get('charge') !== 'false') {
+    if (searchParams.get('charge') !== 'false' && userRef && userData) {
       const { ensureDailyReset } = await getAdminModules()
-      const userRef = adminDb.collection('users').doc(userId)
-      const userSnap = await userRef.get()
-      if (userSnap.exists) {
-        const data = userSnap.data() ?? {}
-        const plan = (data.plan || 'free') as keyof typeof PLAN_LIMITS
-        // Toujours lire le quota depuis PLAN_LIMITS — source de vérité unique,
-        // indépendante du champ dailyLimit potentiellement obsolète en Firestore.
-        const dailyLimit = PLAN_LIMITS[plan] ?? 10
-        const currentDailyUsed = await ensureDailyReset(userRef, data)
+      const plan = (userData.plan || 'free') as keyof typeof PLAN_LIMITS
+      // Toujours lire le quota depuis PLAN_LIMITS — source de vérité unique,
+      // indépendante du champ dailyLimit potentiellement obsolète en Firestore.
+      const dailyLimit = PLAN_LIMITS[plan] ?? 10
+      const currentDailyUsed = await ensureDailyReset(userRef, userData)
 
-        if (currentDailyUsed >= dailyLimit) {
-          const quotaMessage = plan === 'free'
-            ? `Quota mensuel épuisé (${dailyLimit} crédits).`
-            : `Quota journalier épuisé (${dailyLimit} crédits).`
-          return NextResponse.json(
-            { error: quotaMessage, message: quotaMessage },
-            { status: 429 }
-          )
-        }
-        await userRef.update({ dailyUsed: currentDailyUsed + 1 })
+      if (currentDailyUsed >= dailyLimit) {
+        const quotaMessage = plan === 'free'
+          ? `Quota mensuel épuisé (${dailyLimit} crédits).`
+          : `Quota journalier épuisé (${dailyLimit} crédits).`
+        return NextResponse.json(
+          { error: quotaMessage, message: quotaMessage },
+          { status: 429 }
+        )
       }
+      await userRef.update({ dailyUsed: currentDailyUsed + 1 })
     }
 
     // ── 1. Google Maps Places Search ──
@@ -115,12 +134,15 @@ export async function GET(request: NextRequest) {
       try {
         let url = ''
         const keyword = [query, sector].filter(Boolean).join(' ')
+        const countryName = COUNTRY_NAMES[userCountry] || 'Cameroun'
 
-        if (lat && lng) {
+        if (lat && lng && isWithinCountry(Number(lat), Number(lng), userCountry)) {
           url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&key=${googleApiKey}`
           if (keyword) url += `&keyword=${encodeURIComponent(keyword)}`
         } else if (query) {
-          const finalQuery = query.toLowerCase().includes('cameroun') ? query : `${query} Cameroun`
+          const finalQuery = query.toLowerCase().includes(countryName.toLowerCase())
+            ? query
+            : `${query} ${countryName}`
           url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(finalQuery)}&key=${googleApiKey}`
         }
 
@@ -128,18 +150,26 @@ export async function GET(request: NextRequest) {
           const gRes = await fetch(url)
           const gData = await gRes.json()
           if (gData.results) {
-            googleResults = gData.results.map((place: any) => ({
+            googleResults = gData.results
+              .filter((place: any) => {
+                const location = place.geometry?.location
+                return location
+                  ? isWithinCountry(Number(location.lat), Number(location.lng), userCountry)
+                  : normalize(place.formatted_address || '').includes(normalize(countryName))
+              })
+              .map((place: any) => ({
               id: place.place_id,
               raisonSociale: place.name,
               adresse: place.formatted_address || place.vicinity || '',
               city: place.vicinity || '',
               sector: place.types?.join(', ') || sector || '',
               region: region || '',
+              country: userCountry,
               _source: 'google_places',
               googlePlaceId: place.place_id,
               rating: place.rating,
               telephone: ''
-            }))
+              }))
           }
         }
       } catch (err) {
@@ -178,7 +208,8 @@ export async function GET(request: NextRequest) {
             rccm: data.rccm ?? '',
             adresse: data.adresse ?? '',
             formeJuridique: data.formeJuridique ?? '',
-            capital: data.capital ?? ''
+            capital: data.capital ?? '',
+            country: (data.country || 'CM').toUpperCase()
           }
         })
         lastCacheUpdate = Date.now()
@@ -188,6 +219,12 @@ export async function GET(request: NextRequest) {
       console.warn('[search/companies] Firestore quota or connection limit reached, using memory cache/fallback:', err)
       internalCompanies = [...(cachedCompanies || [])]
     }
+
+    // ── 3.1 Filtrage strict par pays de l'utilisateur (défini à l'inscription) ──
+    internalCompanies = internalCompanies.filter((c) => {
+      const cCountry = (c.country || 'CM').toUpperCase()
+      return cCountry === userCountry
+    })
 
     // ── 4. Filtrage flexible ──
     const matchKeywords = (
@@ -258,25 +295,16 @@ export async function GET(request: NextRequest) {
     try {
       const { adminDb, FieldValue } = await getAdminModules()
 
-      let userName = 'Anonymous'
-      let userEmail = 'anonymous@platform'
-      let plan = 'free'
-
-      if (userId) {
-        const uDoc = await adminDb.collection('users').doc(userId).get()
-        if (uDoc.exists) {
-          const ud = uDoc.data() ?? {}
-          userName = ud.name || ud.email || userName
-          userEmail = ud.email || userEmail
-          plan = ud.plan || plan
-        }
-      }
+      const userName = userData.name || userData.email || 'Anonymous'
+      const userEmail = userData.email || 'anonymous@platform'
+      const plan = userData.plan || 'free'
 
       await adminDb.collection('searches').add({
         userId: userId || 'anonymous',
         userName,
         userEmail,
         plan,
+        country: userCountry,
         sector: sector || null,
         region: region || null,
         city: city || null,

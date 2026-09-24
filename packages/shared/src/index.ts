@@ -3,6 +3,8 @@ export * from './constants/pipeline-status'
 export * from './constants/roles'
 export * from './constants/sectors'
 export * from './constants/support-status'
+export * from './constants/countries'
+export * from './constants/geography'
 
 export * from './types/user'
 export * from './types/company'

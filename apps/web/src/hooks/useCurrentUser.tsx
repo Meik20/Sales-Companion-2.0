@@ -12,6 +12,7 @@ export type CurrentUser = {
   email: string
   name: string
   role: 'independent' | 'manager' | 'member' | 'admin' | 'support_agent'
+  country?: string | null
   companyId?: string | null
   companyName?: string | null
   company?: string | null

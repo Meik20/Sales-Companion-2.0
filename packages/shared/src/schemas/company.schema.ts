@@ -16,6 +16,7 @@ export const companySchema = z.object({
   dirigeant: z.string().optional(),
   rccm: z.string().optional(),
   active: z.boolean(),
+  country: z.string().optional().nullable(),
   sourceFile: z.string().optional(),
   createdAt: z.unknown(),
   updatedAt: z.unknown()
