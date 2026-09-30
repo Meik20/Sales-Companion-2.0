@@ -20,7 +20,8 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
-  AlertCircle
+  AlertCircle,
+  Lock
 } from 'lucide-react'
 
 type Props = {
@@ -142,6 +143,8 @@ export function CrmTable({
           ) : clients.map((client, i) => {
             const isPipelineClient = client._source === 'pipeline'
             const canDelete = !(isSupportAgent && isPipelineClient)
+            // Pipeline-sourced clients are already CONCLU (Customer) — support agent cannot change their status
+            const isStatusLocked = isSupportAgent && isPipelineClient
 
             return (
             <div
@@ -182,6 +185,16 @@ export function CrmTable({
 
             {/* Status */}
             <div className="relative">
+              {isStatusLocked ? (
+                // Pipeline-concluded clients: status is locked for support agents
+                <div
+                  title="Ce client est déjà CONCLU dans le pipeline — son statut ne peut pas être modifié"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'not-allowed', opacity: 0.85 }}
+                >
+                  <CrmStatusBadge status={client.status as CrmClientStatus} />
+                  <Lock size={11} style={{ color: 'var(--muted-foreground, #94a3b8)', flexShrink: 0 }} />
+                </div>
+              ) : (
               <button
                 onClick={(e) => {
                   if (statusPopup?.id === client.id) {
@@ -203,6 +216,7 @@ export function CrmTable({
               >
                 <CrmStatusBadge status={client.status as CrmClientStatus} />
               </button>
+              )}
             </div>
 
             {/* Last activity */}

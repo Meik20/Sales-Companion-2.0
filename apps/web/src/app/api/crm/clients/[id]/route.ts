@@ -64,6 +64,17 @@ export async function PATCH(
       updatedAt: now
     }
 
+    // ── Guard: support agents cannot change the status of pipeline-sourced clients ──
+    // Pipeline docs are already CONCLU (Customer). Only the status field is locked;
+    // other fields (notes, nextAction…) remain editable.
+    const isSupportAgent = agentData.role === 'support_agent'
+    if (isSupportAgent && targetCollection === 'pipeline' && body.status !== undefined && body.status !== prevData.status) {
+      return NextResponse.json(
+        { message: 'Ce client est déjà CONCLU dans le pipeline. Son statut ne peut pas être modifié par un agent support.' },
+        { status: 403 }
+      )
+    }
+
     if (body.companyName !== undefined) updates.companyName = body.companyName.trim()
     if (body.contactName !== undefined) updates.contactName = body.contactName.trim()
     if (body.phone !== undefined) {
