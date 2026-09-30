@@ -7,11 +7,11 @@ import { useState } from 'react'
 export type ExportFilters = {
   memberId?: string
   from?: string // "YYYY-MM-DD"
-  to?: string // "YYYY-MM-DD"
+  to?: string   // "YYYY-MM-DD"
 }
 
 /**
- * Hook to trigger a CSV pipeline export for the manager.
+ * Hook to trigger an Excel (.xlsx) pipeline export for the manager.
  * Downloads the file automatically in the browser.
  */
 export function useExportTeamPerformance() {
@@ -44,7 +44,7 @@ export function useExportTeamPerformance() {
       // Trigger browser download
       const blob = await res.blob()
       const today = new Date().toISOString().slice(0, 10)
-      const filename = `pipeline_performances_${today}.csv`
+      const filename = `pipeline_performances_${today}.xlsx`
 
       const objectUrl = URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -57,7 +57,7 @@ export function useExportTeamPerformance() {
 
       pushToast({
         type: 'success',
-        title: 'Export réussi',
+        title: 'Export Excel réussi ✅',
         description: `Fichier "${filename}" téléchargé.`
       })
     } catch (err) {

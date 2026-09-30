@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/useToast'
 import { useTranslation } from '@/providers/I18nProvider'
 import { getWhatsAppUrl } from '@/utils/whatsapp'
 import { useExportTeamPerformance } from '@/features/pipeline/hooks/useExportTeamPerformance'
+import { useTeamTargets, useSaveTeamTarget } from '@/features/pipeline/hooks/useTeamTargets'
 import {
   Building2,
   MapPin,
@@ -831,6 +832,301 @@ function InfoRow({
   )
 }
 
+// ── Targets Panel ────────────────────────────────────────────────────────
+function TargetsPanel({ members }: { members?: Member[] }) {
+  const { t: _t } = useTranslation()
+  const [open, setOpen] = useState(false)
+  const [selectedMemberId, setSelectedMemberId] = useState('')
+  const [period, setPeriod] = useState('')
+  const [targetVolume, setTargetVolume] = useState('')
+  const [targetValue, setTargetValue] = useState('')
+
+  const { data: allTargets } = useTeamTargets()
+  const saveMutation = useSaveTeamTarget()
+
+  // Récupérer l'objectif global (somme de tous les membres)
+  const globalVolume = (allTargets ?? []).reduce(
+    (acc, t) => (t.targetVolume != null ? acc + t.targetVolume : acc),
+    0
+  )
+  const globalValue = (allTargets ?? []).reduce(
+    (acc, t) => (t.targetValue != null ? acc + t.targetValue : acc),
+    0
+  )
+
+  const inputStyle: React.CSSProperties = {
+    background: 'var(--secondary, #1e2a3b)',
+    border: '1px solid var(--border, rgba(255,255,255,0.1))',
+    borderRadius: 8,
+    padding: '7px 10px',
+    fontSize: 13,
+    color: 'var(--foreground, #f1f5f9)',
+    outline: 'none',
+    width: '100%',
+    boxSizing: 'border-box'
+  }
+
+  const labelStyle: React.CSSProperties = {
+    fontSize: 11,
+    fontWeight: 700,
+    textTransform: 'uppercase',
+    letterSpacing: '.05em',
+    color: 'var(--muted-foreground, #94a3b8)',
+    marginBottom: 4,
+    display: 'block'
+  }
+
+  function handleSave() {
+    if (!selectedMemberId) return
+    const member = members?.find((m) => m.uid === selectedMemberId)
+    saveMutation.mutate({
+      memberId: selectedMemberId,
+      memberName: member?.name ?? member?.email ?? selectedMemberId,
+      targetVolume: targetVolume ? parseFloat(targetVolume) : null,
+      targetValue: targetValue ? parseFloat(targetValue.replace(/\s+/g, '')) : null,
+      period: period.trim() || null
+    })
+  }
+
+  return (
+    <div style={{ marginBottom: 16 }}>
+      {/* Trigger */}
+      <button
+        onClick={() => setOpen((v) => !v)}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          background: 'linear-gradient(135deg, rgba(16,185,129,0.12) 0%, rgba(5,150,105,0.12) 100%)',
+          border: '1px solid rgba(16,185,129,0.3)',
+          borderRadius: 10,
+          padding: '9px 16px',
+          cursor: 'pointer',
+          color: '#6ee7b7',
+          fontWeight: 600,
+          fontSize: 13,
+          fontFamily: "'Syne',sans-serif",
+          transition: 'all 200ms ease',
+          width: '100%',
+          justifyContent: 'space-between'
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.borderColor = 'rgba(16,185,129,0.55)'
+          e.currentTarget.style.background =
+            'linear-gradient(135deg, rgba(16,185,129,0.22) 0%, rgba(5,150,105,0.22) 100%)'
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.borderColor = 'rgba(16,185,129,0.3)'
+          e.currentTarget.style.background =
+            'linear-gradient(135deg, rgba(16,185,129,0.12) 0%, rgba(5,150,105,0.12) 100%)'
+        }}
+      >
+        <span>🎯 Définir les objectifs de l'équipe</span>
+        <span style={{ fontSize: 11, opacity: 0.7 }}>{open ? '▲' : '▼'}</span>
+      </button>
+
+      {open && (
+        <div
+          style={{
+            marginTop: 10,
+            background: 'var(--card, #131c2e)',
+            border: '1px solid var(--border, rgba(255,255,255,0.1))',
+            borderRadius: 12,
+            padding: '18px 20px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 16,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.2)'
+          }}
+        >
+          {/* Objectif Global (R/O) */}
+          {(globalVolume > 0 || globalValue > 0) && (
+            <div
+              style={{
+                background: 'rgba(16,185,129,0.07)',
+                border: '1px solid rgba(16,185,129,0.2)',
+                borderRadius: 10,
+                padding: '12px 16px',
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '8px 24px',
+                alignItems: 'center'
+              }}
+            >
+              <span style={{ fontSize: 12, fontWeight: 700, color: '#6ee7b7', letterSpacing: '.04em' }}>
+                🌐 OBJECTIF GLOBAL (R/O)
+              </span>
+              {globalVolume > 0 && (
+                <span style={{ fontSize: 13, color: '#a7f3d0' }}>
+                  Vol. : <strong>{globalVolume}</strong> prospects
+                </span>
+              )}
+              {globalValue > 0 && (
+                <span style={{ fontSize: 13, color: '#a7f3d0' }}>
+                  Val. : <strong>{new Intl.NumberFormat('fr-FR').format(globalValue)}</strong> FCFA
+                </span>
+              )}
+              <span
+                style={{
+                  fontSize: 10,
+                  color: 'var(--muted-foreground, #64748b)',
+                  fontStyle: 'italic',
+                  marginLeft: 'auto'
+                }}
+              >
+                Lecture seule · calculé automatiquement
+              </span>
+            </div>
+          )}
+
+          {/* Member selector */}
+          <div>
+            <label style={labelStyle}>Membre de l'équipe</label>
+            <select
+              value={selectedMemberId}
+              onChange={(e) => {
+                setSelectedMemberId(e.target.value)
+                // Pré-remplir si déjà un objectif défini
+                const existing = allTargets?.find((t) => t.memberId === e.target.value)
+                setTargetVolume(existing?.targetVolume != null ? String(existing.targetVolume) : '')
+                setTargetValue(existing?.targetValue != null ? String(existing.targetValue) : '')
+                setPeriod(existing?.period ?? '')
+              }}
+              style={inputStyle}
+            >
+              <option value="">— Sélectionner un membre —</option>
+              {members?.map((m) => (
+                <option key={m.uid} value={m.uid}>
+                  {m.name ?? m.email ?? m.uid}
+                  {m.accessId ? ` (${m.accessId.toLowerCase()})` : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Period */}
+          <div>
+            <label style={labelStyle}>Période (optionnel)</label>
+            <input
+              type="text"
+              placeholder='ex : 2026-Q1, 2026-S1, 2026-12'
+              value={period}
+              onChange={(e) => setPeriod(e.target.value)}
+              style={inputStyle}
+            />
+          </div>
+
+          {/* Volume + Valeur */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div>
+              <label style={labelStyle}>Objectif Volume (nbre de prospects)</label>
+              <input
+                type="number"
+                min={0}
+                placeholder='ex : 50'
+                value={targetVolume}
+                onChange={(e) => setTargetVolume(e.target.value)}
+                style={inputStyle}
+              />
+            </div>
+            <div>
+              <label style={labelStyle}>Objectif Valeur (FCFA)</label>
+              <input
+                type="number"
+                min={0}
+                placeholder='ex : 5000000'
+                value={targetValue}
+                onChange={(e) => setTargetValue(e.target.value)}
+                style={inputStyle}
+              />
+            </div>
+          </div>
+
+          {/* Existing targets summary */}
+          {allTargets && allTargets.length > 0 && (
+            <div
+              style={{
+                background: 'var(--secondary, #1e2a3b)',
+                borderRadius: 10,
+                padding: '12px 14px',
+                fontSize: 12
+              }}
+            >
+              <div
+                style={{
+                  fontWeight: 700,
+                  fontSize: 11,
+                  textTransform: 'uppercase',
+                  letterSpacing: '.05em',
+                  color: 'var(--muted-foreground, #94a3b8)',
+                  marginBottom: 8
+                }}
+              >
+                Objectifs définis
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {allTargets.map((t) => {
+                  const member = members?.find((m) => m.uid === t.memberId)
+                  const name = member?.name ?? member?.email ?? t.memberId
+                  return (
+                    <div
+                      key={t.memberId}
+                      style={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        gap: '4px 12px',
+                        alignItems: 'center',
+                        padding: '6px 10px',
+                        background: 'var(--card, #131c2e)',
+                        borderRadius: 8,
+                        border: '1px solid var(--border, rgba(255,255,255,0.08))'
+                      }}
+                    >
+                      <span style={{ fontWeight: 600, color: 'var(--foreground, #f1f5f9)', minWidth: 120 }}>
+                        {name}
+                      </span>
+                      {t.period && (
+                        <span style={{ color: 'var(--muted-foreground, #94a3b8)', fontSize: 11 }}>
+                          📅 {t.period}
+                        </span>
+                      )}
+                      {t.targetVolume != null && (
+                        <span style={{ color: '#60a5fa' }}>Vol. : <strong>{t.targetVolume}</strong></span>
+                      )}
+                      {t.targetValue != null && (
+                        <span style={{ color: '#34d399' }}>
+                          Val. : <strong>{new Intl.NumberFormat('fr-FR').format(t.targetValue)}</strong> F
+                        </span>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Actions */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button
+              size="sm"
+              variant="primary"
+              loading={saveMutation.isPending}
+              onClick={handleSave}
+              style={{
+                background: 'linear-gradient(135deg, #10b981, #059669)',
+                border: 'none'
+              }}
+            >
+              <Save size={14} style={{ marginRight: 6 }} />
+              Enregistrer les objectifs
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Export Panel ────────────────────────────────────────────────────────
 function ExportPanel({ members }: { members?: Member[] }) {
   const { t } = useTranslation()
@@ -1054,6 +1350,9 @@ export function ManagerPipelineList({ items, members, managerUid }: Props) {
           managerUid={managerUid}
         />
       )}
+
+      {/* Targets panel — objectifs Volume/Valeur par membre */}
+      <TargetsPanel members={members} />
 
       {/* Export panel — always shown for managers */}
       <ExportPanel members={members} />
