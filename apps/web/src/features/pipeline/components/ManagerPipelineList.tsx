@@ -24,7 +24,13 @@ import {
   ChevronRight,
   TrendingUp,
   RotateCcw,
-  Save
+  Save,
+  Target,
+  Globe,
+  BarChart3,
+  ChevronDown,
+  Banknote,
+  Trash2
 } from 'lucide-react'
 
 type PipelineItem = {
@@ -927,8 +933,18 @@ function TargetsPanel({ members }: { members?: Member[] }) {
             'linear-gradient(135deg, rgba(16,185,129,0.12) 0%, rgba(5,150,105,0.12) 100%)'
         }}
       >
-        <span>🎯 Définir les objectifs de l'équipe</span>
-        <span style={{ fontSize: 11, opacity: 0.7 }}>{open ? '▲' : '▼'}</span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+          <Target size={15} style={{ color: '#10b981' }} />
+          Définir les objectifs de l'équipe
+        </span>
+        <ChevronDown
+          size={14}
+          style={{
+            opacity: 0.7,
+            transform: open ? 'rotate(180deg)' : 'none',
+            transition: 'transform 200ms ease'
+          }}
+        />
       </button>
 
       {open && (
@@ -959,8 +975,9 @@ function TargetsPanel({ members }: { members?: Member[] }) {
                 alignItems: 'center'
               }}
             >
-              <span style={{ fontSize: 12, fontWeight: 700, color: '#6ee7b7', letterSpacing: '.04em' }}>
-                🌐 OBJECTIF GLOBAL (R/O)
+              <span style={{ fontSize: 12, fontWeight: 700, color: '#6ee7b7', letterSpacing: '.04em', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <Globe size={13} />
+                OBJECTIF GLOBAL (R/O)
               </span>
               {globalVolume > 0 && (
                 <span style={{ fontSize: 13, color: '#a7f3d0' }}>
@@ -1092,8 +1109,9 @@ function TargetsPanel({ members }: { members?: Member[] }) {
                         {name}
                       </span>
                       {t.period && (
-                        <span style={{ color: 'var(--muted-foreground, #94a3b8)', fontSize: 11 }}>
-                          📅 {t.period}
+                        <span style={{ color: 'var(--muted-foreground, #94a3b8)', fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                          <Calendar size={11} />
+                          {t.period}
                         </span>
                       )}
                       {t.targetVolume != null && (
@@ -1198,8 +1216,18 @@ function ExportPanel({ members }: { members?: Member[] }) {
             'linear-gradient(135deg, rgba(99,102,241,0.15) 0%, rgba(139,92,246,0.15) 100%)'
         }}
       >
-        <span>📊 {t('pipeline.exportPerformances')}</span>
-        <span style={{ fontSize: 11, opacity: 0.7 }}>{open ? '▲' : '▼'}</span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+          <BarChart3 size={15} style={{ color: '#a5b4fc' }} />
+          {t('pipeline.exportPerformances')}
+        </span>
+        <ChevronDown
+          size={14}
+          style={{
+            opacity: 0.7,
+            transform: open ? 'rotate(180deg)' : 'none',
+            transition: 'transform 200ms ease'
+          }}
+        />
       </button>
 
       {/* Collapsible form */}
@@ -1447,7 +1475,7 @@ export function ManagerPipelineList({ items, members, managerUid }: Props) {
                             <span style={{
                               display: 'inline-flex',
                               alignItems: 'center',
-                              gap: 2,
+                              gap: 4,
                               fontWeight: 700,
                               color: '#34d399',
                               background: 'rgba(52,211,153,0.1)',
@@ -1456,18 +1484,19 @@ export function ManagerPipelineList({ items, members, managerUid }: Props) {
                               padding: '1px 6px',
                               fontSize: 10.5
                             }}>
-                              💰 {new Intl.NumberFormat('fr-FR').format(item.amount)} F
+                              <Banknote size={11} />
+                              {new Intl.NumberFormat('fr-FR').format(item.amount)} F
                             </span>
                           )}
-                          {item.nextFollowUp && (
+                          {item.nextFollowUp && item.status !== 'conclue' && item.status !== 'conclusion' && (
                             <span style={{
                               display: 'inline-flex',
                               alignItems: 'center',
-                              gap: 2,
+                              gap: 4,
                               fontWeight: 600,
-                              color: item.nextFollowUp < new Date().toISOString().slice(0, 10) && item.status !== 'conclue' ? '#ef4444' : '#60a5fa',
-                              background: item.nextFollowUp < new Date().toISOString().slice(0, 10) && item.status !== 'conclue' ? 'rgba(239,68,68,0.08)' : 'rgba(96,165,250,0.08)',
-                              border: item.nextFollowUp < new Date().toISOString().slice(0, 10) && item.status !== 'conclue' ? '1px solid rgba(239,68,68,0.25)' : '1px solid rgba(96,165,250,0.2)',
+                              color: item.nextFollowUp < new Date().toISOString().slice(0, 10) ? '#ef4444' : '#60a5fa',
+                              background: item.nextFollowUp < new Date().toISOString().slice(0, 10) ? 'rgba(239,68,68,0.08)' : 'rgba(96,165,250,0.08)',
+                              border: item.nextFollowUp < new Date().toISOString().slice(0, 10) ? '1px solid rgba(239,68,68,0.25)' : '1px solid rgba(96,165,250,0.2)',
                               borderRadius: 4,
                               padding: '1px 6px',
                               fontSize: 10.5
@@ -1486,7 +1515,7 @@ export function ManagerPipelineList({ items, members, managerUid }: Props) {
                               <span style={{
                                 display: 'inline-flex',
                                 alignItems: 'center',
-                                gap: 2,
+                                gap: 4,
                                 fontWeight: 600,
                                 color: '#f87171',
                                 background: 'rgba(239,68,68,0.08)',
@@ -1495,7 +1524,8 @@ export function ManagerPipelineList({ items, members, managerUid }: Props) {
                                 padding: '1px 6px',
                                 fontSize: 10.5
                               }}>
-                                ⚠️ Déjà visité
+                                <AlertTriangle size={10} />
+                                Déjà visité
                               </span>
                             ) : null
                           })()}
@@ -1516,8 +1546,9 @@ export function ManagerPipelineList({ items, members, managerUid }: Props) {
                         )}
                       </div>
                       {item.assignedTo && item.assignedTo !== managerUid && (
-                        <div style={{ fontSize: 11, color: 'rgba(99,102,241,0.7)', marginTop: 3 }}>
-                          👤 {resolveMemberLabel(item, members) ?? t('sidebar.member')}
+                        <div style={{ fontSize: 11, color: 'rgba(99,102,241,0.7)', marginTop: 3, display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <User size={10} />
+                          {resolveMemberLabel(item, members) ?? t('sidebar.member')}
                         </div>
                       )}
                     </div>
@@ -1528,7 +1559,7 @@ export function ManagerPipelineList({ items, members, managerUid }: Props) {
                       onClick={(e) => void handleDelete(e as React.MouseEvent, item.id)}
                       style={{ flexShrink: 0, padding: '0 8px', minHeight: 28 }}
                     >
-                      🗑️
+                      <Trash2 size={13} />
                     </Button>
                   </div>
                 </div>

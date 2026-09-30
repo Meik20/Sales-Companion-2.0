@@ -25,7 +25,10 @@ import {
   MessageSquare,
   LayoutGrid,
   List,
-  TrendingUp
+  TrendingUp,
+  Banknote,
+  Check,
+  Trash2
 } from 'lucide-react'
 
 import { UserPipelineKanban } from './UserPipelineKanban'
@@ -139,6 +142,8 @@ function ProspectModal({
       item.status !== 'conclue' &&
       item.status !== 'conclusion'
   )
+
+  const isConclue = item.status === 'conclue' || item.status === 'conclusion'
 
   return (
     <>
@@ -517,7 +522,8 @@ function ProspectModal({
                     />
                   </div>
 
-                  {/* Date de relance input */}
+                  {/* Date de relance input — masqué si vente conclue */}
+                  {!isConclue && (
                   <div>
                     <label
                       style={{
@@ -549,6 +555,7 @@ function ProspectModal({
                       }}
                     />
                   </div>
+                  )}
                 </div>
 
                 {/* Notes input */}
@@ -635,7 +642,8 @@ function ProspectModal({
                     </div>
                   </div>
 
-                  {/* Follow-up display */}
+                  {/* Follow-up display — masqué si vente conclue */}
+                  {!isConclue && (
                   <div
                     style={{
                       background: 'var(--secondary, #1e2a3b)',
@@ -677,6 +685,7 @@ function ProspectModal({
                       )}
                     </div>
                   </div>
+                  )}
                 </div>
 
                 {/* Notes display */}
@@ -808,8 +817,10 @@ function ProspectModal({
                     onStatusChange(item.id, 'conclue')
                     onClose()
                   }}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
                 >
-                  ✓ {t('pipeline.closed')}
+                  <Check size={14} />
+                  {t('pipeline.closed')}
                 </Button>
               )}
             </div>
@@ -1115,10 +1126,11 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
                         padding: '2px 8px'
                       }}
                     >
-                      💰 {new Intl.NumberFormat('fr-FR').format(item.amount)} F
+                      <Banknote size={10} />
+                      {new Intl.NumberFormat('fr-FR').format(item.amount)} F
                     </span>
                   )}
-                  {item.nextFollowUp && (
+                  {item.nextFollowUp && item.status !== 'conclue' && item.status !== 'conclusion' && (
                     <span
                       style={{
                         display: 'inline-flex',
@@ -1126,9 +1138,9 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
                         gap: 4,
                         fontSize: 11,
                         fontWeight: 600,
-                        color: item.nextFollowUp < new Date().toISOString().slice(0, 10) && item.status !== 'conclue' ? '#ef4444' : '#60a5fa',
-                        background: item.nextFollowUp < new Date().toISOString().slice(0, 10) && item.status !== 'conclue' ? 'rgba(239,68,68,0.08)' : 'rgba(96,165,250,0.08)',
-                        border: item.nextFollowUp < new Date().toISOString().slice(0, 10) && item.status !== 'conclue' ? '1px solid rgba(239,68,68,0.25)' : '1px solid rgba(96,165,250,0.2)',
+                        color: item.nextFollowUp < new Date().toISOString().slice(0, 10) ? '#ef4444' : '#60a5fa',
+                        background: item.nextFollowUp < new Date().toISOString().slice(0, 10) ? 'rgba(239,68,68,0.08)' : 'rgba(96,165,250,0.08)',
+                        border: item.nextFollowUp < new Date().toISOString().slice(0, 10) ? '1px solid rgba(239,68,68,0.25)' : '1px solid rgba(96,165,250,0.2)',
                         borderRadius: 6,
                         padding: '2px 8px'
                       }}
@@ -1190,7 +1202,8 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
                         padding: '2px 8px'
                       }}
                     >
-                      👤 {item.assignedByName}
+                      <User size={10} />
+                      {item.assignedByName}
                     </span>
                   )}
                   {(() => {
@@ -1214,7 +1227,8 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
                           padding: '2px 8px'
                         }}
                       >
-                        ⚠️ Déjà visité
+                        <AlertTriangle size={10} />
+                        Déjà visité
                       </span>
                     ) : null
                   })()}
@@ -1239,7 +1253,7 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
                   onClick={(e) => void handleDelete(e as React.MouseEvent, item.id)}
                   style={{ padding: '0 8px', minHeight: 30 }}
                 >
-                  🗑️
+                  <Trash2 size={13} />
                 </Button>
               </div>
             </div>

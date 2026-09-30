@@ -3,7 +3,22 @@
 import { useState, useEffect } from 'react'
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd'
 import { useTranslation } from '@/providers/I18nProvider'
-import { Building2, MapPin, Phone, MessageSquare, GripVertical, TrendingUp, Handshake, CheckCircle2, ChevronRight } from 'lucide-react'
+import {
+  Building2,
+  MapPin,
+  Phone,
+  MessageSquare,
+  GripVertical,
+  TrendingUp,
+  Handshake,
+  CheckCircle2,
+  ChevronRight,
+  Target,
+  Trophy,
+  Banknote,
+  Calendar,
+  AlertTriangle
+} from 'lucide-react'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 
 type PipelineItem = {
@@ -40,7 +55,7 @@ const COLUMNS = [
     border: 'rgba(96,165,250,0.25)',
     accent: '#60a5fa',
     icon: TrendingUp,
-    emptyIcon: '🎯',
+    emptyIcon: Target,
     emptyText: 'Aucun prospect en cours'
   },
   {
@@ -52,7 +67,7 @@ const COLUMNS = [
     border: 'rgba(251,146,60,0.25)',
     accent: '#fb923c',
     icon: Handshake,
-    emptyIcon: '🤝',
+    emptyIcon: Handshake,
     emptyText: 'Aucune négociation active'
   },
   {
@@ -64,7 +79,7 @@ const COLUMNS = [
     border: 'rgba(2,132,199,0.25)',
     accent: '#0284c7',
     icon: CheckCircle2,
-    emptyIcon: '🏆',
+    emptyIcon: Trophy,
     emptyText: 'Aucune vente conclue'
   }
 ]
@@ -187,12 +202,13 @@ function KanbanCard({
             )}
             {item.amount != null && item.amount > 0 && (
               <span style={{
-                display: 'inline-flex', alignItems: 'center', gap: 3,
+                display: 'inline-flex', alignItems: 'center', gap: 4,
                 fontSize: 11, fontWeight: 700, color: '#34d399',
                 background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.25)',
                 borderRadius: 6, padding: '2px 8px'
               }}>
-                💰 {new Intl.NumberFormat('fr-FR').format(item.amount)} F
+                <Banknote size={10} />
+                {new Intl.NumberFormat('fr-FR').format(item.amount)} F
               </span>
             )}
             {item.companyPhone && (
@@ -215,16 +231,17 @@ function KanbanCard({
                 <MessageSquare size={10} />Notes
               </span>
             )}
-            {item.nextFollowUp && (
+            {item.nextFollowUp && item.status !== 'conclue' && item.status !== 'conclusion' && (
               <span style={{
                 display: 'inline-flex', alignItems: 'center', gap: 4,
                 fontSize: 11, fontWeight: 600,
-                color: item.nextFollowUp < new Date().toISOString().slice(0, 10) && item.status !== 'conclue' ? '#ef4444' : '#60a5fa',
-                background: item.nextFollowUp < new Date().toISOString().slice(0, 10) && item.status !== 'conclue' ? 'rgba(239,68,68,0.08)' : 'rgba(96,165,250,0.08)',
-                border: item.nextFollowUp < new Date().toISOString().slice(0, 10) && item.status !== 'conclue' ? '1px solid rgba(239,68,68,0.25)' : '1px solid rgba(96,165,250,0.2)',
+                color: item.nextFollowUp < new Date().toISOString().slice(0, 10) ? '#ef4444' : '#60a5fa',
+                background: item.nextFollowUp < new Date().toISOString().slice(0, 10) ? 'rgba(239,68,68,0.08)' : 'rgba(96,165,250,0.08)',
+                border: item.nextFollowUp < new Date().toISOString().slice(0, 10) ? '1px solid rgba(239,68,68,0.25)' : '1px solid rgba(96,165,250,0.2)',
                 borderRadius: 6, padding: '2px 8px'
               }}>
-                📅 {item.nextFollowUp}
+                <Calendar size={10} />
+                {item.nextFollowUp}
               </span>
             )}
             {(() => {
@@ -240,7 +257,8 @@ function KanbanCard({
                   background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)',
                   borderRadius: 6, padding: '2px 8px'
                 }}>
-                  ⚠️ Déjà visité
+                  <AlertTriangle size={10} />
+                  Déjà visité
                 </span>
               ) : null
             })()}
@@ -400,7 +418,10 @@ function MobileKanban({
             border: `1.5px dashed ${activeCol.accent}44`,
             borderRadius: 12
           }}>
-            <span style={{ fontSize: 32 }}>{activeCol.emptyIcon}</span>
+            {(() => {
+              const EmptyIcon = activeCol.emptyIcon
+              return <EmptyIcon size={32} color={activeCol.accent} strokeWidth={1.5} />
+            })()}
             <span style={{ fontSize: 13, fontWeight: 600, color: activeCol.color, textAlign: 'center' }}>
               {activeCol.emptyText}
             </span>
@@ -555,7 +576,10 @@ export function UserPipelineKanban({ items, onStatusChange, onItemClick }: Props
                         gap: 8, padding: '32px 16px', opacity: 0.45,
                         borderRadius: 14, border: `1.5px dashed ${col.accent}44`, marginTop: 4
                       }}>
-                        <span style={{ fontSize: 28 }}>{col.emptyIcon}</span>
+                        {(() => {
+                          const EmptyIcon = col.emptyIcon
+                          return <EmptyIcon size={28} color={col.accent} strokeWidth={1.5} />
+                        })()}
                         <span style={{ fontSize: 12, fontWeight: 600, color: col.color, textAlign: 'center' }}>
                           {col.emptyText}
                         </span>

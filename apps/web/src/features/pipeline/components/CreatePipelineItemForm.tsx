@@ -8,6 +8,7 @@ import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { getErrorMessage } from '@/lib/errors'
 import { useCreatePipelineItem } from '../hooks/useCreatePipelineItem'
 import { useTranslation } from '@/providers/I18nProvider'
+import { FileText } from 'lucide-react'
 
 type Props = {
   onSuccess?: () => void
@@ -192,7 +193,8 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
             marginBottom: 8
           }}
         >
-          📝 {t('pipeline.notesLabel')}
+          <FileText size={13} style={{ flexShrink: 0 }} />
+          {t('pipeline.notesLabel')}
           <span
             style={{
               fontWeight: 400,

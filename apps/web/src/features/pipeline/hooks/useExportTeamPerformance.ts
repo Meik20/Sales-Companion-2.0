@@ -57,7 +57,7 @@ export function useExportTeamPerformance() {
 
       pushToast({
         type: 'success',
-        title: 'Export Excel réussi ✅',
+        title: 'Export Excel réussi',
         description: `Fichier "${filename}" téléchargé.`
       })
     } catch (err) {

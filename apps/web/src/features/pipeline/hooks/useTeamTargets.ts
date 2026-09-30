@@ -60,7 +60,7 @@ export function useSaveTeamTarget() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['teamTargets'] })
-      pushToast({ type: 'success', title: 'Objectifs enregistrés ✅' })
+      pushToast({ type: 'success', title: 'Objectifs enregistrés' })
     },
     onError: (err: Error) => {
       pushToast({ type: 'error', title: "Erreur", description: err.message })
