@@ -160,6 +160,8 @@ function ProspectModal({
       item.status !== 'conclusion'
   )
 
+  const isConclue = item.status === 'conclue' || item.status === 'conclusion'
+
   return (
     <>
       <div
@@ -547,7 +549,8 @@ function ProspectModal({
                     />
                   </div>
 
-                  {/* Date de relance input */}
+                  {/* Date de relance input — masqué si vente conclue */}
+                  {!isConclue && (
                   <div>
                     <label
                       style={{
@@ -579,6 +582,7 @@ function ProspectModal({
                       }}
                     />
                   </div>
+                  )}
                 </div>
 
                 {/* Notes input */}
@@ -665,7 +669,8 @@ function ProspectModal({
                     </div>
                   </div>
 
-                  {/* Follow-up display */}
+                  {/* Follow-up display — masqué si vente conclue */}
+                  {!isConclue && (
                   <div
                     style={{
                       background: 'var(--secondary, #1e2a3b)',
@@ -707,6 +712,7 @@ function ProspectModal({
                       )}
                     </div>
                   </div>
+                  )}
                 </div>
 
                 {/* Notes display */}
