@@ -38,30 +38,30 @@ export function SiteHeader() {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-8 md:flex" aria-label="Navigation principale">
+        <nav className="hidden flex-1 items-center justify-center gap-6 md:flex" aria-label="Navigation principale">
           {navLinks.map((link) => (
             <a
               key={link.href}
               href={link.href}
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground hover:translate-y-[-1px]"
+              className="whitespace-nowrap text-sm font-medium text-muted-foreground transition-colors hover:text-foreground hover:translate-y-[-1px]"
             >
               {link.label}
             </a>
           ))}
         </nav>
 
-        <div className="flex items-center gap-2.5 sm:gap-3">
-          <label className="flex items-center rounded-lg border border-border bg-secondary/60 px-2 text-xs font-semibold text-foreground">
+        <div className="flex shrink-0 items-center gap-2.5 sm:gap-3">
+          <label className="hidden lg:flex shrink-0 items-center rounded-lg border border-border bg-secondary/60 px-2 text-xs font-semibold text-foreground">
             <span className="mr-1.5" aria-hidden="true">{country.flag}</span>
             <select
               value={country.code}
               onChange={(event) => setCountry(event.target.value as typeof country.code)}
-              className="h-8 max-w-[130px] cursor-pointer bg-transparent text-xs font-semibold outline-none"
+              className="h-8 w-[90px] cursor-pointer bg-transparent text-xs font-semibold outline-none truncate"
               aria-label="Pays de la homepage"
             >
               {countries.map((option) => (
                 <option key={option.code} value={option.code} className="bg-background text-foreground">
-                  {option.flag} {option.name}
+                  {option.name}
                 </option>
               ))}
             </select>
@@ -124,6 +124,22 @@ export function SiteHeader() {
             ))}
           </nav>
           <div className="mt-4 flex flex-col gap-2 pt-4 border-t border-border">
+            {/* Sélecteur de pays dans le menu mobile */}
+            <label className="flex items-center gap-2 rounded-lg border border-border bg-secondary/60 px-3 py-2 text-xs font-semibold text-foreground">
+              <span aria-hidden="true">{country.flag}</span>
+              <select
+                value={country.code}
+                onChange={(event) => setCountry(event.target.value as typeof country.code)}
+                className="flex-1 cursor-pointer bg-transparent text-xs font-semibold outline-none"
+                aria-label="Pays de la homepage"
+              >
+                {countries.map((option) => (
+                  <option key={option.code} value={option.code} className="bg-background text-foreground">
+                    {option.flag} {option.name}
+                  </option>
+                ))}
+              </select>
+            </label>
             <Link
               href={routes.login}
               className="w-full rounded-lg border border-border px-4 py-2.5 text-center text-sm font-medium text-foreground transition-colors hover:bg-secondary"

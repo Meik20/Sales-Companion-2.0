@@ -45,7 +45,7 @@ export function Hero() {
               </>
             ) : (
               <>
-                Trouvez vos prochains <span className="text-[#1B7A3E]">clients B2B</span> au {country.name}.
+                Trouvez vos prochains <span className="text-[#1B7A3E]">clients B2B</span>{' '}{country.frenchIn}.
               </>
             )}
           </h1>
@@ -206,7 +206,7 @@ export function Hero() {
                   </div>
                   <div className="flex items-center gap-1.5 text-muted-foreground">
                     <Phone className="h-3.5 w-3.5 text-blue-500 shrink-0" />
-                    <span className="font-mono text-foreground font-medium">{country.name} · B2B</span>
+                    <span className="font-mono text-foreground font-medium truncate">{country.cities[0]} · B2B</span>
                   </div>
                   <div className="flex items-center gap-1.5 text-muted-foreground">
                     <Mail className="h-3.5 w-3.5 text-blue-500 shrink-0" />
