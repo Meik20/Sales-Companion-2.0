@@ -308,7 +308,7 @@ export async function GET(request: NextRequest) {
       '% Réal. Volume',
       'Obj. Valeur (FCFA)',
       '% Réal. Valeur',
-      'Obj. Global (R/O)'
+      'R/O'
     ]
 
     const headerRow = summarySheet.getRow(4)
@@ -341,16 +341,14 @@ export async function GET(request: NextRequest) {
           ? Math.round((stat.revenue / stat.targetValue) * 100)
           : null
 
-      // Objectif global en lecture seule = label consolidé
-      const globalLabel =
-        globalTargetVolume != null || globalTargetValue != null
-          ? [
-              globalTargetVolume != null ? `Vol. : ${globalTargetVolume}` : null,
-              globalTargetValue != null ? `Val. : ${globalTargetValue.toLocaleString('fr-FR')} FCFA` : null
-            ]
-              .filter(Boolean)
-              .join(' | ')
-          : 'Non défini'
+      // R/O = (% Réal. Volume + % Réal. Valeur) / 2
+      // Si une seule des deux est disponible, on l'utilise seule
+      const roValue: number | null = (() => {
+        if (pctVolume != null && pctValue != null) return (pctVolume + pctValue) / 2 / 100
+        if (pctVolume != null) return pctVolume / 100
+        if (pctValue != null) return pctValue / 100
+        return null
+      })()
 
       const cells: (string | number | null)[] = [
         stat.memberName,
@@ -366,7 +364,7 @@ export async function GET(request: NextRequest) {
         pctVolume != null ? pctVolume / 100 : null,
         stat.targetValue,
         pctValue != null ? pctValue / 100 : null,
-        globalLabel
+        roValue
       ]
 
       cells.forEach((val, colIdx) => {
@@ -382,24 +380,28 @@ export async function GET(request: NextRequest) {
         if (colIdx === 10) cell.numFmt = '0%'           // % Volume
         if (colIdx === 11) cell.numFmt = '#,##0'        // Obj. Valeur
         if (colIdx === 12) cell.numFmt = '0%'           // % Valeur
+        if (colIdx === 13) cell.numFmt = '0%'           // R/O
 
-        // Colorisation conditionnelle des % de réalisation (cols 10 & 12)
-        if ((colIdx === 10 || colIdx === 12) && val != null) {
+        // Colorisation conditionnelle : cols 10, 12 et 13
+        if ((colIdx === 10 || colIdx === 12 || colIdx === 13) && val != null) {
           const pct = (val as number) * 100
           cell.font = {
             ...cellFont,
-            bold: true,
+            bold: colIdx === 13,   // R/O en gras pour le mettre en avant
+            size: colIdx === 13 ? 11 : 10,
             color: {
               argb: pct >= 100 ? COLOR_GREEN : pct >= 75 ? COLOR_ORANGE : COLOR_RED
             }
           }
         }
 
-        // Col "Obj. Global (R/O)" en lecture seule — style différencié
+        // Col R/O — fond légèrement différencié
         if (colIdx === 13) {
-          cell.font = { name: 'Calibri', italic: true, size: 9, color: { argb: '666666' } }
-          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'F0F0F0' } }
-          cell.protection = { locked: true }
+          if (val == null) {
+            cell.value = '—'
+            cell.font = { name: 'Calibri', italic: true, size: 10, color: { argb: '999999' } }
+          }
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: isAlt ? 'DFF0EA' : 'EAF7F2' } }
         }
       })
 
@@ -421,8 +423,18 @@ export async function GET(request: NextRequest) {
         ? totalRealizedValue / globalTargetValue
         : null
 
+    // R/O global = (globalPctVolume + globalPctValue) / 2
+    const globalRO: number | null = (() => {
+      if (globalPctVolume != null && globalPctValue != null) return (globalPctVolume + globalPctValue) / 2
+      if (globalPctVolume != null) return globalPctVolume
+      if (globalPctValue != null) return globalPctValue
+      return null
+    })()
+
+    const totalLabel = memberId ? 'TOTAL' : 'TOTAL ÉQUIPE'
+
     const totalCells: (string | number | null)[] = [
-      'TOTAL ÉQUIPE',
+      totalLabel,
       '',
       '',
       totalProspects,
@@ -435,7 +447,7 @@ export async function GET(request: NextRequest) {
       globalPctVolume,
       globalTargetValue,
       globalPctValue,
-      '← Objectif consolidé'
+      globalRO
     ]
 
     totalCells.forEach((val, colIdx) => {
@@ -449,6 +461,13 @@ export async function GET(request: NextRequest) {
       if (colIdx === 10) cell.numFmt = '0%'
       if (colIdx === 11) cell.numFmt = '#,##0'
       if (colIdx === 12) cell.numFmt = '0%'
+      if (colIdx === 13) {
+        cell.numFmt = '0%'
+        if (val == null) {
+          cell.value = '—'
+          cell.font = { name: 'Calibri', italic: true, size: 11, color: { argb: '999999' } }
+        }
+      }
     })
     totalRow.height = 26
 
