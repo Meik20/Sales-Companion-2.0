@@ -42,6 +42,8 @@ type PipelineItem = {
   nextAction?: string | null
   nextDate?: string | null
   nextFollowUp?: string | null
+  amount?: number | null
+  currency?: string | null
   assignedByName?: string | null
   managerUid?: string | null
   sourceId?: string | null

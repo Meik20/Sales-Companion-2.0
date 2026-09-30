@@ -63,12 +63,37 @@ export async function GET(request: NextRequest) {
     const totalItems = items.length
     const overallConversionRate = totalItems > 0 ? Math.round((totalConclue / totalItems) * 100) : 0
 
+    // Financial revenue stats (Total revenue from closed deals & pipeline value)
+    const totalRevenue = items
+      .filter(i => normalizeStatus(i.status) === 'conclue')
+      .reduce((acc, i) => acc + (typeof i.amount === 'number' ? i.amount : Number(i.amount) || 0), 0)
+
+    const pipelineValue = items
+      .filter(i => normalizeStatus(i.status) === 'negociation' || normalizeStatus(i.status) === 'prospection')
+      .reduce((acc, i) => acc + (typeof i.amount === 'number' ? i.amount : Number(i.amount) || 0), 0)
+
+    // Overdue follow-ups count
+    const nowIso = new Date().toISOString().slice(0, 10)
+    const totalOverdueFollowUps = items.filter(i => {
+      if (!i.nextFollowUp) return false
+      return i.nextFollowUp < nowIso && normalizeStatus(i.status) !== 'conclue'
+    }).length
+
     // Stats per member
     const memberGroups: Record<string, any[]> = {}
     items.forEach(item => {
-      const uid = item.userId || item.assignedTo || 'manager'
+      const uid = item.assignedTo || item.userId || 'manager'
       if (!memberGroups[uid]) memberGroups[uid] = []
       memberGroups[uid].push(item)
+    })
+
+    // Also ensure all registered/invited members exist in memberGroups even if 0 items
+    membersSnap.docs.forEach(d => {
+      const data = d.data()
+      const uid = data.firebaseUid || data.uid || d.id
+      if (data.role !== 'support_agent' && !memberGroups[uid]) {
+        memberGroups[uid] = []
+      }
     })
 
     const memberStats = Object.entries(memberGroups).map(([uid, memberItems]) => {
@@ -77,20 +102,49 @@ export async function GET(request: NextRequest) {
       const c = memberItems.filter(i => normalizeStatus(i.status) === 'conclue').length
       const total = memberItems.length
       const memberInfo = membersMap[uid]
-      // Display by accessId (prenomnom@entreprise) — fallback to name, then Manager label
+
+      const memberRevenue = memberItems
+        .filter(i => normalizeStatus(i.status) === 'conclue')
+        .reduce((acc, i) => acc + (typeof i.amount === 'number' ? i.amount : Number(i.amount) || 0), 0)
+
+      const memberPipelineValue = memberItems
+        .filter(i => normalizeStatus(i.status) === 'negociation' || normalizeStatus(i.status) === 'prospection')
+        .reduce((acc, i) => acc + (typeof i.amount === 'number' ? i.amount : Number(i.amount) || 0), 0)
+
+      const overdueFollowUps = memberItems.filter(i => {
+        if (!i.nextFollowUp) return false
+        return i.nextFollowUp < nowIso && normalizeStatus(i.status) !== 'conclue'
+      }).length
+
       const displayName = uid === decoded.uid
         ? 'Manager'
-        : memberInfo?.accessId || memberInfo?.name || null
+        : memberInfo?.name || memberInfo?.accessId || null
+
       return {
         uid,
         name: displayName ?? uid,
+        accessId: memberInfo?.accessId || '',
         prospection: p,
         negociation: n,
         conclue: c,
         total,
-        conversionRate: total > 0 ? Math.round((c / total) * 100) : 0
+        conversionRate: total > 0 ? Math.round((c / total) * 100) : 0,
+        revenue: memberRevenue,
+        pipelineValue: memberPipelineValue,
+        overdueFollowUps,
+        deals: memberItems.map(item => ({
+          id: item.id,
+          companyName: item.companyName,
+          status: item.status,
+          amount: typeof item.amount === 'number' ? item.amount : Number(item.amount) || 0,
+          companyCity: item.companyCity || '',
+          companySector: item.companySector || '',
+          companyPhone: item.companyPhone || '',
+          nextFollowUp: item.nextFollowUp || null,
+          createdAt: item.createdAt?.toDate?.()?.toISOString() ?? (item.createdAt ? new Date(item.createdAt).toISOString() : null)
+        }))
       }
-    }).sort((a, b) => b.conclue - a.conclue)
+    }).sort((a, b) => b.conclue - a.conclue || b.revenue - a.revenue)
 
     const topPerformer = memberStats[0]?.name ?? null
 
@@ -252,6 +306,9 @@ export async function GET(request: NextRequest) {
       totalNegociation,
       totalConclue,
       overallConversionRate,
+      totalRevenue,
+      pipelineValue,
+      totalOverdueFollowUps,
       topPerformer,
       memberStats,
       monthlyTrend,

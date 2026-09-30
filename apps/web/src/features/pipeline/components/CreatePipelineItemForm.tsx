@@ -27,6 +27,7 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
   const [companyName, setCompanyName] = useState('')
   const [companyCity, setCompanyCity] = useState('')
   const [companySector, setCompanySector] = useState('')
+  const [amount, setAmount] = useState('')
   const [note, setNote] = useState('')
   const [nextAction, setNextAction] = useState('')
   const [status, setStatus] = useState<'prospection' | 'negociation' | 'conclue'>('prospection')
@@ -45,6 +46,8 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
 
     setError(null)
     try {
+      const parsedAmount = amount.trim() ? parseFloat(amount.replace(/\s+/g, '')) : undefined
+
       await mutation.mutateAsync({
         userId: user.uid,
         managerUid: user.role === 'member' ? (user.managerUid ?? null) : user.uid,
@@ -57,6 +60,8 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
         companySector: companySector || undefined,
         companyCity: companyCity || undefined,
         status,
+        amount: parsedAmount && !isNaN(parsedAmount) ? parsedAmount : undefined,
+        currency: 'FCFA',
         note: note || undefined,
         nextAction: nextAction || undefined,
         nextDate: null,
@@ -66,6 +71,7 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
       setCompanyName('')
       setCompanyCity('')
       setCompanySector('')
+      setAmount('')
       setNote('')
       setNextAction('')
       setStatus('prospection')
@@ -151,6 +157,15 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
             placeholder={t('pipeline.placeholderNextAction')}
             value={nextAction}
             onChange={(e) => setNextAction(e.target.value)}
+          />
+        </FormField>
+
+        <FormField label="Montant estimé (FCFA)">
+          <Input
+            type="number"
+            placeholder="Ex: 500000"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
           />
         </FormField>
       </div>

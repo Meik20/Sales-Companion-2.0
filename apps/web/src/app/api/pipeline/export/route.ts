@@ -145,6 +145,7 @@ export async function GET(request: NextRequest) {
       negociation: number
       conclue: number
       conversionRate: string
+      revenue: number
     }
 
     const byMember: Record<string, MemberStat> = {}
@@ -173,17 +174,22 @@ export async function GET(request: NextRequest) {
           prospection: 0,
           negociation: 0,
           conclue: 0,
-          conversionRate: '0%'
+          conversionRate: '0%',
+          revenue: 0
         }
       }
 
       const stat = byMember[uid]
       stat.total++
 
+      const itemAmount = (item as any).amount ? Number((item as any).amount) || 0 : 0
       const ns = normalizeStatus(item.status)
       if (ns === 'Prospection') stat.prospection++
       else if (ns === 'Négociation') stat.negociation++
-      else if (ns === 'Conclue') stat.conclue++
+      else if (ns === 'Conclue') {
+        stat.conclue++
+        stat.revenue += itemAmount
+      }
     }
 
     // Compute conversion rate (conclue / total)
@@ -201,7 +207,8 @@ export async function GET(request: NextRequest) {
       'Prospection',
       'Négociation',
       'Conclue',
-      'Taux conversion'
+      'Taux conversion',
+      'CA Clôturé (FCFA)'
     ]
 
     const summaryRows = Object.values(byMember).map((s) => [
@@ -211,13 +218,15 @@ export async function GET(request: NextRequest) {
       String(s.prospection),
       String(s.negociation),
       String(s.conclue),
-      s.conversionRate
+      s.conversionRate,
+      String(s.revenue)
     ])
 
     // Sheet 2 — Detailed items
     const detailHeader = [
       'Entreprise',
       'Statut',
+      'Montant (FCFA)',
       'Membre',
       'Access ID',
       'Ville',
@@ -248,6 +257,7 @@ export async function GET(request: NextRequest) {
       return [
         i.companyName ?? '',
         normalizeStatus(i.status),
+        String((i as any).amount ? Number((i as any).amount) || 0 : ''),
         name,
         id,
         i.companyCity ?? '',

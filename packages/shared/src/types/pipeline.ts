@@ -23,8 +23,9 @@ export type PipelineDoc = {
   note?: string
   notes?: string
   nextAction?: string
-  nextDate?: string | null
   nextFollowUp?: string | null
+  amount?: number | null // Montant de la transaction en devise locale
+  currency?: string | null // Devise (ex: FCFA, EUR, USD)
   createdAt: FirestoreTimestampLike
   updatedAt: FirestoreTimestampLike
 }

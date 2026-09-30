@@ -16,6 +16,8 @@ type PipelineItem = {
   companyEmail?: string | null
   note?: string | null
   notes?: string | null
+  amount?: number | null
+  currency?: string | null
   assignedByName?: string | null
   previousAssignees?: any[]
 }
@@ -179,6 +181,16 @@ function KanbanCard({
                 borderRadius: 6, padding: '2px 8px'
               }}>
                 <MapPin size={10} style={{ opacity: 0.7 }} />{item.companyCity}
+              </span>
+            )}
+            {item.amount != null && item.amount > 0 && (
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: 3,
+                fontSize: 11, fontWeight: 700, color: '#34d399',
+                background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.25)',
+                borderRadius: 6, padding: '2px 8px'
+              }}>
+                💰 {new Intl.NumberFormat('fr-FR').format(item.amount)} F
               </span>
             )}
             {item.companyPhone && (

@@ -39,6 +39,8 @@ type PipelineItem = {
   memberName?: string | null // Nom du membre (stocké dans le doc pipeline)
   memberAccessId?: string | null // Access ID du membre (stocké dans le doc pipeline)
   nextFollowUp?: string | null
+  amount?: number | null
+  currency?: string | null
 }
 
 type Member = { uid: string; name?: string; email?: string; accessId?: string }
@@ -325,6 +327,18 @@ function ProspectModal({
                   )
                 }
               />
+
+              {item.amount != null && item.amount > 0 && (
+                <InfoRow
+                  icon={<span style={{ fontSize: 13, fontWeight: 800, color: '#34d399' }}>FCFA</span>}
+                  label="Valeur estimée"
+                  value={
+                    <strong style={{ color: '#34d399', fontSize: 15 }}>
+                      {new Intl.NumberFormat('fr-FR').format(item.amount)} FCFA
+                    </strong>
+                  }
+                />
+              )}
 
               {item.assignedTo &&
                 item.assignedTo !== managerUid &&
@@ -756,6 +770,22 @@ export function ManagerPipelineList({ items, members, managerUid }: Props) {
                             <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                               <MapPin size={10} style={{ opacity: 0.7 }} />
                               {item.companyCity}
+                            </span>
+                          )}
+                          {item.amount != null && item.amount > 0 && (
+                            <span style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 2,
+                              fontWeight: 700,
+                              color: '#34d399',
+                              background: 'rgba(52,211,153,0.1)',
+                              border: '1px solid rgba(52,211,153,0.25)',
+                              borderRadius: 4,
+                              padding: '1px 6px',
+                              fontSize: 10.5
+                            }}>
+                              💰 {new Intl.NumberFormat('fr-FR').format(item.amount)} F
                             </span>
                           )}
                         </div>

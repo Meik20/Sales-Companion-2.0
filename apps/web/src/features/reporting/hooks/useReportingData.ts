@@ -3,14 +3,31 @@
 import { useQuery } from '@tanstack/react-query'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 
+export type MemberDeal = {
+  id: string
+  companyName: string
+  status: string
+  amount: number
+  companyCity?: string
+  companySector?: string
+  companyPhone?: string
+  nextFollowUp?: string | null
+  createdAt?: string | null
+}
+
 export type MemberStat = {
   uid: string
   name: string
+  accessId?: string
   prospection: number
   negociation: number
   conclue: number
   total: number
   conversionRate: number // % items "conclue"
+  revenue: number // Chiffre d'affaires conclu en FCFA
+  pipelineValue: number // Valeur en cours de négo/prospection
+  overdueFollowUps: number // Relances en retard
+  deals: MemberDeal[]
 }
 
 export type SupportAgentStat = {
@@ -30,6 +47,9 @@ export type ReportingData = {
   totalNegociation: number
   totalConclue: number
   overallConversionRate: number
+  totalRevenue: number
+  pipelineValue: number
+  totalOverdueFollowUps: number
   topPerformer: string | null
   memberStats: MemberStat[]
   // Monthly totals (last 6 months)

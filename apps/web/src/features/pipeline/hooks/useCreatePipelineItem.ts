@@ -17,6 +17,8 @@ type PipelineItemInput = {
   companyPhone?: string
   companyEmail?: string
   status: string
+  amount?: number
+  currency?: string
   note?: string
   nextAction?: string
   nextDate: string | null

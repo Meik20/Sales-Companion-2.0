@@ -272,6 +272,23 @@ function MemberCard({ member }: { member: TeamMember }) {
             ⚡ Proche de la limite
           </div>
         )}
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 4 }}>
+          <a
+            href="/reporting"
+            style={{
+              fontSize: 11.5,
+              fontWeight: 700,
+              color: '#3b82f6',
+              textDecoration: 'none',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 4
+            }}
+          >
+            📊 Voir les performances commerciales →
+          </a>
+        </div>
       </div>
     </div>
   )

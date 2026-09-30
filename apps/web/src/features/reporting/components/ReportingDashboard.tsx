@@ -175,57 +175,404 @@ function MonthlyTrendChart({ data }: { data: { month: string; conclue: number; t
   )
 }
 
-// ── Leaderboard ───────────────────────────────────────────────────────────────
+// ── Format Currency Helper ────────────────────────────────────────────────────
+function formatFcfa(amount: number) {
+  if (amount >= 1_000_000) {
+    return `${(amount / 1_000_000).toFixed(1)}M F`
+  }
+  return `${new Intl.NumberFormat('fr-FR').format(amount)} F`
+}
+
+// ── Member Performance Detail Modal ──────────────────────────────────────────
+function MemberPerformanceModal({
+  member,
+  onClose
+}: {
+  member: MemberStat
+  onClose: () => void
+}) {
+  const [dealFilter, setDealFilter] = useState<'all' | 'conclue' | 'negociation' | 'prospection'>('all')
+
+  const filteredDeals = member.deals.filter((d) => {
+    if (dealFilter === 'all') return true
+    if (dealFilter === 'prospection') return ['prospection', 'prospect'].includes(d.status)
+    if (dealFilter === 'negociation') return ['negociation', 'negotiation'].includes(d.status)
+    if (dealFilter === 'conclue') return ['conclue', 'conclusion'].includes(d.status)
+    return true
+  })
+
+  return (
+    <>
+      <div
+        onClick={onClose}
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 999,
+          background: 'rgba(0,0,0,0.65)',
+          backdropFilter: 'blur(5px)'
+        }}
+      />
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 1000,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 20,
+          pointerEvents: 'none'
+        }}
+      >
+        <div
+          style={{
+            background: 'var(--card, #131c2e)',
+            border: `1px solid var(--border, rgba(255,255,255,0.1))`,
+            borderRadius: 20,
+            width: '100%',
+            maxWidth: 680,
+            padding: 28,
+            pointerEvents: 'auto',
+            boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
+            maxHeight: '90vh',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 20
+          }}
+        >
+          {/* Header */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <div
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 14,
+                  background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
+                  color: '#fff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 20,
+                  fontWeight: 800,
+                  fontFamily: "'Syne', sans-serif"
+                }}
+              >
+                {member.name[0]?.toUpperCase() || 'C'}
+              </div>
+              <div>
+                <h2 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: 'var(--foreground, #f1f5f9)' }}>
+                  {member.name}
+                </h2>
+                <div style={{ fontSize: 12, color: 'var(--muted-foreground, #94a3b8)', marginTop: 2 }}>
+                  {member.accessId ? `Identifiant : ${member.accessId}` : 'Commercial'} · {member.total} opportunités
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={onClose}
+              style={{
+                background: 'var(--secondary, #1e2a3b)',
+                border: '1px solid var(--border, rgba(255,255,255,0.1))',
+                borderRadius: 10,
+                color: 'var(--muted-foreground, #94a3b8)',
+                padding: '6px 12px',
+                cursor: 'pointer',
+                fontSize: 13
+              }}
+            >
+              Fermer ✕
+            </button>
+          </div>
+
+          {/* Quick Metrics Grid */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(4, 1fr)',
+              gap: 10,
+              background: 'var(--secondary, #1e2a3b)',
+              padding: 16,
+              borderRadius: 14,
+              border: '1px solid var(--border, rgba(255,255,255,0.1))'
+            }}
+          >
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--muted-foreground, #94a3b8)', textTransform: 'uppercase' }}>
+                CA Clôturé
+              </div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: '#34d399', marginTop: 4 }}>
+                {formatFcfa(member.revenue || 0)}
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--muted-foreground, #94a3b8)', textTransform: 'uppercase' }}>
+                Pipeline en cours
+              </div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: '#60a5fa', marginTop: 4 }}>
+                {formatFcfa(member.pipelineValue || 0)}
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--muted-foreground, #94a3b8)', textTransform: 'uppercase' }}>
+                Conversion
+              </div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: '#fbbf24', marginTop: 4 }}>
+                {member.conversionRate}%
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--muted-foreground, #94a3b8)', textTransform: 'uppercase' }}>
+                Relances retard
+              </div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: member.overdueFollowUps > 0 ? '#f87171' : '#94a3b8', marginTop: 4 }}>
+                {member.overdueFollowUps}
+              </div>
+            </div>
+          </div>
+
+          {/* Status Breakdown Bar */}
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--muted-foreground, #94a3b8)', marginBottom: 6 }}>
+              <span>Répartition du portefeuille :</span>
+              <span>
+                🎯 {member.prospection} prospection · 🤝 {member.negociation} négociation · 🏆 {member.conclue} conclues
+              </span>
+            </div>
+            <div style={{ height: 8, background: 'rgba(255,255,255,0.05)', borderRadius: 6, display: 'flex', overflow: 'hidden' }}>
+              <div style={{ width: `${member.total > 0 ? (member.prospection / member.total) * 100 : 0}%`, background: '#60a5fa' }} />
+              <div style={{ width: `${member.total > 0 ? (member.negociation / member.total) * 100 : 0}%`, background: '#fb923c' }} />
+              <div style={{ width: `${member.total > 0 ? (member.conclue / member.total) * 100 : 0}%`, background: '#0284c7' }} />
+            </div>
+          </div>
+
+          {/* Filter Pills for deals */}
+          <div style={{ display: 'flex', gap: 8, borderBottom: '1px solid var(--border, rgba(255,255,255,0.1))', paddingBottom: 10 }}>
+            {[
+              { id: 'all', label: `Toutes (${member.deals.length})` },
+              { id: 'conclue', label: `Conclues (${member.conclue})` },
+              { id: 'negociation', label: `En Négociation (${member.negociation})` },
+              { id: 'prospection', label: `En Prospection (${member.prospection})` }
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setDealFilter(tab.id as any)}
+                style={{
+                  padding: '5px 12px',
+                  borderRadius: 8,
+                  border: 'none',
+                  background: dealFilter === tab.id ? 'rgba(37,99,235,0.2)' : 'transparent',
+                  color: dealFilter === tab.id ? '#60a5fa' : 'var(--muted-foreground, #94a3b8)',
+                  fontSize: 12,
+                  fontWeight: dealFilter === tab.id ? 700 : 500,
+                  cursor: 'pointer'
+                }}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Deals list */}
+          <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8, paddingRight: 4 }}>
+            {filteredDeals.length === 0 ? (
+              <div style={{ textAlign: 'center', color: 'var(--muted-foreground, #94a3b8)', fontSize: 13, padding: '30px 0' }}>
+                Aucune opportunité dans cette catégorie.
+              </div>
+            ) : (
+              filteredDeals.map(deal => {
+                const isWon = ['conclue', 'conclusion'].includes(deal.status)
+                const isNego = ['negociation', 'negotiation'].includes(deal.status)
+                return (
+                  <div
+                    key={deal.id}
+                    style={{
+                      padding: '12px 14px',
+                      background: 'rgba(255,255,255,0.02)',
+                      borderRadius: 10,
+                      border: '1px solid var(--border, rgba(255,255,255,0.08))',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: 12
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--foreground, #f1f5f9)' }}>
+                        {deal.companyName}
+                      </div>
+                      <div style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)', marginTop: 2, display: 'flex', gap: 10 }}>
+                        {deal.companyCity && <span>📍 {deal.companyCity}</span>}
+                        {deal.companySector && <span>🏢 {deal.companySector}</span>}
+                        {deal.nextFollowUp && <span>📅 Suivi : {deal.nextFollowUp}</span>}
+                      </div>
+                    </div>
+
+                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                      {deal.amount > 0 ? (
+                        <div style={{ fontSize: 13, fontWeight: 800, color: isWon ? '#34d399' : '#60a5fa' }}>
+                          {formatFcfa(deal.amount)}
+                        </div>
+                      ) : (
+                        <div style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)', fontStyle: 'italic' }}>
+                          Montant non spécifié
+                        </div>
+                      )}
+                      <span
+                        style={{
+                          fontSize: 10,
+                          fontWeight: 700,
+                          padding: '2px 6px',
+                          borderRadius: 4,
+                          background: isWon ? 'rgba(52,211,153,0.15)' : isNego ? 'rgba(251,146,60,0.15)' : 'rgba(96,165,250,0.15)',
+                          color: isWon ? '#34d399' : isNego ? '#fb923c' : '#60a5fa',
+                          marginTop: 4,
+                          display: 'inline-block'
+                        }}
+                      >
+                        {isWon ? 'Conclue' : isNego ? 'Négociation' : 'Prospection'}
+                      </span>
+                    </div>
+                  </div>
+                )
+              })
+            )}
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}
+
+// ── Leaderboard & Individual Performance Section ──────────────────────────────
 function Leaderboard({ members }: { members: MemberStat[] }) {
+  const [selectedMember, setSelectedMember] = useState<MemberStat | null>(null)
   const medals = ['🥇', '🥈', '🥉']
 
   return (
     <div>
-      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--muted-foreground, #94a3b8)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 16 }}>
-        Classement de l'équipe
+      {selectedMember && (
+        <MemberPerformanceModal
+          member={selectedMember}
+          onClose={() => setSelectedMember(null)}
+        />
+      )}
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <div>
+          <h3 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: 'var(--foreground, #f1f5f9)', display: 'flex', alignItems: 'center', gap: 8 }}>
+            🏆 Performances individuelles détaillées & Leaderboard
+          </h3>
+          <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--muted-foreground, #94a3b8)' }}>
+            Cliquez sur un commercial pour analyser son portefeuille et l&apos;ensemble de ses affaires en détail.
+          </p>
+        </div>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {members.slice(0, 5).map((member, i) => {
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {members.map((member, i) => {
           const maxConclue = members[0]?.conclue || 1
           const barWidth = Math.max(5, Math.round((member.conclue / maxConclue) * 100))
           return (
             <div
               key={member.uid}
+              onClick={() => setSelectedMember(member)}
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: 12,
-                padding: '10px 14px',
+                gap: 14,
+                padding: '12px 18px',
                 background: i === 0 ? 'rgba(74,222,128,0.06)' : 'var(--secondary, #1e2a3b)',
-                borderRadius: 10,
-                border: `1px solid ${i === 0 ? 'rgba(74,222,128,0.2)' : 'var(--border, rgba(255,255,255,0.1))'}`,
+                borderRadius: 12,
+                border: `1px solid ${i === 0 ? 'rgba(74,222,128,0.25)' : 'var(--border, rgba(255,255,255,0.1))'}`,
+                cursor: 'pointer',
                 transition: 'all 0.2s ease'
               }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = 'rgba(59,130,246,0.6)'
+                e.currentTarget.style.transform = 'translateY(-2px)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = i === 0 ? 'rgba(74,222,128,0.25)' : 'var(--border, rgba(255,255,255,0.1))'
+                e.currentTarget.style.transform = 'translateY(0)'
+              }}
             >
-              <div style={{ width: 24, textAlign: 'center', fontSize: 16 }}>
+              {/* Rang / Médaille */}
+              <div style={{ width: 28, textAlign: 'center', fontSize: 16, fontWeight: 800 }}>
                 {medals[i] ?? `${i + 1}.`}
               </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--foreground, #f1f5f9)', marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {member.name}
+
+              {/* Nom & jauge */}
+              <div style={{ flex: 1, minWidth: 160 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                  <span style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--foreground, #f1f5f9)' }}>
+                    {member.name}
+                  </span>
+                  {member.accessId && (
+                    <span style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)' }}>
+                      ({member.accessId})
+                    </span>
+                  )}
+                  {member.overdueFollowUps > 0 && (
+                    <span style={{
+                      fontSize: 10,
+                      fontWeight: 700,
+                      color: '#f87171',
+                      background: 'rgba(239,68,68,0.12)',
+                      padding: '1px 6px',
+                      borderRadius: 4
+                    }}>
+                      ⚠️ {member.overdueFollowUps} relance{member.overdueFollowUps > 1 ? 's' : ''} en retard
+                    </span>
+                  )}
                 </div>
-                <div style={{ height: 4, background: 'var(--card, #131c2e)', borderRadius: 4, overflow: 'hidden' }}>
+                <div style={{ height: 5, background: 'var(--card, #131c2e)', borderRadius: 4, overflow: 'hidden' }}>
                   <div style={{ width: `${barWidth}%`, height: '100%', background: '#0284c7', borderRadius: 4, transition: 'width 0.8s ease' }} />
                 </div>
               </div>
-              <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                <div style={{ fontSize: 18, fontWeight: 800, color: '#0284c7', lineHeight: 1 }}>{member.conclue}</div>
-                <div style={{ fontSize: 10, color: 'var(--muted-foreground, #94a3b8)' }}>conclues</div>
+
+              {/* Statuts détails */}
+              <div style={{ display: 'flex', gap: 12, textAlign: 'center', fontSize: 11, color: 'var(--muted-foreground, #94a3b8)' }}>
+                <div>
+                  <div style={{ fontWeight: 700, color: '#60a5fa' }}>{member.prospection}</div>
+                  <div>Prosp.</div>
+                </div>
+                <div>
+                  <div style={{ fontWeight: 700, color: '#fb923c' }}>{member.negociation}</div>
+                  <div>Négo.</div>
+                </div>
+                <div>
+                  <div style={{ fontWeight: 700, color: '#0284c7' }}>{member.conclue}</div>
+                  <div>Conclues</div>
+                </div>
               </div>
-              <div style={{ textAlign: 'right', flexShrink: 0, minWidth: 40 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: member.conversionRate >= 50 ? '#0284c7' : member.conversionRate >= 25 ? '#fbbf24' : 'var(--muted-foreground, #94a3b8)' }}>
+
+              {/* CA Gagné */}
+              <div style={{ textAlign: 'right', flexShrink: 0, minWidth: 80 }}>
+                <div style={{ fontSize: 14, fontWeight: 800, color: '#34d399' }}>
+                  {formatFcfa(member.revenue || 0)}
+                </div>
+                <div style={{ fontSize: 10, color: 'var(--muted-foreground, #94a3b8)' }}>CA Clôturé</div>
+              </div>
+
+              {/* Taux de conversion */}
+              <div style={{ textAlign: 'right', flexShrink: 0, minWidth: 55 }}>
+                <div style={{ fontSize: 14, fontWeight: 800, color: member.conversionRate >= 50 ? '#0284c7' : member.conversionRate >= 25 ? '#fbbf24' : 'var(--muted-foreground, #94a3b8)' }}>
                   {member.conversionRate}%
                 </div>
-                <div style={{ fontSize: 10, color: 'var(--muted-foreground, #94a3b8)' }}>taux</div>
+                <div style={{ fontSize: 10, color: 'var(--muted-foreground, #94a3b8)' }}>taux conv.</div>
+              </div>
+
+              {/* Bouton inspecter */}
+              <div style={{ fontSize: 12, color: '#60a5fa', fontWeight: 600 }}>
+                Détails →
               </div>
             </div>
           )
         })}
+
         {members.length === 0 && (
           <div style={{ textAlign: 'center', color: 'var(--muted-foreground, #94a3b8)', fontSize: 13, padding: '24px 0' }}>
             Aucune donnée disponible. Les statistiques apparaîtront ici dès que votre équipe commencera à enregistrer des prospects.
@@ -715,13 +1062,20 @@ export function ReportingDashboard({ data }: { data: ReportingData }) {
       {section === 'sales' ? (
         <>
           {/* KPI Row */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 14 }}>
             <KpiCard
-              label="Total prospects"
-              value={data.totalItems}
-              sub={`Toute l'équipe`}
+              label="CA Total Encaissé"
+              value={formatFcfa(data.totalRevenue || 0)}
+              sub="Deals clôturés et validés"
+              color="#34d399"
+              icon="💰"
+            />
+            <KpiCard
+              label="Valeur du Pipeline"
+              value={formatFcfa(data.pipelineValue || 0)}
+              sub="En prospection & négo"
               color="#60a5fa"
-              icon="📋"
+              icon="💼"
             />
             <KpiCard
               label="Affaires conclues"
@@ -738,11 +1092,18 @@ export function ReportingDashboard({ data }: { data: ReportingData }) {
               icon="📈"
             />
             <KpiCard
-              label="Meilleur commercial"
+              label="Top Commercial"
               value={data.topPerformer ?? '—'}
-              sub="Par nb d'affaires conclues"
+              sub="Plus grand nombre de ventes"
               color="#fbbf24"
               icon="🏆"
+            />
+            <KpiCard
+              label="Relances en retard"
+              value={data.totalOverdueFollowUps ?? 0}
+              sub="Dates de suivi dépassées"
+              color={(data.totalOverdueFollowUps ?? 0) > 0 ? '#f87171' : '#94a3b8'}
+              icon="⚠️"
             />
           </div>
 
