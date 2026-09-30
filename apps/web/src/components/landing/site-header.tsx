@@ -56,8 +56,8 @@ export function SiteHeader() {
             <select
               value={country.code}
               onChange={(event) => setCountry(event.target.value as typeof country.code)}
-              className="h-8 w-[90px] cursor-pointer bg-transparent text-xs font-semibold outline-none truncate"
-              aria-label="Pays de la homepage"
+              className="h-8 max-w-[105px] cursor-pointer bg-transparent text-xs font-semibold outline-none truncate"
+              aria-label={lang === 'en' ? 'Select country' : 'Pays de la homepage'}
             >
               {countries.map((option) => (
                 <option key={option.code} value={option.code} className="bg-background text-foreground">
@@ -131,7 +131,7 @@ export function SiteHeader() {
                 value={country.code}
                 onChange={(event) => setCountry(event.target.value as typeof country.code)}
                 className="flex-1 cursor-pointer bg-transparent text-xs font-semibold outline-none"
-                aria-label="Pays de la homepage"
+                aria-label={lang === 'en' ? 'Select country' : 'Pays de la homepage'}
               >
                 {countries.map((option) => (
                   <option key={option.code} value={option.code} className="bg-background text-foreground">

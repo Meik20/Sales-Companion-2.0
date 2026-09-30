@@ -12,7 +12,7 @@ export function StatsSection() {
   const stats = [
     {
       icon: Building2,
-      value: country.companyCount,
+      value: country.code === 'CM' ? country.companyCount : (isEn ? 'Growing' : 'En expansion'),
       label: isEn ? 'Listed companies' : 'Entreprises référencées',
       desc: isEn ? 'Structured & updated B2B data' : 'Données B2B structurées et à jour'
     },
@@ -47,7 +47,7 @@ export function StatsSection() {
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
             {isEn
-              ? `Real, structured data designed for sales reps and managers in ${country.name}.`
+              ? `Real, structured data designed for sales reps and managers ${country.englishIn}.`
               : `Des données réelles, structurées et pensées pour les commerciaux et dirigeants ${country.frenchIn}.`}
           </p>
         </div>

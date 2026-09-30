@@ -47,7 +47,7 @@ export function ProblemSection() {
           </h2>
           <p className="mt-4 text-base text-muted-foreground text-pretty">
             {isEn
-              ? `Sales teams in ${country.name} often lose valuable prospecting time because tools are fragmented and unsuited to the local market.`
+              ? `Sales teams ${country.englishIn} often lose valuable prospecting time because tools are fragmented and unsuited to the local market.`
               : `${country.frenchIn.charAt(0).toUpperCase() + country.frenchIn.slice(1)}, les équipes commerciales perdent souvent du temps de prospection à cause d’outils inadaptés et dispersés.`}
           </p>
         </div>

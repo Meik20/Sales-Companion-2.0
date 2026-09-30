@@ -15,7 +15,7 @@ export function Faq() {
         ? 'What is Sales Companion 2.0?'
         : 'Qu’est-ce que Sales Companion 2.0 ?',
       answer: isEn
-        ? `Sales Companion 2.0 is a B2B sales intelligence platform tailored for the ${country.name} market. It allows you to search local companies, qualify prospects with legal and contact data, and manage your deals in an intuitive CRM pipeline.`
+        ? `Sales Companion 2.0 is a B2B sales intelligence platform tailored for ${country.englishMarket}. It allows you to search local companies, qualify prospects with legal and contact data, and manage your deals in an intuitive CRM pipeline.`
         : `Sales Companion 2.0 est une plateforme de prospection B2B conçue pour le marché ${country.frenchMarketAdjective}. Elle permet de rechercher des entreprises locales, d’identifier des prospects qualifiés et de suivre vos opportunités commerciales dans un CRM intégré.`
     },
     {
@@ -23,8 +23,8 @@ export function Faq() {
         ? 'How many companies are listed in the database?'
         : 'Combien d’entreprises sont disponibles dans la base ?',
       answer: isEn
-        ? `Sales Companion 2.0 currently provides access to ${country.companyCount.toLowerCase()} companies across ${country.cities.join(', ')}, with continuous updates and additions.`
-        : `Sales Companion 2.0 donne accès à ${country.companyCount.toLowerCase()} entreprises réparties à ${country.cities.join(', ')}, avec une actualisation continue.`
+        ? `Sales Companion 2.0 currently provides access to ${country.code === 'CM' ? `${country.companyCount} verified companies` : 'a rapidly growing database of companies'} across ${country.cities.join(', ')}, with continuous updates and additions.`
+        : `Sales Companion 2.0 donne accès à ${country.code === 'CM' ? 'plus de 50 000 entreprises vérifiées' : 'une base en expansion d’entreprises'} réparties à ${country.cities.join(', ')}, avec une actualisation continue.`
     },
     {
       question: isEn

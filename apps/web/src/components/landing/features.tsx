@@ -42,11 +42,15 @@ export function Features() {
       icon: Building2,
       title:
         lang === 'en'
-          ? `${country.companyCount} verified ${country.name} companies at your fingertips`
-          : `${country.companyCount} entreprises ${country.frenchAdjective} répertoriées et vérifiées`,
+          ? (country.code === 'CM'
+              ? `${country.companyCount} verified ${country.englishAdjective} companies at your fingertips`
+              : `Growing database of verified ${country.englishAdjective} companies at your fingertips`)
+          : (country.code === 'CM'
+              ? `${country.companyCount} entreprises ${country.frenchAdjective} répertoriées et vérifiées`
+              : `Base en expansion d’entreprises ${country.frenchAdjective} répertoriées et vérifiées`),
       description:
         lang === 'en'
-          ? `Direct access to the B2B directory in ${country.name}. Filter by city (${cities}), business sector and company type to identify and reach decision-makers directly.`
+          ? `Direct access to the B2B directory ${country.englishIn}. Filter by city (${cities}), business sector and company type to identify and reach decision-makers directly.`
           : `Accédez en direct à l’annuaire B2B ${country.frenchIn}. Filtrez par ville (${cities}), secteur d’activité et type de structure pour identifier et contacter directement les bons décideurs.`,
       bullets:
         lang === 'en'
@@ -63,7 +67,7 @@ export function Features() {
       illustration: '/illustrations/landing/cameroon-directory.png',
       alt:
         lang === 'en'
-          ? `Verified ${country.name} company directory on Sales Companion 2.0`
+          ? `Verified ${country.englishAdjective} company directory on Sales Companion 2.0`
           : `Annuaire des entreprises ${country.frenchAdjective} vérifiées avec Sales Companion 2.0`,
       ctaText: lang === 'en' ? 'Explore directory' : 'Explorer l’annuaire',
       ctaLink: routes.register,
@@ -127,7 +131,7 @@ export function Features() {
       illustration: '/illustrations/landing/search-prospection.png',
       alt:
         lang === 'en'
-          ? `Targeted search and prospecting of companies in ${country.name}`
+          ? `Targeted search and prospecting of companies ${country.englishIn}`
           : `Recherche et prospection ciblée d’entreprises ${country.frenchIn}`,
       ctaText: lang === 'en' ? 'Search companies' : 'Lancer une recherche',
       ctaLink: routes.register,
@@ -174,7 +178,7 @@ export function Features() {
           : 'Prospectez partout, même sans aucune connexion Internet',
       description:
         lang === 'en'
-          ? `Network drops and dead zones in ${country.name} will never stall your sales again. Sales Companion 2.0 installs directly on your smartphone and remains fully functional offline.`
+          ? `Network drops and dead zones ${country.englishIn} will never stall your sales again. Sales Companion 2.0 installs directly on your smartphone and remains fully functional offline.`
           : `Les coupures de réseau ou les zones blanches ${country.frenchIn} ne doivent plus freiner vos ventes. Sales Companion 2.0 s’installe directement sur votre smartphone et reste 100% opérationnel hors-ligne.`,
       bullets:
         lang === 'en'
@@ -191,7 +195,7 @@ export function Features() {
       illustration: '/illustrations/landing/offline-pwa.png',
       alt:
         lang === 'en'
-          ? `Offline-ready mobile PWA application for ${country.name}`
+          ? `Offline-ready mobile PWA application ${country.englishFor}`
           : `Application mobile PWA fonctionnant 100% hors-ligne ${country.frenchIn}`,
       ctaText: lang === 'en' ? 'Install mobile app' : 'Installer sur mobile',
       ctaLink: '#pwa-install',
@@ -205,8 +209,8 @@ export function Features() {
       title: lang === 'en' ? 'AI Sales Companion 2.0' : 'Companion IA Pro',
       description:
         lang === 'en'
-            ? `An AI assistant specialized in the ${country.name} market that drafts outreach emails and analyzes business opportunities.`
-          : `Un assistant IA spécialisé dans le marché ${country.frenchAdjective} qui rédige vos messages de prospection et analyse vos opportunités.`
+            ? `An AI assistant specialized in ${country.englishMarket} that drafts outreach emails and analyzes business opportunities.`
+          : `Un assistant IA spécialisé dans le marché ${country.frenchMarketAdjective} qui rédige vos messages de prospection et analyse vos opportunités.`
     },
     {
       icon: FileSpreadsheet,
@@ -242,7 +246,7 @@ export function Features() {
           </span>
           <h2 className="mt-4 font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl lg:text-5xl text-balance">
             {lang === 'en'
-              ? `Everything to prospect, sell and lead in ${country.name}`
+              ? `Everything to prospect, sell and lead ${country.englishIn}`
               : `Tout pour prospecter, vendre et piloter ${country.frenchIn}`}
           </h2>
           <p className="mt-4 text-base sm:text-lg leading-relaxed text-muted-foreground text-pretty">

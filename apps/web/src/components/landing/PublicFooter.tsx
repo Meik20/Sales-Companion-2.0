@@ -1,36 +1,41 @@
+'use client'
+
 import Link from 'next/link'
 import { ScIcon } from '@/components/ui/ScIcon'
 import { routes } from '@/constants/routes'
-
-const footerLinks = {
-  ressources: [
-    { label: 'Blog B2B Cameroun', href: '/blog' },
-    { label: 'Annuaire entreprises', href: '/annuaire' },
-    { label: 'Entreprises à Douala', href: '/annuaire/douala' },
-    { label: 'Entreprises BTP', href: '/annuaire/btp' },
-    {
-      label: 'Guide NIU & RCCM',
-      href: '/blog/niu-rccm-identifier-entreprise-camerounaise'
-    },
-    {
-      label: 'Base de données Cameroun',
-      href: '/blog/base-de-donnees-entreprises-cameroun-2026'
-    }
-  ],
-  produit: [
-    { label: 'Commencer gratuitement', href: routes.register },
-    { label: 'Se connecter', href: routes.login },
-    { label: 'Fonctionnalités', href: '/#fonctionnalites' },
-    { label: 'Tarifs', href: '/#tarifs' }
-  ],
-  legal: [
-    { label: 'Conditions Générales', href: '/terms' },
-    { label: 'Confidentialité', href: '/privacy' }
-  ]
-}
+import { useTranslation } from '@/providers/I18nProvider'
 
 export function PublicFooter() {
+  const { lang } = useTranslation()
+  const isEn = lang === 'en'
   const year = new Date().getFullYear()
+
+  const footerLinks = {
+    ressources: [
+      { label: isEn ? 'B2B Blog' : 'Blog B2B Cameroun', href: '/blog' },
+      { label: isEn ? 'Company directory' : 'Annuaire entreprises', href: '/annuaire' },
+      { label: isEn ? 'Companies in Douala' : 'Entreprises à Douala', href: '/annuaire/douala' },
+      { label: isEn ? 'Construction companies' : 'Entreprises BTP', href: '/annuaire/btp' },
+      {
+        label: isEn ? 'NIU & RCCM Guide' : 'Guide NIU & RCCM',
+        href: '/blog/niu-rccm-identifier-entreprise-camerounaise'
+      },
+      {
+        label: isEn ? 'B2B Database' : 'Base de données Cameroun',
+        href: '/blog/base-de-donnees-entreprises-cameroun-2026'
+      }
+    ],
+    produit: [
+      { label: isEn ? 'Start for free' : 'Commencer gratuitement', href: routes.register },
+      { label: isEn ? 'Log in' : 'Se connecter', href: routes.login },
+      { label: isEn ? 'Features' : 'Fonctionnalités', href: '/#fonctionnalites' },
+      { label: isEn ? 'Pricing' : 'Tarifs', href: '/#tarifs' }
+    ],
+    legal: [
+      { label: isEn ? 'Terms & Conditions' : 'Conditions Générales', href: '/terms' },
+      { label: isEn ? 'Privacy Policy' : 'Confidentialité', href: '/privacy' }
+    ]
+  }
 
   return (
     <footer className="border-t border-border bg-secondary/40">
@@ -51,14 +56,16 @@ export function PublicFooter() {
               </span>
             </Link>
             <p className="mt-3 text-xs leading-relaxed text-muted-foreground max-w-[220px]">
-              La plateforme B2B de référence pour prospecter et gérer vos ventes au Cameroun.
+              {isEn
+                ? 'The leading B2B directory to prospect and manage your sales.'
+                : 'La plateforme B2B de référence pour prospecter et gérer vos ventes.'}
             </p>
           </div>
 
           {/* Ressources */}
           <div>
             <h3 className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Ressources
+              {isEn ? 'Resources' : 'Ressources'}
             </h3>
             <ul className="space-y-2">
               {footerLinks.ressources.map((link) => (
@@ -77,7 +84,7 @@ export function PublicFooter() {
           {/* Produit */}
           <div>
             <h3 className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Produit
+              {isEn ? 'Product' : 'Produit'}
             </h3>
             <ul className="space-y-2">
               {footerLinks.produit.map((link) => (
@@ -96,7 +103,7 @@ export function PublicFooter() {
           {/* Légal */}
           <div>
             <h3 className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Légal
+              {isEn ? 'Legal' : 'Légal'}
             </h3>
             <ul className="space-y-2">
               {footerLinks.legal.map((link) => (
@@ -116,7 +123,7 @@ export function PublicFooter() {
         {/* Bottom */}
         <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-border pt-6 sm:flex-row">
           <p className="text-xs text-muted-foreground">
-            &copy; {year} Sales Companion 2.0 · Base de données entreprises Cameroun
+            &copy; {year} Sales Companion 2.0. {isEn ? 'All rights reserved.' : 'Tous droits réservés.'}
           </p>
           <a
             href="https://www.linkedin.com/company/sales-companion-2-0/"

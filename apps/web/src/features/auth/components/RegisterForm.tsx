@@ -21,7 +21,7 @@ type RoleOption = 'independent' | 'manager'
 const SPIN_CSS = `@keyframes spin { to { transform: rotate(360deg); } }`
 
 export function RegisterForm() {
-  const { t } = useTranslation()
+  const { t, lang } = useTranslation()
   const { registerWithEmail, loginWithGoogle } = useAuthActions()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -294,7 +294,7 @@ export function RegisterForm() {
             >
               {SUPPORTED_COUNTRIES.map((c) => (
                 <option key={c.code} value={c.code}>
-                  {c.flag} {c.name} ({c.dialCode})
+                  {c.flag} {lang === 'en' ? c.nameEn : c.name} ({c.dialCode})
                 </option>
               ))}
             </select>

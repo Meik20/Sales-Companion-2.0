@@ -117,8 +117,8 @@ export function CtaFooter() {
               </div>
               <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
                 {isEn
-                  ? `B2B sales intelligence for ${country.name}. ${country.companyCount} companies across ${country.cities.join(', ')} and the main regions.`
-                  : `Intelligence commerciale B2B ${country.frenchIn}. ${country.companyCount} entreprises à ${country.cities.join(', ')} et dans les principales régions.`}
+                  ? `B2B sales intelligence ${country.englishFor}. ${country.code === 'CM' ? `${country.companyCount} companies` : 'A growing database of verified companies'} across ${country.cities.join(', ')} and the main regions.`
+                  : `Intelligence commerciale B2B ${country.frenchIn}. ${country.code === 'CM' ? `${country.companyCount} entreprises` : 'Une base en expansion d’entreprises'} à ${country.cities.join(', ')} et dans les principales régions.`}
               </p>
               <div className="mt-4">
                 <a
@@ -210,7 +210,7 @@ export function CtaFooter() {
                 <span>LinkedIn</span>
               </a>
               <span>·</span>
-              <p>{isEn ? `Designed for sales teams in ${country.name} ${country.flag}` : `Conçu pour les commerciaux ${country.frenchIn} ${country.flag}`}</p>
+              <p>{isEn ? `Designed for sales teams ${country.englishIn} ${country.flag}` : `Conçu pour les commerciaux ${country.frenchIn} ${country.flag}`}</p>
             </div>
           </div>
         </div>

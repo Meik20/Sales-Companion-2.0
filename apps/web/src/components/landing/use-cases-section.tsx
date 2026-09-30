@@ -59,7 +59,7 @@ export function UseCasesSection() {
       bullets: isEn
         ? [
             'No need to pay for 4 different software subscriptions or complex CRMs',
-            `Immediate access to ${country.companyCount.toLowerCase()} businesses ready to be prospected`,
+            `Immediate access to ${country.code === 'CM' ? '50,000+' : 'a growing database of'} businesses ready to be prospected`,
             'Turn every commercial meeting into structured, trackable revenue'
           ]
         : [
@@ -80,7 +80,7 @@ export function UseCasesSection() {
           </span>
           <h2 className="mt-3 font-heading text-2xl font-bold tracking-tight text-foreground sm:text-3xl md:text-4xl text-balance">
             {isEn
-              ? `Built for teams driving B2B sales in ${country.name}.`
+              ? `Built for teams driving B2B sales ${country.englishIn}.`
               : 'Pensé pour ceux qui vivent de la prospection B2B.'}
           </h2>
           <p className="mt-4 text-base text-muted-foreground text-pretty">

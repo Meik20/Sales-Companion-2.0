@@ -245,7 +245,8 @@ export function ProfileCard() {
   if (!user) return null
 
   const userCountry = user.country || 'CM'
-  const countryName = SUPPORTED_COUNTRIES.find((country) => country.code === userCountry)?.name ?? 'Cameroun'
+  const countryObj = SUPPORTED_COUNTRIES.find((country) => country.code === userCountry)
+  const countryName = (lang === 'en' ? countryObj?.nameEn : countryObj?.name) ?? countryObj?.name ?? 'Cameroun'
   const geography = GEOGRAPHY[userCountry] ?? GEOGRAPHY.CM!
 
   const usagePercent =

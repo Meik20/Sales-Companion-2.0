@@ -41,7 +41,7 @@ export function Hero() {
           <h1 className="mt-5 font-heading text-3xl font-extrabold leading-[1.12] tracking-tight text-foreground text-balance sm:text-4xl lg:text-5xl">
             {isEn ? (
               <>
-                Find your next <span className="text-[#1B7A3E]">B2B clients</span> in {country.name}.
+                Find your next <span className="text-[#1B7A3E]">B2B clients</span> {country.englishIn}.
               </>
             ) : (
               <>
@@ -53,8 +53,12 @@ export function Hero() {
           {/* Subtitle */}
           <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground text-pretty sm:text-lg">
             {isEn
-              ? 'Search across 50,000+ companies, target prospects matching your business, and manage your sales pipeline from a single tool.'
-              : 'Recherchez parmi plus de 50 000 entreprises, ciblez les prospects qui correspondent à votre activité et gérez votre pipeline commercial depuis un seul outil.'}
+              ? (country.code === 'CM'
+                  ? 'Search across 50,000+ companies, target prospects matching your business, and manage your sales pipeline from a single tool.'
+                  : `Search verified companies ${country.englishIn}, target prospects matching your business, and manage your sales pipeline from a single tool.`)
+              : (country.code === 'CM'
+                  ? 'Recherchez parmi plus de 50 000 entreprises, ciblez les prospects qui correspondent à votre activité et gérez votre pipeline commercial depuis un seul outil.'
+                  : `Recherchez parmi les entreprises vérifiées ${country.frenchIn}, ciblez les prospects qui correspondent à votre activité et gérez votre pipeline commercial depuis un seul outil.`)}
           </p>
 
           {/* CTAs */}
@@ -89,7 +93,7 @@ export function Hero() {
               {isEn ? 'Included:' : 'Inclus :'}
             </span>
             {[
-              isEn ? '50,000+ companies' : '50 000+ entreprises',
+              country.code === 'CM' ? (isEn ? '50,000+ companies' : '50 000+ entreprises') : (isEn ? 'Verified companies' : 'Entreprises vérifiées'),
               isEn ? 'Advanced search' : 'Recherche avancée',
               isEn ? 'Sales pipeline' : 'Pipeline commercial',
               isEn ? 'Field mode (PWA)' : 'Mode terrain (PWA)'
@@ -198,7 +202,7 @@ export function Hero() {
                 <div className="mt-3.5 grid grid-cols-2 gap-2 text-[11px] pt-3 border-t border-border/60">
                   <div className="flex items-center gap-1.5 text-muted-foreground">
                     <FileText className="h-3.5 w-3.5 text-primary shrink-0" />
-                    <span>RCCM: <strong className="text-foreground font-mono font-medium">RC/DLA/2019/B/1420</strong></span>
+                    <span>RCCM: <strong className="text-foreground font-mono font-medium">RC/{country.cities[0]?.slice(0, 3).toUpperCase()}/2021/B/1420</strong></span>
                   </div>
                   <div className="flex items-center gap-1.5 text-muted-foreground">
                     <FileText className="h-3.5 w-3.5 text-primary shrink-0" />
@@ -210,7 +214,7 @@ export function Hero() {
                   </div>
                   <div className="flex items-center gap-1.5 text-muted-foreground">
                     <Mail className="h-3.5 w-3.5 text-blue-500 shrink-0" />
-                    <span className="font-mono text-foreground truncate font-medium">contact@abc-btp.cm</span>
+                    <span className="font-mono text-foreground truncate font-medium">contact@abc-btp.{country.code.toLowerCase()}</span>
                   </div>
                 </div>
               </div>

@@ -1,16 +1,35 @@
 'use client'
 
 import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from 'react'
-import { COUNTRY_FRENCH_ADJECTIVE, COUNTRY_FRENCH_IN, COUNTRY_FRENCH_MARKET_ADJECTIVE, COUNTRY_NAMES, SUPPORTED_COUNTRIES, type CountryCode } from '@sales-companion/shared'
+import {
+  COUNTRY_ENGLISH_ADJECTIVE,
+  COUNTRY_ENGLISH_FOR,
+  COUNTRY_ENGLISH_IN,
+  COUNTRY_ENGLISH_MARKET,
+  COUNTRY_FRENCH_ADJECTIVE,
+  COUNTRY_FRENCH_IN,
+  COUNTRY_FRENCH_MARKET_ADJECTIVE,
+  COUNTRY_NAMES,
+  COUNTRY_NAMES_EN,
+  SUPPORTED_COUNTRIES,
+  type CountryCode
+} from '@sales-companion/shared'
+import { useTranslation } from '@/providers/I18nProvider'
 
 const COUNTRY_COOKIE = 'sc_country'
 
-type LandingCountry = {
+export type LandingCountry = {
   code: CountryCode
   name: string
+  nameEn: string
+  nameFr: string
   frenchIn: string
   frenchAdjective: string
   frenchMarketAdjective: string
+  englishIn: string
+  englishFor: string
+  englishMarket: string
+  englishAdjective: string
   flag: string
   currency: string
   cities: string[]
@@ -18,14 +37,30 @@ type LandingCountry = {
   companyCount: string
 }
 
-const COUNTRY_DETAILS: Record<CountryCode, Omit<LandingCountry, 'code' | 'name' | 'flag' | 'frenchIn' | 'frenchAdjective' | 'frenchMarketAdjective'>> = {
-  CM: { currency: 'XAF', cities: ['Douala', 'Yaoundé', 'Bafoussam'], regions: 10, companyCount: '50 000+' },
-  SN: { currency: 'XOF', cities: ['Dakar', 'Thiès', 'Saint-Louis'], regions: 14, companyCount: 'Base en expansion' },
-  CI: { currency: 'XOF', cities: ['Abidjan', 'Bouaké', 'Yamoussoukro'], regions: 14, companyCount: 'Base en expansion' },
-  BJ: { currency: 'XOF', cities: ['Cotonou', 'Porto-Novo', 'Parakou'], regions: 12, companyCount: 'Base en expansion' },
-  TG: { currency: 'XOF', cities: ['Lomé', 'Sokodé', 'Kara'], regions: 5, companyCount: 'Base en expansion' },
-  TD: { currency: 'XAF', cities: ["N'Djaména", 'Moundou', 'Sarh'], regions: 18, companyCount: 'Base en expansion' },
-  CF: { currency: 'XAF', cities: ['Bangui', 'Bimbo', 'Berbérati'], regions: 16, companyCount: 'Base en expansion' }
+export type LandingCountryItem = {
+  code: CountryCode
+  name: string
+  nameEn: string
+  nameFr: string
+  flag: string
+  dialCode: string
+  examplePhone: string
+}
+
+const COUNTRY_DETAILS: Record<CountryCode, {
+  currency: string
+  cities: string[]
+  regions: number
+  companyCountFr: string
+  companyCountEn: string
+}> = {
+  CM: { currency: 'XAF', cities: ['Douala', 'Yaoundé', 'Bafoussam'], regions: 10, companyCountFr: '50 000+', companyCountEn: '50,000+' },
+  SN: { currency: 'XOF', cities: ['Dakar', 'Thiès', 'Saint-Louis'], regions: 14, companyCountFr: 'Base en expansion', companyCountEn: 'Rapidly growing database' },
+  CI: { currency: 'XOF', cities: ['Abidjan', 'Bouaké', 'Yamoussoukro'], regions: 14, companyCountFr: 'Base en expansion', companyCountEn: 'Rapidly growing database' },
+  BJ: { currency: 'XOF', cities: ['Cotonou', 'Porto-Novo', 'Parakou'], regions: 12, companyCountFr: 'Base en expansion', companyCountEn: 'Rapidly growing database' },
+  TG: { currency: 'XOF', cities: ['Lomé', 'Sokodé', 'Kara'], regions: 5, companyCountFr: 'Base en expansion', companyCountEn: 'Rapidly growing database' },
+  TD: { currency: 'XAF', cities: ["N'Djaména", 'Moundou', 'Sarh'], regions: 18, companyCountFr: 'Base en expansion', companyCountEn: 'Rapidly growing database' },
+  CF: { currency: 'XAF', cities: ['Bangui', 'Bimbo', 'Berbérati'], regions: 16, companyCountFr: 'Base en expansion', companyCountEn: 'Rapidly growing database' }
 }
 
 function readCountryCookie(): CountryCode | null {
@@ -35,28 +70,42 @@ function readCountryCookie(): CountryCode | null {
   return value && COUNTRY_NAMES[value] ? value : null
 }
 
-function buildLandingCountry(code: CountryCode): LandingCountry {
-  const country = SUPPORTED_COUNTRIES.find((item) => item.code === code) ?? SUPPORTED_COUNTRIES[0]
+function buildLandingCountry(code: CountryCode, isEn: boolean): LandingCountry {
+  const country = SUPPORTED_COUNTRIES.find((item) => item.code === code) ?? SUPPORTED_COUNTRIES[0]!
+  const nameEn = country.nameEn
+  const nameFr = country.name
+  const details = COUNTRY_DETAILS[code]
   return {
     code,
-    name: country.name,
+    name: isEn ? nameEn : nameFr,
+    nameEn,
+    nameFr,
     flag: country.flag,
-    ...COUNTRY_DETAILS[code],
+    currency: details.currency,
+    cities: details.cities,
+    regions: details.regions,
+    companyCount: isEn ? details.companyCountEn : details.companyCountFr,
     frenchIn: COUNTRY_FRENCH_IN[code],
     frenchAdjective: COUNTRY_FRENCH_ADJECTIVE[code],
-    frenchMarketAdjective: COUNTRY_FRENCH_MARKET_ADJECTIVE[code]
+    frenchMarketAdjective: COUNTRY_FRENCH_MARKET_ADJECTIVE[code],
+    englishIn: COUNTRY_ENGLISH_IN[code] ?? `in ${nameEn}`,
+    englishFor: COUNTRY_ENGLISH_FOR[code] ?? `for ${nameEn}`,
+    englishMarket: COUNTRY_ENGLISH_MARKET[code] ?? `the ${nameEn} market`,
+    englishAdjective: COUNTRY_ENGLISH_ADJECTIVE[code] ?? nameEn
   }
 }
 
 type LandingCountryContextValue = {
   country: LandingCountry
   setCountry: (code: CountryCode) => void
-  countries: typeof SUPPORTED_COUNTRIES
+  countries: LandingCountryItem[]
 }
 
 const LandingCountryContext = createContext<LandingCountryContextValue | null>(null)
 
 export function LandingCountryProvider({ children }: { children: ReactNode }) {
+  const { lang } = useTranslation()
+  const isEn = lang === 'en'
   const [countryCode, setCountryCode] = useState<CountryCode>(() => readCountryCookie() ?? 'CM')
 
   useEffect(() => {
@@ -73,14 +122,26 @@ export function LandingCountryProvider({ children }: { children: ReactNode }) {
       .catch(() => {})
   }, [])
 
-  const value = useMemo(() => ({
-    country: buildLandingCountry(countryCode),
-    countries: SUPPORTED_COUNTRIES,
-    setCountry: (code: CountryCode) => {
-      setCountryCode(code)
-      document.cookie = `${COUNTRY_COOKIE}=${code}; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax`
+  const value = useMemo(() => {
+    const localizedCountries: LandingCountryItem[] = SUPPORTED_COUNTRIES.map((c) => ({
+      code: c.code,
+      name: isEn ? c.nameEn : c.name,
+      nameEn: c.nameEn,
+      nameFr: c.name,
+      flag: c.flag,
+      dialCode: c.dialCode,
+      examplePhone: c.examplePhone
+    }))
+
+    return {
+      country: buildLandingCountry(countryCode, isEn),
+      countries: localizedCountries,
+      setCountry: (code: CountryCode) => {
+        setCountryCode(code)
+        document.cookie = `${COUNTRY_COOKIE}=${code}; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax`
+      }
     }
-  }), [countryCode])
+  }, [countryCode, isEn])
 
   return <LandingCountryContext.Provider value={value}>{children}</LandingCountryContext.Provider>
 }
