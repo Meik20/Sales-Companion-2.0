@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { SectionCard } from './SectionCard'
 import { useCreateTeamAssignment } from '../hooks/useCreateTeamAssignment'
 import { useActiveTeamMembers } from '../hooks/useTeamMembers'
+import { useTeamAssignments } from '../hooks/useTeamAssignments'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import type { Prospect } from '@/features/imports/components/ManagerProspectsList'
 import { useTranslation } from '@/providers/I18nProvider'
@@ -75,6 +76,7 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
   const { user } = useCurrentUser()
   const { mutate: createAssignment, isPending } = useCreateTeamAssignment()
   const { data: members } = useActiveTeamMembers()
+  const { data: assignments = [] } = useTeamAssignments()
   const queryClient = useQueryClient()
 
   // Load pipeline prospects
@@ -107,6 +109,21 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
     void load()
   }, [user])
 
+  // Build a set of already-assigned company names (lower-cased) and IDs
+  const assignedCompanyNames = new Set(
+    assignments.map((a) => a.companyName.trim().toLowerCase())
+  )
+  const assignedItemIds = new Set(
+    assignments.flatMap((a) => [a.pipelineItemId, a.pipelineEntryId].filter(Boolean) as string[])
+  )
+
+  // Filter out prospects that are already assigned
+  const availableProspects = pipelineProspects.filter((p: PipelineItem) => {
+    if (assignedItemIds.has(p.id)) return false
+    if (assignedCompanyNames.has(p.companyName.trim().toLowerCase())) return false
+    return true
+  })
+
   // ── Mode: single assignment (from pipeline dropdown) ──────────────────────
   const handleSingleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -120,7 +137,7 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
       return
     }
 
-    const selectedP = pipelineProspects.find((p) => p.id === pipelineItemId)
+    const selectedP = availableProspects.find((p) => p.id === pipelineItemId)
     createAssignment(
       {
         pipelineItemId: pipelineItemId.trim(),
@@ -304,11 +321,11 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
                 <option value="">
                   {loadingPipeline
                     ? t('team.loading')
-                    : pipelineProspects.length === 0
+                    : availableProspects.length === 0
                       ? t('team.noProspectAvailable')
                       : t('team.selectProspect')}
                 </option>
-                {pipelineProspects.map((p) => (
+                {availableProspects.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.companyName} ({p.status})
                   </option>

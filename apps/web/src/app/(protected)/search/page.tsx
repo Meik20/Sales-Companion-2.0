@@ -678,7 +678,11 @@ function SearchContent() {
               }}
             >
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12, height: 380 }}>
-                {/* Zone messages */}
+                {/* conversationStarted: true once user has sent at least one message */}
+                {(() => {
+                  const conversationStarted = chatMessages.some((m) => m.role === 'user')
+                  return (
+                    <>
                 <div
                   style={{
                     flex: 1,
@@ -687,7 +691,7 @@ function SearchContent() {
                     flexDirection: 'column',
                     gap: 10,
                     paddingRight: 4,
-                    maxHeight: 260
+                    maxHeight: conversationStarted ? 320 : 260
                   }}
                 >
                   {chatMessages.map((msg, i) => (
@@ -711,8 +715,9 @@ function SearchContent() {
                   <div ref={chatEndRef} />
                 </div>
 
-                {/* Chips suggestions — adaptées au secteur, à la ville et aux résultats de recherche */}
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {/* Chips suggestions — visibles uniquement AVANT que la conversation démarre */}
+                  {!conversationStarted && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                   {(() => {
                     const sector = filters.sector || (user as { sector?: string } | null)?.sector
                     const city = filters.city
@@ -763,67 +768,73 @@ function SearchContent() {
                       </button>
                     ))
                   })()}
-                </div>
+                  </div>
+                  )}
 
-                {/* Zone de saisie */}
-                <div style={{ position: 'relative' }}>
-                  <textarea
-                    value={chatInput}
-                    onChange={(e) => setChatInput(e.target.value)}
-                    onKeyDown={handleChatKeyDown}
-                    disabled={isSendingChat}
-                    placeholder={t('search.aiPlaceholder')}
-                    rows={3}
-                    style={{
-                      width: '100%',
-                      padding: '10px 48px 10px 14px',
-                      borderRadius: 14,
-                      border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
-                      outline: 'none',
-                      fontSize: 12.5,
-                      resize: 'none',
-                      fontFamily: 'inherit',
-                      background: 'var(--card, #131c2e)',
-                      color: 'var(--foreground, #f1f5f9)',
-                      boxSizing: 'border-box'
-                    }}
-                  />
-                  <button
-                    onClick={() => sendChatMessage(chatInput)}
-                    disabled={isSendingChat || !chatInput.trim()}
-                    style={{
-                      position: 'absolute',
-                      right: 8,
-                      bottom: 8,
-                      width: 32,
-                      height: 32,
-                      borderRadius: '50%',
-                      background: isSendingChat || !chatInput.trim() ? 'var(--border, rgba(255,255,255,0.1))' : '#2563eb',
-                      color: '#fff',
-                      border: 'none',
-                      cursor: isSendingChat || !chatInput.trim() ? 'not-allowed' : 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      boxShadow: '0 4px 12px rgba(0,85,255,0.3)',
-                      transition: 'all 200ms ease'
-                    }}
-                  >
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
+                  {/* Zone de saisie */}
+                  <div style={{ position: 'relative' }}>
+                    <textarea
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      onKeyDown={handleChatKeyDown}
+                      disabled={isSendingChat}
+                      placeholder={t('search.aiPlaceholder')}
+                      rows={1}
+                      style={{
+                        width: '100%',
+                        padding: '9px 44px 9px 12px',
+                        borderRadius: 10,
+                        border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+                        outline: 'none',
+                        fontSize: 12.5,
+                        resize: 'none',
+                        fontFamily: 'inherit',
+                        background: 'var(--card, #131c2e)',
+                        color: 'var(--foreground, #f1f5f9)',
+                        boxSizing: 'border-box',
+                        lineHeight: 1.4
+                      }}
+                    />
+                    <button
+                      onClick={() => sendChatMessage(chatInput)}
+                      disabled={isSendingChat || !chatInput.trim()}
+                      style={{
+                        position: 'absolute',
+                        right: 8,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        width: 28,
+                        height: 28,
+                        borderRadius: '50%',
+                        background: isSendingChat || !chatInput.trim() ? 'var(--border, rgba(255,255,255,0.1))' : '#2563eb',
+                        color: '#fff',
+                        border: 'none',
+                        cursor: isSendingChat || !chatInput.trim() ? 'not-allowed' : 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 4px 12px rgba(0,85,255,0.3)',
+                        transition: 'all 200ms ease'
+                      }}
                     >
-                      <line x1="22" y1="2" x2="11" y2="13" />
-                      <polygon points="22 2 15 22 11 13 2 9 22 2" />
-                    </svg>
-                  </button>
-                </div>
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <line x1="22" y1="2" x2="11" y2="13" />
+                        <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                      </svg>
+                    </button>
+                  </div>
+                    </>
+                  )
+                })()}
               </div>
             </DataCard>
           )}

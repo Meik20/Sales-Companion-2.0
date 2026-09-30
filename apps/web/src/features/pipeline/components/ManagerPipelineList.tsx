@@ -19,11 +19,9 @@ import {
   Calendar,
   AlertTriangle,
   X,
-  Edit3,
   MessageSquare,
   ChevronRight,
   TrendingUp,
-  RotateCcw,
   Save,
   Target,
   Globe,
@@ -109,47 +107,8 @@ function ProspectModal({
   managerUid?: string
 }) {
   const { t } = useTranslation()
-  const updateMutation = useUpdatePipelineItem()
-  const { pushToast } = useToast()
-
-  const [noteText, setNoteText] = useState(item.notes ?? item.note ?? '')
-  const [amountVal, setAmountVal] = useState<string>(
-    item.amount != null ? String(item.amount) : ''
-  )
-  const [followUpVal, setFollowUpVal] = useState<string>(
-    item.nextFollowUp ?? ''
-  )
-  const [saving, setSaving] = useState(false)
-  const [isEditing, setIsEditing] = useState(false)
-
-  async function handleSave() {
-    setSaving(true)
-    try {
-      const parsedAmount = amountVal.trim() ? parseFloat(amountVal.replace(/\s+/g, '')) : null
-      await updateMutation.mutateAsync({
-        id: item.id,
-        data: {
-          notes: noteText,
-          amount: parsedAmount && !isNaN(parsedAmount) ? parsedAmount : null,
-          nextFollowUp: followUpVal.trim() || null
-        }
-      })
-      pushToast({ type: 'success', title: 'Modifications enregistrées' })
-      setIsEditing(false)
-    } catch {
-      pushToast({ type: 'error', title: t('pipeline.notesSaveError') || 'Erreur lors de la sauvegarde' })
-    } finally {
-      setSaving(false)
-    }
-  }
 
   const originalNote = item.notes ?? item.note ?? ''
-  const originalAmount = item.amount != null ? String(item.amount) : ''
-  const originalFollowUp = item.nextFollowUp ?? ''
-  const isChanged =
-    noteText !== originalNote ||
-    amountVal !== originalAmount ||
-    followUpVal !== originalFollowUp
 
   const filteredPreviousAssignees = (item.previousAssignees || []).filter(
     (pa) => {
@@ -412,13 +371,11 @@ function ProspectModal({
             </div>
           </div>
 
-          {/* ── SUIVI COMMERCIAL & MÉTRIQUES (Éditable par le Manager) ── */}
+          {/* ── SUIVI COMMERCIAL & MÉTRIQUES (Consultation lecture seule pour le Manager) ── */}
           <div
             style={{
-              background: isEditing ? 'rgba(59,130,246,0.03)' : 'rgba(30,41,59,0.5)',
-              border: isEditing
-                ? '1px solid rgba(59,130,246,0.3)'
-                : '1px solid var(--border, rgba(255,255,255,0.1))',
+              background: 'rgba(30,41,59,0.5)',
+              border: '1px solid var(--border, rgba(255,255,255,0.1))',
               borderRadius: 14,
               padding: 18,
               marginBottom: 20,
@@ -437,7 +394,7 @@ function ProspectModal({
                 style={{
                   fontSize: 11,
                   fontWeight: 800,
-                  color: isEditing ? '#60a5fa' : '#34d399',
+                  color: '#34d399',
                   textTransform: 'uppercase',
                   letterSpacing: '.1em',
                   display: 'flex',
@@ -448,235 +405,42 @@ function ProspectModal({
                 <TrendingUp size={13} strokeWidth={3} />
                 Suivi commercial & Métriques
               </div>
-
-              {!isEditing ? (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => setIsEditing(true)}
-                  style={{
-                    fontSize: 11,
-                    padding: '4px 10px',
-                    minHeight: 26,
-                    color: '#60a5fa',
-                    borderColor: 'rgba(96,165,250,0.25)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 4
-                  }}
-                >
-                  <Edit3 size={11} />
-                  {t('common.edit') || 'Modifier'}
-                </Button>
-              ) : (
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => {
-                      setNoteText(originalNote)
-                      setAmountVal(originalAmount)
-                      setFollowUpVal(originalFollowUp)
-                      setIsEditing(false)
-                    }}
-                    style={{
-                      fontSize: 11,
-                      padding: '4px 10px',
-                      minHeight: 26,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 4
-                    }}
-                  >
-                    <RotateCcw size={11} />
-                    {t('common.cancel') || 'Annuler'}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="primary"
-                    loading={saving}
-                    disabled={!isChanged || saving}
-                    onClick={() => void handleSave()}
-                    style={{
-                      fontSize: 11,
-                      padding: '4px 12px',
-                      minHeight: 26,
-                      background: '#2563eb',
-                      borderColor: '#2563eb',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 4
-                    }}
-                  >
-                    <Save size={11} />
-                    Enregistrer
-                  </Button>
-                </div>
-              )}
             </div>
 
-            {isEditing ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
-                  {/* Montant estimé input */}
-                  <div>
-                    <label
-                      style={{
-                        display: 'block',
-                        fontSize: 11,
-                        fontWeight: 700,
-                        color: 'var(--muted-foreground, #94a3b8)',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.05em',
-                        marginBottom: 6
-                      }}
-                    >
-                      Valeur estimée (FCFA)
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="5000"
-                      value={amountVal}
-                      onChange={(e) => setAmountVal(e.target.value)}
-                      placeholder="ex: 1500000"
-                      style={{
-                        width: '100%',
-                        boxSizing: 'border-box',
-                        background: 'var(--secondary, #1e2a3b)',
-                        border: '1px solid rgba(52,211,153,0.3)',
-                        borderRadius: 8,
-                        padding: '8px 12px',
-                        fontSize: 13,
-                        color: '#34d399',
-                        fontWeight: 700,
-                        outline: 'none'
-                      }}
-                    />
-                  </div>
-
-                  {/* Date de relance input — masqué si vente conclue */}
-                  {!isConclue && (
-                  <div>
-                    <label
-                      style={{
-                        display: 'block',
-                        fontSize: 11,
-                        fontWeight: 700,
-                        color: 'var(--muted-foreground, #94a3b8)',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.05em',
-                        marginBottom: 6
-                      }}
-                    >
-                      Prochaine relance
-                    </label>
-                    <input
-                      type="date"
-                      value={followUpVal}
-                      onChange={(e) => setFollowUpVal(e.target.value)}
-                      style={{
-                        width: '100%',
-                        boxSizing: 'border-box',
-                        background: 'var(--secondary, #1e2a3b)',
-                        border: '1px solid rgba(96,165,250,0.3)',
-                        borderRadius: 8,
-                        padding: '8px 12px',
-                        fontSize: 13,
-                        color: 'var(--foreground, #f1f5f9)',
-                        outline: 'none'
-                      }}
-                    />
-                  </div>
-                  )}
-                </div>
-
-                {/* Notes input */}
-                <div>
-                  <label
+            {/* Read-only metrics — Manager cannot edit */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {/* Visual metrics row */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
+                {/* Amount display */}
+                <div
+                  style={{
+                    background: 'var(--secondary, #1e2a3b)',
+                    borderRadius: 10,
+                    padding: '10px 14px',
+                    border: '1px solid rgba(52,211,153,0.15)'
+                  }}
+                >
+                  <div
                     style={{
-                      display: 'block',
-                      fontSize: 11,
+                      fontSize: 10,
                       fontWeight: 700,
-                      color: 'var(--muted-foreground, #94a3b8)',
                       textTransform: 'uppercase',
                       letterSpacing: '0.05em',
-                      marginBottom: 6
+                      color: 'var(--muted-foreground, #94a3b8)',
+                      marginBottom: 4
                     }}
                   >
-                    Notes & Commentaires
-                  </label>
-                  <textarea
-                    value={noteText}
-                    onChange={(e) => setNoteText(e.target.value)}
-                    placeholder={t('pipeline.placeholderNotes') || 'Ajouter des notes sur les échanges...'}
-                    rows={3}
-                    style={{
-                      width: '100%',
-                      boxSizing: 'border-box',
-                      background: 'var(--secondary, #1e2a3b)',
-                      border: '1px solid rgba(255,255,255,0.15)',
-                      borderRadius: 8,
-                      padding: '10px 12px',
-                      fontSize: 13,
-                      color: 'var(--foreground, #f1f5f9)',
-                      resize: 'vertical',
-                      outline: 'none',
-                      fontFamily: 'inherit',
-                      lineHeight: 1.5
-                    }}
-                  />
+                    Valeur de l&apos;opportunité
+                  </div>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: item.amount ? '#34d399' : 'var(--muted-foreground, #64748b)' }}>
+                    {item.amount != null && item.amount > 0
+                      ? `${new Intl.NumberFormat('fr-FR').format(item.amount)} FCFA`
+                      : '0 FCFA'}
+                  </div>
                 </div>
 
-                {isChanged && (
-                  <div
-                    style={{
-                      fontSize: 11,
-                      color: '#fbbf24',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 4
-                    }}
-                  >
-                    <AlertTriangle size={11} />
-                    Modifications non enregistrées
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                {/* Visual metrics row */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
-                  {/* Amount display */}
-                  <div
-                    style={{
-                      background: 'var(--secondary, #1e2a3b)',
-                      borderRadius: 10,
-                      padding: '10px 14px',
-                      border: '1px solid rgba(52,211,153,0.15)'
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontSize: 10,
-                        fontWeight: 700,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.05em',
-                        color: 'var(--muted-foreground, #94a3b8)',
-                        marginBottom: 4
-                      }}
-                    >
-                      Valeur de l'opportunité
-                    </div>
-                    <div style={{ fontSize: 15, fontWeight: 800, color: item.amount ? '#34d399' : 'var(--muted-foreground, #64748b)' }}>
-                      {item.amount != null && item.amount > 0
-                        ? `${new Intl.NumberFormat('fr-FR').format(item.amount)} FCFA`
-                        : '0 FCFA'}
-                    </div>
-                  </div>
-
-                  {/* Follow-up display — masqué si vente conclue */}
-                  {!isConclue && (
+                {/* Follow-up display — masqué si vente conclue */}
+                {!isConclue && (
                   <div
                     style={{
                       background: 'var(--secondary, #1e2a3b)',
@@ -718,48 +482,47 @@ function ProspectModal({
                       )}
                     </div>
                   </div>
-                  )}
-                </div>
+                )}
+              </div>
 
-                {/* Notes display */}
+              {/* Notes display */}
+              <div
+                style={{
+                  background: 'var(--secondary, #1e2a3b)',
+                  borderRadius: 10,
+                  padding: '12px 14px',
+                  border: '1px solid rgba(255,255,255,0.06)'
+                }}
+              >
                 <div
                   style={{
-                    background: 'var(--secondary, #1e2a3b)',
-                    borderRadius: 10,
-                    padding: '12px 14px',
-                    border: '1px solid rgba(255,255,255,0.06)'
+                    fontSize: 10,
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    color: 'var(--muted-foreground, #94a3b8)',
+                    marginBottom: 6,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4
                   }}
                 >
-                  <div
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 700,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em',
-                      color: 'var(--muted-foreground, #94a3b8)',
-                      marginBottom: 6,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 4
-                    }}
-                  >
-                    <MessageSquare size={12} />
-                    Notes & Commentaires
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 13,
-                      color: noteText ? 'var(--foreground, #f1f5f9)' : 'var(--muted-foreground, #64748b)',
-                      fontStyle: noteText ? 'normal' : 'italic',
-                      lineHeight: 1.5,
-                      whiteSpace: 'pre-wrap'
-                    }}
-                  >
-                    {noteText || 'Aucune note pour le moment.'}
-                  </div>
+                  <MessageSquare size={12} />
+                  Notes & Commentaires
+                </div>
+                <div
+                  style={{
+                    fontSize: 13,
+                    color: originalNote ? 'var(--foreground, #f1f5f9)' : 'var(--muted-foreground, #64748b)',
+                    fontStyle: originalNote ? 'normal' : 'italic',
+                    lineHeight: 1.5,
+                    whiteSpace: 'pre-wrap'
+                  }}
+                >
+                  {originalNote || 'Aucune note pour le moment.'}
                 </div>
               </div>
-            )}
+            </div>
           </div>
 
           {/* Déjà visité / assigné (excluant le Manager) */}
