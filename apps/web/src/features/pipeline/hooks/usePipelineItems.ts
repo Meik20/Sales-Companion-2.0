@@ -5,6 +5,7 @@ import { collection, query, where } from 'firebase/firestore'
 import { firestore } from '@/services/firebase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { getDocsWithOfflineFallback, formatTimestamp } from '@/lib/firestore-offline'
+import { usePipelineRealtimeSync } from './usePipelineRealtimeSync'
 
 export type PipelineItem = {
   id: string
@@ -27,6 +28,7 @@ export type PipelineItem = {
 
 export function usePipelineItems() {
   const { user } = useCurrentUser()
+  usePipelineRealtimeSync()
 
   return useQuery({
     queryKey: ['pipeline', user?.uid],

@@ -5,6 +5,7 @@ import { collection, query, where } from 'firebase/firestore'
 import { firestore } from '@/services/firebase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { getDocsWithOfflineFallback } from '@/lib/firestore-offline'
+import { usePipelineRealtimeSync } from './usePipelineRealtimeSync'
 
 export type PipelineStats = {
   total: number
@@ -17,6 +18,7 @@ export type PipelineStats = {
 
 export function usePipelineStats() {
   const { user } = useCurrentUser()
+  usePipelineRealtimeSync()
 
   return useQuery({
     queryKey: ['pipeline-stats', user?.uid],

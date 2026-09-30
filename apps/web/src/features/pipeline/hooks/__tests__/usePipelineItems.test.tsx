@@ -22,6 +22,7 @@ vi.mock('firebase/firestore', () => ({
   collection: vi.fn(),
   query: vi.fn(),
   where: vi.fn(),
+  onSnapshot: vi.fn(),
 }))
 
 vi.mock('@/lib/firestore-offline', () => ({
