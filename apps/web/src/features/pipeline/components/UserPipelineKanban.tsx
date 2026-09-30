@@ -19,6 +19,8 @@ type PipelineItem = {
   amount?: number | null
   currency?: string | null
   assignedByName?: string | null
+  managerUid?: string | null
+  nextFollowUp?: string | null
   previousAssignees?: any[]
 }
 
@@ -213,16 +215,35 @@ function KanbanCard({
                 <MessageSquare size={10} />Notes
               </span>
             )}
-            {item.previousAssignees && item.previousAssignees.length > 0 && (
+            {item.nextFollowUp && (
               <span style={{
                 display: 'inline-flex', alignItems: 'center', gap: 4,
-                fontSize: 11, fontWeight: 600, color: '#f87171',
-                background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)',
+                fontSize: 11, fontWeight: 600,
+                color: item.nextFollowUp < new Date().toISOString().slice(0, 10) && item.status !== 'conclue' ? '#ef4444' : '#60a5fa',
+                background: item.nextFollowUp < new Date().toISOString().slice(0, 10) && item.status !== 'conclue' ? 'rgba(239,68,68,0.08)' : 'rgba(96,165,250,0.08)',
+                border: item.nextFollowUp < new Date().toISOString().slice(0, 10) && item.status !== 'conclue' ? '1px solid rgba(239,68,68,0.25)' : '1px solid rgba(96,165,250,0.2)',
                 borderRadius: 6, padding: '2px 8px'
               }}>
-                ⚠️ Déjà visité
+                📅 {item.nextFollowUp}
               </span>
             )}
+            {(() => {
+              const filtered = (item.previousAssignees || []).filter(
+                (pa: any) =>
+                  !(item.managerUid && pa.userId === item.managerUid) &&
+                  !(item.assignedByName && pa.memberName === item.assignedByName)
+              )
+              return filtered.length > 0 ? (
+                <span style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 4,
+                  fontSize: 11, fontWeight: 600, color: '#f87171',
+                  background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)',
+                  borderRadius: 6, padding: '2px 8px'
+                }}>
+                  ⚠️ Déjà visité
+                </span>
+              ) : null
+            })()}
           </div>
 
           {/* Mobile: quick move buttons */}

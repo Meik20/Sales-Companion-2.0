@@ -115,7 +115,8 @@ export async function POST(request: NextRequest) {
           .get()
         byName.docs.forEach((doc) => {
           const d = doc.data()
-          if (d.userId && d.userId !== userId) {
+          const isManager = d.role === 'manager' || d.isManager === true || (d.managerUid && d.userId === d.managerUid)
+          if (d.userId && d.userId !== userId && !isManager) {
             prevAssigneesMap.set(d.userId, {
               userId: d.userId,
               memberName: d.memberName || d.userId,

@@ -24,7 +24,8 @@ import {
   ChevronRight,
   MessageSquare,
   LayoutGrid,
-  List
+  List,
+  TrendingUp
 } from 'lucide-react'
 
 import { UserPipelineKanban } from './UserPipelineKanban'
@@ -86,14 +87,28 @@ function ProspectModal({
   const { pushToast } = useToast()
 
   const [noteText, setNoteText] = useState(item.notes ?? item.note ?? '')
+  const [amountVal, setAmountVal] = useState<string>(
+    item.amount != null ? String(item.amount) : ''
+  )
+  const [followUpVal, setFollowUpVal] = useState<string>(
+    item.nextFollowUp ?? item.nextDate ?? ''
+  )
   const [noteSaving, setNoteSaving] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
 
   async function handleSaveNote() {
     setNoteSaving(true)
     try {
-      await updateMutation.mutateAsync({ id: item.id, data: { notes: noteText } })
-      pushToast({ type: 'success', title: t('pipeline.notesSaved') })
+      const parsedAmount = amountVal.trim() ? parseFloat(amountVal.replace(/\s+/g, '')) : null
+      await updateMutation.mutateAsync({
+        id: item.id,
+        data: {
+          notes: noteText,
+          amount: parsedAmount && !isNaN(parsedAmount) ? parsedAmount : null,
+          nextFollowUp: followUpVal.trim() || null
+        }
+      })
+      pushToast({ type: 'success', title: 'Modifications enregistrées' })
       setIsEditing(false)
     } catch {
       pushToast({ type: 'error', title: t('pipeline.notesSaveError') })
@@ -103,7 +118,27 @@ function ProspectModal({
   }
 
   const originalNote = item.notes ?? item.note ?? ''
-  const noteChanged = noteText !== originalNote
+  const originalAmount = item.amount != null ? String(item.amount) : ''
+  const originalFollowUp = item.nextFollowUp ?? item.nextDate ?? ''
+  const isChanged =
+    noteText !== originalNote ||
+    amountVal !== originalAmount ||
+    followUpVal !== originalFollowUp
+
+  const filteredPreviousAssignees = (item.previousAssignees || []).filter(
+    (pa) => {
+      if (item.managerUid && pa.userId === item.managerUid) return false
+      if (item.assignedByName && pa.memberName === item.assignedByName) return false
+      return true
+    }
+  )
+
+  const isOverdue = Boolean(
+    (item.nextFollowUp || item.nextDate) &&
+      (item.nextFollowUp || item.nextDate)! < new Date().toISOString().slice(0, 10) &&
+      item.status !== 'conclue' &&
+      item.status !== 'conclusion'
+  )
 
   return (
     <>
@@ -339,17 +374,17 @@ function ProspectModal({
             </div>
           </div>
 
-          {/* ── NOTES — section éditable ── */}
+          {/* ── SUIVI COMMERCIAL & MÉTRIQUES (Éditable) ── */}
           <div
             style={{
-              background: isEditing ? 'rgba(251,191,36,0.03)' : 'rgba(34,197,94,0.03)',
+              background: isEditing ? 'rgba(59,130,246,0.03)' : 'rgba(30,41,59,0.5)',
               border: isEditing
-                ? '1px solid rgba(251,191,36,0.2)'
-                : '1px solid rgba(34,197,94,0.2)',
-              borderRadius: 12,
+                ? '1px solid rgba(59,130,246,0.3)'
+                : '1px solid var(--border, rgba(255,255,255,0.1))',
+              borderRadius: 14,
               padding: 18,
               marginBottom: 20,
-              transition: 'all 300ms ease'
+              transition: 'all 250ms ease'
             }}
           >
             <div
@@ -357,14 +392,14 @@ function ProspectModal({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                marginBottom: 12
+                marginBottom: 16
               }}
             >
               <div
                 style={{
                   fontSize: 11,
                   fontWeight: 800,
-                  color: isEditing ? '#fbbf24' : '#2563eb',
+                  color: isEditing ? '#60a5fa' : '#34d399',
                   textTransform: 'uppercase',
                   letterSpacing: '.1em',
                   display: 'flex',
@@ -372,8 +407,8 @@ function ProspectModal({
                   gap: 6
                 }}
               >
-                <MessageSquare size={12} strokeWidth={3} />
-                {t('pipeline.notesLabel')}
+                <TrendingUp size={13} strokeWidth={3} />
+                Suivi commercial & Métriques
               </div>
 
               {!isEditing ? (
@@ -385,8 +420,8 @@ function ProspectModal({
                     fontSize: 11,
                     padding: '4px 10px',
                     minHeight: 26,
-                    color: '#2563eb',
-                    borderColor: 'rgba(37,99,235,0.2)',
+                    color: '#60a5fa',
+                    borderColor: 'rgba(96,165,250,0.25)',
                     display: 'flex',
                     alignItems: 'center',
                     gap: 4
@@ -402,6 +437,8 @@ function ProspectModal({
                     variant="ghost"
                     onClick={() => {
                       setNoteText(originalNote)
+                      setAmountVal(originalAmount)
+                      setFollowUpVal(originalFollowUp)
                       setIsEditing(false)
                     }}
                     style={{
@@ -420,11 +457,11 @@ function ProspectModal({
                     size="sm"
                     variant="primary"
                     loading={noteSaving}
-                    disabled={!noteChanged}
+                    disabled={!isChanged || noteSaving}
                     onClick={() => void handleSaveNote()}
                     style={{
                       fontSize: 11,
-                      padding: '4px 10px',
+                      padding: '4px 12px',
                       minHeight: 26,
                       background: '#2563eb',
                       borderColor: '#2563eb',
@@ -434,93 +471,254 @@ function ProspectModal({
                     }}
                   >
                     <Save size={11} />
-                    {t('pipeline.notesSaveBtn')}
+                    Enregistrer
                   </Button>
                 </div>
               )}
             </div>
 
             {isEditing ? (
-              <>
-                <textarea
-                  value={noteText}
-                  onChange={(e) => setNoteText(e.target.value)}
-                  placeholder={t('pipeline.placeholderNotes')}
-                  rows={4}
-                  autoFocus
-                  style={{
-                    width: '100%',
-                    boxSizing: 'border-box',
-                    background: 'var(--card, #131c2e)',
-                    border: '1px solid rgba(251,191,36,0.3)',
-                    borderRadius: 10,
-                    padding: '12px 14px',
-                    fontSize: 14,
-                    color: 'var(--foreground, #f1f5f9)',
-                    resize: 'vertical',
-                    outline: 'none',
-                    fontFamily: 'inherit',
-                    lineHeight: 1.6,
-                    minHeight: 100,
-                    transition: 'border-color 200ms ease'
-                  }}
-                />
-                {noteChanged && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
+                  {/* Montant estimé input */}
+                  <div>
+                    <label
+                      style={{
+                        display: 'block',
+                        fontSize: 11,
+                        fontWeight: 700,
+                        color: 'var(--muted-foreground, #94a3b8)',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em',
+                        marginBottom: 6
+                      }}
+                    >
+                      Valeur estimée (FCFA)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="5000"
+                      value={amountVal}
+                      onChange={(e) => setAmountVal(e.target.value)}
+                      placeholder="ex: 1500000"
+                      style={{
+                        width: '100%',
+                        boxSizing: 'border-box',
+                        background: 'var(--secondary, #1e2a3b)',
+                        border: '1px solid rgba(52,211,153,0.3)',
+                        borderRadius: 8,
+                        padding: '8px 12px',
+                        fontSize: 13,
+                        color: '#34d399',
+                        fontWeight: 700,
+                        outline: 'none'
+                      }}
+                    />
+                  </div>
+
+                  {/* Date de relance input */}
+                  <div>
+                    <label
+                      style={{
+                        display: 'block',
+                        fontSize: 11,
+                        fontWeight: 700,
+                        color: 'var(--muted-foreground, #94a3b8)',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em',
+                        marginBottom: 6
+                      }}
+                    >
+                      Prochaine relance
+                    </label>
+                    <input
+                      type="date"
+                      value={followUpVal}
+                      onChange={(e) => setFollowUpVal(e.target.value)}
+                      style={{
+                        width: '100%',
+                        boxSizing: 'border-box',
+                        background: 'var(--secondary, #1e2a3b)',
+                        border: '1px solid rgba(96,165,250,0.3)',
+                        borderRadius: 8,
+                        padding: '8px 12px',
+                        fontSize: 13,
+                        color: 'var(--foreground, #f1f5f9)',
+                        outline: 'none'
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Notes input */}
+                <div>
+                  <label
+                    style={{
+                      display: 'block',
+                      fontSize: 11,
+                      fontWeight: 700,
+                      color: 'var(--muted-foreground, #94a3b8)',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em',
+                      marginBottom: 6
+                    }}
+                  >
+                    Notes & Commentaires
+                  </label>
+                  <textarea
+                    value={noteText}
+                    onChange={(e) => setNoteText(e.target.value)}
+                    placeholder={t('pipeline.placeholderNotes') || 'Ajouter des notes sur les échanges...'}
+                    rows={3}
+                    style={{
+                      width: '100%',
+                      boxSizing: 'border-box',
+                      background: 'var(--secondary, #1e2a3b)',
+                      border: '1px solid rgba(255,255,255,0.15)',
+                      borderRadius: 8,
+                      padding: '10px 12px',
+                      fontSize: 13,
+                      color: 'var(--foreground, #f1f5f9)',
+                      resize: 'vertical',
+                      outline: 'none',
+                      fontFamily: 'inherit',
+                      lineHeight: 1.5
+                    }}
+                  />
+                </div>
+
+                {isChanged && (
                   <div
                     style={{
                       fontSize: 11,
                       color: '#fbbf24',
-                      marginTop: 8,
                       display: 'flex',
                       alignItems: 'center',
                       gap: 4
                     }}
                   >
-                    <AlertTriangle size={10} />
-                    {t('pipeline.notesUnsaved')}
+                    <AlertTriangle size={11} />
+                    Modifications non enregistrées
                   </div>
                 )}
-              </>
+              </div>
             ) : (
-              <div
-                style={{
-                  fontSize: 14,
-                  color: 'var(--foreground, #f1f5f9)',
-                  lineHeight: 1.6,
-                  whiteSpace: 'pre-wrap',
-                  minHeight: noteText ? 'auto' : 40,
-                  fontStyle: noteText ? 'normal' : 'italic',
-                  opacity: noteText ? 1 : 0.5
-                }}
-              >
-                {noteText || t('pipeline.placeholderNotes')}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                {/* Visual metrics row */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
+                  {/* Amount display */}
+                  <div
+                    style={{
+                      background: 'var(--secondary, #1e2a3b)',
+                      borderRadius: 10,
+                      padding: '10px 14px',
+                      border: '1px solid rgba(52,211,153,0.15)'
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 700,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em',
+                        color: 'var(--muted-foreground, #94a3b8)',
+                        marginBottom: 4
+                      }}
+                    >
+                      Valeur de l'opportunité
+                    </div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: item.amount ? '#34d399' : 'var(--muted-foreground, #64748b)' }}>
+                      {item.amount != null && item.amount > 0
+                        ? `${new Intl.NumberFormat('fr-FR').format(item.amount)} FCFA`
+                        : '0 FCFA'}
+                    </div>
+                  </div>
+
+                  {/* Follow-up display */}
+                  <div
+                    style={{
+                      background: 'var(--secondary, #1e2a3b)',
+                      borderRadius: 10,
+                      padding: '10px 14px',
+                      border: isOverdue ? '1px solid rgba(239,68,68,0.3)' : '1px solid rgba(96,165,250,0.15)'
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 700,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em',
+                        color: isOverdue ? '#f87171' : 'var(--muted-foreground, #94a3b8)',
+                        marginBottom: 4,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4
+                      }}
+                    >
+                      <Calendar size={12} />
+                      Prochaine relance
+                    </div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: isOverdue ? '#ef4444' : 'var(--foreground, #f1f5f9)' }}>
+                      {item.nextFollowUp ?? item.nextDate ? (
+                        <span>
+                          {item.nextFollowUp ?? item.nextDate}
+                          {isOverdue && (
+                            <span style={{ marginLeft: 6, fontSize: 10, color: '#f87171', fontWeight: 800 }}>
+                              (EN RETARD)
+                            </span>
+                          )}
+                        </span>
+                      ) : (
+                        <span style={{ color: 'var(--muted-foreground, #64748b)', fontStyle: 'italic', fontSize: 12, fontWeight: 400 }}>
+                          Aucune date
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Notes display */}
+                <div
+                  style={{
+                    background: 'var(--secondary, #1e2a3b)',
+                    borderRadius: 10,
+                    padding: '12px 14px',
+                    border: '1px solid rgba(255,255,255,0.06)'
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em',
+                      color: 'var(--muted-foreground, #94a3b8)',
+                      marginBottom: 6,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4
+                    }}
+                  >
+                    <MessageSquare size={12} />
+                    Notes & Commentaires
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 13,
+                      color: noteText ? 'var(--foreground, #f1f5f9)' : 'var(--muted-foreground, #64748b)',
+                      fontStyle: noteText ? 'normal' : 'italic',
+                      lineHeight: 1.5,
+                      whiteSpace: 'pre-wrap'
+                    }}
+                  >
+                    {noteText || 'Aucune note pour le moment.'}
+                  </div>
+                </div>
               </div>
             )}
           </div>
-
-          {/* Next follow-up */}
-          {(item.nextFollowUp ?? item.nextDate) && (
-            <div
-              style={{
-                background: 'rgba(96,165,250,0.05)',
-                border: '1px solid rgba(96,165,250,0.15)',
-                borderRadius: 12,
-                padding: '14px 16px',
-                marginBottom: 20,
-                fontSize: 13,
-                color: '#93c5fd',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10
-              }}
-            >
-              <Calendar size={16} strokeWidth={2.5} />
-              <span>
-                <strong>{t('pipeline.nextFollowUpLabel')}</strong> :{' '}
-                {item.nextFollowUp ?? item.nextDate}
-              </span>
-            </div>
-          )}
 
           {/* Assigné par */}
           {item.assignedByName && (
@@ -543,8 +741,8 @@ function ProspectModal({
             </div>
           )}
 
-          {/* Déjà visité / assigné */}
-          {item.previousAssignees && item.previousAssignees.length > 0 && (
+          {/* Déjà visité / assigné (excluant le Manager) */}
+          {filteredPreviousAssignees.length > 0 && (
             <div
               style={{
                 background: 'rgba(239,68,68,0.05)',
@@ -564,7 +762,7 @@ function ProspectModal({
                 <strong style={{ display: 'block', marginBottom: 4 }}>Attention :</strong>
                 Ce prospect a déjà été visité/assigné précédemment à :
                 <ul style={{ margin: '8px 0 0 0', paddingLeft: 16, fontSize: 12, opacity: 0.9 }}>
-                  {item.previousAssignees.map((pa, idx) => (
+                  {filteredPreviousAssignees.map((pa, idx) => (
                     <li key={idx} style={{ marginBottom: 4 }}>
                       <strong>{pa.memberName}</strong> (le{' '}
                       {new Date(pa.assignedAt).toLocaleDateString()})
@@ -902,6 +1100,43 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
                       {item.companyCity}
                     </span>
                   )}
+                  {item.amount != null && item.amount > 0 && (
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        fontSize: 11,
+                        fontWeight: 700,
+                        color: '#34d399',
+                        background: 'rgba(52,211,153,0.1)',
+                        border: '1px solid rgba(52,211,153,0.25)',
+                        borderRadius: 6,
+                        padding: '2px 8px'
+                      }}
+                    >
+                      💰 {new Intl.NumberFormat('fr-FR').format(item.amount)} F
+                    </span>
+                  )}
+                  {item.nextFollowUp && (
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        fontSize: 11,
+                        fontWeight: 600,
+                        color: item.nextFollowUp < new Date().toISOString().slice(0, 10) && item.status !== 'conclue' ? '#ef4444' : '#60a5fa',
+                        background: item.nextFollowUp < new Date().toISOString().slice(0, 10) && item.status !== 'conclue' ? 'rgba(239,68,68,0.08)' : 'rgba(96,165,250,0.08)',
+                        border: item.nextFollowUp < new Date().toISOString().slice(0, 10) && item.status !== 'conclue' ? '1px solid rgba(239,68,68,0.25)' : '1px solid rgba(96,165,250,0.2)',
+                        borderRadius: 6,
+                        padding: '2px 8px'
+                      }}
+                    >
+                      <Calendar size={10} />
+                      {item.nextFollowUp}
+                    </span>
+                  )}
                   {item.companyPhone && (
                     <span
                       style={{
@@ -958,24 +1193,31 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
                       👤 {item.assignedByName}
                     </span>
                   )}
-                  {item.previousAssignees && item.previousAssignees.length > 0 && (
-                    <span
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 4,
-                        fontSize: 11,
-                        fontWeight: 600,
-                        color: '#f87171',
-                        background: 'rgba(239,68,68,0.08)',
-                        border: '1px solid rgba(239,68,68,0.2)',
-                        borderRadius: 6,
-                        padding: '2px 8px'
-                      }}
-                    >
-                      ⚠️ Déjà visité
-                    </span>
-                  )}
+                  {(() => {
+                    const filtered = (item.previousAssignees || []).filter(
+                      (pa) =>
+                        !(item.managerUid && pa.userId === item.managerUid) &&
+                        !(item.assignedByName && pa.memberName === item.assignedByName)
+                    )
+                    return filtered.length > 0 ? (
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 4,
+                          fontSize: 11,
+                          fontWeight: 600,
+                          color: '#f87171',
+                          background: 'rgba(239,68,68,0.08)',
+                          border: '1px solid rgba(239,68,68,0.2)',
+                          borderRadius: 6,
+                          padding: '2px 8px'
+                        }}
+                      >
+                        ⚠️ Déjà visité
+                      </span>
+                    ) : null
+                  })()}
                 </div>
               </div>
 

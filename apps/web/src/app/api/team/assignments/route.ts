@@ -279,7 +279,8 @@ export async function POST(request: NextRequest) {
           .get()
         bySource.docs.forEach((doc) => {
           const d = doc.data()
-          if (d.userId && d.userId !== memberId) {
+          const isManager = d.userId === managerUid || d.assignedTo === managerUid || d.role === 'manager'
+          if (d.userId && d.userId !== memberId && !isManager) {
             prevAssigneesMap.set(d.userId, {
               userId: d.userId,
               memberName: d.memberName || d.userId,
@@ -299,7 +300,8 @@ export async function POST(request: NextRequest) {
           .get()
         byName.docs.forEach((doc) => {
           const d = doc.data()
-          if (d.userId && d.userId !== memberId) {
+          const isManager = d.userId === managerUid || d.assignedTo === managerUid || d.role === 'manager'
+          if (d.userId && d.userId !== memberId && !isManager) {
             prevAssigneesMap.set(d.userId, {
               userId: d.userId,
               memberName: d.memberName || d.userId,
