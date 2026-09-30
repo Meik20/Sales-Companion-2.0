@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { X, Building2, UserPlus, Phone, Mail, MapPin, Briefcase, Calendar, Sparkles } from 'lucide-react'
+import { X, Building2, UserPlus, Phone, Mail, MapPin, Briefcase, Calendar, Sparkles, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useTranslation } from '@/providers/I18nProvider'
 import { CRM_SECTORS, CRM_CITIES, CRM_STATUS_LIST } from '../constants'
@@ -139,14 +139,15 @@ export function AddClientModal({ isOpen, onClose, onSuccess, userToken, user }: 
         <form onSubmit={handleSubmit} className="overflow-y-auto p-6 flex flex-col gap-4 flex-1">
           {error && (
             <div
-              className="p-3 rounded-xl text-xs font-medium border"
+              className="p-3 rounded-xl text-xs font-medium border flex items-center gap-2"
               style={{
                 backgroundColor: 'rgba(239, 68, 68, 0.1)',
                 borderColor: 'rgba(239, 68, 68, 0.25)',
                 color: '#f87171'
               }}
             >
-              ⚠️ {error}
+              <AlertTriangle size={15} className="shrink-0 text-red-400" />
+              <span>{error}</span>
             </div>
           )}
 

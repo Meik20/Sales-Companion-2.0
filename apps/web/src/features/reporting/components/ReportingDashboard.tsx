@@ -3,7 +3,27 @@
 import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import type { ReportingData, MemberStat, SupportAgentStat } from '../hooks/useReportingData'
-
+import {
+  Target,
+  Handshake,
+  Trophy,
+  MapPin,
+  Building2,
+  Calendar,
+  AlertTriangle,
+  X,
+  Phone,
+  Ticket,
+  Users,
+  BarChart3,
+  Headphones,
+  Banknote,
+  Briefcase,
+  CheckCircle2,
+  TrendingUp,
+  Clock,
+  Medal
+} from 'lucide-react'
 
 // ── KPI Card ──────────────────────────────────────────────────────────────────
 function KpiCard({
@@ -11,13 +31,13 @@ function KpiCard({
   value,
   sub,
   color,
-  icon
+  icon: Icon
 }: {
   label: string
   value: string | number
   sub?: string
   color: string
-  icon: string
+  icon: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>
 }) {
   return (
     <div
@@ -33,17 +53,16 @@ function KpiCard({
       <div
         style={{
           position: 'absolute',
-          top: -10,
-          right: -10,
-          fontSize: 60,
-          opacity: 0.06,
-          lineHeight: 1,
-          userSelect: 'none'
+          top: -6,
+          right: -6,
+          opacity: 0.07,
+          pointerEvents: 'none'
         }}
       >
-        {icon}
+        <Icon size={64} color={color} strokeWidth={1.5} />
       </div>
-      <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted-foreground, #94a3b8)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted-foreground, #94a3b8)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+        <Icon size={13} color={color} />
         {label}
       </div>
       <div style={{ fontSize: 36, fontWeight: 800, color, fontFamily: "'Syne', sans-serif", lineHeight: 1 }}>
@@ -280,10 +299,14 @@ function MemberPerformanceModal({
                 color: 'var(--muted-foreground, #94a3b8)',
                 padding: '6px 12px',
                 cursor: 'pointer',
-                fontSize: 13
+                fontSize: 13,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6
               }}
             >
-              Fermer ✕
+              <X size={14} />
+              Fermer
             </button>
           </div>
 
@@ -335,10 +358,23 @@ function MemberPerformanceModal({
 
           {/* Status Breakdown Bar */}
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--muted-foreground, #94a3b8)', marginBottom: 6 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 12, color: 'var(--muted-foreground, #94a3b8)', marginBottom: 6 }}>
               <span>Répartition du portefeuille :</span>
-              <span>
-                🎯 {member.prospection} prospection · 🤝 {member.negociation} négociation · 🏆 {member.conclue} conclues
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  <Target size={12} color="#60a5fa" />
+                  <strong>{member.prospection}</strong> prospection
+                </span>
+                <span>·</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  <Handshake size={12} color="#fb923c" />
+                  <strong>{member.negociation}</strong> négociation
+                </span>
+                <span>·</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  <Trophy size={12} color="#0284c7" />
+                  <strong>{member.conclue}</strong> conclues
+                </span>
               </span>
             </div>
             <div style={{ height: 8, background: 'rgba(255,255,255,0.05)', borderRadius: 6, display: 'flex', overflow: 'hidden' }}>
@@ -403,10 +439,25 @@ function MemberPerformanceModal({
                       <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--foreground, #f1f5f9)' }}>
                         {deal.companyName}
                       </div>
-                      <div style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)', marginTop: 2, display: 'flex', gap: 10 }}>
-                        {deal.companyCity && <span>📍 {deal.companyCity}</span>}
-                        {deal.companySector && <span>🏢 {deal.companySector}</span>}
-                        {deal.nextFollowUp && <span>📅 Suivi : {deal.nextFollowUp}</span>}
+                      <div style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)', marginTop: 3, display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
+                        {deal.companyCity && (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                            <MapPin size={11} style={{ opacity: 0.7 }} />
+                            {deal.companyCity}
+                          </span>
+                        )}
+                        {deal.companySector && (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                            <Building2 size={11} style={{ opacity: 0.7 }} />
+                            {deal.companySector}
+                          </span>
+                        )}
+                        {deal.nextFollowUp && (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                            <Calendar size={11} style={{ opacity: 0.7 }} />
+                            Suivi : {deal.nextFollowUp}
+                          </span>
+                        )}
                       </div>
                     </div>
 
@@ -449,7 +500,6 @@ function MemberPerformanceModal({
 // ── Leaderboard & Individual Performance Section ──────────────────────────────
 function Leaderboard({ members }: { members: MemberStat[] }) {
   const [selectedMember, setSelectedMember] = useState<MemberStat | null>(null)
-  const medals = ['🥇', '🥈', '🥉']
 
   return (
     <div>
@@ -463,7 +513,8 @@ function Leaderboard({ members }: { members: MemberStat[] }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <div>
           <h3 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: 'var(--foreground, #f1f5f9)', display: 'flex', alignItems: 'center', gap: 8 }}>
-            🏆 Performances individuelles détaillées & Leaderboard
+            <Trophy size={16} color="#fbbf24" />
+            Performances individuelles détaillées & Leaderboard
           </h3>
           <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--muted-foreground, #94a3b8)' }}>
             Cliquez sur un commercial pour analyser son portefeuille et l&apos;ensemble de ses affaires en détail.
@@ -500,8 +551,18 @@ function Leaderboard({ members }: { members: MemberStat[] }) {
               }}
             >
               {/* Rang / Médaille */}
-              <div style={{ width: 28, textAlign: 'center', fontSize: 16, fontWeight: 800 }}>
-                {medals[i] ?? `${i + 1}.`}
+              <div style={{ width: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {i === 0 ? (
+                  <Trophy size={18} color="#fbbf24" />
+                ) : i === 1 ? (
+                  <Medal size={18} color="#94a3b8" />
+                ) : i === 2 ? (
+                  <Medal size={18} color="#d97706" />
+                ) : (
+                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--muted-foreground, #64748b)' }}>
+                    {i + 1}.
+                  </span>
+                )}
               </div>
 
               {/* Nom & jauge */}
@@ -522,9 +583,13 @@ function Leaderboard({ members }: { members: MemberStat[] }) {
                       color: '#f87171',
                       background: 'rgba(239,68,68,0.12)',
                       padding: '1px 6px',
-                      borderRadius: 4
+                      borderRadius: 4,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4
                     }}>
-                      ⚠️ {member.overdueFollowUps} relance{member.overdueFollowUps > 1 ? 's' : ''} en retard
+                      <AlertTriangle size={10} />
+                      {member.overdueFollowUps} relance{member.overdueFollowUps > 1 ? 's' : ''} en retard
                     </span>
                   )}
                 </div>
@@ -612,12 +677,12 @@ function SupportActivitySection({
   const openTicketsCount = selectedAgent ? selectedAgent.openTicketsCount : stats.openTicketsCount
   const resolutionRate = ticketsCount > 0 ? Math.round((resolvedTicketsCount / ticketsCount) * 100) : 0
 
-  const CALL_STATUS_LABELS: Record<string, { label: string; color: string; emoji: string }> = {
-    connected:  { label: 'Décroché',    color: '#3b82f6', emoji: '🔵' },
-    no_answer:  { label: 'Non joint',   color: '#f59e0b', emoji: '📵' },
-    busy:       { label: 'Occupé',      color: '#f97316', emoji: '🔴' },
-    voicemail:  { label: 'Répondeur',   color: '#a78bfa', emoji: '📬' },
-    failed:     { label: 'Échec',       color: '#f87171', emoji: '❌' }
+  const CALL_STATUS_LABELS: Record<string, { label: string; color: string }> = {
+    connected:  { label: 'Décroché',    color: '#3b82f6' },
+    no_answer:  { label: 'Non joint',   color: '#f59e0b' },
+    busy:       { label: 'Occupé',      color: '#f97316' },
+    voicemail:  { label: 'Répondeur',   color: '#a78bfa' },
+    failed:     { label: 'Échec',       color: '#f87171' }
   }
 
   const PRIORITY_LABELS: Record<string, { label: string; color: string }> = {
@@ -649,7 +714,10 @@ function SupportActivitySection({
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--muted-foreground, #94a3b8)', textTransform: 'uppercase', letterSpacing: '.06em', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span>👥 Filtrer l'activité par agent support</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <Users size={14} />
+                Filtrer l'activité par agent support
+              </span>
               {selectedAgentUid !== 'all' && (
                 <span style={{
                   fontSize: 11,
@@ -695,10 +763,14 @@ function SupportActivitySection({
                 fontWeight: selectedAgentUid === 'all' ? 700 : 500,
                 fontSize: 12,
                 cursor: 'pointer',
-                transition: 'all 150ms'
+                transition: 'all 150ms',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6
               }}
             >
-              👥 Tous ({stats.callsCount} appels · {stats.ticketsCount} tickets)
+              <Users size={13} />
+              Tous ({stats.callsCount} appels · {stats.ticketsCount} tickets)
             </button>
 
             {agents.map(ag => {
@@ -738,7 +810,7 @@ function SupportActivitySection({
                   </span>
                   <span>{ag.name}</span>
                   <span style={{ fontSize: 11, opacity: 0.7 }}>
-                    ({ag.callsCount} 📞 · {ag.ticketsCount} 🎫)
+                    ({ag.callsCount} appels · {ag.ticketsCount} tickets)
                   </span>
                 </button>
               )
@@ -754,28 +826,28 @@ function SupportActivitySection({
           value={callsCount}
           sub={selectedAgent ? `Passés par ${selectedAgent.name}` : "Passés par vos agents"}
           color="#60a5fa"
-          icon="📞"
+          icon={Phone}
         />
         <KpiCard
           label="Total tickets SAV"
           value={ticketsCount}
           sub={selectedAgent ? `Traités par ${selectedAgent.name}` : "Créés pour vos clients"}
           color="#f59e0b"
-          icon="🎫"
+          icon={Ticket}
         />
         <KpiCard
           label="Tickets ouverts"
           value={openTicketsCount}
           sub="En attente de résolution"
           color="#f87171"
-          icon="⏳"
+          icon={Clock}
         />
         <KpiCard
           label="Taux de résolution"
           value={`${resolutionRate}%`}
           sub="Tickets résolus ou fermés"
           color={resolutionRate >= 70 ? '#0284c7' : '#f59e0b'}
-          icon="✓"
+          icon={CheckCircle2}
         />
       </div>
 
@@ -791,8 +863,9 @@ function SupportActivitySection({
           gap: 16
         }}>
           <div>
-            <h3 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: 'var(--foreground, #f1f5f9)' }}>
-              🏆 Performances individuelles des agents support
+            <h3 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: 'var(--foreground, #f1f5f9)', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Trophy size={16} color="#fbbf24" />
+              Performances individuelles des agents support
             </h3>
             <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--muted-foreground, #94a3b8)' }}>
               Volume d'appels, réclamations traitées et efficacité de clôture par agent.
@@ -888,8 +961,8 @@ function SupportActivitySection({
           gap: 16
         }}>
           <div>
-            <h3 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: 'var(--foreground, #f1f5f9)' }}>
-              📞 Journal des Appels Clients
+            <h3 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: 'var(--foreground, #f1f5f9)', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Phone size={16} /> Journal des Appels Clients
             </h3>
             <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--muted-foreground, #94a3b8)' }}>
               {selectedAgent
@@ -924,7 +997,7 @@ function SupportActivitySection({
                     background: `${CALL_STATUS_LABELS[call.status]?.color}22`,
                     color: CALL_STATUS_LABELS[call.status]?.color
                   }}>
-                    {CALL_STATUS_LABELS[call.status]?.emoji} {CALL_STATUS_LABELS[call.status]?.label}
+                    {CALL_STATUS_LABELS[call.status]?.label}
                   </span>
                   <span style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)' }}>
                     par {call.agentName}
@@ -951,8 +1024,8 @@ function SupportActivitySection({
           gap: 16
         }}>
           <div>
-            <h3 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: 'var(--foreground, #f1f5f9)' }}>
-              🎫 Tickets SAV / Réclamations
+            <h3 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: 'var(--foreground, #f1f5f9)', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Ticket size={16} /> Tickets SAV / Réclamations
             </h3>
             <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--muted-foreground, #94a3b8)' }}>
               {selectedAgent
@@ -1034,10 +1107,13 @@ export function ReportingDashboard({ data }: { data: ReportingData }) {
             fontWeight: section === 'sales' ? 700 : 500,
             cursor: 'pointer',
             fontSize: 14,
-            transition: 'all 150ms'
+            transition: 'all 150ms',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8
           }}
         >
-          📊 Ventes & Conversion
+          <BarChart3 size={15} /> Ventes & Conversion
         </button>
         {data.supportStats && (
           <button
@@ -1051,10 +1127,13 @@ export function ReportingDashboard({ data }: { data: ReportingData }) {
               fontWeight: section === 'support' ? 700 : 500,
               cursor: 'pointer',
               fontSize: 14,
-              transition: 'all 150ms'
+              transition: 'all 150ms',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8
             }}
           >
-            🎧 Activité Support SAV
+            <Headphones size={15} /> Activité Support SAV
           </button>
         )}
       </div>
@@ -1068,42 +1147,42 @@ export function ReportingDashboard({ data }: { data: ReportingData }) {
               value={formatFcfa(data.totalRevenue || 0)}
               sub="Deals clôturés et validés"
               color="#34d399"
-              icon="💰"
+              icon={Banknote}
             />
             <KpiCard
               label="Valeur du Pipeline"
               value={formatFcfa(data.pipelineValue || 0)}
               sub="En prospection & négo"
               color="#60a5fa"
-              icon="💼"
+              icon={Briefcase}
             />
             <KpiCard
               label="Affaires conclues"
               value={data.totalConclue}
               sub={`Sur ${data.totalItems} prospects`}
               color="#0284c7"
-              icon="✅"
+              icon={CheckCircle2}
             />
             <KpiCard
               label="Taux de conversion"
               value={`${data.overallConversionRate}%`}
               sub="Prospection → Clôture"
               color={data.overallConversionRate >= 30 ? '#0284c7' : '#fbbf24'}
-              icon="📈"
+              icon={TrendingUp}
             />
             <KpiCard
               label="Top Commercial"
               value={data.topPerformer ?? '—'}
               sub="Plus grand nombre de ventes"
               color="#fbbf24"
-              icon="🏆"
+              icon={Trophy}
             />
             <KpiCard
               label="Relances en retard"
               value={data.totalOverdueFollowUps ?? 0}
               sub="Dates de suivi dépassées"
               color={(data.totalOverdueFollowUps ?? 0) > 0 ? '#f87171' : '#94a3b8'}
-              icon="⚠️"
+              icon={AlertTriangle}
             />
           </div>
 

@@ -9,6 +9,7 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { firestore } from '@/services/firebase/client'
 import { useQueryClient } from '@tanstack/react-query'
 import { isMobileRuntime } from '@/lib/runtime'
+import { Bookmark, Check } from 'lucide-react'
 
 type Props = { company: Company }
 
@@ -112,8 +113,13 @@ export function SaveCompanyButton({ company }: Props) {
   const isDone = status === 'done' || status === 'duplicate'
   if (isDone) {
     return (
-      <span className="whitespace-nowrap text-[12px] font-semibold text-blue-400">
-        {status === 'duplicate' ? t('search.alreadySaved') : `✓ ${t('search.saved')}`}
+      <span className="whitespace-nowrap text-[12px] font-semibold text-blue-400 inline-flex items-center gap-1">
+        {status === 'duplicate' ? t('search.alreadySaved') : (
+          <>
+            <Check size={13} strokeWidth={3} />
+            <span>{t('search.saved')}</span>
+          </>
+        )}
       </span>
     )
   }
@@ -123,13 +129,22 @@ export function SaveCompanyButton({ company }: Props) {
       <button
         onClick={() => void handleSave()}
         disabled={status === 'loading'}
-        className={`h-8 whitespace-nowrap rounded-lg px-3 text-[12px] font-semibold transition-all duration-150 ${
+        className={`h-8 whitespace-nowrap rounded-lg px-3 text-[12px] font-semibold transition-all duration-150 inline-flex items-center gap-1.5 ${
           status === 'error'
             ? 'border border-red-500/40 bg-red-500/8 text-red-400'
             : 'border border-border bg-secondary text-foreground hover:border-blue-400/60 hover:bg-blue-400/8 hover:text-blue-400'
         } ${status === 'loading' ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
       >
-        {status === 'loading' ? t('search.saving') : status === 'error' ? t('search.retry') : `🔖 ${t('search.save')}`}
+        {status === 'loading' ? (
+          t('search.saving')
+        ) : status === 'error' ? (
+          t('search.retry')
+        ) : (
+          <>
+            <Bookmark size={13} />
+            <span>{t('search.save')}</span>
+          </>
+        )}
       </button>
       {errorMsg && (
         <span className="max-w-[120px] text-right text-[10.5px] leading-tight text-red-400">

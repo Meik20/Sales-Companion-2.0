@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useToast } from '@/hooks/useToast'
 import { EmptyState } from '@/components/feedback'
+import { X } from 'lucide-react'
 
 type SupportLink = {
   id: string
@@ -49,7 +50,7 @@ export function CrossTeamSupportManager() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Erreur')
-      pushToast({ type: 'success', title: `✅ Agent "${data.agentName || inputId}" lié avec succès à votre équipe.` })
+      pushToast({ type: 'success', title: `Agent "${data.agentName || inputId}" lié avec succès à votre équipe.` })
       setInputId('')
       void fetchLinks()
     } catch (e: any) {
@@ -168,10 +169,16 @@ export function CrossTeamSupportManager() {
                   padding: '6px 14px', borderRadius: 8, fontSize: 12, fontWeight: 600,
                   border: '1px solid rgba(248,113,113,0.3)', background: 'rgba(248,113,113,0.08)',
                   color: '#f87171', cursor: revoking === link.id ? 'not-allowed' : 'pointer',
-                  fontFamily: 'inherit', transition: 'all 150ms'
+                  fontFamily: 'inherit', transition: 'all 150ms',
+                  display: 'inline-flex', alignItems: 'center', gap: 6
                 }}
               >
-                {revoking === link.id ? '…' : '✕ Révoquer'}
+                {revoking === link.id ? '…' : (
+                  <>
+                    <X size={13} />
+                    <span>Révoquer</span>
+                  </>
+                )}
               </button>
             </div>
           ))}

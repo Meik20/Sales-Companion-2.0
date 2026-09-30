@@ -9,7 +9,9 @@ import {
   XCircle,
   TrendingUp,
   TrendingDown,
-  Minus
+  Minus,
+  AlertTriangle,
+  Zap
 } from 'lucide-react'
 import { Badge } from '@/components/ui/index'
 import { EmptyState } from '@/components/feedback'
@@ -263,13 +265,15 @@ function MemberCard({ member }: { member: TeamMember }) {
           />
         </div>
         {usagePercent >= 100 && (
-          <div style={{ fontSize: 11, color: '#f87171', fontWeight: 600 }}>
-            ⚠ Quota journalier épuisé
+          <div style={{ fontSize: 11, color: '#f87171', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            <AlertTriangle size={12} />
+            <span>Quota journalier épuisé</span>
           </div>
         )}
         {usagePercent >= 80 && usagePercent < 100 && (
-          <div style={{ fontSize: 11, color: '#fbbf24', fontWeight: 600 }}>
-            ⚡ Proche de la limite
+          <div style={{ fontSize: 11, color: '#fbbf24', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            <Zap size={12} />
+            <span>Proche de la limite</span>
           </div>
         )}
 

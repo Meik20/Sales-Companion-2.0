@@ -4,7 +4,7 @@ import { FormEvent, useState, useEffect } from 'react'
 import { useTranslation } from '@/providers/I18nProvider'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { GEOGRAPHY } from '@sales-companion/shared'
-import { HardHat, ShoppingBag, Laptop, Sprout, Truck, Stethoscope, LayoutGrid } from 'lucide-react'
+import { HardHat, ShoppingBag, Laptop, Sprout, Truck, Stethoscope, LayoutGrid, X } from 'lucide-react'
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 const REGION_KEYS: Record<string, string> = {
@@ -555,8 +555,8 @@ function ActiveChip({ label, onRemove }: { label: string; onRemove: () => void }
   return (
     <span className="sc-chip">
       {label}
-      <button type="button" onClick={onRemove} aria-label={`Retirer ${label}`}>
-        ✕
+      <button type="button" onClick={onRemove} aria-label={`Retirer ${label}`} style={{ display: 'inline-flex', alignItems: 'center' }}>
+        <X size={11} strokeWidth={2.5} />
       </button>
     </span>
   )

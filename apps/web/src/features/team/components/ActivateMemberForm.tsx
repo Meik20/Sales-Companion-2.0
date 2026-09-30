@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/Input'
 import { FormField } from '@/components/forms/FormField'
 import { useGetAccessInfo } from '@/features/auth/hooks/useGetAccessInfo'
 import { useTranslation } from '@/providers/I18nProvider'
+import { XCircle, AlertTriangle } from 'lucide-react'
 
 type Props = {
   accessId: string
@@ -106,7 +107,9 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
           textAlign: 'center'
         }}
       >
-        <div style={{ fontSize: 28, marginBottom: 8 }}>❌</div>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
+          <XCircle size={32} color="#f87171" />
+        </div>
         <div style={{ fontWeight: 600, color: '#f87171', marginBottom: 8, fontSize: 15 }}>
           {t('auth.accessImpossible')}
         </div>
@@ -287,7 +290,7 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
             lineHeight: 1.5
           }}
         >
-          <span style={{ fontSize: 16, flexShrink: 0 }}>⚠️</span>
+          <AlertTriangle size={16} color="#ef4444" style={{ flexShrink: 0, marginTop: 2 }} />
           <span>{error}</span>
         </div>
       )}

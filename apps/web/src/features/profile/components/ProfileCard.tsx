@@ -651,7 +651,19 @@ export function ProfileCard() {
             />
             <MetricCard
               label={t('profile.status')}
-              value={user.active ? `✓ ${t('profile.active')}` : `✗ ${t('profile.inactive')}`}
+              value={
+                user.active ? (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 24 }}>
+                    <Check size={24} className="text-emerald-500" strokeWidth={3} />
+                    <span>{t('profile.active')}</span>
+                  </span>
+                ) : (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 24 }}>
+                    <X size={24} className="text-red-500" strokeWidth={3} />
+                    <span>{t('profile.inactive')}</span>
+                  </span>
+                )
+              }
             />
           </StatsGrid>
 
@@ -700,7 +712,19 @@ export function ProfileCard() {
         <StatsGrid>
           <MetricCard
             label={t('profile.status')}
-            value={user.active ? `✓ ${t('profile.active')}` : `✗ ${t('profile.inactive')}`}
+            value={
+              user.active ? (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 24 }}>
+                  <Check size={24} className="text-emerald-500" strokeWidth={3} />
+                  <span>{t('profile.active')}</span>
+                </span>
+              ) : (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 24 }}>
+                  <X size={24} className="text-red-500" strokeWidth={3} />
+                  <span>{t('profile.inactive')}</span>
+                </span>
+              )
+            }
           />
           <MetricCard
             label="Quota de recherche"

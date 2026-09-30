@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button'
 import { useCreateSavedSearch } from '@/features/saved-searches/hooks/useCreateSavedSearch'
 import { useToast } from '@/hooks/useToast'
 import { useTranslation } from '@/providers/I18nProvider'
+import { Bookmark, Check } from 'lucide-react'
 
 type Filters = { sector?: string; region?: string; city?: string; query?: string }
 
@@ -43,8 +44,8 @@ export function SaveCurrentSearchButton({ filters, results }: Props) {
 
   if (saved) {
     return (
-      <span style={{ fontSize: 12, color: '#3b82f6', fontWeight: 600 }}>
-        ✓ {t('search.savedSearch')}
+      <span style={{ fontSize: 12, color: '#3b82f6', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+        <Check size={13} strokeWidth={3} /> {t('search.savedSearch')}
       </span>
     )
   }
@@ -56,7 +57,8 @@ export function SaveCurrentSearchButton({ filters, results }: Props) {
       loading={mutation.isPending}
       onClick={() => void handleSave()}
     >
-      🔖 {t('search.saveSearch')}
+      <Bookmark size={13} />
+      <span>{t('search.saveSearch')}</span>
     </Button>
   )
 }

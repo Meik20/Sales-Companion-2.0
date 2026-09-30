@@ -316,7 +316,7 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
       })
       const json = await res.json()
       if (!res.ok) throw new Error(json.message ?? t('team.errorServer'))
-      setSuccess(`✅ ${json.count} ${t('team.importSuccess')}`)
+      setSuccess(`${json.count} ${t('team.importSuccess')}`)
       setRows([])
       setFileName('')
       onImported(json.count)
@@ -445,7 +445,7 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
         >
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
           <CheckCircle2 size={14} strokeWidth={2} style={{ color: '#3b82f6', marginTop: 1, flexShrink: 0 }} />
-          <span>{success.replace('✅ ', '')}</span>
+          <span>{success}</span>
         </div>
         </div>
       )}

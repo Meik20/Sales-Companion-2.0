@@ -20,7 +20,8 @@ import {
   HelpCircle,
   ArrowLeft,
   Sparkles,
-  ShieldCheck
+  ShieldCheck,
+  AlertTriangle
 } from 'lucide-react'
 
 export function PublicSupportForm() {
@@ -234,8 +235,9 @@ export function PublicSupportForm() {
 
         {/* Error message */}
         {error && (
-          <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 p-3.5 text-xs text-red-400">
-            ⚠️ {error}
+          <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 p-3.5 text-xs text-red-400 flex items-center gap-2">
+            <AlertTriangle size={15} className="shrink-0 text-red-400" />
+            <span>{error}</span>
           </div>
         )}
 

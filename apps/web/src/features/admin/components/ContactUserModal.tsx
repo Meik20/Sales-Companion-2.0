@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { X, Send, Mail, User, Shield, Zap, Sparkles } from 'lucide-react'
+import { X, Send, Mail, User, Shield, Zap, Sparkles, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/index'
 import type { UserDoc } from '@sales-companion/shared'
@@ -184,14 +184,15 @@ export function ContactUserModal({ isOpen, user, onClose, onSuccess }: Props) {
         <form onSubmit={handleSend} className="p-6 pt-4 flex flex-col gap-4">
           {error && (
             <div
-              className="p-3 rounded-lg text-xs font-medium border"
+              className="p-3 rounded-lg text-xs font-medium border flex items-center gap-2"
               style={{
                 backgroundColor: 'rgba(239, 68, 68, 0.1)',
                 borderColor: 'rgba(239, 68, 68, 0.25)',
                 color: '#f87171'
               }}
             >
-              ⚠️ {error}
+              <AlertTriangle size={15} className="shrink-0 text-red-400" />
+              <span>{error}</span>
             </div>
           )}
 

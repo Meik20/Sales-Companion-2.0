@@ -4,6 +4,7 @@ import { SaveCompanyButton } from './SaveCompanyButton'
 import { Company } from '@/features/search/hooks/useCompaniesSearch'
 import { useTranslation } from '@/providers/I18nProvider'
 import { getWhatsAppUrl } from '@/utils/whatsapp'
+import { Phone, Mail, MapPin, User, Building2, Check } from 'lucide-react'
 
 type Props = { items: Company[] }
 
@@ -114,8 +115,8 @@ export function CompaniesSearchResults({ items }: Props) {
                       {company.raisonSociale || '—'}
                     </strong>
                     {company.verified !== false && (
-                      <span className="inline-flex items-center justify-center h-4 w-4 rounded-full bg-blue-500/15 text-blue-600 dark:text-blue-400 text-[10px]" title="Entreprise Vérifiée">
-                        ✓
+                      <span className="inline-flex items-center justify-center h-4 w-4 rounded-full bg-blue-500/15 text-blue-600 dark:text-blue-400" title="Entreprise Vérifiée">
+                        <Check size={10} strokeWidth={3} />
                       </span>
                     )}
                   </div>
@@ -180,7 +181,7 @@ export function CompaniesSearchResults({ items }: Props) {
                       fontWeight: 500
                     }}
                   >
-                    <span style={{ fontSize: 14 }}>📞</span> {String(company.telephone)}
+                    <Phone size={14} className="shrink-0 text-blue-500" /> {String(company.telephone)}
                   </a>
                   <a
                     href={getWhatsAppUrl(
@@ -226,14 +227,14 @@ export function CompaniesSearchResults({ items }: Props) {
                     textOverflow: 'ellipsis'
                   }}
                 >
-                  <span style={{ fontSize: 14 }}>✉️</span> {String(company.email)}
+                  <Mail size={14} className="shrink-0 text-blue-500" /> {String(company.email)}
                 </a>
               )}
               {(company.region || company.city) && (
                 <div
                   style={{ color: 'var(--muted-foreground, #94a3b8)', display: 'flex', alignItems: 'center', gap: 6 }}
                 >
-                  <span style={{ fontSize: 14 }}>📍</span> {String(company.region)}
+                  <MapPin size={14} className="shrink-0 text-muted-foreground" /> {String(company.region)}
                   {company.city ? ` · ${String(company.city)}` : ''}
                 </div>
               )}
@@ -241,7 +242,7 @@ export function CompaniesSearchResults({ items }: Props) {
                 <div
                   style={{ color: 'var(--muted-foreground, #94a3b8)', display: 'flex', alignItems: 'center', gap: 6 }}
                 >
-                  <span style={{ fontSize: 14 }}>👤</span> {String(company.dirigeant)}
+                  <User size={14} className="shrink-0 text-muted-foreground" /> {String(company.dirigeant)}
                 </div>
               )}
               {company.adresse && (
@@ -255,7 +256,7 @@ export function CompaniesSearchResults({ items }: Props) {
                     gridColumn: '1 / -1'
                   }}
                 >
-                  <span style={{ fontSize: 14 }}>🏢</span> {String(company.adresse)}
+                  <Building2 size={14} className="shrink-0 text-muted-foreground" /> {String(company.adresse)}
                 </div>
               )}
             </div>

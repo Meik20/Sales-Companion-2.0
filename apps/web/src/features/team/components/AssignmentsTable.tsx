@@ -126,13 +126,13 @@ export function AssignmentsTable() {
             (repairResult.deletedStale || 0) > 0
               ? [
                   repairResult.uidFixed > 0 &&
-                    `✓ ${repairResult.uidFixed} ${t('team.repairSuccessSync')}`,
+                    `${repairResult.uidFixed} ${t('team.repairSuccessSync')}`,
                   repairResult.nameFixed > 0 &&
-                    `✓ ${repairResult.nameFixed} ${t('team.repairSuccessName')}`,
+                    `${repairResult.nameFixed} ${t('team.repairSuccessName')}`,
                   (repairResult.deletedDupes || 0) > 0 &&
-                    `✓ ${repairResult.deletedDupes} doublons supprimés`,
+                    `${repairResult.deletedDupes} doublons supprimés`,
                   (repairResult.deletedStale || 0) > 0 &&
-                    `✓ ${repairResult.deletedStale} éléments obsolètes retirés`
+                    `${repairResult.deletedStale} éléments obsolètes retirés`
                 ]
                   .filter(Boolean)
                   .join(' · ')

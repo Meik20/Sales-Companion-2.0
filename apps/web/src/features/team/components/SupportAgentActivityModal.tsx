@@ -100,12 +100,12 @@ export function SupportAgentActivityModal({ agent, onClose }: Props) {
     void fetchActivity()
   }, [fetchActivity])
 
-  const CALL_STATUS_LABELS: Record<string, { label: string; color: string; emoji: string }> = {
-    connected:  { label: 'Décroché',    color: '#3b82f6', emoji: '🔵' },
-    no_answer:  { label: 'Non joint',   color: '#f59e0b', emoji: '📵' },
-    busy:       { label: 'Occupé',      color: '#f97316', emoji: '🔴' },
-    voicemail:  { label: 'Répondeur',   color: '#a78bfa', emoji: '📬' },
-    failed:     { label: 'Échec',       color: '#f87171', emoji: '❌' }
+  const CALL_STATUS_LABELS: Record<string, { label: string; color: string }> = {
+    connected:  { label: 'Décroché',    color: '#3b82f6' },
+    no_answer:  { label: 'Non joint',   color: '#f59e0b' },
+    busy:       { label: 'Occupé',      color: '#f97316' },
+    voicemail:  { label: 'Répondeur',   color: '#a78bfa' },
+    failed:     { label: 'Échec',       color: '#f87171' }
   }
 
   const TICKET_STATUS_LABELS: Record<string, { label: string; color: string }> = {
@@ -223,33 +223,33 @@ export function SupportAgentActivityModal({ agent, onClose }: Props) {
                 <div className="flex border-b border-border gap-2 text-xs font-semibold">
                   <button
                     onClick={() => setActiveTab('calls')}
-                    className={`pb-2.5 px-3 transition-colors border-b-2 cursor-pointer ${
+                    className={`pb-2.5 px-3 transition-colors border-b-2 cursor-pointer inline-flex items-center gap-1.5 ${
                       activeTab === 'calls'
                         ? 'border-primary text-primary font-bold'
                         : 'border-transparent text-muted-foreground hover:text-foreground'
                     }`}
                   >
-                    📞 Appels ({data.recentCalls.length})
+                    <Phone size={13} /> Appels ({data.recentCalls.length})
                   </button>
                   <button
                     onClick={() => setActiveTab('tickets')}
-                    className={`pb-2.5 px-3 transition-colors border-b-2 cursor-pointer ${
+                    className={`pb-2.5 px-3 transition-colors border-b-2 cursor-pointer inline-flex items-center gap-1.5 ${
                       activeTab === 'tickets'
                         ? 'border-primary text-primary font-bold'
                         : 'border-transparent text-muted-foreground hover:text-foreground'
                     }`}
                   >
-                    🎫 Tickets SAV ({data.recentTickets.length})
+                    <Ticket size={13} /> Tickets SAV ({data.recentTickets.length})
                   </button>
                   <button
                     onClick={() => setActiveTab('crm')}
-                    className={`pb-2.5 px-3 transition-colors border-b-2 cursor-pointer ${
+                    className={`pb-2.5 px-3 transition-colors border-b-2 cursor-pointer inline-flex items-center gap-1.5 ${
                       activeTab === 'crm'
                         ? 'border-primary text-primary font-bold'
                         : 'border-transparent text-muted-foreground hover:text-foreground'
                     }`}
                   >
-                    📝 Activités CRM ({data.recentCrmActivities.length})
+                    <FileText size={13} /> Activités CRM ({data.recentCrmActivities.length})
                   </button>
                 </div>
 
@@ -266,8 +266,7 @@ export function SupportAgentActivityModal({ agent, onClose }: Props) {
                         data.recentCalls.map((call) => {
                           const statusInfo = CALL_STATUS_LABELS[call.status] || {
                             label: call.status,
-                            color: '#94a3b8',
-                            emoji: '📞'
+                            color: '#94a3b8'
                           }
                           return (
                             <div
@@ -295,7 +294,7 @@ export function SupportAgentActivityModal({ agent, onClose }: Props) {
                                     color: statusInfo.color
                                   }}
                                 >
-                                  {statusInfo.emoji} {statusInfo.label}
+                                  {statusInfo.label}
                                 </span>
                                 {call.clientPhone && (
                                   <span className="text-[11px] text-muted-foreground">

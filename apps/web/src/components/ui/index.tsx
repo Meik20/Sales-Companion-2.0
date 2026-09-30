@@ -183,7 +183,7 @@ export function DataCard({ title, subtitle, actions, children, style }: DataCard
 
 type MetricCardProps = {
   label: string
-  value: string | number
+  value: React.ReactNode
   hint?: string
   accent?: boolean
 }
