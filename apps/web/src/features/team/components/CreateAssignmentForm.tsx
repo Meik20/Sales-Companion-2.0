@@ -126,18 +126,27 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
     assignments.flatMap((a) => [a.pipelineItemId, a.pipelineEntryId, a.id].filter(Boolean) as string[])
   )
 
-  // Filter out prospects that are already assigned
+  // Filter out prospects that are already assigned to a team member
   const availableProspects = pipelineProspects.filter((p: PipelineItem) => {
-    // 1. Déjà assigné dans le document pipeline lui-même
-    if (p.assignedTo && p.assignedTo.trim() !== '') return false
+    // 1. Assigné à un MEMBRE d'équipe (pas le manager lui-même)
+    //    assignedTo non null ET différent du UID manager = déjà assigné à quelqu'un
+    if (
+      p.assignedTo &&
+      p.assignedTo.trim() !== '' &&
+      p.assignedTo !== user?.uid
+    ) return false
+
+    // 2. A un memberName = déjà assigné (seuls les membres ont memberName dans les docs de pipeline)
     if (p.memberName && p.memberName.trim() !== '') return false
+
+    // 3. Appartient à un autre utilisateur (ni le manager)
     if (p.userId && user?.uid && p.userId !== user.uid) return false
 
-    // 2. Déjà présent dans les assignations d'équipe par ID
+    // 4. Déjà présent dans les assignations d'équipe par ID
     if (p.id && assignedItemIds.has(p.id)) return false
     if (p.sourceProspectId && assignedItemIds.has(p.sourceProspectId)) return false
 
-    // 3. Déjà présent dans les assignations d'équipe par nom d'entreprise
+    // 5. Déjà présent dans les assignations d'équipe par nom d'entreprise
     const normName = normalizeCompName(p.companyName)
     if (normName && assignedCompanyNames.has(normName)) return false
 

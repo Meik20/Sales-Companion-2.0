@@ -68,9 +68,10 @@ export async function GET(request: NextRequest) {
         const data = doc.data()
         const compName = String(data.companyName || data.name || '').trim().toLowerCase()
 
-        // Si l'entreprise est déjà assignée à un membre de l'équipe et que cette fiche manager n'est pas assignée,
-        // c'est un doublon résiduel : on la supprime en arrière-plan et on ne l'affiche pas.
-        if (compName && assignedCompanies.has(compName) && !data.assignedTo) {
+        // Supprimer la copie manager résiduelle seulement si l'entreprise est déjà
+        // complètement assignée à un membre (assignedTo != null && != managerUid).
+        // Un prospect en attente (assignedTo = null) DOIT rester visible pour être assigné.
+        if (compName && assignedCompanies.has(compName) && data.assignedTo && data.assignedTo !== managerUid) {
           doc.ref.delete().catch(() => {})
           continue
         }

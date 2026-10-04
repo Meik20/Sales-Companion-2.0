@@ -50,8 +50,10 @@ export const useManagerPipeline = () => {
           if (!seen.has(docSnap.id)) {
             const data = docSnap.data()
             const compName = String(data.companyName || data.name || '').trim().toLowerCase()
-            // Si l'entreprise est déjà assignée dans l'équipe, ignorer la copie manager non assignée
-            if (compName && assignedCompanies.has(compName) && !data.assignedTo) {
+            // Ne supprimer de la vue que si l'entreprise a déjà une fiche ASSIGNÉE à un membre
+            // (la fiche membre a assignedTo != null dans teamSnap).
+            // Un prospect manager en attente d'assignation (assignedTo = null) doit rester visible.
+            if (compName && assignedCompanies.has(compName) && data.assignedTo && data.assignedTo !== user.uid) {
               return
             }
             seen.add(docSnap.id)

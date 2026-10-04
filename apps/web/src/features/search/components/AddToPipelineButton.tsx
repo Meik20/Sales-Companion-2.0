@@ -35,6 +35,7 @@ export function AddToPipelineButton({ company }: Props) {
 
     const isOffline = isMobileRuntime() && typeof navigator !== 'undefined' && !navigator.onLine
 
+    const isManager = user.role === 'manager' || (!user.role && !user.managerUid)
     const pipelineData = {
       userId: user.uid,
       companyId: company.id,
@@ -45,9 +46,9 @@ export function AddToPipelineButton({ company }: Props) {
       companyPhone: company.telephone ?? null,
       companyEmail: company.email ?? null,
       managerUid: user.role === 'member' ? (user.managerUid ?? null) : user.uid,
-      assignedTo: user.uid,
-      memberName: user.name || user.email,
-      memberAccessId: user.accessId ?? null,
+      assignedTo: isManager ? null : user.uid,
+      memberName: isManager ? null : (user.name || user.email),
+      memberAccessId: isManager ? null : (user.accessId ?? null),
       googlePlaceId: company._source === 'google_places' ? company.id : null,
       status: 'prospection',
       createdAt: serverTimestamp(),
@@ -81,9 +82,10 @@ export function AddToPipelineButton({ company }: Props) {
           companyPhone: company.telephone ?? null,
           companyEmail: company.email ?? null,
           managerUid: user.role === 'member' ? (user.managerUid ?? null) : user.uid,
-          assignedTo: user.uid,
-          memberName: user.name || user.email,
-          memberAccessId: user.accessId ?? null,
+          assignedTo: user.role === 'member' ? user.uid : null,
+          memberName: user.role === 'member' ? (user.name || user.email) : null,
+          memberAccessId: user.role === 'member' ? (user.accessId ?? null) : null,
+          userRole: user.role ?? null,
           googlePlaceId: company._source === 'google_places' ? company.id : null
         })
       })

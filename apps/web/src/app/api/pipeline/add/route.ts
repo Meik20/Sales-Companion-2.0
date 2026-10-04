@@ -44,7 +44,8 @@ export async function POST(request: NextRequest) {
       assignedTo,
       memberName,
       memberAccessId,
-      googlePlaceId
+      googlePlaceId,
+      userRole
     } = body as {
       companyId?: string
       companyName?: string
@@ -57,6 +58,7 @@ export async function POST(request: NextRequest) {
       memberName?: string | null
       memberAccessId?: string | null
       googlePlaceId?: string | null
+      userRole?: string | null
     }
 
     if (!companyName) {
@@ -135,13 +137,25 @@ export async function POST(request: NextRequest) {
     }
     const previousAssignees = Array.from(prevAssigneesMap.values())
 
+    // Un manager qui ajoute un prospect depuis la recherche:
+    //   - userId = managerUid (il est le propriétaire)
+    //   - assignedTo = null (pas encore assigné à un membre)
+    //   - memberName = null
+    // Un member qui ajoute son propre prospect:
+    //   - userId = memberId
+    //   - assignedTo = memberId (lui-même)
+    //   - memberName = son propre nom
+    const isManagerRole = userRole === 'manager' || (managerUid && managerUid === userId)
+    const finalAssignedTo = isManagerRole ? null : (assignedTo ?? userId)
+    const finalMemberName = isManagerRole ? null : (memberName ?? null)
+
     const now = new Date()
     const docRef = await adminDb.collection('pipeline').add({
       userId,
       managerUid: managerUid ?? null,
-      assignedTo: assignedTo ?? userId, // UID du membre qui a ajouté
-      memberName: memberName ?? null, // Nom du membre
-      memberAccessId: memberAccessId ?? null, // Access ID du membre (ex: "prenomnom@entreprise")
+      assignedTo: finalAssignedTo,
+      memberName: finalMemberName,
+      memberAccessId: isManagerRole ? null : (memberAccessId ?? null),
       companyId: companyId ?? null,
       companyName: companyName,
       companySector: companySector ?? null,
