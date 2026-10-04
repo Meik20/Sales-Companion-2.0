@@ -480,6 +480,19 @@ export function AppSidebar({
             />
           )}
           <SidebarLink href={routes.saved} label={t('sidebar.savedSearches')} icon={Bookmark} />
+          {user.role === 'independent' && (
+            <SidebarLink
+              href={routes.importProspects}
+              label={t('sidebar.importProspects')}
+              icon={Upload}
+              onClick={(e) => {
+                if (user.plan === 'free') {
+                  e.preventDefault()
+                  router.push(routes.upgrade)
+                }
+              }}
+            />
+          )}
           <SidebarLink href={routes.support} label={t('sidebar.support')} icon={MessageSquare} />
 
 

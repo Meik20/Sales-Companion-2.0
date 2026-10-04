@@ -264,6 +264,7 @@ export const en = {
     searchProspects: 'Search prospects',
     pipeline: 'Sales Pipeline',
     savedSearches: 'Saved searches',
+    importProspects: 'Import prospects',
     support: 'Support',
     help: 'Help & Support',
     systemStatus: 'System Status',

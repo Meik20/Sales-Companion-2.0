@@ -9,6 +9,7 @@ export const routes = {
   saved: '/saved',
   settings: '/settings',
   upgrade: '/upgrade',
+  importProspects: '/import',
   support: '/support',
   ai: '/ai',
   team: '/team',

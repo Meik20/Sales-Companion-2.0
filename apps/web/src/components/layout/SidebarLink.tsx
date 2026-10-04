@@ -9,15 +9,17 @@ type Props = {
   label: string
   icon?: LucideIcon
   badge?: number
+  onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void
 }
 
-export function SidebarLink({ href, label, icon: Icon, badge }: Props) {
+export function SidebarLink({ href, label, icon: Icon, badge, onClick }: Props) {
   const pathname = usePathname()
   const active = pathname === href || (href !== '/' && pathname.startsWith(href))
 
   return (
     <Link
       href={href}
+      onClick={onClick}
       className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs md:text-sm font-medium transition-all duration-200 ${
         active
           ? 'bg-primary/10 text-primary font-semibold shadow-2xs'

@@ -264,6 +264,7 @@ export const fr = {
     searchProspects: 'Recherche prospects',
     pipeline: 'Pipeline commercial',
     savedSearches: 'Recherches sauvegardées',
+    importProspects: 'Importer mes prospects',
     support: 'Support',
     help: 'Aide & Support',
     systemStatus: 'Statut Système',
