@@ -1,9 +1,11 @@
 'use client'
 
 import { useState, useRef, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useToast } from '@/hooks/useToast'
 import { Panel } from '@/components/ui/index'
+import { routes } from '@/constants/routes'
 import {
   Upload,
   FileSpreadsheet,
@@ -12,7 +14,9 @@ import {
   CheckCircle2,
   AlertCircle,
   Download,
-  Info
+  Info,
+  Lock,
+  Sparkles
 } from 'lucide-react'
 
 // ── Colonnes attendues (insensible à la casse) ─────────────────────────────
@@ -94,6 +98,40 @@ function downloadTemplate() {
 export function IndependentImportPanel() {
   const { user } = useCurrentUser()
   const { pushToast } = useToast()
+  const router = useRouter()
+
+  const isFree = (user?.plan ?? 'free') === 'free'
+
+  // ── CTA Upgrade pour les FREE ────────────────────────────────────
+  if (isFree) {
+    return (
+      <Panel>
+        <div className="flex flex-col items-center gap-4 py-8 px-4 text-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20">
+            <Lock size={24} className="text-primary" strokeWidth={1.8} />
+          </div>
+          <div>
+            <h3 className="text-base font-bold text-foreground flex items-center justify-center gap-2">
+              <FileSpreadsheet size={16} className="text-primary" />
+              Importer ma base de prospects
+            </h3>
+            <p className="text-sm text-muted-foreground mt-2 max-w-sm">
+              L’import de votre base de prospects est réservé aux indépendants avec un plan payant.
+              Passez à un plan supérieur pour débloquer cette fonctionnalité.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => router.push(routes.upgrade)}
+            className="flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90 transition-all shadow-sm cursor-pointer"
+          >
+            <Sparkles size={15} />
+            UPGRADE — Débloquer l’import
+          </button>
+        </div>
+      </Panel>
+    )
+  }
 
   const [dragging, setDragging] = useState(false)
   const [file, setFile] = useState<File | null>(null)

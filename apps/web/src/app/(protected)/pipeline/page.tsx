@@ -41,6 +41,7 @@ export default function PipelinePage() {
   const [tgtValue, setTgtValue] = useState('')
   const [tgtPeriod, setTgtPeriod] = useState('')
   const isIndependent = user?.role === 'independent'
+  const isFree = (user?.plan ?? 'free') === 'free'
   const { data: myTargets } = useTeamTargets(isIndependent ? user?.uid : undefined)
   const saveTarget = useSaveTeamTarget()
 
@@ -104,7 +105,10 @@ export default function PipelinePage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => { setShowTargets((v) => !v); setShowExport(false) }}
+                onClick={() => {
+                  if (isFree) { router.push('/upgrade'); return }
+                  setShowTargets((v) => !v); setShowExport(false)
+                }}
                 style={{ display: 'flex', alignItems: 'center', gap: 6 }}
               >
                 <Target size={14} />
@@ -113,7 +117,10 @@ export default function PipelinePage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => { setShowExport((v) => !v); setShowTargets(false) }}
+                onClick={() => {
+                  if (isFree) { router.push('/upgrade'); return }
+                  setShowExport((v) => !v); setShowTargets(false)
+                }}
                 style={{ display: 'flex', alignItems: 'center', gap: 6 }}
               >
                 <FileDown size={14} />
