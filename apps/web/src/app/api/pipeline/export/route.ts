@@ -25,10 +25,10 @@ export async function GET(request: NextRequest) {
     const token = request.headers.get('authorization')?.split(' ')[1]
     if (!token) return NextResponse.json({ message: 'Non authentifié' }, { status: 401 })
 
-    let managerUid: string
+    let callerUid: string
     try {
       const decoded = await adminAuth.verifyIdToken(token)
-      managerUid = decoded.uid
+      callerUid = decoded.uid
     } catch {
       return NextResponse.json({ message: 'Token invalide' }, { status: 401 })
     }
@@ -37,6 +37,210 @@ export async function GET(request: NextRequest) {
     const memberId = searchParams.get('memberId') || null
     const fromDate = searchParams.get('from') ? new Date(searchParams.get('from')!) : null
     const toDate = searchParams.get('to') ? new Date(searchParams.get('to')! + 'T23:59:59Z') : null
+
+    // ── Detect caller role ──────────────────────────────────────────────────
+    const callerDoc = await adminDb.collection('users').doc(callerUid).get()
+    const callerRole: string = callerDoc.data()?.role ?? ''
+
+    // ══════════════════════════════════════════════════════════════════════
+    // MODE INDÉPENDANT — export du pipeline personnel uniquement
+    // ══════════════════════════════════════════════════════════════════════
+    if (callerRole === 'independent') {
+      const MONTHS_FR_IND = [
+        'Janvier','Février','Mars','Avril','Mai','Juin',
+        'Juillet','Août','Septembre','Octobre','Novembre','Décembre'
+      ]
+
+      // Fetch du pipeline personnel
+      const ownSnap = await adminDb.collection('pipeline').where('userId', '==', callerUid).get()
+
+      type IndItem = {
+        id: string
+        companyName?: string
+        status?: string
+        companyCity?: string
+        companySector?: string
+        companyPhone?: string
+        companyEmail?: string
+        note?: string
+        notes?: string
+        nextFollowUp?: string
+        amount?: number
+        createdAt?: string | null
+      }
+
+      let ownItems: IndItem[] = ownSnap.docs.map((doc) => {
+        const d = doc.data()
+        return {
+          id: doc.id,
+          companyName: d.companyName,
+          status: d.status,
+          companyCity: d.companyCity,
+          companySector: d.companySector,
+          companyPhone: d.companyPhone,
+          companyEmail: d.companyEmail,
+          note: d.note,
+          notes: d.notes,
+          nextFollowUp: d.nextFollowUp,
+          amount: typeof d.amount === 'number' ? d.amount : undefined,
+          createdAt: d.createdAt?.toDate?.()?.toISOString() ?? null
+        }
+      })
+
+      // Filtres date
+      if (fromDate) ownItems = ownItems.filter((i) => i.createdAt && new Date(i.createdAt) >= fromDate)
+      if (toDate)   ownItems = ownItems.filter((i) => i.createdAt && new Date(i.createdAt) <= toDate)
+
+      const normalizeStatusInd = (s?: string) => {
+        if (!s) return ''
+        if (['prospection', 'prospect'].includes(s)) return 'Prospection'
+        if (['negociation', 'negotiation'].includes(s)) return 'Négociation'
+        if (['conclue', 'conclusion'].includes(s)) return 'Conclue'
+        return s
+      }
+
+      // Période lisible
+      const now = new Date()
+      let periodLabel = `${MONTHS_FR_IND[now.getMonth()]} ${now.getFullYear()}`
+      if (fromDate && toDate) {
+        const f = fromDate.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })
+        const t2 = toDate.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })
+        periodLabel = f === t2 ? f : `${f} – ${t2}`
+      } else if (fromDate) {
+        periodLabel = `Depuis ${fromDate.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })}`
+      } else if (toDate) {
+        periodLabel = `Jusqu'à ${toDate.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })}`
+      }
+
+      // Statistiques globales
+      const total = ownItems.length
+      const prospection = ownItems.filter((i) => normalizeStatusInd(i.status) === 'Prospection').length
+      const negociation  = ownItems.filter((i) => normalizeStatusInd(i.status) === 'Négociation').length
+      const conclue      = ownItems.filter((i) => normalizeStatusInd(i.status) === 'Conclue').length
+      const revenue      = ownItems.filter((i) => normalizeStatusInd(i.status) === 'Conclue').reduce((s, i) => s + (i.amount ?? 0), 0)
+      const convRate     = total > 0 ? Math.round((conclue / total) * 100) : 0
+
+      const ExcelJSInd = (await import('exceljs')).default
+      const wbInd = new ExcelJSInd.Workbook()
+      wbInd.creator = 'Sales Companion'
+      wbInd.created = new Date()
+
+      const COLOR_HDR  = '1A3A5C'
+      const COLOR_SUB  = '1E4976'
+      const COLOR_EVEN = 'F0F4FA'
+      const COLOR_PROS = 'DBEAFE'
+      const COLOR_NEG  = 'FEF9C3'
+      const COLOR_CON  = 'DCFCE7'
+
+      // ── ONGLET 1 : SYNTHÈSE ──────────────────────────────────────────────
+      const sumSh = wbInd.addWorksheet('Synthèse', { pageSetup: { fitToPage: true } })
+
+      const titleRowInd = sumSh.addRow(['RAPPORT PIPELINE INDÉPENDANT'])
+      titleRowInd.font = { name: 'Calibri', bold: true, size: 16, color: { argb: 'FFFFFFFF' } }
+      titleRowInd.alignment = { vertical: 'middle', horizontal: 'center' }
+      sumSh.mergeCells('A1:F1')
+      titleRowInd.height = 36
+      titleRowInd.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: `FF${COLOR_HDR}` } }
+
+      const metaRowInd = sumSh.addRow([`Période : ${periodLabel}`, '', '', '', '', ''])
+      metaRowInd.font = { name: 'Calibri', italic: true, size: 11, color: { argb: 'FF64748B' } }
+      metaRowInd.alignment = { horizontal: 'center' }
+      sumSh.mergeCells('A2:F2')
+      metaRowInd.height = 20
+
+      sumSh.addRow([])
+
+      const hdrRow = sumSh.addRow(['Total', 'Prospection', 'Négociation', 'Conclue', 'Taux conversion', 'Chiffre d\'affaires'])
+      hdrRow.height = 28
+      hdrRow.eachCell((cell) => {
+        cell.font = { name: 'Calibri', bold: true, size: 11, color: { argb: 'FFFFFFFF' } }
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: `FF${COLOR_SUB}` } }
+        cell.alignment = { vertical: 'middle', horizontal: 'center' }
+        cell.border = { bottom: { style: 'thin', color: { argb: 'FF94A3B8' } } }
+      })
+
+      const dataRow = sumSh.addRow([total, prospection, negociation, conclue, `${convRate} %`, revenue])
+      dataRow.height = 24
+      dataRow.eachCell((cell, ci) => {
+        cell.font = { name: 'Calibri', bold: true, size: 12 }
+        cell.alignment = { vertical: 'middle', horizontal: 'center' }
+        if (ci === 6) cell.numFmt = '#,##0'
+      })
+
+      sumSh.columns = [
+        { width: 14 }, { width: 14 }, { width: 14 }, { width: 12 }, { width: 16 }, { width: 20 }
+      ]
+
+      // ── ONGLET 2 : DÉTAIL ───────────────────────────────────────────────
+      const detSh = wbInd.addWorksheet('Détail des prospects', { pageSetup: { fitToPage: true, orientation: 'landscape' } })
+
+      const titleRowDet = detSh.addRow(['DÉTAIL DES PROSPECTS'])
+      titleRowDet.font = { name: 'Calibri', bold: true, size: 14, color: { argb: 'FFFFFFFF' } }
+      titleRowDet.alignment = { vertical: 'middle', horizontal: 'center' }
+      detSh.mergeCells('A1:J1')
+      titleRowDet.height = 30
+      titleRowDet.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: `FF${COLOR_HDR}` } }
+
+      const colHeaders = ['Entreprise', 'Statut', 'Montant (FCFA)', 'Ville', 'Secteur', 'Téléphone', 'Email', 'Note', 'Prochain suivi', 'Date d\'ajout']
+      const hdrDetRow = detSh.addRow(colHeaders)
+      hdrDetRow.height = 26
+      hdrDetRow.eachCell((cell) => {
+        cell.font = { name: 'Calibri', bold: true, size: 10, color: { argb: 'FFFFFFFF' } }
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: `FF${COLOR_SUB}` } }
+        cell.alignment = { vertical: 'middle', horizontal: 'center' }
+        cell.border = { bottom: { style: 'thin', color: { argb: 'FF94A3B8' } } }
+      })
+
+      ownItems.forEach((item, idx) => {
+        const ns = normalizeStatusInd(item.status)
+        const rowData = [
+          item.companyName ?? '',
+          ns,
+          item.amount ?? '',
+          item.companyCity ?? '',
+          item.companySector ?? '',
+          item.companyPhone ?? '',
+          item.companyEmail ?? '',
+          item.notes ?? item.note ?? '',
+          item.nextFollowUp ?? '',
+          item.createdAt ? new Date(item.createdAt).toLocaleDateString('fr-FR') : ''
+        ]
+        const r = detSh.addRow(rowData)
+        r.height = 20
+
+        const bgColor = ns === 'Prospection' ? COLOR_PROS : ns === 'Négociation' ? COLOR_NEG : ns === 'Conclue' ? COLOR_CON : (idx % 2 === 0 ? COLOR_EVEN : 'FFFFFF')
+        r.eachCell((cell, ci) => {
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: `FF${bgColor}` } }
+          cell.alignment = { vertical: 'middle', horizontal: ci === 3 ? 'right' : 'left', wrapText: ci === 8 }
+          cell.font = { name: 'Calibri', size: 10 }
+          if (ci === 3 && typeof cell.value === 'number') cell.numFmt = '#,##0'
+        })
+      })
+
+      detSh.columns = [
+        { width: 26 }, { width: 14 }, { width: 16 }, { width: 18 }, { width: 18 },
+        { width: 15 }, { width: 24 }, { width: 30 }, { width: 16 }, { width: 14 }
+      ]
+      detSh.views = [{ state: 'frozen', ySplit: 2, xSplit: 1 }]
+
+      const bufInd = await wbInd.xlsx.writeBuffer()
+      const todayInd = new Date().toISOString().slice(0, 10)
+      const fnameInd = `pipeline_independant_${todayInd}.xlsx`
+
+      return new NextResponse(Buffer.from(bufInd), {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'Content-Disposition': `attachment; filename="${fnameInd}"`,
+          'X-Content-Type-Options': 'nosniff'
+        }
+      })
+    }
+    // ══════════════════════════════════════════════════════════════════════
+    // FIN MODE INDÉPENDANT — suite : logique manager
+    // ══════════════════════════════════════════════════════════════════════
+
+    const managerUid = callerUid
 
     // ── Fetch team members ──────────────────────────────────────────────────
     const membersSnap = await adminDb
