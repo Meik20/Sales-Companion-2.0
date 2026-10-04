@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect } from 'react'
+import React, { useEffect } from 'react'
+import { Check, X, AlertTriangle, Info } from 'lucide-react'
 
 export type ToastData = {
   id: string
@@ -16,30 +17,30 @@ type Props = {
 
 const TOAST_MAP: Record<
   ToastData['type'],
-  { wrapper: string; icon: string; iconWrapper: string; iconColor: string }
+  { wrapper: string; icon: React.ReactNode; iconWrapper: string; iconColor: string }
 > = {
   success: {
     wrapper: 'border-blue-500/30',
     iconWrapper: 'bg-blue-500/10 border border-blue-500/30',
-    icon: '✓',
+    icon: <Check size={12} strokeWidth={2.5} />,
     iconColor: 'text-blue-400'
   },
   error: {
     wrapper: 'border-red-500/30',
     iconWrapper: 'bg-red-500/10 border border-red-500/30',
-    icon: '✕',
+    icon: <X size={12} strokeWidth={2.5} />,
     iconColor: 'text-red-400'
   },
   warning: {
     wrapper: 'border-amber-500/30',
     iconWrapper: 'bg-amber-500/10 border border-amber-500/30',
-    icon: '!',
+    icon: <AlertTriangle size={12} strokeWidth={2.5} />,
     iconColor: 'text-amber-400'
   },
   info: {
     wrapper: 'border-blue-400/30',
     iconWrapper: 'bg-blue-400/10 border border-blue-400/30',
-    icon: 'i',
+    icon: <Info size={12} strokeWidth={2.5} />,
     iconColor: 'text-blue-400'
   }
 }

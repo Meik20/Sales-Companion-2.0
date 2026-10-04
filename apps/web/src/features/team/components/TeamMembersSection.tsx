@@ -11,7 +11,8 @@ import {
   TrendingDown,
   Minus,
   AlertTriangle,
-  Zap
+  Zap,
+  BarChart2
 } from 'lucide-react'
 import { Badge } from '@/components/ui/index'
 import { EmptyState } from '@/components/feedback'
@@ -197,22 +198,58 @@ function MemberCard({ member }: { member: TeamMember }) {
           </div>
         </div>
 
-        {/* Badge statut */}
-        <Badge
-          variant={member.active ? 'success' : 'default'}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 4,
-            padding: '4px 10px',
-            fontSize: 10,
-            fontWeight: 700,
-            flexShrink: 0
-          }}
-        >
-          {member.active ? <CheckCircle2 size={10} /> : <XCircle size={10} />}
-          {member.active ? t('team.active').toUpperCase() : t('team.inactive').toUpperCase()}
-        </Badge>
+        {/* Action & Badge statut */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+          {/* Action Button: Activité */}
+          <a
+            href="/reporting"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '6px 12px',
+              borderRadius: 8,
+              border: '1px solid var(--border, rgba(255,255,255,0.15))',
+              background: 'rgba(255,255,255,0.04)',
+              color: 'var(--foreground, #f1f5f9)',
+              fontSize: 12,
+              fontWeight: 600,
+              textDecoration: 'none',
+              cursor: 'pointer',
+              transition: 'all 150ms'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(59,130,246,0.15)'
+              e.currentTarget.style.borderColor = 'rgba(59,130,246,0.4)'
+              e.currentTarget.style.color = '#60a5fa'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
+              e.currentTarget.style.borderColor = 'var(--border, rgba(255,255,255,0.15))'
+              e.currentTarget.style.color = 'var(--foreground, #f1f5f9)'
+            }}
+            title="Voir les performances commerciales"
+          >
+            <BarChart2 size={13} />
+            Activité
+          </a>
+
+          {/* Badge statut */}
+          <Badge
+            variant={member.active ? 'success' : 'default'}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 4,
+              padding: '4px 10px',
+              fontSize: 10,
+              fontWeight: 700
+            }}
+          >
+            {member.active ? <CheckCircle2 size={10} /> : <XCircle size={10} />}
+            {member.active ? t('team.active').toUpperCase() : t('team.inactive').toUpperCase()}
+          </Badge>
+        </div>
       </div>
 
       {/* Quota journalier — barre élargie et toujours visible */}
@@ -276,23 +313,6 @@ function MemberCard({ member }: { member: TeamMember }) {
             <span>Proche de la limite</span>
           </div>
         )}
-
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 4 }}>
-          <a
-            href="/reporting"
-            style={{
-              fontSize: 11.5,
-              fontWeight: 700,
-              color: '#3b82f6',
-              textDecoration: 'none',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 4
-            }}
-          >
-            📊 Voir les performances commerciales →
-          </a>
-        </div>
       </div>
     </div>
   )

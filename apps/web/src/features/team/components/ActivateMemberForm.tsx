@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/Input'
 import { FormField } from '@/components/forms/FormField'
 import { useGetAccessInfo } from '@/features/auth/hooks/useGetAccessInfo'
 import { useTranslation } from '@/providers/I18nProvider'
-import { XCircle, AlertTriangle } from 'lucide-react'
+import { XCircle, AlertTriangle, Lock } from 'lucide-react'
 
 type Props = {
   accessId: string
@@ -240,13 +240,14 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
                 right: 12,
                 top: '50%',
                 transform: 'translateY(-50%)',
-                fontSize: 14,
                 opacity: 0.6,
-                pointerEvents: 'none'
+                pointerEvents: 'none',
+                display: 'flex',
+                alignItems: 'center'
               }}
               title="Adresse e-mail professionnelle verrouillée"
             >
-              🔒
+              <Lock size={14} />
             </span>
           )}
         </div>

@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Check, Sparkles } from 'lucide-react'
+import { Check, Sparkles, Star, Gem } from 'lucide-react'
 import { routes } from '@/constants/routes'
 import { useTranslation } from '@/providers/I18nProvider'
 import { useLandingCountry } from '@/features/landing/landing-country'
@@ -63,7 +63,12 @@ export function Pricing() {
       ],
       cta: t('landing.plansSection.chooseProBtn'),
       highlighted: true,
-      badge: `⭐ ${t('landing.plansSection.proBadge')}`
+      badge: (
+        <span className="inline-flex items-center gap-1">
+          <Star className="h-3 w-3 fill-current" />
+          <span>{t('landing.plansSection.proBadge')}</span>
+        </span>
+      )
     },
     {
       name: t('landing.plansSection.enterprise'),
@@ -82,7 +87,12 @@ export function Pricing() {
       ],
       cta: t('landing.plansSection.contactEnterpriseBtn'),
       highlighted: false,
-      badge: `💎 ${t('landing.plansSection.enterpriseBadge')}`
+      badge: (
+        <span className="inline-flex items-center gap-1">
+          <Gem className="h-3 w-3 text-primary" />
+          <span>{t('landing.plansSection.enterpriseBadge')}</span>
+        </span>
+      )
     }
   ]
 

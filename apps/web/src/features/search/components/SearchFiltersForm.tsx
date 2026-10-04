@@ -179,7 +179,7 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
         setRegion(z.region)
         setCity(z.city)
         setGeoState('done')
-        setGeoMsg(`📍 ${z.city} (${z.region})`)
+        setGeoMsg(`${z.city} (${z.region})`)
         onSubmit({
           query: query || undefined,
           sector: sector || undefined,

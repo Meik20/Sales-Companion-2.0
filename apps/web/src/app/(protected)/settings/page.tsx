@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/Button'
 import { useAuthActions } from '@/features/auth/hooks/useAuthActions'
 import { auth } from '@/services/firebase/client'
 import { PLAN_LIMITS } from '@sales-companion/shared'
+import { ArrowUpRight, Check, Lock } from 'lucide-react'
 
 const planDetails: Record<string, { labelKey: string; featureKeys: string[] }> = {
   free: {
@@ -275,7 +276,8 @@ export default function SettingsPage() {
                     onClick={() => router.push(routes.upgrade)}
                     className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-[13px] font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
                   >
-                    ⬆️ {t('settings.upgradeBtn')}
+                    <ArrowUpRight size={15} />
+                    {t('settings.upgradeBtn')}
                   </button>
                 ) : null}
               </div>
@@ -284,9 +286,10 @@ export default function SettingsPage() {
                 {planInfo.featureKeys.map((fk) => (
                   <span
                     key={fk}
-                    className="rounded-full border border-border bg-secondary px-3 py-1 text-[12px] font-medium text-muted-foreground"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary px-3 py-1 text-[12px] font-medium text-muted-foreground"
                   >
-                    ✓ {t(fk as any)}
+                    <Check size={12} strokeWidth={2.5} className="text-primary shrink-0" />
+                    {t(fk as any)}
                   </span>
                 ))}
               </div>
@@ -312,7 +315,7 @@ export default function SettingsPage() {
                   </div>
                 ) : isEmailLocked ? (
                   <div className="flex items-center gap-2.5 rounded-lg border border-border bg-secondary/40 p-3.5 text-[13px] text-muted-foreground">
-                    <span className="text-base shrink-0">🔒</span>
+                    <Lock size={15} className="shrink-0 text-muted-foreground" />
                     <span>
                       {isSupport
                         ? t('settings.supportEmailLocked')

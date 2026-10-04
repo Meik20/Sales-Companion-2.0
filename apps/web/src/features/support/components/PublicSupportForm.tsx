@@ -148,15 +148,18 @@ export function PublicSupportForm() {
                   En attente admin
                 </span>
               </div>
-              <p>
-                <strong className="text-foreground">👤 Nom :</strong> {name}
+              <p className="flex items-center gap-1.5">
+                <User size={13} className="text-primary inline shrink-0" />
+                <strong className="text-foreground">Nom :</strong> {name}
               </p>
-              <p className="mt-1">
-                <strong className="text-foreground">📧 Email :</strong> {email}
+              <p className="mt-1 flex items-center gap-1.5">
+                <Mail size={13} className="text-primary inline shrink-0" />
+                <strong className="text-foreground">Email :</strong> {email}
               </p>
               {company && (
-                <p className="mt-1">
-                  <strong className="text-foreground">🏢 Entreprise :</strong> {company}
+                <p className="mt-1 flex items-center gap-1.5">
+                  <Building2 size={13} className="text-primary inline shrink-0" />
+                  <strong className="text-foreground">Entreprise :</strong> {company}
                 </p>
               )}
             </div>

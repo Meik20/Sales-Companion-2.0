@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useToast } from '@/hooks/useToast'
 import { EmptyState } from '@/components/feedback'
-import { X } from 'lucide-react'
+import { X, Link2, Loader2, Headphones } from 'lucide-react'
 
 type SupportLink = {
   id: string
@@ -91,7 +91,7 @@ export function CrossTeamSupportManager() {
           margin: '0 0 4px', fontSize: 15, fontWeight: 800, color: 'var(--foreground, #f1f5f9)',
           display: 'flex', alignItems: 'center', gap: 8
         }}>
-          🔗 Agents Support — Accès Cross-Équipe
+          <Link2 size={16} className="text-primary" /> Agents Support — Accès Cross-Équipe
         </h3>
         <p style={{ margin: 0, fontSize: 13, color: 'var(--muted-foreground, #94a3b8)', lineHeight: 1.6 }}>
           Invitez un agent support d'une autre équipe (même organisation) à accéder aux clients conclus de votre équipe.
@@ -128,7 +128,17 @@ export function CrossTeamSupportManager() {
             fontFamily: 'inherit', transition: 'all 150ms', whiteSpace: 'nowrap'
           }}
         >
-          {linking ? '⏳ Liaison…' : '🔗 Lier l\'agent'}
+          {linking ? (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <Loader2 size={14} className="animate-spin" />
+              Liaison…
+            </span>
+          ) : (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <Link2 size={14} />
+              Lier l'agent
+            </span>
+          )}
         </button>
       </div>
 
@@ -155,8 +165,9 @@ export function CrossTeamSupportManager() {
               border: `1px solid rgba(74,222,128,0.15)`
             }}>
               <div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--foreground, #f1f5f9)' }}>
-                  🎧 {link.agentName}
+                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--foreground, #f1f5f9)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Headphones size={13} style={{ opacity: 0.8, color: '#22c55e' }} />
+                  {link.agentName}
                 </div>
                 <div style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)', marginTop: 2 }}>
                   {link.agentAccessId} · Lié le {new Date(link.grantedAt).toLocaleDateString('fr-FR')}

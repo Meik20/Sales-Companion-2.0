@@ -346,8 +346,8 @@ export function TeamAccessManager() {
                    padding: '0 8px'
                  }}
                >
-                 <option value="member">👤 Collaborateur commercial (Sales)</option>
-                 <option value="support_agent">🎧 Agent de support CRM (Support)</option>
+                 <option value="member">Collaborateur commercial (Sales)</option>
+                 <option value="support_agent">Agent de support CRM (Support)</option>
                </select>
              </div>
 

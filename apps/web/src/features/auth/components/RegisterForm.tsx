@@ -14,7 +14,7 @@ import { routes } from '@/constants/routes'
 import { BUSINESS_SECTORS, SUPPORTED_COUNTRIES, validatePhoneForCountry } from '@sales-companion/shared'
 import { useTranslation } from '@/providers/I18nProvider'
 import { isCorporateEmail } from '../utils/email-validator'
-import { ShieldCheck, Globe2, Phone } from 'lucide-react'
+import { ShieldCheck, Globe2, Phone, Lock, HelpCircle } from 'lucide-react'
 
 type RoleOption = 'independent' | 'manager'
 
@@ -190,7 +190,7 @@ export function RegisterForm() {
           <ShieldCheck size={18} className="text-blue-400 shrink-0 mt-0.5" />
           <div>
             <div className="font-semibold text-blue-400 text-[13px]">
-              Dérogation de domaine approuvée ✨
+              Dérogation de domaine approuvée
             </div>
             <div className="text-[11px] text-blue-200/80 mt-0.5 leading-relaxed">
               Votre demande de compte Manager pour l'entreprise{' '}
@@ -231,8 +231,9 @@ export function RegisterForm() {
       </button>
 
       {role === 'manager' && (
-        <p className="mb-1 mt-0 text-center text-[11px] text-muted-foreground/60">
-          🔒 L&apos;inscription Google n&apos;est pas disponible pour le compte Manager
+        <p className="mb-1 mt-0 flex items-center justify-center gap-1.5 text-center text-[11px] text-muted-foreground/60">
+          <Lock size={11} className="shrink-0" />
+          <span>L&apos;inscription Google n&apos;est pas disponible pour le compte Manager</span>
         </p>
       )}
 
@@ -261,14 +262,17 @@ export function RegisterForm() {
             onChange={(e) => setEmail(e.target.value)}
           />
           {role === 'manager' && (
-            <p className="mt-1.5 text-[11px] text-muted-foreground/80">
-              💡 {t('auth.noCorporateEmailContactSupport' as any) || "Votre entreprise n'a pas de nom de domaine propre ?"}{' '}
-              <Link
-                href={`${routes.support}?type=corporate_domain${email.trim() ? `&email=${encodeURIComponent(email.trim())}` : ''}${name.trim() ? `&name=${encodeURIComponent(name.trim())}` : ''}${companyName.trim() ? `&company=${encodeURIComponent(companyName.trim())}` : ''}${sector.trim() ? `&sector=${encodeURIComponent(sector.trim())}` : ''}`}
-                className="font-semibold text-primary underline underline-offset-2"
-              >
-                {t('sidebar.support')}
-              </Link>
+            <p className="mt-1.5 flex items-center gap-1 text-[11px] text-muted-foreground/80">
+              <HelpCircle size={12} className="shrink-0 text-primary" />
+              <span>
+                {t('auth.noCorporateEmailContactSupport' as any) || "Votre entreprise n'a pas de nom de domaine propre ?"}{' '}
+                <Link
+                  href={`${routes.support}?type=corporate_domain${email.trim() ? `&email=${encodeURIComponent(email.trim())}` : ''}${name.trim() ? `&name=${encodeURIComponent(name.trim())}` : ''}${companyName.trim() ? `&company=${encodeURIComponent(companyName.trim())}` : ''}${sector.trim() ? `&sector=${encodeURIComponent(sector.trim())}` : ''}`}
+                  className="font-semibold text-primary underline underline-offset-2"
+                >
+                  {t('sidebar.support')}
+                </Link>
+              </span>
             </p>
           )}
         </FormField>

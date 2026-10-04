@@ -247,7 +247,7 @@ export function AdminCompaniesTable() {
                 }}
               >
                 <Download size={16} />
-                📥 Exporter CSV
+                Exporter CSV
               </button>
               <button
                 type="button"

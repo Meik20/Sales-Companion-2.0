@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useTranslation } from '@/providers/I18nProvider'
 import { COUNTRY_FRENCH_IN, COUNTRY_FRENCH_MARKET_ADJECTIVE, COUNTRY_NAMES, type CountryCode } from '@sales-companion/shared'
+import { Loader2 } from 'lucide-react'
 
 interface Message {
   id: string
@@ -95,8 +96,8 @@ export default function AIAssistantPage() {
         role: 'assistant',
         content:
           error instanceof Error
-            ? `❌ Erreur: ${error.message}`
-            : '❌ Désolé, une erreur est survenue. Veuillez réessayer.',
+            ? `Erreur: ${error.message}`
+            : 'Désolé, une erreur est survenue. Veuillez réessayer.',
         timestamp: new Date()
       }
       setMessages((prev) => [...prev, errorMessage])
@@ -107,8 +108,9 @@ export default function AIAssistantPage() {
 
   if (!user) {
     return (
-      <div style={{ padding: '20px', textAlign: 'center', color: 'var(--foreground, #f1f5f9)' }}>
-        ⏳ Chargement...
+      <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--foreground, #f1f5f9)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+        <Loader2 size={18} className="animate-spin text-primary" />
+        <span>Chargement...</span>
       </div>
     )
   }
@@ -240,10 +242,14 @@ export default function AIAssistantPage() {
                 borderRadius: '12px',
                 background: 'var(--card, #131c2e)',
                 color: 'var(--muted-foreground, #94a3b8)',
-                fontSize: '14px'
+                fontSize: '14px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8
               }}
             >
-              {lang === 'en' ? '⏳ Searching database & thinking...' : '⏳ Recherche dans la base & réflexion...'}
+              <Loader2 size={15} className="animate-spin text-primary shrink-0" />
+              <span>{lang === 'en' ? 'Searching database & thinking...' : 'Recherche dans la base & réflexion...'}</span>
             </div>
           </div>
         )}

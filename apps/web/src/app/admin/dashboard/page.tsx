@@ -183,7 +183,15 @@ function polarToCartesian(cx: number, cy: number, r: number, angleDeg: number) {
 }
 
 /* ── Chart Card wrapper ── */
-function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
+function ChartCard({
+  title,
+  icon,
+  children
+}: {
+  title: string
+  icon?: React.ReactNode
+  children: React.ReactNode
+}) {
   return (
     <div
       style={{
@@ -201,10 +209,14 @@ function ChartCard({ title, children }: { title: string; children: React.ReactNo
           color: 'var(--foreground, #f1f5f9)',
           marginBottom: 20,
           paddingBottom: 12,
-          borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
+          borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8
         }}
       >
-        {title}
+        {icon}
+        <span>{title}</span>
       </div>
       {children}
     </div>
@@ -334,7 +346,7 @@ export default function AdminDashboardPage() {
   const { t } = useTranslation()
 
   // Raison sociale : companyName du profil admin (depuis Firestore)
-  const companyLabel = user?.companyName ? `🏢 ${user.companyName}` : t('admin.dashboardSubtitle')
+  const companyLabel = user?.companyName ? user.companyName : t('admin.dashboardSubtitle')
 
   const roleData = [
     { label: t('admin.members'), value: stats?.roleDistribution?.member || 0, color: '#60a5fa' },
@@ -402,10 +414,16 @@ export default function AdminDashboardPage() {
           <div
             style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 24 }}
           >
-            <ChartCard title={t('admin.usersByRole')}>
+            <ChartCard
+              title={t('admin.usersByRole')}
+              icon={<Users size={16} style={{ color: '#60a5fa' }} />}
+            >
               <BarChart data={roleData} />
             </ChartCard>
-            <ChartCard title={t('admin.plansDistribution')}>
+            <ChartCard
+              title={t('admin.plansDistribution')}
+              icon={<PieChart size={16} style={{ color: '#a78bfa' }} />}
+            >
               <DonutChart segments={planData} totalOverride={stats.totalUsers} />
             </ChartCard>
           </div>
@@ -427,10 +445,14 @@ export default function AdminDashboardPage() {
                 color: 'var(--foreground, #f1f5f9)',
                 marginBottom: 16,
                 paddingBottom: 12,
-                borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
+                borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8
               }}
             >
-              {t('admin.recentActivity')}
+              <Activity size={16} style={{ color: '#34d399' }} />
+              <span>{t('admin.recentActivity')}</span>
             </div>
             <div
               style={{

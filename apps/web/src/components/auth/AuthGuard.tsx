@@ -238,13 +238,17 @@ export function AuthGuard({ children }: PropsWithChildren) {
           <p className="mb-2 mt-0 text-[14px] leading-relaxed text-muted-foreground">
             Votre paiement a bien été reçu et est en cours de vérification par notre équipe.
           </p>
-          <p className="mb-6 mt-0 text-[13px] leading-relaxed text-muted-foreground">
-            ⏳ Cette page se met à jour <strong>automatiquement</strong> dès que votre compte est activé.
-            Vous n&apos;avez rien à faire.
+          <p className="mb-6 mt-0 flex items-center justify-center gap-1.5 text-[13px] leading-relaxed text-muted-foreground">
+            <Clock size={13} className="shrink-0 text-primary" />
+            <span>
+              Cette page se met à jour <strong>automatiquement</strong> dès que votre compte est activé.
+              Vous n&apos;avez rien à faire.
+            </span>
           </p>
 
-          <div className="mb-5 rounded-[10px] border border-amber-500/20 bg-amber-500/6 px-4 py-3 text-[12px] leading-relaxed text-amber-500">
-            📬 Vous recevrez un email de confirmation une fois votre compte activé par l&apos;équipe Sales Companion 2.0.
+          <div className="mb-5 flex items-center justify-center gap-2 rounded-[10px] border border-amber-500/20 bg-amber-500/6 px-4 py-3 text-[12px] leading-relaxed text-amber-500">
+            <Mail size={14} className="shrink-0 text-amber-500" />
+            <span>Vous recevrez un email de confirmation une fois votre compte activé par l&apos;équipe Sales Companion 2.0.</span>
           </div>
 
           <button

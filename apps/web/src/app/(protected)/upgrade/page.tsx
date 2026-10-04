@@ -6,7 +6,7 @@ import { AppShell } from '@/components/layout/AppShell'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useToast } from '@/hooks/useToast'
-import { Check, Zap, Shield, Users, Loader2, Copy, AlertCircle } from 'lucide-react'
+import { Check, Zap, Shield, Users, Loader2, Copy, AlertCircle, Star, Gem, Building2, CreditCard, Clock } from 'lucide-react'
 import { routes } from '@/constants/routes'
 
 import { PLAN_LIMITS, PLAN_PRICES } from '@sales-companion/shared'
@@ -51,7 +51,8 @@ const PLANS = [
     price: formatPrice(PLAN_PRICES.pro),
     amount: PLAN_PRICES.pro,
     period: 'FCFA / mois',
-    badge: '⭐ Populaire',
+    badge: 'Populaire',
+    badgeIcon: Star,
     color: '#f59e0b',
     colorBg: 'rgba(245,158,11,0.08)',
     icon: Shield,
@@ -70,7 +71,8 @@ const PLANS = [
     price: formatPrice(PLAN_PRICES.enterprise),
     amount: PLAN_PRICES.enterprise,
     period: 'FCFA / mois',
-    badge: '💎 Premium',
+    badge: 'Premium',
+    badgeIcon: Gem,
     color: '#8b5cf6',
     colorBg: 'rgba(139,92,246,0.08)',
     icon: Users,
@@ -266,7 +268,8 @@ export default function UpgradePage() {
                         marginBottom: 14
                       }}
                     >
-                      🏢 {(p as any).companySize}
+                      <Building2 size={13} className="shrink-0" />
+                      {(p as any).companySize}
                     </div>
                   )}
                   {p.badge && (
@@ -280,9 +283,13 @@ export default function UpgradePage() {
                         fontSize: 11,
                         fontWeight: 700,
                         padding: '4px 12px',
-                        borderRadius: 999
+                        borderRadius: 999,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 5
                       }}
                     >
+                      {p.badgeIcon && <p.badgeIcon size={12} className="fill-current shrink-0" />}
                       {p.badge}
                     </div>
                   )}
@@ -371,9 +378,18 @@ export default function UpgradePage() {
               }}
             >
               <h2
-                style={{ fontFamily: "sans-serif", margin: '0 0 20px', textAlign: 'center' }}
+                style={{
+                  fontFamily: "sans-serif",
+                  margin: '0 0 20px',
+                  textAlign: 'center',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8
+                }}
               >
-                💳 Instructions de paiement
+                <CreditCard size={20} className="text-primary" />
+                Instructions de paiement
               </h2>
 
               {/* Sélecteur Opérateur */}
@@ -539,10 +555,16 @@ export default function UpgradePage() {
                     fontSize: 13,
                     color: '#f59e0b',
                     marginBottom: 20,
-                    textAlign: 'left'
+                    textAlign: 'left',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: 8
                   }}
                 >
-                  ⏳ Votre accès sera débloqué dès qu'un administrateur aura confirmé votre paiement (généralement sous 24h). Vous recevrez un e-mail de confirmation.
+                  <Clock size={16} className="shrink-0 mt-0.5" />
+                  <span>
+                    Votre accès sera débloqué dès qu'un administrateur aura confirmé votre paiement (généralement sous 24h). Vous recevrez un e-mail de confirmation.
+                  </span>
                 </div>
               )}
               <button

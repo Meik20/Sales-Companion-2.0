@@ -72,7 +72,7 @@ function SearchContent() {
       setChatMessages((prev) => [
         ...prev,
         { role: 'user', text: msg.trim() },
-        { role: 'assistant', text: `❌ ${t('offline.aiUnavailable')}` }
+        { role: 'assistant', text: t('offline.aiUnavailable') }
       ])
       return
     }
@@ -114,7 +114,7 @@ function SearchContent() {
     } catch {
       setChatMessages((prev) => [
         ...prev,
-        { role: 'assistant', text: '❌ Erreur réseau. Vérifiez votre connexion.' }
+        { role: 'assistant', text: 'Erreur réseau. Vérifiez votre connexion.' }
       ])
     } finally {
       setIsSendingChat(false)

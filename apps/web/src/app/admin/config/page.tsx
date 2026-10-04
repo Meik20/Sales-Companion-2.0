@@ -6,6 +6,7 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useTranslation } from '@/providers/I18nProvider'
 
+import { Key, Lock, CreditCard, CheckCircle2, AlertTriangle } from 'lucide-react'
 import { PLAN_LIMITS } from '@sales-companion/shared'
 
 const PLAN_COLOR: Record<string, string> = {
@@ -88,15 +89,15 @@ export default function AdminConfigPage() {
         body: JSON.stringify({ key: 'groq_api_key', value: apiKey.trim() })
       })
       if (res.ok) {
-        setApiMsg({ type: 'ok', text: '✅ Clé API enregistrée — tableau de bord mis à jour' })
+        setApiMsg({ type: 'ok', text: 'Clé API enregistrée — tableau de bord mis à jour' })
         setApiKey('')
         setHasGroqKey(true)
       } else {
         const d = await res.json()
-        setApiMsg({ type: 'err', text: `❌ ${d.error ?? 'Erreur serveur'}` })
+        setApiMsg({ type: 'err', text: d.error ?? 'Erreur serveur' })
       }
     } catch (e) {
-      setApiMsg({ type: 'err', text: `❌ Erreur réseau` })
+      setApiMsg({ type: 'err', text: 'Erreur réseau' })
     } finally {
       setSaving(false)
     }
@@ -117,14 +118,14 @@ export default function AdminConfigPage() {
         body: JSON.stringify({ newPassword: newPass })
       })
       if (res.ok) {
-        setPassMsg({ type: 'ok', text: '✅ Mot de passe modifié' })
+        setPassMsg({ type: 'ok', text: 'Mot de passe modifié' })
         setNewPass('')
       } else {
         const d = await res.json()
-        setPassMsg({ type: 'err', text: `❌ ${d.error ?? 'Erreur'}` })
+        setPassMsg({ type: 'err', text: d.error ?? 'Erreur' })
       }
     } catch {
-      setPassMsg({ type: 'err', text: '❌ Erreur réseau' })
+      setPassMsg({ type: 'err', text: 'Erreur réseau' })
     } finally {
       setChangingPass(false)
     }
@@ -169,6 +170,9 @@ export default function AdminConfigPage() {
     marginTop: 10,
     fontSize: 13,
     fontWeight: 600,
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
     color: type === 'ok' ? '#60a5fa' : '#f87171'
   })
 
@@ -189,8 +193,9 @@ export default function AdminConfigPage() {
               borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
             }}
           >
-            <span style={{ fontWeight: 700, fontSize: 14, color: 'var(--foreground, #f1f5f9)' }}>
-              🔑 {t('admin.apiKeyGroq')}
+            <span style={{ fontWeight: 700, fontSize: 14, color: 'var(--foreground, #f1f5f9)', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+              <Key size={16} className="text-primary" />
+              <span>{t('admin.apiKeyGroq')}</span>
             </span>
             {hasGroqKey !== null && (
               <span
@@ -234,7 +239,12 @@ export default function AdminConfigPage() {
           <button onClick={saveApiKey} disabled={saving} style={btnStyle}>
             {saving ? t('team.saving') : t('admin.saveApiKey')}
           </button>
-          {apiMsg && <div style={msgStyle(apiMsg.type)}>{apiMsg.text}</div>}
+          {apiMsg && (
+            <div style={msgStyle(apiMsg.type)}>
+              {apiMsg.type === 'ok' ? <CheckCircle2 size={14} className="shrink-0" /> : <AlertTriangle size={14} className="shrink-0" />}
+              <span>{apiMsg.text}</span>
+            </div>
+          )}
         </div>
 
         {/* Change password */}
@@ -246,10 +256,14 @@ export default function AdminConfigPage() {
               color: 'var(--foreground, #f1f5f9)',
               marginBottom: 16,
               paddingBottom: 12,
-              borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
+              borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8
             }}
           >
-            🔒 {t('admin.adminSecurity')}
+            <Lock size={16} className="text-primary" />
+            <span>{t('admin.adminSecurity')}</span>
           </div>
           <label style={labelStyle}>{t('admin.newPassword')}</label>
           <input
@@ -276,7 +290,12 @@ export default function AdminConfigPage() {
           <button onClick={changePassword} disabled={changingPass} style={btnStyle}>
             {changingPass ? t('team.saving') : t('admin.changePassword')}
           </button>
-          {passMsg && <div style={msgStyle(passMsg.type)}>{passMsg.text}</div>}
+          {passMsg && (
+            <div style={msgStyle(passMsg.type)}>
+              {passMsg.type === 'ok' ? <CheckCircle2 size={14} className="shrink-0" /> : <AlertTriangle size={14} className="shrink-0" />}
+              <span>{passMsg.text}</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -289,10 +308,14 @@ export default function AdminConfigPage() {
             color: 'var(--foreground, #f1f5f9)',
             marginBottom: 16,
             paddingBottom: 12,
-            borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
+            borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8
           }}
         >
-          💳 {t('admin.pricingPlans')}
+          <CreditCard size={16} className="text-primary" />
+          <span>{t('admin.pricingPlans')}</span>
         </div>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>

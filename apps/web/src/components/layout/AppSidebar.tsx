@@ -29,7 +29,8 @@ import {
   Moon,
   Sun,
   Globe,
-  CreditCard
+  CreditCard,
+  Check
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useTranslation } from '@/providers/I18nProvider'
@@ -310,17 +311,34 @@ export function AppSidebar({
           <span className="truncate text-[13.5px] font-bold text-foreground">
             {user.name || t('sidebar.user')}
           </span>
-          <span className="text-[11px] text-muted-foreground">
-            {user.role === 'admin'
-              ? t('sidebar.adminRole')
-              : user.role === 'manager'
-                ? t('sidebar.managerRole')
-                : user.role === 'independent'
-                  ? t('sidebar.independentRole')
-                  : user.role === 'support_agent'
-                    ? t('sidebar.supportAgentRole')
-                    : t('sidebar.memberRole')}{' '}
-            ·{' '}
+          <span className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+            <span
+              className="h-1.5 w-1.5 rounded-full shrink-0"
+              style={{
+                backgroundColor:
+                  user.role === 'admin'
+                    ? '#ef4444'
+                    : user.role === 'manager'
+                      ? '#eab308'
+                      : user.role === 'independent'
+                        ? '#22c55e'
+                        : user.role === 'support_agent'
+                          ? '#eb8512'
+                          : '#3b82f6'
+              }}
+            />
+            <span>
+              {user.role === 'admin'
+                ? t('sidebar.adminRole')
+                : user.role === 'manager'
+                  ? t('sidebar.managerRole')
+                  : user.role === 'independent'
+                    ? t('sidebar.independentRole')
+                    : user.role === 'support_agent'
+                      ? t('sidebar.supportAgentRole')
+                      : t('sidebar.memberRole')}
+            </span>
+            <span>·</span>
             <span className="uppercase">
               {(user.plan || 'free') === 'free' ? t('header.planFree') : user.plan}
             </span>
@@ -419,11 +437,16 @@ export function AppSidebar({
               className={`flex h-[34px] items-center justify-center gap-1.5 rounded-lg border border-primary/30 text-[12px] font-semibold text-primary transition-all duration-150 ${geoState === 'done' ? 'bg-primary/10' : 'bg-transparent'} ${geoState === 'loading' ? 'cursor-wait' : 'cursor-pointer hover:bg-primary/5'}`}
             >
               <MapPin size={13} />
-              {geoState === 'loading'
-                ? t('sidebar.detecting')
-                : geoState === 'done'
-                  ? `${t('sidebar.aroundMe')} ✓`
-                  : t('sidebar.aroundMe')}
+              {geoState === 'loading' ? (
+                t('sidebar.detecting')
+              ) : geoState === 'done' ? (
+                <span className="flex items-center gap-1">
+                  {t('sidebar.aroundMe')}
+                  <Check size={12} strokeWidth={2.5} />
+                </span>
+              ) : (
+                t('sidebar.aroundMe')
+              )}
             </button>
 
             <div className="flex items-center justify-between px-0.5 text-[12px] text-muted-foreground">

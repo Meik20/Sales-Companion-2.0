@@ -6,6 +6,17 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useAdminImports } from '@/features/admin/hooks/useAdminImports'
 import { useTranslation } from '@/providers/I18nProvider'
+import {
+  Upload,
+  UploadCloud,
+  CheckCircle2,
+  AlertTriangle,
+  FileText,
+  FolderOpen,
+  Trash2,
+  Check,
+  X
+} from 'lucide-react'
 
 /* ── types ── */
 type ImportResult = {
@@ -164,10 +175,14 @@ export default function AdminImportsPage() {
               fontSize: 14,
               color: 'var(--foreground, #f1f5f9)',
               paddingBottom: 12,
-              borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
+              borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8
             }}
           >
-            📤 {t('admin.newImport')}
+            <Upload size={16} className="text-primary" />
+            <span>{t('admin.newImport')}</span>
           </div>
 
           {/* Drop zone */}
@@ -189,7 +204,7 @@ export default function AdminImportsPage() {
               transition: 'all 200ms ease'
             }}
           >
-            <div style={{ fontSize: 42, marginBottom: 12 }}>📊</div>
+            <UploadCloud size={42} style={{ margin: '0 auto 12px', color: '#3b82f6', opacity: 0.8 }} />
             <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--foreground, #f1f5f9)', marginBottom: 6 }}>
               {t('admin.dragFile')}
             </div>
@@ -261,8 +276,9 @@ export default function AdminImportsPage() {
                 padding: '14px 16px'
               }}
             >
-              <div style={{ fontWeight: 700, color: '#60a5fa', marginBottom: 10 }}>
-                ✅ {t('admin.importSuccess')} — {uploadState.fileName}
+              <div style={{ fontWeight: 700, color: '#60a5fa', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <CheckCircle2 size={16} style={{ color: '#22c55e' }} />
+                <span>{t('admin.importSuccess')} — {uploadState.fileName}</span>
               </div>
               <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
                 {[
@@ -312,10 +328,15 @@ export default function AdminImportsPage() {
                 borderRadius: 10,
                 padding: '12px 16px',
                 color: '#f87171',
-                fontSize: 13
+                fontSize: 13,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                flexWrap: 'wrap'
               }}
             >
-              ❌ {uploadState.message}
+              <AlertTriangle size={15} style={{ color: '#f87171' }} />
+              <span>{uploadState.message}</span>
               <button
                 onClick={() => setUploadState({ status: 'idle' })}
                 style={{
@@ -344,7 +365,10 @@ export default function AdminImportsPage() {
               color: '#60a5fa'
             }}
           >
-            <strong>📋 {t('admin.autoColumns')}</strong>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700 }}>
+              <FileText size={15} />
+              <span>{t('admin.autoColumns')}</span>
+            </div>
             <ul style={{ paddingLeft: 16, marginTop: 6, lineHeight: 1.9 }}>
               <li><strong>RAISON_SOCIALE</strong> {t('admin.autoColumnsDesc1')}</li>
               <li><strong>NIU</strong> {t('admin.autoColumnsDesc2')}</li>
@@ -376,12 +400,13 @@ export default function AdminImportsPage() {
               borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
             }}
           >
-            <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <FolderOpen size={16} className="text-primary shrink-0" />
               <span style={{ fontWeight: 700, fontSize: 14, color: 'var(--foreground, #f1f5f9)' }}>
-                📂 {t('admin.allImports')}
+                {t('admin.allImports')}
               </span>
               {total > 0 && (
-                <span style={{ marginLeft: 8, fontSize: 12, color: 'var(--muted-foreground, #94a3b8)' }}>
+                <span style={{ marginLeft: 4, fontSize: 12, color: 'var(--muted-foreground, #94a3b8)' }}>
                   {total} import{total > 1 ? 's' : ''}
                 </span>
               )}
@@ -391,6 +416,9 @@ export default function AdminImportsPage() {
                 onClick={handleClearHistory}
                 disabled={items.length === 0}
                 style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
                   background: 'rgba(239,68,68,0.1)',
                   color: '#f87171',
                   border: `1px solid ${'rgba(239,68,68,0.3)'}`,
@@ -402,7 +430,8 @@ export default function AdminImportsPage() {
                   opacity: items.length === 0 ? 0.5 : 1
                 }}
               >
-                🗑️ {t('admin.clearHistory')}
+                <Trash2 size={13} />
+                {t('admin.clearHistory')}
               </button>
               <button
                 onClick={() => refetch()}
@@ -434,7 +463,7 @@ export default function AdminImportsPage() {
           )}
           {!isLoading && !isError && items.length === 0 && (
             <div style={{ textAlign: 'center', padding: 40, color: 'var(--muted-foreground, #94a3b8)', fontSize: 13 }}>
-              <div style={{ fontSize: 32, marginBottom: 10 }}>📂</div>
+              <FolderOpen size={36} style={{ margin: '0 auto 10px', opacity: 0.4 }} />
               {t('admin.noImports')}
             </div>
           )}
@@ -495,16 +524,25 @@ export default function AdminImportsPage() {
                             }}
                             title={item.fileName}
                           >
-                            📄 {item.fileName}
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                              <FileText size={13} style={{ opacity: 0.7 }} className="shrink-0" />
+                              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.fileName}</span>
+                            </span>
                           </td>
                           <td style={{ padding: '11px 10px', color: 'var(--muted-foreground, #94a3b8)' }}>
                             {item.totalRecords}
                           </td>
                           <td style={{ padding: '11px 10px' }}>
                             <div style={{ display: 'flex', gap: 8, fontSize: 11 }}>
-                              <span style={{ color: '#2ea05a' }}>✓ {item.successCount}</span>
+                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, color: '#2ea05a' }}>
+                                <Check size={11} strokeWidth={2.5} />
+                                {item.successCount}
+                              </span>
                               {item.errorCount > 0 && (
-                                <span style={{ color: '#f87171' }}>✗ {item.errorCount}</span>
+                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, color: '#f87171' }}>
+                                  <X size={11} strokeWidth={2.5} />
+                                  {item.errorCount}
+                                </span>
                               )}
                             </div>
                             <div style={{ fontSize: 10, color: 'var(--muted-foreground, #94a3b8)', marginTop: 1 }}>

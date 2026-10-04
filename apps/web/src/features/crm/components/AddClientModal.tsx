@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { X, Building2, UserPlus, Phone, Mail, MapPin, Briefcase, Calendar, Sparkles, AlertTriangle } from 'lucide-react'
+import { X, Building2, UserPlus, Phone, Mail, MapPin, Briefcase, Calendar, Sparkles, AlertTriangle, User } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useTranslation } from '@/providers/I18nProvider'
 import { CRM_SECTORS, CRM_CITIES, CRM_STATUS_LIST } from '../constants'
@@ -170,7 +170,8 @@ export function AddClientModal({ isOpen, onClose, onSuccess, userToken, user }: 
             </div>
             <div>
               <label className="block text-xs font-semibold text-foreground mb-1.5 flex items-center gap-1.5">
-                👤 {t('crm.colContact') || 'Nom du contact'}
+                <User size={13} className="text-primary" />
+                {t('crm.colContact') || 'Nom du contact'}
               </label>
               <input
                 type="text"

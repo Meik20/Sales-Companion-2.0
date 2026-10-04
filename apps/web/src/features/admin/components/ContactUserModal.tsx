@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { X, Send, Mail, User, Shield, Zap, Sparkles, AlertTriangle } from 'lucide-react'
+import { X, Send, Mail, User, Shield, Zap, Sparkles, AlertTriangle, Building2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/index'
 import type { UserDoc } from '@sales-companion/shared'
@@ -163,8 +163,9 @@ export function ContactUserModal({ isOpen, user, onClose, onSuccess }: Props) {
               <div className="font-bold text-sm text-foreground truncate">{displayName}</div>
               <div className="text-xs text-muted-foreground truncate">{user.email}</div>
               {user.company && (
-                <div className="text-[11px] text-muted-foreground/80 truncate mt-0.5">
-                  🏢 {user.company}
+                <div className="text-[11px] text-muted-foreground/80 truncate mt-0.5 flex items-center gap-1">
+                  <Building2 size={11} className="shrink-0 opacity-70" />
+                  <span>{user.company}</span>
                 </div>
               )}
             </div>

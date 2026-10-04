@@ -85,7 +85,7 @@ export function ProfileCard() {
               setIsAuthorizedBySupport(true)
               pushToast({
                 type: 'success',
-                title: '✅ Autorisation à usage unique validée ! Vous pouvez modifier vos informations.'
+                title: 'Autorisation à usage unique validée ! Vous pouvez modifier vos informations.'
               })
               setFormData({
                 name: localProfile?.name ?? user.name ?? '',
@@ -140,7 +140,7 @@ export function ProfileCard() {
 
       pushToast({
         type: 'success',
-        title: '✅ Demande transmise au support ! Redirection en cours...'
+        title: 'Demande transmise au support ! Redirection en cours...'
       })
 
       if (data.threadId) {

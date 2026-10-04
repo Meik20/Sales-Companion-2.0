@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/index'
 import { useQuery } from '@tanstack/react-query'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useTranslation } from '@/providers/I18nProvider'
+import { ClipboardList } from 'lucide-react'
 
 type SearchLog = {
   id: string
@@ -123,7 +124,7 @@ export default function AdminLogsPage() {
                         fontSize: 13
                       }}
                     >
-                      <div style={{ fontSize: 28, marginBottom: 8 }}>📋</div>
+                      <ClipboardList size={32} style={{ margin: '0 auto 8px', opacity: 0.4 }} />
                       {t('admin.noActivity')}
                     </td>
                   </tr>

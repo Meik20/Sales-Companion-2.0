@@ -19,7 +19,22 @@ import {
   Timestamp,
   onSnapshot
 } from 'firebase/firestore'
-import { Trash2, CheckCircle2, Sparkles, Send, Mail, RefreshCw, X } from 'lucide-react'
+import {
+  Trash2,
+  CheckCircle2,
+  Sparkles,
+  Send,
+  Mail,
+  RefreshCw,
+  X,
+  User,
+  Building2,
+  Phone,
+  Headphones,
+  UserCog,
+  MessageSquare,
+  AlertTriangle
+} from 'lucide-react'
 import { useTranslation } from '@/providers/I18nProvider'
 
 type Thread = {
@@ -194,7 +209,7 @@ export default function AdminSupportPage() {
         throw new Error(data.error || "Erreur lors de l'approbation.")
       }
 
-      setActionSuccess(`✅ Dérogation validée ! Le lien d'inscription a été envoyé par email à ${thread.userEmail}.`)
+      setActionSuccess(`Dérogation validée ! Le lien d'inscription a été envoyé par email à ${thread.userEmail}.`)
       setSelected((prev) =>
         prev
           ? {
@@ -247,7 +262,7 @@ export default function AdminSupportPage() {
         throw new Error(data.error || "Erreur lors de l'approbation.")
       }
 
-      setActionSuccess(`✅ Modification de profil validée ! Lien envoyé par email et dans la discussion.`)
+      setActionSuccess(`Modification de profil validée ! Lien envoyé par email et dans la discussion.`)
       setSelected((prev) =>
         prev
           ? {
@@ -294,7 +309,7 @@ export default function AdminSupportPage() {
         throw new Error(data.error || 'Erreur lors du rejet.')
       }
 
-      setActionSuccess(`❌ Demande rejetée. L'utilisateur a été notifié par email et dans la discussion.`)
+      setActionSuccess(`Demande rejetée. L'utilisateur a été notifié par email et dans la discussion.`)
       setSelected((prev) =>
         prev
           ? {
@@ -538,7 +553,10 @@ export default function AdminSupportPage() {
             alignItems: 'center'
           }}
         >
-          <span>⚠️ {error}</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <AlertTriangle size={15} />
+            <span>{error}</span>
+          </span>
           <button
             onClick={() => setError(null)}
             style={{
@@ -570,7 +588,10 @@ export default function AdminSupportPage() {
             alignItems: 'center'
           }}
         >
-          <span>{actionSuccess}</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <CheckCircle2 size={15} style={{ color: '#60a5fa' }} />
+            <span>{actionSuccess}</span>
+          </span>
           <button
             onClick={() => setActionSuccess(null)}
             style={{
@@ -624,11 +645,19 @@ export default function AdminSupportPage() {
               fontFamily: 'inherit'
             }}
           >
-            {s === 'all'
-              ? t('admin.allTickets')
-              : s === 'open'
-                ? `🔵 ${t('admin.openTickets')}`
-                : `✅ ${t('admin.closedTickets')}`}
+            {s === 'all' ? (
+              t('admin.allTickets')
+            ) : s === 'open' ? (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#3b82f6', display: 'inline-block' }} />
+                {t('admin.openTickets')}
+              </span>
+            ) : (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <CheckCircle2 size={13} style={{ color: '#22c55e' }} />
+                {t('admin.closedTickets')}
+              </span>
+            )}
           </button>
         ))}
         <button
@@ -686,7 +715,7 @@ export default function AdminSupportPage() {
               <div
                 style={{ textAlign: 'center', padding: 40, color: 'var(--muted-foreground, #94a3b8)', fontSize: 13 }}
               >
-                <div style={{ fontSize: 28, marginBottom: 8 }}>💬</div>
+                <MessageSquare size={32} style={{ margin: '0 auto 8px', opacity: 0.4 }} />
                 {t('admin.noTickets')}
               </div>
             ) : (
@@ -743,10 +772,14 @@ export default function AdminSupportPage() {
                               background: 'rgba(234, 179, 8, 0.15)',
                               color: '#facc15',
                               borderRadius: 4,
-                              fontWeight: 700
+                              fontWeight: 700,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 4
                             }}
                           >
-                            🏢 Dérogation Domaine
+                            <Building2 size={10} />
+                            <span>Dérogation Domaine</span>
                           </span>
                         )}
                         {t.type === 'profile_change_request' && (
@@ -757,10 +790,14 @@ export default function AdminSupportPage() {
                               background: 'rgba(37, 99, 235, 0.15)',
                               color: '#60a5fa',
                               borderRadius: 4,
-                              fontWeight: 700
+                              fontWeight: 700,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 4
                             }}
                           >
-                            ⚙️ Modif Profil
+                            <UserCog size={10} />
+                            <span>Modif Profil</span>
                           </span>
                         )}
                         {t.unreadByAdmin && (
@@ -791,9 +828,14 @@ export default function AdminSupportPage() {
                         {STATUS_LABEL[status] ?? status}
                       </span>
                     </div>
-                    <div style={{ fontSize: 11.5, color: 'var(--muted-foreground, #94a3b8)', marginBottom: 2 }}>
-                      👤 {t.userName || t.userEmail || '—'}
-                      {t.companyName && <span style={{ marginLeft: 6, color: '#94a3b8' }}>· 🏢 {t.companyName}</span>}
+                    <div style={{ fontSize: 11.5, color: 'var(--muted-foreground, #94a3b8)', marginBottom: 2, display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
+                      <User size={11} style={{ opacity: 0.7 }} />
+                      <span>{t.userName || t.userEmail || '—'}</span>
+                      {t.companyName && (
+                        <span style={{ marginLeft: 4, color: '#94a3b8', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                          · <Building2 size={10} style={{ opacity: 0.7 }} /> {t.companyName}
+                        </span>
+                      )}
                     </div>
                     {t.lastMessage && (
                       <div
@@ -982,8 +1024,9 @@ export default function AdminSupportPage() {
                       >
                         Entreprise
                       </div>
-                      <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--foreground, #f1f5f9)' }}>
-                        🏢 {selected.companyName}
+                      <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--foreground, #f1f5f9)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <Building2 size={13} style={{ opacity: 0.7 }} />
+                        <span>{selected.companyName}</span>
                       </div>
                     </div>
                   )}
@@ -1002,8 +1045,9 @@ export default function AdminSupportPage() {
                         Téléphone / WhatsApp
                       </div>
                       <div style={{ fontSize: 12, fontWeight: 600, color: '#60a5fa' }}>
-                        <a href={`tel:${selected.phone}`} style={{ color: 'inherit', textDecoration: 'none' }}>
-                          📱 {selected.phone}
+                        <a href={`tel:${selected.phone}`} style={{ color: 'inherit', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                          <Phone size={13} style={{ opacity: 0.7 }} />
+                          <span>{selected.phone}</span>
                         </a>
                       </div>
                     </div>
@@ -1380,8 +1424,18 @@ export default function AdminSupportPage() {
                             marginTop: 3
                           }}
                         >
-                          <span>
-                            {isUser ? `👤 ${selected.userName || 'Utilisateur'}` : '🎧 Support'} · {time}
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                            {isUser ? (
+                              <>
+                                <User size={11} style={{ opacity: 0.7 }} />
+                                <span>{selected.userName || 'Utilisateur'}</span>
+                              </>
+                            ) : (
+                              <>
+                                <Headphones size={11} style={{ opacity: 0.7 }} />
+                                <span>Support</span>
+                              </>
+                            )} · {time}
                           </span>
                           <button
                             onClick={() => handleDeleteMessage(m.id)}
@@ -1462,10 +1516,21 @@ export default function AdminSupportPage() {
                       fontSize: 13,
                       fontFamily: 'inherit',
                       opacity: !replyText.trim() ? 0.5 : 1,
-                      transition: 'opacity 150ms ease'
+                      transition: 'opacity 150ms ease',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 6
                     }}
                   >
-                    {sending ? '⏳' : '↑ Envoyer'}
+                    {sending ? (
+                      <RefreshCw size={13} className="animate-spin" />
+                    ) : (
+                      <>
+                        <Send size={13} />
+                        <span>Envoyer</span>
+                      </>
+                    )}
                   </button>
                   {selected.status !== 'resolved' && (
                     <button
@@ -1479,10 +1544,15 @@ export default function AdminSupportPage() {
                         cursor: 'pointer',
                         fontSize: 12,
                         fontWeight: 600,
-                        fontFamily: 'inherit'
+                        fontFamily: 'inherit',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 6
                       }}
                     >
-                      ✅ {t('admin.resolve')}
+                      <CheckCircle2 size={13} style={{ color: '#22c55e' }} />
+                      <span>{t('admin.resolve')}</span>
                     </button>
                   )}
                 </div>

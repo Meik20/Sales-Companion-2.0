@@ -4,7 +4,7 @@ import React from 'react'
 import Link from 'next/link'
 import { useTranslation } from '@/providers/I18nProvider'
 import { Button } from '@/components/ui/Button'
-import { Inbox } from 'lucide-react'
+import { Inbox, AlertTriangle } from 'lucide-react'
 
 type LoadingProps = { title?: string; description?: string }
 
@@ -193,7 +193,7 @@ export function ErrorState({
 
   return (
     <div className="flex flex-col items-center gap-2 rounded-xl border border-red-500/20 bg-red-500/6 px-6 py-8 text-center">
-      <span className="text-[28px]">⚠️</span>
+      <AlertTriangle className="h-7 w-7 text-red-400" />
       <p className="m-0 font-semibold text-red-400">{displayTitle}</p>
       {description ? <p className="m-0 text-[13px] text-muted-foreground">{description}</p> : null}
       {onRetry ? (
