@@ -15,6 +15,8 @@ import { COUNTRY_FRENCH_IN, COUNTRY_NAMES, type CountryCode } from '@sales-compa
 import { ShortcutCard } from '@/components/ui/ShortcutCard'
 import { Button } from '@/components/ui/Button'
 import { useTranslation } from '@/providers/I18nProvider'
+import { routes } from '@/constants/routes'
+import { Send, Zap } from 'lucide-react'
 
 const COUNTRY_HIGHLIGHT_CITIES: Record<string, { btp: string; tech: string }> = {
   CM: { btp: 'Douala', tech: 'Yaoundé' },
@@ -31,6 +33,7 @@ function SearchContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const { user } = useCurrentUser()
+  const isFreePlan = !user?.plan || user?.plan === 'free'
   const userCountry = (user?.country || 'CM') as CountryCode
   const countryName = COUNTRY_NAMES[userCountry] || 'Cameroun'
   const countryIn = COUNTRY_FRENCH_IN[userCountry] || 'au Cameroun'
@@ -68,6 +71,10 @@ function SearchContent() {
 
   async function sendChatMessage(msg: string) {
     if (!msg.trim() || isSendingChat) return
+    if (isFreePlan) {
+      router.push(routes.upgrade)
+      return
+    }
     if (typeof navigator !== 'undefined' && !navigator.onLine) {
       setChatMessages((prev) => [
         ...prev,
@@ -124,6 +131,10 @@ function SearchContent() {
   function handleChatKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
+      if (isFreePlan) {
+        router.push(routes.upgrade)
+        return
+      }
       sendChatMessage(chatInput)
     }
   }
@@ -669,132 +680,167 @@ function SearchContent() {
           </DataCard>
 
           {/* Assistant B2B IA */}
-          {user?.plan !== 'free' && (
-            <DataCard
-              title={t('search.aiAssistant')}
-              style={{
-                boxShadow: '0 8px 30px rgba(0,0,0,0.06)',
-                border: '1px solid var(--border)'
-              }}
-            >
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, height: 380 }}>
-                {/* conversationStarted: true once user has sent at least one message */}
-                {(() => {
-                  const conversationStarted = chatMessages.some((m) => m.role === 'user')
-                  return (
-                    <>
-                <div
-                  style={{
-                    flex: 1,
-                    overflowY: 'auto',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 10,
-                    paddingRight: 4,
-                    maxHeight: conversationStarted ? 320 : 260
-                  }}
-                >
-                  {chatMessages.map((msg, i) => (
-                    <div
-                      key={i}
-                      className={
-                        msg.role === 'user'
-                          ? 'self-end max-w-[85%] rounded-[16px_16px_4px_16px] bg-primary px-3.5 py-2.5 text-[12.5px] leading-relaxed text-primary-foreground shadow-sm'
-                          : 'self-start max-w-[85%] rounded-[16px_16px_16px_4px] border border-border bg-secondary/80 px-3.5 py-2.5 text-[12.5px] leading-relaxed text-foreground shadow-sm'
-                      }
-                      style={{ whiteSpace: 'pre-wrap' }}
-                    >
-                      {msg.text}
-                    </div>
-                  ))}
-                  {isSendingChat && (
-                    <div className="self-start rounded-[16px_16px_16px_4px] border border-border bg-secondary/60 px-3.5 py-2.5 text-[12px] italic text-muted-foreground">
-                      {t('search.aiThinking')}
-                    </div>
-                  )}
-                  <div ref={chatEndRef} />
-                </div>
-
-                  {/* Chips suggestions — visibles uniquement AVANT que la conversation démarre */}
-                  {!conversationStarted && (
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                  {(() => {
-                    const sector = filters.sector || (user as { sector?: string } | null)?.sector
-                    const city = filters.city
-                    const hasResults = results.length > 0
-
-                    let chips: string[] = []
-
-                    if (hasResults) {
-                      chips = [
-                        `Script d'appel pour ces ${results.length} prospects`,
-                        sector ? `Pitch d'accroche ${sector}` : "Email d'approche personnalisé",
-                        'Questions de qualification B2B'
-                      ]
-                    } else if (sector && city) {
-                      chips = [
-                        `Opportunités ${sector} à ${city}`,
-                        `Email d'approche ${sector} ${city}`,
-                        `Script appel DG ${sector}`
-                      ]
-                    } else if (sector) {
-                      chips = [
-                        `Tendances marché ${sector}`,
-                        `Email d'approche ${sector}`,
-                        `Script appel DG ${sector}`
-                      ]
-                    } else if (city) {
-                      chips = [
-                        `Marché B2B à ${city}`,
-                        `Email prospection ${city}`,
-                        `Comment aborder un DG à ${city}`
-                      ]
-                    } else {
-                      chips = [
-                        `Tendances BTP ${highlightCities.btp}`,
-                        `Email d'approche Tech ${highlightCities.tech}`,
-                        'Script appel DG Agroalimentaire'
-                      ]
+          <DataCard
+            title={t('search.aiAssistant')}
+            style={{
+              boxShadow: '0 8px 30px rgba(0,0,0,0.06)',
+              border: '1px solid var(--border)'
+            }}
+          >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, height: 380 }}>
+              {/* conversationStarted: true once user has sent at least one message */}
+              {(() => {
+                const conversationStarted = chatMessages.some((m) => m.role === 'user')
+                return (
+                  <>
+              <div
+                style={{
+                  flex: 1,
+                  overflowY: 'auto',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 10,
+                  paddingRight: 4,
+                  maxHeight: conversationStarted ? 320 : 260
+                }}
+              >
+                {chatMessages.map((msg, i) => (
+                  <div
+                    key={i}
+                    className={
+                      msg.role === 'user'
+                        ? 'self-end max-w-[85%] rounded-[16px_16px_4px_16px] bg-primary px-3.5 py-2.5 text-[12.5px] leading-relaxed text-primary-foreground shadow-sm'
+                        : 'self-start max-w-[85%] rounded-[16px_16px_16px_4px] border border-border bg-secondary/80 px-3.5 py-2.5 text-[12.5px] leading-relaxed text-foreground shadow-sm'
                     }
-
-                    return chips.map((chip) => (
-                      <button
-                        key={chip}
-                        onClick={() => sendChatMessage(chip)}
-                        disabled={isSendingChat}
-                        className="cursor-pointer rounded-full border border-border bg-secondary/70 px-2.5 py-1 text-[11px] font-medium text-foreground transition-all hover:border-primary/40 hover:bg-primary/10 hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        {chip}
-                      </button>
-                    ))
-                  })()}
+                    style={{ whiteSpace: 'pre-wrap' }}
+                  >
+                    {msg.text}
                   </div>
-                  )}
+                ))}
+                {isSendingChat && (
+                  <div className="self-start rounded-[16px_16px_16px_4px] border border-border bg-secondary/60 px-3.5 py-2.5 text-[12px] italic text-muted-foreground">
+                    {t('search.aiThinking')}
+                  </div>
+                )}
+                <div ref={chatEndRef} />
+              </div>
 
-                  {/* Zone de saisie */}
-                  <div style={{ position: 'relative' }}>
-                    <textarea
-                      value={chatInput}
-                      onChange={(e) => setChatInput(e.target.value)}
-                      onKeyDown={handleChatKeyDown}
-                      disabled={isSendingChat}
-                      placeholder={t('search.aiPlaceholder')}
-                      rows={1}
-                      style={{
-                        width: '100%',
-                        padding: '9px 44px 9px 12px',
-                        borderRadius: 10,
-                        border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
-                        outline: 'none',
-                        fontSize: 12.5,
-                        resize: 'none',
-                        fontFamily: 'inherit',
-                        background: 'var(--card, #131c2e)',
-                        color: 'var(--foreground, #f1f5f9)',
-                        boxSizing: 'border-box',
-                        lineHeight: 1.4
+                {/* Chips suggestions — visibles uniquement AVANT que la conversation démarre */}
+                {!conversationStarted && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {(() => {
+                  const sector = filters.sector || (user as { sector?: string } | null)?.sector
+                  const city = filters.city
+                  const hasResults = results.length > 0
+
+                  let chips: string[] = []
+
+                  if (hasResults) {
+                    chips = [
+                      `Script d'appel pour ces ${results.length} prospects`,
+                      sector ? `Pitch d'accroche ${sector}` : "Email d'approche personnalisé",
+                      'Questions de qualification B2B'
+                    ]
+                  } else if (sector && city) {
+                    chips = [
+                      `Opportunités ${sector} à ${city}`,
+                      `Email d'approche ${sector} ${city}`,
+                      `Script appel DG ${sector}`
+                    ]
+                  } else if (sector) {
+                    chips = [
+                      `Tendances marché ${sector}`,
+                      `Email d'approche ${sector}`,
+                      `Script appel DG ${sector}`
+                    ]
+                  } else if (city) {
+                    chips = [
+                      `Marché B2B à ${city}`,
+                      `Email prospection ${city}`,
+                      `Comment aborder un DG à ${city}`
+                    ]
+                  } else {
+                    chips = [
+                      `Tendances BTP ${highlightCities.btp}`,
+                      `Email d'approche Tech ${highlightCities.tech}`,
+                      'Script appel DG Agroalimentaire'
+                    ]
+                  }
+
+                  return chips.map((chip) => (
+                    <button
+                      key={chip}
+                      onClick={() => {
+                        if (isFreePlan) {
+                          router.push(routes.upgrade)
+                          return
+                        }
+                        sendChatMessage(chip)
                       }}
-                    />
+                      disabled={isSendingChat}
+                      className="cursor-pointer rounded-full border border-border bg-secondary/70 px-2.5 py-1 text-[11px] font-medium text-foreground transition-all hover:border-primary/40 hover:bg-primary/10 hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {chip}
+                    </button>
+                  ))
+                })()}
+                </div>
+                )}
+
+                {/* Zone de saisie */}
+                <div style={{ position: 'relative' }}>
+                  <textarea
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    onKeyDown={handleChatKeyDown}
+                    disabled={isSendingChat}
+                    placeholder={t('search.aiPlaceholder')}
+                    rows={1}
+                    style={{
+                      width: '100%',
+                      padding: isFreePlan ? '9px 104px 9px 12px' : '9px 44px 9px 12px',
+                      borderRadius: 10,
+                      border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+                      outline: 'none',
+                      fontSize: 12.5,
+                      resize: 'none',
+                      fontFamily: 'inherit',
+                      background: 'var(--card, #131c2e)',
+                      color: 'var(--foreground, #f1f5f9)',
+                      boxSizing: 'border-box',
+                      lineHeight: 1.4
+                    }}
+                  />
+                  {isFreePlan ? (
+                    <button
+                      type="button"
+                      onClick={() => router.push(routes.upgrade)}
+                      className="cursor-pointer transition-all hover:scale-105 active:scale-95"
+                      style={{
+                        position: 'absolute',
+                        right: 6,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        height: 28,
+                        padding: '0 12px',
+                        borderRadius: 8,
+                        background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+                        color: '#fff',
+                        border: 'none',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 5,
+                        fontSize: 11,
+                        fontWeight: 800,
+                        letterSpacing: '0.04em',
+                        boxShadow: '0 2px 10px rgba(124, 58, 237, 0.4)',
+                        zIndex: 2
+                      }}
+                    >
+                      <Zap size={12} className="fill-current" />
+                      <span>UPGRADE</span>
+                    </button>
+                  ) : (
                     <button
                       onClick={() => sendChatMessage(chatInput)}
                       disabled={isSendingChat || !chatInput.trim()}
@@ -817,27 +863,15 @@ function SearchContent() {
                         transition: 'all 200ms ease'
                       }}
                     >
-                      <svg
-                        width="12"
-                        height="12"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <line x1="22" y1="2" x2="11" y2="13" />
-                        <polygon points="22 2 15 22 11 13 2 9 22 2" />
-                      </svg>
+                      <Send size={12} strokeWidth={2.5} />
                     </button>
-                  </div>
-                    </>
-                  )
-                })()}
-              </div>
-            </DataCard>
-          )}
+                  )}
+                </div>
+                  </>
+                )
+              })()}
+            </div>
+          </DataCard>
         </div>
       </div>
     </AppShell>
