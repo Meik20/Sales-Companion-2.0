@@ -117,16 +117,23 @@ export function ManagerProspectsList({
   }, [refreshTrigger])
 
   async function handleAssign(prospectId: string, memberId: string | null) {
+    if (!user) return
     setAssigning(prospectId)
     try {
-      await fetch('/api/imports', {
+      const token = await user.getIdToken()
+      const res = await fetch('/api/imports', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
         body: JSON.stringify({ prospectId, assignedTo: memberId, managerId })
       })
-      setProspects((prev) =>
-        prev.map((p) => (p.id === prospectId ? { ...p, assignedTo: memberId } : p))
-      )
+      if (res.ok) {
+        setProspects((prev) =>
+          prev.map((p) => (p.id === prospectId ? { ...p, assignedTo: memberId } : p))
+        )
+      }
     } finally {
       setAssigning(null)
     }

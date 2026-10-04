@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { FieldValue } from 'firebase-admin/firestore'
 
 async function getAdminModules() {
   const { adminDb } = await import('@/lib/firebase-admin')
@@ -187,14 +188,31 @@ export async function POST(request: NextRequest) {
 }
 
 // ── PATCH /api/imports — Assigner un prospect à un membre ────────────
+// Cette route met à jour manager_prospects ET propage l'assignation dans
+// le pipeline (entrée membre) et dans team_assignments, exactement comme
+// POST /api/team/assignments.
 export async function PATCH(request: NextRequest) {
   try {
     const { adminDb } = await getAdminModules()
-    const body = await request.json().catch(() => null)
+    const { adminAuth } = await import('@/lib/firebase-admin')
 
-    if (!body) {
-      return NextResponse.json({ message: 'Corps invalide' }, { status: 400 })
+    // ── Auth ─────────────────────────────────────────────────────────────
+    const token = request.headers.get('authorization')?.split(' ')[1]
+    if (!token) return NextResponse.json({ message: 'Non authentifié' }, { status: 401 })
+
+    let managerUid: string
+    let managerName = ''
+    try {
+      const decoded = await adminAuth.verifyIdToken(token)
+      managerUid = decoded.uid
+      const managerDoc = await adminDb.collection('users').doc(managerUid).get()
+      managerName = managerDoc.data()?.name ?? managerDoc.data()?.email ?? ''
+    } catch {
+      return NextResponse.json({ message: 'Token invalide' }, { status: 401 })
     }
+
+    const body = await request.json().catch(() => null)
+    if (!body) return NextResponse.json({ message: 'Corps invalide' }, { status: 400 })
 
     const { prospectId, assignedTo, managerId } = body as {
       prospectId?: string
@@ -206,23 +224,180 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ message: 'prospectId et managerId requis' }, { status: 400 })
     }
 
-    const ref = adminDb.collection('manager_prospects').doc(prospectId)
-    const snap = await ref.get()
+    // Sécurité : seul le manager propriétaire peut assigner
+    if (managerUid !== managerId) {
+      return NextResponse.json({ message: 'Accès refusé' }, { status: 403 })
+    }
 
-    if (!snap.exists || snap.data()?.managerId !== managerId) {
+    // ── Charger le prospect importé ───────────────────────────────────────
+    const prospectRef = adminDb.collection('manager_prospects').doc(prospectId)
+    const prospectSnap = await prospectRef.get()
+
+    if (!prospectSnap.exists || prospectSnap.data()?.managerId !== managerId) {
       return NextResponse.json({ message: 'Prospect non trouvé ou accès refusé' }, { status: 403 })
     }
 
-    await ref.update({ assignedTo: assignedTo ?? null, updatedAt: new Date() })
+    const prospectData = prospectSnap.data()!
+    const previousAssignedTo: string | null = prospectData.assignedTo ?? null
+    const companyName: string = prospectData.name || prospectData.companyName || prospectId
 
-    return NextResponse.json({ success: true })
+    // ── Cas 1 : DÉSASSIGNATION (assignedTo = null / vide) ─────────────────
+    if (!assignedTo) {
+      // Mettre à jour le prospect importé
+      await prospectRef.update({ assignedTo: null, updatedAt: new Date() })
+
+      // Supprimer l'entrée pipeline du membre précédent (si elle existe)
+      if (previousAssignedTo) {
+        try {
+          // Chercher par sourceProspectId = prospectId
+          const pipeSnap = await adminDb
+            .collection('pipeline')
+            .where('sourceProspectId', '==', prospectId)
+            .where('userId', '==', previousAssignedTo)
+            .get()
+          const batch = adminDb.batch()
+          pipeSnap.docs.forEach((d) => batch.delete(d.ref))
+
+          // Supprimer le(s) team_assignment(s) correspondant(s)
+          const taSnap = await adminDb
+            .collection('team_assignments')
+            .where('managerUid', '==', managerUid)
+            .where('pipelineItemId', '==', prospectId)
+            .get()
+          taSnap.docs.forEach((d) => batch.delete(d.ref))
+
+          await batch.commit()
+        } catch (cleanupErr) {
+          console.warn('[imports PATCH] cleanup error', cleanupErr)
+        }
+      }
+
+      return NextResponse.json({ success: true, action: 'unassigned' })
+    }
+
+    // ── Cas 2 : ASSIGNATION / RÉASSIGNATION ──────────────────────────────
+
+    // Résoudre les infos du membre destinataire
+    const memberDoc = await adminDb.collection('users').doc(assignedTo).get()
+    const memberData = memberDoc.data() || {}
+    let memberName: string = memberData.name ?? ''
+    const memberEmail: string = memberData.email ?? ''
+    const memberAccessId: string | null = memberData.accessId ?? null
+
+    if (!memberName) {
+      // Fallback : chercher dans team_accesses
+      const accessKey = memberAccessId || assignedTo
+      try {
+        const accessDoc = await adminDb
+          .collection('team_accesses')
+          .doc(accessKey.trim().toLowerCase())
+          .get()
+        if (accessDoc.exists) {
+          const ad = accessDoc.data()!
+          memberName = `${ad.firstname ?? ''} ${ad.lastname ?? ''}`.trim()
+        }
+      } catch { /* ignore */ }
+    }
+    if (!memberName) memberName = memberEmail || ''
+
+    // Si c'était déjà assigné à quelqu'un d'autre → désassigner l'ancien d'abord
+    if (previousAssignedTo && previousAssignedTo !== assignedTo) {
+      try {
+        const oldPipeSnap = await adminDb
+          .collection('pipeline')
+          .where('sourceProspectId', '==', prospectId)
+          .where('userId', '==', previousAssignedTo)
+          .get()
+        const batch = adminDb.batch()
+        oldPipeSnap.docs.forEach((d) => batch.delete(d.ref))
+
+        const oldTaSnap = await adminDb
+          .collection('team_assignments')
+          .where('managerUid', '==', managerUid)
+          .where('pipelineItemId', '==', prospectId)
+          .where('memberId', '==', previousAssignedTo)
+          .get()
+        oldTaSnap.docs.forEach((d) => batch.delete(d.ref))
+        await batch.commit()
+      } catch (cleanupErr) {
+        console.warn('[imports PATCH] old assignment cleanup error', cleanupErr)
+      }
+    }
+
+    // Vérifier si l'assignation existe déjà pour éviter les doublons
+    const existingTa = await adminDb
+      .collection('team_assignments')
+      .where('managerUid', '==', managerUid)
+      .where('memberId', '==', assignedTo)
+      .where('pipelineItemId', '==', prospectId)
+      .limit(1)
+      .get()
+
+    let pipelineEntryId: string
+
+    if (existingTa.empty) {
+      // ── Créer l'entrée pipeline pour le membre ────────────────────────
+      const pipelineRef = adminDb.collection('pipeline').doc()
+      pipelineEntryId = pipelineRef.id
+
+      await pipelineRef.set({
+        userId: assignedTo,           // le membre voit dans son pipeline
+        assignedTo: assignedTo,
+        memberName,
+        memberEmail,
+        memberAccessId: memberAccessId ? memberAccessId.toLowerCase() : null,
+        managerUid,                   // le manager voit via /api/pipeline/manager
+        companyName,
+        name: companyName,
+        companySector: prospectData.sector ?? prospectData.companySector ?? null,
+        companyCity: prospectData.city ?? prospectData.companyCity ?? null,
+        companyPhone: prospectData.phone ?? prospectData.companyPhone ?? null,
+        companyEmail: prospectData.email ?? prospectData.companyEmail ?? null,
+        status: 'prospection',
+        sourceProspectId: prospectId, // référence vers le prospect importé
+        assignedBy: managerUid,
+        assignedByName: managerName,
+        note: prospectData.notes ?? '',
+        previousAssignees: [],
+        createdAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp()
+      })
+
+      // ── Créer l'entrée team_assignment ────────────────────────────────
+      const assignmentRef = adminDb.collection('team_assignments').doc()
+      await assignmentRef.set({
+        managerUid,
+        managerName,
+        memberId: assignedTo,
+        memberName,
+        memberEmail,
+        pipelineItemId: prospectId,      // référence au prospect importé
+        pipelineEntryId,                  // nouvelle entrée pipeline du membre
+        companyName,
+        status: 'active',
+        createdAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp()
+      })
+    } else {
+      pipelineEntryId = existingTa.docs[0]!.data().pipelineEntryId ?? ''
+    }
+
+    // ── Mettre à jour le prospect importé ─────────────────────────────────
+    await prospectRef.update({
+      assignedTo,
+      assignedMemberName: memberName,
+      pipelineEntryId,
+      updatedAt: new Date()
+    })
+
+    return NextResponse.json({ success: true, action: 'assigned', pipelineEntryId })
   } catch (error) {
     console.error('[imports PATCH] Error updating prospect:', error)
     const msg = error instanceof Error ? error.message : 'Erreur serveur inconnue'
-    console.error('[imports PATCH] Error details:', { message: msg, error })
     return NextResponse.json({ message: msg }, { status: 500 })
   }
 }
+
 
 // ── DELETE /api/imports — Supprimer des prospects ou vider la liste ───
 export async function DELETE(request: NextRequest) {
