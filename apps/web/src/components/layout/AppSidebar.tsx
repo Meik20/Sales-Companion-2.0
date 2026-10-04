@@ -488,7 +488,7 @@ export function AppSidebar({
               onClick={(e) => {
                 if (user.plan === 'free') {
                   e.preventDefault()
-                  router.push(routes.upgrade)
+                  router.push(`${routes.upgrade}?redirect=${encodeURIComponent(routes.importProspects)}`)
                 }
               }}
             />

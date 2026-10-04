@@ -18,7 +18,7 @@ export default function ImportPage() {
 
   useEffect(() => {
     if (user && isFree) {
-      router.replace(routes.upgrade)
+      router.replace(`${routes.upgrade}?redirect=${encodeURIComponent(routes.importProspects)}`)
     }
   }, [user, isFree, router])
 

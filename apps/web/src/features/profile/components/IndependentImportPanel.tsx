@@ -122,7 +122,7 @@ export function IndependentImportPanel() {
           </div>
           <button
             type="button"
-            onClick={() => router.push(routes.upgrade)}
+            onClick={() => router.push(`${routes.upgrade}?redirect=${encodeURIComponent(routes.importProspects)}`)}
             className="flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90 transition-all shadow-sm cursor-pointer"
           >
             <Sparkles size={15} />

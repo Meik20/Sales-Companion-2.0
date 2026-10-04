@@ -79,6 +79,7 @@ function useCurrentUserSource(): UserContextValue {
 
   useEffect(() => {
     let unsubscribeSnapshot: (() => void) | null = null
+    let prevPlan: string | null = null
 
     const unsubscribeAuth = auth.onAuthStateChanged((firebaseUser) => {
       if (unsubscribeSnapshot) {
@@ -90,6 +91,7 @@ function useCurrentUserSource(): UserContextValue {
         setUser(null)
         saveCachedUser(null)
         setLoading(false)
+        prevPlan = null
         return
       }
 
@@ -123,6 +125,17 @@ function useCurrentUserSource(): UserContextValue {
               : (data.lastResetDate === today)
             const currentDailyUsed = isSamePeriod ? (data.dailyUsed ?? 0) : 0
             const resolvedDailyLimit = PLAN_LIMITS[userPlan] ?? 10
+
+            // ── Détection de surclassement de plan en direct ─────────────────
+            if (prevPlan !== null && prevPlan === 'free' && userPlan !== 'free') {
+              firebaseUser.getIdToken(true).catch(() => {})
+              if (typeof window !== 'undefined') {
+                window.dispatchEvent(
+                  new CustomEvent('sc:plan-upgraded', { detail: { newPlan: userPlan, oldPlan: prevPlan } })
+                )
+              }
+            }
+            prevPlan = userPlan
 
             const currentUserObj = {
               uid: firebaseUser.uid,

@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { AppShell } from '@/components/layout/AppShell'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useToast } from '@/hooks/useToast'
-import { Check, Zap, Shield, Users, Loader2, Copy, AlertCircle, Star, Gem, Building2, CreditCard, Clock } from 'lucide-react'
+import { Check, Zap, Shield, Users, Loader2, Copy, AlertCircle, Star, Gem, Building2, CreditCard, Clock, ArrowRight } from 'lucide-react'
 import { routes } from '@/constants/routes'
 
 import { PLAN_LIMITS, PLAN_PRICES } from '@sales-companion/shared'
@@ -92,11 +92,40 @@ export default function UpgradePage() {
   const { pushToast } = useToast()
   const router = useRouter()
   const searchParams = useSearchParams()
+  const prevPlanRef = useRef<string | null>(null)
 
   // Détecte si l'utilisateur arrive depuis la page d'inscription (nouveau manager)
   const isNewManager = searchParams.get('from') === 'register' && user?.role === 'manager'
 
-  // ── Protection de la page ────────────────────────────────────────────────
+  // ── Écoute globale de surclassement de plan en direct ───────────────────────
+  useEffect(() => {
+    const handleUpgraded = (e: Event) => {
+      const customEvent = e as CustomEvent<{ newPlan: string }>
+      const newPlan = customEvent.detail?.newPlan || 'PRO'
+      const destination =
+        searchParams.get('redirect') ||
+        searchParams.get('from') ||
+        (user?.role === 'independent' ? routes.pipeline : routes.search)
+
+      pushToast({
+        type: 'success',
+        title: `Plan ${newPlan.toUpperCase()} activé !`,
+        description: 'Votre accès est débloqué. Redirection vers votre espace...'
+      })
+
+      // Rafraîchir immédiatement le token Firebase Auth
+      user?.getIdToken(true).catch(() => {})
+
+      setTimeout(() => {
+        router.replace(destination)
+      }, 700)
+    }
+
+    window.addEventListener('sc:plan-upgraded', handleUpgraded)
+    return () => window.removeEventListener('sc:plan-upgraded', handleUpgraded)
+  }, [router, searchParams, user, pushToast])
+
+  // ── Protection et redirection automatique dès activation ─────────────────
   useEffect(() => {
     if (!userLoading && user) {
       if (user.role !== 'manager' && user.role !== 'independent') {
@@ -104,16 +133,29 @@ export default function UpgradePage() {
         return
       }
 
-      // Si l'utilisateur a été forcé ici lors de l'inscription/connexion mais qu'il est maintenant actif et payé,
-      // on le redirige automatiquement vers le tableau de bord (ex: l'admin vient de l'activer).
-      const fromParam = searchParams.get('from')
-      const isForced = fromParam === 'register' || fromParam === 'login'
-      
-      if (isForced && user.active && user.plan !== 'free') {
-        router.replace(routes.search)
+      const redirectParam = searchParams.get('redirect') || searchParams.get('from')
+      const isForced = redirectParam === 'register' || redirectParam === 'login' || !!searchParams.get('redirect')
+      const isLiveUpgraded = prevPlanRef.current !== null && prevPlanRef.current === 'free' && user.plan !== 'free'
+
+      if (user.active && user.plan !== 'free' && (isForced || isLiveUpgraded)) {
+        const destination =
+          searchParams.get('redirect') ||
+          (user.role === 'independent' ? routes.pipeline : routes.search)
+
+        pushToast({
+          type: 'success',
+          title: `Compte activé — Plan ${user.plan.toUpperCase()}`,
+          description: 'Votre plan a été activé avec succès ! Redirection vers votre espace...'
+        })
+
+        user.getIdToken(true).catch(() => {})
+        router.replace(destination)
+        return
       }
+
+      prevPlanRef.current = user.plan
     }
-  }, [user, userLoading, router, searchParams])
+  }, [user, userLoading, router, searchParams, pushToast])
 
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
   const [operator, setOperator] = useState<'MTN' | 'ORANGE'>('MTN')
@@ -191,6 +233,33 @@ export default function UpgradePage() {
               : 'Choisissez votre abonnement et payez par transfert Mobile Money.'
           }
         />
+
+        {/* ── Bannière plan déjà actif ───────────────────────────────────── */}
+        {user && user.plan !== 'free' && (
+          <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-xl border border-primary/30 bg-primary/10 p-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/20 text-primary">
+                <Check size={20} />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-foreground">
+                  Votre abonnement actuel est actif : <span className="text-primary uppercase font-extrabold">{user.plan}</span>
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Toutes vos fonctionnalités sont débloquées. Vous pouvez naviguer librement.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => router.push(searchParams.get('redirect') || (user.role === 'independent' ? routes.pipeline : routes.search))}
+              className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-xs font-bold text-primary-foreground hover:bg-primary/90 transition-all cursor-pointer shrink-0 shadow-sm"
+            >
+              Accéder à mon espace
+              <ArrowRight size={14} />
+            </button>
+          </div>
+        )}
 
         {/* ── Bannière urgente pour les nouveaux managers ─────────────────── */}
         {isNewManager && step !== 'success' && (

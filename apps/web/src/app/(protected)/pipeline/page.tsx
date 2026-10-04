@@ -106,7 +106,7 @@ export default function PipelinePage() {
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  if (isFree) { router.push('/upgrade'); return }
+                  if (isFree) { router.push('/upgrade?redirect=/pipeline'); return }
                   setShowTargets((v) => !v); setShowExport(false)
                 }}
                 style={{ display: 'flex', alignItems: 'center', gap: 6 }}
@@ -118,7 +118,7 @@ export default function PipelinePage() {
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  if (isFree) { router.push('/upgrade'); return }
+                  if (isFree) { router.push('/upgrade?redirect=/pipeline'); return }
                   setShowExport((v) => !v); setShowTargets(false)
                 }}
                 style={{ display: 'flex', alignItems: 'center', gap: 6 }}
