@@ -44,14 +44,75 @@ export async function GET(request: NextRequest) {
       .where('managerUid', '==', managerUid)
       .get()
 
+    // Construire la map initiale depuis users (champ : accessId, pas teamAccessId)
     const membersMap = new Map<string, { name: string; accessId: string }>()
     membersSnap.docs.forEach((doc) => {
       const d = doc.data()
       membersMap.set(doc.id, {
         name: d.name || d.email || doc.id,
-        accessId: d.teamAccessId || ''
+        accessId: d.accessId || ''
       })
     })
+
+    // Fallback : pour les membres sans accessId dans users, chercher dans team_accesses
+    const missingAccessIds = [...membersMap.entries()].filter(([, v]) => !v.accessId)
+    if (missingAccessIds.length > 0) {
+      try {
+        const accessesSnap = await adminDb
+          .collection('team_accesses')
+          .where('managerUid', '==', managerUid)
+          .get()
+        accessesSnap.docs.forEach((doc) => {
+          const ad = doc.data()
+          const firebaseUid: string = ad.firebaseUid ?? ''
+          if (firebaseUid && membersMap.has(firebaseUid) && !membersMap.get(firebaseUid)!.accessId) {
+            membersMap.get(firebaseUid)!.accessId = ad.accessId || doc.id
+          }
+        })
+      } catch { /* ignore */ }
+    }
+
+    // ── Formatage de la période brute en libellé lisible ───────────────────
+    const MONTHS_FR = [
+      'Janvier','Février','Mars','Avril','Mai','Juin',
+      'Juillet','Août','Septembre','Octobre','Novembre','Décembre'
+    ]
+    function formatPeriod(raw: string | null, from: Date | null, to: Date | null): string {
+      if (raw) {
+        // "2026-10" → "Octobre 2026"
+        const monthMatch = raw.match(/^(\d{4})-(\d{2})$/)
+        if (monthMatch) {
+          const [, year, month] = monthMatch
+          const m = parseInt(month!, 10)
+          return `${MONTHS_FR[m - 1] ?? month} ${year}`
+        }
+        // "2026-Q1" → "T1 2026"
+        const quarterMatch = raw.match(/^(\d{4})-Q(\d)$/i)
+        if (quarterMatch) {
+          const [, year, q] = quarterMatch
+          return `T${q} ${year}`
+        }
+        // "2026-S1" → "S1 2026"
+        const semMatch = raw.match(/^(\d{4})-S(\d)$/i)
+        if (semMatch) {
+          const [, year, s] = semMatch
+          return `Semestre ${s} ${year}`
+        }
+        // Retourner tel quel si format inconnu
+        return raw
+      }
+      // Fallback : construire depuis les dates de filtre
+      if (from && to) {
+        const f = from.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })
+        const t = to.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })
+        return f === t ? f : `${f} – ${t}`
+      }
+      if (from) return `Depuis ${from.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })}`
+      if (to) return `Jusqu'à ${to.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })}`
+      // Aucune période : utiliser le mois courant
+      const now = new Date()
+      return `${MONTHS_FR[now.getMonth()]} ${now.getFullYear()}`
+    }
 
     // ── Fetch objectifs par membre ─────────────────────────────────────────
     const targetsSnap = await adminDb
@@ -180,13 +241,17 @@ export async function GET(request: NextRequest) {
       const uid = item.assignedTo ?? '__manager__'
 
       let name = item.memberName
-      let id = item.memberAccessId
+      // Prioriser memberAccessId du doc pipeline s'il a le bon format (contient '@')
+      // Sinon, chercher dans membersMap
+      let id = (item.memberAccessId && item.memberAccessId.includes('@'))
+        ? item.memberAccessId
+        : ''
 
       if (!name || !id) {
         if (uid !== '__manager__' && uid !== managerUid) {
           const m = membersMap.get(uid)
           name = name || m?.name || uid
-          id = id || m?.accessId || ''
+          if (!id) id = m?.accessId || ''
         } else {
           name = 'Manager'
           id = ''
@@ -207,7 +272,7 @@ export async function GET(request: NextRequest) {
           revenue: 0,
           targetVolume: tgt?.targetVolume ?? null,
           targetValue: tgt?.targetValue ?? null,
-          period: tgt?.period ?? null
+          period: formatPeriod(tgt?.period ?? null, fromDate, toDate)
         }
       }
 
@@ -353,7 +418,7 @@ export async function GET(request: NextRequest) {
       const cells: (string | number | null)[] = [
         stat.memberName,
         stat.memberAccessId || '—',
-        stat.period ?? '—',
+        stat.period || formatPeriod(null, fromDate, toDate),
         stat.total,
         stat.prospection,
         stat.negociation,
