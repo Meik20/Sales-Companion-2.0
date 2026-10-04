@@ -83,9 +83,9 @@ export async function POST(request: NextRequest) {
     const callerData = callerDoc.data()
     const callerRole = callerData?.role as string | undefined
 
-    if (!['manager', 'support_agent'].includes(callerRole ?? '')) {
+    if (!['manager', 'support_agent', 'independent'].includes(callerRole ?? '')) {
       return NextResponse.json(
-        { message: 'Accès refusé. Seul un manager ou un agent support peut importer des prospects.' },
+        { message: 'Accès refusé. Seul un manager, un indépendant ou un agent support peut importer des prospects.' },
         { status: 403 }
       )
     }
@@ -126,6 +126,14 @@ export async function POST(request: NextRequest) {
           { status: 403 }
         )
       }
+    }
+
+    // Sécurité : un indépendant ne peut importer que sous son propre uid
+    if (callerRole === 'independent' && managerId !== callerUid) {
+      return NextResponse.json(
+        { message: 'Accès refusé. Vous ne pouvez importer que pour votre propre compte.' },
+        { status: 403 }
+      )
     }
 
     // Sécurité : un manager ne peut importer que sous son propre uid
