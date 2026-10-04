@@ -14,10 +14,11 @@ import { UserPipelineList } from '@/features/pipeline/components/UserPipelineLis
 import { useUpdatePipelineItem } from '@/features/pipeline/hooks/useUpdatePipelineItem'
 import { useTeamMembers } from '@/features/team/hooks/useTeamMembers'
 import { useExportTeamPerformance } from '@/features/pipeline/hooks/useExportTeamPerformance'
-import { useState } from 'react'
+import { useTeamTargets, useSaveTeamTarget } from '@/features/pipeline/hooks/useTeamTargets'
+import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslation } from '@/providers/I18nProvider'
-import { FileDown, Loader2 } from 'lucide-react'
+import { FileDown, Loader2, Target } from 'lucide-react'
 
 export default function PipelinePage() {
   const { t } = useTranslation()
@@ -33,6 +34,24 @@ export default function PipelinePage() {
   const [exportFrom, setExportFrom] = useState('')
   const [exportTo, setExportTo] = useState('')
   const { exportPerformance, loading: exportLoading } = useExportTeamPerformance()
+
+  // ── Objectifs (indépendants uniquement) ──────────────────────────────────
+  const [showTargets, setShowTargets] = useState(false)
+  const [tgtVolume, setTgtVolume] = useState('')
+  const [tgtValue, setTgtValue] = useState('')
+  const [tgtPeriod, setTgtPeriod] = useState('')
+  const isIndependent = user?.role === 'independent'
+  const { data: myTargets } = useTeamTargets(isIndependent ? user?.uid : undefined)
+  const saveTarget = useSaveTeamTarget()
+
+  // Pré-remplir avec les valeurs existantes quand elles arrivent
+  useEffect(() => {
+    if (!myTargets?.length) return
+    const t0 = myTargets[0]!
+    if (t0.targetVolume != null) setTgtVolume(String(t0.targetVolume))
+    if (t0.targetValue  != null) setTgtValue(String(t0.targetValue))
+    if (t0.period)               setTgtPeriod(t0.period)
+  }, [myTargets])
 
   const stageParam = searchParams.get('stage')?.toLowerCase()
   const activeStage =
@@ -85,7 +104,16 @@ export default function PipelinePage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setShowExport((v) => !v)}
+                onClick={() => { setShowTargets((v) => !v); setShowExport(false) }}
+                style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+              >
+                <Target size={14} />
+                {showTargets ? t('pipeline.cancel') : 'Objectifs'}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => { setShowExport((v) => !v); setShowTargets(false) }}
                 style={{ display: 'flex', alignItems: 'center', gap: 6 }}
               >
                 <FileDown size={14} />
@@ -216,6 +244,117 @@ export default function PipelinePage() {
       {/* Vue member/independent */}
       {user?.role === 'member' || user?.role === 'independent' ? (
         <>
+          {/* ── Panneau Objectifs (indépendants uniquement) ──────────────── */}
+          {isIndependent && showTargets && (
+            <DataCard
+              title="Mes objectifs"
+              subtitle="Définis ton objectif de volume (nombre de prospects conclus) et de valeur (CA en FCFA) pour la période choisie."
+            >
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16, padding: '4px 0' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+                  {/* Volume */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      Volume (prospects conclus)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      placeholder="ex : 10"
+                      value={tgtVolume}
+                      onChange={(e) => setTgtVolume(e.target.value)}
+                      style={{
+                        height: 36,
+                        padding: '0 10px',
+                        borderRadius: 8,
+                        border: '1px solid var(--border)',
+                        background: 'var(--background)',
+                        color: 'var(--foreground)',
+                        fontSize: 13,
+                        outline: 'none'
+                      }}
+                    />
+                  </div>
+                  {/* Valeur */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      Valeur cible (FCFA)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      placeholder="ex : 500000"
+                      value={tgtValue}
+                      onChange={(e) => setTgtValue(e.target.value)}
+                      style={{
+                        height: 36,
+                        padding: '0 10px',
+                        borderRadius: 8,
+                        border: '1px solid var(--border)',
+                        background: 'var(--background)',
+                        color: 'var(--foreground)',
+                        fontSize: 13,
+                        outline: 'none'
+                      }}
+                    />
+                  </div>
+                  {/* Période */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      Période
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="ex : 2026-Q1, 2026-01"
+                      value={tgtPeriod}
+                      onChange={(e) => setTgtPeriod(e.target.value)}
+                      style={{
+                        height: 36,
+                        padding: '0 10px',
+                        borderRadius: 8,
+                        border: '1px solid var(--border)',
+                        background: 'var(--background)',
+                        color: 'var(--foreground)',
+                        fontSize: 13,
+                        outline: 'none'
+                      }}
+                    />
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => { setTgtVolume(''); setTgtValue(''); setTgtPeriod('') }}
+                    style={{ fontSize: 12 }}
+                  >
+                    Réinitialiser
+                  </Button>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    disabled={saveTarget.isPending}
+                    onClick={() => {
+                      if (!user?.uid) return
+                      saveTarget.mutate({
+                        memberId: user.uid,
+                        memberName: user.name ?? user.email ?? '',
+                        targetVolume: tgtVolume ? Number(tgtVolume) : null,
+                        targetValue:  tgtValue  ? Number(tgtValue)  : null,
+                        period: tgtPeriod || null
+                      })
+                    }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}
+                  >
+                    {saveTarget.isPending
+                      ? <Loader2 size={13} className="animate-spin" />
+                      : <Target size={13} />}
+                    {saveTarget.isPending ? 'Enregistrement...' : 'Enregistrer les objectifs'}
+                  </Button>
+                </div>
+              </div>
+            </DataCard>
+          )}
           {/* ── Panneau d'export (indépendants uniquement) ──────────────── */}
           {user?.role === 'independent' && showExport && (
             <DataCard
