@@ -34,6 +34,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     if (campayStatus.status === 'SUCCESSFUL') {
       const planInfo = PLANS[paymentData.plan]
+      const { calculateSubscriptionExpiry } = await import('@/lib/subscription')
+      const expiresAt = calculateSubscriptionExpiry()
 
       // ── Upgrade du plan utilisateur ──────────────────────────────────────
       await adminDb
@@ -42,6 +44,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         .update({
           plan: paymentData.plan,
           dailyLimit: planInfo?.dailyLimit ?? PLAN_LIMITS.enterprise,
+          subscriptionStartedAt: FieldValue.serverTimestamp(),
+          subscriptionExpiresAt: expiresAt.toISOString(),
+          subscriptionExpired: false,
           updatedAt: FieldValue.serverTimestamp()
         })
 

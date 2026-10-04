@@ -42,6 +42,8 @@ export async function POST(request: NextRequest) {
     // ── Si paiement réussi → upgrade du plan ──────────────────────────────
     if (status === 'SUCCESSFUL') {
       const planInfo = PLANS[paymentData.plan]
+      const { calculateSubscriptionExpiry } = await import('@/lib/subscription')
+      const expiresAt = calculateSubscriptionExpiry()
 
       await adminDb
         .collection('users')
@@ -49,6 +51,9 @@ export async function POST(request: NextRequest) {
         .update({
           plan: paymentData.plan,
           dailyLimit: planInfo?.dailyLimit ?? PLAN_LIMITS.enterprise,
+          subscriptionStartedAt: FieldValue.serverTimestamp(),
+          subscriptionExpiresAt: expiresAt.toISOString(),
+          subscriptionExpired: false,
           updatedAt: FieldValue.serverTimestamp()
         })
 

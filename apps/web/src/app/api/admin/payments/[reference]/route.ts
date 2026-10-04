@@ -6,6 +6,7 @@ import { PLANS } from '@/lib/payment-plans'
 import { sendEmail } from '@/utils/email'
 import { verifyAdminCached } from '@/lib/api-admin-auth'
 import { syncTeamMemberPlans } from '@/lib/sync-team-plan'
+import { calculateSubscriptionExpiry } from '@/lib/subscription'
 
 async function verifyAdmin(token: string | null) {
   return verifyAdminCached(token)
@@ -42,8 +43,9 @@ export async function PATCH(
 
     if (action === 'validate') {
       const planInfo = PLANS[paymentData.plan]
+      const expiresAt = calculateSubscriptionExpiry()
 
-      // ✅ Activer le compte et appliquer le plan uniquement après validation admin
+      // ✅ Activer le compte, appliquer le plan et fixer l'échéance à 30 jours à minuit
       await adminDb
         .collection('users')
         .doc(paymentData.userId)
@@ -52,6 +54,9 @@ export async function PATCH(
           dailyLimit: planInfo?.dailyLimit ?? 10,
           active: true,
           activated: true,
+          subscriptionStartedAt: FieldValue.serverTimestamp(),
+          subscriptionExpiresAt: expiresAt.toISOString(),
+          subscriptionExpired: false,
           paymentPending: false,      // ← libère l'écran d'attente côté client
           paymentPendingPlan: FieldValue.delete(), // nettoyage
           updatedAt: FieldValue.serverTimestamp()

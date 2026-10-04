@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { adminDb, adminAuth } from '@/lib/firebase-admin'
 import { verifyAdminCached } from '@/lib/api-admin-auth'
 import { syncTeamMemberPlans } from '@/lib/sync-team-plan'
+import { PLAN_LIMITS } from '@sales-companion/shared'
 
 async function verifyAdmin(token: string | null) {
   return verifyAdminCached(token)
@@ -26,10 +27,32 @@ export async function PATCH(
     const oldSnap = await userDocRef.get()
     const oldData = oldSnap.data()
 
-    await userDocRef.update({
+    // ── Calcul automatique d'expiration si le plan change ────────────────────
+    const updatePayload: Record<string, unknown> = {
       ...safeFields,
       updatedAt: new Date()
-    })
+    }
+
+    if (safeFields.plan !== undefined) {
+      if (safeFields.plan !== 'free') {
+        // Nouveau plan payant : si pas d'expiration explicite fournie, fixer à 30 jours à minuit
+        if (!safeFields.subscriptionExpiresAt) {
+          const { calculateSubscriptionExpiry } = await import('@/lib/subscription')
+          const expiresAt = calculateSubscriptionExpiry()
+          updatePayload.subscriptionStartedAt = new Date().toISOString()
+          updatePayload.subscriptionExpiresAt = expiresAt.toISOString()
+          updatePayload.subscriptionExpired = false
+        }
+      } else {
+        // Rétrogradation manuelle à "free"
+        updatePayload.dailyLimit = safeFields.dailyLimit ?? PLAN_LIMITS.free ?? 10
+        updatePayload.subscriptionExpired = true
+        updatePayload.subscriptionExpiresAt = null
+        updatePayload.subscriptionDowngradeReason = 'admin'
+      }
+    }
+
+    await userDocRef.update(updatePayload)
 
     // ── Propagation du plan aux membres de l'équipe ─────────────────────────
     // Déclenché si le plan OU le dailyLimit du manager change

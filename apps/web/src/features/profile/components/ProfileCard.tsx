@@ -650,9 +650,14 @@ export function ProfileCard() {
               hint={user.plan === 'free' ? (t('profile.resetMonthly' as any) || "Réinitialisé chaque mois") : t('profile.resetDaily')}
             />
             <MetricCard
-              label={t('profile.status')}
+              label={user.plan !== 'free' ? "Validité abonnement" : t('profile.status')}
               value={
-                user.active ? (
+                user.plan !== 'free' && user.subscriptionExpiresAt ? (
+                  new Date(user.subscriptionExpiresAt).toLocaleDateString('fr-FR', {
+                    day: '2-digit',
+                    month: 'short'
+                  })
+                ) : user.active ? (
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 24 }}>
                     <Check size={24} className="text-emerald-500" strokeWidth={3} />
                     <span>{t('profile.active')}</span>
@@ -663,6 +668,11 @@ export function ProfileCard() {
                     <span>{t('profile.inactive')}</span>
                   </span>
                 )
+              }
+              hint={
+                user.plan !== 'free' && user.subscriptionExpiresAt
+                  ? `Expire à minuit (${Math.max(0, Math.ceil((new Date(user.subscriptionExpiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))} j restants)`
+                  : undefined
               }
             />
           </StatsGrid>

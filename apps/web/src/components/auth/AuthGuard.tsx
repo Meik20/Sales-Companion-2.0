@@ -7,15 +7,38 @@ import { Mail, RefreshCw, Clock } from 'lucide-react'
 import { ScIcon } from '@/components/ui/ScIcon'
 import { usePathname, useRouter } from 'next/navigation'
 import { routes } from '@/constants/routes'
+import { useToast } from '@/hooks/useToast'
 
 export function AuthGuard({ children }: PropsWithChildren) {
   const { user, loading } = useCurrentUser()
   const pathname = usePathname()
   const router = useRouter()
+  const { pushToast } = useToast()
   const [resendCooldown, setResendCooldown] = useState(0)
   const [resendLoading, setResendLoading] = useState(false)
   const [finalizing, setFinalizing] = useState(false)
   const [status, setStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // ✅ Rétrogradation automatique vers FREE : notification et restriction
+  // ─────────────────────────────────────────────────────────────────────────
+  useEffect(() => {
+    const handleDowngraded = () => {
+      pushToast({
+        type: 'warning',
+        title: 'Abonnement arrivé à échéance',
+        description: 'Votre compte est repassé au plan Gratuit. Les fonctionnalités réservées aux plans payants ont été restreintes.'
+      })
+
+      const paidOnlyPaths = ['/import', '/ai']
+      if (paidOnlyPaths.some((p) => pathname === p || pathname.startsWith(p + '/'))) {
+        router.replace(`${routes.upgrade}?redirect=${encodeURIComponent(pathname)}`)
+      }
+    }
+
+    window.addEventListener('sc:plan-downgraded', handleDowngraded)
+    return () => window.removeEventListener('sc:plan-downgraded', handleDowngraded)
+  }, [pathname, router, pushToast])
 
   // Permet d'afficher la page /upgrade même si le compte manager n'est pas encore actif
   const isUpgradePage = pathname === '/upgrade' || pathname.startsWith('/upgrade?')

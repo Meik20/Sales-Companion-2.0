@@ -25,6 +25,9 @@ export type CurrentUser = {
   linkedManagerUids?: string[] // ← Managers liés pour l'agent support
   accessId?: string | null // ← Access ID généré par le Manager (ex: "prenomnom@entreprise")
   plan: string
+  subscriptionExpiresAt?: string | null
+  subscriptionStartedAt?: string | null
+  subscriptionExpired?: boolean
   dailyLimit: number
   dailyUsed: number
   active: boolean
@@ -80,11 +83,16 @@ function useCurrentUserSource(): UserContextValue {
   useEffect(() => {
     let unsubscribeSnapshot: (() => void) | null = null
     let prevPlan: string | null = null
+    let expiryTimer: NodeJS.Timeout | null = null
 
     const unsubscribeAuth = auth.onAuthStateChanged((firebaseUser) => {
       if (unsubscribeSnapshot) {
         unsubscribeSnapshot()
         unsubscribeSnapshot = null
+      }
+      if (expiryTimer) {
+        clearTimeout(expiryTimer)
+        expiryTimer = null
       }
 
       if (!firebaseUser) {
@@ -117,8 +125,46 @@ function useCurrentUserSource(): UserContextValue {
               })
             }
 
+            // ── Tracking horaire : Vérification de l'échéance à minuit (30ème jour) ──
+            const rawExpiresAt = (data.subscriptionExpiresAt ?? data.planExpiresAt ?? null) as string | null
+            const hasExpired =
+              Boolean(rawExpiresAt) &&
+              !isNaN(new Date(rawExpiresAt!).getTime()) &&
+              Date.now() >= new Date(rawExpiresAt!).getTime()
+
+            let effectivePlan = (data.plan || 'free') as keyof typeof PLAN_LIMITS
+
+            if (hasExpired && effectivePlan !== 'free') {
+              // Rétrogradation immédiate côté client vers "free"
+              effectivePlan = 'free'
+              // Déclencher la persistance Firestore côté serveur
+              firebaseUser.getIdToken().then((token) => {
+                fetch('/api/subscription/check-expiry', {
+                  method: 'POST',
+                  headers: { Authorization: `Bearer ${token}` }
+                }).catch(() => {})
+              }).catch(() => {})
+            }
+
+            // Minuteur automatique à minuit si l'échéance est dans les prochaines 24h
+            if (rawExpiresAt && !hasExpired && effectivePlan !== 'free') {
+              const msUntilMidnight = new Date(rawExpiresAt).getTime() - Date.now()
+              if (msUntilMidnight > 0 && msUntilMidnight <= 86400000) {
+                if (expiryTimer) clearTimeout(expiryTimer)
+                expiryTimer = setTimeout(() => {
+                  firebaseUser.getIdToken(true).catch(() => {})
+                  firebaseUser.getIdToken().then((token) => {
+                    fetch('/api/subscription/check-expiry', {
+                      method: 'POST',
+                      headers: { Authorization: `Bearer ${token}` }
+                    }).catch(() => {})
+                  }).catch(() => {})
+                }, msUntilMidnight)
+              }
+            }
+
             const today = new Date().toISOString().slice(0, 10)
-            const userPlan = (data.plan || 'free') as keyof typeof PLAN_LIMITS
+            const userPlan = effectivePlan
             const isMonthly = userPlan === 'free'
             const isSamePeriod = isMonthly
               ? (data.lastResetDate ? data.lastResetDate.slice(0, 7) === today.slice(0, 7) : false)
@@ -135,12 +181,30 @@ function useCurrentUserSource(): UserContextValue {
                 )
               }
             }
+
+            // ── Détection de rétrogradation vers "free" en direct ────────────
+            if (prevPlan !== null && prevPlan !== 'free' && userPlan === 'free') {
+              firebaseUser.getIdToken(true).catch(() => {})
+              if (typeof window !== 'undefined') {
+                window.dispatchEvent(
+                  new CustomEvent('sc:plan-downgraded', {
+                    detail: {
+                      newPlan: 'free',
+                      oldPlan: prevPlan,
+                      expired: hasExpired
+                    }
+                  })
+                )
+              }
+            }
             prevPlan = userPlan
 
             const currentUserObj = {
               uid: firebaseUser.uid,
               ...data,
               plan: userPlan,
+              subscriptionExpiresAt: rawExpiresAt,
+              subscriptionExpired: hasExpired || Boolean(data.subscriptionExpired),
               dailyLimit: resolvedDailyLimit,
               dailyUsed: currentDailyUsed,
               getIdToken: (forceRefresh?: boolean) => firebaseUser.getIdToken(forceRefresh)
@@ -180,6 +244,9 @@ function useCurrentUserSource(): UserContextValue {
       unsubscribeAuth()
       if (unsubscribeSnapshot) {
         unsubscribeSnapshot()
+      }
+      if (expiryTimer) {
+        clearTimeout(expiryTimer)
       }
     }
   }, [])
