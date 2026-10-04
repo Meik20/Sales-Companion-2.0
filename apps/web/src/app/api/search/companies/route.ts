@@ -177,13 +177,268 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // ── 2. Helper : normalise une chaîne ──
+    // ── 2. Helper : normalise une chaîne (accents, ponctuation, casse) ──
     function normalize(str: string) {
       return String(str ?? '')
         .toLowerCase()
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '')
+        .replace(/['’\-]/g, ' ')
         .trim()
+    }
+
+    // Variantes de mots (gestion des pluriels en français : -s, -x, -aux, etc.)
+    function getWordVariants(word: string): string[] {
+      const norm = normalize(word)
+      if (norm.length <= 2) return [norm]
+      const variants = new Set<string>([norm])
+      if (norm.endsWith('s') || norm.endsWith('x')) {
+        variants.add(norm.slice(0, -1))
+      }
+      if (norm.endsWith('aux')) {
+        variants.add(norm.slice(0, -3) + 'al')
+      }
+      if (norm.endsWith('es')) {
+        variants.add(norm.slice(0, -1))
+        variants.add(norm.slice(0, -2))
+      }
+      return Array.from(variants).filter((v) => v.length >= 2)
+    }
+
+    // Synonymes sectoriels pour enrichir les recherches
+    const SECTOR_SYNONYMS: Record<string, string[]> = {
+      sante: [
+        'sante',
+        'pharmacie',
+        'pharmaceutique',
+        'medical',
+        'clinique',
+        'hopital',
+        'laboratoire',
+        'soins',
+        'dentiste',
+        'maternite',
+        'officine',
+        'dispensaire',
+        'cabinet medical'
+      ],
+      btp: [
+        'btp',
+        'construction',
+        'batiment',
+        'travaux',
+        'genie civil',
+        'architecture',
+        'immobilier',
+        'chantier',
+        'materiaux de construction'
+      ],
+      commerce: [
+        'commerce',
+        'vente',
+        'boutique',
+        'magasin',
+        'distribution',
+        'supermarche',
+        'negoce',
+        'import export'
+      ],
+      tech: [
+        'technologie',
+        'technologies',
+        'logiciel',
+        'informatique',
+        'numerique',
+        'it',
+        'telecom',
+        'web',
+        'digital',
+        'reseau'
+      ],
+      agro: [
+        'agriculture',
+        'agroalimentaire',
+        'agro',
+        'elevage',
+        'alimentaire',
+        'peche',
+        'agricole',
+        'aviculture'
+      ],
+      transport: [
+        'transport',
+        'logistique',
+        'transit',
+        'fret',
+        'livraison',
+        'voyage',
+        'messagerie'
+      ],
+      finance: [
+        'banque',
+        'finance',
+        'assurance',
+        'microfinance',
+        'credit',
+        'caisse',
+        'epargne',
+        'comptabilite',
+        'audit'
+      ],
+      hotellerie: [
+        'hotel',
+        'hotellerie',
+        'restaurant',
+        'restauration',
+        'auberge',
+        'traiteur',
+        'bar',
+        'tourisme'
+      ],
+      education: [
+        'education',
+        'formation',
+        'ecole',
+        'universite',
+        'institut',
+        'college',
+        'lycee',
+        'enseignement'
+      ],
+      energie: [
+        'energie',
+        'mines',
+        'petrole',
+        'gaz',
+        'solaire',
+        'electricite',
+        'eau',
+        'hydrocarbures'
+      ]
+    }
+
+    // Supprime les repères spatiaux d'une adresse ("derrière la pharmacie...", "en face de...", etc.)
+    // pour éviter qu'un mot-clé d'activité ne matche par erreur sur les voisins ou repères
+    function cleanAddressLandmarks(rawAddress: string): string {
+      if (!rawAddress) return ''
+      const norm = normalize(rawAddress)
+      return norm.replace(
+        /\b(?:derriere|en\s+face(?:\s+de|\s+du|\s+des)?|face\s+(?:a|au|aux|\s+a\s+la)?|a\s+cote(?:\s+de|\s+du|\s+des)?|non\s+loin(?:\s+de|\s+du|\s+des)?|pres(?:\s+de|\s+du|\s+des)?|proche(?:\s+de|\s+du|\s+des)?|apres|vers|voisin(?:\s+de)?)\s+(?:la|le|les|l|un|une|du|des|au|aux)?\s*[a-z0-9\s'-]{2,40}?(?=[,.;\n\-]|\s+(?:face|derriere|a\s+cote|rue|boulevard|bvd|av|avenue|carrefour|rond\s*point|quartier|douala|yaounde|akwa|bonanjo|bastos)|$)/gi,
+        ' '
+      )
+    }
+
+    // Vérifie si un secteur correspond à une cible (avec synonymes)
+    function matchesSector(companySector: string, targetSector: string): boolean {
+      if (!targetSector) return true
+      const nComp = normalize(companySector)
+      const nTarget = normalize(targetSector)
+      if (!nComp) return false
+      if (nComp.includes(nTarget) || nTarget.includes(nComp)) return true
+
+      for (const [groupKey, keywords] of Object.entries(SECTOR_SYNONYMS)) {
+        const targetBelongs = keywords.some((kw) => nTarget.includes(kw)) || nTarget.includes(groupKey)
+        if (targetBelongs) {
+          if (keywords.some((kw) => nComp.includes(kw))) {
+            return true
+          }
+        }
+      }
+      return false
+    }
+
+    // Évaluation et scoring d'une entreprise par rapport à la requête texte
+    function evaluateCompanyMatch(
+      company: any,
+      queryTokens: string[],
+      normalizedQuery: string
+    ): { matches: boolean; score: number } {
+      const nameNorm = normalize(company.raisonSociale)
+      const sigleNorm = normalize(company.sigle)
+      const sectorNorm = normalize(company.sector)
+      const cityNorm = normalize(company.city)
+      const regionNorm = normalize(company.region)
+      const technicalNorm = normalize(
+        [company.niu, company.rccm, company.dirigeant, company.telephone, company.email].join(' ')
+      )
+
+      const rawAddress = [company.adresse, company.city, company.region].filter(Boolean).join(' ')
+      const cleanAddressNorm = cleanAddressLandmarks(rawAddress)
+
+      let score = 0
+      let matchesAllTokens = true
+      let identityMatchCount = 0
+
+      for (const token of queryTokens) {
+        const variants = getWordVariants(token)
+
+        const inName = variants.some((v) => nameNorm.includes(v))
+        const inSigle = variants.some((v) => sigleNorm.includes(v))
+        const inSector = variants.some((v) => sectorNorm.includes(v))
+
+        let inSectorSynonym = false
+        for (const [groupKey, keywords] of Object.entries(SECTOR_SYNONYMS)) {
+          if (variants.some((v) => keywords.includes(v) || v === groupKey)) {
+            if (keywords.some((kw) => sectorNorm.includes(kw))) {
+              inSectorSynonym = true
+              break
+            }
+          }
+        }
+
+        const inIdentity = inName || inSigle || inSector || inSectorSynonym
+        if (inIdentity) identityMatchCount++
+
+        const inTechnical = variants.some((v) => technicalNorm.includes(v))
+        const inLocation = variants.some((v) => cleanAddressNorm.includes(v))
+
+        if (!inIdentity && !inTechnical && !inLocation) {
+          matchesAllTokens = false
+          break
+        }
+
+        // Scoring pondéré
+        if (inName) {
+          const startsName = variants.some((v) => nameNorm.startsWith(v))
+          const exactWordInName = variants.some((v) => new RegExp(`\\b${v}\\b`, 'i').test(nameNorm))
+          if (startsName) score += 120
+          else if (exactWordInName) score += 80
+          else score += 40
+        }
+        if (inSigle) score += 70
+        if (inSector) score += 90
+        else if (inSectorSynonym) score += 60
+        if (inTechnical) score += 30
+        if (variants.some((v) => cityNorm.includes(v))) score += 45
+        if (variants.some((v) => regionNorm.includes(v))) score += 20
+      }
+
+      if (!matchesAllTokens) {
+        return { matches: false, score: 0 }
+      }
+
+      // Bonus si le nom correspond exactement ou commence par la recherche complète
+      if (nameNorm === normalizedQuery) score += 250
+      else if (nameNorm.startsWith(normalizedQuery)) score += 150
+
+      // Barrière anti-faux positifs :
+      // Si la requête contient au moins 2 mots (ex: "PHARMACIES AKWA"),
+      // et qu'AUCUN mot n'a matché dans l'identité (nom, sigle, secteur) :
+      // le résultat ne provient que de repères d'adresse -> rejeté !
+      if (queryTokens.length >= 2 && identityMatchCount === 0) {
+        return { matches: false, score: 0 }
+      }
+
+      // Pénalité pour les points relais / TPE / guichets bancaires lorsqu'on cherche une activité spécifique
+      const isPosOrAtm = /pos|tpe|guichet|distributeur|atm/i.test(nameNorm) || /banque|microfinance/i.test(sectorNorm)
+      const isHealthQuery = queryTokens.some((t) => /pharmaci|sante|medic|soin|hopital|clinique/i.test(t))
+      if (isPosOrAtm && isHealthQuery) {
+        score -= 120
+      }
+
+      if (company.verified) score += 10
+
+      return { matches: true, score }
     }
 
     // ── 3. Récupération des données (avec Cache et protection quota) ──
@@ -226,58 +481,71 @@ export async function GET(request: NextRequest) {
       return cCountry === userCountry
     })
 
-    // ── 4. Filtrage flexible ──
-    const matchKeywords = (
+    // ── 4. Filtrage intelligent & scoring ──
+    const matchLocationKeywords = (
       dataValue: string,
-      filterValue: string,
-      logic: 'every' | 'some' = 'every'
+      filterValue: string
     ) => {
       const nData = normalize(dataValue)
       const kws = normalize(filterValue)
         .split(/[\s&/]+/)
         .filter((kw) => kw.length >= 2)
       if (kws.length === 0) return nData.includes(normalize(filterValue))
-      return kws[logic]((kw) => nData.includes(kw))
+      return kws.some((kw) => nData.includes(kw))
     }
 
     if (region) {
       internalCompanies = internalCompanies.filter((c) =>
-        matchKeywords(c.region as string, region, 'some')
+        matchLocationKeywords(c.region as string, region)
       )
     }
     if (city) {
       internalCompanies = internalCompanies.filter((c) =>
-        matchKeywords(c.city as string, city, 'some')
+        matchLocationKeywords(c.city as string, city)
       )
     }
     if (sector) {
       internalCompanies = internalCompanies.filter((c) =>
-        matchKeywords(c.sector as string, sector, 'some')
+        matchesSector(c.sector as string, sector)
       )
     }
-    if (query) {
-      internalCompanies = internalCompanies.filter((c) => {
-        const searchable = normalize(
-          [
-            c.raisonSociale,
-            c.niu,
-            c.sigle,
-            c.dirigeant,
-            c.sector,
-            c.region,
-            c.city,
-            c.telephone,
-            c.email,
-            c.rccm
-          ].join(' ')
-        )
-        const kws = normalize(query).split(/\s+/).filter(Boolean)
-        return kws.every((kw) => searchable.includes(kw))
-      })
+
+    const normQuery = query ? normalize(query) : ''
+    const queryTokens = normQuery ? normQuery.split(/\s+/).filter((t) => t.length >= 2) : []
+
+    if (queryTokens.length > 0) {
+      const scoredCompanies: any[] = []
+      for (const comp of internalCompanies) {
+        const evalResult = evaluateCompanyMatch(comp, queryTokens, normQuery)
+        if (evalResult.matches) {
+          scoredCompanies.push({
+            ...comp,
+            _searchScore: evalResult.score
+          })
+        }
+      }
+      internalCompanies = scoredCompanies
     }
 
-    // ── 5. Fusion des résultats ──
+    // Scoring des résultats Google Places éventuels
+    if (queryTokens.length > 0 && googleResults.length > 0) {
+      googleResults = googleResults
+        .map((place) => {
+          const evalRes = evaluateCompanyMatch(place, queryTokens, normQuery)
+          return {
+            ...place,
+            _searchScore: evalRes.score + 15 // Léger bonus de fraîcheur Google Places
+          }
+        })
+        .filter((p) => (p._searchScore ?? 0) > -50)
+    }
+
+    // ── 5. Fusion et tri par pertinence ──
     const allCompanies = [...internalCompanies, ...googleResults]
+
+    if (queryTokens.length > 0) {
+      allCompanies.sort((a, b) => ((b._searchScore as number) ?? 0) - ((a._searchScore as number) ?? 0))
+    }
 
     // ── 6. Pagination ──
     let pageSize = parseInt(searchParams.get('pageSize') || '50')

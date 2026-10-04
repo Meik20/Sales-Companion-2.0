@@ -61,7 +61,15 @@ const EXCLUDE_FROM_EXTRA = new Set([
   'secteur d activite',
   "Secteur d'activité",
   "Secteur d'activite",
-  "SECTEUR D'ACTIVITE"
+  "SECTEUR D'ACTIVITE",
+  'Secteur',
+  'SECTEUR',
+  'secteur',
+  'country',
+  'Country',
+  'pays',
+  'Pays',
+  '_searchScore'
 ])
 
 function formatFieldLabel(key: string, t: any): string {
