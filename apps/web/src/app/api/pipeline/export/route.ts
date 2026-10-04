@@ -44,33 +44,59 @@ export async function GET(request: NextRequest) {
       .where('managerUid', '==', managerUid)
       .get()
 
-    // Construire la map initiale depuis users (champ : accessId, pas teamAccessId)
+    // Un Access ID valide contient toujours '@' (ex: kevinmbaye@myimmo)
+    const isValidAccessId = (v?: string | null) => !!(v && v.includes('@'))
+
+    // Construire la map initiale depuis users (champ : accessId)
     const membersMap = new Map<string, { name: string; accessId: string }>()
     membersSnap.docs.forEach((doc) => {
       const d = doc.data()
       membersMap.set(doc.id, {
         name: d.name || d.email || doc.id,
-        accessId: d.accessId || ''
+        // N'accepter que les accessId au bon format ; ignorer les UIDs Firebase bruts
+        accessId: isValidAccessId(d.accessId) ? d.accessId : ''
       })
     })
 
-    // Fallback : pour les membres sans accessId dans users, chercher dans team_accesses
-    const missingAccessIds = [...membersMap.entries()].filter(([, v]) => !v.accessId)
-    if (missingAccessIds.length > 0) {
-      try {
-        const accessesSnap = await adminDb
-          .collection('team_accesses')
-          .where('managerUid', '==', managerUid)
-          .get()
-        accessesSnap.docs.forEach((doc) => {
-          const ad = doc.data()
-          const firebaseUid: string = ad.firebaseUid ?? ''
-          if (firebaseUid && membersMap.has(firebaseUid) && !membersMap.get(firebaseUid)!.accessId) {
-            membersMap.get(firebaseUid)!.accessId = ad.accessId || doc.id
-          }
-        })
-      } catch { /* ignore */ }
-    }
+    // Fallback : pour TOUS les membres (pas seulement ceux sans accessId),
+    // chercher dans team_accesses si l'accessId actuel est vide ou mal formé
+    try {
+      const accessesSnap = await adminDb
+        .collection('team_accesses')
+        .where('managerUid', '==', managerUid)
+        .get()
+
+      // Index par firebaseUid ET par email pour maximiser les correspondances
+      accessesSnap.docs.forEach((doc) => {
+        const ad = doc.data()
+        const validAccessId = isValidAccessId(ad.accessId)
+          ? ad.accessId
+          : isValidAccessId(doc.id)
+            ? doc.id
+            : null
+
+        if (!validAccessId) return
+
+        // Lookup par firebaseUid
+        const fUid: string = ad.firebaseUid ?? ''
+        if (fUid && membersMap.has(fUid) && !membersMap.get(fUid)!.accessId) {
+          membersMap.get(fUid)!.accessId = validAccessId
+        }
+
+        // Lookup par email (second attempt)
+        const email: string = ad.email ?? ''
+        if (email) {
+          membersMap.forEach((val, uid) => {
+            if (!val.accessId) {
+              const memberDoc = membersSnap.docs.find((d) => d.id === uid)
+              if (memberDoc?.data()?.email === email) {
+                val.accessId = validAccessId
+              }
+            }
+          })
+        }
+      })
+    } catch { /* ignore */ }
 
     // ── Formatage de la période brute en libellé lisible ───────────────────
     const MONTHS_FR = [
