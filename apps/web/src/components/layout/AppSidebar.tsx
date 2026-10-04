@@ -471,12 +471,14 @@ export function AppSidebar({
           {/* ── P4 — Section: Outils Principaux ─────────────────────────── */}
           <SectionLabel>{t('sidebar.prospection')}</SectionLabel>
           <SidebarLink href={routes.search} label={t('sidebar.searchProspects')} icon={Search} />
-          <SidebarLink
-            href={routes.pipeline}
-            label={t('sidebar.pipeline')}
-            icon={BarChart2}
-            badge={totalPipeline > 0 ? totalPipeline : undefined}
-          />
+          {user.role !== 'admin' && (
+            <SidebarLink
+              href={routes.pipeline}
+              label={t('sidebar.pipeline')}
+              icon={BarChart2}
+              badge={totalPipeline > 0 ? totalPipeline : undefined}
+            />
+          )}
           <SidebarLink href={routes.saved} label={t('sidebar.savedSearches')} icon={Bookmark} />
           <SidebarLink href={routes.support} label={t('sidebar.support')} icon={MessageSquare} />
 
