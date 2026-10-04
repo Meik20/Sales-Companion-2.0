@@ -39,22 +39,50 @@ export async function GET(request: NextRequest) {
     // Items in the manager's own pipeline (userId = managerUid)
     const ownSnap = await adminDb.collection('pipeline').where('userId', '==', managerUid).get()
 
-    // Merge & deduplicate by doc id
+    // Merge & deduplicate:
+    // If a company is already assigned to a team member in teamSnap,
+    // the manager's initial unassigned copy is an obsolete duplicate.
     const seen = new Set<string>()
+    const assignedCompanies = new Set<string>()
     const items: Record<string, unknown>[] = []
 
-    for (const snap of [teamSnap, ownSnap]) {
-      snap.docs.forEach((doc) => {
-        if (!seen.has(doc.id)) {
-          seen.add(doc.id)
-          items.push({
-            id: doc.id,
-            ...doc.data(),
-            createdAt: doc.data().createdAt?.toDate?.()?.toISOString() ?? null,
-            updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() ?? null
-          })
-        }
+    // 1. Process items assigned to members
+    teamSnap.docs.forEach((doc) => {
+      seen.add(doc.id)
+      const data = doc.data()
+      const compName = String(data.companyName || data.name || '').trim().toLowerCase()
+      if (compName) {
+        assignedCompanies.add(compName)
+      }
+      items.push({
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt?.toDate?.()?.toISOString() ?? null,
+        updatedAt: data.updatedAt?.toDate?.()?.toISOString() ?? null
       })
+    })
+
+    // 2. Process manager's own items
+    for (const doc of ownSnap.docs) {
+      if (!seen.has(doc.id)) {
+        const data = doc.data()
+        const compName = String(data.companyName || data.name || '').trim().toLowerCase()
+
+        // Si l'entreprise est déjà assignée à un membre de l'équipe et que cette fiche manager n'est pas assignée,
+        // c'est un doublon résiduel : on la supprime en arrière-plan et on ne l'affiche pas.
+        if (compName && assignedCompanies.has(compName) && !data.assignedTo) {
+          doc.ref.delete().catch(() => {})
+          continue
+        }
+
+        seen.add(doc.id)
+        items.push({
+          id: doc.id,
+          ...data,
+          createdAt: data.createdAt?.toDate?.()?.toISOString() ?? null,
+          updatedAt: data.updatedAt?.toDate?.()?.toISOString() ?? null
+        })
+      }
     }
 
     items.sort((a, b) => {

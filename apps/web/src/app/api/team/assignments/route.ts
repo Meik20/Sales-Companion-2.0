@@ -394,6 +394,33 @@ export async function POST(request: NextRequest) {
       updatedAt: FieldValue.serverTimestamp()
     })
 
+    // ── Step 3.5: Clean up manager's unassigned copy ──────────────────────
+    // Lorsqu'un prospect est assigné, la copie initiale du manager ne doit plus
+    // rester comme doublon dans le pipeline consolidé : seule la fiche assignée reste.
+    try {
+      if (pipelineItemId) {
+        const origDoc = await adminDb.collection('pipeline').doc(pipelineItemId).get()
+        if (origDoc.exists && origDoc.data()?.userId === managerUid && !origDoc.data()?.assignedTo) {
+          await origDoc.ref.delete()
+        }
+      }
+
+      if (companyName) {
+        const ownDupes = await adminDb
+          .collection('pipeline')
+          .where('userId', '==', managerUid)
+          .where('companyName', '==', companyName)
+          .get()
+        for (const d of ownDupes.docs) {
+          if (d.id !== pipelineRef.id && !d.data().assignedTo) {
+            await d.ref.delete()
+          }
+        }
+      }
+    } catch (cleanupErr) {
+      console.warn('[team/assignments POST] Clean up manager copy error:', cleanupErr)
+    }
+
     // ── Step 4: Create assignment record ──────────────────────────────────
     // This is what "Assignations actives" reads from
     const assignmentRef = adminDb.collection('team_assignments').doc()

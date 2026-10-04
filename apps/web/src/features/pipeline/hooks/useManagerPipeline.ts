@@ -21,11 +21,16 @@ export const useManagerPipeline = () => {
       const teamSnap = await getDocsWithOfflineFallback(teamQ)
 
       const seen = new Set<string>()
+      const assignedCompanies = new Set<string>()
       const items: (PipelineDoc & { id: string })[] = []
 
       teamSnap.docs.forEach((docSnap) => {
         seen.add(docSnap.id)
         const data = docSnap.data()
+        const compName = String(data.companyName || data.name || '').trim().toLowerCase()
+        if (compName) {
+          assignedCompanies.add(compName)
+        }
         items.push({
           id: docSnap.id,
           ...data,
@@ -43,8 +48,13 @@ export const useManagerPipeline = () => {
         const ownSnap = await getDocsWithOfflineFallback(ownQ)
         ownSnap.docs.forEach((docSnap) => {
           if (!seen.has(docSnap.id)) {
-            seen.add(docSnap.id)
             const data = docSnap.data()
+            const compName = String(data.companyName || data.name || '').trim().toLowerCase()
+            // Si l'entreprise est déjà assignée dans l'équipe, ignorer la copie manager non assignée
+            if (compName && assignedCompanies.has(compName) && !data.assignedTo) {
+              return
+            }
+            seen.add(docSnap.id)
             items.push({
               id: docSnap.id,
               ...data,

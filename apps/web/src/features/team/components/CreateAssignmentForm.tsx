@@ -36,6 +36,11 @@ type PipelineItem = {
   id: string
   companyName: string
   status: string
+  assignedTo?: string | null
+  memberName?: string | null
+  userId?: string | null
+  managerUid?: string | null
+  sourceProspectId?: string | null
 }
 
 const SELECT_STYLE: React.CSSProperties = {
@@ -80,47 +85,62 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
   const queryClient = useQueryClient()
 
   // Load pipeline prospects
-  useEffect(() => {
-    const load = async () => {
-      if (!user) {
-        setPipelineProspects([])
-        setLoadingPipeline(false)
-        return
-      }
-
-      try {
-        setLoadingPipeline(true)
-        const token = await user.getIdToken()
-        const res = await fetch('/api/pipeline/manager', {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        })
-        if (res.ok) {
-          const data = await res.json()
-          setPipelineProspects(data ?? [])
-        }
-      } catch {
-        // silently ignore
-      } finally {
-        setLoadingPipeline(false)
-      }
+  const loadPipeline = async () => {
+    if (!user) {
+      setPipelineProspects([])
+      setLoadingPipeline(false)
+      return
     }
-    void load()
+
+    try {
+      setLoadingPipeline(true)
+      const token = await user.getIdToken()
+      const res = await fetch('/api/pipeline/manager', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setPipelineProspects(data ?? [])
+      }
+    } catch {
+      // silently ignore
+    } finally {
+      setLoadingPipeline(false)
+    }
+  }
+
+  useEffect(() => {
+    void loadPipeline()
   }, [user])
 
-  // Build a set of already-assigned company names (lower-cased) and IDs
+  const normalizeCompName = (name?: string) =>
+    (name || '').toLowerCase().trim().replace(/\s+/g, ' ')
+
+  // Build a set of already-assigned company names and IDs
   const assignedCompanyNames = new Set(
-    assignments.map((a) => a.companyName.trim().toLowerCase())
+    assignments.map((a) => normalizeCompName(a.companyName))
   )
   const assignedItemIds = new Set(
-    assignments.flatMap((a) => [a.pipelineItemId, a.pipelineEntryId].filter(Boolean) as string[])
+    assignments.flatMap((a) => [a.pipelineItemId, a.pipelineEntryId, a.id].filter(Boolean) as string[])
   )
 
   // Filter out prospects that are already assigned
   const availableProspects = pipelineProspects.filter((p: PipelineItem) => {
-    if (assignedItemIds.has(p.id)) return false
-    if (assignedCompanyNames.has(p.companyName.trim().toLowerCase())) return false
+    // 1. Déjà assigné dans le document pipeline lui-même
+    if (p.assignedTo && p.assignedTo.trim() !== '') return false
+    if (p.memberName && p.memberName.trim() !== '') return false
+    if (p.userId && user?.uid && p.userId !== user.uid) return false
+
+    // 2. Déjà présent dans les assignations d'équipe par ID
+    if (p.id && assignedItemIds.has(p.id)) return false
+    if (p.sourceProspectId && assignedItemIds.has(p.sourceProspectId)) return false
+
+    // 3. Déjà présent dans les assignations d'équipe par nom d'entreprise
+    const normName = normalizeCompName(p.companyName)
+    if (normName && assignedCompanyNames.has(normName)) return false
+
     return true
   })
 
@@ -145,11 +165,17 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
         companyName: selectedP?.companyName
       },
       {
-        onSuccess: () => {
+        onSuccess: async () => {
           setPipelineItemId('')
           setMemberId('')
           setError('')
           setSuccessCount((n) => n + 1)
+          await Promise.all([
+            queryClient.invalidateQueries({ queryKey: ['pipeline'] }),
+            queryClient.invalidateQueries({ queryKey: ['manager-pipeline'] }),
+            queryClient.invalidateQueries({ queryKey: ['team-assignments'] })
+          ])
+          void loadPipeline()
           onAssigned?.()
         },
         onError: (err: Error) => {
@@ -195,6 +221,7 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
       queryClient.invalidateQueries({ queryKey: ['team-assignments'] }),
       queryClient.invalidateQueries({ queryKey: ['pipeline-stats'] })
     ])
+    void loadPipeline()
     onAssigned?.()
   }
 
