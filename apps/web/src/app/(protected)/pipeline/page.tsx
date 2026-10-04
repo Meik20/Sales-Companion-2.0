@@ -15,7 +15,7 @@ import { useUpdatePipelineItem } from '@/features/pipeline/hooks/useUpdatePipeli
 import { useTeamMembers } from '@/features/team/hooks/useTeamMembers'
 import { useExportTeamPerformance } from '@/features/pipeline/hooks/useExportTeamPerformance'
 import { useTeamTargets, useSaveTeamTarget } from '@/features/pipeline/hooks/useTeamTargets'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslation } from '@/providers/I18nProvider'
 import { FileDown, Loader2, Target } from 'lucide-react'
@@ -44,6 +44,35 @@ export default function PipelinePage() {
   const isFree = (user?.plan ?? 'free') === 'free'
   const { data: myTargets } = useTeamTargets(isIndependent ? user?.uid : undefined)
   const saveTarget = useSaveTeamTarget()
+  const prevFreeRef = useRef<boolean>(isFree)
+
+  // ── Fermeture immédiate et rafraîchissement si l'utilisateur repasse à FREE ──
+  useEffect(() => {
+    if (isFree) {
+      setShowTargets(false)
+      setShowExport(false)
+    }
+
+    // Détection du passage en direct de payant à FREE
+    if (!prevFreeRef.current && isFree) {
+      userPipelineQuery.refetch()
+      router.refresh()
+    }
+    prevFreeRef.current = isFree
+  }, [isFree, router, userPipelineQuery])
+
+  // ── Écoute globale de rétrogradation en direct ───────────────────────────
+  useEffect(() => {
+    const handleDowngraded = () => {
+      setShowTargets(false)
+      setShowExport(false)
+      userPipelineQuery.refetch()
+      router.refresh()
+    }
+
+    window.addEventListener('sc:plan-downgraded', handleDowngraded)
+    return () => window.removeEventListener('sc:plan-downgraded', handleDowngraded)
+  }, [router, userPipelineQuery])
 
   // Pré-remplir avec les valeurs existantes quand elles arrivent
   useEffect(() => {
@@ -112,7 +141,7 @@ export default function PipelinePage() {
                 style={{ display: 'flex', alignItems: 'center', gap: 6 }}
               >
                 <Target size={14} />
-                {showTargets ? t('pipeline.cancel') : 'Objectifs'}
+                {showTargets && !isFree ? t('pipeline.cancel') : 'Objectifs'}
               </Button>
               <Button
                 variant="outline"
@@ -124,7 +153,7 @@ export default function PipelinePage() {
                 style={{ display: 'flex', alignItems: 'center', gap: 6 }}
               >
                 <FileDown size={14} />
-                {showExport ? t('pipeline.cancel') : 'Exporter'}
+                {showExport && !isFree ? t('pipeline.cancel') : 'Exporter'}
               </Button>
               <Button variant="primary" size="sm" onClick={() => setShowForm((v) => !v)}>
                 {showForm ? t('pipeline.cancel') : t('pipeline.addProspect')}
@@ -252,7 +281,7 @@ export default function PipelinePage() {
       {user?.role === 'member' || user?.role === 'independent' ? (
         <>
           {/* ── Panneau Objectifs (indépendants uniquement) ──────────────── */}
-          {isIndependent && showTargets && (
+          {isIndependent && !isFree && showTargets && (
             <DataCard
               title="Mes objectifs"
               subtitle="Définis ton objectif de volume (nombre de prospects conclus) et de valeur (CA en FCFA) pour la période choisie."
@@ -363,7 +392,7 @@ export default function PipelinePage() {
             </DataCard>
           )}
           {/* ── Panneau d'export (indépendants uniquement) ──────────────── */}
-          {user?.role === 'independent' && showExport && (
+          {user?.role === 'independent' && !isFree && showExport && (
             <DataCard
               title="Exporter mon pipeline"
               subtitle="Télécharge un fichier Excel (.xlsx) avec ta synthèse et le détail de tes prospects."
