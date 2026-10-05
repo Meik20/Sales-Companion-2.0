@@ -27,12 +27,18 @@ export async function PATCH(
     const oldSnap = await userDocRef.get()
     const oldData = oldSnap.data()
 
-    // ── Calcul automatique d'expiration si le plan change ────────────────────
+    // ── Protection : les profils member et support_agent héritent du manager ──
+    const isMemberOrSupport = oldData?.role === 'member' || oldData?.role === 'support_agent'
+    if (isMemberOrSupport && safeFields.plan !== undefined) {
+      delete safeFields.plan
+    }
+
     const updatePayload: Record<string, unknown> = {
       ...safeFields,
       updatedAt: new Date()
     }
 
+    // ── Calcul automatique d'expiration si le plan change ────────────────────
     if (safeFields.plan !== undefined) {
       if (safeFields.plan !== 'free') {
         // Nouveau plan payant : si pas d'expiration explicite fournie, fixer à 30 jours à minuit

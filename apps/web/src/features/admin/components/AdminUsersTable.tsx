@@ -20,7 +20,8 @@ import {
   Calendar,
   Clock,
   MessageSquare,
-  Timer
+  Timer,
+  Link2
 } from 'lucide-react'
 
 type UserWithId = UserDoc & {
@@ -45,7 +46,8 @@ const roleBadge: Record<string, 'success' | 'gold' | 'info' | 'default'> = {
   admin: 'gold',
   manager: 'success',
   member: 'info',
-  independent: 'default'
+  independent: 'default',
+  support_agent: 'info'
 }
 
 const planBadge: Record<string, 'default' | 'info' | 'success' | 'gold'> = {
@@ -203,108 +205,144 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
               </td>
               {/* Plan */}
               <td style={{ padding: '11px 12px' }}>
-                {onUpdate ? (
-                  <select
-                    value={user.plan}
-                    onChange={(e) => {
-                      const newPlan = e.target.value as UserPlan
-                      onUpdate(user.uid, {
-                        plan: newPlan,
-                        dailyLimit: PLAN_LIMITS[newPlan] ?? 10
-                      })
-                    }}
-                    style={{
-                      padding: '4px 8px',
-                      borderRadius: 6,
-                      border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
-                      background: 'var(--card, #131c2e)',
-                      color: 'var(--foreground, #f1f5f9)',
-                      fontSize: 11,
-                      fontWeight: 600,
-                      fontFamily: 'inherit',
-                      cursor: 'pointer',
-                      outline: 'none'
-                    }}
-                  >
-                    <option value="free">FREE</option>
-                    <option value="starter">STARTER</option>
-                    <option value="pro">PRO</option>
-                    <option value="enterprise">ENTERPRISE</option>
-                  </select>
-                ) : (
-                  <Badge variant={planBadge[user.plan] ?? 'default'}>{user.plan}</Badge>
-                )}
+                {(() => {
+                  const isInheritedAccount = user.role === 'member' || user.role === 'support_agent' || Boolean(user.managerId)
+                  if (isInheritedAccount) {
+                    return (
+                      <div
+                        title="Plan synchronisé et géré par le compte Manager"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                      >
+                        <Badge variant={planBadge[user.plan] ?? 'default'} style={{ textTransform: 'uppercase' }}>
+                          {user.plan}
+                        </Badge>
+                        <Link2 size={12} style={{ color: 'var(--muted-foreground, #64748b)' }} />
+                      </div>
+                    )
+                  }
+
+                  return onUpdate ? (
+                    <select
+                      value={user.plan}
+                      onChange={(e) => {
+                        const newPlan = e.target.value as UserPlan
+                        onUpdate(user.uid, {
+                          plan: newPlan,
+                          dailyLimit: PLAN_LIMITS[newPlan] ?? 10
+                        })
+                      }}
+                      style={{
+                        padding: '4px 8px',
+                        borderRadius: 6,
+                        border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+                        background: 'var(--card, #131c2e)',
+                        color: 'var(--foreground, #f1f5f9)',
+                        fontSize: 11,
+                        fontWeight: 600,
+                        fontFamily: 'inherit',
+                        cursor: 'pointer',
+                        outline: 'none'
+                      }}
+                    >
+                      <option value="free">FREE</option>
+                      <option value="starter">STARTER</option>
+                      <option value="pro">PRO</option>
+                      <option value="enterprise">ENTERPRISE</option>
+                    </select>
+                  ) : (
+                    <Badge variant={planBadge[user.plan] ?? 'default'}>{user.plan}</Badge>
+                  )
+                })()}
               </td>
               {/* Quota */}
               <td style={{ padding: '16px 12px', minWidth: 140 }}>
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    marginBottom: 6
-                  }}
-                >
-                  <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--foreground, #f1f5f9)' }}>
-                    {user.dailyUsed}
-                    <span
-                      style={{
-                        color: 'var(--muted-foreground, #64748b)',
-                        fontWeight: 400,
-                        marginLeft: 2,
-                        fontSize: 11
-                      }}
-                    >
-                      /
-                    </span>
-                  </span>
-                  {onUpdate ? (
-                    <input
-                      type="number"
-                      value={user.dailyLimit}
-                      onChange={(e) =>
-                        onUpdate(user.uid, { dailyLimit: parseInt(e.target.value) || 0 })
-                      }
-                      style={{
-                        width: 50,
-                        padding: '2px 4px',
-                        fontSize: 11,
-                        background: 'var(--card, #131c2e)',
-                        border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
-                        borderRadius: 4,
-                        color: 'var(--foreground, #f1f5f9)',
-                        fontWeight: 700,
-                        textAlign: 'right',
-                        outline: 'none'
-                      }}
-                    />
-                  ) : (
-                    <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted-foreground, #94a3b8)' }}>
-                      {user.dailyLimit}
-                    </span>
-                  )}
-                </div>
-                <div
-                  style={{
-                    height: 6,
-                    width: '100%',
-                    background: 'var(--card, #131c2e)',
-                    borderRadius: 10,
-                    overflow: 'hidden',
-                    border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
-                  }}
-                >
-                  <div
-                    style={{
-                      height: '100%',
-                      width: `${Math.min(100, user.dailyLimit > 0 ? (user.dailyUsed / user.dailyLimit) * 100 : 0)}%`,
-                      background:
-                        user.dailyUsed / (user.dailyLimit || 1) > 0.8 ? '#f87171' : '#6366f1',
-                      borderRadius: 10,
-                      transition: 'width 500ms ease-out'
-                    }}
-                  />
-                </div>
+                {(() => {
+                  const isInheritedAccount = user.role === 'member' || user.role === 'support_agent' || Boolean(user.managerId)
+                  if (user.role === 'support_agent') {
+                    return (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: '#10b981' }}>Illimité</span>
+                        <span style={{ fontSize: 10, color: 'var(--muted-foreground, #64748b)' }}>(Support)</span>
+                      </div>
+                    )
+                  }
+
+                  return (
+                    <>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          marginBottom: 6
+                        }}
+                      >
+                        <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--foreground, #f1f5f9)' }}>
+                          {user.dailyUsed}
+                          <span
+                            style={{
+                              color: 'var(--muted-foreground, #64748b)',
+                              fontWeight: 400,
+                              marginLeft: 2,
+                              fontSize: 11
+                            }}
+                          >
+                            /
+                          </span>
+                        </span>
+                        {onUpdate && !isInheritedAccount ? (
+                          <input
+                            type="number"
+                            value={user.dailyLimit}
+                            onChange={(e) =>
+                              onUpdate(user.uid, { dailyLimit: parseInt(e.target.value) || 0 })
+                            }
+                            style={{
+                              width: 50,
+                              padding: '2px 4px',
+                              fontSize: 11,
+                              background: 'var(--card, #131c2e)',
+                              border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+                              borderRadius: 4,
+                              color: 'var(--foreground, #f1f5f9)',
+                              fontWeight: 700,
+                              textAlign: 'right',
+                              outline: 'none'
+                            }}
+                          />
+                        ) : (
+                          <span
+                            title={isInheritedAccount ? 'Quota synchronisé depuis le compte Manager' : undefined}
+                            style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted-foreground, #94a3b8)' }}
+                          >
+                            {user.dailyLimit}
+                          </span>
+                        )}
+                      </div>
+                      <div
+                        style={{
+                          height: 6,
+                          width: '100%',
+                          background: 'var(--card, #131c2e)',
+                          borderRadius: 10,
+                          overflow: 'hidden',
+                          border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
+                        }}
+                      >
+                        <div
+                          style={{
+                            height: '100%',
+                            width: `${Math.min(100, user.dailyLimit > 0 ? (user.dailyUsed / user.dailyLimit) * 100 : 0)}%`,
+                            background:
+                              user.dailyUsed / (user.dailyLimit || 1) > 0.8 ? '#f87171' : '#6366f1',
+                            borderRadius: 10,
+                            transition: 'width 500ms ease-out'
+                          }}
+                        />
+                      </div>
+                    </>
+                  )
+                })()}
               </td>
               {/* Statut */}
               <td style={{ padding: '11px 12px' }}>

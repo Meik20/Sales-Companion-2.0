@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
         createdAt: data.createdAt?.toDate?.()?.toISOString() ?? null,
         lastLoginAt: data.lastLoginAt?.toDate?.()?.toISOString() ?? null,
         subscriptionExpiresAt: data.subscriptionExpiresAt ?? data.planExpiresAt ?? null,
-        managerId: data.managerId ?? null
+        managerId: data.managerId ?? data.managerUid ?? null
       }
     })
 
