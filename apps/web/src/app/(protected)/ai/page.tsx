@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useTranslation } from '@/providers/I18nProvider'
 import { COUNTRY_FRENCH_IN, COUNTRY_FRENCH_MARKET_ADJECTIVE, COUNTRY_NAMES, type CountryCode } from '@sales-companion/shared'
-import { Loader2 } from 'lucide-react'
+import { Loader2, RotateCcw } from 'lucide-react'
 
 interface Message {
   id: string
@@ -43,6 +43,22 @@ export default function AIAssistantPage() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  const resetChat = () => {
+    setMessages([
+      {
+        id: '1',
+        role: 'assistant',
+        content:
+          lang === 'en'
+            ? '👋 Hello! I am your AI Sales Companion 2.0. I can help you with B2B prospecting, finding companies in our database, and drafting outreach pitches. How can I help you today?'
+            : `👋 Bonjour ! Je suis votre Companion IA. Je peux vous aider avec des conseils commerciaux, la recherche d'entreprises dans la base et la prospection B2B ${countryIn}. Comment puis-je vous aider ?`,
+        timestamp: new Date()
+      }
+    ])
+    setInput('')
+    setLoading(false)
+  }
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -172,11 +188,12 @@ export default function AIAssistantPage() {
       {/* Header */}
       <div
         style={{
-          padding: '16px',
+          padding: '16px 20px',
           borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
           background: 'var(--card, #131c2e)',
           display: 'flex',
           alignItems: 'center',
+          justifyContent: 'space-between',
           gap: '12px'
         }}
       >
@@ -188,6 +205,18 @@ export default function AIAssistantPage() {
             {lang === 'en' ? 'Real-time sales insights & prospecting' : 'Conseils commerciaux et prospection en temps réel'}
           </p>
         </div>
+
+        {messages.some((m) => m.role === 'user') && (
+          <button
+            type="button"
+            onClick={resetChat}
+            className="flex items-center gap-1.5 rounded-lg border border-border bg-secondary/60 hover:bg-secondary hover:border-primary/40 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-all cursor-pointer shadow-2xs"
+            title={lang === 'en' ? 'Reset conversation' : 'Nouvelle conversation'}
+          >
+            <RotateCcw size={13} className="transition-transform active:-rotate-45" />
+            <span>{lang === 'en' ? 'New chat' : 'Nouvelle conversation'}</span>
+          </button>
+        )}
       </div>
 
       {/* Messages Container */}

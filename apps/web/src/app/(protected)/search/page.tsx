@@ -16,7 +16,7 @@ import { ShortcutCard } from '@/components/ui/ShortcutCard'
 import { Button } from '@/components/ui/Button'
 import { useTranslation } from '@/providers/I18nProvider'
 import { routes } from '@/constants/routes'
-import { Send, Zap } from 'lucide-react'
+import { Send, Zap, RotateCcw } from 'lucide-react'
 
 const COUNTRY_HIGHLIGHT_CITIES: Record<string, { btp: string; tech: string }> = {
   CM: { btp: 'Douala', tech: 'Yaoundé' },
@@ -29,7 +29,7 @@ const COUNTRY_HIGHLIGHT_CITIES: Record<string, { btp: string; tech: string }> = 
 }
 
 function SearchContent() {
-  const { t } = useTranslation()
+  const { t, lang } = useTranslation()
   const searchParams = useSearchParams()
   const router = useRouter()
   const { user } = useCurrentUser()
@@ -68,6 +68,14 @@ function SearchContent() {
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [chatMessages])
+
+  function resetChat() {
+    setChatMessages([
+      { role: 'assistant', text: t('search.aiGreeting') }
+    ])
+    setChatInput('')
+    setIsSendingChat(false)
+  }
 
   async function sendChatMessage(msg: string) {
     if (!msg.trim() || isSendingChat) return
@@ -682,6 +690,19 @@ function SearchContent() {
           {/* Assistant B2B IA */}
           <DataCard
             title={t('search.aiAssistant')}
+            actions={
+              chatMessages.some((m) => m.role === 'user') ? (
+                <button
+                  type="button"
+                  onClick={resetChat}
+                  className="flex items-center gap-1.5 rounded-lg border border-border bg-secondary/60 hover:bg-secondary hover:border-primary/40 px-2.5 py-1 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-all cursor-pointer shadow-2xs"
+                  title={lang === 'en' ? 'Reset conversation' : 'Nouvelle conversation'}
+                >
+                  <RotateCcw size={12} className="transition-transform active:-rotate-45" />
+                  <span>{lang === 'en' ? 'New chat' : 'Nouvelle conversation'}</span>
+                </button>
+              ) : null
+            }
             style={{
               boxShadow: '0 8px 30px rgba(0,0,0,0.06)',
               border: '1px solid var(--border)'
