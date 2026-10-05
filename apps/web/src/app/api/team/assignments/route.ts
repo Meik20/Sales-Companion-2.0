@@ -390,6 +390,8 @@ export async function POST(request: NextRequest) {
       assignedByName: managerName,
       sourceProspectId: pipelineItemId,
       previousAssignees,
+      enteredAt: new Date().toISOString(),
+      assignedAt: new Date().toISOString(),
       createdAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp()
     })

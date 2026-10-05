@@ -22,6 +22,8 @@ type PipelineItemInput = {
   note?: string
   nextAction?: string
   nextDate: string | null
+  enteredAt?: string | null
+  assignedAt?: string | null
   createdAt: null
   updatedAt: null
 }
@@ -31,8 +33,11 @@ export function useCreatePipelineItem() {
 
   return useMutation({
     mutationFn: async (input: PipelineItemInput) => {
+      const nowIso = new Date().toISOString()
       return addDoc(collection(firestore, 'pipeline'), {
         ...input,
+        enteredAt: input.enteredAt || nowIso,
+        assignedAt: input.assignedAt || (input.assignedTo ? nowIso : null),
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       })

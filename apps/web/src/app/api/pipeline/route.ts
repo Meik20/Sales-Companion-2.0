@@ -150,6 +150,8 @@ export async function POST(request: NextRequest) {
         )
       ),
       previousAssignees,
+      enteredAt: new Date().toISOString(),
+      assignedAt: body.assignedTo ? new Date().toISOString() : null,
       createdAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp()
     })

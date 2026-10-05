@@ -17,9 +17,11 @@ import {
   Trophy,
   Banknote,
   Calendar,
-  AlertTriangle
+  AlertTriangle,
+  Clock
 } from 'lucide-react'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
+import { getPipelineAging } from '@/lib/pipelineAging'
 
 type PipelineItem = {
   id: string
@@ -37,6 +39,10 @@ type PipelineItem = {
   managerUid?: string | null
   nextFollowUp?: string | null
   previousAssignees?: any[]
+  createdAt?: any
+  updatedAt?: any
+  assignedAt?: any
+  enteredAt?: any
 }
 
 type Props = {
@@ -118,6 +124,7 @@ function KanbanCard({
   isDragging?: boolean
 }) {
   const otherCols = COLUMNS.filter(c => c.id !== col.id)
+  const aging = getPipelineAging(item.createdAt || item.enteredAt, item.status, item.assignedAt, item.updatedAt)
 
   return (
     <div
@@ -262,6 +269,26 @@ function KanbanCard({
                 </span>
               ) : null
             })()}
+            {/* Aging chip */}
+            <span
+              title={`Entré le ${aging.enteredDateFormatted} (${aging.relativeTimeFormatted})`}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                fontSize: 10.5,
+                fontWeight: 700,
+                color: aging.color,
+                background: aging.bgColor,
+                border: `1px solid ${aging.borderColor}`,
+                borderRadius: 6,
+                padding: '2px 7px'
+              }}
+            >
+              <Clock size={10} />
+              {aging.daysInPipeline === 0 ? 'Aujourd’hui' : `${aging.daysInPipeline}j`}
+              {aging.level === 'alert' && <AlertTriangle size={10} style={{ color: aging.color }} />}
+            </span>
           </div>
 
           {/* Mobile: quick move buttons */}

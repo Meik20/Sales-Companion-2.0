@@ -167,6 +167,8 @@ export async function POST(request: NextRequest) {
       nextDate: null,
       note: '',
       previousAssignees,
+      enteredAt: now.toISOString(),
+      assignedAt: finalAssignedTo ? now.toISOString() : null,
       createdAt: now,
       updatedAt: now
     })

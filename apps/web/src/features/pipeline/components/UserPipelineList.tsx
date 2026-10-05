@@ -28,8 +28,11 @@ import {
   TrendingUp,
   Banknote,
   Check,
-  Trash2
+  Trash2,
+  Clock,
+  CheckCircle2
 } from 'lucide-react'
+import { getPipelineAging } from '@/lib/pipelineAging'
 
 import { UserPipelineKanban } from './UserPipelineKanban'
 
@@ -56,6 +59,10 @@ type PipelineItem = {
     memberName: string
     assignedAt: string
   }[]
+  createdAt?: any
+  updatedAt?: any
+  assignedAt?: any
+  enteredAt?: any
 }
 
 type Props = {
@@ -144,6 +151,7 @@ function ProspectModal({
   )
 
   const isConclue = item.status === 'conclue' || item.status === 'conclusion'
+  const aging = getPipelineAging(item.createdAt || item.enteredAt, item.status, item.assignedAt, item.updatedAt)
 
   return (
     <>
@@ -209,10 +217,31 @@ function ProspectModal({
               >
                 {item.companyName}
               </h2>
-              <div style={{ marginTop: 8 }}>
+              <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                 <Badge variant={statusVariant[item.status] ?? 'default'}>
                   {statusLabel[item.status] ?? item.status}
                 </Badge>
+                <div
+                  title={`Date d'entrée : ${aging.enteredDateFormatted} (${aging.relativeTimeFormatted})`}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 5,
+                    padding: '2px 8px',
+                    borderRadius: 20,
+                    fontSize: 11,
+                    fontWeight: 700,
+                    background: aging.bgColor,
+                    color: aging.color,
+                    border: `1px solid ${aging.borderColor}`
+                  }}
+                >
+                  <Clock size={11} />
+                  <span>{aging.badgeText}</span>
+                </div>
+                <span style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)' }}>
+                  Entré le {aging.enteredDateFormatted}
+                </span>
               </div>
             </div>
             <button
@@ -633,12 +662,45 @@ function ProspectModal({
                         marginBottom: 4
                       }}
                     >
-                      Valeur de l'opportunité
+                      Valeur de l&apos;opportunité
                     </div>
                     <div style={{ fontSize: 15, fontWeight: 800, color: item.amount ? '#34d399' : 'var(--muted-foreground, #64748b)' }}>
                       {item.amount != null && item.amount > 0
                         ? `${new Intl.NumberFormat('fr-FR').format(item.amount)} FCFA`
                         : '0 FCFA'}
+                    </div>
+                  </div>
+
+                  {/* Durée dans le pipeline */}
+                  <div
+                    style={{
+                      background: 'var(--secondary, #1e2a3b)',
+                      borderRadius: 10,
+                      padding: '10px 14px',
+                      border: `1px solid ${aging.borderColor}`
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 700,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em',
+                        color: aging.color,
+                        marginBottom: 4,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4
+                      }}
+                    >
+                      <Clock size={11} />
+                      {aging.isConclue ? 'Cycle de vente' : 'Temps dans pipeline'}
+                    </div>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: aging.color }}>
+                      {aging.daysInPipeline === 0 ? 'Aujourd’hui' : `${aging.daysInPipeline} jour${aging.daysInPipeline > 1 ? 's' : ''}`}
+                    </div>
+                    <div style={{ fontSize: 10, color: 'var(--muted-foreground, #64748b)', marginTop: 2 }}>
+                      {aging.relativeTimeFormatted}
                     </div>
                   </div>
 
@@ -687,6 +749,46 @@ function ProspectModal({
                   </div>
                   )}
                 </div>
+
+                {/* Bannière d'alerte sur la durée en fonction de l'étape du parcours */}
+                {aging.warningMessage && (
+                  <div
+                    style={{
+                      padding: '12px 14px',
+                      borderRadius: 10,
+                      background: aging.bgColor,
+                      border: `1px solid ${aging.borderColor}`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 10
+                    }}
+                  >
+                    <AlertTriangle size={18} style={{ color: aging.color, flexShrink: 0 }} />
+                    <span style={{ fontSize: 12, color: aging.color, fontWeight: 600, lineHeight: 1.4 }}>
+                      {aging.warningMessage}
+                    </span>
+                  </div>
+                )}
+
+                {/* Bannière de conclusion réussie */}
+                {aging.isConclue && (
+                  <div
+                    style={{
+                      padding: '12px 14px',
+                      borderRadius: 10,
+                      background: 'rgba(16,185,129,0.1)',
+                      border: '1px solid rgba(16,185,129,0.25)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 10
+                    }}
+                  >
+                    <CheckCircle2 size={18} style={{ color: '#10b981', flexShrink: 0 }} />
+                    <span style={{ fontSize: 12, color: '#10b981', fontWeight: 700, lineHeight: 1.4 }}>
+                      {aging.badgeText} · Vente finalisée avec succès !
+                    </span>
+                  </div>
+                )}
 
                 {/* Notes display */}
                 <div
@@ -1073,6 +1175,29 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
 
                 {/* Chip row */}
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {(() => {
+                    const aging = getPipelineAging(item.createdAt || item.enteredAt, item.status, item.assignedAt, item.updatedAt)
+                    return (
+                      <span
+                        title={`Entré le ${aging.enteredDateFormatted} (${aging.relativeTimeFormatted})`}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 4,
+                          fontSize: 11,
+                          fontWeight: 700,
+                          color: aging.color,
+                          background: aging.bgColor,
+                          border: `1px solid ${aging.borderColor}`,
+                          borderRadius: 6,
+                          padding: '2px 8px'
+                        }}
+                      >
+                        <Clock size={10} />
+                        {aging.badgeText}
+                      </span>
+                    )
+                  })()}
                   {item.companySector && (
                     <span
                       style={{

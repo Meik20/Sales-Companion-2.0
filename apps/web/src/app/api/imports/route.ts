@@ -367,6 +367,8 @@ export async function PATCH(request: NextRequest) {
         assignedByName: managerName,
         note: prospectData.notes ?? '',
         previousAssignees: [],
+        enteredAt: new Date().toISOString(),
+        assignedAt: new Date().toISOString(),
         createdAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp()
       })
