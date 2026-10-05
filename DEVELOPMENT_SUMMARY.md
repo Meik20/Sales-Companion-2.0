@@ -307,7 +307,6 @@ Préparer le déploiement production avec CI/CD
 - Procfile
 - apps/web/.env.example
 - apps/server/.env.example
-- docs/architecture/railway-deployment.md
 - DEPLOYMENT_CHECKLIST.md
 
 ### Files Modified: **7**
@@ -316,7 +315,6 @@ Préparer le déploiement production avec CI/CD
 - globals.css (design tokens)
 - page.tsx (routing)
 - next.config.ts (optimizations)
-- railway.json (deployment config)
 - README.md (documentation)
 - firestore/docs/data-model.md (database docs)
 
@@ -362,9 +360,8 @@ Préparer le déploiement production avec CI/CD
 - Pre-deployment checklist
 - Troubleshooting guide
 
-✅ **Déploiement Railway Ready**
+✅ **Déploiement Production Ready**
 
-- railway.json configuré
 - Environment templates
 - Health checks
 - Monitoring setup
@@ -387,12 +384,9 @@ Préparer le déploiement production avec CI/CD
    firebase deploy --only firestore:rules,firestore:indexes
    ```
 
-3. **Railway Deployment**
+3. **Déploiement Backend**
 
-   ```bash
-   railway link
-   railway up
-   ```
+   Poussez votre backend selon votre hébergeur (Vercel, Render, VPS, etc.)
 
 4. **Verify Deployment**
    - Health check: `curl https://api.salescompanion.cm/health`
@@ -411,6 +405,6 @@ All 5 phases completed:
 - ✅ Phase 2: PWA Service Worker
 - ✅ Phase 3: Comprehensive documentation
 - ✅ Phase 4: Performance optimizations
-- ✅ Phase 5: Railway deployment configuration
+- ✅ Phase 5: Configuration déploiement
 
-**Ready for launch on Railway!** 🚀
+**Prêt pour le lancement !** 🚀

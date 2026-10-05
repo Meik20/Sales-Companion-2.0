@@ -33,7 +33,7 @@
 - [ ] Pas de secrets en hardcoded
 - [ ] Pas de tokens/credentials dans git
 - [ ] `.env` dans `.gitignore`
-- [ ] Variables sensibles dans Railway secrets
+- [ ] Variables sensibles dans les secrets de l'hébergeur
 - [ ] Input validation sur toutes les routes
 
 ### Firebase Security
@@ -221,20 +221,17 @@
 - [ ] WEB_ORIGIN set to frontend URL
 - [ ] CORS_ORIGIN set correctly
 
-### Railway Configuration
+### Configuration Déploiement
 
-- [ ] railway.json configured
-- [ ] Procfile created and valid
-- [ ] Build commands correct
-- [ ] Start commands correct
-- [ ] Environment variables in Railway dashboard
+- [ ] Build commands corrects
+- [ ] Start commands corrects
+- [ ] Variables d'environnement configurées
 
-### Deployment Credentials
+### Identifiants de déploiement
 
-- [ ] Firebase service account key secure
-- [ ] Railway access token configured
-- [ ] GitHub SSH key added
-- [ ] No credentials in repository
+- [ ] Clé du compte de service Firebase sécurisée
+- [ ] Clé SSH GitHub ajoutée
+- [ ] Pas de credentials dans le dépôt
 
 ---
 
@@ -301,7 +298,7 @@
 
 ### Deployment Documentation
 
-- [ ] railway-deployment.md complete
+- [ ] Guide de déploiement complet
 - [ ] Setup instructions clear
 - [ ] Troubleshooting guide provided
 - [ ] Scaling considerations documented

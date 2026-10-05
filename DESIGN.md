@@ -49,7 +49,7 @@ sales-companion/
 
 - Firebase/Firestore (Database + Auth)
 - Firebase Admin (Backend access)
-- Railway (Deployment)
+- Vercel (Déploiement frontend)
 - Docker (Containerization)
 
 ---
@@ -471,7 +471,7 @@ imports/
 
 ## 🚀 Déploiement
 
-### Railway Configuration
+### Configuration Déploiement
 
 **Services:**
 
@@ -498,7 +498,7 @@ NEXT_PUBLIC_FIREBASE_PROJECT_ID=sales-companion-237
 FIREBASE_ADMIN_KEY_PATH=...
 
 # API
-NEXT_PUBLIC_API_URL=https://api.railway.app
+NEXT_PUBLIC_API_URL=https://api.salescompanion2-0.com
 BACKEND_URL=http://localhost:8000
 
 # Groq AI
@@ -582,7 +582,7 @@ const data = schema.parse(input)
 3. **Testing**: Unit tests + E2E avec Playwright
 4. **Code review**: Pull request vers main
 5. **Build**: `npm run build:web` + `npm run build:server`
-6. **Deployment**: Push vers Railway
+6. **Deployment**: Push sur la branche de production
 
 ---
 
