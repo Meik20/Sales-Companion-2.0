@@ -20,9 +20,9 @@ const badgeStyles: Record<BadgeVariant, CSSProperties> = {
     border: '1px solid var(--border)'
   },
   success: {
-    background: 'rgba(52, 168, 83, 0.12)',
-    color: '#1B7A3E',
-    border: '1px solid rgba(52, 168, 83, 0.25)'
+    background: 'var(--pipeline-concluded-bg, rgba(52, 168, 83, 0.12))',
+    color: 'var(--pipeline-concluded-color, #047857)',
+    border: '1px solid var(--pipeline-concluded-border, rgba(52, 168, 83, 0.25))'
   },
   warning: {
     background: 'rgba(251, 188, 4, 0.15)',

@@ -411,10 +411,10 @@ function ProspectModal({
           {/* ── SUIVI COMMERCIAL & MÉTRIQUES (Éditable) ── */}
           <div
             style={{
-              background: isEditing ? 'rgba(59,130,246,0.03)' : 'rgba(30,41,59,0.5)',
+              background: isEditing ? 'rgba(59,130,246,0.03)' : 'var(--pipeline-section-bg, #f8fafc)',
               border: isEditing
                 ? '1px solid rgba(59,130,246,0.3)'
-                : '1px solid var(--border, rgba(255,255,255,0.1))',
+                : '1px solid var(--pipeline-section-border, #e2e8f0)',
               borderRadius: 14,
               padding: 18,
               marginBottom: 20,
@@ -433,7 +433,7 @@ function ProspectModal({
                 style={{
                   fontSize: 11,
                   fontWeight: 800,
-                  color: isEditing ? '#60a5fa' : '#34d399',
+                  color: isEditing ? '#60a5fa' : 'var(--pipeline-metric-title, #1e40af)',
                   textTransform: 'uppercase',
                   letterSpacing: '.1em',
                   display: 'flex',
@@ -646,10 +646,10 @@ function ProspectModal({
                   {/* Amount display */}
                   <div
                     style={{
-                      background: 'var(--secondary, #1e2a3b)',
+                      background: 'var(--pipeline-card-bg, #ffffff)',
                       borderRadius: 10,
                       padding: '10px 14px',
-                      border: '1px solid rgba(52,211,153,0.15)'
+                      border: '1px solid var(--pipeline-card-border, #e2e8f0)'
                     }}
                   >
                     <div
@@ -664,7 +664,7 @@ function ProspectModal({
                     >
                       Valeur de l&apos;opportunité
                     </div>
-                    <div style={{ fontSize: 15, fontWeight: 800, color: item.amount ? '#34d399' : 'var(--muted-foreground, #64748b)' }}>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: item.amount ? 'var(--pipeline-opportunity-color, #047857)' : 'var(--muted-foreground, #64748b)' }}>
                       {item.amount != null && item.amount > 0
                         ? `${new Intl.NumberFormat('fr-FR').format(item.amount)} FCFA`
                         : '0 FCFA'}
@@ -674,7 +674,7 @@ function ProspectModal({
                   {/* Durée dans le pipeline */}
                   <div
                     style={{
-                      background: 'var(--secondary, #1e2a3b)',
+                      background: 'var(--pipeline-card-bg, #ffffff)',
                       borderRadius: 10,
                       padding: '10px 14px',
                       border: `1px solid ${aging.borderColor}`
@@ -708,10 +708,10 @@ function ProspectModal({
                   {!isConclue && (
                   <div
                     style={{
-                      background: 'var(--secondary, #1e2a3b)',
+                      background: 'var(--pipeline-card-bg, #ffffff)',
                       borderRadius: 10,
                       padding: '10px 14px',
-                      border: isOverdue ? '1px solid rgba(239,68,68,0.3)' : '1px solid rgba(96,165,250,0.15)'
+                      border: isOverdue ? '1px solid rgba(239,68,68,0.3)' : '1px solid var(--pipeline-card-border, #e2e8f0)'
                     }}
                   >
                     <div
@@ -776,15 +776,15 @@ function ProspectModal({
                     style={{
                       padding: '12px 14px',
                       borderRadius: 10,
-                      background: 'rgba(16,185,129,0.1)',
-                      border: '1px solid rgba(16,185,129,0.25)',
+                      background: 'var(--pipeline-concluded-bg, #ecfdf5)',
+                      border: '1px solid var(--pipeline-concluded-border, rgba(5, 150, 105, 0.25))',
                       display: 'flex',
                       alignItems: 'center',
                       gap: 10
                     }}
                   >
-                    <CheckCircle2 size={18} style={{ color: '#10b981', flexShrink: 0 }} />
-                    <span style={{ fontSize: 12, color: '#10b981', fontWeight: 700, lineHeight: 1.4 }}>
+                    <CheckCircle2 size={18} style={{ color: 'var(--pipeline-concluded-color, #047857)', flexShrink: 0 }} />
+                    <span style={{ fontSize: 12, color: 'var(--pipeline-concluded-color, #047857)', fontWeight: 700, lineHeight: 1.4 }}>
                       {aging.badgeText} · Vente finalisée avec succès !
                     </span>
                   </div>
@@ -793,10 +793,10 @@ function ProspectModal({
                 {/* Notes display */}
                 <div
                   style={{
-                    background: 'var(--secondary, #1e2a3b)',
+                    background: 'var(--pipeline-card-bg, #ffffff)',
                     borderRadius: 10,
                     padding: '12px 14px',
-                    border: '1px solid rgba(255,255,255,0.06)'
+                    border: '1px solid var(--pipeline-card-border, #e2e8f0)'
                   }}
                 >
                   <div
@@ -1244,9 +1244,9 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
                         gap: 4,
                         fontSize: 11,
                         fontWeight: 700,
-                        color: '#34d399',
-                        background: 'rgba(52,211,153,0.1)',
-                        border: '1px solid rgba(52,211,153,0.25)',
+                        color: 'var(--pipeline-opportunity-color, #047857)',
+                        background: 'var(--pipeline-fresh-bg, #ecfdf5)',
+                        border: '1px solid var(--pipeline-fresh-border, rgba(5, 150, 105, 0.25))',
                         borderRadius: 6,
                         padding: '2px 8px'
                       }}

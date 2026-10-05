@@ -110,9 +110,9 @@ export function getPipelineAging(
       level: 'concluded',
       stage,
       badgeText: concludedDays === 0 ? 'Conclue le jour même' : `Conclue en ${concludedDays}j`,
-      color: '#10b981',
-      bgColor: 'rgba(16,185,129,0.12)',
-      borderColor: 'rgba(16,185,129,0.3)',
+      color: 'var(--pipeline-concluded-color, #047857)',
+      bgColor: 'var(--pipeline-concluded-bg, #ecfdf5)',
+      borderColor: 'var(--pipeline-concluded-border, rgba(5, 150, 105, 0.25))',
       warningMessage: undefined,
       isConclue: true
     }
@@ -130,9 +130,9 @@ export function getPipelineAging(
         level: 'alert',
         stage,
         badgeText: `${daysInPipeline}j · Stagnation`,
-        color: '#ef4444',
-        bgColor: 'rgba(239,68,68,0.12)',
-        borderColor: 'rgba(239,68,68,0.3)',
+        color: 'var(--pipeline-alert-color, #b91c1c)',
+        bgColor: 'var(--pipeline-alert-bg, #fef2f2)',
+        borderColor: 'var(--pipeline-alert-border, rgba(185, 28, 28, 0.25))',
         warningMessage: `Ce prospect est en phase de prospection depuis plus de ${alert} jours sans progression. Contactez-le rapidement ou mettez à jour son statut.`,
         isConclue: false
       }
@@ -146,9 +146,9 @@ export function getPipelineAging(
         level: 'warning',
         stage,
         badgeText: `${daysInPipeline}j · À relancer`,
-        color: '#f59e0b',
-        bgColor: 'rgba(245,158,11,0.12)',
-        borderColor: 'rgba(245,158,11,0.3)',
+        color: 'var(--pipeline-warning-color, #b45309)',
+        bgColor: 'var(--pipeline-warning-bg, #fffbeb)',
+        borderColor: 'var(--pipeline-warning-border, rgba(180, 83, 9, 0.25))',
         warningMessage: `Prospect en prospection depuis ${daysInPipeline} jours. Une relance commerciale est conseillée pour faire avancer le dossier.`,
         isConclue: false
       }
@@ -161,9 +161,9 @@ export function getPipelineAging(
       level: 'fresh',
       stage,
       badgeText: daysInPipeline === 0 ? 'Nouveau (aujourd’hui)' : `${daysInPipeline}j dans le pipeline`,
-      color: '#34d399',
-      bgColor: 'rgba(52,211,153,0.1)',
-      borderColor: 'rgba(52,211,153,0.25)',
+      color: 'var(--pipeline-fresh-color, #047857)',
+      bgColor: 'var(--pipeline-fresh-bg, #ecfdf5)',
+      borderColor: 'var(--pipeline-fresh-border, rgba(5, 150, 105, 0.25))',
       isConclue: false
     }
   }
@@ -179,9 +179,9 @@ export function getPipelineAging(
       level: 'alert',
       stage,
       badgeText: `${daysInPipeline}j · Négociation critique`,
-      color: '#ef4444',
-      bgColor: 'rgba(239,68,68,0.12)',
-      borderColor: 'rgba(239,68,68,0.3)',
+      color: 'var(--pipeline-alert-color, #b91c1c)',
+      bgColor: 'var(--pipeline-alert-bg, #fef2f2)',
+      borderColor: 'var(--pipeline-alert-border, rgba(185, 28, 28, 0.25))',
       warningMessage: `Négociation ouverte depuis plus de ${alert} jours. Risque d'abandon : prévoyez un point de clôture ou un closing rapide.`,
       isConclue: false
     }
@@ -195,9 +195,9 @@ export function getPipelineAging(
       level: 'warning',
       stage,
       badgeText: `${daysInPipeline}j · Négociation longue`,
-      color: '#f59e0b',
-      bgColor: 'rgba(245,158,11,0.12)',
-      borderColor: 'rgba(245,158,11,0.3)',
+      color: 'var(--pipeline-warning-color, #b45309)',
+      bgColor: 'var(--pipeline-warning-bg, #fffbeb)',
+      borderColor: 'var(--pipeline-warning-border, rgba(180, 83, 9, 0.25))',
       warningMessage: `Négociation en cours depuis ${daysInPipeline} jours. Une offre finale ou une relance décisionnaire est recommandée.`,
       isConclue: false
     }
@@ -210,9 +210,9 @@ export function getPipelineAging(
     level: 'fresh',
     stage,
     badgeText: `${daysInPipeline}j · En négociation`,
-    color: '#60a5fa',
-    bgColor: 'rgba(96,165,250,0.1)',
-    borderColor: 'rgba(96,165,250,0.25)',
+    color: 'var(--pipeline-progress-color, #1d4ed8)',
+    bgColor: 'var(--pipeline-progress-bg, #eff6ff)',
+    borderColor: 'var(--pipeline-progress-border, rgba(29, 78, 216, 0.2))',
     isConclue: false
   }
 }

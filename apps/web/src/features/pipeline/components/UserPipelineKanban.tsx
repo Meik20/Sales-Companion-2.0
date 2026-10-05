@@ -210,8 +210,8 @@ function KanbanCard({
             {item.amount != null && item.amount > 0 && (
               <span style={{
                 display: 'inline-flex', alignItems: 'center', gap: 4,
-                fontSize: 11, fontWeight: 700, color: '#34d399',
-                background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.25)',
+                fontSize: 11, fontWeight: 700, color: 'var(--pipeline-opportunity-color, #047857)',
+                background: 'var(--pipeline-fresh-bg, #ecfdf5)', border: '1px solid var(--pipeline-fresh-border, rgba(5, 150, 105, 0.25))',
                 borderRadius: 6, padding: '2px 8px'
               }}>
                 <Banknote size={10} />

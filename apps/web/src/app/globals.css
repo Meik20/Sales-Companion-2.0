@@ -97,6 +97,34 @@
   --google-yellow-400: rgb(252, 201, 52);
   --google-yellow-500: rgb(251, 188, 4);
   --google-yellow-700: rgb(240, 147, 0);
+
+  /* ── Pipeline & Métriques Commerciales (Mode Clair - Fintech Premium) ── */
+  --pipeline-concluded-color: #047857;          /* Émeraude dense 700 */
+  --pipeline-concluded-bg: #ecfdf5;             /* Voile menthe pur 50 */
+  --pipeline-concluded-border: rgba(5, 150, 105, 0.25);
+
+  --pipeline-fresh-color: #047857;              /* Émeraude dense */
+  --pipeline-fresh-bg: #ecfdf5;
+  --pipeline-fresh-border: rgba(5, 150, 105, 0.25);
+
+  --pipeline-progress-color: #1d4ed8;           /* Bleu roi dense */
+  --pipeline-progress-bg: #eff6ff;
+  --pipeline-progress-border: rgba(29, 78, 216, 0.2);
+
+  --pipeline-warning-color: #b45309;           /* Ambre 700 contrasté */
+  --pipeline-warning-bg: #fffbeb;
+  --pipeline-warning-border: rgba(180, 83, 9, 0.25);
+
+  --pipeline-alert-color: #b91c1c;             /* Rouge 700 contrasté */
+  --pipeline-alert-bg: #fef2f2;
+  --pipeline-alert-border: rgba(185, 28, 28, 0.25);
+
+  --pipeline-opportunity-color: #047857;       /* Vert financier lisible */
+  --pipeline-metric-title: #1e40af;            /* Cobalt blue pour les titres de section */
+  --pipeline-section-bg: #f8fafc;              /* Conteneur métrique doux */
+  --pipeline-section-border: #e2e8f0;
+  --pipeline-card-bg: #ffffff;                 /* Carte blanche nette */
+  --pipeline-card-border: #e2e8f0;
 }
 
 .dark {
@@ -134,6 +162,34 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+
+  /* ── Pipeline & Métriques Commerciales (Mode Sombre - Cockpit Émeraude) ── */
+  --pipeline-concluded-color: #34d399;          /* Vert menthe luminescent 400 */
+  --pipeline-concluded-bg: rgba(16, 185, 129, 0.12);
+  --pipeline-concluded-border: rgba(16, 185, 129, 0.3);
+
+  --pipeline-fresh-color: #34d399;
+  --pipeline-fresh-bg: rgba(52, 211, 153, 0.1);
+  --pipeline-fresh-border: rgba(52, 211, 153, 0.25);
+
+  --pipeline-progress-color: #60a5fa;
+  --pipeline-progress-bg: rgba(96, 165, 250, 0.1);
+  --pipeline-progress-border: rgba(96, 165, 250, 0.25);
+
+  --pipeline-warning-color: #fbbf24;
+  --pipeline-warning-bg: rgba(251, 191, 36, 0.12);
+  --pipeline-warning-border: rgba(251, 191, 36, 0.3);
+
+  --pipeline-alert-color: #f87171;
+  --pipeline-alert-bg: rgba(239, 68, 68, 0.12);
+  --pipeline-alert-border: rgba(239, 68, 68, 0.3);
+
+  --pipeline-opportunity-color: #34d399;
+  --pipeline-metric-title: #34d399;
+  --pipeline-section-bg: rgba(30, 41, 59, 0.5);
+  --pipeline-section-border: var(--border, rgba(255, 255, 255, 0.1));
+  --pipeline-card-bg: var(--secondary, #1e2a3b);
+  --pipeline-card-border: rgba(52, 211, 153, 0.15);
 }
 
 /* The design system tokens are now imported from theme.css */
