@@ -37,7 +37,11 @@ export async function POST(request: NextRequest) {
       for (const mDoc of managersSnap.docs) {
         const mData = mDoc.data()
         const plan = mData.plan ?? 'free'
-        const res = await syncTeamMemberPlans(mDoc.id, plan)
+        const res = await syncTeamMemberPlans(mDoc.id, plan, {
+          subscriptionExpiresAt: mData.subscriptionExpiresAt ?? mData.planExpiresAt ?? null,
+          subscriptionStartedAt: mData.subscriptionStartedAt ?? null,
+          subscriptionExpired: mData.subscriptionExpired ?? false
+        })
         totalUsers += res.updatedUsers
         totalAccesses += res.updatedAccesses
         if (res.updatedUsers > 0 || res.updatedAccesses > 0) {
@@ -94,18 +98,26 @@ export async function POST(request: NextRequest) {
     }
 
     const managerPlan = managerData.plan ?? 'free'
+    const expiresAt = managerData.subscriptionExpiresAt ?? managerData.planExpiresAt ?? null
+    const startedAt = managerData.subscriptionStartedAt ?? null
+    const isExpired = managerData.subscriptionExpired ?? false
 
     console.log(
-      `[sync-team-plan] Resync demandée : manager=${targetUid} (${managerData.email}) plan=${managerPlan}`
+      `[sync-team-plan] Resync demandée : manager=${targetUid} (${managerData.email}) plan=${managerPlan} validité=${expiresAt}`
     )
 
-    const result = await syncTeamMemberPlans(targetUid, managerPlan)
+    const result = await syncTeamMemberPlans(targetUid, managerPlan, {
+      subscriptionExpiresAt: expiresAt,
+      subscriptionStartedAt: startedAt,
+      subscriptionExpired: isExpired
+    })
 
     return NextResponse.json({
       success: true,
       managerUid: targetUid,
       managerEmail: managerData.email,
       planApplied: managerPlan,
+      subscriptionExpiresAt: expiresAt,
       ...result
     })
   } catch (error: unknown) {

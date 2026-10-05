@@ -163,13 +163,16 @@ export async function POST(request: NextRequest) {
       ? (userDocSnap.data()?.createdAt ?? new Date())
       : new Date()
 
-    // ── 2.5. Récupérer dynamiquement le plan actuel du manager si membre normal ──
+    // ── 2.5. Récupérer dynamiquement le plan et la validité du manager ──
     let memberPlan = data.plan ?? 'free'
     let memberDailyLimit = data.dailyLimit ?? 10
+    let managerExpiresAt: string | null = null
+    let managerStartedAt: string | null = null
+    let managerExpired = false
     const mUid = data.managerUid ?? data.managerId
     const userRole = data.role ?? 'member'
 
-    if (userRole !== 'support_agent' && mUid) {
+    if (mUid) {
       try {
         const mDoc = await adminDb.collection('users').doc(mUid).get()
         if (mDoc.exists) {
@@ -177,8 +180,13 @@ export async function POST(request: NextRequest) {
           if (mData?.plan) {
             memberPlan = mData.plan
             const { PLAN_LIMITS } = await import('@sales-companion/shared')
-            memberDailyLimit = PLAN_LIMITS[mData.plan as keyof typeof PLAN_LIMITS] ?? memberDailyLimit
+            if (userRole !== 'support_agent') {
+              memberDailyLimit = PLAN_LIMITS[mData.plan as keyof typeof PLAN_LIMITS] ?? memberDailyLimit
+            }
           }
+          managerExpiresAt = mData?.subscriptionExpiresAt ?? mData?.planExpiresAt ?? null
+          managerStartedAt = mData?.subscriptionStartedAt ?? null
+          managerExpired = mData?.subscriptionExpired ?? false
         }
       } catch (err) {
         console.warn('[team/activate] Failed to fetch manager plan:', err)
@@ -207,6 +215,9 @@ export async function POST(request: NextRequest) {
         accessId: accessIdLower, // ← Access ID (ex: "prenomnom@entreprise")
         dailyUsed: 0,
         dailyLimit: memberDailyLimit,
+        subscriptionExpiresAt: managerExpiresAt,
+        subscriptionStartedAt: managerStartedAt,
+        subscriptionExpired: managerExpired,
         createdAt,
         activatedAt: new Date()
       },

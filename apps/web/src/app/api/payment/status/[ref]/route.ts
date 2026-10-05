@@ -56,6 +56,18 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         updatedAt: FieldValue.serverTimestamp()
       })
 
+      // ── Propagation automatique à l'équipe ────────────────────────────────
+      try {
+        const { syncTeamMemberPlans } = await import('@/lib/sync-team-plan')
+        await syncTeamMemberPlans(paymentData.userId, paymentData.plan, {
+          subscriptionExpiresAt: expiresAt.toISOString(),
+          subscriptionStartedAt: new Date().toISOString(),
+          subscriptionExpired: false
+        })
+      } catch (syncErr) {
+        console.error('[payment/status] sync team plan failed (non-blocking):', syncErr)
+      }
+
       return NextResponse.json({ status: 'SUCCESSFUL', plan: paymentData.plan })
     }
 

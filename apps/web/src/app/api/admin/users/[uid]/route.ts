@@ -54,20 +54,39 @@ export async function PATCH(
 
     await userDocRef.update(updatePayload)
 
-    // ── Propagation du plan aux membres de l'équipe ─────────────────────────
-    // Déclenché si le plan OU le dailyLimit du manager change
-    // Les support_agents sont exclus (accès illimité sans quota de recherche)
-    if ((safeFields.plan || safeFields.dailyLimit !== undefined) && oldData?.role === 'manager') {
+    // ── Propagation du plan et de la validité aux membres de l'équipe ─────
+    // Déclenché si le plan, le quota OU la date d'expiration du manager change
+    const isManager = (oldData?.role === 'manager' || safeFields.role === 'manager')
+    const hasPlanOrExpiryChange =
+      safeFields.plan !== undefined ||
+      safeFields.dailyLimit !== undefined ||
+      safeFields.subscriptionExpiresAt !== undefined ||
+      updatePayload.subscriptionExpiresAt !== undefined
+
+    if (hasPlanOrExpiryChange && isManager) {
       try {
-        // Si plan explicite fourni, on l'utilise directement
-        // Sinon on récupère le plan actuel du manager pour passer le bon
-        const planToSync = safeFields.plan ?? oldData?.plan
-        if (planToSync) {
-          const syncResult = await syncTeamMemberPlans(uid, planToSync)
-          console.log(
-            `[admin/users] 👥 sync équipe manager=${uid}: ${syncResult.updatedUsers} membres, ${syncResult.updatedAccesses} accès mis à jour`
-          )
-        }
+        const planToSync = (safeFields.plan ?? oldData?.plan ?? 'free') as any
+        const expiresToSync =
+          (updatePayload.subscriptionExpiresAt !== undefined
+            ? updatePayload.subscriptionExpiresAt
+            : (oldData?.subscriptionExpiresAt ?? null)) as string | null
+        const startedToSync =
+          (updatePayload.subscriptionStartedAt !== undefined
+            ? updatePayload.subscriptionStartedAt
+            : (oldData?.subscriptionStartedAt ?? null)) as string | null
+        const expiredToSync =
+          updatePayload.subscriptionExpired !== undefined
+            ? (updatePayload.subscriptionExpired as boolean)
+            : (oldData?.subscriptionExpired ?? false)
+
+        const syncResult = await syncTeamMemberPlans(uid, planToSync, {
+          subscriptionExpiresAt: expiresToSync,
+          subscriptionStartedAt: startedToSync,
+          subscriptionExpired: expiredToSync
+        })
+        console.log(
+          `[admin/users] 👥 sync équipe manager=${uid}: ${syncResult.updatedUsers} utilisateurs, ${syncResult.updatedAccesses} accès mis à jour`
+        )
       } catch (syncErr) {
         // Non-bloquant
         console.error('[admin/users] sync team plan failed (non-blocking):', syncErr)

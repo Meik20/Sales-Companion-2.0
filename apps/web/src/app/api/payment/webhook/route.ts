@@ -69,12 +69,15 @@ export async function POST(request: NextRequest) {
         `[webhook/campay] ✅ plan "${paymentData.plan}" activé pour user ${paymentData.userId}`
       )
 
-      // ── Propagation automatique du plan aux membres de l'équipe ──────────
-      // Les support_agents sont intentionnellement exclus (accès illimité par design)
+      // ── Propagation automatique du plan et de la validité aux membres de l'équipe ──
       try {
-        const syncResult = await syncTeamMemberPlans(paymentData.userId, paymentData.plan)
+        const syncResult = await syncTeamMemberPlans(paymentData.userId, paymentData.plan, {
+          subscriptionExpiresAt: expiresAt.toISOString(),
+          subscriptionStartedAt: new Date().toISOString(),
+          subscriptionExpired: false
+        })
         console.log(
-          `[webhook/campay] 👥 sync équipe: ${syncResult.updatedUsers} membres mis à jour`
+          `[webhook/campay] 👥 sync équipe: ${syncResult.updatedUsers} utilisateurs mis à jour`
         )
       } catch (syncErr) {
         // Non-bloquant : le paiement est validé même si la sync échoue

@@ -718,7 +718,7 @@ export function ProfileCard() {
           </Panel>
         </>
       ) : (
-        /* Vue agent support : statut uniquement, sans quota */
+        /* Vue agent support : statut, validité d'abonnement synchronisée et quota illimité */
         <StatsGrid>
           <MetricCard
             label={t('profile.status')}
@@ -734,6 +734,32 @@ export function ProfileCard() {
                   <span>{t('profile.inactive')}</span>
                 </span>
               )
+            }
+          />
+          <MetricCard
+            label={user.plan !== 'free' ? "Validité abonnement" : t('profile.status')}
+            value={
+              user.plan !== 'free' && user.subscriptionExpiresAt ? (
+                new Date(user.subscriptionExpiresAt).toLocaleDateString('fr-FR', {
+                  day: '2-digit',
+                  month: 'short'
+                })
+              ) : user.active ? (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 24 }}>
+                  <Check size={24} className="text-emerald-500" strokeWidth={3} />
+                  <span>{t('profile.active')}</span>
+                </span>
+              ) : (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 24 }}>
+                  <X size={24} className="text-red-500" strokeWidth={3} />
+                  <span>{t('profile.inactive')}</span>
+                </span>
+              )
+            }
+            hint={
+              user.plan !== 'free' && user.subscriptionExpiresAt
+                ? `Expire à minuit (${Math.max(0, Math.ceil((new Date(user.subscriptionExpiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))} j restants)`
+                : undefined
             }
           />
           <MetricCard

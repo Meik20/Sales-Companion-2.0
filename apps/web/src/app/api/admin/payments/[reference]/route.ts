@@ -68,12 +68,15 @@ export async function PATCH(
         updatedAt: FieldValue.serverTimestamp()
       })
 
-      // ── Propagation automatique du plan aux membres de l'équipe ──────────
-      // Les support_agents sont intentionnellement exclus (accès illimité par design)
+      // ── Propagation automatique du plan et de la validité aux membres de l'équipe ──
       try {
-        const syncResult = await syncTeamMemberPlans(paymentData.userId, paymentData.plan)
+        const syncResult = await syncTeamMemberPlans(paymentData.userId, paymentData.plan, {
+          subscriptionExpiresAt: expiresAt.toISOString(),
+          subscriptionStartedAt: new Date().toISOString(),
+          subscriptionExpired: false
+        })
         console.log(
-          `[admin/payments] 👥 sync équipe: ${syncResult.updatedUsers} membres, ${syncResult.updatedAccesses} accès mis à jour`
+          `[admin/payments] 👥 sync équipe: ${syncResult.updatedUsers} utilisateurs, ${syncResult.updatedAccesses} accès mis à jour`
         )
       } catch (syncErr) {
         // Non-bloquant : la validation est confirmée même si la sync échoue

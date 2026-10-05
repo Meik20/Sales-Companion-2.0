@@ -66,9 +66,13 @@ async function main() {
   const ivanUid = ivanDoc.id;
   const targetPlan = ivanData.plan || 'enterprise';
   const targetDailyLimit = PLAN_LIMITS[targetPlan] ?? 500;
+  const targetExpiresAt = ivanData.subscriptionExpiresAt ?? ivanData.planExpiresAt ?? null;
+  const targetStartedAt = ivanData.subscriptionStartedAt ?? null;
+  const targetExpired = ivanData.subscriptionExpired ?? false;
 
   console.log(`Manager trouvé: ${ivanData.name} (${ivanData.email}) [UID: ${ivanUid}]`);
   console.log(`Plan du manager: ${targetPlan} (dailyLimit: ${targetDailyLimit})`);
+  console.log(`Validité abonnement: ${targetExpiresAt}`);
 
   // 2. Chercher kevin mbaye (landrymbaye3@gmail.com)
   const kevinSnap = await db.collection('users').where('email', '==', 'landrymbaye3@gmail.com').get();
@@ -81,91 +85,138 @@ async function main() {
     });
   }
 
-  // 3. Chercher tous les membres ayant managerUid === ivanUid et role === 'member'
-  const membersSnap = await db.collection('users')
+  // 3. Chercher Jules EYOUM (didibala87@gmail.com)
+  const julesSnap = await db.collection('users').where('email', '==', 'didibala87@gmail.com').get();
+  if (julesSnap.empty) {
+    console.log("Support Agent Jules (didibala87@gmail.com) non trouvé dans 'users'");
+  } else {
+    julesSnap.docs.forEach(doc => {
+      const d = doc.data();
+      console.log(`Utilisateur jules trouvé: id=${doc.id}, role=${d.role}, plan=${d.plan}, managerUid=${d.managerUid}`);
+    });
+  }
+
+  // 4. Chercher tous les comptes associés ayant managerUid === ivanUid
+  const teamUsersSnap = await db.collection('users')
     .where('managerUid', '==', ivanUid)
-    .where('role', '==', 'member')
     .get();
 
-  console.log(`Nombre de membres trouvés dans 'users' pour Ivan: ${membersSnap.size}`);
+  console.log(`Nombre d'utilisateurs associés trouvés dans 'users' pour Ivan: ${teamUsersSnap.size}`);
 
   const userBatch = db.batch();
-  membersSnap.docs.forEach(doc => {
+  teamUsersSnap.docs.forEach(doc => {
     const data = doc.data();
-    console.log(` -> Mise à jour user ${data.email || doc.id}: ${data.plan} => ${targetPlan}`);
-    userBatch.update(doc.ref, {
+    const isSupport = data.role === 'support_agent';
+    console.log(` -> Mise à jour user ${data.email || doc.id} (${data.role}): validité => ${targetExpiresAt}`);
+
+    const payload = {
       plan: targetPlan,
-      dailyLimit: targetDailyLimit,
+      subscriptionExpiresAt: targetExpiresAt,
+      subscriptionStartedAt: targetStartedAt,
+      subscriptionExpired: targetExpired,
       updatedAt: FieldValue.serverTimestamp(),
-    });
+    };
+    if (!isSupport) {
+      payload.dailyLimit = targetDailyLimit;
+    }
+    userBatch.update(doc.ref, payload);
   });
 
-  // Si Kevin n'a pas encore managerUid sur son doc user mais qu'il est membre d'Ivan dans team_accesses
+  // Si Kevin n'a pas encore managerUid sur son doc user mais qu'il est membre d'Ivan
   if (!kevinSnap.empty) {
     const kDoc = kevinSnap.docs[0];
     const kData = kDoc.data();
-    if (kData.role === 'member' && kData.managerUid !== ivanUid) {
-      console.log(` -> Attribution du managerUid ${ivanUid} à Kevin (${kDoc.id})`);
-      userBatch.update(kDoc.ref, {
-        managerUid: ivanUid,
-        plan: targetPlan,
-        dailyLimit: targetDailyLimit,
-        updatedAt: FieldValue.serverTimestamp(),
-      });
-    } else if (kData.role === 'member' && kData.plan !== targetPlan) {
-      console.log(` -> Alignement du plan de Kevin (${kDoc.id}) sur ${targetPlan}`);
-      userBatch.update(kDoc.ref, {
-        plan: targetPlan,
-        dailyLimit: targetDailyLimit,
-        updatedAt: FieldValue.serverTimestamp(),
-      });
-    }
+    console.log(` -> Alignement de Kevin (${kDoc.id}) sur validité=${targetExpiresAt}`);
+    userBatch.update(kDoc.ref, {
+      managerUid: ivanUid,
+      plan: targetPlan,
+      dailyLimit: targetDailyLimit,
+      subscriptionExpiresAt: targetExpiresAt,
+      subscriptionStartedAt: targetStartedAt,
+      subscriptionExpired: targetExpired,
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+  }
+
+  // Si Jules n'a pas encore managerUid sur son doc user mais qu'il est support agent d'Ivan
+  if (!julesSnap.empty) {
+    const jDoc = julesSnap.docs[0];
+    const jData = jDoc.data();
+    console.log(` -> Alignement de Jules (${jDoc.id}) sur validité=${targetExpiresAt}`);
+    userBatch.update(jDoc.ref, {
+      managerUid: ivanUid,
+      plan: targetPlan,
+      subscriptionExpiresAt: targetExpiresAt,
+      subscriptionStartedAt: targetStartedAt,
+      subscriptionExpired: targetExpired,
+      updatedAt: FieldValue.serverTimestamp(),
+    });
   }
 
   await userBatch.commit();
   console.log("Mise à jour de la collection 'users' terminée.");
 
-  // 4. Mettre à jour team_accesses
+  // 5. Mettre à jour team_accesses
   const accessSnap = await db.collection('team_accesses')
     .where('managerUid', '==', ivanUid)
-    .where('role', '==', 'member')
     .get();
 
-  console.log(`Nombre d'accès 'member' trouvés dans team_accesses pour Ivan: ${accessSnap.size}`);
+  console.log(`Nombre d'accès trouvés dans team_accesses pour Ivan: ${accessSnap.size}`);
   if (!accessSnap.empty) {
     const accessBatch = db.batch();
     accessSnap.docs.forEach(doc => {
       const data = doc.data();
-      console.log(` -> Mise à jour team_accesses ${data.email || data.accessId || doc.id}: ${data.plan} => ${targetPlan}`);
-      accessBatch.update(doc.ref, {
+      const isSupport = data.role === 'support_agent';
+      console.log(` -> Mise à jour team_accesses ${data.email || data.accessId || doc.id} (${data.role})`);
+      const payload = {
         plan: targetPlan,
-        dailyLimit: targetDailyLimit,
+        subscriptionExpiresAt: targetExpiresAt,
+        subscriptionStartedAt: targetStartedAt,
+        subscriptionExpired: targetExpired,
         updatedAt: FieldValue.serverTimestamp(),
-      });
+      };
+      if (!isSupport) {
+        payload.dailyLimit = targetDailyLimit;
+      }
+      accessBatch.update(doc.ref, payload);
     });
     await accessBatch.commit();
     console.log("Mise à jour de 'team_accesses' terminée.");
   }
 
-  // Vérifier également si Kevin a un document dans team_accesses sous son email
-  const kevinAccessSnap = await db.collection('team_accesses')
-    .where('email', '==', 'landrymbaye3@gmail.com')
-    .get();
-
+  // Mettre à jour l'accès de Kevin spécifiquement
   if (!kevinAccessSnap.empty) {
     const kAccessBatch = db.batch();
     kevinAccessSnap.docs.forEach(doc => {
-      const d = doc.data();
-      if (d.role === 'member') {
-        console.log(` -> team_accesses kevin trouvé: id=${doc.id}, plan=${d.plan} => ${targetPlan}`);
-        kAccessBatch.update(doc.ref, {
-          plan: targetPlan,
-          dailyLimit: targetDailyLimit,
-          updatedAt: FieldValue.serverTimestamp(),
-        });
-      }
+      kAccessBatch.update(doc.ref, {
+        plan: targetPlan,
+        dailyLimit: targetDailyLimit,
+        subscriptionExpiresAt: targetExpiresAt,
+        subscriptionStartedAt: targetStartedAt,
+        subscriptionExpired: targetExpired,
+        updatedAt: FieldValue.serverTimestamp(),
+      });
     });
     await kAccessBatch.commit();
+  }
+
+  // Mettre à jour l'accès de Jules spécifiquement
+  const julesAccessSnap = await db.collection('team_accesses')
+    .where('email', '==', 'didibala87@gmail.com')
+    .get();
+
+  if (!julesAccessSnap.empty) {
+    const jAccessBatch = db.batch();
+    julesAccessSnap.docs.forEach(doc => {
+      jAccessBatch.update(doc.ref, {
+        plan: targetPlan,
+        subscriptionExpiresAt: targetExpiresAt,
+        subscriptionStartedAt: targetStartedAt,
+        subscriptionExpired: targetExpired,
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+    });
+    await jAccessBatch.commit();
   }
 
   console.log("=== SYNCHRONISATION TERMINÉE AVEC SUCCÈS ===");

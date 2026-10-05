@@ -1,20 +1,27 @@
 /**
  * sync-team-plan.ts
  * -----------------
- * Utilitaire serveur : synchronise le plan de tous les membres actifs
- * d'un manager avec le nouveau plan de ce dernier.
+ * Utilitaire serveur : synchronise le plan ET la période de validité de tous
+ * les comptes associés d'un manager (membres d'équipe et agents support).
  *
  * RÈGLE MÉTIER :
- *  - Seuls les membres avec role === 'member' sont synchronisés.
- *  - Les agents support (role === 'support_agent') sont EXCLUS :
- *    ils ont un accès illimité et sans quota de recherche par design.
- *  - Mise à jour dans `users` ET dans `team_accesses` pour cohérence.
+ *  - Les membres commerciaux (role === 'member') reçoivent le plan, le quota quotidien
+ *    et la période de validité (subscriptionExpiresAt) de l'abonnement du manager.
+ *  - Les agents support (role === 'support_agent') reçoivent également le plan de l'organisation
+ *    et la période de validité (subscriptionExpiresAt), tout en conservant leur statut illimité.
+ *  - Mise à jour dans `users` ET dans `team_accesses` pour une parfaite cohérence.
  */
 
 import { adminDb } from '@/lib/firebase-admin'
 import { FieldValue } from 'firebase-admin/firestore'
 import { PLAN_LIMITS } from '@sales-companion/shared'
 import type { UserPlan } from '@sales-companion/shared'
+
+export interface SyncOptions {
+  subscriptionExpiresAt?: string | null
+  subscriptionStartedAt?: string | null
+  subscriptionExpired?: boolean
+}
 
 export interface SyncResult {
   updatedUsers: number
@@ -23,39 +30,84 @@ export interface SyncResult {
 }
 
 /**
- * Propage le plan du manager à tous ses membres actifs (role=member).
- * Les support_agents sont intentionnellement exclus.
+ * Propage le plan et la période de validité du manager à tous ses comptes associés
+ * (membres d'équipe et agents support).
  *
  * @param managerUid  UID Firebase du manager
- * @param newPlan     Nouveau plan à appliquer ('starter' | 'pro' | 'enterprise')
+ * @param newPlan     Nouveau plan à appliquer ('starter' | 'pro' | 'enterprise' | 'free')
+ * @param options     Période de validité et options d'expiration (si omises, lues depuis le document manager)
  * @returns Résumé de la synchronisation
  */
 export async function syncTeamMemberPlans(
   managerUid: string,
-  newPlan: UserPlan
+  newPlan: UserPlan,
+  options?: SyncOptions
 ): Promise<SyncResult> {
   const result: SyncResult = { updatedUsers: 0, updatedAccesses: 0, errors: [] }
   const newDailyLimit = PLAN_LIMITS[newPlan] ?? 10
 
-  // ── 1. Mettre à jour tous les users membres actifs du manager ──────────────
+  // ── 0. Récupérer la date de validité depuis le manager si non fournie ─────────
+  let subscriptionExpiresAt = options?.subscriptionExpiresAt
+  let subscriptionStartedAt = options?.subscriptionStartedAt
+  let subscriptionExpired = options?.subscriptionExpired
+
+  if (subscriptionExpiresAt === undefined) {
+    try {
+      const managerSnap = await adminDb.collection('users').doc(managerUid).get()
+      if (managerSnap.exists) {
+        const mData = managerSnap.data()
+        subscriptionExpiresAt = mData?.subscriptionExpiresAt ?? mData?.planExpiresAt ?? null
+        subscriptionStartedAt = mData?.subscriptionStartedAt ?? null
+        subscriptionExpired = mData?.subscriptionExpired ?? false
+      }
+    } catch (err) {
+      console.warn(`[syncTeamMemberPlans] Impossible de lire le manager ${managerUid}:`, err)
+    }
+  }
+
+  // ── 1. Mettre à jour tous les users associés au manager (members et support_agents) ──
   try {
-    const usersSnap = await adminDb
+    // Requête principale par managerUid
+    const usersByUidSnap = await adminDb
       .collection('users')
       .where('managerUid', '==', managerUid)
-      .where('role', '==', 'member')
       .get()
 
-    if (!usersSnap.empty) {
+    // Requête de secours par managerId (pour compatibilité ancienne structure)
+    const usersByIdSnap = await adminDb
+      .collection('users')
+      .where('managerId', '==', managerUid)
+      .get()
+
+    // Fusionner les documents uniques
+    const userDocsMap = new Map<string, FirebaseFirestore.QueryDocumentSnapshot>()
+    usersByUidSnap.docs.forEach((doc) => userDocsMap.set(doc.id, doc))
+    usersByIdSnap.docs.forEach((doc) => userDocsMap.set(doc.id, doc))
+
+    if (userDocsMap.size > 0) {
       const usersBatch = adminDb.batch()
-      usersSnap.docs.forEach((doc) => {
-        usersBatch.update(doc.ref, {
+      userDocsMap.forEach((doc) => {
+        const data = doc.data()
+        const isSupport = data.role === 'support_agent'
+
+        const updatePayload: Record<string, unknown> = {
           plan: newPlan,
-          dailyLimit: newDailyLimit,
+          subscriptionExpiresAt: subscriptionExpiresAt ?? null,
+          subscriptionStartedAt: subscriptionStartedAt ?? null,
+          subscriptionExpired: subscriptionExpired ?? false,
           updatedAt: FieldValue.serverTimestamp()
-        })
+        }
+
+        // Pour les membres classiques, ajuster aussi le quota quotidien
+        if (!isSupport) {
+          updatePayload.dailyLimit = newDailyLimit
+        }
+
+        usersBatch.update(doc.ref, updatePayload)
       })
+
       await usersBatch.commit()
-      result.updatedUsers = usersSnap.size
+      result.updatedUsers = userDocsMap.size
     }
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
@@ -63,22 +115,32 @@ export async function syncTeamMemberPlans(
     result.errors.push(`users: ${msg}`)
   }
 
-  // ── 2. Mettre à jour les team_accesses correspondants (role=member uniquement) ──
+  // ── 2. Mettre à jour les team_accesses correspondants ───────────────────────
   try {
     const accessesSnap = await adminDb
       .collection('team_accesses')
       .where('managerUid', '==', managerUid)
-      .where('role', '==', 'member')
       .get()
 
     if (!accessesSnap.empty) {
       const accessesBatch = adminDb.batch()
       accessesSnap.docs.forEach((doc) => {
-        accessesBatch.update(doc.ref, {
+        const data = doc.data()
+        const isSupport = data.role === 'support_agent'
+
+        const accessPayload: Record<string, unknown> = {
           plan: newPlan,
-          dailyLimit: newDailyLimit,
+          subscriptionExpiresAt: subscriptionExpiresAt ?? null,
+          subscriptionStartedAt: subscriptionStartedAt ?? null,
+          subscriptionExpired: subscriptionExpired ?? false,
           updatedAt: FieldValue.serverTimestamp()
-        })
+        }
+
+        if (!isSupport) {
+          accessPayload.dailyLimit = newDailyLimit
+        }
+
+        accessesBatch.update(doc.ref, accessPayload)
       })
       await accessesBatch.commit()
       result.updatedAccesses = accessesSnap.size
@@ -90,8 +152,8 @@ export async function syncTeamMemberPlans(
   }
 
   console.log(
-    `[syncTeamMemberPlans] ✅ manager=${managerUid} plan=${newPlan}` +
-      ` → ${result.updatedUsers} users, ${result.updatedAccesses} accesses mis à jour`
+    `[syncTeamMemberPlans] ✅ manager=${managerUid} plan=${newPlan} validité=${subscriptionExpiresAt}` +
+      ` → ${result.updatedUsers} users, ${result.updatedAccesses} accesses synchronisés`
   )
 
   return result

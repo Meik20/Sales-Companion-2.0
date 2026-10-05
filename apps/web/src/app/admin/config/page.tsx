@@ -6,7 +6,7 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useTranslation } from '@/providers/I18nProvider'
 
-import { Key, Lock, CreditCard, CheckCircle2, AlertTriangle } from 'lucide-react'
+import { Key, Lock, CreditCard, CheckCircle2, AlertTriangle, RefreshCw, Users } from 'lucide-react'
 import { PLAN_LIMITS } from '@sales-companion/shared'
 
 const PLAN_COLOR: Record<string, string> = {
@@ -25,6 +25,8 @@ export default function AdminConfigPage() {
   const [passMsg, setPassMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
   const [saving, setSaving] = useState(false)
   const [changingPass, setChangingPass] = useState(false)
+  const [syncing, setSyncing] = useState(false)
+  const [syncMsg, setSyncMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
   const { t } = useTranslation()
 
   useEffect(() => {
@@ -128,6 +130,32 @@ export default function AdminConfigPage() {
       setPassMsg({ type: 'err', text: 'Erreur réseau' })
     } finally {
       setChangingPass(false)
+    }
+  }
+
+  async function syncTeamPlans() {
+    setSyncing(true)
+    setSyncMsg(null)
+    try {
+      const token = await user?.getIdToken()
+      const res = await fetch('/api/admin/users/sync-team-plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token ?? ''}` },
+        body: JSON.stringify({ syncAll: true })
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setSyncMsg({
+          type: 'ok',
+          text: `✅ ${data.managersProcessed} managers synchronisés — ${data.totalUsersUpdated} utilisateurs, ${data.totalAccessesUpdated} accès mis à jour`
+        })
+      } else {
+        setSyncMsg({ type: 'err', text: data.error ?? 'Erreur serveur' })
+      }
+    } catch {
+      setSyncMsg({ type: 'err', text: 'Erreur réseau' })
+    } finally {
+      setSyncing(false)
     }
   }
 
@@ -373,6 +401,43 @@ export default function AdminConfigPage() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* ── Synchronisation équipes ────────────────────────────────────────── */}
+      <div style={{ ...card, marginBottom: 16 }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: 16,
+            paddingBottom: 12,
+            borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
+          }}
+        >
+          <span style={{ fontWeight: 700, fontSize: 14, color: 'var(--foreground, #f1f5f9)', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+            <Users size={16} className="text-primary" />
+            <span>Synchronisation des équipes</span>
+          </span>
+        </div>
+        <p style={{ fontSize: 13, color: 'var(--muted-foreground, #94a3b8)', marginBottom: 14, lineHeight: 1.6 }}>
+          Propage le plan et la <strong>période de validité d'abonnement</strong> du Manager vers tous ses comptes associés
+          (Membres d'équipe et Agents Support). À utiliser après une mise à jour manuelle de la validité du Manager.
+        </p>
+        <button
+          id="sync-all-teams-btn"
+          onClick={syncTeamPlans}
+          disabled={syncing}
+          style={{ ...btnStyle, background: syncing ? '#334155' : '#0d9488', display: 'inline-flex', alignItems: 'center', gap: 8 }}
+        >
+          <RefreshCw size={14} style={{ animation: syncing ? 'spin 1s linear infinite' : 'none' }} />
+          {syncing ? 'Synchronisation en cours…' : 'Synchroniser toutes les équipes'}
+        </button>
+        {syncMsg && (
+          <div style={{ marginTop: 12, fontSize: 13, fontWeight: 600, color: syncMsg.type === 'ok' ? '#34d399' : '#f87171' }}>
+            {syncMsg.text}
+          </div>
+        )}
       </div>
     </AppShell>
   )

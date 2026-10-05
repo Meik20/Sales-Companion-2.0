@@ -79,7 +79,10 @@ export async function downgradeUserToFree(
     // Si c'est un manager, rétrograder aussi ses membres d'équipe vers "free"
     if (userData.role === 'manager') {
       try {
-        const syncRes = await syncTeamMemberPlans(uid, 'free')
+        const syncRes = await syncTeamMemberPlans(uid, 'free', {
+          subscriptionExpiresAt: null,
+          subscriptionExpired: true
+        })
         console.log(`[subscription] 👥 Équipe synchronisée vers free pour manager ${uid} (${syncRes.updatedUsers} membres)`)
       } catch (syncErr) {
         console.error(`[subscription] Erreur sync équipe lors de la rétrogradation:`, syncErr)
