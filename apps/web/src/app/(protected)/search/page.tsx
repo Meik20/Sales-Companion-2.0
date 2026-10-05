@@ -62,18 +62,35 @@ function SearchContent() {
   ])
   const [chatInput, setChatInput] = useState('')
   const [isSendingChat, setIsSendingChat] = useState(false)
-  const chatEndRef = useRef<HTMLDivElement>(null)
+  const chatMessagesContainerRef = useRef<HTMLDivElement>(null)
+  const chatTextareaRef = useRef<HTMLTextAreaElement>(null)
 
-  // Scroll chat to bottom when new messages arrive
+  // Scroll chat messages container internally without triggering page scroll
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    if (chatMessagesContainerRef.current) {
+      chatMessagesContainerRef.current.scrollTo({
+        top: chatMessagesContainerRef.current.scrollHeight,
+        behavior: 'smooth'
+      })
+    }
   }, [chatMessages])
+
+  function handleChatInputChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    setChatInput(e.target.value)
+    const el = e.target
+    el.style.height = 'auto'
+    const newHeight = Math.min(Math.max(el.scrollHeight, 36), 110)
+    el.style.height = `${newHeight}px`
+  }
 
   function resetChat() {
     setChatMessages([
       { role: 'assistant', text: t('search.aiGreeting') }
     ])
     setChatInput('')
+    if (chatTextareaRef.current) {
+      chatTextareaRef.current.style.height = 'auto'
+    }
     setIsSendingChat(false)
   }
 
@@ -93,6 +110,9 @@ function SearchContent() {
     }
     const userMsg = msg.trim()
     setChatInput('')
+    if (chatTextareaRef.current) {
+      chatTextareaRef.current.style.height = 'auto'
+    }
     setChatMessages((prev) => [...prev, { role: 'user', text: userMsg }])
     setIsSendingChat(true)
     try {
@@ -622,6 +642,7 @@ function SearchContent() {
             top: 88,
             maxHeight: 'calc(100vh - 116px)',
             overflowY: 'auto',
+            overscrollBehavior: 'contain',
             paddingRight: 4
           }}
         >
@@ -715,9 +736,11 @@ function SearchContent() {
                 return (
                   <>
               <div
+                ref={chatMessagesContainerRef}
                 style={{
                   flex: 1,
                   overflowY: 'auto',
+                  overscrollBehavior: 'contain',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: 10,
@@ -743,7 +766,6 @@ function SearchContent() {
                     {t('search.aiThinking')}
                   </div>
                 )}
-                <div ref={chatEndRef} />
               </div>
 
                 {/* Chips suggestions — visibles uniquement AVANT que la conversation démarre */}
@@ -811,14 +833,17 @@ function SearchContent() {
                 {/* Zone de saisie */}
                 <div style={{ position: 'relative' }}>
                   <textarea
+                    ref={chatTextareaRef}
                     value={chatInput}
-                    onChange={(e) => setChatInput(e.target.value)}
+                    onChange={handleChatInputChange}
                     onKeyDown={handleChatKeyDown}
                     disabled={isSendingChat}
                     placeholder={t('search.aiPlaceholder')}
                     rows={1}
                     style={{
                       width: '100%',
+                      minHeight: 36,
+                      maxHeight: 110,
                       padding: isFreePlan ? '9px 104px 9px 12px' : '9px 44px 9px 12px',
                       borderRadius: 10,
                       border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
@@ -829,7 +854,9 @@ function SearchContent() {
                       background: 'var(--card, #131c2e)',
                       color: 'var(--foreground, #f1f5f9)',
                       boxSizing: 'border-box',
-                      lineHeight: 1.4
+                      lineHeight: 1.4,
+                      overflowY: 'auto',
+                      overscrollBehavior: 'contain'
                     }}
                   />
                   {isFreePlan ? (
