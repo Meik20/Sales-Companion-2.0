@@ -387,8 +387,7 @@ npm --workspace packages/shared run build
 - [ ] Lighthouse PWA audit
 - [ ] Security headers validés
 - [ ] Build test production (web et server)
-- [ ] Variables env Railway configurées
-- [ ] railway.json configuré
+- [ ] Variables d'environnement production configurées
 - [ ] Health check endpoint testée
 - [ ] Backup Firestore prêt
 

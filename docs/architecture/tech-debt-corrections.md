@@ -13,12 +13,12 @@ Objectif : améliorer la cohérence sans changer le comportement métier visible
 | 5 | Scripts `test` manquants | Ajout dans `apps/web` et `apps/server` |
 | 6 | IA Express stub vs Groq Next | Headers `Deprecation` sur `/ai/*` Express |
 
-## Phase 2 — fait (Railway prod + docs + tests + auth layout)
+## Phase 2 — fait (docs + tests + auth layout)
 
 | # | Problème | Action |
 |---|----------|--------|
 | 7 | Docs API obsolètes | `API_DOCUMENTATION.md` réécrit ; `swagger.json` serveurs + `/admin/login` + statuts pipeline |
-| 8 | `BACKEND_URL` en prod | `.env.example` web → `https://sales-companion-20-production.up.railway.app` ; `getBackendUrl()` documenté |
+| 8 | `BACKEND_URL` en prod | `.env.example` web → URL backend production ; `getBackendUrl()` documenté |
 | 9 | Auth uniquement client | `(protected)/layout.tsx` avec `AuthGuard` (couvre `/ai` sans AppShell) |
 | 10 | Rôles admin vs manager | `docs/architecture/firebase-claims-notes.md` enrichi |
 | 12 | Tests web | Fichiers hooks `.ts` → `.tsx` ; Vitest alias `@/` ; `jsdom` + `@vitejs/plugin-react` |
@@ -31,7 +31,7 @@ Objectif : améliorer la cohérence sans changer le comportement métier visible
 | 11b | Support proxy cassé | `/api/support/threads/*` + `[id]/messages` sur Next (Firestore) |
 | 12 | Tests web | **26/26** passent |
 | 12b | Tests intégration | `createServer.integration.test.ts` (supertest) |
-| 13 | `railway.json` | `apps/server/railway.json`, `apps/web/railway.json` |
+| 13 | Fichiers de config déploiement | Supprimés (obsolètes) |
 
 ## Phase 4 — optionnel
 
@@ -41,21 +41,16 @@ Objectif : améliorer la cohérence sans changer le comportement métier visible
 | 15 | Tests e2e Playwright |
 | 16 | Sync custom claims manager |
 
-## Développement local
-
 ```bash
 # Terminal 1
 npm run dev:server   # écoute http://localhost:3001 par défaut
 
 # Terminal 2
 npm run dev:web      # proxifie vers BACKEND_URL ou 3001
-
-# Production Railway (Express, PORT=8080 interne) :
-# BACKEND_URL=https://sales-companion-20-production.up.railway.app
 ```
 
-Variables **obligatoires** sur le service **web** (Vercel / Railway Next) :
+Variables **obligatoires** sur le service **web** (Vercel) :
 
 ```env
-BACKEND_URL=https://sales-companion-20-production.up.railway.app
+BACKEND_URL=https://mon-backend.example.com
 ```

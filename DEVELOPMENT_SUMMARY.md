@@ -167,7 +167,7 @@ Documenter le modèle de données et le déploiement
 - ✅ Sécurité Firestore
 - ✅ Design system & tokens
 - ✅ PWA configuration
-- ✅ Déploiement (Vercel/Railway)
+- ✅ Déploiement (Vercel)
 - ✅ Packages & shared code
 - ✅ Tests & type checking
 - ✅ Commandes principales
@@ -234,39 +234,23 @@ Optimiser performance, bundle size, et lazy loading
 
 ---
 
-## ✅ Phase 5: Configuration Railway (COMPLETED)
+## ✅ Phase 5: Configuration déploiement (COMPLETED)
 
 ### Objective
 
-Préparer le déploiement sur Railway avec CI/CD
+Préparer le déploiement production avec CI/CD
 
 ### Files Created/Modified
 
-#### 1. **railway.json** (MODIFIED)
+#### 1. **apps/web/.env.example** (NEW)
 
-- ✅ Schema Railway validé
-- ✅ Restart policy configurée
-- ✅ Build command: `npm run build`
-- ✅ Start command: backend server
-- ✅ Health check endpoint: `/health`
-- ✅ Environment variables définies
-- ✅ Monitoring enabled
-
-#### 2. **Procfile** (NEW)
-
-- ✅ Web process: backend API server
-- ✅ Worker process (commenté, optionnel)
-- ✅ Production-ready
-
-#### 3. **apps/web/.env.example** (NEW)
-
-- ✅ Firebase configuration (NEXT*PUBLIC*\*)
+- ✅ Firebase configuration (NEXT_PUBLIC_*)
 - ✅ API URL configuration
 - ✅ Feature flags
 - ✅ Analytics config
 - ✅ Commentaires explicatifs
 
-#### 4. **apps/server/.env.example** (NEW)
+#### 2. **apps/server/.env.example** (NEW)
 
 - ✅ Node configuration
 - ✅ Firebase Admin credentials
@@ -276,26 +260,7 @@ Préparer le déploiement sur Railway avec CI/CD
 - ✅ Monitoring setup
 - ✅ Commentaires détaillés
 
-#### 5. **docs/architecture/railway-deployment.md** (NEW - COMPREHENSIVE)
-
-- ✅ Overview et prerequisites
-- ✅ Step-by-step setup guide:
-  - Firebase service account setup
-  - Railway backend configuration
-  - Environment variables
-  - Database integration
-  - Frontend deployment (Vercel & Railway options)
-  - Custom domain setup
-- ✅ Pre-deployment checklist
-- ✅ Deployment process (automatic & manual)
-- ✅ Monitoring post-deployment
-- ✅ Rollback procedures
-- ✅ Troubleshooting guide
-- ✅ Scaling considerations
-- ✅ Security hardening
-- ✅ Support contacts
-
-#### 6. **DEPLOYMENT_CHECKLIST.md** (NEW - COMPREHENSIVE)
+#### 3. **DEPLOYMENT_CHECKLIST.md** (NEW - COMPREHENSIVE)
 
 - ✅ Phase 1: Code Quality & Testing
   - TypeScript, linting, tests, builds
@@ -310,7 +275,7 @@ Préparer le déploiement sur Railway avec CI/CD
 - ✅ Phase 6: Backend
   - Endpoints, middleware, validation, database
 - ✅ Phase 7: Deployment Configuration
-  - Environment variables, Railway, credentials
+  - Environment variables, credentials
 - ✅ Phase 8: Integration Testing
   - E2E flows, integrations, browser compatibility
 - ✅ Phase 9: Rollback & Recovery
@@ -319,7 +284,7 @@ Préparer le déploiement sur Railway avec CI/CD
   - Technical, deployment, user docs
 - ✅ Final checks et sign-off
 
-**Result:** ✅ Déploiement sur Railway complètement préparé et documenté
+**Result:** ✅ Déploiement production complètement préparé et documenté
 
 ---
 

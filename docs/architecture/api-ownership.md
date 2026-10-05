@@ -20,7 +20,7 @@ Objectif : une **source de vérité par domaine**, sans duplication métier.
 
 | Domaine | Routes | Notes |
 |---------|--------|-------|
-| Santé | `GET /health` | Railway healthcheck |
+| Santé | `GET /health` | Healthcheck |
 | Équipe | `/team/*` | Accès, membres, activation |
 | Assignations | `/assignments` | Manager → membre |
 | Pipeline (legacy) | `/pipeline/*` | Doublon partiel avec Next — clients web utilisent Next |
@@ -37,7 +37,7 @@ Fichier : `apps/web/src/lib/proxy-backend.ts`
 | `POST /api/team/accesses` | `POST /api/team/accesses` |
 | `GET /api/team/members` | `GET /api/team/members` |
 
-Variable : `BACKEND_URL` (prod : `https://sales-companion-20-production.up.railway.app`)
+Variable : `BACKEND_URL` (prod : URL du backend Express)
 
 ## UI temps réel (sans API)
 
