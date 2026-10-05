@@ -6,10 +6,9 @@ import { PLAN_LIMITS } from '@sales-companion/shared'
 import { useTranslation } from '@/providers/I18nProvider'
 import { useToast } from '@/hooks/useToast'
 import { ContactUserModal } from './ContactUserModal'
+import { getSubscriptionStatus } from '@/lib/subscriptionStatus'
 import {
   User,
-  Mail,
-  Building2,
   Shield,
   Zap,
   BarChart3,
@@ -20,7 +19,8 @@ import {
   Activity,
   Calendar,
   Clock,
-  MessageSquare
+  MessageSquare,
+  Timer
 } from 'lucide-react'
 
 type UserWithId = UserDoc & {
@@ -32,6 +32,7 @@ type UserWithId = UserDoc & {
   createdAt?: string | null
   lastLoginAt?: string | null
   managerId?: string | null
+  subscriptionExpiresAt?: string | null
 }
 
 type Props = {
@@ -86,6 +87,7 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
     { label: t('admin.plan'), icon: <Zap size={12} /> },
     { label: t('admin.quota'), icon: <BarChart3 size={12} /> },
     { label: t('admin.status'), icon: <Activity size={12} /> },
+    { label: 'Validité', icon: <Timer size={12} /> },
     {
       label: `${t('field.region') || 'Région'} / ${t('field.sector') || 'Secteur'}`,
       icon: <MapPin size={12} />
@@ -309,6 +311,68 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
                 <Badge variant={user.active ? 'success' : 'danger'}>
                   {user.active ? t('team.active') : t('team.inactive')}
                 </Badge>
+              </td>
+              {/* Validité abonnement */}
+              <td style={{ padding: '11px 12px', minWidth: 130 }}>
+                {(() => {
+                  const sub = getSubscriptionStatus(user.subscriptionExpiresAt, user.plan)
+                  if (sub.level === 'none') {
+                    return (
+                      <span style={{ color: 'var(--muted-foreground, #94a3b8)', fontSize: 12 }}>—</span>
+                    )
+                  }
+                  return (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                      {/* Badge statut */}
+                      <div
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 4,
+                          padding: '2px 8px',
+                          borderRadius: 20,
+                          fontSize: 10.5,
+                          fontWeight: 700,
+                          background: sub.bgColor,
+                          color: sub.color,
+                          border: `1px solid ${sub.borderColor}`,
+                          whiteSpace: 'nowrap',
+                          width: 'fit-content'
+                        }}
+                      >
+                        <Timer size={9} />
+                        {sub.level === 'expired' ? 'EXPIRÉ' : sub.shortLabel}
+                      </div>
+                      {/* Date d'expiration */}
+                      {sub.level !== 'expired' && (
+                        <span style={{ fontSize: 10, color: 'var(--muted-foreground, #64748b)' }}>
+                          {sub.dateLabel}
+                        </span>
+                      )}
+                      {/* Barre de progression */}
+                      <div
+                        style={{
+                          height: 4,
+                          width: '100%',
+                          background: 'var(--card, #131c2e)',
+                          borderRadius: 10,
+                          overflow: 'hidden',
+                          border: '1px solid var(--border, rgba(255,255,255,0.1))'
+                        }}
+                      >
+                        <div
+                          style={{
+                            height: '100%',
+                            width: `${sub.percent}%`,
+                            background: sub.color,
+                            borderRadius: 10,
+                            transition: 'width 500ms ease-out'
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )
+                })()}
               </td>
               {/* Région / Secteur */}
               <td style={{ padding: '11px 12px', color: 'var(--muted-foreground, #94a3b8)', fontSize: 12 }}>

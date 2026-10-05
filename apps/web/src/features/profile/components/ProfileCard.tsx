@@ -8,7 +8,8 @@ import { useTranslation } from '@/providers/I18nProvider'
 import { useToast } from '@/hooks/useToast'
 import { Panel, Badge, MetricCard, StatsGrid } from '@/components/ui/index'
 import { BUSINESS_SECTORS, GEOGRAPHY, SUPPORTED_COUNTRIES } from '@sales-companion/shared'
-import { Building2, Briefcase, MapPin, Edit3, Phone, User, Check, X, ShieldCheck, RefreshCw, Sparkles } from 'lucide-react'
+import { Building2, Briefcase, MapPin, Edit3, Phone, User, Check, X, ShieldCheck, RefreshCw, Sparkles, AlertTriangle, ArrowRight } from 'lucide-react'
+import { getSubscriptionStatus } from '@/lib/subscriptionStatus'
 
 const planBadge: Record<string, 'default' | 'info' | 'success' | 'gold'> = {
   free: 'default',
@@ -261,8 +262,79 @@ export function ProfileCard() {
   const displayRegion = localProfile?.region !== undefined ? localProfile.region : user.region
   const displayPhone = localProfile?.phone !== undefined ? localProfile.phone : user.phone
 
+  const subStatus = getSubscriptionStatus(user.subscriptionExpiresAt, user.plan)
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      {/* Bannière d'alerte si expiration proche (< 15j) ou expirée */}
+      {user.plan !== 'free' && (subStatus.level === 'alert' || subStatus.level === 'critical' || subStatus.level === 'expired') && (
+        <div
+          style={{
+            padding: '14px 18px',
+            borderRadius: 12,
+            background: subStatus.bgColor,
+            border: `1px solid ${subStatus.borderColor}`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 16,
+            flexWrap: 'wrap'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div
+              style={{
+                width: 38,
+                height: 38,
+                borderRadius: 10,
+                background: `${subStatus.color}20`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: subStatus.color,
+                flexShrink: 0
+              }}
+            >
+              <AlertTriangle size={20} />
+            </div>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 14, color: subStatus.color }}>
+                {subStatus.level === 'expired'
+                  ? "Votre abonnement est arrivé à expiration"
+                  : `Votre abonnement expire ${subStatus.daysLeft <= 1 ? "demain" : `dans ${subStatus.daysLeft} jours`}`}
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--muted-foreground, #94a3b8)', marginTop: 2 }}>
+                {subStatus.level === 'expired'
+                  ? "Renouvelez votre formule pour rétablir vos quotas et fonctionnalités."
+                  : `Date d'échéance : ${subStatus.dateLabel}. Pensez à renouveler pour conserver vos accès sans interruption.`}
+              </div>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => router.push(routes.upgrade)}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '8px 16px',
+              borderRadius: 8,
+              fontSize: 12,
+              fontWeight: 700,
+              background: subStatus.color,
+              color: '#ffffff',
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'opacity 150ms ease'
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.9')}
+            onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
+          >
+            <span>Renouveler mon plan</span>
+            <ArrowRight size={14} />
+          </button>
+        </div>
+      )}
       {/* Header card with Company & Sector */}
       <Panel>
         <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start', flexWrap: 'wrap', position: 'relative' }}>
@@ -653,10 +725,9 @@ export function ProfileCard() {
               label={user.plan !== 'free' ? "Validité abonnement" : t('profile.status')}
               value={
                 user.plan !== 'free' && user.subscriptionExpiresAt ? (
-                  new Date(user.subscriptionExpiresAt).toLocaleDateString('fr-FR', {
-                    day: '2-digit',
-                    month: 'short'
-                  })
+                  <span style={{ color: subStatus.color, fontSize: subStatus.level === 'expired' ? 22 : 28 }}>
+                    {subStatus.level === 'expired' ? 'Expiré' : subStatus.dateLabel}
+                  </span>
                 ) : user.active ? (
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 24 }}>
                     <Check size={24} className="text-emerald-500" strokeWidth={3} />
@@ -671,10 +742,37 @@ export function ProfileCard() {
               }
               hint={
                 user.plan !== 'free' && user.subscriptionExpiresAt
-                  ? `Expire à minuit (${Math.max(0, Math.ceil((new Date(user.subscriptionExpiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))} j restants)`
+                  ? (subStatus.level === 'expired'
+                      ? 'Abonnement inactif'
+                      : `Expire à minuit (${subStatus.label})`)
                   : undefined
               }
-            />
+              hintColor={user.plan !== 'free' && user.subscriptionExpiresAt ? subStatus.color : undefined}
+            >
+              {user.plan !== 'free' && user.subscriptionExpiresAt ? (
+                <div style={{ marginTop: 10 }}>
+                  <div
+                    style={{
+                      height: 5,
+                      width: '100%',
+                      background: 'var(--secondary, #1e2a3b)',
+                      borderRadius: 10,
+                      overflow: 'hidden'
+                    }}
+                  >
+                    <div
+                      style={{
+                        height: '100%',
+                        width: `${subStatus.percent}%`,
+                        background: subStatus.color,
+                        borderRadius: 10,
+                        transition: 'width 600ms ease'
+                      }}
+                    />
+                  </div>
+                </div>
+              ) : null}
+            </MetricCard>
           </StatsGrid>
 
           {/* Barre d'utilisation */}
@@ -740,10 +838,9 @@ export function ProfileCard() {
             label={user.plan !== 'free' ? "Validité abonnement" : t('profile.status')}
             value={
               user.plan !== 'free' && user.subscriptionExpiresAt ? (
-                new Date(user.subscriptionExpiresAt).toLocaleDateString('fr-FR', {
-                  day: '2-digit',
-                  month: 'short'
-                })
+                <span style={{ color: subStatus.color, fontSize: subStatus.level === 'expired' ? 22 : 28 }}>
+                  {subStatus.level === 'expired' ? 'Expiré' : subStatus.dateLabel}
+                </span>
               ) : user.active ? (
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 24 }}>
                   <Check size={24} className="text-emerald-500" strokeWidth={3} />
@@ -758,10 +855,37 @@ export function ProfileCard() {
             }
             hint={
               user.plan !== 'free' && user.subscriptionExpiresAt
-                ? `Expire à minuit (${Math.max(0, Math.ceil((new Date(user.subscriptionExpiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))} j restants)`
+                ? (subStatus.level === 'expired'
+                    ? 'Abonnement inactif'
+                    : `Expire à minuit (${subStatus.label})`)
                 : undefined
             }
-          />
+            hintColor={user.plan !== 'free' && user.subscriptionExpiresAt ? subStatus.color : undefined}
+          >
+            {user.plan !== 'free' && user.subscriptionExpiresAt ? (
+              <div style={{ marginTop: 10 }}>
+                <div
+                  style={{
+                    height: 5,
+                    width: '100%',
+                    background: 'var(--secondary, #1e2a3b)',
+                    borderRadius: 10,
+                    overflow: 'hidden'
+                  }}
+                >
+                  <div
+                    style={{
+                      height: '100%',
+                      width: `${subStatus.percent}%`,
+                      background: subStatus.color,
+                      borderRadius: 10,
+                      transition: 'width 600ms ease'
+                    }}
+                  />
+                </div>
+              </div>
+            ) : null}
+          </MetricCard>
           <MetricCard
             label="Quota de recherche"
             value="Illimité"

@@ -186,9 +186,12 @@ type MetricCardProps = {
   value: React.ReactNode
   hint?: string
   accent?: boolean
+  hintColor?: string
+  valueColor?: string
+  children?: React.ReactNode
 }
 
-export function MetricCard({ label, value, hint, accent }: MetricCardProps) {
+export function MetricCard({ label, value, hint, accent, hintColor, valueColor, children }: MetricCardProps) {
   return (
     <Panel>
       <div
@@ -207,7 +210,7 @@ export function MetricCard({ label, value, hint, accent }: MetricCardProps) {
           fontSize: 32,
           fontWeight: 800,
           marginTop: 8,
-          color: accent ? 'var(--color-primary)' : 'var(--foreground, #f1f5f9)',
+          color: valueColor ?? (accent ? 'var(--color-primary)' : 'var(--foreground, #f1f5f9)'),
           letterSpacing: '-.03em',
           fontFamily: 'inherit'
         }}
@@ -215,8 +218,9 @@ export function MetricCard({ label, value, hint, accent }: MetricCardProps) {
         {value}
       </div>
       {hint ? (
-        <div style={{ marginTop: 6, fontSize: 12, color: 'var(--muted-foreground, #94a3b8)' }}>{hint}</div>
+        <div style={{ marginTop: 6, fontSize: 12, color: hintColor ?? 'var(--muted-foreground, #94a3b8)' }}>{hint}</div>
       ) : null}
+      {children}
     </Panel>
   )
 }
