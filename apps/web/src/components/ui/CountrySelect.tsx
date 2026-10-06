@@ -144,9 +144,10 @@ interface CountrySelectProps {
   value: string
   onChange: (code: string) => void
   lang?: 'fr' | 'en'
+  placement?: 'bottom' | 'top'
 }
 
-export function CountrySelect({ value, onChange, lang = 'fr' }: CountrySelectProps) {
+export function CountrySelect({ value, onChange, lang = 'fr', placement = 'top' }: CountrySelectProps) {
   const [isOpen, setIsOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -186,9 +187,13 @@ export function CountrySelect({ value, onChange, lang = 'fr' }: CountrySelectPro
         />
       </button>
 
-      {/* Menu déroulant avec vrais drapeaux SVG */}
+      {/* Menu déroulant ouvert vers le haut (dropup) avec vrais drapeaux SVG */}
       {isOpen && (
-        <div className="absolute left-0 top-[calc(100%+4px)] z-50 max-h-[240px] w-full overflow-y-auto rounded-[10px] border border-border bg-card p-1 shadow-xl">
+        <div
+          className={`absolute left-0 z-50 max-h-[240px] w-full overflow-y-auto rounded-[10px] border border-border bg-card p-1 shadow-2xl ${
+            placement === 'top' ? 'bottom-[calc(100%+4px)]' : 'top-[calc(100%+4px)]'
+          }`}
+        >
           {SUPPORTED_COUNTRIES.map((c) => {
             const isSelected = c.code === selectedCountry.code
             return (
