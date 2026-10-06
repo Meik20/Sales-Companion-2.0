@@ -66,26 +66,55 @@ export async function POST(request: NextRequest) {
     }
 
     // Retrouver l'UID Firebase de l'agent
-    const agentUserQuery = await adminDb
-      .collection('users')
-      .where('accessId', '==', agentAccessId.toLowerCase().trim())
-      .limit(1)
-      .get()
+    // Priorité 1 : firebaseUid stocké directement dans team_accesses
+    let agentUid: string = accessData.firebaseUid || ''
+    let agentUserDoc: FirebaseFirestore.DocumentSnapshot | null = null
 
-    if (agentUserQuery.empty) {
+    if (agentUid) {
+      const directDoc = await adminDb.collection('users').doc(agentUid).get()
+      if (directDoc.exists) {
+        agentUserDoc = directDoc
+      }
+    }
+
+    // Priorité 2 : chercher par email dans users (cas anciens comptes)
+    if (!agentUserDoc) {
+      const agentEmail: string = accessData.email || accessData.accessId || ''
+      if (agentEmail) {
+        const emailQuery = await adminDb
+          .collection('users')
+          .where('email', '==', agentEmail)
+          .limit(1)
+          .get()
+        if (!emailQuery.empty && emailQuery.docs[0]) {
+          agentUserDoc = emailQuery.docs[0]
+          agentUid = agentUserDoc.id
+        }
+      }
+    }
+
+    // Priorité 3 : Firebase Auth (dernier recours)
+    if (!agentUserDoc && !agentUid) {
+      try {
+        const agentEmail = accessData.email || accessData.accessId || ''
+        if (agentEmail && agentEmail.includes('@')) {
+          const authUser = await adminAuth.getUserByEmail(agentEmail)
+          agentUid = authUser.uid
+          const directDoc = await adminDb.collection('users').doc(agentUid).get()
+          if (directDoc.exists) agentUserDoc = directDoc
+        }
+      } catch {
+        // Utilisateur introuvable même dans Firebase Auth
+      }
+    }
+
+    if (!agentUserDoc || !agentUid) {
       return NextResponse.json({
         error: 'Compte agent non encore activé. L\'agent doit d\'abord activer son compte.'
       }, { status: 404 })
     }
 
-    const agentUserDoc = agentUserQuery.docs[0]
-    if (!agentUserDoc) {
-      return NextResponse.json({
-        error: 'Compte agent introuvable.'
-      }, { status: 404 })
-    }
-    const agentUid = agentUserDoc.id
-    const agentData = agentUserDoc.data()
+    const agentData = agentUserDoc.data()!
 
 
     // Vérifier même organisation (companyId)
