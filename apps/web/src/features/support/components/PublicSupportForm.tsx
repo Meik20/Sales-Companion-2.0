@@ -172,7 +172,7 @@ export function PublicSupportForm() {
                 </Button>
               </Link>
               <Link href={routes.login}>
-                <Button className="w-full bg-primary text-white hover:bg-primary/90 sm:w-auto">
+                <Button variant="primary" className="w-full sm:w-auto">
                   {t('support.backToLogin') || 'Connexion'}
                 </Button>
               </Link>
@@ -381,13 +381,15 @@ export function PublicSupportForm() {
           <div className="pt-2">
             <Button
               type="submit"
-              disabled={loading}
-              className="w-full bg-primary text-white hover:bg-primary/90"
+              variant="primary"
+              size="lg"
+              loading={loading}
+              className="w-full shadow-md"
             >
               {loading ? (
                 <span>{t('support.submitting') || 'Envoi en cours…'}</span>
               ) : (
-                <span className="inline-flex items-center gap-2">
+                <span className="inline-flex items-center justify-center gap-2 font-semibold">
                   <Send size={15} />
                   {t('support.submitBtn') || 'Envoyer ma demande au support'}
                 </span>
