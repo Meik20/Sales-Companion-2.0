@@ -167,6 +167,28 @@ export async function getCachedCompanies(): Promise<CompanyRecord[]> {
   }
 }
 
+/**
+ * Invalide le cache des entreprises (mémoire + Redis).
+ * À appeler après un import ou une mise à jour d'entreprises.
+ */
+export async function invalidateCompanyCache(): Promise<void> {
+  memoryCache = null
+  memoryCacheAt = 0
+  const url = process.env.UPSTASH_REDIS_REST_URL
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN
+  if (!url || !token) return
+  try {
+    await fetch(`${url}/del/${encodeURIComponent(REDIS_KEY)}`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(3000)
+    })
+  } catch (err) {
+    console.warn('[company-search] Redis DEL failed (non-fatal):', err)
+  }
+}
+
+
 export interface SearchCompaniesOptions {
   query?: string
   sector?: string

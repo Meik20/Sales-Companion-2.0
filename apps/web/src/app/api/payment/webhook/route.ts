@@ -84,9 +84,8 @@ export async function POST(request: NextRequest) {
       ip: request.headers.get('x-forwarded-for') || 'unknown',
       ref: body.external_reference
     })
-    // Toujours répondre 200 pour ne pas signaler au potentiel attaquant
-    // que la signature a échoué (vs transaction introuvable)
-    return NextResponse.json({ received: false }, { status: 200 })
+    // Rejeter avec 401 si la signature HMAC est invalide
+    return NextResponse.json({ error: 'Signature invalide' }, { status: 401 })
   }
 
   const { status, reference, external_reference, amount, operator } = body as {
