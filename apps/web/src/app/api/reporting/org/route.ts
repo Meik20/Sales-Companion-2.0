@@ -111,14 +111,15 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // 5. Top performers (managers triés par nombre de conclus)
-    const topPerformers = managerUids
+    // 5. Top performers (Team Managers uniquement, triés par nombre de conclus)
+    const teamManagerUids = managerUids.filter((uid) => !managersMap[uid]?.isSenior)
+    const topPerformers = teamManagerUids
       .map((uid) => ({
         uid,
         name: managersMap[uid]?.name ?? uid,
         email: managersMap[uid]?.email ?? '',
         orgRole: managersMap[uid]?.orgRole ?? 'team_manager',
-        isSenior: managersMap[uid]?.isSenior ?? false,
+        isSenior: false,
         stats: statsByManager[uid] ?? { prospection: 0, negociation: 0, conclue: 0, total: 0 }
       }))
       .sort((a, b) => b.stats.conclue - a.stats.conclue)
@@ -151,7 +152,7 @@ export async function GET(request: NextRequest) {
       globalCounts,
       conversionRate,
       recentActivity,
-      totalManagers: managerUids.length
+      totalManagers: teamManagerUids.length
     })
   } catch (err: any) {
     console.error('GET /api/reporting/org error:', err)

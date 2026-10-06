@@ -146,8 +146,9 @@ export async function GET(request: NextRequest) {
       total: allItems.length
     }
 
-    // Liste des managers avec leurs stats
-    const managersWithStats = orgManagersSnap.docs.map(d => {
+    // Liste des managers avec leurs stats — uniquement les Team Managers (le Senior Manager n'en fait pas partie)
+    const teamManagersDocs = orgManagersSnap.docs.filter(d => (d.data().orgRole || 'team_manager') !== 'senior_manager')
+    const managersWithStats = teamManagersDocs.map(d => {
       const data = d.data()
       const managerItems = allItems.filter(i => i.managerUid === d.id)
       return {
@@ -155,7 +156,7 @@ export async function GET(request: NextRequest) {
         name: data.displayName || data.name || data.email || d.id,
         email: data.email || '',
         orgRole: data.orgRole || 'team_manager',
-        isSenior: data.orgRole === 'senior_manager',
+        isSenior: false,
         isCurrent: d.id === callerUid,
         stats: {
           prospection: managerItems.filter(i => i.status === 'prospection').length,

@@ -18,16 +18,18 @@ import {
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useTeamMembers } from '@/features/team/hooks/useTeamMembers'
 import { useTranslation } from '@/providers/I18nProvider'
+import { OrgGovernanceTab } from '@/features/team/components/OrgGovernanceTab'
 import {
   Users,
   ClipboardList,
   FolderOpen,
   UploadCloud,
   AlertTriangle,
-  X
+  X,
+  Building2
 } from 'lucide-react'
 
-type Tab = 'team' | 'imports'
+type Tab = 'org' | 'team' | 'imports'
 
 export default function TeamPage() {
   const [activeTab, setActiveTab] = useState<Tab>('team')
@@ -39,13 +41,18 @@ export default function TeamPage() {
   const { data: members = [] } = useTeamMembers()
   const { t } = useTranslation()
 
+  const isSeniorManager = user?.orgRole === 'senior_manager'
   const isManager = user?.role === 'manager'
   const isSupportAgent = user?.role === 'support_agent'
   const canImport = isManager || isSupportAgent
 
   useEffect(() => {
-    if (isManager) setActiveTab('team')
-  }, [isManager])
+    if (isSeniorManager) {
+      setActiveTab('org')
+    } else if (isManager) {
+      setActiveTab('team')
+    }
+  }, [isSeniorManager, isManager])
 
   // Pour un support_agent, l'import se fait sous son propre UID
   // (les prospects importés sont affichés directement dans Mes Clients CRM)
@@ -53,10 +60,15 @@ export default function TeamPage() {
     ? user?.uid
     : user?.uid
 
-  const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
-    { id: 'team', label: t('team.tabTeam'), icon: <Users size={15} strokeWidth={2} /> },
-    ...(canImport ? [{ id: 'imports' as Tab, label: t('team.tabImports'), icon: <ClipboardList size={15} strokeWidth={2} /> }] : [])
-  ]
+  const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = isSeniorManager
+    ? [
+        { id: 'org', label: "GESTION DE L'ORGANISATION", icon: <Building2 size={15} strokeWidth={2} /> },
+        ...(canImport ? [{ id: 'imports' as Tab, label: t('team.tabImports'), icon: <ClipboardList size={15} strokeWidth={2} /> }] : [])
+      ]
+    : [
+        { id: 'team', label: t('team.tabTeam'), icon: <Users size={15} strokeWidth={2} /> },
+        ...(canImport ? [{ id: 'imports' as Tab, label: t('team.tabImports'), icon: <ClipboardList size={15} strokeWidth={2} /> }] : [])
+      ]
 
   function handleAssignSelection(prospects: Prospect[]) {
     setSelectedProspects(prospects)
@@ -152,7 +164,14 @@ export default function TeamPage() {
   // ── Vue manager : onglets Mon équipe / Mes prospects importés ─────────
   return (
     <AppShell>
-      <PageHeader title={t('team.title')} subtitle={t('team.subtitle')} />
+      <PageHeader
+        title={isSeniorManager ? "Gestion de l'Organisation" : t('team.title')}
+        subtitle={
+          isSeniorManager
+            ? "Gouvernance d'entreprise, certification légale et supervision des équipes"
+            : t('team.subtitle')
+        }
+      />
 
       {/* Onglets */}
       {canImport && (
@@ -214,7 +233,9 @@ export default function TeamPage() {
       )}
 
       {/* Contenu */}
-      {activeTab === 'team' ? (
+      {activeTab === 'org' ? (
+        <OrgGovernanceTab />
+      ) : activeTab === 'team' ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <TeamAccessManager />
           {isManager && <CrossTeamSupportManager />}

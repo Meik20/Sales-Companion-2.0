@@ -508,16 +508,35 @@ export function AppSidebar({
         <>
           <SectionDivider />
           <SectionLabel>{t('sidebar.team')}</SectionLabel>
-          <SidebarLink href={routes.team} label={t('sidebar.teamManagement')} icon={Users} />
-          {/* Dashboard org — Senior Manager uniquement */}
-          {user.orgRole === 'senior_manager' && (
-            <SidebarLink
-              href={routes.dashboard}
-              label="Dashboard Organisation"
-              icon={LayoutDashboard}
-            />
+          {user.orgRole === 'senior_manager' ? (
+            <>
+              {/* Senior Manager : Gestion de l'Organisation + Dashboard Organisation */}
+              <SidebarLink
+                href={routes.team}
+                label="Gestion de l'Organisation"
+                icon={Building2}
+              />
+              <SidebarLink
+                href={routes.dashboard}
+                label="Dashboard Organisation"
+                icon={LayoutDashboard}
+              />
+            </>
+          ) : (
+            <>
+              {/* Team Manager : Gestion d'équipe terrain + Tableau de bord personnel */}
+              <SidebarLink
+                href={routes.team}
+                label={t('sidebar.teamManagement')}
+                icon={Users}
+              />
+              <SidebarLink
+                href={routes.reporting}
+                label="Tableau de bord"
+                icon={BarChart2}
+              />
+            </>
           )}
-          <SidebarLink href={routes.reporting} label="Tableau de bord" icon={BarChart2} />
         </>
       )}
 

@@ -258,7 +258,7 @@ export function OrgManagersSection({ managers, orgCode }: OrgManagersSectionProp
           }}
         >
           {[
-            { label: 'Managers', value: managers.length, color: '#a78bfa', icon: <Users2 size={14} /> },
+            { label: 'Team Managers', value: teamManagers.length, color: '#a78bfa', icon: <Users2 size={14} /> },
             { label: 'Prospection', value: orgCounts.prospection, color: '#60a5fa', icon: <TrendingUp size={14} /> },
             { label: 'Négociation', value: orgCounts.negociation, color: '#fbbf24', icon: <Filter size={14} /> },
             { label: 'Conclus', value: orgCounts.conclue, color: '#34d399', icon: <CheckCircle2 size={14} /> }
@@ -273,25 +273,11 @@ export function OrgManagersSection({ managers, orgCode }: OrgManagersSectionProp
         </div>
       )}
 
-      {/* Senior Managers */}
-      {seniorManagers.length > 0 && (
+      {/* Team Managers uniquement */}
+      {teamManagers.length > 0 ? (
         <div>
           <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Crown size={12} /> Senior Manager{seniorManagers.length > 1 ? 's' : ''}
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {seniorManagers.map((mgr) => (
-              <ManagerCard key={mgr.uid} manager={mgr} orgStats={statsByUid[mgr.uid]} />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Team Managers */}
-      {teamManagers.length > 0 && (
-        <div>
-          <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Users2 size={12} /> Team Manager{teamManagers.length > 1 ? 's' : ''} ({teamManagers.length})
+            <Users2 size={12} /> Team Managers sous votre supervision ({teamManagers.length})
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {teamManagers.map((mgr) => (
@@ -299,22 +285,24 @@ export function OrgManagersSection({ managers, orgCode }: OrgManagersSectionProp
             ))}
           </div>
         </div>
-      )}
-
-      {/* Message si seul dans l'org */}
-      {managers.length === 1 && (
+      ) : (
         <div
           style={{
-            padding: '16px 20px',
-            borderRadius: 10,
-            background: 'var(--secondary)',
+            padding: '20px 24px',
+            borderRadius: 12,
+            background: 'var(--card, #131c2e)',
+            border: '1px solid var(--border)',
             fontSize: 13,
             color: 'var(--muted-foreground)',
-            textAlign: 'center'
+            textAlign: 'center',
+            lineHeight: 1.6
           }}
         >
-          Vous êtes le seul manager de votre organisation pour l'instant.<br />
-          Partagez votre code ORG dans les paramètres pour inviter d'autres managers.
+          <div style={{ fontSize: 22, marginBottom: 6 }}>👥</div>
+          <div style={{ fontWeight: 600, color: 'var(--foreground)', marginBottom: 4 }}>
+            Aucun Team Manager rattaché pour l&apos;instant
+          </div>
+          Partagez le lien d&apos;invitation ou le code organisation pour permettre à vos managers d&apos;équipe de rejoindre votre organisation.
         </div>
       )}
     </div>

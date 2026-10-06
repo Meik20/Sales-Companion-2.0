@@ -332,10 +332,10 @@ export default function PipelinePage() {
           )}
 
           {/* Filtre par Team Manager */}
-          {orgPipelineQuery.data?.managers && orgPipelineQuery.data.managers.length > 1 && (
+          {orgPipelineQuery.data?.managers && orgPipelineQuery.data.managers.filter((m: OrgManagerStats) => !m.isSenior).length > 0 && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
               <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Filtrer par manager :
+                Filtrer par Team Manager :
               </span>
               <button
                 type="button"
@@ -353,7 +353,7 @@ export default function PipelinePage() {
               >
                 Tous
               </button>
-              {orgPipelineQuery.data.managers.map((mgr: OrgManagerStats) => (
+              {orgPipelineQuery.data.managers.filter((m: OrgManagerStats) => !m.isSenior).map((mgr: OrgManagerStats) => (
                 <button
                   key={mgr.uid}
                   type="button"
