@@ -197,18 +197,13 @@ export async function POST(request: NextRequest) {
     // Statuts protégés : un prospect dans une phase avancée ne doit JAMAIS
     // être supprimé, même s'il semble orphelin selon d'autres critères.
     const PROTECTED_STATUSES = new Set([
+      // Étape finale — valeurs réelles stockées en base
+      'conclue',
       'conclusion',
-      'closing',
-      'négociation',
+      // Étape intermédiaire avancée
       'negociation',
       'negotiation',
-      'gagné',
-      'gagne',
-      'won',
-      'closed_won',
-      'signed',
-      'signé',
-      'signe'
+      'négociation'
     ])
 
     // Construire un ensemble élargi de tous les prospects rattachés au manager :

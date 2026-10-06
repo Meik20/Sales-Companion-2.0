@@ -807,7 +807,7 @@ export const fr = {
     repairSuccessSync: 'membre(s) synchronisé(s) (pipeline visible)',
     repairSuccessName: 'nom(s) corrigé(s)',
     repairSkipped: 'Tous les pipelines sont déjà synchronisés.',
-    repairProtected: 'prospect(s) protégé(s) — phases avancées (Conclusion/Gagné) conservées',
+    repairProtected: 'prospect(s) protégé(s) — phases Négociation / Conclue conservées',
     repairErrors: 'erreur(s)',
     noAssignmentCreated: "Aucune assignation n'a encore été créée.",
     date: 'Date',
