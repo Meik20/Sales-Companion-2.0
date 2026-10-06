@@ -102,6 +102,10 @@
 
 - [ ] Collections created:
   - [ ] `users`
+  - [ ] `organisations`
+  - [ ] `payments`
+  - [ ] `webhook_logs`
+  - [ ] `subscription_logs`
   - [ ] `companies`
   - [ ] `pipeline`
   - [ ] `saved_searches`
@@ -211,7 +215,7 @@
 - [ ] NEXT_PUBLIC_FIREBASE_PROJECT_ID set
 - [ ] NEXT_PUBLIC_API_URL set correctly
 
-#### Backend (.env)
+#### Backend (.env / Production Secrets)
 
 - [ ] NODE_ENV=production
 - [ ] PORT=8080
@@ -220,6 +224,16 @@
 - [ ] FIREBASE_PRIVATE_KEY set
 - [ ] WEB_ORIGIN set to frontend URL
 - [ ] CORS_ORIGIN set correctly
+- [ ] CAMPAY_BASE_URL set (https://www.campay.net/api in prod)
+- [ ] CAMPAY_APP_USERNAME set
+- [ ] CAMPAY_APP_PASSWORD set
+- [ ] CAMPAY_PERMANENT_TOKEN set
+- [ ] CAMPAY_WEBHOOK_SECRET set (from CamPay Dashboard > Webhook Settings)
+- [ ] Webhook URL configured in CamPay: `https://salescompanion2-0.com/api/payment/webhook`
+- [ ] UPSTASH_REDIS_REST_URL set (for rate-limiting & company search caching)
+- [ ] UPSTASH_REDIS_REST_TOKEN set
+- [ ] GEMINI_API_KEY set
+- [ ] BREVO_API_KEY set
 
 ### Configuration Déploiement
 
