@@ -143,11 +143,11 @@ export function RegisterForm() {
     setError(null)
 
     if (!name.trim()) {
-      setError(t('auth.fullNameRequired' as any) || 'Veuillez saisir votre nom complet.')
+      setError(t('auth.fullNameRequired'))
       return
     }
     if (!email.trim()) {
-      setError(t('auth.emailRequired' as any) || 'Veuillez saisir votre adresse e-mail.')
+      setError(t('auth.emailRequired'))
       return
     }
     if (!password) {
@@ -159,11 +159,11 @@ export function RegisterForm() {
       return
     }
     if (!phone.trim() || !country) {
-      setError(t('auth.phoneRequired' as any) || 'Veuillez renseigner votre numéro de téléphone.')
+      setError(t('auth.phoneRequired'))
       return
     }
     if (!validatePhoneForCountry(phone, country)) {
-      setError(t('auth.invalidPhone' as any) || 'Numéro de téléphone invalide pour le pays sélectionné.')
+      setError(t('auth.invalidPhone'))
       return
     }
 
@@ -184,22 +184,19 @@ export function RegisterForm() {
 
     // Validation étape 2
     if (!sector) {
-      setError(t('auth.selectSectorRequired' as any) || "Veuillez sélectionner votre secteur d'activité.")
+      setError(t('auth.selectSectorRequired'))
       return
     }
 
     if (role === 'manager' && !companyName.trim()) {
-      setError(t('auth.companyNameRequired' as any) || "Veuillez renseigner le nom de votre entreprise.")
+      setError(t('auth.companyNameRequired'))
       return
     }
 
     // Règle de sécurité : Compte Manager avec email professionnel obligatoire
     // Sauf si dérogation validée par l'administrateur
     if (role === 'manager' && !isCorporateEmail(email) && !exemptionValid) {
-      setError(
-        t('auth.corporateEmailRequired' as any) ||
-          "L'inscription Manager requiert une adresse email professionnelle d'entreprise (ex: prenom.nom@votre-entreprise.com). Les adresses grand public (Gmail, Yahoo, Outlook...) ne sont pas autorisées sans dérogation préalable."
-      )
+      setError(t('auth.corporateEmailRequired'))
       return
     }
 
@@ -248,7 +245,7 @@ export function RegisterForm() {
           className="inline-block h-8 w-8 rounded-full border-[3px] border-white/10"
           style={{ borderTopColor: 'hsl(var(--primary))', animation: 'spin 0.8s linear infinite' }}
         />
-        <p className="mt-4 text-[14px]">{t('auth.loading' as any) || 'Chargement…'}</p>
+        <p className="mt-4 text-[14px]">{t('auth.loading')}</p>
       </div>
     )
   }
@@ -266,9 +263,7 @@ export function RegisterForm() {
           {t('auth.registerTitle')}
         </h1>
         <p className="m-0 text-[12.5px] text-muted-foreground">
-          {step === 1
-            ? (t('auth.step1Subtitle' as any) || 'Étape 1 sur 2 : Vos identifiants & coordonnées')
-            : (t('auth.step2Subtitle' as any) || 'Étape 2 sur 2 : Votre activité & entreprise')}
+          {step === 1 ? t('auth.step1Subtitle') : t('auth.step2Subtitle')}
         </p>
       </div>
 
@@ -357,7 +352,7 @@ export function RegisterForm() {
             <FormField
               label={t('auth.email')}
               required
-              hint={role === 'manager' ? t('auth.corporateEmailHint' as any) || 'Adresse professionnelle requise (ex: contact@societe.cm)' : undefined}
+              hint={role === 'manager' ? t('auth.corporateEmailHint') : undefined}
             >
               <Input
                 type="email"
@@ -381,7 +376,7 @@ export function RegisterForm() {
             {/* Pays & Téléphone */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <FormField
-                label={t('auth.country' as any) || 'Pays'}
+                label={t('auth.country')}
                 required
               >
                 <CountrySelect
@@ -392,7 +387,7 @@ export function RegisterForm() {
               </FormField>
 
               <FormField
-                label={t('auth.phone' as any) || 'Numéro de téléphone'}
+                label={t('auth.phone')}
                 required
               >
                 <div className="flex items-center gap-1.5">
@@ -423,7 +418,7 @@ export function RegisterForm() {
               style={{ width: '100%', marginTop: 6 }}
             >
               <span className="inline-flex items-center gap-2">
-                {t('auth.continueBtn' as any) || 'Continuer'}
+                {t('auth.continueBtn')}
                 <ArrowRight size={15} />
               </span>
             </Button>
@@ -462,7 +457,7 @@ export function RegisterForm() {
               <p className="mt-2 flex items-center gap-1.5 text-[11px] text-muted-foreground/80">
                 <HelpCircle size={12} className="shrink-0 text-primary" />
                 <span>
-                  {t('auth.noCorporateEmailContactSupport' as any) || "Votre entreprise n'a pas de nom de domaine propre ?"}{' '}
+                  {t('auth.noCorporateEmailContactSupport')}{' '}
                   <Link
                     href={`${routes.support}?type=corporate_domain${email.trim() ? `&email=${encodeURIComponent(email.trim())}` : ''}${name.trim() ? `&name=${encodeURIComponent(name.trim())}` : ''}${companyName.trim() ? `&company=${encodeURIComponent(companyName.trim())}` : ''}${sector.trim() ? `&sector=${encodeURIComponent(sector.trim())}` : ''}`}
                     className="font-semibold text-primary underline underline-offset-2"
@@ -508,11 +503,11 @@ export function RegisterForm() {
           {/* Numéro d'Identification Unique (NIU strict - Manager only, optionnel) */}
           {role === 'manager' && !joinOrgCode.trim() && (
             <FormField
-              label={t('auth.niuLabel' as any) || "Numéro d'Identification Unique (NIU)"}
-              hint={t('auth.niuHint' as any) || "Optionnel — Numéro fiscal officiel DGI (carte de contribuable). Active le badge Organisation vérifiée 🛡️"}
+              label={t('auth.niuLabel')}
+              hint={t('auth.niuHint')}
             >
               <Input
-                placeholder={t('auth.niuPlaceholder' as any) || "Ex: M051212345678A (optionnel)"}
+                placeholder={t('auth.niuPlaceholder')}
                 value={niu}
                 onChange={(e) => setNiu(e.target.value.toUpperCase())}
               />
@@ -587,7 +582,7 @@ export function RegisterForm() {
             >
               <span className="inline-flex items-center gap-1.5">
                 <ArrowLeft size={15} />
-                {t('auth.backBtn' as any) || 'Retour'}
+                {t('auth.backBtn')}
               </span>
             </Button>
 

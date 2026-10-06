@@ -113,7 +113,7 @@ export function LoginForm() {
           className="inline-block h-8 w-8 rounded-full border-[3px] border-white/10"
           style={{ borderTopColor: 'hsl(var(--primary))', animation: 'spin 0.8s linear infinite' }}
         />
-        <p className="mt-4 text-[14px]">{t('auth.loading' as any) || 'Chargement…'}</p>
+        <p className="mt-4 text-[14px]">{t('auth.loading')}</p>
       </div>
     )
   }

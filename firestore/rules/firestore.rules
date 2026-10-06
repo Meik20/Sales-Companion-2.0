@@ -316,5 +316,14 @@ service cloud.firestore {
       allow read: if isAdmin();
       allow create, update, delete: if false;
     }
+
+    // ── Conversations IA (Historique persistant) ──────────────────────────────
+    match /ai_conversations/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+
+      match /messages/{messageId} {
+        allow read, write: if isOwner(userId) || isAdmin();
+      }
+    }
   }
 }

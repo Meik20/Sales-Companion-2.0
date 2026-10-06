@@ -1,10 +1,12 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useTranslation } from '@/providers/I18nProvider'
 import { COUNTRY_FRENCH_IN, COUNTRY_FRENCH_MARKET_ADJECTIVE, COUNTRY_NAMES, type CountryCode } from '@sales-companion/shared'
 import { Loader2, RotateCcw } from 'lucide-react'
+import { collection, query, orderBy, limit, getDocs, addDoc, deleteDoc, serverTimestamp, Timestamp } from 'firebase/firestore'
+import { firestore } from '@/services/firebase/client'
 
 interface Message {
   id: string
@@ -23,67 +25,127 @@ export default function AIAssistantPage() {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const [initialLoading, setInitialLoading] = useState(true)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
+  const getGreetingMessage = useCallback((): Message => ({
+    id: 'welcome-msg',
+    role: 'assistant',
+    content:
+      lang === 'en'
+        ? '👋 Hello! I am your AI Sales Companion 2.0. I can help you with B2B prospecting, finding companies in our database, and drafting outreach pitches. How can I help you today?'
+        : `👋 Bonjour ! Je suis votre Companion IA. Je peux vous aider avec des conseils commerciaux, la recherche d'entreprises dans la base et la prospection B2B ${countryIn}. Comment puis-je vous aider ?`,
+    timestamp: new Date()
+  }), [lang, countryIn])
+
+  // Load chat history from Firestore on user load
   useEffect(() => {
-    setMessages([
-      {
-        id: '1',
-        role: 'assistant',
-        content:
-          lang === 'en'
-            ? '👋 Hello! I am your AI Sales Companion 2.0. I can help you with B2B prospecting, finding companies in our database, and drafting outreach pitches. How can I help you today?'
-            : `👋 Bonjour ! Je suis votre Companion IA. Je peux vous aider avec des conseils commerciaux, la recherche d'entreprises dans la base et la prospection B2B ${countryIn}. Comment puis-je vous aider ?`,
-        timestamp: new Date()
+    if (!user?.uid) return
+    let isMounted = true
+
+    async function loadHistory() {
+      try {
+        const q = query(
+          collection(firestore, 'ai_conversations', user!.uid, 'messages'),
+          orderBy('createdAt', 'asc'),
+          limit(50)
+        )
+        const snap = await getDocs(q)
+        if (!isMounted) return
+
+        if (!snap.empty) {
+          const loaded: Message[] = snap.docs.map((docSnap) => {
+            const data = docSnap.data()
+            return {
+              id: docSnap.id,
+              role: data.role as 'user' | 'assistant',
+              content: data.content,
+              timestamp: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date()
+            }
+          })
+          setMessages(loaded)
+        } else {
+          setMessages([getGreetingMessage()])
+        }
+      } catch (err) {
+        console.warn('[AI] Could not load chat history from Firestore:', err)
+        if (isMounted) setMessages([getGreetingMessage()])
+      } finally {
+        if (isMounted) setInitialLoading(false)
       }
-    ])
-  }, [lang, user?.country])
+    }
+
+    loadHistory()
+
+    return () => {
+      isMounted = false
+    }
+  }, [user?.uid, getGreetingMessage])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  const resetChat = () => {
-    setMessages([
-      {
-        id: '1',
-        role: 'assistant',
-        content:
-          lang === 'en'
-            ? '👋 Hello! I am your AI Sales Companion 2.0. I can help you with B2B prospecting, finding companies in our database, and drafting outreach pitches. How can I help you today?'
-            : `👋 Bonjour ! Je suis votre Companion IA. Je peux vous aider avec des conseils commerciaux, la recherche d'entreprises dans la base et la prospection B2B ${countryIn}. Comment puis-je vous aider ?`,
-        timestamp: new Date()
-      }
-    ])
+  const resetChat = async () => {
+    setMessages([getGreetingMessage()])
     setInput('')
     setLoading(false)
+
+    if (user?.uid) {
+      try {
+        const snap = await getDocs(
+          query(collection(firestore, 'ai_conversations', user.uid, 'messages'), limit(100))
+        )
+        const deletePromises = snap.docs.map((d) => deleteDoc(d.ref))
+        await Promise.all(deletePromises)
+      } catch (err) {
+        console.warn('[AI] Error clearing conversation history in Firestore:', err)
+      }
+    }
   }
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!input.trim() || !user) return
 
-    // Add user message
+    const trimmedInput = input.trim()
+
+    // Add user message locally
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
-      content: input,
+      content: trimmedInput,
       timestamp: new Date()
     }
     setMessages((prev) => [...prev, userMessage])
     setInput('')
     setLoading(true)
 
+    // Persist user message to Firestore
+    addDoc(collection(firestore, 'ai_conversations', user.uid, 'messages'), {
+      role: 'user',
+      content: trimmedInput,
+      createdAt: serverTimestamp()
+    }).catch((err) => console.warn('[AI] Could not persist user message:', err))
+
     try {
       const token = await user.getIdToken()
+      const recentHistory = messages
+        .filter((m) => m.id !== 'welcome-msg' && m.id !== '1')
+        .slice(-6)
+        .map((m) => ({
+          role: m.role === 'assistant' ? 'model' : 'user',
+          parts: [{ text: m.content }]
+        }))
+
       const response = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ message: input, lang })
+        body: JSON.stringify({ message: trimmedInput, lang, history: recentHistory })
       })
 
       if (!response.ok) {
@@ -94,17 +156,26 @@ export default function AIAssistantPage() {
       }
 
       const data = await response.json()
+      const assistantContent =
+        data.reply ||
+        data.response ||
+        data.message ||
+        "Désolé, je n'ai pas pu traiter votre demande."
+
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content:
-          data.reply ||
-          data.response ||
-          data.message ||
-          "Désolé, je n'ai pas pu traiter votre demande.",
+        content: assistantContent,
         timestamp: new Date()
       }
       setMessages((prev) => [...prev, assistantMessage])
+
+      // Persist assistant reply to Firestore
+      addDoc(collection(firestore, 'ai_conversations', user.uid, 'messages'), {
+        role: 'assistant',
+        content: assistantContent,
+        createdAt: serverTimestamp()
+      }).catch((err) => console.warn('[AI] Could not persist assistant message:', err))
     } catch (error) {
       console.error('AI Chat error:', error)
       const errorMessage: Message = {
@@ -122,7 +193,7 @@ export default function AIAssistantPage() {
     }
   }
 
-  if (!user) {
+  if (!user || initialLoading) {
     return (
       <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--foreground, #f1f5f9)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
         <Loader2 size={18} className="animate-spin text-primary" />
