@@ -28,7 +28,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 })
     }
 
-    const userData = userDoc.data()!
+    const userData = userDoc.data()
+    if (!userData) {
+      return NextResponse.json({ error: 'Données utilisateur introuvables' }, { status: 404 })
+    }
     if (userData.role !== 'manager') {
       return NextResponse.json({ error: 'Accès réservé aux Managers' }, { status: 403 })
     }
@@ -146,7 +149,10 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 })
     }
 
-    const userData = userDoc.data()!
+    const userData = userDoc.data()
+    if (!userData) {
+      return NextResponse.json({ error: 'Données utilisateur introuvables' }, { status: 404 })
+    }
     if (userData.role !== 'manager') {
       return NextResponse.json({ error: 'Accès réservé aux Managers' }, { status: 403 })
     }
@@ -246,7 +252,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     const updatedDoc = await userDocRef.get()
-    const updatedData = updatedDoc.data()!
+    const updatedData = updatedDoc.data() || {}
     const updatedNiu = updatedData.niu ? normalizeNiu(updatedData.niu) : null
 
     return NextResponse.json({

@@ -36,11 +36,10 @@ export async function DELETE(
 
     // Verify the access belongs to this manager
     const accessDoc = await adminDb.collection('team_accesses').doc(accessId).get()
-    if (!accessDoc.exists) {
+    const accessData = accessDoc.data()
+    if (!accessDoc.exists || !accessData) {
       return NextResponse.json({ message: 'Accès introuvable' }, { status: 404 })
     }
-
-    const accessData = accessDoc.data()!
     if (accessData.managerUid !== managerUid) {
       return NextResponse.json({ message: 'Non autorisé' }, { status: 403 })
     }

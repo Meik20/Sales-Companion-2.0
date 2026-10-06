@@ -114,7 +114,12 @@ export async function POST(request: NextRequest) {
       }, { status: 404 })
     }
 
-    const agentData = agentUserDoc.data()!
+    const agentData = agentUserDoc.data()
+    if (!agentData) {
+      return NextResponse.json({
+        error: 'Profil de l\'agent introuvable ou incomplet.'
+      }, { status: 404 })
+    }
 
     // ── Vérification hybride de l'organisation (orgCode > NIU > Legacy Fallback) ──
     const { generateOrgCode, normalizeNiu } = await import('@/lib/org')

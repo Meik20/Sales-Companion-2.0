@@ -19,12 +19,11 @@ export async function GET(request: NextRequest) {
 
     const docRef = adminDb.collection('domain_exemptions').doc(token)
     const docSnap = await docRef.get()
+    const data = docSnap.data()
 
-    if (!docSnap.exists) {
+    if (!docSnap.exists || !data) {
       return NextResponse.json({ valid: false, error: 'Jeton de dérogation invalide' }, { status: 404 })
     }
-
-    const data = docSnap.data()!
 
     // Vérifier si le jeton a déjà été utilisé
     if (data.used || data.status === 'consumed') {

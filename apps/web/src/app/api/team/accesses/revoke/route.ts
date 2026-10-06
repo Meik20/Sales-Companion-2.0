@@ -33,12 +33,11 @@ export async function POST(request: NextRequest) {
     // 3. Vérification de propriété
     const accessRef = adminDb.collection('team_accesses').doc(accessId)
     const accessDoc = await accessRef.get()
+    const accessData = accessDoc.data()
 
-    if (!accessDoc.exists) {
+    if (!accessDoc.exists || !accessData) {
       return NextResponse.json({ error: 'Accès introuvable' }, { status: 404 })
     }
-
-    const accessData = accessDoc.data()!
     if (accessData.managerUid !== managerUid) {
       return NextResponse.json({ error: 'Non autorisé' }, { status: 403 })
     }

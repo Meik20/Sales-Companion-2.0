@@ -21,8 +21,9 @@ export async function GET(
     for (const col of ACCESS_COLLECTIONS) {
       // 1. Chercher par document ID exact
       let snap = await adminDb.collection(col).doc(accessIdRaw).get()
-      if (snap.exists) {
-        accessDoc = snap.data()!
+      const data = snap.data()
+      if (snap.exists && data) {
+        accessDoc = data
         actualAccessId = accessDoc.accessId || accessIdRaw
         break
       }

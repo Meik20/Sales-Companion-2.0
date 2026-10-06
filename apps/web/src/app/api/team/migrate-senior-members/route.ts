@@ -51,10 +51,10 @@ export async function POST(request: NextRequest) {
 
     // Vérifier que le manager cible existe, est manager et fait partie de la même organisation
     const targetDoc = await adminDb.collection('users').doc(targetManagerUid).get()
-    if (!targetDoc.exists) {
+    const targetData = targetDoc.data()
+    if (!targetDoc.exists || !targetData) {
       return NextResponse.json({ error: 'Team Manager cible introuvable' }, { status: 404 })
     }
-    const targetData = targetDoc.data()!
     if (targetData.orgCode !== orgCode || targetData.role !== 'manager') {
       return NextResponse.json({ error: 'Le manager cible n\'appartient pas à votre organisation' }, { status: 400 })
     }

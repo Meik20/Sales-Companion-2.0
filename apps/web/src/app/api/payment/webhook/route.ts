@@ -118,12 +118,11 @@ export async function POST(request: NextRequest) {
     signatureValid: true
   }).catch((e) => console.warn('[webhook/campay] audit log failed:', e))
 
-  if (!paymentDoc.exists) {
+  const paymentData = paymentDoc.data()
+  if (!paymentDoc.exists || !paymentData) {
     console.warn('[webhook/campay] transaction introuvable:', external_reference)
     return NextResponse.json({ received: true }) // 200 pour éviter les retries infinis
   }
-
-  const paymentData = paymentDoc.data()!
 
   try {
     if (status === 'SUCCESSFUL') {

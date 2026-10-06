@@ -44,13 +44,18 @@ async function redisGet(key: string): Promise<string | null> {
   const token = process.env.UPSTASH_REDIS_REST_TOKEN
   if (!url || !token) return null
   try {
-    const res = await fetch(`${url}/get/${encodeURIComponent(key)}`, {
-      headers: { Authorization: `Bearer ${token}` },
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(['GET', key]),
       signal: AbortSignal.timeout(3000)
     })
     if (!res.ok) return null
     const json = await res.json()
-    return json.result ?? null
+    return typeof json.result === 'string' ? json.result : null
   } catch {
     return null
   }
@@ -61,10 +66,13 @@ async function redisSet(key: string, value: string, ttlSec: number): Promise<voi
   const token = process.env.UPSTASH_REDIS_REST_TOKEN
   if (!url || !token) return
   try {
-    await fetch(`${url}/set/${encodeURIComponent(key)}`, {
+    await fetch(url, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ value, ex: ttlSec }),
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(['SET', key, value, 'EX', ttlSec]),
       signal: AbortSignal.timeout(5000)
     })
   } catch (err) {
@@ -178,9 +186,13 @@ export async function invalidateCompanyCache(): Promise<void> {
   const token = process.env.UPSTASH_REDIS_REST_TOKEN
   if (!url || !token) return
   try {
-    await fetch(`${url}/del/${encodeURIComponent(REDIS_KEY)}`, {
+    await fetch(url, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(['DEL', REDIS_KEY]),
       signal: AbortSignal.timeout(3000)
     })
   } catch (err) {

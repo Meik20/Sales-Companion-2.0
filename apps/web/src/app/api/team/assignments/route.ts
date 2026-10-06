@@ -54,13 +54,13 @@ export async function GET(request: NextRequest) {
           try {
             const pDoc = await adminDb.collection('pipeline').doc(firstProspectId).get()
             if (pDoc.exists) {
-              const pd = pDoc.data()!
+              const pd = pDoc.data() || {}
               companyName = pd.companyName ?? pd.name ?? companyName
             } else {
               // Primary CSV import collection
               const mDoc = await adminDb.collection('manager_prospects').doc(firstProspectId).get()
               if (mDoc.exists) {
-                const md = mDoc.data()!
+                const md = mDoc.data() || {}
                 companyName = md.name ?? md.companyName ?? companyName
               } else {
                 // Legacy import collection
@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
                   .doc(firstProspectId)
                   .get()
                 if (iDoc.exists) {
-                  const id = iDoc.data()!
+                  const id = iDoc.data() || {}
                   companyName = id.name ?? id.companyName ?? companyName
                 }
               }
@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
           try {
             const aDoc = await adminDb.collection('team_accesses').doc(assigneeId.trim().toLowerCase()).get()
             if (aDoc.exists) {
-              const ad = aDoc.data()!
+              const ad = aDoc.data() || {}
               memberName = `${ad.firstname ?? ''} ${ad.lastname ?? ''}`.trim()
               memberEmail = ad.email ?? ''
               memberUid = ad.firebaseUid ?? memberUid
@@ -176,14 +176,14 @@ export async function POST(request: NextRequest) {
     if (!providedName) {
       const pipelineDoc = await adminDb.collection('pipeline').doc(pipelineItemId).get()
       if (pipelineDoc.exists) {
-        const d = pipelineDoc.data()!
+        const d = pipelineDoc.data() || {}
         companyName = d.companyName || d.name || pipelineItemId
         prospectData = d
       } else {
         // Look in companies first
         const companyDoc = await adminDb.collection('companies').doc(pipelineItemId).get()
         if (companyDoc.exists) {
-          const d = companyDoc.data()!
+          const d = companyDoc.data() || {}
           companyName = d.raisonSociale || d.name || pipelineItemId
           prospectData = d
         } else {
@@ -193,7 +193,7 @@ export async function POST(request: NextRequest) {
             .doc(pipelineItemId)
             .get()
           if (managerProspectDoc.exists) {
-            const d = managerProspectDoc.data()!
+            const d = managerProspectDoc.data() || {}
             companyName = d.name || d.companyName || d.raisonSociale || pipelineItemId
             prospectData = d
           } else {
@@ -203,7 +203,7 @@ export async function POST(request: NextRequest) {
               .doc(pipelineItemId)
               .get()
             if (importedDoc.exists) {
-              const d = importedDoc.data()!
+              const d = importedDoc.data() || {}
               companyName = d.name || d.companyName || pipelineItemId
               prospectData = d
             }
@@ -234,7 +234,7 @@ export async function POST(request: NextRequest) {
             : iDoc?.exists
               ? iDoc
               : null
-      if (foundDoc) prospectData = foundDoc.data()!
+      if (foundDoc) prospectData = foundDoc.data() || {}
     }
 
     // ── Step 2: Get member info ────────────────────────────────────────────
@@ -253,7 +253,7 @@ export async function POST(request: NextRequest) {
           .doc(accessKey.trim().toLowerCase())
           .get()
         if (accessDoc.exists) {
-          const ad = accessDoc.data()!
+          const ad = accessDoc.data() || {}
           memberName = `${ad.firstname ?? ''} ${ad.lastname ?? ''}`.trim()
         }
       } catch {

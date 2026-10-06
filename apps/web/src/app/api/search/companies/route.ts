@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { getClientIp, checkRateLimit, checkRateLimitByUser } from '@/lib/rate-limit'
 import { PLAN_LIMITS, COUNTRY_NAMES } from '@sales-companion/shared'
+import { getCachedCompanies } from '@/lib/company-search'
 
 
 // Lazy import pour éviter les erreurs si firebase-admin ne s'initialise pas
@@ -17,10 +18,6 @@ async function getAdminModules() {
  * Recherche dans la collection Firestore "companies" importée par l'admin.
  * Déduit 1 crédit par recherche pour l'utilisateur authentifié.
  */
-// Cache en mémoire pour éviter de recharger 50k docs à chaque clic
-let cachedCompanies: any[] | null = null
-let lastCacheUpdate = 0
-const CACHE_DURATION = 1000 * 60 * 60 // 1 heure (réduit les lectures Firestore de 75%)
 const COUNTRY_BOUNDS: Record<string, { minLat: number; maxLat: number; minLng: number; maxLng: number }> = {
   CM: { minLat: 1.5, maxLat: 13.2, minLng: 8.0, maxLng: 16.3 },
   SN: { minLat: 12.2, maxLat: 16.8, minLng: -17.8, maxLng: -11.2 },
@@ -441,38 +438,14 @@ export async function GET(request: NextRequest) {
       return { matches: true, score }
     }
 
-    // ── 3. Récupération des données (avec Cache et protection quota) ──
+    // ── 3. Récupération des données (via Cache Redis Upstash + fallback mémoire) ──
     let internalCompanies: any[] = []
     try {
-      if (!cachedCompanies || Date.now() - lastCacheUpdate > CACHE_DURATION) {
-        const snap = await adminDb.collection('companies').limit(10000).get()
-        cachedCompanies = snap.docs.map((d) => {
-          const data = d.data()
-          return {
-            ...data,
-            id: d.id,
-            raisonSociale: data.raisonSociale ?? data.name ?? '',
-            sector: data.sector ?? data.activite_principale ?? '',
-            region: data.region ?? data.centre_de_rattachement ?? '',
-            city: data.city ?? data.ville ?? '',
-            niu: data.niu ?? '',
-            sigle: data.sigle ?? '',
-            dirigeant: data.dirigeant ?? '',
-            telephone: data.telephone ?? '',
-            email: data.email ?? '',
-            rccm: data.rccm ?? '',
-            adresse: data.adresse ?? '',
-            formeJuridique: data.formeJuridique ?? '',
-            capital: data.capital ?? '',
-            country: (data.country || 'CM').toUpperCase()
-          }
-        })
-        lastCacheUpdate = Date.now()
-      }
-      internalCompanies = [...(cachedCompanies || [])]
+      const allCompanies = await getCachedCompanies()
+      internalCompanies = [...allCompanies]
     } catch (err) {
-      console.warn('[search/companies] Firestore quota or connection limit reached, using memory cache/fallback:', err)
-      internalCompanies = [...(cachedCompanies || [])]
+      console.warn('[search/companies] Failed to load cached companies:', err)
+      internalCompanies = []
     }
 
     // ── 3.1 Filtrage strict par pays de l'utilisateur (défini à l'inscription) ──

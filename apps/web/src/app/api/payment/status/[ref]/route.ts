@@ -15,11 +15,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     // Récupérer la transaction en base
     const paymentDoc = await adminDb.collection('payments').doc(externalRef).get()
-    if (!paymentDoc.exists) {
+    const paymentData = paymentDoc.data()
+    if (!paymentDoc.exists || !paymentData) {
       return NextResponse.json({ error: 'Transaction introuvable' }, { status: 404 })
     }
-
-    const paymentData = paymentDoc.data()!
 
     // Si déjà traité, retourner directement
     if (paymentData.status === 'SUCCESSFUL') {

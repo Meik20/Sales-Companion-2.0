@@ -24,11 +24,11 @@ export async function DELETE(
     const managerUid = decodedToken.uid
 
     const linkDoc = await adminDb.collection('support_agent_links').doc(id).get()
-    if (!linkDoc.exists) {
+    const linkData = linkDoc.data()
+    if (!linkDoc.exists || !linkData) {
       return NextResponse.json({ error: 'Lien introuvable' }, { status: 404 })
     }
 
-    const linkData = linkDoc.data()!
     if (linkData.managerUid !== managerUid) {
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
     }

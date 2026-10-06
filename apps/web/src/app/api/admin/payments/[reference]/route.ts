@@ -30,12 +30,11 @@ export async function PATCH(
 
     const paymentRef = adminDb.collection('payments').doc(reference)
     const paymentDoc = await paymentRef.get()
+    const paymentData = paymentDoc.data()
 
-    if (!paymentDoc.exists) {
+    if (!paymentDoc.exists || !paymentData) {
       return NextResponse.json({ error: 'Paiement introuvable' }, { status: 404 })
     }
-
-    const paymentData = paymentDoc.data()!
 
     if (paymentData.status !== 'MANUAL_PENDING') {
       return NextResponse.json({ error: 'Paiement déjà traité' }, { status: 400 })

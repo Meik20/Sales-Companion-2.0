@@ -82,14 +82,13 @@ export async function POST(request: NextRequest) {
       managerDoc = await adminDb.collection('users').doc(targetUid).get()
     }
 
-    if (!managerDoc || !managerDoc.exists || !targetUid) {
+    const managerData = managerDoc?.data()
+    if (!managerDoc || !managerDoc.exists || !managerData || !targetUid) {
       return NextResponse.json(
         { error: 'Manager introuvable (fournir managerUid ou managerEmail valide)' },
         { status: 404 }
       )
     }
-
-    const managerData = managerDoc.data()!
     if (managerData.role !== 'manager') {
       return NextResponse.json(
         { error: `Cet utilisateur n'est pas un manager (rôle actuel: ${managerData.role})` },
@@ -102,9 +101,8 @@ export async function POST(request: NextRequest) {
     const startedAt = managerData.subscriptionStartedAt ?? null
     const isExpired = managerData.subscriptionExpired ?? false
 
-    console.log(
-      `[sync-team-plan] Resync demandée : manager=${targetUid} (${managerData.email}) plan=${managerPlan} validité=${expiresAt}`
-    )
+    // Resync audit info
+    console.log(`[sync-team-plan] Resync plan=${managerPlan} validité=${expiresAt}`)
 
     const result = await syncTeamMemberPlans(targetUid, managerPlan, {
       subscriptionExpiresAt: expiresAt,

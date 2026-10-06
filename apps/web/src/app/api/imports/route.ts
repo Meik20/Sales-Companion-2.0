@@ -280,11 +280,11 @@ export async function PATCH(request: NextRequest) {
     const prospectRef = adminDb.collection('manager_prospects').doc(prospectId)
     const prospectSnap = await prospectRef.get()
 
-    if (!prospectSnap.exists || prospectSnap.data()?.managerId !== managerId) {
+    const prospectData = prospectSnap.data()
+    if (!prospectSnap.exists || !prospectData || prospectData.managerId !== managerId) {
       return NextResponse.json({ message: 'Prospect non trouvé ou accès refusé' }, { status: 403 })
     }
 
-    const prospectData = prospectSnap.data()!
     const previousAssignedTo: string | null = prospectData.assignedTo ?? null
     const companyName: string = prospectData.name || prospectData.companyName || prospectId
 
@@ -340,7 +340,7 @@ export async function PATCH(request: NextRequest) {
           .doc(accessKey.trim().toLowerCase())
           .get()
         if (accessDoc.exists) {
-          const ad = accessDoc.data()!
+          const ad = accessDoc.data() || {}
           memberName = `${ad.firstname ?? ''} ${ad.lastname ?? ''}`.trim()
         }
       } catch { /* ignore */ }

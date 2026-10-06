@@ -29,9 +29,8 @@ export async function GET(request: NextRequest) {
 
     const decoded = await adminAuth.verifyIdToken(token)
     const callerDoc = await adminDb.collection('users').doc(decoded.uid).get()
-    if (!callerDoc.exists) return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 })
-
-    const callerData = callerDoc.data()!
+    const callerData = callerDoc.data()
+    if (!callerDoc.exists || !callerData) return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 })
     if (callerData.role !== 'manager') {
       return NextResponse.json({ error: 'Accès réservé aux managers' }, { status: 403 })
     }
