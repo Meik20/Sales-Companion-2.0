@@ -23,42 +23,67 @@ import {
 } from 'lucide-react'
 
 /* ── SVG Bar Chart ── */
-function BarChart({ data }: { data: { label: string; value: number; color: string }[] }) {
+function BarChart({
+  data
+}: {
+  data: { label: string; fullLabel?: string; value: number; color: string }[]
+}) {
   const max = Math.max(...data.map((d) => d.value), 1)
   const h = 140
+  const slotWidth = 84
+  const barWidth = 44
+  const totalWidth = data.length * slotWidth
+  const totalHeight = h + 42
+
   return (
-    <div style={{ padding: '10px 0' }}>
+    <div style={{ padding: '8px 0', width: '100%' }}>
       <svg
         width="100%"
-        height={h + 40}
-        viewBox={`0 0 ${data.length * 70} ${h + 40}`}
+        height={totalHeight}
+        viewBox={`0 0 ${totalWidth} ${totalHeight}`}
         preserveAspectRatio="xMidYMid meet"
+        style={{ display: 'block', maxWidth: '100%' }}
       >
         <defs>
           {data.map((d, i) => (
             <linearGradient key={`grad-${i}`} id={`grad-${i}`} x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor={d.color} stopOpacity={1} />
-              <stop offset="100%" stopColor={d.color} stopOpacity={0.6} />
+              <stop offset="100%" stopColor={d.color} stopOpacity={0.65} />
             </linearGradient>
           ))}
         </defs>
+
+        {/* Ligne guide de base */}
+        <line
+          x1={8}
+          y1={h}
+          x2={totalWidth - 8}
+          y2={h}
+          stroke="var(--border, rgba(255,255,255,0.1))"
+          strokeWidth={1}
+          strokeDasharray="4 4"
+        />
+
         {data.map((d, i) => {
-          const barH = Math.max(4, (d.value / max) * h)
-          const x = i * 70 + 10
+          const barH = Math.max(6, (d.value / max) * (h - 28))
+          const x = i * slotWidth + (slotWidth - barWidth) / 2
           const y = h - barH
+          const centerX = i * slotWidth + slotWidth / 2
+
           return (
             <g key={d.label}>
+              <title>{`${d.fullLabel || d.label}: ${d.value}`}</title>
               <rect
                 x={x}
                 y={y}
-                width={50}
+                width={barWidth}
                 height={barH}
                 rx={8}
                 fill={`url(#grad-${i})`}
-                style={{ filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.1))' }}
+                style={{ filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.12))' }}
               />
               <text
-                x={x + 25}
+                x={centerX}
                 y={y - 8}
                 textAnchor="middle"
                 fontSize={12}
@@ -69,13 +94,13 @@ function BarChart({ data }: { data: { label: string; value: number; color: strin
                 {d.value}
               </text>
               <text
-                x={x + 25}
-                y={h + 24}
+                x={centerX}
+                y={h + 22}
                 textAnchor="middle"
                 fontSize={10}
-                fontWeight="600"
+                fontWeight="700"
                 fill={'var(--muted-foreground, #94a3b8)'}
-                style={{ textTransform: 'uppercase', letterSpacing: '0.02em' }}
+                style={{ textTransform: 'uppercase', letterSpacing: '0.03em' }}
               >
                 {d.label}
               </text>
@@ -103,8 +128,8 @@ function DonutChart({
   let cumAngle = -90
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
-      <svg width={160} height={160} viewBox="0 0 160 160">
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around', gap: 20, flexWrap: 'wrap', padding: '6px 0' }}>
+      <svg width={160} height={160} viewBox="0 0 160 160" style={{ flexShrink: 0 }}>
         {segments.map((seg, i) => {
           const pct = seg.value / total
           const angle = pct * 360
@@ -140,7 +165,7 @@ function DonutChart({
           TOTAL
         </text>
       </svg>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 140 }}>
         {segments.map((seg) => (
           <div
             key={seg.label}
@@ -284,8 +309,12 @@ function TrendCard({
             fontWeight: 700,
             color: 'var(--muted-foreground, #94a3b8)',
             textTransform: 'uppercase',
-            letterSpacing: '.06em'
+            letterSpacing: '.05em',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis'
           }}
+          title={label}
         >
           {label}
         </span>
@@ -349,10 +378,10 @@ export default function AdminDashboardPage() {
   const companyLabel = user?.companyName ? user.companyName : t('admin.dashboardSubtitle')
 
   const roleData = [
-    { label: t('admin.members'), value: stats?.roleDistribution?.member || 0, color: '#60a5fa' },
-    { label: t('admin.managers'), value: stats?.roleDistribution?.manager || 0, color: '#34d399' },
-    { label: t('admin.indep'), value: stats?.roleDistribution?.independent || 0, color: '#c084fc' },
-    { label: t('admin.admins'), value: stats?.roleDistribution?.admin || 0, color: '#facc15' }
+    { label: t('admin.members'), fullLabel: 'Membres', value: stats?.roleDistribution?.member || 0, color: '#60a5fa' },
+    { label: t('admin.managers'), fullLabel: 'Managers', value: stats?.roleDistribution?.manager || 0, color: '#34d399' },
+    { label: t('admin.indep'), fullLabel: 'Indépendants', value: stats?.roleDistribution?.independent || 0, color: '#c084fc' },
+    { label: t('admin.admins'), fullLabel: 'Administrateurs', value: stats?.roleDistribution?.admin || 0, color: '#facc15' }
   ]
 
   const planData = [
@@ -412,7 +441,12 @@ export default function AdminDashboardPage() {
           </div>
 
           <div
-            style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 24 }}
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+              gap: 20,
+              marginBottom: 24
+            }}
           >
             <ChartCard
               title={t('admin.usersByRole')}
@@ -518,12 +552,13 @@ export default function AdminDashboardPage() {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      boxShadow: '0 4px 10px rgba(0,0,0,0.05)'
+                      boxShadow: '0 4px 10px rgba(0,0,0,0.05)',
+                      flexShrink: 0
                     }}
                   >
                     {item.icon}
                   </div>
-                  <div>
+                  <div style={{ minWidth: 0, flex: 1 }}>
                     <div
                       style={{ fontSize: 22, fontWeight: 900, color: 'var(--foreground, #f1f5f9)', lineHeight: 1.1 }}
                     >
@@ -546,8 +581,12 @@ export default function AdminDashboardPage() {
                         fontWeight: 700,
                         textTransform: 'uppercase',
                         marginTop: 2,
-                        letterSpacing: '0.02em'
+                        letterSpacing: '0.02em',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
                       }}
+                      title={item.label}
                     >
                       {item.label}
                     </div>
