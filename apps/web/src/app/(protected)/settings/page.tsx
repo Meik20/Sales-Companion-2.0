@@ -450,13 +450,13 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                {/* NIU / RCCM Section */}
+                {/* NIU Section */}
                 <div className="flex flex-col gap-3 border-b border-border pb-6">
                   <h4 className="m-0 text-[14px] font-bold text-foreground">
-                    {t('settings.niuTitle' as any) || "Numéro d'Identification Unique (NIU / RCCM)"}
+                    {t('settings.niuTitle' as any) || "Numéro d'Identification Unique (NIU)"}
                   </h4>
                   <p className="m-0 text-[12.5px] leading-relaxed text-muted-foreground">
-                    {t('settings.niuDesc' as any) || "Renseignez le NIU ou RCCM officiel de votre société pour certifier votre organisation et permettre la synchronisation juridique entre vos différents comptes managers."}
+                    {t('settings.niuDesc' as any) || "Renseignez le NIU fiscal officiel de votre société délivré par la DGI (carte de contribuable) pour certifier votre organisation et garantir la synchronisation avec vos autres comptes managers."}
                   </p>
 
                   <form onSubmit={handleUpdateNiu} className="flex max-w-[420px] flex-col gap-2.5">
