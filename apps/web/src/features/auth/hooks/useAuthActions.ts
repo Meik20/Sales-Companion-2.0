@@ -14,6 +14,7 @@ import {
 } from 'firebase/auth'
 import { doc, setDoc, getDoc, Timestamp } from 'firebase/firestore'
 import { auth, firestore, googleProvider } from '@/services/firebase/client'
+import { generateOrgCode, normalizeNiu } from '@/lib/org'
 
 type RegisterInput = {
   email: string
@@ -24,6 +25,8 @@ type RegisterInput = {
   sector?: string
   country?: string
   phone?: string
+  niu?: string
+  orgCode?: string
 }
 
 /** Upsert the Firestore user document after any Google sign-in */
@@ -76,6 +79,10 @@ export function useAuthActions() {
       const { user } = await createUserWithEmailAndPassword(auth, input.email, input.password)
       await updateProfile(user, { displayName: input.name })
 
+      const isManager = (input.role || 'independent') === 'manager'
+      const orgCode = isManager ? (input.orgCode || generateOrgCode(input.country || 'CM')) : null
+      const niu = input.niu ? normalizeNiu(input.niu) : null
+
       // Save user profile data to Firestore
       await setDoc(
         doc(firestore, 'users', user.uid),
@@ -100,6 +107,8 @@ export function useAuthActions() {
           photoURL: user.photoURL || null,
           companyName: input.companyName || null,
           companyId: null,
+          orgCode,
+          niu,
           managerUid: null,
           preferences: {
             darkMode: false,

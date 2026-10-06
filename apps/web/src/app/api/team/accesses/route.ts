@@ -62,9 +62,18 @@ export async function POST(request: NextRequest) {
 
     const managerPlan = (managerData?.plan || 'free') as keyof typeof PLAN_LIMITS
 
+    let managerOrgCode = managerData?.orgCode || null
+    if (!managerOrgCode) {
+      const { generateOrgCode } = await import('@/lib/org')
+      managerOrgCode = generateOrgCode(managerData?.country || 'CM')
+      await adminDb.collection('users').doc(managerUid).update({ orgCode: managerOrgCode }).catch(() => {})
+    }
+
     const newAccess = {
       managerUid,
       managerEmail: managerData?.email || null,
+      orgCode: managerOrgCode,
+      niu: managerData?.niu || null,
       accessId,
       firstname,
       lastname,

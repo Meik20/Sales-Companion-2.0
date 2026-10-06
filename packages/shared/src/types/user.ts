@@ -12,6 +12,8 @@ export type UserDoc = {
   companyId?: string | null
   company?: string | null
   companyName?: string | null
+  orgCode?: string | null
+  niu?: string | null
   sector?: string | null
   region?: string | null
   phone?: string | null

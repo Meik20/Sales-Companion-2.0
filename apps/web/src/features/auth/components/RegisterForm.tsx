@@ -42,6 +42,7 @@ export function RegisterForm() {
   const [password, setPassword] = useState('')
   const [companyName, setCompanyName] = useState(companyParam || '')
   const [sector, setSector] = useState<string>(sectorParam || '')
+  const [niu, setNiu] = useState('')
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -136,7 +137,8 @@ export function RegisterForm() {
         country,
         phone: phone.trim(),
         companyName: role === 'manager' ? companyName : undefined,
-        sector: sector || undefined
+        sector: sector || undefined,
+        niu: role === 'manager' && niu.trim() ? niu.trim() : undefined
       })
 
       // Marquer le jeton de dérogation comme consommé
@@ -366,6 +368,20 @@ export function RegisterForm() {
         {role === 'manager' && (
           <FormField label={t('auth.companyName')} required>
             <Input placeholder="Ex: Acme Corp" value={companyName} onChange={(e) => setCompanyName(e.target.value)} />
+          </FormField>
+        )}
+
+        {/* Numéro d'Identification Unique / NIU (Manager only, optionnel) */}
+        {role === 'manager' && (
+          <FormField
+            label={t('auth.niuLabel' as any) || "Numéro d'Identification Unique (NIU / RCCM)"}
+            hint={t('auth.niuHint' as any) || "Optionnel — Confirme l'authenticité juridique et active le badge Organisation vérifiée 🛡️"}
+          >
+            <Input
+              placeholder={t('auth.niuPlaceholder' as any) || "Ex: M051212345678A (optionnel)"}
+              value={niu}
+              onChange={(e) => setNiu(e.target.value.toUpperCase())}
+            />
           </FormField>
         )}
 

@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/Button'
 import { useAuthActions } from '@/features/auth/hooks/useAuthActions'
 import { auth } from '@/services/firebase/client'
 import { PLAN_LIMITS } from '@sales-companion/shared'
-import { ArrowUpRight, Check, Lock } from 'lucide-react'
+import { ArrowUpRight, Check, Lock, Copy, ShieldCheck, ShieldAlert, Building2 } from 'lucide-react'
 
 const planDetails: Record<string, { labelKey: string; featureKeys: string[] }> = {
   free: {
@@ -73,6 +73,96 @@ export default function SettingsPage() {
   const [pwLoading, setPwLoading] = useState(false)
   const [pwError, setPwError] = useState<string | null>(null)
   const [pwSuccess, setPwSuccess] = useState<string | null>(null)
+
+  // ── Organisation & Gouvernance ──────────────────────────────────
+  const [orgData, setOrgData] = useState<{ orgCode: string; niu: string | null; isVerified: boolean; companyName: string } | null>(null)
+  const [niuInput, setNiuInput] = useState('')
+  const [niuLoading, setNiuLoading] = useState(false)
+  const [niuError, setNiuError] = useState<string | null>(null)
+  const [niuSuccess, setNiuSuccess] = useState<string | null>(null)
+  const [joinCodeInput, setJoinCodeInput] = useState('')
+  const [joinLoading, setJoinLoading] = useState(false)
+  const [joinError, setJoinError] = useState<string | null>(null)
+  const [joinSuccess, setJoinSuccess] = useState<string | null>(null)
+  const [copiedOrgCode, setCopiedOrgCode] = useState(false)
+
+  useEffect(() => {
+    if (user?.role !== 'manager') return
+    user.getIdToken().then((token) => {
+      fetch('/api/team/org', { headers: { Authorization: `Bearer ${token}` } })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && !data.error) {
+            setOrgData(data)
+            if (data.niu) setNiuInput(data.niu)
+          }
+        })
+        .catch(() => {})
+    })
+  }, [user])
+
+  const handleUpdateNiu = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setNiuLoading(true)
+    setNiuError(null)
+    setNiuSuccess(null)
+    try {
+      const token = await user?.getIdToken()
+      const res = await fetch('/api/team/org', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ niu: niuInput.trim() })
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Erreur lors de la mise à jour')
+      setOrgData(data)
+      setNiuSuccess(t('settings.niuUpdateSuccess' as any) || 'Numéro d\'identification mis à jour avec succès.')
+      pushToast({ type: 'success', title: 'Organisation mise à jour avec succès.' })
+    } catch (err: any) {
+      setNiuError(err.message)
+    } finally {
+      setNiuLoading(false)
+    }
+  }
+
+  const handleJoinOrg = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!joinCodeInput.trim()) return
+    setJoinLoading(true)
+    setJoinError(null)
+    setJoinSuccess(null)
+    try {
+      const token = await user?.getIdToken()
+      const res = await fetch('/api/team/org', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ joinOrgCode: joinCodeInput.trim() })
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Erreur lors du rattachement')
+      setOrgData(data)
+      setJoinCodeInput('')
+      setJoinSuccess(t('settings.joinOrgSuccess' as any) || 'Rattaché avec succès à l\'organisation.')
+      pushToast({ type: 'success', title: 'Rattaché avec succès à l\'organisation.' })
+    } catch (err: any) {
+      setJoinError(err.message)
+    } finally {
+      setJoinLoading(false)
+    }
+  }
+
+  const copyOrgCode = async () => {
+    const code = orgData?.orgCode || user?.orgCode
+    if (!code) return
+    try {
+      await navigator.clipboard.writeText(code)
+      setCopiedOrgCode(true)
+      pushToast({ type: 'success', title: `Code (${code}) copié.` })
+      setTimeout(() => setCopiedOrgCode(false), 2000)
+    } catch {
+      pushToast({ type: 'info', title: `Code organisation : ${code}` })
+    }
+  }
 
   const isGoogleUser = auth.currentUser?.providerData.some(p => p.providerId === 'google.com') ?? false
   const isSupport = user?.role === 'support_agent' || (user?.role as string) === 'support'
@@ -292,6 +382,137 @@ export default function SettingsPage() {
                     {t(fk as any)}
                   </span>
                 ))}
+              </div>
+            </DataCard>
+          )}
+
+          {/* ── Organisation & Gouvernance (Manager uniquement) ── */}
+          {user?.role === 'manager' && (
+            <DataCard
+              title={t('settings.orgTitle' as any) || 'Organisation & Gouvernance'}
+              subtitle={t('settings.orgSubtitle' as any) || 'Identifiant unique de votre entreprise, certification légale et gouvernance des équipes'}
+            >
+              <div className="flex flex-col gap-6">
+
+                {/* Info entreprise & Code organisation */}
+                <div className="flex flex-col gap-3 border-b border-border pb-6">
+                  <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                      <span className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        {t('settings.companyNameLabel' as any) || 'Entreprise'}
+                      </span>
+                      <h4 className="mt-1 text-[16px] font-bold text-foreground">
+                        {orgData?.companyName || user?.companyName || user?.company || 'Votre Organisation'}
+                      </h4>
+                    </div>
+
+                    {/* Badge de statut */}
+                    <div>
+                      {orgData?.isVerified || Boolean(user?.niu) ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-green-500/30 bg-green-500/10 px-3 py-1 text-[12px] font-bold text-green-400">
+                          <ShieldCheck size={14} className="text-green-400" />
+                          {t('settings.orgVerifiedBadge' as any) || 'Organisation vérifiée'}
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-[12px] font-semibold text-amber-400">
+                          <ShieldAlert size={14} className="text-amber-400" />
+                          {t('settings.orgStandardBadge' as any) || 'Organisation standard'}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Code Organisation unique */}
+                  <div className="mt-2 rounded-xl border border-border bg-secondary/30 p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <div className="text-[12px] font-semibold text-muted-foreground">
+                          {t('settings.orgCodeLabel' as any) || 'Code Organisation Unique'}
+                        </div>
+                        <div className="mt-1 flex items-center gap-2.5">
+                          <code className="rounded-md bg-primary/10 px-2.5 py-1 font-mono text-[15px] font-extrabold text-primary">
+                            {orgData?.orgCode || user?.orgCode || 'Chargement…'}
+                          </code>
+                          <button
+                            type="button"
+                            onClick={() => void copyOrgCode()}
+                            className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1 text-[12px] font-semibold text-foreground transition-colors hover:bg-secondary"
+                          >
+                            {copiedOrgCode ? <Check size={12} className="text-green-400" /> : <Copy size={12} />}
+                            {copiedOrgCode ? (t('settings.copied' as any) || 'Copié !') : (t('settings.copy' as any) || 'Copier')}
+                          </button>
+                        </div>
+                      </div>
+                      <p className="max-w-[420px] text-[12px] leading-relaxed text-muted-foreground">
+                        {t('settings.orgCodeDesc' as any) || 'Ce code identifie votre entreprise dans Sales Companion. Partagez-le avec d\'autres managers de votre entreprise pour leur permettre de relier leurs équipes et partager des agents support.'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* NIU / RCCM Section */}
+                <div className="flex flex-col gap-3 border-b border-border pb-6">
+                  <h4 className="m-0 text-[14px] font-bold text-foreground">
+                    {t('settings.niuTitle' as any) || "Numéro d'Identification Unique (NIU / RCCM)"}
+                  </h4>
+                  <p className="m-0 text-[12.5px] leading-relaxed text-muted-foreground">
+                    {t('settings.niuDesc' as any) || "Renseignez le NIU ou RCCM officiel de votre société pour certifier votre organisation et permettre la synchronisation juridique entre vos différents comptes managers."}
+                  </p>
+
+                  <form onSubmit={handleUpdateNiu} className="flex max-w-[420px] flex-col gap-2.5">
+                    <div className="flex gap-2">
+                      <Input
+                        type="text"
+                        placeholder="Ex: M051212345678A"
+                        value={niuInput}
+                        onChange={(e) => setNiuInput(e.target.value.toUpperCase())}
+                      />
+                      <Button
+                        type="submit"
+                        variant="primary"
+                        loading={niuLoading}
+                        style={{ flexShrink: 0 }}
+                      >
+                        {t('settings.saveBtn' as any) || 'Enregistrer'}
+                      </Button>
+                    </div>
+                    {niuError && <div className="text-[12px] text-red-400">{niuError}</div>}
+                    {niuSuccess && <div className="text-[12px] text-green-400">{niuSuccess}</div>}
+                  </form>
+                </div>
+
+                {/* Rejoindre une organisation existante */}
+                <div className="flex flex-col gap-3">
+                  <h4 className="m-0 text-[14px] font-bold text-foreground">
+                    {t('settings.joinOrgTitle' as any) || "Rattacher ce compte à une organisation existante"}
+                  </h4>
+                  <p className="m-0 text-[12.5px] leading-relaxed text-muted-foreground">
+                    {t('settings.joinOrgDesc' as any) || "Si un autre manager de votre entreprise s'est déjà inscrit et possède un code organisation (ex: SC-CM-XXXXX), saisissez-le ici pour unifier votre entreprise."}
+                  </p>
+
+                  <form onSubmit={handleJoinOrg} className="flex max-w-[420px] flex-col gap-2.5">
+                    <div className="flex gap-2">
+                      <Input
+                        type="text"
+                        placeholder="Code ex: SC-CM-7K9P2"
+                        value={joinCodeInput}
+                        onChange={(e) => setJoinCodeInput(e.target.value.toUpperCase())}
+                      />
+                      <Button
+                        type="submit"
+                        variant="outline"
+                        loading={joinLoading}
+                        disabled={!joinCodeInput.trim()}
+                        style={{ flexShrink: 0 }}
+                      >
+                        {t('settings.joinBtn' as any) || 'Rattacher'}
+                      </Button>
+                    </div>
+                    {joinError && <div className="text-[12px] text-red-400">{joinError}</div>}
+                    {joinSuccess && <div className="text-[12px] text-green-400">{joinSuccess}</div>}
+                  </form>
+                </div>
+
               </div>
             </DataCard>
           )}

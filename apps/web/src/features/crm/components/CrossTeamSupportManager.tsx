@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useToast } from '@/hooks/useToast'
 import { EmptyState } from '@/components/feedback'
-import { X, Link2, Loader2, Headphones } from 'lucide-react'
+import { X, Link2, Loader2, Headphones, Copy, Check, ShieldCheck, ShieldAlert } from 'lucide-react'
 
 type SupportLink = {
   id: string
@@ -23,6 +23,23 @@ export function CrossTeamSupportManager() {
   const [inputId, setInputId] = useState('')
   const [linking, setLinking] = useState(false)
   const [revoking, setRevoking] = useState<string | null>(null)
+  const [orgData, setOrgData] = useState<{ orgCode: string; niu: string | null; isVerified: boolean; companyName: string } | null>(null)
+  const [copiedCode, setCopiedCode] = useState(false)
+
+  const fetchOrg = useCallback(async () => {
+    if (!user) return
+    try {
+      const token = await user.getIdToken()
+      const res = await fetch('/api/team/org', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (res.ok) {
+        setOrgData(await res.json())
+      }
+    } catch {
+      // non-bloquant
+    }
+  }, [user])
 
   const fetchLinks = useCallback(async () => {
     if (!user) return
@@ -36,7 +53,23 @@ export function CrossTeamSupportManager() {
     } finally { setLoading(false) }
   }, [user])
 
-  useEffect(() => { void fetchLinks() }, [fetchLinks])
+  useEffect(() => {
+    void fetchLinks()
+    void fetchOrg()
+  }, [fetchLinks, fetchOrg])
+
+  async function copyOrgCode() {
+    const code = orgData?.orgCode || user?.orgCode
+    if (!code) return
+    try {
+      await navigator.clipboard.writeText(code)
+      setCopiedCode(true)
+      pushToast({ type: 'success', title: `Code organisation (${code}) copié dans le presse-papiers.` })
+      setTimeout(() => setCopiedCode(false), 2500)
+    } catch {
+      pushToast({ type: 'info', title: `Code organisation : ${code}` })
+    }
+  }
 
   async function handleLink() {
     if (!user || !inputId.trim()) return
@@ -86,7 +119,7 @@ export function CrossTeamSupportManager() {
       marginTop: 24
     }}>
       {/* Header */}
-      <div style={{ marginBottom: 20 }}>
+      <div style={{ marginBottom: 16 }}>
         <h3 style={{
           margin: '0 0 4px', fontSize: 15, fontWeight: 800, color: 'var(--foreground, #f1f5f9)',
           display: 'flex', alignItems: 'center', gap: 8
@@ -97,6 +130,93 @@ export function CrossTeamSupportManager() {
           Invitez un agent support d'une autre équipe (même organisation) à accéder aux clients conclus de votre équipe.
           L'agent doit vous fournir son <strong style={{ color: 'var(--foreground, #f1f5f9)' }}>Access ID</strong> (ex : <code style={{ background: 'rgba(255,255,255,0.06)', padding: '1px 6px', borderRadius: 4 }}>jdupont@monentreprise</code>).
         </p>
+      </div>
+
+      {/* Organisation Governance Info Card */}
+      <div style={{
+        marginBottom: 20,
+        padding: '14px 18px',
+        background: 'rgba(255,255,255,0.02)',
+        border: '1px solid rgba(255,255,255,0.08)',
+        borderRadius: 12,
+        display: 'flex',
+        flexWrap: 'wrap',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 12
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 13, color: 'var(--muted-foreground, #94a3b8)' }}>
+            Code Organisation :
+          </span>
+          <code style={{
+            background: 'rgba(55,138,221,0.12)',
+            color: '#38bdf8',
+            fontWeight: 800,
+            fontSize: 13,
+            padding: '3px 8px',
+            borderRadius: 6,
+            letterSpacing: '0.05em'
+          }}>
+            {orgData?.orgCode || user?.orgCode || 'Chargement…'}
+          </code>
+          <button
+            type="button"
+            onClick={() => void copyOrgCode()}
+            style={{
+              background: 'transparent',
+              border: '1px solid rgba(255,255,255,0.15)',
+              color: 'var(--foreground, #f1f5f9)',
+              borderRadius: 6,
+              padding: '4px 10px',
+              fontSize: 11.5,
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 5
+            }}
+          >
+            {copiedCode ? <Check size={12} className="text-green-400" /> : <Copy size={12} />}
+            {copiedCode ? 'Copié !' : 'Copier'}
+          </button>
+        </div>
+
+        <div>
+          {orgData?.isVerified || Boolean(user?.niu) ? (
+            <span style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              background: 'rgba(34,197,94,0.12)',
+              border: '1px solid rgba(34,197,94,0.25)',
+              color: '#4ade80',
+              padding: '4px 12px',
+              borderRadius: 20,
+              fontSize: 11.5,
+              fontWeight: 700
+            }}>
+              <ShieldCheck size={14} />
+              Organisation vérifiée {orgData?.niu ? `(NIU: ${orgData.niu})` : ''}
+            </span>
+          ) : (
+            <span style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              background: 'rgba(234,179,8,0.1)',
+              border: '1px solid rgba(234,179,8,0.2)',
+              color: '#facc15',
+              padding: '4px 12px',
+              borderRadius: 20,
+              fontSize: 11.5,
+              fontWeight: 600
+            }}>
+              <ShieldAlert size={14} />
+              Organisation standard (NIU non configuré)
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Link form */}

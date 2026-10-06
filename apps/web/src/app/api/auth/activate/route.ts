@@ -184,6 +184,8 @@ export async function POST(request: NextRequest) {
         activated: false, // will be set true by /api/auth/verify-email
         emailVerificationPending: true,
         company: data.company ?? null,
+        orgCode: data.orgCode ?? null,
+        niu: data.niu ?? null,
         sector: data.sector ?? null,
         region: data.region ?? null,
         managerId: data.managerId ?? data.managerUid ?? null,

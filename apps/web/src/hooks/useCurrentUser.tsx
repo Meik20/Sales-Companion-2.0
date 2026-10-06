@@ -15,6 +15,8 @@ export type CurrentUser = {
   country?: string | null
   companyId?: string | null
   companyName?: string | null
+  orgCode?: string | null
+  niu?: string | null
   company?: string | null
   sector?: string | null
   industry?: string | null

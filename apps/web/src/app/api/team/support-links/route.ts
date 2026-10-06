@@ -116,14 +116,62 @@ export async function POST(request: NextRequest) {
 
     const agentData = agentUserDoc.data()!
 
+    // ── Vérification hybride de l'organisation (orgCode > NIU > Legacy Fallback) ──
+    const { generateOrgCode, normalizeNiu } = await import('@/lib/org')
 
-    // Vérifier même organisation (companyId)
-    const managerCompanyId = managerData?.companyId || managerData?.company
-    const agentCompanyId = agentData?.companyId || agentData?.company
+    // 1. Récupérer le Manager d'origine qui a créé l'agent
+    const originalManagerUid = accessData.managerUid
+    let originalManagerData: FirebaseFirestore.DocumentData | null = null
+    if (originalManagerUid) {
+      const origDoc = await adminDb.collection('users').doc(originalManagerUid).get()
+      if (origDoc.exists) {
+        originalManagerData = origDoc.data() || null
+      }
+    }
 
-    if (managerCompanyId && agentCompanyId && managerCompanyId !== agentCompanyId) {
+    // 2. Migration à la volée (Lazy generation) de orgCode si manquant
+    let managerOrgCode = managerData?.orgCode || null
+    if (!managerOrgCode) {
+      managerOrgCode = generateOrgCode(managerData?.country || 'CM')
+      await adminDb.collection('users').doc(managerUid).update({ orgCode: managerOrgCode }).catch(() => {})
+    }
+
+    let originalOrgCode = originalManagerData?.orgCode || accessData?.orgCode || agentData?.orgCode || null
+    if (!originalOrgCode && originalManagerUid) {
+      originalOrgCode = generateOrgCode(originalManagerData?.country || 'CM')
+      await adminDb.collection('users').doc(originalManagerUid).update({ orgCode: originalOrgCode }).catch(() => {})
+      if (agentUid) {
+        await adminDb.collection('users').doc(agentUid).update({ orgCode: originalOrgCode }).catch(() => {})
+      }
+    }
+
+    // 3. Normalisation et vérification NIU
+    const managerNiu = normalizeNiu(managerData?.niu)
+    const originalNiu = normalizeNiu(originalManagerData?.niu || accessData?.niu || agentData?.niu)
+
+    // 4. Noms d'entreprise legacy (pour la période de transition / comptes historiques)
+    const managerCompanyId = managerData?.companyId || managerData?.company || managerData?.companyName || ''
+    const managerCompanyNorm = (managerCompanyId).trim().toLowerCase()
+    const originalCompanyNorm = (
+      originalManagerData?.companyId ||
+      originalManagerData?.company ||
+      originalManagerData?.companyName ||
+      accessData?.company ||
+      agentData?.company ||
+      agentData?.companyId ||
+      ''
+    ).trim().toLowerCase()
+
+    // 5. Critères de correspondance
+    const isOrgCodeMatch = Boolean(managerOrgCode && originalOrgCode && managerOrgCode === originalOrgCode)
+    const isNiuMatch = Boolean(managerNiu && originalNiu && managerNiu === originalNiu)
+    const isLegacyCompanyMatch = Boolean(managerCompanyNorm && originalCompanyNorm && managerCompanyNorm === originalCompanyNorm)
+
+    const isSameOrg = isOrgCodeMatch || isNiuMatch || isLegacyCompanyMatch
+
+    if (!isSameOrg) {
       return NextResponse.json({
-        error: 'L\'agent ne fait pas partie de la même organisation.'
+        error: "L'agent ne fait pas partie de la même organisation. Pour lier un agent support cross-équipe, vos deux comptes Manager doivent partager le même Code Organisation ou le même NIU."
       }, { status: 403 })
     }
 
@@ -150,6 +198,8 @@ export async function POST(request: NextRequest) {
       managerUid,
       managerName: managerData?.name || managerData?.email || 'Manager',
       companyId: managerCompanyId || null,
+      orgCode: managerOrgCode || originalOrgCode || null,
+      niu: managerNiu || originalNiu || null,
       status: 'active',
       grantedBy: managerUid,
       grantedAt: new Date()
