@@ -1,26 +1,29 @@
-export async function GET(request: Request) {
+import { NextRequest, NextResponse } from 'next/server'
+import { verifyRequestUser, getFirebaseAdmin } from '@/lib/api-auth'
+
+export const dynamic = 'force-dynamic'
+
+export async function GET(request: NextRequest) {
   try {
-    const backendUrl =
-      process.env.BACKEND_URL ||
-      process.env.API_URL ||
-      process.env.NEXT_PUBLIC_API_URL ||
-      'http://localhost:8000'
-    const token = request.headers.get('authorization')?.split(' ')[1] || ''
+    const auth = await verifyRequestUser(request)
+    if ('error' in auth) return auth.error
 
-    const response = await fetch(`${backendUrl}/api/team/members`, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    })
+    const { adminDb } = await getFirebaseAdmin()
+    const snap = await adminDb
+      .collection('team_accesses')
+      .where('managerUid', '==', auth.user.uid)
+      .get()
 
-    if (!response.ok) {
-      return Response.json([])
-    }
+    const members = snap.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+      createdAt: doc.data().createdAt?.toDate?.()?.toISOString() ?? null,
+      updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() ?? null
+    }))
 
-    const data = await response.json()
-    return Response.json(data)
+    return NextResponse.json(members)
   } catch (error) {
     console.error('Team members error:', error)
-    return Response.json([])
+    return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 })
   }
 }

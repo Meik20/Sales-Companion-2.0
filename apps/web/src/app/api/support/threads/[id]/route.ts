@@ -1,59 +1,67 @@
-export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+import { NextRequest, NextResponse } from 'next/server'
+import { verifyRequestUser, getFirebaseAdmin } from '@/lib/api-auth'
+
+export const dynamic = 'force-dynamic'
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const { id } = await params
-    const backendUrl =
-      process.env.BACKEND_URL ||
-      process.env.API_URL ||
-      process.env.NEXT_PUBLIC_API_URL ||
-      'http://localhost:8000'
-    const token = request.headers.get('authorization')?.split(' ')[1] || ''
+    const auth = await verifyRequestUser(request)
+    if ('error' in auth) return auth.error
 
-    const response = await fetch(`${backendUrl}/api/support/threads/${id}`, {
-      headers: {
-        Authorization: `Bearer ${token}`
+    const { adminDb, adminAuth } = await getFirebaseAdmin()
+
+    // Vérifier si l'utilisateur est admin
+    let isAdmin = false
+    try {
+      const userRecord = await adminAuth.getUser(auth.user.uid)
+      isAdmin = userRecord.customClaims?.role === 'admin'
+      if (!isAdmin) {
+        const userDoc = await adminDb.collection('users').doc(auth.user.uid).get()
+        isAdmin = userDoc.data()?.role === 'admin'
+      }
+    } catch {
+      isAdmin = false
+    }
+
+    const threadDoc = await adminDb.collection('support_threads').doc(id).get()
+    if (!threadDoc.exists) {
+      return NextResponse.json({ message: 'Ticket introuvable' }, { status: 404 })
+    }
+
+    const threadData = threadDoc.data()
+    if (!isAdmin && threadData?.userId !== auth.user.uid) {
+      return NextResponse.json({ message: 'Accès refusé' }, { status: 403 })
+    }
+
+    const messagesSnap = await adminDb
+      .collection('support_threads')
+      .doc(id)
+      .collection('messages')
+      .orderBy('createdAt', 'asc')
+      .get()
+
+    const messages = messagesSnap.docs.map((d) => {
+      const mData = d.data()
+      return {
+        id: d.id,
+        ...mData,
+        createdAt: mData.createdAt?.toDate?.()?.toISOString() ?? null
       }
     })
 
-    if (!response.ok) {
-      return Response.json({ error: 'Non trouvé' }, { status: 404 })
-    }
-
-    const data = await response.json()
-    return Response.json(data)
+    return NextResponse.json({
+      id: threadDoc.id,
+      ...threadData,
+      createdAt: threadData?.createdAt?.toDate?.()?.toISOString() ?? null,
+      updatedAt: threadData?.updatedAt?.toDate?.()?.toISOString() ?? null,
+      messages
+    })
   } catch (error) {
     console.error('Support thread detail error:', error)
-    return Response.json({ error: 'Erreur interne' }, { status: 500 })
-  }
-}
-
-export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    const { id } = await params
-    const backendUrl =
-      process.env.BACKEND_URL ||
-      process.env.API_URL ||
-      process.env.NEXT_PUBLIC_API_URL ||
-      'http://localhost:8000'
-    const token = request.headers.get('authorization')?.split(' ')[1] || ''
-    const body = await request.json()
-
-    const response = await fetch(`${backendUrl}/api/support/threads/${id}/messages`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(body)
-    })
-
-    if (!response.ok) {
-      return Response.json({ error: 'Erreur serveur' }, { status: response.status })
-    }
-
-    const data = await response.json()
-    return Response.json(data)
-  } catch (error) {
-    console.error('Reply support thread error:', error)
-    return Response.json({ error: 'Erreur interne' }, { status: 500 })
+    return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 })
   }
 }

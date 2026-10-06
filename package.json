@@ -14,17 +14,20 @@
     "typecheck:web": "npm --workspace apps/web run typecheck",
     "typecheck:shared": "npm --workspace packages/shared run typecheck",
     "typecheck": "npm run typecheck:shared && npm run typecheck:web",
-    "lint": "npm run lint:web",
-    "lint:web": "npm --workspace apps/web run lint",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
     "test:web": "npm --workspace apps/web run test",
+    "test:e2e": "npm --workspace apps/web run test:e2e",
     "theme:lint": "designmd lint THEME.md",
     "theme:export": "designmd export --format tailwind THEME.md > tailwind.theme.json"
   },
   "devDependencies": {
     "@eslint/js": "^9.13.0",
+    "@playwright/test": "^1.63.0",
     "eslint": "^9.13.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
     "prettier": "^3.3.3",
     "typescript-eslint": "^8.11.0",
     "vitest": "^3.0.0"

@@ -37,6 +37,29 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
+import { pipelineStatuses } from '@sales-companion/shared'
+import { z } from 'zod'
+
+const pipelineUpdateSchema = z
+  .object({
+    status: z.enum(pipelineStatuses).optional(),
+    companyName: z.string().min(1).optional(),
+    companySector: z.string().optional(),
+    companyCity: z.string().optional(),
+    companyPhone: z.string().optional(),
+    companyEmail: z.string().optional(),
+    note: z.string().optional(),
+    notes: z.string().optional(),
+    nextAction: z.string().optional(),
+    nextDate: z.string().nullable().optional(),
+    estimatedDeal: z.number().nullable().optional(),
+    probability: z.number().min(0).max(100).nullable().optional(),
+    priority: z.enum(['low', 'medium', 'high']).optional(),
+    stage: z.number().nullable().optional(),
+    tags: z.array(z.string()).optional()
+  })
+  .strict()
+
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
@@ -61,8 +84,17 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ message: 'Accès refusé' }, { status: 403 })
     }
 
-    const body = await request.json().catch(() => ({}))
-    await doc.ref.update({ ...body, updatedAt: new Date() })
+    const rawBody = await request.json().catch(() => ({}))
+    const parseResult = pipelineUpdateSchema.safeParse(rawBody)
+    if (!parseResult.success) {
+      return NextResponse.json(
+        { message: 'Données invalides ou champs non autorisés', errors: parseResult.error.flatten() },
+        { status: 400 }
+      )
+    }
+
+    const cleanData = parseResult.data
+    await doc.ref.update({ ...cleanData, updatedAt: new Date() })
 
     const updated = await doc.ref.get()
     return NextResponse.json({ id: updated.id, ...updated.data() })

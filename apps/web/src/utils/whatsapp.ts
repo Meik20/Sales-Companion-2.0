@@ -6,7 +6,7 @@ export function formatWhatsAppNumber(phone: string): string | null {
   if (!phone) return null
 
   // Remove all non-numeric characters (spaces, dashes, parentheses)
-  let cleanNumber = phone.replace(/\D/g, '')
+  const cleanNumber = phone.replace(/\D/g, '')
 
   // If already starts with 237 and has correct length (237 + 9 digits = 12)
   if (cleanNumber.startsWith('237') && cleanNumber.length === 12) {

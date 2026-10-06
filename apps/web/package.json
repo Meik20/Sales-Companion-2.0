@@ -7,8 +7,9 @@
     "build": "next build",
     "start": "next start -p $PORT",
     "typecheck": "tsc --noEmit",
-    "lint": "next lint",
-    "test": "vitest run"
+    "lint": "eslint src",
+    "test": "vitest run",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { adminDb } from '@/lib/firebase-admin'
+import { adminDb, adminAuth } from '@/lib/firebase-admin'
 import { campayGetTransaction } from '@/lib/campay'
 import { FieldValue } from 'firebase-admin/firestore'
 import { PLANS } from '@/lib/payment-plans'
@@ -13,11 +13,31 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   try {
     const { ref: externalRef } = await params
 
+    const token = request.headers.get('authorization')?.split(' ')[1]
+    if (!token) {
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+    }
+
+    let callerUid: string
+    let callerRole: string | undefined
+    try {
+      const decoded = await adminAuth.verifyIdToken(token)
+      callerUid = decoded.uid
+      callerRole = decoded.role as string | undefined
+    } catch {
+      return NextResponse.json({ error: 'Token invalide' }, { status: 401 })
+    }
+
     // Récupérer la transaction en base
     const paymentDoc = await adminDb.collection('payments').doc(externalRef).get()
     const paymentData = paymentDoc.data()
     if (!paymentDoc.exists || !paymentData) {
       return NextResponse.json({ error: 'Transaction introuvable' }, { status: 404 })
+    }
+
+    // Vérifier les droits : l'utilisateur propriétaire ou un admin
+    if (paymentData.userId !== callerUid && callerRole !== 'admin') {
+      return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
     }
 
     // Si déjà traité, retourner directement

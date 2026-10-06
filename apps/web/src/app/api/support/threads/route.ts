@@ -1,26 +1,47 @@
-export async function GET(request: Request) {
-  try {
-    const backendUrl =
-      process.env.BACKEND_URL ||
-      process.env.API_URL ||
-      process.env.NEXT_PUBLIC_API_URL ||
-      'http://localhost:8000'
-    const token = request.headers.get('authorization')?.split(' ')[1] || ''
+import { NextRequest, NextResponse } from 'next/server'
+import { verifyRequestUser, getFirebaseAdmin } from '@/lib/api-auth'
 
-    const response = await fetch(`${backendUrl}/api/support/threads`, {
-      headers: {
-        Authorization: `Bearer ${token}`
+export const dynamic = 'force-dynamic'
+
+export async function GET(request: NextRequest) {
+  try {
+    const auth = await verifyRequestUser(request)
+    if ('error' in auth) return auth.error
+
+    const { adminDb, adminAuth } = await getFirebaseAdmin()
+
+    // Vérifier si l'utilisateur est admin
+    let isAdmin = false
+    try {
+      const userRecord = await adminAuth.getUser(auth.user.uid)
+      isAdmin = userRecord.customClaims?.role === 'admin'
+      if (!isAdmin) {
+        const userDoc = await adminDb.collection('users').doc(auth.user.uid).get()
+        isAdmin = userDoc.data()?.role === 'admin'
+      }
+    } catch {
+      isAdmin = false
+    }
+
+    const threadsRef = adminDb.collection('support_threads')
+    const query = isAdmin
+      ? threadsRef.orderBy('updatedAt', 'desc').limit(100)
+      : threadsRef.where('userId', '==', auth.user.uid).orderBy('updatedAt', 'desc').limit(100)
+
+    const snap = await query.get()
+    const threads = snap.docs.map((doc) => {
+      const data = doc.data()
+      return {
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt?.toDate?.()?.toISOString() ?? null,
+        updatedAt: data.updatedAt?.toDate?.()?.toISOString() ?? null
       }
     })
 
-    if (!response.ok) {
-      return Response.json([])
-    }
-
-    const data = await response.json()
-    return Response.json(data)
+    return NextResponse.json(threads)
   } catch (error) {
     console.error('Support threads error:', error)
-    return Response.json([])
+    return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 })
   }
 }

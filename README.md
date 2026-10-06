@@ -10,26 +10,23 @@ La plateforme B2B dédiée aux commerciaux et managers camerounais. Recherchez d
 
 **Stack technique identifiée :**
 
-- **Frontend** : Next.js 16 + React 19 + TypeScript + TanStack Query
-- **Backend** : Express.js + TypeScript + Node.js
-- **Database** : Firebase/Firestore
-- **Authentication** : Firebase Authentication
-- **Deployment** : Vercel
-- **Type** : Progressive Web App (PWA)
+- **Frontend & Backend API** : Next.js 16 (App Router) + React 19 + TypeScript + TanStack Query + Firebase Admin SDK
+- **Database & Auth** : Firebase Firestore + Firebase Authentication
+- **Deployment** : Vercel / Node.js
+- **Type** : Progressive Web App (PWA avec App Shell & cache local)
 
 **Architecture :**
 
 ```
 sales-companion/
 ├── apps/
-│   ├── web/              # Application Next.js PWA
-│   └── server/           # API Express
+│   └── web/              # Application Next.js PWA fullstack (App Router, API Routes, SSR/SSG)
 ├── packages/
-│   └── shared/           # Code partagé (types, constantes, schémas)
+│   └── shared/           # Code partagé (types, constantes, schémas Zod)
 ├── firestore/
 │   ├── rules/            # Règles de sécurité Firestore
 │   ├── indexes/          # Index Firestore
-│   └── docs/             # Documentation
+│   └── docs/             # Documentation du modèle de données
 └── docs/
     └── architecture/     # Documentation technique
 ```

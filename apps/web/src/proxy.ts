@@ -150,5 +150,5 @@ export function proxy(req: NextRequest) {
 export default proxy
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon|manifest|icons|sw\.js|workbox).*)']
+  matcher: ['/((?!_next/static|_next/image|favicon|manifest|icons|sw.js|workbox).*)']
 }

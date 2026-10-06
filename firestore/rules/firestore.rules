@@ -177,12 +177,17 @@ service cloud.firestore {
 
         allow create: if isAdmin() || (
           isSignedIn() &&
-          get(/databases/$(database)/documents/support_threads/$(threadId)).data.userId == authUid()
+          get(/databases/$(database)/documents/support_threads/$(threadId)).data.userId == authUid() &&
+          request.resource.data.senderId == authUid() &&
+          request.resource.data.senderRole == 'user'
         );
+
+        allow update: if false;
 
         allow delete: if isAdmin() || (
           isSignedIn() &&
-          get(/databases/$(database)/documents/support_threads/$(threadId)).data.userId == authUid()
+          get(/databases/$(database)/documents/support_threads/$(threadId)).data.userId == authUid() &&
+          resource.data.senderId == authUid()
         );
       }
     }
@@ -273,9 +278,19 @@ service cloud.firestore {
       allow read: if isAdmin()
         || (isSignedIn() && resource.data.agentUid == authUid())
         || (isManager() && resource.data.managerUid == authUid())
-        || isSupportAgent();
+        || (isSupportAgent() && (
+             resource.data.managerUid == currentUserDoc().managerUid
+             || (currentUserDoc().linkedManagerUids != null && resource.data.managerUid in currentUserDoc().linkedManagerUids)
+           ));
       allow create: if isSignedIn()
-        && (isSupportAgent() || isManager() || isAdmin())
+        && (
+          isAdmin()
+          || (isManager() && request.resource.data.managerUid == authUid())
+          || (isSupportAgent() && (
+               request.resource.data.managerUid == currentUserDoc().managerUid
+               || (currentUserDoc().linkedManagerUids != null && request.resource.data.managerUid in currentUserDoc().linkedManagerUids)
+             ))
+        )
         && request.resource.data.agentUid == authUid();
       allow update, delete: if isAdmin()
         || (isSignedIn() && resource.data.agentUid == authUid());
@@ -285,9 +300,19 @@ service cloud.firestore {
       allow read: if isAdmin()
         || (isSignedIn() && resource.data.agentUid == authUid())
         || (isManager() && resource.data.managerUid == authUid())
-        || isSupportAgent();
+        || (isSupportAgent() && (
+             resource.data.managerUid == currentUserDoc().managerUid
+             || (currentUserDoc().linkedManagerUids != null && resource.data.managerUid in currentUserDoc().linkedManagerUids)
+           ));
       allow create: if isSignedIn()
-        && (isSupportAgent() || isManager() || isAdmin())
+        && (
+          isAdmin()
+          || (isManager() && request.resource.data.managerUid == authUid())
+          || (isSupportAgent() && (
+               request.resource.data.managerUid == currentUserDoc().managerUid
+               || (currentUserDoc().linkedManagerUids != null && request.resource.data.managerUid in currentUserDoc().linkedManagerUids)
+             ))
+        )
         && request.resource.data.agentUid == authUid();
       allow update: if isAdmin()
         || (isSignedIn() && resource.data.agentUid == authUid())

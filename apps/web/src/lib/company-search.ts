@@ -346,7 +346,7 @@ function cleanAddressLandmarks(rawAddress: string): string {
   if (!rawAddress) return ''
   const norm = normalizeString(rawAddress)
   return norm.replace(
-    /\b(?:derriere|en\s+face(?:\s+de|\s+du|\s+des)?|face\s+(?:a|au|aux|\s+a\s+la)?|a\s+cote(?:\s+de|\s+du|\s+des)?|non\s+loin(?:\s+de|\s+du|\s+des)?|pres(?:\s+de|\s+du|\s+des)?|proche(?:\s+de|\s+du|\s+des)?|apres|vers|voisin(?:\s+de)?)\s+(?:la|le|les|l|un|une|du|des|au|aux)?\s*[a-z0-9\s'-]{2,40}?(?=[,.;\n\-]|\s+(?:face|derriere|a\s+cote|rue|boulevard|bvd|av|avenue|carrefour|rond\s*point|quartier|douala|yaounde|akwa|bonanjo|bastos)|$)/gi,
+    /\b(?:derriere|en\s+face(?:\s+de|\s+du|\s+des)?|face\s+(?:a|au|aux|\s+a\s+la)?|a\s+cote(?:\s+de|\s+du|\s+des)?|non\s+loin(?:\s+de|\s+du|\s+des)?|pres(?:\s+de|\s+du|\s+des)?|proche(?:\s+de|\s+du|\s+des)?|apres|vers|voisin(?:\s+de)?)\s+(?:la|le|les|l|un|une|du|des|au|aux)?\s*[a-z0-9\s'-]{2,40}?(?=[,.;\n-]|\s+(?:face|derriere|a\s+cote|rue|boulevard|bvd|av|avenue|carrefour|rond\s*point|quartier|douala|yaounde|akwa|bonanjo|bastos)|$)/gi,
     ' '
   )
 }

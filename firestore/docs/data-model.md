@@ -142,7 +142,7 @@ Pipeline CRM personnel/équipe.
   contactEmail?: string
 
   // Pipeline State
-  status: 'prospect' | 'contact' | 'negotiation' | 'won' | 'lost'
+  status: 'prospection' | 'negociation' | 'conclue'  // Statuts normalisés (source: pipelineStatuses)
   stage: number            // Numéro du stage (0-4)
   probability: number      // Probabilité 0-100%
 
