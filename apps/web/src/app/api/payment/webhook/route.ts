@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createHmac, timingSafeEqual } from 'crypto'
 import { adminDb } from '@/lib/firebase-admin'
 import { FieldValue } from 'firebase-admin/firestore'
 import { PLANS } from '@/lib/payment-plans'
@@ -6,95 +7,200 @@ import { PLAN_LIMITS } from '@sales-companion/shared'
 import { syncTeamMemberPlans } from '@/lib/sync-team-plan'
 
 /**
+ * Vérifie la signature HMAC-SHA256 du webhook CamPay.
+ *
+ * CamPay envoie l'en-tête `X-Campay-Signature` (ou `X-Webhook-Signature`)
+ * contenant HMAC-SHA256(rawBody, CAMPAY_WEBHOOK_SECRET).
+ *
+ * Si la variable CAMPAY_WEBHOOK_SECRET n'est pas configurée, on laisse
+ * passer en développement (NODE_ENV !== 'production') avec un warning.
+ * En production, l'absence du secret bloque toute requête.
+ */
+async function verifyWebhookSignature(
+  request: NextRequest,
+  rawBody: string
+): Promise<{ valid: boolean; reason?: string }> {
+  const secret = process.env.CAMPAY_WEBHOOK_SECRET
+
+  if (!secret) {
+    if (process.env.NODE_ENV === 'production') {
+      return { valid: false, reason: 'CAMPAY_WEBHOOK_SECRET non configuré en production' }
+    }
+    console.warn('[webhook/campay] ⚠️  CAMPAY_WEBHOOK_SECRET absent — vérification ignorée (dev uniquement)')
+    return { valid: true }
+  }
+
+  // CamPay peut utiliser différents noms d'en-tête selon la version
+  const signature =
+    request.headers.get('x-campay-signature') ||
+    request.headers.get('x-webhook-signature') ||
+    request.headers.get('x-hub-signature-256')?.replace('sha256=', '')
+
+  if (!signature) {
+    return { valid: false, reason: "En-tête de signature manquant (x-campay-signature)" }
+  }
+
+  const expected = createHmac('sha256', secret).update(rawBody, 'utf8').digest('hex')
+
+  try {
+    const sigBuf = Buffer.from(signature, 'hex')
+    const expBuf = Buffer.from(expected, 'hex')
+    if (sigBuf.length !== expBuf.length) {
+      return { valid: false, reason: 'Longueur de signature invalide' }
+    }
+    const match = timingSafeEqual(sigBuf, expBuf)
+    return match ? { valid: true } : { valid: false, reason: 'Signature HMAC invalide' }
+  } catch {
+    return { valid: false, reason: 'Erreur lors de la comparaison de signature' }
+  }
+}
+
+/**
  * POST /api/payment/webhook
- * CAMPAY appelle cette URL après confirmation d'un paiement.
- * À configurer dans le dashboard CAMPAY → Webhook URL.
+ *
+ * CamPay appelle cette URL après confirmation d'un paiement Mobile Money.
+ * Configurer dans le dashboard CamPay → Webhook URL.
+ *
+ * SÉCURITÉ :
+ * - Vérification HMAC-SHA256 (CAMPAY_WEBHOOK_SECRET)
+ * - Idempotence : un paiement déjà SUCCESSFUL n'est pas re-traité
+ * - Log d'audit dans Firestore (webhook_logs/)
  */
 export async function POST(request: NextRequest) {
+  // ── Lire le body brut pour la vérification de signature ─────────────────
+  const rawBody = await request.text()
+  let body: Record<string, string>
+
   try {
-    const body = await request.json()
+    body = JSON.parse(rawBody)
+  } catch {
+    return NextResponse.json({ error: 'Body JSON invalide' }, { status: 400 })
+  }
 
-    const { status, reference, external_reference, amount, operator } = body as {
-      status: string
-      reference: string
-      external_reference: string
-      amount: string
-      operator: string
-    }
+  // ── Vérification HMAC ────────────────────────────────────────────────────
+  const sigCheck = await verifyWebhookSignature(request, rawBody)
+  if (!sigCheck.valid) {
+    console.error('[webhook/campay] 🚨 Signature invalide:', sigCheck.reason, {
+      ip: request.headers.get('x-forwarded-for') || 'unknown',
+      ref: body.external_reference
+    })
+    // Toujours répondre 200 pour ne pas signaler au potentiel attaquant
+    // que la signature a échoué (vs transaction introuvable)
+    return NextResponse.json({ received: false }, { status: 200 })
+  }
 
-    console.log('[webhook/campay] reçu:', { status, reference, external_reference, operator })
+  const { status, reference, external_reference, amount, operator } = body as {
+    status: string
+    reference: string
+    external_reference: string
+    amount: string
+    operator: string
+  }
 
-    if (!external_reference) {
-      return NextResponse.json({ error: 'external_reference manquant' }, { status: 400 })
-    }
+  console.log('[webhook/campay] ✉️  reçu:', { status, reference, external_reference, operator })
 
-    // Récupérer la transaction en base
-    const paymentRef = adminDb.collection('payments').doc(external_reference)
-    const paymentDoc = await paymentRef.get()
+  if (!external_reference) {
+    return NextResponse.json({ error: 'external_reference manquant' }, { status: 400 })
+  }
 
-    if (!paymentDoc.exists) {
-      console.warn('[webhook/campay] transaction introuvable:', external_reference)
-      return NextResponse.json({ error: 'Transaction introuvable' }, { status: 404 })
-    }
+  // ── Récupérer la transaction en base ─────────────────────────────────────
+  const paymentRef = adminDb.collection('payments').doc(external_reference)
+  const paymentDoc = await paymentRef.get()
 
-    const paymentData = paymentDoc.data()!
+  // Log d'audit (non-bloquant) — toujours enregistré, même si la transaction est inconnue
+  adminDb.collection('webhook_logs').add({
+    source: 'campay',
+    external_reference,
+    campayRef: reference || null,
+    status,
+    operator: operator || null,
+    amount: amount || null,
+    receivedAt: FieldValue.serverTimestamp(),
+    signatureValid: true
+  }).catch((e) => console.warn('[webhook/campay] audit log failed:', e))
 
-    // ── Si paiement réussi → upgrade du plan ──────────────────────────────
+  if (!paymentDoc.exists) {
+    console.warn('[webhook/campay] transaction introuvable:', external_reference)
+    return NextResponse.json({ received: true }) // 200 pour éviter les retries infinis
+  }
+
+  const paymentData = paymentDoc.data()!
+
+  try {
     if (status === 'SUCCESSFUL') {
+      // ── IDEMPOTENCE : ne pas re-traiter si déjà activé ──────────────────
+      if (paymentData.status === 'SUCCESSFUL') {
+        console.log('[webhook/campay] ♻️  doublon ignoré (déjà SUCCESSFUL):', external_reference)
+        return NextResponse.json({ received: true })
+      }
+
       const planInfo = PLANS[paymentData.plan]
+      if (!planInfo) {
+        console.error('[webhook/campay] plan inconnu:', paymentData.plan)
+        return NextResponse.json({ received: true })
+      }
+
       const { calculateSubscriptionExpiry } = await import('@/lib/subscription')
       const expiresAt = calculateSubscriptionExpiry()
 
-      await adminDb
-        .collection('users')
-        .doc(paymentData.userId)
-        .update({
-          plan: paymentData.plan,
-          dailyLimit: planInfo?.dailyLimit ?? PLAN_LIMITS.enterprise,
-          subscriptionStartedAt: FieldValue.serverTimestamp(),
-          subscriptionExpiresAt: expiresAt.toISOString(),
-          subscriptionExpired: false,
-          updatedAt: FieldValue.serverTimestamp()
-        })
+      // Batch atomique : user + payment en une seule écriture
+      const batch = adminDb.batch()
 
-      await paymentRef.update({
+      batch.update(adminDb.collection('users').doc(paymentData.userId), {
+        plan: paymentData.plan,
+        dailyLimit: planInfo.dailyLimit ?? PLAN_LIMITS.enterprise,
+        subscriptionStartedAt: FieldValue.serverTimestamp(),
+        subscriptionExpiresAt: expiresAt.toISOString(),
+        subscriptionExpired: false,
+        updatedAt: FieldValue.serverTimestamp()
+      })
+
+      batch.update(paymentRef, {
         status: 'SUCCESSFUL',
         campayRef: reference,
         operator: operator ?? paymentData.operator,
         amountPaid: amount,
+        activatedAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp()
       })
+
+      await batch.commit()
 
       console.log(
         `[webhook/campay] ✅ plan "${paymentData.plan}" activé pour user ${paymentData.userId}`
       )
 
-      // ── Propagation automatique du plan et de la validité aux membres de l'équipe ──
-      try {
-        const syncResult = await syncTeamMemberPlans(paymentData.userId, paymentData.plan, {
-          subscriptionExpiresAt: expiresAt.toISOString(),
-          subscriptionStartedAt: new Date().toISOString(),
-          subscriptionExpired: false
-        })
-        console.log(
-          `[webhook/campay] 👥 sync équipe: ${syncResult.updatedUsers} utilisateurs mis à jour`
-        )
-      } catch (syncErr) {
-        // Non-bloquant : le paiement est validé même si la sync échoue
-        console.error('[webhook/campay] sync team plan failed (non-blocking):', syncErr)
-      }
-    } else if (status === 'FAILED') {
-      await paymentRef.update({
-        status: 'FAILED',
-        updatedAt: FieldValue.serverTimestamp()
+      // ── Propagation automatique aux membres de l'équipe (non-bloquant) ──
+      syncTeamMemberPlans(paymentData.userId, paymentData.plan, {
+        subscriptionExpiresAt: expiresAt.toISOString(),
+        subscriptionStartedAt: new Date().toISOString(),
+        subscriptionExpired: false
       })
-      console.log('[webhook/campay] ❌ paiement échoué:', external_reference)
+        .then((r) =>
+          console.log(`[webhook/campay] 👥 sync équipe: ${r.updatedUsers} utilisateurs mis à jour`)
+        )
+        .catch((e) => console.error('[webhook/campay] sync team plan failed (non-blocking):', e))
+    } else if (status === 'FAILED') {
+      if (paymentData.status !== 'FAILED') {
+        await paymentRef.update({
+          status: 'FAILED',
+          updatedAt: FieldValue.serverTimestamp()
+        })
+        console.log('[webhook/campay] ❌ paiement échoué:', external_reference)
+      }
+    } else if (status === 'PENDING') {
+      // CamPay envoie parfois un PENDING avant SUCCESSFUL — on l'ignore
+      console.log('[webhook/campay] ⏳ PENDING reçu, attente de confirmation:', external_reference)
+    } else {
+      console.warn('[webhook/campay] statut inconnu:', status, external_reference)
     }
-
-    // CAMPAY attend un 200 pour considérer le webhook comme reçu
-    return NextResponse.json({ received: true })
   } catch (error) {
-    console.error('[webhook/campay] erreur:', error)
+    console.error('[webhook/campay] erreur lors du traitement:', error)
+    // Retourner 500 pour que CamPay re-tente (si le paiement n'a pas été activé)
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
+
+  // CamPay attend un 200 pour considérer le webhook comme reçu
+  return NextResponse.json({ received: true })
 }
+

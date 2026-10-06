@@ -299,5 +299,22 @@ service cloud.firestore {
       allow create: if false; // Admin SDK uniquement
       allow update, delete: if false;
     }
+
+    // ── Paiements ─────────────────────────────────────────────────────────────
+    // Toutes les écritures passent par Admin SDK (routes API serveur)
+    match /payments/{paymentId} {
+      // Un utilisateur peut lire ses propres transactions
+      allow read: if isAdmin()
+        || (isSignedIn() && resource.data.userId == authUid());
+      // Aucune écriture client directe — sécurité maximale
+      allow create, update, delete: if false;
+    }
+
+    // ── Webhook logs ──────────────────────────────────────────────────────────
+    // Logs d'audit des webhooks entrants — lecture admin uniquement
+    match /webhook_logs/{logId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
   }
 }
