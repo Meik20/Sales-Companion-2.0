@@ -57,6 +57,7 @@ export async function POST(request: NextRequest) {
     let skipped = 0
     let deletedStale = 0
     let deletedDupes = 0
+    let protectedCount = 0
     const errors: string[] = []
 
     const emailToUid = new Map<string, string>()
@@ -192,11 +193,47 @@ export async function POST(request: NextRequest) {
     }
 
     // ── PHASE C: Cleanup (Deduplication & Manager Pipeline Alignment) ─────
-    const managerPipelineSnap = await adminDb
-      .collection('pipeline')
-      .where('userId', '==', managerUid)
-      .get()
-    const managerPipelineIds = new Set(managerPipelineSnap.docs.map((d) => d.id))
+    //
+    // Statuts protégés : un prospect dans une phase avancée ne doit JAMAIS
+    // être supprimé, même s'il semble orphelin selon d'autres critères.
+    const PROTECTED_STATUSES = new Set([
+      'conclusion',
+      'closing',
+      'négociation',
+      'negociation',
+      'negotiation',
+      'gagné',
+      'gagne',
+      'won',
+      'closed_won',
+      'signed',
+      'signé',
+      'signe'
+    ])
+
+    // Construire un ensemble élargi de tous les prospects rattachés au manager :
+    //   1. pipeline items dont userId == managerUid
+    //   2. pipeline items dont managerUid == managerUid (prospects assignés aux membres)
+    //   3. sourceProspectId référencés par les entrées pipeline des membres
+    const [managerPipelineSnap, memberPipelineSnap] = await Promise.all([
+      adminDb.collection('pipeline').where('userId', '==', managerUid).get(),
+      adminDb.collection('pipeline').where('managerUid', '==', managerUid).get()
+    ])
+
+    // Set des IDs connus depuis le pipeline manager (par doc.id)
+    const managerPipelineIds = new Set<string>(managerPipelineSnap.docs.map((d) => d.id))
+
+    // Map: pipelineEntryId → status pour protéger les stades avancés des membres
+    const memberPipelineStatusMap = new Map<string, string>()
+    // Set des sourceProspectId référencés par les membres (pour détecter les vrais orphelins)
+    const memberSourceProspectIds = new Set<string>()
+    for (const doc of memberPipelineSnap.docs) {
+      const d = doc.data()
+      const status = ((d.status as string) ?? '').toLowerCase()
+      memberPipelineStatusMap.set(doc.id, status)
+      const srcId = (d.sourceProspectId as string) ?? (d.companyId as string) ?? ''
+      if (srcId) memberSourceProspectIds.add(srcId)
+    }
 
     // Refresh snap for cleanup
     const freshTeamSnap = await adminDb
@@ -215,8 +252,10 @@ export async function POST(request: NextRequest) {
     for (const a of sortedAssignments) {
       const pId = a.data.pipelineItemId as string
       const mId = a.data.memberId as string
+      const pipelineEntryId: string = a.data.pipelineEntryId ?? ''
       const key = `${pId}_${mId}`
 
+      // ── Dédoublonnage : garder seulement le plus récent ─────────────────
       if (seenAssignments.has(key)) {
         await a.ref.delete()
         deletedDupes++
@@ -224,26 +263,55 @@ export async function POST(request: NextRequest) {
       }
       seenAssignments.add(key)
 
-      const inManagerPipeline = managerPipelineIds.has(pId)
-      let existsInSources = false
-      if (!inManagerPipeline) {
-        const [mDoc, iDoc] = await Promise.all([
-          adminDb.collection('manager_prospects').doc(pId).get(),
-          adminDb.collection('imported_prospects').doc(pId).get()
-        ])
-        existsInSources = mDoc.exists || iDoc.exists
+      // ── Protection absolue : vérifier le statut de l'entrée pipeline du membre ──
+      if (pipelineEntryId) {
+        const entryStatus = memberPipelineStatusMap.get(pipelineEntryId)
+        if (entryStatus !== undefined && PROTECTED_STATUSES.has(entryStatus)) {
+          // Prospect dans une phase avancée → JAMAIS supprimé
+          protectedCount++
+          continue
+        }
+        // Si l'entrée pipeline n'est pas encore en mémoire, la lire directement
+        if (entryStatus === undefined) {
+          const entryDoc = await adminDb.collection('pipeline').doc(pipelineEntryId).get()
+          if (entryDoc.exists) {
+            const entryStatus2 = ((entryDoc.data()?.status as string) ?? '').toLowerCase()
+            if (PROTECTED_STATUSES.has(entryStatus2)) {
+              protectedCount++
+              continue
+            }
+          }
+        }
       }
 
-      if (!inManagerPipeline && !existsInSources) {
+      // ── Détection "orphelin" : cherche l'existence du prospect dans toutes les sources ──
+      const inManagerPipeline = managerPipelineIds.has(pId)
+      const referencedByMember = memberSourceProspectIds.has(pId)
+
+      let existsInSources = false
+      if (!inManagerPipeline && !referencedByMember) {
+        const [mDoc, iDoc, pDoc] = await Promise.all([
+          adminDb.collection('manager_prospects').doc(pId).get(),
+          adminDb.collection('imported_prospects').doc(pId).get(),
+          // Vérifier aussi si le pId est lui-même un doc pipeline valide
+          adminDb.collection('pipeline').doc(pId).get()
+        ])
+        existsInSources = mDoc.exists || iDoc.exists || pDoc.exists
+      }
+
+      // ── Suppression uniquement si réellement orphelin ET non protégé ──────
+      if (!inManagerPipeline && !referencedByMember && !existsInSources) {
         await a.ref.delete()
-        if (a.data.pipelineEntryId) {
+        if (pipelineEntryId) {
           await adminDb
             .collection('pipeline')
-            .doc(a.data.pipelineEntryId)
+            .doc(pipelineEntryId)
             .delete()
             .catch(() => {})
         }
         deletedStale++
+      } else {
+        skipped++
       }
     }
 
@@ -253,6 +321,7 @@ export async function POST(request: NextRequest) {
       skipped,
       deletedDupes,
       deletedStale,
+      protected: protectedCount,
       totalFixed: uidFixed + nameFixed + deletedDupes + deletedStale,
       errors
     })
