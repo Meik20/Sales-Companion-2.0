@@ -240,66 +240,84 @@ export async function GET(request: NextRequest) {
     // FIN MODE INDÉPENDANT — suite : logique manager
     // ══════════════════════════════════════════════════════════════════════
 
-    const managerUid = callerUid
+    const callerOrgRole: string = callerDoc.data()?.orgRole ?? 'team_manager'
+    const isSeniorManager = callerOrgRole === 'senior_manager'
 
-    // ── Fetch team members ──────────────────────────────────────────────────
-    const membersSnap = await adminDb
-      .collection('users')
-      .where('managerUid', '==', managerUid)
-      .get()
+    // ── Résolution du/des managerUid(s) actif(s) ──────────────────────────
+    // • Team Manager  → uniquement son propre UID
+    // • Senior Manager → tous les Team Managers de la même organisation
+    let orgManagerUids: string[] = [callerUid]  // par défaut : soi-même
+    let exportScopeLabel = 'ÉQUIPE'             // libellé titre rapport
+
+    if (isSeniorManager) {
+      const orgCode: string = callerDoc.data()?.orgCode ?? ''
+      if (orgCode) {
+        const orgManagersSnap = await adminDb
+          .collection('users')
+          .where('orgCode', '==', orgCode)
+          .where('role', '==', 'manager')
+          .get()
+        // Exclure le Senior Manager lui-même (il ne gère pas de membres directs)
+        orgManagerUids = orgManagersSnap.docs
+          .filter(d => (d.data().orgRole || 'team_manager') !== 'senior_manager')
+          .map(d => d.id)
+        exportScopeLabel = 'ORGANISATION'
+      }
+      // Si aucun Team Manager trouvé, on garde [callerUid] pour éviter un export vide silencieux
+    }
+
+    // Pour la logique qui suit, on conserve `managerUid` comme référence principale
+    // (chemin Team Manager inchangé). Pour le Senior Manager on l'étend via orgManagerUids.
+    const managerUid = callerUid
 
     // Un Access ID valide contient toujours '@' (ex: jdupont@monentreprise)
     const isValidAccessId = (v?: string | null) => !!(v && v.includes('@'))
 
-    // Construire la map initiale depuis users (champ : accessId)
+    // ── Fetch team members (tous les membres des managers de scope) ─────────
     const membersMap = new Map<string, { name: string; accessId: string }>()
-    membersSnap.docs.forEach((doc) => {
-      const d = doc.data()
-      membersMap.set(doc.id, {
-        name: d.name || d.email || doc.id,
-        // N'accepter que les accessId au bon format ; ignorer les UIDs Firebase bruts
-        accessId: isValidAccessId(d.accessId) ? d.accessId : ''
-      })
-    })
 
-    // Fallback : pour TOUS les membres (pas seulement ceux sans accessId),
-    // chercher dans team_accesses si l'accessId actuel est vide ou mal formé
-    try {
-      const accessesSnap = await adminDb
-        .collection('team_accesses')
-        .where('managerUid', '==', managerUid)
+    // Firestore `in` accepte max 30 valeurs → on chunk
+    const chunkArray = <T>(arr: T[], size: number): T[][] =>
+      Array.from({ length: Math.ceil(arr.length / size) }, (_, i) => arr.slice(i * size, i * size + size))
+
+    const memberUidChunks = chunkArray(orgManagerUids, 30)
+    for (const chunk of memberUidChunks) {
+      const membersSnap = await adminDb
+        .collection('users')
+        .where('managerUid', 'in', chunk)
         .get()
-
-      // Index par firebaseUid ET par email pour maximiser les correspondances
-      accessesSnap.docs.forEach((doc) => {
-        const ad = doc.data()
-        const validAccessId = isValidAccessId(ad.accessId)
-          ? ad.accessId
-          : isValidAccessId(doc.id)
-            ? doc.id
-            : null
-
-        if (!validAccessId) return
-
-        // Lookup par firebaseUid
-        const fUid: string = ad.firebaseUid ?? ''
-        if (fUid && membersMap.has(fUid) && !membersMap.get(fUid)!.accessId) {
-          membersMap.get(fUid)!.accessId = validAccessId
-        }
-
-        // Lookup par email (second attempt)
-        const email: string = ad.email ?? ''
-        if (email) {
-          membersMap.forEach((val, uid) => {
-            if (!val.accessId) {
-              const memberDoc = membersSnap.docs.find((d) => d.id === uid)
-              if (memberDoc?.data()?.email === email) {
-                val.accessId = validAccessId
-              }
-            }
+      membersSnap.docs.forEach((doc) => {
+        const d = doc.data()
+        if (!membersMap.has(doc.id)) {
+          membersMap.set(doc.id, {
+            name: d.name || d.email || doc.id,
+            accessId: isValidAccessId(d.accessId) ? d.accessId : ''
           })
         }
       })
+    }
+
+    // Fallback accessId depuis team_accesses
+    try {
+      for (const chunk of memberUidChunks) {
+        const accessesSnap = await adminDb
+          .collection('team_accesses')
+          .where('managerUid', 'in', chunk)
+          .get()
+        accessesSnap.docs.forEach((doc) => {
+          const ad = doc.data()
+          const validAccessId = isValidAccessId(ad.accessId)
+            ? ad.accessId
+            : isValidAccessId(doc.id)
+              ? doc.id
+              : null
+          if (!validAccessId) return
+          const fUid: string = ad.firebaseUid ?? ''
+          if (fUid && membersMap.has(fUid) && !membersMap.get(fUid)!.accessId) {
+            membersMap.get(fUid)!.accessId = validAccessId
+          }
+        })
+      }
     } catch { /* ignore */ }
 
     // ── Formatage de la période brute en libellé lisible ───────────────────
@@ -344,35 +362,32 @@ export async function GET(request: NextRequest) {
       return `${MONTHS_FR[now.getMonth()]} ${now.getFullYear()}`
     }
 
-    // ── Fetch objectifs par membre ─────────────────────────────────────────
-    const targetsSnap = await adminDb
-      .collection('teamTargets')
-      .where('managerUid', '==', managerUid)
-      .get()
-
+    // ── Fetch objectifs par membre (tous les managers du scope) ───────────
     type MemberTarget = {
       targetVolume: number | null
       targetValue: number | null
       period: string | null
     }
     const targetsMap = new Map<string, MemberTarget>()
-    targetsSnap.docs.forEach((doc) => {
-      const d = doc.data()
-      targetsMap.set(d.memberId as string, {
-        targetVolume: typeof d.targetVolume === 'number' ? d.targetVolume : null,
-        targetValue: typeof d.targetValue === 'number' ? d.targetValue : null,
-        period: d.period ?? null
+    for (const chunk of chunkArray(orgManagerUids, 30)) {
+      const targetsSnap = await adminDb
+        .collection('teamTargets')
+        .where('managerUid', 'in', chunk)
+        .get()
+      targetsSnap.docs.forEach((doc) => {
+        const d = doc.data()
+        const key = d.memberId as string
+        if (!targetsMap.has(key)) {
+          targetsMap.set(key, {
+            targetVolume: typeof d.targetVolume === 'number' ? d.targetVolume : null,
+            targetValue: typeof d.targetValue === 'number' ? d.targetValue : null,
+            period: d.period ?? null
+          })
+        }
       })
-    })
+    }
 
-    // ── Fetch pipeline items ────────────────────────────────────────────────
-    const teamSnap = await adminDb
-      .collection('pipeline')
-      .where('managerUid', '==', managerUid)
-      .get()
-
-    const ownSnap = await adminDb.collection('pipeline').where('userId', '==', managerUid).get()
-
+    // ── Fetch pipeline items (tous les managers du scope) ──────────────────
     const seen = new Set<string>()
     type RawItem = {
       id: string
@@ -394,7 +409,7 @@ export async function GET(request: NextRequest) {
     }
     const allItems: RawItem[] = []
 
-    for (const snap of [teamSnap, ownSnap]) {
+    const pushItems = (snap: FirebaseFirestore.QuerySnapshot) => {
       snap.docs.forEach((doc) => {
         if (!seen.has(doc.id)) {
           seen.add(doc.id)
@@ -420,6 +435,19 @@ export async function GET(request: NextRequest) {
         }
       })
     }
+
+    // Pipeline des membres d'équipe (par managerUid)
+    for (const chunk of chunkArray(orgManagerUids, 30)) {
+      const teamSnap = await adminDb
+        .collection('pipeline')
+        .where('managerUid', 'in', chunk)
+        .get()
+      pushItems(teamSnap)
+    }
+
+    // Pipeline personnel du caller (entrées où userId == callerUid)
+    const ownSnap = await adminDb.collection('pipeline').where('userId', '==', managerUid).get()
+    pushItems(ownSnap)
 
     // ── Filters ──────────────────────────────────────────────────────────────
     let filtered = allItems
@@ -569,7 +597,7 @@ export async function GET(request: NextRequest) {
     // Titre du rapport
     summarySheet.mergeCells('A1:N1')
     const titleCell = summarySheet.getCell('A1')
-    titleCell.value = '📊 RAPPORT DE PERFORMANCE — PIPELINE COMMERCIAL'
+    titleCell.value = `📊 RAPPORT DE PERFORMANCE — PIPELINE ${exportScopeLabel}`
     titleCell.font = { name: 'Calibri', bold: true, size: 14, color: { argb: COLOR_HEADER_FG } }
     titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLOR_HEADER_BG } }
     titleCell.alignment = { horizontal: 'center', vertical: 'middle' }
@@ -726,7 +754,7 @@ export async function GET(request: NextRequest) {
       return null
     })()
 
-    const totalLabel = memberId ? 'TOTAL' : 'TOTAL ÉQUIPE'
+    const totalLabel = memberId ? 'TOTAL' : `TOTAL ${exportScopeLabel}`
 
     const totalCells: (string | number | null)[] = [
       totalLabel,
