@@ -319,7 +319,7 @@ export function AppSidebar({
                   user.role === 'admin'
                     ? '#ef4444'
                     : user.role === 'manager'
-                      ? '#eab308'
+                      ? (user.orgRole === 'senior_manager' ? '#8b5cf6' : '#eab308')
                       : user.role === 'independent'
                         ? '#22c55e'
                         : user.role === 'support_agent'
@@ -331,7 +331,9 @@ export function AppSidebar({
               {user.role === 'admin'
                 ? t('sidebar.adminRole')
                 : user.role === 'manager'
-                  ? t('sidebar.managerRole')
+                  ? (user.orgRole === 'senior_manager'
+                      ? t('sidebar.seniorManagerRole')
+                      : (user.orgRole === 'team_manager' ? t('sidebar.teamManagerRole') : t('sidebar.managerRole')))
                   : user.role === 'independent'
                     ? t('sidebar.independentRole')
                     : user.role === 'support_agent'

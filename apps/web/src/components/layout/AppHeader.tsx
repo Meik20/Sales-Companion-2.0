@@ -41,10 +41,13 @@ export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void 
 
   // Senior Manager has a distinct badge (purple tint) vs Team Manager (yellow)
   const isSeniorManager = user?.role === 'manager' && user?.orgRole === 'senior_manager'
+  const isTeamManager = user?.role === 'manager' && user?.orgRole === 'team_manager'
   const badge = user?.role
     ? isSeniorManager
-      ? { label: 'Senior Manager', bg: 'rgba(139,92,246,0.22)' }
-      : (roleBadge[user.role] ?? null)
+      ? { label: t('sidebar.seniorManagerRole') || 'Senior Manager', bg: 'rgba(139,92,246,0.22)' }
+      : isTeamManager
+        ? { label: t('sidebar.teamManagerRole') || 'Team Manager', bg: 'rgba(251,191,36,0.22)' }
+        : (roleBadge[user.role] ?? null)
     : null
 
   return (

@@ -300,6 +300,8 @@ export const fr = {
     independent: 'Indépendant',
     adminRole: 'Admin',
     managerRole: 'Manager',
+    seniorManagerRole: 'Senior Manager',
+    teamManagerRole: 'Team Manager',
     independentRole: 'Indépendant',
     memberRole: 'Membre',
     supportRole: 'Support',
