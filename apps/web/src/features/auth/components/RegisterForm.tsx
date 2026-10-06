@@ -14,6 +14,7 @@ import { routes } from '@/constants/routes'
 import { BUSINESS_SECTORS, SUPPORTED_COUNTRIES, validatePhoneForCountry } from '@sales-companion/shared'
 import { useTranslation } from '@/providers/I18nProvider'
 import { isCorporateEmail } from '../utils/email-validator'
+import { CountrySelect } from '@/components/ui/CountrySelect'
 import { ShieldCheck, Lock, HelpCircle, ArrowRight, ArrowLeft } from 'lucide-react'
 
 type RoleOption = 'independent' | 'manager'
@@ -352,17 +353,11 @@ export function RegisterForm() {
                 label={t('auth.country' as any) || 'Pays'}
                 required
               >
-                <select
+                <CountrySelect
                   value={country}
-                  onChange={(e) => setCountry(e.target.value)}
-                  className="h-10 w-full cursor-pointer rounded-[10px] border border-border bg-card px-3 text-[13px] font-medium text-foreground outline-none focus:border-primary"
-                >
-                  {SUPPORTED_COUNTRIES.map((c) => (
-                    <option key={c.code} value={c.code}>
-                      {c.flag} {lang === 'en' ? c.nameEn : c.name}
-                    </option>
-                  ))}
-                </select>
+                  onChange={setCountry}
+                  lang={lang as 'fr' | 'en'}
+                />
               </FormField>
 
               <FormField
