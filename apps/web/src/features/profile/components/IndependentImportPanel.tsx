@@ -100,39 +100,6 @@ export function IndependentImportPanel() {
   const { pushToast } = useToast()
   const router = useRouter()
 
-  const isFree = (user?.plan ?? 'free') === 'free'
-
-  // ── CTA Upgrade pour les FREE ────────────────────────────────────
-  if (isFree) {
-    return (
-      <Panel>
-        <div className="flex flex-col items-center gap-4 py-8 px-4 text-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20">
-            <Lock size={24} className="text-primary" strokeWidth={1.8} />
-          </div>
-          <div>
-            <h3 className="text-base font-bold text-foreground flex items-center justify-center gap-2">
-              <FileSpreadsheet size={16} className="text-primary" />
-              Importer ma base de prospects
-            </h3>
-            <p className="text-sm text-muted-foreground mt-2 max-w-sm">
-              L’import de votre base de prospects est réservé aux indépendants avec un plan payant.
-              Passez à un plan supérieur pour débloquer cette fonctionnalité.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => router.push(`${routes.upgrade}?redirect=${encodeURIComponent(routes.importProspects)}`)}
-            className="flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90 transition-all shadow-sm cursor-pointer"
-          >
-            <Sparkles size={15} />
-            UPGRADE — Débloquer l’import
-          </button>
-        </div>
-      </Panel>
-    )
-  }
-
   const [dragging, setDragging] = useState(false)
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<ParsedProspect[]>([])
@@ -218,27 +185,62 @@ export function IndependentImportPanel() {
       })
 
       if (!res.ok) {
-        const err = await res.json().catch(() => ({ message: 'Erreur serveur' }))
-        throw new Error(err.message ?? 'Erreur import')
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.message || 'Erreur lors de l’import')
       }
 
-      const data = (await res.json()) as ImportResult
-      setResult(data)
+      const data = await res.json()
+      setResult({ count: data.count ?? prospects.length })
       pushToast({
         type: 'success',
         title: 'Import réussi',
-        description: `${data.count} prospect${data.count > 1 ? 's' : ''} importé${data.count > 1 ? 's' : ''} dans votre base.`
+        description: `${data.count ?? prospects.length} prospects importés avec succès.`
       })
       reset()
-    } catch (err) {
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Une erreur est survenue'
+      setParseError(msg)
       pushToast({
         type: 'error',
-        title: "Erreur d'import",
-        description: err instanceof Error ? err.message : 'Erreur inconnue'
+        title: 'Erreur d’import',
+        description: msg
       })
     } finally {
       setImporting(false)
     }
+  }
+
+  const isFree = (user?.plan ?? 'free') === 'free'
+
+  // ── CTA Upgrade pour les FREE ────────────────────────────────────
+  if (isFree) {
+    return (
+      <Panel>
+        <div className="flex flex-col items-center gap-4 py-8 px-4 text-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20">
+            <Lock size={24} className="text-primary" strokeWidth={1.8} />
+          </div>
+          <div>
+            <h3 className="text-base font-bold text-foreground flex items-center justify-center gap-2">
+              <FileSpreadsheet size={16} className="text-primary" />
+              Importer ma base de prospects
+            </h3>
+            <p className="text-sm text-muted-foreground mt-2 max-w-sm">
+              L’import de votre base de prospects est réservé aux indépendants avec un plan payant.
+              Passez à un plan supérieur pour débloquer cette fonctionnalité.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => router.push(`${routes.upgrade}?redirect=${encodeURIComponent(routes.importProspects)}`)}
+            className="flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90 transition-all shadow-sm cursor-pointer"
+          >
+            <Sparkles size={15} />
+            UPGRADE — Débloquer l’import
+          </button>
+        </div>
+      </Panel>
+    )
   }
 
   const inputStyle: React.CSSProperties = {

@@ -71,6 +71,14 @@ function getClientIp(req: NextRequest): string {
 
 function checkRateLimit(key: string, limit: number, windowMs: number): boolean {
   const now = Date.now()
+
+  // Nettoyage périodique pour éviter toute fuite mémoire
+  if (ipStore.size > 5000) {
+    for (const [k, v] of ipStore.entries()) {
+      if (now > v.resetAt) ipStore.delete(k)
+    }
+  }
+
   const entry = ipStore.get(key)
 
   if (!entry || now > entry.resetAt) {
@@ -110,12 +118,11 @@ export function proxy(req: NextRequest) {
     })
   }
 
-  // ── 3. Rate limiting sur routes API (skip si authentifié) ─────────────────
+  // ── 3. Rate limiting sur routes API ──────────────────────────────────────
   if (pathname.startsWith('/api/')) {
-    const authHeader = req.headers.get('authorization') ?? ''
-
-    // Les requêtes avec token Bearer sont déjà authentifiées → pas de rate limit
-    if (!authHeader.startsWith('Bearer ')) {
+    // Les webhooks de paiement externes gèrent leur propre validation HMAC
+    const isWebhook = pathname.startsWith('/api/payment/webhook')
+    if (!isWebhook) {
       const isSearch = pathname.includes('/search')
       const limit = isSearch ? SEARCH_RATE_LIMIT : API_RATE_LIMIT
       const window = isSearch ? SEARCH_RATE_WINDOW : API_RATE_WINDOW

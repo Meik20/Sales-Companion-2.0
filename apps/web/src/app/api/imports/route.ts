@@ -167,20 +167,38 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Sécurité : un indépendant ne peut importer que sous son propre uid
-    if (callerRole === 'independent' && managerId !== callerUid) {
-      return NextResponse.json(
-        { message: 'Accès refusé. Vous ne pouvez importer que pour votre propre compte.' },
-        { status: 403 }
-      )
+    // Sécurité : un indépendant ne peut importer que sous son propre uid ET avec un plan payant actif
+    if (callerRole === 'independent') {
+      if (managerId !== callerUid) {
+        return NextResponse.json(
+          { message: 'Accès refusé. Vous ne pouvez importer que pour votre propre compte.' },
+          { status: 403 }
+        )
+      }
+      const plan = callerData?.plan ?? 'free'
+      const isExpired = callerData?.subscriptionExpired === true
+      if (plan === 'free' || isExpired) {
+        return NextResponse.json(
+          { message: 'L’import de prospects est réservé aux comptes avec un plan payant actif.' },
+          { status: 403 }
+        )
+      }
     }
 
-    // Sécurité : un manager ne peut importer que sous son propre uid
-    if (callerRole === 'manager' && managerId !== callerUid) {
-      return NextResponse.json(
-        { message: 'Accès refusé. Vous ne pouvez importer que pour votre propre compte.' },
-        { status: 403 }
-      )
+    // Sécurité : un manager ne peut importer que sous son propre uid et si son compte n'est pas expiré
+    if (callerRole === 'manager') {
+      if (managerId !== callerUid) {
+        return NextResponse.json(
+          { message: 'Accès refusé. Vous ne pouvez importer que pour votre propre compte.' },
+          { status: 403 }
+        )
+      }
+      if (callerData?.subscriptionExpired === true) {
+        return NextResponse.json(
+          { message: 'Votre abonnement a expiré. Veuillez renouveler votre formule pour importer.' },
+          { status: 403 }
+        )
+      }
     }
 
     if (prospects.length > 3000) {
