@@ -37,11 +37,41 @@ export async function GET(request: NextRequest) {
     let orgRole = userData.orgRole || null
 
     if (!orgCode) {
-      orgCode = generateOrgCode(userData.country || 'CM')
+      // Génération côté serveur avec vérification d'unicité Firestore
+      const country = userData.country || 'CM'
+      for (let attempt = 0; attempt < 5; attempt++) {
+        const candidate = generateOrgCode(country)
+        const collision = await adminDb
+          .collection('users')
+          .where('orgCode', '==', candidate)
+          .limit(1)
+          .get()
+        if (collision.empty) {
+          orgCode = candidate
+          break
+        }
+      }
+      if (!orgCode) {
+        return NextResponse.json({ error: 'Impossible de générer un code unique. Reessayez.' }, { status: 500 })
+      }
       orgRole = 'senior_manager'
-      await userDocRef.update({ orgCode, orgRole }).catch(() => {})
+
+      // Batch : mettre à jour le user + créer le document Organisation
+      const batch = adminDb.batch()
+      batch.update(userDocRef, { orgCode, orgRole })
+      const orgDocRef = adminDb.collection('organisations').doc(orgCode)
+      batch.set(orgDocRef, {
+        orgCode,
+        companyName: userData.companyName || userData.company || '',
+        sector: userData.sector || null,
+        country,
+        seniorManagerUid: managerUid,
+        niu: userData.niu ? normalizeNiu(userData.niu) : null,
+        isVerified: Boolean(userData.niu),
+        createdAt: new Date()
+      })
+      await batch.commit()
     } else if (!orgRole) {
-      // Par défaut, si non défini, c'est le senior manager de ce code
       orgRole = 'senior_manager'
       await userDocRef.update({ orgRole }).catch(() => {})
     }
@@ -200,6 +230,13 @@ export async function PATCH(request: NextRequest) {
         // Si l'organisation rejointe a déjà un NIU et pas ce manager, synchroniser
         if (!updates.niu && !userData.niu && targetManagerData?.niu) {
           updates.niu = targetManagerData.niu
+        }
+
+        // Mettre à jour le compteur de membres dans organisations/
+        const orgDocRef = adminDb.collection('organisations').doc(targetCode)
+        const orgDoc = await orgDocRef.get()
+        if (orgDoc.exists) {
+          await orgDocRef.update({ updatedAt: new Date() }).catch(() => {})
         }
       }
     }

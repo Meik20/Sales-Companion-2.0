@@ -267,5 +267,37 @@ service cloud.firestore {
       allow delete: if isAdmin()
         || (isManager() && resource.data.managerUid == authUid());
     }
+
+    // ── Organisations ────────────────────────────────────────────────────────
+    // Collection dédiée au référentiel d'organisation (source de vérité unique)
+    // Écritures exclusivement via Admin SDK (API routes serveur)
+    match /organisations/{orgCode} {
+      // Lecture : admin, ou manager appartenant à cette org
+      allow read: if isAdmin()
+        || (isManager() && currentUserDoc().orgCode == orgCode)
+        || (isSignedIn() && currentUserDoc().orgCode == orgCode);
+
+      // Le Senior Manager peut mettre à jour certains champs de son org (ex: companyName)
+      allow update: if isAdmin()
+        || (
+          isManager()
+          && currentUserDoc().orgCode == orgCode
+          && currentUserDoc().orgRole == 'senior_manager'
+          // Champs immuables — protégés même du Senior Manager
+          && !request.resource.data.diff(resource.data).affectedKeys()
+              .hasAny(['orgCode', 'createdAt', 'seniorManagerUid'])
+        );
+
+      // Création et suppression : Admin SDK uniquement
+      allow create, delete: if false;
+    }
+
+    // ── Subscription logs ────────────────────────────────────────────────────
+    match /subscription_logs/{logId} {
+      allow read: if isAdmin()
+        || (isSignedIn() && resource.data.userId == authUid());
+      allow create: if false; // Admin SDK uniquement
+      allow update, delete: if false;
+    }
   }
 }
