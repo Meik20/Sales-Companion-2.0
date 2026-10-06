@@ -56,6 +56,16 @@ service cloud.firestore {
         && request.resource.data.get('plan', 'free') == 'free'
         && request.resource.data.get('dailyLimit', 10) <= 10
         && request.resource.data.get('country', 'CM') in ['CM', 'SN', 'CI', 'BJ', 'TG', 'TD', 'CF']
+        // ── Protection cross-tenant (P0) ─────────────────────────────────────
+        // Interdire toute injection de liens d'organisation à la création.
+        // Ces champs sont EXCLUSIVEMENT écrits par l'Admin SDK (API serveur).
+        // Sans cette protection, un attaquant pourrait se créer avec
+        // role:support_agent + linkedManagerUids:[uid_victime] et lire
+        // les données d'une autre équipe directement via le SDK Firestore.
+        && !('linkedManagerUids' in request.resource.data)
+        && !('managerUid' in request.resource.data)
+        && !('managerEmail' in request.resource.data)
+        && !('orgCode' in request.resource.data)
       );
 
       allow update: if isAdmin()
@@ -140,8 +150,30 @@ service cloud.firestore {
         );
 
       allow update: if isAdmin()
-        || (isSignedIn() && resource.data.userId == authUid() && request.resource.data.userId == authUid())
-        || (isManagedUser(resource.data.managerUid) && request.resource.data.userId == resource.data.userId);
+        || (
+          isSignedIn()
+          && resource.data.userId == authUid()
+          // ── Invariants d'appartenance — jamais modifiables par le propriétaire ──
+          // Protège contre la réassignation frauduleuse à un autre manager/membre
+          // et contre l'usurpation des champs d'identification.
+          && !request.resource.data.diff(resource.data).affectedKeys()
+              .hasAny([
+                'userId',
+                'managerUid',
+                'assignedTo',
+                'memberAccessId',
+                'sourceProspectId',
+                'assignedBy',
+                'importedBy'
+              ])
+        )
+        || (
+          isManagedUser(resource.data.managerUid)
+          // Le manager peut réassigner mais ne peut pas changer le propriétaire
+          && request.resource.data.userId == resource.data.userId
+          && !request.resource.data.diff(resource.data).affectedKeys()
+              .hasAny(['managerUid', 'sourceProspectId', 'importedBy'])
+        );
         
       allow delete: if isAdmin()
         || (isSignedIn() && resource.data.userId == authUid())
