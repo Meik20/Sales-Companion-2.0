@@ -187,7 +187,7 @@ export function RegisterForm() {
         role,
         country,
         phone: formattedPhone,
-        companyName: role === 'manager' ? companyName.trim() : undefined,
+        companyName: companyName.trim() ? companyName.trim() : undefined,
         sector: sector || undefined,
         niu: role === 'manager' && niu.trim() ? niu.trim() : undefined
       })
@@ -443,6 +443,23 @@ export function RegisterForm() {
             )}
           </FormField>
 
+          {/* Nom entreprise (Requis pour Manager, optionnel pour Indépendant) */}
+          <FormField
+            label={t('auth.companyName')}
+            required={role === 'manager'}
+            hint={role === 'independent' ? (lang === 'en' ? 'Optional' : 'Optionnel') : undefined}
+          >
+            <Input
+              placeholder={
+                role === 'manager'
+                  ? 'Ex: Acme Corp'
+                  : (lang === 'en' ? 'Ex: Acme Corp (optional)' : 'Ex: Acme Corp (optionnel)')
+              }
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
+            />
+          </FormField>
+
           {/* Secteur */}
           <FormField label={t('auth.sector')} required>
             <select
@@ -456,17 +473,6 @@ export function RegisterForm() {
               ))}
             </select>
           </FormField>
-
-          {/* Nom entreprise (Manager only) */}
-          {role === 'manager' && (
-            <FormField label={t('auth.companyName')} required>
-              <Input
-                placeholder="Ex: Acme Corp"
-                value={companyName}
-                onChange={(e) => setCompanyName(e.target.value)}
-              />
-            </FormField>
-          )}
 
           {/* Numéro d'Identification Unique (NIU strict - Manager only, optionnel) */}
           {role === 'manager' && (
