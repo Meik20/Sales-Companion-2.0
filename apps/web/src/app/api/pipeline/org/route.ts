@@ -8,10 +8,11 @@ async function getAdmin() {
 }
 
 function normalizeStatus(s: string) {
-  if (['prospection', 'prospect'].includes(s)) return 'prospection'
-  if (['negociation', 'negotiation'].includes(s)) return 'negociation'
-  if (['conclue', 'conclusion'].includes(s)) return 'conclue'
-  return s
+  const st = (s || '').toLowerCase().trim()
+  if (['prospection', 'prospect', 'to_contact', 'contact', 'nouveau', 'lead'].includes(st)) return 'prospection'
+  if (['negociation', 'negotiation', 'in_progress', 'en_cours'].includes(st)) return 'negociation'
+  if (['conclue', 'conclusion', 'won', 'closed', 'gagne', 'signe'].includes(st)) return 'conclue'
+  return 'prospection'
 }
 
 /**
@@ -104,11 +105,10 @@ export async function GET(request: NextRequest) {
 
       if (filterStatus) {
         const statusVariants =
-          filterStatus === 'prospection' ? ['prospection', 'prospect']
-          : filterStatus === 'negociation' ? ['negociation', 'negotiation']
-          : filterStatus === 'conclue' ? ['conclue', 'conclusion']
+          filterStatus === 'prospection' ? ['prospection', 'prospect', 'to_contact', 'contact', 'nouveau', 'lead']
+          : filterStatus === 'negociation' ? ['negociation', 'negotiation', 'in_progress', 'en_cours']
+          : filterStatus === 'conclue' ? ['conclue', 'conclusion', 'won', 'closed', 'gagne', 'signe']
           : [filterStatus]
-        // Firestore 'in' sur status — on filtre côté app si plusieurs variantes
         q = q.where('status', 'in', statusVariants)
       }
 

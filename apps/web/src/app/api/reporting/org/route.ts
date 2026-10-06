@@ -8,10 +8,11 @@ async function getAdmin() {
 }
 
 function normalizeStatus(status: string): 'prospection' | 'negociation' | 'conclue' | 'other' {
-  if (['prospection', 'prospect'].includes(status)) return 'prospection'
-  if (['negociation', 'negotiation'].includes(status)) return 'negociation'
-  if (['conclue', 'conclusion'].includes(status)) return 'conclue'
-  return 'other'
+  const s = (status || '').toLowerCase().trim()
+  if (['prospection', 'prospect', 'to_contact', 'contact', 'nouveau', 'lead'].includes(s)) return 'prospection'
+  if (['negociation', 'negotiation', 'in_progress', 'en_cours'].includes(s)) return 'negociation'
+  if (['conclue', 'conclusion', 'won', 'closed', 'gagne', 'signe'].includes(s)) return 'conclue'
+  return 'prospection'
 }
 
 /**

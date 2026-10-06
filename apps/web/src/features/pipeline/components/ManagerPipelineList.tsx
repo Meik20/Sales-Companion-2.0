@@ -69,6 +69,7 @@ type Props = {
   items: PipelineItem[]
   members?: Member[]
   managerUid?: string
+  showTargets?: boolean
 }
 
 /** Résout le nom d'affichage d'un membre pour un item du pipeline */
@@ -1189,7 +1190,7 @@ function ExportPanel({ members }: { members?: Member[] }) {
   )
 }
 
-export function ManagerPipelineList({ items, members, managerUid }: Props) {
+export function ManagerPipelineList({ items, members, managerUid, showTargets = true }: Props) {
   const { t } = useTranslation()
   const deleteMutation = useDeletePipelineItem()
 
@@ -1226,10 +1227,11 @@ export function ManagerPipelineList({ items, members, managerUid }: Props) {
 
   // Group by normalized status
   const normalize = (s: string) => {
-    if (['prospection', 'prospect'].includes(s)) return 'prospection'
-    if (['negociation', 'negotiation'].includes(s)) return 'negociation'
-    if (['conclue', 'conclusion'].includes(s)) return 'conclue'
-    return s
+    const st = (s || '').toLowerCase().trim()
+    if (['prospection', 'prospect', 'to_contact', 'contact', 'nouveau', 'lead'].includes(st)) return 'prospection'
+    if (['negociation', 'negotiation', 'in_progress', 'en_cours'].includes(st)) return 'negociation'
+    if (['conclue', 'conclusion', 'won', 'closed', 'gagne', 'signe'].includes(st)) return 'conclue'
+    return 'prospection'
   }
 
   const grouped: Record<string, PipelineItem[]> = {
@@ -1250,8 +1252,8 @@ export function ManagerPipelineList({ items, members, managerUid }: Props) {
         />
       )}
 
-      {/* Targets panel — objectifs Volume/Valeur par membre */}
-      <TargetsPanel members={members} />
+      {/* Targets panel — objectifs Volume/Valeur par membre (Team Manager uniquement) */}
+      {showTargets && <TargetsPanel members={members} />}
 
       {/* Export panel — always shown for managers */}
       <ExportPanel members={members} />

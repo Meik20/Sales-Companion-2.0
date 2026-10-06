@@ -20,13 +20,39 @@ export function usePipelineStats() {
   const { user } = useCurrentUser()
   usePipelineRealtimeSync()
 
+  const isSeniorManager = user?.role === 'manager' && user?.orgRole === 'senior_manager'
+
   return useQuery({
-    queryKey: ['pipeline-stats', user?.uid],
+    queryKey: ['pipeline-stats', user?.uid, isSeniorManager],
     queryFn: async (): Promise<PipelineStats> => {
       if (!user?.uid) {
         return { total: 0, prospection: 0, negotiation: 0, conclusion: 0, lost: 0, conversionRate: 0 }
       }
 
+      // ── Senior Manager : statistiques consolidées de l'organisation ──────────
+      if (isSeniorManager) {
+        const token = await user.getIdToken()
+        const res = await fetch('/api/pipeline/org', {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        if (!res.ok) {
+          return { total: 0, prospection: 0, negotiation: 0, conclusion: 0, lost: 0, conversionRate: 0 }
+        }
+        const data = await res.json() as {
+          counts?: { prospection: number; negociation: number; conclue: number; total: number }
+        }
+        const c = data.counts ?? { prospection: 0, negociation: 0, conclue: 0, total: 0 }
+        return {
+          total: c.total,
+          prospection: c.prospection,
+          negotiation: c.negociation,
+          conclusion: c.conclue,
+          lost: 0,
+          conversionRate: c.total > 0 ? Math.round((c.conclue / c.total) * 100) : 0
+        }
+      }
+
+      // ── Autres rôles : requêtes Firestore directes ──────────────────────────
       const isManager = user.role === 'manager'
       const seen = new Set<string>()
       const docs: { status: string }[] = []
@@ -71,9 +97,9 @@ export function usePipelineStats() {
 
       docs.forEach((doc) => {
         const status = doc.status.toLowerCase()
-        if (status === 'prospection' || status === 'prospect') stats.prospection++
-        else if (status === 'negociation' || status === 'negotiation') stats.negotiation++
-        else if (status === 'conclue' || status === 'conclusion') stats.conclusion++
+        if (['prospection', 'prospect', 'to_contact', 'contact', 'nouveau', 'lead'].includes(status)) stats.prospection++
+        else if (['negociation', 'negotiation', 'in_progress', 'en_cours'].includes(status)) stats.negotiation++
+        else if (['conclue', 'conclusion', 'won', 'closed', 'gagne', 'signe'].includes(status)) stats.conclusion++
         else if (status === 'lost' || status === 'perdu') stats.lost++
       })
 

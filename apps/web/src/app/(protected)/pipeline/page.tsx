@@ -400,6 +400,7 @@ export default function PipelinePage() {
                 items={orgPipelineQuery.data.items as Parameters<typeof ManagerPipelineList>[0]['items']}
                 members={members}
                 managerUid={user?.uid}
+                showTargets={false}
               />
             ) : null}
           </DataCard>
