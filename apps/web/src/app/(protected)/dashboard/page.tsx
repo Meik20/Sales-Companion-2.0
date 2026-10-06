@@ -18,7 +18,6 @@ import {
   Trophy,
   Clock,
   Building2,
-  ArrowRight,
   RefreshCw
 } from 'lucide-react'
 
@@ -304,29 +303,7 @@ export default function DashboardPage() {
             </DataCard>
           </div>
 
-          {/* ── Lien vers le tableau de bord individuel ─────────────────── */}
-          <div style={{ marginTop: 20 }}>
-            <button
-              type="button"
-              onClick={() => router.push('/reporting')}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                padding: '8px 16px',
-                borderRadius: 8,
-                border: '1px solid var(--border)',
-                background: 'transparent',
-                color: 'var(--muted-foreground)',
-                fontSize: 13,
-                fontWeight: 600,
-                cursor: 'pointer'
-              }}
-            >
-              <ArrowRight size={14} />
-              Voir mon rapport personnel (Team Manager)
-            </button>
-          </div>
+
         </>
       )}
     </AppShell>
