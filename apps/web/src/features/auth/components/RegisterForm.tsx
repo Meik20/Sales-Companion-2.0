@@ -174,13 +174,18 @@ export function RegisterForm() {
 
     setLoading(true)
     try {
+      const trimmedPhone = phone.trim()
+      const formattedPhone = trimmedPhone.startsWith('+')
+        ? trimmedPhone
+        : `${selectedCountryObj.dialCode} ${trimmedPhone}`
+
       const createdUser = await registerWithEmail({
         email: email.trim(),
         password,
         name: name.trim(),
         role,
         country,
-        phone: phone.trim(),
+        phone: formattedPhone,
         companyName: role === 'manager' ? companyName.trim() : undefined,
         sector: sector || undefined,
         niu: role === 'manager' && niu.trim() ? niu.trim() : undefined
@@ -354,24 +359,23 @@ export function RegisterForm() {
                 >
                   {SUPPORTED_COUNTRIES.map((c) => (
                     <option key={c.code} value={c.code}>
-                      {c.flag} {lang === 'en' ? c.nameEn : c.name} ({c.dialCode})
+                      {c.flag} {lang === 'en' ? c.nameEn : c.name}
                     </option>
                   ))}
                 </select>
               </FormField>
 
               <FormField
-                label={t('auth.phone' as any) || 'Téléphone'}
+                label={t('auth.phone' as any) || 'Numéro de téléphone'}
                 required
               >
                 <div className="flex items-center gap-1.5">
-                  <div className="flex h-10 items-center justify-center rounded-[10px] border border-border bg-muted/40 px-2.5 text-[12px] font-semibold text-foreground/80 shrink-0">
-                    <span className="mr-1">{selectedCountryObj.flag}</span>
+                  <div className="flex h-10 items-center justify-center rounded-[10px] border border-border bg-muted/40 px-3 text-[13px] font-bold text-foreground/80 shrink-0">
                     <span>{selectedCountryObj.dialCode}</span>
                   </div>
                   <Input
                     type="tel"
-                    placeholder={selectedCountryObj.examplePhone}
+                    placeholder={selectedCountryObj.examplePhone.replace(/^\+\d+\s*/, '')}
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     className="flex-1"

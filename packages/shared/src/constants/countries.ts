@@ -178,5 +178,9 @@ export function validatePhoneForCountry(phone: string, countryCode: string): boo
   const country = SUPPORTED_COUNTRIES.find((c) => c.code === countryCode)
   if (!country) return phone.trim().length >= 8
   const normalized = phone.replace(/[\s\-().]/g, '')
-  return country.dialPattern.test(normalized)
+  if (country.dialPattern.test(normalized)) return true
+  const withDial = `${country.dialCode}${normalized}`
+  const withDialNoPlus = `${country.dialCode.replace('+', '')}${normalized}`
+  return country.dialPattern.test(withDial) || country.dialPattern.test(withDialNoPlus)
 }
+
