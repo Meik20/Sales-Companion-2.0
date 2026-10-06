@@ -24,8 +24,46 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: 'Token invalide' }, { status: 401 })
     }
 
+    // Charger le profil du caller pour contrôler les accès
+    const callerDoc = await adminDb.collection('users').doc(uid).get()
+    const callerData = callerDoc.data()
+    const callerRole = callerData?.role as string | undefined
+
     const clientId = request.nextUrl.searchParams.get('clientId')
     if (!clientId) return NextResponse.json({ message: 'clientId requis' }, { status: 400 })
+
+    // ── Contrôle d'accès : vérifier que le caller appartient à la même org que le client ──
+    if (callerRole !== 'admin') {
+      // Résoudre le managerUid du client (depuis pipeline ou crm_clients)
+      let clientManagerUid: string | null = null
+      try {
+        const pipeDoc = await adminDb.collection('pipeline').doc(clientId).get()
+        if (pipeDoc.exists) {
+          clientManagerUid = pipeDoc.data()?.managerUid ?? null
+        }
+        if (!clientManagerUid) {
+          const crmDoc = await adminDb.collection('crm_clients').doc(clientId).get()
+          if (crmDoc.exists) {
+            clientManagerUid = crmDoc.data()?.managerUid ?? null
+          }
+        }
+      } catch (e) {
+        console.error('[crm/tickets GET] client lookup error', e)
+      }
+
+      // Vérifier l'appartenance à l'org
+      const isOwnerManager = callerRole === 'manager' && uid === clientManagerUid
+      const linkedManagerUids: string[] = callerData?.linkedManagerUids ?? []
+      const isLinkedAgent =
+        callerRole === 'support_agent' &&
+        clientManagerUid != null &&
+        (callerData?.managerUid === clientManagerUid || linkedManagerUids.includes(clientManagerUid))
+      const isOwnAgent = callerRole === 'support_agent' && uid === clientManagerUid
+
+      if (!isOwnerManager && !isLinkedAgent && !isOwnAgent) {
+        return NextResponse.json({ message: 'Accès refusé' }, { status: 403 })
+      }
+    }
 
     const snap = await adminDb
       .collection('customer_tickets')

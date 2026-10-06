@@ -14,7 +14,8 @@ import { Button } from '@/components/ui/Button'
 import { useAuthActions } from '@/features/auth/hooks/useAuthActions'
 import { auth } from '@/services/firebase/client'
 import { PLAN_LIMITS } from '@sales-companion/shared'
-import { ArrowUpRight, Check, Lock, Copy, ShieldCheck, ShieldAlert, Building2 } from 'lucide-react'
+import { ArrowUpRight, Check, Lock, Copy, ShieldCheck, ShieldAlert, Building2, Users2 } from 'lucide-react'
+import { OrgManagersSection } from '@/features/team/components/OrgManagersSection'
 
 const planDetails: Record<string, { labelKey: string; featureKeys: string[] }> = {
   free: {
@@ -176,6 +177,12 @@ export default function SettingsPage() {
   const isGoogleUser = auth.currentUser?.providerData.some(p => p.providerId === 'google.com') ?? false
   const isSupport = user?.role === 'support_agent' || (user?.role as string) === 'support'
   const isEmailLocked = user?.role === 'member' || isSupport
+
+  // ── Hiérarchie organisationnelle ────────────────────────────────────
+  // orgData.isSeniorManager est la source de vérité (vient de l'API /api/team/org)
+  // On utilise aussi user.orgRole comme fallback pendant le chargement
+  const isSeniorManager = orgData?.isSeniorManager ?? (user?.orgRole === 'senior_manager')
+  const isTeamManager = user?.role === 'manager' && !isSeniorManager
 
   const handleUpdateEmail = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -370,7 +377,7 @@ export default function SettingsPage() {
                   </p>
                 </div>
 
-                {plan !== 'enterprise' && (user?.role === 'manager' || user?.role === 'independent') ? (
+                {plan !== 'enterprise' && (user?.role === 'independent' || (user?.role === 'manager' && isSeniorManager)) ? (
                   <button
                     onClick={() => router.push(routes.upgrade)}
                     className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-[13px] font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
@@ -378,6 +385,11 @@ export default function SettingsPage() {
                     <ArrowUpRight size={15} />
                     {t('settings.upgradeBtn')}
                   </button>
+                ) : plan !== 'enterprise' && isTeamManager ? (
+                  <div className="flex items-center gap-2 rounded-xl border border-yellow-500/30 bg-yellow-500/8 px-3.5 py-2 text-[12px] text-yellow-500/80">
+                    <Lock size={13} className="shrink-0" />
+                    <span>La gestion de l&apos;abonnement est réservée au <strong>Senior Manager</strong> de votre organisation.</span>
+                  </div>
                 ) : null}
               </div>
 
@@ -453,18 +465,28 @@ export default function SettingsPage() {
                           <code className="rounded-md bg-primary/10 px-2.5 py-1 font-mono text-[15px] font-extrabold text-primary">
                             {orgData?.orgCode || user?.orgCode || 'Chargement…'}
                           </code>
-                          <button
-                            type="button"
-                            onClick={() => void copyOrgCode()}
-                            className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1 text-[12px] font-semibold text-foreground transition-colors hover:bg-secondary"
-                          >
-                            {copiedOrgCode ? <Check size={12} className="text-green-400" /> : <Copy size={12} />}
-                            {copiedOrgCode ? (t('settings.copied' as any) || 'Copié !') : (t('settings.copy' as any) || 'Copier')}
-                          </button>
+                          {/* Copier : Senior Manager uniquement */}
+                          {isSeniorManager ? (
+                            <button
+                              type="button"
+                              onClick={() => void copyOrgCode()}
+                              className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1 text-[12px] font-semibold text-foreground transition-colors hover:bg-secondary"
+                            >
+                              {copiedOrgCode ? <Check size={12} className="text-green-400" /> : <Copy size={12} />}
+                              {copiedOrgCode ? (t('settings.copied' as any) || 'Copié !') : (t('settings.copy' as any) || 'Copier')}
+                            </button>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 rounded-md border border-border bg-secondary/50 px-2 py-0.5 text-[11px] text-muted-foreground">
+                              <Lock size={11} className="shrink-0" />
+                              Senior Manager uniquement
+                            </span>
+                          )}
                         </div>
                       </div>
                       <p className="max-w-[420px] text-[12px] leading-relaxed text-muted-foreground">
-                        {t('settings.orgCodeDesc' as any) || 'Ce code identifie votre entreprise dans Sales Companion. Partagez-le avec d\'autres managers de votre entreprise pour leur permettre de relier leurs équipes et partager des agents support.'}
+                        {isSeniorManager
+                          ? (t('settings.orgCodeDesc' as any) || 'Ce code identifie votre entreprise dans Sales Companion. Partagez-le avec d\'autres managers de votre entreprise pour leur permettre de relier leurs équipes et partager des agents support.')
+                          : 'Contactez votre Senior Manager pour obtenir le code d\'invitation et rejoindre d\'autres équipes à l\'organisation.'}
                       </p>
                     </div>
                   </div>
@@ -514,26 +536,46 @@ export default function SettingsPage() {
                     {t('settings.niuDesc' as any) || "Renseignez le NIU fiscal officiel de votre société délivré par la DGI (carte de contribuable) pour certifier votre organisation et garantir la synchronisation avec vos autres comptes managers."}
                   </p>
 
-                  <form onSubmit={handleUpdateNiu} className="flex max-w-[420px] flex-col gap-2.5">
-                    <div className="flex gap-2">
-                      <Input
-                        type="text"
-                        placeholder="Ex: M051212345678A"
-                        value={niuInput}
-                        onChange={(e) => setNiuInput(e.target.value.toUpperCase())}
-                      />
-                      <Button
-                        type="submit"
-                        variant="primary"
-                        loading={niuLoading}
-                        style={{ flexShrink: 0 }}
-                      >
-                        {t('settings.saveBtn' as any) || 'Enregistrer'}
-                      </Button>
+                  {isSeniorManager ? (
+                    /* Formulaire NIU : Senior Manager uniquement */
+                    <form onSubmit={handleUpdateNiu} className="flex max-w-[420px] flex-col gap-2.5">
+                      <div className="flex gap-2">
+                        <Input
+                          type="text"
+                          placeholder="Ex: M051212345678A"
+                          value={niuInput}
+                          onChange={(e) => setNiuInput(e.target.value.toUpperCase())}
+                        />
+                        <Button
+                          type="submit"
+                          variant="primary"
+                          loading={niuLoading}
+                          style={{ flexShrink: 0 }}
+                        >
+                          {t('settings.saveBtn' as any) || 'Enregistrer'}
+                        </Button>
+                      </div>
+                      {niuError && <div className="text-[12px] text-red-400">{niuError}</div>}
+                      {niuSuccess && <div className="text-[12px] text-green-400">{niuSuccess}</div>}
+                    </form>
+                  ) : (
+                    /* Team Manager : lecture seule */
+                    <div className="flex max-w-[420px] items-center gap-3 rounded-xl border border-border bg-secondary/40 p-3.5">
+                      <Lock size={16} className="shrink-0 text-muted-foreground" />
+                      <div>
+                        {orgData?.niu ? (
+                          <>
+                            <div className="text-[13px] font-semibold text-foreground font-mono">{orgData.niu}</div>
+                            <div className="text-[11px] text-muted-foreground">NIU enregistré par le Senior Manager</div>
+                          </>
+                        ) : (
+                          <div className="text-[12.5px] text-muted-foreground">
+                            Le NIU fiscal est géré exclusivement par le <strong className="text-foreground">Senior Manager</strong> de votre organisation.
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    {niuError && <div className="text-[12px] text-red-400">{niuError}</div>}
-                    {niuSuccess && <div className="text-[12px] text-green-400">{niuSuccess}</div>}
-                  </form>
+                  )}
                 </div>
 
                 {/* Rejoindre une organisation existante */}
@@ -598,7 +640,19 @@ export default function SettingsPage() {
             </DataCard>
           )}
 
-          {/* ── Sécurité & Compte ────────────────────────────────── */}
+          {/* ── Équipe de l'Organisation (Senior Manager uniquement) ── */}
+          {user?.role === 'manager' && isSeniorManager && orgData?.managers && orgData.managers.length > 0 && (
+            <DataCard
+              title="Gestion de l'Équipe Organisation"
+              subtitle="Vue consolidée de tous les managers rattachés à votre organisation et leurs performances pipeline."
+            >
+              <OrgManagersSection
+                managers={orgData.managers as any}
+                orgCode={orgData.orgCode}
+              />
+            </DataCard>
+          )}
+
           <DataCard title={t('settings.securityTitle')} subtitle={t('settings.securitySubtitle')}>
             <div className="flex flex-col gap-6">
 

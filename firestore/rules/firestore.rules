@@ -42,8 +42,17 @@ service cloud.firestore {
         || (isManager() && resource.data.managerUid == authUid());
 
       allow create: if isAdmin() || (
-        isOwner(uid) 
+        isOwner(uid)
+        // Rôle : ni admin, ni rôle arbitraire
         && request.resource.data.get('role', '') != 'admin'
+        && request.resource.data.get('role', '') in ['manager', 'member', 'support_agent', 'independent', '']
+        // orgRole : seuls les deux valeurs légitimes, et non transmis avec active:true
+        && request.resource.data.get('orgRole', 'team_manager') in ['senior_manager', 'team_manager', '']
+        // Activation : JAMAIS active/activated = true à la création (géré par API)
+        && request.resource.data.get('active', false) == false
+        && request.resource.data.get('activated', false) == false
+        && request.resource.data.get('emailVerificationPending', false) in [true, false]
+        // Quotas et plan protégés
         && request.resource.data.get('plan', 'free') == 'free'
         && request.resource.data.get('dailyLimit', 10) <= 10
         && request.resource.data.get('country', 'CM') in ['CM', 'SN', 'CI', 'BJ', 'TG', 'TD', 'CF']
@@ -52,9 +61,23 @@ service cloud.firestore {
       allow update: if isAdmin()
         || (
           isOwner(uid)
-          // Champs protégés (jamais modifiables directement par l'utilisateur)
-            && !request.resource.data.diff(resource.data).affectedKeys()
-              .hasAny(['role', 'plan', 'dailyLimit', 'activated', 'managerUid', 'managerEmail', 'country'])
+          // ── Champs exclusivement gérés par l'Admin SDK (API serveur) ──────
+          // Ne jamais laisser un utilisateur modifier son propre statut d'activation,
+          // son rôle, son plan, ses quotas, ou son appartenance à une org.
+          && !request.resource.data.diff(resource.data).affectedKeys()
+            .hasAny([
+              'role',
+              'plan',
+              'dailyLimit',
+              'active',
+              'activated',
+              'emailVerificationPending',
+              'orgRole',
+              'orgCode',
+              'managerUid',
+              'managerEmail',
+              'country'
+            ])
           // Membres d'équipe : profil complètement verrouillé (géré par le manager)
           && resource.data.get('role', '') != 'member'
           // Managers : ne peuvent pas modifier les champs d'entreprise directement
@@ -69,8 +92,25 @@ service cloud.firestore {
     }
 
     match /companies/{companyId} {
+      // Lecture : utilisateur authentifié uniquement (pas d'accès public)
       allow read: if isSignedIn();
+      // Écriture : Admin SDK uniquement
       allow write: if isAdmin();
+    }
+
+    // ── Prospects importés ────────────────────────────────────────────────
+    // Toutes les écritures passent par l'API /api/imports (Admin SDK)
+    match /manager_prospects/{prospectId} {
+      // Lecture : le manager propriétaire ou un agent lié
+      allow read: if isAdmin()
+        || (isManager() && resource.data.managerId == authUid())
+        || (isSupportAgent() && (
+              resource.data.managerId == currentUserDoc().managerUid
+              || (currentUserDoc().linkedManagerUids != null
+                  && resource.data.managerId in currentUserDoc().linkedManagerUids)
+           ));
+      // Aucune écriture directe côté client — Admin SDK uniquement
+      allow create, update, delete: if false;
     }
 
     function isSupportAgent() {

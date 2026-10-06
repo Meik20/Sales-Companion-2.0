@@ -14,6 +14,7 @@ export const routes = {
   ai: '/ai',
   team: '/team',
   reporting: '/reporting',
+  dashboard: '/dashboard',
   crm: '/crm',
   admin: '/admin/dashboard',
   adminDashboard: '/admin/dashboard',

@@ -77,6 +77,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Token invalide' }, { status: 401 })
     }
 
+    // ── Contrôle de rôle : seul un manager ou un admin peut définir des objectifs ──
+    const callerDoc = await adminDb.collection('users').doc(managerUid).get()
+    const callerRole = callerDoc.data()?.role as string | undefined
+
+    if (!['manager', 'admin'].includes(callerRole ?? '')) {
+      return NextResponse.json(
+        { message: 'Accès refusé. Seul un manager peut définir des objectifs.' },
+        { status: 403 }
+      )
+    }
+
     const body = await request.json()
     const { memberId, memberName, targetVolume, targetValue, period } = body
 

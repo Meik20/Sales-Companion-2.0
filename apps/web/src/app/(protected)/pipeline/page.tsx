@@ -15,16 +15,26 @@ import { useUpdatePipelineItem } from '@/features/pipeline/hooks/useUpdatePipeli
 import { useTeamMembers } from '@/features/team/hooks/useTeamMembers'
 import { useExportTeamPerformance } from '@/features/pipeline/hooks/useExportTeamPerformance'
 import { useTeamTargets, useSaveTeamTarget } from '@/features/pipeline/hooks/useTeamTargets'
+import { useOrgPipeline, type OrgManagerStats } from '@/features/pipeline/hooks/useOrgPipeline'
 import { useState, useEffect, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslation } from '@/providers/I18nProvider'
-import { FileDown, Loader2, Target } from 'lucide-react'
+import { FileDown, Loader2, Target, Users2, Building2, TrendingUp, Filter } from 'lucide-react'
 
 export default function PipelinePage() {
   const { t } = useTranslation()
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user } = useCurrentUser()
+
+  // ── Rôles org ───────────────────────────────────────────────────────────
+  const isSeniorManager = user?.role === 'manager' && user?.orgRole === 'senior_manager'
+  const isTeamManager   = user?.role === 'manager' && user?.orgRole !== 'senior_manager'
+
+  // ── Org pipeline (Senior Manager uniquement) ─────────────────────────
+  const [filterManagerUid, setFilterManagerUid] = useState<string | undefined>(undefined)
+  const orgPipelineQuery = useOrgPipeline({ managerUid: filterManagerUid })
+
   const managerPipelineQuery = useManagerPipeline()
   const userPipelineQuery = useUserPipeline()
   const updateMutation = useUpdatePipelineItem()
@@ -256,8 +266,150 @@ export default function PipelinePage() {
         </div>
       ) : null}
 
-      {/* Vue manager */}
-      {user?.role === 'manager' ? (
+      {/* ═══════════════════════════════════════════════════════════════
+           Vue SENIOR MANAGER — Pipeline consolidé de l'organisation
+      ═══════════════════════════════════════════════════════════════ */}
+      {isSeniorManager ? (
+        <>
+          {/* KPI Org globaux */}
+          {orgPipelineQuery.data && (
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(4, 1fr)',
+                gap: 12,
+                marginBottom: 20
+              }}
+            >
+              {[
+                {
+                  label: 'Prospection',
+                  count: orgPipelineQuery.data.counts.prospection,
+                  color: '#60a5fa',
+                  icon: <TrendingUp size={16} />
+                },
+                {
+                  label: 'Négociation',
+                  count: orgPipelineQuery.data.counts.negociation,
+                  color: '#fbbf24',
+                  icon: <Filter size={16} />
+                },
+                {
+                  label: 'Conclus',
+                  count: orgPipelineQuery.data.counts.conclue,
+                  color: '#34d399',
+                  icon: <Building2 size={16} />
+                },
+                {
+                  label: 'Total Org',
+                  count: orgPipelineQuery.data.counts.total,
+                  color: '#a78bfa',
+                  icon: <Users2 size={16} />
+                }
+              ].map(({ label, count, color, icon }) => (
+                <div
+                  key={label}
+                  style={{
+                    background: 'var(--card, #131c2e)',
+                    border: '1px solid var(--border, rgba(255,255,255,0.1))',
+                    borderRadius: 12,
+                    padding: '14px 18px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: 6
+                  }}
+                >
+                  <div style={{ fontSize: 28, fontWeight: 800, color, fontFamily: "'Syne',sans-serif", lineHeight: 1 }}>
+                    {count}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, color: 'var(--muted-foreground)', fontSize: 12 }}>
+                    {icon} {label}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Filtre par Team Manager */}
+          {orgPipelineQuery.data?.managers && orgPipelineQuery.data.managers.length > 1 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                Filtrer par manager :
+              </span>
+              <button
+                type="button"
+                onClick={() => setFilterManagerUid(undefined)}
+                style={{
+                  padding: '4px 12px',
+                  borderRadius: 20,
+                  border: '1px solid var(--border)',
+                  background: !filterManagerUid ? 'var(--primary, #6366f1)' : 'transparent',
+                  color: !filterManagerUid ? '#fff' : 'var(--foreground)',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
+                Tous
+              </button>
+              {orgPipelineQuery.data.managers.map((mgr: OrgManagerStats) => (
+                <button
+                  key={mgr.uid}
+                  type="button"
+                  onClick={() => setFilterManagerUid(mgr.uid === filterManagerUid ? undefined : mgr.uid)}
+                  style={{
+                    padding: '4px 12px',
+                    borderRadius: 20,
+                    border: '1px solid var(--border)',
+                    background: filterManagerUid === mgr.uid ? 'var(--primary, #6366f1)' : 'transparent',
+                    color: filterManagerUid === mgr.uid ? '#fff' : 'var(--foreground)',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 5
+                  }}
+                >
+                  {mgr.name || mgr.email}
+                  {mgr.isSenior && (
+                    <span style={{ fontSize: 10, opacity: 0.7 }}>(vous)</span>
+                  )}
+                  <span style={{ fontSize: 11, opacity: 0.6 }}>({mgr.stats.total})</span>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Liste consolidée org */}
+          <DataCard
+            title="Pipeline Organisation"
+            subtitle={`Tous les prospects de votre organisation${filterManagerUid ? ' — filtré par manager' : ''}`}
+          >
+            {orgPipelineQuery.isLoading ? <LoadingState /> : null}
+            {!orgPipelineQuery.isLoading && !orgPipelineQuery.data?.items?.length ? (
+              <EmptyState
+                illustration="/illustrations/empty-states/empty-pipeline.png"
+                title="Aucun prospect dans l'organisation"
+                description="Vos Team Managers n'ont pas encore de prospects enregistrés."
+              />
+            ) : null}
+            {orgPipelineQuery.data?.items?.length ? (
+              <ManagerPipelineList
+                items={orgPipelineQuery.data.items as Parameters<typeof ManagerPipelineList>[0]['items']}
+                members={members}
+                managerUid={user?.uid}
+              />
+            ) : null}
+          </DataCard>
+        </>
+      ) : null}
+
+      {/* ═══════════════════════════════════════════════════════════════
+           Vue TEAM MANAGER — Pipeline de son équipe uniquement
+      ═══════════════════════════════════════════════════════════════ */}
+      {isTeamManager ? (
         <DataCard title={t('pipeline.teamView')} subtitle={t('pipeline.teamSubtitle')}>
           {managerPipelineQuery.isLoading ? <LoadingState /> : null}
           {!managerPipelineQuery.isLoading && !managerPipelineQuery.data?.length ? (

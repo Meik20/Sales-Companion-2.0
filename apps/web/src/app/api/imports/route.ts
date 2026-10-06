@@ -10,12 +10,51 @@ async function getAdminModules() {
 export async function GET(request: NextRequest) {
   try {
     const { adminDb } = await getAdminModules()
+    const { adminAuth } = await import('@/lib/firebase-admin')
+
+    // ── Authentification obligatoire ──────────────────────────────────────
+    const token = request.headers.get('authorization')?.split(' ')[1]
+    if (!token) {
+      return NextResponse.json({ message: 'Non authentifié' }, { status: 401 })
+    }
+
+    let callerUid: string
+    try {
+      const decoded = await adminAuth.verifyIdToken(token)
+      callerUid = decoded.uid
+    } catch {
+      return NextResponse.json({ message: 'Token invalide' }, { status: 401 })
+    }
+
+    const callerDoc = await adminDb.collection('users').doc(callerUid).get()
+    const callerData = callerDoc.data()
+    const callerRole = callerData?.role as string | undefined
+
     const { searchParams } = new URL(request.url)
     const managerId = searchParams.get('managerId')
     const assignedTo = searchParams.get('assignedTo') // optionnel
 
     if (!managerId) {
       return NextResponse.json({ message: 'managerId requis' }, { status: 400 })
+    }
+
+    // ── Contrôle d'accès strict ───────────────────────────────────────────
+    if (callerRole === 'admin') {
+      // Admin peut tout lire — pas de restriction supplémentaire
+    } else if (callerRole === 'manager' || callerRole === 'independent') {
+      // Un manager / indépendant ne peut lire que ses propres prospects
+      if (managerId !== callerUid) {
+        return NextResponse.json({ message: 'Accès refusé' }, { status: 403 })
+      }
+    } else if (callerRole === 'support_agent') {
+      // Un support agent ne peut lire que les prospects de ses managers liés
+      const linkedManagerUids: string[] = callerData?.linkedManagerUids ?? []
+      const allowed = [callerUid, ...linkedManagerUids]
+      if (!allowed.includes(managerId)) {
+        return NextResponse.json({ message: 'Accès refusé' }, { status: 403 })
+      }
+    } else {
+      return NextResponse.json({ message: 'Accès refusé' }, { status: 403 })
     }
 
     // Query simplifiée : where seulement (pas d'orderBy pour éviter les composite indexes)
