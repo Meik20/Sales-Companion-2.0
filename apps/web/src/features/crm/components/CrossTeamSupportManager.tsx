@@ -95,7 +95,7 @@ export function CrossTeamSupportManager() {
         </h3>
         <p style={{ margin: 0, fontSize: 13, color: 'var(--muted-foreground, #94a3b8)', lineHeight: 1.6 }}>
           Invitez un agent support d'une autre équipe (même organisation) à accéder aux clients conclus de votre équipe.
-          L'agent doit vous fournir son <strong style={{ color: 'var(--foreground, #f1f5f9)' }}>Access ID</strong> (ex : <code style={{ background: 'rgba(255,255,255,0.06)', padding: '1px 6px', borderRadius: 4 }}>prenomnom@entreprise</code>).
+          L'agent doit vous fournir son <strong style={{ color: 'var(--foreground, #f1f5f9)' }}>Access ID</strong> (ex : <code style={{ background: 'rgba(255,255,255,0.06)', padding: '1px 6px', borderRadius: 4 }}>jdupont@monentreprise</code>).
         </p>
       </div>
 
@@ -107,7 +107,7 @@ export function CrossTeamSupportManager() {
       }}>
         <input
           type="text"
-          placeholder="Access ID de l'agent (ex: kevinmbaye@myimmo)"
+          placeholder="Access ID de l'agent (ex: jdupont@monentreprise)"
           value={inputId}
           onChange={e => setInputId(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && void handleLink()}

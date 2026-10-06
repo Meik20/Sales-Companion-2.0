@@ -248,7 +248,7 @@ export async function GET(request: NextRequest) {
       .where('managerUid', '==', managerUid)
       .get()
 
-    // Un Access ID valide contient toujours '@' (ex: kevinmbaye@myimmo)
+    // Un Access ID valide contient toujours '@' (ex: jdupont@monentreprise)
     const isValidAccessId = (v?: string | null) => !!(v && v.includes('@'))
 
     // Construire la map initiale depuis users (champ : accessId)

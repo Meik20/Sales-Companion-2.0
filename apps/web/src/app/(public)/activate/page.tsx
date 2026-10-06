@@ -138,7 +138,7 @@ function ActivateContent() {
             <FormField label={t('auth.accessId')} required>
               <Input
                 type="text"
-                placeholder="Ex: dU8k2... ou prenomnom@entreprise"
+                placeholder="Ex: dU8k2... ou jdupont@monentreprise"
                 value={manualAccessId}
                 onChange={(e) => setManualAccessId(e.target.value)}
               />
