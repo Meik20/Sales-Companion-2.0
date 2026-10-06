@@ -34,6 +34,7 @@ type UserWithId = UserDoc & {
   lastLoginAt?: string | null
   managerId?: string | null
   subscriptionExpiresAt?: string | null
+  orgRole?: string | null
 }
 
 type Props = {
@@ -44,6 +45,7 @@ type Props = {
 
 const roleBadge: Record<string, 'success' | 'gold' | 'info' | 'default'> = {
   admin: 'gold',
+  senior_manager: 'gold',
   manager: 'success',
   member: 'info',
   independent: 'default',
@@ -195,12 +197,27 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
               {/* Rôle */}
               <td style={{ padding: '16px 12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <Badge
-                    variant={roleBadge[user.role] ?? 'default'}
-                    style={{ fontSize: 10, padding: '2px 8px' }}
-                  >
-                    {user.role}
-                  </Badge>
+                  {(() => {
+                    const isSenior = (user.role as string) === 'senior_manager' || (user.role === 'manager' && user.orgRole === 'senior_manager')
+                    return (
+                      <Badge
+                        variant={isSenior ? 'gold' : (roleBadge[user.role] ?? 'default')}
+                        style={{
+                          fontSize: 10,
+                          padding: '2px 8px',
+                          ...(isSenior
+                            ? {
+                                background: 'rgba(139, 92, 246, 0.15)',
+                                color: '#a78bfa',
+                                border: '1px solid rgba(139, 92, 246, 0.3)'
+                              }
+                            : {})
+                        }}
+                      >
+                        {isSenior ? 'Senior Manager' : user.role}
+                      </Badge>
+                    )
+                  })()}
                 </div>
               </td>
               {/* Plan */}

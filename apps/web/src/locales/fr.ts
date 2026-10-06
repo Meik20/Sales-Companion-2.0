@@ -989,6 +989,8 @@ export const fr = {
     filterPlan: 'Filtrer par plan...',
     members: 'Membres',
     managers: 'Managers',
+    seniorManager: 'Sr. Mgr',
+    seniorManagers: 'Senior Managers',
     indep: 'Indép.',
     admins: 'Admins',
     role: 'Rôle',

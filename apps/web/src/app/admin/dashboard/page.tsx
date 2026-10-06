@@ -30,8 +30,8 @@ function BarChart({
 }) {
   const max = Math.max(...data.map((d) => d.value), 1)
   const h = 140
-  const slotWidth = 84
-  const barWidth = 44
+  const slotWidth = 78
+  const barWidth = 40
   const totalWidth = data.length * slotWidth
   const totalHeight = h + 42
 
@@ -380,7 +380,8 @@ export default function AdminDashboardPage() {
   const roleData = [
     { label: t('admin.members'), fullLabel: 'Membres', value: stats?.roleDistribution?.member || 0, color: '#60a5fa' },
     { label: t('admin.managers'), fullLabel: 'Managers', value: stats?.roleDistribution?.manager || 0, color: '#34d399' },
-    { label: t('admin.indep'), fullLabel: 'Indépendants', value: stats?.roleDistribution?.independent || 0, color: '#c084fc' },
+    { label: t('admin.seniorManager') || 'Sr. Mgr', fullLabel: 'Senior Managers', value: stats?.roleDistribution?.senior_manager || 0, color: '#8b5cf6' },
+    { label: t('admin.indep'), fullLabel: 'Indépendants', value: stats?.roleDistribution?.independent || 0, color: '#06b6d4' },
     { label: t('admin.admins'), fullLabel: 'Administrateurs', value: stats?.roleDistribution?.admin || 0, color: '#facc15' }
   ]
 

@@ -35,6 +35,8 @@ export async function GET(request: NextRequest) {
       // Répartition par rôle — count() par valeur de rôle (6 requêtes au lieu de N lectures)
       memberCount,
       managerCount,
+      seniorOrgCount,
+      seniorRoleCount,
       independentCount,
       adminCount,
       supportAgentCount,
@@ -65,6 +67,8 @@ export async function GET(request: NextRequest) {
       // Role distribution via count() — 1 opération d'index par requête
       adminDb.collection('users').where('role', '==', 'member').count().get(),
       adminDb.collection('users').where('role', '==', 'manager').count().get(),
+      adminDb.collection('users').where('orgRole', '==', 'senior_manager').count().get(),
+      adminDb.collection('users').where('role', '==', 'senior_manager').count().get(),
       adminDb.collection('users').where('role', '==', 'independent').count().get(),
       adminDb.collection('users').where('role', '==', 'admin').count().get(),
       adminDb.collection('users').where('role', '==', 'support_agent').count().get(),
@@ -75,9 +79,13 @@ export async function GET(request: NextRequest) {
       adminDb.collection('users').where('plan', '==', 'enterprise').count().get()
     ])
 
+    const seniorCount = seniorOrgCount.data().count + seniorRoleCount.data().count
+    const pureManagerCount = Math.max(0, managerCount.data().count - seniorOrgCount.data().count)
+
     const roles: Record<string, number> = {
       member: memberCount.data().count,
-      manager: managerCount.data().count,
+      manager: pureManagerCount,
+      senior_manager: seniorCount,
       independent: independentCount.data().count,
       admin: adminCount.data().count,
       support_agent: supportAgentCount.data().count
