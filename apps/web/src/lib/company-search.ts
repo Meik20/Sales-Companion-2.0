@@ -19,9 +19,96 @@ export interface CompanyRecord {
   [key: string]: unknown
 }
 
-let cachedCompanies: CompanyRecord[] | null = null
-let lastCacheUpdate = 0
-const CACHE_DURATION = 1000 * 60 * 60 // 1 heure (réduit les lectures Firestore de 75%)
+/**
+ * Limite haute du batch Firestore pour les entreprises.
+ * Si la collection dépasse ce seuil, les résultats seront tronqués
+ * et un avertissement sera émis. Migrer vers Algolia/Typesense au-delà de 20 000.
+ */
+const COMPANIES_LIMIT = 15000
+
+/** Clé Redis et durée du cache (1 heure) */
+const REDIS_KEY = 'companies:cache:v1'
+const CACHE_TTL_SEC = 60 * 60 // 1 heure
+
+/** Fallback mémoire — utilisé si Redis n'est pas disponible */
+let memoryCache: CompanyRecord[] | null = null
+let memoryCacheAt = 0
+const MEMORY_TTL = CACHE_TTL_SEC * 1000
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Helpers Redis (Upstash REST)
+// ─────────────────────────────────────────────────────────────────────────────
+
+async function redisGet(key: string): Promise<string | null> {
+  const url = process.env.UPSTASH_REDIS_REST_URL
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN
+  if (!url || !token) return null
+  try {
+    const res = await fetch(`${url}/get/${encodeURIComponent(key)}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(3000)
+    })
+    if (!res.ok) return null
+    const json = await res.json()
+    return json.result ?? null
+  } catch {
+    return null
+  }
+}
+
+async function redisSet(key: string, value: string, ttlSec: number): Promise<void> {
+  const url = process.env.UPSTASH_REDIS_REST_URL
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN
+  if (!url || !token) return
+  try {
+    await fetch(`${url}/set/${encodeURIComponent(key)}`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value, ex: ttlSec }),
+      signal: AbortSignal.timeout(5000)
+    })
+  } catch (err) {
+    console.warn('[company-search] Redis SET failed (non-fatal):', err)
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Chargement depuis Firestore
+// ─────────────────────────────────────────────────────────────────────────────
+
+async function loadFromFirestore(): Promise<CompanyRecord[]> {
+  const snap = await adminDb.collection('companies').limit(COMPANIES_LIMIT).get()
+
+  if (snap.size >= COMPANIES_LIMIT) {
+    console.warn(
+      `[company-search] ⚠️  La collection companies a atteint la limite de ${COMPANIES_LIMIT} documents.`,
+      'Les résultats de recherche peuvent être tronqués.',
+      'Migrez vers Algolia ou Typesense pour une recherche complète.'
+    )
+  }
+
+  return snap.docs.map((d) => {
+    const data = d.data()
+    return {
+      ...data,
+      id: d.id,
+      raisonSociale: (data.raisonSociale ?? data.name ?? '') as string,
+      sector: (data.sector ?? data.activite_principale ?? '') as string,
+      region: (data.region ?? data.centre_de_rattachement ?? '') as string,
+      city: (data.city ?? data.ville ?? '') as string,
+      niu: (data.niu ?? '') as string,
+      sigle: (data.sigle ?? '') as string,
+      dirigeant: (data.dirigeant ?? '') as string,
+      telephone: (data.telephone ?? '') as string,
+      email: (data.email ?? '') as string,
+      rccm: (data.rccm ?? '') as string,
+      adresse: (data.adresse ?? '') as string,
+      formeJuridique: (data.formeJuridique ?? '') as string,
+      capital: (data.capital ?? '') as string,
+      country: String(data.country || 'CM').toUpperCase()
+    } as CompanyRecord
+  })
+}
 
 /**
  * Normalise une chaîne pour une recherche insensible aux accents et à la casse
@@ -35,40 +122,49 @@ export function normalizeString(str: string): string {
 }
 
 /**
- * Récupère l'ensemble des entreprises avec mise en cache mémoire
+ * Récupère l'ensemble des entreprises :
+ *   1. Redis (Upstash) — partagé entre toutes les instances serverless ✅
+ *   2. Mémoire locale — fallback si Redis indisponible
+ *   3. Firestore — source de vérité, résultat stocké dans Redis + mémoire
  */
 export async function getCachedCompanies(): Promise<CompanyRecord[]> {
-  if (!cachedCompanies || Date.now() - lastCacheUpdate > CACHE_DURATION) {
+  // ── 1. Essai Redis ──────────────────────────────────────────────────────
+  const cached = await redisGet(REDIS_KEY)
+  if (cached) {
     try {
-      const snap = await adminDb.collection('companies').limit(10000).get()
-      cachedCompanies = snap.docs.map((d) => {
-        const data = d.data()
-        return {
-          ...data,
-          id: d.id,
-          raisonSociale: (data.raisonSociale ?? data.name ?? '') as string,
-          sector: (data.sector ?? data.activite_principale ?? '') as string,
-          region: (data.region ?? data.centre_de_rattachement ?? '') as string,
-          city: (data.city ?? data.ville ?? '') as string,
-          niu: (data.niu ?? '') as string,
-          sigle: (data.sigle ?? '') as string,
-          dirigeant: (data.dirigeant ?? '') as string,
-          telephone: (data.telephone ?? '') as string,
-          email: (data.email ?? '') as string,
-          rccm: (data.rccm ?? '') as string,
-          adresse: (data.adresse ?? '') as string,
-          formeJuridique: (data.formeJuridique ?? '') as string,
-          capital: (data.capital ?? '') as string,
-          country: String(data.country || 'CM').toUpperCase()
-        }
-      })
-      lastCacheUpdate = Date.now()
-    } catch (err) {
-      console.error('[company-search] Error loading companies cache:', err)
-      return cachedCompanies || []
+      const parsed = JSON.parse(cached) as CompanyRecord[]
+      // Mettre à jour la mémoire locale en même temps
+      memoryCache = parsed
+      memoryCacheAt = Date.now()
+      return parsed
+    } catch {
+      console.warn('[company-search] Redis cache parse error, fallback to Firestore')
     }
   }
-  return cachedCompanies || []
+
+  // ── 2. Fallback mémoire (même instance) ────────────────────────────────
+  if (memoryCache && Date.now() - memoryCacheAt < MEMORY_TTL) {
+    return memoryCache
+  }
+
+  // ── 3. Chargement Firestore ────────────────────────────────────────────
+  try {
+    const companies = await loadFromFirestore()
+
+    // Stocker dans Redis (asynchrone, non-bloquant)
+    redisSet(REDIS_KEY, JSON.stringify(companies), CACHE_TTL_SEC).catch((e) =>
+      console.warn('[company-search] Async Redis write failed:', e)
+    )
+
+    // Stocker en mémoire locale
+    memoryCache = companies
+    memoryCacheAt = Date.now()
+
+    return companies
+  } catch (err) {
+    console.error('[company-search] Error loading companies from Firestore:', err)
+    return memoryCache || []
+  }
 }
 
 export interface SearchCompaniesOptions {
