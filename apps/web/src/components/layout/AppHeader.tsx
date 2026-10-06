@@ -38,7 +38,14 @@ export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void 
     independent: { label: t('sidebar.independent'), bg: 'rgba(34,197,94,0.22)' },
     support_agent: { label: t('sidebar.support'), bg: 'rgba(235,133,18,0.25)' }
   }
-  const badge = user?.role ? (roleBadge[user.role] ?? null) : null
+
+  // Senior Manager has a distinct badge (purple tint) vs Team Manager (yellow)
+  const isSeniorManager = user?.role === 'manager' && user?.orgRole === 'senior_manager'
+  const badge = user?.role
+    ? isSeniorManager
+      ? { label: 'Senior Manager', bg: 'rgba(139,92,246,0.22)' }
+      : (roleBadge[user.role] ?? null)
+    : null
 
   return (
     <header className="sticky top-0 z-[100] flex h-16 items-center border-b border-border/70 bg-background/85 px-4 backdrop-blur-md transition-all">

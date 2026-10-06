@@ -8,8 +8,8 @@ async function getAdmin() {
 
 /**
  * GET /api/team/org
- * Récupère le code organisation et les informations de vérification NIU du Manager connecté.
- * Génère automatiquement un orgCode si le compte n'en possède pas encore.
+ * Récupère le code organisation, le rôle hiérarchique (Senior Manager vs Team Manager),
+ * les informations de vérification NIU, et la liste des managers rattachés à la même organisation.
  */
 export async function GET(request: NextRequest) {
   try {
@@ -34,19 +34,60 @@ export async function GET(request: NextRequest) {
     }
 
     let orgCode = userData.orgCode || null
+    let orgRole = userData.orgRole || null
+
     if (!orgCode) {
       orgCode = generateOrgCode(userData.country || 'CM')
-      await userDocRef.update({ orgCode }).catch(() => {})
+      orgRole = 'senior_manager'
+      await userDocRef.update({ orgCode, orgRole }).catch(() => {})
+    } else if (!orgRole) {
+      // Par défaut, si non défini, c'est le senior manager de ce code
+      orgRole = 'senior_manager'
+      await userDocRef.update({ orgRole }).catch(() => {})
     }
 
     const niu = userData.niu ? normalizeNiu(userData.niu) : null
     const isVerified = Boolean(niu)
+    const isSeniorManager = orgRole === 'senior_manager'
+
+    // Récupérer tous les managers de la même organisation
+    let managers: any[] = []
+    if (orgCode) {
+      try {
+        const orgManagersSnap = await adminDb
+          .collection('users')
+          .where('orgCode', '==', orgCode)
+          .where('role', '==', 'manager')
+          .get()
+
+        managers = orgManagersSnap.docs.map((d) => {
+          const mData = d.data()
+          return {
+            uid: d.id,
+            name: mData.displayName || mData.name || mData.email,
+            email: mData.email,
+            phone: mData.phone || null,
+            orgRole: mData.orgRole || (d.id === managerUid ? orgRole : 'team_manager'),
+            isCurrent: d.id === managerUid,
+            isSenior: (mData.orgRole || (d.id === managerUid ? orgRole : 'team_manager')) === 'senior_manager',
+            createdAt: mData.createdAt?.toDate ? mData.createdAt.toDate().toISOString() : null
+          }
+        })
+      } catch (mErr) {
+        console.warn('Could not fetch org managers:', mErr)
+      }
+    }
 
     return NextResponse.json({
       orgCode,
+      orgRole,
+      isSeniorManager,
       niu,
       isVerified,
-      companyName: userData.companyName || userData.company || 'Mon Organisation'
+      companyName: userData.companyName || userData.company || 'Mon Organisation',
+      sector: userData.sector || null,
+      country: userData.country || 'CM',
+      managers
     })
   } catch (error: any) {
     console.error('[GET /api/team/org] error:', error)
@@ -90,17 +131,40 @@ export async function PATCH(request: NextRequest) {
       const rawNiu = String(body.niu).trim()
       if (rawNiu.length > 0) {
         if (!isValidNiuFormat(rawNiu)) {
-          return NextResponse.json({
-            error: 'Format de NIU invalide. Le NIU doit comporter entre 6 et 30 caractères alphanumériques.'
-          }, { status: 400 })
+          return NextResponse.json(
+            {
+              error: 'Format de NIU invalide. Le NIU doit comporter entre 6 et 30 caractères alphanumériques.'
+            },
+            { status: 400 }
+          )
         }
-        updates.niu = normalizeNiu(rawNiu)
+        const normalized = normalizeNiu(rawNiu)
+        updates.niu = normalized
+
+        // Réconciliation automatique par NIU : si un autre manager a ce NIU, s'unifier automatiquement
+        const sameNiuQuery = await adminDb
+          .collection('users')
+          .where('niu', '==', normalized)
+          .where('role', '==', 'manager')
+          .limit(2)
+          .get()
+
+        const existingManagerWithNiu = sameNiuQuery.docs.find((d) => d.id !== managerUid)
+        if (existingManagerWithNiu) {
+          const emData = existingManagerWithNiu.data()
+          if (emData.orgCode && emData.orgCode !== userData.orgCode) {
+            updates.orgCode = emData.orgCode
+            updates.orgRole = 'team_manager'
+            if (emData.companyName) updates.companyName = emData.companyName
+            if (emData.sector) updates.sector = emData.sector
+          }
+        }
       } else {
         updates.niu = null
       }
     }
 
-    // 2. Rattachement à une organisation existante via orgCode
+    // 2. Rattachement explicite à une organisation existante via orgCode
     if (body.joinOrgCode) {
       const targetCode = String(body.joinOrgCode).trim().toUpperCase()
       if (targetCode !== userData.orgCode) {
@@ -113,14 +177,27 @@ export async function PATCH(request: NextRequest) {
           .get()
 
         if (query.empty) {
-          return NextResponse.json({
-            error: `Aucune organisation trouvée avec le code "${targetCode}". Vérifiez le code partagé par votre collègue manager.`
-          }, { status: 404 })
+          return NextResponse.json(
+            {
+              error: `Aucune organisation trouvée avec le code "${targetCode}". Vérifiez le code partagé par votre Senior Manager.`
+            },
+            { status: 404 }
+          )
         }
 
         const targetManagerData = query.docs[0]?.data()
         updates.orgCode = targetCode
-        // Si le compte rejoint a déjà un NIU et pas ce manager, synchroniser si désiré
+        updates.orgRole = 'team_manager' // Le manager qui rejoint devient Manager d'équipe
+
+        // Adopter la raison sociale et le secteur de l'organisation rejointe
+        if (targetManagerData?.companyName) {
+          updates.companyName = targetManagerData.companyName
+        }
+        if (targetManagerData?.sector) {
+          updates.sector = targetManagerData.sector
+        }
+
+        // Si l'organisation rejointe a déjà un NIU et pas ce manager, synchroniser
         if (!updates.niu && !userData.niu && targetManagerData?.niu) {
           updates.niu = targetManagerData.niu
         }
@@ -138,9 +215,12 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({
       success: true,
       orgCode: updatedData.orgCode,
+      orgRole: updatedData.orgRole || 'team_manager',
+      isSeniorManager: updatedData.orgRole === 'senior_manager',
       niu: updatedNiu,
       isVerified: Boolean(updatedNiu),
-      companyName: updatedData.companyName || updatedData.company || 'Mon Organisation'
+      companyName: updatedData.companyName || updatedData.company || 'Mon Organisation',
+      sector: updatedData.sector || null
     })
   } catch (error: any) {
     console.error('[PATCH /api/team/org] error:', error)

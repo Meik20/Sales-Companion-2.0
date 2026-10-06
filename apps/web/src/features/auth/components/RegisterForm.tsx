@@ -34,12 +34,13 @@ export function RegisterForm() {
   const nameParam = searchParams.get('name')
   const companyParam = searchParams.get('company')
   const sectorParam = searchParams.get('sector')
+  const orgParam = searchParams.get('org') // Code ORG d'invitation d'un Senior Manager
 
   // Multi-step navigation : Étape 1 (Accès & Coordonnées) | Étape 2 (Entreprise & Rôle)
   const [step, setStep] = useState<1 | 2>(1)
 
   const [name, setName] = useState(nameParam || '')
-  const [role, setRole] = useState<RoleOption>(roleParam === 'manager' || exemptionParam ? 'manager' : 'independent')
+  const [role, setRole] = useState<RoleOption>(roleParam === 'manager' || exemptionParam || orgParam ? 'manager' : 'independent')
   const [country, setCountry] = useState<string>('CM')
   const [phone, setPhone] = useState('')
   const [email, setEmail] = useState(emailParam || '')
@@ -47,6 +48,9 @@ export function RegisterForm() {
   const [companyName, setCompanyName] = useState(companyParam || '')
   const [sector, setSector] = useState<string>(sectorParam || '')
   const [niu, setNiu] = useState('')
+  const [joinOrgCode, setJoinOrgCode] = useState(orgParam || '')
+  const [joinOrgInfo, setJoinOrgInfo] = useState<{ companyName: string; sector?: string; seniorManagerName?: string } | null>(null)
+  const [joinOrgVerifying, setJoinOrgVerifying] = useState(false)
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -106,6 +110,32 @@ export function RegisterForm() {
   }
 
   const selectedCountryObj = SUPPORTED_COUNTRIES.find((c) => c.code === country) ?? SUPPORTED_COUNTRIES[0]
+
+  /** Vérification du code ORG saisi par un Manager souhaitant rejoindre une organisation existante */
+  async function verifyOrgCode(code: string) {
+    const trimmed = code.trim().toUpperCase()
+    if (trimmed.length < 5) { setJoinOrgInfo(null); return }
+    setJoinOrgVerifying(true)
+    try {
+      const res = await fetch(`/api/team/org/verify?code=${encodeURIComponent(trimmed)}`)
+      const data = await res.json()
+      if (res.ok && data.valid) {
+        setJoinOrgInfo({
+          companyName: data.companyName,
+          sector: data.sector,
+          seniorManagerName: data.seniorManagerName
+        })
+        if (data.companyName && !companyName.trim()) setCompanyName(data.companyName)
+        if (data.sector && !sector) setSector(data.sector)
+      } else {
+        setJoinOrgInfo(null)
+      }
+    } catch {
+      setJoinOrgInfo(null)
+    } finally {
+      setJoinOrgVerifying(false)
+    }
+  }
 
   /** Validation de l'Étape 1 avant de basculer vers l'Étape 2 */
   function handleNextStep(e?: React.FormEvent) {
@@ -187,9 +217,10 @@ export function RegisterForm() {
         role,
         country,
         phone: formattedPhone,
-        companyName: companyName.trim() ? companyName.trim() : undefined,
-        sector: sector || undefined,
-        niu: role === 'manager' && niu.trim() ? niu.trim() : undefined
+        companyName: companyName.trim() ? companyName.trim() : (joinOrgInfo?.companyName || undefined),
+        sector: sector || joinOrgInfo?.sector || undefined,
+        niu: role === 'manager' && niu.trim() ? niu.trim() : undefined,
+        joinOrgCode: role === 'manager' && joinOrgCode.trim() ? joinOrgCode.trim() : undefined
       })
 
       // Marquer le jeton de dérogation comme consommé
@@ -475,7 +506,7 @@ export function RegisterForm() {
           </FormField>
 
           {/* Numéro d'Identification Unique (NIU strict - Manager only, optionnel) */}
-          {role === 'manager' && (
+          {role === 'manager' && !joinOrgCode.trim() && (
             <FormField
               label={t('auth.niuLabel' as any) || "Numéro d'Identification Unique (NIU)"}
               hint={t('auth.niuHint' as any) || "Optionnel — Numéro fiscal officiel DGI (carte de contribuable). Active le badge Organisation vérifiée 🛡️"}
@@ -485,6 +516,57 @@ export function RegisterForm() {
                 value={niu}
                 onChange={(e) => setNiu(e.target.value.toUpperCase())}
               />
+            </FormField>
+          )}
+
+          {/* Code ORG de rattachement (Manager only) */}
+          {role === 'manager' && (
+            <FormField
+              label={lang === 'en' ? 'Organisation Code (if joining an existing org)' : "Code Organisation (si vous rejoignez une org existante)"}
+              hint={lang === 'en' ? 'Optional — Provided by your Senior Manager via email invitation' : 'Optionnel — Fourni par votre Senior Manager via lien ou email d\'invitation'}
+            >
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Ex: SC-CM-GE9GQ"
+                    value={joinOrgCode}
+                    onChange={(e) => {
+                      const val = e.target.value.toUpperCase()
+                      setJoinOrgCode(val)
+                      if (val.length >= 10) void verifyOrgCode(val)
+                      else setJoinOrgInfo(null)
+                    }}
+                    className="font-mono tracking-widest"
+                  />
+                  {joinOrgVerifying && (
+                    <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center">
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                    </span>
+                  )}
+                </div>
+
+                {/* Confirmation banner lorsqu'une organisation est reconnue */}
+                {joinOrgInfo && (
+                  <div className="flex items-start gap-2.5 rounded-lg border border-green-500/30 bg-green-500/10 px-3 py-2.5 text-[12px]">
+                    <span className="mt-0.5 text-green-400">✓</span>
+                    <div>
+                      <p className="font-bold text-green-400">
+                        {lang === 'en' ? 'Organisation recognised:' : 'Organisation reconnue :'} {joinOrgInfo.companyName}
+                      </p>
+                      {joinOrgInfo.seniorManagerName && (
+                        <p className="mt-0.5 text-green-400/80">
+                          {lang === 'en' ? 'Senior Manager:' : 'Senior Manager :'} {joinOrgInfo.seniorManagerName}
+                        </p>
+                      )}
+                      <p className="mt-0.5 text-muted-foreground">
+                        {lang === 'en'
+                          ? 'You will join this organisation as a Team Manager.'
+                          : 'Vous rejoindrez cette organisation en tant que Manager d\'équipe.'}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
             </FormField>
           )}
 

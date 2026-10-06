@@ -75,7 +75,16 @@ export default function SettingsPage() {
   const [pwSuccess, setPwSuccess] = useState<string | null>(null)
 
   // ── Organisation & Gouvernance ──────────────────────────────────
-  const [orgData, setOrgData] = useState<{ orgCode: string; niu: string | null; isVerified: boolean; companyName: string } | null>(null)
+  const [orgData, setOrgData] = useState<{
+    orgCode: string
+    orgRole: 'senior_manager' | 'team_manager'
+    isSeniorManager: boolean
+    niu: string | null
+    isVerified: boolean
+    companyName: string
+    sector?: string | null
+    managers?: { uid: string; name: string; email: string; orgRole: string; isCurrent: boolean; isSenior: boolean }[]
+  } | null>(null)
   const [niuInput, setNiuInput] = useState('')
   const [niuLoading, setNiuLoading] = useState(false)
   const [niuError, setNiuError] = useState<string | null>(null)
@@ -406,8 +415,19 @@ export default function SettingsPage() {
                       </h4>
                     </div>
 
-                    {/* Badge de statut */}
-                    <div>
+                    {/* Badges : rôle hiérarchique + statut de vérification */}
+                    <div className="flex flex-wrap items-center gap-2">
+                      {/* Rôle hiérarchique */}
+                      {(orgData?.isSeniorManager) ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-500/30 bg-violet-500/10 px-3 py-1 text-[12px] font-bold text-violet-400">
+                          ★ Senior Manager
+                        </span>
+                      ) : orgData?.orgRole === 'team_manager' ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-yellow-500/30 bg-yellow-500/10 px-3 py-1 text-[12px] font-bold text-yellow-500">
+                          Manager d&apos;équipe
+                        </span>
+                      ) : null}
+                      {/* Statut de vérification */}
                       {orgData?.isVerified || Boolean(user?.niu) ? (
                         <span className="inline-flex items-center gap-1.5 rounded-full border border-green-500/30 bg-green-500/10 px-3 py-1 text-[12px] font-bold text-green-400">
                           <ShieldCheck size={14} className="text-green-400" />
@@ -448,6 +468,41 @@ export default function SettingsPage() {
                       </p>
                     </div>
                   </div>
+
+                  {/* Liste des managers de l'organisation (visible pour tous) */}
+                  {orgData?.managers && orgData.managers.length > 1 && (
+                    <div className="mt-4 rounded-xl border border-border bg-secondary/20 p-3">
+                      <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        Managers de l&apos;organisation ({orgData.managers.length})
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        {orgData.managers.map((m) => (
+                          <div
+                            key={m.uid}
+                            className={`flex items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 text-[12.5px] ${
+                              m.isCurrent ? 'bg-primary/8 font-semibold' : ''
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 truncate">
+                              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-secondary text-[10px] font-bold text-foreground">
+                                {(m.name?.[0] || '?').toUpperCase()}
+                              </div>
+                              <span className="truncate text-foreground">{m.name}{m.isCurrent && ' (vous)'}</span>
+                            </div>
+                            {m.isSenior ? (
+                              <span className="shrink-0 rounded-full bg-violet-500/15 px-2 py-0.5 text-[10px] font-bold text-violet-400">
+                                Senior Manager
+                              </span>
+                            ) : (
+                              <span className="shrink-0 rounded-full bg-yellow-500/10 px-2 py-0.5 text-[10px] font-semibold text-yellow-500">
+                                Manager
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* NIU Section */}
@@ -511,6 +566,32 @@ export default function SettingsPage() {
                     {joinError && <div className="text-[12px] text-red-400">{joinError}</div>}
                     {joinSuccess && <div className="text-[12px] text-green-400">{joinSuccess}</div>}
                   </form>
+
+                  {/* Bouton d'invitation (Senior Manager only) */}
+                  {orgData?.isSeniorManager && orgData.orgCode && (
+                    <div className="mt-4 flex flex-col gap-2">
+                      <div className="text-[12px] font-semibold text-muted-foreground">
+                        Inviter un Manager dans votre organisation
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const link = `${window.location.origin}/register?role=manager&org=${orgData.orgCode}`
+                            void navigator.clipboard.writeText(link).then(() => {
+                              window.alert('✓ Lien d\'invitation copié : ' + link)
+                            })
+                          }}
+                          className="inline-flex items-center gap-2 rounded-lg border border-primary/40 bg-primary/10 px-3 py-1.5 text-[12px] font-semibold text-primary transition-colors hover:bg-primary/20"
+                        >
+                          🔗 Copier le lien d&apos;invitation
+                        </button>
+                        <p className="text-[11px] text-muted-foreground">
+                          Partagez ce lien à vos collègues managers. Ils rejoindront directement votre organisation lors de leur inscription.
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
               </div>

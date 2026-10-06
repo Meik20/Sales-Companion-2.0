@@ -27,6 +27,7 @@ type RegisterInput = {
   phone?: string
   niu?: string
   orgCode?: string
+  joinOrgCode?: string  // Code ORG fourni par un Senior Manager pour rejoindre son organisation
 }
 
 /** Upsert the Firestore user document after any Google sign-in */
@@ -80,7 +81,12 @@ export function useAuthActions() {
       await updateProfile(user, { displayName: input.name })
 
       const isManager = (input.role || 'independent') === 'manager'
-      const orgCode = isManager ? (input.orgCode || generateOrgCode(input.country || 'CM')) : null
+      // Si un code ORG de rattachement est fourni → Team Manager, sinon Senior Manager (premier de l'org)
+      const joiningExistingOrg = isManager && Boolean(input.joinOrgCode?.trim())
+      const orgCode = isManager
+        ? (joiningExistingOrg ? input.joinOrgCode!.trim().toUpperCase() : (input.orgCode || generateOrgCode(input.country || 'CM')))
+        : null
+      const orgRole = isManager ? (joiningExistingOrg ? 'team_manager' : 'senior_manager') : null
       const niu = input.niu ? normalizeNiu(input.niu) : null
 
       // Save user profile data to Firestore
@@ -108,6 +114,7 @@ export function useAuthActions() {
           companyName: input.companyName || null,
           companyId: null,
           orgCode,
+          orgRole,
           niu,
           managerUid: null,
           preferences: {
