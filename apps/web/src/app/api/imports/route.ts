@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { hasActivePaidManagerAccess } from '@/lib/manager-access'
 import { FieldValue } from 'firebase-admin/firestore'
 
 async function getAdminModules() {
@@ -29,6 +30,13 @@ export async function GET(request: NextRequest) {
     const callerDoc = await adminDb.collection('users').doc(callerUid).get()
     const callerData = callerDoc.data()
     const callerRole = callerData?.role as string | undefined
+
+    if (callerRole === 'manager' && !hasActivePaidManagerAccess(callerData)) {
+      return NextResponse.json(
+        { message: 'Un abonnement Manager actif et vérifié est requis.' },
+        { status: 403 }
+      )
+    }
 
     const { searchParams } = new URL(request.url)
     const managerId = searchParams.get('managerId')
@@ -187,15 +195,15 @@ export async function POST(request: NextRequest) {
 
     // Sécurité : un manager ne peut importer que sous son propre uid et si son compte n'est pas expiré
     if (callerRole === 'manager') {
-      if (managerId !== callerUid) {
+      if (!hasActivePaidManagerAccess(callerData)) {
         return NextResponse.json(
-          { message: 'Accès refusé. Vous ne pouvez importer que pour votre propre compte.' },
+          { message: 'Un abonnement Manager actif et vérifié est requis pour importer.' },
           { status: 403 }
         )
       }
-      if (callerData?.subscriptionExpired === true) {
+      if (managerId !== callerUid) {
         return NextResponse.json(
-          { message: 'Votre abonnement a expiré. Veuillez renouveler votre formule pour importer.' },
+          { message: 'Accès refusé. Vous ne pouvez importer que pour votre propre compte.' },
           { status: 403 }
         )
       }

@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { FieldValue } from 'firebase-admin/firestore'
+import { hasActivePaidManagerAccess } from '@/lib/manager-access'
 
 async function getAdmin() {
   const { adminDb, adminAuth } = await import('@/lib/firebase-admin')
@@ -24,6 +25,11 @@ export async function GET(request: NextRequest) {
       managerUid = decoded.uid
     } catch {
       return NextResponse.json({ message: 'Token invalide' }, { status: 401 })
+    }
+
+    const managerDoc = await adminDb.collection('users').doc(managerUid).get()
+    if (!hasActivePaidManagerAccess(managerDoc.data())) {
+      return NextResponse.json({ message: 'Un abonnement Manager actif et vérifié est requis.' }, { status: 403 })
     }
 
     const [teamSnap, legacySnap] = await Promise.all([
@@ -150,9 +156,12 @@ export async function POST(request: NextRequest) {
     try {
       const decoded = await adminAuth.verifyIdToken(token)
       managerUid = decoded.uid
-      // Try to get manager name
       const managerDoc = await adminDb.collection('users').doc(managerUid).get()
-      managerName = managerDoc.data()?.name ?? managerDoc.data()?.email ?? ''
+      const managerData = managerDoc.data()
+      if (!hasActivePaidManagerAccess(managerData) || decoded.email_verified !== true) {
+        return NextResponse.json({ message: 'Un abonnement Manager actif et vérifié est requis.' }, { status: 403 })
+      }
+      managerName = managerData?.name ?? managerData?.email ?? ''
     } catch {
       return NextResponse.json({ message: 'Token invalide' }, { status: 401 })
     }

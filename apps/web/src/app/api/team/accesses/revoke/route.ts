@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { hasActivePaidManagerAccess } from '@/lib/manager-access'
 
 async function getAdmin() {
   const { adminDb, adminAuth } = await import('@/lib/firebase-admin')
@@ -20,6 +21,10 @@ export async function POST(request: NextRequest) {
     try {
       const decoded = await adminAuth.verifyIdToken(token)
       managerUid = decoded.uid
+      const managerDoc = await adminDb.collection('users').doc(managerUid).get()
+      if (!hasActivePaidManagerAccess(managerDoc.data()) || decoded.email_verified !== true) {
+        return NextResponse.json({ error: 'Un abonnement Manager actif et vérifié est requis.' }, { status: 403 })
+      }
     } catch {
       return NextResponse.json({ error: 'Token invalide' }, { status: 401 })
     }

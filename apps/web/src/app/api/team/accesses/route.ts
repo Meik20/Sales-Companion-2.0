@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { adminDb, adminAuth } from '@/lib/firebase-admin'
 import { sendEmail } from '@/utils/email'
 import { PLAN_LIMITS } from '@sales-companion/shared'
+import { hasActivePaidManagerAccess } from '@/lib/manager-access'
 
 function normalizeText(text: string) {
   return (text || '')
@@ -25,9 +26,12 @@ export async function POST(request: NextRequest) {
     // Vérification du rôle manager
     const managerDoc = await adminDb.collection('users').doc(managerUid).get()
     const managerData = managerDoc.data()
-    
-    if (managerData?.role !== 'manager') {
-       return NextResponse.json({ error: 'Accès refusé. Seul un manager peut créer des accès.' }, { status: 403 })
+
+    if (
+      !hasActivePaidManagerAccess(managerData) ||
+      decodedToken.email_verified !== true
+    ) {
+      return NextResponse.json({ error: 'Un abonnement Manager actif et vérifié est requis.' }, { status: 403 })
     }
 
     const { firstname, lastname, company, email, role, permissions } = await request.json()

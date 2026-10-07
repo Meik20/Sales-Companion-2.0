@@ -22,10 +22,13 @@ service cloud.firestore {
     }
 
     function isManager() {
-      return isSignedIn() && (
-        request.auth.token.role == 'manager' ||
-        currentUserDoc().role == 'manager'
-      );
+      return isSignedIn()
+        && currentUserDoc().role == 'manager'
+        && currentUserDoc().active == true
+        && currentUserDoc().activated == true
+        && currentUserDoc().emailVerified == true
+        && currentUserDoc().get('plan', 'free') != 'free'
+        && currentUserDoc().get('subscriptionExpired', false) != true;
     }
 
     function isOwner(userId) {

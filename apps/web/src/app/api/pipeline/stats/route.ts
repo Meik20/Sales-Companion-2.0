@@ -1,5 +1,6 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
+import { hasActivePaidManagerAccess } from '@/lib/manager-access'
 
 async function getAdminModules() {
   const { adminDb, adminAuth } = await import('@/lib/firebase-admin')
@@ -30,7 +31,7 @@ export async function GET(request: NextRequest) {
     // Check if user is manager — get team stats
     const userDoc = await adminDb.collection('users').doc(userId).get()
     const userData = userDoc.data()
-    const isManager = userData?.role === 'manager'
+    const isManager = hasActivePaidManagerAccess(userData)
 
     let docs: Array<import('firebase-admin').firestore.QueryDocumentSnapshot> = []
 

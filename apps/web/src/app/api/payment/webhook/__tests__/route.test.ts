@@ -174,6 +174,10 @@ describe('POST /api/payment/webhook', () => {
     expect(res.status).toBe(200)
     expect(json.received).toBe(true)
     expect(mocks.mockBatchUpdate).toHaveBeenCalledTimes(2)
+    expect(mocks.mockBatchUpdate).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ active: true, activated: true })
+    )
     expect(mocks.mockBatchCommit).toHaveBeenCalledTimes(1)
   })
 

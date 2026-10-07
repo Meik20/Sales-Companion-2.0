@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { hasActivePaidManagerAccess } from '@/lib/manager-access'
 
 export const dynamic = 'force-dynamic'
 
@@ -43,8 +44,8 @@ export async function GET(request: NextRequest) {
     const callerDoc = await adminDb.collection('users').doc(callerUid).get()
     const callerData = callerDoc.data()
 
-    if (!callerData || callerData.role !== 'manager') {
-      return NextResponse.json({ error: 'Accès réservé aux managers' }, { status: 403 })
+    if (!callerData || !hasActivePaidManagerAccess(callerData)) {
+      return NextResponse.json({ error: 'Un abonnement Manager actif et vérifié est requis.' }, { status: 403 })
     }
 
     if (callerData.orgRole !== 'senior_manager') {

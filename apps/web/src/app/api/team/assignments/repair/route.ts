@@ -1,5 +1,6 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
+import { hasActivePaidManagerAccess } from '@/lib/manager-access'
 import { FieldValue } from 'firebase-admin/firestore'
 
 async function getAdmin() {
@@ -47,7 +48,11 @@ export async function POST(request: NextRequest) {
       const decoded = await adminAuth.verifyIdToken(token)
       managerUid = decoded.uid
       const mDoc = await adminDb.collection('users').doc(managerUid).get()
-      managerName = (mDoc.data()?.name ?? mDoc.data()?.email ?? '') as string
+      const managerData = mDoc.data()
+      if (!hasActivePaidManagerAccess(managerData) || decoded.email_verified !== true) {
+        return NextResponse.json({ message: 'Un abonnement Manager actif et vérifié est requis.' }, { status: 403 })
+      }
+      managerName = (managerData?.name ?? managerData?.email ?? '') as string
     } catch {
       return NextResponse.json({ message: 'Token invalide' }, { status: 401 })
     }

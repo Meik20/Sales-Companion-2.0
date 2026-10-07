@@ -1,5 +1,6 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
+import { hasActivePaidManagerAccess } from '@/lib/manager-access'
 
 async function getAdminModules() {
   const { adminDb, adminAuth } = await import('@/lib/firebase-admin')
@@ -28,6 +29,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Token invalide' }, { status: 401 })
     }
 
+    const callerDoc = await adminDb.collection('users').doc(userId).get()
+    const callerData = callerDoc.data()
+    if (!callerData || callerData.active !== true || callerData.activated !== true || callerData.emailVerified !== true) {
+      return NextResponse.json({ message: 'Un compte actif et vérifié est requis.' }, { status: 403 })
+    }
+    if (callerData.role === 'manager' && !hasActivePaidManagerAccess(callerData)) {
+      return NextResponse.json({ message: 'Un abonnement Manager actif est requis.' }, { status: 403 })
+    }
+    if (!['manager', 'independent', 'member'].includes(callerData.role)) {
+      return NextResponse.json({ message: 'Accès refusé' }, { status: 403 })
+    }
+
     const body = await request.json().catch(() => null)
     if (!body) {
       return NextResponse.json({ message: 'Corps invalide' }, { status: 400 })
@@ -40,12 +53,7 @@ export async function POST(request: NextRequest) {
       companyCity,
       companyPhone,
       companyEmail,
-      managerUid,
-      assignedTo,
-      memberName,
-      memberAccessId,
       googlePlaceId,
-      userRole
     } = body as {
       companyId?: string
       companyName?: string
@@ -53,13 +61,14 @@ export async function POST(request: NextRequest) {
       companyCity?: string
       companyPhone?: string
       companyEmail?: string
-      managerUid?: string | null
-      assignedTo?: string | null
-      memberName?: string | null
-      memberAccessId?: string | null
       googlePlaceId?: string | null
-      userRole?: string | null
     }
+
+    const isManagerRole = callerData.role === 'manager'
+    const managerUid = isManagerRole ? userId : (callerData.managerUid as string | null | undefined)
+    const assignedTo = isManagerRole ? null : userId
+    const memberName = isManagerRole ? null : (callerData.name ?? callerData.displayName ?? null)
+    const memberAccessId = isManagerRole ? null : (callerData.accessId ?? null)
 
     if (!companyName) {
       return NextResponse.json({ message: 'companyName requis' }, { status: 400 })
@@ -145,9 +154,8 @@ export async function POST(request: NextRequest) {
     //   - userId = memberId
     //   - assignedTo = memberId (lui-même)
     //   - memberName = son propre nom
-    const isManagerRole = userRole === 'manager' || (managerUid && managerUid === userId)
-    const finalAssignedTo = isManagerRole ? null : (assignedTo ?? userId)
-    const finalMemberName = isManagerRole ? null : (memberName ?? null)
+    const finalAssignedTo = assignedTo
+    const finalMemberName = memberName
 
     const now = new Date()
     const docRef = await adminDb.collection('pipeline').add({

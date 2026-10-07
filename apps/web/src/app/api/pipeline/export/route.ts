@@ -1,5 +1,6 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
+import { hasActivePaidManagerAccess } from '@/lib/manager-access'
 
 async function getAdmin() {
   const { adminDb, adminAuth } = await import('@/lib/firebase-admin')
@@ -40,7 +41,11 @@ export async function GET(request: NextRequest) {
 
     // ── Detect caller role ──────────────────────────────────────────────────
     const callerDoc = await adminDb.collection('users').doc(callerUid).get()
-    const callerRole: string = callerDoc.data()?.role ?? ''
+    const callerData = callerDoc.data()
+    const callerRole: string = callerData?.role ?? ''
+    if (callerRole === 'manager' && !hasActivePaidManagerAccess(callerData)) {
+      return NextResponse.json({ message: 'Un abonnement Manager actif et vérifié est requis.' }, { status: 403 })
+    }
 
     // ══════════════════════════════════════════════════════════════════════
     // MODE INDÉPENDANT — export du pipeline personnel uniquement
@@ -240,7 +245,7 @@ export async function GET(request: NextRequest) {
     // FIN MODE INDÉPENDANT — suite : logique manager
     // ══════════════════════════════════════════════════════════════════════
 
-    const callerOrgRole: string = callerDoc.data()?.orgRole ?? 'team_manager'
+    const callerOrgRole: string = callerData?.orgRole ?? 'team_manager'
     const isSeniorManager = callerOrgRole === 'senior_manager'
 
     // ── Résolution du/des managerUid(s) actif(s) ──────────────────────────
@@ -250,7 +255,7 @@ export async function GET(request: NextRequest) {
     let exportScopeLabel = 'ÉQUIPE'             // libellé titre rapport
 
     if (isSeniorManager) {
-      const orgCode: string = callerDoc.data()?.orgCode ?? ''
+      const orgCode: string = callerData?.orgCode ?? ''
       if (orgCode) {
         const orgManagersSnap = await adminDb
           .collection('users')

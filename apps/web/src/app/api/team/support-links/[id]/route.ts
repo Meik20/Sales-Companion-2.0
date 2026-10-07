@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { hasActivePaidManagerAccess } from '@/lib/manager-access'
 
 async function getAdmin() {
   const { adminDb, adminAuth } = await import('@/lib/firebase-admin')
@@ -22,6 +23,10 @@ export async function DELETE(
 
     const decodedToken = await adminAuth.verifyIdToken(token)
     const managerUid = decodedToken.uid
+    const managerDoc = await adminDb.collection('users').doc(managerUid).get()
+    if (!hasActivePaidManagerAccess(managerDoc.data()) || decodedToken.email_verified !== true) {
+      return NextResponse.json({ error: 'Un abonnement Manager actif et vérifié est requis.' }, { status: 403 })
+    }
 
     const linkDoc = await adminDb.collection('support_agent_links').doc(id).get()
     const linkData = linkDoc.data()

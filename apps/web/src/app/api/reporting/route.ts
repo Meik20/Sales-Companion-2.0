@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { adminDb, adminAuth } from '@/lib/firebase-admin'
+import { hasActivePaidManagerAccess } from '@/lib/manager-access'
 
 function normalizeStatus(status: string): 'prospection' | 'negociation' | 'conclue' | 'other' {
   if (['prospection', 'prospect'].includes(status)) return 'prospection'
@@ -19,8 +20,8 @@ export async function GET(request: NextRequest) {
 
     const decoded = await adminAuth.verifyIdToken(token)
     const managerDoc = await adminDb.collection('users').doc(decoded.uid).get()
-    if (managerDoc.data()?.role !== 'manager') {
-      return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
+    if (!hasActivePaidManagerAccess(managerDoc.data())) {
+      return NextResponse.json({ error: 'Un abonnement Manager actif et vérifié est requis.' }, { status: 403 })
     }
 
     // Get all pipeline items for this manager's team

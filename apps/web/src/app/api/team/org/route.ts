@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { generateOrgCode, normalizeNiu, isValidNiuFormat } from '@/lib/org'
+import { hasActivePaidManagerAccess } from '@/lib/manager-access'
 
 async function getAdmin() {
   const { adminDb, adminAuth } = await import('@/lib/firebase-admin')
@@ -85,7 +86,7 @@ export async function GET(request: NextRequest) {
 
     // Récupérer tous les managers de la même organisation
     let managers: any[] = []
-    if (orgCode) {
+    if (orgCode && hasActivePaidManagerAccess(userData)) {
       try {
         const orgManagersSnap = await adminDb
           .collection('users')

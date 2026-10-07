@@ -147,6 +147,8 @@ export async function POST(request: NextRequest) {
       batch.update(adminDb.collection('users').doc(paymentData.userId), {
         plan: paymentData.plan,
         dailyLimit: planInfo.dailyLimit ?? PLAN_LIMITS.enterprise,
+        active: true,
+        activated: true,
         subscriptionStartedAt: FieldValue.serverTimestamp(),
         subscriptionExpiresAt: expiresAt.toISOString(),
         subscriptionExpired: false,

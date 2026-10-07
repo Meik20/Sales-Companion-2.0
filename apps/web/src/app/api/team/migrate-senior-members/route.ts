@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { hasActivePaidManagerAccess } from '@/lib/manager-access'
 
 export const dynamic = 'force-dynamic'
 
@@ -38,7 +39,7 @@ export async function GET(request: NextRequest) {
     // Vérifier les droits du Senior Manager
     const callerDoc = await adminDb.collection('users').doc(callerUid).get()
     const callerData = callerDoc.data()
-    if (!callerData || callerData.role !== 'manager' || callerData.orgRole !== 'senior_manager') {
+    if (!hasActivePaidManagerAccess(callerData) || callerData?.orgRole !== 'senior_manager') {
       return NextResponse.json({ error: 'Action réservée au Senior Manager' }, { status: 403 })
     }
 
@@ -146,7 +147,7 @@ export async function POST(request: NextRequest) {
     // Vérifier les droits du Senior Manager
     const callerDoc = await adminDb.collection('users').doc(callerUid).get()
     const callerData = callerDoc.data()
-    if (!callerData || callerData.role !== 'manager' || callerData.orgRole !== 'senior_manager') {
+    if (!hasActivePaidManagerAccess(callerData) || callerData?.orgRole !== 'senior_manager') {
       return NextResponse.json({ error: 'Action réservée au Senior Manager' }, { status: 403 })
     }
 

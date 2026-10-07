@@ -14,7 +14,7 @@ import {
 } from 'firebase/auth'
 import { doc, setDoc, getDoc, Timestamp } from 'firebase/firestore'
 import { auth, firestore, googleProvider } from '@/services/firebase/client'
-import { generateOrgCode, normalizeNiu } from '@/lib/org'
+import { normalizeNiu } from '@/lib/org'
 
 type RegisterInput = {
   email: string
@@ -31,39 +31,17 @@ type RegisterInput = {
 }
 
 /** Upsert the Firestore user document after any Google sign-in */
-async function upsertGoogleUser(user: { uid: string; email: string | null; displayName: string | null; photoURL: string | null }) {
+async function upsertGoogleUser(user: { uid: string; email: string | null; displayName: string | null; photoURL: string | null; getIdToken: () => Promise<string> }) {
   const ref = doc(firestore, 'users', user.uid)
   const snap = await getDoc(ref)
 
   if (!snap.exists()) {
-    // First-time Google sign-in → create full profile
-    await setDoc(ref, {
-      uid: user.uid,
-      email: user.email,
-      displayName: user.displayName || '',
-      name: user.displayName || '',
-      role: 'independent',
-      country: 'CM',
-      phone: null,
-      plan: 'free',
-      dailyLimit: 10,
-      dailyUsed: 0,
-      active: true,
-      activated: true,
-      emailVerificationPending: false,
-      provider: 'google',
-      photoURL: user.photoURL || null,
-      companyId: null,
-      managerUid: null,
-      createdAt: Timestamp.now(),
-      updatedAt: Timestamp.now(),
-      lastLogin: Timestamp.now(),
-      preferences: {
-        darkMode: false,
-        emailNotifications: true,
-        language: 'fr'
-      }
+    const response = await fetch('/api/auth/google', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken: await user.getIdToken() })
     })
+    if (!response.ok) throw new Error('Impossible de créer le profil Google.')
   } else {
     // Returning user → only update lastLogin & photoURL
     await setDoc(
@@ -83,10 +61,6 @@ export function useAuthActions() {
       const isManager = (input.role || 'independent') === 'manager'
       // Si un code ORG de rattachement est fourni → Team Manager, sinon Senior Manager (premier de l'org)
       const joiningExistingOrg = isManager && Boolean(input.joinOrgCode?.trim())
-      const orgCode = isManager
-        ? (joiningExistingOrg ? input.joinOrgCode!.trim().toUpperCase() : (input.orgCode || generateOrgCode(input.country || 'CM')))
-        : null
-      const orgRole = isManager ? (joiningExistingOrg ? 'team_manager' : 'senior_manager') : null
       const niu = input.niu ? normalizeNiu(input.niu) : null
 
       // Save user profile data to Firestore
@@ -113,10 +87,7 @@ export function useAuthActions() {
           photoURL: user.photoURL || null,
           companyName: input.companyName || null,
           companyId: null,
-          orgCode,
-          orgRole,
           niu,
-          managerUid: null,
           preferences: {
             darkMode: false,
             emailNotifications: true,
@@ -125,6 +96,21 @@ export function useAuthActions() {
         },
         { merge: false }
       )
+
+      if (isManager) {
+        const token = await user.getIdToken()
+        const response = await fetch('/api/team/org', {
+          method: joiningExistingOrg ? 'PATCH' : 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            ...(joiningExistingOrg ? { 'Content-Type': 'application/json' } : {})
+          },
+          ...(joiningExistingOrg
+            ? { body: JSON.stringify({ joinOrgCode: input.joinOrgCode?.trim() }) }
+            : {})
+        })
+        if (!response.ok) throw new Error("Impossible d'initialiser l'organisation du compte.")
+      }
 
       // Send email verification link via our backend
       try {

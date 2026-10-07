@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { Timestamp } from 'firebase-admin/firestore'
+import { hasActivePaidManagerAccess } from '@/lib/manager-access'
 
 async function getAdmin() {
   const { adminDb, adminAuth } = await import('@/lib/firebase-admin')
@@ -83,6 +84,9 @@ export async function GET(request: NextRequest) {
 
     if (!agentData) {
       return NextResponse.json({ message: 'Profil introuvable' }, { status: 404 })
+    }
+    if (agentData.role === 'manager' && !hasActivePaidManagerAccess(agentData)) {
+      return NextResponse.json({ message: 'Un abonnement Manager actif et vérifié est requis.' }, { status: 403 })
     }
 
     if (!['support_agent', 'manager', 'admin', 'independent', 'member'].includes(agentData.role)) {
@@ -233,6 +237,9 @@ export async function POST(request: NextRequest) {
 
     const agentDoc = await adminDb.collection('users').doc(agentUid).get()
     const agentData = agentDoc.data()
+    if (agentData?.role === 'manager' && !hasActivePaidManagerAccess(agentData)) {
+      return NextResponse.json({ message: 'Un abonnement Manager actif et vérifié est requis.' }, { status: 403 })
+    }
     if (!agentData) return NextResponse.json({ message: 'Profil introuvable' }, { status: 404 })
 
     const body = await request.json()

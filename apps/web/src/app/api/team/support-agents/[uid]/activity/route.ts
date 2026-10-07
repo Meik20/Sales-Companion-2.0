@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { adminDb, adminAuth } from '@/lib/firebase-admin'
+import { hasActivePaidManagerAccess } from '@/lib/manager-access'
 
 /**
  * GET /api/team/support-agents/[uid]/activity
@@ -19,7 +20,7 @@ export async function GET(
     const managerDoc = await adminDb.collection('users').doc(decoded.uid).get()
     const userRole = managerDoc.data()?.role
 
-    if (!['manager', 'admin'].includes(userRole)) {
+    if (userRole !== 'admin' && !hasActivePaidManagerAccess(managerDoc.data())) {
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
     }
 

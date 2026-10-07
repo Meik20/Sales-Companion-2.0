@@ -1,5 +1,6 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
+import { hasActivePaidManagerAccess } from '@/lib/manager-access'
 
 async function getAdmin() {
   const { adminDb, adminAuth } = await import('@/lib/firebase-admin')
@@ -26,6 +27,11 @@ export async function GET(request: NextRequest) {
       managerUid = decoded.uid
     } catch {
       return NextResponse.json({ message: 'Token invalide' }, { status: 401 })
+    }
+
+    const managerDoc = await adminDb.collection('users').doc(managerUid).get()
+    if (!hasActivePaidManagerAccess(managerDoc.data())) {
+      return NextResponse.json({ message: 'Un abonnement Manager actif et vérifié est requis.' }, { status: 403 })
     }
 
     const { searchParams } = new URL(request.url)
@@ -81,7 +87,7 @@ export async function POST(request: NextRequest) {
     const callerDoc = await adminDb.collection('users').doc(managerUid).get()
     const callerRole = callerDoc.data()?.role as string | undefined
 
-    if (!['manager', 'admin'].includes(callerRole ?? '')) {
+    if (callerRole !== 'admin' && !hasActivePaidManagerAccess(callerDoc.data())) {
       return NextResponse.json(
         { message: 'Accès refusé. Seul un manager peut définir des objectifs.' },
         { status: 403 }

@@ -31,6 +31,44 @@ export async function POST(request: NextRequest) {
     const { adminAuth } = await import('@/lib/firebase-admin')
 
     const decoded = await adminAuth.verifyIdToken(idToken, true /* checkRevoked */)
+    if (decoded.firebase?.sign_in_provider !== 'google.com' || decoded.email_verified !== true) {
+      return NextResponse.json({ error: 'Connexion Google vérifiée requise.' }, { status: 403 })
+    }
+
+    const { adminDb } = await import('@/lib/firebase-admin')
+    const userRef = adminDb.collection('users').doc(decoded.uid)
+    try {
+      await userRef.create({
+        uid: decoded.uid,
+        email: decoded.email ?? null,
+        displayName: decoded.name ?? '',
+        name: decoded.name ?? '',
+        role: 'independent',
+        country: 'CM',
+        phone: null,
+        plan: 'free',
+        dailyLimit: 10,
+        dailyUsed: 0,
+        active: true,
+        activated: true,
+        emailVerificationPending: false,
+        emailVerified: true,
+        provider: 'google',
+        photoURL: decoded.picture ?? null,
+        companyId: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        lastLogin: new Date(),
+        preferences: {
+          darkMode: false,
+          emailNotifications: true,
+          language: 'fr'
+        }
+      })
+    } catch (error) {
+      const code = (error as { code?: number | string }).code
+      if (code !== 6 && code !== 'already-exists') throw error
+    }
 
     return NextResponse.json({
       success: true,
