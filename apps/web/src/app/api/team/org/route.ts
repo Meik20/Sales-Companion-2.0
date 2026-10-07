@@ -84,10 +84,11 @@ export async function GET(request: NextRequest) {
     const isVerified = Boolean(niu)
     const isSeniorManager = orgRole === 'senior_manager'
 
-    // Récupérer tous les managers de la même organisation
-    // Note: la liste des managers est visible par tout manager avec un orgCode,
-    // indépendamment du statut d'abonnement (la gouvernance d'équipe n'est pas une feature payante).
+    // Récupérer tous les managers de la même organisation.
+    // Requiert un index composite Firestore : (orgCode ASC, role ASC)
+    // Si l'index est manquant, Firestore lève une exception — loggée ici explicitement.
     let managers: any[] = []
+    let managersLoadError: string | null = null
     if (orgCode) {
       try {
         const orgManagersSnap = await adminDb
@@ -98,19 +99,27 @@ export async function GET(request: NextRequest) {
 
         managers = orgManagersSnap.docs.map((d) => {
           const mData = d.data()
+          const resolvedOrgRole = mData.orgRole || (d.id === managerUid ? orgRole : 'team_manager')
           return {
             uid: d.id,
             name: mData.displayName || mData.name || mData.email,
             email: mData.email,
             phone: mData.phone || null,
-            orgRole: mData.orgRole || (d.id === managerUid ? orgRole : 'team_manager'),
+            orgRole: resolvedOrgRole,
             isCurrent: d.id === managerUid,
-            isSenior: (mData.orgRole || (d.id === managerUid ? orgRole : 'team_manager')) === 'senior_manager',
+            isSenior: resolvedOrgRole === 'senior_manager',
             createdAt: mData.createdAt?.toDate ? mData.createdAt.toDate().toISOString() : null
           }
         })
-      } catch (mErr) {
-        console.warn('Could not fetch org managers:', mErr)
+
+        console.log(`[GET /api/team/org] Found ${managers.length} manager(s) for orgCode=${orgCode}`)
+      } catch (mErr: any) {
+        managersLoadError = mErr?.message || 'Erreur inconnue lors du chargement des managers'
+        console.error('[GET /api/team/org] Firestore managers query failed:', mErr)
+        // Si l'index composite est manquant, Firestore retourne un lien de création dans le message
+        if (mErr?.message?.includes('index')) {
+          console.error('[GET /api/team/org] HINT: Create the composite index in Firestore console: orgCode ASC + role ASC on collection "users"')
+        }
       }
     }
 
@@ -123,7 +132,9 @@ export async function GET(request: NextRequest) {
       companyName: userData.companyName || userData.company || 'Mon Organisation',
       sector: userData.sector || null,
       country: userData.country || 'CM',
-      managers
+      managers,
+      // Exposé uniquement pour faciliter le debug frontend — jamais utilisé en logique UI
+      ...(managersLoadError ? { _managersLoadError: managersLoadError } : {})
     })
   } catch (error: any) {
     console.error('[GET /api/team/org] error:', error)

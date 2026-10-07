@@ -112,26 +112,35 @@ export function OrgGovernanceTab() {
     }
   }
 
-  const fetchOrg = async () => {
+  const [refreshing, setRefreshing] = useState(false)
+
+  const fetchOrg = async (forceRefresh = false) => {
     if (!user) return
+    if (forceRefresh) setRefreshing(true)
     try {
-      const token = await user.getIdToken()
+      // forceRefresh=true pour obtenir un token frais et éviter les problèmes de cache Auth
+      const token = await user.getIdToken(true)
       if (!token) return
       const res = await fetch('/api/team/org', { headers: { Authorization: `Bearer ${token}` } })
       const data = await res.json()
       if (data && !data.error) {
         setOrgData(data)
         if (data.niu) setNiuInput(data.niu)
+        // Débogage : si l'API signale une erreur de chargement des managers, logger en console
+        if (data._managersLoadError) {
+          console.error('[OrgGovernanceTab] Erreur charg. managers (vérifier index Firestore):', data._managersLoadError)
+        }
       }
     } catch {
       // Ignorer
     } finally {
       setLoading(false)
+      setRefreshing(false)
     }
   }
 
   useEffect(() => {
-    void fetchOrg()
+    void fetchOrg(true)
   }, [user])
 
   useEffect(() => {
@@ -679,6 +688,30 @@ export function OrgGovernanceTab() {
       <DataCard
         title="Gestion de l'Équipe Organisation"
         subtitle="Supervision de tous les Team Managers rattachés à votre organisation et leurs performances pipeline"
+        actions={
+          <button
+            type="button"
+            onClick={() => void fetchOrg(true)}
+            disabled={refreshing}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 5,
+              fontSize: 12,
+              fontWeight: 600,
+              color: 'var(--muted-foreground)',
+              background: 'transparent',
+              border: '1px solid var(--border)',
+              borderRadius: 8,
+              padding: '4px 10px',
+              cursor: refreshing ? 'not-allowed' : 'pointer',
+              opacity: refreshing ? 0.6 : 1
+            }}
+          >
+            <RefreshCw size={12} style={{ animation: refreshing ? 'spin 1s linear infinite' : 'none' }} />
+            {refreshing ? 'Actualisation...' : 'Actualiser'}
+          </button>
+        }
       >
         <OrgManagersSection
           managers={(orgData?.managers || []) as any}
