@@ -486,7 +486,7 @@ export function ManagerProspectsList({
       {/* ── Table ── */}
       {!loading && filtered.length === 0 ? (
         <EmptyState
-          illustration={prospects.length === 0 ? '/illustrations/empty-states/empty-team.png' : '/illustrations/empty-states/empty-search.png'}
+          illustration={prospects.length === 0 ? '/illustrations/empty-states/empty-prospects.png' : '/illustrations/empty-states/empty-search.png'}
           illustrationSize="sm"
           title={prospects.length === 0 ? t('team.noProspectImported') : t('team.noProspectMatch')}
           className="py-10"

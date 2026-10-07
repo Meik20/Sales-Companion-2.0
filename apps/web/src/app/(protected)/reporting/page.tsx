@@ -17,9 +17,10 @@ export default function ReportingPage() {
     return (
       <AppShell>
         <EmptyState
+          illustration="/illustrations/empty-states/no-access.png"
+          illustrationSize="md"
           title="Accès réservé"
           description="Cette section est réservée aux managers. Contactez votre responsable pour y accéder."
-          icon="🔒"
         />
       </AppShell>
     )
@@ -71,9 +72,10 @@ export default function ReportingPage() {
 
       {!isLoading && !isError && !data && (
         <EmptyState
+          illustration="/illustrations/empty-states/empty-pipeline.png"
+          illustrationSize="md"
           title="Aucune donnée"
           description="Votre équipe n'a pas encore enregistré de prospects. Les statistiques apparaîtront ici dès que l'activité commence."
-          icon="📊"
         />
       )}
 

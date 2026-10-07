@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { DataCard } from '@/components/ui/index'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import { EmptyState } from '@/components/feedback'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useToast } from '@/hooks/useToast'
 import { OrgManagersSection } from './OrgManagersSection'
@@ -497,10 +498,17 @@ export function OrgGovernanceTab() {
                     Chargement des prospects du compte Senior…
                   </div>
                 ) : filteredProspects.length === 0 ? (
-                  <div className="p-8 text-center text-[13px] text-muted-foreground italic">
-                    {seniorProspects.length === 0
-                      ? 'Aucun prospect rattaché à votre compte Senior. Tous vos prospects ont été transférés ou sont gérés directement par vos Team Managers.'
-                      : 'Aucun prospect ne correspond à vos critères de recherche.'}
+                  <div className="py-6">
+                    <EmptyState
+                      illustration="/illustrations/empty-states/empty-prospects.png"
+                      illustrationSize="sm"
+                      title={seniorProspects.length === 0 ? "Aucun prospect à transférer" : "Aucun résultat"}
+                      description={
+                        seniorProspects.length === 0
+                          ? "Aucun prospect rattaché à votre compte Senior. Tous vos prospects ont été transférés ou sont gérés directement par vos Team Managers."
+                          : "Aucun prospect ne correspond à vos critères de recherche."
+                      }
+                    />
                   </div>
                 ) : (
                   <table className="w-full text-left text-[12.5px] border-collapse">

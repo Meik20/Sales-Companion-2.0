@@ -6,6 +6,7 @@ import { SectionCard } from './SectionCard'
 import { useTranslation } from '@/providers/I18nProvider'
 import { Mail, CheckCircle2, XCircle, BarChart2 } from 'lucide-react'
 import { Badge } from '@/components/ui/index'
+import { EmptyState } from '@/components/feedback'
 import { SupportAgentActivityModal } from './SupportAgentActivityModal'
 
 export function SupportAgentsSection() {
@@ -42,16 +43,12 @@ export function SupportAgentsSection() {
         subtitle={`${activeAgents.length} agent(s) actif(s)`}
       >
         {activeAgents.length === 0 ? (
-          <div
-            style={{
-              textAlign: 'center',
-              color: 'var(--muted-foreground, #94a3b8)',
-              padding: 20,
-              fontSize: 13
-            }}
-          >
-            Aucun agent de support actif dans votre équipe.
-          </div>
+          <EmptyState
+            illustration="/illustrations/empty-states/no-support-agent.png"
+            title="Aucun agent de support"
+            description="Aucun agent de support actif dans votre équipe."
+            illustrationSize="sm"
+          />
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {activeAgents.map((agent) => (

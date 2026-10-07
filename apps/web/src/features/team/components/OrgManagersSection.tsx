@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Badge } from '@/components/ui/index'
 import { Button } from '@/components/ui/Button'
+import { EmptyState } from '@/components/feedback'
 import {
   Users2,
   Mail,
@@ -286,24 +287,12 @@ export function OrgManagersSection({ managers, orgCode }: OrgManagersSectionProp
           </div>
         </div>
       ) : (
-        <div
-          style={{
-            padding: '20px 24px',
-            borderRadius: 12,
-            background: 'var(--card, #131c2e)',
-            border: '1px solid var(--border)',
-            fontSize: 13,
-            color: 'var(--muted-foreground)',
-            textAlign: 'center',
-            lineHeight: 1.6
-          }}
-        >
-          <div style={{ fontSize: 22, marginBottom: 6 }}>👥</div>
-          <div style={{ fontWeight: 600, color: 'var(--foreground)', marginBottom: 4 }}>
-            Aucun Team Manager rattaché pour l&apos;instant
-          </div>
-          Partagez le lien d&apos;invitation ou le code organisation pour permettre à vos managers d&apos;équipe de rejoindre votre organisation.
-        </div>
+        <EmptyState
+          illustration="/illustrations/empty-states/empty-team.png"
+          illustrationSize="sm"
+          title="Aucun Team Manager rattaché pour l'instant"
+          description="Partagez le lien d'invitation ou le code organisation pour permettre à vos managers d'équipe de rejoindre votre organisation."
+        />
       )}
     </div>
   )
