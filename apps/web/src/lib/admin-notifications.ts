@@ -1,4 +1,3 @@
-import { adminDb } from '@/lib/firebase-admin'
 import { FieldValue } from 'firebase-admin/firestore'
 
 export type AdminNotificationType =
@@ -21,10 +20,15 @@ interface CreateNotificationParams {
  * Crée une notification dans la collection `adminNotifications` de Firestore.
  * Appelé côté serveur (routes API) pour les événements nécessitant une action admin.
  * La lecture est en temps réel côté client via onSnapshot.
+ *
  * Non-bloquant — les erreurs sont loggées sans faire échouer la réponse principale.
+ * Utilise un import dynamique de firebase-admin pour éviter les échecs d'initialisation
+ * au chargement du module dans les contextes serverless (Vercel Edge Functions).
  */
 export async function createAdminNotification(params: CreateNotificationParams): Promise<void> {
   try {
+    // Import dynamique pour éviter les problèmes d'initialisation au chargement du module
+    const { adminDb } = await import('@/lib/firebase-admin')
     await adminDb.collection('adminNotifications').add({
       type: params.type,
       title: params.title,
