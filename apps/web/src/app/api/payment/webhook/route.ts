@@ -138,6 +138,25 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ received: true })
       }
 
+      // ── CONCORDANCE DU MONTANT : vérifier que le montant reçu correspond au montant attendu ──
+      const expectedAmount = Number(paymentData.amount)
+      const receivedAmount = Number(amount)
+      if (!isNaN(expectedAmount) && !isNaN(receivedAmount) && receivedAmount < expectedAmount) {
+        console.error('[webhook/campay] 🚨 Fraude / Discordance de montant détectée:', {
+          external_reference,
+          expectedAmount,
+          receivedAmount
+        })
+        await paymentRef.update({
+          status: 'AMOUNT_MISMATCH',
+          campayRef: reference || null,
+          operator: operator ?? paymentData.operator,
+          amountPaid: amount,
+          updatedAt: FieldValue.serverTimestamp()
+        })
+        return NextResponse.json({ error: 'Montant insuffisant ou incohérent' }, { status: 400 })
+      }
+
       const { calculateSubscriptionExpiry } = await import('@/lib/subscription')
       const expiresAt = calculateSubscriptionExpiry()
 

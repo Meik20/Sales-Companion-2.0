@@ -209,4 +209,38 @@ describe('POST /api/payment/webhook', () => {
       })
     )
   })
+
+  it('devrait rejeter et marquer AMOUNT_MISMATCH si le montant reçu est inférieur au montant attendu', async () => {
+    mocks.mockDocGet.mockResolvedValueOnce({
+      exists: true,
+      data: () => ({
+        status: 'PENDING',
+        userId: 'user-buyer-42',
+        plan: 'pro',
+        amount: 50000
+      })
+    })
+
+    const payload = {
+      status: 'SUCCESSFUL',
+      reference: 'campay-ref-hack-1',
+      external_reference: 'tx-mismatch',
+      operator: 'MTN',
+      amount: '500' // Seulement 500 au lieu de 50000
+    }
+    const req = createSignedRequest(payload)
+
+    const res = await POST(req)
+    const json = await res.json()
+
+    expect(res.status).toBe(400)
+    expect(json.error).toContain('Montant')
+    expect(mocks.mockDocUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: 'AMOUNT_MISMATCH',
+        amountPaid: '500'
+      })
+    )
+    expect(mocks.mockBatchCommit).not.toHaveBeenCalled()
+  })
 })

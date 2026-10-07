@@ -23,7 +23,7 @@ const SECTIONS = [
   {
     id: 'responsable',
     title: '1. Responsable du traitement',
-    content: `Sales Companion 2.0 est édité par [Société éditrice], dont le siège social est situé à Douala, Cameroun. Pour toute question relative à la protection de vos données, vous pouvez nous contacter à l'adresse : privacy@salescompanion2-0.com.`
+    content: `Sales Companion 2.0 est édité par Sales Companion, dont le siège est situé à Douala, Cameroun. Pour toute question relative à la protection de vos données, vous pouvez nous contacter à l'adresse : privacy@salescompanion2-0.com.`
   },
   {
     id: 'donnees-collectees',

@@ -245,7 +245,14 @@ service cloud.firestore {
         );
 
       allow update: if isAdmin()
-        || (isManager() && resource.data.managerUid == authUid());
+        || (
+          isManager()
+          && resource.data.managerUid == authUid()
+          && request.resource.data.managerUid == resource.data.managerUid
+          && request.resource.data.get('role', resource.data.role) in ['member', 'support_agent']
+          && !request.resource.data.diff(resource.data).affectedKeys()
+              .hasAny(['managerUid', 'accessId', 'createdAt', 'activated', 'activatedAt', 'activatedUid', 'firebaseUid'])
+        );
 
       allow delete: if isAdmin();
     }
@@ -261,7 +268,13 @@ service cloud.firestore {
         );
 
       allow update: if isAdmin()
-        || (isManager() && resource.data.managerUid == authUid());
+        || (
+          isManager()
+          && resource.data.managerUid == authUid()
+          && request.resource.data.managerUid == resource.data.managerUid
+          && !request.resource.data.diff(resource.data).affectedKeys()
+              .hasAny(['managerUid', 'assignedTo', 'pipelineId', 'createdAt'])
+        );
 
       allow delete: if isAdmin()
         || (isManager() && resource.data.managerUid == authUid());
@@ -403,7 +416,13 @@ service cloud.firestore {
         && request.resource.data.managerUid == authUid()
         && request.resource.data.status == 'active';
       allow update: if isAdmin()
-        || (isManager() && resource.data.managerUid == authUid());
+        || (
+          isManager()
+          && resource.data.managerUid == authUid()
+          && request.resource.data.managerUid == resource.data.managerUid
+          && !request.resource.data.diff(resource.data).affectedKeys()
+              .hasAny(['managerUid', 'agentUid', 'createdAt'])
+        );
       allow delete: if isAdmin()
         || (isManager() && resource.data.managerUid == authUid());
     }

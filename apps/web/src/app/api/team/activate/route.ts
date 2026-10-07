@@ -170,7 +170,10 @@ export async function POST(request: NextRequest) {
     let managerStartedAt: string | null = null
     let managerExpired = false
     const mUid = data.managerUid ?? data.managerId
-    const userRole = data.role ?? 'member'
+    // DEFENSE IN DEPTH : Seuls les rôles 'member' et 'support_agent' peuvent être activés via invitation.
+    // Aucune invitation ne peut conférer de rôle admin, manager ou supérieur.
+    const rawRole = data.role ?? 'member'
+    const userRole = (rawRole === 'support_agent') ? 'support_agent' : 'member'
 
     if (mUid) {
       try {

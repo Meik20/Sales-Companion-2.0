@@ -52,28 +52,45 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const campayStatus = await campayGetTransaction(paymentData.campayRef)
 
     if (campayStatus.status === 'SUCCESSFUL') {
+      // ── Vérification de cohérence du montant et de la transaction ──
+      const expectedAmount = Number(paymentData.amount)
+      const receivedAmount = Number(campayStatus.amount)
+      if (!isNaN(expectedAmount) && !isNaN(receivedAmount) && receivedAmount < expectedAmount) {
+        console.error('[payment/status] 🚨 Discordance de montant détectée:', {
+          externalRef,
+          expectedAmount,
+          receivedAmount
+        })
+        await adminDb.collection('payments').doc(externalRef).update({
+          status: 'AMOUNT_MISMATCH',
+          amountPaid: campayStatus.amount,
+          updatedAt: FieldValue.serverTimestamp()
+        })
+        return NextResponse.json({ error: 'Montant payé insuffisant ou incohérent', status: 'AMOUNT_MISMATCH' }, { status: 400 })
+      }
+
       const planInfo = PLANS[paymentData.plan]
       const { calculateSubscriptionExpiry } = await import('@/lib/subscription')
       const expiresAt = calculateSubscriptionExpiry()
 
-      // ── Upgrade du plan utilisateur ──────────────────────────────────────
-      await adminDb
-        .collection('users')
-        .doc(paymentData.userId)
-        .update({
-          plan: paymentData.plan,
-          dailyLimit: planInfo?.dailyLimit ?? PLAN_LIMITS.enterprise,
-          subscriptionStartedAt: FieldValue.serverTimestamp(),
-          subscriptionExpiresAt: expiresAt.toISOString(),
-          subscriptionExpired: false,
-          updatedAt: FieldValue.serverTimestamp()
-        })
-
-      // ── Marquer la transaction comme réussie ──────────────────────────────
-      await adminDb.collection('payments').doc(externalRef).update({
-        status: 'SUCCESSFUL',
+      // ── Upgrade atomique (User + Payment) via batch ──────────────────────
+      const batch = adminDb.batch()
+      batch.update(adminDb.collection('users').doc(paymentData.userId), {
+        plan: paymentData.plan,
+        dailyLimit: planInfo?.dailyLimit ?? PLAN_LIMITS.enterprise,
+        subscriptionStartedAt: FieldValue.serverTimestamp(),
+        subscriptionExpiresAt: expiresAt.toISOString(),
+        subscriptionExpired: false,
         updatedAt: FieldValue.serverTimestamp()
       })
+
+      batch.update(adminDb.collection('payments').doc(externalRef), {
+        status: 'SUCCESSFUL',
+        amountPaid: campayStatus.amount,
+        updatedAt: FieldValue.serverTimestamp()
+      })
+
+      await batch.commit()
 
       // ── Propagation automatique à l'équipe ────────────────────────────────
       try {
