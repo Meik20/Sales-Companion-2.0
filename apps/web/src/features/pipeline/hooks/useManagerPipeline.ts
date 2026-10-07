@@ -9,7 +9,7 @@ import type { PipelineDoc } from '@sales-companion/shared'
 import { usePipelineRealtimeSync } from './usePipelineRealtimeSync'
 
 export const useManagerPipeline = () => {
-  const { user } = useCurrentUser()
+  const { user, loading } = useCurrentUser()
   usePipelineRealtimeSync()
 
   return useQuery({
@@ -81,7 +81,7 @@ export const useManagerPipeline = () => {
 
       return items
     },
-    enabled: !!user?.uid && user.role === 'manager',
+    enabled: !loading && !!user?.uid && user.role === 'manager',
     staleTime: 2 * 60 * 1000,
     refetchOnWindowFocus: false
   })

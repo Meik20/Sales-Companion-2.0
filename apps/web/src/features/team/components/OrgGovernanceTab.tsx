@@ -115,6 +115,7 @@ export function OrgGovernanceTab() {
     if (!user) return
     try {
       const token = await user.getIdToken()
+      if (!token) return
       const res = await fetch('/api/team/org', { headers: { Authorization: `Bearer ${token}` } })
       const data = await res.json()
       if (data && !data.error) {

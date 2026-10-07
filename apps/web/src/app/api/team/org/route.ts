@@ -85,8 +85,10 @@ export async function GET(request: NextRequest) {
     const isSeniorManager = orgRole === 'senior_manager'
 
     // Récupérer tous les managers de la même organisation
+    // Note: la liste des managers est visible par tout manager avec un orgCode,
+    // indépendamment du statut d'abonnement (la gouvernance d'équipe n'est pas une feature payante).
     let managers: any[] = []
-    if (orgCode && hasActivePaidManagerAccess(userData)) {
+    if (orgCode) {
       try {
         const orgManagersSnap = await adminDb
           .collection('users')

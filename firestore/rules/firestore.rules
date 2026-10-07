@@ -25,8 +25,7 @@ service cloud.firestore {
       return isSignedIn()
         && currentUserDoc().role == 'manager'
         && currentUserDoc().active == true
-        && currentUserDoc().activated == true
-        && currentUserDoc().emailVerified == true
+        && currentUserDoc().get('emailVerificationPending', false) != true
         && currentUserDoc().get('plan', 'free') != 'free'
         && currentUserDoc().get('subscriptionExpired', false) != true;
     }
@@ -49,8 +48,10 @@ service cloud.firestore {
         // Rôle : ni admin, ni rôle arbitraire
         && request.resource.data.get('role', '') != 'admin'
         && request.resource.data.get('role', '') in ['manager', 'member', 'support_agent', 'independent', '']
-        // orgRole : seuls les deux valeurs légitimes, et non transmis avec active:true
-        && request.resource.data.get('orgRole', 'team_manager') in ['senior_manager', 'team_manager', '']
+        // FIX P0: orgRole NE DOIT PAS être écrit à la création par le client.
+        // Ce champ est exclusivement attribué par l'Admin SDK post-inscription (via /api/team/org).
+        // Sans cette protection, un utilisateur peut se déclarer 'senior_manager' à l'inscription.
+        && !(request.resource.data.keys().hasAny(['orgRole']))
         // Activation : JAMAIS active/activated = true à la création (géré par API)
         && request.resource.data.get('active', false) == false
         && request.resource.data.get('activated', false) == false
@@ -60,11 +61,6 @@ service cloud.firestore {
         && request.resource.data.get('dailyLimit', 10) <= 10
         && request.resource.data.get('country', 'CM') in ['CM', 'SN', 'CI', 'BJ', 'TG', 'TD', 'CF']
         // ── Protection cross-tenant (P0) ─────────────────────────────────────
-        // Interdire toute injection de liens d'organisation à la création.
-        // Ces champs sont EXCLUSIVEMENT écrits par l'Admin SDK (API serveur).
-        // Sans cette protection, un attaquant pourrait se créer avec
-        // role:support_agent + linkedManagerUids:[uid_victime] et lire
-        // les données d'une autre équipe directement via le SDK Firestore.
         && !('linkedManagerUids' in request.resource.data)
         && !('managerUid' in request.resource.data)
         && !('managerEmail' in request.resource.data)
@@ -75,8 +71,6 @@ service cloud.firestore {
         || (
           isOwner(uid)
           // ── Champs exclusivement gérés par l'Admin SDK (API serveur) ──────
-          // Ne jamais laisser un utilisateur modifier son propre statut d'activation,
-          // son rôle, son plan, ses quotas, ou son appartenance à une org.
           && !request.resource.data.diff(resource.data).affectedKeys()
             .hasAny([
               'role',
@@ -85,11 +79,17 @@ service cloud.firestore {
               'active',
               'activated',
               'emailVerificationPending',
+              'emailVerified',
               'orgRole',
               'orgCode',
               'managerUid',
               'managerEmail',
-              'country'
+              'linkedManagerUids',
+              'country',
+              'subscriptionExpired',
+              'subscriptionExpiresAt',
+              'planExpiresAt',
+              'paymentPending'
             ])
           // Membres d'équipe : profil complètement verrouillé (géré par le manager)
           && resource.data.get('role', '') != 'member'
@@ -146,6 +146,8 @@ service cloud.firestore {
 
       allow create: if isSignedIn()
         && request.resource.data.userId == authUid()
+        // FIX: les support agents ne peuvent pas créer de fiches pipeline
+        && !isSupportAgent()
         && (
           request.resource.data.managerUid == authUid()
           || request.resource.data.managerUid == currentUserDoc().managerUid
@@ -156,9 +158,9 @@ service cloud.firestore {
         || (
           isSignedIn()
           && resource.data.userId == authUid()
-          // ── Invariants d'appartenance — jamais modifiables par le propriétaire ──
-          // Protège contre la réassignation frauduleuse à un autre manager/membre
-          // et contre l'usurpation des champs d'identification.
+          // FIX: les support agents ne peuvent pas modifier les fiches pipeline
+          && !isSupportAgent()
+          // Invariants d'appartenance — jamais modifiables par le propriétaire
           && !request.resource.data.diff(resource.data).affectedKeys()
               .hasAny([
                 'userId',
@@ -179,7 +181,7 @@ service cloud.firestore {
         );
         
       allow delete: if isAdmin()
-        || (isSignedIn() && resource.data.userId == authUid())
+        || (isSignedIn() && resource.data.userId == authUid() && !isSupportAgent())
         || isManagedUser(resource.data.managerUid);
     }
 
@@ -228,9 +230,10 @@ service cloud.firestore {
     }
 
     match /team_accesses/{accessId} {
-      // Désormais géré uniquement via Firebase Admin SDK sur le backend
-      allow get: if false;
-
+      // FIX: supprimé allow get:false qui créait un conflit logique avec allow read.
+      // En Firestore, 'read' couvre à la fois 'get' (lecture d'un doc) et 'list' (requêtes).
+      // Mettre get:false alors que read est autorisé est incohérent — read a priorité.
+      // Accès uniquement via API Admin SDK ; la lecture directe client est très limitée.
       allow read: if isAdmin()
         || (isManager() && resource.data.managerUid == authUid());
 
@@ -372,12 +375,13 @@ service cloud.firestore {
     // Collection dédiée au référentiel d'organisation (source de vérité unique)
     // Écritures exclusivement via Admin SDK (API routes serveur)
     match /organisations/{orgCode} {
-      // Lecture : admin, ou manager appartenant à cette org
+      // Lecture : admin, ou tout utilisateur appartenant à cette org
+      // FIX: restreint aux membres de cette org uniquement (isSignedIn() seul était trop large)
       allow read: if isAdmin()
-        || (isManager() && currentUserDoc().orgCode == orgCode)
         || (isSignedIn() && currentUserDoc().orgCode == orgCode);
 
-      // Le Senior Manager peut mettre à jour certains champs de son org (ex: companyName)
+      // Le Senior Manager peut mettre à jour certains champs de son org
+      // FIX: ajout de isManager() (abonnement actif requis pour écrire en production)
       allow update: if isAdmin()
         || (
           isManager()

@@ -49,6 +49,9 @@ function getCachedUser(): CurrentUser | null {
     return {
       ...parsed,
       getIdToken: async (forceRefresh?: boolean) => {
+        if (!auth.currentUser && typeof (auth as any).authStateReady === 'function') {
+          await (auth as any).authStateReady()
+        }
         if (auth.currentUser) return auth.currentUser.getIdToken(forceRefresh)
         return ''
       }

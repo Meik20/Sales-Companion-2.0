@@ -25,7 +25,7 @@ export type TeamAssignment = {
  * This avoids direct Firestore client security issues in the browser.
  */
 export function useTeamAssignments() {
-  const { user } = useCurrentUser()
+  const { user, loading } = useCurrentUser()
 
   return useQuery({
     queryKey: ['team-assignments', user?.uid],
@@ -41,6 +41,11 @@ export function useTeamAssignments() {
         }
       })
 
+      // 401/403 are not retriable errors (auth or subscription issue) — return empty
+      if (response.status === 401 || response.status === 403) {
+        return [] as TeamAssignment[]
+      }
+
       if (!response.ok) {
         throw new Error('Impossible de charger les assignations')
       }
@@ -48,6 +53,9 @@ export function useTeamAssignments() {
       const json = await response.json()
       return (json.items ?? []) as TeamAssignment[]
     },
-    enabled: !!user?.uid
+    // Wait for auth to be fully resolved before fetching
+    enabled: !loading && !!user?.uid,
+    // Do not retry on 401/403 — we return [] above, so errors here are real server errors
+    retry: 1
   })
 }

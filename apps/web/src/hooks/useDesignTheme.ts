@@ -14,10 +14,9 @@ const STORAGE_KEY = 'sc-design-theme'
  *  - Synchronisation asynchrone vers Firestore (pour retrouver le thème sur d'autres appareils)
  */
 export function useDesignTheme() {
-  const [design, setDesignState] = useState<DesignTheme>(() => {
-    if (typeof window === 'undefined') return 'firebase'
-    return (localStorage.getItem(STORAGE_KEY) as DesignTheme) ?? 'firebase'
-  })
+  // Always start with SSR-safe value to prevent hydration mismatch (#418).
+  // The real value from localStorage is applied in useEffect (client-only).
+  const [design, setDesignState] = useState<DesignTheme>('firebase')
 
   /** Applique l'attribut data-design sur <html> */
   const applyDesign = useCallback((d: DesignTheme) => {
@@ -26,10 +25,12 @@ export function useDesignTheme() {
     html.setAttribute('data-design', d)
   }, [])
 
-  // Applique au montage
+  // After mount: read localStorage and reconcile (no SSR on this branch)
   useEffect(() => {
-    applyDesign(design)
-  }, [design, applyDesign])
+    const stored = (localStorage.getItem(STORAGE_KEY) as DesignTheme) ?? 'firebase'
+    setDesignState(stored)
+    applyDesign(stored)
+  }, [applyDesign])
 
   /** Change le thème visuellement + persiste */
   const setDesign = useCallback(

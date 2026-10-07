@@ -35,11 +35,13 @@ function getInitialLang(): Language {
 }
 
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Language>(() => getInitialLang())
+  // Start with SSR-safe default 'fr' to prevent hydration mismatch.
+  // The user's actual language preference is reconciled in useEffect (client-only).
+  const [lang, setLangState] = useState<Language>('fr')
 
   useEffect(() => {
     const current = getInitialLang()
-    setLangState((prev) => (prev !== current ? current : prev))
+    setLangState(current)
   }, [])
 
   const setLang = useCallback((newLang: Language) => {

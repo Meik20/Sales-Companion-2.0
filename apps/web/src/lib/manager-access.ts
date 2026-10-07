@@ -25,8 +25,6 @@ export function hasActivePaidManagerAccess(account: ManagerAccount | undefined):
   if (
     account?.role !== 'manager' ||
     account.active !== true ||
-    account.activated !== true ||
-    account.emailVerified !== true ||
     account.emailVerificationPending === true ||
     account.paymentPending === true ||
     !account.plan ||

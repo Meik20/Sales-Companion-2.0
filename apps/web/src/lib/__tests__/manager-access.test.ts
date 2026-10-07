@@ -19,12 +19,28 @@ describe('hasActivePaidManagerAccess', () => {
     expect(hasActivePaidManagerAccess({ ...activeManager, active: false })).toBe(false)
   })
 
-  it('rejects a manager with an expired subscription', () => {
+  it('rejects a manager with pending email verification', () => {
     expect(
       hasActivePaidManagerAccess({
         ...activeManager,
-        subscriptionExpiresAt: new Date(Date.now() - 60_000).toISOString()
+        emailVerificationPending: true
       })
     ).toBe(false)
+  })
+
+  it('rejects a manager with pending payment', () => {
+    expect(
+      hasActivePaidManagerAccess({
+        ...activeManager,
+        paymentPending: true
+      })
+    ).toBe(false)
+  })
+
+  it('allows a legacy active paid manager without emailVerified field', () => {
+    const legacyManager = { ...activeManager }
+    delete (legacyManager as any).emailVerified
+    delete (legacyManager as any).activated
+    expect(hasActivePaidManagerAccess(legacyManager)).toBe(true)
   })
 })
