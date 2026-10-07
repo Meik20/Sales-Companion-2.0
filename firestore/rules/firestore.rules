@@ -282,10 +282,17 @@ service cloud.firestore {
         || (
           isManager()
           && resource.data.managerUid == authUid()
+          // Le manager peut mettre à jour mais ne change pas le propriétaire ni l'assigné
+          && !request.resource.data.diff(resource.data).affectedKeys()
+              .hasAny(['managerUid', 'assigneeUid', 'assigneeEmail', 'pipelineId', 'assignedBy', 'createdAt'])
         )
         || (
           isSignedIn()
           && resource.data.assigneeUid == authUid()
+          // L'assigné ne peut mettre à jour que son statut/progression
+          // mais ne peut JAMAIS modifier les champs d'appartenance
+          && !request.resource.data.diff(resource.data).affectedKeys()
+              .hasAny(['managerUid', 'assigneeUid', 'assigneeEmail', 'pipelineId', 'assignedBy', 'createdAt'])
         );
 
       allow delete: if isAdmin()
@@ -330,8 +337,26 @@ service cloud.firestore {
              ))
         )
         && request.resource.data.agentUid == authUid();
-      allow update, delete: if isAdmin()
-        || (isSignedIn() && resource.data.agentUid == authUid());
+      allow update: if isAdmin()
+        || (
+          isSignedIn()
+          && resource.data.agentUid == authUid()
+          // L'agent ne peut pas modifier les champs qui définissent son périmètre
+          && !request.resource.data.diff(resource.data).affectedKeys()
+              .hasAny(['agentUid', 'managerUid', 'createdAt', 'importedBy'])
+        )
+        || (
+          isManager()
+          && resource.data.managerUid == authUid()
+          // Le manager peut superviser mais ne transfère pas le call à un autre manager
+          && !request.resource.data.diff(resource.data).affectedKeys()
+              .hasAny(['agentUid', 'managerUid', 'createdAt'])
+        );
+      allow delete: if isAdmin()
+        || (
+          isSignedIn()
+          && resource.data.agentUid == authUid()
+        );
     }
 
     match /customer_tickets/{ticketId} {
@@ -353,8 +378,20 @@ service cloud.firestore {
         )
         && request.resource.data.agentUid == authUid();
       allow update: if isAdmin()
-        || (isSignedIn() && resource.data.agentUid == authUid())
-        || (isManager() && resource.data.managerUid == authUid());
+        || (
+          isSignedIn()
+          && resource.data.agentUid == authUid()
+          // L'agent ne peut jamais modifier les champs d'appartenance
+          && !request.resource.data.diff(resource.data).affectedKeys()
+              .hasAny(['agentUid', 'managerUid', 'createdAt', 'importedBy'])
+        )
+        || (
+          isManager()
+          && resource.data.managerUid == authUid()
+          // Le manager ne peut pas réattribuer le ticket à un autre manager
+          && !request.resource.data.diff(resource.data).affectedKeys()
+              .hasAny(['agentUid', 'managerUid', 'createdAt'])
+        );
       allow delete: if isAdmin();
     }
 

@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     const userData = userDoc.data()
     const isManager = hasActivePaidManagerAccess(userData)
 
-    let docs: Array<import('firebase-admin').firestore.QueryDocumentSnapshot> = []
+    let docs: Array<import('firebase-admin/firestore').QueryDocumentSnapshot> = []
 
     if (isManager) {
       const managerSnapshot = await adminDb

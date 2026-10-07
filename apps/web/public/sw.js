@@ -1,6 +1,6 @@
 // Service Worker for Sales Companion PWA
-// v9 — Cache-first for app shell + stale-while-revalidate navigation
-const CACHE_NAME = 'sales-companion-v9'
+// v10 — Public shell only; private routes are NEVER cached
+const CACHE_NAME = 'sales-companion-v10'
 
 // Listen for explicit skip waiting request
 self.addEventListener('message', (event) => {
@@ -9,7 +9,7 @@ self.addEventListener('message', (event) => {
   }
 })
 
-// Core app shell routes pre-cached at install time
+// Core app shell — public, anonymous assets only
 const STATIC_ASSETS = [
   '/offline.html',
   '/manifest.json',
@@ -18,10 +18,37 @@ const STATIC_ASSETS = [
   '/icon-512.png'
 ]
 
-// App routes pre-cached so the app works offline from first visit
-const APP_ROUTES = ['/', '/search', '/pipeline', '/saved', '/profile', '/settings']
+// Only the public landing page is pre-cached.
+// /search, /pipeline, /profile, /settings, /saved are private —
+// they require authentication and must NOT be served from cache.
+const APP_ROUTES = ['/']
 
-// Install — cache static assets + app shell routes
+// Routes that belong to authenticated sessions — NEVER cache these.
+// Add new private paths here as the app grows.
+const PRIVATE_ROUTE_PREFIXES = [
+  '/search',
+  '/pipeline',
+  '/profile',
+  '/settings',
+  '/saved',
+  '/admin',
+  '/team',
+  '/crm',
+  '/imports',
+  '/notifications',
+  '/billing'
+]
+
+function isPrivateRoute(url) {
+  try {
+    const { pathname } = new URL(url)
+    return PRIVATE_ROUTE_PREFIXES.some((prefix) => pathname.startsWith(prefix))
+  } catch {
+    return false
+  }
+}
+
+// Install — cache static assets + public app shell only
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -29,7 +56,7 @@ self.addEventListener('install', (event) => {
       const staticPromise = cache.addAll(STATIC_ASSETS).catch((err) => {
         console.warn('[SW] Failed to cache some static assets:', err)
       })
-      // Pre-fetch app routes (best-effort, non-blocking)
+      // Pre-fetch public routes only (best-effort, non-blocking)
       const routePromises = APP_ROUTES.map((route) =>
         fetch(route, { credentials: 'same-origin' })
           .then((response) => {
@@ -38,7 +65,7 @@ self.addEventListener('install', (event) => {
             }
           })
           .catch(() => {
-            // Silently ignore pre-fetch failures (user may not be logged in yet)
+            // Silently ignore pre-fetch failures (network may be unavailable)
           })
       )
       return Promise.all([staticPromise, ...routePromises])
@@ -87,9 +114,22 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  // ── 4. HTML navigation — Cache First + background revalidation
-  //    This is the KEY fix: serve from cache immediately so app loads
-  //    without network. Silently update cache in the background.
+  // ── 4. Private authenticated routes — NETWORK ONLY, never cache.
+  //    This prevents personal data from being served on shared devices
+  //    after logout or account switching.
+  if (request.mode === 'navigate' && isPrivateRoute(url)) {
+    event.respondWith(
+      fetch(request).catch(async () => {
+        // Offline: never serve a stale private page — redirect to offline page
+        const offline = await caches.match('/offline.html')
+        return offline || new Response('Offline', { status: 503 })
+      })
+    )
+    return
+  }
+
+  // ── 5. Public HTML navigation — Cache First + background revalidation
+  //    Only reached for non-private navigations (e.g. landing page, /auth/*)
   if (request.mode === 'navigate') {
     event.respondWith(
       caches.open(CACHE_NAME).then(async (cache) => {
@@ -127,7 +167,7 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  // ── 5. Illustrations & images — network first, cache fallback
+  // ── 6. Illustrations & images — network first, cache fallback
   if (url.includes('/illustrations/')) {
     event.respondWith(
       fetch(request)
@@ -146,7 +186,7 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  // ── 6. Other static assets (fonts, icons, etc.) — cache first, then network
+  // ── 7. Other static assets (fonts, icons, etc.) — cache first, then network
   event.respondWith(
     caches.match(request).then((cached) => {
       if (cached) return cached
@@ -162,3 +202,4 @@ self.addEventListener('fetch', (event) => {
     })
   )
 })
+

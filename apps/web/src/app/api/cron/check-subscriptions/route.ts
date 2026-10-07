@@ -20,19 +20,27 @@ export async function POST(request: NextRequest) {
 
 async function handleCron(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('authorization')
     const cronSecret = process.env.CRON_SECRET
 
-    // Vérification du secret CRON si configuré
-    if (cronSecret) {
-      const providedSecret =
-        authHeader?.replace(/^Bearer\s+/i, '') ||
-        request.nextUrl.searchParams.get('key') ||
-        request.headers.get('x-cron-key')
+    // CRON_SECRET est obligatoire — refus immédiat si absent (misconfiguration)
+    if (!cronSecret) {
+      console.error(
+        '[cron/check-subscriptions] CRON_SECRET est absent de la configuration. ' +
+        'Définissez cette variable d\'environnement avant de déployer.'
+      )
+      return NextResponse.json(
+        { message: 'Service non disponible : configuration manquante.' },
+        { status: 503 }
+      )
+    }
 
-      if (providedSecret !== cronSecret) {
-        return NextResponse.json({ message: 'Non autorisé' }, { status: 401 })
-      }
+    const providedSecret =
+      request.headers.get('authorization')?.replace(/^Bearer\s+/i, '') ||
+      request.nextUrl.searchParams.get('key') ||
+      request.headers.get('x-cron-key')
+
+    if (providedSecret !== cronSecret) {
+      return NextResponse.json({ message: 'Non autorisé' }, { status: 401 })
     }
 
     const result = await checkAllExpiredSubscriptions()
