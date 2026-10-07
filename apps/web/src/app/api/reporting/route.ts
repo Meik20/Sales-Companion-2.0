@@ -38,22 +38,26 @@ export async function GET(request: NextRequest) {
       .where('activated', '==', true)
       .get()
 
-    // Map by uid AND by accessId for robust resolution
-    const membersMap: Record<string, { name: string; accessId: string }> = {}
+    // Map commercial members only (exclude support agents, managers, etc.)
+    type MemberInfo = { name: string; accessId: string; canonicalUid: string }
+    const membersMap: Record<string, MemberInfo> = {}
+    const canonicalMembers: Array<{ uid: string; name: string; accessId: string }> = []
+
     membersSnap.docs.forEach(d => {
       const data = d.data()
-      const fullName = [data.firstname, data.lastname].filter(Boolean).join(' ') || data.name || ''
+      if (data.role === 'support_agent') return // Exclude support agents
+
+      const fullName = [data.firstname, data.lastname].filter(Boolean).join(' ') || data.name || data.email || 'Commercial'
       const accessId = data.accessId || d.id
-      if (data.firebaseUid) {
-        membersMap[data.firebaseUid] = { name: fullName, accessId }
-      }
-      if (data.uid) {
-        membersMap[data.uid] = { name: fullName, accessId }
-      }
-      // Also index by accessId itself for cross-ref lookups
-      if (accessId) {
-        membersMap[accessId] = { name: fullName, accessId }
-      }
+      const canonicalUid = data.firebaseUid || data.uid || d.id
+
+      const info: MemberInfo = { name: fullName, accessId, canonicalUid }
+      canonicalMembers.push({ uid: canonicalUid, name: fullName, accessId })
+
+      if (data.firebaseUid) membersMap[data.firebaseUid] = info
+      if (data.uid) membersMap[data.uid] = info
+      if (accessId) membersMap[accessId] = info
+      membersMap[d.id] = info
     })
 
     // Global stats
@@ -79,29 +83,39 @@ export async function GET(request: NextRequest) {
       return i.nextFollowUp < nowIso && normalizeStatus(i.status) !== 'conclue'
     }).length
 
-    // Stats per member
+    // Stats per commercial member ONLY
+    // Initialize groups for active commercial members
     const memberGroups: Record<string, any[]> = {}
-    items.forEach(item => {
-      const uid = item.assignedTo || item.userId || 'manager'
-      if (!memberGroups[uid]) memberGroups[uid] = []
-      memberGroups[uid].push(item)
+    canonicalMembers.forEach(m => {
+      memberGroups[m.uid] = []
     })
 
-    // Also ensure all registered/invited members exist in memberGroups even if 0 items
-    membersSnap.docs.forEach(d => {
-      const data = d.data()
-      const uid = data.firebaseUid || data.uid || d.id
-      if (data.role !== 'support_agent' && !memberGroups[uid]) {
-        memberGroups[uid] = []
+    // Assign pipeline items ONLY if they are assigned to an actual commercial member
+    items.forEach(item => {
+      const assignedTo = item.assignedTo
+      // An item is NOT assigned to a commercial if:
+      // - assignedTo is falsy (unassigned prospect in manager's pool)
+      // - assignedTo is the manager themselves (transferred to or owned by the manager)
+      if (!assignedTo || assignedTo === decoded.uid) {
+        return
+      }
+
+      const memberInfo = membersMap[assignedTo]
+      if (memberInfo) {
+        const cUid = memberInfo.canonicalUid
+        if (!memberGroups[cUid]) {
+          memberGroups[cUid] = []
+        }
+        memberGroups[cUid].push(item)
       }
     })
 
-    const memberStats = Object.entries(memberGroups).map(([uid, memberItems]) => {
+    const memberStats = canonicalMembers.map(m => {
+      const memberItems = memberGroups[m.uid] ?? []
       const p = memberItems.filter(i => normalizeStatus(i.status) === 'prospection').length
       const n = memberItems.filter(i => normalizeStatus(i.status) === 'negociation').length
       const c = memberItems.filter(i => normalizeStatus(i.status) === 'conclue').length
       const total = memberItems.length
-      const memberInfo = membersMap[uid]
 
       const memberRevenue = memberItems
         .filter(i => normalizeStatus(i.status) === 'conclue')
@@ -116,14 +130,10 @@ export async function GET(request: NextRequest) {
         return i.nextFollowUp < nowIso && normalizeStatus(i.status) !== 'conclue'
       }).length
 
-      const displayName = uid === decoded.uid
-        ? 'Manager'
-        : memberInfo?.name || memberInfo?.accessId || null
-
       return {
-        uid,
-        name: displayName ?? uid,
-        accessId: memberInfo?.accessId || '',
+        uid: m.uid,
+        name: m.name,
+        accessId: m.accessId || '',
         prospection: p,
         negociation: n,
         conclue: c,
@@ -134,7 +144,7 @@ export async function GET(request: NextRequest) {
         overdueFollowUps,
         deals: memberItems.map(item => ({
           id: item.id,
-          companyName: item.companyName,
+          companyName: item.companyName || item.name || 'Prospect',
           status: item.status,
           amount: typeof item.amount === 'number' ? item.amount : Number(item.amount) || 0,
           companyCity: item.companyCity || '',
@@ -144,9 +154,11 @@ export async function GET(request: NextRequest) {
           createdAt: item.createdAt?.toDate?.()?.toISOString() ?? (item.createdAt ? new Date(item.createdAt).toISOString() : null)
         }))
       }
-    }).sort((a, b) => b.conclue - a.conclue || b.revenue - a.revenue)
+    }).sort((a, b) => b.conclue - a.conclue || b.revenue - a.revenue || b.total - a.total)
 
-    const topPerformer = memberStats[0]?.name ?? null
+    const topPerformer = memberStats.length > 0 && (memberStats[0]?.conclue ?? 0) > 0
+      ? (memberStats[0]?.name ?? null)
+      : null
 
     // Monthly trend (last 6 months)
     const now = new Date()
