@@ -520,17 +520,12 @@ export async function GET(request: NextRequest) {
       allCompanies.sort((a, b) => ((b._searchScore as number) ?? 0) - ((a._searchScore as number) ?? 0))
     }
 
-    // ── 6. Pagination ──
-    let pageSize = parseInt(searchParams.get('pageSize') || '50')
-    if (isNaN(pageSize) || pageSize <= 0) {
-      pageSize = 50
-    }
-    if (pageSize > 100) {
-      pageSize = 100 // Protection anti-scraping de masse
-    }
+    // ── 6. Pagination (Plafond factuel fixé à 10 résultats par requête) ──
+    const pageSize = 10
     const start = (page - 1) * pageSize
     const end = start + pageSize
     const paginatedCompanies = allCompanies.slice(start, end)
+
 
     // ── Enregistrement de la recherche pour les stats admin (toujours) ──
     try {

@@ -309,8 +309,9 @@ function SearchContent() {
                       </Button>
 
                       <span style={{ fontSize: 13, color: 'var(--muted-foreground, #94a3b8)', fontWeight: 600 }}>
-                        Page {currentPage} / {totalPages}
+                        Page {currentPage} / {totalPages} • 10 / page
                       </span>
+
 
                       <Button
                         variant="primary"

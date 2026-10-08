@@ -68,7 +68,7 @@ export function useCompaniesSearch(filters: SearchFilters & { page?: number; cha
       if (mobileRuntime && isOffline) {
         const cached = await getCachedSearchResults(cacheFilters)
         if (cached) {
-          const pageSize = 20
+          const pageSize = 10
           const page = filters.page || 1
           const total = cached.total ?? cached.results.length
           return {
@@ -85,6 +85,7 @@ export function useCompaniesSearch(filters: SearchFilters & { page?: number; cha
 
       const params = new URLSearchParams()
       params.append('country', userCountry)
+      params.append('pageSize', '10')
       if (filters.sector) params.append('sector', filters.sector)
       if (filters.region) params.append('region', filters.region)
       if (filters.city) params.append('city', filters.city)
@@ -122,7 +123,7 @@ export function useCompaniesSearch(filters: SearchFilters & { page?: number; cha
         // If network error occurred, try fallback to cached search
         const cached = mobileRuntime ? await getCachedSearchResults(cacheFilters) : null
         if (cached) {
-          const pageSize = 20
+          const pageSize = 10
           const page = filters.page || 1
           const total = cached.total ?? cached.results.length
           return {
@@ -134,6 +135,7 @@ export function useCompaniesSearch(filters: SearchFilters & { page?: number; cha
             fromCache: true
           }
         }
+
         throw err
       }
     },
