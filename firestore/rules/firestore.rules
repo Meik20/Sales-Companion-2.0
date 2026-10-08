@@ -176,6 +176,7 @@ service cloud.firestore {
                 'userId',
                 'managerUid',
                 'assignedTo',
+                'orgCode',
                 'memberAccessId',
                 'sourceProspectId',
                 'assignedBy',
@@ -184,10 +185,10 @@ service cloud.firestore {
         )
         || (
           isManagedUser(resource.data.managerUid)
-          // Le manager peut réassigner mais ne peut pas changer le propriétaire
+          // Le manager peut réassigner mais ne peut pas changer le propriétaire ni l'orgCode
           && request.resource.data.userId == resource.data.userId
           && !request.resource.data.diff(resource.data).affectedKeys()
-              .hasAny(['managerUid', 'sourceProspectId', 'importedBy'])
+              .hasAny(['managerUid', 'orgCode', 'sourceProspectId', 'importedBy'])
         );
         
       allow delete: if isAdmin()

@@ -106,62 +106,56 @@ npm run test:web        # Tests
 
 ---
 
-## 🖥️ Backend (API)
+## 🖥️ Backend (API Routes Next.js App Router)
+
+Les endpoints serveur sont implémentés sous forme de Route Handlers Next.js (`apps/web/src/app/api/...`), exécutés en environnement Serverless avec isolation dynamique via `firebase-admin@13.10.0`.
 
 ### Routes principales
 
 ```
-GET  /health                   Health check
-POST /auth/*                   Authentification & tokens
-GET  /admin/*                  Routes admin
-GET  /companies/*              Entreprises
-POST /imports/*                Import Excel/CSV
-GET  /team/*                   Gestion équipe
-POST /assignments/*            Affectations
-POST /ai/*                     Assistant IA
-GET  /support/*                Support
+GET  /api/health                       Health check avec sonde Firestore temps réel
+POST /api/auth/*                       Authentification & claims
+GET  /api/admin/*                      Gestion administrative
+POST /api/imports                      Import de fichiers (Excel/CSV via buffer mémoire)
+GET/POST /api/team/*                   Gestion d'équipe & activations
+GET/POST /api/pipeline/*               Pipeline CRM & agrégations multi-tenants
+POST /api/ai/*                         Assistant IA (Groq)
+GET/POST /api/support/*                Tickets & messagerie support
+POST /api/payment/webhook              Webhook de paiement Mobile Money (CamPay HMAC)
+GET  /api/cron/check-subscriptions     Vérification quotidienne des abonnements
 ```
 
-### Modules
-
-1. **Auth** - Vérification tokens Firebase
-2. **Companies** - API entreprises
-3. **Imports** - Import de fichiers (Excel/CSV)
-4. **Team** - Gestion équipes
-5. **Assignments** - Affectations prospects
-6. **Admin** - Management plateforme
-7. **Support** - Tickets support
-8. **AI** - Assistant IA (Groq)
-
-### Technologies
+### Technologies & Verrous de Sécurité
 
 ```json
 {
-  "express": "4.21.0",
-  "firebase-admin": "13.8.0",
-  "cors": "2.8.5",
-  "helmet": "8.0.0",
-  "multer": "2.0.0",
+  "next": "16.2.4",
+  "firebase-admin": "^13.10.0",
   "exceljs": "4.4.0",
   "zod": "3.23.0"
 }
 ```
 
-### Scripts
+> [!CAUTION]
+> **Verrou architectural Firebase Admin :** `firebase-admin` DOIT rester sur la branche v13.x pour compatibilité avec le runtime Serverless CommonJS de Vercel. Tout accès passe par les proxies dynamiques de `apps/web/src/lib/firebase-admin.ts`.
+
+### Scripts d'exécution
 
 ```bash
-npm run dev:server      # Développement (watch mode)
-npm run build:server    # Build TypeScript
-npm run start           # Production
-npm run typecheck       # Vérifier types
+npm run dev:web         # Démarrer le serveur de développement (port 3000)
+npm run build           # Compiler packages partagés + application web
+npm run build:web       # Build de production Next.js
+npm run typecheck       # Vérifier les types TypeScript du monorepo
+npm run check:integrity # Contrôle des invariants architecturaux & règles AGENTS.md
+npm run test:web        # Exécuter les tests unitaires
 ```
 
-### Middlewares
+### Sécurité & Middleware
 
-- **auth.middleware** - Vérification Firebase tokens
-- **admin.middleware** - Guard admin
-- **manager.middleware** - Guard manager
-- **error.middleware** - Gestion erreurs globale
+- **proxy.ts** - Détection et filtrage des bots malveillants, limitation de débit périmétrique
+- **rate-limit.ts** - Rate limiting distribué Upstash Redis (avec repli glissant sécurisé en mémoire)
+- **HMAC SHA-256** - Validation cryptographique stricte du webhook de paiement CamPay
+- **Atomic Transactions** - Consommation à usage unique des invitations d'activation d'équipe
 
 ---
 

@@ -62,11 +62,22 @@ const SEARCH_RATE_LIMIT = 30    // ← augmenté (était 10)
 const SEARCH_RATE_WINDOW = 10_000 // 10 secondes
 
 function getClientIp(req: NextRequest): string {
-  return (
-    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
-    req.headers.get('x-real-ip') ??
-    'unknown'
-  )
+  const realIp = req.headers.get('x-real-ip')
+  if (realIp && realIp.trim()) return realIp.trim()
+
+  const cfIp = req.headers.get('cf-connecting-ip')
+  if (cfIp && cfIp.trim()) return cfIp.trim()
+
+  const vercelIp = req.headers.get('x-vercel-forwarded-for')
+  if (vercelIp && vercelIp.trim()) return vercelIp.trim()
+
+  const xff = req.headers.get('x-forwarded-for')
+  if (xff) {
+    const parts = xff.split(',').map((p) => p.trim()).filter(Boolean)
+    if (parts.length > 0) return parts[parts.length - 1] ?? 'unknown'
+  }
+
+  return 'unknown'
 }
 
 function checkRateLimit(key: string, limit: number, windowMs: number): boolean {

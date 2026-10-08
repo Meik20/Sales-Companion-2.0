@@ -15,31 +15,36 @@ export async function GET(
     }
 
     const accessIdRaw = rawAccessId.trim()
+    // Protection P0 : Rejeter formellement tout identifiant prévisible ou trop court
+    if (accessIdRaw.includes('@') || accessIdRaw.length < 16) {
+      return NextResponse.json(
+        { error: "Pour des raisons de sécurité, l'accès requiert le code sécurisé du lien d'invitation." },
+        { status: 400 }
+      )
+    }
+
+    // Rate limiting par IP pour prévenir toute énumération
+    const { checkRateLimit, getClientIp } = await import('@/lib/rate-limit')
+    const ip = getClientIp(_request)
+    const rl = await checkRateLimit(`team-access-info:${ip}`, {
+      limit: 30,
+      windowMs: 15 * 60 * 1000
+    })
+    if (!rl.success) {
+      return NextResponse.json(
+        { error: 'Trop de requêtes. Veuillez patienter.' },
+        { status: 429 }
+      )
+    }
+
     let accessDoc: FirebaseFirestore.DocumentData | null = null
     let actualAccessId = ''
 
     for (const col of ACCESS_COLLECTIONS) {
-      // 1. Chercher par document ID exact
-      let snap = await adminDb.collection(col).doc(accessIdRaw).get()
-      const data = snap.data()
-      if (snap.exists && data) {
-        accessDoc = data
-        actualAccessId = accessDoc.accessId || accessIdRaw
-        break
-      }
-
-      // 2. Chercher par magicCode (Nouveau système Magic Link)
+      // Recherche EXCLUSIVE par magicCode (Code secret aléatoire à usage unique)
       const byMagicCode = await adminDb.collection(col).where('magicCode', '==', accessIdRaw).limit(1).get()
       if (!byMagicCode.empty && byMagicCode.docs[0]) {
         accessDoc = byMagicCode.docs[0].data()
-        actualAccessId = accessDoc?.accessId || ''
-        break
-      }
-
-      // 3. Chercher par accessId (Ancien système)
-      const byAccessId = await adminDb.collection(col).where('accessId', '==', accessIdRaw.toLowerCase()).limit(1).get()
-      if (!byAccessId.empty && byAccessId.docs[0]) {
-        accessDoc = byAccessId.docs[0].data()
         actualAccessId = accessDoc?.accessId || ''
         break
       }

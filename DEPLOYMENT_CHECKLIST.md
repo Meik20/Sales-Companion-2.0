@@ -12,17 +12,17 @@
 
 ### Tests
 
-- [ ] `npm run test:web` - Frontend tests passing
-- [ ] `npm run test:server` - Backend tests passing
+- [ ] `npm run check:integrity` - Invariants architecturaux validés
+- [ ] `npm run test:web` - Tests unitaires & intégration passing
 - [ ] Coverage > 70% (critical paths)
 - [ ] Tests e2e (si applicable)
 
 ### Build Verification
 
-- [ ] `npm run build` - Build complet sans erreurs
-- [ ] `npm run build:web` - Frontend build OK
-- [ ] `npm run build:server` - Backend build OK
-- [ ] `.next/` et `dist/` générés correctement
+- [ ] `npm run build:shared` - Shared package build OK
+- [ ] `npm run build:web` - Next.js fullstack build OK
+- [ ] `npm run build` - Monorepo build complet sans erreurs
+- [ ] `.next/` généré correctement
 
 ---
 

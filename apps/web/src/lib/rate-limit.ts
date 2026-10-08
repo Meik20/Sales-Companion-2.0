@@ -7,15 +7,33 @@ interface RateLimitStore {
 // Memory fallback store for local development if Upstash is not configured
 const memoryStore = new Map<string, RateLimitStore>()
 
-// Helper to get client IP safely
+// Helper to get client IP safely and prevent header spoofing
 export function getClientIp(request: NextRequest): string {
+  // 1. Headers de proxy de confiance (Vercel, Cloudflare, reverse proxy frontal)
+  const realIp = request.headers.get('x-real-ip')
+  if (realIp && realIp.trim()) {
+    return realIp.trim()
+  }
+
+  const cfIp = request.headers.get('cf-connecting-ip')
+  if (cfIp && cfIp.trim()) {
+    return cfIp.trim()
+  }
+
+  const vercelIp = request.headers.get('x-vercel-forwarded-for')
+  if (vercelIp && vercelIp.trim()) {
+    return vercelIp.trim()
+  }
+
+  // 2. Si seul x-forwarded-for est disponible, prendre l'IP de confiance
   const xff = request.headers.get('x-forwarded-for')
   if (xff) {
-    const firstIp = xff.split(',')[0]
-    if (firstIp) {
-      return firstIp.trim()
+    const parts = xff.split(',').map((p) => p.trim()).filter(Boolean)
+    if (parts.length > 0) {
+      return parts[parts.length - 1] ?? '127.0.0.1'
     }
   }
+
   return '127.0.0.1'
 }
 

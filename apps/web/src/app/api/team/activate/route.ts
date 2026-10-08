@@ -44,38 +44,26 @@ export async function POST(request: NextRequest) {
     }
 
 
-    // ── 1. Chercher le document d'accès (plusieurs collections possibles) ──
+    // ── 1. Chercher le document d'accès EXCLUSIVEMENT par secret aléatoire (Magic Code) ──
+    // Protection P0 : Rejeter formellement tout identifiant prévisible ou trop court
+    if (accessIdRaw.includes('@') || accessIdRaw.length < 16) {
+      return NextResponse.json(
+        {
+          message:
+            "Pour des raisons de sécurité, l'activation d'un compte requiert impérativement le lien magique sécurisé ou le code secret d'invitation (l'identifiant public ne peut pas être utilisé pour activer un compte)."
+        },
+        { status: 400 }
+      )
+    }
+
     let snap: any = null
     const ACCESS_COLLECTIONS = ['team_accesses', 'teamAccesses', 'accesses'] as const
 
     for (const col of ACCESS_COLLECTIONS) {
-      // 1. Chercher par document ID exact
-      let testSnap = await adminDb.collection(col).doc(accessIdRaw).get()
-      if (testSnap.exists) {
-        snap = testSnap
-        break
-      }
-
-      // 1b. Chercher par document ID minuscule
-      if (accessIdLower !== accessIdRaw) {
-        let testSnapLower = await adminDb.collection(col).doc(accessIdLower).get()
-        if (testSnapLower.exists) {
-          snap = testSnapLower
-          break
-        }
-      }
-
-      // 2. Chercher par magicCode (Nouveau système Magic Link)
+      // Recherche EXCLUSIVE par magicCode (Code secret aléatoire à usage unique)
       const byMagicCode = await adminDb.collection(col).where('magicCode', '==', accessIdRaw).limit(1).get()
       if (!byMagicCode.empty && byMagicCode.docs[0]) {
         snap = byMagicCode.docs[0]
-        break
-      }
-
-      // 3. Chercher par accessId
-      const byAccessId = await adminDb.collection(col).where('accessId', '==', accessIdLower).limit(1).get()
-      if (!byAccessId.empty && byAccessId.docs[0]) {
-        snap = byAccessId.docs[0]
         break
       }
     }
@@ -231,50 +219,87 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // ── 3. Écrire / fusionner le document utilisateur Firestore ──
-    await userDocRef.set(
-      {
-        uid,
-        email,
-        name:
-          [data.firstname ?? data.firstName ?? '', data.lastname ?? data.lastName ?? '']
-            .join(' ')
-            .trim() || null,
-        role: userRole,
-        plan: memberPlan,
-        active: true,
-        activated: true,
-        company: data.company ?? null,
-        sector: data.sector ?? null,
-        region: data.region ?? null,
-        managerId: data.managerId ?? null,
-        managerUid: data.managerUid ?? data.managerId ?? null,
-        managerEmail: data.managerEmail ?? null,
-        accessId: accessIdLower, // ← Access ID (ex: "jdupont@monentreprise")
-        dailyUsed: 0,
-        dailyLimit: memberDailyLimit,
-        subscriptionExpiresAt: managerExpiresAt,
-        subscriptionStartedAt: managerStartedAt,
-        subscriptionExpired: managerExpired,
-        createdAt,
-        activatedAt: new Date()
-      },
-      { merge: true }
-    )
+    // ── 3. Consommation atomique de l'invitation et écriture utilisateur Firestore (Transaction) ──
+    try {
+      await adminDb.runTransaction(async (transaction: any) => {
+        const accessDocRef = snap.ref as FirebaseFirestore.DocumentReference
+        const freshSnap = (await transaction.get(accessDocRef)) as FirebaseFirestore.DocumentSnapshot
+        if (!freshSnap.exists) {
+          throw new Error('INVITATION_NOT_FOUND')
+        }
+        const freshData = freshSnap.data()
+        if (freshData?.activated === true || freshData?.status === 'active' || freshData?.status === 'activated') {
+          throw new Error('ALREADY_ACTIVATED')
+        }
+        if (freshData?.expiresAt) {
+          const expDate =
+            typeof freshData.expiresAt.toDate === 'function' ? freshData.expiresAt.toDate() : new Date(freshData.expiresAt)
+          if (expDate < new Date()) {
+            throw new Error('EXPIRED')
+          }
+        }
+
+        // Marquer l'accès comme consommé de manière atomique
+        transaction.update(snap.ref, {
+          activated: true,
+          status: 'active',
+          email,
+          firebaseUid: uid,
+          activatedAt: new Date(),
+          activatedUid: uid,
+          ...(userRole !== 'support_agent' ? { plan: memberPlan, dailyLimit: memberDailyLimit } : {})
+        })
+
+        // Écrire / fusionner le profil utilisateur Firestore
+        transaction.set(
+          userDocRef,
+          {
+            uid,
+            email,
+            name:
+              [data.firstname ?? data.firstName ?? '', data.lastname ?? data.lastName ?? '']
+                .join(' ')
+                .trim() || null,
+            role: userRole,
+            plan: memberPlan,
+            active: true,
+            activated: true,
+            company: data.company ?? null,
+            sector: data.sector ?? null,
+            region: data.region ?? null,
+            managerId: data.managerId ?? null,
+            managerUid: data.managerUid ?? data.managerId ?? null,
+            managerEmail: data.managerEmail ?? null,
+            accessId: accessIdLower,
+            dailyUsed: 0,
+            dailyLimit: memberDailyLimit,
+            subscriptionExpiresAt: managerExpiresAt,
+            subscriptionStartedAt: managerStartedAt,
+            subscriptionExpired: managerExpired,
+            createdAt,
+            activatedAt: new Date()
+          },
+          { merge: true }
+        )
+      })
+    } catch (txErr: any) {
+      if (txErr?.message === 'ALREADY_ACTIVATED') {
+        return NextResponse.json(
+          { message: 'Ce compte a déjà été activé. Connectez-vous directement sur la page de connexion.' },
+          { status: 409 }
+        )
+      }
+      if (txErr?.message === 'EXPIRED') {
+        return NextResponse.json(
+          { message: "Cette invitation a expiré. Veuillez contacter votre manager pour recevoir un nouveau lien d'activation." },
+          { status: 410 }
+        )
+      }
+      throw txErr
+    }
 
     // ── 3.5. SET CUSTOM CLAIMS for Firestore rules ──────────────────────────
     await adminAuth.setCustomUserClaims(uid, { role: userRole })
-
-    // ── 4. Marquer l'accès comme activé ──
-    await snap.ref.update({
-      activated: true,
-      status: 'active',
-      email,
-      firebaseUid: uid,
-      activatedAt: new Date(),
-      activatedUid: uid,
-      ...(userRole !== 'support_agent' ? { plan: memberPlan, dailyLimit: memberDailyLimit } : {})
-    })
 
     // Activation successful — no sensitive log in production
 
