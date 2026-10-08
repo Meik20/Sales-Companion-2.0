@@ -166,9 +166,9 @@ export function Hero() {
                       <Building2 className="h-5 w-5" />
                     </div>
                     <div>
-                      <h4 className="font-heading text-sm font-bold text-foreground">
+                      <div className="font-heading text-sm font-bold text-foreground">
                         ABC CONSTRUCTION SARL
-                      </h4>
+                      </div>
                       <p className="text-xs text-muted-foreground">
                         BTP & Génie Civil · {country.cities[0]}
                       </p>
@@ -264,10 +264,10 @@ export function Hero() {
 
                   {/* Column 4: Opportunité */}
                   <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 p-2 text-center">
-                    <span className="block font-bold text-blue-600 truncate">
+                    <span className="block font-bold text-blue-700 dark:text-blue-400 truncate">
                       {isEn ? 'Opportunity' : 'Opportunité'}
                     </span>
-                    <span className="mt-1 inline-block rounded bg-card px-1.5 py-0.5 font-bold text-blue-600 shadow-2xs border border-blue-500/20 truncate max-w-full">
+                    <span className="mt-1 inline-block rounded bg-card px-1.5 py-0.5 font-bold text-blue-700 dark:text-blue-400 shadow-2xs border border-blue-500/20 truncate max-w-full">
                       TechCam
                     </span>
                   </div>

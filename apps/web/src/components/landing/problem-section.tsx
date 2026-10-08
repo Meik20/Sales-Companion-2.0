@@ -37,7 +37,7 @@ export function ProblemSection() {
     <section className="relative py-16 md:py-24 bg-background">
       <div className="mx-auto max-w-6xl px-5">
         <div className="text-center max-w-2xl mx-auto mb-14">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-500/20 bg-rose-500/10 px-3 py-1 text-xs font-semibold text-rose-500">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-500/30 bg-rose-500/10 px-3 py-1 text-xs font-semibold text-rose-700 dark:text-rose-400">
             {isEn ? 'The Common Challenge' : 'Le constat terrain'}
           </span>
           <h2 className="mt-3 font-heading text-2xl font-bold tracking-tight text-foreground sm:text-3xl md:text-4xl text-balance">
