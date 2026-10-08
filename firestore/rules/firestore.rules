@@ -1,4 +1,14 @@
 rules_version = '2';
+//
+// ⚠️ =========================================================================
+// ⚠️ AVERTISSEMENT CRITIQUE — INTÉGRITÉ ARCHITECTURALE & INVARIANTS SÉCURITÉ
+// ⚠️ =========================================================================
+// ⚠️ 1. Ne JAMAIS introduire de règles ad-hoc ciblant des UIDs ou emails de test.
+// ⚠️ 2. Ne JAMAIS altérer les invariants de données (users, organisations, pipeline).
+// ⚠️ 3. Préserver impérativement l'onboarding (indépendant, création d'organisation,
+// ⚠️    rejoindre avec code d'organisation, activation d'équipe).
+// ⚠️ 4. Se référer impérativement à AGENTS.md avant toute modification.
+// ⚠️ =========================================================================
 service cloud.firestore {
   match /databases/{database}/documents {
     function isSignedIn() {

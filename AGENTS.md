@@ -88,3 +88,23 @@ Le système repose sur une hiérarchie stricte à 4 niveaux :
 
 5. **Isolation Multi-Tenant** :
    - Un utilisateur ne doit jamais avoir accès, en lecture ou écriture, à des fiches ou des données appartenant à un autre `orgCode` ou un autre `managerUid` non rattaché.
+
+---
+
+## 4. Intégrité des Dépendances & Runtime Serverless (Vercel)
+
+> [!CAUTION]
+> **VERROU CRITIQUE SUR LES DÉPENDANCES SERVEUR :**
+> - **`firebase-admin` DOIT RESTER PINNÉ SUR LA BRANCHE v13.x (ex: `^13.10.0`)**.
+> - **NE JAMAIS migrer vers `firebase-admin@14.x`** sans refonte préalable du packaging ESM : la v14 embarque `jwks-rsa@4.x` qui dépend de `jose@6.x` (purement ESM). Dans le runtime Serverless Node.js de Vercel (CommonJS), cela provoque l'erreur fatale `ERR_REQUIRE_ESM`, cassant **immédiatement l'ensemble des routes API du backend**.
+> - **Les Proxies dynamiques dans `apps/web/src/lib/firebase-admin.ts` sont OBLIGATOIRES** : ils garantissent l'isolation et le chargement à la demande (`getFirestore` et `getAuth`). Ne jamais réintroduire d'imports statiques de modules serveur Firebase au sommet des fichiers transversaux.
+> - **Interdiction des `npm update` aveugles** : Toute mise à jour de paquet racine ou workspace doit faire l'objet d'un audit de compatibilité CJS/ESM et d'une validation locale complète (`npm run build:web`).
+
+---
+
+## 5. Procédure de Contrôle Pré-Déploiement
+
+Avant TOUT push vers `main` :
+1. **Contrôle TypeScript & Build** : Exécuter `npm run build:web` pour vérifier l'absence d'erreurs de compilation et de bundling.
+2. **Vérification d'intégrité des flux métier** : S'assurer que les flux transversaux (auth, organisation, pipeline, support) ne sont pas altérés.
+3. **Respect strict de l'architecture** : Vérifier qu'aucune règle ad-hoc ou bricolage spécifique à un compte de test n'a été inséré.

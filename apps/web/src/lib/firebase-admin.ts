@@ -1,5 +1,16 @@
 // apps/web/src/lib/firebase-admin.ts
 // Server-side only — do NOT import in client components
+//
+// ⚠️ =========================================================================
+// ⚠️ AVERTISSEMENT CRITIQUE — INTÉGRITÉ ARCHITECTURALE & RUNTIME SERVERLESS
+// ⚠️ =========================================================================
+// ⚠️ 1. firebase-admin DOIT RESTER en version 13.x (ex: ^13.10.0).
+// ⚠️    La v14 introduit un conflit ESM fatale (ERR_REQUIRE_ESM via jwks-rsa/jose)
+// ⚠️    dans l'environnement CommonJS de Vercel qui fait crasher toutes les API.
+// ⚠️ 2. Ne PAS importer statiquement getFirestore() ou getAuth() au sommet de ce
+// ⚠️    fichier. Le chargement dynamique via Proxies est obligatoire pour garantir
+// ⚠️    l'isolation et la compatibilité serverless.
+// ⚠️ =========================================================================
 import { initializeApp, getApps, getApp, cert } from 'firebase-admin/app'
 import type { Firestore } from 'firebase-admin/firestore'
 import type { Auth } from 'firebase-admin/auth'
