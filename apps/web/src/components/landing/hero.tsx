@@ -153,7 +153,7 @@ export function Hero() {
                     <span className="block text-[10px] text-muted-foreground font-medium">
                       {isEn ? 'Area' : 'Zone'}
                     </span>
-                    <span className="font-semibold text-foreground truncate block">Bonanjo</span>
+                    <span className="font-semibold text-foreground truncate block">{country.area}</span>
                   </div>
                 </div>
               </div>
@@ -202,15 +202,15 @@ export function Hero() {
                 <div className="mt-3.5 grid grid-cols-2 gap-2 text-[11px] pt-3 border-t border-border/60">
                   <div className="flex items-center gap-1.5 text-muted-foreground">
                     <FileText className="h-3.5 w-3.5 text-primary shrink-0" />
-                    <span>RCCM: <strong className="text-foreground font-mono font-medium">RC/{country.cities[0]?.slice(0, 3).toUpperCase()}/2021/B/1420</strong></span>
+                    <span>RCCM: <strong className="text-foreground font-mono font-medium">{country.rccmExample}</strong></span>
                   </div>
                   <div className="flex items-center gap-1.5 text-muted-foreground">
                     <FileText className="h-3.5 w-3.5 text-primary shrink-0" />
-                    <span>NIU: <strong className="text-foreground font-mono font-medium">M051912783451A</strong></span>
+                    <span>{country.taxLabel}: <strong className="text-foreground font-mono font-medium">{country.taxExample}</strong></span>
                   </div>
                   <div className="flex items-center gap-1.5 text-muted-foreground">
                     <Phone className="h-3.5 w-3.5 text-blue-500 shrink-0" />
-                    <span className="font-mono text-foreground font-medium truncate">{country.cities[0]} · B2B</span>
+                    <span className="font-mono text-foreground font-medium truncate">{country.mockPhone} · B2B</span>
                   </div>
                   <div className="flex items-center gap-1.5 text-muted-foreground">
                     <Mail className="h-3.5 w-3.5 text-blue-500 shrink-0" />
@@ -248,7 +248,7 @@ export function Hero() {
                       {isEn ? 'Contacted' : 'Contacté'}
                     </span>
                     <span className="mt-1 inline-block rounded bg-secondary/80 px-1.5 py-0.5 text-muted-foreground truncate max-w-full">
-                      SABC SA
+                      {country.kanbanContacted}
                     </span>
                   </div>
 
@@ -268,7 +268,7 @@ export function Hero() {
                       {isEn ? 'Opportunity' : 'Opportunité'}
                     </span>
                     <span className="mt-1 inline-block rounded bg-card px-1.5 py-0.5 font-bold text-blue-700 dark:text-blue-400 shadow-2xs border border-blue-500/20 truncate max-w-full">
-                      TechCam
+                      {country.kanbanTech}
                     </span>
                   </div>
                 </div>

@@ -8,6 +8,7 @@ import { LanguageSwitcher } from '@/components/landing/LanguageSwitcher'
 import { useTranslation } from '@/providers/I18nProvider'
 import { routes } from '@/constants/routes'
 import { useLandingCountry } from '@/features/landing/landing-country'
+import { CountryFlag } from '@/components/ui/CountrySelect'
 
 const LinkedInIcon = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="currentColor">
@@ -51,12 +52,14 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex shrink-0 items-center gap-2.5 sm:gap-3">
-          <label className="hidden lg:flex shrink-0 items-center rounded-lg border border-border bg-secondary/60 px-2 text-xs font-semibold text-foreground">
-            <span className="mr-1.5" aria-hidden="true">{country.flag}</span>
+          <label className="hidden lg:flex shrink-0 items-center gap-1.5 rounded-lg border border-border bg-secondary/60 px-2.5 text-xs font-semibold text-foreground">
+            <span className="flex items-center" aria-hidden="true">
+              <CountryFlag code={country.code} size="sm" />
+            </span>
             <select
               value={country.code}
               onChange={(event) => setCountry(event.target.value as typeof country.code)}
-              className="h-8 max-w-[105px] cursor-pointer bg-transparent text-xs font-semibold outline-none truncate"
+              className="h-8 max-w-[125px] cursor-pointer bg-transparent text-xs font-semibold outline-none truncate"
               aria-label={lang === 'en' ? 'Select country' : 'Pays de la homepage'}
             >
               {countries.map((option) => (
@@ -126,7 +129,9 @@ export function SiteHeader() {
           <div className="mt-4 flex flex-col gap-2 pt-4 border-t border-border">
             {/* Sélecteur de pays dans le menu mobile */}
             <label className="flex items-center gap-2 rounded-lg border border-border bg-secondary/60 px-3 py-2 text-xs font-semibold text-foreground">
-              <span aria-hidden="true">{country.flag}</span>
+              <span aria-hidden="true" className="flex items-center">
+                <CountryFlag code={country.code} size="sm" />
+              </span>
               <select
                 value={country.code}
                 onChange={(event) => setCountry(event.target.value as typeof country.code)}
@@ -135,7 +140,7 @@ export function SiteHeader() {
               >
                 {countries.map((option) => (
                   <option key={option.code} value={option.code} className="bg-background text-foreground">
-                    {option.flag} {option.name}
+                    {option.name}
                   </option>
                 ))}
               </select>

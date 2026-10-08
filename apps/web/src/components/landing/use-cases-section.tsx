@@ -20,12 +20,12 @@ export function UseCasesSection() {
         : 'Trouvez les entreprises à prospecter avant même de partir sur le terrain.',
       bullets: isEn
         ? [
-            'Filter by neighborhood (Akwa, Bastos, Bonanjo...) to plan dense visits',
+            `Filter by neighborhood (${country.neighborhoods}) to plan dense visits`,
             'Quick access to verified phone numbers and GPS addresses on mobile',
             'PWA works smoothly even during network drops in transit'
           ]
         : [
-            'Filtrage par quartier (Akwa, Bastos, Bonanjo...) pour préparer vos tournées',
+            `Filtrage par quartier (${country.neighborhoods}) pour préparer vos tournées`,
             'Accès direct aux numéros et adresses sur smartphone',
             'Application fluide même avec un réseau mobile instable'
           ],
