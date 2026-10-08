@@ -129,10 +129,17 @@ export async function POST(request: NextRequest) {
       }
     }
     const previousAssignees = Array.from(prevAssigneesMap.values())
+    const userDoc = await adminDb.collection('users').doc(userId).get()
+    const userData = userDoc.data() || {}
+    const isManagerUser = userData.role === 'manager'
+    const managerUid = (body.managerUid as string) || (isManagerUser ? userId : (userData.managerUid as string | null)) || null
+    const orgCode = (userData.orgCode as string) || null
 
     const ref = adminDb.collection('pipeline').doc()
     await ref.set({
       userId,
+      managerUid,
+      orgCode,
       companyName,
       name: companyName,
       status,
@@ -142,6 +149,7 @@ export async function POST(request: NextRequest) {
             ![
               'userId',
               'managerUid',
+              'orgCode',
               'createdAt',
               'updatedAt',
               'status',

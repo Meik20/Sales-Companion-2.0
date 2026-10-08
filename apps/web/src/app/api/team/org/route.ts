@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
         }
       }
       if (!orgCode) {
-        return NextResponse.json({ error: 'Impossible de générer un code unique. Reessayez.' }, { status: 500 })
+        return NextResponse.json({ error: 'Impossible de générer un code unique. Réessayez.' }, { status: 500 })
       }
       orgRole = 'senior_manager'
 
@@ -75,9 +75,35 @@ export async function GET(request: NextRequest) {
         createdAt: new Date()
       })
       await batch.commit()
-    } else if (!orgRole) {
-      orgRole = 'senior_manager'
-      await userDocRef.update({ orgRole }).catch(() => {})
+    } else {
+      // Vérification explicite de l'identité du propriétaire dans le document organisation
+      const orgDocRef = adminDb.collection('organisations').doc(orgCode)
+      const orgDocSnap = await orgDocRef.get()
+      
+      let expectedOrgRole: 'senior_manager' | 'team_manager' = 'team_manager'
+      if (orgDocSnap.exists) {
+        const orgData = orgDocSnap.data()
+        expectedOrgRole = (orgData?.seniorManagerUid === managerUid) ? 'senior_manager' : 'team_manager'
+      } else {
+        // Cas d'auto-guérison si le document organisation n'existe pas encore :
+        // Le premier manager rattaché initialise l'organisation
+        expectedOrgRole = 'senior_manager'
+        await orgDocRef.set({
+          orgCode,
+          companyName: userData.companyName || userData.company || '',
+          sector: userData.sector || null,
+          country: userData.country || 'CM',
+          seniorManagerUid: managerUid,
+          niu: userData.niu ? normalizeNiu(userData.niu) : null,
+          isVerified: Boolean(userData.niu),
+          createdAt: new Date()
+        }, { merge: true }).catch((err) => console.error('[GET /api/team/org] orgDoc create error:', err))
+      }
+
+      if (orgRole !== expectedOrgRole) {
+        orgRole = expectedOrgRole
+        await userDocRef.update({ orgRole }).catch((err) => console.error('[GET /api/team/org] user update orgRole error:', err))
+      }
     }
 
     const niu = userData.niu ? normalizeNiu(userData.niu) : null
@@ -86,7 +112,6 @@ export async function GET(request: NextRequest) {
 
     // Récupérer tous les managers de la même organisation.
     // Requiert un index composite Firestore : (orgCode ASC, role ASC)
-    // Si l'index est manquant, Firestore lève une exception — loggée ici explicitement.
     let managers: any[] = []
     let managersLoadError: string | null = null
     if (orgCode) {
@@ -99,7 +124,9 @@ export async function GET(request: NextRequest) {
 
         managers = orgManagersSnap.docs.map((d) => {
           const mData = d.data()
-          const resolvedOrgRole = mData.orgRole || (d.id === managerUid ? orgRole : 'team_manager')
+          const resolvedOrgRole = (d.id === managerUid)
+            ? orgRole
+            : (mData.orgRole || 'team_manager')
           return {
             uid: d.id,
             name: mData.displayName || mData.name || mData.email,
@@ -116,10 +143,6 @@ export async function GET(request: NextRequest) {
       } catch (mErr: any) {
         managersLoadError = mErr?.message || 'Erreur inconnue lors du chargement des managers'
         console.error('[GET /api/team/org] Firestore managers query failed:', mErr)
-        // Si l'index composite est manquant, Firestore retourne un lien de création dans le message
-        if (mErr?.message?.includes('index')) {
-          console.error('[GET /api/team/org] HINT: Create the composite index in Firestore console: orgCode ASC + role ASC on collection "users"')
-        }
       }
     }
 
@@ -133,12 +156,47 @@ export async function GET(request: NextRequest) {
       sector: userData.sector || null,
       country: userData.country || 'CM',
       managers,
-      // Exposé uniquement pour faciliter le debug frontend — jamais utilisé en logique UI
       ...(managersLoadError ? { _managersLoadError: managersLoadError } : {})
     })
   } catch (error: any) {
     console.error('[GET /api/team/org] error:', error)
     return NextResponse.json({ error: error.message || 'Erreur interne' }, { status: 500 })
+  }
+}
+
+/**
+ * Helper de migration atomique des fiches de pipeline lors du changement / rattachement d'organisation
+ */
+async function migrateManagerPipelineOrgCode(adminDb: FirebaseFirestore.Firestore, managerUid: string, targetOrgCode: string) {
+  try {
+    const [mgrSnap, userSnap] = await Promise.all([
+      adminDb.collection('pipeline').where('managerUid', '==', managerUid).get(),
+      adminDb.collection('pipeline').where('userId', '==', managerUid).get()
+    ])
+
+    const docsToUpdate = new Map<string, FirebaseFirestore.DocumentReference>()
+    mgrSnap.docs.forEach((d) => {
+      if (d.data().orgCode !== targetOrgCode) docsToUpdate.set(d.id, d.ref)
+    })
+    userSnap.docs.forEach((d) => {
+      if (d.data().orgCode !== targetOrgCode) docsToUpdate.set(d.id, d.ref)
+    })
+
+    if (docsToUpdate.size === 0) return
+
+    const entries = Array.from(docsToUpdate.values())
+    const CHUNK_SIZE = 400
+    for (let i = 0; i < entries.length; i += CHUNK_SIZE) {
+      const chunk = entries.slice(i, i + CHUNK_SIZE)
+      const batch = adminDb.batch()
+      chunk.forEach((ref) => {
+        batch.update(ref, { orgCode: targetOrgCode, updatedAt: new Date() })
+      })
+      await batch.commit()
+    }
+    console.log(`[migrateManagerPipelineOrgCode] Successfully migrated ${docsToUpdate.size} pipeline fiches to ${targetOrgCode}`)
+  } catch (err) {
+    console.error('[migrateManagerPipelineOrgCode] Error migrating pipeline fiches:', err)
   }
 }
 
@@ -175,6 +233,7 @@ export async function PATCH(request: NextRequest) {
     const updates: Record<string, any> = {
       updatedAt: new Date()
     }
+    let orgCodeChangedTo: string | null = null
 
     // 1. Mise à jour ou ajout du NIU
     if (body.niu !== undefined) {
@@ -205,6 +264,7 @@ export async function PATCH(request: NextRequest) {
           if (emData.orgCode && emData.orgCode !== userData.orgCode) {
             updates.orgCode = emData.orgCode
             updates.orgRole = 'team_manager'
+            orgCodeChangedTo = emData.orgCode
             if (emData.companyName) updates.companyName = emData.companyName
             if (emData.sector) updates.sector = emData.sector
           }
@@ -218,15 +278,18 @@ export async function PATCH(request: NextRequest) {
     if (body.joinOrgCode) {
       const targetCode = String(body.joinOrgCode).trim().toUpperCase()
       if (targetCode !== userData.orgCode) {
-        // Rechercher si un manager avec cet orgCode existe
-        const query = await adminDb
-          .collection('users')
-          .where('orgCode', '==', targetCode)
-          .where('role', '==', 'manager')
-          .limit(1)
-          .get()
+        // Rechercher si un manager ou un document organisation avec cet orgCode existe
+        const [query, orgDoc] = await Promise.all([
+          adminDb
+            .collection('users')
+            .where('orgCode', '==', targetCode)
+            .where('role', '==', 'manager')
+            .limit(1)
+            .get(),
+          adminDb.collection('organisations').doc(targetCode).get()
+        ])
 
-        if (query.empty) {
+        if (query.empty && !orgDoc.exists) {
           return NextResponse.json(
             {
               error: `Aucune organisation trouvée avec le code "${targetCode}". Vérifiez le code partagé par votre Senior Manager.`
@@ -236,25 +299,26 @@ export async function PATCH(request: NextRequest) {
         }
 
         const targetManagerData = query.docs[0]?.data()
+        const orgData = orgDoc.data()
         updates.orgCode = targetCode
         updates.orgRole = 'team_manager' // Le manager qui rejoint devient Manager d'équipe
+        orgCodeChangedTo = targetCode
 
         // Adopter la raison sociale et le secteur de l'organisation rejointe
-        if (targetManagerData?.companyName) {
-          updates.companyName = targetManagerData.companyName
+        if (orgData?.companyName || targetManagerData?.companyName) {
+          updates.companyName = orgData?.companyName || targetManagerData?.companyName
         }
-        if (targetManagerData?.sector) {
-          updates.sector = targetManagerData.sector
+        if (orgData?.sector || targetManagerData?.sector) {
+          updates.sector = orgData?.sector || targetManagerData?.sector
         }
 
         // Si l'organisation rejointe a déjà un NIU et pas ce manager, synchroniser
-        if (!updates.niu && !userData.niu && targetManagerData?.niu) {
-          updates.niu = targetManagerData.niu
+        if (!updates.niu && !userData.niu && (orgData?.niu || targetManagerData?.niu)) {
+          updates.niu = orgData?.niu || targetManagerData?.niu
         }
 
-        // Mettre à jour le compteur de membres dans organisations/
+        // Mettre à jour l'organisation
         const orgDocRef = adminDb.collection('organisations').doc(targetCode)
-        const orgDoc = await orgDocRef.get()
         if (orgDoc.exists) {
           await orgDocRef.update({ updatedAt: new Date() }).catch(() => {})
         }
@@ -263,6 +327,11 @@ export async function PATCH(request: NextRequest) {
 
     if (Object.keys(updates).length > 1) {
       await userDocRef.update(updates)
+    }
+
+    // Migrer les fiches de pipeline du manager vers la nouvelle organisation si changement d'orgCode
+    if (orgCodeChangedTo) {
+      await migrateManagerPipelineOrgCode(adminDb, managerUid, orgCodeChangedTo)
     }
 
     const updatedDoc = await userDocRef.get()

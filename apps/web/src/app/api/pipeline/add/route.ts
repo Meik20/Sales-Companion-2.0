@@ -161,6 +161,7 @@ export async function POST(request: NextRequest) {
     const docRef = await adminDb.collection('pipeline').add({
       userId,
       managerUid: managerUid ?? null,
+      orgCode: callerData.orgCode ?? null,
       assignedTo: finalAssignedTo,
       memberName: finalMemberName,
       memberAccessId: isManagerRole ? null : (memberAccessId ?? null),

@@ -97,9 +97,9 @@ export function proxy(req: NextRequest) {
   const ua = req.headers.get('user-agent') ?? ''
   const ip = getClientIp(req)
 
-  // ── 1. Always allow legitimate search engine crawlers ─────────────────────
+  // ── 1. Always allow legitimate search engine crawlers ONLY for public pages (NEVER for API routes) ─────────────────────
   const isAllowedBot = ALLOWED_BOTS.some((pattern) => pattern.test(ua))
-  if (isAllowedBot) return NextResponse.next()
+  if (isAllowedBot && !pathname.startsWith('/api/')) return NextResponse.next()
 
   // ── 2. Block known malicious bots / scrapers ────────────────────────────────
   const isBot = BOT_UA_PATTERNS.some((pattern) => pattern.test(ua))

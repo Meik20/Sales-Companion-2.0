@@ -87,7 +87,14 @@ export async function GET(request: NextRequest) {
           .collection('pipeline')
           .where('managerUid', 'in', chunk)
           .get()
-        snap.docs.forEach((d) => allItems.push({ id: d.id, ...d.data() }))
+        snap.docs.forEach((d) => {
+          const data = d.data()
+          // Strict multi-tenant guard: si la fiche a un orgCode explicite, il doit correspondre à celui de l'organisation
+          if (data.orgCode && data.orgCode !== orgCode) {
+            return
+          }
+          allItems.push({ id: d.id, ...data, orgCode: data.orgCode || orgCode })
+        })
       })
     )
 

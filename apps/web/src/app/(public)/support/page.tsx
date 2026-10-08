@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { AppShell } from '@/components/layout/AppShell'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
-import { firestore } from '@/services/firebase/client'
+import { firestore, auth } from '@/services/firebase/client'
 import { useTranslation } from '@/providers/I18nProvider'
 import { PublicSupportForm } from '@/features/support/components/PublicSupportForm'
 import {
@@ -196,17 +196,22 @@ function AuthenticatedSupportView() {
       setShowNew(false)
       setTimeout(() => textareaRef.current?.focus(), 200)
 
-      // Déclencher la notification admin en tâche de fond
-      fetch('/api/support/notify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          threadId: ref.id,
-          subject: newSubject.trim(),
-          userName: (user as { name?: string }).name ?? user.email ?? 'Utilisateur',
-          userEmail: user.email ?? '',
-          userId: user.uid
-        })
+      // Déclencher la notification admin en tâche de fond avec authentification
+      auth.currentUser?.getIdToken().then((token: string) => {
+        if (!token) return
+        fetch('/api/support/notify', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            threadId: ref.id,
+            subject: newSubject.trim(),
+            userName: (user as { name?: string }).name ?? user.email ?? 'Utilisateur',
+            userEmail: user.email ?? ''
+          })
+        }).catch(() => {})
       }).catch(() => {})
     } catch (err) {
       console.error('Failed to create thread:', err)

@@ -116,12 +116,17 @@ export async function GET(request: NextRequest) {
       const snap = await q.limit(500).get()
       snap.docs.forEach(d => {
         if (!seen.has(d.id)) {
-          seen.add(d.id)
           const data = d.data()
+          // Strict multi-tenant guard: si la fiche a un orgCode explicite, il doit correspondre à celui de l'organisation
+          if (data.orgCode && data.orgCode !== orgCode) {
+            return
+          }
+          seen.add(d.id)
           const mgr = managersMap[data.managerUid as string]
           allItems.push({
             id: d.id,
             ...data,
+            orgCode: data.orgCode || orgCode,
             status: normalizeStatus(data.status as string),
             managerName: mgr?.name ?? (data.managerName as string) ?? '',
             managerOrgRole: mgr?.orgRole ?? 'team_manager',
