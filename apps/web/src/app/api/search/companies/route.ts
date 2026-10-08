@@ -93,6 +93,14 @@ export async function GET(request: NextRequest) {
         userCountry = (userData.country || 'CM').toUpperCase()
         if (!COUNTRY_NAMES[userCountry]) userCountry = 'CM'
       }
+
+      // Pays de prospection : le client peut transmettre un pays différent
+      // (sélectionné sur la landing via sc_country cookie).
+      // On l'accepte seulement s'il est valide dans COUNTRY_NAMES.
+      const requestedCountry = searchParams.get('country')?.toUpperCase()
+      if (requestedCountry && COUNTRY_NAMES[requestedCountry]) {
+        userCountry = requestedCountry
+      }
     } catch (err) {
       console.error('[search/companies] Auth verification error:', err)
       return NextResponse.json(

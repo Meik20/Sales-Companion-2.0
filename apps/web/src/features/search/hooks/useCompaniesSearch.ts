@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { useProspectingCountry } from '@/hooks/useProspectingCountry'
 import { getCachedSearchResults, saveSearchResults } from '@/lib/search-cache'
 import { isMobileRuntime } from '@/lib/runtime'
 
@@ -50,7 +51,8 @@ export type SearchFilters = {
 export function useCompaniesSearch(filters: SearchFilters & { page?: number; charge?: boolean }) {
   const { user } = useCurrentUser()
   const mobileRuntime = isMobileRuntime()
-  const userCountry = user?.country || 'CM'
+  // Pays de prospection actif : cookie sc_country (landing) > user.country (Firestore)
+  const userCountry = useProspectingCountry()
   const cacheFilters = { ...filters, country: userCountry }
   const hasFilters = !!(
     filters.sector ||

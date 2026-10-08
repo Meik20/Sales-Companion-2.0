@@ -11,6 +11,7 @@ import { SaveCurrentSearchButton } from '@/features/search/components/SaveCurren
 import { useCompaniesSearch } from '@/features/search/hooks/useCompaniesSearch'
 import { usePipelineStats } from '@/features/pipeline/hooks/usePipelineStats'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { useProspectingCountry } from '@/hooks/useProspectingCountry'
 import { COUNTRY_FRENCH_IN, COUNTRY_NAMES, type CountryCode } from '@sales-companion/shared'
 import { ShortcutCard } from '@/components/ui/ShortcutCard'
 import { Button } from '@/components/ui/Button'
@@ -34,7 +35,8 @@ function SearchContent() {
   const router = useRouter()
   const { user } = useCurrentUser()
   const isFreePlan = !user?.plan || user?.plan === 'free'
-  const userCountry = (user?.country || 'CM') as CountryCode
+  // Pays de prospection actif : cookie sc_country (landing) > user.country (Firestore)
+  const userCountry = useProspectingCountry()
   const countryName = COUNTRY_NAMES[userCountry] || 'Cameroun'
   const countryIn = COUNTRY_FRENCH_IN[userCountry] || 'au Cameroun'
   const highlightCities = COUNTRY_HIGHLIGHT_CITIES[userCountry] ?? COUNTRY_HIGHLIGHT_CITIES.CM!

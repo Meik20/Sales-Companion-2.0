@@ -3,6 +3,7 @@
 import { FormEvent, useState, useEffect } from 'react'
 import { useTranslation } from '@/providers/I18nProvider'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { useProspectingCountry } from '@/hooks/useProspectingCountry'
 import { GEOGRAPHY } from '@sales-companion/shared'
 import { HardHat, ShoppingBag, Laptop, Sprout, Truck, Stethoscope, LayoutGrid, X } from 'lucide-react'
 
@@ -100,7 +101,8 @@ type Props = { initialValues?: Filters; onSubmit: (v: Filters) => void }
 export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
   const { t } = useTranslation()
   const { user } = useCurrentUser()
-  const userCountry = user?.country || 'CM'
+  // Pays de prospection actif : cookie sc_country (landing) > user.country (Firestore)
+  const userCountry = useProspectingCountry()
   const geography = GEOGRAPHY[userCountry] ?? GEOGRAPHY.CM!
   const regions = geography.regions
   const [query, setQuery] = useState(initialValues.query ?? '')
