@@ -24,7 +24,9 @@ export function TeamMembersSection() {
   if (isLoading) {
     return (
       <SectionCard title={t('team.teamMembers')} subtitle={`${0} ${t('team.activeMembersCount')}`}>
-        <div style={{ textAlign: 'center', color: 'var(--muted-foreground, #94a3b8)', padding: 20 }}>
+        <div
+          style={{ textAlign: 'center', color: 'var(--muted-foreground, #94a3b8)', padding: 20 }}
+        >
           {t('team.loading')}
         </div>
       </SectionCard>
@@ -66,12 +68,26 @@ export function TeamMembersSection() {
           }}
         >
           <div style={{ flex: 1, minWidth: 120 }}>
-            <div style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 4 }}>
+            <div
+              style={{
+                fontSize: 11,
+                color: 'var(--muted-foreground, #94a3b8)',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '.08em',
+                marginBottom: 4
+              }}
+            >
               Activité équipe (aujourd&apos;hui)
             </div>
             <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--foreground, #f1f5f9)' }}>
               {totalUsed}
-              <span style={{ fontSize: 13, fontWeight: 400, color: 'var(--muted-foreground, #64748b)' }}> / {totalLimit} recherches</span>
+              <span
+                style={{ fontSize: 13, fontWeight: 400, color: 'var(--muted-foreground, #64748b)' }}
+              >
+                {' '}
+                / {totalLimit} recherches
+              </span>
             </div>
           </div>
           <div
@@ -81,10 +97,17 @@ export function TeamMembersSection() {
               gap: 6,
               fontSize: 13,
               fontWeight: 700,
-              color: teamUsagePercent > 80 ? '#f87171' : teamUsagePercent > 50 ? '#fbbf24' : '#34d399'
+              color:
+                teamUsagePercent > 80 ? '#f87171' : teamUsagePercent > 50 ? '#fbbf24' : '#34d399'
             }}
           >
-            {teamUsagePercent > 80 ? <TrendingUp size={16} /> : teamUsagePercent > 50 ? <Minus size={16} /> : <TrendingDown size={16} />}
+            {teamUsagePercent > 80 ? (
+              <TrendingUp size={16} />
+            ) : teamUsagePercent > 50 ? (
+              <Minus size={16} />
+            ) : (
+              <TrendingDown size={16} />
+            )}
             {teamUsagePercent}% utilisé
           </div>
         </div>
@@ -94,7 +117,10 @@ export function TeamMembersSection() {
         <EmptyState
           illustration="/illustrations/empty-states/empty-team.png"
           title={t('team.emptyTeam' as any) || 'Équipe vide'}
-          description={t('team.noMemberAssigned') || 'Invitez des membres pour collaborer et suivre les performances.'}
+          description={
+            t('team.noMemberAssigned') ||
+            'Invitez des membres pour collaborer et suivre les performances.'
+          }
           illustrationSize="sm"
         />
       ) : (
@@ -109,24 +135,21 @@ export function TeamMembersSection() {
 }
 
 function MemberCard({ member }: { member: TeamMember }) {
-  const usagePercent = member.dailyLimit > 0 ? Math.round((member.dailyUsed / member.dailyLimit) * 100) : 0
+  const usagePercent =
+    member.dailyLimit > 0 ? Math.round((member.dailyUsed / member.dailyLimit) * 100) : 0
   const { t } = useTranslation()
 
   // Couleur progressive selon l'usage
-  const quotaColor =
-    usagePercent > 80 ? '#f87171' :
-    usagePercent > 50 ? '#fbbf24' :
-    '#818cf8'
+  const quotaColor = usagePercent > 80 ? '#f87171' : usagePercent > 50 ? '#fbbf24' : '#818cf8'
 
   const avatarBg =
-    usagePercent > 80 ? 'rgba(248,113,113,0.12)' :
-    usagePercent > 50 ? 'rgba(251,191,36,0.12)' :
-    'rgba(99,102,241,0.12)'
+    usagePercent > 80
+      ? 'rgba(248,113,113,0.12)'
+      : usagePercent > 50
+        ? 'rgba(251,191,36,0.12)'
+        : 'rgba(99,102,241,0.12)'
 
-  const avatarColor =
-    usagePercent > 80 ? '#f87171' :
-    usagePercent > 50 ? '#fbbf24' :
-    '#818cf8'
+  const avatarColor = usagePercent > 80 ? '#f87171' : usagePercent > 50 ? '#fbbf24' : '#818cf8'
 
   return (
     <div
@@ -151,7 +174,15 @@ function MemberCard({ member }: { member: TeamMember }) {
       }}
     >
       {/* Ligne principale : Avatar + Nom + Status */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14, justifyContent: 'space-between', flexWrap: 'wrap' }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 14,
+          justifyContent: 'space-between',
+          flexWrap: 'wrap'
+        }}
+      >
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, flex: 1, minWidth: 180 }}>
           {/* Avatar avec initiale */}
           <div
@@ -175,7 +206,14 @@ function MemberCard({ member }: { member: TeamMember }) {
           </div>
 
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--foreground, #f1f5f9)', marginBottom: 3 }}>
+            <div
+              style={{
+                fontSize: 14,
+                fontWeight: 800,
+                color: 'var(--foreground, #f1f5f9)',
+                marginBottom: 3
+              }}
+            >
               {member.name}
             </div>
             <a
@@ -190,7 +228,9 @@ function MemberCard({ member }: { member: TeamMember }) {
                 transition: 'color 150ms ease'
               }}
               onMouseEnter={(e) => (e.currentTarget.style.color = '#60a5fa')}
-              onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--muted-foreground, #94a3b8)')}
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.color = 'var(--muted-foreground, #94a3b8)')
+              }
             >
               <Mail size={11} style={{ opacity: 0.7 }} />
               {member.email}
@@ -268,7 +308,9 @@ function MemberCard({ member }: { member: TeamMember }) {
           </span>
           <span style={{ fontSize: 12, fontWeight: 800, color: quotaColor }}>
             {member.dailyUsed}
-            <span style={{ color: 'var(--muted-foreground, #64748b)', fontWeight: 400, fontSize: 11 }}>
+            <span
+              style={{ color: 'var(--muted-foreground, #64748b)', fontWeight: 400, fontSize: 11 }}
+            >
               /{member.dailyLimit}
             </span>
             <span style={{ marginLeft: 6, fontSize: 10, color: quotaColor, fontWeight: 700 }}>
@@ -291,24 +333,43 @@ function MemberCard({ member }: { member: TeamMember }) {
             style={{
               width: `${Math.min(usagePercent, 100)}%`,
               height: '100%',
-              background: usagePercent > 80
-                ? 'linear-gradient(90deg, #f87171, #ef4444)'
-                : usagePercent > 50
-                  ? 'linear-gradient(90deg, #fbbf24, #f59e0b)'
-                  : 'linear-gradient(90deg, #818cf8, #6366f1)',
+              background:
+                usagePercent > 80
+                  ? 'linear-gradient(90deg, #f87171, #ef4444)'
+                  : usagePercent > 50
+                    ? 'linear-gradient(90deg, #fbbf24, #f59e0b)'
+                    : 'linear-gradient(90deg, #818cf8, #6366f1)',
               borderRadius: 10,
               transition: 'width 500ms ease-out, background 300ms ease'
             }}
           />
         </div>
         {usagePercent >= 100 && (
-          <div style={{ fontSize: 11, color: '#f87171', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+          <div
+            style={{
+              fontSize: 11,
+              color: '#f87171',
+              fontWeight: 600,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 4
+            }}
+          >
             <AlertTriangle size={12} />
             <span>Quota journalier épuisé</span>
           </div>
         )}
         {usagePercent >= 80 && usagePercent < 100 && (
-          <div style={{ fontSize: 11, color: '#fbbf24', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+          <div
+            style={{
+              fontSize: 11,
+              color: '#fbbf24',
+              fontWeight: 600,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 4
+            }}
+          >
             <Zap size={12} />
             <span>Proche de la limite</span>
           </div>

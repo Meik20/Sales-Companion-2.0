@@ -97,12 +97,8 @@ function ProspectModal({
   const { pushToast } = useToast()
 
   const [noteText, setNoteText] = useState(item.notes ?? item.note ?? '')
-  const [amountVal, setAmountVal] = useState<string>(
-    item.amount != null ? String(item.amount) : ''
-  )
-  const [followUpVal, setFollowUpVal] = useState<string>(
-    item.nextFollowUp ?? item.nextDate ?? ''
-  )
+  const [amountVal, setAmountVal] = useState<string>(item.amount != null ? String(item.amount) : '')
+  const [followUpVal, setFollowUpVal] = useState<string>(item.nextFollowUp ?? item.nextDate ?? '')
   const [noteSaving, setNoteSaving] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
 
@@ -131,27 +127,28 @@ function ProspectModal({
   const originalAmount = item.amount != null ? String(item.amount) : ''
   const originalFollowUp = item.nextFollowUp ?? item.nextDate ?? ''
   const isChanged =
-    noteText !== originalNote ||
-    amountVal !== originalAmount ||
-    followUpVal !== originalFollowUp
+    noteText !== originalNote || amountVal !== originalAmount || followUpVal !== originalFollowUp
 
-  const filteredPreviousAssignees = (item.previousAssignees || []).filter(
-    (pa) => {
-      if (item.managerUid && pa.userId === item.managerUid) return false
-      if (item.assignedByName && pa.memberName === item.assignedByName) return false
-      return true
-    }
-  )
+  const filteredPreviousAssignees = (item.previousAssignees || []).filter((pa) => {
+    if (item.managerUid && pa.userId === item.managerUid) return false
+    if (item.assignedByName && pa.memberName === item.assignedByName) return false
+    return true
+  })
 
   const isOverdue = Boolean(
     (item.nextFollowUp || item.nextDate) &&
-      (item.nextFollowUp || item.nextDate)! < new Date().toISOString().slice(0, 10) &&
-      item.status !== 'conclue' &&
-      item.status !== 'conclusion'
+    (item.nextFollowUp || item.nextDate)! < new Date().toISOString().slice(0, 10) &&
+    item.status !== 'conclue' &&
+    item.status !== 'conclusion'
   )
 
   const isConclue = item.status === 'conclue' || item.status === 'conclusion'
-  const aging = getPipelineAging(item.createdAt || item.enteredAt, item.status, item.assignedAt, item.updatedAt)
+  const aging = getPipelineAging(
+    item.createdAt || item.enteredAt,
+    item.status,
+    item.assignedAt,
+    item.updatedAt
+  )
 
   return (
     <>
@@ -217,7 +214,15 @@ function ProspectModal({
               >
                 {item.companyName}
               </h2>
-              <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <div
+                style={{
+                  marginTop: 8,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  flexWrap: 'wrap'
+                }}
+              >
                 <Badge variant={statusVariant[item.status] ?? 'default'}>
                   {statusLabel[item.status] ?? item.status}
                 </Badge>
@@ -348,7 +353,10 @@ function ProspectModal({
                         {item.companyPhone}
                       </a>
                       <a
-                        href={getWhatsAppUrl(item.companyPhone, `Bonjour, je vous contacte suite à...`)}
+                        href={getWhatsAppUrl(
+                          item.companyPhone,
+                          `Bonjour, je vous contacte suite à...`
+                        )}
                         target="_blank"
                         rel="noreferrer"
                         style={{
@@ -368,13 +376,15 @@ function ProspectModal({
                         onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
                       >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/>
+                          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z" />
                         </svg>
                         WhatsApp
                       </a>
                     </div>
                   ) : (
-                    <span style={{ color: 'var(--muted-foreground, #64748b)', fontStyle: 'italic' }}>
+                    <span
+                      style={{ color: 'var(--muted-foreground, #64748b)', fontStyle: 'italic' }}
+                    >
                       {t('pipeline.notSpecified')}
                     </span>
                   )
@@ -399,7 +409,9 @@ function ProspectModal({
                       {item.companyEmail}
                     </a>
                   ) : (
-                    <span style={{ color: 'var(--muted-foreground, #64748b)', fontStyle: 'italic' }}>
+                    <span
+                      style={{ color: 'var(--muted-foreground, #64748b)', fontStyle: 'italic' }}
+                    >
                       {t('pipeline.notSpecified')}
                     </span>
                   )
@@ -411,7 +423,9 @@ function ProspectModal({
           {/* ── SUIVI COMMERCIAL & MÉTRIQUES (Éditable) ── */}
           <div
             style={{
-              background: isEditing ? 'rgba(59,130,246,0.03)' : 'var(--pipeline-section-bg, #f8fafc)',
+              background: isEditing
+                ? 'rgba(59,130,246,0.03)'
+                : 'var(--pipeline-section-bg, #f8fafc)',
               border: isEditing
                 ? '1px solid rgba(59,130,246,0.3)'
                 : '1px solid var(--pipeline-section-border, #e2e8f0)',
@@ -513,7 +527,13 @@ function ProspectModal({
 
             {isEditing ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                    gap: 12
+                  }}
+                >
                   {/* Montant estimé input */}
                   <div>
                     <label
@@ -553,37 +573,37 @@ function ProspectModal({
 
                   {/* Date de relance input — masqué si vente conclue */}
                   {!isConclue && (
-                  <div>
-                    <label
-                      style={{
-                        display: 'block',
-                        fontSize: 11,
-                        fontWeight: 700,
-                        color: 'var(--muted-foreground, #94a3b8)',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.05em',
-                        marginBottom: 6
-                      }}
-                    >
-                      Prochaine relance
-                    </label>
-                    <input
-                      type="date"
-                      value={followUpVal}
-                      onChange={(e) => setFollowUpVal(e.target.value)}
-                      style={{
-                        width: '100%',
-                        boxSizing: 'border-box',
-                        background: 'var(--secondary, #1e2a3b)',
-                        border: '1px solid rgba(96,165,250,0.3)',
-                        borderRadius: 8,
-                        padding: '8px 12px',
-                        fontSize: 13,
-                        color: 'var(--foreground, #f1f5f9)',
-                        outline: 'none'
-                      }}
-                    />
-                  </div>
+                    <div>
+                      <label
+                        style={{
+                          display: 'block',
+                          fontSize: 11,
+                          fontWeight: 700,
+                          color: 'var(--muted-foreground, #94a3b8)',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.05em',
+                          marginBottom: 6
+                        }}
+                      >
+                        Prochaine relance
+                      </label>
+                      <input
+                        type="date"
+                        value={followUpVal}
+                        onChange={(e) => setFollowUpVal(e.target.value)}
+                        style={{
+                          width: '100%',
+                          boxSizing: 'border-box',
+                          background: 'var(--secondary, #1e2a3b)',
+                          border: '1px solid rgba(96,165,250,0.3)',
+                          borderRadius: 8,
+                          padding: '8px 12px',
+                          fontSize: 13,
+                          color: 'var(--foreground, #f1f5f9)',
+                          outline: 'none'
+                        }}
+                      />
+                    </div>
                   )}
                 </div>
 
@@ -605,7 +625,9 @@ function ProspectModal({
                   <textarea
                     value={noteText}
                     onChange={(e) => setNoteText(e.target.value)}
-                    placeholder={t('pipeline.placeholderNotes') || 'Ajouter des notes sur les échanges...'}
+                    placeholder={
+                      t('pipeline.placeholderNotes') || 'Ajouter des notes sur les échanges...'
+                    }
                     rows={3}
                     style={{
                       width: '100%',
@@ -642,7 +664,13 @@ function ProspectModal({
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                 {/* Visual metrics row */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                    gap: 12
+                  }}
+                >
                   {/* Amount display */}
                   <div
                     style={{
@@ -664,7 +692,15 @@ function ProspectModal({
                     >
                       Valeur de l&apos;opportunité
                     </div>
-                    <div style={{ fontSize: 15, fontWeight: 800, color: item.amount ? 'var(--pipeline-opportunity-color, #047857)' : 'var(--muted-foreground, #64748b)' }}>
+                    <div
+                      style={{
+                        fontSize: 15,
+                        fontWeight: 800,
+                        color: item.amount
+                          ? 'var(--pipeline-opportunity-color, #047857)'
+                          : 'var(--muted-foreground, #64748b)'
+                      }}
+                    >
                       {item.amount != null && item.amount > 0
                         ? `${new Intl.NumberFormat('fr-FR').format(item.amount)} FCFA`
                         : '0 FCFA'}
@@ -697,56 +733,86 @@ function ProspectModal({
                       {aging.isConclue ? 'Cycle de vente' : 'Temps dans pipeline'}
                     </div>
                     <div style={{ fontSize: 14, fontWeight: 800, color: aging.color }}>
-                      {aging.daysInPipeline === 0 ? 'Aujourd’hui' : `${aging.daysInPipeline} jour${aging.daysInPipeline > 1 ? 's' : ''}`}
+                      {aging.daysInPipeline === 0
+                        ? 'Aujourd’hui'
+                        : `${aging.daysInPipeline} jour${aging.daysInPipeline > 1 ? 's' : ''}`}
                     </div>
-                    <div style={{ fontSize: 10, color: 'var(--muted-foreground, #64748b)', marginTop: 2 }}>
+                    <div
+                      style={{
+                        fontSize: 10,
+                        color: 'var(--muted-foreground, #64748b)',
+                        marginTop: 2
+                      }}
+                    >
                       {aging.relativeTimeFormatted}
                     </div>
                   </div>
 
                   {/* Follow-up display — masqué si vente conclue */}
                   {!isConclue && (
-                  <div
-                    style={{
-                      background: 'var(--pipeline-card-bg, #ffffff)',
-                      borderRadius: 10,
-                      padding: '10px 14px',
-                      border: isOverdue ? '1px solid rgba(239,68,68,0.3)' : '1px solid var(--pipeline-card-border, #e2e8f0)'
-                    }}
-                  >
                     <div
                       style={{
-                        fontSize: 10,
-                        fontWeight: 700,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.05em',
-                        color: isOverdue ? '#f87171' : 'var(--muted-foreground, #94a3b8)',
-                        marginBottom: 4,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 4
+                        background: 'var(--pipeline-card-bg, #ffffff)',
+                        borderRadius: 10,
+                        padding: '10px 14px',
+                        border: isOverdue
+                          ? '1px solid rgba(239,68,68,0.3)'
+                          : '1px solid var(--pipeline-card-border, #e2e8f0)'
                       }}
                     >
-                      <Calendar size={12} />
-                      Prochaine relance
+                      <div
+                        style={{
+                          fontSize: 10,
+                          fontWeight: 700,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.05em',
+                          color: isOverdue ? '#f87171' : 'var(--muted-foreground, #94a3b8)',
+                          marginBottom: 4,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 4
+                        }}
+                      >
+                        <Calendar size={12} />
+                        Prochaine relance
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 13,
+                          fontWeight: 700,
+                          color: isOverdue ? '#ef4444' : 'var(--foreground, #f1f5f9)'
+                        }}
+                      >
+                        {(item.nextFollowUp ?? item.nextDate) ? (
+                          <span>
+                            {item.nextFollowUp ?? item.nextDate}
+                            {isOverdue && (
+                              <span
+                                style={{
+                                  marginLeft: 6,
+                                  fontSize: 10,
+                                  color: '#f87171',
+                                  fontWeight: 800
+                                }}
+                              >
+                                (EN RETARD)
+                              </span>
+                            )}
+                          </span>
+                        ) : (
+                          <span
+                            style={{
+                              color: 'var(--muted-foreground, #64748b)',
+                              fontStyle: 'italic',
+                              fontSize: 12,
+                              fontWeight: 400
+                            }}
+                          >
+                            Aucune date
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: isOverdue ? '#ef4444' : 'var(--foreground, #f1f5f9)' }}>
-                      {item.nextFollowUp ?? item.nextDate ? (
-                        <span>
-                          {item.nextFollowUp ?? item.nextDate}
-                          {isOverdue && (
-                            <span style={{ marginLeft: 6, fontSize: 10, color: '#f87171', fontWeight: 800 }}>
-                              (EN RETARD)
-                            </span>
-                          )}
-                        </span>
-                      ) : (
-                        <span style={{ color: 'var(--muted-foreground, #64748b)', fontStyle: 'italic', fontSize: 12, fontWeight: 400 }}>
-                          Aucune date
-                        </span>
-                      )}
-                    </div>
-                  </div>
                   )}
                 </div>
 
@@ -764,7 +830,9 @@ function ProspectModal({
                     }}
                   >
                     <AlertTriangle size={18} style={{ color: aging.color, flexShrink: 0 }} />
-                    <span style={{ fontSize: 12, color: aging.color, fontWeight: 600, lineHeight: 1.4 }}>
+                    <span
+                      style={{ fontSize: 12, color: aging.color, fontWeight: 600, lineHeight: 1.4 }}
+                    >
                       {aging.warningMessage}
                     </span>
                   </div>
@@ -783,8 +851,18 @@ function ProspectModal({
                       gap: 10
                     }}
                   >
-                    <CheckCircle2 size={18} style={{ color: 'var(--pipeline-concluded-color, #047857)', flexShrink: 0 }} />
-                    <span style={{ fontSize: 12, color: 'var(--pipeline-concluded-color, #047857)', fontWeight: 700, lineHeight: 1.4 }}>
+                    <CheckCircle2
+                      size={18}
+                      style={{ color: 'var(--pipeline-concluded-color, #047857)', flexShrink: 0 }}
+                    />
+                    <span
+                      style={{
+                        fontSize: 12,
+                        color: 'var(--pipeline-concluded-color, #047857)',
+                        fontWeight: 700,
+                        lineHeight: 1.4
+                      }}
+                    >
                       {aging.badgeText} · Vente finalisée avec succès !
                     </span>
                   </div>
@@ -818,7 +896,9 @@ function ProspectModal({
                   <div
                     style={{
                       fontSize: 13,
-                      color: noteText ? 'var(--foreground, #f1f5f9)' : 'var(--muted-foreground, #64748b)',
+                      color: noteText
+                        ? 'var(--foreground, #f1f5f9)'
+                        : 'var(--muted-foreground, #64748b)',
                       fontStyle: noteText ? 'normal' : 'italic',
                       lineHeight: 1.5,
                       whiteSpace: 'pre-wrap'
@@ -847,7 +927,9 @@ function ProspectModal({
               <User size={14} style={{ opacity: 0.6 }} />
               <span>
                 {t('pipeline.assignedBy')} :{' '}
-                <strong style={{ color: 'var(--foreground, #f1f5f9)' }}>{item.assignedByName}</strong>
+                <strong style={{ color: 'var(--foreground, #f1f5f9)' }}>
+                  {item.assignedByName}
+                </strong>
               </span>
             </div>
           )}
@@ -972,7 +1054,9 @@ function InfoRow({
         >
           {label}
         </span>
-        <span style={{ color: 'var(--foreground, #f1f5f9)', fontWeight: 500, lineHeight: 1.4 }}>{value}</span>
+        <span style={{ color: 'var(--foreground, #f1f5f9)', fontWeight: 500, lineHeight: 1.4 }}>
+          {value}
+        </span>
       </div>
     </div>
   )
@@ -1059,11 +1143,11 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
                 gap: 7,
                 fontSize: 13,
                 fontWeight: 700,
-                boxShadow:
-                  viewMode === mode ? '0 2px 8px rgba(99,102,241,0.15)' : 'none',
+                boxShadow: viewMode === mode ? '0 2px 8px rgba(99,102,241,0.15)' : 'none',
                 transition: 'all 200ms ease',
                 fontFamily: 'inherit',
-                borderRight: viewMode === mode ? '1px solid rgba(99,102,241,0.3)' : '1px solid transparent'
+                borderRight:
+                  viewMode === mode ? '1px solid rgba(99,102,241,0.3)' : '1px solid transparent'
               }}
             >
               {mode === 'kanban' ? <LayoutGrid size={14} /> : <List size={14} />}
@@ -1074,270 +1158,136 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
       </div>
 
       {viewMode === 'kanban' ? (
-         <UserPipelineKanban 
-            items={items} 
-            onStatusChange={onStatusChange!} 
-            onItemClick={setSelectedItem} 
-         />
+        <UserPipelineKanban
+          items={items}
+          onStatusChange={onStatusChange!}
+          onItemClick={setSelectedItem}
+        />
       ) : (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {items.map((item) => {
-          const accentColor =
-            item.status === 'prospection' || item.status === 'prospect'
-              ? '#60a5fa'
-              : item.status === 'negociation' || item.status === 'negotiation'
-                ? '#fb923c'
-                : '#0284c7'
-          const initials = item.companyName
-            .split(' ')
-            .slice(0, 2)
-            .map((w) => w[0])
-            .join('')
-            .toUpperCase()
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {items.map((item) => {
+            const accentColor =
+              item.status === 'prospection' || item.status === 'prospect'
+                ? '#60a5fa'
+                : item.status === 'negociation' || item.status === 'negotiation'
+                  ? '#fb923c'
+                  : '#0284c7'
+            const initials = item.companyName
+              .split(' ')
+              .slice(0, 2)
+              .map((w) => w[0])
+              .join('')
+              .toUpperCase()
 
-          return (
-            <div
-              key={item.id}
-              onClick={() => setSelectedItem(item)}
-              style={{
-                background: 'var(--secondary, #1e2a3b)',
-                border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
-                borderLeft: `3px solid ${accentColor}`,
-                borderRadius: 14,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 14,
-                cursor: 'pointer',
-                transition: 'all 200ms ease',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-                overflow: 'hidden'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = `${accentColor}66`
-                e.currentTarget.style.background = 'var(--card, #131c2e)'
-                e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.1)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = 'var(--border, rgba(255,255,255,0.1))'
-                e.currentTarget.style.borderLeftColor = accentColor
-                e.currentTarget.style.background = 'var(--secondary, #1e2a3b)'
-                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)'
-              }}
-            >
-              {/* Initials avatar */}
+            return (
               <div
+                key={item.id}
+                onClick={() => setSelectedItem(item)}
                 style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 10,
-                  background: `${accentColor}18`,
-                  border: `1px solid ${accentColor}30`,
+                  background: 'var(--secondary, #1e2a3b)',
+                  border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+                  borderLeft: `3px solid ${accentColor}`,
+                  borderRadius: 14,
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 12,
-                  fontWeight: 900,
-                  color: accentColor,
-                  flexShrink: 0,
-                  fontFamily: "'Syne', sans-serif",
-                  marginLeft: 12
+                  gap: 14,
+                  cursor: 'pointer',
+                  transition: 'all 200ms ease',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                  overflow: 'hidden'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = `${accentColor}66`
+                  e.currentTarget.style.background = 'var(--card, #131c2e)'
+                  e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.1)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--border, rgba(255,255,255,0.1))'
+                  e.currentTarget.style.borderLeftColor = accentColor
+                  e.currentTarget.style.background = 'var(--secondary, #1e2a3b)'
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)'
                 }}
               >
-                {initials}
-              </div>
-
-              {/* Content */}
-              <div style={{ flex: 1, minWidth: 0, padding: '14px 0' }}>
+                {/* Initials avatar */}
                 <div
                   style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 10,
+                    background: `${accentColor}18`,
+                    border: `1px solid ${accentColor}30`,
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 10,
-                    marginBottom: 6,
-                    flexWrap: 'wrap'
+                    justifyContent: 'center',
+                    fontSize: 12,
+                    fontWeight: 900,
+                    color: accentColor,
+                    flexShrink: 0,
+                    fontFamily: "'Syne', sans-serif",
+                    marginLeft: 12
                   }}
                 >
-                  <strong
-                    style={{
-                      fontSize: 14,
-                      fontWeight: 800,
-                      color: 'var(--foreground, #f1f5f9)',
-                      fontFamily: "'Syne', sans-serif",
-                      letterSpacing: '-0.01em'
-                    }}
-                  >
-                    {item.companyName}
-                  </strong>
-                  <Badge variant={statusVariant[item.status] ?? 'default'}>
-                    {statusLabel[item.status] ?? item.status}
-                  </Badge>
+                  {initials}
                 </div>
 
-                {/* Chip row */}
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                  {(() => {
-                    const aging = getPipelineAging(item.createdAt || item.enteredAt, item.status, item.assignedAt, item.updatedAt)
-                    return (
-                      <span
-                        title={`Entré le ${aging.enteredDateFormatted} (${aging.relativeTimeFormatted})`}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 4,
-                          fontSize: 11,
-                          fontWeight: 700,
-                          color: aging.color,
-                          background: aging.bgColor,
-                          border: `1px solid ${aging.borderColor}`,
-                          borderRadius: 6,
-                          padding: '2px 8px'
-                        }}
-                      >
-                        <Clock size={10} />
-                        {aging.badgeText}
-                      </span>
-                    )
-                  })()}
-                  {item.companySector && (
-                    <span
+                {/* Content */}
+                <div style={{ flex: 1, minWidth: 0, padding: '14px 0' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 10,
+                      marginBottom: 6,
+                      flexWrap: 'wrap'
+                    }}
+                  >
+                    <strong
                       style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 4,
-                        fontSize: 11,
-                        fontWeight: 600,
-                        color: 'var(--muted-foreground, #94a3b8)',
-                        background: 'var(--card, #131c2e)',
-                        border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
-                        borderRadius: 6,
-                        padding: '2px 8px'
+                        fontSize: 14,
+                        fontWeight: 800,
+                        color: 'var(--foreground, #f1f5f9)',
+                        fontFamily: "'Syne', sans-serif",
+                        letterSpacing: '-0.01em'
                       }}
                     >
-                      <Building2 size={10} style={{ opacity: 0.7 }} />
-                      {item.companySector}
-                    </span>
-                  )}
-                  {item.companyCity && (
-                    <span
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 4,
-                        fontSize: 11,
-                        fontWeight: 600,
-                        color: 'var(--muted-foreground, #94a3b8)',
-                        background: 'var(--card, #131c2e)',
-                        border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
-                        borderRadius: 6,
-                        padding: '2px 8px'
-                      }}
-                    >
-                      <MapPin size={10} style={{ opacity: 0.7 }} />
-                      {item.companyCity}
-                    </span>
-                  )}
-                  {item.amount != null && item.amount > 0 && (
-                    <span
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 4,
-                        fontSize: 11,
-                        fontWeight: 700,
-                        color: 'var(--pipeline-opportunity-color, #047857)',
-                        background: 'var(--pipeline-fresh-bg, #ecfdf5)',
-                        border: '1px solid var(--pipeline-fresh-border, rgba(5, 150, 105, 0.25))',
-                        borderRadius: 6,
-                        padding: '2px 8px'
-                      }}
-                    >
-                      <Banknote size={10} />
-                      {new Intl.NumberFormat('fr-FR').format(item.amount)} F
-                    </span>
-                  )}
-                  {item.nextFollowUp && item.status !== 'conclue' && item.status !== 'conclusion' && (
-                    <span
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 4,
-                        fontSize: 11,
-                        fontWeight: 600,
-                        color: item.nextFollowUp < new Date().toISOString().slice(0, 10) ? '#ef4444' : '#60a5fa',
-                        background: item.nextFollowUp < new Date().toISOString().slice(0, 10) ? 'rgba(239,68,68,0.08)' : 'rgba(96,165,250,0.08)',
-                        border: item.nextFollowUp < new Date().toISOString().slice(0, 10) ? '1px solid rgba(239,68,68,0.25)' : '1px solid rgba(96,165,250,0.2)',
-                        borderRadius: 6,
-                        padding: '2px 8px'
-                      }}
-                    >
-                      <Calendar size={10} />
-                      {item.nextFollowUp}
-                    </span>
-                  )}
-                  {item.companyPhone && (
-                    <span
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 4,
-                        fontSize: 11,
-                        fontWeight: 600,
-                        color: '#2563eb',
-                        background: 'rgba(37,99,235,0.08)',
-                        border: '1px solid rgba(37,99,235,0.2)',
-                        borderRadius: 6,
-                        padding: '2px 8px'
-                      }}
-                    >
-                      <Phone size={10} />
-                      {item.companyPhone}
-                    </span>
-                  )}
-                  {(item.notes ?? item.note) && (
-                    <span
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 4,
-                        fontSize: 11,
-                        fontWeight: 600,
-                        color: '#fbbf24',
-                        background: 'rgba(251,191,36,0.08)',
-                        border: '1px solid rgba(251,191,36,0.2)',
-                        borderRadius: 6,
-                        padding: '2px 8px'
-                      }}
-                    >
-                      <MessageSquare size={10} />
-                      {t('pipeline.hasNotes')}
-                    </span>
-                  )}
-                  {item.assignedByName && (
-                    <span
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 4,
-                        fontSize: 11,
-                        fontWeight: 600,
-                        color: 'rgba(139,92,246,0.9)',
-                        background: 'rgba(139,92,246,0.08)',
-                        border: '1px solid rgba(139,92,246,0.2)',
-                        borderRadius: 6,
-                        padding: '2px 8px'
-                      }}
-                    >
-                      <User size={10} />
-                      {item.assignedByName}
-                    </span>
-                  )}
-                  {(() => {
-                    const filtered = (item.previousAssignees || []).filter(
-                      (pa) =>
-                        !(item.managerUid && pa.userId === item.managerUid) &&
-                        !(item.assignedByName && pa.memberName === item.assignedByName)
-                    )
-                    return filtered.length > 0 ? (
+                      {item.companyName}
+                    </strong>
+                    <Badge variant={statusVariant[item.status] ?? 'default'}>
+                      {statusLabel[item.status] ?? item.status}
+                    </Badge>
+                  </div>
+
+                  {/* Chip row */}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {(() => {
+                      const aging = getPipelineAging(
+                        item.createdAt || item.enteredAt,
+                        item.status,
+                        item.assignedAt,
+                        item.updatedAt
+                      )
+                      return (
+                        <span
+                          title={`Entré le ${aging.enteredDateFormatted} (${aging.relativeTimeFormatted})`}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 4,
+                            fontSize: 11,
+                            fontWeight: 700,
+                            color: aging.color,
+                            background: aging.bgColor,
+                            border: `1px solid ${aging.borderColor}`,
+                            borderRadius: 6,
+                            padding: '2px 8px'
+                          }}
+                        >
+                          <Clock size={10} />
+                          {aging.badgeText}
+                        </span>
+                      )
+                    })()}
+                    {item.companySector && (
                       <span
                         style={{
                           display: 'inline-flex',
@@ -1345,46 +1295,199 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
                           gap: 4,
                           fontSize: 11,
                           fontWeight: 600,
-                          color: '#f87171',
-                          background: 'rgba(239,68,68,0.08)',
-                          border: '1px solid rgba(239,68,68,0.2)',
+                          color: 'var(--muted-foreground, #94a3b8)',
+                          background: 'var(--card, #131c2e)',
+                          border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                           borderRadius: 6,
                           padding: '2px 8px'
                         }}
                       >
-                        <AlertTriangle size={10} />
-                        Déjà visité
+                        <Building2 size={10} style={{ opacity: 0.7 }} />
+                        {item.companySector}
                       </span>
-                    ) : null
-                  })()}
+                    )}
+                    {item.companyCity && (
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 4,
+                          fontSize: 11,
+                          fontWeight: 600,
+                          color: 'var(--muted-foreground, #94a3b8)',
+                          background: 'var(--card, #131c2e)',
+                          border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+                          borderRadius: 6,
+                          padding: '2px 8px'
+                        }}
+                      >
+                        <MapPin size={10} style={{ opacity: 0.7 }} />
+                        {item.companyCity}
+                      </span>
+                    )}
+                    {item.amount != null && item.amount > 0 && (
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 4,
+                          fontSize: 11,
+                          fontWeight: 700,
+                          color: 'var(--pipeline-opportunity-color, #047857)',
+                          background: 'var(--pipeline-fresh-bg, #ecfdf5)',
+                          border: '1px solid var(--pipeline-fresh-border, rgba(5, 150, 105, 0.25))',
+                          borderRadius: 6,
+                          padding: '2px 8px'
+                        }}
+                      >
+                        <Banknote size={10} />
+                        {new Intl.NumberFormat('fr-FR').format(item.amount)} F
+                      </span>
+                    )}
+                    {item.nextFollowUp &&
+                      item.status !== 'conclue' &&
+                      item.status !== 'conclusion' && (
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 4,
+                            fontSize: 11,
+                            fontWeight: 600,
+                            color:
+                              item.nextFollowUp < new Date().toISOString().slice(0, 10)
+                                ? '#ef4444'
+                                : '#60a5fa',
+                            background:
+                              item.nextFollowUp < new Date().toISOString().slice(0, 10)
+                                ? 'rgba(239,68,68,0.08)'
+                                : 'rgba(96,165,250,0.08)',
+                            border:
+                              item.nextFollowUp < new Date().toISOString().slice(0, 10)
+                                ? '1px solid rgba(239,68,68,0.25)'
+                                : '1px solid rgba(96,165,250,0.2)',
+                            borderRadius: 6,
+                            padding: '2px 8px'
+                          }}
+                        >
+                          <Calendar size={10} />
+                          {item.nextFollowUp}
+                        </span>
+                      )}
+                    {item.companyPhone && (
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 4,
+                          fontSize: 11,
+                          fontWeight: 600,
+                          color: '#2563eb',
+                          background: 'rgba(37,99,235,0.08)',
+                          border: '1px solid rgba(37,99,235,0.2)',
+                          borderRadius: 6,
+                          padding: '2px 8px'
+                        }}
+                      >
+                        <Phone size={10} />
+                        {item.companyPhone}
+                      </span>
+                    )}
+                    {(item.notes ?? item.note) && (
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 4,
+                          fontSize: 11,
+                          fontWeight: 600,
+                          color: '#fbbf24',
+                          background: 'rgba(251,191,36,0.08)',
+                          border: '1px solid rgba(251,191,36,0.2)',
+                          borderRadius: 6,
+                          padding: '2px 8px'
+                        }}
+                      >
+                        <MessageSquare size={10} />
+                        {t('pipeline.hasNotes')}
+                      </span>
+                    )}
+                    {item.assignedByName && (
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 4,
+                          fontSize: 11,
+                          fontWeight: 600,
+                          color: 'rgba(139,92,246,0.9)',
+                          background: 'rgba(139,92,246,0.08)',
+                          border: '1px solid rgba(139,92,246,0.2)',
+                          borderRadius: 6,
+                          padding: '2px 8px'
+                        }}
+                      >
+                        <User size={10} />
+                        {item.assignedByName}
+                      </span>
+                    )}
+                    {(() => {
+                      const filtered = (item.previousAssignees || []).filter(
+                        (pa) =>
+                          !(item.managerUid && pa.userId === item.managerUid) &&
+                          !(item.assignedByName && pa.memberName === item.assignedByName)
+                      )
+                      return filtered.length > 0 ? (
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 4,
+                            fontSize: 11,
+                            fontWeight: 600,
+                            color: '#f87171',
+                            background: 'rgba(239,68,68,0.08)',
+                            border: '1px solid rgba(239,68,68,0.2)',
+                            borderRadius: 6,
+                            padding: '2px 8px'
+                          }}
+                        >
+                          <AlertTriangle size={10} />
+                          Déjà visité
+                        </span>
+                      ) : null
+                    })()}
+                  </div>
+                </div>
+
+                {/* Arrow + Delete */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    paddingRight: 14,
+                    flexShrink: 0
+                  }}
+                >
+                  <ChevronRight
+                    size={16}
+                    style={{ color: 'var(--muted-foreground, #64748b)', opacity: 0.5 }}
+                  />
+                  <Button
+                    size="sm"
+                    variant="danger"
+                    loading={deletingId === item.id}
+                    onClick={(e) => void handleDelete(e as React.MouseEvent, item.id)}
+                    style={{ padding: '0 8px', minHeight: 30 }}
+                  >
+                    <Trash2 size={13} />
+                  </Button>
                 </div>
               </div>
-
-              {/* Arrow + Delete */}
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  paddingRight: 14,
-                  flexShrink: 0
-                }}
-              >
-                <ChevronRight size={16} style={{ color: 'var(--muted-foreground, #64748b)', opacity: 0.5 }} />
-                <Button
-                  size="sm"
-                  variant="danger"
-                  loading={deletingId === item.id}
-                  onClick={(e) => void handleDelete(e as React.MouseEvent, item.id)}
-                  style={{ padding: '0 8px', minHeight: 30 }}
-                >
-                  <Trash2 size={13} />
-                </Button>
-              </div>
-            </div>
-          )
-        })}
-      </div>
+            )
+          })}
+        </div>
       )}
     </>
   )

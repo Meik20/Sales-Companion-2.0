@@ -154,9 +154,16 @@ if(l==='en'||l==='fr'){document.documentElement.setAttribute('lang',l==='en'?'en
         />
       </head>
       <body suppressHydrationWarning>
-        {process.env.NEXT_PUBLIC_GTM_ID && <GoogleTagManager gtmId={process.env.NEXT_PUBLIC_GTM_ID} />}
+        {process.env.NEXT_PUBLIC_GTM_ID && (
+          <GoogleTagManager gtmId={process.env.NEXT_PUBLIC_GTM_ID} />
+        )}
         <DesignThemeProvider />
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
           <I18nProvider>
             <AppProvider>{children}</AppProvider>
           </I18nProvider>

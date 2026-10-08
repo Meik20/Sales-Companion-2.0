@@ -61,12 +61,8 @@ export function ProblemSection() {
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-rose-500/10 text-rose-500 mb-4">
                 <prob.icon className="h-6 w-6" />
               </div>
-              <h3 className="font-heading text-lg font-bold text-foreground">
-                {prob.title}
-              </h3>
-              <p className="mt-2.5 text-sm leading-relaxed text-muted-foreground">
-                {prob.desc}
-              </p>
+              <h3 className="font-heading text-lg font-bold text-foreground">{prob.title}</h3>
+              <p className="mt-2.5 text-sm leading-relaxed text-muted-foreground">{prob.desc}</p>
             </div>
           ))}
         </div>

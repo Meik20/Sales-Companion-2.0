@@ -46,17 +46,17 @@ export function ClientDrawer({ client, onClose, user }: Props) {
   const [savingTicket, setSavingTicket] = useState(false)
 
   const callStatusLabels: Record<CallStatus, { label: string; color: string }> = {
-    connected:  { label: t('crm.drawer.statusConnected'),  color: '#3b82f6' },
-    no_answer:  { label: t('crm.drawer.statusNoAnswer'), color: '#f59e0b' },
-    busy:       { label: t('crm.drawer.statusBusy'),     color: '#f97316' },
-    voicemail:  { label: t('crm.drawer.statusVoicemail'),color: '#a78bfa' },
-    failed:     { label: t('crm.drawer.statusFailed'),   color: '#f87171' }
+    connected: { label: t('crm.drawer.statusConnected'), color: '#3b82f6' },
+    no_answer: { label: t('crm.drawer.statusNoAnswer'), color: '#f59e0b' },
+    busy: { label: t('crm.drawer.statusBusy'), color: '#f97316' },
+    voicemail: { label: t('crm.drawer.statusVoicemail'), color: '#a78bfa' },
+    failed: { label: t('crm.drawer.statusFailed'), color: '#f87171' }
   }
 
   const priorityLabels: Record<TicketPriority, { label: string; color: string }> = {
-    low:    { label: t('crm.drawer.priorityLow'),    color: '#60a5fa' },
+    low: { label: t('crm.drawer.priorityLow'), color: '#60a5fa' },
     medium: { label: t('crm.drawer.priorityMedium'), color: '#f59e0b' },
-    high:   { label: t('crm.drawer.priorityHigh'),   color: '#f97316' },
+    high: { label: t('crm.drawer.priorityHigh'), color: '#f97316' },
     urgent: { label: t('crm.drawer.priorityUrgent'), color: '#f87171' }
   }
 
@@ -76,7 +76,9 @@ export function ClientDrawer({ client, onClose, user }: Props) {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (res.ok) setCalls(await res.json())
-    } finally { setLoadingCalls(false) }
+    } finally {
+      setLoadingCalls(false)
+    }
   }, [user, client.id])
 
   const fetchTickets = useCallback(async () => {
@@ -88,7 +90,9 @@ export function ClientDrawer({ client, onClose, user }: Props) {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (res.ok) setTickets(await res.json())
-    } finally { setLoadingTickets(false) }
+    } finally {
+      setLoadingTickets(false)
+    }
   }, [user, client.id])
 
   useEffect(() => {
@@ -100,9 +104,7 @@ export function ClientDrawer({ client, onClose, user }: Props) {
   function handleCallClick(type: 'tel' | 'whatsapp') {
     const phone = client.companyPhone?.replace(/\s+/g, '') || ''
     if (!phone) return
-    const url = type === 'tel'
-      ? `tel:${phone}`
-      : `https://wa.me/${phone.replace('+', '')}`
+    const url = type === 'tel' ? `tel:${phone}` : `https://wa.me/${phone.replace('+', '')}`
     window.open(url, '_blank')
     setShowCallModal(true)
   }
@@ -129,7 +131,9 @@ export function ClientDrawer({ client, onClose, user }: Props) {
       setCallStatus('connected')
       void fetchCalls()
       setTab('appels')
-    } finally { setSavingCall(false) }
+    } finally {
+      setSavingCall(false)
+    }
   }
 
   async function saveTicket() {
@@ -154,7 +158,9 @@ export function ClientDrawer({ client, onClose, user }: Props) {
       setTicketPriority('medium')
       void fetchTickets()
       setTab('tickets')
-    } finally { setSavingTicket(false) }
+    } finally {
+      setSavingTicket(false)
+    }
   }
 
   async function updateTicketStatus(ticketId: string, status: string) {
@@ -167,16 +173,15 @@ export function ClientDrawer({ client, onClose, user }: Props) {
         body: JSON.stringify({ status })
       })
       void fetchTickets()
-    } catch (e) { console.error(e) }
+    } catch (e) {
+      console.error(e)
+    }
   }
 
   return (
     <>
       {/* Backdrop */}
-      <div
-        onClick={onClose}
-        className="fixed inset-0 z-[899] bg-black/45 backdrop-blur-[2px]"
-      />
+      <div onClick={onClose} className="fixed inset-0 z-[899] bg-black/45 backdrop-blur-[2px]" />
 
       {/* Drawer panel */}
       <div className="fixed bottom-0 right-0 top-0 z-[900] flex w-[min(480px,100vw)] flex-col overflow-hidden border-l border-border bg-card shadow-[-12px_0_60px_rgba(0,0,0,0.4)]">
@@ -240,11 +245,21 @@ export function ClientDrawer({ client, onClose, user }: Props) {
 
         {/* Tabs */}
         <div className="flex border-b border-border">
-          {([
-            { id: 'appels', label: `${t('crm.drawer.tabCalls')} (${calls.length})`, icon: PhoneCall },
-            { id: 'tickets', label: `${t('crm.drawer.tabSupport')} (${tickets.length})`, icon: Ticket },
-            { id: 'historique', label: t('crm.drawer.tabHistory'), icon: History }
-          ] as const).map(tabItem => {
+          {(
+            [
+              {
+                id: 'appels',
+                label: `${t('crm.drawer.tabCalls')} (${calls.length})`,
+                icon: PhoneCall
+              },
+              {
+                id: 'tickets',
+                label: `${t('crm.drawer.tabSupport')} (${tickets.length})`,
+                icon: Ticket
+              },
+              { id: 'historique', label: t('crm.drawer.tabHistory'), icon: History }
+            ] as const
+          ).map((tabItem) => {
             const Icon = tabItem.icon
             return (
               <button
@@ -269,28 +284,49 @@ export function ClientDrawer({ client, onClose, user }: Props) {
           {tab === 'appels' && (
             <div className="flex flex-col gap-2.5">
               {loadingCalls ? (
-                <p className="py-6 text-center text-[13px] text-muted-foreground">{t('crm.drawer.loading')}</p>
+                <p className="py-6 text-center text-[13px] text-muted-foreground">
+                  {t('crm.drawer.loading')}
+                </p>
               ) : calls.length === 0 ? (
-                <EmptyState icon={<PhoneCall size={32} strokeWidth={1.5} />} msg={t('crm.drawer.noCalls')} sub={t('crm.drawer.noCallsSub')} />
-              ) : calls.map(call => (
-                <div key={call.id} className="rounded-xl border border-border bg-secondary/30 p-3.5">
-                  <div className="mb-1.5 flex items-center justify-between">
-                    <span className="flex items-center gap-1.5 text-[13px] font-bold text-foreground">
-                      <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: callStatusLabels[call.status]?.color }} />
-                      <span>{callStatusLabels[call.status]?.label}</span>
-                    </span>
-                    <span className="text-[11px] text-muted-foreground">
-                      {new Date(call.createdAt).toLocaleString(undefined, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
-                    </span>
+                <EmptyState
+                  icon={<PhoneCall size={32} strokeWidth={1.5} />}
+                  msg={t('crm.drawer.noCalls')}
+                  sub={t('crm.drawer.noCallsSub')}
+                />
+              ) : (
+                calls.map((call) => (
+                  <div
+                    key={call.id}
+                    className="rounded-xl border border-border bg-secondary/30 p-3.5"
+                  >
+                    <div className="mb-1.5 flex items-center justify-between">
+                      <span className="flex items-center gap-1.5 text-[13px] font-bold text-foreground">
+                        <span
+                          className="h-2 w-2 rounded-full shrink-0"
+                          style={{ backgroundColor: callStatusLabels[call.status]?.color }}
+                        />
+                        <span>{callStatusLabels[call.status]?.label}</span>
+                      </span>
+                      <span className="text-[11px] text-muted-foreground">
+                        {new Date(call.createdAt).toLocaleString(undefined, {
+                          day: '2-digit',
+                          month: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </span>
+                    </div>
+                    {call.notes && (
+                      <p className="m-0 text-[12px] leading-relaxed text-muted-foreground">
+                        {call.notes}
+                      </p>
+                    )}
+                    <div className="mt-1 text-[11px] text-muted-foreground/70">
+                      {call.agentName} · {call.clientPhone}
+                    </div>
                   </div>
-                  {call.notes && (
-                    <p className="m-0 text-[12px] leading-relaxed text-muted-foreground">{call.notes}</p>
-                  )}
-                  <div className="mt-1 text-[11px] text-muted-foreground/70">
-                    {call.agentName} · {call.clientPhone}
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           )}
 
@@ -305,54 +341,71 @@ export function ClientDrawer({ client, onClose, user }: Props) {
                 <span>{t('crm.drawer.openTicketBtn')}</span>
               </button>
               {loadingTickets ? (
-                <p className="py-6 text-center text-[13px] text-muted-foreground">{t('crm.drawer.loading')}</p>
+                <p className="py-6 text-center text-[13px] text-muted-foreground">
+                  {t('crm.drawer.loading')}
+                </p>
               ) : tickets.length === 0 ? (
-                <EmptyState icon={<Ticket size={32} strokeWidth={1.5} />} msg={t('crm.drawer.noTickets')} sub={t('crm.drawer.noTicketsSub')} />
-              ) : tickets.map(ticket => (
-                <div key={ticket.id} className="rounded-xl border border-border bg-secondary/30 p-3.5">
-                  <div className="mb-1.5 flex items-center justify-between">
-                    <span className="text-[13px] font-bold text-foreground">{ticket.subject}</span>
-                    <span
-                      className="rounded-full px-2 py-0.5 text-[10px] font-bold"
-                      style={{
-                        background: `${priorityLabels[ticket.priority]?.color}22`,
-                        color: priorityLabels[ticket.priority]?.color
-                      }}
-                    >
-                      {priorityLabels[ticket.priority]?.label}
-                    </span>
+                <EmptyState
+                  icon={<Ticket size={32} strokeWidth={1.5} />}
+                  msg={t('crm.drawer.noTickets')}
+                  sub={t('crm.drawer.noTicketsSub')}
+                />
+              ) : (
+                tickets.map((ticket) => (
+                  <div
+                    key={ticket.id}
+                    className="rounded-xl border border-border bg-secondary/30 p-3.5"
+                  >
+                    <div className="mb-1.5 flex items-center justify-between">
+                      <span className="text-[13px] font-bold text-foreground">
+                        {ticket.subject}
+                      </span>
+                      <span
+                        className="rounded-full px-2 py-0.5 text-[10px] font-bold"
+                        style={{
+                          background: `${priorityLabels[ticket.priority]?.color}22`,
+                          color: priorityLabels[ticket.priority]?.color
+                        }}
+                      >
+                        {priorityLabels[ticket.priority]?.label}
+                      </span>
+                    </div>
+                    {ticket.description && (
+                      <p className="mb-2 mt-0 text-[12px] leading-relaxed text-muted-foreground">
+                        {ticket.description}
+                      </p>
+                    )}
+                    <div className="mb-1.5 flex flex-wrap gap-1.5">
+                      {(['open', 'in_progress', 'resolved', 'closed'] as const).map((s) => {
+                        const isActive = ticket.status === s
+                        const statusColors: Record<string, string> = {
+                          open: '#f87171',
+                          in_progress: '#f59e0b',
+                          resolved: '#0284c7',
+                          closed: '#94a3b8'
+                        }
+                        return (
+                          <button
+                            key={s}
+                            onClick={() => void updateTicketStatus(ticket.id, s)}
+                            className="cursor-pointer rounded-full border px-2.5 py-0.5 text-[10px] font-bold transition-colors"
+                            style={{
+                              borderColor: isActive ? statusColors[s] : 'var(--border)',
+                              background: isActive ? `${statusColors[s]}22` : 'transparent',
+                              color: isActive ? statusColors[s] : 'var(--muted-foreground)'
+                            }}
+                          >
+                            {ticketStatusLabels[s]}
+                          </button>
+                        )
+                      })}
+                    </div>
+                    <div className="text-[11px] text-muted-foreground/70">
+                      {new Date(ticket.createdAt).toLocaleDateString()} · {ticket.agentName}
+                    </div>
                   </div>
-                  {ticket.description && (
-                    <p className="mb-2 mt-0 text-[12px] leading-relaxed text-muted-foreground">{ticket.description}</p>
-                  )}
-                  <div className="mb-1.5 flex flex-wrap gap-1.5">
-                    {(['open', 'in_progress', 'resolved', 'closed'] as const).map(s => {
-                      const isActive = ticket.status === s
-                      const statusColors: Record<string, string> = {
-                        open: '#f87171', in_progress: '#f59e0b',
-                        resolved: '#0284c7', closed: '#94a3b8'
-                      }
-                      return (
-                        <button
-                          key={s}
-                          onClick={() => void updateTicketStatus(ticket.id, s)}
-                          className="cursor-pointer rounded-full border px-2.5 py-0.5 text-[10px] font-bold transition-colors"
-                          style={{
-                            borderColor: isActive ? statusColors[s] : 'var(--border)',
-                            background: isActive ? `${statusColors[s]}22` : 'transparent',
-                            color: isActive ? statusColors[s] : 'var(--muted-foreground)'
-                          }}
-                        >
-                          {ticketStatusLabels[s]}
-                        </button>
-                      )
-                    })}
-                  </div>
-                  <div className="text-[11px] text-muted-foreground/70">
-                    {new Date(ticket.createdAt).toLocaleDateString()} · {ticket.agentName}
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           )}
 
@@ -360,16 +413,24 @@ export function ClientDrawer({ client, onClose, user }: Props) {
           {tab === 'historique' && (
             <div className="flex flex-col gap-3">
               {[
-                ...calls.map(c => ({ type: 'call' as const, date: c.createdAt, data: c })),
-                ...tickets.map(t => ({ type: 'ticket' as const, date: t.createdAt, data: t }))
+                ...calls.map((c) => ({ type: 'call' as const, date: c.createdAt, data: c })),
+                ...tickets.map((t) => ({ type: 'ticket' as const, date: t.createdAt, data: t }))
               ]
                 .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                 .map((item, i) => (
                   <div key={i} className="flex items-start gap-3">
-                    <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
-                      item.type === 'call' ? 'bg-blue-500/15 text-blue-500' : 'bg-amber-500/15 text-amber-500'
-                    }`}>
-                      {item.type === 'call' ? <PhoneCall size={14} strokeWidth={1.8} /> : <Ticket size={14} strokeWidth={1.8} />}
+                    <div
+                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
+                        item.type === 'call'
+                          ? 'bg-blue-500/15 text-blue-500'
+                          : 'bg-amber-500/15 text-amber-500'
+                      }`}
+                    >
+                      {item.type === 'call' ? (
+                        <PhoneCall size={14} strokeWidth={1.8} />
+                      ) : (
+                        <Ticket size={14} strokeWidth={1.8} />
+                      )}
                     </div>
                     <div className="flex-1">
                       <div className="text-[13px] font-semibold text-foreground">
@@ -384,15 +445,22 @@ export function ClientDrawer({ client, onClose, user }: Props) {
                       )}
                       <div className="mt-1 text-[11px] text-muted-foreground/70">
                         {new Date(item.date).toLocaleString(undefined, {
-                          day: '2-digit', month: '2-digit', year: 'numeric',
-                          hour: '2-digit', minute: '2-digit'
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
                         })}
                       </div>
                     </div>
                   </div>
                 ))}
               {calls.length === 0 && tickets.length === 0 && (
-                <EmptyState icon={<History size={32} strokeWidth={1.5} />} msg={t('crm.drawer.noHistory')} sub={t('crm.drawer.noHistorySub')} />
+                <EmptyState
+                  icon={<History size={32} strokeWidth={1.5} />}
+                  msg={t('crm.drawer.noHistory')}
+                  sub={t('crm.drawer.noHistorySub')}
+                />
               )}
             </div>
           )}
@@ -417,7 +485,12 @@ export function ClientDrawer({ client, onClose, user }: Props) {
               {t('crm.drawer.callResultLabel')}
             </label>
             <div className="mb-4 flex flex-wrap gap-2">
-              {(Object.entries(callStatusLabels) as [CallStatus, typeof callStatusLabels[CallStatus]][]).map(([key, val]) => (
+              {(
+                Object.entries(callStatusLabels) as [
+                  CallStatus,
+                  (typeof callStatusLabels)[CallStatus]
+                ][]
+              ).map(([key, val]) => (
                 <button
                   key={key}
                   onClick={() => setCallStatus(key)}
@@ -428,7 +501,10 @@ export function ClientDrawer({ client, onClose, user }: Props) {
                     color: callStatus === key ? val.color : 'var(--muted-foreground)'
                   }}
                 >
-                  <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: val.color }} />
+                  <span
+                    className="h-2 w-2 rounded-full shrink-0"
+                    style={{ backgroundColor: val.color }}
+                  />
                   <span>{val.label}</span>
                 </button>
               ))}
@@ -440,7 +516,7 @@ export function ClientDrawer({ client, onClose, user }: Props) {
             <textarea
               placeholder={t('crm.drawer.notesPlaceholder')}
               value={callNotes}
-              onChange={e => setCallNotes(e.target.value)}
+              onChange={(e) => setCallNotes(e.target.value)}
               rows={4}
               className="mb-4 w-full rounded-lg border border-border bg-background p-3 text-[13px] text-foreground outline-none focus:border-primary"
             />
@@ -491,7 +567,7 @@ export function ClientDrawer({ client, onClose, user }: Props) {
             <input
               placeholder={t('crm.drawer.subjectPlaceholder')}
               value={ticketSubject}
-              onChange={e => setTicketSubject(e.target.value)}
+              onChange={(e) => setTicketSubject(e.target.value)}
               className="mb-3 w-full rounded-lg border border-border bg-background p-2.5 text-[13px] text-foreground outline-none focus:border-primary"
             />
 
@@ -501,7 +577,7 @@ export function ClientDrawer({ client, onClose, user }: Props) {
             <textarea
               placeholder={t('crm.drawer.descPlaceholder')}
               value={ticketDesc}
-              onChange={e => setTicketDesc(e.target.value)}
+              onChange={(e) => setTicketDesc(e.target.value)}
               rows={3}
               className="mb-3 w-full rounded-lg border border-border bg-background p-2.5 text-[13px] text-foreground outline-none focus:border-primary"
             />
@@ -510,7 +586,12 @@ export function ClientDrawer({ client, onClose, user }: Props) {
               {t('crm.drawer.priorityLabel')}
             </label>
             <div className="mb-4 flex gap-2">
-              {(Object.entries(priorityLabels) as [TicketPriority, typeof priorityLabels[TicketPriority]][]).map(([key, val]) => (
+              {(
+                Object.entries(priorityLabels) as [
+                  TicketPriority,
+                  (typeof priorityLabels)[TicketPriority]
+                ][]
+              ).map(([key, val]) => (
                 <button
                   key={key}
                   onClick={() => setTicketPriority(key)}

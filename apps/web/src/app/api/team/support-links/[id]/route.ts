@@ -25,7 +25,10 @@ export async function DELETE(
     const managerUid = decodedToken.uid
     const managerDoc = await adminDb.collection('users').doc(managerUid).get()
     if (!hasActivePaidManagerAccess(managerDoc.data()) || decodedToken.email_verified !== true) {
-      return NextResponse.json({ error: 'Un abonnement Manager actif et vérifié est requis.' }, { status: 403 })
+      return NextResponse.json(
+        { error: 'Un abonnement Manager actif et vérifié est requis.' },
+        { status: 403 }
+      )
     }
 
     const linkDoc = await adminDb.collection('support_agent_links').doc(id).get()
@@ -45,12 +48,24 @@ export async function DELETE(
       revokedBy: managerUid
     })
 
-
-    // Retirer le managerUid de linkedManagerUids sur le profil de l'agent
+    // Retirer le managerUid de linkedManagerUids ET de managerUid principal si identique
     const { FieldValue } = await import('firebase-admin/firestore')
-    await adminDb.collection('users').doc(linkData.agentUid).update({
+    const agentRef = adminDb.collection('users').doc(linkData.agentUid)
+    const agentDoc = await agentRef.get()
+    const agentData = agentDoc.data()
+
+    const updates: Record<string, unknown> = {
       linkedManagerUids: FieldValue.arrayRemove(managerUid)
-    })
+    }
+    if (agentData?.managerUid === managerUid) {
+      const remainingManagers = ((agentData.linkedManagerUids as string[]) || []).filter(
+        (uid: string) => uid !== managerUid
+      )
+      updates.managerUid = remainingManagers.length > 0 ? remainingManagers[0] : null
+      updates.managerEmail = null
+    }
+
+    await agentRef.update(updates)
 
     return NextResponse.json({ success: true })
   } catch (error: any) {

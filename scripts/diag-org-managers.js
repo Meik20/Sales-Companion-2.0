@@ -75,11 +75,13 @@ async function run() {
     byOrg[code].push({ uid: d.id, email: x.email, orgRole: x.orgRole })
   }
   for (const [code, members] of Object.entries(byOrg)) {
-    const senior = members.find(m => m.orgRole === 'senior_manager')
-    const teams = members.filter(m => m.orgRole !== 'senior_manager')
+    const senior = members.find((m) => m.orgRole === 'senior_manager')
+    const teams = members.filter((m) => m.orgRole !== 'senior_manager')
     console.log(`orgCode: ${code}`)
     console.log(`  Senior  : ${senior ? senior.email : '⚠️ AUCUN'}`)
-    console.log(`  Teams   : ${teams.length > 0 ? teams.map(t => t.email).join(', ') : '⚠️ AUCUN (0)'}`)
+    console.log(
+      `  Teams   : ${teams.length > 0 ? teams.map((t) => t.email).join(', ') : '⚠️ AUCUN (0)'}`
+    )
   }
 
   // Test exact de la query de l'API
@@ -88,7 +90,8 @@ async function run() {
     if (code === '(aucun)') continue
     console.log(`\nQuery: users where orgCode="${code}" AND role="manager"`)
     try {
-      const test = await db.collection('users')
+      const test = await db
+        .collection('users')
         .where('orgCode', '==', code)
         .where('role', '==', 'manager')
         .get()
@@ -105,7 +108,7 @@ async function run() {
   process.exit(0)
 }
 
-run().catch(err => {
+run().catch((err) => {
   console.error('FATAL:', err.message)
   process.exit(1)
 })

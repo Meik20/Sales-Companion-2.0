@@ -112,7 +112,10 @@ describe('POST /api/payment/webhook', () => {
 
   it('devrait rejeter (401) si la signature HMAC est falsifiée', async () => {
     const fakeSignature = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
-    const req = createSignedRequest({ status: 'SUCCESSFUL', external_reference: 'tx-1' }, fakeSignature)
+    const req = createSignedRequest(
+      { status: 'SUCCESSFUL', external_reference: 'tx-1' },
+      fakeSignature
+    )
 
     const res = await POST(req)
     const json = await res.json()
@@ -155,7 +158,8 @@ describe('POST /api/payment/webhook', () => {
       data: () => ({
         status: 'PENDING',
         userId: 'user-buyer-42',
-        plan: 'pro'
+        plan: 'pro',
+        amount: 30000
       })
     })
 

@@ -20,10 +20,8 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return isSignedIn() && (
-        request.auth.token.role == 'admin' ||
-        currentUserDoc().role == 'admin'
-      );
+      return isSignedIn()
+        && currentUserDoc().role == 'admin';
     }
 
     function currentUserDoc() {

@@ -14,7 +14,11 @@ export function LoadingState({ title, description }: LoadingProps) {
   const displayDesc = description ?? t('feedback.pleaseWait')
   return (
     <div className="flex flex-col items-center gap-3 p-10 text-muted-foreground">
-      <style dangerouslySetInnerHTML={{ __html: `@keyframes spin { to { transform: rotate(360deg); } }` }} />
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `@keyframes spin { to { transform: rotate(360deg); } }`
+        }}
+      />
       <span
         className="inline-block h-7 w-7 rounded-full border-[3px] border-white/10"
         style={{ borderTopColor: 'hsl(var(--primary))', animation: 'spin 0.8s linear infinite' }}
@@ -81,8 +85,8 @@ export function EmptyState({
               illustrationSize === 'sm'
                 ? 'max-h-[120px]'
                 : illustrationSize === 'lg'
-                ? 'max-h-[220px]'
-                : 'max-h-[175px]'
+                  ? 'max-h-[220px]'
+                  : 'max-h-[175px]'
             }`}
             loading="lazy"
           />
@@ -95,7 +99,9 @@ export function EmptyState({
 
       <p className="m-0 text-[16px] font-semibold tracking-tight text-foreground">{title}</p>
       {description ? (
-        <p className="m-0 max-w-md text-[13px] leading-relaxed text-muted-foreground">{description}</p>
+        <p className="m-0 max-w-md text-[13px] leading-relaxed text-muted-foreground">
+          {description}
+        </p>
       ) : null}
 
       {/* Actions (CTA) */}
@@ -206,4 +212,3 @@ export function ErrorState({
     </div>
   )
 }
-

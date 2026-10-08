@@ -44,18 +44,21 @@ export async function POST(request: NextRequest) {
     const exemptionToken = crypto.randomUUID()
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
 
-    await adminDb.collection('domain_exemptions').doc(exemptionToken).set({
-      token: exemptionToken,
-      email: sanitizedEmail,
-      name: sanitizedName,
-      companyName: sanitizedCompany,
-      sector: sanitizedSector,
-      status: 'active',
-      createdAt: FieldValue.serverTimestamp(),
-      expiresAt: Timestamp.fromDate(expiresAt),
-      threadId,
-      used: false
-    })
+    await adminDb
+      .collection('domain_exemptions')
+      .doc(exemptionToken)
+      .set({
+        token: exemptionToken,
+        email: sanitizedEmail,
+        name: sanitizedName,
+        companyName: sanitizedCompany,
+        sector: sanitizedSector,
+        status: 'active',
+        createdAt: FieldValue.serverTimestamp(),
+        expiresAt: Timestamp.fromDate(expiresAt),
+        threadId,
+        used: false
+      })
 
     // 3. Mettre à jour le ticket support
     const now = FieldValue.serverTimestamp()
@@ -77,9 +80,7 @@ export async function POST(request: NextRequest) {
 
     // 4. Construire le lien sécurisé d'inscription
     const appUrl =
-      process.env.NEXT_PUBLIC_APP_URL ||
-      process.env.APP_URL ||
-      'https://salescompanion2-0.com'
+      process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || 'https://salescompanion2-0.com'
 
     const queryParams = new URLSearchParams()
     queryParams.set('exemption', exemptionToken)

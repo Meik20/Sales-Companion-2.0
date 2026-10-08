@@ -66,7 +66,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           amountPaid: campayStatus.amount,
           updatedAt: FieldValue.serverTimestamp()
         })
-        return NextResponse.json({ error: 'Montant payé insuffisant ou incohérent', status: 'AMOUNT_MISMATCH' }, { status: 400 })
+        return NextResponse.json(
+          { error: 'Montant payé insuffisant ou incohérent', status: 'AMOUNT_MISMATCH' },
+          { status: 400 }
+        )
       }
 
       const planInfo = PLANS[paymentData.plan]

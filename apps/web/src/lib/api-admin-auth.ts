@@ -10,7 +10,7 @@
 
 import { adminAuth, adminDb } from '@/lib/firebase-admin'
 
-const ROLE_CACHE_TTL_MS = 5 * 60 * 1000 // 5 minutes
+const ROLE_CACHE_TTL_MS = 60 * 1000 // 60 secondes (réduction du délai de révocation)
 
 interface CacheEntry {
   role: string
@@ -21,8 +21,15 @@ interface CacheEntry {
 const roleCache = new Map<string, CacheEntry>()
 
 /**
+ * Invalide explicitement le cache d'un utilisateur (ex: après rétrogradation ou modification de rôle).
+ */
+export function invalidateAdminCache(uid: string): void {
+  roleCache.delete(uid)
+}
+
+/**
  * Vérifie que le token est valide et que l'utilisateur a le rôle 'admin'.
- * Utilise un cache in-memory pour éviter de relire Firestore à chaque requête.
+ * Utilise un cache in-memory court pour éviter de relire Firestore à chaque requête.
  *
  * @throws Error('unauthenticated') si le token est absent ou invalide
  * @throws Error('forbidden') si l'utilisateur n'est pas admin

@@ -74,7 +74,8 @@ export default function SettingsPage() {
   const [pwError, setPwError] = useState<string | null>(null)
   const [pwSuccess, setPwSuccess] = useState<string | null>(null)
 
-  const isGoogleUser = auth.currentUser?.providerData.some(p => p.providerId === 'google.com') ?? false
+  const isGoogleUser =
+    auth.currentUser?.providerData.some((p) => p.providerId === 'google.com') ?? false
   const isSupport = user?.role === 'support_agent' || (user?.role as string) === 'support'
   const isEmailLocked = user?.role === 'member' || isSupport
 
@@ -150,7 +151,9 @@ export default function SettingsPage() {
           body: JSON.stringify({ designTheme: design })
         })
       }
-    } catch { /* non-bloquant */ }
+    } catch {
+      /* non-bloquant */
+    }
 
     pushToast({
       type: 'success',
@@ -158,7 +161,13 @@ export default function SettingsPage() {
     })
   }
 
-  const themes: { id: DesignTheme; label: string; descKey: string; swatches: string[]; accent: string }[] = [
+  const themes: {
+    id: DesignTheme
+    label: string
+    descKey: string
+    swatches: string[]
+    accent: string
+  }[] = [
     {
       id: 'linkedin',
       label: 'LinkedIn Design',
@@ -181,11 +190,12 @@ export default function SettingsPage() {
         <PageHeader title={t('settings.title')} subtitle={t('settings.subtitle')} />
 
         <div className="flex flex-col gap-5">
-
           {/* ── Apparence ───────────────────────────────────────── */}
-          <DataCard title={t('settings.appearanceTitle')} subtitle={t('settings.appearanceSubtitle')}>
+          <DataCard
+            title={t('settings.appearanceTitle')}
+            subtitle={t('settings.appearanceSubtitle')}
+          >
             <div className="flex flex-col gap-4">
-
               {/* Cartes de thème */}
               <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-3">
                 {themes.map((th) => {
@@ -211,7 +221,10 @@ export default function SettingsPage() {
                             }`}
                             style={{
                               background: c,
-                              border: c === '#ffffff' || c === '#f3f2ef' ? '1px solid rgba(0,0,0,0.12)' : 'none'
+                              border:
+                                c === '#ffffff' || c === '#f3f2ef'
+                                  ? '1px solid rgba(0,0,0,0.12)'
+                                  : 'none'
                             }}
                           />
                         ))}
@@ -246,7 +259,9 @@ export default function SettingsPage() {
                 </span>
                 <button
                   id="design-theme-toggle"
-                  onClick={() => handleDesignChange(activeDesign === 'linkedin' ? 'firebase' : 'linkedin')}
+                  onClick={() =>
+                    handleDesignChange(activeDesign === 'linkedin' ? 'firebase' : 'linkedin')
+                  }
                   className="cursor-pointer rounded-lg border border-border bg-card px-4 py-1.5 text-[12px] font-bold text-foreground transition-colors hover:bg-secondary"
                 >
                   {t('settings.switchThemeBtn')}
@@ -264,7 +279,11 @@ export default function SettingsPage() {
                     <span className="text-[20px] font-extrabold text-foreground">
                       {t('settings.planLabel')} {t(planInfo.labelKey as any)}
                     </span>
-                    <Badge variant={plan === 'enterprise' ? 'gold' : plan === 'pro' ? 'success' : 'default'}>
+                    <Badge
+                      variant={
+                        plan === 'enterprise' ? 'gold' : plan === 'pro' ? 'success' : 'default'
+                      }
+                    >
                       {t(planInfo.labelKey as any)}
                     </Badge>
                   </div>
@@ -275,7 +294,8 @@ export default function SettingsPage() {
                   </p>
                 </div>
 
-                {plan !== 'enterprise' && (user?.role === 'independent' || (user?.role === 'manager' && isSeniorManager)) ? (
+                {plan !== 'enterprise' &&
+                (user?.role === 'independent' || (user?.role === 'manager' && isSeniorManager)) ? (
                   <button
                     onClick={() => router.push(routes.upgrade)}
                     className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-[13px] font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
@@ -286,7 +306,10 @@ export default function SettingsPage() {
                 ) : plan !== 'enterprise' && isTeamManager ? (
                   <div className="flex items-center gap-2 rounded-xl border border-yellow-500/30 bg-yellow-500/8 px-3.5 py-2 text-[12px] text-yellow-500/80">
                     <Lock size={13} className="shrink-0" />
-                    <span>La gestion de l&apos;abonnement est réservée au <strong>Senior Manager</strong> de votre organisation.</span>
+                    <span>
+                      La gestion de l&apos;abonnement est réservée au{' '}
+                      <strong>Senior Manager</strong> de votre organisation.
+                    </span>
                   </div>
                 ) : null}
               </div>
@@ -307,14 +330,14 @@ export default function SettingsPage() {
 
           <DataCard title={t('settings.securityTitle')} subtitle={t('settings.securitySubtitle')}>
             <div className="flex flex-col gap-6">
-
               {/* Adresse E-mail Section */}
               <div className="flex flex-col gap-3 border-b border-border pb-6">
                 <h3 className="m-0 text-[15px] font-bold text-foreground">
                   {t('settings.emailTitle')}
                 </h3>
                 <p className="m-0 text-[13px] text-muted-foreground">
-                  {t('settings.currentEmailLabel')} <strong className="text-foreground">{user?.email}</strong>
+                  {t('settings.currentEmailLabel')}{' '}
+                  <strong className="text-foreground">{user?.email}</strong>
                 </p>
 
                 {isGoogleUser ? (
@@ -331,7 +354,10 @@ export default function SettingsPage() {
                     </span>
                   </div>
                 ) : (
-                  <form onSubmit={handleUpdateEmail} className="flex max-w-[400px] flex-col gap-2.5">
+                  <form
+                    onSubmit={handleUpdateEmail}
+                    className="flex max-w-[400px] flex-col gap-2.5"
+                  >
                     <div className="flex gap-2">
                       <Input
                         type="email"
@@ -349,9 +375,7 @@ export default function SettingsPage() {
                         {t('settings.updateBtn')}
                       </Button>
                     </div>
-                    {emailError && (
-                      <div className="text-[12px] text-red-400">{emailError}</div>
-                    )}
+                    {emailError && <div className="text-[12px] text-red-400">{emailError}</div>}
                     {emailSuccess && (
                       <div className="text-[12px] text-blue-400">{emailSuccess}</div>
                     )}
@@ -382,19 +406,14 @@ export default function SettingsPage() {
                     >
                       {t('settings.sendResetBtn')}
                     </Button>
-                    {pwError && (
-                      <div className="text-[12px] text-red-400">{pwError}</div>
-                    )}
-                    {pwSuccess && (
-                      <div className="text-[12px] text-blue-400">{pwSuccess}</div>
-                    )}
+                    {pwError && <div className="text-[12px] text-red-400">{pwError}</div>}
+                    {pwSuccess && <div className="text-[12px] text-blue-400">{pwSuccess}</div>}
                     <span className="text-[11px] text-muted-foreground/80">
                       {t('settings.passwordHint')}
                     </span>
                   </div>
                 )}
               </div>
-
             </div>
           </DataCard>
         </div>

@@ -4,9 +4,10 @@ export function mapAuthError(error: unknown): string {
   }
 
   const message = error.message.toLowerCase()
-  const rawCode = 'code' in error && typeof (error as { code: unknown }).code === 'string'
-    ? (error as { code: string }).code
-    : ''
+  const rawCode =
+    'code' in error && typeof (error as { code: unknown }).code === 'string'
+      ? (error as { code: string }).code
+      : ''
   const code = rawCode.toLowerCase()
 
   const errorString = message + ' ' + code

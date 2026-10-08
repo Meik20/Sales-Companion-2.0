@@ -12,7 +12,8 @@ export const metadata: Metadata = {
   alternates: { canonical: `${baseUrl}/terms` },
   openGraph: {
     title: "CGU — Conditions Générales d'Utilisation — Sales Companion 2.0",
-    description: "Droits, obligations et règles d'utilisation de la plateforme Sales Companion 2.0.",
+    description:
+      "Droits, obligations et règles d'utilisation de la plateforme Sales Companion 2.0.",
     url: `${baseUrl}/terms`,
     siteName: 'Sales Companion 2.0',
     type: 'website'
@@ -22,18 +23,18 @@ export const metadata: Metadata = {
 const SECTIONS = [
   {
     id: 'objet',
-    title: '1. Objet et champ d\'application',
+    title: "1. Objet et champ d'application",
     content: `Les présentes Conditions Générales d'Utilisation (CGU) régissent l'accès et l'utilisation de la plateforme Sales Companion 2.0, accessible à l'adresse salescompanion2-0.com. En créant un compte ou en utilisant la plateforme, vous acceptez sans réserve les présentes CGU. Si vous n'acceptez pas ces conditions, vous devez cesser d'utiliser la plateforme.`
   },
   {
     id: 'compte',
-    title: '2. Création de compte et conditions d\'accès',
+    title: "2. Création de compte et conditions d'accès",
     content: `Pour accéder aux services de Sales Companion 2.0, vous devez :`,
     bullets: [
       'Être une personne physique ou morale exerçant une activité commerciale ou professionnelle.',
-      'Fournir des informations exactes et à jour lors de l\'inscription.',
-      'Vérifier votre adresse e-mail via le lien de confirmation envoyé lors de l\'inscription.',
-      'Être âgé d\'au moins 18 ans ou représenter légalement une société.',
+      "Fournir des informations exactes et à jour lors de l'inscription.",
+      "Vérifier votre adresse e-mail via le lien de confirmation envoyé lors de l'inscription.",
+      "Être âgé d'au moins 18 ans ou représenter légalement une société.",
       'Maintenir la confidentialité de vos identifiants de connexion.'
     ]
   },
@@ -42,9 +43,9 @@ const SECTIONS = [
     title: '3. Description des services',
     content: `Sales Companion 2.0 propose les services suivants selon votre plan d'abonnement :`,
     bullets: [
-      'Annuaire B2B : accès à une base de données d\'entreprises camerounaises vérifiées (RCCM, NIU, contacts).',
+      "Annuaire B2B : accès à une base de données d'entreprises camerounaises vérifiées (RCCM, NIU, contacts).",
       'CRM Pipeline : gestion et suivi de vos prospects commerciaux.',
-      'Gestion d\'équipe : création et management d\'équipes commerciales (plans Manager et Enterprise).',
+      "Gestion d'équipe : création et management d'équipes commerciales (plans Manager et Enterprise).",
       'Export de données : téléchargement des résultats en format Excel (plans payants).',
       'Application mobile PWA : accès hors-ligne via Progressive Web App.'
     ]
@@ -57,18 +58,19 @@ const SECTIONS = [
       'Plan Gratuit : accès limité à 10 recherches par mois, sans engagement.',
       'Plan Starter : 10 recherches/jour avec export Excel, facturation mensuelle.',
       'Plan Pro : 20 recherches/jour avec pipeline illimité.',
-      'Plan Enterprise : 50 recherches/jour avec gestion d\'équipe et support dédié.'
+      "Plan Enterprise : 50 recherches/jour avec gestion d'équipe et support dédié."
     ],
-    extra: 'Les paiements sont effectués via Orange Money, MTN Mobile Money ou virement bancaire. Toute facturation est émise en Francs CFA (XAF). Les abonnements se renouvellent automatiquement sauf résiliation avant la date de renouvellement.'
+    extra:
+      'Les paiements sont effectués via Orange Money, MTN Mobile Money ou virement bancaire. Toute facturation est émise en Francs CFA (XAF). Les abonnements se renouvellent automatiquement sauf résiliation avant la date de renouvellement.'
   },
   {
     id: 'obligations',
-    title: '5. Obligations de l\'utilisateur',
+    title: "5. Obligations de l'utilisateur",
     content: `En utilisant Sales Companion 2.0, vous vous engagez à :`,
     bullets: [
       'Utiliser la plateforme uniquement dans un cadre professionnel et légal.',
-      'Ne pas extraire massivement les données de l\'annuaire à des fins de revente ou de concurrence.',
-      'Ne pas tenter de contourner les mécanismes de sécurité ou de limitation d\'accès.',
+      "Ne pas extraire massivement les données de l'annuaire à des fins de revente ou de concurrence.",
+      "Ne pas tenter de contourner les mécanismes de sécurité ou de limitation d'accès.",
       'Ne pas partager vos identifiants de connexion avec des tiers non autorisés.',
       'Respecter la vie privée des contacts présents dans la base de données.',
       'Signaler toute faille de sécurité découverte à security@salescompanion2-0.com.'
@@ -81,7 +83,7 @@ const SECTIONS = [
   },
   {
     id: 'donnees-annuaire',
-    title: '7. Données de l\'annuaire B2B',
+    title: "7. Données de l'annuaire B2B",
     content: `Les données d'entreprises disponibles dans l'annuaire Sales Companion 2.0 proviennent de sources officielles (RCCM, bases publiques) et sont compilées à des fins professionnelles. L'utilisation de ces données est autorisée exclusivement dans le cadre d'une prospection commerciale légale et éthique. Toute utilisation à des fins de spam, harcèlement ou activité illégale est formellement interdite.`
   },
   {
@@ -89,10 +91,10 @@ const SECTIONS = [
     title: '8. Limitation de responsabilité',
     content: `Sales Companion 2.0 s'efforce de maintenir l'exactitude et la disponibilité de ses services. Cependant :`,
     bullets: [
-      'Nous ne garantissons pas l\'exactitude ou l\'exhaustivité des données de l\'annuaire.',
+      "Nous ne garantissons pas l'exactitude ou l'exhaustivité des données de l'annuaire.",
       'Nous ne sommes pas responsables des interruptions de service dues à des causes extérieures (maintenance, force majeure).',
       'Notre responsabilité est limitée au montant des sommes effectivement payées au titre de votre abonnement.',
-      'Nous déclinons toute responsabilité pour les pertes commerciales résultant de l\'utilisation des données.'
+      "Nous déclinons toute responsabilité pour les pertes commerciales résultant de l'utilisation des données."
     ]
   },
   {
@@ -126,14 +128,26 @@ export default function TermsPage() {
           </Link>
           <div className="nav-desktop">
             <ul className="nav-links" role="list">
-              <li><Link href="/">Accueil</Link></li>
-              <li><Link href="/annuaire">Annuaire B2B</Link></li>
-              <li><Link href="/blog">Blog</Link></li>
-              <li><Link href="/privacy">Confidentialité</Link></li>
+              <li>
+                <Link href="/">Accueil</Link>
+              </li>
+              <li>
+                <Link href="/annuaire">Annuaire B2B</Link>
+              </li>
+              <li>
+                <Link href="/blog">Blog</Link>
+              </li>
+              <li>
+                <Link href="/privacy">Confidentialité</Link>
+              </li>
             </ul>
             <div className="nav-cta">
-              <Link href="/login" className="btn btn-ghost btn-sm">Connexion</Link>
-              <Link href="/register" className="btn btn-primary btn-sm">Essai Gratuit</Link>
+              <Link href="/login" className="btn btn-ghost btn-sm">
+                Connexion
+              </Link>
+              <Link href="/register" className="btn btn-primary btn-sm">
+                Essai Gratuit
+              </Link>
             </div>
           </div>
         </div>
@@ -149,10 +163,7 @@ export default function TermsPage() {
         }}
       >
         <div className="hero-glow-tl" aria-hidden="true" />
-        <span
-          className="hero-badge"
-          style={{ marginBottom: '24px', display: 'inline-flex' }}
-        >
+        <span className="hero-badge" style={{ marginBottom: '24px', display: 'inline-flex' }}>
           <span className="hero-badge-dot" />
           Dernière mise à jour : 14 juin 2026
         </span>
@@ -162,11 +173,9 @@ export default function TermsPage() {
         >
           📋 Conditions Générales <em>d&apos;Utilisation</em>
         </h1>
-        <p
-          className="hero-sub"
-          style={{ maxWidth: '640px', margin: '0 auto', fontSize: '1rem' }}
-        >
-          Lisez attentivement les présentes conditions qui régissent votre utilisation de la plateforme Sales Companion 2.0.
+        <p className="hero-sub" style={{ maxWidth: '640px', margin: '0 auto', fontSize: '1rem' }}>
+          Lisez attentivement les présentes conditions qui régissent votre utilisation de la
+          plateforme Sales Companion 2.0.
         </p>
 
         {/* Quick nav */}
@@ -179,7 +188,14 @@ export default function TermsPage() {
             marginTop: '36px'
           }}
         >
-          {['Compte', 'Services', 'Abonnements', 'Obligations', 'Résiliation', 'Droit applicable'].map((label) => (
+          {[
+            'Compte',
+            'Services',
+            'Abonnements',
+            'Obligations',
+            'Résiliation',
+            'Droit applicable'
+          ].map((label) => (
             <span
               key={label}
               style={{
@@ -225,8 +241,12 @@ export default function TermsPage() {
             <p style={{ margin: 0, fontWeight: 700, color: 'var(--tx)', fontSize: '15px' }}>
               Accord contractuel
             </p>
-            <p style={{ margin: '4px 0 0', color: 'var(--tx2)', fontSize: '13px', lineHeight: 1.6 }}>
-              En créant un compte sur Sales Companion 2.0, vous acceptez les présentes Conditions Générales d&apos;Utilisation dans leur intégralité. Ces conditions constituent un contrat juridiquement contraignant entre vous et Sales Companion 2.0.
+            <p
+              style={{ margin: '4px 0 0', color: 'var(--tx2)', fontSize: '13px', lineHeight: 1.6 }}
+            >
+              En créant un compte sur Sales Companion 2.0, vous acceptez les présentes Conditions
+              Générales d&apos;Utilisation dans leur intégralité. Ces conditions constituent un
+              contrat juridiquement contraignant entre vous et Sales Companion 2.0.
             </p>
           </div>
         </div>
@@ -347,7 +367,14 @@ export default function TermsPage() {
                 textAlign: 'center'
               }}
             >
-              <div style={{ fontWeight: 800, fontSize: '14px', color: plan.color, marginBottom: '4px' }}>
+              <div
+                style={{
+                  fontWeight: 800,
+                  fontSize: '14px',
+                  color: plan.color,
+                  marginBottom: '4px'
+                }}
+              >
                 {plan.name}
               </div>
               <div style={{ fontSize: '11px', color: 'var(--tx3)', marginBottom: '8px' }}>
@@ -381,14 +408,14 @@ export default function TermsPage() {
           >
             Des questions sur les conditions ?
           </h3>
-          <p style={{ color: 'var(--tx2)', marginBottom: '28px', fontSize: '14px', lineHeight: 1.7 }}>
-            Notre équipe juridique et commerciale est disponible pour vous éclairer sur tout aspect de ces conditions.
+          <p
+            style={{ color: 'var(--tx2)', marginBottom: '28px', fontSize: '14px', lineHeight: 1.7 }}
+          >
+            Notre équipe juridique et commerciale est disponible pour vous éclairer sur tout aspect
+            de ces conditions.
           </p>
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <a
-              href="mailto:support@salescompanion2-0.com"
-              className="btn btn-primary btn-md"
-            >
+            <a href="mailto:support@salescompanion2-0.com" className="btn btn-primary btn-md">
               ✉️ Nous contacter
             </a>
             <Link href="/privacy" className="btn btn-outline btn-md">
@@ -403,11 +430,41 @@ export default function TermsPage() {
         className="footer"
         style={{ borderTop: '1px solid var(--bd)', padding: '40px 24px', textAlign: 'center' }}
       >
-        <div style={{ display: 'flex', gap: '24px', justifyContent: 'center', marginBottom: '16px', flexWrap: 'wrap' }}>
-          <Link href="/" style={{ color: 'var(--tx3)', fontSize: '13px', textDecoration: 'none' }}>Accueil</Link>
-          <Link href="/privacy" style={{ color: 'var(--tx3)', fontSize: '13px', textDecoration: 'none' }}>Confidentialité</Link>
-          <Link href="/blog" style={{ color: 'var(--tx3)', fontSize: '13px', textDecoration: 'none' }}>Blog</Link>
-          <Link href="/register" style={{ color: 'var(--gm)', fontSize: '13px', textDecoration: 'none', fontWeight: 600 }}>Créer un compte</Link>
+        <div
+          style={{
+            display: 'flex',
+            gap: '24px',
+            justifyContent: 'center',
+            marginBottom: '16px',
+            flexWrap: 'wrap'
+          }}
+        >
+          <Link href="/" style={{ color: 'var(--tx3)', fontSize: '13px', textDecoration: 'none' }}>
+            Accueil
+          </Link>
+          <Link
+            href="/privacy"
+            style={{ color: 'var(--tx3)', fontSize: '13px', textDecoration: 'none' }}
+          >
+            Confidentialité
+          </Link>
+          <Link
+            href="/blog"
+            style={{ color: 'var(--tx3)', fontSize: '13px', textDecoration: 'none' }}
+          >
+            Blog
+          </Link>
+          <Link
+            href="/register"
+            style={{
+              color: 'var(--gm)',
+              fontSize: '13px',
+              textDecoration: 'none',
+              fontWeight: 600
+            }}
+          >
+            Créer un compte
+          </Link>
         </div>
         <p style={{ color: 'var(--tx3)', fontSize: '0.875rem', margin: 0 }}>
           © {new Date().getFullYear()} Sales Companion 2.0 · 🇨🇲 Intelligence B2B Cameroun

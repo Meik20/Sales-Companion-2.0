@@ -62,7 +62,7 @@ export async function PATCH(
 
     // ── Propagation du plan et de la validité aux membres de l'équipe ─────
     // Déclenché si le plan, le quota OU la date d'expiration du manager change
-    const isManager = (oldData?.role === 'manager' || safeFields.role === 'manager')
+    const isManager = oldData?.role === 'manager' || safeFields.role === 'manager'
     const hasPlanOrExpiryChange =
       safeFields.plan !== undefined ||
       safeFields.dailyLimit !== undefined ||
@@ -72,14 +72,16 @@ export async function PATCH(
     if (hasPlanOrExpiryChange && isManager) {
       try {
         const planToSync = (safeFields.plan ?? oldData?.plan ?? 'free') as any
-        const expiresToSync =
-          (updatePayload.subscriptionExpiresAt !== undefined
+        const expiresToSync = (
+          updatePayload.subscriptionExpiresAt !== undefined
             ? updatePayload.subscriptionExpiresAt
-            : (oldData?.subscriptionExpiresAt ?? null)) as string | null
-        const startedToSync =
-          (updatePayload.subscriptionStartedAt !== undefined
+            : (oldData?.subscriptionExpiresAt ?? null)
+        ) as string | null
+        const startedToSync = (
+          updatePayload.subscriptionStartedAt !== undefined
             ? updatePayload.subscriptionStartedAt
-            : (oldData?.subscriptionStartedAt ?? null)) as string | null
+            : (oldData?.subscriptionStartedAt ?? null)
+        ) as string | null
         const expiredToSync =
           updatePayload.subscriptionExpired !== undefined
             ? (updatePayload.subscriptionExpired as boolean)
@@ -102,6 +104,8 @@ export async function PATCH(
     // If role change is included, update custom claims too
     if (safeFields.role) {
       await adminAuth.setCustomUserClaims(uid, { role: safeFields.role })
+      const { invalidateAdminCache } = await import('@/lib/api-admin-auth')
+      invalidateAdminCache(uid)
     }
 
     const updated = await adminDb.collection('users').doc(uid).get()
@@ -125,6 +129,9 @@ export async function DELETE(
     await verifyAdmin(token)
 
     const { uid } = await params
+
+    const { invalidateAdminCache } = await import('@/lib/api-admin-auth')
+    invalidateAdminCache(uid)
 
     // Delete from Firebase Auth and Firestore in parallel
     await Promise.all([adminAuth.deleteUser(uid), adminDb.collection('users').doc(uid).delete()])

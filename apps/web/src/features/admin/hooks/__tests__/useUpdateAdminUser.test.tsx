@@ -8,9 +8,9 @@ vi.mock('@/hooks/useCurrentUser', () => ({
   useCurrentUser: () => ({
     user: {
       uid: 'test-user-id',
-      getIdToken: vi.fn().mockResolvedValue('test-token'),
-    },
-  }),
+      getIdToken: vi.fn().mockResolvedValue('test-token')
+    }
+  })
 }))
 
 describe('useUpdateAdminUser', () => {
@@ -22,15 +22,13 @@ describe('useUpdateAdminUser', () => {
   })
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   )
 
   it('should update user successfully', async () => {
     global.fetch = vi.fn().mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ uid: 'user-123', active: false }),
+      json: async () => ({ uid: 'user-123', active: false })
     })
 
     const { result } = renderHook(() => useUpdateAdminUser(), { wrapper })
@@ -38,7 +36,7 @@ describe('useUpdateAdminUser', () => {
     await act(async () => {
       await result.current.mutateAsync({
         uid: 'user-123',
-        data: { active: false },
+        data: { active: false }
       })
     })
 
@@ -51,7 +49,7 @@ describe('useUpdateAdminUser', () => {
     global.fetch = vi.fn().mockResolvedValueOnce({
       ok: false,
       status: 400,
-      json: async () => ({ message: 'Bad request' }),
+      json: async () => ({ message: 'Bad request' })
     })
 
     const { result } = renderHook(() => useUpdateAdminUser(), { wrapper })

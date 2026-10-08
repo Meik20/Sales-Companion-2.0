@@ -138,7 +138,7 @@ export function PublicSupportForm() {
 
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
               {t('support.successDesc') ||
-                "Votre requête a bien été enregistrée et transmise à notre équipe administrative. Un responsable va examiner les informations de votre entreprise et vous contacter sous peu par email."}
+                'Votre requête a bien été enregistrée et transmise à notre équipe administrative. Un responsable va examiner les informations de votre entreprise et vous contacter sous peu par email.'}
             </p>
 
             <div className="mt-6 rounded-xl border border-border/60 bg-secondary/30 p-4 text-left text-xs text-muted-foreground">

@@ -74,7 +74,9 @@ export function CompanyStatsChart() {
   if (isLoading) {
     return (
       <SectionCard title={t('admin.companyStats') || 'Statistiques des entreprises'}>
-        <div style={{ textAlign: 'center', color: 'var(--muted-foreground, #94a3b8)', padding: 20 }}>
+        <div
+          style={{ textAlign: 'center', color: 'var(--muted-foreground, #94a3b8)', padding: 20 }}
+        >
           {t('team.loading')}
         </div>
       </SectionCard>

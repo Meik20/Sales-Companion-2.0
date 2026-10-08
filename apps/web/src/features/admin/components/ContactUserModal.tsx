@@ -126,7 +126,9 @@ export function ContactUserModal({ isOpen, user, onClose, onSuccess }: Props) {
               <Mail size={18} strokeWidth={2.2} />
             </div>
             <div>
-              <h2 className="text-base font-bold text-foreground m-0">Contacter l&apos;utilisateur</h2>
+              <h2 className="text-base font-bold text-foreground m-0">
+                Contacter l&apos;utilisateur
+              </h2>
               <p className="text-xs text-muted-foreground m-0 mt-0.5">
                 Créer un ticket de support dédié
               </p>
@@ -172,12 +174,8 @@ export function ContactUserModal({ isOpen, user, onClose, onSuccess }: Props) {
           </div>
 
           <div className="flex flex-col items-end gap-1.5 shrink-0">
-            <Badge variant={roleBadge[user.role] ?? 'default'}>
-              {user.role}
-            </Badge>
-            <Badge variant={planBadge[user.plan] ?? 'default'}>
-              {user.plan.toUpperCase()}
-            </Badge>
+            <Badge variant={roleBadge[user.role] ?? 'default'}>{user.role}</Badge>
+            <Badge variant={planBadge[user.plan] ?? 'default'}>{user.plan.toUpperCase()}</Badge>
           </div>
         </div>
 
@@ -252,8 +250,9 @@ export function ContactUserModal({ isOpen, user, onClose, onSuccess }: Props) {
           >
             <Sparkles size={16} className="text-primary shrink-0 mt-0.5" />
             <span>
-              Ce message sera transmis dans l&apos;espace <strong>Support</strong> de l&apos;utilisateur
-              et une notification automatique lui sera envoyée par <strong>email</strong>.
+              Ce message sera transmis dans l&apos;espace <strong>Support</strong> de
+              l&apos;utilisateur et une notification automatique lui sera envoyée par{' '}
+              <strong>email</strong>.
             </span>
           </div>
 
@@ -270,12 +269,7 @@ export function ContactUserModal({ isOpen, user, onClose, onSuccess }: Props) {
 
           {/* Footer buttons */}
           <div className="flex items-center justify-end gap-3 pt-2">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={onClose}
-              disabled={sending}
-            >
+            <Button type="button" variant="ghost" onClick={onClose} disabled={sending}>
               Annuler
             </Button>
             <Button

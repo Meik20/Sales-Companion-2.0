@@ -8,7 +8,21 @@ import { useTranslation } from '@/providers/I18nProvider'
 import { useToast } from '@/hooks/useToast'
 import { Panel, Badge, MetricCard, StatsGrid } from '@/components/ui/index'
 import { BUSINESS_SECTORS, GEOGRAPHY, SUPPORTED_COUNTRIES } from '@sales-companion/shared'
-import { Building2, Briefcase, MapPin, Edit3, Phone, User, Check, X, ShieldCheck, RefreshCw, Sparkles, AlertTriangle, ArrowRight } from 'lucide-react'
+import {
+  Building2,
+  Briefcase,
+  MapPin,
+  Edit3,
+  Phone,
+  User,
+  Check,
+  X,
+  ShieldCheck,
+  RefreshCw,
+  Sparkles,
+  AlertTriangle,
+  ArrowRight
+} from 'lucide-react'
 import { getSubscriptionStatus } from '@/lib/subscriptionStatus'
 
 const planBadge: Record<string, 'default' | 'info' | 'success' | 'gold'> = {
@@ -86,7 +100,8 @@ export function ProfileCard() {
               setIsAuthorizedBySupport(true)
               pushToast({
                 type: 'success',
-                title: 'Autorisation à usage unique validée ! Vous pouvez modifier vos informations.'
+                title:
+                  'Autorisation à usage unique validée ! Vous pouvez modifier vos informations.'
               })
               setFormData({
                 name: localProfile?.name ?? user.name ?? '',
@@ -226,7 +241,10 @@ export function ProfileCard() {
       console.error('[ProfileCard] Error updating profile:', err)
       pushToast({
         type: 'error',
-        title: err?.message || t('profile.profileUpdateErrorToast' as any) || 'Erreur lors de la mise à jour du profil.'
+        title:
+          err?.message ||
+          t('profile.profileUpdateErrorToast' as any) ||
+          'Erreur lors de la mise à jour du profil.'
       })
     } finally {
       setSaving(false)
@@ -247,7 +265,8 @@ export function ProfileCard() {
 
   const userCountry = user.country || 'CM'
   const countryObj = SUPPORTED_COUNTRIES.find((country) => country.code === userCountry)
-  const countryName = (lang === 'en' ? countryObj?.nameEn : countryObj?.name) ?? countryObj?.name ?? 'Cameroun'
+  const countryName =
+    (lang === 'en' ? countryObj?.nameEn : countryObj?.name) ?? countryObj?.name ?? 'Cameroun'
   const geography = GEOGRAPHY[userCountry] ?? GEOGRAPHY.CM!
 
   const usagePercent =
@@ -257,8 +276,10 @@ export function ProfileCard() {
     usagePercent > 80 ? '#f87171' : usagePercent > 60 ? '#fbbf24' : 'var(--color-primary)'
 
   const displayName = localProfile?.name ?? user.name ?? t('profile.defaultName')
-  const displayCompany = localProfile?.company !== undefined ? localProfile.company : (user.company || user.companyName)
-  const displaySector = localProfile?.sector !== undefined ? localProfile.sector : (user.sector || user.industry)
+  const displayCompany =
+    localProfile?.company !== undefined ? localProfile.company : user.company || user.companyName
+  const displaySector =
+    localProfile?.sector !== undefined ? localProfile.sector : user.sector || user.industry
   const displayRegion = localProfile?.region !== undefined ? localProfile.region : user.region
   const displayPhone = localProfile?.phone !== undefined ? localProfile.phone : user.phone
 
@@ -267,77 +288,90 @@ export function ProfileCard() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       {/* Bannière d'alerte si expiration proche (< 15j) ou expirée */}
-      {user.plan !== 'free' && (subStatus.level === 'alert' || subStatus.level === 'critical' || subStatus.level === 'expired') && (
-        <div
-          style={{
-            padding: '14px 18px',
-            borderRadius: 12,
-            background: subStatus.bgColor,
-            border: `1px solid ${subStatus.borderColor}`,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 16,
-            flexWrap: 'wrap'
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div
-              style={{
-                width: 38,
-                height: 38,
-                borderRadius: 10,
-                background: `${subStatus.color}20`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: subStatus.color,
-                flexShrink: 0
-              }}
-            >
-              <AlertTriangle size={20} />
-            </div>
-            <div>
-              <div style={{ fontWeight: 700, fontSize: 14, color: subStatus.color }}>
-                {subStatus.level === 'expired'
-                  ? "Votre abonnement est arrivé à expiration"
-                  : `Votre abonnement expire ${subStatus.daysLeft <= 1 ? "demain" : `dans ${subStatus.daysLeft} jours`}`}
-              </div>
-              <div style={{ fontSize: 12, color: 'var(--muted-foreground, #94a3b8)', marginTop: 2 }}>
-                {subStatus.level === 'expired'
-                  ? "Renouvelez votre formule pour rétablir vos quotas et fonctionnalités."
-                  : `Date d'échéance : ${subStatus.dateLabel}. Pensez à renouveler pour conserver vos accès sans interruption.`}
-              </div>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => router.push(routes.upgrade)}
+      {user.plan !== 'free' &&
+        (subStatus.level === 'alert' ||
+          subStatus.level === 'critical' ||
+          subStatus.level === 'expired') && (
+          <div
             style={{
-              display: 'inline-flex',
+              padding: '14px 18px',
+              borderRadius: 12,
+              background: subStatus.bgColor,
+              border: `1px solid ${subStatus.borderColor}`,
+              display: 'flex',
               alignItems: 'center',
-              gap: 6,
-              padding: '8px 16px',
-              borderRadius: 8,
-              fontSize: 12,
-              fontWeight: 700,
-              background: subStatus.color,
-              color: '#ffffff',
-              border: 'none',
-              cursor: 'pointer',
-              transition: 'opacity 150ms ease'
+              justifyContent: 'space-between',
+              gap: 16,
+              flexWrap: 'wrap'
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.9')}
-            onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
           >
-            <span>Renouveler mon plan</span>
-            <ArrowRight size={14} />
-          </button>
-        </div>
-      )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: 10,
+                  background: `${subStatus.color}20`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: subStatus.color,
+                  flexShrink: 0
+                }}
+              >
+                <AlertTriangle size={20} />
+              </div>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 14, color: subStatus.color }}>
+                  {subStatus.level === 'expired'
+                    ? 'Votre abonnement est arrivé à expiration'
+                    : `Votre abonnement expire ${subStatus.daysLeft <= 1 ? 'demain' : `dans ${subStatus.daysLeft} jours`}`}
+                </div>
+                <div
+                  style={{ fontSize: 12, color: 'var(--muted-foreground, #94a3b8)', marginTop: 2 }}
+                >
+                  {subStatus.level === 'expired'
+                    ? 'Renouvelez votre formule pour rétablir vos quotas et fonctionnalités.'
+                    : `Date d'échéance : ${subStatus.dateLabel}. Pensez à renouveler pour conserver vos accès sans interruption.`}
+                </div>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => router.push(routes.upgrade)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '8px 16px',
+                borderRadius: 8,
+                fontSize: 12,
+                fontWeight: 700,
+                background: subStatus.color,
+                color: '#ffffff',
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'opacity 150ms ease'
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.9')}
+              onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
+            >
+              <span>Renouveler mon plan</span>
+              <ArrowRight size={14} />
+            </button>
+          </div>
+        )}
       {/* Header card with Company & Sector */}
       <Panel>
-        <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start', flexWrap: 'wrap', position: 'relative' }}>
+        <div
+          style={{
+            display: 'flex',
+            gap: 20,
+            alignItems: 'flex-start',
+            flexWrap: 'wrap',
+            position: 'relative'
+          }}
+        >
           {/* Avatar */}
           <div
             style={{
@@ -356,7 +390,9 @@ export function ProfileCard() {
               fontFamily: 'inherit'
             }}
           >
-            {(localProfile?.name || user.name)?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || '?'}
+            {(localProfile?.name || user.name)?.[0]?.toUpperCase() ||
+              user.email?.[0]?.toUpperCase() ||
+              '?'}
           </div>
 
           {/* Infos */}
@@ -383,9 +419,17 @@ export function ProfileCard() {
               </h2>
               <Badge variant={planBadge[user.plan] ?? 'default'}>{user.plan?.toUpperCase()}</Badge>
             </div>
-            
-            <p style={{ margin: 0, fontSize: 13, color: 'var(--muted-foreground, #94a3b8)' }}>{user.email}</p>
-            <p style={{ margin: '4px 0 12px', fontSize: 12, color: 'var(--muted-foreground, #64748b)' }}>
+
+            <p style={{ margin: 0, fontSize: 13, color: 'var(--muted-foreground, #94a3b8)' }}>
+              {user.email}
+            </p>
+            <p
+              style={{
+                margin: '4px 0 12px',
+                fontSize: 12,
+                color: 'var(--muted-foreground, #64748b)'
+              }}
+            >
               {t(roleLabelKeys[user.role] as any) || user.role}
             </p>
 
@@ -413,7 +457,9 @@ export function ProfileCard() {
                   {displayCompany ? (
                     <span style={{ fontWeight: 600 }}>{displayCompany}</span>
                   ) : (
-                    <span style={{ color: 'var(--muted-foreground, #64748b)', fontStyle: 'italic' }}>
+                    <span
+                      style={{ color: 'var(--muted-foreground, #64748b)', fontStyle: 'italic' }}
+                    >
                       {t('profile.noCompany' as any) || 'Non renseignée'}
                     </span>
                   )}
@@ -442,7 +488,9 @@ export function ProfileCard() {
                   {displaySector ? (
                     <span style={{ fontWeight: 600 }}>{displaySector}</span>
                   ) : (
-                    <span style={{ color: 'var(--muted-foreground, #64748b)', fontStyle: 'italic' }}>
+                    <span
+                      style={{ color: 'var(--muted-foreground, #64748b)', fontStyle: 'italic' }}
+                    >
                       {t('profile.noSector' as any) || 'Non renseigné'}
                     </span>
                   )}
@@ -513,9 +561,14 @@ export function ProfileCard() {
                   color: 'var(--foreground, #f1f5f9)'
                 }}
               >
-                <span aria-hidden="true">{SUPPORTED_COUNTRIES.find((country) => country.code === userCountry)?.flag ?? '🌍'}</span>
+                <span aria-hidden="true">
+                  {SUPPORTED_COUNTRIES.find((country) => country.code === userCountry)?.flag ??
+                    '🌍'}
+                </span>
                 <span>
-                  <strong style={{ color: 'var(--muted-foreground, #94a3b8)', fontWeight: 500 }}>Pays :</strong>{' '}
+                  <strong style={{ color: 'var(--muted-foreground, #94a3b8)', fontWeight: 500 }}>
+                    Pays :
+                  </strong>{' '}
                   <span style={{ fontWeight: 600 }}>{countryName}</span>
                 </span>
               </div>
@@ -562,7 +615,8 @@ export function ProfileCard() {
                     ) : (
                       <>
                         <ShieldCheck size={14} />
-                        {t('profile.requestChangeViaSupportBtn' as any) || 'Demander une modification au support'}
+                        {t('profile.requestChangeViaSupportBtn' as any) ||
+                          'Demander une modification au support'}
                       </>
                     )}
                   </button>
@@ -618,7 +672,8 @@ export function ProfileCard() {
               {/* Nom de l'entreprise */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                  <Building2 size={13} /> {t('profile.companyLabel' as any) || 'Nom de l\'entreprise'}
+                  <Building2 size={13} />{' '}
+                  {t('profile.companyLabel' as any) || "Nom de l'entreprise"}
                 </label>
                 <input
                   type="text"
@@ -639,7 +694,9 @@ export function ProfileCard() {
                   onChange={(e) => setFormData({ ...formData, sector: e.target.value })}
                   className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
                 >
-                  <option value="">-- {t('profile.noSector' as any) || 'Sélectionner un secteur'} --</option>
+                  <option value="">
+                    -- {t('profile.noSector' as any) || 'Sélectionner un secteur'} --
+                  </option>
                   {BUSINESS_SECTORS.map((s) => (
                     <option key={s} value={s}>
                       {s}
@@ -658,7 +715,9 @@ export function ProfileCard() {
                   onChange={(e) => setFormData({ ...formData, region: e.target.value })}
                   className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
                 >
-                  <option value="">-- {t('profile.selectRegion' as any) || 'Sélectionner une région'} --</option>
+                  <option value="">
+                    -- {t('profile.selectRegion' as any) || 'Sélectionner une région'} --
+                  </option>
                   {geography.regions.map((r) => (
                     <option key={r} value={r}>
                       {r}
@@ -711,30 +770,51 @@ export function ProfileCard() {
         <>
           <StatsGrid>
             <MetricCard
-              label={user.plan === 'free' ? (t('profile.searchesThisMonth' as any) || "Recherches ce mois") : t('profile.searchesToday')}
+              label={
+                user.plan === 'free'
+                  ? t('profile.searchesThisMonth' as any) || 'Recherches ce mois'
+                  : t('profile.searchesToday')
+              }
               value={`${user.dailyUsed} / ${user.dailyLimit}`}
               hint={`${usagePercent}% ${t('profile.quotaUsed')}`}
               accent
             />
             <MetricCard
-              label={user.plan === 'free' ? (t('profile.monthlyQuota' as any) || "Quota mensuel") : t('profile.dailyQuota')}
+              label={
+                user.plan === 'free'
+                  ? t('profile.monthlyQuota' as any) || 'Quota mensuel'
+                  : t('profile.dailyQuota')
+              }
               value={user.dailyLimit}
-              hint={user.plan === 'free' ? (t('profile.resetMonthly' as any) || "Réinitialisé chaque mois") : t('profile.resetDaily')}
+              hint={
+                user.plan === 'free'
+                  ? t('profile.resetMonthly' as any) || 'Réinitialisé chaque mois'
+                  : t('profile.resetDaily')
+              }
             />
             <MetricCard
-              label={user.plan !== 'free' ? "Validité abonnement" : t('profile.status')}
+              label={user.plan !== 'free' ? 'Validité abonnement' : t('profile.status')}
               value={
                 user.plan !== 'free' && user.subscriptionExpiresAt ? (
-                  <span style={{ color: subStatus.color, fontSize: subStatus.level === 'expired' ? 22 : 28 }}>
+                  <span
+                    style={{
+                      color: subStatus.color,
+                      fontSize: subStatus.level === 'expired' ? 22 : 28
+                    }}
+                  >
                     {subStatus.level === 'expired' ? 'Expiré' : subStatus.dateLabel}
                   </span>
                 ) : user.active ? (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 24 }}>
+                  <span
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 24 }}
+                  >
                     <Check size={24} className="text-emerald-500" strokeWidth={3} />
                     <span>{t('profile.active')}</span>
                   </span>
                 ) : (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 24 }}>
+                  <span
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 24 }}
+                  >
                     <X size={24} className="text-red-500" strokeWidth={3} />
                     <span>{t('profile.inactive')}</span>
                   </span>
@@ -742,12 +822,14 @@ export function ProfileCard() {
               }
               hint={
                 user.plan !== 'free' && user.subscriptionExpiresAt
-                  ? (subStatus.level === 'expired'
-                      ? 'Abonnement inactif'
-                      : `Expire à minuit (${subStatus.label})`)
+                  ? subStatus.level === 'expired'
+                    ? 'Abonnement inactif'
+                    : `Expire à minuit (${subStatus.label})`
                   : undefined
               }
-              hintColor={user.plan !== 'free' && user.subscriptionExpiresAt ? subStatus.color : undefined}
+              hintColor={
+                user.plan !== 'free' && user.subscriptionExpiresAt ? subStatus.color : undefined
+              }
             >
               {user.plan !== 'free' && user.subscriptionExpiresAt ? (
                 <div style={{ marginTop: 10 }}>
@@ -788,7 +870,9 @@ export function ProfileCard() {
                     letterSpacing: '.04em'
                   }}
                 >
-                  {user.plan === 'free' ? (t('profile.monthlyQuotaLabel' as any) || "Quota mensuel") : t('profile.dailyQuotaLabel')}
+                  {user.plan === 'free'
+                    ? t('profile.monthlyQuotaLabel' as any) || 'Quota mensuel'
+                    : t('profile.dailyQuotaLabel')}
                 </span>
                 <span style={{ fontSize: 12, color: usageColor, fontWeight: 600 }}>
                   {usagePercent}%
@@ -822,12 +906,16 @@ export function ProfileCard() {
             label={t('profile.status')}
             value={
               user.active ? (
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 24 }}>
+                <span
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 24 }}
+                >
                   <Check size={24} className="text-emerald-500" strokeWidth={3} />
                   <span>{t('profile.active')}</span>
                 </span>
               ) : (
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 24 }}>
+                <span
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 24 }}
+                >
                   <X size={24} className="text-red-500" strokeWidth={3} />
                   <span>{t('profile.inactive')}</span>
                 </span>
@@ -835,19 +923,28 @@ export function ProfileCard() {
             }
           />
           <MetricCard
-            label={user.plan !== 'free' ? "Validité abonnement" : t('profile.status')}
+            label={user.plan !== 'free' ? 'Validité abonnement' : t('profile.status')}
             value={
               user.plan !== 'free' && user.subscriptionExpiresAt ? (
-                <span style={{ color: subStatus.color, fontSize: subStatus.level === 'expired' ? 22 : 28 }}>
+                <span
+                  style={{
+                    color: subStatus.color,
+                    fontSize: subStatus.level === 'expired' ? 22 : 28
+                  }}
+                >
                   {subStatus.level === 'expired' ? 'Expiré' : subStatus.dateLabel}
                 </span>
               ) : user.active ? (
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 24 }}>
+                <span
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 24 }}
+                >
                   <Check size={24} className="text-emerald-500" strokeWidth={3} />
                   <span>{t('profile.active')}</span>
                 </span>
               ) : (
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 24 }}>
+                <span
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 24 }}
+                >
                   <X size={24} className="text-red-500" strokeWidth={3} />
                   <span>{t('profile.inactive')}</span>
                 </span>
@@ -855,12 +952,14 @@ export function ProfileCard() {
             }
             hint={
               user.plan !== 'free' && user.subscriptionExpiresAt
-                ? (subStatus.level === 'expired'
-                    ? 'Abonnement inactif'
-                    : `Expire à minuit (${subStatus.label})`)
+                ? subStatus.level === 'expired'
+                  ? 'Abonnement inactif'
+                  : `Expire à minuit (${subStatus.label})`
                 : undefined
             }
-            hintColor={user.plan !== 'free' && user.subscriptionExpiresAt ? subStatus.color : undefined}
+            hintColor={
+              user.plan !== 'free' && user.subscriptionExpiresAt ? subStatus.color : undefined
+            }
           >
             {user.plan !== 'free' && user.subscriptionExpiresAt ? (
               <div style={{ marginTop: 10 }}>

@@ -25,16 +25,19 @@ export function CountryMaintenanceView({
 
   const sectionLabel =
     pageType === 'blog'
-      ? (isEn ? 'The B2B Blog' : 'Le Blog B2B')
+      ? isEn
+        ? 'The B2B Blog'
+        : 'Le Blog B2B'
       : pageType === 'annuaire'
-        ? (isEn ? 'The B2B Directory' : "L'Annuaire B2B")
-        : (isEn ? 'This section' : 'Cette rubrique')
+        ? isEn
+          ? 'The B2B Directory'
+          : "L'Annuaire B2B"
+        : isEn
+          ? 'This section'
+          : 'Cette rubrique'
 
   const title =
-    customTitle ??
-    (isEn
-      ? `Coming soon for ${countryName}`
-      : `Contenu en cours de déploiement`)
+    customTitle ?? (isEn ? `Coming soon for ${countryName}` : `Contenu en cours de déploiement`)
 
   const description =
     customDescription ??

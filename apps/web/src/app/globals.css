@@ -99,31 +99,31 @@
   --google-yellow-700: rgb(240, 147, 0);
 
   /* ── Pipeline & Métriques Commerciales (Mode Clair - Fintech Premium) ── */
-  --pipeline-concluded-color: #047857;          /* Émeraude dense 700 */
-  --pipeline-concluded-bg: #ecfdf5;             /* Voile menthe pur 50 */
+  --pipeline-concluded-color: #047857; /* Émeraude dense 700 */
+  --pipeline-concluded-bg: #ecfdf5; /* Voile menthe pur 50 */
   --pipeline-concluded-border: rgba(5, 150, 105, 0.25);
 
-  --pipeline-fresh-color: #047857;              /* Émeraude dense */
+  --pipeline-fresh-color: #047857; /* Émeraude dense */
   --pipeline-fresh-bg: #ecfdf5;
   --pipeline-fresh-border: rgba(5, 150, 105, 0.25);
 
-  --pipeline-progress-color: #1d4ed8;           /* Bleu roi dense */
+  --pipeline-progress-color: #1d4ed8; /* Bleu roi dense */
   --pipeline-progress-bg: #eff6ff;
   --pipeline-progress-border: rgba(29, 78, 216, 0.2);
 
-  --pipeline-warning-color: #b45309;           /* Ambre 700 contrasté */
+  --pipeline-warning-color: #b45309; /* Ambre 700 contrasté */
   --pipeline-warning-bg: #fffbeb;
   --pipeline-warning-border: rgba(180, 83, 9, 0.25);
 
-  --pipeline-alert-color: #b91c1c;             /* Rouge 700 contrasté */
+  --pipeline-alert-color: #b91c1c; /* Rouge 700 contrasté */
   --pipeline-alert-bg: #fef2f2;
   --pipeline-alert-border: rgba(185, 28, 28, 0.25);
 
-  --pipeline-opportunity-color: #047857;       /* Vert financier lisible */
-  --pipeline-metric-title: #1e40af;            /* Cobalt blue pour les titres de section */
-  --pipeline-section-bg: #f8fafc;              /* Conteneur métrique doux */
+  --pipeline-opportunity-color: #047857; /* Vert financier lisible */
+  --pipeline-metric-title: #1e40af; /* Cobalt blue pour les titres de section */
+  --pipeline-section-bg: #f8fafc; /* Conteneur métrique doux */
   --pipeline-section-border: #e2e8f0;
-  --pipeline-card-bg: #ffffff;                 /* Carte blanche nette */
+  --pipeline-card-bg: #ffffff; /* Carte blanche nette */
   --pipeline-card-border: #e2e8f0;
 }
 
@@ -164,7 +164,7 @@
   --sidebar-ring: oklch(0.556 0 0);
 
   /* ── Pipeline & Métriques Commerciales (Mode Sombre - Cockpit Émeraude) ── */
-  --pipeline-concluded-color: #34d399;          /* Vert menthe luminescent 400 */
+  --pipeline-concluded-color: #34d399; /* Vert menthe luminescent 400 */
   --pipeline-concluded-bg: rgba(16, 185, 129, 0.12);
   --pipeline-concluded-border: rgba(16, 185, 129, 0.3);
 
@@ -283,7 +283,8 @@ body::before {
 
 /* ─── Animations ────────────────────────────────────────────────────── */
 @keyframes floatSubtle {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0);
   }
   50% {
@@ -292,7 +293,8 @@ body::before {
 }
 
 @keyframes pulseGlow {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.15;
     transform: scale(1);
   }
@@ -395,7 +397,6 @@ body {
   /* Pas de landing page — géré JS-side dans page.tsx */
 }
 
-
 /* ── Grid de recherche — colonnes gérées uniquement par CSS (pas de style inline) ── */
 .search-page-grid {
   grid-template-columns: 2fr 1fr;
@@ -410,7 +411,6 @@ body {
     display: none !important;
   }
 }
-
 
 /* ── Mobile (< 768px) ── */
 @media (max-width: 768px) {
@@ -583,27 +583,26 @@ body {
 /* ── Component Overrides (LinkedIn Design) ───────────────────── */
 
 /* Pill-shaped buttons and badges when LinkedIn is active */
-[data-design="linkedin"] button,
-[data-design="linkedin"] .btn-primary,
-[data-design="linkedin"] .btn-secondary {
+[data-design='linkedin'] button,
+[data-design='linkedin'] .btn-primary,
+[data-design='linkedin'] .btn-secondary {
   border-radius: 9999px !important;
   font-family: var(--font-family) !important;
 }
 
 /* Tight 4px rounded inputs, cards, and panels for authentic LinkedIn brand */
-[data-design="linkedin"] input,
-[data-design="linkedin"] select,
-[data-design="linkedin"] textarea {
+[data-design='linkedin'] input,
+[data-design='linkedin'] select,
+[data-design='linkedin'] textarea {
   border-radius: 4px !important;
 }
 
-[data-design="linkedin"] .card,
-[data-design="linkedin"] .panel,
-[data-design="linkedin"] [style*="borderRadius"] {
+[data-design='linkedin'] .card,
+[data-design='linkedin'] .panel,
+[data-design='linkedin'] [style*='borderRadius'] {
   border-radius: 4px !important;
 }
 
-[data-design="linkedin"] .badge {
+[data-design='linkedin'] .badge {
   border-radius: 9999px !important;
 }
-

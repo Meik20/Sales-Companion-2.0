@@ -11,7 +11,10 @@ export function GET(request: NextRequest) {
     ''
   ).toUpperCase()
 
-  return NextResponse.json({ country: COUNTRY_NAMES[detected] ? detected : 'CM' }, {
-    headers: { 'Cache-Control': 'private, max-age=3600' }
-  })
+  return NextResponse.json(
+    { country: COUNTRY_NAMES[detected] ? detected : 'CM' },
+    {
+      headers: { 'Cache-Control': 'private, max-age=3600' }
+    }
+  )
 }

@@ -48,10 +48,15 @@ export async function POST(request: NextRequest) {
     // Vérifier les droits : propriétaire (userId ou email) ou admin
     const isOwner =
       threadData.userId === decoded.uid ||
-      (decoded.email && threadData.userEmail && decoded.email.toLowerCase() === threadData.userEmail.toLowerCase())
+      (decoded.email &&
+        threadData.userEmail &&
+        decoded.email.toLowerCase() === threadData.userEmail.toLowerCase())
 
     if (!isAdmin && !isOwner) {
-      return NextResponse.json({ error: 'Permission refusée pour supprimer ce ticket.' }, { status: 403 })
+      return NextResponse.json(
+        { error: 'Permission refusée pour supprimer ce ticket.' },
+        { status: 403 }
+      )
     }
 
     // Supprimer tous les messages associés
@@ -64,7 +69,10 @@ export async function POST(request: NextRequest) {
 
     await batch.commit()
 
-    return NextResponse.json({ success: true, message: 'Ticket et messages supprimés avec succès.' })
+    return NextResponse.json({
+      success: true,
+      message: 'Ticket et messages supprimés avec succès.'
+    })
   } catch (error: any) {
     console.error('Erreur API suppression thread support:', error)
     return NextResponse.json(

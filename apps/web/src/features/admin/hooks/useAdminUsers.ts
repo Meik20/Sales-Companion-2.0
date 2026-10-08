@@ -32,8 +32,8 @@ export function useAdminUsers() {
       return response.json() as Promise<AdminUsersResponse>
     },
     enabled: !!user?.uid,
-    staleTime: 5 * 60 * 1000,      // 5 min de cache — réutilise les données entre navigations
-    refetchInterval: 5 * 60 * 1000,  // Toutes les 5 min — réduit le polling de 5×
+    staleTime: 5 * 60 * 1000, // 5 min de cache — réutilise les données entre navigations
+    refetchInterval: 5 * 60 * 1000, // Toutes les 5 min — réduit le polling de 5×
     refetchOnWindowFocus: false
   })
 }

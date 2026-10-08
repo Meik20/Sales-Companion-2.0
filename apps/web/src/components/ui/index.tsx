@@ -46,7 +46,14 @@ const badgeStyles: Record<BadgeVariant, CSSProperties> = {
   }
 }
 
-export function Badge({ children, variant = 'default', className = '', style, dot = false, ping = false }: BadgeProps) {
+export function Badge({
+  children,
+  variant = 'default',
+  className = '',
+  style,
+  dot = false,
+  ping = false
+}: BadgeProps) {
   return (
     <span
       className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wide transition-all ${className}`}
@@ -57,7 +64,9 @@ export function Badge({ children, variant = 'default', className = '', style, do
     >
       {dot && (
         <span className="relative flex h-2 w-2">
-          {ping && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-75" />}
+          {ping && (
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-75" />
+          )}
           <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600" />
         </span>
       )}
@@ -67,11 +76,23 @@ export function Badge({ children, variant = 'default', className = '', style, do
 }
 
 /** Composant Pilule Badge style Landing Hero ("Intelligence B2B Cameroun") */
-export function PillBadge({ children, ping = true, className = '' }: { children: ReactNode; ping?: boolean; className?: string }) {
+export function PillBadge({
+  children,
+  ping = true,
+  className = ''
+}: {
+  children: ReactNode
+  ping?: boolean
+  className?: string
+}) {
   return (
-    <span className={`inline-flex items-center gap-2 rounded-full border border-border bg-card/80 backdrop-blur-md px-3.5 py-1 text-xs font-medium text-muted-foreground shadow-xs hover:border-primary/40 transition-all ${className}`}>
+    <span
+      className={`inline-flex items-center gap-2 rounded-full border border-border bg-card/80 backdrop-blur-md px-3.5 py-1 text-xs font-medium text-muted-foreground shadow-xs hover:border-primary/40 transition-all ${className}`}
+    >
       <span className="relative flex h-2 w-2">
-        {ping && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#1B7A3E] opacity-75" />}
+        {ping && (
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#1B7A3E] opacity-75" />
+        )}
         <span className="relative inline-flex rounded-full h-2 w-2 bg-[#1B7A3E]" />
       </span>
       {children}
@@ -81,7 +102,11 @@ export function PillBadge({ children, ping = true, className = '' }: { children:
 
 // ─── Card ────────────────────────────────────────────────────────────────────
 
-export function Card({ children, className = '', style }: PropsWithChildren<{ className?: string; style?: CSSProperties }>) {
+export function Card({
+  children,
+  className = '',
+  style
+}: PropsWithChildren<{ className?: string; style?: CSSProperties }>) {
   return (
     <div
       className={`bg-card border border-border/80 rounded-xl p-5 shadow-xs transition-all hover:shadow-md ${className}`}
@@ -93,7 +118,11 @@ export function Card({ children, className = '', style }: PropsWithChildren<{ cl
 }
 
 /** Carte dépolie style Glassmorphism avec flou d'arrière-plan */
-export function GlassCard({ children, className = '', style }: PropsWithChildren<{ className?: string; style?: CSSProperties }>) {
+export function GlassCard({
+  children,
+  className = '',
+  style
+}: PropsWithChildren<{ className?: string; style?: CSSProperties }>) {
   return (
     <div
       className={`backdrop-blur-md bg-card/85 border border-border/60 rounded-xl p-5 shadow-sm hover:border-primary/30 transition-all ${className}`}
@@ -168,7 +197,15 @@ export function DataCard({ title, subtitle, actions, children, style }: DataCard
               {title}
             </h2>
             {subtitle ? (
-              <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--muted-foreground, #94a3b8)' }}>{subtitle}</p>
+              <p
+                style={{
+                  margin: '4px 0 0',
+                  fontSize: 13,
+                  color: 'var(--muted-foreground, #94a3b8)'
+                }}
+              >
+                {subtitle}
+              </p>
             ) : null}
           </div>
           {actions ? <div>{actions}</div> : null}
@@ -191,7 +228,15 @@ type MetricCardProps = {
   children?: React.ReactNode
 }
 
-export function MetricCard({ label, value, hint, accent, hintColor, valueColor, children }: MetricCardProps) {
+export function MetricCard({
+  label,
+  value,
+  hint,
+  accent,
+  hintColor,
+  valueColor,
+  children
+}: MetricCardProps) {
   return (
     <Panel>
       <div
@@ -218,7 +263,15 @@ export function MetricCard({ label, value, hint, accent, hintColor, valueColor, 
         {value}
       </div>
       {hint ? (
-        <div style={{ marginTop: 6, fontSize: 12, color: hintColor ?? 'var(--muted-foreground, #94a3b8)' }}>{hint}</div>
+        <div
+          style={{
+            marginTop: 6,
+            fontSize: 12,
+            color: hintColor ?? 'var(--muted-foreground, #94a3b8)'
+          }}
+        >
+          {hint}
+        </div>
       ) : null}
       {children}
     </Panel>

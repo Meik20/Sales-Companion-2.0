@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { NextRequest } from 'next/server'
 import { POST } from '../route'
 
+const VALID_MAGIC_CODE = 'valid-magic-code-32-chars-long123'
+
 const mocks = vi.hoisted(() => {
   const mockUserSet = vi.fn().mockResolvedValue(undefined)
   const mockDocUpdate = vi.fn().mockResolvedValue(undefined)
@@ -11,21 +13,25 @@ const mocks = vi.hoisted(() => {
 
   let mockAccessDocData: any = {}
 
-  const mockDoc = vi.fn((id: string) => {
-    if (id === 'valid-access') {
-      const snap = {
+  const mockDocRef = {
+    update: mockDocUpdate,
+    set: mockUserSet,
+    get: vi.fn().mockImplementation(() =>
+      Promise.resolve({
         exists: true,
         data: () => mockAccessDocData,
-        ref: { update: mockDocUpdate }
-      }
-      return {
-        get: vi.fn().mockResolvedValue(snap),
-        set: mockUserSet,
-        update: mockDocUpdate
-      }
-    }
+        ref: mockDocRef
+      })
+    )
+  }
+
+  const mockDoc = vi.fn((id: string) => {
     return {
-      get: vi.fn().mockResolvedValue({ exists: false, data: () => null }),
+      get: vi.fn().mockResolvedValue({
+        exists: id === 'new-user-uid' || id === 'manager-123',
+        data: () => (id === 'manager-123' ? { plan: 'pro', active: true } : mockAccessDocData),
+        ref: mockDocRef
+      }),
       set: mockUserSet,
       update: mockDocUpdate
     }
@@ -34,12 +40,37 @@ const mocks = vi.hoisted(() => {
   const mockCollection = vi.fn((name: string) => {
     return {
       doc: mockDoc,
-      where: vi.fn(() => ({
+      where: vi.fn((field: string, op: string, val: string) => ({
         limit: vi.fn(() => ({
-          get: vi.fn().mockResolvedValue({ empty: true, docs: [] })
+          get: vi.fn().mockResolvedValue(
+            field === 'magicCode' && val === VALID_MAGIC_CODE
+              ? {
+                  empty: false,
+                  docs: [
+                    {
+                      exists: true,
+                      data: () => ({ ...mockAccessDocData, magicCode: VALID_MAGIC_CODE }),
+                      ref: mockDocRef
+                    }
+                  ]
+                }
+              : { empty: true, docs: [] }
+          )
         }))
       }))
     }
+  })
+
+  const mockRunTransaction = vi.fn(async (callback: any) => {
+    const fakeTx = {
+      get: vi.fn().mockResolvedValue({
+        exists: true,
+        data: () => ({ ...mockAccessDocData, magicCode: VALID_MAGIC_CODE })
+      }),
+      update: mockDocUpdate,
+      set: mockUserSet
+    }
+    return callback(fakeTx)
   })
 
   return {
@@ -50,6 +81,7 @@ const mocks = vi.hoisted(() => {
     mockGetUserByEmail,
     mockDoc,
     mockCollection,
+    mockRunTransaction,
     setAccessData: (data: any) => {
       mockAccessDocData = data
     }
@@ -58,7 +90,8 @@ const mocks = vi.hoisted(() => {
 
 vi.mock('@/lib/firebase-admin', () => ({
   adminDb: {
-    collection: mocks.mockCollection
+    collection: mocks.mockCollection,
+    runTransaction: mocks.mockRunTransaction
   },
   adminAuth: {
     getUserByEmail: mocks.mockGetUserByEmail,
@@ -79,13 +112,14 @@ describe('POST /api/team/activate — Protection contre l’élévation de privi
       role: 'admin',
       email: 'invitee@test.com',
       managerUid: 'manager-123',
+      magicCode: VALID_MAGIC_CODE,
       activated: false
     })
 
     const req = new NextRequest('http://localhost:3000/api/team/activate', {
       method: 'POST',
       body: JSON.stringify({
-        accessId: 'valid-access',
+        accessId: VALID_MAGIC_CODE,
         password: 'Password123!',
         email: 'invitee@test.com'
       })
@@ -99,10 +133,13 @@ describe('POST /api/team/activate — Protection contre l’élévation de privi
 
     // Vérifier que le custom claim posé n'est PAS 'admin', mais 'member'
     expect(mocks.mockSetCustomUserClaims).toHaveBeenCalledWith('new-user-uid', { role: 'member' })
-    expect(mocks.mockSetCustomUserClaims).not.toHaveBeenCalledWith('new-user-uid', { role: 'admin' })
+    expect(mocks.mockSetCustomUserClaims).not.toHaveBeenCalledWith('new-user-uid', {
+      role: 'admin'
+    })
 
     // Vérifier que le document utilisateur dans Firestore a role: 'member'
     expect(mocks.mockUserSet).toHaveBeenCalledWith(
+      expect.anything(),
       expect.objectContaining({
         role: 'member'
       }),
@@ -115,13 +152,14 @@ describe('POST /api/team/activate — Protection contre l’élévation de privi
       role: 'support_agent',
       email: 'agent@test.com',
       managerUid: 'manager-123',
+      magicCode: VALID_MAGIC_CODE,
       activated: false
     })
 
     const req = new NextRequest('http://localhost:3000/api/team/activate', {
       method: 'POST',
       body: JSON.stringify({
-        accessId: 'valid-access',
+        accessId: VALID_MAGIC_CODE,
         password: 'Password123!',
         email: 'agent@test.com'
       })
@@ -130,8 +168,11 @@ describe('POST /api/team/activate — Protection contre l’élévation de privi
     const res = await POST(req)
     expect(res.status).toBe(200)
 
-    expect(mocks.mockSetCustomUserClaims).toHaveBeenCalledWith('new-user-uid', { role: 'support_agent' })
+    expect(mocks.mockSetCustomUserClaims).toHaveBeenCalledWith('new-user-uid', {
+      role: 'support_agent'
+    })
     expect(mocks.mockUserSet).toHaveBeenCalledWith(
+      expect.anything(),
       expect.objectContaining({
         role: 'support_agent'
       }),

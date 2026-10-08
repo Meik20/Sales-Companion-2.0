@@ -50,7 +50,10 @@ export async function POST(request: NextRequest) {
       const mDoc = await adminDb.collection('users').doc(managerUid).get()
       const managerData = mDoc.data()
       if (!hasActivePaidManagerAccess(managerData) || decoded.email_verified !== true) {
-        return NextResponse.json({ message: 'Un abonnement Manager actif et vérifié est requis.' }, { status: 403 })
+        return NextResponse.json(
+          { message: 'Un abonnement Manager actif et vérifié est requis.' },
+          { status: 403 }
+        )
       }
       managerName = (managerData?.name ?? managerData?.email ?? '') as string
     } catch {

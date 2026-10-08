@@ -7,9 +7,9 @@
 export type PipelineStage = 'prospection' | 'negociation' | 'conclue'
 
 export type AgingAlertLevel =
-  | 'fresh'     // 🟢 Récent / dans les temps
-  | 'warning'   // 🟡 Attention / délai qui s'allonge
-  | 'alert'     // 🔴 Alerte / stagnation critique
+  | 'fresh' // 🟢 Récent / dans les temps
+  | 'warning' // 🟡 Attention / délai qui s'allonge
+  | 'alert' // 🔴 Alerte / stagnation critique
   | 'concluded' // 🔵/🟢 Vente conclue avec succès
 
 export type PipelineAgingInfo = {
@@ -31,20 +31,22 @@ export type PipelineAgingInfo = {
  */
 export const PIPELINE_STAGE_THRESHOLDS = {
   prospection: {
-    warning: 7,   // À partir de 8 jours: avertissement
-    alert: 14,    // Plus de 14 jours: alerte critique de stagnation
+    warning: 7, // À partir de 8 jours: avertissement
+    alert: 14 // Plus de 14 jours: alerte critique de stagnation
   },
   negociation: {
-    warning: 14,  // À partir de 15 jours: attention relance
-    alert: 30,    // Plus de 30 jours: risque d'abandon / closing critique
-  },
+    warning: 14, // À partir de 15 jours: attention relance
+    alert: 30 // Plus de 30 jours: risque d'abandon / closing critique
+  }
 } as const
 
 /**
  * Normalise le statut vers les 3 grandes étapes canoniques
  */
 export function normalizePipelineStatus(rawStatus?: string | null): PipelineStage {
-  const s = String(rawStatus || '').toLowerCase().trim()
+  const s = String(rawStatus || '')
+    .toLowerCase()
+    .trim()
   if (['conclue', 'conclusion', 'closed', 'won'].includes(s)) return 'conclue'
   if (['negociation', 'negotiation', 'nego'].includes(s)) return 'negociation'
   return 'prospection'
@@ -99,7 +101,10 @@ export function getPipelineAging(
     if (updatedAt) {
       const upDate = new Date(updatedAt)
       if (!isNaN(upDate.getTime()) && !isNaN(refDate.getTime())) {
-        concludedDays = Math.max(0, Math.floor((upDate.getTime() - refDate.getTime()) / (1000 * 60 * 60 * 24)))
+        concludedDays = Math.max(
+          0,
+          Math.floor((upDate.getTime() - refDate.getTime()) / (1000 * 60 * 60 * 24))
+        )
       }
     }
 
@@ -160,7 +165,8 @@ export function getPipelineAging(
       relativeTimeFormatted,
       level: 'fresh',
       stage,
-      badgeText: daysInPipeline === 0 ? 'Nouveau (aujourd’hui)' : `${daysInPipeline}j dans le pipeline`,
+      badgeText:
+        daysInPipeline === 0 ? 'Nouveau (aujourd’hui)' : `${daysInPipeline}j dans le pipeline`,
       color: 'var(--pipeline-fresh-color, #047857)',
       bgColor: 'var(--pipeline-fresh-bg, #ecfdf5)',
       borderColor: 'var(--pipeline-fresh-border, rgba(5, 150, 105, 0.25))',

@@ -35,7 +35,10 @@ export const savedSearchesRepository = {
     try {
       return await addDoc(collection(firestore, 'saved_searches'), sanitized)
     } catch (clientError) {
-      console.warn('[savedSearchesRepository] Direct Firestore addDoc failed, using /api/saved-searches fallback:', clientError)
+      console.warn(
+        '[savedSearchesRepository] Direct Firestore addDoc failed, using /api/saved-searches fallback:',
+        clientError
+      )
       const res = await fetch('/api/saved-searches', {
         method: 'POST',
         headers: {
@@ -88,9 +91,11 @@ export const savedSearchesRepository = {
     try {
       return await deleteDoc(doc(firestore, 'saved_searches', id))
     } catch (clientErr) {
-      console.warn('[savedSearchesRepository] Direct deleteDoc failed, trying API fallback:', clientErr)
+      console.warn(
+        '[savedSearchesRepository] Direct deleteDoc failed, trying API fallback:',
+        clientErr
+      )
       await fetch(`/api/saved-searches/${id}`, { method: 'DELETE' }).catch(() => {})
     }
   }
 }
-

@@ -79,11 +79,16 @@ export async function POST(request: NextRequest) {
         orgCode = candidate
         break
       }
-      console.warn(`[generate-code] Collision detectee pour ${candidate}, tentative ${attempt + 1}/${MAX_ATTEMPTS}`)
+      console.warn(
+        `[generate-code] Collision detectee pour ${candidate}, tentative ${attempt + 1}/${MAX_ATTEMPTS}`
+      )
     }
 
     if (!orgCode) {
-      return NextResponse.json({ error: 'Erreur lors de la generation du code. Reessayez.' }, { status: 500 })
+      return NextResponse.json(
+        { error: 'Erreur lors de la generation du code. Reessayez.' },
+        { status: 500 }
+      )
     }
 
     return NextResponse.json({
@@ -92,6 +97,9 @@ export async function POST(request: NextRequest) {
     })
   } catch (error: any) {
     console.error('[POST /api/team/org/generate-code] error:', error)
-    return NextResponse.json({ error: error.message || 'Erreur interne du serveur' }, { status: 500 })
+    return NextResponse.json(
+      { error: error.message || 'Erreur interne du serveur' },
+      { status: 500 }
+    )
   }
 }

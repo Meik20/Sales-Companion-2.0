@@ -38,16 +38,16 @@ export function Features() {
   const cities = country.cities.join(', ')
   const deepDiveFeatures: DeepDiveFeature[] = [
     {
-        tag: lang === 'en' ? `${country.name} B2B Directory` : `Annuaire B2B ${country.name}`,
+      tag: lang === 'en' ? `${country.name} B2B Directory` : `Annuaire B2B ${country.name}`,
       icon: Building2,
       title:
         lang === 'en'
-          ? (country.code === 'CM'
-              ? `${country.companyCount} verified ${country.englishAdjective} companies at your fingertips`
-              : `Growing database of verified ${country.englishAdjective} companies at your fingertips`)
-          : (country.code === 'CM'
-              ? `${country.companyCount} entreprises ${country.frenchAdjective} répertoriées et vérifiées`
-              : `Base en expansion d’entreprises ${country.frenchAdjective} répertoriées et vérifiées`),
+          ? country.code === 'CM'
+            ? `${country.companyCount} verified ${country.englishAdjective} companies at your fingertips`
+            : `Growing database of verified ${country.englishAdjective} companies at your fingertips`
+          : country.code === 'CM'
+            ? `${country.companyCount} entreprises ${country.frenchAdjective} répertoriées et vérifiées`
+            : `Base en expansion d’entreprises ${country.frenchAdjective} répertoriées et vérifiées`,
       description:
         lang === 'en'
           ? `Direct access to the B2B directory ${country.englishIn}. Filter by city (${cities}), business sector and company type to identify and reach decision-makers directly.`
@@ -209,7 +209,7 @@ export function Features() {
       title: lang === 'en' ? 'AI Sales Companion 2.0' : 'Companion IA Pro',
       description:
         lang === 'en'
-            ? `An AI assistant specialized in ${country.englishMarket} that drafts outreach emails and analyzes business opportunities.`
+          ? `An AI assistant specialized in ${country.englishMarket} that drafts outreach emails and analyzes business opportunities.`
           : `Un assistant IA spécialisé dans le marché ${country.frenchMarketAdjective} qui rédige vos messages de prospection et analyse vos opportunités.`
     },
     {
@@ -259,16 +259,9 @@ export function Features() {
         {/* 5 Alternating Deep-Dive Blocks (Option B) */}
         <div className="mt-20 space-y-24 md:space-y-32">
           {deepDiveFeatures.map((feature, idx) => (
-            <div
-              key={feature.title}
-              className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16"
-            >
+            <div key={feature.title} className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
               {/* Illustration Side */}
-              <div
-                className={`relative ${
-                  feature.reverse ? 'lg:order-2' : 'lg:order-1'
-                }`}
-              >
+              <div className={`relative ${feature.reverse ? 'lg:order-2' : 'lg:order-1'}`}>
                 <div className="relative flex items-center justify-center overflow-hidden rounded-3xl border border-border/80 bg-gradient-to-br from-card/90 via-card/50 to-primary/5 p-6 sm:p-10 shadow-xl shadow-primary/5 group hover:border-primary/40 transition-all duration-300">
                   {/* Subtle decorative glow */}
                   <div
@@ -315,9 +308,7 @@ export function Features() {
                   {feature.bullets.map((bullet) => (
                     <li key={bullet} className="flex items-start gap-3">
                       <CheckCircle2 className="h-5 w-5 shrink-0 text-[#1B7A3E] mt-0.5" />
-                      <span className="text-sm leading-relaxed text-foreground/90">
-                        {bullet}
-                      </span>
+                      <span className="text-sm leading-relaxed text-foreground/90">{bullet}</span>
                     </li>
                   ))}
                 </ul>

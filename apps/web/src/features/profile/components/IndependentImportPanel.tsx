@@ -22,17 +22,35 @@ import {
 // ── Colonnes attendues (insensible à la casse) ─────────────────────────────
 const COLUMN_ALIASES: Record<string, string> = {
   // name
-  nom: 'name', name: 'name', entreprise: 'name', company: 'name', société: 'name',
+  nom: 'name',
+  name: 'name',
+  entreprise: 'name',
+  company: 'name',
+  société: 'name',
   // phone
-  téléphone: 'phone', telephone: 'phone', phone: 'phone', tel: 'phone', mobile: 'phone',
+  téléphone: 'phone',
+  telephone: 'phone',
+  phone: 'phone',
+  tel: 'phone',
+  mobile: 'phone',
   // email
-  email: 'email', mail: 'email', courriel: 'email',
+  email: 'email',
+  mail: 'email',
+  courriel: 'email',
   // city
-  ville: 'city', city: 'city', localité: 'city',
+  ville: 'city',
+  city: 'city',
+  localité: 'city',
   // sector
-  secteur: 'sector', sector: 'sector', activité: 'sector', activity: 'sector',
+  secteur: 'sector',
+  sector: 'sector',
+  activité: 'sector',
+  activity: 'sector',
   // notes
-  notes: 'notes', note: 'notes', commentaire: 'notes', remarque: 'notes'
+  notes: 'notes',
+  note: 'notes',
+  commentaire: 'notes',
+  remarque: 'notes'
 }
 
 type ParsedProspect = {
@@ -69,7 +87,14 @@ function parseCSV(text: string): ParsedProspect[] {
   const rows: ParsedProspect[] = []
   for (let r = 1; r < lines.length; r++) {
     const cells = lines[r]!.split(delimiter).map((c) => c.trim().replace(/^["']|["']$/g, ''))
-    const prospect: ParsedProspect = { name: '', phone: '', email: '', city: '', sector: '', notes: '' }
+    const prospect: ParsedProspect = {
+      name: '',
+      phone: '',
+      email: '',
+      city: '',
+      sector: '',
+      notes: ''
+    }
     cells.forEach((val, i) => {
       const field = fieldMap[i]
       if (field) (prospect as Record<string, string>)[field] = val
@@ -82,7 +107,8 @@ function parseCSV(text: string): ParsedProspect[] {
 // ── Download template ──────────────────────────────────────────────────────
 function downloadTemplate() {
   const header = 'nom;téléphone;email;ville;secteur;notes'
-  const example = 'Entreprise Exemple;+237 6XX XXX XXX;contact@exemple.cm;Douala;Commerce;Client potentiel'
+  const example =
+    'Entreprise Exemple;+237 6XX XXX XXX;contact@exemple.cm;Douala;Commerce;Client potentiel'
   const blob = new Blob([`${header}\n${example}`], { type: 'text/csv;charset=utf-8;' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
@@ -128,7 +154,9 @@ export function IndependentImportPanel() {
 
     // Only CSV parsing for now (no xlsx binary without server)
     if (!f.name.match(/\.csv$/i)) {
-      setParseError('Pour l\'import depuis le profil, seul le format CSV est supporté. Téléchargez le modèle ci-dessous.')
+      setParseError(
+        "Pour l'import depuis le profil, seul le format CSV est supporté. Téléchargez le modèle ci-dessous."
+      )
       return
     }
 
@@ -137,7 +165,9 @@ export function IndependentImportPanel() {
       const text = e.target?.result as string
       const rows = parseCSV(text)
       if (rows.length === 0) {
-        setParseError('Aucun prospect détecté. Vérifiez les colonnes du fichier (nom, téléphone, email, ville, secteur, notes).')
+        setParseError(
+          'Aucun prospect détecté. Vérifiez les colonnes du fichier (nom, téléphone, email, ville, secteur, notes).'
+        )
         return
       }
       if (rows.length > 3000) {
@@ -232,7 +262,11 @@ export function IndependentImportPanel() {
           </div>
           <button
             type="button"
-            onClick={() => router.push(`${routes.upgrade}?redirect=${encodeURIComponent(routes.importProspects)}`)}
+            onClick={() =>
+              router.push(
+                `${routes.upgrade}?redirect=${encodeURIComponent(routes.importProspects)}`
+              )
+            }
             className="flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90 transition-all shadow-sm cursor-pointer"
           >
             <Sparkles size={15} />
@@ -280,8 +314,8 @@ export function IndependentImportPanel() {
       >
         <Info size={14} className="text-blue-400 mt-0.5 shrink-0" />
         <span>
-          Importez vos prospects existants depuis un fichier <strong>CSV</strong>.{' '}
-          Colonnes reconnues : <code>nom</code>, <code>téléphone</code>, <code>email</code>,{' '}
+          Importez vos prospects existants depuis un fichier <strong>CSV</strong>. Colonnes
+          reconnues : <code>nom</code>, <code>téléphone</code>, <code>email</code>,{' '}
           <code>ville</code>, <code>secteur</code>, <code>notes</code>. Max 3 000 lignes.
         </span>
       </div>
@@ -289,14 +323,17 @@ export function IndependentImportPanel() {
       {/* ── Zone de dépôt ── */}
       {!file && !result && (
         <div
-          onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
+          onDragOver={(e) => {
+            e.preventDefault()
+            setDragging(true)
+          }}
           onDragLeave={() => setDragging(false)}
           onDrop={handleDrop}
           onClick={() => inputRef.current?.click()}
           className="cursor-pointer rounded-xl border-2 border-dashed transition-all duration-200 flex flex-col items-center justify-center gap-3 py-10 px-6 text-center"
           style={{
             borderColor: dragging ? 'var(--primary)' : 'var(--border)',
-            background: dragging ? 'var(--primary)/5' : 'var(--secondary, #1e293b)',
+            background: dragging ? 'var(--primary)/5' : 'var(--secondary, #1e293b)'
           }}
         >
           <Upload
@@ -308,9 +345,7 @@ export function IndependentImportPanel() {
             <p className="text-sm font-semibold text-foreground">
               Glisser-déposer votre fichier CSV ici
             </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              ou cliquer pour sélectionner
-            </p>
+            <p className="text-xs text-muted-foreground mt-1">ou cliquer pour sélectionner</p>
           </div>
           <input
             ref={inputRef}
@@ -337,7 +372,9 @@ export function IndependentImportPanel() {
           <div className="flex items-center justify-between rounded-lg border border-border bg-secondary/60 px-3 py-2">
             <div className="flex items-center gap-2">
               <FileSpreadsheet size={15} className="text-emerald-400 shrink-0" />
-              <span className="text-sm font-semibold text-foreground truncate max-w-[220px]">{file.name}</span>
+              <span className="text-sm font-semibold text-foreground truncate max-w-[220px]">
+                {file.name}
+              </span>
             </div>
             <button
               type="button"
@@ -370,9 +407,15 @@ export function IndependentImportPanel() {
                 <tbody>
                   {preview.map((p, i) => (
                     <tr key={i} className={i % 2 === 0 ? 'bg-background' : 'bg-secondary/30'}>
-                      <td className="px-3 py-2 text-foreground font-medium truncate max-w-[120px]">{p.name || '—'}</td>
-                      <td className="px-3 py-2 text-foreground truncate max-w-[100px]">{p.phone || '—'}</td>
-                      <td className="px-3 py-2 text-foreground truncate max-w-[140px]">{p.email || '—'}</td>
+                      <td className="px-3 py-2 text-foreground font-medium truncate max-w-[120px]">
+                        {p.name || '—'}
+                      </td>
+                      <td className="px-3 py-2 text-foreground truncate max-w-[100px]">
+                        {p.phone || '—'}
+                      </td>
+                      <td className="px-3 py-2 text-foreground truncate max-w-[140px]">
+                        {p.email || '—'}
+                      </td>
                       <td className="px-3 py-2 text-foreground">{p.city || '—'}</td>
                       <td className="px-3 py-2 text-foreground">{p.sector || '—'}</td>
                     </tr>
@@ -398,9 +441,15 @@ export function IndependentImportPanel() {
               disabled={importing}
               className="flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-bold text-primary-foreground hover:bg-primary/90 transition-all disabled:opacity-60 cursor-pointer"
             >
-              {importing
-                ? <><Loader2 size={13} className="animate-spin" /> Importation…</>
-                : <><Upload size={13} /> Importer les prospects</>}
+              {importing ? (
+                <>
+                  <Loader2 size={13} className="animate-spin" /> Importation…
+                </>
+              ) : (
+                <>
+                  <Upload size={13} /> Importer les prospects
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -412,7 +461,8 @@ export function IndependentImportPanel() {
           <CheckCircle2 size={20} className="text-emerald-400 shrink-0" />
           <div>
             <p className="text-sm font-bold text-emerald-400">
-              {result.count} prospect{result.count > 1 ? 's' : ''} importé{result.count > 1 ? 's' : ''} avec succès
+              {result.count} prospect{result.count > 1 ? 's' : ''} importé
+              {result.count > 1 ? 's' : ''} avec succès
             </p>
             <p className="text-xs text-muted-foreground mt-0.5">
               Ils sont maintenant disponibles dans votre base de prospects.

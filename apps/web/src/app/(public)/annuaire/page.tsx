@@ -152,8 +152,8 @@ export default async function AnnuaireHub() {
           </h1>
           <p className="mt-4 text-base leading-relaxed text-muted-foreground">
             L&apos;annuaire B2B le plus complet du Cameroun.{' '}
-            <strong className="text-foreground">50 000+ sociétés vérifiées</strong> à Douala, Yaoundé et dans
-            toute la CEMAC. Filtrez par ville et secteur, accédez aux contacts des
+            <strong className="text-foreground">50 000+ sociétés vérifiées</strong> à Douala,
+            Yaoundé et dans toute la CEMAC. Filtrez par ville et secteur, accédez aux contacts des
             dirigeants et exportez vos listes de prospection.
           </p>
 
@@ -221,28 +221,28 @@ export default async function AnnuaireHub() {
           </h2>
           <p>
             Trouver une{' '}
-            <strong className="text-foreground">base de données d&apos;entreprises au Cameroun</strong> fiable et
-            à jour est le premier défi de tout commercial ou directeur des ventes.
-            Sales Companion 2.0 a été conçu pour y répondre : notre annuaire B2B
-            centralise plus de{' '}
-            <strong className="text-[#1B7A3E]">50 000 entreprises camerounaises</strong>{' '}
-            vérifiées à partir des sources officielles (RCCM, Direction Générale
-            des Impôts).
+            <strong className="text-foreground">
+              base de données d&apos;entreprises au Cameroun
+            </strong>{' '}
+            fiable et à jour est le premier défi de tout commercial ou directeur des ventes. Sales
+            Companion 2.0 a été conçu pour y répondre : notre annuaire B2B centralise plus de{' '}
+            <strong className="text-[#1B7A3E]">50 000 entreprises camerounaises</strong> vérifiées à
+            partir des sources officielles (RCCM, Direction Générale des Impôts).
           </p>
           <p>
-            Contrairement aux fichiers Excel vendus sous le manteau ou aux
-            annuaires PDF obsolètes, notre base de données est{' '}
-            <strong className="text-foreground">mise à jour en continu</strong>. Chaque fiche entreprise inclut
-            le numéro RCCM, le NIU (Numéro d&apos;Identifiant Unique), le secteur
-            d&apos;activité, la localisation et — pour les abonnés — les contacts
-            directs des dirigeants.
+            Contrairement aux fichiers Excel vendus sous le manteau ou aux annuaires PDF obsolètes,
+            notre base de données est{' '}
+            <strong className="text-foreground">mise à jour en continu</strong>. Chaque fiche
+            entreprise inclut le numéro RCCM, le NIU (Numéro d&apos;Identifiant Unique), le secteur
+            d&apos;activité, la localisation et — pour les abonnés — les contacts directs des
+            dirigeants.
           </p>
           <p>
             Que vous cherchiez une{' '}
-            <strong className="text-foreground">liste d&apos;entreprises à Douala</strong>, un annuaire des
-            sociétés de Yaoundé, ou une vue complète d&apos;un secteur précis comme le
-            BTP, la finance ou la logistique, cet annuaire est votre point de
-            départ pour une prospection B2B efficace au Cameroun.
+            <strong className="text-foreground">liste d&apos;entreprises à Douala</strong>, un
+            annuaire des sociétés de Yaoundé, ou une vue complète d&apos;un secteur précis comme le
+            BTP, la finance ou la logistique, cet annuaire est votre point de départ pour une
+            prospection B2B efficace au Cameroun.
           </p>
         </section>
 
@@ -278,9 +278,8 @@ export default async function AnnuaireHub() {
             Accédez à la base de données complète
           </h3>
           <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-emerald-100">
-            Inscrivez-vous gratuitement pour accéder aux contacts des dirigeants,
-            exporter vos listes de prospection B2B et gérer votre pipeline
-            directement dans le CRM intégré.
+            Inscrivez-vous gratuitement pour accéder aux contacts des dirigeants, exporter vos
+            listes de prospection B2B et gérer votre pipeline directement dans le CRM intégré.
           </p>
           <Link
             href="/register"

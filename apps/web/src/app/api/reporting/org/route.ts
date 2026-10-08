@@ -10,7 +10,8 @@ async function getAdmin() {
 
 function normalizeStatus(status: string): 'prospection' | 'negociation' | 'conclue' | 'other' {
   const s = (status || '').toLowerCase().trim()
-  if (['prospection', 'prospect', 'to_contact', 'contact', 'nouveau', 'lead'].includes(s)) return 'prospection'
+  if (['prospection', 'prospect', 'to_contact', 'contact', 'nouveau', 'lead'].includes(s))
+    return 'prospection'
   if (['negociation', 'negotiation', 'in_progress', 'en_cours'].includes(s)) return 'negociation'
   if (['conclue', 'conclusion', 'won', 'closed', 'gagne', 'signe'].includes(s)) return 'conclue'
   return 'prospection'
@@ -31,9 +32,13 @@ export async function GET(request: NextRequest) {
     const decoded = await adminAuth.verifyIdToken(token)
     const callerDoc = await adminDb.collection('users').doc(decoded.uid).get()
     const callerData = callerDoc.data()
-    if (!callerDoc.exists || !callerData) return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 })
+    if (!callerDoc.exists || !callerData)
+      return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 })
     if (!hasActivePaidManagerAccess(callerData)) {
-      return NextResponse.json({ error: 'Un abonnement Manager actif et vérifié est requis.' }, { status: 403 })
+      return NextResponse.json(
+        { error: 'Un abonnement Manager actif et vérifié est requis.' },
+        { status: 403 }
+      )
     }
     if (callerData.orgRole !== 'senior_manager') {
       return NextResponse.json({ error: 'Accès réservé au Senior Manager' }, { status: 403 })
@@ -52,7 +57,10 @@ export async function GET(request: NextRequest) {
       .get()
 
     const managerUids = managersSnap.docs.map((d) => d.id)
-    const managersMap: Record<string, { name: string; email: string; orgRole: string; isSenior: boolean }> = {}
+    const managersMap: Record<
+      string,
+      { name: string; email: string; orgRole: string; isSenior: boolean }
+    > = {}
     managersSnap.docs.forEach((d) => {
       const m = d.data()
       managersMap[d.id] = {
@@ -83,10 +91,7 @@ export async function GET(request: NextRequest) {
 
     await Promise.all(
       chunks.map(async (chunk) => {
-        const snap = await adminDb
-          .collection('pipeline')
-          .where('managerUid', 'in', chunk)
-          .get()
+        const snap = await adminDb.collection('pipeline').where('managerUid', 'in', chunk).get()
         snap.docs.forEach((d) => {
           const data = d.data()
           // Strict multi-tenant guard: si la fiche a un orgCode explicite, il doit correspondre à celui de l'organisation
@@ -106,7 +111,10 @@ export async function GET(request: NextRequest) {
     }
 
     // 4. Stats par manager
-    const statsByManager: Record<string, { prospection: number; negociation: number; conclue: number; total: number }> = {}
+    const statsByManager: Record<
+      string,
+      { prospection: number; negociation: number; conclue: number; total: number }
+    > = {}
     for (const uid of managerUids) {
       statsByManager[uid] = { prospection: 0, negociation: 0, conclue: 0, total: 0 }
     }

@@ -1,4 +1,3 @@
-
 type Message = {
   id: string
   content: string
@@ -15,7 +14,14 @@ type Props = {
 export function SupportMessageList({ messages, currentUserId }: Props) {
   if (!messages.length) {
     return (
-      <p style={{ textAlign: 'center', color: 'var(--muted-foreground, #94a3b8)', fontSize: 13, padding: '24px 0' }}>
+      <p
+        style={{
+          textAlign: 'center',
+          color: 'var(--muted-foreground, #94a3b8)',
+          fontSize: 13,
+          padding: '24px 0'
+        }}
+      >
         Aucun message — commencez la conversation ci-dessous.
       </p>
     )

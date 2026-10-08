@@ -7,7 +7,7 @@ import { useState } from 'react'
 export type ExportFilters = {
   memberId?: string
   from?: string // "YYYY-MM-DD"
-  to?: string   // "YYYY-MM-DD"
+  to?: string // "YYYY-MM-DD"
 }
 
 /**

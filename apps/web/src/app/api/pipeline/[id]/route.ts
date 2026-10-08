@@ -88,7 +88,10 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const parseResult = pipelineUpdateSchema.safeParse(rawBody)
     if (!parseResult.success) {
       return NextResponse.json(
-        { message: 'Données invalides ou champs non autorisés', errors: parseResult.error.flatten() },
+        {
+          message: 'Données invalides ou champs non autorisés',
+          errors: parseResult.error.flatten()
+        },
         { status: 400 }
       )
     }

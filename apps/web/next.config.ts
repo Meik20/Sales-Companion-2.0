@@ -107,16 +107,13 @@ const nextConfig: NextConfig = {
       // Le groupe de route (protected) est transparent dans l'URL Next.js.
       // Les vraies URLs doivent être listées explicitement.
       {
-        source: '/(admin|settings|pipeline|search|profile|saved|ai|support|upgrade|activate)/:path*',
-        headers: [
-          { key: 'X-Robots-Tag', value: 'noindex, nofollow' }
-        ]
+        source:
+          '/(admin|settings|pipeline|search|profile|saved|ai|support|upgrade|activate)/:path*',
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }]
       },
       {
         source: '/(admin|settings|pipeline|search|profile|saved|ai|support|upgrade|activate)',
-        headers: [
-          { key: 'X-Robots-Tag', value: 'noindex, nofollow' }
-        ]
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }]
       },
 
       // ── Pages auth : COOP relâché pour signInWithPopup (Google OAuth) ────
@@ -125,9 +122,7 @@ const nextConfig: NextConfig = {
       // bloquant les ouvreurs cross-origin non voulus.
       {
         source: '/(login|register)',
-        headers: [
-          { key: 'Cross-Origin-Opener-Policy', value: 'same-origin-allow-popups' }
-        ]
+        headers: [{ key: 'Cross-Origin-Opener-Policy', value: 'same-origin-allow-popups' }]
       }
     ]
   }

@@ -21,7 +21,16 @@ import {
   Timestamp,
   getDocs
 } from 'firebase/firestore'
-import { MessageSquare, Send, Plus, X, ArrowLeft, Headphones, Trash2, HelpCircle } from 'lucide-react'
+import {
+  MessageSquare,
+  Send,
+  Plus,
+  X,
+  ArrowLeft,
+  Headphones,
+  Trash2,
+  HelpCircle
+} from 'lucide-react'
 
 type Thread = {
   id: string
@@ -157,7 +166,9 @@ function AuthenticatedSupportView() {
           const pendingOptimistic = prev.filter(
             (m) =>
               m.id.startsWith('temp-') &&
-              !serverMessages.some((sm) => sm.content === m.content && sm.senderRole === m.senderRole)
+              !serverMessages.some(
+                (sm) => sm.content === m.content && sm.senderRole === m.senderRole
+              )
           )
           return [...serverMessages, ...pendingOptimistic]
         })
@@ -197,22 +208,25 @@ function AuthenticatedSupportView() {
       setTimeout(() => textareaRef.current?.focus(), 200)
 
       // Déclencher la notification admin en tâche de fond avec authentification
-      auth.currentUser?.getIdToken().then((token: string) => {
-        if (!token) return
-        fetch('/api/support/notify', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            threadId: ref.id,
-            subject: newSubject.trim(),
-            userName: (user as { name?: string }).name ?? user.email ?? 'Utilisateur',
-            userEmail: user.email ?? ''
-          })
-        }).catch(() => {})
-      }).catch(() => {})
+      auth.currentUser
+        ?.getIdToken()
+        .then((token: string) => {
+          if (!token) return
+          fetch('/api/support/notify', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              threadId: ref.id,
+              subject: newSubject.trim(),
+              userName: (user as { name?: string }).name ?? user.email ?? 'Utilisateur',
+              userEmail: user.email ?? ''
+            })
+          }).catch(() => {})
+        })
+        .catch(() => {})
     } catch (err) {
       console.error('Failed to create thread:', err)
     } finally {
@@ -305,7 +319,12 @@ function AuthenticatedSupportView() {
 
   async function handleDeleteMessage(messageId: string) {
     if (!selectedId) return
-    if (!window.confirm(t('support.confirmDeleteMessage') || 'Voulez-vous vraiment supprimer ce message ?')) return
+    if (
+      !window.confirm(
+        t('support.confirmDeleteMessage') || 'Voulez-vous vraiment supprimer ce message ?'
+      )
+    )
+      return
 
     try {
       if (user) {
@@ -327,7 +346,10 @@ function AuthenticatedSupportView() {
       }
     } catch (err) {
       console.error('Failed to delete message:', err)
-      alert(t('support.errorDeleteMessage') || 'Une erreur est survenue lors de la suppression du message.')
+      alert(
+        t('support.errorDeleteMessage') ||
+          'Une erreur est survenue lors de la suppression du message.'
+      )
     }
   }
 
@@ -390,7 +412,13 @@ function AuthenticatedSupportView() {
             >
               {t('support.title')}
             </h1>
-            <p style={{ fontSize: 12.5, color: 'var(--muted-foreground, #94a3b8)', margin: '2px 0 0' }}>
+            <p
+              style={{
+                fontSize: 12.5,
+                color: 'var(--muted-foreground, #94a3b8)',
+                margin: '2px 0 0'
+              }}
+            >
               {t('support.subtitle')}
             </p>
           </div>
@@ -480,7 +508,9 @@ function AuthenticatedSupportView() {
             style={{
               height: 40,
               padding: '0 20px',
-              background: newSubject.trim() ? 'var(--color-primary)' : 'var(--border, rgba(255,255,255,0.1))',
+              background: newSubject.trim()
+                ? 'var(--color-primary)'
+                : 'var(--border, rgba(255,255,255,0.1))',
               color: newSubject.trim() ? '#fff' : 'var(--muted-foreground, #94a3b8)',
               border: 'none',
               borderRadius: 8,
@@ -556,7 +586,12 @@ function AuthenticatedSupportView() {
           <div style={{ flex: 1, overflowY: 'auto' }}>
             {threads.length === 0 ? (
               <div
-                style={{ padding: 32, textAlign: 'center', color: 'var(--muted-foreground, #94a3b8)', fontSize: 13 }}
+                style={{
+                  padding: 32,
+                  textAlign: 'center',
+                  color: 'var(--muted-foreground, #94a3b8)',
+                  fontSize: 13
+                }}
               >
                 <MessageSquare
                   size={32}
@@ -607,7 +642,13 @@ function AuthenticatedSupportView() {
                       )}
                       {thread.subject}
                     </span>
-                    <span style={{ fontSize: 10, flexShrink: 0, color: 'var(--muted-foreground, #64748b)' }}>
+                    <span
+                      style={{
+                        fontSize: 10,
+                        flexShrink: 0,
+                        color: 'var(--muted-foreground, #64748b)'
+                      }}
+                    >
                       {fmtTime(thread.updatedAt)}
                     </span>
                   </div>
@@ -663,7 +704,9 @@ function AuthenticatedSupportView() {
                         transition: 'all 150ms ease'
                       }}
                       onMouseEnter={(e) => (e.currentTarget.style.color = '#ef4444')}
-                      onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--muted-foreground, #64748b)')}
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.color = 'var(--muted-foreground, #64748b)')
+                      }
                       title={t('support.deleteTitle')}
                     >
                       <Trash2 size={13} />
@@ -744,17 +787,23 @@ function AuthenticatedSupportView() {
                     }}
                   />
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--foreground, #f1f5f9)' }}>
+                    <div
+                      style={{ fontWeight: 700, fontSize: 14, color: 'var(--foreground, #f1f5f9)' }}
+                    >
                       {selectedThread?.subject}
                     </div>
-                    <div style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)', marginTop: 2 }}>
-                      {selectedThread?.createdAt
-                        ?.toDate?.()
-                        .toLocaleDateString('fr-FR', {
-                          day: '2-digit',
-                          month: 'long',
-                          year: 'numeric'
-                        })}
+                    <div
+                      style={{
+                        fontSize: 11,
+                        color: 'var(--muted-foreground, #94a3b8)',
+                        marginTop: 2
+                      }}
+                    >
+                      {selectedThread?.createdAt?.toDate?.().toLocaleDateString('fr-FR', {
+                        day: '2-digit',
+                        month: 'long',
+                        year: 'numeric'
+                      })}
                     </div>
                   </div>
                 </div>
@@ -837,7 +886,8 @@ function AuthenticatedSupportView() {
                           }}
                         >
                           <span>
-                            {isMe ? t('support.me') : t('support.supportTeam')} · {fmtTime(m.createdAt)}
+                            {isMe ? t('support.me') : t('support.supportTeam')} ·{' '}
+                            {fmtTime(m.createdAt)}
                           </span>
                           <button
                             onClick={() => handleDeleteMessage(m.id)}
@@ -940,7 +990,9 @@ function AuthenticatedSupportView() {
                         transition: 'border-color 150ms ease'
                       }}
                       onFocus={(e) => (e.target.style.borderColor = 'var(--color-accent)')}
-                      onBlur={(e) => (e.target.style.borderColor = 'var(--border, rgba(255,255,255,0.1))')}
+                      onBlur={(e) =>
+                        (e.target.style.borderColor = 'var(--border, rgba(255,255,255,0.1))')
+                      }
                     />
                     <button
                       onClick={() => void handleSend()}
@@ -949,7 +1001,9 @@ function AuthenticatedSupportView() {
                         width: 38,
                         height: 38,
                         borderRadius: '50%',
-                        background: inputText.trim() ? 'var(--color-primary)' : 'var(--border, rgba(255,255,255,0.1))',
+                        background: inputText.trim()
+                          ? 'var(--color-primary)'
+                          : 'var(--border, rgba(255,255,255,0.1))',
                         color: inputText.trim() ? '#fff' : 'var(--muted-foreground, #94a3b8)',
                         border: 'none',
                         cursor: inputText.trim() ? 'pointer' : 'default',

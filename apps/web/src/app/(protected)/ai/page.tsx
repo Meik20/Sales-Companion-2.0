@@ -4,9 +4,24 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useProspectingCountry } from '@/hooks/useProspectingCountry'
 import { useTranslation } from '@/providers/I18nProvider'
-import { COUNTRY_FRENCH_IN, COUNTRY_FRENCH_MARKET_ADJECTIVE, COUNTRY_NAMES, type CountryCode } from '@sales-companion/shared'
+import {
+  COUNTRY_FRENCH_IN,
+  COUNTRY_FRENCH_MARKET_ADJECTIVE,
+  COUNTRY_NAMES,
+  type CountryCode
+} from '@sales-companion/shared'
 import { Loader2, RotateCcw } from 'lucide-react'
-import { collection, query, orderBy, limit, getDocs, addDoc, deleteDoc, serverTimestamp, Timestamp } from 'firebase/firestore'
+import {
+  collection,
+  query,
+  orderBy,
+  limit,
+  getDocs,
+  addDoc,
+  deleteDoc,
+  serverTimestamp,
+  Timestamp
+} from 'firebase/firestore'
 import { firestore } from '@/services/firebase/client'
 
 interface Message {
@@ -30,15 +45,18 @@ export default function AIAssistantPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
-  const getGreetingMessage = useCallback((): Message => ({
-    id: 'welcome-msg',
-    role: 'assistant',
-    content:
-      lang === 'en'
-        ? '👋 Hello! I am your AI Sales Companion 2.0. I can help you with B2B prospecting, finding companies in our database, and drafting outreach pitches. How can I help you today?'
-        : `👋 Bonjour ! Je suis votre Companion IA. Je peux vous aider avec des conseils commerciaux, la recherche d'entreprises dans la base et la prospection B2B ${countryIn}. Comment puis-je vous aider ?`,
-    timestamp: new Date()
-  }), [lang, countryIn])
+  const getGreetingMessage = useCallback(
+    (): Message => ({
+      id: 'welcome-msg',
+      role: 'assistant',
+      content:
+        lang === 'en'
+          ? '👋 Hello! I am your AI Sales Companion 2.0. I can help you with B2B prospecting, finding companies in our database, and drafting outreach pitches. How can I help you today?'
+          : `👋 Bonjour ! Je suis votre Companion IA. Je peux vous aider avec des conseils commerciaux, la recherche d'entreprises dans la base et la prospection B2B ${countryIn}. Comment puis-je vous aider ?`,
+      timestamp: new Date()
+    }),
+    [lang, countryIn]
+  )
 
   // Load chat history from Firestore on user load
   useEffect(() => {
@@ -146,7 +164,12 @@ export default function AIAssistantPage() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ message: trimmedInput, lang, history: recentHistory, country: countryCode })
+        body: JSON.stringify({
+          message: trimmedInput,
+          lang,
+          history: recentHistory,
+          country: countryCode
+        })
       })
 
       if (!response.ok) {
@@ -196,7 +219,17 @@ export default function AIAssistantPage() {
 
   if (!user || initialLoading) {
     return (
-      <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--foreground, #f1f5f9)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+      <div
+        style={{
+          padding: '40px 20px',
+          textAlign: 'center',
+          color: 'var(--foreground, #f1f5f9)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 8
+        }}
+      >
         <Loader2 size={18} className="animate-spin text-primary" />
         <span>Chargement...</span>
       </div>
@@ -219,12 +252,38 @@ export default function AIAssistantPage() {
         }}
       >
         <div className="hero-glow-tl" style={{ opacity: 0.15 }} />
-        <span style={{ fontSize: '4rem', marginBottom: '20px', display: 'block', animation: 'floatSubtle 6s infinite ease-in-out' }}>🤖</span>
-        <h1 style={{ fontSize: '24px', fontWeight: 800, marginBottom: '12px', fontFamily: "'Syne', sans-serif" }}>
+        <span
+          style={{
+            fontSize: '4rem',
+            marginBottom: '20px',
+            display: 'block',
+            animation: 'floatSubtle 6s infinite ease-in-out'
+          }}
+        >
+          🤖
+        </span>
+        <h1
+          style={{
+            fontSize: '24px',
+            fontWeight: 800,
+            marginBottom: '12px',
+            fontFamily: "'Syne', sans-serif"
+          }}
+        >
           Companion IA Commercial
         </h1>
-        <p style={{ maxWidth: '400px', color: 'var(--muted-foreground, #94a3b8)', fontSize: '14px', lineHeight: 1.6, marginBottom: '24px' }}>
-          L&apos;assistant de prospection intelligent est réservé aux abonnements payants. Boostez vos ventes en générant des emails et scripts d&apos;approche sur-mesure pour le marché {countryAdjective}.
+        <p
+          style={{
+            maxWidth: '400px',
+            color: 'var(--muted-foreground, #94a3b8)',
+            fontSize: '14px',
+            lineHeight: 1.6,
+            marginBottom: '24px'
+          }}
+        >
+          L&apos;assistant de prospection intelligent est réservé aux abonnements payants. Boostez
+          vos ventes en générant des emails et scripts d&apos;approche sur-mesure pour le marché{' '}
+          {countryAdjective}.
         </p>
         <a
           href="/upgrade"
@@ -270,11 +329,20 @@ export default function AIAssistantPage() {
         }}
       >
         <div>
-          <h1 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: 'var(--foreground, #f1f5f9)' }}>
+          <h1
+            style={{
+              margin: 0,
+              fontSize: '16px',
+              fontWeight: 600,
+              color: 'var(--foreground, #f1f5f9)'
+            }}
+          >
             {lang === 'en' ? 'AI Sales Companion 2.0' : 'Companion IA'}
           </h1>
           <p style={{ margin: 0, fontSize: '12px', color: 'var(--muted-foreground, #94a3b8)' }}>
-            {lang === 'en' ? 'Real-time sales insights & prospecting' : 'Conseils commerciaux et prospection en temps réel'}
+            {lang === 'en'
+              ? 'Real-time sales insights & prospecting'
+              : 'Conseils commerciaux et prospection en temps réel'}
           </p>
         </div>
 
@@ -350,7 +418,11 @@ export default function AIAssistantPage() {
               }}
             >
               <Loader2 size={15} className="animate-spin text-primary shrink-0" />
-              <span>{lang === 'en' ? 'Searching database & thinking...' : 'Recherche dans la base & réflexion...'}</span>
+              <span>
+                {lang === 'en'
+                  ? 'Searching database & thinking...'
+                  : 'Recherche dans la base & réflexion...'}
+              </span>
             </div>
           </div>
         )}

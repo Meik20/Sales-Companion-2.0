@@ -8,7 +8,11 @@ async function getAdmin() {
   return { adminDb, adminAuth }
 }
 
-function normalizeClientDoc(id: string, data: Record<string, any>, source: 'pipeline' | 'imported' | 'crm_clients') {
+function normalizeClientDoc(
+  id: string,
+  data: Record<string, any>,
+  source: 'pipeline' | 'imported' | 'crm_clients'
+) {
   const companyName = data.companyName ?? data.name ?? 'Sans nom'
   const contactName = data.contactName ?? data.contact ?? data.managerName ?? ''
   const phone = data.phone ?? data.companyPhone ?? ''
@@ -24,10 +28,20 @@ function normalizeClientDoc(id: string, data: Record<string, any>, source: 'pipe
   if (status === 'conclue' || status === 'conclusion') status = 'won'
   else if (status === 'imported') status = 'to_contact'
 
-  const createdAt = data.createdAt?.toDate?.()?.toISOString() ?? (typeof data.createdAt === 'string' ? data.createdAt : null)
-  const updatedAt = data.updatedAt?.toDate?.()?.toISOString() ?? (typeof data.updatedAt === 'string' ? data.updatedAt : null)
-  const nextActionAt = data.nextActionAt?.toDate?.()?.toISOString() ?? (typeof data.nextActionAt === 'string' ? data.nextActionAt : (data.nextFollowUp?.toDate?.()?.toISOString() ?? data.nextFollowUp ?? null))
-  const lastActivityAt = data.lastActivityAt?.toDate?.()?.toISOString() ?? (typeof data.lastActivityAt === 'string' ? data.lastActivityAt : null)
+  const createdAt =
+    data.createdAt?.toDate?.()?.toISOString() ??
+    (typeof data.createdAt === 'string' ? data.createdAt : null)
+  const updatedAt =
+    data.updatedAt?.toDate?.()?.toISOString() ??
+    (typeof data.updatedAt === 'string' ? data.updatedAt : null)
+  const nextActionAt =
+    data.nextActionAt?.toDate?.()?.toISOString() ??
+    (typeof data.nextActionAt === 'string'
+      ? data.nextActionAt
+      : (data.nextFollowUp?.toDate?.()?.toISOString() ?? data.nextFollowUp ?? null))
+  const lastActivityAt =
+    data.lastActivityAt?.toDate?.()?.toISOString() ??
+    (typeof data.lastActivityAt === 'string' ? data.lastActivityAt : null)
 
   return {
     id,
@@ -86,7 +100,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: 'Profil introuvable' }, { status: 404 })
     }
     if (agentData.role === 'manager' && !hasActivePaidManagerAccess(agentData)) {
-      return NextResponse.json({ message: 'Un abonnement Manager actif et vérifié est requis.' }, { status: 403 })
+      return NextResponse.json(
+        { message: 'Un abonnement Manager actif et vérifié est requis.' },
+        { status: 403 }
+      )
     }
 
     if (!['support_agent', 'manager', 'admin', 'independent', 'member'].includes(agentData.role)) {
@@ -118,7 +135,10 @@ export async function GET(request: NextRequest) {
     if (agentData.role === 'admin') {
       pipeQuery = pipeQuery.where('status', 'in', ['conclue', 'conclusion']).limit(1000)
     } else if (agentData.role === 'manager') {
-      pipeQuery = pipeQuery.where('managerUid', '==', agentUid).where('status', 'in', ['conclue', 'conclusion']).limit(1000)
+      pipeQuery = pipeQuery
+        .where('managerUid', '==', agentUid)
+        .where('status', 'in', ['conclue', 'conclusion'])
+        .limit(1000)
     } else if (agentData.role === 'support_agent') {
       const managerUids: string[] = [
         agentData.managerUid,
@@ -127,8 +147,9 @@ export async function GET(request: NextRequest) {
 
       if (managerUids.length > 0) {
         const pipeSnaps = await Promise.all(
-          managerUids.map(uid =>
-            adminDb.collection('pipeline')
+          managerUids.map((uid) =>
+            adminDb
+              .collection('pipeline')
               .where('managerUid', '==', uid)
               .where('status', 'in', ['conclue', 'conclusion'])
               .limit(500)
@@ -238,7 +259,10 @@ export async function POST(request: NextRequest) {
     const agentDoc = await adminDb.collection('users').doc(agentUid).get()
     const agentData = agentDoc.data()
     if (agentData?.role === 'manager' && !hasActivePaidManagerAccess(agentData)) {
-      return NextResponse.json({ message: 'Un abonnement Manager actif et vérifié est requis.' }, { status: 403 })
+      return NextResponse.json(
+        { message: 'Un abonnement Manager actif et vérifié est requis.' },
+        { status: 403 }
+      )
     }
     if (!agentData) return NextResponse.json({ message: 'Profil introuvable' }, { status: 404 })
 
@@ -308,9 +332,7 @@ export async function POST(request: NextRequest) {
       createdAt: now
     })
 
-    return NextResponse.json(
-      normalizeClientDoc(docRef.id, clientData, 'crm_clients')
-    )
+    return NextResponse.json(normalizeClientDoc(docRef.id, clientData, 'crm_clients'))
   } catch (error) {
     console.error('[crm/clients POST]', error)
     return NextResponse.json({ message: 'Erreur serveur lors de la création' }, { status: 500 })

@@ -4,5 +4,7 @@ export function isMobileRuntime(): boolean {
   const userAgent = navigator.userAgent || ''
   const isTouchMac = /Macintosh/i.test(userAgent) && navigator.maxTouchPoints > 1
 
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent) || isTouchMac
+  return (
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent) || isTouchMac
+  )
 }

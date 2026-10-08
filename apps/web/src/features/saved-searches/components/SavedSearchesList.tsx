@@ -66,7 +66,14 @@ export function SavedSearchesList({ items, onRestore, onDelete }: Props) {
             </div>
 
             <div style={{ flex: 1, minWidth: 200 }}>
-              <div style={{ fontWeight: 800, fontSize: 15, color: 'var(--foreground, #f1f5f9)', marginBottom: 8 }}>
+              <div
+                style={{
+                  fontWeight: 800,
+                  fontSize: 15,
+                  color: 'var(--foreground, #f1f5f9)',
+                  marginBottom: 8
+                }}
+              >
                 {item.label}
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>

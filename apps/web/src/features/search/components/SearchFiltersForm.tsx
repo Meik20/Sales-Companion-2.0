@@ -5,7 +5,16 @@ import { useTranslation } from '@/providers/I18nProvider'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useProspectingCountry } from '@/hooks/useProspectingCountry'
 import { GEOGRAPHY } from '@sales-companion/shared'
-import { HardHat, ShoppingBag, Laptop, Sprout, Truck, Stethoscope, LayoutGrid, X } from 'lucide-react'
+import {
+  HardHat,
+  ShoppingBag,
+  Laptop,
+  Sprout,
+  Truck,
+  Stethoscope,
+  LayoutGrid,
+  X
+} from 'lucide-react'
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 const REGION_KEYS: Record<string, string> = {
@@ -524,7 +533,9 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
                 )}
                 {region && (
                   <ActiveChip
-                    label={REGION_KEYS[region] ? t(`regions.${REGION_KEYS[region]}` as any) : region}
+                    label={
+                      REGION_KEYS[region] ? t(`regions.${REGION_KEYS[region]}` as any) : region
+                    }
                     onRemove={() => {
                       setRegion('')
                       setCity('')
@@ -557,7 +568,12 @@ function ActiveChip({ label, onRemove }: { label: string; onRemove: () => void }
   return (
     <span className="sc-chip">
       {label}
-      <button type="button" onClick={onRemove} aria-label={`Retirer ${label}`} style={{ display: 'inline-flex', alignItems: 'center' }}>
+      <button
+        type="button"
+        onClick={onRemove}
+        aria-label={`Retirer ${label}`}
+        style={{ display: 'inline-flex', alignItems: 'center' }}
+      >
         <X size={11} strokeWidth={2.5} />
       </button>
     </span>

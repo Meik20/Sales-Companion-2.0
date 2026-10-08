@@ -207,11 +207,7 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
       <FormField
         label={t('auth.yourEmailAddress')}
         required
-        hint={
-          accessInfo?.email
-            ? t('auth.professionalEmailLocked')
-            : t('auth.emailHint')
-        }
+        hint={accessInfo?.email ? t('auth.professionalEmailLocked') : t('auth.emailHint')}
       >
         <div style={{ position: 'relative', width: '100%' }}>
           <Input

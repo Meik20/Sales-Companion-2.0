@@ -22,7 +22,11 @@ export function AdminImportsTable() {
   if (isLoading) {
     return (
       <SectionCard title="Historique des imports" subtitle="Suivi des imports de données">
-        <div style={{ textAlign: 'center', color: 'var(--muted-foreground, #94a3b8)', padding: 20 }}>Chargement...</div>
+        <div
+          style={{ textAlign: 'center', color: 'var(--muted-foreground, #94a3b8)', padding: 20 }}
+        >
+          Chargement...
+        </div>
       </SectionCard>
     )
   }
@@ -45,7 +49,14 @@ export function AdminImportsTable() {
   return (
     <SectionCard title="Historique des imports" subtitle={`${total} import${total > 1 ? 's' : ''}`}>
       {items.length === 0 ? (
-        <div style={{ textAlign: 'center', color: 'var(--muted-foreground, #94a3b8)', padding: 20, fontSize: 13 }}>
+        <div
+          style={{
+            textAlign: 'center',
+            color: 'var(--muted-foreground, #94a3b8)',
+            padding: 20,
+            fontSize: 13
+          }}
+        >
           Aucun import n'a été effectué.
         </div>
       ) : (
@@ -214,7 +225,12 @@ function ImportRow({ import: importItem }: { import: AdminImport }) {
   })
 
   const statusConfigs: Record<string, { color: string; icon: any; label: string; variant: any }> = {
-    pending: { color: 'var(--muted-foreground, #94a3b8)', icon: Clock, label: 'En attente', variant: 'default' },
+    pending: {
+      color: 'var(--muted-foreground, #94a3b8)',
+      icon: Clock,
+      label: 'En attente',
+      variant: 'default'
+    },
     processing: { color: '#fbbf24', icon: AlertCircle, label: 'En cours', variant: 'gold' },
     completed: { color: '#2ea05a', icon: CheckCircle2, label: 'Terminé', variant: 'success' },
     failed: { color: '#f87171', icon: XCircle, label: 'Échoué', variant: 'danger' }
@@ -307,7 +323,9 @@ function ImportRow({ import: importItem }: { import: AdminImport }) {
               }}
             />
           </div>
-          <span style={{ fontSize: 10, color: 'var(--muted-foreground, #94a3b8)', fontWeight: 600 }}>
+          <span
+            style={{ fontSize: 10, color: 'var(--muted-foreground, #94a3b8)', fontWeight: 600 }}
+          >
             {successRate}% réussi
           </span>
         </div>
@@ -339,7 +357,14 @@ function ImportRow({ import: importItem }: { import: AdminImport }) {
           )
         })()}
       </td>
-      <td style={{ padding: '16px 0', color: 'var(--muted-foreground, #94a3b8)', textAlign: 'right', fontSize: 12 }}>
+      <td
+        style={{
+          padding: '16px 0',
+          color: 'var(--muted-foreground, #94a3b8)',
+          textAlign: 'right',
+          fontSize: 12
+        }}
+      >
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
           <span style={{ fontWeight: 600 }}>
             {dateStr.split(' ')[0]} {dateStr.split(' ')[1]}

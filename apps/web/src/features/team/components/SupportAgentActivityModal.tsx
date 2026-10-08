@@ -101,18 +101,18 @@ export function SupportAgentActivityModal({ agent, onClose }: Props) {
   }, [fetchActivity])
 
   const CALL_STATUS_LABELS: Record<string, { label: string; color: string }> = {
-    connected:  { label: 'Décroché',    color: '#3b82f6' },
-    no_answer:  { label: 'Non joint',   color: '#f59e0b' },
-    busy:       { label: 'Occupé',      color: '#f97316' },
-    voicemail:  { label: 'Répondeur',   color: '#a78bfa' },
-    failed:     { label: 'Échec',       color: '#f87171' }
+    connected: { label: 'Décroché', color: '#3b82f6' },
+    no_answer: { label: 'Non joint', color: '#f59e0b' },
+    busy: { label: 'Occupé', color: '#f97316' },
+    voicemail: { label: 'Répondeur', color: '#a78bfa' },
+    failed: { label: 'Échec', color: '#f87171' }
   }
 
   const TICKET_STATUS_LABELS: Record<string, { label: string; color: string }> = {
-    open:        { label: 'Ouvert',    color: '#f87171' },
-    in_progress: { label: 'En cours',  color: '#f59e0b' },
-    resolved:    { label: 'Résolu',    color: '#0284c7' },
-    closed:      { label: 'Fermé',     color: '#94a3b8' }
+    open: { label: 'Ouvert', color: '#f87171' },
+    in_progress: { label: 'En cours', color: '#f59e0b' },
+    resolved: { label: 'Résolu', color: '#0284c7' },
+    closed: { label: 'Fermé', color: '#94a3b8' }
   }
 
   const handleOpenReporting = () => {
@@ -123,10 +123,7 @@ export function SupportAgentActivityModal({ agent, onClose }: Props) {
   return (
     <>
       {/* Backdrop */}
-      <div
-        className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
-        onClick={onClose}
-      />
+      <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
@@ -142,9 +139,7 @@ export function SupportAgentActivityModal({ agent, onClose }: Props) {
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-extrabold text-foreground truncate">
-                    {agent.name}
-                  </h3>
+                  <h3 className="text-sm font-extrabold text-foreground truncate">{agent.name}</h3>
                   <span className="rounded-full border border-[#eb8512]/20 bg-[#eb8512]/10 px-2 py-0.5 text-[10px] font-bold text-[#eb8512]">
                     SUPPORT
                   </span>
@@ -195,7 +190,9 @@ export function SupportAgentActivityModal({ agent, onClose }: Props) {
                     <span className="text-xl font-black text-amber-400 mt-1">
                       {data.kpis.ticketsCount}
                     </span>
-                    <span className="text-[10px] text-muted-foreground">tickets SAV pris en charge</span>
+                    <span className="text-[10px] text-muted-foreground">
+                      tickets SAV pris en charge
+                    </span>
                   </div>
 
                   <div className="rounded-xl border border-border bg-secondary/20 p-3 flex flex-col">
@@ -205,7 +202,9 @@ export function SupportAgentActivityModal({ agent, onClose }: Props) {
                     <span className="text-xl font-black text-emerald-400 mt-1">
                       {data.kpis.resolutionRate}%
                     </span>
-                    <span className="text-[10px] text-muted-foreground">{data.kpis.resolvedTicketsCount} tickets clôturés</span>
+                    <span className="text-[10px] text-muted-foreground">
+                      {data.kpis.resolvedTicketsCount} tickets clôturés
+                    </span>
                   </div>
 
                   <div className="rounded-xl border border-border bg-secondary/20 p-3 flex flex-col">
@@ -378,17 +377,13 @@ export function SupportAgentActivityModal({ agent, onClose }: Props) {
                             className="rounded-xl border border-border bg-secondary/15 p-3 flex flex-col gap-1"
                           >
                             <div className="flex justify-between items-center text-xs">
-                              <span className="font-bold text-foreground">
-                                {act.title}
-                              </span>
+                              <span className="font-bold text-foreground">{act.title}</span>
                               <span className="text-[10px] text-muted-foreground">
                                 {new Date(act.createdAt).toLocaleDateString('fr-FR')}
                               </span>
                             </div>
                             {act.description && (
-                              <p className="text-xs text-muted-foreground">
-                                {act.description}
-                              </p>
+                              <p className="text-xs text-muted-foreground">{act.description}</p>
                             )}
                           </div>
                         ))

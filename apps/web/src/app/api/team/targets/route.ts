@@ -31,7 +31,10 @@ export async function GET(request: NextRequest) {
 
     const managerDoc = await adminDb.collection('users').doc(managerUid).get()
     if (!hasActivePaidManagerAccess(managerDoc.data())) {
-      return NextResponse.json({ message: 'Un abonnement Manager actif et vérifié est requis.' }, { status: 403 })
+      return NextResponse.json(
+        { message: 'Un abonnement Manager actif et vérifié est requis.' },
+        { status: 403 }
+      )
     }
 
     const { searchParams } = new URL(request.url)

@@ -20,34 +20,53 @@ export function CtaFooter() {
   const isEn = lang === 'en'
 
   const trust = [
-    { icon: Lock, label: isEn ? 'Encrypted in transit (HTTPS/TLS 1.3)' : 'Chiffré en transit (HTTPS/TLS 1.3)' },
+    {
+      icon: Lock,
+      label: isEn ? 'Encrypted in transit (HTTPS/TLS 1.3)' : 'Chiffré en transit (HTTPS/TLS 1.3)'
+    },
     { icon: ShieldCheck, label: isEn ? 'Zero resale of your data' : 'Zéro revente de vos données' },
     { icon: Server, label: isEn ? 'ISO 27001 certified hosting' : 'Hébergement certifié ISO 27001' }
   ]
 
   const footerLinks = {
     product: [
-      { label: isEn ? `${country.name} B2B Directory` : `Annuaire B2B ${country.name}`, href: '#fonctionnalites' },
+      {
+        label: isEn ? `${country.name} B2B Directory` : `Annuaire B2B ${country.name}`,
+        href: '#fonctionnalites'
+      },
       { label: isEn ? 'CRM Sales Pipeline' : 'Pipeline Commercial CRM', href: '#fonctionnalites' },
       { label: isEn ? 'Companion AI Pro' : 'Companion IA Pro', href: '#fonctionnalites' },
       { label: isEn ? 'Mobile App (PWA)' : 'Application Mobile (PWA)', href: '#pwa-install' },
       { label: isEn ? 'Pricing & Plans' : 'Tarifs & Abonnements', href: '#tarifs' }
     ],
-    resources: country.code === 'CM' ? [
-      { label: isEn ? 'Blog & Sales Tips' : 'Blog & Conseils Vente', href: '/blog' },
-      { label: 'Guide NIU & RCCM', href: '/blog/niu-rccm-identifier-entreprise-camerounaise' },
-      { label: 'Annuaire BTP Douala', href: '/blog/annuaire-entreprises-btp-douala' },
-      { label: 'Prospection B2B 2026', href: '/blog/trouver-clients-b2b-cameroun-2026' }
-    ] : [
-      { label: isEn ? `${country.name} B2B Blog` : `Blog B2B ${country.name}`, href: '/blog' },
-      { label: isEn ? 'Prospecting guides' : 'Guides de prospection', href: '/blog' }
-    ],
+    resources:
+      country.code === 'CM'
+        ? [
+            { label: isEn ? 'Blog & Sales Tips' : 'Blog & Conseils Vente', href: '/blog' },
+            {
+              label: 'Guide NIU & RCCM',
+              href: '/blog/niu-rccm-identifier-entreprise-camerounaise'
+            },
+            { label: 'Annuaire BTP Douala', href: '/blog/annuaire-entreprises-btp-douala' },
+            { label: 'Prospection B2B 2026', href: '/blog/trouver-clients-b2b-cameroun-2026' }
+          ]
+        : [
+            {
+              label: isEn ? `${country.name} B2B Blog` : `Blog B2B ${country.name}`,
+              href: '/blog'
+            },
+            { label: isEn ? 'Prospecting guides' : 'Guides de prospection', href: '/blog' }
+          ],
     legal: [
       { label: isEn ? 'Terms of Service (CGU)' : 'Conditions Générales (CGU)', href: '/terms' },
       { label: isEn ? 'Privacy Policy' : 'Politique de Confidentialité', href: '/privacy' },
       { label: t('landing.login') || (isEn ? 'Log in' : 'Se connecter'), href: routes.login },
       { label: isEn ? 'Create an account' : 'Créer un compte', href: routes.register },
-      { label: isEn ? 'Official LinkedIn Page' : 'Page Officielle LinkedIn', href: 'https://www.linkedin.com/company/sales-companion-2-0/', external: true }
+      {
+        label: isEn ? 'Official LinkedIn Page' : 'Page Officielle LinkedIn',
+        href: 'https://www.linkedin.com/company/sales-companion-2-0/',
+        external: true
+      }
     ]
   }
 
@@ -95,7 +114,10 @@ export function CtaFooter() {
 
           <ul className="relative z-10 mx-auto mt-10 flex max-w-3xl flex-wrap items-center justify-center gap-x-8 gap-y-3 border-t border-white/20 pt-8">
             {trust.map((item) => (
-              <li key={item.label} className="flex items-center gap-2 text-xs font-medium text-emerald-100/90">
+              <li
+                key={item.label}
+                className="flex items-center gap-2 text-xs font-medium text-emerald-100/90"
+              >
                 <item.icon className="h-4 w-4 shrink-0 text-emerald-300" />
                 <span>{item.label}</span>
               </li>
@@ -141,7 +163,10 @@ export function CtaFooter() {
               <ul className="mt-3 space-y-2 text-xs">
                 {footerLinks.product.map((link) => (
                   <li key={link.label}>
-                    <a href={link.href} className="text-muted-foreground transition-colors hover:text-foreground">
+                    <a
+                      href={link.href}
+                      className="text-muted-foreground transition-colors hover:text-foreground"
+                    >
                       {link.label}
                     </a>
                   </li>
@@ -157,7 +182,10 @@ export function CtaFooter() {
               <ul className="mt-3 space-y-2 text-xs">
                 {footerLinks.resources.map((link) => (
                   <li key={link.label}>
-                    <Link href={link.href} className="text-muted-foreground transition-colors hover:text-foreground">
+                    <Link
+                      href={link.href}
+                      className="text-muted-foreground transition-colors hover:text-foreground"
+                    >
                       {link.label}
                     </Link>
                   </li>
@@ -184,7 +212,10 @@ export function CtaFooter() {
                         {link.label}
                       </a>
                     ) : (
-                      <Link href={link.href} className="text-muted-foreground transition-colors hover:text-foreground">
+                      <Link
+                        href={link.href}
+                        className="text-muted-foreground transition-colors hover:text-foreground"
+                      >
                         {link.label}
                       </Link>
                     )}
@@ -195,7 +226,10 @@ export function CtaFooter() {
           </div>
 
           <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border/60 pt-6 text-xs text-muted-foreground sm:flex-row">
-            <p>© {new Date().getFullYear()} Sales Companion 2.0. {isEn ? 'All rights reserved.' : 'Tous droits réservés.'}</p>
+            <p>
+              © {new Date().getFullYear()} Sales Companion 2.0.{' '}
+              {isEn ? 'All rights reserved.' : 'Tous droits réservés.'}
+            </p>
             <div className="flex flex-wrap items-center gap-3.5">
               <LanguageSwitcher />
               <span>·</span>
@@ -210,7 +244,11 @@ export function CtaFooter() {
                 <span>LinkedIn</span>
               </a>
               <span>·</span>
-              <p>{isEn ? `Designed for sales teams ${country.englishIn} ${country.flag}` : `Conçu pour les commerciaux ${country.frenchIn} ${country.flag}`}</p>
+              <p>
+                {isEn
+                  ? `Designed for sales teams ${country.englishIn} ${country.flag}`
+                  : `Conçu pour les commerciaux ${country.frenchIn} ${country.flag}`}
+              </p>
             </div>
           </div>
         </div>

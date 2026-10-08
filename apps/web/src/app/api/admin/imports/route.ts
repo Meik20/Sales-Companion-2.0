@@ -222,7 +222,9 @@ export async function POST(request: NextRequest) {
           continue
         }
 
-        const country = String(company.country ?? '').trim().toUpperCase()
+        const country = String(company.country ?? '')
+          .trim()
+          .toUpperCase()
         if (!SUPPORTED_COUNTRIES.some((supported) => supported.code === country)) {
           skipped++
           continue

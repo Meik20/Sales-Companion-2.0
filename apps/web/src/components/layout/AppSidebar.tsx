@@ -41,8 +41,14 @@ import { isMobileRuntime } from '@/lib/runtime'
 
 // ── Indicateur & bascule du mode hors connexion dans la sidebar ───────────────
 function OfflineModeIndicator() {
-  const { isOnline, isManualOffline, isChecking, wasOffline, dismissReconnected, toggleManualOffline } =
-    useNetworkStatus()
+  const {
+    isOnline,
+    isManualOffline,
+    isChecking,
+    wasOffline,
+    dismissReconnected,
+    toggleManualOffline
+  } = useNetworkStatus()
   const { t } = useTranslation()
   const { pushToast } = useToast()
 
@@ -127,12 +133,17 @@ function OfflineModeIndicator() {
               : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400'
         }`}
       >
-        {!isOnline ? (isManualOffline ? 'Simulé' : 'Hors ligne') : isChecking ? 'Vérif…' : 'En ligne'}
+        {!isOnline
+          ? isManualOffline
+            ? 'Simulé'
+            : 'Hors ligne'
+          : isChecking
+            ? 'Vérif…'
+            : 'En ligne'}
       </span>
     </button>
   )
 }
-
 
 const REGION_KEYS: Record<string, string> = {
   Adamaoua: 'adamaoua',
@@ -322,7 +333,9 @@ export function AppSidebar({
                   user.role === 'admin'
                     ? '#ef4444'
                     : user.role === 'manager'
-                      ? (user.orgRole === 'senior_manager' ? '#8b5cf6' : '#eab308')
+                      ? user.orgRole === 'senior_manager'
+                        ? '#8b5cf6'
+                        : '#eab308'
                       : user.role === 'independent'
                         ? '#22c55e'
                         : user.role === 'support_agent'
@@ -334,9 +347,11 @@ export function AppSidebar({
               {user.role === 'admin'
                 ? t('sidebar.adminRole')
                 : user.role === 'manager'
-                  ? (user.orgRole === 'senior_manager'
-                      ? t('sidebar.seniorManagerRole')
-                      : (user.orgRole === 'team_manager' ? t('sidebar.teamManagerRole') : t('sidebar.managerRole')))
+                  ? user.orgRole === 'senior_manager'
+                    ? t('sidebar.seniorManagerRole')
+                    : user.orgRole === 'team_manager'
+                      ? t('sidebar.teamManagerRole')
+                      : t('sidebar.managerRole')
                   : user.role === 'independent'
                     ? t('sidebar.independentRole')
                     : user.role === 'support_agent'
@@ -493,13 +508,14 @@ export function AppSidebar({
               onClick={(e) => {
                 if (user.plan === 'free') {
                   e.preventDefault()
-                  router.push(`${routes.upgrade}?redirect=${encodeURIComponent(routes.importProspects)}`)
+                  router.push(
+                    `${routes.upgrade}?redirect=${encodeURIComponent(routes.importProspects)}`
+                  )
                 }
               }}
             />
           )}
           <SidebarLink href={routes.support} label={t('sidebar.support')} icon={MessageSquare} />
-
 
           {/* Indicateur Offline — actif automatiquement si hors connexion */}
           <OfflineModeIndicator />
@@ -514,11 +530,7 @@ export function AppSidebar({
           {user.orgRole === 'senior_manager' ? (
             <>
               {/* Senior Manager : Gestion de l'Organisation + Dashboard Organisation */}
-              <SidebarLink
-                href={routes.team}
-                label="Gestion de l'Organisation"
-                icon={Building2}
-              />
+              <SidebarLink href={routes.team} label="Gestion de l'Organisation" icon={Building2} />
               <SidebarLink
                 href={routes.dashboard}
                 label="Dashboard Organisation"
@@ -528,16 +540,8 @@ export function AppSidebar({
           ) : (
             <>
               {/* Team Manager : Gestion d'équipe terrain + Tableau de bord personnel */}
-              <SidebarLink
-                href={routes.team}
-                label={t('sidebar.teamManagement')}
-                icon={Users}
-              />
-              <SidebarLink
-                href={routes.reporting}
-                label="Tableau de bord"
-                icon={BarChart2}
-              />
+              <SidebarLink href={routes.team} label={t('sidebar.teamManagement')} icon={Users} />
+              <SidebarLink href={routes.reporting} label="Tableau de bord" icon={BarChart2} />
             </>
           )}
         </>
@@ -592,7 +596,11 @@ export function AppSidebar({
           <SidebarLink href={routes.adminSupport} label={t('sidebar.support')} icon={Headphones} />
           <SidebarLink href={routes.adminLogs} label={t('sidebar.activity')} icon={Activity} />
           <SidebarLink href={routes.adminConfig} label={t('sidebar.config')} icon={Sliders} />
-          <SidebarLink href={routes.adminPayments} label={t('sidebar.payments')} icon={CreditCard} />
+          <SidebarLink
+            href={routes.adminPayments}
+            label={t('sidebar.payments')}
+            icon={CreditCard}
+          />
         </>
       )}
 
@@ -614,10 +622,7 @@ export function AppSidebar({
     return (
       <div className="fixed inset-0 z-[9999] flex">
         {/* Dark backdrop — tap to close */}
-        <div
-          onClick={onCloseAction}
-          className="absolute inset-0 bg-black/65 backdrop-blur-[3px]"
-        />
+        <div onClick={onCloseAction} className="absolute inset-0 bg-black/65 backdrop-blur-[3px]" />
 
         <div
           className="relative h-full w-[300px] max-w-[85vw] overflow-y-auto bg-background shadow-[4px_0_32px_rgba(0,0,0,0.45)]"

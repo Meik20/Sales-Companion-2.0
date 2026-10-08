@@ -11,9 +11,7 @@ export function Faq() {
 
   const faqs = [
     {
-      question: isEn
-        ? 'What is Sales Companion 2.0?'
-        : 'Qu’est-ce que Sales Companion 2.0 ?',
+      question: isEn ? 'What is Sales Companion 2.0?' : 'Qu’est-ce que Sales Companion 2.0 ?',
       answer: isEn
         ? `Sales Companion 2.0 is a B2B sales intelligence platform tailored for ${country.englishMarket}. It allows you to search local companies, qualify prospects with legal and contact data, and manage your deals in an intuitive CRM pipeline.`
         : `Sales Companion 2.0 est une plateforme de prospection B2B conçue pour le marché ${country.frenchMarketAdjective}. Elle permet de rechercher des entreprises locales, d’identifier des prospects qualifiés et de suivre vos opportunités commerciales dans un CRM intégré.`
@@ -67,9 +65,7 @@ export function Faq() {
         : 'Oui. Selon votre offre, vous pouvez exporter vos listes d’entreprises et prospects ciblés aux formats Excel ou CSV pour alimenter vos outils de reporting ou vos campagnes commerciales.'
     },
     {
-      question: isEn
-        ? 'Is there a free plan available?'
-        : 'Existe-t-il une offre gratuite ?',
+      question: isEn ? 'Is there a free plan available?' : 'Existe-t-il une offre gratuite ?',
       answer: isEn
         ? 'Yes! Our free plan allows you to explore Sales Companion 2.0 with no credit card required, including 10 free searches per month and full access to core pipeline management.'
         : 'Oui ! Notre offre gratuite permet de découvrir Sales Companion 2.0 sans carte bancaire, avec 10 recherches offertes par mois et un accès complet aux fonctionnalités de base du pipeline.'

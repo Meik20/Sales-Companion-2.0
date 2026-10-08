@@ -22,16 +22,16 @@ export async function POST(request: NextRequest) {
 
     const decodedToken = await adminAuth.verifyIdToken(token)
     const managerUid = decodedToken.uid
-    
+
     // Vérification du rôle manager
     const managerDoc = await adminDb.collection('users').doc(managerUid).get()
     const managerData = managerDoc.data()
 
-    if (
-      !hasActivePaidManagerAccess(managerData) ||
-      decodedToken.email_verified !== true
-    ) {
-      return NextResponse.json({ error: 'Un abonnement Manager actif et vérifié est requis.' }, { status: 403 })
+    if (!hasActivePaidManagerAccess(managerData) || decodedToken.email_verified !== true) {
+      return NextResponse.json(
+        { error: 'Un abonnement Manager actif et vérifié est requis.' },
+        { status: 403 }
+      )
     }
 
     const { firstname, lastname, company, email, role, permissions } = await request.json()
@@ -48,7 +48,10 @@ export async function POST(request: NextRequest) {
     // Vérifier si l'accessId existe déjà
     const query = await adminDb.collection('team_accesses').where('accessId', '==', accessId).get()
     if (!query.empty) {
-       return NextResponse.json({ error: 'Cet identifiant existe déjà (ou le membre a déjà été invité)' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Cet identifiant existe déjà (ou le membre a déjà été invité)' },
+        { status: 400 }
+      )
     }
 
     // Validation du rôle
@@ -72,7 +75,11 @@ export async function POST(request: NextRequest) {
     if (!managerOrgCode) {
       const { generateOrgCode } = await import('@/lib/org')
       managerOrgCode = generateOrgCode(managerData?.country || 'CM')
-      await adminDb.collection('users').doc(managerUid).update({ orgCode: managerOrgCode }).catch(() => {})
+      await adminDb
+        .collection('users')
+        .doc(managerUid)
+        .update({ orgCode: managerOrgCode })
+        .catch(() => {})
     }
 
     const newAccess = {
@@ -96,7 +103,6 @@ export async function POST(request: NextRequest) {
       createdAt: new Date(),
       updatedAt: new Date()
     }
-
 
     const docRef = await adminDb.collection('team_accesses').add(newAccess)
 
@@ -151,28 +157,31 @@ export async function POST(request: NextRequest) {
           to: email.trim(),
           subject: `Sales Companion 2.0 — Invitation de ${company}`,
           html: emailHtml
-        }).catch(err => {
+        }).catch((err) => {
           console.error('[team/accesses] Failed to send activation email:', err)
           return { success: false, error: err.message }
         })
 
         if (emailResult && emailResult.success) {
-          emailStatus = ('simulated' in emailResult && emailResult.simulated) ? 'simulated' : 'sent'
+          emailStatus = 'simulated' in emailResult && emailResult.simulated ? 'simulated' : 'sent'
         } else {
           emailStatus = 'failed'
-          emailError = (emailResult && 'error' in emailResult) ? emailResult.error : 'Erreur inconnue'
+          emailError = emailResult && 'error' in emailResult ? emailResult.error : 'Erreur inconnue'
         }
       }
 
-      return NextResponse.json({ 
-        success: true, 
-        accessId, 
-        id: docRef.id,
-        magicCode,
-        magicLink: `${process.env.NEXT_PUBLIC_APP_URL || 'https://salescompanion2-0.com'}/activate?code=${magicCode}`,
-        emailStatus,
-        emailError
-      }, { status: 201 })
+      return NextResponse.json(
+        {
+          success: true,
+          accessId,
+          id: docRef.id,
+          magicCode,
+          magicLink: `${process.env.NEXT_PUBLIC_APP_URL || 'https://salescompanion2-0.com'}/activate?code=${magicCode}`,
+          emailStatus,
+          emailError
+        },
+        { status: 201 }
+      )
     }
   } catch (error: any) {
     console.error('[team/accesses] ERREUR:', error.message)

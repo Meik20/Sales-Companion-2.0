@@ -22,7 +22,10 @@ export async function GET(request: NextRequest) {
     const data = docSnap.data()
 
     if (!docSnap.exists || !data) {
-      return NextResponse.json({ valid: false, error: 'Jeton de dérogation invalide' }, { status: 404 })
+      return NextResponse.json(
+        { valid: false, error: 'Jeton de dérogation invalide' },
+        { status: 404 }
+      )
     }
 
     // Vérifier si le jeton a déjà été utilisé

@@ -44,7 +44,10 @@ export async function GET(request: NextRequest) {
     const callerData = callerDoc.data()
     const callerRole: string = callerData?.role ?? ''
     if (callerRole === 'manager' && !hasActivePaidManagerAccess(callerData)) {
-      return NextResponse.json({ message: 'Un abonnement Manager actif et vérifié est requis.' }, { status: 403 })
+      return NextResponse.json(
+        { message: 'Un abonnement Manager actif et vérifié est requis.' },
+        { status: 403 }
+      )
     }
 
     // ══════════════════════════════════════════════════════════════════════
@@ -52,8 +55,18 @@ export async function GET(request: NextRequest) {
     // ══════════════════════════════════════════════════════════════════════
     if (callerRole === 'independent') {
       const MONTHS_FR_IND = [
-        'Janvier','Février','Mars','Avril','Mai','Juin',
-        'Juillet','Août','Septembre','Octobre','Novembre','Décembre'
+        'Janvier',
+        'Février',
+        'Mars',
+        'Avril',
+        'Mai',
+        'Juin',
+        'Juillet',
+        'Août',
+        'Septembre',
+        'Octobre',
+        'Novembre',
+        'Décembre'
       ]
 
       // Fetch du pipeline personnel
@@ -93,8 +106,9 @@ export async function GET(request: NextRequest) {
       })
 
       // Filtres date
-      if (fromDate) ownItems = ownItems.filter((i) => i.createdAt && new Date(i.createdAt) >= fromDate)
-      if (toDate)   ownItems = ownItems.filter((i) => i.createdAt && new Date(i.createdAt) <= toDate)
+      if (fromDate)
+        ownItems = ownItems.filter((i) => i.createdAt && new Date(i.createdAt) >= fromDate)
+      if (toDate) ownItems = ownItems.filter((i) => i.createdAt && new Date(i.createdAt) <= toDate)
 
       const normalizeStatusInd = (s?: string) => {
         if (!s) return ''
@@ -119,23 +133,29 @@ export async function GET(request: NextRequest) {
 
       // Statistiques globales
       const total = ownItems.length
-      const prospection = ownItems.filter((i) => normalizeStatusInd(i.status) === 'Prospection').length
-      const negociation  = ownItems.filter((i) => normalizeStatusInd(i.status) === 'Négociation').length
-      const conclue      = ownItems.filter((i) => normalizeStatusInd(i.status) === 'Conclue').length
-      const revenue      = ownItems.filter((i) => normalizeStatusInd(i.status) === 'Conclue').reduce((s, i) => s + (i.amount ?? 0), 0)
-      const convRate     = total > 0 ? Math.round((conclue / total) * 100) : 0
+      const prospection = ownItems.filter(
+        (i) => normalizeStatusInd(i.status) === 'Prospection'
+      ).length
+      const negociation = ownItems.filter(
+        (i) => normalizeStatusInd(i.status) === 'Négociation'
+      ).length
+      const conclue = ownItems.filter((i) => normalizeStatusInd(i.status) === 'Conclue').length
+      const revenue = ownItems
+        .filter((i) => normalizeStatusInd(i.status) === 'Conclue')
+        .reduce((s, i) => s + (i.amount ?? 0), 0)
+      const convRate = total > 0 ? Math.round((conclue / total) * 100) : 0
 
       const ExcelJSInd = (await import('exceljs')).default
       const wbInd = new ExcelJSInd.Workbook()
       wbInd.creator = 'Sales Companion'
       wbInd.created = new Date()
 
-      const COLOR_HDR  = '1A3A5C'
-      const COLOR_SUB  = '1E4976'
+      const COLOR_HDR = '1A3A5C'
+      const COLOR_SUB = '1E4976'
       const COLOR_EVEN = 'F0F4FA'
       const COLOR_PROS = 'DBEAFE'
-      const COLOR_NEG  = 'FEF9C3'
-      const COLOR_CON  = 'DCFCE7'
+      const COLOR_NEG = 'FEF9C3'
+      const COLOR_CON = 'DCFCE7'
 
       // ── ONGLET 1 : SYNTHÈSE ──────────────────────────────────────────────
       const sumSh = wbInd.addWorksheet('Synthèse', { pageSetup: { fitToPage: true } })
@@ -145,7 +165,11 @@ export async function GET(request: NextRequest) {
       titleRowInd.alignment = { vertical: 'middle', horizontal: 'center' }
       sumSh.mergeCells('A1:F1')
       titleRowInd.height = 36
-      titleRowInd.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: `FF${COLOR_HDR}` } }
+      titleRowInd.getCell(1).fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: `FF${COLOR_HDR}` }
+      }
 
       const metaRowInd = sumSh.addRow([`Période : ${periodLabel}`, '', '', '', '', ''])
       metaRowInd.font = { name: 'Calibri', italic: true, size: 11, color: { argb: 'FF64748B' } }
@@ -155,7 +179,14 @@ export async function GET(request: NextRequest) {
 
       sumSh.addRow([])
 
-      const hdrRow = sumSh.addRow(['Total', 'Prospection', 'Négociation', 'Conclue', 'Taux conversion', 'Chiffre d\'affaires'])
+      const hdrRow = sumSh.addRow([
+        'Total',
+        'Prospection',
+        'Négociation',
+        'Conclue',
+        'Taux conversion',
+        "Chiffre d'affaires"
+      ])
       hdrRow.height = 28
       hdrRow.eachCell((cell) => {
         cell.font = { name: 'Calibri', bold: true, size: 11, color: { argb: 'FFFFFFFF' } }
@@ -164,7 +195,14 @@ export async function GET(request: NextRequest) {
         cell.border = { bottom: { style: 'thin', color: { argb: 'FF94A3B8' } } }
       })
 
-      const dataRow = sumSh.addRow([total, prospection, negociation, conclue, `${convRate} %`, revenue])
+      const dataRow = sumSh.addRow([
+        total,
+        prospection,
+        negociation,
+        conclue,
+        `${convRate} %`,
+        revenue
+      ])
       dataRow.height = 24
       dataRow.eachCell((cell, ci) => {
         cell.font = { name: 'Calibri', bold: true, size: 12 }
@@ -173,20 +211,42 @@ export async function GET(request: NextRequest) {
       })
 
       sumSh.columns = [
-        { width: 14 }, { width: 14 }, { width: 14 }, { width: 12 }, { width: 16 }, { width: 20 }
+        { width: 14 },
+        { width: 14 },
+        { width: 14 },
+        { width: 12 },
+        { width: 16 },
+        { width: 20 }
       ]
 
       // ── ONGLET 2 : DÉTAIL ───────────────────────────────────────────────
-      const detSh = wbInd.addWorksheet('Détail des prospects', { pageSetup: { fitToPage: true, orientation: 'landscape' } })
+      const detSh = wbInd.addWorksheet('Détail des prospects', {
+        pageSetup: { fitToPage: true, orientation: 'landscape' }
+      })
 
       const titleRowDet = detSh.addRow(['DÉTAIL DES PROSPECTS'])
       titleRowDet.font = { name: 'Calibri', bold: true, size: 14, color: { argb: 'FFFFFFFF' } }
       titleRowDet.alignment = { vertical: 'middle', horizontal: 'center' }
       detSh.mergeCells('A1:J1')
       titleRowDet.height = 30
-      titleRowDet.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: `FF${COLOR_HDR}` } }
+      titleRowDet.getCell(1).fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: `FF${COLOR_HDR}` }
+      }
 
-      const colHeaders = ['Entreprise', 'Statut', 'Montant (FCFA)', 'Ville', 'Secteur', 'Téléphone', 'Email', 'Note', 'Prochain suivi', 'Date d\'ajout']
+      const colHeaders = [
+        'Entreprise',
+        'Statut',
+        'Montant (FCFA)',
+        'Ville',
+        'Secteur',
+        'Téléphone',
+        'Email',
+        'Note',
+        'Prochain suivi',
+        "Date d'ajout"
+      ]
       const hdrDetRow = detSh.addRow(colHeaders)
       hdrDetRow.height = 26
       hdrDetRow.eachCell((cell) => {
@@ -213,18 +273,39 @@ export async function GET(request: NextRequest) {
         const r = detSh.addRow(rowData)
         r.height = 20
 
-        const bgColor = ns === 'Prospection' ? COLOR_PROS : ns === 'Négociation' ? COLOR_NEG : ns === 'Conclue' ? COLOR_CON : (idx % 2 === 0 ? COLOR_EVEN : 'FFFFFF')
+        const bgColor =
+          ns === 'Prospection'
+            ? COLOR_PROS
+            : ns === 'Négociation'
+              ? COLOR_NEG
+              : ns === 'Conclue'
+                ? COLOR_CON
+                : idx % 2 === 0
+                  ? COLOR_EVEN
+                  : 'FFFFFF'
         r.eachCell((cell, ci) => {
           cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: `FF${bgColor}` } }
-          cell.alignment = { vertical: 'middle', horizontal: ci === 3 ? 'right' : 'left', wrapText: ci === 8 }
+          cell.alignment = {
+            vertical: 'middle',
+            horizontal: ci === 3 ? 'right' : 'left',
+            wrapText: ci === 8
+          }
           cell.font = { name: 'Calibri', size: 10 }
           if (ci === 3 && typeof cell.value === 'number') cell.numFmt = '#,##0'
         })
       })
 
       detSh.columns = [
-        { width: 26 }, { width: 14 }, { width: 16 }, { width: 18 }, { width: 18 },
-        { width: 15 }, { width: 24 }, { width: 30 }, { width: 16 }, { width: 14 }
+        { width: 26 },
+        { width: 14 },
+        { width: 16 },
+        { width: 18 },
+        { width: 18 },
+        { width: 15 },
+        { width: 24 },
+        { width: 30 },
+        { width: 16 },
+        { width: 14 }
       ]
       detSh.views = [{ state: 'frozen', ySplit: 2, xSplit: 1 }]
 
@@ -251,8 +332,8 @@ export async function GET(request: NextRequest) {
     // ── Résolution du/des managerUid(s) actif(s) ──────────────────────────
     // • Team Manager  → uniquement son propre UID
     // • Senior Manager → tous les Team Managers de la même organisation
-    let orgManagerUids: string[] = [callerUid]  // par défaut : soi-même
-    let exportScopeLabel = 'ÉQUIPE'             // libellé titre rapport
+    let orgManagerUids: string[] = [callerUid] // par défaut : soi-même
+    let exportScopeLabel = 'ÉQUIPE' // libellé titre rapport
 
     if (isSeniorManager) {
       const orgCode: string = callerData?.orgCode ?? ''
@@ -264,8 +345,8 @@ export async function GET(request: NextRequest) {
           .get()
         // Exclure le Senior Manager lui-même (il ne gère pas de membres directs)
         orgManagerUids = orgManagersSnap.docs
-          .filter(d => (d.data().orgRole || 'team_manager') !== 'senior_manager')
-          .map(d => d.id)
+          .filter((d) => (d.data().orgRole || 'team_manager') !== 'senior_manager')
+          .map((d) => d.id)
         exportScopeLabel = 'ORGANISATION'
       }
       // Si aucun Team Manager trouvé, on garde [callerUid] pour éviter un export vide silencieux
@@ -283,14 +364,13 @@ export async function GET(request: NextRequest) {
 
     // Firestore `in` accepte max 30 valeurs → on chunk
     const chunkArray = <T>(arr: T[], size: number): T[][] =>
-      Array.from({ length: Math.ceil(arr.length / size) }, (_, i) => arr.slice(i * size, i * size + size))
+      Array.from({ length: Math.ceil(arr.length / size) }, (_, i) =>
+        arr.slice(i * size, i * size + size)
+      )
 
     const memberUidChunks = chunkArray(orgManagerUids, 30)
     for (const chunk of memberUidChunks) {
-      const membersSnap = await adminDb
-        .collection('users')
-        .where('managerUid', 'in', chunk)
-        .get()
+      const membersSnap = await adminDb.collection('users').where('managerUid', 'in', chunk).get()
       membersSnap.docs.forEach((doc) => {
         const d = doc.data()
         if (!membersMap.has(doc.id)) {
@@ -323,12 +403,24 @@ export async function GET(request: NextRequest) {
           }
         })
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
 
     // ── Formatage de la période brute en libellé lisible ───────────────────
     const MONTHS_FR = [
-      'Janvier','Février','Mars','Avril','Mai','Juin',
-      'Juillet','Août','Septembre','Octobre','Novembre','Décembre'
+      'Janvier',
+      'Février',
+      'Mars',
+      'Avril',
+      'Mai',
+      'Juin',
+      'Juillet',
+      'Août',
+      'Septembre',
+      'Octobre',
+      'Novembre',
+      'Décembre'
     ]
     function formatPeriod(raw: string | null, from: Date | null, to: Date | null): string {
       if (raw) {
@@ -360,8 +452,10 @@ export async function GET(request: NextRequest) {
         const t = to.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })
         return f === t ? f : `${f} – ${t}`
       }
-      if (from) return `Depuis ${from.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })}`
-      if (to) return `Jusqu'à ${to.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })}`
+      if (from)
+        return `Depuis ${from.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })}`
+      if (to)
+        return `Jusqu'à ${to.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })}`
       // Aucune période : utiliser le mois courant
       const now = new Date()
       return `${MONTHS_FR[now.getMonth()]} ${now.getFullYear()}`
@@ -443,10 +537,7 @@ export async function GET(request: NextRequest) {
 
     // Pipeline des membres d'équipe (par managerUid)
     for (const chunk of chunkArray(orgManagerUids, 30)) {
-      const teamSnap = await adminDb
-        .collection('pipeline')
-        .where('managerUid', 'in', chunk)
-        .get()
+      const teamSnap = await adminDb.collection('pipeline').where('managerUid', 'in', chunk).get()
       pushItems(teamSnap)
     }
 
@@ -506,9 +597,7 @@ export async function GET(request: NextRequest) {
       let name = item.memberName
       // Prioriser memberAccessId du doc pipeline s'il a le bon format (contient '@')
       // Sinon, chercher dans membersMap
-      let id = (item.memberAccessId && item.memberAccessId.includes('@'))
-        ? item.memberAccessId
-        : ''
+      let id = item.memberAccessId && item.memberAccessId.includes('@') ? item.memberAccessId : ''
 
       if (!name || !id) {
         if (uid !== '__manager__' && uid !== managerUid) {
@@ -584,19 +673,19 @@ export async function GET(request: NextRequest) {
     })
 
     // ── Palette ───────────────────────────────────────────────────────────────
-    const COLOR_HEADER_BG = '1A3A5C'  // bleu marine
+    const COLOR_HEADER_BG = '1A3A5C' // bleu marine
     const COLOR_HEADER_FG = 'FFFFFF'
-    const COLOR_SUBHEADER  = '2E6DA4'
-    const COLOR_GLOBAL_BG  = '0D2137'  // bleu très sombre pour la ligne globale
-    const COLOR_GLOBAL_FG  = 'FFD700'  // or pour ressortir
-    const COLOR_ALT_ROW    = 'EBF5FB'  // bleu clair alternance
-    const COLOR_GREEN      = '27AE60'
-    const COLOR_ORANGE     = 'E67E22'
-    const COLOR_RED        = 'E74C3C'
+    const COLOR_SUBHEADER = '2E6DA4'
+    const COLOR_GLOBAL_BG = '0D2137' // bleu très sombre pour la ligne globale
+    const COLOR_GLOBAL_FG = 'FFD700' // or pour ressortir
+    const COLOR_ALT_ROW = 'EBF5FB' // bleu clair alternance
+    const COLOR_GREEN = '27AE60'
+    const COLOR_ORANGE = 'E67E22'
+    const COLOR_RED = 'E74C3C'
 
     const headerFont = { name: 'Calibri', bold: true, size: 11, color: { argb: COLOR_HEADER_FG } }
-    const cellFont   = { name: 'Calibri', size: 10 }
-    const boldFont   = { name: 'Calibri', bold: true, size: 10 }
+    const cellFont = { name: 'Calibri', size: 10 }
+    const boldFont = { name: 'Calibri', bold: true, size: 10 }
     const globalFont = { name: 'Calibri', bold: true, size: 11, color: { argb: COLOR_GLOBAL_FG } }
 
     // Titre du rapport
@@ -686,7 +775,7 @@ export async function GET(request: NextRequest) {
         stat.prospection,
         stat.negociation,
         stat.conclue,
-        stat.conversionRate / 100,   // formatté en % par Excel
+        stat.conversionRate / 100, // formatté en % par Excel
         stat.revenue,
         stat.targetVolume,
         pctVolume != null ? pctVolume / 100 : null,
@@ -703,19 +792,19 @@ export async function GET(request: NextRequest) {
         cell.alignment = { vertical: 'middle', horizontal: colIdx === 0 ? 'left' : 'center' }
 
         // Formatage numérique
-        if (colIdx === 7) cell.numFmt = '0%'           // Taux conversion
-        if (colIdx === 8) cell.numFmt = '#,##0'         // CA Réalisé
-        if (colIdx === 10) cell.numFmt = '0%'           // % Volume
-        if (colIdx === 11) cell.numFmt = '#,##0'        // Obj. Valeur
-        if (colIdx === 12) cell.numFmt = '0%'           // % Valeur
-        if (colIdx === 13) cell.numFmt = '0%'           // R/O
+        if (colIdx === 7) cell.numFmt = '0%' // Taux conversion
+        if (colIdx === 8) cell.numFmt = '#,##0' // CA Réalisé
+        if (colIdx === 10) cell.numFmt = '0%' // % Volume
+        if (colIdx === 11) cell.numFmt = '#,##0' // Obj. Valeur
+        if (colIdx === 12) cell.numFmt = '0%' // % Valeur
+        if (colIdx === 13) cell.numFmt = '0%' // R/O
 
         // Colorisation conditionnelle : cols 10, 12 et 13
         if ((colIdx === 10 || colIdx === 12 || colIdx === 13) && val != null) {
           const pct = (val as number) * 100
           cell.font = {
             ...cellFont,
-            bold: colIdx === 13,   // R/O en gras pour le mettre en avant
+            bold: colIdx === 13, // R/O en gras pour le mettre en avant
             size: colIdx === 13 ? 11 : 10,
             color: {
               argb: pct >= 100 ? COLOR_GREEN : pct >= 75 ? COLOR_ORANGE : COLOR_RED
@@ -729,7 +818,11 @@ export async function GET(request: NextRequest) {
             cell.value = '—'
             cell.font = { name: 'Calibri', italic: true, size: 10, color: { argb: '999999' } }
           }
-          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: isAlt ? 'DFF0EA' : 'EAF7F2' } }
+          cell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: isAlt ? 'DFF0EA' : 'EAF7F2' }
+          }
         }
       })
 
@@ -753,7 +846,8 @@ export async function GET(request: NextRequest) {
 
     // R/O global = (globalPctVolume + globalPctValue) / 2
     const globalRO: number | null = (() => {
-      if (globalPctVolume != null && globalPctValue != null) return (globalPctVolume + globalPctValue) / 2
+      if (globalPctVolume != null && globalPctValue != null)
+        return (globalPctVolume + globalPctValue) / 2
       if (globalPctVolume != null) return globalPctVolume
       if (globalPctValue != null) return globalPctValue
       return null
@@ -801,20 +895,20 @@ export async function GET(request: NextRequest) {
 
     // ── Largeurs colonnes ────────────────────────────────────────────────────
     summarySheet.columns = [
-      { width: 22 },   // Membre
-      { width: 14 },   // Access ID
-      { width: 12 },   // Période
-      { width: 14 },   // Total prospects
-      { width: 13 },   // Prospection
-      { width: 13 },   // Négociation
-      { width: 13 },   // Conclue Vol.
-      { width: 15 },   // Taux conversion
-      { width: 18 },   // CA Réalisé
-      { width: 13 },   // Obj. Volume
-      { width: 15 },   // % Réal. Vol
-      { width: 18 },   // Obj. Valeur
-      { width: 15 },   // % Réal. Val
-      { width: 26 }    // Obj. Global (R/O)
+      { width: 22 }, // Membre
+      { width: 14 }, // Access ID
+      { width: 12 }, // Période
+      { width: 14 }, // Total prospects
+      { width: 13 }, // Prospection
+      { width: 13 }, // Négociation
+      { width: 13 }, // Conclue Vol.
+      { width: 15 }, // Taux conversion
+      { width: 18 }, // CA Réalisé
+      { width: 13 }, // Obj. Volume
+      { width: 15 }, // % Réal. Vol
+      { width: 18 }, // Obj. Valeur
+      { width: 15 }, // % Réal. Val
+      { width: 26 } // Obj. Global (R/O)
     ]
 
     // Freeze headers
@@ -839,14 +933,19 @@ export async function GET(request: NextRequest) {
       'Email',
       'Note',
       'Prochain suivi',
-      'Date d\'ajout'
+      "Date d'ajout"
     ]
 
     // Titre
     detailSheet.mergeCells(`A1:${String.fromCharCode(64 + detailHeaders.length)}1`)
     const detailTitleCell = detailSheet.getCell('A1')
     detailTitleCell.value = '📋 DÉTAIL DES PROSPECTS'
-    detailTitleCell.font = { name: 'Calibri', bold: true, size: 13, color: { argb: COLOR_HEADER_FG } }
+    detailTitleCell.font = {
+      name: 'Calibri',
+      bold: true,
+      size: 13,
+      color: { argb: COLOR_HEADER_FG }
+    }
     detailTitleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLOR_HEADER_BG } }
     detailTitleCell.alignment = { horizontal: 'center', vertical: 'middle' }
     detailSheet.getRow(1).height = 28
@@ -925,18 +1024,18 @@ export async function GET(request: NextRequest) {
     })
 
     detailSheet.columns = [
-      { width: 24 },  // Entreprise
-      { width: 14 },  // Statut
-      { width: 16 },  // Montant
-      { width: 20 },  // Membre
-      { width: 13 },  // Access ID
-      { width: 16 },  // Ville
-      { width: 18 },  // Secteur
-      { width: 16 },  // Téléphone
-      { width: 24 },  // Email
-      { width: 30 },  // Note
-      { width: 14 },  // Prochain suivi
-      { width: 14 }   // Date ajout
+      { width: 24 }, // Entreprise
+      { width: 14 }, // Statut
+      { width: 16 }, // Montant
+      { width: 20 }, // Membre
+      { width: 13 }, // Access ID
+      { width: 16 }, // Ville
+      { width: 18 }, // Secteur
+      { width: 16 }, // Téléphone
+      { width: 24 }, // Email
+      { width: 30 }, // Note
+      { width: 14 }, // Prochain suivi
+      { width: 14 } // Date ajout
     ]
 
     detailSheet.views = [{ state: 'frozen', ySplit: 2, xSplit: 1 }]

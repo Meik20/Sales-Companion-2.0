@@ -12,36 +12,46 @@ export function BlogSection() {
   const articles = [
     {
       slug: country.code === 'CM' ? 'trouver-clients-b2b-cameroun-2026' : 'blog',
-      title: lang === 'en'
-        ? `How to find B2B clients ${country.englishIn} in 2026`
-        : `Comment trouver des clients B2B ${country.frenchIn} en 2026`,
-      desc: lang === 'en'
-        ? `Complete guide to identify, prospect and close B2B clients on ${country.englishMarket}.`
-        : `Guide complet pour identifier, prospecter et signer des clients B2B sur le marché ${country.frenchAdjective}.`,
+      title:
+        lang === 'en'
+          ? `How to find B2B clients ${country.englishIn} in 2026`
+          : `Comment trouver des clients B2B ${country.frenchIn} en 2026`,
+      desc:
+        lang === 'en'
+          ? `Complete guide to identify, prospect and close B2B clients on ${country.englishMarket}.`
+          : `Guide complet pour identifier, prospecter et signer des clients B2B sur le marché ${country.frenchAdjective}.`,
       badge: lang === 'en' ? 'B2B Prospecting' : 'Prospection B2B',
       readTime: '8 min',
       icon: BookOpen
     },
     {
       slug: country.code === 'CM' ? 'annuaire-entreprises-btp-douala' : 'blog',
-      title: lang === 'en'
-        ? country.code === 'CM' ? 'Construction company directory in Douala: 2026 guide' : `Construction companies ${country.englishIn}: 2026 guide`
-        : country.code === 'CM' ? 'Annuaire des entreprises BTP à Douala : le guide 2026' : `Annuaire des entreprises BTP ${country.frenchIn} : guide 2026`,
-      desc: lang === 'en'
-        ? 'Find the right contacts and win deals in the construction sector.'
-        : 'Identifiez les bons interlocuteurs et décrochez des marchés dans le secteur du bâtiment.',
+      title:
+        lang === 'en'
+          ? country.code === 'CM'
+            ? 'Construction company directory in Douala: 2026 guide'
+            : `Construction companies ${country.englishIn}: 2026 guide`
+          : country.code === 'CM'
+            ? 'Annuaire des entreprises BTP à Douala : le guide 2026'
+            : `Annuaire des entreprises BTP ${country.frenchIn} : guide 2026`,
+      desc:
+        lang === 'en'
+          ? 'Find the right contacts and win deals in the construction sector.'
+          : 'Identifiez les bons interlocuteurs et décrochez des marchés dans le secteur du bâtiment.',
       badge: lang === 'en' ? 'Specialized Directory' : 'Annuaire Spécialisé',
       readTime: '6 min',
       icon: Building
     },
     {
       slug: country.code === 'CM' ? 'niu-rccm-identifier-entreprise-camerounaise' : 'blog',
-      title: lang === 'en'
-        ? `${country.taxLabel} and RCCM: how to identify and qualify a company`
-        : `${country.taxLabel} et RCCM : comment identifier et qualifier une entreprise`,
-      desc: lang === 'en'
-        ? `Understand ${country.taxLabel} and RCCM to verify your prospects and secure your commercial contracts.`
-        : `Comprendre le ${country.taxLabel} et le RCCM pour vérifier vos prospects et sécuriser vos contrats commercialement.`,
+      title:
+        lang === 'en'
+          ? `${country.taxLabel} and RCCM: how to identify and qualify a company`
+          : `${country.taxLabel} et RCCM : comment identifier et qualifier une entreprise`,
+      desc:
+        lang === 'en'
+          ? `Understand ${country.taxLabel} and RCCM to verify your prospects and secure your commercial contracts.`
+          : `Comprendre le ${country.taxLabel} et le RCCM pour vérifier vos prospects et sécuriser vos contrats commercialement.`,
       badge: lang === 'en' ? 'Legal & Tax Guide' : 'Guide Légal & Fiscal',
       readTime: '5 min',
       icon: ShieldCheck
@@ -56,7 +66,9 @@ export function BlogSection() {
             {lang === 'en' ? 'Resources & Guides' : 'Ressources & Guides'}
           </p>
           <h2 className="mt-3 font-heading text-3xl font-semibold tracking-tight text-foreground text-balance sm:text-4xl">
-            {lang === 'en' ? `Tips & B2B Sales ${country.englishIn}` : `Conseils & Vente B2B ${country.frenchIn}`}
+            {lang === 'en'
+              ? `Tips & B2B Sales ${country.englishIn}`
+              : `Conseils & Vente B2B ${country.frenchIn}`}
           </h2>
         </div>
         <Link

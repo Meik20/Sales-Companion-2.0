@@ -88,7 +88,6 @@ export type ReportingData = {
   }
 }
 
-
 export function useReportingData() {
   const { user } = useCurrentUser()
 

@@ -33,7 +33,7 @@ export function formatWhatsAppNumber(phone: string): string | null {
 export function getWhatsAppUrl(phone: string, text?: string): string {
   const formatted = formatWhatsAppNumber(phone)
   const baseUrl = `https://wa.me/${formatted || phone.replace(/\D/g, '')}`
-  
+
   if (text) {
     return `${baseUrl}?text=${encodeURIComponent(text)}`
   }

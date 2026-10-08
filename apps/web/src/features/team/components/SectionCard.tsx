@@ -12,7 +12,9 @@ export function SectionCard({ title, subtitle, actions, children }: Props) {
       <div className={`flex flex-wrap items-start justify-between gap-3 ${children ? 'mb-4' : ''}`}>
         <div>
           <h3 className="m-0 text-[14px] font-bold text-foreground">{title}</h3>
-          {subtitle ? <p className="mt-[3px] m-0 text-[12px] text-muted-foreground">{subtitle}</p> : null}
+          {subtitle ? (
+            <p className="mt-[3px] m-0 text-[12px] text-muted-foreground">{subtitle}</p>
+          ) : null}
         </div>
         {actions ? <div>{actions}</div> : null}
       </div>

@@ -10,7 +10,7 @@
   --goldd: #c8841a;
   --goldl: rgba(245, 166, 35, 0.15);
   /* Base bleue nuit — plus profonde et riche que le noir pur */
-  --dark: #0A0F1A;
+  --dark: #0a0f1a;
   /* Surfaces transparentes (effet verre dépoli) */
   --dark2: rgba(255, 255, 255, 0.03);
   --dark3: rgba(255, 255, 255, 0.06);
@@ -44,11 +44,11 @@ html {
 .public-layout,
 .landing-root {
   /* Override system design tokens locally for all public pages */
-  --bg: #0A0F1A;
+  --bg: #0a0f1a;
   --bg2: rgba(255, 255, 255, 0.04);
   --bg3: rgba(255, 255, 255, 0.08);
   --bg4: rgba(255, 255, 255, 0.12);
-  --dark: #0A0F1A;
+  --dark: #0a0f1a;
   --dark2: rgba(255, 255, 255, 0.04);
   --dark3: rgba(255, 255, 255, 0.08);
   --dark4: rgba(255, 255, 255, 0.12);
@@ -59,7 +59,7 @@ html {
   --bd2: rgba(255, 255, 255, 0.2);
 
   font-family: var(--font-sans), 'Inter', 'DM Sans', sans-serif;
-  background: #0A0F1A !important;
+  background: #0a0f1a !important;
   color: #f8fafc !important;
   min-height: 100vh;
   width: 100%;
@@ -125,14 +125,14 @@ button {
   width: 6px;
 }
 .public-layout ::-webkit-scrollbar-track {
-  background: rgba(255,255,255,0.03);
+  background: rgba(255, 255, 255, 0.03);
 }
 .public-layout ::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.12);
+  background: rgba(255, 255, 255, 0.12);
   border-radius: 999px;
 }
 .public-layout ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255,255,255,0.22);
+  background: rgba(255, 255, 255, 0.22);
 }
 
 /* ─── Halos globaux des pages publiques ────────────────────────────────── */
@@ -315,7 +315,7 @@ button {
   color: #64748b !important;
 }
 .auth-page select option {
-  background: #0A0F1A !important;
+  background: #0a0f1a !important;
   color: #f8fafc !important;
 }
 
@@ -325,7 +325,7 @@ button {
   top: 0;
   z-index: 200;
   height: 60px;
-  background: rgba(10, 15, 26, 0.80);
+  background: rgba(10, 15, 26, 0.8);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border-bottom: 1px solid transparent;
@@ -859,7 +859,9 @@ button {
   background: var(--dark3);
   transform: translateY(-8px);
   border-color: rgba(46, 160, 90, 0.4);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+  box-shadow:
+    0 16px 40px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 .feature-card:hover::before {
   background: linear-gradient(90deg, transparent, rgba(46, 160, 90, 0.8), transparent);
@@ -1326,7 +1328,7 @@ button {
   transition: all var(--tf);
 }
 .nav-mobile-toggle:hover {
-  background: rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.1);
   border-color: var(--bd2);
   color: var(--gm);
 }
@@ -1695,7 +1697,9 @@ button {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  transition: border-color var(--t), background var(--t);
+  transition:
+    border-color var(--t),
+    background var(--t);
 }
 .company-card:hover {
   border-color: rgba(255, 255, 255, 0.15);

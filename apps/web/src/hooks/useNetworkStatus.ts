@@ -146,19 +146,22 @@ export function useNetworkStatus(): NetworkStatus {
     }
   }, [wasOffline, isOnline])
 
-  const setManualOffline = useCallback((val: boolean) => {
-    setIsManualOfflineState(val)
-    if (typeof window !== 'undefined') {
-      try {
-        sessionStorage.setItem(MANUAL_OFFLINE_KEY, val ? 'true' : 'false')
-        window.dispatchEvent(new Event('sc_manual_offline_changed'))
-      } catch {}
-    }
-    if (!val) {
-      setWasOffline(true)
-      checkConnectivity()
-    }
-  }, [checkConnectivity])
+  const setManualOffline = useCallback(
+    (val: boolean) => {
+      setIsManualOfflineState(val)
+      if (typeof window !== 'undefined') {
+        try {
+          sessionStorage.setItem(MANUAL_OFFLINE_KEY, val ? 'true' : 'false')
+          window.dispatchEvent(new Event('sc_manual_offline_changed'))
+        } catch {}
+      }
+      if (!val) {
+        setWasOffline(true)
+        checkConnectivity()
+      }
+    },
+    [checkConnectivity]
+  )
 
   const toggleManualOffline = useCallback(() => {
     setManualOffline(!isManualOffline)

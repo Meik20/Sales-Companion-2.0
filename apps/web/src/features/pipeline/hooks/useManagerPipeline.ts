@@ -27,7 +27,9 @@ export const useManagerPipeline = () => {
       teamSnap.docs.forEach((docSnap) => {
         seen.add(docSnap.id)
         const data = docSnap.data()
-        const compName = String(data.companyName || data.name || '').trim().toLowerCase()
+        const compName = String(data.companyName || data.name || '')
+          .trim()
+          .toLowerCase()
         if (compName) {
           assignedCompanies.add(compName)
         }
@@ -40,7 +42,7 @@ export const useManagerPipeline = () => {
           userId: (data.userId || user.uid) as string,
           createdAt: formatTimestamp(data.createdAt) || new Date().toISOString(),
           updatedAt: formatTimestamp(data.updatedAt) || new Date().toISOString()
-        } as unknown as (PipelineDoc & { id: string }))
+        } as unknown as PipelineDoc & { id: string })
       })
 
       try {
@@ -49,11 +51,18 @@ export const useManagerPipeline = () => {
         ownSnap.docs.forEach((docSnap) => {
           if (!seen.has(docSnap.id)) {
             const data = docSnap.data()
-            const compName = String(data.companyName || data.name || '').trim().toLowerCase()
+            const compName = String(data.companyName || data.name || '')
+              .trim()
+              .toLowerCase()
             // Ne supprimer de la vue que si l'entreprise a déjà une fiche ASSIGNÉE à un membre
             // (la fiche membre a assignedTo != null dans teamSnap).
             // Un prospect manager en attente d'assignation (assignedTo = null) doit rester visible.
-            if (compName && assignedCompanies.has(compName) && data.assignedTo && data.assignedTo !== user.uid) {
+            if (
+              compName &&
+              assignedCompanies.has(compName) &&
+              data.assignedTo &&
+              data.assignedTo !== user.uid
+            ) {
               return
             }
             seen.add(docSnap.id)
@@ -66,7 +75,7 @@ export const useManagerPipeline = () => {
               userId: (data.userId || user.uid) as string,
               createdAt: formatTimestamp(data.createdAt) || new Date().toISOString(),
               updatedAt: formatTimestamp(data.updatedAt) || new Date().toISOString()
-            } as unknown as (PipelineDoc & { id: string }))
+            } as unknown as PipelineDoc & { id: string })
           }
         })
       } catch {
@@ -86,4 +95,3 @@ export const useManagerPipeline = () => {
     refetchOnWindowFocus: false
   })
 }
-

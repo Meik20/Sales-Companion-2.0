@@ -8,9 +8,9 @@ vi.mock('@/hooks/useCurrentUser', () => ({
   useCurrentUser: () => ({
     user: {
       uid: 'test-user-id',
-      getIdToken: vi.fn().mockResolvedValue('test-token'),
-    },
-  }),
+      getIdToken: vi.fn().mockResolvedValue('test-token')
+    }
+  })
 }))
 
 describe('useAdminUsers', () => {
@@ -22,9 +22,7 @@ describe('useAdminUsers', () => {
   })
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   )
 
   it('should fetch users list successfully', async () => {
@@ -35,15 +33,15 @@ describe('useAdminUsers', () => {
           email: 'user1@example.com',
           name: 'User One',
           role: 'member',
-          active: true,
-        },
+          active: true
+        }
       ],
-      total: 1,
+      total: 1
     }
 
     global.fetch = vi.fn().mockResolvedValueOnce({
       ok: true,
-      json: async () => mockUsers,
+      json: async () => mockUsers
     })
 
     const { result } = renderHook(() => useAdminUsers(), { wrapper })
@@ -57,7 +55,7 @@ describe('useAdminUsers', () => {
 
   it('should return empty array on fetch failure', async () => {
     global.fetch = vi.fn().mockResolvedValueOnce({
-      ok: false,
+      ok: false
     })
 
     const { result } = renderHook(() => useAdminUsers(), { wrapper })

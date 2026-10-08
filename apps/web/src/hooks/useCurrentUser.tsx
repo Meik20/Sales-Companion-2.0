@@ -128,12 +128,14 @@ function useCurrentUserSource(): UserContextValue {
             // Sync email if changed & verified in Firebase Auth
             if (firebaseUser.email && data.email !== firebaseUser.email) {
               updateDoc(userDocRef, { email: firebaseUser.email }).catch((err) => {
-                console.error("Failed to sync email to Firestore:", err)
+                console.error('Failed to sync email to Firestore:', err)
               })
             }
 
             // ── Tracking horaire : Vérification de l'échéance à minuit (30ème jour) ──
-            const rawExpiresAt = (data.subscriptionExpiresAt ?? data.planExpiresAt ?? null) as string | null
+            const rawExpiresAt = (data.subscriptionExpiresAt ?? data.planExpiresAt ?? null) as
+              | string
+              | null
             const hasExpired =
               Boolean(rawExpiresAt) &&
               !isNaN(new Date(rawExpiresAt!).getTime()) &&
@@ -145,12 +147,15 @@ function useCurrentUserSource(): UserContextValue {
               // Rétrogradation immédiate côté client vers "free"
               effectivePlan = 'free'
               // Déclencher la persistance Firestore côté serveur
-              firebaseUser.getIdToken().then((token) => {
-                fetch('/api/subscription/check-expiry', {
-                  method: 'POST',
-                  headers: { Authorization: `Bearer ${token}` }
-                }).catch(() => {})
-              }).catch(() => {})
+              firebaseUser
+                .getIdToken()
+                .then((token) => {
+                  fetch('/api/subscription/check-expiry', {
+                    method: 'POST',
+                    headers: { Authorization: `Bearer ${token}` }
+                  }).catch(() => {})
+                })
+                .catch(() => {})
             }
 
             // Minuteur automatique à minuit si l'échéance est dans les prochaines 24h
@@ -160,12 +165,15 @@ function useCurrentUserSource(): UserContextValue {
                 if (expiryTimer) clearTimeout(expiryTimer)
                 expiryTimer = setTimeout(() => {
                   firebaseUser.getIdToken(true).catch(() => {})
-                  firebaseUser.getIdToken().then((token) => {
-                    fetch('/api/subscription/check-expiry', {
-                      method: 'POST',
-                      headers: { Authorization: `Bearer ${token}` }
-                    }).catch(() => {})
-                  }).catch(() => {})
+                  firebaseUser
+                    .getIdToken()
+                    .then((token) => {
+                      fetch('/api/subscription/check-expiry', {
+                        method: 'POST',
+                        headers: { Authorization: `Bearer ${token}` }
+                      }).catch(() => {})
+                    })
+                    .catch(() => {})
                 }, msUntilMidnight)
               }
             }
@@ -174,8 +182,10 @@ function useCurrentUserSource(): UserContextValue {
             const userPlan = effectivePlan
             const isMonthly = userPlan === 'free'
             const isSamePeriod = isMonthly
-              ? (data.lastResetDate ? data.lastResetDate.slice(0, 7) === today.slice(0, 7) : false)
-              : (data.lastResetDate === today)
+              ? data.lastResetDate
+                ? data.lastResetDate.slice(0, 7) === today.slice(0, 7)
+                : false
+              : data.lastResetDate === today
             const currentDailyUsed = isSamePeriod ? (data.dailyUsed ?? 0) : 0
             const resolvedDailyLimit = PLAN_LIMITS[userPlan] ?? 10
 
@@ -184,7 +194,9 @@ function useCurrentUserSource(): UserContextValue {
               firebaseUser.getIdToken(true).catch(() => {})
               if (typeof window !== 'undefined') {
                 window.dispatchEvent(
-                  new CustomEvent('sc:plan-upgraded', { detail: { newPlan: userPlan, oldPlan: prevPlan } })
+                  new CustomEvent('sc:plan-upgraded', {
+                    detail: { newPlan: userPlan, oldPlan: prevPlan }
+                  })
                 )
               }
             }
@@ -231,12 +243,16 @@ function useCurrentUserSource(): UserContextValue {
               subscriptionExpired: currentUserObj.subscriptionExpired,
               subscriptionExpiresAt: currentUserObj.subscriptionExpiresAt,
               managerUid: currentUserObj.managerUid,
-              companyId: currentUserObj.companyId,
+              companyId: currentUserObj.companyId
             })
             if (structuralFingerprint === prevUserSnapshot) {
               // Seuls des champs volatiles (dailyUsed, dailyLimit) ont changé —
               // mettre à jour le state de manière légère sans écrire sessionStorage
-              setUser((prev) => prev ? { ...prev, dailyUsed: currentDailyUsed, dailyLimit: resolvedDailyLimit } : currentUserObj)
+              setUser((prev) =>
+                prev
+                  ? { ...prev, dailyUsed: currentDailyUsed, dailyLimit: resolvedDailyLimit }
+                  : currentUserObj
+              )
             } else {
               prevUserSnapshot = structuralFingerprint
               setUser(currentUserObj)

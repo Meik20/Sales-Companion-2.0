@@ -82,7 +82,9 @@ export function useCompaniesSearch(filters: SearchFilters & { page?: number; cha
             fromCache: true
           }
         }
-        throw new Error('Recherche indisponible hors ligne. Seules les recherches préalablement consultées sont disponibles.')
+        throw new Error(
+          'Recherche indisponible hors ligne. Seules les recherches préalablement consultées sont disponibles.'
+        )
       }
 
       const params = new URLSearchParams()
@@ -145,4 +147,3 @@ export function useCompaniesSearch(filters: SearchFilters & { page?: number; cha
     staleTime: 1000 * 60 * 2
   })
 }
-

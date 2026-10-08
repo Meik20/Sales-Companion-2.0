@@ -9,18 +9,18 @@ vi.mock('@/hooks/useCurrentUser', () => ({
   useCurrentUser: () => ({
     user: {
       uid: 'test-user-id',
-      getIdToken: vi.fn().mockResolvedValue('test-token'),
-    },
-  }),
+      getIdToken: vi.fn().mockResolvedValue('test-token')
+    }
+  })
 }))
 
 vi.mock('@/services/firebase/client', () => ({
-  firestore: {},
+  firestore: {}
 }))
 
 vi.mock('firebase/firestore', () => ({
   doc: vi.fn(),
-  deleteDoc: vi.fn().mockResolvedValue(undefined),
+  deleteDoc: vi.fn().mockResolvedValue(undefined)
 }))
 
 describe('useDeletePipelineItem', () => {
@@ -32,9 +32,7 @@ describe('useDeletePipelineItem', () => {
   })
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   )
 
   it('should delete pipeline item successfully', async () => {
@@ -51,4 +49,3 @@ describe('useDeletePipelineItem', () => {
     expect(deleteDoc).toHaveBeenCalled()
   })
 })
-

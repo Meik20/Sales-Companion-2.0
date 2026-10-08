@@ -33,7 +33,9 @@ export async function POST(request: NextRequest) {
     const threadData = threadDoc.data() || {}
     const userEmail = (threadData.userEmail || '').trim().toLowerCase()
     const userName = threadData.userName || 'Cher utilisateur'
-    const cleanReason = (reason || "Informations non conformes aux exigences de gouvernance d'entreprise.").trim()
+    const cleanReason = (
+      reason || "Informations non conformes aux exigences de gouvernance d'entreprise."
+    ).trim()
 
     const now = FieldValue.serverTimestamp()
 
@@ -142,9 +144,6 @@ Si vous avez des questions ou souhaitez apporter des justificatifs supplémentai
       return NextResponse.json({ error: 'Accès interdit.' }, { status: 403 })
     }
     console.error('Erreur rejet modification profil:', error)
-    return NextResponse.json(
-      { error: 'Erreur lors du rejet de la demande.' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Erreur lors du rejet de la demande.' }, { status: 500 })
   }
 }

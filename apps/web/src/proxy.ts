@@ -6,7 +6,7 @@ const ALLOWED_BOTS = [
   /google-inspectiontool/i,
   /adsbot-google/i,
   /bingbot/i,
-  /slurp/i,        // Yahoo
+  /slurp/i, // Yahoo
   /duckduckbot/i,
   /baiduspider/i,
   /yandexbot/i,
@@ -56,9 +56,9 @@ const BOT_UA_PATTERNS = [
 
 // ── In-memory IP rate limiter (Edge-compatible, per-instance) ─────────────────
 const ipStore = new Map<string, { count: number; resetAt: number }>()
-const API_RATE_LIMIT = 200      // ← augmenté (était 60)
-const API_RATE_WINDOW = 60_000  // 1 minute
-const SEARCH_RATE_LIMIT = 30    // ← augmenté (était 10)
+const API_RATE_LIMIT = 200 // ← augmenté (était 60)
+const API_RATE_WINDOW = 60_000 // 1 minute
+const SEARCH_RATE_LIMIT = 30 // ← augmenté (était 10)
 const SEARCH_RATE_WINDOW = 10_000 // 10 secondes
 
 function getClientIp(req: NextRequest): string {
@@ -73,7 +73,10 @@ function getClientIp(req: NextRequest): string {
 
   const xff = req.headers.get('x-forwarded-for')
   if (xff) {
-    const parts = xff.split(',').map((p) => p.trim()).filter(Boolean)
+    const parts = xff
+      .split(',')
+      .map((p) => p.trim())
+      .filter(Boolean)
     if (parts.length > 0) return parts[parts.length - 1] ?? 'unknown'
   }
 
@@ -142,16 +145,13 @@ export function proxy(req: NextRequest) {
       const allowed = checkRateLimit(key, limit, window)
 
       if (!allowed) {
-        return new NextResponse(
-          JSON.stringify({ error: 'Too many requests. Please slow down.' }),
-          {
-            status: 429,
-            headers: {
-              'Content-Type': 'application/json',
-              'Retry-After': '60'
-            }
+        return new NextResponse(JSON.stringify({ error: 'Too many requests. Please slow down.' }), {
+          status: 429,
+          headers: {
+            'Content-Type': 'application/json',
+            'Retry-After': '60'
           }
-        )
+        })
       }
     }
   }

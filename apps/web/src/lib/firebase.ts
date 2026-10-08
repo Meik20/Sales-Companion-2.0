@@ -3,4 +3,3 @@ import { app, firestore } from '@/services/firebase/client'
 
 export { app }
 export const db = firestore
-

@@ -29,7 +29,10 @@ export async function GET(request: NextRequest) {
 
     const managerDoc = await adminDb.collection('users').doc(managerUid).get()
     if (!hasActivePaidManagerAccess(managerDoc.data())) {
-      return NextResponse.json({ message: 'Un abonnement Manager actif et vérifié est requis.' }, { status: 403 })
+      return NextResponse.json(
+        { message: 'Un abonnement Manager actif et vérifié est requis.' },
+        { status: 403 }
+      )
     }
 
     const [teamSnap, legacySnap] = await Promise.all([
@@ -92,7 +95,10 @@ export async function GET(request: NextRequest) {
         let memberUid = data.assigneeUid ?? ''
         if (assigneeId) {
           try {
-            const aDoc = await adminDb.collection('team_accesses').doc(assigneeId.trim().toLowerCase()).get()
+            const aDoc = await adminDb
+              .collection('team_accesses')
+              .doc(assigneeId.trim().toLowerCase())
+              .get()
             if (aDoc.exists) {
               const ad = aDoc.data() || {}
               memberName = `${ad.firstname ?? ''} ${ad.lastname ?? ''}`.trim()
@@ -160,13 +166,15 @@ export async function POST(request: NextRequest) {
       const managerDoc = await adminDb.collection('users').doc(managerUid).get()
       managerData = managerDoc.data()
       if (!hasActivePaidManagerAccess(managerData) || decoded.email_verified !== true) {
-        return NextResponse.json({ message: 'Un abonnement Manager actif et vérifié est requis.' }, { status: 403 })
+        return NextResponse.json(
+          { message: 'Un abonnement Manager actif et vérifié est requis.' },
+          { status: 403 }
+        )
       }
       managerName = managerData?.name ?? managerData?.email ?? ''
     } catch {
       return NextResponse.json({ message: 'Token invalide' }, { status: 401 })
     }
-
 
     const body = (await request.json().catch(() => ({}))) as {
       pipelineItemId?: string
@@ -250,10 +258,14 @@ export async function POST(request: NextRequest) {
 
     // Contrôle d'isolation sur le prospect source :
     // Si le prospect est déjà rattaché à un manager/utilisateur différent hors de l'organisation, interdire l'assignation.
-    const prospectManagerUid = (prospectData.managerUid || prospectData.userId) as string | undefined
+    const prospectManagerUid = (prospectData.managerUid || prospectData.userId) as
+      | string
+      | undefined
     const prospectOrgCode = prospectData.orgCode as string | undefined
     if (prospectManagerUid && prospectManagerUid !== managerUid) {
-      const isOrgMatch = Boolean(managerData?.orgCode && prospectOrgCode && prospectOrgCode === managerData.orgCode)
+      const isOrgMatch = Boolean(
+        managerData?.orgCode && prospectOrgCode && prospectOrgCode === managerData.orgCode
+      )
       if (!isOrgMatch) {
         return NextResponse.json(
           { message: "Vous n'avez pas l'autorisation d'assigner ce prospect." },
@@ -271,7 +283,9 @@ export async function POST(request: NextRequest) {
 
     // Contrôle d'isolation multi-tenant : le membre doit être rattaché au manager ou à la même org
     const isSameManager = memberData.managerUid === managerUid
-    const isSameOrg = Boolean(managerData?.orgCode && memberData.orgCode && memberData.orgCode === managerData.orgCode)
+    const isSameOrg = Boolean(
+      managerData?.orgCode && memberData.orgCode && memberData.orgCode === managerData.orgCode
+    )
     if (!isSameManager && !isSameOrg) {
       return NextResponse.json(
         { message: "Ce membre n'appartient pas à votre équipe ni à votre organisation." },
@@ -325,7 +339,8 @@ export async function POST(request: NextRequest) {
           .get()
         bySource.docs.forEach((doc) => {
           const d = doc.data()
-          const isManager = d.userId === managerUid || d.assignedTo === managerUid || d.role === 'manager'
+          const isManager =
+            d.userId === managerUid || d.assignedTo === managerUid || d.role === 'manager'
           if (d.userId && d.userId !== memberId && !isManager) {
             prevAssigneesMap.set(d.userId, {
               userId: d.userId,
@@ -346,7 +361,8 @@ export async function POST(request: NextRequest) {
           .get()
         byName.docs.forEach((doc) => {
           const d = doc.data()
-          const isManager = d.userId === managerUid || d.assignedTo === managerUid || d.role === 'manager'
+          const isManager =
+            d.userId === managerUid || d.assignedTo === managerUid || d.role === 'manager'
           if (d.userId && d.userId !== memberId && !isManager) {
             prevAssigneesMap.set(d.userId, {
               userId: d.userId,
@@ -448,7 +464,11 @@ export async function POST(request: NextRequest) {
     try {
       if (pipelineItemId) {
         const origDoc = await adminDb.collection('pipeline').doc(pipelineItemId).get()
-        if (origDoc.exists && origDoc.data()?.userId === managerUid && !origDoc.data()?.assignedTo) {
+        if (
+          origDoc.exists &&
+          origDoc.data()?.userId === managerUid &&
+          !origDoc.data()?.assignedTo
+        ) {
           await origDoc.ref.delete()
         }
       }

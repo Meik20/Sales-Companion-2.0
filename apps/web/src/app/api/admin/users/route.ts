@@ -28,8 +28,10 @@ export async function GET(request: NextRequest) {
       const plan = (data.plan || 'free') as keyof typeof PLAN_LIMITS
       const isMonthly = plan === 'free'
       const isSamePeriod = isMonthly
-        ? (data.lastResetDate ? data.lastResetDate.slice(0, 7) === today.slice(0, 7) : false)
-        : (data.lastResetDate === today)
+        ? data.lastResetDate
+          ? data.lastResetDate.slice(0, 7) === today.slice(0, 7)
+          : false
+        : data.lastResetDate === today
       const currentDailyUsed = isSamePeriod ? (data.dailyUsed ?? 0) : 0
       return {
         uid: doc.id,

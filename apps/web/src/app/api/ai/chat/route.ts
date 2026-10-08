@@ -5,22 +5,108 @@ import { getClientIp, checkRateLimit, checkRateLimitByUser } from '@/lib/rate-li
 import { GEMINI_TOOLS, GROQ_TOOLS, executeAITool } from '@/lib/ai-tools'
 import { searchCompanies, type CompanyRecord } from '@/lib/company-search'
 import { PLAN_LIMITS } from '@sales-companion/shared'
-import { COUNTRY_FRENCH_ADJECTIVE, COUNTRY_FRENCH_IN, COUNTRY_NAMES, GEOGRAPHY, type CountryCode } from '@sales-companion/shared'
+import {
+  COUNTRY_FRENCH_ADJECTIVE,
+  COUNTRY_FRENCH_IN,
+  COUNTRY_NAMES,
+  GEOGRAPHY,
+  type CountryCode
+} from '@sales-companion/shared'
 
 function detectSectorFromText(text: string): string | undefined {
   const t = text.toLowerCase()
-  if (t.includes('btp') || t.includes('construction') || t.includes('batiment') || t.includes('immobilier')) return 'BTP & Construction'
-  if (t.includes('agro') || t.includes('agriculture') || t.includes('alimentaire') || t.includes('elevage')) return 'Agriculture & Agroalimentaire'
-  if (t.includes('tech') || t.includes('informatique') || t.includes('numerique') || t.includes('logiciel') || t.includes('digital')) return 'Technologies & Numérique'
-  if (t.includes('transport') || t.includes('logistique') || t.includes('fret') || t.includes('livraison')) return 'Transport & Logistique'
-  if (t.includes('sante') || t.includes('medical') || t.includes('pharmacie') || t.includes('clinique') || t.includes('hopital')) return 'Santé'
-  if (t.includes('commerce') || t.includes('vente') || t.includes('distribution') || t.includes('import') || t.includes('export')) return 'Commerce'
-  if (t.includes('finance') || t.includes('banque') || t.includes('assurance') || t.includes('microfinance') || t.includes('comptabilite')) return 'Finance & Assurance'
-  if (t.includes('energie') || t.includes('mine') || t.includes('petrole') || t.includes('gaz') || t.includes('solaire') || t.includes('eau')) return 'Énergie & Mines'
-  if (t.includes('industrie') || t.includes('usine') || t.includes('fabrication') || t.includes('manufacture')) return 'Industrie manufacturière'
-  if (t.includes('hotel') || t.includes('restaurant') || t.includes('tourisme') || t.includes('traiteur')) return 'Hôtellerie & Restauration'
-  if (t.includes('education') || t.includes('formation') || t.includes('ecole') || t.includes('universite') || t.includes('academie')) return 'Éducation & Formation'
-  if (t.includes('service') || t.includes('conseil') || t.includes('audit') || t.includes('consulting') || t.includes('communication')) return 'Services & Conseil'
+  if (
+    t.includes('btp') ||
+    t.includes('construction') ||
+    t.includes('batiment') ||
+    t.includes('immobilier')
+  )
+    return 'BTP & Construction'
+  if (
+    t.includes('agro') ||
+    t.includes('agriculture') ||
+    t.includes('alimentaire') ||
+    t.includes('elevage')
+  )
+    return 'Agriculture & Agroalimentaire'
+  if (
+    t.includes('tech') ||
+    t.includes('informatique') ||
+    t.includes('numerique') ||
+    t.includes('logiciel') ||
+    t.includes('digital')
+  )
+    return 'Technologies & Numérique'
+  if (
+    t.includes('transport') ||
+    t.includes('logistique') ||
+    t.includes('fret') ||
+    t.includes('livraison')
+  )
+    return 'Transport & Logistique'
+  if (
+    t.includes('sante') ||
+    t.includes('medical') ||
+    t.includes('pharmacie') ||
+    t.includes('clinique') ||
+    t.includes('hopital')
+  )
+    return 'Santé'
+  if (
+    t.includes('commerce') ||
+    t.includes('vente') ||
+    t.includes('distribution') ||
+    t.includes('import') ||
+    t.includes('export')
+  )
+    return 'Commerce'
+  if (
+    t.includes('finance') ||
+    t.includes('banque') ||
+    t.includes('assurance') ||
+    t.includes('microfinance') ||
+    t.includes('comptabilite')
+  )
+    return 'Finance & Assurance'
+  if (
+    t.includes('energie') ||
+    t.includes('mine') ||
+    t.includes('petrole') ||
+    t.includes('gaz') ||
+    t.includes('solaire') ||
+    t.includes('eau')
+  )
+    return 'Énergie & Mines'
+  if (
+    t.includes('industrie') ||
+    t.includes('usine') ||
+    t.includes('fabrication') ||
+    t.includes('manufacture')
+  )
+    return 'Industrie manufacturière'
+  if (
+    t.includes('hotel') ||
+    t.includes('restaurant') ||
+    t.includes('tourisme') ||
+    t.includes('traiteur')
+  )
+    return 'Hôtellerie & Restauration'
+  if (
+    t.includes('education') ||
+    t.includes('formation') ||
+    t.includes('ecole') ||
+    t.includes('universite') ||
+    t.includes('academie')
+  )
+    return 'Éducation & Formation'
+  if (
+    t.includes('service') ||
+    t.includes('conseil') ||
+    t.includes('audit') ||
+    t.includes('consulting') ||
+    t.includes('communication')
+  )
+    return 'Services & Conseil'
   return undefined
 }
 
@@ -127,7 +213,10 @@ export async function POST(request: NextRequest) {
     const ipLimit = await checkRateLimit(ip, { limit: 15, windowMs: 60 * 1000 })
     if (!ipLimit.success) {
       return NextResponse.json(
-        { error: 'Trop de requêtes depuis cette adresse IP. Veuillez réessayer dans une minute.', message: 'Rate limit exceeded' },
+        {
+          error: 'Trop de requêtes depuis cette adresse IP. Veuillez réessayer dans une minute.',
+          message: 'Rate limit exceeded'
+        },
         { status: 429 }
       )
     }
@@ -152,7 +241,10 @@ export async function POST(request: NextRequest) {
         const userLimit = await checkRateLimitByUser(userId, { limit: 10, windowMs: 60 * 1000 })
         if (!userLimit.success) {
           return NextResponse.json(
-            { error: 'Trop de requêtes pour votre compte. Veuillez ralentir.', message: 'Rate limit exceeded' },
+            {
+              error: 'Trop de requêtes pour votre compte. Veuillez ralentir.',
+              message: 'Rate limit exceeded'
+            },
             { status: 429 }
           )
         }
@@ -169,7 +261,10 @@ export async function POST(request: NextRequest) {
 
           if (plan === 'free') {
             return NextResponse.json(
-              { error: "L'assistant IA n'est pas disponible pour le plan gratuit.", message: 'AI assistant not available for free plan' },
+              {
+                error: "L'assistant IA n'est pas disponible pour le plan gratuit.",
+                message: 'AI assistant not available for free plan'
+              },
               { status: 403 }
             )
           }
@@ -223,7 +318,9 @@ export async function POST(request: NextRequest) {
 
     // Override du pays de prospection actif (envoyé par le client ou présent dans les cookies)
     const cookieCountry = request.cookies.get('sc_country')?.value?.toUpperCase()
-    const targetCountryCode = (reqCountry?.toUpperCase() || cookieCountry) as CountryCode | undefined
+    const targetCountryCode = (reqCountry?.toUpperCase() || cookieCountry) as
+      | CountryCode
+      | undefined
     if (targetCountryCode && COUNTRY_NAMES[targetCountryCode]) {
       userCountry = targetCountryCode
     }
@@ -360,7 +457,9 @@ async function callGeminiWithTools(
       const candidate = data?.candidates?.[0]
       const parts = candidate?.content?.parts || []
 
-      const functionCallPart = parts.find((p: { functionCall?: { name: string; args: Record<string, unknown> } }) => p.functionCall)
+      const functionCallPart = parts.find(
+        (p: { functionCall?: { name: string; args: Record<string, unknown> } }) => p.functionCall
+      )
 
       if (functionCallPart && functionCallPart.functionCall) {
         const { name, args } = functionCallPart.functionCall
@@ -425,14 +524,14 @@ async function callGroqWithTools(
   systemPrompt: string,
   country: string
 ): Promise<string | null> {
-  const models = [
-    'openai/gpt-oss-120b',
-    'qwen/qwen3.8-27b',
-    'groq/compound',
-    'openai/gpt-oss-20b'
-  ]
+  const models = ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b', 'groq/compound', 'openai/gpt-oss-20b']
 
-  const messages: { role: string; content?: string | null; tool_calls?: unknown; tool_call_id?: string }[] = [
+  const messages: {
+    role: string
+    content?: string | null
+    tool_calls?: unknown
+    tool_call_id?: string
+  }[] = [
     { role: 'system', content: systemPrompt },
     ...history.map((h) => ({
       role: h.role === 'model' ? 'assistant' : 'user',
@@ -468,7 +567,11 @@ async function callGroqWithTools(
       const choice = data?.choices?.[0]
       const choiceMessage = choice?.message
 
-      if (choiceMessage?.tool_calls && Array.isArray(choiceMessage.tool_calls) && choiceMessage.tool_calls.length > 0) {
+      if (
+        choiceMessage?.tool_calls &&
+        Array.isArray(choiceMessage.tool_calls) &&
+        choiceMessage.tool_calls.length > 0
+      ) {
         messages.push(choiceMessage)
 
         for (const toolCall of choiceMessage.tool_calls) {

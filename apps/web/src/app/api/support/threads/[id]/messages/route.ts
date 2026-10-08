@@ -5,10 +5,7 @@ import { FieldValue } from 'firebase-admin/firestore'
 import { getFirebaseAdmin, verifyRequestUser } from '@/lib/api-auth'
 
 /** POST /api/support/threads/[id]/messages — réponse utilisateur */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const auth = await verifyRequestUser(request)
     if ('error' in auth) return auth.error

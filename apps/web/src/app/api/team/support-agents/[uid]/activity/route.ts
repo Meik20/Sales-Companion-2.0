@@ -7,10 +7,7 @@ import { hasActivePaidManagerAccess } from '@/lib/manager-access'
  * GET /api/team/support-agents/[uid]/activity
  * Retourne l'activité complète (appels, tickets, actions CRM) d'un agent support pour le manager
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ uid: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ uid: string }> }) {
   try {
     const { uid } = await params
     const token = request.headers.get('authorization')?.split(' ')[1]
@@ -51,7 +48,8 @@ export async function GET(
       const firstDoc = accessSnap.docs[0]
       if (firstDoc) {
         const aData = firstDoc.data()
-        agentName = [aData?.firstname, aData?.lastname].filter(Boolean).join(' ') || aData?.name || agentName
+        agentName =
+          [aData?.firstname, aData?.lastname].filter(Boolean).join(' ') || aData?.name || agentName
         agentEmail = aData?.email || ''
         agentAccessId = aData?.accessId || ''
       }
@@ -64,15 +62,22 @@ export async function GET(
       .get()
 
     const allCalls = callsSnap.docs
-      .map(doc => {
+      .map((doc) => {
         const d = doc.data()
         return {
           id: doc.id,
           ...d,
-          createdAt: d.createdAt?.toDate?.()?.toISOString() ?? (d.createdAt ? new Date(d.createdAt).toISOString() : null)
+          createdAt:
+            d.createdAt?.toDate?.()?.toISOString() ??
+            (d.createdAt ? new Date(d.createdAt).toISOString() : null)
         }
       })
-      .filter((c: any) => c.agentUid === uid || (agentAccessId && c.agentAccessId === agentAccessId) || (agentName && c.agentName === agentName))
+      .filter(
+        (c: any) =>
+          c.agentUid === uid ||
+          (agentAccessId && c.agentAccessId === agentAccessId) ||
+          (agentName && c.agentName === agentName)
+      )
       .sort((a: any, b: any) => {
         const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0
         const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0
@@ -86,13 +91,17 @@ export async function GET(
       .get()
 
     const allTickets = ticketsSnap.docs
-      .map(doc => {
+      .map((doc) => {
         const d = doc.data()
         return {
           id: doc.id,
           ...d,
-          createdAt: d.createdAt?.toDate?.()?.toISOString() ?? (d.createdAt ? new Date(d.createdAt).toISOString() : null),
-          updatedAt: d.updatedAt?.toDate?.()?.toISOString() ?? (d.updatedAt ? new Date(d.updatedAt).toISOString() : null)
+          createdAt:
+            d.createdAt?.toDate?.()?.toISOString() ??
+            (d.createdAt ? new Date(d.createdAt).toISOString() : null),
+          updatedAt:
+            d.updatedAt?.toDate?.()?.toISOString() ??
+            (d.updatedAt ? new Date(d.updatedAt).toISOString() : null)
         }
       })
       .filter((t: any) => t.agentUid === uid || (agentName && t.agentName === agentName))
@@ -111,18 +120,22 @@ export async function GET(
         .limit(50)
         .get()
 
-      crmActivities = crmSnap.docs.map(doc => {
-        const d = doc.data()
-        return {
-          id: doc.id,
-          ...d,
-          createdAt: d.createdAt?.toDate?.()?.toISOString() ?? (d.createdAt ? new Date(d.createdAt).toISOString() : null)
-        }
-      }).sort((a: any, b: any) => {
-        const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0
-        const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0
-        return tb - ta
-      })
+      crmActivities = crmSnap.docs
+        .map((doc) => {
+          const d = doc.data()
+          return {
+            id: doc.id,
+            ...d,
+            createdAt:
+              d.createdAt?.toDate?.()?.toISOString() ??
+              (d.createdAt ? new Date(d.createdAt).toISOString() : null)
+          }
+        })
+        .sort((a: any, b: any) => {
+          const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0
+          const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0
+          return tb - ta
+        })
     } catch (e) {
       console.warn('[support agent crm_activities lookup]', e)
     }
@@ -130,9 +143,14 @@ export async function GET(
     // Calcul des KPIs de cet agent
     const callsCount = allCalls.length
     const ticketsCount = allTickets.length
-    const resolvedTicketsCount = allTickets.filter((t: any) => ['resolved', 'closed'].includes(t.status || '')).length
-    const openTicketsCount = allTickets.filter((t: any) => ['open', 'in_progress'].includes(t.status || '')).length
-    const resolutionRate = ticketsCount > 0 ? Math.round((resolvedTicketsCount / ticketsCount) * 100) : 0
+    const resolvedTicketsCount = allTickets.filter((t: any) =>
+      ['resolved', 'closed'].includes(t.status || '')
+    ).length
+    const openTicketsCount = allTickets.filter((t: any) =>
+      ['open', 'in_progress'].includes(t.status || '')
+    ).length
+    const resolutionRate =
+      ticketsCount > 0 ? Math.round((resolvedTicketsCount / ticketsCount) * 100) : 0
 
     return NextResponse.json({
       agent: {

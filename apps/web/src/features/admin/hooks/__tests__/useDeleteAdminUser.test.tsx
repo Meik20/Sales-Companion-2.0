@@ -8,9 +8,9 @@ vi.mock('@/hooks/useCurrentUser', () => ({
   useCurrentUser: () => ({
     user: {
       uid: 'test-user-id',
-      getIdToken: vi.fn().mockResolvedValue('test-token'),
-    },
-  }),
+      getIdToken: vi.fn().mockResolvedValue('test-token')
+    }
+  })
 }))
 
 describe('useDeleteAdminUser', () => {
@@ -22,15 +22,13 @@ describe('useDeleteAdminUser', () => {
   })
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   )
 
   it('should delete user successfully', async () => {
     global.fetch = vi.fn().mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ success: true }),
+      json: async () => ({ success: true })
     })
 
     const { result } = renderHook(() => useDeleteAdminUser(), { wrapper })
@@ -47,7 +45,7 @@ describe('useDeleteAdminUser', () => {
   it('should handle delete errors', async () => {
     global.fetch = vi.fn().mockResolvedValueOnce({
       ok: false,
-      json: async () => ({ message: 'Delete failed' }),
+      json: async () => ({ message: 'Delete failed' })
     })
 
     const { result } = renderHook(() => useDeleteAdminUser(), { wrapper })

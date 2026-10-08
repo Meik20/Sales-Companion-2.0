@@ -38,7 +38,7 @@ function AuthActionContent() {
         })
         .catch((err: unknown) => {
           console.error(err)
-          setError("Ce lien de validation est invalide ou a déjà expiré.")
+          setError('Ce lien de validation est invalide ou a déjà expiré.')
           setLoading(false)
         })
     } else if (mode === 'resetPassword' && oobCode) {
@@ -49,7 +49,7 @@ function AuthActionContent() {
         })
         .catch((err: unknown) => {
           console.error(err)
-          setError("Le lien de réinitialisation est invalide ou a expiré.")
+          setError('Le lien de réinitialisation est invalide ou a expiré.')
         })
     }
   }, [mode, oobCode])
@@ -59,12 +59,12 @@ function AuthActionContent() {
     if (!oobCode) return
 
     if (password.length < 6) {
-      setError("Le mot de passe doit contenir au moins 6 caractères.")
+      setError('Le mot de passe doit contenir au moins 6 caractères.')
       return
     }
 
     if (password !== confirmPassword) {
-      setError("Les mots de passe ne correspondent pas.")
+      setError('Les mots de passe ne correspondent pas.')
       return
     }
 
@@ -116,16 +116,24 @@ function AuthActionContent() {
 
   // 1. Loading State
   if (loading && mode === 'verifyEmail') {
-    return renderCard("Validation de l'e-mail", (
-      <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--muted-foreground, #94a3b8)' }}>
+    return renderCard(
+      "Validation de l'e-mail",
+      <div
+        style={{
+          textAlign: 'center',
+          padding: '24px 0',
+          color: 'var(--muted-foreground, #94a3b8)'
+        }}
+      >
         <p>Validation de votre adresse e-mail en cours...</p>
       </div>
-    ))
+    )
   }
 
   // 2. Invalid or missing action code
   if (!mode || !oobCode) {
-    return renderCard("Action requise", (
+    return renderCard(
+      'Action requise',
       <div style={{ textAlign: 'center', padding: '20px 0' }}>
         <p style={{ color: 'var(--muted-foreground, #94a3b8)', fontSize: 14, marginBottom: 24 }}>
           Aucune action valide n&apos;a été détectée. Veuillez utiliser le lien reçu par e-mail.
@@ -134,55 +142,71 @@ function AuthActionContent() {
           Retour à la connexion
         </Button>
       </div>
-    ))
+    )
   }
 
   // 3. Email Verification flow
   if (mode === 'verifyEmail') {
     if (success) {
-      return renderCard("E-mail validé !", (
+      return renderCard(
+        'E-mail validé !',
         <div style={{ textAlign: 'center', padding: '10px 0' }}>
           <p style={{ color: '#60a5fa', fontSize: 14, marginBottom: 24, lineHeight: 1.6 }}>
-            Félicitations ! Votre adresse e-mail a été validée avec succès. Vous pouvez maintenant vous connecter à la plateforme.
+            Félicitations ! Votre adresse e-mail a été validée avec succès. Vous pouvez maintenant
+            vous connecter à la plateforme.
           </p>
           <Button onClick={() => router.push('/login')} variant="primary" style={{ width: '100%' }}>
             Se connecter
           </Button>
         </div>
-      ))
+      )
     }
 
-    return renderCard("Erreur de validation", (
+    return renderCard(
+      'Erreur de validation',
       <div style={{ textAlign: 'center', padding: '10px 0' }}>
         <p style={{ color: '#f87171', fontSize: 14, marginBottom: 24, lineHeight: 1.6 }}>
-          {error || "Le code de validation est invalide ou a expiré."}
+          {error || 'Le code de validation est invalide ou a expiré.'}
         </p>
         <Button onClick={() => router.push('/login')} variant="outline" style={{ width: '100%' }}>
           Retour à la connexion
         </Button>
       </div>
-    ))
+    )
   }
 
   // 4. Password Reset flow
   if (mode === 'resetPassword') {
     if (success) {
-      return renderCard("Mot de passe modifié !", (
+      return renderCard(
+        'Mot de passe modifié !',
         <div style={{ textAlign: 'center', padding: '10px 0' }}>
           <p style={{ color: '#60a5fa', fontSize: 14, marginBottom: 24, lineHeight: 1.6 }}>
-            Votre mot de passe a été réinitialisé avec succès. Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.
+            Votre mot de passe a été réinitialisé avec succès. Vous pouvez maintenant vous connecter
+            avec votre nouveau mot de passe.
           </p>
           <Button onClick={() => router.push('/login')} variant="primary" style={{ width: '100%' }}>
             Se connecter
           </Button>
         </div>
-      ))
+      )
     }
 
-    return renderCard("Réinitialisation", (
-      <form onSubmit={handlePasswordReset} style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 16 }}>
+    return renderCard(
+      'Réinitialisation',
+      <form
+        onSubmit={handlePasswordReset}
+        style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 16 }}
+      >
         {emailAddress && (
-          <p style={{ fontSize: 13, color: 'var(--muted-foreground, #94a3b8)', textAlign: 'center', marginBottom: 8 }}>
+          <p
+            style={{
+              fontSize: 13,
+              color: 'var(--muted-foreground, #94a3b8)',
+              textAlign: 'center',
+              marginBottom: 8
+            }}
+          >
             Pour le compte : <strong>{emailAddress}</strong>
           </p>
         )}
@@ -222,19 +246,36 @@ function AuthActionContent() {
           </div>
         )}
 
-        <Button type="submit" variant="primary" size="lg" loading={loading} style={{ width: '100%', marginTop: 8 }}>
+        <Button
+          type="submit"
+          variant="primary"
+          size="lg"
+          loading={loading}
+          style={{ width: '100%', marginTop: 8 }}
+        >
           Enregistrer le nouveau mot de passe
         </Button>
 
-        <Link href="/login" style={{ textAlign: 'center', fontSize: 13, color: '#2563eb', textDecoration: 'none', fontWeight: 600, marginTop: 8 }}>
+        <Link
+          href="/login"
+          style={{
+            textAlign: 'center',
+            fontSize: 13,
+            color: '#2563eb',
+            textDecoration: 'none',
+            fontWeight: 600,
+            marginTop: 8
+          }}
+        >
           Retour à la connexion
         </Link>
       </form>
-    ))
+    )
   }
 
   // 5. Fallback for other modes
-  return renderCard("Action d'authentification", (
+  return renderCard(
+    "Action d'authentification",
     <div style={{ textAlign: 'center', padding: '10px 0' }}>
       <p style={{ color: 'var(--muted-foreground, #94a3b8)', fontSize: 14, marginBottom: 24 }}>
         Traitement de votre demande d&apos;authentification...
@@ -243,7 +284,7 @@ function AuthActionContent() {
         Retour à la connexion
       </Button>
     </div>
-  ))
+  )
 }
 
 export default function AuthActionPage() {

@@ -9,7 +9,7 @@ async function getAdmin() {
 export async function POST(request: NextRequest) {
   try {
     const { adminAuth } = await getAdmin()
-    
+
     // Authorization header
     const token = request.headers.get('authorization')?.split(' ')[1]
     if (!token) return NextResponse.json({ message: 'Non authentifié' }, { status: 401 })
@@ -22,10 +22,10 @@ export async function POST(request: NextRequest) {
     }
 
     const actionCodeSettings = {
-      // Must match an authorized domain in Firebase Console. 
-      url: process.env.NEXT_PUBLIC_APP_URL 
-            ? `${process.env.NEXT_PUBLIC_APP_URL}/login` 
-            : 'https://www.salescompanion2-0.com/login',
+      // Must match an authorized domain in Firebase Console.
+      url: process.env.NEXT_PUBLIC_APP_URL
+        ? `${process.env.NEXT_PUBLIC_APP_URL}/login`
+        : 'https://www.salescompanion2-0.com/login',
       handleCodeInApp: false
     }
 
@@ -33,10 +33,7 @@ export async function POST(request: NextRequest) {
 
     // Remplacement du domaine Firebase par défaut par le domaine personnalisé
     // pour éviter les filtres anti-spam qui n'aiment pas les domaines partagés
-    link = link.replace(
-      /https:\/\/[^/]+\.firebaseapp\.com/g,
-      'https://auth.salescompanion2-0.com'
-    )
+    link = link.replace(/https:\/\/[^/]+\.firebaseapp\.com/g, 'https://auth.salescompanion2-0.com')
 
     const html = `
       <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; color: #1a1f36; background-color: #ffffff; border-radius: 12px; border: 1px solid #e5e7eb;">
@@ -85,7 +82,7 @@ L'équipe Sales Companion 2.0
 
     if (!result.success) {
       console.error('[send-verification] SendEmail returned error', (result as any).error)
-      return NextResponse.json({ message: 'Erreur lors de l\'envoi (SMTP)' }, { status: 500 })
+      return NextResponse.json({ message: "Erreur lors de l'envoi (SMTP)" }, { status: 500 })
     }
 
     return NextResponse.json({ success: true })

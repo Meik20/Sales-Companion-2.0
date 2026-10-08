@@ -5,7 +5,11 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { DataCard } from '@/components/ui/index'
 import { LoadingState } from '@/components/feedback/index'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
-import { useOrgReport, type OrgReportManager, type OrgRecentActivity } from '@/features/pipeline/hooks/useOrgReport'
+import {
+  useOrgReport,
+  type OrgReportManager,
+  type OrgRecentActivity
+} from '@/features/pipeline/hooks/useOrgReport'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import {
@@ -48,30 +52,45 @@ function KpiCard({
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+        <span
+          style={{
+            fontSize: 12,
+            fontWeight: 600,
+            color: 'var(--muted-foreground)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.07em'
+          }}
+        >
           {label}
         </span>
         <span style={{ color, opacity: 0.8 }}>{icon}</span>
       </div>
-      <div style={{ fontSize: 36, fontWeight: 900, color, fontFamily: "'Syne',sans-serif", lineHeight: 1 }}>
+      <div
+        style={{
+          fontSize: 36,
+          fontWeight: 900,
+          color,
+          fontFamily: "'Syne',sans-serif",
+          lineHeight: 1
+        }}
+      >
         {value}
       </div>
-      {subtitle && (
-        <div style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>{subtitle}</div>
-      )}
+      {subtitle && <div style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>{subtitle}</div>}
     </div>
   )
 }
 
 // ── Top Performer Row ──────────────────────────────────────────────────────
-function TopPerformerRow({
-  rank,
-  manager
-}: {
-  rank: number
-  manager: OrgReportManager
-}) {
-  const medalColor = rank === 1 ? '#fbbf24' : rank === 2 ? '#94a3b8' : rank === 3 ? '#cd7c3d' : 'var(--muted-foreground)'
+function TopPerformerRow({ rank, manager }: { rank: number; manager: OrgReportManager }) {
+  const medalColor =
+    rank === 1
+      ? '#fbbf24'
+      : rank === 2
+        ? '#94a3b8'
+        : rank === 3
+          ? '#cd7c3d'
+          : 'var(--muted-foreground)'
   const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`
 
   return (
@@ -81,7 +100,7 @@ function TopPerformerRow({
         alignItems: 'center',
         gap: 12,
         padding: '10px 0',
-        borderBottom: '1px solid var(--border)',
+        borderBottom: '1px solid var(--border)'
       }}
     >
       {/* Rang */}
@@ -108,7 +127,16 @@ function TopPerformerRow({
 
       {/* Nom */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--foreground)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <div
+          style={{
+            fontSize: 13,
+            fontWeight: 700,
+            color: 'var(--foreground)',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis'
+          }}
+        >
           {manager.name || manager.email}
         </div>
         <div style={{ fontSize: 11, color: 'var(--muted-foreground)' }}>
@@ -124,7 +152,9 @@ function TopPerformerRow({
           { label: 'C', value: manager.stats.conclue, color: '#34d399' }
         ].map(({ label, value, color }) => (
           <div key={label} style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: 16, fontWeight: 800, color, fontFamily: "'Syne',sans-serif" }}>{value}</div>
+            <div style={{ fontSize: 16, fontWeight: 800, color, fontFamily: "'Syne',sans-serif" }}>
+              {value}
+            </div>
             <div style={{ fontSize: 10, color: 'var(--muted-foreground)' }}>{label}</div>
           </div>
         ))}
@@ -140,10 +170,27 @@ function ActivityItem({ activity }: { activity: OrgRecentActivity }) {
     : '—'
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        padding: '8px 0',
+        borderBottom: '1px solid var(--border)'
+      }}
+    >
       <CheckCircle2 size={14} color="#34d399" style={{ flexShrink: 0 }} />
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--foreground)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <div
+          style={{
+            fontSize: 13,
+            fontWeight: 600,
+            color: 'var(--foreground)',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis'
+          }}
+        >
           {activity.companyName}
         </div>
         <div style={{ fontSize: 11, color: 'var(--muted-foreground)' }}>
@@ -151,9 +198,7 @@ function ActivityItem({ activity }: { activity: OrgRecentActivity }) {
           {activity.memberName ? ` · ${activity.memberName}` : ''}
         </div>
       </div>
-      <div style={{ fontSize: 11, color: 'var(--muted-foreground)', flexShrink: 0 }}>
-        {date}
-      </div>
+      <div style={{ fontSize: 11, color: 'var(--muted-foreground)', flexShrink: 0 }}>{date}</div>
     </div>
   )
 }
@@ -265,14 +310,20 @@ export default function DashboardPage() {
 
           {/* ── Corps en 2 colonnes ─────────────────────────────────────── */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-
             {/* Top Performers */}
             <DataCard
               title="Top Performers"
               subtitle="Managers classés par nombre de prospects conclus"
             >
               {!data?.managers?.length ? (
-                <div style={{ padding: '20px 0', textAlign: 'center', color: 'var(--muted-foreground)', fontSize: 13 }}>
+                <div
+                  style={{
+                    padding: '20px 0',
+                    textAlign: 'center',
+                    color: 'var(--muted-foreground)',
+                    fontSize: 13
+                  }}
+                >
                   Aucune donnée disponible
                 </div>
               ) : (
@@ -290,7 +341,14 @@ export default function DashboardPage() {
               subtitle="10 derniers prospects conclus dans l'organisation"
             >
               {!data?.recentActivity?.length ? (
-                <div style={{ padding: '20px 0', textAlign: 'center', color: 'var(--muted-foreground)', fontSize: 13 }}>
+                <div
+                  style={{
+                    padding: '20px 0',
+                    textAlign: 'center',
+                    color: 'var(--muted-foreground)',
+                    fontSize: 13
+                  }}
+                >
                   Aucune activité récente
                 </div>
               ) : (
@@ -302,8 +360,6 @@ export default function DashboardPage() {
               )}
             </DataCard>
           </div>
-
-
         </>
       )}
     </AppShell>

@@ -2,7 +2,10 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
-import { savedSearchesRepository, SavedSearch as RepoSavedSearch } from '@/repositories/saved-searches.repository'
+import {
+  savedSearchesRepository,
+  SavedSearch as RepoSavedSearch
+} from '@/repositories/saved-searches.repository'
 
 export type SavedSearch = RepoSavedSearch & {
   id: string
@@ -23,4 +26,3 @@ export function useSavedSearches() {
     refetchOnWindowFocus: false
   })
 }
-

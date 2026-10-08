@@ -12,7 +12,8 @@ export async function GET(request: NextRequest) {
       await verifyAdminCached(token)
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : ''
-      if (msg === 'unauthenticated') return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+      if (msg === 'unauthenticated')
+        return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
     }
 

@@ -90,7 +90,8 @@ export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void 
             <ScIcon size={30} className="transition-transform group-hover:scale-105" />
             <div className="flex flex-col leading-[1.1]">
               <span className="font-heading text-[15px] font-semibold tracking-tight text-foreground uppercase">
-                Sales <em className="not-italic font-normal opacity-75">Companion</em> <em className="text-[12px] not-italic font-normal opacity-55">2.0</em>
+                Sales <em className="not-italic font-normal opacity-75">Companion</em>{' '}
+                <em className="text-[12px] not-italic font-normal opacity-55">2.0</em>
               </span>
               <span className="hdr-logo-sub text-[9.5px] uppercase tracking-[.12em] text-muted-foreground">
                 B2B {countryLabel}
@@ -115,115 +116,111 @@ export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void 
           {user?.role === 'admin' && <AdminNotificationBell />}
 
           {/* ── RIGHT: User Profile ──────────────────────────────────── */}
-        {user ? (
-          <div className="relative">
-            <button
-              onClick={() => setIsProfileOpen(!isProfileOpen)}
-              className="flex items-center gap-2.5 rounded-xl border-2 border-border bg-secondary/50 py-1.5 pl-1.5 pr-2.5 text-foreground shadow-sm transition-all hover:border-primary/50 hover:bg-secondary/80 dark:border-white/25 dark:hover:border-primary/60"
-            >
-              {/* Avatar */}
-              <div className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-full border-2 border-primary/60 bg-primary/20 text-[13px] font-bold text-primary shadow-sm ring-2 ring-primary/15 dark:border-primary/70 dark:bg-primary/25">
-                {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || '?'}
-              </div>
+          {user ? (
+            <div className="relative">
+              <button
+                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                className="flex items-center gap-2.5 rounded-xl border-2 border-border bg-secondary/50 py-1.5 pl-1.5 pr-2.5 text-foreground shadow-sm transition-all hover:border-primary/50 hover:bg-secondary/80 dark:border-white/25 dark:hover:border-primary/60"
+              >
+                {/* Avatar */}
+                <div className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-full border-2 border-primary/60 bg-primary/20 text-[13px] font-bold text-primary shadow-sm ring-2 ring-primary/15 dark:border-primary/70 dark:bg-primary/25">
+                  {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || '?'}
+                </div>
 
-              {/* Name + Role — hidden on mobile */}
-              <div className="hdr-name-block flex flex-col text-left leading-[1.2]">
-                <span className="text-[13px] font-semibold">
-                  {user.name || user.email?.split('@')[0] || t('sidebar.user')}
-                </span>
-                <div className="mt-[2px] flex items-center gap-1.5">
-                  {badge && (
-                    <span
-                      style={{ backgroundColor: badge.bg }}
-                      className="rounded-full px-1.5 py-[1px] text-[9px] font-bold uppercase tracking-[.06em] text-foreground"
-                    >
-                      {badge.label}
-                    </span>
-                  )}
-                  <span className="text-[10px] uppercase text-muted-foreground">
-                    {(user.plan || 'free') === 'free' ? t('header.planFree') : user.plan}
+                {/* Name + Role — hidden on mobile */}
+                <div className="hdr-name-block flex flex-col text-left leading-[1.2]">
+                  <span className="text-[13px] font-semibold">
+                    {user.name || user.email?.split('@')[0] || t('sidebar.user')}
                   </span>
-                </div>
-              </div>
-
-              <ChevronDown
-                size={14}
-                className={`shrink-0 opacity-60 transition-transform duration-200 ${isProfileOpen ? 'rotate-180' : 'rotate-0'}`}
-              />
-            </button>
-
-            {/* Dropdown */}
-            {isProfileOpen && (
-              <>
-                <div
-                  onClick={() => setIsProfileOpen(false)}
-                  className="fixed inset-0 z-[99]"
-                />
-                <div className="absolute right-0 top-[46px] z-[200] flex w-[220px] animate-in fade-in zoom-in-95 flex-col overflow-hidden rounded-xl border border-border bg-popover shadow-md duration-150">
-                  {/* User Info */}
-                  <div className="border-b border-border px-4 pb-3 pt-3.5">
-                    <div className="text-[14px] font-semibold text-foreground">
-                      {user.name || t('sidebar.user')}
-                    </div>
-                    <div className="mt-0.5 text-[11px] text-muted-foreground">
-                      {user.email}
-                    </div>
-                  </div>
-
-                  {/* Menu Items */}
-                  <div className="flex flex-col gap-0.5 p-1.5">
-                    {[
-                      {
-                        icon: User,
-                        label: t('header.myProfile'),
-                        action: () => {
-                          setIsProfileOpen(false)
-                          router.push(routes.profile)
-                        }
-                      },
-                      {
-                        icon: Settings,
-                        label: t('header.settings'),
-                        action: () => {
-                          setIsProfileOpen(false)
-                          router.push(routes.settings)
-                        }
-                      }
-                    ].map(({ icon: Icon, label, action }) => (
-                      <button
-                        key={label}
-                        onClick={action}
-                        className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[13px] text-foreground transition-all hover:bg-secondary"
+                  <div className="mt-[2px] flex items-center gap-1.5">
+                    {badge && (
+                      <span
+                        style={{ backgroundColor: badge.bg }}
+                        className="rounded-full px-1.5 py-[1px] text-[9px] font-bold uppercase tracking-[.06em] text-foreground"
                       >
-                        <Icon size={15} strokeWidth={1.8} className="shrink-0 text-muted-foreground" />
-                        {label}
-                      </button>
-                    ))}
-
-                    <div className="my-1 border-t border-border" />
-
-                    <button
-                      onClick={handleLogout}
-                      className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[13px] font-medium text-destructive transition-all hover:bg-destructive/10"
-                    >
-                      <LogOut size={15} strokeWidth={1.8} className="shrink-0" />
-                      {t('header.logout')}
-                    </button>
+                        {badge.label}
+                      </span>
+                    )}
+                    <span className="text-[10px] uppercase text-muted-foreground">
+                      {(user.plan || 'free') === 'free' ? t('header.planFree') : user.plan}
+                    </span>
                   </div>
                 </div>
-              </>
-            )}
-          </div>
-        ) : (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => router.push(routes.login)}
-          >
-            {t('header.login')}
-          </Button>
-        )}
-        </div>{/* ← fermeture du wrapper bell + profile */}
+
+                <ChevronDown
+                  size={14}
+                  className={`shrink-0 opacity-60 transition-transform duration-200 ${isProfileOpen ? 'rotate-180' : 'rotate-0'}`}
+                />
+              </button>
+
+              {/* Dropdown */}
+              {isProfileOpen && (
+                <>
+                  <div onClick={() => setIsProfileOpen(false)} className="fixed inset-0 z-[99]" />
+                  <div className="absolute right-0 top-[46px] z-[200] flex w-[220px] animate-in fade-in zoom-in-95 flex-col overflow-hidden rounded-xl border border-border bg-popover shadow-md duration-150">
+                    {/* User Info */}
+                    <div className="border-b border-border px-4 pb-3 pt-3.5">
+                      <div className="text-[14px] font-semibold text-foreground">
+                        {user.name || t('sidebar.user')}
+                      </div>
+                      <div className="mt-0.5 text-[11px] text-muted-foreground">{user.email}</div>
+                    </div>
+
+                    {/* Menu Items */}
+                    <div className="flex flex-col gap-0.5 p-1.5">
+                      {[
+                        {
+                          icon: User,
+                          label: t('header.myProfile'),
+                          action: () => {
+                            setIsProfileOpen(false)
+                            router.push(routes.profile)
+                          }
+                        },
+                        {
+                          icon: Settings,
+                          label: t('header.settings'),
+                          action: () => {
+                            setIsProfileOpen(false)
+                            router.push(routes.settings)
+                          }
+                        }
+                      ].map(({ icon: Icon, label, action }) => (
+                        <button
+                          key={label}
+                          onClick={action}
+                          className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[13px] text-foreground transition-all hover:bg-secondary"
+                        >
+                          <Icon
+                            size={15}
+                            strokeWidth={1.8}
+                            className="shrink-0 text-muted-foreground"
+                          />
+                          {label}
+                        </button>
+                      ))}
+
+                      <div className="my-1 border-t border-border" />
+
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[13px] font-medium text-destructive transition-all hover:bg-destructive/10"
+                      >
+                        <LogOut size={15} strokeWidth={1.8} className="shrink-0" />
+                        {t('header.logout')}
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          ) : (
+            <Button variant="outline" size="sm" onClick={() => router.push(routes.login)}>
+              {t('header.login')}
+            </Button>
+          )}
+        </div>
+        {/* ← fermeture du wrapper bell + profile */}
       </div>
     </header>
   )

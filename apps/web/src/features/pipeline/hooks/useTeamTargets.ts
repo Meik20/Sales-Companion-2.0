@@ -24,10 +24,9 @@ export function useTeamTargets(memberId?: string) {
       const token = await user!.getIdToken()
       const params = new URLSearchParams()
       if (memberId) params.set('memberId', memberId)
-      const res = await fetch(
-        `/api/team/targets${params.toString() ? `?${params}` : ''}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
+      const res = await fetch(`/api/team/targets${params.toString() ? `?${params}` : ''}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
       if (!res.ok) throw new Error('Impossible de charger les objectifs')
       const json = await res.json()
       return json.targets as MemberTarget[]
@@ -63,7 +62,7 @@ export function useSaveTeamTarget() {
       pushToast({ type: 'success', title: 'Objectifs enregistrés' })
     },
     onError: (err: Error) => {
-      pushToast({ type: 'error', title: "Erreur", description: err.message })
+      pushToast({ type: 'error', title: 'Erreur', description: err.message })
     }
   })
 }

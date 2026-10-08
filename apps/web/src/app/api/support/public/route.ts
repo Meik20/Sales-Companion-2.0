@@ -18,7 +18,10 @@ export async function POST(request: NextRequest) {
     })
     if (!ipLimit.success) {
       return NextResponse.json(
-        { error: 'Trop de requêtes envoyées. Veuillez patienter avant de soumettre une nouvelle demande.' },
+        {
+          error:
+            'Trop de requêtes envoyées. Veuillez patienter avant de soumettre une nouvelle demande.'
+        },
         { status: 429 }
       )
     }
@@ -28,7 +31,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Corps de requête invalide' }, { status: 400 })
     }
 
-    const { name, email, company, sector, phone, subject, message, type, _gotcha, hp, website_url_hp } = body as Record<string, unknown>
+    const {
+      name,
+      email,
+      company,
+      sector,
+      phone,
+      subject,
+      message,
+      type,
+      _gotcha,
+      hp,
+      website_url_hp
+    } = body as Record<string, unknown>
 
     // ── Honeypot bot trap ──────────────────────────────────────────
     if (_gotcha || hp || website_url_hp) {
@@ -40,24 +55,44 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Le nom est obligatoire.' }, { status: 400 })
     }
     if (name.trim().length > 100) {
-      return NextResponse.json({ error: 'Le nom est trop long (maximum 100 caractères).' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Le nom est trop long (maximum 100 caractères).' },
+        { status: 400 }
+      )
     }
 
-    if (!email || typeof email !== 'string' || !email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      return NextResponse.json({ error: 'Une adresse email valide est obligatoire.' }, { status: 400 })
+    if (
+      !email ||
+      typeof email !== 'string' ||
+      !email.trim() ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
+    ) {
+      return NextResponse.json(
+        { error: 'Une adresse email valide est obligatoire.' },
+        { status: 400 }
+      )
     }
     if (email.trim().length > 120) {
-      return NextResponse.json({ error: "L'adresse email est trop longue (maximum 120 caractères)." }, { status: 400 })
+      return NextResponse.json(
+        { error: "L'adresse email est trop longue (maximum 120 caractères)." },
+        { status: 400 }
+      )
     }
 
     if (!message || typeof message !== 'string' || !message.trim()) {
       return NextResponse.json({ error: 'Le message est obligatoire.' }, { status: 400 })
     }
     if (message.trim().length < 5) {
-      return NextResponse.json({ error: 'Le message est trop court (minimum 5 caractères).' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Le message est trop court (minimum 5 caractères).' },
+        { status: 400 }
+      )
     }
     if (message.trim().length > 3000) {
-      return NextResponse.json({ error: 'Le message est trop long (maximum 3000 caractères).' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Le message est trop long (maximum 3000 caractères).' },
+        { status: 400 }
+      )
     }
 
     const { adminDb } = await import('@/lib/firebase-admin')
@@ -68,12 +103,14 @@ export async function POST(request: NextRequest) {
     const sanitizedCompany = typeof company === 'string' ? company.trim().slice(0, 100) : ''
     const sanitizedSector = typeof sector === 'string' ? sector.trim().slice(0, 100) : ''
     const sanitizedPhone = typeof phone === 'string' ? phone.trim().slice(0, 30) : ''
-    const requestType = (typeof type === 'string' ? type.slice(0, 50) : '') || 'corporate_domain_request'
+    const requestType =
+      (typeof type === 'string' ? type.slice(0, 50) : '') || 'corporate_domain_request'
     const defaultSubject =
       requestType === 'corporate_domain_request'
         ? `Demande de compte Manager sans domaine - ${sanitizedCompany || sanitizedName}`
         : `Demande de contact - ${sanitizedName}`
-    const sanitizedSubject = typeof subject === 'string' && subject.trim() ? subject.trim().slice(0, 200) : defaultSubject
+    const sanitizedSubject =
+      typeof subject === 'string' && subject.trim() ? subject.trim().slice(0, 200) : defaultSubject
     const sanitizedMessage = message.trim().slice(0, 3000)
 
     const now = FieldValue.serverTimestamp()
@@ -138,7 +175,10 @@ export async function POST(request: NextRequest) {
         link: '/admin/support'
       })
     } catch (notifErr) {
-      console.warn('[support/public POST] Erreur non-bloquante lors de la notification admin:', notifErr)
+      console.warn(
+        '[support/public POST] Erreur non-bloquante lors de la notification admin:',
+        notifErr
+      )
     }
 
     return NextResponse.json({
@@ -149,7 +189,9 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('[support/public POST]', error)
     return NextResponse.json(
-      { error: error?.message || 'Une erreur est survenue lors de la transmission de votre requête.' },
+      {
+        error: error?.message || 'Une erreur est survenue lors de la transmission de votre requête.'
+      },
       { status: 500 }
     )
   }

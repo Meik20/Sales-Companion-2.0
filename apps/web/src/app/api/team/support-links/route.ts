@@ -23,7 +23,10 @@ export async function POST(request: NextRequest) {
     const managerDoc = await adminDb.collection('users').doc(managerUid).get()
     const managerData = managerDoc.data()
     if (!hasActivePaidManagerAccess(managerData) || decodedToken.email_verified !== true) {
-      return NextResponse.json({ error: 'Un abonnement Manager actif et vérifié est requis.' }, { status: 403 })
+      return NextResponse.json(
+        { error: 'Un abonnement Manager actif et vérifié est requis.' },
+        { status: 403 }
+      )
     }
 
     const { agentAccessId } = await request.json()
@@ -39,31 +42,43 @@ export async function POST(request: NextRequest) {
       .get()
 
     if (accessQuery.empty) {
-      return NextResponse.json({
-        error: `Aucun accès trouvé pour l'ID "${agentAccessId}". Vérifiez l'identifiant.`
-      }, { status: 404 })
+      return NextResponse.json(
+        {
+          error: `Aucun accès trouvé pour l'ID "${agentAccessId}". Vérifiez l'identifiant.`
+        },
+        { status: 404 }
+      )
     }
 
     const accessDoc = accessQuery.docs[0]
     if (!accessDoc) {
-      return NextResponse.json({
-        error: `Aucun accès trouvé pour l'ID "${agentAccessId}".`
-      }, { status: 404 })
+      return NextResponse.json(
+        {
+          error: `Aucun accès trouvé pour l'ID "${agentAccessId}".`
+        },
+        { status: 404 }
+      )
     }
     const accessData = accessDoc.data()
 
     // Vérifier que c'est bien un support_agent
     if (accessData.role !== 'support_agent') {
-      return NextResponse.json({
-        error: 'Cet identifiant n\'appartient pas à un Agent Support CRM.'
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: "Cet identifiant n'appartient pas à un Agent Support CRM."
+        },
+        { status: 400 }
+      )
     }
 
     // Vérifier que ce n'est pas le propre agent du manager
     if (accessData.managerUid === managerUid) {
-      return NextResponse.json({
-        error: 'Cet agent fait déjà partie de votre équipe.'
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: 'Cet agent fait déjà partie de votre équipe.'
+        },
+        { status: 400 }
+      )
     }
 
     // Retrouver l'UID Firebase de l'agent
@@ -110,16 +125,22 @@ export async function POST(request: NextRequest) {
     }
 
     if (!agentUserDoc || !agentUid) {
-      return NextResponse.json({
-        error: 'Compte agent non encore activé. L\'agent doit d\'abord activer son compte.'
-      }, { status: 404 })
+      return NextResponse.json(
+        {
+          error: "Compte agent non encore activé. L'agent doit d'abord activer son compte."
+        },
+        { status: 404 }
+      )
     }
 
     const agentData = agentUserDoc.data()
     if (!agentData) {
-      return NextResponse.json({
-        error: 'Profil de l\'agent introuvable ou incomplet.'
-      }, { status: 404 })
+      return NextResponse.json(
+        {
+          error: "Profil de l'agent introuvable ou incomplet."
+        },
+        { status: 404 }
+      )
     }
 
     // ── Vérification hybride de l'organisation (orgCode > NIU > Legacy Fallback) ──
@@ -139,15 +160,28 @@ export async function POST(request: NextRequest) {
     let managerOrgCode = managerData?.orgCode || null
     if (!managerOrgCode) {
       managerOrgCode = generateOrgCode(managerData?.country || 'CM')
-      await adminDb.collection('users').doc(managerUid).update({ orgCode: managerOrgCode }).catch(() => {})
+      await adminDb
+        .collection('users')
+        .doc(managerUid)
+        .update({ orgCode: managerOrgCode })
+        .catch(() => {})
     }
 
-    let originalOrgCode = originalManagerData?.orgCode || accessData?.orgCode || agentData?.orgCode || null
+    let originalOrgCode =
+      originalManagerData?.orgCode || accessData?.orgCode || agentData?.orgCode || null
     if (!originalOrgCode && originalManagerUid) {
       originalOrgCode = generateOrgCode(originalManagerData?.country || 'CM')
-      await adminDb.collection('users').doc(originalManagerUid).update({ orgCode: originalOrgCode }).catch(() => {})
+      await adminDb
+        .collection('users')
+        .doc(originalManagerUid)
+        .update({ orgCode: originalOrgCode })
+        .catch(() => {})
       if (agentUid) {
-        await adminDb.collection('users').doc(agentUid).update({ orgCode: originalOrgCode }).catch(() => {})
+        await adminDb
+          .collection('users')
+          .doc(agentUid)
+          .update({ orgCode: originalOrgCode })
+          .catch(() => {})
       }
     }
 
@@ -156,8 +190,9 @@ export async function POST(request: NextRequest) {
     const originalNiu = normalizeNiu(originalManagerData?.niu || accessData?.niu || agentData?.niu)
 
     // 4. Noms d'entreprise legacy (pour la période de transition / comptes historiques)
-    const managerCompanyId = managerData?.companyId || managerData?.company || managerData?.companyName || ''
-    const managerCompanyNorm = (managerCompanyId).trim().toLowerCase()
+    const managerCompanyId =
+      managerData?.companyId || managerData?.company || managerData?.companyName || ''
+    const managerCompanyNorm = managerCompanyId.trim().toLowerCase()
     const originalCompanyNorm = (
       originalManagerData?.companyId ||
       originalManagerData?.company ||
@@ -166,19 +201,29 @@ export async function POST(request: NextRequest) {
       agentData?.company ||
       agentData?.companyId ||
       ''
-    ).trim().toLowerCase()
+    )
+      .trim()
+      .toLowerCase()
 
     // 5. Critères de correspondance
-    const isOrgCodeMatch = Boolean(managerOrgCode && originalOrgCode && managerOrgCode === originalOrgCode)
+    const isOrgCodeMatch = Boolean(
+      managerOrgCode && originalOrgCode && managerOrgCode === originalOrgCode
+    )
     const isNiuMatch = Boolean(managerNiu && originalNiu && managerNiu === originalNiu)
-    const isLegacyCompanyMatch = Boolean(managerCompanyNorm && originalCompanyNorm && managerCompanyNorm === originalCompanyNorm)
+    const isLegacyCompanyMatch = Boolean(
+      managerCompanyNorm && originalCompanyNorm && managerCompanyNorm === originalCompanyNorm
+    )
 
     const isSameOrg = isOrgCodeMatch || isNiuMatch || isLegacyCompanyMatch
 
     if (!isSameOrg) {
-      return NextResponse.json({
-        error: "L'agent ne fait pas partie de la même organisation. Pour lier un agent support cross-équipe, vos deux comptes Manager doivent partager le même Code Organisation ou le même NIU."
-      }, { status: 403 })
+      return NextResponse.json(
+        {
+          error:
+            "L'agent ne fait pas partie de la même organisation. Pour lier un agent support cross-équipe, vos deux comptes Manager doivent partager le même Code Organisation ou le même NIU."
+        },
+        { status: 403 }
+      )
     }
 
     // Vérifier si le lien existe déjà
@@ -191,9 +236,12 @@ export async function POST(request: NextRequest) {
       .get()
 
     if (!existingLink.empty) {
-      return NextResponse.json({
-        error: 'Cet agent est déjà lié à votre équipe.'
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: 'Cet agent est déjà lié à votre équipe.'
+        },
+        { status: 400 }
+      )
     }
 
     // Créer le lien
@@ -213,16 +261,22 @@ export async function POST(request: NextRequest) {
 
     // Mettre à jour linkedManagerUids sur le profil de l'agent
     const { FieldValue } = await import('firebase-admin/firestore')
-    await adminDb.collection('users').doc(agentUid).update({
-      linkedManagerUids: FieldValue.arrayUnion(managerUid)
-    })
+    await adminDb
+      .collection('users')
+      .doc(agentUid)
+      .update({
+        linkedManagerUids: FieldValue.arrayUnion(managerUid)
+      })
 
-    return NextResponse.json({
-      success: true,
-      linkId: linkRef.id,
-      agentName: agentData?.name || agentData?.email,
-      agentAccessId: agentAccessId.toLowerCase().trim()
-    }, { status: 201 })
+    return NextResponse.json(
+      {
+        success: true,
+        linkId: linkRef.id,
+        agentName: agentData?.name || agentData?.email,
+        agentAccessId: agentAccessId.toLowerCase().trim()
+      },
+      { status: 201 }
+    )
   } catch (error: any) {
     console.error('[team/support-links POST]', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
@@ -249,7 +303,7 @@ export async function GET(request: NextRequest) {
       .where('status', '==', 'active')
       .get()
 
-    const links = snap.docs.map(doc => ({
+    const links = snap.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
       grantedAt: doc.data().grantedAt?.toDate?.()?.toISOString() ?? null

@@ -29,7 +29,7 @@ export default function PipelinePage() {
 
   // ── Rôles org ───────────────────────────────────────────────────────────
   const isSeniorManager = user?.role === 'manager' && user?.orgRole === 'senior_manager'
-  const isTeamManager   = user?.role === 'manager' && user?.orgRole !== 'senior_manager'
+  const isTeamManager = user?.role === 'manager' && user?.orgRole !== 'senior_manager'
 
   // ── Org pipeline (Senior Manager uniquement) ─────────────────────────
   const [filterManagerUid, setFilterManagerUid] = useState<string | undefined>(undefined)
@@ -89,8 +89,8 @@ export default function PipelinePage() {
     if (!myTargets?.length) return
     const t0 = myTargets[0]!
     if (t0.targetVolume != null) setTgtVolume(String(t0.targetVolume))
-    if (t0.targetValue  != null) setTgtValue(String(t0.targetValue))
-    if (t0.period)               setTgtPeriod(t0.period)
+    if (t0.targetValue != null) setTgtValue(String(t0.targetValue))
+    if (t0.period) setTgtPeriod(t0.period)
   }, [myTargets])
 
   const stageParam = searchParams.get('stage')?.toLowerCase()
@@ -126,8 +126,10 @@ export default function PipelinePage() {
 
   const filteredItems = activeStage
     ? items.filter((i) => {
-        if (activeStage === 'prospection') return ['prospection', 'prospect'].includes(i.status as string)
-        if (activeStage === 'negociation') return ['negociation', 'negotiation'].includes(i.status as string)
+        if (activeStage === 'prospection')
+          return ['prospection', 'prospect'].includes(i.status as string)
+        if (activeStage === 'negociation')
+          return ['negociation', 'negotiation'].includes(i.status as string)
         if (activeStage === 'conclue') return ['conclue', 'conclusion'].includes(i.status as string)
         return true
       })
@@ -145,8 +147,12 @@ export default function PipelinePage() {
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  if (isFree) { router.push('/upgrade?redirect=/pipeline'); return }
-                  setShowTargets((v) => !v); setShowExport(false)
+                  if (isFree) {
+                    router.push('/upgrade?redirect=/pipeline')
+                    return
+                  }
+                  setShowTargets((v) => !v)
+                  setShowExport(false)
                 }}
                 style={{ display: 'flex', alignItems: 'center', gap: 6 }}
               >
@@ -157,8 +163,12 @@ export default function PipelinePage() {
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  if (isFree) { router.push('/upgrade?redirect=/pipeline'); return }
-                  setShowExport((v) => !v); setShowTargets(false)
+                  if (isFree) {
+                    router.push('/upgrade?redirect=/pipeline')
+                    return
+                  }
+                  setShowExport((v) => !v)
+                  setShowTargets(false)
                 }}
                 style={{ display: 'flex', alignItems: 'center', gap: 6 }}
               >
@@ -223,7 +233,9 @@ export default function PipelinePage() {
                 }`}
                 style={{
                   background: isSelected ? 'var(--secondary, #1e293b)' : 'var(--card, #131c2e)',
-                  border: isSelected ? `2px solid ${color}` : '1px solid var(--border, rgba(255,255,255,0.1))',
+                  border: isSelected
+                    ? `2px solid ${color}`
+                    : '1px solid var(--border, rgba(255,255,255,0.1))',
                   padding: '14px 18px',
                   outline: 'none',
                   display: 'flex',
@@ -320,10 +332,26 @@ export default function PipelinePage() {
                     gap: 6
                   }}
                 >
-                  <div style={{ fontSize: 28, fontWeight: 800, color, fontFamily: "'Syne',sans-serif", lineHeight: 1 }}>
+                  <div
+                    style={{
+                      fontSize: 28,
+                      fontWeight: 800,
+                      color,
+                      fontFamily: "'Syne',sans-serif",
+                      lineHeight: 1
+                    }}
+                  >
                     {count}
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, color: 'var(--muted-foreground)', fontSize: 12 }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 5,
+                      color: 'var(--muted-foreground)',
+                      fontSize: 12
+                    }}
+                  >
                     {icon} {label}
                   </div>
                 </div>
@@ -332,55 +360,76 @@ export default function PipelinePage() {
           )}
 
           {/* Filtre par Team Manager */}
-          {orgPipelineQuery.data?.managers && orgPipelineQuery.data.managers.filter((m: OrgManagerStats) => !m.isSenior).length > 0 && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Filtrer par Team Manager :
-              </span>
-              <button
-                type="button"
-                onClick={() => setFilterManagerUid(undefined)}
+          {orgPipelineQuery.data?.managers &&
+            orgPipelineQuery.data.managers.filter((m: OrgManagerStats) => !m.isSenior).length >
+              0 && (
+              <div
                 style={{
-                  padding: '4px 12px',
-                  borderRadius: 20,
-                  border: '1px solid var(--border)',
-                  background: !filterManagerUid ? 'var(--primary, #6366f1)' : 'transparent',
-                  color: !filterManagerUid ? '#fff' : 'var(--foreground)',
-                  fontSize: 12,
-                  fontWeight: 600,
-                  cursor: 'pointer'
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  marginBottom: 16,
+                  flexWrap: 'wrap'
                 }}
               >
-                Tous
-              </button>
-              {orgPipelineQuery.data.managers.filter((m: OrgManagerStats) => !m.isSenior).map((mgr: OrgManagerStats) => (
+                <span
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: 'var(--muted-foreground)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em'
+                  }}
+                >
+                  Filtrer par Team Manager :
+                </span>
                 <button
-                  key={mgr.uid}
                   type="button"
-                  onClick={() => setFilterManagerUid(mgr.uid === filterManagerUid ? undefined : mgr.uid)}
+                  onClick={() => setFilterManagerUid(undefined)}
                   style={{
                     padding: '4px 12px',
                     borderRadius: 20,
                     border: '1px solid var(--border)',
-                    background: filterManagerUid === mgr.uid ? 'var(--primary, #6366f1)' : 'transparent',
-                    color: filterManagerUid === mgr.uid ? '#fff' : 'var(--foreground)',
+                    background: !filterManagerUid ? 'var(--primary, #6366f1)' : 'transparent',
+                    color: !filterManagerUid ? '#fff' : 'var(--foreground)',
                     fontSize: 12,
                     fontWeight: 600,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 5
+                    cursor: 'pointer'
                   }}
                 >
-                  {mgr.name || mgr.email}
-                  {mgr.isSenior && (
-                    <span style={{ fontSize: 10, opacity: 0.7 }}>(vous)</span>
-                  )}
-                  <span style={{ fontSize: 11, opacity: 0.6 }}>({mgr.stats.total})</span>
+                  Tous
                 </button>
-              ))}
-            </div>
-          )}
+                {orgPipelineQuery.data.managers
+                  .filter((m: OrgManagerStats) => !m.isSenior)
+                  .map((mgr: OrgManagerStats) => (
+                    <button
+                      key={mgr.uid}
+                      type="button"
+                      onClick={() =>
+                        setFilterManagerUid(mgr.uid === filterManagerUid ? undefined : mgr.uid)
+                      }
+                      style={{
+                        padding: '4px 12px',
+                        borderRadius: 20,
+                        border: '1px solid var(--border)',
+                        background:
+                          filterManagerUid === mgr.uid ? 'var(--primary, #6366f1)' : 'transparent',
+                        color: filterManagerUid === mgr.uid ? '#fff' : 'var(--foreground)',
+                        fontSize: 12,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 5
+                      }}
+                    >
+                      {mgr.name || mgr.email}
+                      {mgr.isSenior && <span style={{ fontSize: 10, opacity: 0.7 }}>(vous)</span>}
+                      <span style={{ fontSize: 11, opacity: 0.6 }}>({mgr.stats.total})</span>
+                    </button>
+                  ))}
+              </div>
+            )}
 
           {/* Liste consolidée org */}
           <DataCard
@@ -397,7 +446,9 @@ export default function PipelinePage() {
             ) : null}
             {orgPipelineQuery.data?.items?.length ? (
               <ManagerPipelineList
-                items={orgPipelineQuery.data.items as Parameters<typeof ManagerPipelineList>[0]['items']}
+                items={
+                  orgPipelineQuery.data.items as Parameters<typeof ManagerPipelineList>[0]['items']
+                }
                 members={members}
                 managerUid={user?.uid}
                 showTargets={false}
@@ -443,7 +494,15 @@ export default function PipelinePage() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
                   {/* Volume */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    <label
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 600,
+                        color: 'var(--muted-foreground)',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em'
+                      }}
+                    >
                       Volume (prospects conclus)
                     </label>
                     <input
@@ -466,7 +525,15 @@ export default function PipelinePage() {
                   </div>
                   {/* Valeur */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    <label
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 600,
+                        color: 'var(--muted-foreground)',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em'
+                      }}
+                    >
                       Valeur cible (FCFA)
                     </label>
                     <input
@@ -489,7 +556,15 @@ export default function PipelinePage() {
                   </div>
                   {/* Période */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    <label
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 600,
+                        color: 'var(--muted-foreground)',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em'
+                      }}
+                    >
                       Période
                     </label>
                     <input
@@ -514,7 +589,11 @@ export default function PipelinePage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => { setTgtVolume(''); setTgtValue(''); setTgtPeriod('') }}
+                    onClick={() => {
+                      setTgtVolume('')
+                      setTgtValue('')
+                      setTgtPeriod('')
+                    }}
                     style={{ fontSize: 12 }}
                   >
                     Réinitialiser
@@ -529,15 +608,17 @@ export default function PipelinePage() {
                         memberId: user.uid,
                         memberName: user.name ?? user.email ?? '',
                         targetVolume: tgtVolume ? Number(tgtVolume) : null,
-                        targetValue:  tgtValue  ? Number(tgtValue)  : null,
+                        targetValue: tgtValue ? Number(tgtValue) : null,
                         period: tgtPeriod || null
                       })
                     }}
                     style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}
                   >
-                    {saveTarget.isPending
-                      ? <Loader2 size={13} className="animate-spin" />
-                      : <Target size={13} />}
+                    {saveTarget.isPending ? (
+                      <Loader2 size={13} className="animate-spin" />
+                    ) : (
+                      <Target size={13} />
+                    )}
                     {saveTarget.isPending ? 'Enregistrement...' : 'Enregistrer les objectifs'}
                   </Button>
                 </div>
@@ -553,7 +634,15 @@ export default function PipelinePage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16, padding: '4px 0' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    <label
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 600,
+                        color: 'var(--muted-foreground)',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em'
+                      }}
+                    >
                       Du
                     </label>
                     <input
@@ -573,7 +662,15 @@ export default function PipelinePage() {
                     />
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    <label
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 600,
+                        color: 'var(--muted-foreground)',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em'
+                      }}
+                    >
                       Au
                     </label>
                     <input
@@ -597,7 +694,10 @@ export default function PipelinePage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => { setExportFrom(''); setExportTo('') }}
+                    onClick={() => {
+                      setExportFrom('')
+                      setExportTo('')
+                    }}
                     style={{ fontSize: 12 }}
                   >
                     Réinitialiser
@@ -614,9 +714,11 @@ export default function PipelinePage() {
                     disabled={exportLoading}
                     style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}
                   >
-                    {exportLoading
-                      ? <Loader2 size={13} className="animate-spin" />
-                      : <FileDown size={13} />}
+                    {exportLoading ? (
+                      <Loader2 size={13} className="animate-spin" />
+                    ) : (
+                      <FileDown size={13} />
+                    )}
                     {exportLoading ? 'Génération...' : 'Télécharger le rapport'}
                   </Button>
                 </div>
@@ -677,11 +779,7 @@ export default function PipelinePage() {
                 <p style={{ color: 'var(--muted-foreground)', marginBottom: 12, fontSize: 14 }}>
                   {t('search.noProspectInStage')}
                 </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => router.push('/pipeline')}
-                >
+                <Button variant="outline" size="sm" onClick={() => router.push('/pipeline')}>
                   {t('search.showAllProspects')}
                 </Button>
               </div>

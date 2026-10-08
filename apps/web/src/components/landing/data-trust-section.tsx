@@ -71,12 +71,8 @@ export function DataTrustSection() {
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary mb-4">
                 <pillar.icon className="h-5 w-5" />
               </div>
-              <h3 className="font-heading text-base font-bold text-foreground">
-                {pillar.title}
-              </h3>
-              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                {pillar.desc}
-              </p>
+              <h3 className="font-heading text-base font-bold text-foreground">{pillar.title}</h3>
+              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{pillar.desc}</p>
             </div>
           ))}
         </div>

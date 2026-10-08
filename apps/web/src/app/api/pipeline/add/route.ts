@@ -31,11 +31,22 @@ export async function POST(request: NextRequest) {
 
     const callerDoc = await adminDb.collection('users').doc(userId).get()
     const callerData = callerDoc.data()
-    if (!callerData || callerData.active !== true || callerData.activated !== true || callerData.emailVerified !== true) {
-      return NextResponse.json({ message: 'Un compte actif et vérifié est requis.' }, { status: 403 })
+    if (
+      !callerData ||
+      callerData.active !== true ||
+      callerData.activated !== true ||
+      callerData.emailVerified !== true
+    ) {
+      return NextResponse.json(
+        { message: 'Un compte actif et vérifié est requis.' },
+        { status: 403 }
+      )
     }
     if (callerData.role === 'manager' && !hasActivePaidManagerAccess(callerData)) {
-      return NextResponse.json({ message: 'Un abonnement Manager actif est requis.' }, { status: 403 })
+      return NextResponse.json(
+        { message: 'Un abonnement Manager actif est requis.' },
+        { status: 403 }
+      )
     }
     if (!['manager', 'independent', 'member'].includes(callerData.role)) {
       return NextResponse.json({ message: 'Accès refusé' }, { status: 403 })
@@ -53,7 +64,7 @@ export async function POST(request: NextRequest) {
       companyCity,
       companyPhone,
       companyEmail,
-      googlePlaceId,
+      googlePlaceId
     } = body as {
       companyId?: string
       companyName?: string
@@ -97,20 +108,35 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // ── Step: Find previous assignees ──────────────────────────────────
+    const callerOrgCode = (callerData.orgCode as string) || null
+
+    // ── Step: Find previous assignees (Strictement isolé par Organisation / Manager) ──
     const prevAssigneesMap = new Map<
       string,
       { userId: string; memberName: string; assignedAt: string }
     >()
-    if (companyId) {
+    if (companyId || companyName) {
       try {
-        const byCompanyId = await adminDb
-          .collection('pipeline')
-          .where('companyId', '==', companyId)
-          .get()
-        byCompanyId.docs.forEach((doc) => {
+        let query = adminDb.collection('pipeline') as FirebaseFirestore.Query
+        if (companyId) {
+          query = query.where('companyId', '==', companyId)
+        } else {
+          query = query.where('companyName', '==', companyName)
+        }
+
+        if (callerOrgCode) {
+          query = query.where('orgCode', '==', callerOrgCode)
+        } else if (managerUid) {
+          query = query.where('managerUid', '==', managerUid)
+        } else {
+          query = query.where('userId', '==', userId)
+        }
+
+        const snap = await query.get()
+        snap.docs.forEach((doc) => {
           const d = doc.data()
-          const isManager = d.userId === managerUid || d.assignedTo === managerUid || d.role === 'manager'
+          const isManager =
+            d.userId === managerUid || d.assignedTo === managerUid || d.role === 'manager'
           if (d.userId && d.userId !== userId && !isManager) {
             prevAssigneesMap.set(d.userId, {
               userId: d.userId,
@@ -120,28 +146,7 @@ export async function POST(request: NextRequest) {
           }
         })
       } catch (err) {
-        console.error('Error fetching by companyId', err)
-      }
-    }
-    if (companyName) {
-      try {
-        const byName = await adminDb
-          .collection('pipeline')
-          .where('companyName', '==', companyName)
-          .get()
-        byName.docs.forEach((doc) => {
-          const d = doc.data()
-          const isManager = d.userId === managerUid || d.assignedTo === managerUid || d.role === 'manager'
-          if (d.userId && d.userId !== userId && !isManager) {
-            prevAssigneesMap.set(d.userId, {
-              userId: d.userId,
-              memberName: d.memberName || d.userId,
-              assignedAt: d.createdAt?.toDate?.()?.toISOString() || new Date().toISOString()
-            })
-          }
-        })
-      } catch (err) {
-        console.error('Error fetching by companyName', err)
+        console.error('[pipeline/add] Error fetching previousAssignees', err)
       }
     }
     const previousAssignees = Array.from(prevAssigneesMap.values())

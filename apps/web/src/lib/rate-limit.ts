@@ -28,7 +28,10 @@ export function getClientIp(request: NextRequest): string {
   // 2. Si seul x-forwarded-for est disponible, prendre l'IP de confiance
   const xff = request.headers.get('x-forwarded-for')
   if (xff) {
-    const parts = xff.split(',').map((p) => p.trim()).filter(Boolean)
+    const parts = xff
+      .split(',')
+      .map((p) => p.trim())
+      .filter(Boolean)
     if (parts.length > 0) {
       return parts[parts.length - 1] ?? '127.0.0.1'
     }

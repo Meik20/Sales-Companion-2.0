@@ -27,11 +27,17 @@ type RegisterInput = {
   phone?: string
   niu?: string
   orgCode?: string
-  joinOrgCode?: string  // Code ORG fourni par un Senior Manager pour rejoindre son organisation
+  joinOrgCode?: string // Code ORG fourni par un Senior Manager pour rejoindre son organisation
 }
 
 /** Upsert the Firestore user document after any Google sign-in */
-async function upsertGoogleUser(user: { uid: string; email: string | null; displayName: string | null; photoURL: string | null; getIdToken: () => Promise<string> }) {
+async function upsertGoogleUser(user: {
+  uid: string
+  email: string | null
+  displayName: string | null
+  photoURL: string | null
+  getIdToken: () => Promise<string>
+}) {
   const ref = doc(firestore, 'users', user.uid)
   const snap = await getDoc(ref)
 
@@ -185,7 +191,10 @@ export function useAuthActions() {
   const sendPasswordReset = async (email: string) => {
     try {
       const actionCodeSettings = {
-        url: typeof window !== 'undefined' ? `${window.location.origin}/login` : 'http://localhost:3000/login',
+        url:
+          typeof window !== 'undefined'
+            ? `${window.location.origin}/login`
+            : 'http://localhost:3000/login',
         handleCodeInApp: false
       }
       await sendPasswordResetEmail(auth, email, actionCodeSettings)
@@ -197,15 +206,20 @@ export function useAuthActions() {
   const updateUserEmail = async (newEmail: string) => {
     try {
       const currentUser = auth.currentUser
-      if (!currentUser) throw new Error("Aucun utilisateur connecté")
+      if (!currentUser) throw new Error('Aucun utilisateur connecté')
 
       const tokenResult = await currentUser.getIdTokenResult().catch(() => null)
       if (tokenResult?.claims?.role === 'member') {
-        throw new Error("Votre adresse email professionnelle est gérée par votre organisation et ne peut pas être modifiée.")
+        throw new Error(
+          'Votre adresse email professionnelle est gérée par votre organisation et ne peut pas être modifiée.'
+        )
       }
 
       const actionCodeSettings = {
-        url: typeof window !== 'undefined' ? `${window.location.origin}/settings` : 'http://localhost:3000/settings',
+        url:
+          typeof window !== 'undefined'
+            ? `${window.location.origin}/settings`
+            : 'http://localhost:3000/settings',
         handleCodeInApp: false
       }
       await verifyBeforeUpdateEmail(currentUser, newEmail, actionCodeSettings)

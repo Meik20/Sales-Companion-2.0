@@ -132,7 +132,10 @@ export async function POST(request: NextRequest) {
 
     if (!['manager', 'support_agent', 'independent'].includes(callerRole ?? '')) {
       return NextResponse.json(
-        { message: 'Accès refusé. Seul un manager, un indépendant ou un agent support peut importer des prospects.' },
+        {
+          message:
+            'Accès refusé. Seul un manager, un indépendant ou un agent support peut importer des prospects.'
+        },
         { status: 403 }
       )
     }
@@ -169,7 +172,10 @@ export async function POST(request: NextRequest) {
       const allowedIds = [callerUid, ...linkedManagerUids]
       if (!allowedIds.includes(managerId)) {
         return NextResponse.json(
-          { message: 'Accès refusé. Vous ne pouvez importer que pour votre propre compte ou votre manager lié.' },
+          {
+            message:
+              'Accès refusé. Vous ne pouvez importer que pour votre propre compte ou votre manager lié.'
+          },
           { status: 403 }
         )
       }
@@ -239,7 +245,7 @@ export async function POST(request: NextRequest) {
         sector: (p.sector ?? '').trim(),
         notes: (p.notes ?? '').trim(),
         assignedTo: p.assignedTo ?? null,
-        importedBy: callerUid,      // traçabilité : qui a fait l'import
+        importedBy: callerUid, // traçabilité : qui a fait l'import
         importedByRole: callerRole, // traçabilité : quel rôle
         status: 'new',
         createdAt: now,
@@ -369,7 +375,9 @@ export async function PATCH(request: NextRequest) {
           const ad = accessDoc.data() || {}
           memberName = `${ad.firstname ?? ''} ${ad.lastname ?? ''}`.trim()
         }
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     }
     if (!memberName) memberName = memberEmail || ''
 
@@ -414,12 +422,12 @@ export async function PATCH(request: NextRequest) {
       pipelineEntryId = pipelineRef.id
 
       await pipelineRef.set({
-        userId: assignedTo,           // le membre voit dans son pipeline
+        userId: assignedTo, // le membre voit dans son pipeline
         assignedTo: assignedTo,
         memberName,
         memberEmail,
         memberAccessId: memberAccessId ? memberAccessId.toLowerCase() : null,
-        managerUid,                   // le manager voit via /api/pipeline/manager
+        managerUid, // le manager voit via /api/pipeline/manager
         companyName,
         name: companyName,
         companySector: prospectData.sector ?? prospectData.companySector ?? null,
@@ -446,8 +454,8 @@ export async function PATCH(request: NextRequest) {
         memberId: assignedTo,
         memberName,
         memberEmail,
-        pipelineItemId: prospectId,      // référence au prospect importé
-        pipelineEntryId,                  // nouvelle entrée pipeline du membre
+        pipelineItemId: prospectId, // référence au prospect importé
+        pipelineEntryId, // nouvelle entrée pipeline du membre
         companyName,
         status: 'active',
         createdAt: FieldValue.serverTimestamp(),
@@ -472,7 +480,6 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ message: msg }, { status: 500 })
   }
 }
-
 
 // ── DELETE /api/imports — Supprimer des prospects ou vider la liste ───
 export async function DELETE(request: NextRequest) {
@@ -605,4 +612,3 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ message: msg }, { status: 500 })
   }
 }
-

@@ -8,11 +8,12 @@ const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://salescompanion2-0.co
 export const metadata: Metadata = {
   title: 'Politique de Confidentialité | Sales Companion 2.0',
   description:
-    "Politique de confidentialité de Sales Companion 2.0 : collecte, traitement et protection de vos données personnelles conformément à la réglementation en vigueur au Cameroun.",
+    'Politique de confidentialité de Sales Companion 2.0 : collecte, traitement et protection de vos données personnelles conformément à la réglementation en vigueur au Cameroun.',
   alternates: { canonical: `${baseUrl}/privacy` },
   openGraph: {
     title: 'Politique de Confidentialité — Sales Companion 2.0',
-    description: 'Comment Sales Companion 2.0 collecte, utilise et protège vos données personnelles.',
+    description:
+      'Comment Sales Companion 2.0 collecte, utilise et protège vos données personnelles.',
     url: `${baseUrl}/privacy`,
     siteName: 'Sales Companion 2.0',
     type: 'website'
@@ -30,11 +31,11 @@ const SECTIONS = [
     title: '2. Données collectées',
     content: `Nous collectons les catégories de données suivantes :`,
     bullets: [
-      'Données d\'identification : nom, prénom, adresse e-mail lors de la création de compte.',
+      "Données d'identification : nom, prénom, adresse e-mail lors de la création de compte.",
       'Données de connexion : adresse IP, type de navigateur, horodatage des connexions.',
-      'Données d\'usage : pages visitées, recherches effectuées, prospects consultés, actions dans votre pipeline CRM.',
+      "Données d'usage : pages visitées, recherches effectuées, prospects consultés, actions dans votre pipeline CRM.",
       'Données de facturation : informations de paiement (traitées de façon sécurisée par notre prestataire de paiement).',
-      'Données professionnelles : nom de l\'entreprise, secteur d\'activité, rôle (commercial, manager, membre).'
+      "Données professionnelles : nom de l'entreprise, secteur d'activité, rôle (commercial, manager, membre)."
     ]
   },
   {
@@ -46,7 +47,7 @@ const SECTIONS = [
       'Gestion de votre compte et authentification sécurisée.',
       'Communication relative à votre abonnement (factures, confirmations).',
       'Assistance technique et support client.',
-      'Analyses statistiques anonymisées pour améliorer l\'expérience utilisateur.',
+      "Analyses statistiques anonymisées pour améliorer l'expérience utilisateur.",
       'Respect des obligations légales et réglementaires.'
     ]
   },
@@ -80,11 +81,11 @@ const SECTIONS = [
     title: '8. Vos droits',
     content: `Conformément à la réglementation applicable, vous disposez des droits suivants :`,
     bullets: [
-      'Droit d\'accès : obtenir une copie de vos données personnelles.',
+      "Droit d'accès : obtenir une copie de vos données personnelles.",
       'Droit de rectification : corriger des données inexactes ou incomplètes.',
       'Droit à l\'effacement : demander la suppression de vos données ("droit à l\'oubli").',
       'Droit à la portabilité : recevoir vos données dans un format lisible par machine.',
-      'Droit d\'opposition : vous opposer à certains traitements (ex. communications marketing).',
+      "Droit d'opposition : vous opposer à certains traitements (ex. communications marketing).",
       'Droit à la limitation : restreindre le traitement dans certaines circonstances.'
     ]
   },
@@ -119,14 +120,26 @@ export default function PrivacyPage() {
           </Link>
           <div className="nav-desktop">
             <ul className="nav-links" role="list">
-              <li><Link href="/">Accueil</Link></li>
-              <li><Link href="/annuaire">Annuaire B2B</Link></li>
-              <li><Link href="/blog">Blog</Link></li>
-              <li><Link href="/terms">CGU</Link></li>
+              <li>
+                <Link href="/">Accueil</Link>
+              </li>
+              <li>
+                <Link href="/annuaire">Annuaire B2B</Link>
+              </li>
+              <li>
+                <Link href="/blog">Blog</Link>
+              </li>
+              <li>
+                <Link href="/terms">CGU</Link>
+              </li>
             </ul>
             <div className="nav-cta">
-              <Link href="/login" className="btn btn-ghost btn-sm">Connexion</Link>
-              <Link href="/register" className="btn btn-primary btn-sm">Essai Gratuit</Link>
+              <Link href="/login" className="btn btn-ghost btn-sm">
+                Connexion
+              </Link>
+              <Link href="/register" className="btn btn-primary btn-sm">
+                Essai Gratuit
+              </Link>
             </div>
           </div>
         </div>
@@ -142,10 +155,7 @@ export default function PrivacyPage() {
         }}
       >
         <div className="hero-glow-tl" aria-hidden="true" />
-        <span
-          className="hero-badge"
-          style={{ marginBottom: '24px', display: 'inline-flex' }}
-        >
+        <span className="hero-badge" style={{ marginBottom: '24px', display: 'inline-flex' }}>
           <span className="hero-badge-dot" />
           Dernière mise à jour : 14 juin 2026
         </span>
@@ -155,11 +165,9 @@ export default function PrivacyPage() {
         >
           🔒 Politique de <em>Confidentialité</em>
         </h1>
-        <p
-          className="hero-sub"
-          style={{ maxWidth: '640px', margin: '0 auto', fontSize: '1rem' }}
-        >
-          Vos données sont précieuses. Nous vous expliquons de manière transparente comment nous les collectons, les utilisons et les protégeons.
+        <p className="hero-sub" style={{ maxWidth: '640px', margin: '0 auto', fontSize: '1rem' }}>
+          Vos données sont précieuses. Nous vous expliquons de manière transparente comment nous les
+          collectons, les utilisons et les protégeons.
         </p>
 
         {/* Quick nav */}
@@ -218,8 +226,11 @@ export default function PrivacyPage() {
             <p style={{ margin: 0, fontWeight: 700, color: 'var(--tx)', fontSize: '15px' }}>
               Engagement de Sales Companion 2.0
             </p>
-            <p style={{ margin: '4px 0 0', color: 'var(--tx2)', fontSize: '13px', lineHeight: 1.6 }}>
-              Nous ne vendons jamais vos données. Vous êtes propriétaire de vos informations et pouvez les supprimer à tout moment depuis vos paramètres de compte.
+            <p
+              style={{ margin: '4px 0 0', color: 'var(--tx2)', fontSize: '13px', lineHeight: 1.6 }}
+            >
+              Nous ne vendons jamais vos données. Vous êtes propriétaire de vos informations et
+              pouvez les supprimer à tout moment depuis vos paramètres de compte.
             </p>
           </div>
         </div>
@@ -322,14 +333,14 @@ export default function PrivacyPage() {
           >
             Des questions sur vos données ?
           </h3>
-          <p style={{ color: 'var(--tx2)', marginBottom: '28px', fontSize: '14px', lineHeight: 1.7 }}>
-            Notre équipe est disponible pour répondre à toutes vos questions relatives à la protection de vos données personnelles.
+          <p
+            style={{ color: 'var(--tx2)', marginBottom: '28px', fontSize: '14px', lineHeight: 1.7 }}
+          >
+            Notre équipe est disponible pour répondre à toutes vos questions relatives à la
+            protection de vos données personnelles.
           </p>
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <a
-              href="mailto:privacy@salescompanion2-0.com"
-              className="btn btn-primary btn-md"
-            >
+            <a href="mailto:privacy@salescompanion2-0.com" className="btn btn-primary btn-md">
               ✉️ Contacter le DPO
             </a>
             <Link href="/terms" className="btn btn-outline btn-md">
@@ -344,11 +355,41 @@ export default function PrivacyPage() {
         className="footer"
         style={{ borderTop: '1px solid var(--bd)', padding: '40px 24px', textAlign: 'center' }}
       >
-        <div style={{ display: 'flex', gap: '24px', justifyContent: 'center', marginBottom: '16px', flexWrap: 'wrap' }}>
-          <Link href="/" style={{ color: 'var(--tx3)', fontSize: '13px', textDecoration: 'none' }}>Accueil</Link>
-          <Link href="/terms" style={{ color: 'var(--tx3)', fontSize: '13px', textDecoration: 'none' }}>CGU</Link>
-          <Link href="/blog" style={{ color: 'var(--tx3)', fontSize: '13px', textDecoration: 'none' }}>Blog</Link>
-          <Link href="/register" style={{ color: 'var(--gm)', fontSize: '13px', textDecoration: 'none', fontWeight: 600 }}>Créer un compte</Link>
+        <div
+          style={{
+            display: 'flex',
+            gap: '24px',
+            justifyContent: 'center',
+            marginBottom: '16px',
+            flexWrap: 'wrap'
+          }}
+        >
+          <Link href="/" style={{ color: 'var(--tx3)', fontSize: '13px', textDecoration: 'none' }}>
+            Accueil
+          </Link>
+          <Link
+            href="/terms"
+            style={{ color: 'var(--tx3)', fontSize: '13px', textDecoration: 'none' }}
+          >
+            CGU
+          </Link>
+          <Link
+            href="/blog"
+            style={{ color: 'var(--tx3)', fontSize: '13px', textDecoration: 'none' }}
+          >
+            Blog
+          </Link>
+          <Link
+            href="/register"
+            style={{
+              color: 'var(--gm)',
+              fontSize: '13px',
+              textDecoration: 'none',
+              fontWeight: 600
+            }}
+          >
+            Créer un compte
+          </Link>
         </div>
         <p style={{ color: 'var(--tx3)', fontSize: '0.875rem', margin: 0 }}>
           © {new Date().getFullYear()} Sales Companion 2.0 · 🇨🇲 Intelligence B2B Cameroun

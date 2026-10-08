@@ -69,9 +69,7 @@ export async function POST(request: NextRequest) {
 
     // Construction du lien direct
     const appUrl =
-      process.env.NEXT_PUBLIC_APP_URL ||
-      process.env.APP_URL ||
-      'https://salescompanion2-0.com'
+      process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || 'https://salescompanion2-0.com'
     const editLink = `${appUrl}/profile?edit_token=${encodeURIComponent(editToken)}`
 
     // 2. Envoi du message dans la messagerie interne du ticket

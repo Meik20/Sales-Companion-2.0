@@ -102,9 +102,7 @@ function SearchContent() {
   }
 
   function resetChat() {
-    setChatMessages([
-      { role: 'assistant', text: getAiGreeting() }
-    ])
+    setChatMessages([{ role: 'assistant', text: getAiGreeting() }])
     setChatInput('')
     if (chatTextareaRef.current) {
       chatTextareaRef.current.style.height = 'auto'
@@ -275,7 +273,7 @@ function SearchContent() {
                   (searchQuery.error as Error)?.message?.includes('offline')
                     ? (searchQuery.error as Error).message
                     : (searchQuery.error as Error)?.message?.includes('429') ||
-                    (searchQuery.error as Error)?.message?.includes('Quota')
+                        (searchQuery.error as Error)?.message?.includes('Quota')
                       ? t('search.quotaExceeded')
                       : t('search.searchError')}
                 </div>
@@ -320,16 +318,23 @@ function SearchContent() {
                         onClick={() => {
                           setIsBackAction(true)
                           setCurrentPage((p) => Math.max(1, p - 1))
-                          document.getElementById('main-scroll-container')?.scrollTo({ top: 0, behavior: 'smooth' })
+                          document
+                            .getElementById('main-scroll-container')
+                            ?.scrollTo({ top: 0, behavior: 'smooth' })
                         }}
                       >
                         {t('common.previous' as any) || 'Précédent'}
                       </Button>
 
-                      <span style={{ fontSize: 13, color: 'var(--muted-foreground, #94a3b8)', fontWeight: 600 }}>
+                      <span
+                        style={{
+                          fontSize: 13,
+                          color: 'var(--muted-foreground, #94a3b8)',
+                          fontWeight: 600
+                        }}
+                      >
                         Page {currentPage} / {totalPages} • 10 / page
                       </span>
-
 
                       <Button
                         variant="primary"
@@ -338,7 +343,9 @@ function SearchContent() {
                         onClick={() => {
                           setIsBackAction(false)
                           setCurrentPage((p) => p + 1)
-                          document.getElementById('main-scroll-container')?.scrollTo({ top: 0, behavior: 'smooth' })
+                          document
+                            .getElementById('main-scroll-container')
+                            ?.scrollTo({ top: 0, behavior: 'smooth' })
                         }}
                       >
                         {t('common.next' as any) || 'Suivant'}
@@ -365,10 +372,10 @@ function SearchContent() {
               }}
             >
               <div
-                style={{ 
-                  display: 'flex', 
-                  flexDirection: 'column', 
-                  alignItems: 'center', 
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
                   gap: 12,
                   width: '100%',
                   boxSizing: 'border-box'
@@ -548,12 +555,17 @@ function SearchContent() {
                   size="md"
                   disabled={searchQuery.isLoading}
                   onClick={() => {
-                    const input = document.getElementById('main-search-input') as HTMLInputElement | null
+                    const input = document.getElementById(
+                      'main-search-input'
+                    ) as HTMLInputElement | null
                     const form = input?.closest('form')
                     if (input) {
                       input.focus()
                     }
-                    if (form && (input?.value.trim() || filters.sector || filters.city || filters.region)) {
+                    if (
+                      form &&
+                      (input?.value.trim() || filters.sector || filters.city || filters.region)
+                    ) {
                       form.requestSubmit()
                     }
                   }}
@@ -665,8 +677,6 @@ function SearchContent() {
             paddingRight: 4
           }}
         >
-
-
           {/* Pipeline commercial */}
           <DataCard
             title={t('search.commercialPipeline')}
@@ -712,8 +722,12 @@ function SearchContent() {
                     className={`rounded-xl border p-2.5 text-center transition-all cursor-pointer outline-none hover:scale-[1.02] active:scale-[0.98] ${bgClass}`}
                     title={`${label}: ${value}`}
                   >
-                    <div className={`text-[22px] font-extrabold leading-tight ${textClass}`}>{value}</div>
-                    <div className="mt-0.5 text-[10px] font-semibold text-muted-foreground">{label}</div>
+                    <div className={`text-[22px] font-extrabold leading-tight ${textClass}`}>
+                      {value}
+                    </div>
+                    <div className="mt-0.5 text-[10px] font-semibold text-muted-foreground">
+                      {label}
+                    </div>
                   </button>
                 ))}
               </div>
@@ -754,186 +768,192 @@ function SearchContent() {
                 const conversationStarted = chatMessages.some((m) => m.role === 'user')
                 return (
                   <>
-              <div
-                ref={chatMessagesContainerRef}
-                style={{
-                  flex: 1,
-                  overflowY: 'auto',
-                  overscrollBehavior: 'contain',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 10,
-                  paddingRight: 4,
-                  maxHeight: conversationStarted ? 320 : 260
-                }}
-              >
-                {chatMessages.map((msg, i) => (
-                  <div
-                    key={i}
-                    className={
-                      msg.role === 'user'
-                        ? 'self-end max-w-[85%] rounded-[16px_16px_4px_16px] bg-primary px-3.5 py-2.5 text-[12.5px] leading-relaxed text-primary-foreground shadow-sm'
-                        : 'self-start max-w-[85%] rounded-[16px_16px_16px_4px] border border-border bg-secondary/80 px-3.5 py-2.5 text-[12.5px] leading-relaxed text-foreground shadow-sm'
-                    }
-                    style={{ whiteSpace: 'pre-wrap' }}
-                  >
-                    {msg.text}
-                  </div>
-                ))}
-                {isSendingChat && (
-                  <div className="self-start rounded-[16px_16px_16px_4px] border border-border bg-secondary/60 px-3.5 py-2.5 text-[12px] italic text-muted-foreground">
-                    {t('search.aiThinking')}
-                  </div>
-                )}
-              </div>
-
-                {/* Chips suggestions — visibles uniquement AVANT que la conversation démarre */}
-                {!conversationStarted && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {(() => {
-                  const sector = filters.sector || (user as { sector?: string } | null)?.sector
-                  const city = filters.city
-                  const hasResults = results.length > 0
-
-                  let chips: string[] = []
-
-                  if (hasResults) {
-                    chips = [
-                      `Script d'appel pour ces ${results.length} prospects`,
-                      sector ? `Pitch d'accroche ${sector}` : "Email d'approche personnalisé",
-                      'Questions de qualification B2B'
-                    ]
-                  } else if (sector && city) {
-                    chips = [
-                      `Opportunités ${sector} à ${city}`,
-                      `Email d'approche ${sector} ${city}`,
-                      `Script appel DG ${sector}`
-                    ]
-                  } else if (sector) {
-                    chips = [
-                      `Tendances marché ${sector}`,
-                      `Email d'approche ${sector}`,
-                      `Script appel DG ${sector}`
-                    ]
-                  } else if (city) {
-                    chips = [
-                      `Marché B2B à ${city}`,
-                      `Email prospection ${city}`,
-                      `Comment aborder un DG à ${city}`
-                    ]
-                  } else {
-                    chips = [
-                      `Tendances BTP ${highlightCities.btp}`,
-                      `Email d'approche Tech ${highlightCities.tech}`,
-                      'Script appel DG Agroalimentaire'
-                    ]
-                  }
-
-                  return chips.map((chip) => (
-                    <button
-                      key={chip}
-                      onClick={() => {
-                        if (isFreePlan) {
-                          router.push(routes.upgrade)
-                          return
-                        }
-                        sendChatMessage(chip)
-                      }}
-                      disabled={isSendingChat}
-                      className="cursor-pointer rounded-full border border-border bg-secondary/70 px-2.5 py-1 text-[11px] font-medium text-foreground transition-all hover:border-primary/40 hover:bg-primary/10 hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      {chip}
-                    </button>
-                  ))
-                })()}
-                </div>
-                )}
-
-                {/* Zone de saisie */}
-                <div style={{ position: 'relative' }}>
-                  <textarea
-                    ref={chatTextareaRef}
-                    value={chatInput}
-                    onChange={handleChatInputChange}
-                    onKeyDown={handleChatKeyDown}
-                    disabled={isSendingChat}
-                    placeholder={t('search.aiPlaceholder')}
-                    rows={1}
-                    style={{
-                      width: '100%',
-                      minHeight: 36,
-                      maxHeight: 110,
-                      padding: isFreePlan ? '9px 104px 9px 12px' : '9px 44px 9px 12px',
-                      borderRadius: 10,
-                      border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
-                      outline: 'none',
-                      fontSize: 12.5,
-                      resize: 'none',
-                      fontFamily: 'inherit',
-                      background: 'var(--card, #131c2e)',
-                      color: 'var(--foreground, #f1f5f9)',
-                      boxSizing: 'border-box',
-                      lineHeight: 1.4,
-                      overflowY: 'auto',
-                      overscrollBehavior: 'contain'
-                    }}
-                  />
-                  {isFreePlan ? (
-                    <button
-                      type="button"
-                      onClick={() => router.push(routes.upgrade)}
-                      className="cursor-pointer transition-all hover:scale-105 active:scale-95"
+                    <div
+                      ref={chatMessagesContainerRef}
                       style={{
-                        position: 'absolute',
-                        right: 6,
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        height: 28,
-                        padding: '0 12px',
-                        borderRadius: 8,
-                        background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
-                        color: '#fff',
-                        border: 'none',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 5,
-                        fontSize: 11,
-                        fontWeight: 800,
-                        letterSpacing: '0.04em',
-                        boxShadow: '0 2px 10px rgba(124, 58, 237, 0.4)',
-                        zIndex: 2
-                      }}
-                    >
-                      <Zap size={12} className="fill-current" />
-                      <span>UPGRADE</span>
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => sendChatMessage(chatInput)}
-                      disabled={isSendingChat || !chatInput.trim()}
-                      style={{
-                        position: 'absolute',
-                        right: 8,
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        width: 28,
-                        height: 28,
-                        borderRadius: '50%',
-                        background: isSendingChat || !chatInput.trim() ? 'var(--border, rgba(255,255,255,0.1))' : '#2563eb',
-                        color: '#fff',
-                        border: 'none',
-                        cursor: isSendingChat || !chatInput.trim() ? 'not-allowed' : 'pointer',
+                        flex: 1,
+                        overflowY: 'auto',
+                        overscrollBehavior: 'contain',
                         display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        boxShadow: '0 4px 12px rgba(0,85,255,0.3)',
-                        transition: 'all 200ms ease'
+                        flexDirection: 'column',
+                        gap: 10,
+                        paddingRight: 4,
+                        maxHeight: conversationStarted ? 320 : 260
                       }}
                     >
-                      <Send size={12} strokeWidth={2.5} />
-                    </button>
-                  )}
-                </div>
+                      {chatMessages.map((msg, i) => (
+                        <div
+                          key={i}
+                          className={
+                            msg.role === 'user'
+                              ? 'self-end max-w-[85%] rounded-[16px_16px_4px_16px] bg-primary px-3.5 py-2.5 text-[12.5px] leading-relaxed text-primary-foreground shadow-sm'
+                              : 'self-start max-w-[85%] rounded-[16px_16px_16px_4px] border border-border bg-secondary/80 px-3.5 py-2.5 text-[12.5px] leading-relaxed text-foreground shadow-sm'
+                          }
+                          style={{ whiteSpace: 'pre-wrap' }}
+                        >
+                          {msg.text}
+                        </div>
+                      ))}
+                      {isSendingChat && (
+                        <div className="self-start rounded-[16px_16px_16px_4px] border border-border bg-secondary/60 px-3.5 py-2.5 text-[12px] italic text-muted-foreground">
+                          {t('search.aiThinking')}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Chips suggestions — visibles uniquement AVANT que la conversation démarre */}
+                    {!conversationStarted && (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                        {(() => {
+                          const sector =
+                            filters.sector || (user as { sector?: string } | null)?.sector
+                          const city = filters.city
+                          const hasResults = results.length > 0
+
+                          let chips: string[] = []
+
+                          if (hasResults) {
+                            chips = [
+                              `Script d'appel pour ces ${results.length} prospects`,
+                              sector
+                                ? `Pitch d'accroche ${sector}`
+                                : "Email d'approche personnalisé",
+                              'Questions de qualification B2B'
+                            ]
+                          } else if (sector && city) {
+                            chips = [
+                              `Opportunités ${sector} à ${city}`,
+                              `Email d'approche ${sector} ${city}`,
+                              `Script appel DG ${sector}`
+                            ]
+                          } else if (sector) {
+                            chips = [
+                              `Tendances marché ${sector}`,
+                              `Email d'approche ${sector}`,
+                              `Script appel DG ${sector}`
+                            ]
+                          } else if (city) {
+                            chips = [
+                              `Marché B2B à ${city}`,
+                              `Email prospection ${city}`,
+                              `Comment aborder un DG à ${city}`
+                            ]
+                          } else {
+                            chips = [
+                              `Tendances BTP ${highlightCities.btp}`,
+                              `Email d'approche Tech ${highlightCities.tech}`,
+                              'Script appel DG Agroalimentaire'
+                            ]
+                          }
+
+                          return chips.map((chip) => (
+                            <button
+                              key={chip}
+                              onClick={() => {
+                                if (isFreePlan) {
+                                  router.push(routes.upgrade)
+                                  return
+                                }
+                                sendChatMessage(chip)
+                              }}
+                              disabled={isSendingChat}
+                              className="cursor-pointer rounded-full border border-border bg-secondary/70 px-2.5 py-1 text-[11px] font-medium text-foreground transition-all hover:border-primary/40 hover:bg-primary/10 hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              {chip}
+                            </button>
+                          ))
+                        })()}
+                      </div>
+                    )}
+
+                    {/* Zone de saisie */}
+                    <div style={{ position: 'relative' }}>
+                      <textarea
+                        ref={chatTextareaRef}
+                        value={chatInput}
+                        onChange={handleChatInputChange}
+                        onKeyDown={handleChatKeyDown}
+                        disabled={isSendingChat}
+                        placeholder={t('search.aiPlaceholder')}
+                        rows={1}
+                        style={{
+                          width: '100%',
+                          minHeight: 36,
+                          maxHeight: 110,
+                          padding: isFreePlan ? '9px 104px 9px 12px' : '9px 44px 9px 12px',
+                          borderRadius: 10,
+                          border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+                          outline: 'none',
+                          fontSize: 12.5,
+                          resize: 'none',
+                          fontFamily: 'inherit',
+                          background: 'var(--card, #131c2e)',
+                          color: 'var(--foreground, #f1f5f9)',
+                          boxSizing: 'border-box',
+                          lineHeight: 1.4,
+                          overflowY: 'auto',
+                          overscrollBehavior: 'contain'
+                        }}
+                      />
+                      {isFreePlan ? (
+                        <button
+                          type="button"
+                          onClick={() => router.push(routes.upgrade)}
+                          className="cursor-pointer transition-all hover:scale-105 active:scale-95"
+                          style={{
+                            position: 'absolute',
+                            right: 6,
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            height: 28,
+                            padding: '0 12px',
+                            borderRadius: 8,
+                            background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+                            color: '#fff',
+                            border: 'none',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 5,
+                            fontSize: 11,
+                            fontWeight: 800,
+                            letterSpacing: '0.04em',
+                            boxShadow: '0 2px 10px rgba(124, 58, 237, 0.4)',
+                            zIndex: 2
+                          }}
+                        >
+                          <Zap size={12} className="fill-current" />
+                          <span>UPGRADE</span>
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => sendChatMessage(chatInput)}
+                          disabled={isSendingChat || !chatInput.trim()}
+                          style={{
+                            position: 'absolute',
+                            right: 8,
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            width: 28,
+                            height: 28,
+                            borderRadius: '50%',
+                            background:
+                              isSendingChat || !chatInput.trim()
+                                ? 'var(--border, rgba(255,255,255,0.1))'
+                                : '#2563eb',
+                            color: '#fff',
+                            border: 'none',
+                            cursor: isSendingChat || !chatInput.trim() ? 'not-allowed' : 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            boxShadow: '0 4px 12px rgba(0,85,255,0.3)',
+                            transition: 'all 200ms ease'
+                          }}
+                        >
+                          <Send size={12} strokeWidth={2.5} />
+                        </button>
+                      )}
+                    </div>
                   </>
                 )
               })()}

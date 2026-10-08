@@ -11,7 +11,11 @@ import { useAuthActions, resolveGoogleRedirect } from '../hooks/useAuthActions'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { mapAuthError } from '../utils/error-mapper'
 import { routes } from '@/constants/routes'
-import { BUSINESS_SECTORS, SUPPORTED_COUNTRIES, validatePhoneForCountry } from '@sales-companion/shared'
+import {
+  BUSINESS_SECTORS,
+  SUPPORTED_COUNTRIES,
+  validatePhoneForCountry
+} from '@sales-companion/shared'
 import { useTranslation } from '@/providers/I18nProvider'
 import { isCorporateEmail } from '../utils/email-validator'
 import { CountrySelect } from '@/components/ui/CountrySelect'
@@ -40,7 +44,9 @@ export function RegisterForm() {
   const [step, setStep] = useState<1 | 2>(1)
 
   const [name, setName] = useState(nameParam || '')
-  const [role, setRole] = useState<RoleOption>(roleParam === 'manager' || exemptionParam || orgParam ? 'manager' : 'independent')
+  const [role, setRole] = useState<RoleOption>(
+    roleParam === 'manager' || exemptionParam || orgParam ? 'manager' : 'independent'
+  )
   const [country, setCountry] = useState<string>('CM')
   const [phone, setPhone] = useState('')
   const [email, setEmail] = useState(emailParam || '')
@@ -49,7 +55,11 @@ export function RegisterForm() {
   const [sector, setSector] = useState<string>(sectorParam || '')
   const [niu, setNiu] = useState('')
   const [joinOrgCode, setJoinOrgCode] = useState(orgParam || '')
-  const [joinOrgInfo, setJoinOrgInfo] = useState<{ companyName: string; sector?: string; seniorManagerName?: string } | null>(null)
+  const [joinOrgInfo, setJoinOrgInfo] = useState<{
+    companyName: string
+    sector?: string
+    seniorManagerName?: string
+  } | null>(null)
   const [joinOrgVerifying, setJoinOrgVerifying] = useState(false)
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
@@ -57,10 +67,15 @@ export function RegisterForm() {
 
   const [exemptionToken, setExemptionToken] = useState<string | null>(exemptionParam)
   const [exemptionValid, setExemptionValid] = useState<boolean | null>(null)
-  const [exemptionInfo, setExemptionInfo] = useState<{ companyName?: string; name?: string } | null>(null)
+  const [exemptionInfo, setExemptionInfo] = useState<{
+    companyName?: string
+    name?: string
+  } | null>(null)
 
   useEffect(() => {
-    resolveGoogleRedirect().then((u) => { if (u) router.replace(routes.search) })
+    resolveGoogleRedirect().then((u) => {
+      if (u) router.replace(routes.search)
+    })
   }, [router])
 
   useEffect(() => {
@@ -71,7 +86,9 @@ export function RegisterForm() {
   useEffect(() => {
     if (!exemptionParam) return
     setExemptionToken(exemptionParam)
-    fetch(`/api/auth/validate-exemption?token=${encodeURIComponent(exemptionParam)}${emailParam ? `&email=${encodeURIComponent(emailParam)}` : ''}`)
+    fetch(
+      `/api/auth/validate-exemption?token=${encodeURIComponent(exemptionParam)}${emailParam ? `&email=${encodeURIComponent(emailParam)}` : ''}`
+    )
       .then((res) => res.json())
       .then((data) => {
         if (data.valid) {
@@ -98,7 +115,8 @@ export function RegisterForm() {
   ]
 
   async function handleGoogleSignIn() {
-    setGoogleLoading(true); setError(null)
+    setGoogleLoading(true)
+    setError(null)
     try {
       const result = await loginWithGoogle()
       if (result) router.replace(routes.search)
@@ -109,12 +127,16 @@ export function RegisterForm() {
     }
   }
 
-  const selectedCountryObj = SUPPORTED_COUNTRIES.find((c) => c.code === country) ?? SUPPORTED_COUNTRIES[0]
+  const selectedCountryObj =
+    SUPPORTED_COUNTRIES.find((c) => c.code === country) ?? SUPPORTED_COUNTRIES[0]
 
   /** Vérification du code ORG saisi par un Manager souhaitant rejoindre une organisation existante */
   async function verifyOrgCode(code: string) {
     const trimmed = code.trim().toUpperCase()
-    if (trimmed.length < 5) { setJoinOrgInfo(null); return }
+    if (trimmed.length < 5) {
+      setJoinOrgInfo(null)
+      return
+    }
     setJoinOrgVerifying(true)
     try {
       const res = await fetch(`/api/team/org/verify?code=${encodeURIComponent(trimmed)}`)
@@ -214,7 +236,9 @@ export function RegisterForm() {
         role,
         country,
         phone: formattedPhone,
-        companyName: companyName.trim() ? companyName.trim() : (joinOrgInfo?.companyName || undefined),
+        companyName: companyName.trim()
+          ? companyName.trim()
+          : joinOrgInfo?.companyName || undefined,
         sector: sector || joinOrgInfo?.sector || undefined,
         niu: role === 'manager' && niu.trim() ? niu.trim() : undefined,
         joinOrgCode: role === 'manager' && joinOrgCode.trim() ? joinOrgCode.trim() : undefined
@@ -291,7 +315,8 @@ export function RegisterForm() {
             </div>
             <div className="text-[11px] text-blue-200/80 mt-0.5 leading-relaxed">
               Votre demande de compte Manager pour l'entreprise{' '}
-              <strong>{companyName || exemptionInfo?.companyName || 'votre organisation'}</strong> a été validée.
+              <strong>{companyName || exemptionInfo?.companyName || 'votre organisation'}</strong> a
+              été validée.
             </div>
           </div>
         </div>
@@ -308,7 +333,11 @@ export function RegisterForm() {
             type="button"
             onClick={() => void handleGoogleSignIn()}
             disabled={isGoogleDisabled}
-            title={role === 'manager' ? 'Le compte Manager nécessite une inscription par email' : undefined}
+            title={
+              role === 'manager'
+                ? 'Le compte Manager nécessite une inscription par email'
+                : undefined
+            }
             className={`mb-1 flex w-full items-center justify-center gap-2.5 rounded-[10px] border border-border bg-white/[0.04] px-4 py-[10px] text-[13.5px] font-semibold text-foreground transition-colors ${
               isGoogleDisabled
                 ? 'cursor-not-allowed opacity-45'
@@ -318,15 +347,30 @@ export function RegisterForm() {
             {googleLoading ? (
               <span
                 className="inline-block h-[18px] w-[18px] shrink-0 rounded-full border-2 border-white/15"
-                style={{ borderTopColor: 'hsl(var(--primary))', animation: 'spin 0.7s linear infinite' }}
+                style={{
+                  borderTopColor: 'hsl(var(--primary))',
+                  animation: 'spin 0.7s linear infinite'
+                }}
               />
             ) : (
               <svg width="18" height="18" viewBox="0 0 48 48" className="shrink-0">
-                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-                <path fill="none" d="M0 0h48v48H0z"/>
+                <path
+                  fill="#EA4335"
+                  d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"
+                />
+                <path
+                  fill="#4285F4"
+                  d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
+                />
+                <path fill="none" d="M0 0h48v48H0z" />
               </svg>
             )}
             {googleLoading ? 'Connexion…' : "S'inscrire avec Google"}
@@ -375,21 +419,11 @@ export function RegisterForm() {
 
             {/* Pays & Téléphone */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <FormField
-                label={t('auth.country')}
-                required
-              >
-                <CountrySelect
-                  value={country}
-                  onChange={setCountry}
-                  lang={lang as 'fr' | 'en'}
-                />
+              <FormField label={t('auth.country')} required>
+                <CountrySelect value={country} onChange={setCountry} lang={lang as 'fr' | 'en'} />
               </FormField>
 
-              <FormField
-                label={t('auth.phone')}
-                required
-              >
+              <FormField label={t('auth.phone')} required>
                 <div className="flex items-center gap-1.5">
                   <div className="flex h-10 items-center justify-center rounded-[10px] border border-border bg-muted/40 px-3 text-[13px] font-bold text-foreground/80 shrink-0">
                     <span>{selectedCountryObj.dialCode}</span>
@@ -445,7 +479,9 @@ export function RegisterForm() {
                       : 'border-border bg-white/[0.03] hover:bg-white/[0.06]'
                   }`}
                 >
-                  <div className={`text-[13px] font-semibold ${role === opt.value ? 'text-blue-400' : 'text-foreground'}`}>
+                  <div
+                    className={`text-[13px] font-semibold ${role === opt.value ? 'text-blue-400' : 'text-foreground'}`}
+                  >
                     {opt.label}
                   </div>
                   <div className="mt-0.5 text-[11px] text-muted-foreground">{opt.desc}</div>
@@ -479,7 +515,9 @@ export function RegisterForm() {
               placeholder={
                 role === 'manager'
                   ? 'Ex: Acme Corp'
-                  : (lang === 'en' ? 'Ex: Acme Corp (optional)' : 'Ex: Acme Corp (optionnel)')
+                  : lang === 'en'
+                    ? 'Ex: Acme Corp (optional)'
+                    : 'Ex: Acme Corp (optionnel)'
               }
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
@@ -495,17 +533,16 @@ export function RegisterForm() {
             >
               <option value="">{t('auth.selectSector')}</option>
               {BUSINESS_SECTORS.map((s) => (
-                <option key={s} value={s}>{s}</option>
+                <option key={s} value={s}>
+                  {s}
+                </option>
               ))}
             </select>
           </FormField>
 
           {/* Numéro d'Identification Unique (NIU strict - Manager only, optionnel) */}
           {role === 'manager' && !joinOrgCode.trim() && (
-            <FormField
-              label={t('auth.niuLabel')}
-              hint={t('auth.niuHint')}
-            >
+            <FormField label={t('auth.niuLabel')} hint={t('auth.niuHint')}>
               <Input
                 placeholder={t('auth.niuPlaceholder')}
                 value={niu}
@@ -517,8 +554,16 @@ export function RegisterForm() {
           {/* Code ORG de rattachement (Manager only) */}
           {role === 'manager' && (
             <FormField
-              label={lang === 'en' ? 'Organisation Code (if joining an existing org)' : "Code Organisation (si vous rejoignez une org existante)"}
-              hint={lang === 'en' ? 'Optional — Provided by your Senior Manager via email invitation' : 'Optionnel — Fourni par votre Senior Manager via lien ou email d\'invitation'}
+              label={
+                lang === 'en'
+                  ? 'Organisation Code (if joining an existing org)'
+                  : 'Code Organisation (si vous rejoignez une org existante)'
+              }
+              hint={
+                lang === 'en'
+                  ? 'Optional — Provided by your Senior Manager via email invitation'
+                  : "Optionnel — Fourni par votre Senior Manager via lien ou email d'invitation"
+              }
             >
               <div className="flex flex-col gap-2">
                 <div className="flex gap-2">
@@ -546,17 +591,19 @@ export function RegisterForm() {
                     <span className="mt-0.5 text-green-400">✓</span>
                     <div>
                       <p className="font-bold text-green-400">
-                        {lang === 'en' ? 'Organisation recognised:' : 'Organisation reconnue :'} {joinOrgInfo.companyName}
+                        {lang === 'en' ? 'Organisation recognised:' : 'Organisation reconnue :'}{' '}
+                        {joinOrgInfo.companyName}
                       </p>
                       {joinOrgInfo.seniorManagerName && (
                         <p className="mt-0.5 text-green-400/80">
-                          {lang === 'en' ? 'Senior Manager:' : 'Senior Manager :'} {joinOrgInfo.seniorManagerName}
+                          {lang === 'en' ? 'Senior Manager:' : 'Senior Manager :'}{' '}
+                          {joinOrgInfo.seniorManagerName}
                         </p>
                       )}
                       <p className="mt-0.5 text-muted-foreground">
                         {lang === 'en'
                           ? 'You will join this organisation as a Team Manager.'
-                          : 'Vous rejoindrez cette organisation en tant que Manager d\'équipe.'}
+                          : "Vous rejoindrez cette organisation en tant que Manager d'équipe."}
                       </p>
                     </div>
                   </div>
@@ -577,7 +624,10 @@ export function RegisterForm() {
               type="button"
               variant="outline"
               size="lg"
-              onClick={() => { setError(null); setStep(1); }}
+              onClick={() => {
+                setError(null)
+                setStep(1)
+              }}
               className="flex-1"
             >
               <span className="inline-flex items-center gap-1.5">
@@ -586,13 +636,7 @@ export function RegisterForm() {
               </span>
             </Button>
 
-            <Button
-              type="submit"
-              variant="primary"
-              size="lg"
-              loading={loading}
-              className="flex-1"
-            >
+            <Button type="submit" variant="primary" size="lg" loading={loading} className="flex-1">
               {t('auth.createAccount')}
             </Button>
           </div>

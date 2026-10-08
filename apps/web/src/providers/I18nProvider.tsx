@@ -1,6 +1,14 @@
 'use client'
 
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react'
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  ReactNode
+} from 'react'
 import { fr } from '@/locales/fr'
 import { en } from '@/locales/en'
 
@@ -55,27 +63,26 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   const translations = lang === 'fr' ? fr : en
 
-  const t = useCallback((key: string): string => {
-    const keys = key.split('.')
-    let val: any = translations
-    for (const k of keys) {
-      if (val && typeof val === 'object' && k in val) {
-        val = val[k as keyof typeof val]
-      } else {
-        return key
+  const t = useCallback(
+    (key: string): string => {
+      const keys = key.split('.')
+      let val: any = translations
+      for (const k of keys) {
+        if (val && typeof val === 'object' && k in val) {
+          val = val[k as keyof typeof val]
+        } else {
+          return key
+        }
       }
-    }
-    return typeof val === 'string' ? val : key
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lang])
+      return typeof val === 'string' ? val : key
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    },
+    [lang]
+  )
 
   const value = useMemo(() => ({ lang, t, setLang }), [lang, t, setLang])
 
-  return (
-    <I18nContext.Provider value={value}>
-      {children}
-    </I18nContext.Provider>
-  )
+  return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>
 }
 
 export function useTranslation() {

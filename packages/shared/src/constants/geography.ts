@@ -153,7 +153,7 @@ export const GEOGRAPHY: Record<
   // ── 🇹🇩 Tchad ─────────────────────────────────────────────────────────────────
   TD: {
     regions: [
-      'N\'Djaména',
+      "N'Djaména",
       'Logone Occidental',
       'Logone Oriental',
       'Mandoul',
@@ -198,7 +198,7 @@ export const GEOGRAPHY: Record<
   CF: {
     regions: [
       'Bangui',
-      'Ombella-M\'Poko',
+      "Ombella-M'Poko",
       'Lobaye',
       'Sangha-Mbaéré',
       'Mambéré-Kadéï',

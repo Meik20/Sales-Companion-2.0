@@ -30,7 +30,10 @@ export async function DELETE(
       managerUid = decoded.uid
       const managerDoc = await adminDb.collection('users').doc(managerUid).get()
       if (!hasActivePaidManagerAccess(managerDoc.data()) || decoded.email_verified !== true) {
-        return NextResponse.json({ message: 'Un abonnement Manager actif et vérifié est requis.' }, { status: 403 })
+        return NextResponse.json(
+          { message: 'Un abonnement Manager actif et vérifié est requis.' },
+          { status: 403 }
+        )
       }
     } catch {
       return NextResponse.json({ message: 'Token invalide' }, { status: 401 })

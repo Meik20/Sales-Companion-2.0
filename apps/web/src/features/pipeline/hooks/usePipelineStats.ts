@@ -26,7 +26,14 @@ export function usePipelineStats() {
     queryKey: ['pipeline-stats', user?.uid, isSeniorManager],
     queryFn: async (): Promise<PipelineStats> => {
       if (!user?.uid) {
-        return { total: 0, prospection: 0, negotiation: 0, conclusion: 0, lost: 0, conversionRate: 0 }
+        return {
+          total: 0,
+          prospection: 0,
+          negotiation: 0,
+          conclusion: 0,
+          lost: 0,
+          conversionRate: 0
+        }
       }
 
       // ── Senior Manager : statistiques consolidées de l'organisation ──────────
@@ -36,9 +43,16 @@ export function usePipelineStats() {
           headers: { Authorization: `Bearer ${token}` }
         })
         if (!res.ok) {
-          return { total: 0, prospection: 0, negotiation: 0, conclusion: 0, lost: 0, conversionRate: 0 }
+          return {
+            total: 0,
+            prospection: 0,
+            negotiation: 0,
+            conclusion: 0,
+            lost: 0,
+            conversionRate: 0
+          }
         }
-        const data = await res.json() as {
+        const data = (await res.json()) as {
           counts?: { prospection: number; negociation: number; conclue: number; total: number }
         }
         const c = data.counts ?? { prospection: 0, negociation: 0, conclue: 0, total: 0 }
@@ -73,7 +87,10 @@ export function usePipelineStats() {
         })
 
         try {
-          const assignedQ = query(collection(firestore, 'pipeline'), where('assignedTo', '==', user.uid))
+          const assignedQ = query(
+            collection(firestore, 'pipeline'),
+            where('assignedTo', '==', user.uid)
+          )
           const assignedSnap = await getDocsWithOfflineFallback(assignedQ)
           assignedSnap.docs.forEach((d) => {
             if (!seen.has(d.id)) {
@@ -97,13 +114,19 @@ export function usePipelineStats() {
 
       docs.forEach((doc) => {
         const status = doc.status.toLowerCase()
-        if (['prospection', 'prospect', 'to_contact', 'contact', 'nouveau', 'lead'].includes(status)) stats.prospection++
-        else if (['negociation', 'negotiation', 'in_progress', 'en_cours'].includes(status)) stats.negotiation++
-        else if (['conclue', 'conclusion', 'won', 'closed', 'gagne', 'signe'].includes(status)) stats.conclusion++
+        if (
+          ['prospection', 'prospect', 'to_contact', 'contact', 'nouveau', 'lead'].includes(status)
+        )
+          stats.prospection++
+        else if (['negociation', 'negotiation', 'in_progress', 'en_cours'].includes(status))
+          stats.negotiation++
+        else if (['conclue', 'conclusion', 'won', 'closed', 'gagne', 'signe'].includes(status))
+          stats.conclusion++
         else if (status === 'lost' || status === 'perdu') stats.lost++
       })
 
-      stats.conversionRate = stats.total > 0 ? Math.round((stats.conclusion / stats.total) * 100) : 0
+      stats.conversionRate =
+        stats.total > 0 ? Math.round((stats.conclusion / stats.total) * 100) : 0
 
       return stats
     },
@@ -113,4 +136,3 @@ export function usePipelineStats() {
     refetchOnWindowFocus: false
   })
 }
-

@@ -23,7 +23,7 @@ function formatPipelineDoc(
     userId: (data.userId || fallbackUserId) as string,
     createdAt: formatTimestamp(data.createdAt) || new Date().toISOString(),
     updatedAt: formatTimestamp(data.updatedAt) || new Date().toISOString()
-  } as unknown as (PipelineDoc & { id: string })
+  } as unknown as PipelineDoc & { id: string }
 }
 
 function computeStats(items: (PipelineDoc & { id: string })[]): PipelineStats {

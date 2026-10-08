@@ -74,7 +74,9 @@ export async function downgradeUserToFree(
       updatedAt: FieldValue.serverTimestamp()
     })
 
-    console.log(`[subscription] ⚠️ Utilisateur ${uid} rétrogradé vers "free" (ancien plan: ${oldPlan}, raison: ${reason})`)
+    console.log(
+      `[subscription] ⚠️ Utilisateur ${uid} rétrogradé vers "free" (ancien plan: ${oldPlan}, raison: ${reason})`
+    )
 
     // Si c'est un manager, rétrograder aussi ses membres d'équipe vers "free"
     if (userData.role === 'manager') {
@@ -83,7 +85,9 @@ export async function downgradeUserToFree(
           subscriptionExpiresAt: null,
           subscriptionExpired: true
         })
-        console.log(`[subscription] 👥 Équipe synchronisée vers free pour manager ${uid} (${syncRes.updatedUsers} membres)`)
+        console.log(
+          `[subscription] 👥 Équipe synchronisée vers free pour manager ${uid} (${syncRes.updatedUsers} membres)`
+        )
       } catch (syncErr) {
         console.error(`[subscription] Erreur sync équipe lors de la rétrogradation:`, syncErr)
       }
@@ -172,7 +176,10 @@ export async function checkAllExpiredSubscriptions(): Promise<{
       `[subscription/cron] 🕒 Vérification globale terminée : ${checked} comptes payants vérifiés, ${expiredUids.length} expirés et rétrogradés.`
     )
   } catch (err) {
-    console.error(`[subscription/cron] Erreur lors de la vérification globale des abonnements:`, err)
+    console.error(
+      `[subscription/cron] Erreur lors de la vérification globale des abonnements:`,
+      err
+    )
   }
 
   return {

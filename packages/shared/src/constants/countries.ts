@@ -25,7 +25,7 @@ export const SUPPORTED_COUNTRIES = [
   {
     code: 'CI',
     name: "Côte d'Ivoire",
-    nameEn: "Ivory Coast",
+    nameEn: 'Ivory Coast',
     flag: '🇨🇮',
     dialCode: '+225',
     dialPattern: /^\+225\d{10}$|^225\d{10}$|^0[57]\d{8}$/,
@@ -205,6 +205,3 @@ export const COUNTRY_CURRENCIES: Record<CountryCode, string> = {
   TD: 'XAF',
   CF: 'XAF'
 }
-
-
-

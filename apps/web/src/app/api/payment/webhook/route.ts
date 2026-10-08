@@ -26,7 +26,9 @@ async function verifyWebhookSignature(
     if (process.env.NODE_ENV === 'production') {
       return { valid: false, reason: 'CAMPAY_WEBHOOK_SECRET non configuré en production' }
     }
-    console.warn('[webhook/campay] ⚠️  CAMPAY_WEBHOOK_SECRET absent — vérification ignorée (dev uniquement)')
+    console.warn(
+      '[webhook/campay] ⚠️  CAMPAY_WEBHOOK_SECRET absent — vérification ignorée (dev uniquement)'
+    )
     return { valid: true }
   }
 
@@ -37,7 +39,7 @@ async function verifyWebhookSignature(
     request.headers.get('x-hub-signature-256')?.replace('sha256=', '')
 
   if (!signature) {
-    return { valid: false, reason: "En-tête de signature manquant (x-campay-signature)" }
+    return { valid: false, reason: 'En-tête de signature manquant (x-campay-signature)' }
   }
 
   const expected = createHmac('sha256', secret).update(rawBody, 'utf8').digest('hex')
@@ -107,16 +109,19 @@ export async function POST(request: NextRequest) {
   const paymentDoc = await paymentRef.get()
 
   // Log d'audit (non-bloquant) — toujours enregistré, même si la transaction est inconnue
-  adminDb.collection('webhook_logs').add({
-    source: 'campay',
-    external_reference,
-    campayRef: reference || null,
-    status,
-    operator: operator || null,
-    amount: amount || null,
-    receivedAt: FieldValue.serverTimestamp(),
-    signatureValid: true
-  }).catch((e) => console.warn('[webhook/campay] audit log failed:', e))
+  adminDb
+    .collection('webhook_logs')
+    .add({
+      source: 'campay',
+      external_reference,
+      campayRef: reference || null,
+      status,
+      operator: operator || null,
+      amount: amount || null,
+      receivedAt: FieldValue.serverTimestamp(),
+      signatureValid: true
+    })
+    .catch((e) => console.warn('[webhook/campay] audit log failed:', e))
 
   const paymentData = paymentDoc.data()
   if (!paymentDoc.exists || !paymentData) {
@@ -141,7 +146,11 @@ export async function POST(request: NextRequest) {
       // ── CONCORDANCE DU MONTANT : vérifier que le montant reçu est valide, fini et correspond au montant attendu ──
       const expectedAmount = Number(paymentData.amount)
       const receivedAmount = Number(amount)
-      if (!Number.isFinite(expectedAmount) || !Number.isFinite(receivedAmount) || receivedAmount < expectedAmount) {
+      if (
+        !Number.isFinite(expectedAmount) ||
+        !Number.isFinite(receivedAmount) ||
+        receivedAmount < expectedAmount
+      ) {
         console.error('[webhook/campay] 🚨 Fraude / Discordance de montant détectée:', {
           external_reference,
           expectedAmount,
@@ -154,7 +163,10 @@ export async function POST(request: NextRequest) {
           amountPaid: amount || null,
           updatedAt: FieldValue.serverTimestamp()
         })
-        return NextResponse.json({ error: 'Montant invalide, absent ou inférieur au montant attendu' }, { status: 400 })
+        return NextResponse.json(
+          { error: 'Montant invalide, absent ou inférieur au montant attendu' },
+          { status: 400 }
+        )
       }
 
       const { calculateSubscriptionExpiry } = await import('@/lib/subscription')
@@ -222,4 +234,3 @@ export async function POST(request: NextRequest) {
   // CamPay attend un 200 pour considérer le webhook comme reçu
   return NextResponse.json({ received: true })
 }
-

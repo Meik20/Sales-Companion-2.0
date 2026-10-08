@@ -9,10 +9,7 @@ async function getAdmin() {
  * PATCH /api/crm/tickets/[id]
  * Update ticket status or other fields
  */
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
     const { adminDb, adminAuth } = await getAdmin()
@@ -45,7 +42,6 @@ export async function PATCH(
     if (description !== undefined) updates.description = description
 
     await adminDb.collection('customer_tickets').doc(id).update(updates)
-
 
     return NextResponse.json({ success: true })
   } catch (error) {

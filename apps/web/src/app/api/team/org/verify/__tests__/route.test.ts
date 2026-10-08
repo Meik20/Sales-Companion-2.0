@@ -29,7 +29,6 @@ const mocks = vi.hoisted(() => {
   }
 })
 
-
 vi.mock('@/lib/firebase-admin', () => ({
   adminDb: {
     collection: mocks.mockCollection
@@ -160,4 +159,3 @@ describe('GET /api/team/org/verify', () => {
     expect(json.error).toBe('Firestore connection timeout')
   })
 })
-

@@ -14,7 +14,12 @@ export function generateOrgCode(countryCode = 'CM'): string {
     const idx = Math.floor(Math.random() * chars.length)
     randomPart += chars.charAt(idx)
   }
-  const cleanCountry = (countryCode || 'CM').trim().toUpperCase().replace(/[^A-Z]/g, '').slice(0, 2) || 'CM'
+  const cleanCountry =
+    (countryCode || 'CM')
+      .trim()
+      .toUpperCase()
+      .replace(/[^A-Z]/g, '')
+      .slice(0, 2) || 'CM'
   return `SC-${cleanCountry}-${randomPart}`
 }
 
@@ -25,7 +30,10 @@ export function generateOrgCode(countryCode = 'CM'): string {
  */
 export function normalizeNiu(niu?: string | null): string {
   if (!niu) return ''
-  return niu.trim().toUpperCase().replace(/[\s\-_./]/g, '')
+  return niu
+    .trim()
+    .toUpperCase()
+    .replace(/[\s\-_./]/g, '')
 }
 
 /**

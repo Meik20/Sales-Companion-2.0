@@ -8,7 +8,11 @@ import { verifyAdminCached } from '@/lib/api-admin-auth'
 // Le coût Firestore d'un scan complet = 1 lecture × nb_entreprises (ex : 10 000
 // entreprises = 10 000 lectures à chaque visite de la page admin/companies).
 type CompanyStatsCache = {
-  data: { bySector: { sector: string; count: number }[]; byRegion: { region: string; count: number }[]; total: number }
+  data: {
+    bySector: { sector: string; count: number }[]
+    byRegion: { region: string; count: number }[]
+    total: number
+  }
   expiresAt: number
 }
 let statsCache: CompanyStatsCache | null = null
@@ -33,9 +37,21 @@ const KNOWN_SECTORS = [
 
 // Principales villes/régions
 const KNOWN_CITIES = [
-  'Douala', 'Yaoundé', 'Bafoussam', 'Bamenda', 'Garoua',
-  'Ngaoundéré', 'Maroua', 'Bertoua', 'Ebolowa', 'Buea',
-  'Limbe', 'Kumba', 'Nkongsamba', 'Edéa', 'Mbalmayo'
+  'Douala',
+  'Yaoundé',
+  'Bafoussam',
+  'Bamenda',
+  'Garoua',
+  'Ngaoundéré',
+  'Maroua',
+  'Bertoua',
+  'Ebolowa',
+  'Buea',
+  'Limbe',
+  'Kumba',
+  'Nkongsamba',
+  'Edéa',
+  'Mbalmayo'
 ]
 
 export async function GET(request: NextRequest) {
@@ -45,7 +61,8 @@ export async function GET(request: NextRequest) {
       await verifyAdminCached(token)
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : ''
-      if (msg === 'unauthenticated') return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+      if (msg === 'unauthenticated')
+        return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
     }
 
@@ -77,13 +94,9 @@ export async function GET(request: NextRequest) {
       adminDb.collection('companies').count().get()
     ])
 
-    const bySector = sectorCounts
-      .filter((s) => s.count > 0)
-      .sort((a, b) => b.count - a.count)
+    const bySector = sectorCounts.filter((s) => s.count > 0).sort((a, b) => b.count - a.count)
 
-    const byRegion = cityCounts
-      .filter((r) => r.count > 0)
-      .sort((a, b) => b.count - a.count)
+    const byRegion = cityCounts.filter((r) => r.count > 0).sort((a, b) => b.count - a.count)
 
     const total = totalSnap.data().count
 
@@ -98,4 +111,3 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 }
-

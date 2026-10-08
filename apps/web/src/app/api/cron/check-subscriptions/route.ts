@@ -26,7 +26,7 @@ async function handleCron(request: NextRequest) {
     if (!cronSecret) {
       console.error(
         '[cron/check-subscriptions] CRON_SECRET est absent de la configuration. ' +
-        'Définissez cette variable d\'environnement avant de déployer.'
+          "Définissez cette variable d'environnement avant de déployer."
       )
       return NextResponse.json(
         { message: 'Service non disponible : configuration manquante.' },

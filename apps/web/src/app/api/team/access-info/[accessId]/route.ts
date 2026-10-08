@@ -18,7 +18,10 @@ export async function GET(
     // Protection P0 : Rejeter formellement tout identifiant prévisible ou trop court
     if (accessIdRaw.includes('@') || accessIdRaw.length < 16) {
       return NextResponse.json(
-        { error: "Pour des raisons de sécurité, l'accès requiert le code sécurisé du lien d'invitation." },
+        {
+          error:
+            "Pour des raisons de sécurité, l'accès requiert le code sécurisé du lien d'invitation."
+        },
         { status: 400 }
       )
     }
@@ -31,10 +34,7 @@ export async function GET(
       windowMs: 15 * 60 * 1000
     })
     if (!rl.success) {
-      return NextResponse.json(
-        { error: 'Trop de requêtes. Veuillez patienter.' },
-        { status: 429 }
-      )
+      return NextResponse.json({ error: 'Trop de requêtes. Veuillez patienter.' }, { status: 429 })
     }
 
     let accessDoc: FirebaseFirestore.DocumentData | null = null
@@ -42,7 +42,11 @@ export async function GET(
 
     for (const col of ACCESS_COLLECTIONS) {
       // Recherche EXCLUSIVE par magicCode (Code secret aléatoire à usage unique)
-      const byMagicCode = await adminDb.collection(col).where('magicCode', '==', accessIdRaw).limit(1).get()
+      const byMagicCode = await adminDb
+        .collection(col)
+        .where('magicCode', '==', accessIdRaw)
+        .limit(1)
+        .get()
       if (!byMagicCode.empty && byMagicCode.docs[0]) {
         accessDoc = byMagicCode.docs[0].data()
         actualAccessId = accessDoc?.accessId || ''

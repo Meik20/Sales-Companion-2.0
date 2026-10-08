@@ -11,10 +11,7 @@ async function getAdmin() {
  * PATCH /api/crm/clients/[id]
  * Met à jour un client CRM existant
  */
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { adminDb, adminAuth } = await getAdmin()
     const { id } = await params
@@ -68,9 +65,17 @@ export async function PATCH(
     // Pipeline docs are already CONCLU (Customer). Only the status field is locked;
     // other fields (notes, nextAction…) remain editable.
     const isSupportAgent = agentData.role === 'support_agent'
-    if (isSupportAgent && targetCollection === 'pipeline' && body.status !== undefined && body.status !== prevData.status) {
+    if (
+      isSupportAgent &&
+      targetCollection === 'pipeline' &&
+      body.status !== undefined &&
+      body.status !== prevData.status
+    ) {
       return NextResponse.json(
-        { message: 'Ce client est déjà CONCLU dans le pipeline. Son statut ne peut pas être modifié par un agent support.' },
+        {
+          message:
+            'Ce client est déjà CONCLU dans le pipeline. Son statut ne peut pas être modifié par un agent support.'
+        },
         { status: 403 }
       )
     }
@@ -105,7 +110,7 @@ export async function PATCH(
         proposal_sent: 'Proposition envoyée',
         won: 'Gagné',
         lost: 'Perdu',
-        imported: 'Importé',
+        imported: 'Importé'
       }
       const statusLabel = STATUS_LABELS[body.status] ?? body.status
 
@@ -128,7 +133,9 @@ export async function PATCH(
 
     if (body.nextAction !== undefined) updates.nextAction = body.nextAction.trim()
     if (body.nextActionAt !== undefined) {
-      updates.nextActionAt = body.nextActionAt ? Timestamp.fromDate(new Date(body.nextActionAt)) : null
+      updates.nextActionAt = body.nextActionAt
+        ? Timestamp.fromDate(new Date(body.nextActionAt))
+        : null
     }
 
     await docRef.update(updates)
@@ -172,7 +179,9 @@ export async function DELETE(
     if (pipeSnap.exists) {
       if (agentData.role === 'support_agent') {
         return NextResponse.json(
-          { message: 'Un agent support ne peut pas supprimer un client issu du pipeline du manager' },
+          {
+            message: 'Un agent support ne peut pas supprimer un client issu du pipeline du manager'
+          },
           { status: 403 }
         )
       }

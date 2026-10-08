@@ -36,7 +36,13 @@ interface OrgManagersSectionProps {
 }
 
 /** Affiche les stats pipeline d'un manager en les croisant avec l'org pipeline query */
-function ManagerStatsRow({ manager, stats }: { manager: OrgManager; stats?: OrgManagerStats['stats'] }) {
+function ManagerStatsRow({
+  manager,
+  stats
+}: {
+  manager: OrgManager
+  stats?: OrgManagerStats['stats']
+}) {
   return (
     <div
       style={{
@@ -60,23 +66,27 @@ function ManagerStatsRow({ manager, stats }: { manager: OrgManager; stats?: OrgM
             textAlign: 'center'
           }}
         >
-          <div style={{ fontSize: 20, fontWeight: 800, color, fontFamily: "'Syne',sans-serif", lineHeight: 1 }}>
+          <div
+            style={{
+              fontSize: 20,
+              fontWeight: 800,
+              color,
+              fontFamily: "'Syne',sans-serif",
+              lineHeight: 1
+            }}
+          >
             {value}
           </div>
-          <div style={{ fontSize: 11, color: 'var(--muted-foreground)', marginTop: 4 }}>{label}</div>
+          <div style={{ fontSize: 11, color: 'var(--muted-foreground)', marginTop: 4 }}>
+            {label}
+          </div>
         </div>
       ))}
     </div>
   )
 }
 
-function ManagerCard({
-  manager,
-  orgStats
-}: {
-  manager: OrgManager
-  orgStats?: OrgManagerStats
-}) {
+function ManagerCard({ manager, orgStats }: { manager: OrgManager; orgStats?: OrgManagerStats }) {
   const [expanded, setExpanded] = useState(false)
 
   return (
@@ -142,12 +152,8 @@ function ManagerCard({
             >
               {manager.name || manager.email}
             </span>
-            {manager.isSenior && (
-              <Badge variant="info">Senior Manager</Badge>
-            )}
-            {!manager.isSenior && (
-              <Badge variant="default">Team Manager</Badge>
-            )}
+            {manager.isSenior && <Badge variant="info">Senior Manager</Badge>}
+            {!manager.isSenior && <Badge variant="default">Team Manager</Badge>}
             {manager.isCurrent && (
               <span style={{ fontSize: 11, color: 'var(--muted-foreground)', fontStyle: 'italic' }}>
                 (vous)
@@ -162,7 +168,14 @@ function ManagerCard({
         {/* Compteur total pipeline */}
         {orgStats && (
           <div style={{ textAlign: 'right', flexShrink: 0 }}>
-            <div style={{ fontSize: 20, fontWeight: 800, color: '#a78bfa', fontFamily: "'Syne',sans-serif" }}>
+            <div
+              style={{
+                fontSize: 20,
+                fontWeight: 800,
+                color: '#a78bfa',
+                fontFamily: "'Syne',sans-serif"
+              }}
+            >
               {orgStats.stats.total}
             </div>
             <div style={{ fontSize: 10, color: 'var(--muted-foreground)' }}>prospects</div>
@@ -188,18 +201,42 @@ function ManagerCard({
         >
           {/* Contact */}
           <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--muted-foreground)' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                fontSize: 13,
+                color: 'var(--muted-foreground)'
+              }}
+            >
               <Mail size={13} />
               <span>{manager.email}</span>
             </div>
             {manager.phone && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--muted-foreground)' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  fontSize: 13,
+                  color: 'var(--muted-foreground)'
+                }}
+              >
                 <Phone size={13} />
                 <span>{manager.phone}</span>
               </div>
             )}
             {manager.createdAt && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--muted-foreground)' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  fontSize: 13,
+                  color: 'var(--muted-foreground)'
+                }}
+              >
                 <Calendar size={13} />
                 <span>Depuis le {new Date(manager.createdAt).toLocaleDateString('fr-FR')}</span>
               </div>
@@ -208,7 +245,16 @@ function ManagerCard({
 
           {/* Stats pipeline */}
           <div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>
+            <div
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                color: 'var(--muted-foreground)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                marginBottom: 8
+              }}
+            >
               Pipeline de ce manager
             </div>
             <ManagerStatsRow manager={manager} stats={orgStats?.stats} />
@@ -259,14 +305,48 @@ export function OrgManagersSection({ managers, orgCode }: OrgManagersSectionProp
           }}
         >
           {[
-            { label: 'Team Managers', value: teamManagers.length, color: '#a78bfa', icon: <Users2 size={14} /> },
-            { label: 'Prospection', value: orgCounts.prospection, color: '#60a5fa', icon: <TrendingUp size={14} /> },
-            { label: 'Négociation', value: orgCounts.negociation, color: '#fbbf24', icon: <Filter size={14} /> },
-            { label: 'Conclus', value: orgCounts.conclue, color: '#34d399', icon: <CheckCircle2 size={14} /> }
+            {
+              label: 'Team Managers',
+              value: teamManagers.length,
+              color: '#a78bfa',
+              icon: <Users2 size={14} />
+            },
+            {
+              label: 'Prospection',
+              value: orgCounts.prospection,
+              color: '#60a5fa',
+              icon: <TrendingUp size={14} />
+            },
+            {
+              label: 'Négociation',
+              value: orgCounts.negociation,
+              color: '#fbbf24',
+              icon: <Filter size={14} />
+            },
+            {
+              label: 'Conclus',
+              value: orgCounts.conclue,
+              color: '#34d399',
+              icon: <CheckCircle2 size={14} />
+            }
           ].map(({ label, value, color, icon }) => (
             <div key={label} style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: 24, fontWeight: 800, color, fontFamily: "'Syne',sans-serif" }}>{value}</div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 11, color: 'var(--muted-foreground)', marginTop: 2 }}>
+              <div
+                style={{ fontSize: 24, fontWeight: 800, color, fontFamily: "'Syne',sans-serif" }}
+              >
+                {value}
+              </div>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 4,
+                  fontSize: 11,
+                  color: 'var(--muted-foreground)',
+                  marginTop: 2
+                }}
+              >
                 {icon} {label}
               </div>
             </div>
@@ -277,7 +357,19 @@ export function OrgManagersSection({ managers, orgCode }: OrgManagersSectionProp
       {/* Team Managers uniquement */}
       {teamManagers.length > 0 ? (
         <div>
-          <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div
+            style={{
+              fontSize: 12,
+              fontWeight: 700,
+              color: 'var(--muted-foreground)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.07em',
+              marginBottom: 10,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6
+            }}
+          >
             <Users2 size={12} /> Team Managers sous votre supervision ({teamManagers.length})
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>

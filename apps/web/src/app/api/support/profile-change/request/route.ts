@@ -53,7 +53,9 @@ export async function POST(request: NextRequest) {
       profileChangeStatus: 'pending',
       createdAt: now,
       updatedAt: now,
-      lastMessage: userReason || "Demande d'autorisation de modification des informations d'entreprise/profil.",
+      lastMessage:
+        userReason ||
+        "Demande d'autorisation de modification des informations d'entreprise/profil.",
       unreadByAdmin: true,
       unreadByUser: false
     })

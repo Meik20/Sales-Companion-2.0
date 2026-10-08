@@ -147,11 +147,17 @@ interface CountrySelectProps {
   placement?: 'bottom' | 'top'
 }
 
-export function CountrySelect({ value, onChange, lang = 'fr', placement = 'top' }: CountrySelectProps) {
+export function CountrySelect({
+  value,
+  onChange,
+  lang = 'fr',
+  placement = 'top'
+}: CountrySelectProps) {
   const [isOpen, setIsOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  const selectedCountry = SUPPORTED_COUNTRIES.find((c) => c.code === value) ?? SUPPORTED_COUNTRIES[0]!
+  const selectedCountry =
+    SUPPORTED_COUNTRIES.find((c) => c.code === value) ?? SUPPORTED_COUNTRIES[0]!
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -177,7 +183,9 @@ export function CountrySelect({ value, onChange, lang = 'fr', placement = 'top' 
       >
         <span className="flex items-center gap-2.5 truncate">
           <CountryFlag code={selectedCountry.code} />
-          <span className="truncate">{lang === 'en' ? selectedCountry.nameEn : selectedCountry.name}</span>
+          <span className="truncate">
+            {lang === 'en' ? selectedCountry.nameEn : selectedCountry.name}
+          </span>
         </span>
         <ChevronDown
           size={14}

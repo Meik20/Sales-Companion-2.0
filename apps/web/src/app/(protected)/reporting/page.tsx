@@ -39,7 +39,10 @@ export default function ReportingPage() {
             disabled={isFetching}
             style={{ display: 'flex', alignItems: 'center', gap: 6 }}
           >
-            <RefreshCw size={14} style={{ animation: isFetching ? 'spin 1s linear infinite' : 'none' }} />
+            <RefreshCw
+              size={14}
+              style={{ animation: isFetching ? 'spin 1s linear infinite' : 'none' }}
+            />
             Actualiser
           </Button>
         }
@@ -47,7 +50,16 @@ export default function ReportingPage() {
 
       {/* Last updated info */}
       {data && (
-        <div style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 6 }}>
+        <div
+          style={{
+            fontSize: 11,
+            color: 'var(--muted-foreground, #64748b)',
+            marginBottom: 16,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6
+          }}
+        >
           <BarChart2 size={12} />
           Données en temps réel · {data.totalItems} prospects analysés
         </div>
@@ -66,7 +78,8 @@ export default function ReportingPage() {
             fontSize: 14
           }}
         >
-          <strong>Erreur :</strong> {error instanceof Error ? error.message : 'Impossible de charger les données'}
+          <strong>Erreur :</strong>{' '}
+          {error instanceof Error ? error.message : 'Impossible de charger les données'}
         </div>
       )}
 

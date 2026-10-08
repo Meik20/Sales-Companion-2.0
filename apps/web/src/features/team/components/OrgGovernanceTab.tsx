@@ -84,7 +84,9 @@ export function OrgGovernanceTab() {
   const [loadingProspects, setLoadingProspects] = useState(false)
   const [selectedProspectIds, setSelectedProspectIds] = useState<string[]>([])
   const [prospectSearch, setProspectSearch] = useState('')
-  const [prospectStatusFilter, setProspectStatusFilter] = useState<'all' | 'prospection' | 'negociation' | 'conclue'>('all')
+  const [prospectStatusFilter, setProspectStatusFilter] = useState<
+    'all' | 'prospection' | 'negociation' | 'conclue'
+  >('all')
 
   const [selectedTargetUid, setSelectedTargetUid] = useState<string>('')
   const [migrating, setMigrating] = useState(false)
@@ -128,7 +130,10 @@ export function OrgGovernanceTab() {
         if (data.niu) setNiuInput(data.niu)
         // Débogage : si l'API signale une erreur de chargement des managers, logger en console
         if (data._managersLoadError) {
-          console.error('[OrgGovernanceTab] Erreur charg. managers (vérifier index Firestore):', data._managersLoadError)
+          console.error(
+            '[OrgGovernanceTab] Erreur charg. managers (vérifier index Firestore):',
+            data._managersLoadError
+          )
         }
       }
     } catch {
@@ -165,7 +170,7 @@ export function OrgGovernanceTab() {
     await navigator.clipboard.writeText(link)
     setCopiedInvite(true)
     setTimeout(() => setCopiedInvite(false), 2000)
-    pushToast({ type: 'success', title: 'Lien d\'invitation copié' })
+    pushToast({ type: 'success', title: "Lien d'invitation copié" })
   }
 
   const handleUpdateNiu = async (e: React.FormEvent) => {
@@ -183,7 +188,7 @@ export function OrgGovernanceTab() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Erreur lors de la mise à jour')
       setOrgData(data)
-      setNiuSuccess('Numéro d\'identification mis à jour avec succès.')
+      setNiuSuccess("Numéro d'identification mis à jour avec succès.")
       pushToast({ type: 'success', title: 'NIU fiscal mis à jour' })
     } catch (err: any) {
       setNiuError(err.message)
@@ -200,8 +205,7 @@ export function OrgGovernanceTab() {
       p.companyName.toLowerCase().includes(q) ||
       (p.companyCity && p.companyCity.toLowerCase().includes(q)) ||
       (p.companySector && p.companySector.toLowerCase().includes(q))
-    const matchesStatus =
-      prospectStatusFilter === 'all' || p.status === prospectStatusFilter
+    const matchesStatus = prospectStatusFilter === 'all' || p.status === prospectStatusFilter
     return matchesSearch && matchesStatus
   })
 
@@ -351,7 +355,11 @@ export function OrgGovernanceTab() {
                     onClick={() => void copyOrgCode()}
                     className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1 text-[12px] font-semibold text-foreground transition-colors hover:bg-secondary"
                   >
-                    {copiedCode ? <Check size={13} className="text-green-400" /> : <Copy size={13} />}
+                    {copiedCode ? (
+                      <Check size={13} className="text-green-400" />
+                    ) : (
+                      <Copy size={13} />
+                    )}
                     {copiedCode ? 'Copié !' : 'Copier'}
                   </button>
                 </div>
@@ -365,10 +373,11 @@ export function OrgGovernanceTab() {
                   className="inline-flex items-center gap-2 rounded-lg border border-primary/40 bg-primary/15 px-3.5 py-1.5 text-[12.5px] font-semibold text-primary transition-colors hover:bg-primary/25"
                 >
                   {copiedInvite ? <Check size={14} /> : <span>🔗</span>}
-                  {copiedInvite ? 'Lien copié !' : 'Copier le lien d\'invitation Team Manager'}
+                  {copiedInvite ? 'Lien copié !' : "Copier le lien d'invitation Team Manager"}
                 </button>
                 <p className="text-[11px] text-muted-foreground">
-                  Partagez ce lien à vos managers d&apos;équipe pour qu&apos;ils rejoignent directement l&apos;organisation.
+                  Partagez ce lien à vos managers d&apos;équipe pour qu&apos;ils rejoignent
+                  directement l&apos;organisation.
                 </p>
               </div>
             </div>
@@ -380,7 +389,9 @@ export function OrgGovernanceTab() {
               Numéro d&apos;Identification Unique (NIU fiscal DGI)
             </h4>
             <p className="m-0 text-[12.5px] leading-relaxed text-muted-foreground">
-              Renseignez le NIU fiscal officiel de votre société délivré par la DGI (carte de contribuable) pour certifier votre organisation et unifier l&apos;ensemble de vos managers d&apos;équipe.
+              Renseignez le NIU fiscal officiel de votre société délivré par la DGI (carte de
+              contribuable) pour certifier votre organisation et unifier l&apos;ensemble de vos
+              managers d&apos;équipe.
             </p>
 
             <form onSubmit={handleUpdateNiu} className="flex max-w-[440px] flex-col gap-2.5">
@@ -418,7 +429,11 @@ export function OrgGovernanceTab() {
             <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 text-[13px] text-blue-300 flex items-start gap-3">
               <AlertCircle size={18} className="shrink-0 text-blue-400 mt-0.5" />
               <div>
-                <strong>Transfert de portefeuille (séparation stricte des rôles) :</strong> Le Senior Manager supervise l&apos;organisation globale. Le Team Manager n&apos;est pas un commercial : lorsqu&apos;il reçoit des prospects, ils intègrent son portefeuille en attente d&apos;attribution (non assignés). Le Team Manager pourra ensuite les déléguer individuellement à ses propres commerciaux de terrain.
+                <strong>Transfert de portefeuille (séparation stricte des rôles) :</strong> Le
+                Senior Manager supervise l&apos;organisation globale. Le Team Manager n&apos;est pas
+                un commercial : lorsqu&apos;il reçoit des prospects, ils intègrent son portefeuille
+                en attente d&apos;attribution (non assignés). Le Team Manager pourra ensuite les
+                déléguer individuellement à ses propres commerciaux de terrain.
               </div>
             </div>
 
@@ -432,7 +447,8 @@ export function OrgGovernanceTab() {
                   </h5>
                   {selectedProspectIds.length > 0 && (
                     <span className="rounded-full bg-primary/20 px-2.5 py-0.5 text-[11.5px] font-bold text-primary">
-                      {selectedProspectIds.length} sélectionné{selectedProspectIds.length > 1 ? 's' : ''}
+                      {selectedProspectIds.length} sélectionné
+                      {selectedProspectIds.length > 1 ? 's' : ''}
                     </span>
                   )}
                 </div>
@@ -465,7 +481,10 @@ export function OrgGovernanceTab() {
               {/* Barre de recherche et filtres de statut */}
               <div className="flex flex-wrap items-center gap-3 pt-2">
                 <div className="relative flex-1 min-w-[220px]">
-                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <Search
+                    size={14}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                  />
                   <input
                     type="text"
                     placeholder="Filtrer par nom, ville ou secteur…"
@@ -491,10 +510,10 @@ export function OrgGovernanceTab() {
                       {st === 'all'
                         ? 'Tous'
                         : st === 'prospection'
-                        ? 'Prospection'
-                        : st === 'negociation'
-                        ? 'Négociation'
-                        : 'Conclue'}
+                          ? 'Prospection'
+                          : st === 'negociation'
+                            ? 'Négociation'
+                            : 'Conclue'}
                     </button>
                   ))}
                 </div>
@@ -511,11 +530,15 @@ export function OrgGovernanceTab() {
                     <EmptyState
                       illustration="/illustrations/empty-states/empty-prospects.png"
                       illustrationSize="sm"
-                      title={seniorProspects.length === 0 ? "Aucun prospect à transférer" : "Aucun résultat"}
+                      title={
+                        seniorProspects.length === 0
+                          ? 'Aucun prospect à transférer'
+                          : 'Aucun résultat'
+                      }
                       description={
                         seniorProspects.length === 0
-                          ? "Aucun prospect rattaché à votre compte Senior. Tous vos prospects ont été transférés ou sont gérés directement par vos Team Managers."
-                          : "Aucun prospect ne correspond à vos critères de recherche."
+                          ? 'Aucun prospect rattaché à votre compte Senior. Tous vos prospects ont été transférés ou sont gérés directement par vos Team Managers.'
+                          : 'Aucun prospect ne correspond à vos critères de recherche.'
                       }
                     />
                   </div>
@@ -549,7 +572,10 @@ export function OrgGovernanceTab() {
                               isSelected ? 'bg-primary/10' : ''
                             }`}
                           >
-                            <td className="py-3 pl-3 pr-2 text-center" onClick={(e) => e.stopPropagation()}>
+                            <td
+                              className="py-3 pl-3 pr-2 text-center"
+                              onClick={(e) => e.stopPropagation()}
+                            >
                               <input
                                 type="checkbox"
                                 checked={isSelected}
@@ -591,19 +617,21 @@ export function OrgGovernanceTab() {
                                   p.status === 'conclue'
                                     ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
                                     : p.status === 'negociation'
-                                    ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
-                                    : 'bg-blue-500/15 text-blue-400 border border-blue-500/30'
+                                      ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+                                      : 'bg-blue-500/15 text-blue-400 border border-blue-500/30'
                                 }`}
                               >
                                 {p.status === 'conclue'
                                   ? 'Conclue'
                                   : p.status === 'negociation'
-                                  ? 'Négociation'
-                                  : 'Prospection'}
+                                    ? 'Négociation'
+                                    : 'Prospection'}
                               </span>
                             </td>
                             <td className="py-3 pr-3 text-right text-[11.5px] text-muted-foreground">
-                              {p.createdAt ? new Date(p.createdAt).toLocaleDateString('fr-FR') : '—'}
+                              {p.createdAt
+                                ? new Date(p.createdAt).toLocaleDateString('fr-FR')
+                                : '—'}
                             </td>
                           </tr>
                         )
@@ -623,13 +651,16 @@ export function OrgGovernanceTab() {
                       1. Choisir le Team Manager récepteur :
                     </label>
                     <p className="m-0 text-[11.5px] text-muted-foreground">
-                      Les prospects sélectionnés lui seront transférés pour qu&apos;il puisse les assigner à ses commerciaux.
+                      Les prospects sélectionnés lui seront transférés pour qu&apos;il puisse les
+                      assigner à ses commerciaux.
                     </p>
                   </div>
 
                   {selectedProspectIds.length > 0 && (
                     <div className="text-[12.5px] font-bold text-primary">
-                      {selectedProspectIds.length} prospect{selectedProspectIds.length > 1 ? 's' : ''} sélectionné{selectedProspectIds.length > 1 ? 's' : ''}
+                      {selectedProspectIds.length} prospect
+                      {selectedProspectIds.length > 1 ? 's' : ''} sélectionné
+                      {selectedProspectIds.length > 1 ? 's' : ''}
                     </div>
                   )}
                 </div>
@@ -677,7 +708,8 @@ export function OrgGovernanceTab() {
               </div>
             ) : (
               <div className="text-[13px] text-muted-foreground italic">
-                Aucun Team Manager n&apos;est encore disponible dans votre organisation. Invitez un premier manager d&apos;équipe pour pouvoir lui transférer des prospects.
+                Aucun Team Manager n&apos;est encore disponible dans votre organisation. Invitez un
+                premier manager d&apos;équipe pour pouvoir lui transférer des prospects.
               </div>
             )}
           </div>
@@ -708,7 +740,10 @@ export function OrgGovernanceTab() {
               opacity: refreshing ? 0.6 : 1
             }}
           >
-            <RefreshCw size={12} style={{ animation: refreshing ? 'spin 1s linear infinite' : 'none' }} />
+            <RefreshCw
+              size={12}
+              style={{ animation: refreshing ? 'spin 1s linear infinite' : 'none' }}
+            />
             {refreshing ? 'Actualisation...' : 'Actualiser'}
           </button>
         }

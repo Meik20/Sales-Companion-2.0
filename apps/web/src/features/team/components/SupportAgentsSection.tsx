@@ -12,12 +12,16 @@ import { SupportAgentActivityModal } from './SupportAgentActivityModal'
 export function SupportAgentsSection() {
   const { data: agents, isLoading, isError } = useSupportAgents()
   const { t } = useTranslation()
-  const [selectedAgentForActivity, setSelectedAgentForActivity] = useState<SupportAgent | null>(null)
+  const [selectedAgentForActivity, setSelectedAgentForActivity] = useState<SupportAgent | null>(
+    null
+  )
 
   if (isLoading) {
     return (
       <SectionCard title="Agents Support" subtitle="Chargement…">
-        <div style={{ textAlign: 'center', color: 'var(--muted-foreground, #94a3b8)', padding: 20 }}>
+        <div
+          style={{ textAlign: 'center', color: 'var(--muted-foreground, #94a3b8)', padding: 20 }}
+        >
           {t('team.loading')}
         </div>
       </SectionCard>
@@ -38,10 +42,7 @@ export function SupportAgentsSection() {
 
   return (
     <>
-      <SectionCard
-        title="Agents Support"
-        subtitle={`${activeAgents.length} agent(s) actif(s)`}
-      >
+      <SectionCard title="Agents Support" subtitle={`${activeAgents.length} agent(s) actif(s)`}>
         {activeAgents.length === 0 ? (
           <EmptyState
             illustration="/illustrations/empty-states/no-support-agent.png"
@@ -72,13 +73,7 @@ export function SupportAgentsSection() {
   )
 }
 
-function AgentCard({
-  agent,
-  onShowActivity
-}: {
-  agent: SupportAgent
-  onShowActivity: () => void
-}) {
+function AgentCard({ agent, onShowActivity }: { agent: SupportAgent; onShowActivity: () => void }) {
   const { t } = useTranslation()
 
   return (
@@ -125,7 +120,17 @@ function AgentCard({
           {agent.name[0]?.toUpperCase() || 'A'}
         </div>
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--foreground, #f1f5f9)', marginBottom: 2, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div
+            style={{
+              fontSize: 14,
+              fontWeight: 800,
+              color: 'var(--foreground, #f1f5f9)',
+              marginBottom: 2,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6
+            }}
+          >
             {agent.name}
             <Badge
               variant="default"

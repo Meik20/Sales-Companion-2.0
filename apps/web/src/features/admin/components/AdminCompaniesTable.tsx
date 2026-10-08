@@ -40,7 +40,9 @@ export function AdminCompaniesTable() {
   if (isLoading) {
     return (
       <SectionCard title={t('admin.companies')} subtitle={t('admin.companiesSubtitle')}>
-        <div style={{ textAlign: 'center', color: 'var(--muted-foreground, #94a3b8)', padding: 20 }}>
+        <div
+          style={{ textAlign: 'center', color: 'var(--muted-foreground, #94a3b8)', padding: 20 }}
+        >
           {t('team.loading')}
         </div>
       </SectionCard>
@@ -182,7 +184,14 @@ export function AdminCompaniesTable() {
   return (
     <SectionCard title={t('admin.companies')} subtitle={`${total} ${t('admin.inDatabase')}`}>
       {items.length === 0 ? (
-        <div style={{ textAlign: 'center', color: 'var(--muted-foreground, #94a3b8)', padding: 20, fontSize: 13 }}>
+        <div
+          style={{
+            textAlign: 'center',
+            color: 'var(--muted-foreground, #94a3b8)',
+            padding: 20,
+            fontSize: 13
+          }}
+        >
           {t('admin.noCompanyMatch')}
         </div>
       ) : (
@@ -258,7 +267,8 @@ export function AdminCompaniesTable() {
                   fontSize: 13,
                   borderRadius: 10,
                   border: `1px solid ${selectedIds.length === 0 ? 'var(--border, rgba(255,255,255,0.1))' : 'rgba(239,68,68,0.3)'}`,
-                  background: selectedIds.length === 0 ? 'var(--background, #0b1120)' : 'rgba(239,68,68,0.1)',
+                  background:
+                    selectedIds.length === 0 ? 'var(--background, #0b1120)' : 'rgba(239,68,68,0.1)',
                   color: selectedIds.length === 0 ? 'var(--muted-foreground, #94a3b8)' : '#f87171',
                   cursor: selectedIds.length === 0 || isDeleting ? 'not-allowed' : 'pointer',
                   opacity: selectedIds.length === 0 || isDeleting ? 0.5 : 1,
@@ -409,7 +419,11 @@ export function AdminCompaniesTable() {
                   return (
                     <span
                       key={`ellipsis-${index}`}
-                      style={{ color: 'var(--muted-foreground, #64748b)', padding: '0 8px', fontWeight: 700 }}
+                      style={{
+                        color: 'var(--muted-foreground, #64748b)',
+                        padding: '0 8px',
+                        fontWeight: 700
+                      }}
                     >
                       ...
                     </span>
@@ -428,7 +442,8 @@ export function AdminCompaniesTable() {
                       borderRadius: 10,
                       padding: '0 8px',
                       border: `1px solid ${p === page ? '#2563eb' : 'var(--border, rgba(255,255,255,0.1))'}`,
-                      background: p === page ? 'rgba(37,99,235,0.15)' : 'var(--background, #0b1120)',
+                      background:
+                        p === page ? 'rgba(37,99,235,0.15)' : 'var(--background, #0b1120)',
                       color: p === page ? '#60a5fa' : 'var(--foreground, #f1f5f9)',
                       cursor: 'pointer',
                       fontWeight: 700,
@@ -560,7 +575,12 @@ function CompanyRow({
           </span>
           {displaySigle && (
             <span
-              style={{ fontSize: 10, color: 'var(--muted-foreground, #64748b)', fontStyle: 'italic', opacity: 0.8 }}
+              style={{
+                fontSize: 10,
+                color: 'var(--muted-foreground, #64748b)',
+                fontStyle: 'italic',
+                opacity: 0.8
+              }}
             >
               {displaySigle}
             </span>
@@ -610,9 +630,13 @@ function CompanyRow({
       {/* Ville / Région */}
       <td style={{ padding: '14px 12px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <span style={{ fontSize: 12, color: 'var(--foreground, #f1f5f9)', fontWeight: 600 }}>{displayCity}</span>
+          <span style={{ fontSize: 12, color: 'var(--foreground, #f1f5f9)', fontWeight: 600 }}>
+            {displayCity}
+          </span>
           {displayRegion && displayRegion !== displayCity && (
-            <span style={{ fontSize: 10.5, color: 'var(--muted-foreground, #64748b)' }}>{displayRegion}</span>
+            <span style={{ fontSize: 10.5, color: 'var(--muted-foreground, #64748b)' }}>
+              {displayRegion}
+            </span>
           )}
         </div>
       </td>
@@ -637,7 +661,9 @@ function CompanyRow({
             VERIFIED
           </div>
         ) : (
-          <span style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)', opacity: 0.6 }}>—</span>
+          <span style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)', opacity: 0.6 }}>
+            —
+          </span>
         )}
       </td>
       {/* Date */}

@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { adminDb } = await import('@/lib/firebase-admin')
-    
+
     // 1. Chercher d'abord dans la collection organisations (clé primaire = orgCode)
     const orgDoc = await adminDb.collection('organisations').doc(code).get()
     if (orgDoc.exists) {
@@ -91,4 +91,3 @@ export async function GET(request: NextRequest) {
     )
   }
 }
-

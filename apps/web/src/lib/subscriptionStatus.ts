@@ -5,23 +5,23 @@
  */
 
 export type SubscriptionStatusLevel =
-  | 'none'      // Plan FREE ou pas de date
-  | 'safe'      // > 30 jours
-  | 'warning'   // 15–30 jours
-  | 'alert'     // 7–14 jours
-  | 'critical'  // 1–6 jours
-  | 'expired'   // 0 ou négatif
+  | 'none' // Plan FREE ou pas de date
+  | 'safe' // > 30 jours
+  | 'warning' // 15–30 jours
+  | 'alert' // 7–14 jours
+  | 'critical' // 1–6 jours
+  | 'expired' // 0 ou négatif
 
 export type SubscriptionStatus = {
   level: SubscriptionStatusLevel
   daysLeft: number
-  color: string        // couleur principale (texte / barre)
-  bgColor: string      // couleur de fond semi-transparente
-  borderColor: string  // couleur de bordure semi-transparente
-  label: string        // ex: "24 j restants"
-  shortLabel: string   // ex: "24j"
-  dateLabel: string    // date formatée fr-FR
-  percent: number      // 0-100, progression restante (100 = plein, 0 = vide)
+  color: string // couleur principale (texte / barre)
+  bgColor: string // couleur de fond semi-transparente
+  borderColor: string // couleur de bordure semi-transparente
+  label: string // ex: "24 j restants"
+  shortLabel: string // ex: "24j"
+  dateLabel: string // date formatée fr-FR
+  percent: number // 0-100, progression restante (100 = plein, 0 = vide)
 }
 
 /** Seuils en jours */
@@ -29,7 +29,7 @@ const THRESHOLDS = {
   safe: 30,
   warning: 15,
   alert: 7,
-  critical: 1,
+  critical: 1
 }
 
 /**
@@ -54,7 +54,7 @@ export function getSubscriptionStatus(
       label: '—',
       shortLabel: '—',
       dateLabel: '—',
-      percent: 0,
+      percent: 0
     }
   }
 
@@ -66,7 +66,7 @@ export function getSubscriptionStatus(
   const dateLabel = new Date(expiresAt).toLocaleDateString('fr-FR', {
     day: '2-digit',
     month: 'short',
-    year: 'numeric',
+    year: 'numeric'
   })
 
   // Cas expiré
@@ -80,7 +80,7 @@ export function getSubscriptionStatus(
       label: 'Expiré',
       shortLabel: 'Expiré',
       dateLabel,
-      percent: 0,
+      percent: 0
     }
   }
 
@@ -97,7 +97,7 @@ export function getSubscriptionStatus(
       label: `${daysLeft} j restants`,
       shortLabel: `${daysLeft}j`,
       dateLabel,
-      percent,
+      percent
     }
   }
 
@@ -111,7 +111,7 @@ export function getSubscriptionStatus(
       label: `${daysLeft} j restants`,
       shortLabel: `${daysLeft}j`,
       dateLabel,
-      percent,
+      percent
     }
   }
 
@@ -125,7 +125,7 @@ export function getSubscriptionStatus(
       label: `${daysLeft} j restants`,
       shortLabel: `${daysLeft}j`,
       dateLabel,
-      percent,
+      percent
     }
   }
 
@@ -139,6 +139,6 @@ export function getSubscriptionStatus(
     label: `${daysLeft} j restants`,
     shortLabel: `${daysLeft}j`,
     dateLabel,
-    percent,
+    percent
   }
 }

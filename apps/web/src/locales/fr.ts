@@ -502,18 +502,21 @@ export const fr = {
     manager: 'Manager',
     managerDesc: 'Gérez une équipe de commerciaux',
     sector: "Secteur d'activité",
-    selectSector: "Sélectionnez votre secteur…",
+    selectSector: 'Sélectionnez votre secteur…',
     companyName: "Nom de l'entreprise",
     niuLabel: "Numéro d'Identification Unique (NIU)",
-    niuPlaceholder: "Ex: M051212345678A (optionnel)",
-    niuHint: "Optionnel — Numéro fiscal officiel DGI (carte de contribuable). Active le badge Organisation vérifiée 🛡️",
+    niuPlaceholder: 'Ex: M051212345678A (optionnel)',
+    niuHint:
+      'Optionnel — Numéro fiscal officiel DGI (carte de contribuable). Active le badge Organisation vérifiée 🛡️',
     country: 'Pays',
     selectCountry: 'Sélectionner votre pays...',
-    countryLockedNote: 'Votre pays est défini une seule fois à l\'inscription pour filtrer vos données.',
+    countryLockedNote:
+      "Votre pays est défini une seule fois à l'inscription pour filtrer vos données.",
     phone: 'Numéro de téléphone',
     phonePlaceholder: 'Ex: 6XX XXX XXX',
     phoneHint: 'Obligatoire — utilisé pour valider et confirmer votre pays.',
-    invalidPhone: 'Le numéro de téléphone ne correspond pas au format ou à l\'indicatif du pays sélectionné.',
+    invalidPhone:
+      "Le numéro de téléphone ne correspond pas au format ou à l'indicatif du pays sélectionné.",
     errorFillAll: 'Veuillez remplir tous les champs.',
     errorPasswordMatch: 'Les mots de passe ne correspondent pas.',
     errorPasswordLength: 'Le mot de passe doit comporter au moins 6 caractères.',
@@ -525,11 +528,12 @@ export const fr = {
     emailRequired: 'Veuillez saisir votre adresse e-mail.',
     phoneRequired: 'Veuillez renseigner votre numéro de téléphone.',
     selectSectorRequired: "Veuillez sélectionner votre secteur d'activité.",
-    companyNameRequired: "Veuillez renseigner le nom de votre entreprise.",
+    companyNameRequired: 'Veuillez renseigner le nom de votre entreprise.',
     corporateEmailRequired:
       "L'inscription Manager requiert une adresse email professionnelle d'entreprise (ex: prenom.nom@votre-entreprise.cm). Les adresses grand public (Gmail, Yahoo, Outlook...) ne sont pas autorisées.",
     corporateEmailHint: 'Adresse professionnelle requise (ex: contact@entreprise.cm)',
-    noCorporateEmailContactSupport: "Votre entreprise n'a pas de nom de domaine propre ? Contactez le support.",
+    noCorporateEmailContactSupport:
+      "Votre entreprise n'a pas de nom de domaine propre ? Contactez le support.",
     activateHeader: 'Activer mon compte',
     activateHeaderSub: 'Créez votre mot de passe pour accéder à Sales Companion 2.0.',
     emailWillBeSent: "Un email de vérification sera envoyé après l'activation.",
@@ -545,7 +549,8 @@ export const fr = {
     name: 'Nom',
     company: 'Entreprise',
     yourEmailAddress: 'Votre adresse email',
-    professionalEmailLocked: 'Adresse e-mail professionnelle attribuée à votre invitation (non modifiable).',
+    professionalEmailLocked:
+      'Adresse e-mail professionnelle attribuée à votre invitation (non modifiable).',
     emailHint: "Saisissez l'adresse email qui servira d'identifiant pour vous connecter.",
     atLeast6Chars: 'Au moins 6 caractères',
     allowedChars: 'Lettres, chiffres et caractères spéciaux acceptés',
@@ -598,7 +603,7 @@ export const fr = {
     title: 'Profil',
     subtitle: "Informations de compte et statistiques d'utilisation.",
     searchesToday: "Recherches aujourd'hui",
-    searchesThisMonth: "Recherches ce mois",
+    searchesThisMonth: 'Recherches ce mois',
     quotaUsed: 'du quota utilisé',
     dailyQuota: 'Quota quotidien',
     monthlyQuota: 'Quota mensuel',
@@ -665,39 +670,50 @@ export const fr = {
     activeThemeLabel: 'Thème actif :',
     switchThemeBtn: 'Basculer →',
     orgTitle: 'Organisation & Gouvernance',
-    orgSubtitle: 'Identifiant unique de votre entreprise, certification légale et gouvernance des équipes',
+    orgSubtitle:
+      'Identifiant unique de votre entreprise, certification légale et gouvernance des équipes',
     companyNameLabel: 'Entreprise',
     orgVerifiedBadge: 'Organisation vérifiée 🛡️',
     orgStandardBadge: 'Organisation standard',
     orgCodeLabel: 'Code Organisation Unique',
-    orgCodeDesc: "Ce code identifie votre entreprise dans Sales Companion. Partagez-le avec d'autres managers de votre entreprise pour leur permettre de relier leurs équipes et partager des agents support.",
+    orgCodeDesc:
+      "Ce code identifie votre entreprise dans Sales Companion. Partagez-le avec d'autres managers de votre entreprise pour leur permettre de relier leurs équipes et partager des agents support.",
     copy: 'Copier',
     copied: 'Copié !',
     niuTitle: "Numéro d'Identification Unique (NIU)",
-    niuDesc: 'Renseignez le NIU fiscal officiel de votre société (délivré par la DGI) pour certifier votre organisation et garantir la synchronisation avec vos autres comptes managers.',
+    niuDesc:
+      'Renseignez le NIU fiscal officiel de votre société (délivré par la DGI) pour certifier votre organisation et garantir la synchronisation avec vos autres comptes managers.',
     niuUpdateSuccess: "Numéro d'identification (NIU) mis à jour avec succès.",
     saveBtn: 'Enregistrer',
     joinOrgTitle: 'Rattacher ce compte à une organisation existante',
-    joinOrgDesc: "Si un autre manager de votre entreprise s'est déjà inscrit et possède un code organisation (ex: SC-CM-XXXXX), saisissez-le ici pour unifier votre entreprise.",
+    joinOrgDesc:
+      "Si un autre manager de votre entreprise s'est déjà inscrit et possède un code organisation (ex: SC-CM-XXXXX), saisissez-le ici pour unifier votre entreprise.",
     joinBtn: 'Rattacher',
     joinOrgSuccess: "Rattaché avec succès à l'organisation.",
     securityTitle: 'Sécurité & Compte',
     securitySubtitle: 'Gérez vos informations de connexion et de sécurité',
     emailTitle: 'Adresse e-mail',
     currentEmailLabel: 'Votre adresse e-mail actuelle est :',
-    memberEmailLocked: "En tant que membre d'équipe, votre adresse e-mail professionnelle est gérée par votre organisation et ne peut pas être modifiée.",
-    supportEmailLocked: "En tant qu'agent de support, votre adresse e-mail professionnelle est gérée par votre organisation et ne peut pas être modifiée.",
-    googleEmailNote: "Votre compte est associé à Google. Les modifications d'adresse e-mail doivent être effectuées depuis votre compte Google.",
+    memberEmailLocked:
+      "En tant que membre d'équipe, votre adresse e-mail professionnelle est gérée par votre organisation et ne peut pas être modifiée.",
+    supportEmailLocked:
+      "En tant qu'agent de support, votre adresse e-mail professionnelle est gérée par votre organisation et ne peut pas être modifiée.",
+    googleEmailNote:
+      "Votre compte est associé à Google. Les modifications d'adresse e-mail doivent être effectuées depuis votre compte Google.",
     newEmailPlaceholder: 'Nouvelle adresse e-mail',
     updateBtn: 'Mettre à jour',
-    emailHint: 'Un e-mail de confirmation sera envoyé à la nouvelle adresse pour valider le changement.',
-    emailUpdateSuccess: 'Un e-mail de vérification a été envoyé. Veuillez cliquer sur le lien pour confirmer.',
+    emailHint:
+      'Un e-mail de confirmation sera envoyé à la nouvelle adresse pour valider le changement.',
+    emailUpdateSuccess:
+      'Un e-mail de vérification a été envoyé. Veuillez cliquer sur le lien pour confirmer.',
     emailUpdateError: "Erreur lors de la mise à jour de l'e-mail",
     passwordTitle: 'Mot de passe',
-    googlePasswordNote: 'Votre compte est associé à Google. Votre mot de passe est géré de manière sécurisée par Google.',
+    googlePasswordNote:
+      'Votre compte est associé à Google. Votre mot de passe est géré de manière sécurisée par Google.',
     sendResetBtn: "Envoyer l'email de réinitialisation",
     passwordHint: 'Nous vous enverrons un lien de réinitialisation sécurisé par e-mail.',
-    passwordResetSuccess: 'Un e-mail de réinitialisation de mot de passe a été envoyé à votre adresse.',
+    passwordResetSuccess:
+      'Un e-mail de réinitialisation de mot de passe a été envoyé à votre adresse.',
     passwordResetError: "Erreur lors de l'envoi de l'e-mail",
     themeActivatedToast: 'Thème activé',
     features: {
@@ -847,20 +863,25 @@ export const fr = {
     activate: 'Activer',
     remove: 'Supprimer',
     supportTitle: 'Fichier Clients',
-    supportSubtitle: 'Importez votre base de données clients. Les données apparaîtront directement dans Mes Clients CRM.',
+    supportSubtitle:
+      'Importez votre base de données clients. Les données apparaîtront directement dans Mes Clients CRM.',
     supportImportTitle: 'Importer une base de données clients',
-    supportImportSubtitlePrefix: 'Glissez un fichier CSV, Excel ou texte. Les clients importés seront immédiatement visibles dans',
+    supportImportSubtitlePrefix:
+      'Glissez un fichier CSV, Excel ou texte. Les clients importés seront immédiatement visibles dans',
     supportImportedTitle: 'Clients importés',
-    supportImportedSubtitlePrefix: 'Aperçu de votre fichier importé. Ces entrées sont visibles dans',
+    supportImportedSubtitlePrefix:
+      'Aperçu de votre fichier importé. Ces entrées sont visibles dans',
     accountNotConfigured: "Compte non configuré. Contactez l'administrateur.",
     exampleColumns: 'Nom ; Téléphone | Email , Ville',
     clearImports: 'Vider la liste',
-    clearImportsConfirm: 'Êtes-vous sûr de vouloir vider tous les prospects importés ? Cette action est irréversible.',
+    clearImportsConfirm:
+      'Êtes-vous sûr de vouloir vider tous les prospects importés ? Cette action est irréversible.',
     deleteProspect: 'Supprimer ce prospect',
     deleteProspectConfirm: 'Supprimer ce prospect ?',
     deleteSelected: 'Supprimer la sélection',
     deleteSelectedConfirm: 'Voulez-vous supprimer les prospects sélectionnés ?',
-    cannotDeletePipelineClient: 'Les clients issus du pipeline du manager ne peuvent pas être supprimés par un agent support.',
+    cannotDeletePipelineClient:
+      'Les clients issus du pipeline du manager ne peuvent pas être supprimés par un agent support.',
     actionsCol: 'Actions'
   },
   support: {
@@ -894,7 +915,8 @@ export const fr = {
     publicTitle: 'Assistance & Validation de Compte',
     publicSubtitle: "Soumettez votre demande directement à l'équipe support Sales Companion 2.0.",
     corporateDomainBannerTitle: "Création de compte Manager sans domaine d'entreprise personnalisé",
-    corporateDomainBannerDesc: "Par mesure de sécurité, les comptes Manager requièrent habituellement un domaine email d'entreprise. Si vous utilisez une messagerie sans nom de domaine personnalisé, notre équipe d'administration peut valider manuellement votre profil pour vous donner l'accès.",
+    corporateDomainBannerDesc:
+      "Par mesure de sécurité, les comptes Manager requièrent habituellement un domaine email d'entreprise. Si vous utilisez une messagerie sans nom de domaine personnalisé, notre équipe d'administration peut valider manuellement votre profil pour vous donner l'accès.",
     nameLabel: 'Nom complet',
     emailLabel: 'Email de contact',
     companyLabel: "Nom de l'entreprise",
@@ -908,11 +930,13 @@ export const fr = {
     selectSector: 'Sélectionnez votre secteur…',
     messageLabel: 'Message / Détails',
     messagePlaceholder: 'Expliquez brièvement votre demande ou votre activité…',
-    defaultCorporateMsg: "Bonjour,\n\nNotre entreprise n'utilise pas de domaine email personnalisé (ex: @notre-entreprise.cm) mais utilise des emails standards. Nous souhaitons créer un compte Manager pour piloter notre équipe commerciale.\n\nMerci de bien vouloir étudier notre demande d'activation.",
+    defaultCorporateMsg:
+      "Bonjour,\n\nNotre entreprise n'utilise pas de domaine email personnalisé (ex: @notre-entreprise.cm) mais utilise des emails standards. Nous souhaitons créer un compte Manager pour piloter notre équipe commerciale.\n\nMerci de bien vouloir étudier notre demande d'activation.",
     submitBtn: 'Envoyer ma demande au support',
     submitting: 'Envoi en cours…',
     successTitle: 'Demande transmise avec succès !',
-    successDesc: "Votre requête a bien été enregistrée et transmise à notre équipe administrative. Un responsable va examiner les informations de votre entreprise et vous contacter sous peu par email.",
+    successDesc:
+      'Votre requête a bien été enregistrée et transmise à notre équipe administrative. Un responsable va examiner les informations de votre entreprise et vous contacter sous peu par email.',
     recapTitle: 'Récapitulatif de votre demande',
     backToRegister: "Retour à l'inscription",
     backToLogin: 'Connexion',
@@ -1061,7 +1085,8 @@ export const fr = {
     errorServer: 'Erreur serveur',
     errorNetwork: 'Erreur réseau',
     errorDelete: 'Erreur lors de la suppression',
-    confirmClearHistory: "Voulez-vous vraiment effacer tout l'historique des imports ? Cette action ne supprime pas les entreprises importées.",
+    confirmClearHistory:
+      "Voulez-vous vraiment effacer tout l'historique des imports ? Cette action ne supprime pas les entreprises importées.",
     statusPending: 'En attente',
     statusProcessing: 'En cours',
     statusCompleted: 'Terminé',
@@ -1143,7 +1168,8 @@ export const fr = {
     paymentOperator: 'Opérateur',
     paymentTransaction: 'ID Transaction',
     paymentDate: 'Date de demande',
-    paymentConfirmValidate: 'Voulez-vous vraiment valider ce paiement ? Cela activera immédiatement le plan correspondant pour l\'utilisateur.',
+    paymentConfirmValidate:
+      "Voulez-vous vraiment valider ce paiement ? Cela activera immédiatement le plan correspondant pour l'utilisateur.",
     paymentConfirmReject: 'Voulez-vous vraiment rejeter ce paiement ?',
     validateBtn: 'Valider',
     rejectBtn: 'Rejeter',
@@ -1166,7 +1192,7 @@ export const fr = {
     noResult: 'Aucun résultat',
     noClients: 'Aucun client pour le moment',
     noResultDesc: 'Essayez un autre terme de recherche',
-    noClientsDesc: "Ajoutez votre premier client ou importez depuis le pipeline.",
+    noClientsDesc: 'Ajoutez votre premier client ou importez depuis le pipeline.',
     colCompany: 'Entreprise',
     colCity: 'Ville',
     colSector: 'Secteur',
@@ -1275,4 +1301,3 @@ export const fr = {
     retry: 'Réessayer'
   }
 }
-

@@ -17,7 +17,14 @@ interface ShortcutCardProps {
 
 const sectorConfig: Record<
   Sector,
-  { icon: React.ReactNode; label: string; color: string; bgClass: string; textClass: string; borderLeftClass: string }
+  {
+    icon: React.ReactNode
+    label: string
+    color: string
+    bgClass: string
+    textClass: string
+    borderLeftClass: string
+  }
 > = {
   btp: {
     icon: <Building2 size={16} strokeWidth={2.2} />,
@@ -79,7 +86,9 @@ export function ShortcutCard({
       className={`group flex w-full min-w-0 cursor-pointer items-center gap-2.5 sm:gap-3 rounded-xl border border-border border-l-[3px] ${cfg.borderLeftClass} bg-card p-2.5 sm:p-3 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-secondary/70 hover:shadow-md`}
     >
       {/* Icône colorée par secteur */}
-      <div className={`flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-lg ${cfg.bgClass} ${cfg.textClass}`}>
+      <div
+        className={`flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-lg ${cfg.bgClass} ${cfg.textClass}`}
+      >
         {cfg.icon}
       </div>
 

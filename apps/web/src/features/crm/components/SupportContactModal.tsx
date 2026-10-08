@@ -25,7 +25,7 @@ export function SupportContactModal({ client, onClose }: Props) {
   async function handleSend() {
     if (!subject.trim() || !message.trim()) return
     if (!clientEmail) {
-      setErrorMsg('Ce client ne possède pas d\'adresse email renseignée.')
+      setErrorMsg("Ce client ne possède pas d'adresse email renseignée.")
       setSendState('error')
       return
     }
@@ -53,7 +53,7 @@ export function SupportContactModal({ client, onClose }: Props) {
       const data = await res.json()
 
       if (!res.ok) {
-        throw new Error(data.error || 'Erreur lors de l\'envoi.')
+        throw new Error(data.error || "Erreur lors de l'envoi.")
       }
 
       setSendState('success')
@@ -66,16 +66,13 @@ export function SupportContactModal({ client, onClose }: Props) {
   return (
     <>
       {/* Backdrop */}
-      <div
-        className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
-        onClick={onClose}
-      />
+      <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
         <div
           className="pointer-events-auto w-full max-w-lg rounded-2xl border border-border bg-card shadow-[0_24px_80px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden"
-          onClick={e => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
           <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-border bg-secondary/30">
@@ -84,9 +81,7 @@ export function SupportContactModal({ client, onClose }: Props) {
                 <Mail size={16} strokeWidth={1.8} />
               </span>
               <div className="min-w-0">
-                <p className="text-[13px] font-bold text-foreground truncate">
-                  Envoyer un message
-                </p>
+                <p className="text-[13px] font-bold text-foreground truncate">Envoyer un message</p>
                 <p className="text-[11px] text-muted-foreground truncate">
                   À&nbsp;: <span className="font-semibold text-foreground/80">{clientName}</span>
                   {clientEmail && <span className="ml-1 opacity-60">({clientEmail})</span>}
@@ -108,7 +103,8 @@ export function SupportContactModal({ client, onClose }: Props) {
               <p className="text-[15px] font-bold text-foreground">Message envoyé !</p>
               <p className="text-[13px] text-muted-foreground">
                 L'email a bien été transmis à <strong>{clientName}</strong>.
-                <br />L'action est enregistrée dans la timeline du client.
+                <br />
+                L'action est enregistrée dans la timeline du client.
               </p>
               <button
                 onClick={onClose}
@@ -123,7 +119,10 @@ export function SupportContactModal({ client, onClose }: Props) {
               {!clientEmail && (
                 <div className="flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2.5 text-[12px] text-amber-400">
                   <AlertCircle size={14} strokeWidth={2} className="mt-0.5 shrink-0" />
-                  <span>Aucune adresse email renseignée pour ce client. Ajoutez-en une dans sa fiche avant d'envoyer.</span>
+                  <span>
+                    Aucune adresse email renseignée pour ce client. Ajoutez-en une dans sa fiche
+                    avant d'envoyer.
+                  </span>
                 </div>
               )}
 
@@ -134,7 +133,7 @@ export function SupportContactModal({ client, onClose }: Props) {
                 </label>
                 <input
                   value={subject}
-                  onChange={e => setSubject(e.target.value)}
+                  onChange={(e) => setSubject(e.target.value)}
                   placeholder="Ex : Suivi de votre dossier client"
                   disabled={sendState === 'sending' || !clientEmail}
                   className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-[13px] text-foreground placeholder:text-muted-foreground/50 outline-none transition-colors focus:border-primary disabled:opacity-50"
@@ -148,7 +147,7 @@ export function SupportContactModal({ client, onClose }: Props) {
                 </label>
                 <textarea
                   value={message}
-                  onChange={e => setMessage(e.target.value)}
+                  onChange={(e) => setMessage(e.target.value)}
                   rows={6}
                   placeholder={`Bonjour ${clientName},\n\n`}
                   disabled={sendState === 'sending' || !clientEmail}
@@ -172,10 +171,7 @@ export function SupportContactModal({ client, onClose }: Props) {
                 <button
                   onClick={handleSend}
                   disabled={
-                    !subject.trim() ||
-                    !message.trim() ||
-                    sendState === 'sending' ||
-                    !clientEmail
+                    !subject.trim() || !message.trim() || sendState === 'sending' || !clientEmail
                   }
                   className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-[13px] font-semibold text-primary-foreground transition-all hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
                 >

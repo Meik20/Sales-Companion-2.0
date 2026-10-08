@@ -26,7 +26,9 @@ export function usePWARegistration() {
         })
       })
       caches.keys().then((keys) => {
-        keys.filter((key) => key.startsWith('sales-companion-')).forEach((key) => caches.delete(key))
+        keys
+          .filter((key) => key.startsWith('sales-companion-'))
+          .forEach((key) => caches.delete(key))
       })
       return
     }

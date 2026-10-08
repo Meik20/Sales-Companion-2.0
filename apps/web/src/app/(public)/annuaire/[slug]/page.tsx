@@ -38,19 +38,22 @@ const DATA_MAP: Record<
   douala: {
     title: 'Douala',
     type: 'city',
-    description: 'Découvrez les entreprises leaders basées à Douala, la capitale économique du Cameroun.',
+    description:
+      'Découvrez les entreprises leaders basées à Douala, la capitale économique du Cameroun.',
     count: '15 000+'
   },
   yaounde: {
     title: 'Yaoundé',
     type: 'city',
-    description: 'Explorez le tissu économique de Yaoundé, capitale politique et administrative du Cameroun.',
+    description:
+      'Explorez le tissu économique de Yaoundé, capitale politique et administrative du Cameroun.',
     count: '12 000+'
   },
   bafoussam: {
     title: 'Bafoussam',
     type: 'city',
-    description: "Liste des entreprises et commerces actifs à Bafoussam et dans la région de l'Ouest.",
+    description:
+      "Liste des entreprises et commerces actifs à Bafoussam et dans la région de l'Ouest.",
     count: '3 500+'
   },
   garoua: {
@@ -82,7 +85,8 @@ const DATA_MAP: Record<
   finance: {
     title: 'Banque, Finance & Assurance',
     type: 'sector',
-    description: "Établissements bancaires, microfinances et compagnies d'assurance agréés au Cameroun.",
+    description:
+      "Établissements bancaires, microfinances et compagnies d'assurance agréés au Cameroun.",
     count: '900+'
   },
   logistique: {
@@ -94,13 +98,15 @@ const DATA_MAP: Record<
   agro: {
     title: 'Agroalimentaire & Agriculture',
     type: 'sector',
-    description: 'Producteurs, transformateurs et distributeurs du secteur agro-industriel camerounais.',
+    description:
+      'Producteurs, transformateurs et distributeurs du secteur agro-industriel camerounais.',
     count: '6 000+'
   },
   commerce: {
     title: 'Commerce & Distribution',
     type: 'sector',
-    description: 'Import-export, grossistes, grandes surfaces et enseignes de distribution au Cameroun.',
+    description:
+      'Import-export, grossistes, grandes surfaces et enseignes de distribution au Cameroun.',
     count: '10 000+'
   }
 }
@@ -208,9 +214,7 @@ export default async function AnnuaireSlugPage({ params }: Props) {
     notFound()
   }
 
-  const filteredCompanies = MOCK_COMPANIES.filter(
-    (c) => c.city === slug || c.sector === slug
-  )
+  const filteredCompanies = MOCK_COMPANIES.filter((c) => c.city === slug || c.sector === slug)
 
   const companiesToDisplay =
     filteredCompanies.length > 0
@@ -236,16 +240,17 @@ export default async function AnnuaireSlugPage({ params }: Props) {
         <div className="mx-auto max-w-3xl px-5">
           <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-1 text-xs font-medium text-muted-foreground shadow-sm">
             <span className="h-2 w-2 rounded-full bg-[#1B7A3E] animate-pulse" />
-            {data.type === 'city' ? 'Ville' : 'Secteur d\'activité'}
+            {data.type === 'city' ? 'Ville' : "Secteur d'activité"}
           </span>
           <h1 className="mt-5 font-heading text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
             Entreprises {data.type === 'city' ? 'à' : 'de'}{' '}
             <span className="text-[#1B7A3E]">{data.title}</span>
           </h1>
           <p className="mt-4 text-base leading-relaxed text-muted-foreground">
-            {data.description} Découvrez notre sélection de professionnels et
-            d&apos;opportunités de prospection. Accès complet à plus de{' '}
-            <strong className="text-foreground">{data.count}</strong> entreprises dans cette catégorie.
+            {data.description} Découvrez notre sélection de professionnels et d&apos;opportunités de
+            prospection. Accès complet à plus de{' '}
+            <strong className="text-foreground">{data.count}</strong> entreprises dans cette
+            catégorie.
           </p>
         </div>
       </section>
@@ -298,9 +303,8 @@ export default async function AnnuaireSlugPage({ params }: Props) {
             Accéder aux contacts des dirigeants
           </h3>
           <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-emerald-100">
-            Téléphone, e-mail direct, numéro d&apos;immatriculation et bien plus.
-            Débloquez tous les détails pour lancer vos campagnes de prospection
-            ciblées.
+            Téléphone, e-mail direct, numéro d&apos;immatriculation et bien plus. Débloquez tous les
+            détails pour lancer vos campagnes de prospection ciblées.
           </p>
           <Link
             href="/register"

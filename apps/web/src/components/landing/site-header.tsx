@@ -32,14 +32,21 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-[100] border-b border-border/70 bg-background/85 backdrop-blur-md transition-all">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5">
-        <Link href="/" className="flex items-center gap-2.5 group shrink-0" aria-label="Sales Companion 2.0, accueil">
+        <Link
+          href="/"
+          className="flex items-center gap-2.5 group shrink-0"
+          aria-label="Sales Companion 2.0, accueil"
+        >
           <ScIcon size={34} interactive className="group-hover:scale-105 transition-transform" />
           <span className="font-heading text-[15px] font-semibold tracking-tight text-foreground">
             Sales Companion <span className="text-[#1B7A3E]">2.0</span>
           </span>
         </Link>
 
-        <nav className="hidden flex-1 items-center justify-center gap-6 md:flex" aria-label="Navigation principale">
+        <nav
+          className="hidden flex-1 items-center justify-center gap-6 md:flex"
+          aria-label="Navigation principale"
+        >
           {navLinks.map((link) => (
             <a
               key={link.href}
@@ -63,7 +70,11 @@ export function SiteHeader() {
               aria-label={lang === 'en' ? 'Select country' : 'Pays de la homepage'}
             >
               {countries.map((option) => (
-                <option key={option.code} value={option.code} className="bg-background text-foreground">
+                <option
+                  key={option.code}
+                  value={option.code}
+                  className="bg-background text-foreground"
+                >
                   {option.name}
                 </option>
               ))}
@@ -139,7 +150,11 @@ export function SiteHeader() {
                 aria-label={lang === 'en' ? 'Select country' : 'Pays de la homepage'}
               >
                 {countries.map((option) => (
-                  <option key={option.code} value={option.code} className="bg-background text-foreground">
+                  <option
+                    key={option.code}
+                    value={option.code}
+                    className="bg-background text-foreground"
+                  >
                     {option.name}
                   </option>
                 ))}

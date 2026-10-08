@@ -27,7 +27,9 @@ const getNavItems = (role: string, plan: string, t: (key: any) => string) => {
 
   if (role === 'manager') {
     // Insert team + reporting after pipeline
-    items.splice(2, 0,
+    items.splice(
+      2,
+      0,
       { href: routes.team, label: t('sidebar.team') },
       { href: routes.reporting, label: 'Dashboard' }
     )
@@ -132,25 +134,49 @@ function NavItem({ href, icon, label }: NavItemProps) {
 
 // SVG icon components
 const SearchIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     <circle cx="11" cy="11" r="8" />
     <line x1="21" y1="21" x2="16.65" y2="16.65" />
   </svg>
 )
 const PipelineIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     <rect x="2" y="3" width="6" height="18" rx="2" />
     <rect x="9" y="8" width="6" height="13" rx="2" />
     <rect x="16" y="13" width="6" height="8" rx="2" />
   </svg>
 )
 const SavedIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
   </svg>
 )
 const TeamIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
     <circle cx="9" cy="7" r="4" />
     <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
@@ -158,7 +184,13 @@ const TeamIcon = () => (
   </svg>
 )
 const DashboardIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     <rect x="3" y="3" width="7" height="7" rx="1" />
     <rect x="14" y="3" width="7" height="7" rx="1" />
     <rect x="14" y="14" width="7" height="7" rx="1" />
@@ -167,7 +199,13 @@ const DashboardIcon = () => (
 )
 
 const AiIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     <path d="M12 2a5 5 0 0 1 5 5v3a5 5 0 0 1-10 0V7a5 5 0 0 1 5-5z" />
     <path d="M8 18h8M12 18v4" />
     <circle cx="8" cy="10" r="1" fill="currentColor" stroke="none" />
@@ -176,20 +214,38 @@ const AiIcon = () => (
 )
 
 const ProfileIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
     <circle cx="12" cy="7" r="4" />
   </svg>
 )
 const UploadIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
     <polyline points="17 8 12 3 7 8" />
     <line x1="12" y1="3" x2="12" y2="15" />
   </svg>
 )
 const AdminIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" />
   </svg>
 )
@@ -203,7 +259,7 @@ export function MobileNav() {
   // Ordered nav items for swipe support
   const navItems = user ? getNavItems(user.role, user.plan || 'free', t) : []
   const currentIndex = navItems.findIndex(
-    item => pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href))
+    (item) => pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href))
   )
 
   // Swipe: navigate to adjacent pages
@@ -234,37 +290,39 @@ export function MobileNav() {
           WebkitOverflowScrolling: 'touch'
         }}
       >
-      {user.role === 'support_agent' ? (
-        <>
-          <NavItem href="/crm" label={t('sidebar.crm')} icon={<PipelineIcon />} />
-          <NavItem href="/team" label={t('sidebar.imports')} icon={<UploadIcon />} />
-          <NavItem href={routes.profile} label={t('header.profile')} icon={<ProfileIcon />} />
-        </>
-      ) : (
-        <>
-          <NavItem href={routes.search} label={t('header.search')} icon={<SearchIcon />} />
-          {user.role !== 'admin' && (
-            <NavItem href={routes.pipeline} label={t('sidebar.pipeline')} icon={<PipelineIcon />} />
-          )}
-          <NavItem href={routes.saved} label={t('sidebar.saved')} icon={<SavedIcon />} />
+        {user.role === 'support_agent' ? (
+          <>
+            <NavItem href="/crm" label={t('sidebar.crm')} icon={<PipelineIcon />} />
+            <NavItem href="/team" label={t('sidebar.imports')} icon={<UploadIcon />} />
+            <NavItem href={routes.profile} label={t('header.profile')} icon={<ProfileIcon />} />
+          </>
+        ) : (
+          <>
+            <NavItem href={routes.search} label={t('header.search')} icon={<SearchIcon />} />
+            {user.role !== 'admin' && (
+              <NavItem
+                href={routes.pipeline}
+                label={t('sidebar.pipeline')}
+                icon={<PipelineIcon />}
+              />
+            )}
+            <NavItem href={routes.saved} label={t('sidebar.saved')} icon={<SavedIcon />} />
 
-          {user.role === 'manager' && (
-            <>
-              <NavItem href={routes.team} label={t('sidebar.team')} icon={<TeamIcon />} />
-              <NavItem href={routes.reporting} label="Dashboard" icon={<DashboardIcon />} />
-            </>
-          )}
-          {user.role === 'admin' && (
-            <NavItem href={routes.admin} label={t('sidebar.admin')} icon={<AdminIcon />} />
-          )}
+            {user.role === 'manager' && (
+              <>
+                <NavItem href={routes.team} label={t('sidebar.team')} icon={<TeamIcon />} />
+                <NavItem href={routes.reporting} label="Dashboard" icon={<DashboardIcon />} />
+              </>
+            )}
+            {user.role === 'admin' && (
+              <NavItem href={routes.admin} label={t('sidebar.admin')} icon={<AdminIcon />} />
+            )}
 
-          {user.plan !== 'free' && (
-            <NavItem href={routes.ai} label="AI" icon={<AiIcon />} />
-          )}
-          <NavItem href={routes.profile} label={t('header.profile')} icon={<ProfileIcon />} />
-        </>
-      )}
-    </nav>
+            {user.plan !== 'free' && <NavItem href={routes.ai} label="AI" icon={<AiIcon />} />}
+            <NavItem href={routes.profile} label={t('header.profile')} icon={<ProfileIcon />} />
+          </>
+        )}
+      </nav>
     </>
   )
 }

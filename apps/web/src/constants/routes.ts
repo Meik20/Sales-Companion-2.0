@@ -26,4 +26,3 @@ export const routes = {
   adminConfig: '/admin/config',
   adminPayments: '/admin/payments'
 }
-

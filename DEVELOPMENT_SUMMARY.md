@@ -244,7 +244,7 @@ Préparer le déploiement production avec CI/CD
 
 #### 1. **apps/web/.env.example** (NEW)
 
-- ✅ Firebase configuration (NEXT_PUBLIC_*)
+- ✅ Firebase configuration (NEXT*PUBLIC*\*)
 - ✅ API URL configuration
 - ✅ Feature flags
 - ✅ Analytics config

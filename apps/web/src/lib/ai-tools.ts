@@ -20,7 +20,8 @@ export const GEMINI_TOOLS = [
           properties: {
             query: {
               type: 'STRING',
-              description: "Nom de l'entreprise, mot-clé métier, ou sigle (ex: 'BTP', 'Camtel', 'Transport')"
+              description:
+                "Nom de l'entreprise, mot-clé métier, ou sigle (ex: 'BTP', 'Camtel', 'Transport')"
             },
             sector: {
               type: 'STRING',
@@ -29,12 +30,12 @@ export const GEMINI_TOOLS = [
             },
             region: {
               type: 'STRING',
-              description:
-                "Région du pays associé au compte utilisateur"
+              description: 'Région du pays associé au compte utilisateur'
             },
             city: {
               type: 'STRING',
-              description: "Ville principale (ex: 'Douala', 'Yaoundé', 'Bafoussam', 'Garoua', 'Bamenda', 'Kribi')"
+              description:
+                "Ville principale (ex: 'Douala', 'Yaoundé', 'Bafoussam', 'Garoua', 'Bamenda', 'Kribi')"
             },
             limit: {
               type: 'INTEGER',
@@ -95,7 +96,8 @@ export const GROQ_TOOLS = [
         properties: {
           query: {
             type: 'string',
-            description: "Nom de l'entreprise, mot-clé métier, ou sigle (ex: 'BTP', 'Camtel', 'Transport')"
+            description:
+              "Nom de l'entreprise, mot-clé métier, ou sigle (ex: 'BTP', 'Camtel', 'Transport')"
           },
           sector: {
             type: 'string',
@@ -104,12 +106,12 @@ export const GROQ_TOOLS = [
           },
           region: {
             type: 'string',
-            description:
-              "Région du pays associé au compte utilisateur"
+            description: 'Région du pays associé au compte utilisateur'
           },
           city: {
             type: 'string',
-            description: "Ville principale (ex: 'Douala', 'Yaoundé', 'Bafoussam', 'Garoua', 'Bamenda', 'Kribi')"
+            description:
+              "Ville principale (ex: 'Douala', 'Yaoundé', 'Bafoussam', 'Garoua', 'Bamenda', 'Kribi')"
           },
           limit: {
             type: 'number',
@@ -185,7 +187,10 @@ export async function executeAITool(
       const identifier = typeof args.identifier === 'string' ? args.identifier : ''
       const details = await getCompanyDetails(identifier, country)
       if (!details) {
-        return { found: false, message: `Aucune entreprise trouvée pour l'identifiant: "${identifier}"` }
+        return {
+          found: false,
+          message: `Aucune entreprise trouvée pour l'identifiant: "${identifier}"`
+        }
       }
       return { found: true, company: details }
     }

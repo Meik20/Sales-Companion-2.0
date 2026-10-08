@@ -82,14 +82,20 @@ export default function AdminImportsPage() {
       }
 
       if (!res.ok) {
-        setUploadState({ status: 'error', message: json.error ?? `${t('admin.errorServer')} (${res.status})` })
+        setUploadState({
+          status: 'error',
+          message: json.error ?? `${t('admin.errorServer')} (${res.status})`
+        })
         return
       }
 
       setUploadState({ status: 'success', fileName: file.name, result: json })
       refetch()
     } catch (e) {
-      setUploadState({ status: 'error', message: e instanceof Error ? e.message : t('admin.errorNetwork') })
+      setUploadState({
+        status: 'error',
+        message: e instanceof Error ? e.message : t('admin.errorNetwork')
+      })
     }
 
     // Reset file input
@@ -97,9 +103,7 @@ export default function AdminImportsPage() {
   }
 
   async function handleClearHistory() {
-    if (
-      !window.confirm(t('admin.confirmClearHistory'))
-    ) {
+    if (!window.confirm(t('admin.confirmClearHistory'))) {
       return
     }
 
@@ -204,11 +208,23 @@ export default function AdminImportsPage() {
               transition: 'all 200ms ease'
             }}
           >
-            <UploadCloud size={42} style={{ margin: '0 auto 12px', color: '#3b82f6', opacity: 0.8 }} />
-            <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--foreground, #f1f5f9)', marginBottom: 6 }}>
+            <UploadCloud
+              size={42}
+              style={{ margin: '0 auto 12px', color: '#3b82f6', opacity: 0.8 }}
+            />
+            <div
+              style={{
+                fontWeight: 600,
+                fontSize: 15,
+                color: 'var(--foreground, #f1f5f9)',
+                marginBottom: 6
+              }}
+            >
               {t('admin.dragFile')}
             </div>
-            <div style={{ fontSize: 13, color: 'var(--muted-foreground, #94a3b8)', marginBottom: 18 }}>
+            <div
+              style={{ fontSize: 13, color: 'var(--muted-foreground, #94a3b8)', marginBottom: 18 }}
+            >
               {t('admin.orBrowse')}
             </div>
             <button
@@ -243,7 +259,9 @@ export default function AdminImportsPage() {
           {/* Progress / Result */}
           {uploadState.status === 'uploading' && (
             <div>
-              <div style={{ fontSize: 12, color: 'var(--muted-foreground, #94a3b8)', marginBottom: 6 }}>
+              <div
+                style={{ fontSize: 12, color: 'var(--muted-foreground, #94a3b8)', marginBottom: 6 }}
+              >
                 {t('admin.processing')} « {uploadState.fileName} »…
               </div>
               <div
@@ -276,27 +294,66 @@ export default function AdminImportsPage() {
                 padding: '14px 16px'
               }}
             >
-              <div style={{ fontWeight: 700, color: '#60a5fa', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div
+                style={{
+                  fontWeight: 700,
+                  color: '#60a5fa',
+                  marginBottom: 10,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6
+                }}
+              >
                 <CheckCircle2 size={16} style={{ color: '#22c55e' }} />
-                <span>{t('admin.importSuccess')} — {uploadState.fileName}</span>
+                <span>
+                  {t('admin.importSuccess')} — {uploadState.fileName}
+                </span>
               </div>
               <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
                 {[
-                  { label: t('admin.rowsRead'), val: uploadState.result.total ?? 0, color: 'var(--foreground, #f1f5f9)' },
-                  { label: t('admin.newRows'), val: uploadState.result.imported ?? 0, color: '#3b82f6' },
-                  { label: t('admin.updatedRows'), val: uploadState.result.updated ?? 0, color: '#1a73e8' },
-                  { label: t('admin.skippedRows'), val: uploadState.result.skipped ?? 0, color: '#f39c12' },
-                  { label: t('admin.errorRows'), val: uploadState.result.errors ?? 0, color: '#f87171' }
+                  {
+                    label: t('admin.rowsRead'),
+                    val: uploadState.result.total ?? 0,
+                    color: 'var(--foreground, #f1f5f9)'
+                  },
+                  {
+                    label: t('admin.newRows'),
+                    val: uploadState.result.imported ?? 0,
+                    color: '#3b82f6'
+                  },
+                  {
+                    label: t('admin.updatedRows'),
+                    val: uploadState.result.updated ?? 0,
+                    color: '#1a73e8'
+                  },
+                  {
+                    label: t('admin.skippedRows'),
+                    val: uploadState.result.skipped ?? 0,
+                    color: '#f39c12'
+                  },
+                  {
+                    label: t('admin.errorRows'),
+                    val: uploadState.result.errors ?? 0,
+                    color: '#f87171'
+                  }
                 ].map(({ label, val, color }) => (
                   <div key={label} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                     <span style={{ fontSize: 20, fontWeight: 700, color }}>{val}</span>
-                    <span style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)' }}>{label}</span>
+                    <span style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)' }}>
+                      {label}
+                    </span>
                   </div>
                 ))}
               </div>
               {uploadState.result.columns_detected &&
                 Object.keys(uploadState.result.columns_detected).length > 0 && (
-                  <div style={{ marginTop: 10, fontSize: 12, color: 'var(--muted-foreground, #94a3b8)' }}>
+                  <div
+                    style={{
+                      marginTop: 10,
+                      fontSize: 12,
+                      color: 'var(--muted-foreground, #94a3b8)'
+                    }}
+                  >
                     <strong>{t('admin.mappedColumns')} :</strong>{' '}
                     {Object.entries(uploadState.result.columns_detected)
                       .map(([k, v]) => `${k} → "${v}"`)
@@ -370,10 +427,18 @@ export default function AdminImportsPage() {
               <span>{t('admin.autoColumns')}</span>
             </div>
             <ul style={{ paddingLeft: 16, marginTop: 6, lineHeight: 1.9 }}>
-              <li><strong>RAISON_SOCIALE</strong> {t('admin.autoColumnsDesc1')}</li>
-              <li><strong>NIU</strong> {t('admin.autoColumnsDesc2')}</li>
-              <li><strong>ACTIVITE_PRINCIPALE</strong> {t('admin.autoColumnsDesc3')}</li>
-              <li><strong>CENTRE_DE_RATTACHEMENT</strong> {t('admin.autoColumnsDesc4')}</li>
+              <li>
+                <strong>RAISON_SOCIALE</strong> {t('admin.autoColumnsDesc1')}
+              </li>
+              <li>
+                <strong>NIU</strong> {t('admin.autoColumnsDesc2')}
+              </li>
+              <li>
+                <strong>ACTIVITE_PRINCIPALE</strong> {t('admin.autoColumnsDesc3')}
+              </li>
+              <li>
+                <strong>CENTRE_DE_RATTACHEMENT</strong> {t('admin.autoColumnsDesc4')}
+              </li>
               <li>{t('admin.autoColumnsDesc5')}</li>
             </ul>
           </div>
@@ -406,7 +471,9 @@ export default function AdminImportsPage() {
                 {t('admin.allImports')}
               </span>
               {total > 0 && (
-                <span style={{ marginLeft: 4, fontSize: 12, color: 'var(--muted-foreground, #94a3b8)' }}>
+                <span
+                  style={{ marginLeft: 4, fontSize: 12, color: 'var(--muted-foreground, #94a3b8)' }}
+                >
                   {total} import{total > 1 ? 's' : ''}
                 </span>
               )}
@@ -452,7 +519,14 @@ export default function AdminImportsPage() {
           </div>
 
           {isLoading && (
-            <div style={{ textAlign: 'center', padding: 40, color: 'var(--muted-foreground, #94a3b8)', fontSize: 13 }}>
+            <div
+              style={{
+                textAlign: 'center',
+                padding: 40,
+                color: 'var(--muted-foreground, #94a3b8)',
+                fontSize: 13
+              }}
+            >
               {t('team.loading')}
             </div>
           )}
@@ -462,7 +536,14 @@ export default function AdminImportsPage() {
             </div>
           )}
           {!isLoading && !isError && items.length === 0 && (
-            <div style={{ textAlign: 'center', padding: 40, color: 'var(--muted-foreground, #94a3b8)', fontSize: 13 }}>
+            <div
+              style={{
+                textAlign: 'center',
+                padding: 40,
+                color: 'var(--muted-foreground, #94a3b8)',
+                fontSize: 13
+              }}
+            >
               <FolderOpen size={36} style={{ margin: '0 auto 10px', opacity: 0.4 }} />
               {t('admin.noImports')}
             </div>
@@ -511,7 +592,12 @@ export default function AdminImportsPage() {
                           ? Math.round((item.successCount / item.totalRecords) * 100)
                           : 0
                       return (
-                        <tr key={item.id} style={{ borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}` }}>
+                        <tr
+                          key={item.id}
+                          style={{
+                            borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
+                          }}
+                        >
                           <td
                             style={{
                               padding: '11px 10px',
@@ -526,26 +612,53 @@ export default function AdminImportsPage() {
                           >
                             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                               <FileText size={13} style={{ opacity: 0.7 }} className="shrink-0" />
-                              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.fileName}</span>
+                              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                {item.fileName}
+                              </span>
                             </span>
                           </td>
-                          <td style={{ padding: '11px 10px', color: 'var(--muted-foreground, #94a3b8)' }}>
+                          <td
+                            style={{
+                              padding: '11px 10px',
+                              color: 'var(--muted-foreground, #94a3b8)'
+                            }}
+                          >
                             {item.totalRecords}
                           </td>
                           <td style={{ padding: '11px 10px' }}>
                             <div style={{ display: 'flex', gap: 8, fontSize: 11 }}>
-                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, color: '#2ea05a' }}>
+                              <span
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: 3,
+                                  color: '#2ea05a'
+                                }}
+                              >
                                 <Check size={11} strokeWidth={2.5} />
                                 {item.successCount}
                               </span>
                               {item.errorCount > 0 && (
-                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, color: '#f87171' }}>
+                                <span
+                                  style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: 3,
+                                    color: '#f87171'
+                                  }}
+                                >
                                   <X size={11} strokeWidth={2.5} />
                                   {item.errorCount}
                                 </span>
                               )}
                             </div>
-                            <div style={{ fontSize: 10, color: 'var(--muted-foreground, #94a3b8)', marginTop: 1 }}>
+                            <div
+                              style={{
+                                fontSize: 10,
+                                color: 'var(--muted-foreground, #94a3b8)',
+                                marginTop: 1
+                              }}
+                            >
                               {successRate}% {t('admin.successRate')}
                             </div>
                           </td>
@@ -554,13 +667,20 @@ export default function AdminImportsPage() {
                               style={{
                                 fontSize: 11,
                                 fontWeight: 600,
-                                color: statusColors[item.status] ?? 'var(--muted-foreground, #94a3b8)'
+                                color:
+                                  statusColors[item.status] ?? 'var(--muted-foreground, #94a3b8)'
                               }}
                             >
                               {statusLabels[item.status] ?? item.status}
                             </span>
                           </td>
-                          <td style={{ padding: '11px 10px', color: 'var(--muted-foreground, #94a3b8)', fontSize: 12 }}>
+                          <td
+                            style={{
+                              padding: '11px 10px',
+                              color: 'var(--muted-foreground, #94a3b8)',
+                              fontSize: 12
+                            }}
+                          >
                             {dateStr}
                           </td>
                         </tr>
@@ -605,7 +725,8 @@ export default function AdminImportsPage() {
                         fontSize: 12,
                         border: `1px solid ${p === historyPage ? '#2563eb' : 'var(--border, rgba(255,255,255,0.1))'}`,
                         borderRadius: 6,
-                        background: p === historyPage ? 'rgba(37,99,235,0.15)' : 'var(--background, #0b1120)',
+                        background:
+                          p === historyPage ? 'rgba(37,99,235,0.15)' : 'var(--background, #0b1120)',
                         color: 'var(--foreground, #f1f5f9)',
                         cursor: 'pointer',
                         fontWeight: p === historyPage ? 700 : 400

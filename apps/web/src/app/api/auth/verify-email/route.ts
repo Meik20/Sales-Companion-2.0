@@ -22,7 +22,10 @@ export async function POST(request: NextRequest) {
     const ip = getClientIp(request)
     const ipLimit = await checkRateLimit(ip, { limit: 10, windowMs: 60 * 1000 })
     if (!ipLimit.success) {
-      return NextResponse.json({ message: 'Trop de tentatives, veuillez réessayer plus tard.' }, { status: 429 })
+      return NextResponse.json(
+        { message: 'Trop de tentatives, veuillez réessayer plus tard.' },
+        { status: 429 }
+      )
     }
 
     const { adminDb, adminAuth, createAdminNotification } = await getAdmin()

@@ -56,18 +56,36 @@ export default function TeamPage() {
 
   // Pour un support_agent, l'import se fait sous son propre UID
   // (les prospects importés sont affichés directement dans Mes Clients CRM)
-  const importManagerId = isManager
-    ? user?.uid
-    : user?.uid
+  const importManagerId = isManager ? user?.uid : user?.uid
 
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = isSeniorManager
     ? [
-        { id: 'org', label: "GESTION DE L'ORGANISATION", icon: <Building2 size={15} strokeWidth={2} /> },
-        ...(canImport ? [{ id: 'imports' as Tab, label: t('team.tabImports'), icon: <ClipboardList size={15} strokeWidth={2} /> }] : [])
+        {
+          id: 'org',
+          label: "GESTION DE L'ORGANISATION",
+          icon: <Building2 size={15} strokeWidth={2} />
+        },
+        ...(canImport
+          ? [
+              {
+                id: 'imports' as Tab,
+                label: t('team.tabImports'),
+                icon: <ClipboardList size={15} strokeWidth={2} />
+              }
+            ]
+          : [])
       ]
     : [
         { id: 'team', label: t('team.tabTeam'), icon: <Users size={15} strokeWidth={2} /> },
-        ...(canImport ? [{ id: 'imports' as Tab, label: t('team.tabImports'), icon: <ClipboardList size={15} strokeWidth={2} /> }] : [])
+        ...(canImport
+          ? [
+              {
+                id: 'imports' as Tab,
+                label: t('team.tabImports'),
+                icon: <ClipboardList size={15} strokeWidth={2} />
+              }
+            ]
+          : [])
       ]
 
   function handleAssignSelection(prospects: Prospect[]) {
@@ -107,13 +125,33 @@ export default function TeamPage() {
           }}
         >
           <div style={{ marginBottom: 20 }}>
-            <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--foreground, #f1f5f9)', margin: '0 0 6px', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <h2
+              style={{
+                fontSize: 16,
+                fontWeight: 700,
+                color: 'var(--foreground, #f1f5f9)',
+                margin: '0 0 6px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8
+              }}
+            >
               <UploadCloud size={18} strokeWidth={2} style={{ color: '#3b82f6' }} />
               {t('team.supportImportTitle')}
             </h2>
-            <p style={{ fontSize: 13, color: 'var(--muted-foreground, #94a3b8)', margin: 0, lineHeight: 1.6 }}>
+            <p
+              style={{
+                fontSize: 13,
+                color: 'var(--muted-foreground, #94a3b8)',
+                margin: 0,
+                lineHeight: 1.6
+              }}
+            >
               {t('team.supportImportSubtitlePrefix')}{' '}
-              <strong style={{ color: 'var(--foreground, #f1f5f9)' }}>{t('sidebar.crmClients')}</strong>.
+              <strong style={{ color: 'var(--foreground, #f1f5f9)' }}>
+                {t('sidebar.crmClients')}
+              </strong>
+              .
             </p>
           </div>
 
@@ -123,7 +161,18 @@ export default function TeamPage() {
               onImported={() => setImportRefresh((n) => n + 1)}
             />
           ) : (
-            <div style={{ textAlign: 'center', padding: 32, color: 'var(--muted-foreground, #94a3b8)', fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+            <div
+              style={{
+                textAlign: 'center',
+                padding: 32,
+                color: 'var(--muted-foreground, #94a3b8)',
+                fontSize: 13,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8
+              }}
+            >
               <AlertTriangle size={16} strokeWidth={2} style={{ color: '#eab308' }} />
               {t('team.accountNotConfigured')}
             </div>
@@ -141,13 +190,32 @@ export default function TeamPage() {
               padding: 24
             }}
           >
-            <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--foreground, #f1f5f9)', margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <h2
+              style={{
+                fontSize: 15,
+                fontWeight: 700,
+                color: 'var(--foreground, #f1f5f9)',
+                margin: '0 0 4px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8
+              }}
+            >
               <ClipboardList size={17} strokeWidth={2} style={{ color: '#3b82f6' }} />
               {t('team.supportImportedTitle')}
             </h2>
-            <p style={{ fontSize: 12.5, color: 'var(--muted-foreground, #94a3b8)', margin: '0 0 16px' }}>
+            <p
+              style={{
+                fontSize: 12.5,
+                color: 'var(--muted-foreground, #94a3b8)',
+                margin: '0 0 16px'
+              }}
+            >
               {t('team.supportImportedSubtitlePrefix')}{' '}
-              <strong style={{ color: 'var(--foreground, #f1f5f9)' }}>{t('sidebar.crmClients')}</strong>.
+              <strong style={{ color: 'var(--foreground, #f1f5f9)' }}>
+                {t('sidebar.crmClients')}
+              </strong>
+              .
             </p>
             <ManagerProspectsList
               managerId={importManagerId}
@@ -302,7 +370,17 @@ export default function TeamPage() {
             }}
           >
             <div style={{ marginBottom: 16 }}>
-              <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--foreground, #f1f5f9)', margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <h2
+                style={{
+                  fontSize: 15,
+                  fontWeight: 700,
+                  color: 'var(--foreground, #f1f5f9)',
+                  margin: '0 0 4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8
+                }}
+              >
                 <UploadCloud size={17} strokeWidth={2} style={{ color: '#3b82f6' }} />
                 {t('team.importTitle')}
               </h2>
@@ -337,7 +415,15 @@ export default function TeamPage() {
             >
               <div>
                 <h2
-                  style={{ fontSize: 15, fontWeight: 700, color: 'var(--foreground, #f1f5f9)', margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: 8 }}
+                  style={{
+                    fontSize: 15,
+                    fontWeight: 700,
+                    color: 'var(--foreground, #f1f5f9)',
+                    margin: '0 0 4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8
+                  }}
                 >
                   <ClipboardList size={17} strokeWidth={2} style={{ color: '#3b82f6' }} />
                   {t('team.myProspects')}

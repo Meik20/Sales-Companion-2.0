@@ -109,7 +109,10 @@ export function UseCasesSection() {
 
                 <ul className="mt-5 space-y-2.5">
                   {persona.bullets.map((bullet) => (
-                    <li key={bullet} className="flex items-start gap-2.5 text-xs text-muted-foreground leading-relaxed">
+                    <li
+                      key={bullet}
+                      className="flex items-start gap-2.5 text-xs text-muted-foreground leading-relaxed"
+                    >
                       <Check className="h-4 w-4 shrink-0 text-[#1B7A3E] mt-0.5" />
                       <span>{bullet}</span>
                     </li>

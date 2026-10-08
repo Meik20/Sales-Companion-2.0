@@ -64,22 +64,25 @@ export type LandingCountryItem = {
   examplePhone: string
 }
 
-const COUNTRY_DETAILS: Record<CountryCode, {
-  currency: string
-  cities: string[]
-  regions: number
-  companyCountFr: string
-  companyCountEn: string
-  area: string
-  taxLabel: string
-  taxExample: string
-  rccmExample: string
-  mockPhone: string
-  kanbanContacted: string
-  kanbanTech: string
-  neighborhoods: string
-  testimonials: LandingTestimonial[]
-}> = {
+const COUNTRY_DETAILS: Record<
+  CountryCode,
+  {
+    currency: string
+    cities: string[]
+    regions: number
+    companyCountFr: string
+    companyCountEn: string
+    area: string
+    taxLabel: string
+    taxExample: string
+    rccmExample: string
+    mockPhone: string
+    kanbanContacted: string
+    kanbanTech: string
+    neighborhoods: string
+    testimonials: LandingTestimonial[]
+  }
+> = {
   CM: {
     currency: 'XAF',
     cities: ['Douala', 'Yaoundé', 'Bafoussam'],
@@ -99,15 +102,19 @@ const COUNTRY_DETAILS: Record<CountryCode, {
         name: 'Thierry N.',
         initials: 'TN',
         city: 'Douala',
-        quoteFr: 'En deux semaines, j\'ai trouvé plus de prospects qualifiés qu\'en trois mois avec mes anciennes méthodes. La base camerounaise est très complète.',
-        quoteEn: 'In two weeks I found more qualified leads than in three months with my old methods. The Cameroonian database is very thorough.'
+        quoteFr:
+          "En deux semaines, j'ai trouvé plus de prospects qualifiés qu'en trois mois avec mes anciennes méthodes. La base camerounaise est très complète.",
+        quoteEn:
+          'In two weeks I found more qualified leads than in three months with my old methods. The Cameroonian database is very thorough.'
       },
       {
         name: 'Marcelle K.',
         initials: 'MK',
         city: 'Yaoundé',
-        quoteFr: 'Je gère mon pipeline depuis mon téléphone, même en déplacement à Bafoussam. Sales Companion a vraiment changé ma façon de prospecter.',
-        quoteEn: 'I manage my pipeline from my phone, even when travelling to Bafoussam. Sales Companion has truly changed the way I prospect.'
+        quoteFr:
+          'Je gère mon pipeline depuis mon téléphone, même en déplacement à Bafoussam. Sales Companion a vraiment changé ma façon de prospecter.',
+        quoteEn:
+          'I manage my pipeline from my phone, even when travelling to Bafoussam. Sales Companion has truly changed the way I prospect.'
       }
     ]
   },
@@ -130,15 +137,19 @@ const COUNTRY_DETAILS: Record<CountryCode, {
         name: 'Ousmane D.',
         initials: 'OD',
         city: 'Dakar',
-        quoteFr: 'Avec Sales Companion, j\'ai structuré ma prospection sur Dakar en quelques jours. Un outil indispensable pour les commerciaux sénégalais.',
-        quoteEn: 'With Sales Companion I structured my Dakar prospecting in just a few days. An essential tool for Senegalese sales reps.'
+        quoteFr:
+          "Avec Sales Companion, j'ai structuré ma prospection sur Dakar en quelques jours. Un outil indispensable pour les commerciaux sénégalais.",
+        quoteEn:
+          'With Sales Companion I structured my Dakar prospecting in just a few days. An essential tool for Senegalese sales reps.'
       },
       {
         name: 'Aminata S.',
         initials: 'AS',
         city: 'Thiès',
-        quoteFr: 'La plateforme m\'a permis de cibler les bonnes entreprises à Thiès sans perdre de temps. Mon taux de conversion a doublé.',
-        quoteEn: 'The platform let me target the right companies in Thiès without wasting time. My conversion rate has doubled.'
+        quoteFr:
+          "La plateforme m'a permis de cibler les bonnes entreprises à Thiès sans perdre de temps. Mon taux de conversion a doublé.",
+        quoteEn:
+          'The platform let me target the right companies in Thiès without wasting time. My conversion rate has doubled.'
       }
     ]
   },
@@ -161,15 +172,19 @@ const COUNTRY_DETAILS: Record<CountryCode, {
         name: 'Konan A.',
         initials: 'KA',
         city: 'Abidjan',
-        quoteFr: 'En Côte d\'Ivoire, trouver les bons interlocuteurs prend du temps. Sales Companion m\'a donné accès aux bonnes entreprises dès le premier jour.',
-        quoteEn: 'In Côte d\'Ivoire, finding the right contacts takes time. Sales Companion gave me access to the right companies from day one.'
+        quoteFr:
+          "En Côte d'Ivoire, trouver les bons interlocuteurs prend du temps. Sales Companion m'a donné accès aux bonnes entreprises dès le premier jour.",
+        quoteEn:
+          "In Côte d'Ivoire, finding the right contacts takes time. Sales Companion gave me access to the right companies from day one."
       },
       {
         name: 'Bintou T.',
         initials: 'BT',
         city: 'Bouaké',
-        quoteFr: 'Je prospecte depuis Bouaké avec une efficacité que je n\'avais jamais eue auparavant. L\'interface est claire et les données sont fiables.',
-        quoteEn: 'I prospect from Bouaké with an efficiency I never had before. The interface is clear and the data is reliable.'
+        quoteFr:
+          "Je prospecte depuis Bouaké avec une efficacité que je n'avais jamais eue auparavant. L'interface est claire et les données sont fiables.",
+        quoteEn:
+          'I prospect from Bouaké with an efficiency I never had before. The interface is clear and the data is reliable.'
       }
     ]
   },
@@ -192,15 +207,19 @@ const COUNTRY_DETAILS: Record<CountryCode, {
         name: 'Rodrigue A.',
         initials: 'RA',
         city: 'Cotonou',
-        quoteFr: 'Sales Companion m\'a permis de structurer mes relances et de ne plus manquer aucune opportunité à Cotonou. Un gain de temps énorme.',
-        quoteEn: 'Sales Companion let me structure my follow-ups and never miss an opportunity in Cotonou. A huge time saver.'
+        quoteFr:
+          "Sales Companion m'a permis de structurer mes relances et de ne plus manquer aucune opportunité à Cotonou. Un gain de temps énorme.",
+        quoteEn:
+          'Sales Companion let me structure my follow-ups and never miss an opportunity in Cotonou. A huge time saver.'
       },
       {
         name: 'Fatoumata M.',
         initials: 'FM',
         city: 'Porto-Novo',
-        quoteFr: 'La base de données béninoise est très bien renseignée. Je recommande Sales Companion à tous les commerciaux de terrain.',
-        quoteEn: 'The Beninese database is very well populated. I recommend Sales Companion to every field sales rep.'
+        quoteFr:
+          'La base de données béninoise est très bien renseignée. Je recommande Sales Companion à tous les commerciaux de terrain.',
+        quoteEn:
+          'The Beninese database is very well populated. I recommend Sales Companion to every field sales rep.'
       }
     ]
   },
@@ -223,15 +242,19 @@ const COUNTRY_DETAILS: Record<CountryCode, {
         name: 'Komi A.',
         initials: 'KA',
         city: 'Lomé',
-        quoteFr: 'Grâce à Sales Companion, j\'ai pu cartographier rapidement le tissu entrepreneurial de Lomé et identifier mes cibles prioritaires.',
-        quoteEn: 'Thanks to Sales Companion I quickly mapped Lomé\'s business landscape and identified my priority targets.'
+        quoteFr:
+          "Grâce à Sales Companion, j'ai pu cartographier rapidement le tissu entrepreneurial de Lomé et identifier mes cibles prioritaires.",
+        quoteEn:
+          "Thanks to Sales Companion I quickly mapped Lomé's business landscape and identified my priority targets."
       },
       {
         name: 'Afi M.',
         initials: 'AM',
         city: 'Kara',
-        quoteFr: 'Un outil pensé pour l\'Afrique. Les données sont locales, les filtres sont pertinents et l\'interface est intuitive.',
-        quoteEn: 'A tool designed for Africa. The data is local, the filters are relevant and the interface is intuitive.'
+        quoteFr:
+          "Un outil pensé pour l'Afrique. Les données sont locales, les filtres sont pertinents et l'interface est intuitive.",
+        quoteEn:
+          'A tool designed for Africa. The data is local, the filters are relevant and the interface is intuitive.'
       }
     ]
   },
@@ -254,15 +277,19 @@ const COUNTRY_DETAILS: Record<CountryCode, {
         name: 'Ibrahim H.',
         initials: 'IH',
         city: "N'Djaména",
-        quoteFr: 'Sales Companion m\'a donné une vision claire du marché tchadien. Je prospecte maintenant avec méthode et confiance.',
-        quoteEn: 'Sales Companion gave me a clear picture of the Chadian market. I now prospect with method and confidence.'
+        quoteFr:
+          "Sales Companion m'a donné une vision claire du marché tchadien. Je prospecte maintenant avec méthode et confiance.",
+        quoteEn:
+          'Sales Companion gave me a clear picture of the Chadian market. I now prospect with method and confidence.'
       },
       {
         name: 'Halimé S.',
         initials: 'HS',
         city: 'Moundou',
-        quoteFr: 'Je n\'aurais pas pensé qu\'un outil comme celui-ci pourrait exister pour notre marché. Les données sont précises et utiles.',
-        quoteEn: 'I would not have thought a tool like this could exist for our market. The data is accurate and useful.'
+        quoteFr:
+          "Je n'aurais pas pensé qu'un outil comme celui-ci pourrait exister pour notre marché. Les données sont précises et utiles.",
+        quoteEn:
+          'I would not have thought a tool like this could exist for our market. The data is accurate and useful.'
       }
     ]
   },
@@ -285,15 +312,19 @@ const COUNTRY_DETAILS: Record<CountryCode, {
         name: 'Sylvain N.',
         initials: 'SN',
         city: 'Bangui',
-        quoteFr: 'Pour la Centrafrique, c\'est une première. Sales Companion m\'a permis d\'avoir une base structurée pour mon activité commerciale à Bangui.',
-        quoteEn: 'For the Central African Republic, this is a first. Sales Companion gave me a structured database for my sales activity in Bangui.'
+        quoteFr:
+          "Pour la Centrafrique, c'est une première. Sales Companion m'a permis d'avoir une base structurée pour mon activité commerciale à Bangui.",
+        quoteEn:
+          'For the Central African Republic, this is a first. Sales Companion gave me a structured database for my sales activity in Bangui.'
       },
       {
         name: 'Marie-Claire B.',
         initials: 'MB',
         city: 'Bimbo',
-        quoteFr: 'L\'outil est simple, les filtres sont efficaces et les résultats sont concrets. Je le recommande à tous mes collègues.',
-        quoteEn: 'The tool is simple, the filters are effective and the results are concrete. I recommend it to all my colleagues.'
+        quoteFr:
+          "L'outil est simple, les filtres sont efficaces et les résultats sont concrets. Je le recommande à tous mes collègues.",
+        quoteEn:
+          'The tool is simple, the filters are effective and the results are concrete. I recommend it to all my colleagues.'
       }
     ]
   }

@@ -76,7 +76,6 @@ export async function POST(request: NextRequest) {
       createdAt: new Date()
     }
 
-
     const docRef = await adminDb.collection('customer_calls').add(callDoc)
 
     return NextResponse.json({ success: true, id: docRef.id }, { status: 201 })
@@ -122,7 +121,7 @@ export async function GET(request: NextRequest) {
       .limit(50)
       .get()
 
-    const calls = snap.docs.map(doc => ({
+    const calls = snap.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
       createdAt: doc.data().createdAt?.toDate?.()?.toISOString() ?? null

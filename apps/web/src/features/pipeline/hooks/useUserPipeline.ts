@@ -35,12 +35,15 @@ export const useUserPipeline = () => {
           userId: (data.userId || user.uid) as string,
           createdAt: formatTimestamp(data.createdAt) || new Date().toISOString(),
           updatedAt: formatTimestamp(data.updatedAt) || new Date().toISOString()
-        } as unknown as (PipelineDoc & { id: string }))
+        } as unknown as PipelineDoc & { id: string })
       })
 
       // Also get assigned items if any
       try {
-        const assignedQ = query(collection(firestore, 'pipeline'), where('assignedTo', '==', user.uid))
+        const assignedQ = query(
+          collection(firestore, 'pipeline'),
+          where('assignedTo', '==', user.uid)
+        )
         const assignedSnap = await getDocsWithOfflineFallback(assignedQ)
         assignedSnap.docs.forEach((docSnap) => {
           if (!seen.has(docSnap.id)) {
@@ -55,7 +58,7 @@ export const useUserPipeline = () => {
               userId: (data.userId || user.uid) as string,
               createdAt: formatTimestamp(data.createdAt) || new Date().toISOString(),
               updatedAt: formatTimestamp(data.updatedAt) || new Date().toISOString()
-            } as unknown as (PipelineDoc & { id: string }))
+            } as unknown as PipelineDoc & { id: string })
           }
         })
       } catch {
@@ -75,4 +78,3 @@ export const useUserPipeline = () => {
     refetchOnWindowFocus: false
   })
 }
-

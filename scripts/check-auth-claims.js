@@ -28,9 +28,9 @@ const db = getFirestore(app)
 
 // UIDs à vérifier (Senior + Team Managers de SC-CM-GE9GQ)
 const UIDS = [
-  's1Jp6S7JRfcmp6ZCeuOle9WOlDj2',   // Senior Manager
-  '8oL20QAFAVhZD6PBDiKjkTf56Bi2',   // Team Manager 1
-  'kYp9ihtDKLUFgFesHRfRl6qvoen2'    // Team Manager 2
+  's1Jp6S7JRfcmp6ZCeuOle9WOlDj2', // Senior Manager
+  '8oL20QAFAVhZD6PBDiKjkTf56Bi2', // Team Manager 1
+  'kYp9ihtDKLUFgFesHRfRl6qvoen2' // Team Manager 2
 ]
 
 async function run() {
@@ -61,9 +61,15 @@ async function run() {
     const orgRoleOk = claims.orgRole === fsData.orgRole
     const orgCodeOk = claims.orgCode === fsData.orgCode
 
-    console.log(`  role match  : ${roleOk ? '✅' : '❌  DÉSYNCHRONISÉ'} (Auth: "${claims.role}" / FS: "${fsData.role}")`)
-    console.log(`  orgRole match: ${orgRoleOk ? '✅' : '❌  DÉSYNCHRONISÉ'} (Auth: "${claims.orgRole}" / FS: "${fsData.orgRole}")`)
-    console.log(`  orgCode match: ${orgCodeOk ? '✅' : '❌  DÉSYNCHRONISÉ'} (Auth: "${claims.orgCode}" / FS: "${fsData.orgCode}")`)
+    console.log(
+      `  role match  : ${roleOk ? '✅' : '❌  DÉSYNCHRONISÉ'} (Auth: "${claims.role}" / FS: "${fsData.role}")`
+    )
+    console.log(
+      `  orgRole match: ${orgRoleOk ? '✅' : '❌  DÉSYNCHRONISÉ'} (Auth: "${claims.orgRole}" / FS: "${fsData.orgRole}")`
+    )
+    console.log(
+      `  orgCode match: ${orgCodeOk ? '✅' : '❌  DÉSYNCHRONISÉ'} (Auth: "${claims.orgCode}" / FS: "${fsData.orgCode}")`
+    )
 
     // Identifier les corrections nécessaires
     const fixes = []
@@ -100,7 +106,9 @@ async function run() {
       }
       await authAdmin.setCustomUserClaims(uid, newClaims)
       console.log(`✅ Corrigé : ${authUser.email}`)
-      console.log(`   Nouveaux claims: role="${newClaims.role}", orgRole="${newClaims.orgRole}", orgCode="${newClaims.orgCode}"`)
+      console.log(
+        `   Nouveaux claims: role="${newClaims.role}", orgRole="${newClaims.orgRole}", orgCode="${newClaims.orgCode}"`
+      )
     } else {
       console.log(`✅ OK (pas de correction nécessaire): ${authUser.email}`)
     }
@@ -109,7 +117,7 @@ async function run() {
   process.exit(0)
 }
 
-run().catch(err => {
+run().catch((err) => {
   console.error('FATAL:', err.message)
   process.exit(1)
 })

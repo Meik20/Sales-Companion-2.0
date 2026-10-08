@@ -221,7 +221,16 @@ export default function AdminConfigPage() {
               borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
             }}
           >
-            <span style={{ fontWeight: 700, fontSize: 14, color: 'var(--foreground, #f1f5f9)', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+            <span
+              style={{
+                fontWeight: 700,
+                fontSize: 14,
+                color: 'var(--foreground, #f1f5f9)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8
+              }}
+            >
               <Key size={16} className="text-primary" />
               <span>{t('admin.apiKeyGroq')}</span>
             </span>
@@ -269,7 +278,11 @@ export default function AdminConfigPage() {
           </button>
           {apiMsg && (
             <div style={msgStyle(apiMsg.type)}>
-              {apiMsg.type === 'ok' ? <CheckCircle2 size={14} className="shrink-0" /> : <AlertTriangle size={14} className="shrink-0" />}
+              {apiMsg.type === 'ok' ? (
+                <CheckCircle2 size={14} className="shrink-0" />
+              ) : (
+                <AlertTriangle size={14} className="shrink-0" />
+              )}
               <span>{apiMsg.text}</span>
             </div>
           )}
@@ -320,7 +333,11 @@ export default function AdminConfigPage() {
           </button>
           {passMsg && (
             <div style={msgStyle(passMsg.type)}>
-              {passMsg.type === 'ok' ? <CheckCircle2 size={14} className="shrink-0" /> : <AlertTriangle size={14} className="shrink-0" />}
+              {passMsg.type === 'ok' ? (
+                <CheckCircle2 size={14} className="shrink-0" />
+              ) : (
+                <AlertTriangle size={14} className="shrink-0" />
+              )}
               <span>{passMsg.text}</span>
             </div>
           )}
@@ -375,7 +392,10 @@ export default function AdminConfigPage() {
             </thead>
             <tbody>
               {PLAN_ROWS.map((row) => (
-                <tr key={row.plan} style={{ borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}` }}>
+                <tr
+                  key={row.plan}
+                  style={{ borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}` }}
+                >
                   <td style={{ padding: '12px 14px' }}>
                     <span
                       style={{
@@ -391,11 +411,21 @@ export default function AdminConfigPage() {
                       {row.plan}
                     </span>
                   </td>
-                  <td style={{ padding: '12px 14px', fontWeight: 600, color: 'var(--foreground, #f1f5f9)' }}>
+                  <td
+                    style={{
+                      padding: '12px 14px',
+                      fontWeight: 600,
+                      color: 'var(--foreground, #f1f5f9)'
+                    }}
+                  >
                     {row.daily}
                   </td>
-                  <td style={{ padding: '12px 14px', color: 'var(--muted-foreground, #94a3b8)' }}>{row.price}</td>
-                  <td style={{ padding: '12px 14px', color: 'var(--muted-foreground, #94a3b8)' }}>{row.target}</td>
+                  <td style={{ padding: '12px 14px', color: 'var(--muted-foreground, #94a3b8)' }}>
+                    {row.price}
+                  </td>
+                  <td style={{ padding: '12px 14px', color: 'var(--muted-foreground, #94a3b8)' }}>
+                    {row.target}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -415,26 +445,59 @@ export default function AdminConfigPage() {
             borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
           }}
         >
-          <span style={{ fontWeight: 700, fontSize: 14, color: 'var(--foreground, #f1f5f9)', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+          <span
+            style={{
+              fontWeight: 700,
+              fontSize: 14,
+              color: 'var(--foreground, #f1f5f9)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8
+            }}
+          >
             <Users size={16} className="text-primary" />
             <span>Synchronisation des équipes</span>
           </span>
         </div>
-        <p style={{ fontSize: 13, color: 'var(--muted-foreground, #94a3b8)', marginBottom: 14, lineHeight: 1.6 }}>
-          Propage le plan et la <strong>période de validité d'abonnement</strong> du Manager vers tous ses comptes associés
-          (Membres d'équipe et Agents Support). À utiliser après une mise à jour manuelle de la validité du Manager.
+        <p
+          style={{
+            fontSize: 13,
+            color: 'var(--muted-foreground, #94a3b8)',
+            marginBottom: 14,
+            lineHeight: 1.6
+          }}
+        >
+          Propage le plan et la <strong>période de validité d'abonnement</strong> du Manager vers
+          tous ses comptes associés (Membres d'équipe et Agents Support). À utiliser après une mise
+          à jour manuelle de la validité du Manager.
         </p>
         <button
           id="sync-all-teams-btn"
           onClick={syncTeamPlans}
           disabled={syncing}
-          style={{ ...btnStyle, background: syncing ? '#334155' : '#0d9488', display: 'inline-flex', alignItems: 'center', gap: 8 }}
+          style={{
+            ...btnStyle,
+            background: syncing ? '#334155' : '#0d9488',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8
+          }}
         >
-          <RefreshCw size={14} style={{ animation: syncing ? 'spin 1s linear infinite' : 'none' }} />
+          <RefreshCw
+            size={14}
+            style={{ animation: syncing ? 'spin 1s linear infinite' : 'none' }}
+          />
           {syncing ? 'Synchronisation en cours…' : 'Synchroniser toutes les équipes'}
         </button>
         {syncMsg && (
-          <div style={{ marginTop: 12, fontSize: 13, fontWeight: 600, color: syncMsg.type === 'ok' ? '#34d399' : '#f87171' }}>
+          <div
+            style={{
+              marginTop: 12,
+              fontSize: 13,
+              fontWeight: 600,
+              color: syncMsg.type === 'ok' ? '#34d399' : '#f87171'
+            }}
+          >
             {syncMsg.text}
           </div>
         )}

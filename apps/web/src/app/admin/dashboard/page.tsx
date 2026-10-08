@@ -128,7 +128,16 @@ function DonutChart({
   let cumAngle = -90
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-around', gap: 20, flexWrap: 'wrap', padding: '6px 0' }}>
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-around',
+        gap: 20,
+        flexWrap: 'wrap',
+        padding: '6px 0'
+      }}
+    >
       <svg width={160} height={160} viewBox="0 0 160 160" style={{ flexShrink: 0 }}>
         {segments.map((seg, i) => {
           const pct = seg.value / total
@@ -161,7 +170,13 @@ function DonutChart({
         >
           {total}
         </text>
-        <text x={cx} y={cy + 12} textAnchor="middle" fontSize={9} fill={'var(--muted-foreground, #94a3b8)'}>
+        <text
+          x={cx}
+          y={cy + 12}
+          textAnchor="middle"
+          fontSize={9}
+          fill={'var(--muted-foreground, #94a3b8)'}
+        >
           TOTAL
         </text>
       </svg>
@@ -378,11 +393,36 @@ export default function AdminDashboardPage() {
   const companyLabel = user?.companyName ? user.companyName : t('admin.dashboardSubtitle')
 
   const roleData = [
-    { label: t('admin.members'), fullLabel: 'Membres', value: stats?.roleDistribution?.member || 0, color: '#60a5fa' },
-    { label: t('admin.managers'), fullLabel: 'Managers', value: stats?.roleDistribution?.manager || 0, color: '#34d399' },
-    { label: t('admin.seniorManager') || 'Sr. Mgr', fullLabel: 'Senior Managers', value: stats?.roleDistribution?.senior_manager || 0, color: '#8b5cf6' },
-    { label: t('admin.indep'), fullLabel: 'Indépendants', value: stats?.roleDistribution?.independent || 0, color: '#06b6d4' },
-    { label: t('admin.admins'), fullLabel: 'Administrateurs', value: stats?.roleDistribution?.admin || 0, color: '#facc15' }
+    {
+      label: t('admin.members'),
+      fullLabel: 'Membres',
+      value: stats?.roleDistribution?.member || 0,
+      color: '#60a5fa'
+    },
+    {
+      label: t('admin.managers'),
+      fullLabel: 'Managers',
+      value: stats?.roleDistribution?.manager || 0,
+      color: '#34d399'
+    },
+    {
+      label: t('admin.seniorManager') || 'Sr. Mgr',
+      fullLabel: 'Senior Managers',
+      value: stats?.roleDistribution?.senior_manager || 0,
+      color: '#8b5cf6'
+    },
+    {
+      label: t('admin.indep'),
+      fullLabel: 'Indépendants',
+      value: stats?.roleDistribution?.independent || 0,
+      color: '#06b6d4'
+    },
+    {
+      label: t('admin.admins'),
+      fullLabel: 'Administrateurs',
+      value: stats?.roleDistribution?.admin || 0,
+      color: '#facc15'
+    }
   ]
 
   const planData = [
@@ -561,7 +601,12 @@ export default function AdminDashboardPage() {
                   </div>
                   <div style={{ minWidth: 0, flex: 1 }}>
                     <div
-                      style={{ fontSize: 22, fontWeight: 900, color: 'var(--foreground, #f1f5f9)', lineHeight: 1.1 }}
+                      style={{
+                        fontSize: 22,
+                        fontWeight: 900,
+                        color: 'var(--foreground, #f1f5f9)',
+                        lineHeight: 1.1
+                      }}
                     >
                       {item.value}
                       <span

@@ -31,7 +31,8 @@ export function AddToPipelineButton({ company }: Props) {
 
   async function handleAdd() {
     if (!user || status === 'loading' || status === 'done') return
-    setStatus('loading'); setErrorMsg(null)
+    setStatus('loading')
+    setErrorMsg(null)
 
     const isOffline = isMobileRuntime() && typeof navigator !== 'undefined' && !navigator.onLine
 
@@ -47,7 +48,7 @@ export function AddToPipelineButton({ company }: Props) {
       companyEmail: company.email ?? null,
       managerUid: user.role === 'member' ? (user.managerUid ?? null) : user.uid,
       assignedTo: isManager ? null : user.uid,
-      memberName: isManager ? null : (user.name || user.email),
+      memberName: isManager ? null : user.name || user.email,
       memberAccessId: isManager ? null : (user.accessId ?? null),
       googlePlaceId: company._source === 'google_places' ? company.id : null,
       status: 'prospection',
@@ -83,7 +84,7 @@ export function AddToPipelineButton({ company }: Props) {
           companyEmail: company.email ?? null,
           managerUid: user.role === 'member' ? (user.managerUid ?? null) : user.uid,
           assignedTo: user.role === 'member' ? user.uid : null,
-          memberName: user.role === 'member' ? (user.name || user.email) : null,
+          memberName: user.role === 'member' ? user.name || user.email : null,
           memberAccessId: user.role === 'member' ? (user.accessId ?? null) : null,
           userRole: user.role ?? null,
           googlePlaceId: company._source === 'google_places' ? company.id : null
@@ -114,7 +115,6 @@ export function AddToPipelineButton({ company }: Props) {
     }
   }
 
-
   if (status === 'done') {
     return (
       <span className="whitespace-nowrap text-[12px] font-semibold text-blue-400">
@@ -134,7 +134,11 @@ export function AddToPipelineButton({ company }: Props) {
             : 'border border-border bg-secondary text-foreground hover:border-blue-500/50 hover:bg-blue-500/10 hover:text-blue-400'
         } ${status === 'loading' ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
       >
-        {status === 'loading' ? t('search.adding') : status === 'error' ? t('search.retry') : t('search.addPipeline')}
+        {status === 'loading'
+          ? t('search.adding')
+          : status === 'error'
+            ? t('search.retry')
+            : t('search.addPipeline')}
       </button>
       {errorMsg && (
         <span className="max-w-[120px] text-right text-[10.5px] leading-tight text-red-400">

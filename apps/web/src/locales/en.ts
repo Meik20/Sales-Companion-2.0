@@ -542,7 +542,8 @@ export const en = {
     name: 'Name',
     company: 'Company',
     yourEmailAddress: 'Your email address',
-    professionalEmailLocked: 'Professional email address assigned to your invitation (cannot be changed).',
+    professionalEmailLocked:
+      'Professional email address assigned to your invitation (cannot be changed).',
     emailHint: 'Enter the email address you will use to log in.',
     atLeast6Chars: 'At least 6 characters',
     allowedChars: 'Letters, numbers, and special characters accepted',
@@ -667,31 +668,39 @@ export const en = {
     orgVerifiedBadge: 'Verified Organization 🛡️',
     orgStandardBadge: 'Standard Organization',
     orgCodeLabel: 'Unique Organization Code',
-    orgCodeDesc: 'This code uniquely identifies your business in Sales Companion. Share it with fellow managers in your company so they can link their teams and share support agents.',
+    orgCodeDesc:
+      'This code uniquely identifies your business in Sales Companion. Share it with fellow managers in your company so they can link their teams and share support agents.',
     copy: 'Copy',
     copied: 'Copied!',
     niuTitle: 'Unique Taxpayer ID (NIU)',
-    niuDesc: 'Enter your company official Taxpayer ID (NIU) issued by the Tax Department (DGI) to certify your organization and ensure legal synchronization across manager accounts.',
+    niuDesc:
+      'Enter your company official Taxpayer ID (NIU) issued by the Tax Department (DGI) to certify your organization and ensure legal synchronization across manager accounts.',
     niuUpdateSuccess: 'Taxpayer ID (NIU) updated successfully.',
     saveBtn: 'Save',
     joinOrgTitle: 'Attach this account to an existing organization',
-    joinOrgDesc: 'If another manager from your company has already registered and has an organization code (e.g. SC-CM-XXXXX), enter it here to unify your organization.',
+    joinOrgDesc:
+      'If another manager from your company has already registered and has an organization code (e.g. SC-CM-XXXXX), enter it here to unify your organization.',
     joinBtn: 'Attach',
     joinOrgSuccess: 'Successfully linked to the organization.',
     securityTitle: 'Security & Account',
     securitySubtitle: 'Manage your login and security information',
     emailTitle: 'Email address',
     currentEmailLabel: 'Your current email address is:',
-    memberEmailLocked: 'As a team member, your professional email address is managed by your organization and cannot be changed.',
-    supportEmailLocked: 'As a support agent, your professional email address is managed by your organization and cannot be changed.',
-    googleEmailNote: 'Your account is linked to Google. Email address changes must be done from your Google account.',
+    memberEmailLocked:
+      'As a team member, your professional email address is managed by your organization and cannot be changed.',
+    supportEmailLocked:
+      'As a support agent, your professional email address is managed by your organization and cannot be changed.',
+    googleEmailNote:
+      'Your account is linked to Google. Email address changes must be done from your Google account.',
     newEmailPlaceholder: 'New email address',
     updateBtn: 'Update',
     emailHint: 'A confirmation email will be sent to the new address to validate the change.',
-    emailUpdateSuccess: 'A verification email has been sent. Please click the link to confirm the change.',
+    emailUpdateSuccess:
+      'A verification email has been sent. Please click the link to confirm the change.',
     emailUpdateError: 'Error updating email address',
     passwordTitle: 'Password',
-    googlePasswordNote: 'Your account is linked to Google. Your password is securely managed by Google.',
+    googlePasswordNote:
+      'Your account is linked to Google. Your password is securely managed by Google.',
     sendResetBtn: 'Send reset email',
     passwordHint: 'We will send you a secure password reset link by email.',
     passwordResetSuccess: 'A password reset email has been sent to your address.',
@@ -844,20 +853,24 @@ export const en = {
     activate: 'Activate',
     remove: 'Remove',
     supportTitle: 'Client Database',
-    supportSubtitle: 'Import your client database. The data will appear directly in My CRM Clients.',
+    supportSubtitle:
+      'Import your client database. The data will appear directly in My CRM Clients.',
     supportImportTitle: 'Import a client database',
-    supportImportSubtitlePrefix: 'Drag a CSV, Excel or text file. Imported clients will be immediately visible in',
+    supportImportSubtitlePrefix:
+      'Drag a CSV, Excel or text file. Imported clients will be immediately visible in',
     supportImportedTitle: 'Imported clients',
     supportImportedSubtitlePrefix: 'Preview of your imported file. These entries are visible in',
     accountNotConfigured: 'Account not configured. Please contact the administrator.',
     exampleColumns: 'Name ; Phone | Email , City',
     clearImports: 'Clear list',
-    clearImportsConfirm: 'Are you sure you want to delete all imported prospects? This action cannot be undone.',
+    clearImportsConfirm:
+      'Are you sure you want to delete all imported prospects? This action cannot be undone.',
     deleteProspect: 'Delete this prospect',
     deleteProspectConfirm: 'Delete this prospect?',
     deleteSelected: 'Delete selected',
     deleteSelectedConfirm: 'Are you sure you want to delete the selected prospects?',
-    cannotDeletePipelineClient: 'Clients from the manager pipeline cannot be deleted by a support agent.',
+    cannotDeletePipelineClient:
+      'Clients from the manager pipeline cannot be deleted by a support agent.',
     actionsCol: 'Actions'
   },
   support: {
@@ -891,7 +904,8 @@ export const en = {
     publicTitle: 'Support & Account Validation',
     publicSubtitle: 'Submit your request directly to the Sales Companion 2.0 support team.',
     corporateDomainBannerTitle: 'Manager account request without custom company domain',
-    corporateDomainBannerDesc: 'For security reasons, Manager accounts typically require a corporate email domain. If your company uses standard email addresses, our administration team can manually review and validate your profile.',
+    corporateDomainBannerDesc:
+      'For security reasons, Manager accounts typically require a corporate email domain. If your company uses standard email addresses, our administration team can manually review and validate your profile.',
     nameLabel: 'Full name',
     emailLabel: 'Contact email address',
     companyLabel: 'Company name',
@@ -905,11 +919,13 @@ export const en = {
     selectSector: 'Select your sector…',
     messageLabel: 'Message / Details',
     messagePlaceholder: 'Briefly describe your request or business requirements…',
-    defaultCorporateMsg: 'Hello,\n\nOur company does not use a custom email domain (e.g. @our-company.cm) and uses standard email addresses. We would like to create a Manager account to manage our sales team.\n\nThank you for reviewing our activation request.',
+    defaultCorporateMsg:
+      'Hello,\n\nOur company does not use a custom email domain (e.g. @our-company.cm) and uses standard email addresses. We would like to create a Manager account to manage our sales team.\n\nThank you for reviewing our activation request.',
     submitBtn: 'Submit request to support',
     submitting: 'Submitting…',
     successTitle: 'Request submitted successfully!',
-    successDesc: 'Your request has been recorded and forwarded to our admin team. A manager will review your company details and contact you shortly via email.',
+    successDesc:
+      'Your request has been recorded and forwarded to our admin team. A manager will review your company details and contact you shortly via email.',
     recapTitle: 'Summary of your request',
     backToRegister: 'Back to registration',
     backToLogin: 'Login',
@@ -1057,7 +1073,8 @@ export const en = {
     errorServer: 'Server error',
     errorNetwork: 'Network error',
     errorDelete: 'Error deleting history',
-    confirmClearHistory: 'Do you really want to clear all import history? This does not delete the imported companies.',
+    confirmClearHistory:
+      'Do you really want to clear all import history? This does not delete the imported companies.',
     statusPending: 'Pending',
     statusProcessing: 'Processing',
     statusCompleted: 'Completed',
@@ -1139,7 +1156,8 @@ export const en = {
     paymentOperator: 'Operator',
     paymentTransaction: 'Transaction ID',
     paymentDate: 'Request Date',
-    paymentConfirmValidate: 'Are you sure you want to validate this payment? This will immediately activate the corresponding plan for the user.',
+    paymentConfirmValidate:
+      'Are you sure you want to validate this payment? This will immediately activate the corresponding plan for the user.',
     paymentConfirmReject: 'Are you sure you want to reject this payment?',
     validateBtn: 'Validate',
     rejectBtn: 'Reject',
@@ -1271,4 +1289,3 @@ export const en = {
     retry: 'Retry'
   }
 }
-

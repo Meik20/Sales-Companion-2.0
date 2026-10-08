@@ -59,7 +59,8 @@ export async function POST(request: NextRequest) {
     // 4. Déterminer l'email et le nom de l'utilisateur destinataire
     let recipientEmail = threadData?.userEmail as string | undefined
     const recipientName = (threadData?.userName as string | undefined)?.trim() || 'Cher utilisateur'
-    const threadSubject = (threadData?.subject as string | undefined)?.trim() || 'Votre demande au Support'
+    const threadSubject =
+      (threadData?.subject as string | undefined)?.trim() || 'Votre demande au Support'
 
     // Fallback : si l'email n'était pas stocké directement sur le ticket mais qu'on a le userId
     if ((!recipientEmail || !recipientEmail.includes('@')) && threadData?.userId) {
@@ -204,7 +205,7 @@ export async function POST(request: NextRequest) {
         })
         emailSent = emailResult?.success ?? false
       } catch (e) {
-        console.error('[support/reply] Erreur lors de l\'envoi de l\'email:', e)
+        console.error("[support/reply] Erreur lors de l'envoi de l'email:", e)
       }
     }
 

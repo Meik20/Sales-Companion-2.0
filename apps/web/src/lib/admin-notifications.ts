@@ -1,9 +1,6 @@
 import { FieldValue } from 'firebase-admin/firestore'
 
-export type AdminNotificationType =
-  | 'payment_submitted'
-  | 'new_manager'
-  | 'support_ticket'
+export type AdminNotificationType = 'payment_submitted' | 'new_manager' | 'support_ticket'
 
 interface CreateNotificationParams {
   type: AdminNotificationType

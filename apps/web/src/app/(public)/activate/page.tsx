@@ -108,7 +108,7 @@ function ActivateContent() {
       console.error('Resend failed:', err)
       let customError = err?.message || "Une erreur est survenue lors de l'envoi."
       if (err?.code === 'auth/too-many-requests') {
-        customError = "Trop de requêtes. Veuillez attendre un moment avant de réessayer."
+        customError = 'Trop de requêtes. Veuillez attendre un moment avant de réessayer.'
       } else if (err?.code === 'auth/unauthorized-continue-uri') {
         customError = "L'URL de redirection n'est pas autorisée dans la console Firebase."
       }
@@ -208,14 +208,22 @@ function ActivateContent() {
             </ol>
           </div>
 
-          <p style={{ fontSize: 12, color: 'var(--muted-foreground, #64748b)', textAlign: 'center', marginBottom: 12 }}>
+          <p
+            style={{
+              fontSize: 12,
+              color: 'var(--muted-foreground, #64748b)',
+              textAlign: 'center',
+              marginBottom: 12
+            }}
+          >
             {t('auth.noEmail')}
           </p>
 
           {status && (
             <div
               style={{
-                background: status.type === 'success' ? 'rgba(37,99,235,0.1)' : 'rgba(239,68,68,0.1)',
+                background:
+                  status.type === 'success' ? 'rgba(37,99,235,0.1)' : 'rgba(239,68,68,0.1)',
                 border: `1px solid ${status.type === 'success' ? 'rgba(37,99,235,0.3)' : 'rgba(239,68,68,0.3)'}`,
                 borderRadius: 10,
                 padding: '10px 14px',
@@ -258,7 +266,14 @@ function ActivateContent() {
               : t('auth.resend')}
           </button>
 
-          <p style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)', textAlign: 'center', marginTop: 16 }}>
+          <p
+            style={{
+              fontSize: 11,
+              color: 'var(--muted-foreground, #64748b)',
+              textAlign: 'center',
+              marginTop: 16
+            }}
+          >
             {t('auth.pageAutoUpdates')}
           </p>
         </div>
@@ -271,10 +286,14 @@ function ActivateContent() {
     return (
       <main style={{ ...cardPage, flexDirection: 'column', gap: 16 }}>
         <CheckCircle size={52} style={{ color: '#2563eb' }} />
-        <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--foreground, #f1f5f9)', margin: 0 }}>
+        <h2
+          style={{ fontSize: 20, fontWeight: 700, color: 'var(--foreground, #f1f5f9)', margin: 0 }}
+        >
           {t('auth.emailVerified')}
         </h2>
-        <p style={{ fontSize: 14, color: 'var(--muted-foreground, #94a3b8)', margin: 0 }}>{t('auth.accountActive')}</p>
+        <p style={{ fontSize: 14, color: 'var(--muted-foreground, #94a3b8)', margin: 0 }}>
+          {t('auth.accountActive')}
+        </p>
       </main>
     )
   }
@@ -342,7 +361,11 @@ const h1: React.CSSProperties = {
   color: 'var(--foreground, #f1f5f9)',
   fontFamily: "'Syne',sans-serif"
 }
-const sub: React.CSSProperties = { margin: 0, fontSize: 13, color: 'var(--muted-foreground, #94a3b8)' }
+const sub: React.CSSProperties = {
+  margin: 0,
+  fontSize: 13,
+  color: 'var(--muted-foreground, #94a3b8)'
+}
 
 export default function ActivatePage() {
   return (

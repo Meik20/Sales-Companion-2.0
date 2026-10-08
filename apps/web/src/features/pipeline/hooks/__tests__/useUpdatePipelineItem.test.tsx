@@ -9,19 +9,19 @@ vi.mock('@/hooks/useCurrentUser', () => ({
   useCurrentUser: () => ({
     user: {
       uid: 'test-user-id',
-      getIdToken: vi.fn().mockResolvedValue('test-token'),
-    },
-  }),
+      getIdToken: vi.fn().mockResolvedValue('test-token')
+    }
+  })
 }))
 
 vi.mock('@/services/firebase/client', () => ({
-  firestore: {},
+  firestore: {}
 }))
 
 vi.mock('firebase/firestore', () => ({
   doc: vi.fn(),
   updateDoc: vi.fn().mockResolvedValue(undefined),
-  serverTimestamp: vi.fn().mockReturnValue('mock-timestamp'),
+  serverTimestamp: vi.fn().mockReturnValue('mock-timestamp')
 }))
 
 describe('useUpdatePipelineItem', () => {
@@ -33,9 +33,7 @@ describe('useUpdatePipelineItem', () => {
   })
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   )
 
   it('should update pipeline item successfully', async () => {
@@ -44,7 +42,7 @@ describe('useUpdatePipelineItem', () => {
     await act(async () => {
       await result.current.mutateAsync({
         id: 'item-1',
-        data: { status: 'negotiation' },
+        data: { status: 'negotiation' }
       })
     })
 
@@ -55,4 +53,3 @@ describe('useUpdatePipelineItem', () => {
     expect(updateDoc).toHaveBeenCalled()
   })
 })
-

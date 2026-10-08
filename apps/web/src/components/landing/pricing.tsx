@@ -15,9 +15,10 @@ export function Pricing() {
       name: t('landing.plansSection.free'),
       price: t('landing.plansSection.freePrice'),
       period: t('landing.plansSection.freePeriod'),
-      description: lang === 'en'
-        ? 'Discover the platform and manage a personal pipeline.'
-        : 'Pour découvrir la plateforme et gérer un pipeline personnel.',
+      description:
+        lang === 'en'
+          ? 'Discover the platform and manage a personal pipeline.'
+          : 'Pour découvrir la plateforme et gérer un pipeline personnel.',
       features: [
         t('landing.plansSection.pFree1'),
         t('landing.plansSection.pFree2'),
@@ -32,9 +33,10 @@ export function Pricing() {
       name: t('landing.plansSection.starter'),
       price: t('landing.plansSection.starterPrice'),
       period: `${country.currency} / ${t('landing.plansSection.starterPeriod')}`,
-      description: lang === 'en'
-        ? 'For independent sales reps who want to accelerate their searches.'
-        : 'Pour les commerciaux indépendants qui veulent accélérer leurs recherches.',
+      description:
+        lang === 'en'
+          ? 'For independent sales reps who want to accelerate their searches.'
+          : 'Pour les commerciaux indépendants qui veulent accélérer leurs recherches.',
       features: [
         t('landing.plansSection.pStarter1'),
         t('landing.plansSection.pStarter2'),
@@ -50,9 +52,10 @@ export function Pricing() {
       name: t('landing.plansSection.pro'),
       price: t('landing.plansSection.proPrice'),
       period: `${country.currency} / ${t('landing.plansSection.proPeriod')}`,
-      description: lang === 'en'
-        ? 'For top sales reps seeking performance and AI assistance.'
-        : 'Pour les commerciaux exigeants recherchant performance et accompagnement IA.',
+      description:
+        lang === 'en'
+          ? 'For top sales reps seeking performance and AI assistance.'
+          : 'Pour les commerciaux exigeants recherchant performance et accompagnement IA.',
       features: [
         t('landing.plansSection.pPro1'),
         t('landing.plansSection.pPro2'),
@@ -74,9 +77,10 @@ export function Pricing() {
       name: t('landing.plansSection.enterprise'),
       price: t('landing.plansSection.enterprisePrice'),
       period: `${country.currency} / ${t('landing.plansSection.enterprisePeriod')}`,
-      description: lang === 'en'
-        ? `For teams and sales directors in ${country.cities.join(', ')} and beyond.`
-        : `Pour les équipes et directeurs commerciaux à ${country.cities.join(', ')} et dans les autres régions.`,
+      description:
+        lang === 'en'
+          ? `For teams and sales directors in ${country.cities.join(', ')} and beyond.`
+          : `Pour les équipes et directeurs commerciaux à ${country.cities.join(', ')} et dans les autres régions.`,
       features: [
         t('landing.plansSection.pEnterprise1'),
         t('landing.plansSection.pEnterprise2'),
@@ -139,7 +143,9 @@ export function Pricing() {
                 {plan.name}
                 {plan.highlighted && <Sparkles className="h-4 w-4 text-amber-500" />}
               </h3>
-              <p className="mt-2 min-h-[40px] text-xs leading-relaxed text-muted-foreground">{plan.description}</p>
+              <p className="mt-2 min-h-[40px] text-xs leading-relaxed text-muted-foreground">
+                {plan.description}
+              </p>
 
               <div className="mt-5 flex items-baseline gap-1">
                 <span className="font-heading text-3xl font-bold tracking-tight text-foreground">

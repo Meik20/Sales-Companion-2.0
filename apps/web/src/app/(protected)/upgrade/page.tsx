@@ -6,7 +6,21 @@ import { AppShell } from '@/components/layout/AppShell'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useToast } from '@/hooks/useToast'
-import { Check, Zap, Shield, Users, Loader2, Copy, AlertCircle, Star, Gem, Building2, CreditCard, Clock, ArrowRight } from 'lucide-react'
+import {
+  Check,
+  Zap,
+  Shield,
+  Users,
+  Loader2,
+  Copy,
+  AlertCircle,
+  Star,
+  Gem,
+  Building2,
+  CreditCard,
+  Clock,
+  ArrowRight
+} from 'lucide-react'
 import { routes } from '@/constants/routes'
 
 import { PLAN_LIMITS, PLAN_PRICES } from '@sales-companion/shared'
@@ -134,8 +148,10 @@ export default function UpgradePage() {
       }
 
       const redirectParam = searchParams.get('redirect') || searchParams.get('from')
-      const isForced = redirectParam === 'register' || redirectParam === 'login' || !!searchParams.get('redirect')
-      const isLiveUpgraded = prevPlanRef.current !== null && prevPlanRef.current === 'free' && user.plan !== 'free'
+      const isForced =
+        redirectParam === 'register' || redirectParam === 'login' || !!searchParams.get('redirect')
+      const isLiveUpgraded =
+        prevPlanRef.current !== null && prevPlanRef.current === 'free' && user.plan !== 'free'
 
       if (user.active && user.plan !== 'free' && (isForced || isLiveUpgraded)) {
         const destination =
@@ -243,7 +259,8 @@ export default function UpgradePage() {
               </div>
               <div>
                 <p className="text-sm font-bold text-foreground">
-                  Votre abonnement actuel est actif : <span className="text-primary uppercase font-extrabold">{user.plan}</span>
+                  Votre abonnement actuel est actif :{' '}
+                  <span className="text-primary uppercase font-extrabold">{user.plan}</span>
                 </p>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   Toutes vos fonctionnalités sont débloquées. Vous pouvez naviguer librement.
@@ -252,7 +269,12 @@ export default function UpgradePage() {
             </div>
             <button
               type="button"
-              onClick={() => router.push(searchParams.get('redirect') || (user.role === 'independent' ? routes.pipeline : routes.search))}
+              onClick={() =>
+                router.push(
+                  searchParams.get('redirect') ||
+                    (user.role === 'independent' ? routes.pipeline : routes.search)
+                )
+              }
               className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-xs font-bold text-primary-foreground hover:bg-primary/90 transition-all cursor-pointer shrink-0 shadow-sm"
             >
               Accéder à mon espace
@@ -280,10 +302,18 @@ export default function UpgradePage() {
               <p style={{ margin: '0 0 4px', fontWeight: 700, fontSize: 14, color: '#f59e0b' }}>
                 Accès au tableau de bord suspendu
               </p>
-              <p style={{ margin: 0, fontSize: 13, color: 'var(--muted-foreground, #94a3b8)', lineHeight: 1.6 }}>
-                En tant que <strong>Manager</strong>, votre compte doit être activé via un abonnement payant.
-                Choisissez un plan ci-dessous, effectuez le paiement Mobile Money, puis soumettez votre
-                ID de transaction. Un administrateur validera votre accès sous 24h.
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: 13,
+                  color: 'var(--muted-foreground, #94a3b8)',
+                  lineHeight: 1.6
+                }}
+              >
+                En tant que <strong>Manager</strong>, votre compte doit être activé via un
+                abonnement payant. Choisissez un plan ci-dessous, effectuez le paiement Mobile
+                Money, puis soumettez votre ID de transaction. Un administrateur validera votre
+                accès sous 24h.
               </p>
             </div>
           </div>
@@ -368,7 +398,7 @@ export default function UpgradePage() {
                       fontSize: 18,
                       color: 'var(--foreground, #f1f5f9)',
                       margin: '0 0 4px',
-                      fontFamily: "sans-serif"
+                      fontFamily: 'sans-serif'
                     }}
                   >
                     {p.label}
@@ -379,11 +409,17 @@ export default function UpgradePage() {
                       fontWeight: 800,
                       color: p.color,
                       margin: '0 0 20px',
-                      fontFamily: "sans-serif"
+                      fontFamily: 'sans-serif'
                     }}
                   >
                     {p.price}{' '}
-                    <span style={{ fontSize: 14, fontWeight: 400, color: 'var(--muted-foreground, #94a3b8)' }}>
+                    <span
+                      style={{
+                        fontSize: 14,
+                        fontWeight: 400,
+                        color: 'var(--muted-foreground, #94a3b8)'
+                      }}
+                    >
                       {p.period}
                     </span>
                   </p>
@@ -448,7 +484,7 @@ export default function UpgradePage() {
             >
               <h2
                 style={{
-                  fontFamily: "sans-serif",
+                  fontFamily: 'sans-serif',
                   margin: '0 0 20px',
                   textAlign: 'center',
                   display: 'flex',
@@ -490,9 +526,20 @@ export default function UpgradePage() {
 
               {/* Détails du transfert */}
               <div
-                style={{ background: 'var(--secondary, #1e2a3b)', borderRadius: 12, padding: 20, marginBottom: 24 }}
+                style={{
+                  background: 'var(--secondary, #1e2a3b)',
+                  borderRadius: 12,
+                  padding: 20,
+                  marginBottom: 24
+                }}
               >
-                <p style={{ margin: '0 0 16px', fontSize: 14, color: 'var(--muted-foreground, #94a3b8)' }}>
+                <p
+                  style={{
+                    margin: '0 0 16px',
+                    fontSize: 14,
+                    color: 'var(--muted-foreground, #94a3b8)'
+                  }}
+                >
                   Envoyez exactement <strong>{plan.price} FCFA</strong> au numéro suivant :
                 </p>
 
@@ -504,7 +551,9 @@ export default function UpgradePage() {
                     marginBottom: 12
                   }}
                 >
-                  <span style={{ fontSize: 22, fontWeight: 800, color: 'var(--foreground, #f1f5f9)' }}>
+                  <span
+                    style={{ fontSize: 22, fontWeight: 800, color: 'var(--foreground, #f1f5f9)' }}
+                  >
                     {PAYMENT_ACCOUNTS[operator].number}
                   </span>
                   <button
@@ -547,7 +596,9 @@ export default function UpgradePage() {
                     outline: 'none'
                   }}
                 />
-                <p style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)', marginTop: 6 }}>
+                <p
+                  style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)', marginTop: 6 }}
+                >
                   Recopiez l'ID contenu dans le SMS de confirmation de {operator}.
                 </p>
               </div>
@@ -605,10 +656,15 @@ export default function UpgradePage() {
               >
                 <Check size={32} color="#3b82f6" />
               </div>
-              <h2 style={{ fontFamily: "sans-serif", margin: '0 0 12px' }}>
-                Demande envoyée !
-              </h2>
-              <p style={{ color: 'var(--muted-foreground, #94a3b8)', fontSize: 14, lineHeight: 1.6, marginBottom: 16 }}>
+              <h2 style={{ fontFamily: 'sans-serif', margin: '0 0 12px' }}>Demande envoyée !</h2>
+              <p
+                style={{
+                  color: 'var(--muted-foreground, #94a3b8)',
+                  fontSize: 14,
+                  lineHeight: 1.6,
+                  marginBottom: 16
+                }}
+              >
                 Votre demande de paiement pour le plan <strong>{plan?.label}</strong> est en cours
                 de vérification.
                 <br />
@@ -632,7 +688,8 @@ export default function UpgradePage() {
                 >
                   <Clock size={16} className="shrink-0 mt-0.5" />
                   <span>
-                    Votre accès sera débloqué dès qu'un administrateur aura confirmé votre paiement (généralement sous 24h). Vous recevrez un e-mail de confirmation.
+                    Votre accès sera débloqué dès qu'un administrateur aura confirmé votre paiement
+                    (généralement sous 24h). Vous recevrez un e-mail de confirmation.
                   </span>
                 </div>
               )}
@@ -649,7 +706,7 @@ export default function UpgradePage() {
                   cursor: 'pointer'
                 }}
               >
-                {isNewManager ? 'Aller au tableau de bord' : 'Retour à l\'accueil'}
+                {isNewManager ? 'Aller au tableau de bord' : "Retour à l'accueil"}
               </button>
             </div>
           </div>

@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
           .get()
 
         const candidate = recentTokensSnap.docs
-          .map((d) => ({ id: d.id, ...d.data() } as any))
+          .map((d) => ({ id: d.id, ...d.data() }) as any)
           .filter((d) => {
             const exp = d.expiresAt?.toDate ? d.expiresAt.toDate().getTime() : 0
             return exp > Date.now() && d.profileSaved !== true
@@ -72,7 +72,10 @@ export async function POST(request: NextRequest) {
 
       if (!resolvedToken) {
         return NextResponse.json(
-          { error: 'Autorisation du support requise pour modifier les informations de ce compte Manager.' },
+          {
+            error:
+              'Autorisation du support requise pour modifier les informations de ce compte Manager.'
+          },
           { status: 403 }
         )
       }
@@ -98,17 +101,17 @@ export async function POST(request: NextRequest) {
 
       if (tokenData.profileSaved === true) {
         return NextResponse.json(
-          { error: 'Cette autorisation à usage unique a déjà été utilisée pour enregistrer le profil.' },
+          {
+            error:
+              'Cette autorisation à usage unique a déjà été utilisée pour enregistrer le profil.'
+          },
           { status: 410 }
         )
       }
 
       const expiresAt = tokenData.expiresAt?.toDate ? tokenData.expiresAt.toDate() : null
       if (expiresAt && expiresAt.getTime() < Date.now()) {
-        return NextResponse.json(
-          { error: 'Ce jeton d’autorisation a expiré.' },
-          { status: 410 }
-        )
+        return NextResponse.json({ error: 'Ce jeton d’autorisation a expiré.' }, { status: 410 })
       }
 
       // Marquer le jeton comme définitivement utilisé et profil sauvegardé

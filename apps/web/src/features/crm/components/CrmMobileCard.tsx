@@ -43,7 +43,7 @@ export function CrmMobileCard({ clients, onSelect }: Props) {
   return (
     <>
       <div className="flex flex-col gap-3 md:hidden">
-        {clients.map(client => (
+        {clients.map((client) => (
           <div
             key={client.id}
             onClick={() => onSelect(client)}
@@ -52,7 +52,9 @@ export function CrmMobileCard({ clients, onSelect }: Props) {
             {/* Top row */}
             <div className="flex items-start justify-between gap-2 mb-2">
               <div className="min-w-0">
-                <p className="truncate text-[14px] font-bold text-foreground">{client.companyName}</p>
+                <p className="truncate text-[14px] font-bold text-foreground">
+                  {client.companyName}
+                </p>
                 <p className="truncate text-[11px] text-muted-foreground mt-0.5">
                   {[client.companyCity, client.companySector].filter(Boolean).join(' · ') || '—'}
                 </p>
@@ -86,9 +88,11 @@ export function CrmMobileCard({ clients, onSelect }: Props) {
                   <span>{formatRelative(client.lastActivityAt)}</span>
                 </span>
               ) : (
-                <span className="text-[11px] text-muted-foreground/50">{t('crm.table.noActivity')}</span>
+                <span className="text-[11px] text-muted-foreground/50">
+                  {t('crm.table.noActivity')}
+                </span>
               )}
-              <div className="flex gap-2" onClick={e => e.stopPropagation()}>
+              <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                 {client.companyPhone && (
                   <a
                     href={`tel:${client.companyPhone.replace(/\s+/g, '')}`}
@@ -113,10 +117,7 @@ export function CrmMobileCard({ clients, onSelect }: Props) {
 
       {/* Support contact modal */}
       {contactModal && (
-        <SupportContactModal
-          client={contactModal}
-          onClose={() => setContactModal(null)}
-        />
+        <SupportContactModal client={contactModal} onClose={() => setContactModal(null)} />
       )}
     </>
   )

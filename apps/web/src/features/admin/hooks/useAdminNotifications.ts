@@ -64,8 +64,7 @@ export function useAdminNotifications() {
             reference: data.reference ?? null,
             link: data.link ?? null,
             read: data.read ?? false,
-            createdAt:
-              data.createdAt?.toDate?.()?.toISOString() ?? new Date().toISOString()
+            createdAt: data.createdAt?.toDate?.()?.toISOString() ?? new Date().toISOString()
           } as AdminNotification
         })
         setNotifications(notifs)

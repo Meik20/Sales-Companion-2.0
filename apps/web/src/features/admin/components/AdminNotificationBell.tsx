@@ -58,12 +58,17 @@ export function AdminNotificationBell() {
 
   async function handleNotifClick(notif: AdminNotification) {
     if (!notif.read) await markAsRead(notif.id)
-    if (notif.link) { setIsOpen(false); router.push(notif.link) }
+    if (notif.link) {
+      setIsOpen(false)
+      router.push(notif.link)
+    }
   }
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
         @keyframes bellShake {
           0%,100% { transform: rotate(0); }
           20% { transform: rotate(-15deg); }
@@ -80,7 +85,9 @@ export function AdminNotificationBell() {
           70%  { transform: scale(1.2); }
           100% { transform: scale(1); }
         }
-      ` }} />
+      `
+        }}
+      />
 
       <div ref={panelRef} className="relative">
         {/* Bell button */}
@@ -151,7 +158,9 @@ export function AdminNotificationBell() {
                     key={notif.id}
                     onClick={() => void handleNotifClick(notif)}
                     className={`flex items-start gap-3 border-b border-border px-4 py-3 transition-colors duration-150 ${
-                      notif.read ? 'bg-transparent hover:bg-secondary' : `${notifBg[notif.type]} hover:bg-secondary`
+                      notif.read
+                        ? 'bg-transparent hover:bg-secondary'
+                        : `${notifBg[notif.type]} hover:bg-secondary`
                     } ${notif.link ? 'cursor-pointer' : 'cursor-default'}`}
                   >
                     {/* Type icon */}
@@ -162,7 +171,9 @@ export function AdminNotificationBell() {
                     {/* Content */}
                     <div className="min-w-0 flex-1">
                       <div className="mb-0.5 flex items-center justify-between gap-2">
-                        <span className={`truncate text-[13px] text-foreground ${notif.read ? 'font-medium' : 'font-bold'}`}>
+                        <span
+                          className={`truncate text-[13px] text-foreground ${notif.read ? 'font-medium' : 'font-bold'}`}
+                        >
                           {notif.title}
                         </span>
                         {!notif.read && (

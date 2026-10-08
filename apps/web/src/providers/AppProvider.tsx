@@ -62,4 +62,3 @@ export function AppProvider({ children }: { children: ReactNode }) {
     </QueryClientProvider>
   )
 }
-

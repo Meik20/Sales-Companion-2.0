@@ -119,22 +119,18 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
     (name || '').toLowerCase().trim().replace(/\s+/g, ' ')
 
   // Build a set of already-assigned company names and IDs
-  const assignedCompanyNames = new Set(
-    assignments.map((a) => normalizeCompName(a.companyName))
-  )
+  const assignedCompanyNames = new Set(assignments.map((a) => normalizeCompName(a.companyName)))
   const assignedItemIds = new Set(
-    assignments.flatMap((a) => [a.pipelineItemId, a.pipelineEntryId, a.id].filter(Boolean) as string[])
+    assignments.flatMap(
+      (a) => [a.pipelineItemId, a.pipelineEntryId, a.id].filter(Boolean) as string[]
+    )
   )
 
   // Filter out prospects that are already assigned to a team member
   const availableProspects = pipelineProspects.filter((p: PipelineItem) => {
     // 1. Assigné à un MEMBRE d'équipe (pas le manager lui-même)
     //    assignedTo non null ET différent du UID manager = déjà assigné à quelqu'un
-    if (
-      p.assignedTo &&
-      p.assignedTo.trim() !== '' &&
-      p.assignedTo !== user?.uid
-    ) return false
+    if (p.assignedTo && p.assignedTo.trim() !== '' && p.assignedTo !== user?.uid) return false
 
     // 2. A un memberName = déjà assigné (seuls les membres ont memberName dans les docs de pipeline)
     if (p.memberName && p.memberName.trim() !== '') return false
@@ -431,7 +427,14 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
             </div>
           </div>
           {(members?.length || 0) === 0 && (
-            <p style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)', margin: '4px 0 0', paddingLeft: 4 }}>
+            <p
+              style={{
+                fontSize: 11,
+                color: 'var(--muted-foreground, #64748b)',
+                margin: '4px 0 0',
+                paddingLeft: 4
+              }}
+            >
               {t('team.noActiveMemberDesc')}
             </p>
           )}

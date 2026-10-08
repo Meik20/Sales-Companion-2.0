@@ -200,7 +200,6 @@ export async function invalidateCompanyCache(): Promise<void> {
   }
 }
 
-
 export interface SearchCompaniesOptions {
   query?: string
   sector?: string
@@ -290,15 +289,7 @@ const SECTOR_SYNONYMS: Record<string, string[]> = {
     'agricole',
     'aviculture'
   ],
-  transport: [
-    'transport',
-    'logistique',
-    'transit',
-    'fret',
-    'livraison',
-    'voyage',
-    'messagerie'
-  ],
+  transport: ['transport', 'logistique', 'transit', 'fret', 'livraison', 'voyage', 'messagerie'],
   finance: [
     'banque',
     'finance',
@@ -330,16 +321,7 @@ const SECTOR_SYNONYMS: Record<string, string[]> = {
     'lycee',
     'enseignement'
   ],
-  energie: [
-    'energie',
-    'mines',
-    'petrole',
-    'gaz',
-    'solaire',
-    'electricite',
-    'eau',
-    'hydrocarbures'
-  ]
+  energie: ['energie', 'mines', 'petrole', 'gaz', 'solaire', 'electricite', 'eau', 'hydrocarbures']
 }
 
 function cleanAddressLandmarks(rawAddress: string): string {
@@ -444,8 +426,11 @@ function evaluateCompanyMatch(
     return { matches: false, score: 0 }
   }
 
-  const isPosOrAtm = /pos|tpe|guichet|distributeur|atm/i.test(nameNorm) || /banque|microfinance/i.test(sectorNorm)
-  const isHealthQuery = queryTokens.some((t) => /pharmaci|sante|medic|soin|hopital|clinique/i.test(t))
+  const isPosOrAtm =
+    /pos|tpe|guichet|distributeur|atm/i.test(nameNorm) || /banque|microfinance/i.test(sectorNorm)
+  const isHealthQuery = queryTokens.some((t) =>
+    /pharmaci|sante|medic|soin|hopital|clinique/i.test(t)
+  )
   if (isPosOrAtm && isHealthQuery) {
     score -= 120
   }
@@ -526,7 +511,10 @@ export async function searchCompanies(options: SearchCompaniesOptions): Promise<
 /**
  * Recherche une entreprise spécifique par identifiant, nom, sigle ou NIU
  */
-export async function getCompanyDetails(identifier: string, country = 'CM'): Promise<Partial<CompanyRecord> | null> {
+export async function getCompanyDetails(
+  identifier: string,
+  country = 'CM'
+): Promise<Partial<CompanyRecord> | null> {
   const companies = await getCachedCompanies()
   const countryCompanies = companies.filter((company) => company.country === country.toUpperCase())
   const target = normalizeString(identifier)
@@ -583,14 +571,20 @@ export async function getCompanyDetails(identifier: string, country = 'CM'): Pro
 /**
  * Génère des statistiques globales ou par région/secteur pour donner une vue du marché
  */
-export async function getMarketOverview(options?: { region?: string; sector?: string; country?: string }): Promise<{
+export async function getMarketOverview(options?: {
+  region?: string
+  sector?: string
+  country?: string
+}): Promise<{
   totalCompaniesInDatabase: number
   filteredCount: number
   topSectors: { sector: string; count: number }[]
   topCities: { city: string; count: number }[]
 }> {
   const companies = await getCachedCompanies()
-  let filtered = companies.filter((company) => company.country === (options?.country || 'CM').toUpperCase())
+  let filtered = companies.filter(
+    (company) => company.country === (options?.country || 'CM').toUpperCase()
+  )
 
   if (options?.region) {
     const r = normalizeString(options.region)

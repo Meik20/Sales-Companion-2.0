@@ -98,11 +98,7 @@ self.addEventListener('fetch', (event) => {
   // ── 4. Next.js App Router RSC payloads & Server Actions — strictly Network Only
   //    Never cache dynamic JSON/RSC payloads that may contain personal user data
   if (request.headers.get('RSC') === '1' || url.searchParams.has('_rsc')) {
-    event.respondWith(
-      fetch(request).catch(
-        () => new Response('Offline', { status: 503 })
-      )
-    )
+    event.respondWith(fetch(request).catch(() => new Response('Offline', { status: 503 })))
     return
   }
 
@@ -175,5 +171,3 @@ self.addEventListener('fetch', (event) => {
   // ── 7. Any other GET request — Default Deny: Pass directly to network, NEVER cache
   event.respondWith(fetch(request))
 })
-
-

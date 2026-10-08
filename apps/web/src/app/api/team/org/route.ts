@@ -56,7 +56,10 @@ export async function GET(request: NextRequest) {
         }
       }
       if (!orgCode) {
-        return NextResponse.json({ error: 'Impossible de générer un code unique. Réessayez.' }, { status: 500 })
+        return NextResponse.json(
+          { error: 'Impossible de générer un code unique. Réessayez.' },
+          { status: 500 }
+        )
       }
       orgRole = 'senior_manager'
 
@@ -79,30 +82,43 @@ export async function GET(request: NextRequest) {
       // Vérification explicite de l'identité du propriétaire dans le document organisation
       const orgDocRef = adminDb.collection('organisations').doc(orgCode)
       const orgDocSnap = await orgDocRef.get()
-      
+
       let expectedOrgRole: 'senior_manager' | 'team_manager' = 'team_manager'
       if (orgDocSnap.exists) {
         const orgData = orgDocSnap.data()
-        expectedOrgRole = (orgData?.seniorManagerUid === managerUid) ? 'senior_manager' : 'team_manager'
+        expectedOrgRole =
+          orgData?.seniorManagerUid === managerUid ? 'senior_manager' : 'team_manager'
       } else {
-        // Cas d'auto-guérison si le document organisation n'existe pas encore :
-        // Le premier manager rattaché initialise l'organisation
-        expectedOrgRole = 'senior_manager'
-        await orgDocRef.set({
-          orgCode,
-          companyName: userData.companyName || userData.company || '',
-          sector: userData.sector || null,
-          country: userData.country || 'CM',
-          seniorManagerUid: managerUid,
-          niu: userData.niu ? normalizeNiu(userData.niu) : null,
-          isVerified: Boolean(userData.niu),
-          createdAt: new Date()
-        }, { merge: true }).catch((err) => console.error('[GET /api/team/org] orgDoc create error:', err))
+        // Protection P1 contre l'auto-promotion :
+        // Seul un utilisateur déjà explicitement senior_manager peut rétablir le document organisation
+        if (userData.orgRole === 'senior_manager') {
+          expectedOrgRole = 'senior_manager'
+          await orgDocRef
+            .set(
+              {
+                orgCode,
+                companyName: userData.companyName || userData.company || '',
+                sector: userData.sector || null,
+                country: userData.country || 'CM',
+                seniorManagerUid: managerUid,
+                niu: userData.niu ? normalizeNiu(userData.niu) : null,
+                isVerified: Boolean(userData.niu),
+                createdAt: new Date()
+              },
+              { merge: true }
+            )
+            .catch((err) => console.error('[GET /api/team/org] orgDoc create error:', err))
+        } else {
+          // Un Team Manager reste team_manager et ne peut pas devenir propriétaire
+          expectedOrgRole = 'team_manager'
+        }
       }
 
       if (orgRole !== expectedOrgRole) {
         orgRole = expectedOrgRole
-        await userDocRef.update({ orgRole }).catch((err) => console.error('[GET /api/team/org] user update orgRole error:', err))
+        await userDocRef
+          .update({ orgRole })
+          .catch((err) => console.error('[GET /api/team/org] user update orgRole error:', err))
       }
     }
 
@@ -124,9 +140,7 @@ export async function GET(request: NextRequest) {
 
         managers = orgManagersSnap.docs.map((d) => {
           const mData = d.data()
-          const resolvedOrgRole = (d.id === managerUid)
-            ? orgRole
-            : (mData.orgRole || 'team_manager')
+          const resolvedOrgRole = d.id === managerUid ? orgRole : mData.orgRole || 'team_manager'
           return {
             uid: d.id,
             name: mData.displayName || mData.name || mData.email,
@@ -139,7 +153,9 @@ export async function GET(request: NextRequest) {
           }
         })
 
-        console.log(`[GET /api/team/org] Found ${managers.length} manager(s) for orgCode=${orgCode}`)
+        console.log(
+          `[GET /api/team/org] Found ${managers.length} manager(s) for orgCode=${orgCode}`
+        )
       } catch (mErr: any) {
         managersLoadError = mErr?.message || 'Erreur inconnue lors du chargement des managers'
         console.error('[GET /api/team/org] Firestore managers query failed:', mErr)
@@ -167,7 +183,11 @@ export async function GET(request: NextRequest) {
 /**
  * Helper de migration atomique des fiches de pipeline lors du changement / rattachement d'organisation
  */
-async function migrateManagerPipelineOrgCode(adminDb: FirebaseFirestore.Firestore, managerUid: string, targetOrgCode: string) {
+async function migrateManagerPipelineOrgCode(
+  adminDb: FirebaseFirestore.Firestore,
+  managerUid: string,
+  targetOrgCode: string
+) {
   try {
     const [mgrSnap, userSnap] = await Promise.all([
       adminDb.collection('pipeline').where('managerUid', '==', managerUid).get(),
@@ -194,7 +214,9 @@ async function migrateManagerPipelineOrgCode(adminDb: FirebaseFirestore.Firestor
       })
       await batch.commit()
     }
-    console.log(`[migrateManagerPipelineOrgCode] Successfully migrated ${docsToUpdate.size} pipeline fiches to ${targetOrgCode}`)
+    console.log(
+      `[migrateManagerPipelineOrgCode] Successfully migrated ${docsToUpdate.size} pipeline fiches to ${targetOrgCode}`
+    )
   } catch (err) {
     console.error('[migrateManagerPipelineOrgCode] Error migrating pipeline fiches:', err)
   }
@@ -242,7 +264,8 @@ export async function PATCH(request: NextRequest) {
         if (!isValidNiuFormat(rawNiu)) {
           return NextResponse.json(
             {
-              error: 'Format de NIU invalide. Le NIU doit comporter entre 6 et 30 caractères alphanumériques.'
+              error:
+                'Format de NIU invalide. Le NIU doit comporter entre 6 et 30 caractères alphanumériques.'
             },
             { status: 400 }
           )

@@ -111,51 +111,51 @@
   color-scheme: dark;
 
   /* Surfaces — hiérarchie lisible */
-  --bg:  #1B1F23;  /* Fond de page — gris bleuté LinkedIn */
-  --bg2: #24292E;  /* Surface carte — légèrement plus clair pour contraste */
-  --bg3: #2D333B;  /* Surface secondaire — dropdown, tags */
-  --bg4: #373E47;  /* Hover, focus, séparateurs */
+  --bg: #1b1f23; /* Fond de page — gris bleuté LinkedIn */
+  --bg2: #24292e; /* Surface carte — légèrement plus clair pour contraste */
+  --bg3: #2d333b; /* Surface secondaire — dropdown, tags */
+  --bg4: #373e47; /* Hover, focus, séparateurs */
 
   /* Text */
-  --tx:  rgba(255, 255, 255, 0.90);
+  --tx: rgba(255, 255, 255, 0.9);
   --tx2: rgba(255, 255, 255, 0.65);
-  --tx3: rgba(255, 255, 255, 0.40);
+  --tx3: rgba(255, 255, 255, 0.4);
 
   /* Borders */
-  --bd:  rgba(255, 255, 255, 0.12);
+  --bd: rgba(255, 255, 255, 0.12);
   --bd2: rgba(255, 255, 255, 0.22);
 
   /* Interaction */
-  --cr-hover-background-color:  rgba(255, 255, 255, 0.08);
+  --cr-hover-background-color: rgba(255, 255, 255, 0.08);
   --cr-active-background-color: rgba(255, 255, 255, 0.12);
 
   /* Shadows */
-  --sh2:                 0 4px 12px rgba(0, 0, 0, 0.35);
-  --shadow-glass-light:  0 0 0 1px rgba(255, 255, 255, 0.08), 0 2px 4px rgba(0, 0, 0, 0.25);
-  --shadow-glass-medium: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 4px 8px rgba(0, 0, 0, 0.30);
-  --shadow-glass-strong: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 8px 16px rgba(0, 0, 0, 0.40);
+  --sh2: 0 4px 12px rgba(0, 0, 0, 0.35);
+  --shadow-glass-light: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 2px 4px rgba(0, 0, 0, 0.25);
+  --shadow-glass-medium: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 4px 8px rgba(0, 0, 0, 0.3);
+  --shadow-glass-strong: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 8px 16px rgba(0, 0, 0, 0.4);
 
   /* Blue scale in dark */
-  --color-blue-50:       rgba(10, 102, 194, 0.18);
-  --color-blue-100:      rgba(10, 102, 194, 0.22);
-  --color-blue-200:      rgba(10, 102, 194, 0.30);
-  --color-blue-600:      #7fc3f7;
-  --color-blue-900:      #bfd7f5;
-  --color-primary-light: rgba(10, 102, 194, 0.20);
+  --color-blue-50: rgba(10, 102, 194, 0.18);
+  --color-blue-100: rgba(10, 102, 194, 0.22);
+  --color-blue-200: rgba(10, 102, 194, 0.3);
+  --color-blue-600: #7fc3f7;
+  --color-blue-900: #bfd7f5;
+  --color-primary-light: rgba(10, 102, 194, 0.2);
 
   /* Semantic states in dark */
-  --color-success-bg: rgba(5, 118, 66, 0.20);
-  --color-warning-bg: rgba(145, 89, 7, 0.20);
-  --color-danger-bg:  rgba(204, 16, 22, 0.20);
+  --color-success-bg: rgba(5, 118, 66, 0.2);
+  --color-warning-bg: rgba(145, 89, 7, 0.2);
+  --color-danger-bg: rgba(204, 16, 22, 0.2);
 
   /* Teal/secondary in dark */
-  --color-teal-50:  rgba(131, 148, 31, 0.18);
+  --color-teal-50: rgba(131, 148, 31, 0.18);
   --color-teal-900: #c8d87a;
 
   /* Neutral overrides for dark */
-  --color-neutral-100: #1B1F23;
-  --color-neutral-200: #2D333B;
-  --color-neutral-300: #373E47;
+  --color-neutral-100: #1b1f23;
+  --color-neutral-200: #2d333b;
+  --color-neutral-300: #373e47;
 }
 
 /* ── Component: Button Primary ──────────────────────────────────── */
@@ -271,175 +271,175 @@
    ════════════════════════════════════════════════════════════════════ */
 
 /* ── Primitives Firebase ─────────────────────────────────────────── */
-[data-design="firebase"] {
+[data-design='firebase'] {
   /* Amber */
-  --fb-amber-300: #FFCB2B;
-  --fb-amber-400: #FFA611;
-  --fb-amber-500: #F5820D;
-  --fb-amber-600: #E07000;
-  --fb-amber-700: #BF5C00;
+  --fb-amber-300: #ffcb2b;
+  --fb-amber-400: #ffa611;
+  --fb-amber-500: #f5820d;
+  --fb-amber-600: #e07000;
+  --fb-amber-700: #bf5c00;
 
   /* Navy */
-  --fb-navy-50:  #F0F4FF;
-  --fb-navy-100: #D6E2FF;
-  --fb-navy-200: #AABFFF;
-  --fb-navy-500: #1967D2;
-  --fb-navy-700: #0D47A1;
+  --fb-navy-50: #f0f4ff;
+  --fb-navy-100: #d6e2ff;
+  --fb-navy-200: #aabfff;
+  --fb-navy-500: #1967d2;
+  --fb-navy-700: #0d47a1;
 
   /* Grays */
-  --fb-gray-0:   #FFFFFF;
-  --fb-gray-50:  #F8F9FA;
-  --fb-gray-100: #F1F3F4;
-  --fb-gray-200: #E8EAED;
-  --fb-gray-300: #DADCE0;
-  --fb-gray-400: #BDC1C6;
-  --fb-gray-500: #9AA0A6;
-  --fb-gray-600: #80868B;
-  --fb-gray-700: #5F6368;
-  --fb-gray-800: #3C4043;
+  --fb-gray-0: #ffffff;
+  --fb-gray-50: #f8f9fa;
+  --fb-gray-100: #f1f3f4;
+  --fb-gray-200: #e8eaed;
+  --fb-gray-300: #dadce0;
+  --fb-gray-400: #bdc1c6;
+  --fb-gray-500: #9aa0a6;
+  --fb-gray-600: #80868b;
+  --fb-gray-700: #5f6368;
+  --fb-gray-800: #3c4043;
   --fb-gray-900: #202124;
 
   /* Status */
-  --fb-green-500:      #1E8E3E;
-  --fb-green-bg-light: #E6F4EA;
-  --fb-red-500:        #D93025;
-  --fb-red-bg-light:   #FCE8E6;
-  --fb-yellow-400:     #FBBC04;
-  --fb-yellow-bg-light:#FEF7E0;
+  --fb-green-500: #1e8e3e;
+  --fb-green-bg-light: #e6f4ea;
+  --fb-red-500: #d93025;
+  --fb-red-bg-light: #fce8e6;
+  --fb-yellow-400: #fbbc04;
+  --fb-yellow-bg-light: #fef7e0;
 }
 
 /* ── Firebase Light Mode ─────────────────────────────────────────── */
-[data-design="firebase"]:not(.dark) {
+[data-design='firebase']:not(.dark) {
   /* Surfaces */
-  --bg:  #F1F3F4;
-  --bg2: #FFFFFF;
-  --bg3: #F8F9FA;
-  --bg4: #E8EAED;
+  --bg: #f1f3f4;
+  --bg2: #ffffff;
+  --bg3: #f8f9fa;
+  --bg4: #e8eaed;
 
   /* Texte */
-  --tx:  #202124;
-  --tx2: #5F6368;
-  --tx3: #9AA0A6;
+  --tx: #202124;
+  --tx2: #5f6368;
+  --tx3: #9aa0a6;
 
   /* Bordures */
-  --bd:  #E8EAED;
-  --bd2: #DADCE0;
+  --bd: #e8eaed;
+  --bd2: #dadce0;
 
   /* Couleur primaire → Amber Firebase */
-  --color-primary:       #FFA611;
-  --color-primary-dark:  #E07000;
-  --color-primary-light: rgba(255,166,17,.12);
+  --color-primary: #ffa611;
+  --color-primary-dark: #e07000;
+  --color-primary-light: rgba(255, 166, 17, 0.12);
 
   /* Accent → Navy */
-  --color-accent:        #1967D2;
+  --color-accent: #1967d2;
 
   /* Secondaire */
-  --color-secondary:     #1967D2;
+  --color-secondary: #1967d2;
 
   /* Status */
-  --color-success:       #1E8E3E;
-  --color-success-bg:    #E6F4EA;
-  --color-warning:       #8A6500;
-  --color-warning-bg:    #FEF7E0;
-  --color-danger:        #D93025;
-  --color-danger-bg:     #FCE8E6;
+  --color-success: #1e8e3e;
+  --color-success-bg: #e6f4ea;
+  --color-warning: #8a6500;
+  --color-warning-bg: #fef7e0;
+  --color-danger: #d93025;
+  --color-danger-bg: #fce8e6;
 
   /* Interactions */
-  --cr-link-color:              #1967D2;
-  --cr-focus-outline-color:     #FFA611;
-  --cr-hover-background-color:  rgba(0,0,0,.06);
-  --cr-active-background-color: rgba(0,0,0,.10);
+  --cr-link-color: #1967d2;
+  --cr-focus-outline-color: #ffa611;
+  --cr-hover-background-color: rgba(0, 0, 0, 0.06);
+  --cr-active-background-color: rgba(0, 0, 0, 0.1);
 
   /* Ombres */
-  --shadow-glass-light:  0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
-  --shadow-glass-medium: 0 4px 12px rgba(0,0,0,.08), 0 2px 4px rgba(0,0,0,.06);
-  --shadow-glass-strong: 0 10px 30px rgba(0,0,0,.10), 0 4px 8px rgba(0,0,0,.06);
+  --shadow-glass-light: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-glass-medium: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.06);
+  --shadow-glass-strong: 0 10px 30px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.06);
 
   /* Typography */
   --font-family: 'Google Sans', 'Source Sans 3', -apple-system, Arial, sans-serif;
 
   /* Radius — Firebase est légèrement plus arrondi */
   --radius-standard: 8px;
-  --r:  8px;
+  --r: 8px;
   --r2: 8px;
   --r3: 12px;
 
   /* Blue scale override */
-  --color-blue-50:  rgba(255,166,17,.10);
-  --color-blue-100: rgba(255,166,17,.15);
-  --color-blue-200: rgba(255,166,17,.25);
-  --color-blue-600: #E07000;
-  --color-blue-900: #BF5C00;
+  --color-blue-50: rgba(255, 166, 17, 0.1);
+  --color-blue-100: rgba(255, 166, 17, 0.15);
+  --color-blue-200: rgba(255, 166, 17, 0.25);
+  --color-blue-600: #e07000;
+  --color-blue-900: #bf5c00;
 
   /* Teal override */
-  --color-teal-50:  rgba(25,103,210,.1);
-  --color-teal-900: #0D47A1;
+  --color-teal-50: rgba(25, 103, 210, 0.1);
+  --color-teal-900: #0d47a1;
 }
 
 /* ── Firebase Dark Mode ──────────────────────────────────────────── */
-[data-design="firebase"].dark {
+[data-design='firebase'].dark {
   /* Surfaces — Navy par élévation (jamais noir pur) */
-  --bg:  #12141A;
-  --bg2: #1C1F27;
-  --bg3: #262A35;
-  --bg4: #2C303C;
+  --bg: #12141a;
+  --bg2: #1c1f27;
+  --bg3: #262a35;
+  --bg4: #2c303c;
 
   /* Texte */
-  --tx:  #E8EAED;
-  --tx2: #9AA0A6;
-  --tx3: #5F6368;
+  --tx: #e8eaed;
+  --tx2: #9aa0a6;
+  --tx3: #5f6368;
 
   /* Bordures */
-  --bd:  rgba(255,255,255,.08);
-  --bd2: rgba(255,255,255,.14);
+  --bd: rgba(255, 255, 255, 0.08);
+  --bd2: rgba(255, 255, 255, 0.14);
 
   /* Couleur primaire → Amber vif */
-  --color-primary:       #FFA611;
-  --color-primary-dark:  #FFCB2B;
-  --color-primary-light: rgba(255,166,17,.15);
+  --color-primary: #ffa611;
+  --color-primary-dark: #ffcb2b;
+  --color-primary-light: rgba(255, 166, 17, 0.15);
 
   /* Accent → Navy clair */
-  --color-accent:        #AABFFF;
+  --color-accent: #aabfff;
 
   /* Secondaire */
-  --color-secondary:     #AABFFF;
+  --color-secondary: #aabfff;
 
   /* Status */
-  --color-success:       #34A853;
-  --color-success-bg:    rgba(5,118,66,.2);
-  --color-warning:       #FBBC04;
-  --color-warning-bg:    rgba(251,188,4,.15);
-  --color-danger:        #EA4335;
-  --color-danger-bg:     rgba(217,48,37,.2);
+  --color-success: #34a853;
+  --color-success-bg: rgba(5, 118, 66, 0.2);
+  --color-warning: #fbbc04;
+  --color-warning-bg: rgba(251, 188, 4, 0.15);
+  --color-danger: #ea4335;
+  --color-danger-bg: rgba(217, 48, 37, 0.2);
 
   /* Interactions */
-  --cr-link-color:              #AABFFF;
-  --cr-focus-outline-color:     #FFA611;
-  --cr-hover-background-color:  rgba(255,255,255,.06);
-  --cr-active-background-color: rgba(255,255,255,.10);
+  --cr-link-color: #aabfff;
+  --cr-focus-outline-color: #ffa611;
+  --cr-hover-background-color: rgba(255, 255, 255, 0.06);
+  --cr-active-background-color: rgba(255, 255, 255, 0.1);
 
   /* Ombres */
-  --shadow-glass-light:  0 1px 2px rgba(0,0,0,.4);
-  --shadow-glass-medium: 0 4px 12px rgba(0,0,0,.5), 0 2px 4px rgba(0,0,0,.3);
-  --shadow-glass-strong: 0 10px 30px rgba(0,0,0,.6), 0 4px 8px rgba(0,0,0,.4);
+  --shadow-glass-light: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-glass-medium: 0 4px 12px rgba(0, 0, 0, 0.5), 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-glass-strong: 0 10px 30px rgba(0, 0, 0, 0.6), 0 4px 8px rgba(0, 0, 0, 0.4);
 
   /* Typography */
   --font-family: 'Google Sans', 'Source Sans 3', -apple-system, Arial, sans-serif;
 
   /* Radius */
   --radius-standard: 8px;
-  --r:  8px;
+  --r: 8px;
   --r2: 8px;
   --r3: 12px;
 
   /* Blue scale override */
-  --color-blue-50:  rgba(255,166,17,.15);
-  --color-blue-100: rgba(255,166,17,.20);
-  --color-blue-200: rgba(255,166,17,.30);
-  --color-blue-600: #FFCB2B;
-  --color-blue-900: #FFE082;
+  --color-blue-50: rgba(255, 166, 17, 0.15);
+  --color-blue-100: rgba(255, 166, 17, 0.2);
+  --color-blue-200: rgba(255, 166, 17, 0.3);
+  --color-blue-600: #ffcb2b;
+  --color-blue-900: #ffe082;
 
   /* Teal override */
-  --color-teal-50:  rgba(170,191,255,.1);
-  --color-teal-900: #AABFFF;
+  --color-teal-50: rgba(170, 191, 255, 0.1);
+  --color-teal-900: #aabfff;
 }

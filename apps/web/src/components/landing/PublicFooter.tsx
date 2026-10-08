@@ -13,32 +13,48 @@ export function PublicFooter() {
   const year = new Date().getFullYear()
 
   const footerLinks = {
-    ressources: country.code === 'CM' ? [
-      { label: isEn ? 'B2B Blog' : 'Blog B2B Cameroun', href: '/blog' },
-      { label: isEn ? 'Company directory' : 'Annuaire entreprises', href: '/annuaire' },
-      { label: isEn ? 'Companies in Douala' : 'Entreprises à Douala', href: '/annuaire/douala' },
-      { label: isEn ? 'Construction companies' : 'Entreprises BTP', href: '/annuaire/btp' },
-      {
-        label: isEn ? 'NIU & RCCM Guide' : 'Guide NIU & RCCM',
-        href: '/blog/niu-rccm-identifier-entreprise-camerounaise'
-      },
-      {
-        label: isEn ? 'B2B Database' : 'Base de données Cameroun',
-        href: '/blog/base-de-donnees-entreprises-cameroun-2026'
-      }
-    ] : [
-      { label: isEn ? `B2B Blog (${country.nameEn})` : `Blog B2B (${country.nameFr})`, href: '/blog' },
-      { label: isEn ? 'Company directory' : 'Annuaire entreprises', href: '/annuaire' },
-      { label: isEn ? `Companies in ${country.cities[0] || 'capitale'}` : `Entreprises à ${country.cities[0] || 'capitale'}`, href: '/annuaire' },
-      {
-        label: isEn ? `${country.taxLabel} & RCCM Guide` : `Guide ${country.taxLabel} & RCCM`,
-        href: '/blog'
-      },
-      {
-        label: isEn ? `B2B Database (${country.nameEn})` : `Base de données (${country.nameFr})`,
-        href: '/blog'
-      }
-    ],
+    ressources:
+      country.code === 'CM'
+        ? [
+            { label: isEn ? 'B2B Blog' : 'Blog B2B Cameroun', href: '/blog' },
+            { label: isEn ? 'Company directory' : 'Annuaire entreprises', href: '/annuaire' },
+            {
+              label: isEn ? 'Companies in Douala' : 'Entreprises à Douala',
+              href: '/annuaire/douala'
+            },
+            { label: isEn ? 'Construction companies' : 'Entreprises BTP', href: '/annuaire/btp' },
+            {
+              label: isEn ? 'NIU & RCCM Guide' : 'Guide NIU & RCCM',
+              href: '/blog/niu-rccm-identifier-entreprise-camerounaise'
+            },
+            {
+              label: isEn ? 'B2B Database' : 'Base de données Cameroun',
+              href: '/blog/base-de-donnees-entreprises-cameroun-2026'
+            }
+          ]
+        : [
+            {
+              label: isEn ? `B2B Blog (${country.nameEn})` : `Blog B2B (${country.nameFr})`,
+              href: '/blog'
+            },
+            { label: isEn ? 'Company directory' : 'Annuaire entreprises', href: '/annuaire' },
+            {
+              label: isEn
+                ? `Companies in ${country.cities[0] || 'capitale'}`
+                : `Entreprises à ${country.cities[0] || 'capitale'}`,
+              href: '/annuaire'
+            },
+            {
+              label: isEn ? `${country.taxLabel} & RCCM Guide` : `Guide ${country.taxLabel} & RCCM`,
+              href: '/blog'
+            },
+            {
+              label: isEn
+                ? `B2B Database (${country.nameEn})`
+                : `Base de données (${country.nameFr})`,
+              href: '/blog'
+            }
+          ],
     produit: [
       { label: isEn ? 'Start for free' : 'Commencer gratuitement', href: routes.register },
       { label: isEn ? 'Log in' : 'Se connecter', href: routes.login },
@@ -63,10 +79,13 @@ export function PublicFooter() {
               className="flex items-center gap-2.5 group w-fit"
               aria-label="Sales Companion 2.0"
             >
-              <ScIcon size={30} interactive className="group-hover:scale-105 transition-transform" />
+              <ScIcon
+                size={30}
+                interactive
+                className="group-hover:scale-105 transition-transform"
+              />
               <span className="font-heading text-[14px] font-semibold tracking-tight text-foreground">
-                Sales Companion{' '}
-                <span className="text-[#1B7A3E]">2.0</span>
+                Sales Companion <span className="text-[#1B7A3E]">2.0</span>
               </span>
             </Link>
             <p className="mt-3 text-xs leading-relaxed text-muted-foreground max-w-[220px]">
@@ -137,7 +156,8 @@ export function PublicFooter() {
         {/* Bottom */}
         <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-border pt-6 sm:flex-row">
           <p className="text-xs text-muted-foreground">
-            &copy; {year} Sales Companion 2.0. {isEn ? 'All rights reserved.' : 'Tous droits réservés.'}
+            &copy; {year} Sales Companion 2.0.{' '}
+            {isEn ? 'All rights reserved.' : 'Tous droits réservés.'}
           </p>
           <a
             href="https://www.linkedin.com/company/sales-companion-2-0/"

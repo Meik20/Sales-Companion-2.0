@@ -17,7 +17,10 @@ export async function POST(request: NextRequest) {
     const ip = getClientIp(request)
     const ipLimit = await checkRateLimit(ip, { limit: 20, windowMs: 60 * 1000 })
     if (!ipLimit.success) {
-      return NextResponse.json({ error: 'Trop de tentatives, veuillez réessayer plus tard.' }, { status: 429 })
+      return NextResponse.json(
+        { error: 'Trop de tentatives, veuillez réessayer plus tard.' },
+        { status: 429 }
+      )
     }
 
     const body = await request.json().catch(() => null)

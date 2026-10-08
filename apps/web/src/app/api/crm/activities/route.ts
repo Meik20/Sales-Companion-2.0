@@ -49,7 +49,9 @@ export async function GET(request: NextRequest) {
         description: d.description ?? '',
         performedBy: d.performedBy ?? '',
         performedByName: d.performedByName ?? 'Commercial',
-        createdAt: d.createdAt?.toDate?.()?.toISOString() ?? (typeof d.createdAt === 'string' ? d.createdAt : new Date().toISOString())
+        createdAt:
+          d.createdAt?.toDate?.()?.toISOString() ??
+          (typeof d.createdAt === 'string' ? d.createdAt : new Date().toISOString())
       })
     }
 
@@ -62,7 +64,12 @@ export async function GET(request: NextRequest) {
 
     for (const doc of callsSnap.docs) {
       const d = doc.data()
-      const statusText = d.status === 'connected' ? 'Connecté' : d.status === 'no_answer' ? 'Pas de réponse' : d.status
+      const statusText =
+        d.status === 'connected'
+          ? 'Connecté'
+          : d.status === 'no_answer'
+            ? 'Pas de réponse'
+            : d.status
       activities.push({
         id: doc.id,
         clientId,
@@ -71,7 +78,9 @@ export async function GET(request: NextRequest) {
         description: d.notes || `Durée: ${d.durationSeconds || 0}s`,
         performedBy: d.agentUid,
         performedByName: d.agentName || 'Commercial',
-        createdAt: d.createdAt?.toDate?.()?.toISOString() ?? (typeof d.createdAt === 'string' ? d.createdAt : new Date().toISOString())
+        createdAt:
+          d.createdAt?.toDate?.()?.toISOString() ??
+          (typeof d.createdAt === 'string' ? d.createdAt : new Date().toISOString())
       })
     }
 
@@ -92,7 +101,9 @@ export async function GET(request: NextRequest) {
         description: d.description,
         performedBy: d.agentUid,
         performedByName: d.agentName || 'Agent Support',
-        createdAt: d.createdAt?.toDate?.()?.toISOString() ?? (typeof d.createdAt === 'string' ? d.createdAt : new Date().toISOString())
+        createdAt:
+          d.createdAt?.toDate?.()?.toISOString() ??
+          (typeof d.createdAt === 'string' ? d.createdAt : new Date().toISOString())
       })
     }
 

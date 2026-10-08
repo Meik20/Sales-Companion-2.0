@@ -6,11 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useToast } from '@/hooks/useToast'
 import { db } from '@/lib/firebase'
-import {
-  doc,
-  updateDoc,
-  serverTimestamp
-} from 'firebase/firestore'
+import { doc, updateDoc, serverTimestamp } from 'firebase/firestore'
 import { useTeamMembers } from '@/features/team/hooks/useTeamMembers'
 import { useSupportAgents } from '@/features/team/hooks/useSupportAgents'
 import { useTranslation } from '@/providers/I18nProvider'
@@ -60,8 +56,8 @@ export function TeamAccessManager() {
 
   // Fusionner les membres et agents de support
   const allTeam = [
-    ...members.map(m => ({ ...m, role: 'member' as const })),
-    ...agents.map(a => ({ ...a, role: 'support_agent' as const }))
+    ...members.map((m) => ({ ...m, role: 'member' as const })),
+    ...agents.map((a) => ({ ...a, role: 'support_agent' as const }))
   ]
 
   // Convertit les membres (format TeamMember) en format accesses pour la compatibilité de l'UI
@@ -80,8 +76,18 @@ export function TeamAccessManager() {
     magicCode: m.magicCode
   }))
 
-  const [formData, setFormData] = useState({ firstname: '', lastname: '', company: '', email: '', role: 'member' })
-  const [permissions, setPermissions] = useState({ canExport: false, canDelete: false, canAssign: false })
+  const [formData, setFormData] = useState({
+    firstname: '',
+    lastname: '',
+    company: '',
+    email: '',
+    role: 'member'
+  })
+  const [permissions, setPermissions] = useState({
+    canExport: false,
+    canDelete: false,
+    canAssign: false
+  })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
@@ -136,11 +142,20 @@ export function TeamAccessManager() {
       if (!res.ok) throw new Error(data.message || data.error || 'Erreur lors de la création')
 
       if (data.emailStatus === 'simulated') {
-        pushToast({ type: 'warning', title: `Accès créé, mais e-mail simulé (Clé API Brevo manquante sur Vercel ?)` })
+        pushToast({
+          type: 'warning',
+          title: `Accès créé, mais e-mail simulé (Clé API Brevo manquante sur Vercel ?)`
+        })
       } else if (data.emailStatus === 'failed') {
-        pushToast({ type: 'error', title: `Accès créé, mais échec d'envoi de l'e-mail. Erreur: ${data.emailError}` })
+        pushToast({
+          type: 'error',
+          title: `Accès créé, mais échec d'envoi de l'e-mail. Erreur: ${data.emailError}`
+        })
       } else if (data.emailStatus === 'sent') {
-        pushToast({ type: 'success', title: `Accès créé ! E-mail d'activation envoyé avec succès.` })
+        pushToast({
+          type: 'success',
+          title: `Accès créé ! E-mail d'activation envoyé avec succès.`
+        })
       } else {
         pushToast({ type: 'success', title: `Accès créé ! Lien généré (sans envoi d'e-mail).` })
       }
@@ -326,60 +341,109 @@ export function TeamAccessManager() {
           </div>
 
           {/* Permissions Toggles */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '16px 20px', background: 'rgba(255,255,255,0.02)', borderRadius: 12, border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}` }}>
-             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxWidth: 300, marginBottom: 8 }}>
-               <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted-foreground, #94a3b8)', textTransform: 'uppercase' }}>
-                 Rôle du collaborateur
-               </label>
-               <select
-                 value={formData.role}
-                 onChange={(e) => setFormData(p => ({ ...p, role: e.target.value }))}
-                 style={{
-                   height: 36,
-                   borderRadius: 8,
-                   border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
-                   background: 'var(--background, #0b1120)',
-                   color: 'var(--foreground, #f1f5f9)',
-                   fontSize: 13,
-                   fontFamily: 'inherit',
-                   outline: 'none',
-                   padding: '0 8px'
-                 }}
-               >
-                 <option value="member">Collaborateur commercial (Sales)</option>
-                 <option value="support_agent">Agent de support CRM (Support)</option>
-               </select>
-             </div>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 12,
+              padding: '16px 20px',
+              background: 'rgba(255,255,255,0.02)',
+              borderRadius: 12,
+              border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 6,
+                maxWidth: 300,
+                marginBottom: 8
+              }}
+            >
+              <label
+                style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: 'var(--muted-foreground, #94a3b8)',
+                  textTransform: 'uppercase'
+                }}
+              >
+                Rôle du collaborateur
+              </label>
+              <select
+                value={formData.role}
+                onChange={(e) => setFormData((p) => ({ ...p, role: e.target.value }))}
+                style={{
+                  height: 36,
+                  borderRadius: 8,
+                  border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+                  background: 'var(--background, #0b1120)',
+                  color: 'var(--foreground, #f1f5f9)',
+                  fontSize: 13,
+                  fontFamily: 'inherit',
+                  outline: 'none',
+                  padding: '0 8px'
+                }}
+              >
+                <option value="member">Collaborateur commercial (Sales)</option>
+                <option value="support_agent">Agent de support CRM (Support)</option>
+              </select>
+            </div>
 
-             <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
-               <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, cursor: 'pointer' }}>
-                 <input 
-                   type="checkbox" 
-                   checked={permissions.canExport} 
-                   onChange={(e) => setPermissions(p => ({ ...p, canExport: e.target.checked }))} 
-                   style={{ accentColor: '#6366f1', width: 16, height: 16 }}
-                 />
-                 Peut exporter les données
-               </label>
-               <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, cursor: 'pointer' }}>
-                 <input 
-                   type="checkbox" 
-                   checked={permissions.canDelete} 
-                   onChange={(e) => setPermissions(p => ({ ...p, canDelete: e.target.checked }))} 
-                   style={{ accentColor: '#6366f1', width: 16, height: 16 }}
-                 />
-                 Peut supprimer des prospects
-               </label>
-               <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, cursor: 'pointer' }}>
-                 <input 
-                   type="checkbox" 
-                   checked={permissions.canAssign} 
-                   onChange={(e) => setPermissions(p => ({ ...p, canAssign: e.target.checked }))} 
-                   style={{ accentColor: '#6366f1', width: 16, height: 16 }}
-                 />
-                 Peut réassigner des prospects
-               </label>
-             </div>
+            <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  fontSize: 13,
+                  cursor: 'pointer'
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={permissions.canExport}
+                  onChange={(e) => setPermissions((p) => ({ ...p, canExport: e.target.checked }))}
+                  style={{ accentColor: '#6366f1', width: 16, height: 16 }}
+                />
+                Peut exporter les données
+              </label>
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  fontSize: 13,
+                  cursor: 'pointer'
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={permissions.canDelete}
+                  onChange={(e) => setPermissions((p) => ({ ...p, canDelete: e.target.checked }))}
+                  style={{ accentColor: '#6366f1', width: 16, height: 16 }}
+                />
+                Peut supprimer des prospects
+              </label>
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  fontSize: 13,
+                  cursor: 'pointer'
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={permissions.canAssign}
+                  onChange={(e) => setPermissions((p) => ({ ...p, canAssign: e.target.checked }))}
+                  style={{ accentColor: '#6366f1', width: 16, height: 16 }}
+                />
+                Peut réassigner des prospects
+              </label>
+            </div>
           </div>
 
           {/* Quota Collaborateurs */}
@@ -390,12 +454,23 @@ export function TeamAccessManager() {
               gap: 8,
               padding: '16px 20px',
               borderRadius: 12,
-              background: activeOrPendingCount >= maxMembers ? 'rgba(239,68,68,0.04)' : 'rgba(99,102,241,0.04)',
+              background:
+                activeOrPendingCount >= maxMembers
+                  ? 'rgba(239,68,68,0.04)'
+                  : 'rgba(99,102,241,0.04)',
               border: `1px solid ${activeOrPendingCount >= maxMembers ? 'rgba(239,68,68,0.15)' : 'rgba(99,102,241,0.15)'}`,
               transition: 'all 200ms ease'
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: 8
+              }}
+            >
               <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--foreground, #f1f5f9)' }}>
                 {t('team.quotaLabel') || 'Quota de collaborateurs :'}
                 <span
@@ -407,18 +482,28 @@ export function TeamAccessManager() {
                 >
                   {activeOrPendingCount}
                 </span>{' '}
-                <span style={{ color: 'var(--muted-foreground, #64748b)', fontWeight: 400 }}>/ {maxMembers}</span>
-                <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 600, color: 'var(--muted-foreground, #94a3b8)' }}>
+                <span style={{ color: 'var(--muted-foreground, #64748b)', fontWeight: 400 }}>
+                  / {maxMembers}
+                </span>
+                <span
+                  style={{
+                    marginLeft: 8,
+                    fontSize: 11,
+                    fontWeight: 600,
+                    color: 'var(--muted-foreground, #94a3b8)'
+                  }}
+                >
                   ({currentPlan.toUpperCase()})
                 </span>
               </span>
               {activeOrPendingCount >= maxMembers && (
                 <span style={{ fontSize: 11.5, color: '#ef4444', fontWeight: 700 }}>
-                  {t('team.quotaReached') || 'Limite atteinte. Passez au plan supérieur pour ajouter plus de membres.'}
+                  {t('team.quotaReached') ||
+                    'Limite atteinte. Passez au plan supérieur pour ajouter plus de membres.'}
                 </span>
               )}
             </div>
-            
+
             <div
               style={{
                 height: 6,
@@ -473,7 +558,12 @@ export function TeamAccessManager() {
               </div>
               <div>
                 <span
-                  style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)', fontWeight: 600, display: 'block' }}
+                  style={{
+                    fontSize: 11,
+                    color: 'var(--muted-foreground, #94a3b8)',
+                    fontWeight: 600,
+                    display: 'block'
+                  }}
                 >
                   {t('team.accessIdPreview')}
                 </span>
@@ -492,7 +582,9 @@ export function TeamAccessManager() {
             <Button
               type="submit"
               variant="primary"
-              disabled={isSubmitting || previewId === '@entreprise' || activeOrPendingCount >= maxMembers}
+              disabled={
+                isSubmitting || previewId === '@entreprise' || activeOrPendingCount >= maxMembers
+              }
               style={{ borderRadius: 10, padding: '10px 24px', fontWeight: 800 }}
             >
               {isSubmitting ? (
@@ -583,7 +675,11 @@ export function TeamAccessManager() {
                             : isActivated
                               ? 'rgba(37,99,235,0.1)'
                               : 'rgba(99,102,241,0.1)',
-                          color: isRevoked ? 'var(--muted-foreground, #64748b)' : isActivated ? '#2563eb' : '#6366f1',
+                          color: isRevoked
+                            ? 'var(--muted-foreground, #64748b)'
+                            : isActivated
+                              ? '#2563eb'
+                              : '#6366f1',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -661,16 +757,23 @@ export function TeamAccessManager() {
                               onClick={() => copyLink(acc.magicCode, acc.id)}
                               style={{
                                 ...btnStyle(copiedId === acc.id ? '#10b981' : '#10b981'),
-                                background: copiedId === acc.id ? 'rgba(16,185,129,0.15)' : 'rgba(16,185,129,0.08)',
+                                background:
+                                  copiedId === acc.id
+                                    ? 'rgba(16,185,129,0.15)'
+                                    : 'rgba(16,185,129,0.08)',
                                 border: `1px solid ${copiedId === acc.id ? 'rgba(16,185,129,0.5)' : 'rgba(16,185,129,0.2)'}`,
                                 fontWeight: 700,
                                 transition: 'all 200ms ease'
                               }}
                             >
                               {copiedId === acc.id ? (
-                                <><CheckCircle2 size={13} /> Copié !</>
+                                <>
+                                  <CheckCircle2 size={13} /> Copié !
+                                </>
                               ) : (
-                                <><Copy size={13} /> Lien d'accès</>
+                                <>
+                                  <Copy size={13} /> Lien d'accès
+                                </>
                               )}
                             </button>
                           ) : (

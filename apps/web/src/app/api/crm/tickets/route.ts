@@ -30,7 +30,10 @@ export async function GET(request: NextRequest) {
     const callerData = callerDoc.data()
     const callerRole = callerData?.role as string | undefined
     if (callerRole === 'manager' && !hasActivePaidManagerAccess(callerData)) {
-      return NextResponse.json({ message: 'Un abonnement Manager actif et vérifié est requis.' }, { status: 403 })
+      return NextResponse.json(
+        { message: 'Un abonnement Manager actif et vérifié est requis.' },
+        { status: 403 }
+      )
     }
 
     const clientId = request.nextUrl.searchParams.get('clientId')
@@ -61,7 +64,8 @@ export async function GET(request: NextRequest) {
       const isLinkedAgent =
         callerRole === 'support_agent' &&
         clientManagerUid != null &&
-        (callerData?.managerUid === clientManagerUid || linkedManagerUids.includes(clientManagerUid))
+        (callerData?.managerUid === clientManagerUid ||
+          linkedManagerUids.includes(clientManagerUid))
       const isOwnAgent = callerRole === 'support_agent' && uid === clientManagerUid
 
       if (!isOwnerManager && !isLinkedAgent && !isOwnAgent) {
@@ -76,7 +80,7 @@ export async function GET(request: NextRequest) {
       .limit(50)
       .get()
 
-    const tickets = snap.docs.map(doc => ({
+    const tickets = snap.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
       createdAt: doc.data().createdAt?.toDate?.()?.toISOString() ?? null,
@@ -107,7 +111,10 @@ export async function POST(request: NextRequest) {
     const agentDoc = await adminDb.collection('users').doc(agentUid).get()
     const agentData = agentDoc.data()
     if (agentData?.role === 'manager' && !hasActivePaidManagerAccess(agentData)) {
-      return NextResponse.json({ message: 'Un abonnement Manager actif et vérifié est requis.' }, { status: 403 })
+      return NextResponse.json(
+        { message: 'Un abonnement Manager actif et vérifié est requis.' },
+        { status: 403 }
+      )
     }
     if (!agentData || !['support_agent', 'manager', 'admin'].includes(agentData.role)) {
       return NextResponse.json({ message: 'Accès refusé' }, { status: 403 })
@@ -149,7 +156,6 @@ export async function POST(request: NextRequest) {
       createdAt: new Date(),
       updatedAt: new Date()
     }
-
 
     const docRef = await adminDb.collection('customer_tickets').add(ticketDoc)
     return NextResponse.json({ success: true, id: docRef.id }, { status: 201 })

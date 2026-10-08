@@ -34,7 +34,8 @@ export function SaveCompanyButton({ company }: Props) {
 
   async function handleSave() {
     if (!user || status === 'loading' || status === 'done' || status === 'duplicate') return
-    setStatus('loading'); setErrorMsg(null)
+    setStatus('loading')
+    setErrorMsg(null)
 
     const isOffline = isMobileRuntime() && typeof navigator !== 'undefined' && !navigator.onLine
 
@@ -109,12 +110,13 @@ export function SaveCompanyButton({ company }: Props) {
     }
   }
 
-
   const isDone = status === 'done' || status === 'duplicate'
   if (isDone) {
     return (
       <span className="whitespace-nowrap text-[12px] font-semibold text-blue-400 inline-flex items-center gap-1">
-        {status === 'duplicate' ? t('search.alreadySaved') : (
+        {status === 'duplicate' ? (
+          t('search.alreadySaved')
+        ) : (
           <>
             <Check size={13} strokeWidth={3} />
             <span>{t('search.saved')}</span>

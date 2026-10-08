@@ -79,7 +79,13 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
 
   if (!users.length) {
     return (
-      <p style={{ color: 'var(--muted-foreground, #94a3b8)', textAlign: 'center', padding: '32px 0' }}>
+      <p
+        style={{
+          color: 'var(--muted-foreground, #94a3b8)',
+          textAlign: 'center',
+          padding: '32px 0'
+        }}
+      >
         {t('team.noUserMatch') || 'Aucun utilisateur.'}
       </p>
     )
@@ -198,7 +204,9 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
               <td style={{ padding: '16px 12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   {(() => {
-                    const isSenior = (user.role as string) === 'senior_manager' || (user.role === 'manager' && user.orgRole === 'senior_manager')
+                    const isSenior =
+                      (user.role as string) === 'senior_manager' ||
+                      (user.role === 'manager' && user.orgRole === 'senior_manager')
                     return (
                       <Badge
                         variant={isSenior ? 'gold' : (roleBadge[user.role] ?? 'default')}
@@ -223,14 +231,20 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
               {/* Plan */}
               <td style={{ padding: '11px 12px' }}>
                 {(() => {
-                  const isInheritedAccount = user.role === 'member' || user.role === 'support_agent' || Boolean(user.managerId)
+                  const isInheritedAccount =
+                    user.role === 'member' ||
+                    user.role === 'support_agent' ||
+                    Boolean(user.managerId)
                   if (isInheritedAccount) {
                     return (
                       <div
                         title="Plan synchronisé et géré par le compte Manager"
                         style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
                       >
-                        <Badge variant={planBadge[user.plan] ?? 'default'} style={{ textTransform: 'uppercase' }}>
+                        <Badge
+                          variant={planBadge[user.plan] ?? 'default'}
+                          style={{ textTransform: 'uppercase' }}
+                        >
                           {user.plan}
                         </Badge>
                         <Link2 size={12} style={{ color: 'var(--muted-foreground, #64748b)' }} />
@@ -274,12 +288,19 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
               {/* Quota */}
               <td style={{ padding: '16px 12px', minWidth: 140 }}>
                 {(() => {
-                  const isInheritedAccount = user.role === 'member' || user.role === 'support_agent' || Boolean(user.managerId)
+                  const isInheritedAccount =
+                    user.role === 'member' ||
+                    user.role === 'support_agent' ||
+                    Boolean(user.managerId)
                   if (user.role === 'support_agent') {
                     return (
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ fontSize: 12, fontWeight: 700, color: '#10b981' }}>Illimité</span>
-                        <span style={{ fontSize: 10, color: 'var(--muted-foreground, #64748b)' }}>(Support)</span>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: '#10b981' }}>
+                          Illimité
+                        </span>
+                        <span style={{ fontSize: 10, color: 'var(--muted-foreground, #64748b)' }}>
+                          (Support)
+                        </span>
                       </div>
                     )
                   }
@@ -294,7 +315,13 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
                           marginBottom: 6
                         }}
                       >
-                        <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--foreground, #f1f5f9)' }}>
+                        <span
+                          style={{
+                            fontSize: 13,
+                            fontWeight: 800,
+                            color: 'var(--foreground, #f1f5f9)'
+                          }}
+                        >
                           {user.dailyUsed}
                           <span
                             style={{
@@ -329,8 +356,16 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
                           />
                         ) : (
                           <span
-                            title={isInheritedAccount ? 'Quota synchronisé depuis le compte Manager' : undefined}
-                            style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted-foreground, #94a3b8)' }}
+                            title={
+                              isInheritedAccount
+                                ? 'Quota synchronisé depuis le compte Manager'
+                                : undefined
+                            }
+                            style={{
+                              fontSize: 11,
+                              fontWeight: 700,
+                              color: 'var(--muted-foreground, #94a3b8)'
+                            }}
                           >
                             {user.dailyLimit}
                           </span>
@@ -373,7 +408,9 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
                   const sub = getSubscriptionStatus(user.subscriptionExpiresAt, user.plan)
                   if (sub.level === 'none') {
                     return (
-                      <span style={{ color: 'var(--muted-foreground, #94a3b8)', fontSize: 12 }}>—</span>
+                      <span style={{ color: 'var(--muted-foreground, #94a3b8)', fontSize: 12 }}>
+                        —
+                      </span>
                     )
                   }
                   return (
@@ -430,9 +467,17 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
                 })()}
               </td>
               {/* Région / Secteur */}
-              <td style={{ padding: '11px 12px', color: 'var(--muted-foreground, #94a3b8)', fontSize: 12 }}>
+              <td
+                style={{
+                  padding: '11px 12px',
+                  color: 'var(--muted-foreground, #94a3b8)',
+                  fontSize: 12
+                }}
+              >
                 <div>{user.region ?? '—'}</div>
-                <div style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)', marginTop: 2 }}>
+                <div
+                  style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)', marginTop: 2 }}
+                >
                   {user.sector ?? ''}
                 </div>
               </td>

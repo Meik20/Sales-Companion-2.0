@@ -59,6 +59,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Accès interdit.' }, { status: 403 })
     }
     console.error('Erreur suppression message support:', error)
-    return NextResponse.json({ error: 'Erreur lors de la suppression du message.' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Erreur lors de la suppression du message.' },
+      { status: 500 }
+    )
   }
 }

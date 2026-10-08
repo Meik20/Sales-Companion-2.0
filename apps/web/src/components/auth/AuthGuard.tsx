@@ -27,7 +27,8 @@ export function AuthGuard({ children }: PropsWithChildren) {
       pushToast({
         type: 'warning',
         title: 'Abonnement arrivé à échéance',
-        description: 'Votre compte est repassé au plan Gratuit. Les fonctionnalités réservées aux plans payants ont été restreintes.'
+        description:
+          'Votre compte est repassé au plan Gratuit. Les fonctionnalités réservées aux plans payants ont été restreintes.'
       })
 
       const paidOnlyPaths = ['/import', '/ai']
@@ -75,7 +76,6 @@ export function AuthGuard({ children }: PropsWithChildren) {
         })
         .catch(() => setFinalizing(false))
     }
-
   }, [user, loading])
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -98,7 +98,10 @@ export function AuthGuard({ children }: PropsWithChildren) {
   // ─────────────────────────────────────────────────────────────────────────
   const isSupportAgent = user?.role === 'support_agent'
   const restrictedPaths = ['/pipeline', '/reporting', '/search', '/saved']
-  const isRestrictedForSupport = isSupportAgent && (pathname === '/' || restrictedPaths.some(p => pathname === p || pathname.startsWith(p + '/')))
+  const isRestrictedForSupport =
+    isSupportAgent &&
+    (pathname === '/' ||
+      restrictedPaths.some((p) => pathname === p || pathname.startsWith(p + '/')))
 
   useEffect(() => {
     if (loading || !user) return
@@ -132,10 +135,16 @@ export function AuthGuard({ children }: PropsWithChildren) {
       if (!res.ok) throw new Error("Erreur de l'API")
 
       setResendCooldown(60)
-      setStatus({ type: 'success', message: 'Un nouvel email de vérification a été envoyé avec succès.' })
+      setStatus({
+        type: 'success',
+        message: 'Un nouvel email de vérification a été envoyé avec succès.'
+      })
     } catch (error: any) {
       console.error("Erreur d'envoi de l'email de vérification :", error)
-      setStatus({ type: 'error', message: "Une erreur est survenue lors de l'envoi. Veuillez réessayer." })
+      setStatus({
+        type: 'error',
+        message: "Une erreur est survenue lors de l'envoi. Veuillez réessayer."
+      })
     } finally {
       setResendLoading(false)
     }
@@ -150,7 +159,11 @@ export function AuthGuard({ children }: PropsWithChildren) {
   if (loading && !user) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background text-muted-foreground">
-        <style dangerouslySetInnerHTML={{ __html: `@keyframes spin { to { transform: rotate(360deg); } }` }} />
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `@keyframes spin { to { transform: rotate(360deg); } }`
+          }}
+        />
         <span
           className="inline-block h-8 w-8 rounded-full border-[3px] border-white/10"
           style={{ borderTopColor: 'hsl(var(--primary))', animation: 'spin 0.8s linear infinite' }}
@@ -169,10 +182,14 @@ export function AuthGuard({ children }: PropsWithChildren) {
   if (isPending && !firebaseEmailVerified && !finalizing) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background px-4 py-6">
-        <style dangerouslySetInnerHTML={{ __html: `
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
           @keyframes spin { to { transform: rotate(360deg); } }
           @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.5;} }
-        ` }} />
+        `
+          }}
+        />
         <div className="w-full max-w-[440px] rounded-[20px] border border-border bg-card p-10 text-center shadow-[0_20px_60px_rgba(0,0,0,0.4)]">
           <ScIcon size={44} style={{ marginBottom: 16, display: 'block', margin: '0 auto 16px' }} />
 
@@ -194,18 +211,24 @@ export function AuthGuard({ children }: PropsWithChildren) {
           <div className="mb-5 rounded-[10px] border border-primary/15 bg-primary/5 px-4 py-3.5 text-left text-[13px] leading-relaxed text-muted-foreground">
             <strong className="text-foreground">Étapes :</strong>
             <ol className="mb-0 mt-2 pl-4">
-              <li>Ouvrez l&apos;email de <strong>Sales Companion 2.0</strong></li>
-              <li>Cliquez sur <strong>« Vérifier mon adresse email »</strong></li>
+              <li>
+                Ouvrez l&apos;email de <strong>Sales Companion 2.0</strong>
+              </li>
+              <li>
+                Cliquez sur <strong>« Vérifier mon adresse email »</strong>
+              </li>
               <li>Revenez ici — votre accès s&apos;ouvrira automatiquement</li>
             </ol>
           </div>
 
           {status && (
-            <div className={`mb-4 rounded-[10px] border px-3.5 py-2.5 text-center text-[13px] ${
-              status.type === 'success'
-                ? 'border-blue-500/30 bg-blue-500/10 text-blue-400'
-                : 'border-red-500/30 bg-red-500/10 text-red-400'
-            }`}>
+            <div
+              className={`mb-4 rounded-[10px] border px-3.5 py-2.5 text-center text-[13px] ${
+                status.type === 'success'
+                  ? 'border-blue-500/30 bg-blue-500/10 text-blue-400'
+                  : 'border-red-500/30 bg-red-500/10 text-red-400'
+              }`}
+            >
               {status.message}
             </div>
           )}
@@ -219,7 +242,9 @@ export function AuthGuard({ children }: PropsWithChildren) {
               size={14}
               style={{ animation: resendLoading ? 'spin 1s linear infinite' : 'none' }}
             />
-            {resendCooldown > 0 ? `Renvoyer dans ${resendCooldown}s` : "Renvoyer l'email de vérification"}
+            {resendCooldown > 0
+              ? `Renvoyer dans ${resendCooldown}s`
+              : "Renvoyer l'email de vérification"}
           </button>
 
           <p className="mt-3.5 text-[11px] text-muted-foreground/60">
@@ -264,18 +289,21 @@ export function AuthGuard({ children }: PropsWithChildren) {
           <p className="mb-6 mt-0 flex items-center justify-center gap-1.5 text-[13px] leading-relaxed text-muted-foreground">
             <Clock size={13} className="shrink-0 text-primary" />
             <span>
-              Cette page se met à jour <strong>automatiquement</strong> dès que votre compte est activé.
-              Vous n&apos;avez rien à faire.
+              Cette page se met à jour <strong>automatiquement</strong> dès que votre compte est
+              activé. Vous n&apos;avez rien à faire.
             </span>
           </p>
 
           <div className="mb-5 flex items-center justify-center gap-2 rounded-[10px] border border-amber-500/20 bg-amber-500/6 px-4 py-3 text-[12px] leading-relaxed text-amber-500">
             <Mail size={14} className="shrink-0 text-amber-500" />
-            <span>Vous recevrez un email de confirmation une fois votre compte activé par l&apos;équipe Sales Companion 2.0.</span>
+            <span>
+              Vous recevrez un email de confirmation une fois votre compte activé par l&apos;équipe
+              Sales Companion 2.0.
+            </span>
           </div>
 
           <button
-            onClick={() => window.location.href = '/upgrade?from=register'}
+            onClick={() => (window.location.href = '/upgrade?from=register')}
             className="flex h-[42px] w-full cursor-pointer items-center justify-center gap-2 rounded-[10px] border border-border bg-transparent text-[13px] text-muted-foreground transition-all duration-150 hover:bg-secondary"
           >
             Modifier ma demande de paiement
@@ -288,7 +316,11 @@ export function AuthGuard({ children }: PropsWithChildren) {
   if (isRestrictedForSupport) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background text-muted-foreground">
-        <style dangerouslySetInnerHTML={{ __html: `@keyframes spin { to { transform: rotate(360deg); } }` }} />
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `@keyframes spin { to { transform: rotate(360deg); } }`
+          }}
+        />
         <span
           className="inline-block h-8 w-8 rounded-full border-[3px] border-white/10"
           style={{ borderTopColor: 'hsl(var(--primary))', animation: 'spin 0.8s linear infinite' }}

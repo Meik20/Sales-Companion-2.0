@@ -19,7 +19,7 @@ export default function AdminPaymentsPage() {
   async function handleValidate(reference: string) {
     const confirmed = window.confirm(
       t('admin.paymentConfirmValidate') ||
-        'Voulez-vous vraiment valider ce paiement ? Cela activera immédiatement le plan correspondant pour l\'utilisateur.'
+        "Voulez-vous vraiment valider ce paiement ? Cela activera immédiatement le plan correspondant pour l'utilisateur."
     )
     if (!confirmed) return
 

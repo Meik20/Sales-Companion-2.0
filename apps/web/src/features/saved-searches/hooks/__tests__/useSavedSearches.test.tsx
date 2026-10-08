@@ -69,4 +69,3 @@ describe('useSavedSearches', () => {
     expect(result.current.data).toHaveLength(0)
   })
 })
-

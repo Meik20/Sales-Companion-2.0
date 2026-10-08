@@ -32,14 +32,9 @@ export function PublicNav({ activePage, backLink }: PublicNavProps) {
           className="flex items-center gap-2.5 group shrink-0"
           aria-label="Sales Companion 2.0 — Accueil"
         >
-          <ScIcon
-            size={34}
-            interactive
-            className="group-hover:scale-105 transition-transform"
-          />
+          <ScIcon size={34} interactive className="group-hover:scale-105 transition-transform" />
           <span className="font-heading text-[15px] font-semibold tracking-tight text-foreground">
-            Sales Companion{' '}
-            <span className="text-[#1B7A3E]">2.0</span>
+            Sales Companion <span className="text-[#1B7A3E]">2.0</span>
           </span>
         </Link>
 

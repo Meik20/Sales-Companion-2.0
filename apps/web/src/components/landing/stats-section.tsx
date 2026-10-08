@@ -12,7 +12,7 @@ export function StatsSection() {
   const stats = [
     {
       icon: Building2,
-      value: country.code === 'CM' ? country.companyCount : (isEn ? 'Growing' : 'En expansion'),
+      value: country.code === 'CM' ? country.companyCount : isEn ? 'Growing' : 'En expansion',
       label: isEn ? 'Listed companies' : 'Entreprises référencées',
       desc: isEn ? 'Structured & updated B2B data' : 'Données B2B structurées et à jour'
     },
@@ -20,13 +20,15 @@ export function StatsSection() {
       icon: Layers,
       value: '30+',
       label: isEn ? 'Business sectors' : 'Secteurs d’activité',
-      desc: isEn ? 'Construction, Agro, Tech, Services...' : 'BTP, Agro, Négoce, Services, Industrie...'
+      desc: isEn
+        ? 'Construction, Agro, Tech, Services...'
+        : 'BTP, Agro, Négoce, Services, Industrie...'
     },
     {
       icon: MapPin,
       value: String(country.regions),
       label: isEn ? 'Regions & main hubs' : 'Régions & métropoles',
-      desc: country.cities.join(', '),
+      desc: country.cities.join(', ')
     },
     {
       icon: Smartphone,

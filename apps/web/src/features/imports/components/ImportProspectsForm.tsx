@@ -39,11 +39,12 @@ type Props = {
  */
 function normalizeHeader(raw: string): string {
   return raw
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // strip accents
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // strip accents
     .toLowerCase()
-    .replace(/['\'\-]/g, '')                          // remove apostrophes / hyphens
-    .replace(/[^a-z0-9]+/g, '_')                      // non-alphanum → underscore
-    .replace(/^_+|_+$/g, '')                           // trim underscores
+    .replace(/['\'\-]/g, '') // remove apostrophes / hyphens
+    .replace(/[^a-z0-9]+/g, '_') // non-alphanum → underscore
+    .replace(/^_+|_+$/g, '') // trim underscores
 }
 
 /** Table de correspondance : clé normalisée → champ canonique */
@@ -105,7 +106,7 @@ const HEADER_ALIASES: Record<string, string> = {
   remarque: 'notes',
   commentaire: 'notes',
   observations: 'notes',
-  description: 'notes',
+  description: 'notes'
 }
 
 /** Résout un header brut vers le champ canonique (name/phone/email/city/sector/notes) */
@@ -132,9 +133,7 @@ function parseCSV(text: string): ParsedRow[] {
     }
   }
 
-  const raw_headers = headerLine
-    .split(sep)
-    .map((h) => h.replace(/^["'`]|["'`]$/g, '').trim())
+  const raw_headers = headerLine.split(sep).map((h) => h.replace(/^["'`]|["'`]$/g, '').trim())
 
   // Mapper les headers vers les colonnes attendues via normalisation
   const mapped = raw_headers.map(resolveHeader)
@@ -174,9 +173,9 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
     setError(null)
     setSuccess(null)
     setRows([])
-    
+
     const isExcel = file.name.match(/\.(xlsx|xls)$/i)
-    
+
     // Accepter tous les formats texte courants + Excel
     if (
       !file.type.startsWith('text/') &&
@@ -186,21 +185,21 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
       setError(t('team.errorFormat'))
       return
     }
-    
+
     setFileName(file.name)
     const reader = new FileReader()
-    
+
     reader.onload = async (e) => {
       try {
         let parsed: ParsedRow[] = []
-        
+
         if (isExcel) {
           const buffer = e.target?.result as ArrayBuffer
           const ExcelJS = await import('exceljs')
           const workbook = new ExcelJS.Workbook()
           await workbook.xlsx.load(buffer)
           const sheet = workbook.worksheets[0]
-          
+
           if (sheet) {
             let headers: string[] = []
             sheet.eachRow((row, rowNumber) => {
@@ -216,11 +215,9 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
 
               if (rowNumber === 1) {
                 // Appliquer la même normalisation que pour CSV
-                headers = values.slice(1).map((v) =>
-                  (v != null ? String(v) : '')
-                    .replace(/^["'`]|["'`]$/g, '')
-                    .trim()
-                )
+                headers = values
+                  .slice(1)
+                  .map((v) => (v != null ? String(v) : '').replace(/^["'`]|["'`]$/g, '').trim())
                 return
               }
 
@@ -285,7 +282,7 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
         setError(t('team.errorRead'))
       }
     }
-    
+
     if (isExcel) {
       reader.readAsArrayBuffer(file)
     } else {
@@ -353,19 +350,35 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
         }}
       >
         <div style={{ marginBottom: 8, display: 'flex', justifyContent: 'center' }}>
-          {rows.length
-            ? <CheckCircle2 size={32} strokeWidth={1.5} style={{ color: '#22c55e' }} />
-            : <FolderOpen size={32} strokeWidth={1.5} style={{ color: 'var(--muted-foreground, #94a3b8)', opacity: 0.6 }} />
-          }
+          {rows.length ? (
+            <CheckCircle2 size={32} strokeWidth={1.5} style={{ color: '#22c55e' }} />
+          ) : (
+            <FolderOpen
+              size={32}
+              strokeWidth={1.5}
+              style={{ color: 'var(--muted-foreground, #94a3b8)', opacity: 0.6 }}
+            />
+          )}
         </div>
         {fileName ? (
-          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--foreground, #f1f5f9)' }}>{fileName}</div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--foreground, #f1f5f9)' }}>
+            {fileName}
+          </div>
         ) : (
           <>
-            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--foreground, #f1f5f9)', marginBottom: 4 }}>
+            <div
+              style={{
+                fontSize: 13,
+                fontWeight: 600,
+                color: 'var(--foreground, #f1f5f9)',
+                marginBottom: 4
+              }}
+            >
               {t('team.dragDrop')}
             </div>
-            <div style={{ fontSize: 12, color: 'var(--muted-foreground, #94a3b8)' }}>{t('team.orClick')}</div>
+            <div style={{ fontSize: 12, color: 'var(--muted-foreground, #94a3b8)' }}>
+              {t('team.orClick')}
+            </div>
           </>
         )}
         {rows.length > 0 && (
@@ -398,18 +411,35 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, marginBottom: 4 }}>
-          <FileText size={13} strokeWidth={2} style={{ color: 'var(--muted-foreground, #94a3b8)', marginTop: 1, flexShrink: 0 }} />
-          <span><strong>{t('team.supportedFormats')}</strong> CSV, TSV, TXT, XLSX, XLS, JSON, etc.</span>
+          <FileText
+            size={13}
+            strokeWidth={2}
+            style={{ color: 'var(--muted-foreground, #94a3b8)', marginTop: 1, flexShrink: 0 }}
+          />
+          <span>
+            <strong>{t('team.supportedFormats')}</strong> CSV, TSV, TXT, XLSX, XLS, JSON, etc.
+          </span>
         </div>
         <br />
         <strong>{t('team.autoSeparators')}</strong> {t('team.separatorsList')}
         <br />
-        <code style={{ fontSize: 11, background: 'var(--secondary, #1e2a3b)', padding: '1px 4px', borderRadius: 3 }}>
+        <code
+          style={{
+            fontSize: 11,
+            background: 'var(--secondary, #1e2a3b)',
+            padding: '1px 4px',
+            borderRadius: 3
+          }}
+        >
           {t('team.exampleColumns')}
         </code>
         <br />
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, marginTop: 4 }}>
-          <Info size={12} strokeWidth={2} style={{ color: 'var(--muted-foreground, #94a3b8)', marginTop: 1, flexShrink: 0 }} />
+          <Info
+            size={12}
+            strokeWidth={2}
+            style={{ color: 'var(--muted-foreground, #94a3b8)', marginTop: 1, flexShrink: 0 }}
+          />
           <span>{t('team.flexibleColumns')}</span>
         </div>
       </div>
@@ -426,10 +456,14 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
             color: '#ef4444'
           }}
         >
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-          <AlertTriangle size={14} strokeWidth={2} style={{ color: '#ef4444', marginTop: 1, flexShrink: 0 }} />
-          <span>{error}</span>
-        </div>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+            <AlertTriangle
+              size={14}
+              strokeWidth={2}
+              style={{ color: '#ef4444', marginTop: 1, flexShrink: 0 }}
+            />
+            <span>{error}</span>
+          </div>
         </div>
       )}
       {success && (
@@ -443,17 +477,28 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
             color: '#3b82f6'
           }}
         >
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-          <CheckCircle2 size={14} strokeWidth={2} style={{ color: '#3b82f6', marginTop: 1, flexShrink: 0 }} />
-          <span>{success}</span>
-        </div>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+            <CheckCircle2
+              size={14}
+              strokeWidth={2}
+              style={{ color: '#3b82f6', marginTop: 1, flexShrink: 0 }}
+            />
+            <span>{success}</span>
+          </div>
         </div>
       )}
 
       {/* Aperçu (5 premières lignes) */}
       {rows.length > 0 && (
         <div>
-          <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted-foreground, #94a3b8)', marginBottom: 8 }}>
+          <div
+            style={{
+              fontSize: 12,
+              fontWeight: 600,
+              color: 'var(--muted-foreground, #94a3b8)',
+              marginBottom: 8
+            }}
+          >
             {t('team.preview')} ({Math.min(rows.length, 5)} / {rows.length})
           </div>
           <div style={{ overflowX: 'auto' }}>
@@ -486,8 +531,13 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
               </thead>
               <tbody>
                 {rows.slice(0, 5).map((row, i) => (
-                  <tr key={i} style={{ borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}` }}>
-                    <td style={{ padding: '6px 10px', color: 'var(--foreground, #f1f5f9)' }}>{row.name || '—'}</td>
+                  <tr
+                    key={i}
+                    style={{ borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}` }}
+                  >
+                    <td style={{ padding: '6px 10px', color: 'var(--foreground, #f1f5f9)' }}>
+                      {row.name || '—'}
+                    </td>
                     <td style={{ padding: '6px 10px', color: 'var(--muted-foreground, #94a3b8)' }}>
                       {row.phone || '—'}
                     </td>
@@ -518,7 +568,9 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
             height: 40,
             borderRadius: 10,
             background:
-              rows.length > 0 ? 'linear-gradient(135deg, #1b7a3e, #137333)' : 'var(--border, rgba(255,255,255,0.1))',
+              rows.length > 0
+                ? 'linear-gradient(135deg, #1b7a3e, #137333)'
+                : 'var(--border, rgba(255,255,255,0.1))',
             color: rows.length > 0 ? '#fff' : 'var(--muted-foreground, #94a3b8)',
             border: 'none',
             cursor: rows.length > 0 ? 'pointer' : 'not-allowed',
@@ -529,14 +581,19 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
           }}
         >
           {loading ? (
-            <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+            <span
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}
+            >
               <Loader2 size={14} strokeWidth={2} style={{ animation: 'spin 1s linear infinite' }} />
               {t('team.importing')}
             </span>
           ) : (
-            <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+            <span
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}
+            >
               <Upload size={14} strokeWidth={2} />
-              {t('team.importBtn')}{rows.length > 0 ? ` (${rows.length})` : ''}
+              {t('team.importBtn')}
+              {rows.length > 0 ? ` (${rows.length})` : ''}
             </span>
           )}
         </button>

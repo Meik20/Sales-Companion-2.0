@@ -4,7 +4,6 @@ import { getClientIp, checkRateLimit, checkRateLimitByUser } from '@/lib/rate-li
 import { PLAN_LIMITS, COUNTRY_NAMES } from '@sales-companion/shared'
 import { getCachedCompanies } from '@/lib/company-search'
 
-
 // Lazy import pour éviter les erreurs si firebase-admin ne s'initialise pas
 async function getAdminModules() {
   const { adminDb, adminAuth } = await import('@/lib/firebase-admin')
@@ -18,7 +17,10 @@ async function getAdminModules() {
  * Recherche dans la collection Firestore "companies" importée par l'admin.
  * Déduit 1 crédit par recherche pour l'utilisateur authentifié.
  */
-const COUNTRY_BOUNDS: Record<string, { minLat: number; maxLat: number; minLng: number; maxLng: number }> = {
+const COUNTRY_BOUNDS: Record<
+  string,
+  { minLat: number; maxLat: number; minLng: number; maxLng: number }
+> = {
   CM: { minLat: 1.5, maxLat: 13.2, minLng: 8.0, maxLng: 16.3 },
   SN: { minLat: 12.2, maxLat: 16.8, minLng: -17.8, maxLng: -11.2 },
   CI: { minLat: 4.2, maxLat: 10.8, minLng: -8.7, maxLng: -2.4 },
@@ -30,7 +32,13 @@ const COUNTRY_BOUNDS: Record<string, { minLat: number; maxLat: number; minLng: n
 
 function isWithinCountry(lat: number, lng: number, country: string) {
   const bounds = COUNTRY_BOUNDS[country]
-  return Boolean(bounds && lat >= bounds.minLat && lat <= bounds.maxLat && lng >= bounds.minLng && lng <= bounds.maxLng)
+  return Boolean(
+    bounds &&
+    lat >= bounds.minLat &&
+    lat <= bounds.maxLat &&
+    lng >= bounds.minLng &&
+    lng <= bounds.maxLng
+  )
 }
 
 export async function GET(request: NextRequest) {
@@ -40,13 +48,15 @@ export async function GET(request: NextRequest) {
     const ipLimit = await checkRateLimit(ip, { limit: 60, windowMs: 60 * 1000 })
     if (!ipLimit.success) {
       return NextResponse.json(
-        { error: 'Trop de requêtes depuis cette adresse IP. Veuillez réessayer dans une minute.', message: 'Rate limit exceeded' },
+        {
+          error: 'Trop de requêtes depuis cette adresse IP. Veuillez réessayer dans une minute.',
+          message: 'Rate limit exceeded'
+        },
         { status: 429 }
       )
     }
 
     const { adminDb, adminAuth } = await getAdminModules()
-
 
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1')
@@ -82,7 +92,10 @@ export async function GET(request: NextRequest) {
       const userLimit = await checkRateLimitByUser(userId, { limit: 30, windowMs: 60 * 1000 })
       if (!userLimit.success) {
         return NextResponse.json(
-          { error: 'Trop de requêtes pour votre compte. Veuillez ralentir.', message: 'Rate limit exceeded' },
+          {
+            error: 'Trop de requêtes pour votre compte. Veuillez ralentir.',
+            message: 'Rate limit exceeded'
+          },
           { status: 429 }
         )
       }
@@ -119,13 +132,11 @@ export async function GET(request: NextRequest) {
       const currentDailyUsed = await ensureDailyReset(userRef, userData)
 
       if (currentDailyUsed >= dailyLimit) {
-        const quotaMessage = plan === 'free'
-          ? `Quota mensuel épuisé (${dailyLimit} crédits).`
-          : `Quota journalier épuisé (${dailyLimit} crédits).`
-        return NextResponse.json(
-          { error: quotaMessage, message: quotaMessage },
-          { status: 429 }
-        )
+        const quotaMessage =
+          plan === 'free'
+            ? `Quota mensuel épuisé (${dailyLimit} crédits).`
+            : `Quota journalier épuisé (${dailyLimit} crédits).`
+        return NextResponse.json({ error: quotaMessage, message: quotaMessage }, { status: 429 })
       }
       await userRef.update({ dailyUsed: currentDailyUsed + 1 })
     }
@@ -163,17 +174,17 @@ export async function GET(request: NextRequest) {
                   : normalize(place.formatted_address || '').includes(normalize(countryName))
               })
               .map((place: any) => ({
-              id: place.place_id,
-              raisonSociale: place.name,
-              adresse: place.formatted_address || place.vicinity || '',
-              city: place.vicinity || '',
-              sector: place.types?.join(', ') || sector || '',
-              region: region || '',
-              country: userCountry,
-              _source: 'google_places',
-              googlePlaceId: place.place_id,
-              rating: place.rating,
-              telephone: ''
+                id: place.place_id,
+                raisonSociale: place.name,
+                adresse: place.formatted_address || place.vicinity || '',
+                city: place.vicinity || '',
+                sector: place.types?.join(', ') || sector || '',
+                region: region || '',
+                country: userCountry,
+                _source: 'google_places',
+                googlePlaceId: place.place_id,
+                rating: place.rating,
+                telephone: ''
               }))
           }
         }
@@ -342,7 +353,8 @@ export async function GET(request: NextRequest) {
       if (nComp.includes(nTarget) || nTarget.includes(nComp)) return true
 
       for (const [groupKey, keywords] of Object.entries(SECTOR_SYNONYMS)) {
-        const targetBelongs = keywords.some((kw) => nTarget.includes(kw)) || nTarget.includes(groupKey)
+        const targetBelongs =
+          keywords.some((kw) => nTarget.includes(kw)) || nTarget.includes(groupKey)
         if (targetBelongs) {
           if (keywords.some((kw) => nComp.includes(kw))) {
             return true
@@ -435,8 +447,12 @@ export async function GET(request: NextRequest) {
       }
 
       // Pénalité pour les points relais / TPE / guichets bancaires lorsqu'on cherche une activité spécifique
-      const isPosOrAtm = /pos|tpe|guichet|distributeur|atm/i.test(nameNorm) || /banque|microfinance/i.test(sectorNorm)
-      const isHealthQuery = queryTokens.some((t) => /pharmaci|sante|medic|soin|hopital|clinique/i.test(t))
+      const isPosOrAtm =
+        /pos|tpe|guichet|distributeur|atm/i.test(nameNorm) ||
+        /banque|microfinance/i.test(sectorNorm)
+      const isHealthQuery = queryTokens.some((t) =>
+        /pharmaci|sante|medic|soin|hopital|clinique/i.test(t)
+      )
       if (isPosOrAtm && isHealthQuery) {
         score -= 120
       }
@@ -463,10 +479,7 @@ export async function GET(request: NextRequest) {
     })
 
     // ── 4. Filtrage intelligent & scoring ──
-    const matchLocationKeywords = (
-      dataValue: string,
-      filterValue: string
-    ) => {
+    const matchLocationKeywords = (dataValue: string, filterValue: string) => {
       const nData = normalize(dataValue)
       const kws = normalize(filterValue)
         .split(/[\s&/]+/)
@@ -486,9 +499,7 @@ export async function GET(request: NextRequest) {
       )
     }
     if (sector) {
-      internalCompanies = internalCompanies.filter((c) =>
-        matchesSector(c.sector as string, sector)
-      )
+      internalCompanies = internalCompanies.filter((c) => matchesSector(c.sector as string, sector))
     }
 
     const normQuery = query ? normalize(query) : ''
@@ -525,7 +536,9 @@ export async function GET(request: NextRequest) {
     const allCompanies = [...internalCompanies, ...googleResults]
 
     if (queryTokens.length > 0) {
-      allCompanies.sort((a, b) => ((b._searchScore as number) ?? 0) - ((a._searchScore as number) ?? 0))
+      allCompanies.sort(
+        (a, b) => ((b._searchScore as number) ?? 0) - ((a._searchScore as number) ?? 0)
+      )
     }
 
     // ── 6. Pagination (Plafond factuel fixé à 10 résultats par requête) ──
@@ -533,7 +546,6 @@ export async function GET(request: NextRequest) {
     const start = (page - 1) * pageSize
     const end = start + pageSize
     const paginatedCompanies = allCompanies.slice(start, end)
-
 
     // ── Enregistrement de la recherche pour les stats admin (toujours) ──
     try {

@@ -39,8 +39,15 @@ type Props = {
 const CRM_STATUSES = Object.keys(CRM_STATUS_CONFIG) as CrmClientStatus[]
 
 export function CrmTable({
-  clients, onSelect, onStatusChange, onNextActionSave, onDelete,
-  page, pageSize, totalCount, onPageChange
+  clients,
+  onSelect,
+  onStatusChange,
+  onNextActionSave,
+  onDelete,
+  page,
+  pageSize,
+  totalCount,
+  onPageChange
 }: Props) {
   const { t } = useTranslation()
   const { user } = useCurrentUser()
@@ -78,7 +85,11 @@ export function CrmTable({
 
   function formatDate(iso?: string) {
     if (!iso) return '—'
-    return new Date(iso).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit', year: '2-digit' })
+    return new Date(iso).toLocaleDateString(undefined, {
+      day: '2-digit',
+      month: '2-digit',
+      year: '2-digit'
+    })
   }
 
   function formatRelative(iso?: string) {
@@ -126,8 +137,13 @@ export function CrmTable({
               t('crm.table.colLastActivity'),
               t('crm.table.colNextAction'),
               t('crm.table.colActions')
-            ].map(col => (
-              <span key={col} className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{col}</span>
+            ].map((col) => (
+              <span
+                key={col}
+                className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground"
+              >
+                {col}
+              </span>
             ))}
           </div>
 
@@ -140,221 +156,262 @@ export function CrmTable({
               description={t('crm.noResultDesc')}
               className="py-12"
             />
-          ) : clients.map((client, i) => {
-            const isPipelineClient = client._source === 'pipeline'
-            const canDelete = !(isSupportAgent && isPipelineClient)
-            // Pipeline-sourced clients are already CONCLU (Customer) — support agent cannot change their status
-            const isStatusLocked = isSupportAgent && isPipelineClient
+          ) : (
+            clients.map((client, i) => {
+              const isPipelineClient = client._source === 'pipeline'
+              const canDelete = !(isSupportAgent && isPipelineClient)
+              // Pipeline-sourced clients are already CONCLU (Customer) — support agent cannot change their status
+              const isStatusLocked = isSupportAgent && isPipelineClient
 
-            return (
-            <div
-              key={client.id}
-              className={`group grid grid-cols-[1.8fr_1.1fr_0.9fr_1.2fr_1.8fr_148px] items-center gap-3 px-4 py-3.5 transition-colors hover:bg-secondary/20 ${i === clients.length - 1 ? 'rounded-b-xl' : 'border-b border-border'}`}
-            >
-            {/* Company */}
-            <div
-              className="cursor-pointer min-w-0"
-              onClick={() => onSelect(client)}
-            >
-              <p className="truncate text-[13px] font-bold text-foreground group-hover:text-primary transition-colors">
-                {client.companyName}
-              </p>
-              <p className="truncate text-[11px] text-muted-foreground mt-0.5">
-                {[client.companyCity, client.companySector].filter(Boolean).join(' · ') || '—'}
-              </p>
-            </div>
-
-            {/* Contact */}
-            <div className="min-w-0">
-              {client.companyPhone ? (
-                <a
-                  href={`tel:${client.companyPhone}`}
-                  className="inline-flex items-center gap-1.5 truncate text-[12px] text-primary hover:underline"
-                  onClick={e => e.stopPropagation()}
-                >
-                  <Phone size={12} strokeWidth={2} className="shrink-0 opacity-70" />
-                  <span className="truncate">{client.companyPhone}</span>
-                </a>
-              ) : (
-                <span className="text-[12px] text-muted-foreground">—</span>
-              )}
-              {client.contactName && (
-                <p className="truncate text-[11px] text-muted-foreground mt-0.5">{client.contactName}</p>
-              )}
-            </div>
-
-            {/* Status */}
-            <div className="relative">
-              {isStatusLocked ? (
-                // Pipeline-concluded clients: status is locked for support agents
+              return (
                 <div
-                  title="Ce client est déjà CONCLU dans le pipeline — son statut ne peut pas être modifié"
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'not-allowed', opacity: 0.85 }}
+                  key={client.id}
+                  className={`group grid grid-cols-[1.8fr_1.1fr_0.9fr_1.2fr_1.8fr_148px] items-center gap-3 px-4 py-3.5 transition-colors hover:bg-secondary/20 ${i === clients.length - 1 ? 'rounded-b-xl' : 'border-b border-border'}`}
                 >
-                  <CrmStatusBadge status={client.status as CrmClientStatus} />
-                  <Lock size={11} style={{ color: 'var(--muted-foreground, #94a3b8)', flexShrink: 0 }} />
-                </div>
-              ) : (
-              <button
-                onClick={(e) => {
-                  if (statusPopup?.id === client.id) {
-                    setStatusPopup(null)
-                  } else {
-                    const rect = e.currentTarget.getBoundingClientRect()
-                    const DROPDOWN_HEIGHT = 200
-                    const spaceBelow = window.innerHeight - rect.bottom
-                    const openUp = spaceBelow < DROPDOWN_HEIGHT + 16
-                    setStatusPopup({
-                      id: client.id,
-                      top: openUp ? rect.top : rect.bottom + 6,
-                      left: rect.left,
-                      openUp,
-                    })
-                  }
-                }}
-                className="cursor-pointer transition-opacity hover:opacity-80"
-              >
-                <CrmStatusBadge status={client.status as CrmClientStatus} />
-              </button>
-              )}
-            </div>
-
-            {/* Last activity */}
-            <div className="min-w-0">
-              {client.lastActivityAt ? (
-                <>
-                  <p className="text-[12px] font-semibold text-foreground">{formatRelative(client.lastActivityAt)}</p>
-                  {client.lastActivityTitle && (
-                    <p className="mt-0.5 truncate text-[11px] text-muted-foreground" title={client.lastActivityTitle}>{client.lastActivityTitle}</p>
-                  )}
-                </>
-              ) : (
-                <span className="text-[12px] text-muted-foreground">—</span>
-              )}
-            </div>
-
-            {/* Next action */}
-            <div className="min-w-0">
-              {editingAction === client.id ? (
-                <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
-                  <input
-                    autoFocus
-                    value={actionDraft}
-                    onChange={e => setActionDraft(e.target.value)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter') void handleSaveAction(client.id)
-                      if (e.key === 'Escape') { setEditingAction(null); setActionDraft('') }
-                    }}
-                    placeholder={t('crm.table.nextActionPlaceholder')}
-                    className="min-w-0 flex-1 rounded-lg border border-primary bg-background px-2.5 py-1 text-[12px] text-foreground outline-none shadow-sm focus:ring-1 focus:ring-primary"
-                  />
-                  <button
-                    type="button"
-                    disabled={savingAction === client.id}
-                    onClick={() => void handleSaveAction(client.id)}
-                    title={t('common.confirm')}
-                    aria-label={t('common.confirm')}
-                    className="flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
-                  >
-                    {savingAction === client.id ? (
-                      <span className="text-[11px] leading-none">…</span>
-                    ) : (
-                      <Check size={13} strokeWidth={2.5} />
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setEditingAction(null); setActionDraft('') }}
-                    title={t('common.cancel')}
-                    aria-label={t('common.cancel')}
-                    className="flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
-                  >
-                    <X size={13} strokeWidth={2.5} />
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={e => { e.stopPropagation(); setEditingAction(client.id); setActionDraft(client.nextAction || '') }}
-                  className="group/next flex w-full cursor-pointer items-start gap-1 text-left"
-                >
-                  {client.nextAction ? (
-                    <span className={`line-clamp-2 text-[12px] font-medium transition-colors group-hover/next:text-primary ${isOverdue(client.nextActionAt) ? 'text-red-500 dark:text-red-400' : 'text-foreground'}`}>
-                      {isOverdue(client.nextActionAt) && (
-                        <AlertCircle size={12} strokeWidth={2.5} className="inline mr-1 text-red-500 shrink-0 align-middle" />
-                      )}
-                      {client.nextAction}
-                      {client.nextActionAt && (
-                        <span className="ml-1 text-[10px] font-normal text-muted-foreground">({formatDate(client.nextActionAt)})</span>
-                      )}
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 text-[12px] text-muted-foreground/60 italic group-hover/next:text-primary">
-                      <Plus size={12} strokeWidth={2} />
-                      {t('crm.table.addNextAction')}
-                    </span>
-                  )}
-                </button>
-              )}
-            </div>
-
-            {/* Actions */}
-            <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
-              <ActionBtn
-                icon={<Eye size={14} strokeWidth={1.8} />}
-                label={t('crm.table.view')}
-                color="var(--color-accent)"
-                onClick={() => onSelect(client)}
-              />
-              <ActionBtn
-                icon={<PhoneCall size={14} strokeWidth={1.8} />}
-                label={t('crm.table.call')}
-                color="#22c55e"
-                onClick={() => {
-                  const phone = client.companyPhone?.replace(/\s+/g, '')
-                  if (phone) window.open(`tel:${phone}`, '_blank')
-                }}
-              />
-              <ActionBtn
-                icon={<Mail size={14} strokeWidth={1.8} />}
-                label="Envoyer un email"
-                color="#6366f1"
-                onClick={() => setContactModal(client)}
-              />
-              {canDelete && (
-                confirmDelete === client.id ? (
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => { onDelete(client.id); setConfirmDelete(null) }}
-                      title={t('common.confirm')}
-                      aria-label={t('common.confirm')}
-                      className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-red-500/40 bg-red-500/15 text-red-500 transition-colors hover:bg-red-500/25"
-                    >
-                      <Check size={13} strokeWidth={2.5} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setConfirmDelete(null)}
-                      title={t('common.cancel')}
-                      aria-label={t('common.cancel')}
-                      className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-border bg-transparent text-muted-foreground transition-colors hover:bg-secondary"
-                    >
-                      <X size={13} strokeWidth={2.5} />
-                    </button>
+                  {/* Company */}
+                  <div className="cursor-pointer min-w-0" onClick={() => onSelect(client)}>
+                    <p className="truncate text-[13px] font-bold text-foreground group-hover:text-primary transition-colors">
+                      {client.companyName}
+                    </p>
+                    <p className="truncate text-[11px] text-muted-foreground mt-0.5">
+                      {[client.companyCity, client.companySector].filter(Boolean).join(' · ') ||
+                        '—'}
+                    </p>
                   </div>
-                ) : (
-                  <ActionBtn
-                    icon={<Trash2 size={14} strokeWidth={1.8} />}
-                    label={t('crm.table.delete')}
-                    color="#ef4444"
-                    onClick={() => setConfirmDelete(client.id)}
-                  />
-                )
-              )}
-            </div>
-          </div>
-          )
-        })}
+
+                  {/* Contact */}
+                  <div className="min-w-0">
+                    {client.companyPhone ? (
+                      <a
+                        href={`tel:${client.companyPhone}`}
+                        className="inline-flex items-center gap-1.5 truncate text-[12px] text-primary hover:underline"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Phone size={12} strokeWidth={2} className="shrink-0 opacity-70" />
+                        <span className="truncate">{client.companyPhone}</span>
+                      </a>
+                    ) : (
+                      <span className="text-[12px] text-muted-foreground">—</span>
+                    )}
+                    {client.contactName && (
+                      <p className="truncate text-[11px] text-muted-foreground mt-0.5">
+                        {client.contactName}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Status */}
+                  <div className="relative">
+                    {isStatusLocked ? (
+                      // Pipeline-concluded clients: status is locked for support agents
+                      <div
+                        title="Ce client est déjà CONCLU dans le pipeline — son statut ne peut pas être modifié"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 4,
+                          cursor: 'not-allowed',
+                          opacity: 0.85
+                        }}
+                      >
+                        <CrmStatusBadge status={client.status as CrmClientStatus} />
+                        <Lock
+                          size={11}
+                          style={{ color: 'var(--muted-foreground, #94a3b8)', flexShrink: 0 }}
+                        />
+                      </div>
+                    ) : (
+                      <button
+                        onClick={(e) => {
+                          if (statusPopup?.id === client.id) {
+                            setStatusPopup(null)
+                          } else {
+                            const rect = e.currentTarget.getBoundingClientRect()
+                            const DROPDOWN_HEIGHT = 200
+                            const spaceBelow = window.innerHeight - rect.bottom
+                            const openUp = spaceBelow < DROPDOWN_HEIGHT + 16
+                            setStatusPopup({
+                              id: client.id,
+                              top: openUp ? rect.top : rect.bottom + 6,
+                              left: rect.left,
+                              openUp
+                            })
+                          }
+                        }}
+                        className="cursor-pointer transition-opacity hover:opacity-80"
+                      >
+                        <CrmStatusBadge status={client.status as CrmClientStatus} />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Last activity */}
+                  <div className="min-w-0">
+                    {client.lastActivityAt ? (
+                      <>
+                        <p className="text-[12px] font-semibold text-foreground">
+                          {formatRelative(client.lastActivityAt)}
+                        </p>
+                        {client.lastActivityTitle && (
+                          <p
+                            className="mt-0.5 truncate text-[11px] text-muted-foreground"
+                            title={client.lastActivityTitle}
+                          >
+                            {client.lastActivityTitle}
+                          </p>
+                        )}
+                      </>
+                    ) : (
+                      <span className="text-[12px] text-muted-foreground">—</span>
+                    )}
+                  </div>
+
+                  {/* Next action */}
+                  <div className="min-w-0">
+                    {editingAction === client.id ? (
+                      <div
+                        className="flex items-center gap-1.5"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <input
+                          autoFocus
+                          value={actionDraft}
+                          onChange={(e) => setActionDraft(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') void handleSaveAction(client.id)
+                            if (e.key === 'Escape') {
+                              setEditingAction(null)
+                              setActionDraft('')
+                            }
+                          }}
+                          placeholder={t('crm.table.nextActionPlaceholder')}
+                          className="min-w-0 flex-1 rounded-lg border border-primary bg-background px-2.5 py-1 text-[12px] text-foreground outline-none shadow-sm focus:ring-1 focus:ring-primary"
+                        />
+                        <button
+                          type="button"
+                          disabled={savingAction === client.id}
+                          onClick={() => void handleSaveAction(client.id)}
+                          title={t('common.confirm')}
+                          aria-label={t('common.confirm')}
+                          className="flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                        >
+                          {savingAction === client.id ? (
+                            <span className="text-[11px] leading-none">…</span>
+                          ) : (
+                            <Check size={13} strokeWidth={2.5} />
+                          )}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingAction(null)
+                            setActionDraft('')
+                          }}
+                          title={t('common.cancel')}
+                          aria-label={t('common.cancel')}
+                          className="flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+                        >
+                          <X size={13} strokeWidth={2.5} />
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setEditingAction(client.id)
+                          setActionDraft(client.nextAction || '')
+                        }}
+                        className="group/next flex w-full cursor-pointer items-start gap-1 text-left"
+                      >
+                        {client.nextAction ? (
+                          <span
+                            className={`line-clamp-2 text-[12px] font-medium transition-colors group-hover/next:text-primary ${isOverdue(client.nextActionAt) ? 'text-red-500 dark:text-red-400' : 'text-foreground'}`}
+                          >
+                            {isOverdue(client.nextActionAt) && (
+                              <AlertCircle
+                                size={12}
+                                strokeWidth={2.5}
+                                className="inline mr-1 text-red-500 shrink-0 align-middle"
+                              />
+                            )}
+                            {client.nextAction}
+                            {client.nextActionAt && (
+                              <span className="ml-1 text-[10px] font-normal text-muted-foreground">
+                                ({formatDate(client.nextActionAt)})
+                              </span>
+                            )}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-[12px] text-muted-foreground/60 italic group-hover/next:text-primary">
+                            <Plus size={12} strokeWidth={2} />
+                            {t('crm.table.addNextAction')}
+                          </span>
+                        )}
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                    <ActionBtn
+                      icon={<Eye size={14} strokeWidth={1.8} />}
+                      label={t('crm.table.view')}
+                      color="var(--color-accent)"
+                      onClick={() => onSelect(client)}
+                    />
+                    <ActionBtn
+                      icon={<PhoneCall size={14} strokeWidth={1.8} />}
+                      label={t('crm.table.call')}
+                      color="#22c55e"
+                      onClick={() => {
+                        const phone = client.companyPhone?.replace(/\s+/g, '')
+                        if (phone) window.open(`tel:${phone}`, '_blank')
+                      }}
+                    />
+                    <ActionBtn
+                      icon={<Mail size={14} strokeWidth={1.8} />}
+                      label="Envoyer un email"
+                      color="#6366f1"
+                      onClick={() => setContactModal(client)}
+                    />
+                    {canDelete &&
+                      (confirmDelete === client.id ? (
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              onDelete(client.id)
+                              setConfirmDelete(null)
+                            }}
+                            title={t('common.confirm')}
+                            aria-label={t('common.confirm')}
+                            className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-red-500/40 bg-red-500/15 text-red-500 transition-colors hover:bg-red-500/25"
+                          >
+                            <Check size={13} strokeWidth={2.5} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setConfirmDelete(null)}
+                            title={t('common.cancel')}
+                            aria-label={t('common.cancel')}
+                            className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-border bg-transparent text-muted-foreground transition-colors hover:bg-secondary"
+                          >
+                            <X size={13} strokeWidth={2.5} />
+                          </button>
+                        </div>
+                      ) : (
+                        <ActionBtn
+                          icon={<Trash2 size={14} strokeWidth={1.8} />}
+                          label={t('crm.table.delete')}
+                          color="#ef4444"
+                          onClick={() => setConfirmDelete(client.id)}
+                        />
+                      ))}
+                  </div>
+                </div>
+              )
+            })
+          )}
         </div>
       </div>
 
@@ -362,7 +419,8 @@ export function CrmTable({
       {totalPages > 1 && (
         <div className="mt-4 flex items-center justify-between">
           <p className="text-[12px] text-muted-foreground">
-            {t('crm.table.showing')} {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, totalCount)} / {totalCount}
+            {t('crm.table.showing')} {(page - 1) * pageSize + 1}–
+            {Math.min(page * pageSize, totalCount)} / {totalCount}
           </p>
           <div className="flex items-center gap-1.5">
             <PaginationBtn
@@ -392,53 +450,62 @@ export function CrmTable({
 
       {/* Support contact modal */}
       {contactModal && (
-        <SupportContactModal
-          client={contactModal}
-          onClose={() => setContactModal(null)}
-        />
+        <SupportContactModal client={contactModal} onClose={() => setContactModal(null)} />
       )}
 
       {/* Status dropdown portal — renders outside any overflow:hidden containers */}
-      {statusPopup && typeof document !== 'undefined' && createPortal(
-        <>
-          {/* Backdrop */}
-          <div className="fixed inset-0 z-40" onClick={() => setStatusPopup(null)} />
-          {/* Dropdown */}
-          <div
-            ref={dropdownRef}
-            className="fixed z-50 min-w-[185px] max-h-[200px] overflow-y-auto overscroll-contain rounded-xl border border-border bg-card p-1.5 shadow-[0_12px_44px_rgba(0,0,0,0.55)] [scrollbar-width:thin]"
-            style={
-              statusPopup.openUp
-                ? { bottom: `calc(100vh - ${statusPopup.top}px + 6px)`, left: statusPopup.left }
-                : { top: statusPopup.top, left: statusPopup.left }
-            }
-          >
-            {CRM_STATUSES.map(s => (
-              <button
-                key={s}
-                onClick={() => {
-                  void handleStatusChange(
-                    statusPopup.id,
-                    s
-                  )
-                  setStatusPopup(null)
-                }}
-                className="flex w-full cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-[12px] font-semibold transition-colors hover:bg-secondary"
-                style={{ color: CRM_STATUS_CONFIG[s].color }}
-              >
-                <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: CRM_STATUS_CONFIG[s].color }} />
-                <span className="truncate">{t(CRM_STATUS_CONFIG[s].labelKey)}</span>
-              </button>
-            ))}
-          </div>
-        </>,
-        document.body
-      )}
+      {statusPopup &&
+        typeof document !== 'undefined' &&
+        createPortal(
+          <>
+            {/* Backdrop */}
+            <div className="fixed inset-0 z-40" onClick={() => setStatusPopup(null)} />
+            {/* Dropdown */}
+            <div
+              ref={dropdownRef}
+              className="fixed z-50 min-w-[185px] max-h-[200px] overflow-y-auto overscroll-contain rounded-xl border border-border bg-card p-1.5 shadow-[0_12px_44px_rgba(0,0,0,0.55)] [scrollbar-width:thin]"
+              style={
+                statusPopup.openUp
+                  ? { bottom: `calc(100vh - ${statusPopup.top}px + 6px)`, left: statusPopup.left }
+                  : { top: statusPopup.top, left: statusPopup.left }
+              }
+            >
+              {CRM_STATUSES.map((s) => (
+                <button
+                  key={s}
+                  onClick={() => {
+                    void handleStatusChange(statusPopup.id, s)
+                    setStatusPopup(null)
+                  }}
+                  className="flex w-full cursor-pointer items-center gap-2 rounded-lg px-2.5 py-1.5 text-[12px] font-semibold transition-colors hover:bg-secondary"
+                  style={{ color: CRM_STATUS_CONFIG[s].color }}
+                >
+                  <span
+                    className="h-2 w-2 rounded-full shrink-0"
+                    style={{ backgroundColor: CRM_STATUS_CONFIG[s].color }}
+                  />
+                  <span className="truncate">{t(CRM_STATUS_CONFIG[s].labelKey)}</span>
+                </button>
+              ))}
+            </div>
+          </>,
+          document.body
+        )}
     </div>
   )
 }
 
-function ActionBtn({ icon, label, color, onClick }: { icon: React.ReactNode; label: string; color: string; onClick: () => void }) {
+function ActionBtn({
+  icon,
+  label,
+  color,
+  onClick
+}: {
+  icon: React.ReactNode
+  label: string
+  color: string
+  onClick: () => void
+}) {
   return (
     <button
       type="button"
@@ -453,7 +520,17 @@ function ActionBtn({ icon, label, color, onClick }: { icon: React.ReactNode; lab
   )
 }
 
-function PaginationBtn({ label, active, disabled, onClick }: { label: React.ReactNode; active?: boolean; disabled?: boolean; onClick: () => void }) {
+function PaginationBtn({
+  label,
+  active,
+  disabled,
+  onClick
+}: {
+  label: React.ReactNode
+  active?: boolean
+  disabled?: boolean
+  onClick: () => void
+}) {
   return (
     <button
       onClick={onClick}

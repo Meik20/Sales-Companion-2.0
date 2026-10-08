@@ -50,7 +50,9 @@ export async function GET(request: NextRequest) {
     teamSnap.docs.forEach((doc) => {
       seen.add(doc.id)
       const data = doc.data()
-      const compName = String(data.companyName || data.name || '').trim().toLowerCase()
+      const compName = String(data.companyName || data.name || '')
+        .trim()
+        .toLowerCase()
       if (compName) {
         assignedCompanies.add(compName)
       }
@@ -66,12 +68,19 @@ export async function GET(request: NextRequest) {
     for (const doc of ownSnap.docs) {
       if (!seen.has(doc.id)) {
         const data = doc.data()
-        const compName = String(data.companyName || data.name || '').trim().toLowerCase()
+        const compName = String(data.companyName || data.name || '')
+          .trim()
+          .toLowerCase()
 
         // Supprimer la copie manager résiduelle seulement si l'entreprise est déjà
         // complètement assignée à un membre (assignedTo != null && != managerUid).
         // Un prospect en attente (assignedTo = null) DOIT rester visible pour être assigné.
-        if (compName && assignedCompanies.has(compName) && data.assignedTo && data.assignedTo !== managerUid) {
+        if (
+          compName &&
+          assignedCompanies.has(compName) &&
+          data.assignedTo &&
+          data.assignedTo !== managerUid
+        ) {
           doc.ref.delete().catch(() => {})
           continue
         }

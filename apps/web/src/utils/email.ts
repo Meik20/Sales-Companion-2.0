@@ -23,8 +23,15 @@ export async function sendEmail({
     return await sendViaSendGrid(to, subject, html, sendgridKey, text)
   }
 
+  if (process.env.NODE_ENV === 'production') {
+    console.error(
+      '[email] ERREUR CRITIQUE: Aucune clé BREVO_API_KEY ou SENDGRID_API_KEY configurée en production.'
+    )
+    return { success: false, error: 'Service email non configuré en production' }
+  }
+
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
-  console.log(`[EMAIL SIMULATED] (No API key found in environment)`)
+  console.log(`[EMAIL SIMULATED] (No API key found in development)`)
   console.log(`To: ${to}`)
   console.log(`Subject: ${subject}`)
   console.log(`Body preview: ${html.substring(0, 300)}...`)
@@ -32,7 +39,13 @@ export async function sendEmail({
   return { success: true, simulated: true }
 }
 
-async function sendViaBrevo(to: string, subject: string, html: string, apiKey: string, text?: string) {
+async function sendViaBrevo(
+  to: string,
+  subject: string,
+  html: string,
+  apiKey: string,
+  text?: string
+) {
   try {
     const payload: any = {
       sender: { name: 'Sales Companion 2.0', email: 'noreply@salescompanion2-0.com' },
@@ -46,7 +59,7 @@ async function sendViaBrevo(to: string, subject: string, html: string, apiKey: s
     const res = await fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
       headers: {
-        'accept': 'application/json',
+        accept: 'application/json',
         'api-key': apiKey,
         'content-type': 'application/json'
       },
@@ -67,7 +80,13 @@ async function sendViaBrevo(to: string, subject: string, html: string, apiKey: s
   }
 }
 
-async function sendViaSendGrid(to: string, subject: string, html: string, apiKey: string, text?: string) {
+async function sendViaSendGrid(
+  to: string,
+  subject: string,
+  html: string,
+  apiKey: string,
+  text?: string
+) {
   try {
     const content = [{ type: 'text/html', value: html }]
     if (text) content.unshift({ type: 'text/plain', value: text })
@@ -75,7 +94,7 @@ async function sendViaSendGrid(to: string, subject: string, html: string, apiKey
     const res = await fetch('https://api.sendgrid.com/v3/mail/send', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({

@@ -1,7 +1,19 @@
 'use client'
 
 import { useState } from 'react'
-import { X, Building2, UserPlus, Phone, Mail, MapPin, Briefcase, Calendar, Sparkles, AlertTriangle, User } from 'lucide-react'
+import {
+  X,
+  Building2,
+  UserPlus,
+  Phone,
+  Mail,
+  MapPin,
+  Briefcase,
+  Calendar,
+  Sparkles,
+  AlertTriangle,
+  User
+} from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useTranslation } from '@/providers/I18nProvider'
 import { CRM_SECTORS, CRM_CITIES, CRM_STATUS_LIST } from '../constants'
@@ -338,7 +350,9 @@ export function AddClientModal({ isOpen, onClose, onSuccess, userToken, user }: 
               className="flex items-center gap-2"
             >
               <Sparkles size={14} />
-              {loading ? (t('profile.loading') || 'En cours…') : (t('crm.addModal.submit') || 'Ajouter le client')}
+              {loading
+                ? t('profile.loading') || 'En cours…'
+                : t('crm.addModal.submit') || 'Ajouter le client'}
             </Button>
           </div>
         </form>

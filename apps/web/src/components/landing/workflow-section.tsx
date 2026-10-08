@@ -61,7 +61,10 @@ export function WorkflowSection() {
   ]
 
   return (
-    <section id="workflow" className="relative py-16 md:py-24 border-t border-border/80 bg-secondary/20">
+    <section
+      id="workflow"
+      className="relative py-16 md:py-24 border-t border-border/80 bg-secondary/20"
+    >
       <div className="mx-auto max-w-6xl px-5">
         <div className="text-center max-w-2xl mx-auto mb-14">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
@@ -111,15 +114,11 @@ export function WorkflowSection() {
                   {step.tag}
                 </span>
 
-                <h3 className="font-heading text-lg font-bold text-foreground">
-                  {step.title}
-                </h3>
+                <h3 className="font-heading text-lg font-bold text-foreground">{step.title}</h3>
                 <p className="mt-2 text-xs font-medium text-foreground/90 leading-snug">
                   {step.subtitle}
                 </p>
-                <p className="mt-2 text-xs text-muted-foreground leading-relaxed">
-                  {step.details}
-                </p>
+                <p className="mt-2 text-xs text-muted-foreground leading-relaxed">{step.details}</p>
               </div>
 
               {idx < 3 && (

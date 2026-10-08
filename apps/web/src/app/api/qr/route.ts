@@ -12,7 +12,7 @@ export async function GET(request: Request) {
     const qrServerUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(
       data
     )}`
-    
+
     const response = await fetch(qrServerUrl)
 
     if (!response.ok) {

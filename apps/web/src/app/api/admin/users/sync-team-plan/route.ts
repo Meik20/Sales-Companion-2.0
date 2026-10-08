@@ -21,7 +21,11 @@ export async function POST(request: NextRequest) {
     await verifyAdminCached(token)
 
     const body = await request.json().catch(() => ({}))
-    const { managerUid: inputUid, managerEmail: inputEmail, syncAll } = body as {
+    const {
+      managerUid: inputUid,
+      managerEmail: inputEmail,
+      syncAll
+    } = body as {
       managerUid?: string
       managerEmail?: string
       syncAll?: boolean
@@ -32,7 +36,12 @@ export async function POST(request: NextRequest) {
       const managersSnap = await adminDb.collection('users').where('role', '==', 'manager').get()
       let totalUsers = 0
       let totalAccesses = 0
-      const managerResults: Array<{ email?: string; plan: string; updatedUsers: number; updatedAccesses: number }> = []
+      const managerResults: Array<{
+        email?: string
+        plan: string
+        updatedUsers: number
+        updatedAccesses: number
+      }> = []
 
       for (const mDoc of managersSnap.docs) {
         const mData = mDoc.data()
@@ -122,8 +131,7 @@ export async function POST(request: NextRequest) {
     const msg = error instanceof Error ? error.message : 'unknown'
     if (msg === 'unauthenticated')
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
-    if (msg === 'forbidden')
-      return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
+    if (msg === 'forbidden') return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
     console.error('[sync-team-plan] error:', error)
     return NextResponse.json({ error: 'Erreur interne' }, { status: 500 })
   }

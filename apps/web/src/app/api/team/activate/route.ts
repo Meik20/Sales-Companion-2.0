@@ -43,7 +43,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-
     // ── 1. Chercher le document d'accès EXCLUSIVEMENT par secret aléatoire (Magic Code) ──
     // Protection P0 : Rejeter formellement tout identifiant prévisible ou trop court
     if (accessIdRaw.includes('@') || accessIdRaw.length < 16) {
@@ -61,7 +60,11 @@ export async function POST(request: NextRequest) {
 
     for (const col of ACCESS_COLLECTIONS) {
       // Recherche EXCLUSIVE par magicCode (Code secret aléatoire à usage unique)
-      const byMagicCode = await adminDb.collection(col).where('magicCode', '==', accessIdRaw).limit(1).get()
+      const byMagicCode = await adminDb
+        .collection(col)
+        .where('magicCode', '==', accessIdRaw)
+        .limit(1)
+        .get()
       if (!byMagicCode.empty && byMagicCode.docs[0]) {
         snap = byMagicCode.docs[0]
         break
@@ -99,7 +102,9 @@ export async function POST(request: NextRequest) {
     // Vérification de validité temporelle de l'invitation
     if (data.expiresAt) {
       const expDate =
-        typeof data.expiresAt.toDate === 'function' ? data.expiresAt.toDate() : new Date(data.expiresAt)
+        typeof data.expiresAt.toDate === 'function'
+          ? data.expiresAt.toDate()
+          : new Date(data.expiresAt)
       if (expDate < new Date()) {
         return NextResponse.json(
           {
@@ -157,9 +162,10 @@ export async function POST(request: NextRequest) {
       // Si le compte existe déjà, on ne remplace PAS son mot de passe en aveugle.
       // L'utilisateur conserve ses identifiants et son compte est rattaché à l'organisation.
     } catch (authErr: unknown) {
-      const authCode = typeof (authErr as Record<string, unknown>).code === 'string'
-        ? (authErr as Record<string, unknown>).code as string
-        : ''
+      const authCode =
+        typeof (authErr as Record<string, unknown>).code === 'string'
+          ? ((authErr as Record<string, unknown>).code as string)
+          : ''
       if (authCode === 'auth/user-not-found') {
         const newUser = await adminAuth.createUser({
           email,
@@ -179,7 +185,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-
     const userDocRef = adminDb.collection('users').doc(uid)
     const userDocSnap = await userDocRef.get()
     const createdAt = userDocSnap.exists
@@ -196,7 +201,7 @@ export async function POST(request: NextRequest) {
     // DEFENSE IN DEPTH : Seuls les rôles 'member' et 'support_agent' peuvent être activés via invitation.
     // Aucune invitation ne peut conférer de rôle admin, manager ou supérieur.
     const rawRole = data.role ?? 'member'
-    const userRole = (rawRole === 'support_agent') ? 'support_agent' : 'member'
+    const userRole = rawRole === 'support_agent' ? 'support_agent' : 'member'
 
     if (mUid) {
       try {
@@ -207,7 +212,8 @@ export async function POST(request: NextRequest) {
             memberPlan = mData.plan
             const { PLAN_LIMITS } = await import('@sales-companion/shared')
             if (userRole !== 'support_agent') {
-              memberDailyLimit = PLAN_LIMITS[mData.plan as keyof typeof PLAN_LIMITS] ?? memberDailyLimit
+              memberDailyLimit =
+                PLAN_LIMITS[mData.plan as keyof typeof PLAN_LIMITS] ?? memberDailyLimit
             }
           }
           managerExpiresAt = mData?.subscriptionExpiresAt ?? mData?.planExpiresAt ?? null
@@ -223,17 +229,25 @@ export async function POST(request: NextRequest) {
     try {
       await adminDb.runTransaction(async (transaction: any) => {
         const accessDocRef = snap.ref as FirebaseFirestore.DocumentReference
-        const freshSnap = (await transaction.get(accessDocRef)) as FirebaseFirestore.DocumentSnapshot
+        const freshSnap = (await transaction.get(
+          accessDocRef
+        )) as FirebaseFirestore.DocumentSnapshot
         if (!freshSnap.exists) {
           throw new Error('INVITATION_NOT_FOUND')
         }
         const freshData = freshSnap.data()
-        if (freshData?.activated === true || freshData?.status === 'active' || freshData?.status === 'activated') {
+        if (
+          freshData?.activated === true ||
+          freshData?.status === 'active' ||
+          freshData?.status === 'activated'
+        ) {
           throw new Error('ALREADY_ACTIVATED')
         }
         if (freshData?.expiresAt) {
           const expDate =
-            typeof freshData.expiresAt.toDate === 'function' ? freshData.expiresAt.toDate() : new Date(freshData.expiresAt)
+            typeof freshData.expiresAt.toDate === 'function'
+              ? freshData.expiresAt.toDate()
+              : new Date(freshData.expiresAt)
           if (expDate < new Date()) {
             throw new Error('EXPIRED')
           }
@@ -247,7 +261,9 @@ export async function POST(request: NextRequest) {
           firebaseUid: uid,
           activatedAt: new Date(),
           activatedUid: uid,
-          ...(userRole !== 'support_agent' ? { plan: memberPlan, dailyLimit: memberDailyLimit } : {})
+          ...(userRole !== 'support_agent'
+            ? { plan: memberPlan, dailyLimit: memberDailyLimit }
+            : {})
         })
 
         // Écrire / fusionner le profil utilisateur Firestore
@@ -285,13 +301,19 @@ export async function POST(request: NextRequest) {
     } catch (txErr: any) {
       if (txErr?.message === 'ALREADY_ACTIVATED') {
         return NextResponse.json(
-          { message: 'Ce compte a déjà été activé. Connectez-vous directement sur la page de connexion.' },
+          {
+            message:
+              'Ce compte a déjà été activé. Connectez-vous directement sur la page de connexion.'
+          },
           { status: 409 }
         )
       }
       if (txErr?.message === 'EXPIRED') {
         return NextResponse.json(
-          { message: "Cette invitation a expiré. Veuillez contacter votre manager pour recevoir un nouveau lien d'activation." },
+          {
+            message:
+              "Cette invitation a expiré. Veuillez contacter votre manager pour recevoir un nouveau lien d'activation."
+          },
           { status: 410 }
         )
       }
@@ -311,13 +333,13 @@ export async function POST(request: NextRequest) {
         ? 'Compte rattaché avec succès. Utilisez votre mot de passe habituel pour vous connecter.'
         : 'Compte activé avec succès.'
     })
-
   } catch (error) {
     console.error('[team/activate] Error:', {
       message: error instanceof Error ? error.message : String(error),
-      code: typeof (error as Record<string, unknown>)?.code === 'string'
-        ? (error as Record<string, unknown>).code
-        : undefined
+      code:
+        typeof (error as Record<string, unknown>)?.code === 'string'
+          ? (error as Record<string, unknown>).code
+          : undefined
     })
 
     const msg =

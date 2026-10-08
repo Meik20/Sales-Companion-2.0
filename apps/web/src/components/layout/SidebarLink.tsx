@@ -46,4 +46,3 @@ export function SidebarLink({ href, label, icon: Icon, badge, onClick }: Props) 
     </Link>
   )
 }
-

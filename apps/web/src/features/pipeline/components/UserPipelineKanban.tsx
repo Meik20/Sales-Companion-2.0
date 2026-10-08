@@ -98,7 +98,12 @@ const normalizeStatus = (status: string) => {
 }
 
 function getInitials(name: string): string {
-  return name.split(' ').slice(0, 2).map((w) => w[0]).join('').toUpperCase()
+  return name
+    .split(' ')
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join('')
+    .toUpperCase()
 }
 
 // ── Card component (shared between mobile & desktop) ─────────────────────────
@@ -114,7 +119,7 @@ function KanbanCard({
   isDragging
 }: {
   item: PipelineItem
-  col: typeof COLUMNS[0]
+  col: (typeof COLUMNS)[0]
   onItemClick: (item: PipelineItem) => void
   onStatusChange: (id: string, status: 'prospection' | 'negociation' | 'conclue') => void
   isMobile: boolean
@@ -123,8 +128,13 @@ function KanbanCard({
   innerRef?: any
   isDragging?: boolean
 }) {
-  const otherCols = COLUMNS.filter(c => c.id !== col.id)
-  const aging = getPipelineAging(item.createdAt || item.enteredAt, item.status, item.assignedAt, item.updatedAt)
+  const otherCols = COLUMNS.filter((c) => c.id !== col.id)
+  const aging = getPipelineAging(
+    item.createdAt || item.enteredAt,
+    item.status,
+    item.assignedAt,
+    item.updatedAt
+  )
 
   return (
     <div
@@ -152,9 +162,15 @@ function KanbanCard({
           <div
             {...(dragHandleProps || {})}
             style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              width: 24, flexShrink: 0, cursor: 'grab',
-              color: 'var(--muted-foreground, #64748b)', opacity: 0.4, paddingLeft: 6
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 24,
+              flexShrink: 0,
+              cursor: 'grab',
+              color: 'var(--muted-foreground, #64748b)',
+              opacity: 0.4,
+              paddingLeft: 6
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -166,28 +182,51 @@ function KanbanCard({
         <div style={{ flex: 1, padding: isMobile ? '12px 12px 10px 12px' : '14px 14px 14px 8px' }}>
           {/* Avatar + name */}
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 8 }}>
-            <div style={{
-              width: 34, height: 34, borderRadius: 10,
-              background: `${col.accent}18`, border: `1px solid ${col.accent}30`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 11, fontWeight: 800, color: col.accent, flexShrink: 0,
-              fontFamily: "'Syne', sans-serif", letterSpacing: '0.02em'
-            }}>
+            <div
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: 10,
+                background: `${col.accent}18`,
+                border: `1px solid ${col.accent}30`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 11,
+                fontWeight: 800,
+                color: col.accent,
+                flexShrink: 0,
+                fontFamily: "'Syne', sans-serif",
+                letterSpacing: '0.02em'
+              }}
+            >
               {getInitials(item.companyName)}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{
-                fontSize: 13, fontWeight: 800, color: 'var(--foreground, #f1f5f9)',
-                lineHeight: 1.3, letterSpacing: '-0.01em',
-                fontFamily: "'Syne', sans-serif", wordBreak: 'break-word'
-              }}>
+              <div
+                style={{
+                  fontSize: 13,
+                  fontWeight: 800,
+                  color: 'var(--foreground, #f1f5f9)',
+                  lineHeight: 1.3,
+                  letterSpacing: '-0.01em',
+                  fontFamily: "'Syne', sans-serif",
+                  wordBreak: 'break-word'
+                }}
+              >
                 {item.companyName}
               </div>
               {item.companySector && (
-                <div style={{
-                  fontSize: 11, color: 'var(--muted-foreground, #94a3b8)', marginTop: 2,
-                  display: 'flex', alignItems: 'center', gap: 4
-                }}>
+                <div
+                  style={{
+                    fontSize: 11,
+                    color: 'var(--muted-foreground, #94a3b8)',
+                    marginTop: 2,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4
+                  }}
+                >
                   <Building2 size={10} style={{ opacity: 0.7 }} />
                   {item.companySector}
                 </div>
@@ -198,55 +237,105 @@ function KanbanCard({
           {/* Chips */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
             {item.companyCity && (
-              <span style={{
-                display: 'inline-flex', alignItems: 'center', gap: 4,
-                fontSize: 11, fontWeight: 600, color: 'var(--muted-foreground, #94a3b8)',
-                background: 'var(--card, #131c2e)', border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
-                borderRadius: 6, padding: '2px 8px'
-              }}>
-                <MapPin size={10} style={{ opacity: 0.7 }} />{item.companyCity}
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: 'var(--muted-foreground, #94a3b8)',
+                  background: 'var(--card, #131c2e)',
+                  border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+                  borderRadius: 6,
+                  padding: '2px 8px'
+                }}
+              >
+                <MapPin size={10} style={{ opacity: 0.7 }} />
+                {item.companyCity}
               </span>
             )}
             {item.amount != null && item.amount > 0 && (
-              <span style={{
-                display: 'inline-flex', alignItems: 'center', gap: 4,
-                fontSize: 11, fontWeight: 700, color: 'var(--pipeline-opportunity-color, #047857)',
-                background: 'var(--pipeline-fresh-bg, #ecfdf5)', border: '1px solid var(--pipeline-fresh-border, rgba(5, 150, 105, 0.25))',
-                borderRadius: 6, padding: '2px 8px'
-              }}>
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: 'var(--pipeline-opportunity-color, #047857)',
+                  background: 'var(--pipeline-fresh-bg, #ecfdf5)',
+                  border: '1px solid var(--pipeline-fresh-border, rgba(5, 150, 105, 0.25))',
+                  borderRadius: 6,
+                  padding: '2px 8px'
+                }}
+              >
                 <Banknote size={10} />
                 {new Intl.NumberFormat('fr-FR').format(item.amount)} F
               </span>
             )}
             {item.companyPhone && (
-              <span style={{
-                display: 'inline-flex', alignItems: 'center', gap: 4,
-                fontSize: 11, fontWeight: 600, color: '#2563eb',
-                background: 'rgba(37,99,235,0.08)', border: '1px solid rgba(37,99,235,0.2)',
-                borderRadius: 6, padding: '2px 8px'
-              }}>
-                <Phone size={10} />Tél
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: '#2563eb',
+                  background: 'rgba(37,99,235,0.08)',
+                  border: '1px solid rgba(37,99,235,0.2)',
+                  borderRadius: 6,
+                  padding: '2px 8px'
+                }}
+              >
+                <Phone size={10} />
+                Tél
               </span>
             )}
             {(item.notes ?? item.note) && (
-              <span style={{
-                display: 'inline-flex', alignItems: 'center', gap: 4,
-                fontSize: 11, fontWeight: 600, color: '#fbbf24',
-                background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.2)',
-                borderRadius: 6, padding: '2px 8px'
-              }}>
-                <MessageSquare size={10} />Notes
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: '#fbbf24',
+                  background: 'rgba(251,191,36,0.08)',
+                  border: '1px solid rgba(251,191,36,0.2)',
+                  borderRadius: 6,
+                  padding: '2px 8px'
+                }}
+              >
+                <MessageSquare size={10} />
+                Notes
               </span>
             )}
             {item.nextFollowUp && item.status !== 'conclue' && item.status !== 'conclusion' && (
-              <span style={{
-                display: 'inline-flex', alignItems: 'center', gap: 4,
-                fontSize: 11, fontWeight: 600,
-                color: item.nextFollowUp < new Date().toISOString().slice(0, 10) ? '#ef4444' : '#60a5fa',
-                background: item.nextFollowUp < new Date().toISOString().slice(0, 10) ? 'rgba(239,68,68,0.08)' : 'rgba(96,165,250,0.08)',
-                border: item.nextFollowUp < new Date().toISOString().slice(0, 10) ? '1px solid rgba(239,68,68,0.25)' : '1px solid rgba(96,165,250,0.2)',
-                borderRadius: 6, padding: '2px 8px'
-              }}>
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color:
+                    item.nextFollowUp < new Date().toISOString().slice(0, 10)
+                      ? '#ef4444'
+                      : '#60a5fa',
+                  background:
+                    item.nextFollowUp < new Date().toISOString().slice(0, 10)
+                      ? 'rgba(239,68,68,0.08)'
+                      : 'rgba(96,165,250,0.08)',
+                  border:
+                    item.nextFollowUp < new Date().toISOString().slice(0, 10)
+                      ? '1px solid rgba(239,68,68,0.25)'
+                      : '1px solid rgba(96,165,250,0.2)',
+                  borderRadius: 6,
+                  padding: '2px 8px'
+                }}
+              >
                 <Calendar size={10} />
                 {item.nextFollowUp}
               </span>
@@ -258,12 +347,20 @@ function KanbanCard({
                   !(item.assignedByName && pa.memberName === item.assignedByName)
               )
               return filtered.length > 0 ? (
-                <span style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 4,
-                  fontSize: 11, fontWeight: 600, color: '#f87171',
-                  background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)',
-                  borderRadius: 6, padding: '2px 8px'
-                }}>
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    fontSize: 11,
+                    fontWeight: 600,
+                    color: '#f87171',
+                    background: 'rgba(239,68,68,0.08)',
+                    border: '1px solid rgba(239,68,68,0.2)',
+                    borderRadius: 6,
+                    padding: '2px 8px'
+                  }}
+                >
                   <AlertTriangle size={10} />
                   Déjà visité
                 </span>
@@ -287,26 +384,42 @@ function KanbanCard({
             >
               <Clock size={10} />
               {aging.daysInPipeline === 0 ? 'Aujourd’hui' : `${aging.daysInPipeline}j`}
-              {aging.level === 'alert' && <AlertTriangle size={10} style={{ color: aging.color }} />}
+              {aging.level === 'alert' && (
+                <AlertTriangle size={10} style={{ color: aging.color }} />
+              )}
             </span>
           </div>
 
           {/* Mobile: quick move buttons */}
           {isMobile && (
-            <div style={{ display: 'flex', gap: 6, marginTop: 10 }} onClick={e => e.stopPropagation()}>
-              {otherCols.map(targetCol => (
+            <div
+              style={{ display: 'flex', gap: 6, marginTop: 10 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {otherCols.map((targetCol) => (
                 <button
                   key={targetCol.id}
                   onClick={(e) => {
                     e.stopPropagation()
-                    onStatusChange(item.id, targetCol.id as 'prospection' | 'negociation' | 'conclue')
+                    onStatusChange(
+                      item.id,
+                      targetCol.id as 'prospection' | 'negociation' | 'conclue'
+                    )
                   }}
                   style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 4,
-                    fontSize: 10, fontWeight: 700, color: targetCol.accent,
-                    background: `${targetCol.accent}12`, border: `1px solid ${targetCol.accent}33`,
-                    borderRadius: 6, padding: '3px 8px', cursor: 'pointer',
-                    fontFamily: 'inherit', transition: 'all 150ms ease'
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    fontSize: 10,
+                    fontWeight: 700,
+                    color: targetCol.accent,
+                    background: `${targetCol.accent}12`,
+                    border: `1px solid ${targetCol.accent}33`,
+                    borderRadius: 6,
+                    padding: '3px 8px',
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                    transition: 'all 150ms ease'
                   }}
                 >
                   <ChevronRight size={10} />
@@ -334,22 +447,24 @@ function MobileKanban({
   t: (key: string) => string
 }) {
   const [activeTab, setActiveTab] = useState('prospection')
-  const activeCol = COLUMNS.find(c => c.id === activeTab)!
+  const activeCol = COLUMNS.find((c) => c.id === activeTab)!
   const colItems = columns[activeTab] || []
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
       {/* Tab bar */}
-      <div style={{
-        display: 'flex',
-        background: 'var(--card, #131c2e)',
-        borderRadius: 14,
-        padding: 4,
-        gap: 4,
-        border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
-        marginBottom: 16
-      }}>
-        {COLUMNS.map(col => {
+      <div
+        style={{
+          display: 'flex',
+          background: 'var(--card, #131c2e)',
+          borderRadius: 14,
+          padding: 4,
+          gap: 4,
+          border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+          marginBottom: 16
+        }}
+      >
+        {COLUMNS.map((col) => {
           const ColIcon = col.icon
           const count = (columns[col.id] || []).length
           const isActive = activeTab === col.id
@@ -367,34 +482,55 @@ function MobileKanban({
                 borderRadius: 10,
                 border: 'none',
                 background: isActive ? col.gradient : 'transparent',
-                boxShadow: isActive ? `0 0 0 1.5px ${col.accent}55, 0 4px 12px rgba(0,0,0,0.08)` : 'none',
+                boxShadow: isActive
+                  ? `0 0 0 1.5px ${col.accent}55, 0 4px 12px rgba(0,0,0,0.08)`
+                  : 'none',
                 cursor: 'pointer',
                 transition: 'all 200ms ease',
                 fontFamily: 'inherit'
               }}
             >
-              <div style={{
-                width: 28, height: 28, borderRadius: 8,
-                background: `${col.accent}22`,
-                border: `1px solid ${col.accent}${isActive ? '66' : '33'}`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center'
-              }}>
+              <div
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: 8,
+                  background: `${col.accent}22`,
+                  border: `1px solid ${col.accent}${isActive ? '66' : '33'}`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
                 <ColIcon size={14} color={col.accent} strokeWidth={2.5} />
               </div>
-              <span style={{
-                fontSize: 11, fontWeight: 700, color: isActive ? col.color : 'var(--muted-foreground, #94a3b8)',
-                lineHeight: 1, fontFamily: "'Syne', sans-serif"
-              }}>
+              <span
+                style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: isActive ? col.color : 'var(--muted-foreground, #94a3b8)',
+                  lineHeight: 1,
+                  fontFamily: "'Syne', sans-serif"
+                }}
+              >
                 {col.label}
               </span>
-              <div style={{
-                minWidth: 20, height: 18, borderRadius: 6,
-                background: isActive ? `${col.accent}33` : 'var(--secondary, #1e2a3b)',
-                border: `1px solid ${isActive ? col.accent + '44' : 'var(--border, rgba(255,255,255,0.1))'}`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 11, fontWeight: 800, color: isActive ? col.accent : 'var(--muted-foreground, #64748b)',
-                padding: '0 5px'
-              }}>
+              <div
+                style={{
+                  minWidth: 20,
+                  height: 18,
+                  borderRadius: 6,
+                  background: isActive ? `${col.accent}33` : 'var(--secondary, #1e2a3b)',
+                  border: `1px solid ${isActive ? col.accent + '44' : 'var(--border, rgba(255,255,255,0.1))'}`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 11,
+                  fontWeight: 800,
+                  color: isActive ? col.accent : 'var(--muted-foreground, #64748b)',
+                  padding: '0 5px'
+                }}
+              >
                 {count}
               </div>
             </button>
@@ -403,61 +539,91 @@ function MobileKanban({
       </div>
 
       {/* Active column header */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 8,
-        padding: '10px 14px',
-        background: activeCol.gradient,
-        border: `1px solid ${activeCol.border}`,
-        borderRadius: '12px 12px 0 0',
-        borderBottom: 'none'
-      }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          padding: '10px 14px',
+          background: activeCol.gradient,
+          border: `1px solid ${activeCol.border}`,
+          borderRadius: '12px 12px 0 0',
+          borderBottom: 'none'
+        }}
+      >
         <activeCol.icon size={16} color={activeCol.accent} strokeWidth={2.5} />
-        <span style={{
-          fontSize: 13, fontWeight: 800, color: activeCol.color,
-          fontFamily: "'Syne', sans-serif", letterSpacing: '-0.01em'
-        }}>
+        <span
+          style={{
+            fontSize: 13,
+            fontWeight: 800,
+            color: activeCol.color,
+            fontFamily: "'Syne', sans-serif",
+            letterSpacing: '-0.01em'
+          }}
+        >
           {activeCol.label}
         </span>
-        <span style={{
-          marginLeft: 'auto',
-          fontSize: 12, fontWeight: 700, color: activeCol.accent,
-          background: `${activeCol.accent}22`,
-          border: `1px solid ${activeCol.accent}44`,
-          borderRadius: 6, padding: '2px 8px'
-        }}>
+        <span
+          style={{
+            marginLeft: 'auto',
+            fontSize: 12,
+            fontWeight: 700,
+            color: activeCol.accent,
+            background: `${activeCol.accent}22`,
+            border: `1px solid ${activeCol.accent}44`,
+            borderRadius: 6,
+            padding: '2px 8px'
+          }}
+        >
           {colItems.length}
         </span>
       </div>
 
       {/* Cards area */}
-      <div style={{
-        background: 'var(--card, #131c2e)',
-        border: `1px solid ${activeCol.border}`,
-        borderRadius: '0 0 14px 14px',
-        padding: 12,
-        minHeight: 200
-      }}>
+      <div
+        style={{
+          background: 'var(--card, #131c2e)',
+          border: `1px solid ${activeCol.border}`,
+          borderRadius: '0 0 14px 14px',
+          padding: 12,
+          minHeight: 200
+        }}
+      >
         {colItems.length === 0 ? (
-          <div style={{
-            display: 'flex', flexDirection: 'column',
-            alignItems: 'center', justifyContent: 'center',
-            gap: 8, padding: '32px 16px', opacity: 0.5,
-            border: `1.5px dashed ${activeCol.accent}44`,
-            borderRadius: 12
-          }}>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              padding: '32px 16px',
+              opacity: 0.5,
+              border: `1.5px dashed ${activeCol.accent}44`,
+              borderRadius: 12
+            }}
+          >
             {(() => {
               const EmptyIcon = activeCol.emptyIcon
               return <EmptyIcon size={32} color={activeCol.accent} strokeWidth={1.5} />
             })()}
-            <span style={{ fontSize: 13, fontWeight: 600, color: activeCol.color, textAlign: 'center' }}>
+            <span
+              style={{ fontSize: 13, fontWeight: 600, color: activeCol.color, textAlign: 'center' }}
+            >
               {activeCol.emptyText}
             </span>
-            <span style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)', textAlign: 'center' }}>
+            <span
+              style={{
+                fontSize: 11,
+                color: 'var(--muted-foreground, #64748b)',
+                textAlign: 'center'
+              }}
+            >
               Utilisez les boutons sur les cartes pour déplacer vos prospects
             </span>
           </div>
         ) : (
-          colItems.map(item => (
+          colItems.map((item) => (
             <KanbanCard
               key={item.id}
               item={item}
@@ -478,13 +644,19 @@ export function UserPipelineKanban({ items, onStatusChange, onItemClick }: Props
   const { t } = useTranslation()
   const isDesktop = useMediaQuery('(min-width: 768px)')
   const [columns, setColumns] = useState<Record<string, PipelineItem[]>>({
-    prospection: [], negociation: [], conclue: []
+    prospection: [],
+    negociation: [],
+    conclue: []
   })
   const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
     setIsMounted(true)
-    const newCols: Record<string, PipelineItem[]> = { prospection: [], negociation: [], conclue: [] }
+    const newCols: Record<string, PipelineItem[]> = {
+      prospection: [],
+      negociation: [],
+      conclue: []
+    }
     items.forEach((item) => {
       const status = normalizeStatus(item.status)
       if (newCols[status]) newCols[status].push(item)
@@ -515,7 +687,8 @@ export function UserPipelineKanban({ items, onStatusChange, onItemClick }: Props
     const startColId = source.droppableId
     const finishColId = destination.droppableId
     const startItems = Array.from(columns[startColId] || [])
-    const finishItems = startColId === finishColId ? startItems : Array.from(columns[finishColId] || [])
+    const finishItems =
+      startColId === finishColId ? startItems : Array.from(columns[finishColId] || [])
     const [movedItem] = startItems.splice(source.index, 1)
     if (!movedItem) return
 
@@ -532,53 +705,86 @@ export function UserPipelineKanban({ items, onStatusChange, onItemClick }: Props
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(3, 1fr)',
-        gap: 20,
-        overflowX: 'auto',
-        paddingBottom: 16,
-        minHeight: 600
-      }}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gap: 20,
+          overflowX: 'auto',
+          paddingBottom: 16,
+          minHeight: 600
+        }}
+      >
         {COLUMNS.map((col) => {
           const colItems = columns[col.id] || []
           const ColIcon = col.icon
           return (
-            <div key={col.id} style={{
-              display: 'flex', flexDirection: 'column',
-              background: 'var(--card, #131c2e)',
-              border: `1px solid ${col.border}`,
-              borderRadius: 20, overflow: 'hidden',
-              boxShadow: `0 4px 24px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.04)`
-            }}>
+            <div
+              key={col.id}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                background: 'var(--card, #131c2e)',
+                border: `1px solid ${col.border}`,
+                borderRadius: 20,
+                overflow: 'hidden',
+                boxShadow: `0 4px 24px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.04)`
+              }}
+            >
               {/* Column Header */}
-              <div style={{
-                padding: '18px 20px 16px',
-                background: col.gradient,
-                borderBottom: `1px solid ${col.border}`,
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between'
-              }}>
+              <div
+                style={{
+                  padding: '18px 20px 16px',
+                  background: col.gradient,
+                  borderBottom: `1px solid ${col.border}`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}
+              >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div style={{
-                    width: 32, height: 32, borderRadius: 10,
-                    background: `${col.accent}22`, border: `1px solid ${col.accent}44`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center'
-                  }}>
+                  <div
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 10,
+                      background: `${col.accent}22`,
+                      border: `1px solid ${col.accent}44`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
                     <ColIcon size={16} color={col.accent} strokeWidth={2.5} />
                   </div>
-                  <span style={{
-                    fontSize: 14, fontWeight: 800, color: col.color,
-                    letterSpacing: '-0.01em', fontFamily: "'Syne', sans-serif"
-                  }}>
+                  <span
+                    style={{
+                      fontSize: 14,
+                      fontWeight: 800,
+                      color: col.color,
+                      letterSpacing: '-0.01em',
+                      fontFamily: "'Syne', sans-serif"
+                    }}
+                  >
                     {t(col.labelKey)}
                   </span>
                 </div>
-                <div style={{
-                  minWidth: 26, height: 26, borderRadius: 8,
-                  background: `${col.accent}22`, border: `1px solid ${col.accent}44`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 13, fontWeight: 800, color: col.accent, padding: '0 6px'
-                }}>
+                <div
+                  style={{
+                    minWidth: 26,
+                    height: 26,
+                    borderRadius: 8,
+                    background: `${col.accent}22`,
+                    border: `1px solid ${col.accent}44`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 13,
+                    fontWeight: 800,
+                    color: col.accent,
+                    padding: '0 6px'
+                  }}
+                >
                   {colItems.length}
                 </div>
               </div>
@@ -590,27 +796,50 @@ export function UserPipelineKanban({ items, onStatusChange, onItemClick }: Props
                     ref={provided.innerRef}
                     {...provided.droppableProps}
                     style={{
-                      padding: 14, flexGrow: 1, minHeight: 200,
+                      padding: 14,
+                      flexGrow: 1,
+                      minHeight: 200,
                       transition: 'background-color 0.2s ease',
                       backgroundColor: snapshot.isDraggingOver ? `${col.accent}08` : 'transparent',
                       borderRadius: '0 0 20px 20px'
                     }}
                   >
                     {colItems.length === 0 ? (
-                      <div style={{
-                        display: 'flex', flexDirection: 'column',
-                        alignItems: 'center', justifyContent: 'center',
-                        gap: 8, padding: '32px 16px', opacity: 0.45,
-                        borderRadius: 14, border: `1.5px dashed ${col.accent}44`, marginTop: 4
-                      }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: 8,
+                          padding: '32px 16px',
+                          opacity: 0.45,
+                          borderRadius: 14,
+                          border: `1.5px dashed ${col.accent}44`,
+                          marginTop: 4
+                        }}
+                      >
                         {(() => {
                           const EmptyIcon = col.emptyIcon
                           return <EmptyIcon size={28} color={col.accent} strokeWidth={1.5} />
                         })()}
-                        <span style={{ fontSize: 12, fontWeight: 600, color: col.color, textAlign: 'center' }}>
+                        <span
+                          style={{
+                            fontSize: 12,
+                            fontWeight: 600,
+                            color: col.color,
+                            textAlign: 'center'
+                          }}
+                        >
                           {col.emptyText}
                         </span>
-                        <span style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)', textAlign: 'center' }}>
+                        <span
+                          style={{
+                            fontSize: 11,
+                            color: 'var(--muted-foreground, #64748b)',
+                            textAlign: 'center'
+                          }}
+                        >
                           Glissez un prospect ici
                         </span>
                       </div>

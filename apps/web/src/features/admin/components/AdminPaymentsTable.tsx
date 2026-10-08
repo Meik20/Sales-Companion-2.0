@@ -42,7 +42,13 @@ export function AdminPaymentsTable({ payments, onValidate, onReject }: Props) {
 
   if (!payments.length) {
     return (
-      <p style={{ color: 'var(--muted-foreground, #94a3b8)', textAlign: 'center', padding: '32px 0' }}>
+      <p
+        style={{
+          color: 'var(--muted-foreground, #94a3b8)',
+          textAlign: 'center',
+          padding: '32px 0'
+        }}
+      >
         {t('admin.noPayments') || 'Aucune demande de paiement.'}
       </p>
     )
@@ -103,11 +109,19 @@ export function AdminPaymentsTable({ payments, onValidate, onReject }: Props) {
                   borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                   transition: 'background 150ms ease'
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--secondary, #1e2a3b)')}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.background = 'var(--secondary, #1e2a3b)')
+                }
                 onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
               >
                 {/* Date */}
-                <td style={{ padding: '16px 12px', color: 'var(--muted-foreground, #94a3b8)', whiteSpace: 'nowrap' }}>
+                <td
+                  style={{
+                    padding: '16px 12px',
+                    color: 'var(--muted-foreground, #94a3b8)',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
                   {formatDate(payment.createdAt)}
                 </td>
 
@@ -159,14 +173,26 @@ export function AdminPaymentsTable({ payments, onValidate, onReject }: Props) {
                 </td>
 
                 {/* Montant */}
-                <td style={{ padding: '16px 12px', fontWeight: 700, color: 'var(--foreground, #f1f5f9)' }}>
+                <td
+                  style={{
+                    padding: '16px 12px',
+                    fontWeight: 700,
+                    color: 'var(--foreground, #f1f5f9)'
+                  }}
+                >
                   {payment.amount !== null ? `${payment.amount.toLocaleString('fr-FR')} FCFA` : '—'}
                 </td>
 
                 {/* Opérateur / Transaction */}
                 <td style={{ padding: '16px 12px', color: 'var(--muted-foreground, #94a3b8)' }}>
                   <div style={{ fontWeight: 600 }}>{payment.operator || '—'}</div>
-                  <div style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)', marginTop: 2 }}>
+                  <div
+                    style={{
+                      fontSize: 11,
+                      color: 'var(--muted-foreground, #64748b)',
+                      marginTop: 2
+                    }}
+                  >
                     ID: {payment.transactionId || '—'}
                   </div>
                 </td>
@@ -226,7 +252,13 @@ export function AdminPaymentsTable({ payments, onValidate, onReject }: Props) {
                       </Button>
                     </div>
                   ) : (
-                    <span style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)', fontStyle: 'italic' }}>
+                    <span
+                      style={{
+                        fontSize: 11,
+                        color: 'var(--muted-foreground, #64748b)',
+                        fontStyle: 'italic'
+                      }}
+                    >
                       —
                     </span>
                   )}

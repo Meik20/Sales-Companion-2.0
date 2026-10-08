@@ -56,7 +56,7 @@ export async function PATCH(
           subscriptionStartedAt: FieldValue.serverTimestamp(),
           subscriptionExpiresAt: expiresAt.toISOString(),
           subscriptionExpired: false,
-          paymentPending: false,      // ← libère l'écran d'attente côté client
+          paymentPending: false, // ← libère l'écran d'attente côté client
           paymentPendingPlan: FieldValue.delete(), // nettoyage
           updatedAt: FieldValue.serverTimestamp()
         })
@@ -111,17 +111,13 @@ export async function PATCH(
       } catch (emailErr) {
         console.error('[admin/payments] Activation email failed (non-blocking):', emailErr)
       }
-
     } else {
       // Action is reject — reset paymentPending so user can resubmit
-      await adminDb
-        .collection('users')
-        .doc(paymentData.userId)
-        .update({
-          paymentPending: false,
-          paymentPendingPlan: FieldValue.delete(),
-          updatedAt: FieldValue.serverTimestamp()
-        })
+      await adminDb.collection('users').doc(paymentData.userId).update({
+        paymentPending: false,
+        paymentPendingPlan: FieldValue.delete(),
+        updatedAt: FieldValue.serverTimestamp()
+      })
 
       await paymentRef.update({
         status: 'FAILED',

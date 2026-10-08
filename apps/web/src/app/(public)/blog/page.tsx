@@ -16,8 +16,7 @@ export const metadata: Metadata = {
   alternates: { canonical: `${baseUrl}/blog` },
   openGraph: {
     title: 'Blog Sales Companion 2.0 — Conseils B2B Cameroun',
-    description:
-      'Guides pratiques pour booster votre prospection commerciale au Cameroun.',
+    description: 'Guides pratiques pour booster votre prospection commerciale au Cameroun.',
     url: `${baseUrl}/blog`,
     siteName: 'Sales Companion 2.0',
     type: 'website'
@@ -40,7 +39,7 @@ const ARTICLES = [
     slug: 'trouver-clients-b2b-cameroun-2026',
     title: 'Comment trouver des clients B2B au Cameroun en 2026 : guide complet',
     excerpt:
-      "Secteurs porteurs, méthodes terrain, réseaux et outils digitaux : le guide définitif pour identifier, contacter et convertir des prospects B2B à Douala, Yaoundé et dans tout le Cameroun.",
+      'Secteurs porteurs, méthodes terrain, réseaux et outils digitaux : le guide définitif pour identifier, contacter et convertir des prospects B2B à Douala, Yaoundé et dans tout le Cameroun.',
     category: 'Prospection',
     date: '14 juin 2026',
     readTime: '12 min',
@@ -62,7 +61,7 @@ const ARTICLES = [
     slug: 'niu-rccm-identifier-entreprise-camerounaise',
     title: 'NIU et RCCM : comment identifier une entreprise camerounaise',
     excerpt:
-      "Comprendre le NIU et le RCCM est essentiel pour tout commercial B2B. Ce guide vous explique comment les utiliser pour vérifier et qualifier vos prospects.",
+      'Comprendre le NIU et le RCCM est essentiel pour tout commercial B2B. Ce guide vous explique comment les utiliser pour vérifier et qualifier vos prospects.',
     category: 'Guide',
     date: '11 juin 2026',
     readTime: '5 min',
@@ -73,7 +72,7 @@ const ARTICLES = [
     slug: 'prospection-commerciale-cameroun-methodes-outils',
     title: 'Prospection commerciale terrain au Cameroun : méthodes et outils',
     excerpt:
-      "Le terrain reste le principal canal de vente au Cameroun. Comment combiner la prospection physique avec les outils numériques pour maximiser votre taux de conversion ?",
+      'Le terrain reste le principal canal de vente au Cameroun. Comment combiner la prospection physique avec les outils numériques pour maximiser votre taux de conversion ?',
     category: 'Stratégie',
     date: '11 juin 2026',
     readTime: '7 min',
@@ -95,7 +94,7 @@ const ARTICLES = [
     slug: 'secteurs-actifs-douala-2026',
     title: "Les 10 secteurs d'activité les plus actifs à Douala en 2026",
     excerpt:
-      "Douala concentre 60% du tissu économique camerounais. Quels secteurs affichent la plus forte croissance ? Commerce, BTP, Tech, Finance, Agroalimentaire.",
+      'Douala concentre 60% du tissu économique camerounais. Quels secteurs affichent la plus forte croissance ? Commerce, BTP, Tech, Finance, Agroalimentaire.',
     category: 'Marché',
     date: '11 juin 2026',
     readTime: '6 min',
@@ -128,7 +127,7 @@ const ARTICLES = [
     slug: 'prospection-terrain-vs-digital-cameroun',
     title: 'Prospection terrain vs digital au Cameroun : ce qui marche vraiment en 2026',
     excerpt:
-      "Comparatif complet entre prospection terrain et prospection digitale pour les commerciaux B2B au Cameroun. Stratégie hybride gagnante pour Douala et Yaoundé.",
+      'Comparatif complet entre prospection terrain et prospection digitale pour les commerciaux B2B au Cameroun. Stratégie hybride gagnante pour Douala et Yaoundé.',
     category: 'Stratégie',
     date: '15 juin 2026',
     readTime: '8 min',
@@ -139,7 +138,7 @@ const ARTICLES = [
     slug: 'liste-entreprises-cameroun-secteur-btp',
     title: 'Liste des entreprises du BTP au Cameroun en 2026 : acteurs, opportunités et contacts',
     excerpt:
-      "Liste complète des entreprises du BTP au Cameroun en 2026 : groupes internationaux, PME locales, promoteurs immobiliers et sous-traitants à Douala et Yaoundé.",
+      'Liste complète des entreprises du BTP au Cameroun en 2026 : groupes internationaux, PME locales, promoteurs immobiliers et sous-traitants à Douala et Yaoundé.',
     category: 'Annuaire',
     date: '15 juin 2026',
     readTime: '10 min',
@@ -150,11 +149,11 @@ const ARTICLES = [
 
 const CATEGORY_STYLES: Record<string, { bg: string; text: string; border: string }> = {
   Prospection: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
-  Annuaire:    { bg: 'bg-blue-50',    text: 'text-blue-700',    border: 'border-blue-200'    },
-  Guide:       { bg: 'bg-amber-50',   text: 'text-amber-700',   border: 'border-amber-200'   },
-  Stratégie:   { bg: 'bg-purple-50',  text: 'text-purple-700',  border: 'border-purple-200'  },
-  Outils:      { bg: 'bg-teal-50',    text: 'text-teal-700',    border: 'border-teal-200'    },
-  Marché:      { bg: 'bg-red-50',     text: 'text-red-700',     border: 'border-red-200'     }
+  Annuaire: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
+  Guide: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
+  Stratégie: { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
+  Outils: { bg: 'bg-teal-50', text: 'text-teal-700', border: 'border-teal-200' },
+  Marché: { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' }
 }
 
 function CategoryBadge({ category }: { category: string }) {
@@ -274,8 +273,8 @@ export default async function BlogPage() {
           </h3>
           <p className="relative mx-auto mt-4 max-w-lg text-sm leading-relaxed text-emerald-100">
             Accédez à la base de données de plus de{' '}
-            <strong className="text-white">50 000 entreprises camerounaises</strong>{' '}
-            avec contacts des dirigeants, numéros RCCM et NIU.
+            <strong className="text-white">50 000 entreprises camerounaises</strong> avec contacts
+            des dirigeants, numéros RCCM et NIU.
           </p>
           <Link
             href="/register"

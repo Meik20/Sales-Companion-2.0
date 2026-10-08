@@ -13,11 +13,12 @@ export const Input = forwardRef<HTMLInputElement, Props>(function Input(
       ref={ref}
       aria-invalid={error || props['aria-invalid']}
       className={`w-full bg-card border ${
-        error ? 'border-destructive focus:ring-destructive/30' : 'border-border focus:border-primary focus:ring-primary/20'
+        error
+          ? 'border-destructive focus:ring-destructive/30'
+          : 'border-border focus:border-primary focus:ring-primary/20'
       } rounded-lg px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none transition-all duration-200 focus:ring-2 ${className}`}
       style={style}
       {...props}
     />
   )
 })
-

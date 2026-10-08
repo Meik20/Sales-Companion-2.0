@@ -4,11 +4,11 @@ import { HomeClient } from './HomeClient'
 export const metadata: Metadata = {
   title: "Base de données d'entreprises & prospection B2B au Cameroun | Sales Companion 2.0",
   description:
-    "Trouvez des entreprises à prospecter au Cameroun, filtrez vos prospects et gérez votre pipeline commercial avec Sales Companion 2.0.",
+    'Trouvez des entreprises à prospecter au Cameroun, filtrez vos prospects et gérez votre pipeline commercial avec Sales Companion 2.0.',
   openGraph: {
     title: "Base de données d'entreprises & prospection B2B au Cameroun | Sales Companion 2.0",
     description:
-      "Trouvez des entreprises à prospecter au Cameroun, filtrez vos prospects et gérez votre pipeline commercial avec Sales Companion 2.0.",
+      'Trouvez des entreprises à prospecter au Cameroun, filtrez vos prospects et gérez votre pipeline commercial avec Sales Companion 2.0.',
     type: 'website',
     locale: 'fr_CM',
     siteName: 'Sales Companion 2.0'
@@ -37,7 +37,7 @@ export default function Home() {
       priceCurrency: 'XAF'
     },
     description:
-      "La plateforme de prospection B2B conçue pour le marché camerounais. Recherchez parmi plus de 50 000 entreprises et suivez vos opportunités commerciales."
+      'La plateforme de prospection B2B conçue pour le marché camerounais. Recherchez parmi plus de 50 000 entreprises et suivez vos opportunités commerciales.'
   }
 
   return (

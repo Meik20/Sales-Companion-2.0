@@ -165,7 +165,9 @@ export default function AdminSupportPage() {
           const pendingOptimistic = prev.filter(
             (m) =>
               m.id.startsWith('temp-') &&
-              !serverMessages.some((sm) => sm.content === m.content && sm.senderRole === m.senderRole)
+              !serverMessages.some(
+                (sm) => sm.content === m.content && sm.senderRole === m.senderRole
+              )
           )
           return [...serverMessages, ...pendingOptimistic]
         })
@@ -209,7 +211,9 @@ export default function AdminSupportPage() {
         throw new Error(data.error || "Erreur lors de l'approbation.")
       }
 
-      setActionSuccess(`Dérogation validée ! Le lien d'inscription a été envoyé par email à ${thread.userEmail}.`)
+      setActionSuccess(
+        `Dérogation validée ! Le lien d'inscription a été envoyé par email à ${thread.userEmail}.`
+      )
       setSelected((prev) =>
         prev
           ? {
@@ -262,7 +266,9 @@ export default function AdminSupportPage() {
         throw new Error(data.error || "Erreur lors de l'approbation.")
       }
 
-      setActionSuccess(`Modification de profil validée ! Lien envoyé par email et dans la discussion.`)
+      setActionSuccess(
+        `Modification de profil validée ! Lien envoyé par email et dans la discussion.`
+      )
       setSelected((prev) =>
         prev
           ? {
@@ -309,7 +315,9 @@ export default function AdminSupportPage() {
         throw new Error(data.error || 'Erreur lors du rejet.')
       }
 
-      setActionSuccess(`Demande rejetée. L'utilisateur a été notifié par email et dans la discussion.`)
+      setActionSuccess(
+        `Demande rejetée. L'utilisateur a été notifié par email et dans la discussion.`
+      )
       setSelected((prev) =>
         prev
           ? {
@@ -502,14 +510,12 @@ export default function AdminSupportPage() {
 
   const fmtDate = (ts?: Timestamp) =>
     ts?.toDate
-      ? ts
-          .toDate()
-          .toLocaleDateString('fr-FR', {
-            day: '2-digit',
-            month: 'short',
-            hour: '2-digit',
-            minute: '2-digit'
-          })
+      ? ts.toDate().toLocaleDateString('fr-FR', {
+          day: '2-digit',
+          month: 'short',
+          hour: '2-digit',
+          minute: '2-digit'
+        })
       : ''
 
   // Filtrage local avec debounced search
@@ -649,7 +655,15 @@ export default function AdminSupportPage() {
               t('admin.allTickets')
             ) : s === 'open' ? (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#3b82f6', display: 'inline-block' }} />
+                <span
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    backgroundColor: '#3b82f6',
+                    display: 'inline-block'
+                  }}
+                />
                 {t('admin.openTickets')}
               </span>
             ) : (
@@ -707,13 +721,23 @@ export default function AdminSupportPage() {
           <div style={{ overflowY: 'auto', flex: 1 }}>
             {loading ? (
               <div
-                style={{ textAlign: 'center', padding: 40, color: 'var(--muted-foreground, #94a3b8)', fontSize: 13 }}
+                style={{
+                  textAlign: 'center',
+                  padding: 40,
+                  color: 'var(--muted-foreground, #94a3b8)',
+                  fontSize: 13
+                }}
               >
                 {t('team.loading')}
               </div>
             ) : filteredThreads.length === 0 ? (
               <div
-                style={{ textAlign: 'center', padding: 40, color: 'var(--muted-foreground, #94a3b8)', fontSize: 13 }}
+                style={{
+                  textAlign: 'center',
+                  padding: 40,
+                  color: 'var(--muted-foreground, #94a3b8)',
+                  fontSize: 13
+                }}
               >
                 <MessageSquare size={32} style={{ margin: '0 auto 8px', opacity: 0.4 }} />
                 {t('admin.noTickets')}
@@ -828,11 +852,29 @@ export default function AdminSupportPage() {
                         {STATUS_LABEL[status] ?? status}
                       </span>
                     </div>
-                    <div style={{ fontSize: 11.5, color: 'var(--muted-foreground, #94a3b8)', marginBottom: 2, display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
+                    <div
+                      style={{
+                        fontSize: 11.5,
+                        color: 'var(--muted-foreground, #94a3b8)',
+                        marginBottom: 2,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        flexWrap: 'wrap'
+                      }}
+                    >
                       <User size={11} style={{ opacity: 0.7 }} />
                       <span>{t.userName || t.userEmail || '—'}</span>
                       {t.companyName && (
-                        <span style={{ marginLeft: 4, color: '#94a3b8', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                        <span
+                          style={{
+                            marginLeft: 4,
+                            color: '#94a3b8',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 3
+                          }}
+                        >
                           · <Building2 size={10} style={{ opacity: 0.7 }} /> {t.companyName}
                         </span>
                       )}
@@ -877,7 +919,9 @@ export default function AdminSupportPage() {
                           transition: 'all 150ms ease'
                         }}
                         onMouseEnter={(e) => (e.currentTarget.style.color = '#ef4444')}
-                        onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--muted-foreground, #64748b)')}
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.color = 'var(--muted-foreground, #64748b)')
+                        }
                         title="Supprimer définitivement"
                       >
                         <Trash2 size={12} />
@@ -927,7 +971,12 @@ export default function AdminSupportPage() {
                 }}
               >
                 <div
-                  style={{ fontWeight: 700, fontSize: 15, color: 'var(--foreground, #f1f5f9)', marginBottom: 10 }}
+                  style={{
+                    fontWeight: 700,
+                    fontSize: 15,
+                    color: 'var(--foreground, #f1f5f9)',
+                    marginBottom: 10
+                  }}
                 >
                   {selected.subject ?? 'Ticket'}
                 </div>
@@ -989,7 +1038,9 @@ export default function AdminSupportPage() {
                     >
                       Nom
                     </div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--foreground, #f1f5f9)' }}>
+                    <div
+                      style={{ fontSize: 13, fontWeight: 600, color: 'var(--foreground, #f1f5f9)' }}
+                    >
                       {selected.userName || '—'}
                     </div>
                   </div>
@@ -1024,7 +1075,16 @@ export default function AdminSupportPage() {
                       >
                         Entreprise
                       </div>
-                      <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--foreground, #f1f5f9)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <div
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 600,
+                          color: 'var(--foreground, #f1f5f9)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 6
+                        }}
+                      >
                         <Building2 size={13} style={{ opacity: 0.7 }} />
                         <span>{selected.companyName}</span>
                       </div>
@@ -1045,7 +1105,16 @@ export default function AdminSupportPage() {
                         Téléphone / WhatsApp
                       </div>
                       <div style={{ fontSize: 12, fontWeight: 600, color: '#60a5fa' }}>
-                        <a href={`tel:${selected.phone}`} style={{ color: 'inherit', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                        <a
+                          href={`tel:${selected.phone}`}
+                          style={{
+                            color: 'inherit',
+                            textDecoration: 'none',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 6
+                          }}
+                        >
                           <Phone size={13} style={{ opacity: 0.7 }} />
                           <span>{selected.phone}</span>
                         </a>
@@ -1162,7 +1231,8 @@ export default function AdminSupportPage() {
                           selected.domainExemptionStatus === 'approved'
                             ? 'rgba(37, 99, 235, 0.15)'
                             : '#2563eb',
-                        color: selected.domainExemptionStatus === 'approved' ? '#60a5fa' : '#ffffff',
+                        color:
+                          selected.domainExemptionStatus === 'approved' ? '#60a5fa' : '#ffffff',
                         border:
                           selected.domainExemptionStatus === 'approved'
                             ? '1px solid rgba(37, 99, 235, 0.4)'
@@ -1258,80 +1328,89 @@ export default function AdminSupportPage() {
                         ) : (
                           <>
                             <Sparkles size={16} />
-                            <span>Demande d'autorisation de modification du profil d'entreprise</span>
+                            <span>
+                              Demande d'autorisation de modification du profil d'entreprise
+                            </span>
                           </>
                         )}
                       </div>
-                      <div style={{ fontSize: 11.5, color: 'var(--muted-foreground, #94a3b8)', lineHeight: 1.5 }}>
+                      <div
+                        style={{
+                          fontSize: 11.5,
+                          color: 'var(--muted-foreground, #94a3b8)',
+                          lineHeight: 1.5
+                        }}
+                      >
                         {selected.profileChangeStatus === 'approved'
                           ? `Le client a reçu son lien sécurisé de déverrouillage par email (${selected.userEmail}) et dans ce fil de discussion.`
                           : selected.profileChangeStatus === 'rejected'
                             ? `Motif de rejet : ${selected.profileChangeRejectedReason || 'Informations non conformes.'}`
-                            : "Après échange avec le client, validez ou rejetez sa demande. Si vous validez, un lien sécurisé valable 24h lui sera instantanément envoyé par email et dans cette messagerie."}
+                            : 'Après échange avec le client, validez ou rejetez sa demande. Si vous validez, un lien sécurisé valable 24h lui sera instantanément envoyé par email et dans cette messagerie.'}
                       </div>
                     </div>
 
                     {/* Boutons d'action (Valider / Rejeter) */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                      {selected.profileChangeStatus !== 'approved' && selected.profileChangeStatus !== 'rejected' && (
-                        <>
-                          {/* Bouton Rejeter */}
-                          <button
-                            onClick={() => handleRejectProfileChange(selected)}
-                            disabled={approving}
-                            style={{
-                              padding: '8px 14px',
-                              background: 'rgba(239, 68, 68, 0.12)',
-                              color: '#f87171',
-                              border: '1px solid rgba(239, 68, 68, 0.3)',
-                              borderRadius: 8,
-                              fontSize: 12,
-                              fontWeight: 700,
-                              cursor: approving ? 'wait' : 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 6,
-                              transition: 'all 150ms ease'
-                            }}
-                          >
-                            <X size={13} />
-                            <span>Rejeter</span>
-                          </button>
+                      {selected.profileChangeStatus !== 'approved' &&
+                        selected.profileChangeStatus !== 'rejected' && (
+                          <>
+                            {/* Bouton Rejeter */}
+                            <button
+                              onClick={() => handleRejectProfileChange(selected)}
+                              disabled={approving}
+                              style={{
+                                padding: '8px 14px',
+                                background: 'rgba(239, 68, 68, 0.12)',
+                                color: '#f87171',
+                                border: '1px solid rgba(239, 68, 68, 0.3)',
+                                borderRadius: 8,
+                                fontSize: 12,
+                                fontWeight: 700,
+                                cursor: approving ? 'wait' : 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 6,
+                                transition: 'all 150ms ease'
+                              }}
+                            >
+                              <X size={13} />
+                              <span>Rejeter</span>
+                            </button>
 
-                          {/* Bouton Valider */}
-                          <button
-                            onClick={() => handleApproveProfileChange(selected)}
-                            disabled={approving}
-                            style={{
-                              padding: '8px 16px',
-                              background: '#2563eb',
-                              color: '#ffffff',
-                              border: 'none',
-                              borderRadius: 8,
-                              fontSize: 12,
-                              fontWeight: 700,
-                              cursor: approving ? 'wait' : 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 6,
-                              boxShadow: '0 2px 10px rgba(37, 99, 235, 0.35)',
-                              transition: 'all 150ms ease'
-                            }}
-                          >
-                            {approving ? (
-                              <>
-                                <RefreshCw size={13} className="animate-spin" />
-                                <span>Validation en cours…</span>
-                              </>
-                            ) : (
-                              <>
-                                <CheckCircle2 size={13} />
-                                <span>Valider la demande</span>
-                              </>
-                            )}
-                          </button>
-                        </>
-                      )}
+                            {/* Bouton Valider */}
+                            <button
+                              onClick={() => handleApproveProfileChange(selected)}
+                              disabled={approving}
+                              style={{
+                                padding: '8px 16px',
+                                background: '#2563eb',
+                                color: '#ffffff',
+                                border: 'none',
+                                borderRadius: 8,
+                                fontSize: 12,
+                                fontWeight: 700,
+                                cursor: approving ? 'wait' : 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 6,
+                                boxShadow: '0 2px 10px rgba(37, 99, 235, 0.35)',
+                                transition: 'all 150ms ease'
+                              }}
+                            >
+                              {approving ? (
+                                <>
+                                  <RefreshCw size={13} className="animate-spin" />
+                                  <span>Validation en cours…</span>
+                                </>
+                              ) : (
+                                <>
+                                  <CheckCircle2 size={13} />
+                                  <span>Valider la demande</span>
+                                </>
+                              )}
+                            </button>
+                          </>
+                        )}
 
                       {selected.profileChangeStatus === 'approved' && (
                         <button
@@ -1435,7 +1514,8 @@ export default function AdminSupportPage() {
                                 <Headphones size={11} style={{ opacity: 0.7 }} />
                                 <span>Support</span>
                               </>
-                            )} · {time}
+                            )}{' '}
+                            · {time}
                           </span>
                           <button
                             onClick={() => handleDeleteMessage(m.id)}

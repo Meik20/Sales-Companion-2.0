@@ -143,7 +143,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (!emailResult.success && !emailResult.simulated) {
-      return NextResponse.json({ error: 'Échec de l\'envoi de l\'email.' }, { status: 502 })
+      return NextResponse.json({ error: "Échec de l'envoi de l'email." }, { status: 502 })
     }
 
     // Historiser l'action dans crm_activities

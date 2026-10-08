@@ -10,7 +10,8 @@ async function getAdmin() {
 
 function normalizeStatus(s: string) {
   const st = (s || '').toLowerCase().trim()
-  if (['prospection', 'prospect', 'to_contact', 'contact', 'nouveau', 'lead'].includes(st)) return 'prospection'
+  if (['prospection', 'prospect', 'to_contact', 'contact', 'nouveau', 'lead'].includes(st))
+    return 'prospection'
   if (['negociation', 'negotiation', 'in_progress', 'en_cours'].includes(st)) return 'negociation'
   if (['conclue', 'conclusion', 'won', 'closed', 'gagne', 'signe'].includes(st)) return 'conclue'
   return 'prospection'
@@ -73,7 +74,9 @@ export async function GET(request: NextRequest) {
         status: normalizeStatus(data.status),
         amount: typeof data.amount === 'number' ? data.amount : Number(data.amount) || 0,
         assignedTo: data.assignedTo || null,
-        createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : (data.createdAt || null)
+        createdAt: data.createdAt?.toDate
+          ? data.createdAt.toDate().toISOString()
+          : data.createdAt || null
       })
     }
 
@@ -94,8 +97,8 @@ export async function GET(request: NextRequest) {
       .get()
 
     const teamManagers = teamManagersSnap.docs
-      .filter(d => d.id !== callerUid && d.data().orgRole !== 'senior_manager')
-      .map(d => ({
+      .filter((d) => d.id !== callerUid && d.data().orgRole !== 'senior_manager')
+      .map((d) => ({
         uid: d.id,
         name: d.data().displayName || d.data().name || d.data().email || 'Team Manager',
         email: d.data().email || ''
@@ -115,7 +118,10 @@ export async function GET(request: NextRequest) {
     })
   } catch (err: any) {
     console.error('GET /api/team/migrate-senior-members error:', err)
-    return NextResponse.json({ error: err.message || 'Erreur lors de la récupération des prospects' }, { status: 500 })
+    return NextResponse.json(
+      { error: err.message || 'Erreur lors de la récupération des prospects' },
+      { status: 500 }
+    )
   }
 }
 
@@ -159,11 +165,17 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { targetManagerUid, prospectIds, migrateMembers } = body
     if (!targetManagerUid) {
-      return NextResponse.json({ error: 'Veuillez sélectionner un Team Manager cible' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Veuillez sélectionner un Team Manager cible' },
+        { status: 400 }
+      )
     }
 
     if (targetManagerUid === callerUid) {
-      return NextResponse.json({ error: 'Le manager cible ne peut pas être le Senior Manager lui-même' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Le manager cible ne peut pas être le Senior Manager lui-même' },
+        { status: 400 }
+      )
     }
 
     // Vérifier que le manager cible existe, est manager et fait partie de la même organisation
@@ -173,10 +185,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Team Manager cible introuvable' }, { status: 404 })
     }
     if (targetData.orgCode !== orgCode || targetData.role !== 'manager') {
-      return NextResponse.json({ error: 'Le manager cible n\'appartient pas à votre organisation' }, { status: 400 })
+      return NextResponse.json(
+        { error: "Le manager cible n'appartient pas à votre organisation" },
+        { status: 400 }
+      )
     }
 
-    const targetManagerName = targetData.displayName || targetData.name || targetData.email || 'Team Manager'
+    const targetManagerName =
+      targetData.displayName || targetData.name || targetData.email || 'Team Manager'
     const targetManagerEmail = targetData.email || ''
 
     // Récupérer les items pipeline à transférer
@@ -262,7 +278,7 @@ export async function POST(request: NextRequest) {
         managerUid: targetManagerUid,
         managerName: targetManagerName,
         userId: targetManagerUid, // Le Team Manager devient détenteur du prospect en attente d'attribution
-        assignedTo: null,          // EXPLICITEMENT NON ASSIGNÉ
+        assignedTo: null, // EXPLICITEMENT NON ASSIGNÉ
         assignedAt: null,
         memberName: null,
         memberAccessId: null,

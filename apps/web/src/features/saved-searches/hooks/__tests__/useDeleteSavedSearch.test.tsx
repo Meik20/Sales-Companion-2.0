@@ -36,4 +36,3 @@ describe('useDeleteSavedSearch', () => {
     expect(savedSearchesRepository.delete).toHaveBeenCalledWith('search-1')
   })
 })
-

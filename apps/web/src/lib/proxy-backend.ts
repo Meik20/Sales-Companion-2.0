@@ -37,11 +37,14 @@ export async function proxyToBackend(
     }
   }
 
-  const response = await fetch(`${backendUrl}${apiPath.startsWith('/') ? apiPath : `/${apiPath}`}`, {
-    method,
-    headers,
-    body
-  })
+  const response = await fetch(
+    `${backendUrl}${apiPath.startsWith('/') ? apiPath : `/${apiPath}`}`,
+    {
+      method,
+      headers,
+      body
+    }
+  )
 
   const contentType = response.headers.get('content-type') || ''
   if (contentType.includes('application/json')) {
@@ -50,5 +53,8 @@ export async function proxyToBackend(
   }
 
   const text = await response.text()
-  return NextResponse.json({ error: text || 'Réponse non-JSON du backend' }, { status: response.status })
+  return NextResponse.json(
+    { error: text || 'Réponse non-JSON du backend' },
+    { status: response.status }
+  )
 }

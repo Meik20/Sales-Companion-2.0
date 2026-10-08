@@ -14,7 +14,13 @@ import type { CrmClient, CrmClientStatus } from '@/features/crm/types'
 
 const PAGE_SIZE = 20
 
-const ACTIVE_STATUSES = new Set(['new', 'to_contact', 'contacted', 'in_discussion', 'proposal_sent'])
+const ACTIVE_STATUSES = new Set([
+  'new',
+  'to_contact',
+  'contacted',
+  'in_discussion',
+  'proposal_sent'
+])
 
 export default function CrmPage() {
   const { t } = useTranslation()
@@ -56,14 +62,24 @@ export default function CrmPage() {
     }
   }, [user])
 
-  useEffect(() => { void fetchClients() }, [fetchClients])
+  useEffect(() => {
+    void fetchClients()
+  }, [fetchClients])
 
   // Reset page on filter change
-  useEffect(() => { setPage(1) }, [filters])
+  useEffect(() => {
+    setPage(1)
+  }, [filters])
 
   // ── Stats ──────────────────────────────────────────────────────────────────
-  const activeCount = useMemo(() => clients.filter(c => ACTIVE_STATUSES.has(c.status)).length, [clients])
-  const toFollowUpCount = useMemo(() => clients.filter(c => c.status === 'to_contact').length, [clients])
+  const activeCount = useMemo(
+    () => clients.filter((c) => ACTIVE_STATUSES.has(c.status)).length,
+    [clients]
+  )
+  const toFollowUpCount = useMemo(
+    () => clients.filter((c) => c.status === 'to_contact').length,
+    [clients]
+  )
 
   // ── Filter + Sort ──────────────────────────────────────────────────────────
   const filtered = useMemo(() => {
@@ -71,27 +87,31 @@ export default function CrmPage() {
 
     if (filters.search) {
       const q = filters.search.toLowerCase()
-      list = list.filter(c =>
-        c.companyName?.toLowerCase().includes(q) ||
-        c.companyCity?.toLowerCase().includes(q) ||
-        c.companySector?.toLowerCase().includes(q) ||
-        c.companyPhone?.includes(q) ||
-        c.contactName?.toLowerCase().includes(q)
+      list = list.filter(
+        (c) =>
+          c.companyName?.toLowerCase().includes(q) ||
+          c.companyCity?.toLowerCase().includes(q) ||
+          c.companySector?.toLowerCase().includes(q) ||
+          c.companyPhone?.includes(q) ||
+          c.contactName?.toLowerCase().includes(q)
       )
     }
 
     if (filters.status === 'active_group') {
-      list = list.filter(c => ACTIVE_STATUSES.has(c.status))
+      list = list.filter((c) => ACTIVE_STATUSES.has(c.status))
     } else if (filters.status) {
-      list = list.filter(c => c.status === filters.status)
+      list = list.filter((c) => c.status === filters.status)
     }
 
-    if (filters.sector) list = list.filter(c => c.companySector === filters.sector || c.sector === filters.sector)
-    if (filters.city) list = list.filter(c => c.companyCity === filters.city || c.city === filters.city)
+    if (filters.sector)
+      list = list.filter((c) => c.companySector === filters.sector || c.sector === filters.sector)
+    if (filters.city)
+      list = list.filter((c) => c.companyCity === filters.city || c.city === filters.city)
 
     // Sort
     list.sort((a, b) => {
-      if (filters.sortBy === 'companyName') return (a.companyName || '').localeCompare(b.companyName || '')
+      if (filters.sortBy === 'companyName')
+        return (a.companyName || '').localeCompare(b.companyName || '')
       if (filters.sortBy === 'status') return (a.status || '').localeCompare(b.status || '')
       if (filters.sortBy === 'nextActionAt') {
         if (!a.nextActionAt) return 1
@@ -114,54 +134,64 @@ export default function CrmPage() {
   )
 
   // ── Actions ────────────────────────────────────────────────────────────────
-  const handleStatusChange = useCallback(async (clientId: string, newStatus: CrmClientStatus) => {
-    if (!user) return
-    // Optimistic update
-    setClients(prev => prev.map(c => c.id === clientId ? { ...c, status: newStatus } : c))
-    if (selectedClient?.id === clientId) setSelectedClient(s => s ? { ...s, status: newStatus } : s)
-    try {
-      const token = await user.getIdToken()
-      await fetch(`/api/crm/clients/${clientId}`, {
-        method: 'PATCH',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus })
-      })
-    } catch (e) {
-      console.error('[CRM] status update error', e)
-      void fetchClients()
-    }
-  }, [user, selectedClient, fetchClients])
+  const handleStatusChange = useCallback(
+    async (clientId: string, newStatus: CrmClientStatus) => {
+      if (!user) return
+      // Optimistic update
+      setClients((prev) => prev.map((c) => (c.id === clientId ? { ...c, status: newStatus } : c)))
+      if (selectedClient?.id === clientId)
+        setSelectedClient((s) => (s ? { ...s, status: newStatus } : s))
+      try {
+        const token = await user.getIdToken()
+        await fetch(`/api/crm/clients/${clientId}`, {
+          method: 'PATCH',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: newStatus })
+        })
+      } catch (e) {
+        console.error('[CRM] status update error', e)
+        void fetchClients()
+      }
+    },
+    [user, selectedClient, fetchClients]
+  )
 
-  const handleNextActionSave = useCallback(async (clientId: string, text: string) => {
-    if (!user) return
-    setClients(prev => prev.map(c => c.id === clientId ? { ...c, nextAction: text } : c))
-    try {
-      const token = await user.getIdToken()
-      await fetch(`/api/crm/clients/${clientId}`, {
-        method: 'PATCH',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nextAction: text })
-      })
-    } catch (e) {
-      console.error('[CRM] next action error', e)
-    }
-  }, [user])
+  const handleNextActionSave = useCallback(
+    async (clientId: string, text: string) => {
+      if (!user) return
+      setClients((prev) => prev.map((c) => (c.id === clientId ? { ...c, nextAction: text } : c)))
+      try {
+        const token = await user.getIdToken()
+        await fetch(`/api/crm/clients/${clientId}`, {
+          method: 'PATCH',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nextAction: text })
+        })
+      } catch (e) {
+        console.error('[CRM] next action error', e)
+      }
+    },
+    [user]
+  )
 
-  const handleDelete = useCallback(async (clientId: string) => {
-    if (!user) return
-    setClients(prev => prev.filter(c => c.id !== clientId))
-    if (selectedClient?.id === clientId) setSelectedClient(null)
-    try {
-      const token = await user.getIdToken()
-      await fetch(`/api/crm/clients/${clientId}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
-      })
-    } catch (e) {
-      console.error('[CRM] delete error', e)
-      void fetchClients()
-    }
-  }, [user, selectedClient, fetchClients])
+  const handleDelete = useCallback(
+    async (clientId: string) => {
+      if (!user) return
+      setClients((prev) => prev.filter((c) => c.id !== clientId))
+      if (selectedClient?.id === clientId) setSelectedClient(null)
+      try {
+        const token = await user.getIdToken()
+        await fetch(`/api/crm/clients/${clientId}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` }
+        })
+      } catch (e) {
+        console.error('[CRM] delete error', e)
+        void fetchClients()
+      }
+    },
+    [user, selectedClient, fetchClients]
+  )
 
   const handleClientAdded = useCallback(() => {
     setShowAddModal(false)
@@ -179,8 +209,13 @@ export default function CrmPage() {
         {!loading && (
           <p className="mt-1 text-[13px] text-muted-foreground">
             {clients.length} {t('crm.headerClients')} ·{' '}
-            <span className="font-semibold text-green-600 dark:text-green-400">{activeCount} {t('crm.headerActive')}</span> ·{' '}
-            <span className="font-semibold text-amber-600 dark:text-amber-400">{toFollowUpCount} {t('crm.headerToFollowUp')}</span>
+            <span className="font-semibold text-green-600 dark:text-green-400">
+              {activeCount} {t('crm.headerActive')}
+            </span>{' '}
+            ·{' '}
+            <span className="font-semibold text-amber-600 dark:text-amber-400">
+              {toFollowUpCount} {t('crm.headerToFollowUp')}
+            </span>
           </p>
         )}
       </div>
@@ -229,11 +264,7 @@ export default function CrmPage() {
 
       {/* Client Drawer */}
       {selectedClient && (
-        <ClientDrawer
-          client={selectedClient}
-          onClose={() => setSelectedClient(null)}
-          user={user}
-        />
+        <ClientDrawer client={selectedClient} onClose={() => setSelectedClient(null)} user={user} />
       )}
 
       {/* Add Client Modal */}

@@ -80,7 +80,9 @@ export function AssignmentsTable() {
   if (isLoading) {
     return (
       <SectionCard title={t('team.activeAssignments')} subtitle={`0 ${t('team.prospectAssigned')}`}>
-        <div style={{ textAlign: 'center', color: 'var(--muted-foreground, #94a3b8)', padding: 20 }}>
+        <div
+          style={{ textAlign: 'center', color: 'var(--muted-foreground, #94a3b8)', padding: 20 }}
+        >
           {t('team.loading')}
         </div>
       </SectionCard>
@@ -119,7 +121,9 @@ export function AssignmentsTable() {
               border: `1px solid ${repairResult.uidFixed > 0 || repairResult.nameFixed > 0 ? 'rgba(46,160,90,0.25)' : 'rgba(99,102,241,0.2)'}`,
               fontSize: 12.5,
               color:
-                repairResult.uidFixed > 0 || repairResult.nameFixed > 0 ? '#2ea05a' : 'var(--muted-foreground, #94a3b8)'
+                repairResult.uidFixed > 0 || repairResult.nameFixed > 0
+                  ? '#2ea05a'
+                  : 'var(--muted-foreground, #94a3b8)'
             }}
           >
             {repairResult.uidFixed > 0 ||
@@ -184,7 +188,14 @@ export function AssignmentsTable() {
       </div>
 
       {count === 0 ? (
-        <div style={{ textAlign: 'center', color: 'var(--muted-foreground, #94a3b8)', padding: 20, fontSize: 13 }}>
+        <div
+          style={{
+            textAlign: 'center',
+            color: 'var(--muted-foreground, #94a3b8)',
+            padding: 20,
+            fontSize: 13
+          }}
+        >
           {t('team.noAssignmentCreated')}
         </div>
       ) : (
@@ -240,7 +251,9 @@ export function AssignmentsTable() {
                       borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                       transition: 'all 200ms ease'
                     }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--secondary, #1e2a3b)')}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.background = 'var(--secondary, #1e2a3b)')
+                    }
                     onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                   >
                     {/* Prospect / Company */}
@@ -261,10 +274,22 @@ export function AssignmentsTable() {
                           <Building2 size={16} />
                         </div>
                         <div>
-                          <div style={{ fontWeight: 800, fontSize: 13, color: 'var(--foreground, #f1f5f9)' }}>
+                          <div
+                            style={{
+                              fontWeight: 800,
+                              fontSize: 13,
+                              color: 'var(--foreground, #f1f5f9)'
+                            }}
+                          >
                             {a.companyName || a.pipelineItemId}
                           </div>
-                          <div style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)', marginTop: 2 }}>
+                          <div
+                            style={{
+                              fontSize: 11,
+                              color: 'var(--muted-foreground, #94a3b8)',
+                              marginTop: 2
+                            }}
+                          >
                             {t('team.prospectAssignedSub')}
                           </div>
                         </div>
@@ -291,10 +316,18 @@ export function AssignmentsTable() {
                           {(a.memberName || a.memberEmail || '?')[0]?.toUpperCase()}
                         </div>
                         <div>
-                          <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--foreground, #f1f5f9)' }}>
+                          <div
+                            style={{
+                              fontWeight: 700,
+                              fontSize: 13,
+                              color: 'var(--foreground, #f1f5f9)'
+                            }}
+                          >
                             {a.memberName || a.memberEmail || t('sidebar.member')}
                           </div>
-                          <div style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)' }}>{a.memberEmail}</div>
+                          <div style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)' }}>
+                            {a.memberEmail}
+                          </div>
                         </div>
                       </div>
                     </td>

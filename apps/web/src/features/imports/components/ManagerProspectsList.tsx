@@ -382,7 +382,11 @@ export function ManagerProspectsList({
                 gap: 6
               }}
             >
-              {deletingSelected ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} strokeWidth={2} />}
+              {deletingSelected ? (
+                <Loader2 size={13} className="animate-spin" />
+              ) : (
+                <Trash2 size={13} strokeWidth={2} />
+              )}
               {t('team.deleteSelected')} ({selected.size})
             </button>
           )}
@@ -412,9 +416,19 @@ export function ManagerProspectsList({
           )}
 
           {/* Vider toute la liste des imports */}
-          {prospects.length > 0 && (
-            confirmClearAll ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(239, 68, 68, 0.08)', padding: '4px 8px', borderRadius: 8, border: '1px solid rgba(239, 68, 68, 0.25)' }}>
+          {prospects.length > 0 &&
+            (confirmClearAll ? (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  background: 'rgba(239, 68, 68, 0.08)',
+                  padding: '4px 8px',
+                  borderRadius: 8,
+                  border: '1px solid rgba(239, 68, 68, 0.25)'
+                }}
+              >
                 <span style={{ fontSize: 11.5, color: '#ef4444', fontWeight: 600 }}>
                   {t('team.clearImportsConfirm')}
                 </span>
@@ -436,7 +450,11 @@ export function ManagerProspectsList({
                     gap: 4
                   }}
                 >
-                  {clearingAll ? <Loader2 size={11} className="animate-spin" /> : <Check size={11} strokeWidth={2.5} />}
+                  {clearingAll ? (
+                    <Loader2 size={11} className="animate-spin" />
+                  ) : (
+                    <Check size={11} strokeWidth={2.5} />
+                  )}
                   {t('common.confirm')}
                 </button>
                 <button
@@ -478,21 +496,30 @@ export function ManagerProspectsList({
                 <Trash2 size={13} strokeWidth={1.8} />
                 {t('team.clearImports')}
               </button>
-            )
-          )}
+            ))}
         </div>
       </div>
 
       {/* ── Table ── */}
       {!loading && filtered.length === 0 ? (
         <EmptyState
-          illustration={prospects.length === 0 ? '/illustrations/empty-states/empty-prospects.png' : '/illustrations/empty-states/empty-search.png'}
+          illustration={
+            prospects.length === 0
+              ? '/illustrations/empty-states/empty-prospects.png'
+              : '/illustrations/empty-states/empty-search.png'
+          }
           illustrationSize="sm"
           title={prospects.length === 0 ? t('team.noProspectImported') : t('team.noProspectMatch')}
           className="py-10"
         />
       ) : (
-        <div style={{ overflowX: 'auto', borderRadius: 10, border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}` }}>
+        <div
+          style={{
+            overflowX: 'auto',
+            borderRadius: 10,
+            border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
+          }}
+        >
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12.5 }}>
             <thead>
               <tr style={{ background: 'var(--secondary, #1e2a3b)' }}>
@@ -570,7 +597,13 @@ export function ManagerProspectsList({
                         style={checkboxStyle}
                       />
                     </td>
-                    <td style={{ padding: '9px 12px', fontWeight: 600, color: 'var(--foreground, #f1f5f9)' }}>
+                    <td
+                      style={{
+                        padding: '9px 12px',
+                        fontWeight: 600,
+                        color: 'var(--foreground, #f1f5f9)'
+                      }}
+                    >
                       {p.name || '—'}
                     </td>
                     <td style={{ padding: '9px 12px', color: 'var(--muted-foreground, #94a3b8)' }}>
@@ -606,7 +639,9 @@ export function ManagerProspectsList({
                         '—'
                       )}
                     </td>
-                    <td style={{ padding: '9px 12px', color: 'var(--muted-foreground, #94a3b8)' }}>{p.city || '—'}</td>
+                    <td style={{ padding: '9px 12px', color: 'var(--muted-foreground, #94a3b8)' }}>
+                      {p.city || '—'}
+                    </td>
                     <td style={{ padding: '9px 12px', color: 'var(--muted-foreground, #94a3b8)' }}>
                       {p.sector || '—'}
                     </td>
@@ -629,7 +664,11 @@ export function ManagerProspectsList({
                       <td style={{ padding: '9px 12px' }}>
                         {assigning === p.id ? (
                           <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-                            <Loader2 size={13} className="animate-spin" style={{ color: 'var(--muted-foreground, #94a3b8)' }} />
+                            <Loader2
+                              size={13}
+                              className="animate-spin"
+                              style={{ color: 'var(--muted-foreground, #94a3b8)' }}
+                            />
                           </span>
                         ) : (
                           <select
@@ -669,7 +708,11 @@ export function ManagerProspectsList({
                               justifyContent: 'center'
                             }}
                           >
-                            {deletingId === p.id ? <Loader2 size={11} className="animate-spin" /> : <Check size={12} strokeWidth={2.5} />}
+                            {deletingId === p.id ? (
+                              <Loader2 size={11} className="animate-spin" />
+                            ) : (
+                              <Check size={12} strokeWidth={2.5} />
+                            )}
                           </button>
                           <button
                             onClick={() => setConfirmDeleteId(null)}

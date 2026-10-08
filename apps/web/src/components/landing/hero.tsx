@@ -36,16 +36,17 @@ export function Hero() {
       <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 lg:grid-cols-[1.1fr_0.9fr]">
         {/* Left column: Text & Value Proposition */}
         <div className="flex flex-col items-start">
-
           {/* H1 */}
           <h1 className="mt-5 font-heading text-3xl font-extrabold leading-[1.12] tracking-tight text-foreground text-balance sm:text-4xl lg:text-5xl">
             {isEn ? (
               <>
-                Find your next <span className="text-[#1B7A3E]">B2B clients</span> {country.englishIn}.
+                Find your next <span className="text-[#1B7A3E]">B2B clients</span>{' '}
+                {country.englishIn}.
               </>
             ) : (
               <>
-                Trouvez vos prochains <span className="text-[#1B7A3E]">clients B2B</span>{' '}{country.frenchIn}.
+                Trouvez vos prochains <span className="text-[#1B7A3E]">clients B2B</span>{' '}
+                {country.frenchIn}.
               </>
             )}
           </h1>
@@ -53,12 +54,12 @@ export function Hero() {
           {/* Subtitle */}
           <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground text-pretty sm:text-lg">
             {isEn
-              ? (country.code === 'CM'
-                  ? 'Search across 50,000+ companies, target prospects matching your business, and manage your sales pipeline from a single tool.'
-                  : `Search verified companies ${country.englishIn}, target prospects matching your business, and manage your sales pipeline from a single tool.`)
-              : (country.code === 'CM'
-                  ? 'Recherchez parmi plus de 50 000 entreprises, ciblez les prospects qui correspondent à votre activité et gérez votre pipeline commercial depuis un seul outil.'
-                  : `Recherchez parmi les entreprises vérifiées ${country.frenchIn}, ciblez les prospects qui correspondent à votre activité et gérez votre pipeline commercial depuis un seul outil.`)}
+              ? country.code === 'CM'
+                ? 'Search across 50,000+ companies, target prospects matching your business, and manage your sales pipeline from a single tool.'
+                : `Search verified companies ${country.englishIn}, target prospects matching your business, and manage your sales pipeline from a single tool.`
+              : country.code === 'CM'
+                ? 'Recherchez parmi plus de 50 000 entreprises, ciblez les prospects qui correspondent à votre activité et gérez votre pipeline commercial depuis un seul outil.'
+                : `Recherchez parmi les entreprises vérifiées ${country.frenchIn}, ciblez les prospects qui correspondent à votre activité et gérez votre pipeline commercial depuis un seul outil.`}
           </p>
 
           {/* CTAs */}
@@ -89,11 +90,15 @@ export function Hero() {
 
           {/* Quick proof badges */}
           <div className="mt-8 flex flex-wrap items-center gap-2.5 border-t border-border/80 pt-6 text-xs text-muted-foreground">
-            <span className="font-semibold text-foreground">
-              {isEn ? 'Included:' : 'Inclus :'}
-            </span>
+            <span className="font-semibold text-foreground">{isEn ? 'Included:' : 'Inclus :'}</span>
             {[
-              country.code === 'CM' ? (isEn ? '50,000+ companies' : '50 000+ entreprises') : (isEn ? 'Verified companies' : 'Entreprises vérifiées'),
+              country.code === 'CM'
+                ? isEn
+                  ? '50,000+ companies'
+                  : '50 000+ entreprises'
+                : isEn
+                  ? 'Verified companies'
+                  : 'Entreprises vérifiées',
               isEn ? 'Advanced search' : 'Recherche avancée',
               isEn ? 'Sales pipeline' : 'Pipeline commercial',
               isEn ? 'Field mode (PWA)' : 'Mode terrain (PWA)'
@@ -147,13 +152,17 @@ export function Hero() {
                     <span className="block text-[10px] text-muted-foreground font-medium">
                       {isEn ? 'City' : 'Ville'}
                     </span>
-                    <span className="font-semibold text-foreground truncate block">{country.cities[0]}</span>
+                    <span className="font-semibold text-foreground truncate block">
+                      {country.cities[0]}
+                    </span>
                   </div>
                   <div className="rounded-lg border border-border bg-card p-2">
                     <span className="block text-[10px] text-muted-foreground font-medium">
                       {isEn ? 'Area' : 'Zone'}
                     </span>
-                    <span className="font-semibold text-foreground truncate block">{country.area}</span>
+                    <span className="font-semibold text-foreground truncate block">
+                      {country.area}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -202,19 +211,33 @@ export function Hero() {
                 <div className="mt-3.5 grid grid-cols-2 gap-2 text-[11px] pt-3 border-t border-border/60">
                   <div className="flex items-center gap-1.5 text-muted-foreground">
                     <FileText className="h-3.5 w-3.5 text-primary shrink-0" />
-                    <span>RCCM: <strong className="text-foreground font-mono font-medium">{country.rccmExample}</strong></span>
+                    <span>
+                      RCCM:{' '}
+                      <strong className="text-foreground font-mono font-medium">
+                        {country.rccmExample}
+                      </strong>
+                    </span>
                   </div>
                   <div className="flex items-center gap-1.5 text-muted-foreground">
                     <FileText className="h-3.5 w-3.5 text-primary shrink-0" />
-                    <span>{country.taxLabel}: <strong className="text-foreground font-mono font-medium">{country.taxExample}</strong></span>
+                    <span>
+                      {country.taxLabel}:{' '}
+                      <strong className="text-foreground font-mono font-medium">
+                        {country.taxExample}
+                      </strong>
+                    </span>
                   </div>
                   <div className="flex items-center gap-1.5 text-muted-foreground">
                     <Phone className="h-3.5 w-3.5 text-blue-500 shrink-0" />
-                    <span className="font-mono text-foreground font-medium truncate">{country.mockPhone} · B2B</span>
+                    <span className="font-mono text-foreground font-medium truncate">
+                      {country.mockPhone} · B2B
+                    </span>
                   </div>
                   <div className="flex items-center gap-1.5 text-muted-foreground">
                     <Mail className="h-3.5 w-3.5 text-blue-500 shrink-0" />
-                    <span className="font-mono text-foreground truncate font-medium">contact@abc-btp.{country.code.toLowerCase()}</span>
+                    <span className="font-mono text-foreground truncate font-medium">
+                      contact@abc-btp.{country.code.toLowerCase()}
+                    </span>
                   </div>
                 </div>
               </div>

@@ -48,7 +48,9 @@ export async function POST(request: NextRequest) {
     // Vérifier appartenance
     const isOwner =
       threadData.userId === decoded.uid ||
-      (decoded.email && threadData.userEmail && decoded.email.toLowerCase() === threadData.userEmail.toLowerCase())
+      (decoded.email &&
+        threadData.userEmail &&
+        decoded.email.toLowerCase() === threadData.userEmail.toLowerCase())
 
     const messageRef = threadRef.collection('messages').doc(messageId)
     const messageSnap = await messageRef.get()
@@ -61,7 +63,10 @@ export async function POST(request: NextRequest) {
     const isSender = messageData.senderId === decoded.uid
 
     if (!isAdmin && !isOwner && !isSender) {
-      return NextResponse.json({ error: 'Permission refusée pour supprimer ce message.' }, { status: 403 })
+      return NextResponse.json(
+        { error: 'Permission refusée pour supprimer ce message.' },
+        { status: 403 }
+      )
     }
 
     await messageRef.delete()
@@ -92,6 +97,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, message: 'Message supprimé avec succès.' })
   } catch (error: any) {
     console.error('Erreur API suppression message:', error)
-    return NextResponse.json({ error: 'Erreur lors de la suppression du message.' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Erreur lors de la suppression du message.' },
+      { status: 500 }
+    )
   }
 }

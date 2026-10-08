@@ -10,26 +10,25 @@ vi.mock('@/hooks/useCurrentUser', () => ({
     user: {
       uid: 'test-user-id',
       role: 'independent',
-      getIdToken: vi.fn().mockResolvedValue('test-token'),
-    },
-  }),
+      getIdToken: vi.fn().mockResolvedValue('test-token')
+    }
+  })
 }))
 
 vi.mock('@/services/firebase/client', () => ({
-  firestore: {},
+  firestore: {}
 }))
 
 vi.mock('firebase/firestore', () => ({
   collection: vi.fn(),
   query: vi.fn(),
   where: vi.fn(),
-  onSnapshot: vi.fn(),
+  onSnapshot: vi.fn()
 }))
 
 vi.mock('@/lib/firestore-offline', () => ({
-  getDocsWithOfflineFallback: vi.fn(),
+  getDocsWithOfflineFallback: vi.fn()
 }))
-
 
 describe('usePipelineStats', () => {
   let queryClient: ReturnType<typeof createTestQueryClient>
@@ -40,16 +39,14 @@ describe('usePipelineStats', () => {
   })
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   )
 
   it('should fetch pipeline stats successfully', async () => {
     const mockDocs = [
       { id: '1', data: () => ({ status: 'prospection' }) },
       { id: '2', data: () => ({ status: 'negociation' }) },
-      { id: '3', data: () => ({ status: 'conclue' }) },
+      { id: '3', data: () => ({ status: 'conclue' }) }
     ]
 
     vi.mocked(getDocsWithOfflineFallback).mockImplementation(async () => {
@@ -76,4 +73,3 @@ describe('usePipelineStats', () => {
     })
   })
 })
-

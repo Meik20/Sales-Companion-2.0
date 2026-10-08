@@ -118,23 +118,26 @@ function ProspectModal({
 
   const originalNote = item.notes ?? item.note ?? ''
 
-  const filteredPreviousAssignees = (item.previousAssignees || []).filter(
-    (pa) => {
-      if (managerUid && pa.userId === managerUid) return false
-      if (item.assignedByName && pa.memberName === item.assignedByName) return false
-      return true
-    }
-  )
+  const filteredPreviousAssignees = (item.previousAssignees || []).filter((pa) => {
+    if (managerUid && pa.userId === managerUid) return false
+    if (item.assignedByName && pa.memberName === item.assignedByName) return false
+    return true
+  })
 
   const isOverdue = Boolean(
     item.nextFollowUp &&
-      item.nextFollowUp < new Date().toISOString().slice(0, 10) &&
-      item.status !== 'conclue' &&
-      item.status !== 'conclusion'
+    item.nextFollowUp < new Date().toISOString().slice(0, 10) &&
+    item.status !== 'conclue' &&
+    item.status !== 'conclusion'
   )
 
   const isConclue = item.status === 'conclue' || item.status === 'conclusion'
-  const aging = getPipelineAging(item.createdAt || item.enteredAt, item.status, item.assignedAt, item.updatedAt)
+  const aging = getPipelineAging(
+    item.createdAt || item.enteredAt,
+    item.status,
+    item.assignedAt,
+    item.updatedAt
+  )
 
   return (
     <>
@@ -197,7 +200,15 @@ function ProspectModal({
               >
                 {item.companyName}
               </h2>
-              <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <div
+                style={{
+                  marginTop: 8,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  flexWrap: 'wrap'
+                }}
+              >
                 <Badge variant={statusVariant[item.status] ?? 'default'}>
                   {statusLabel[item.status] ?? item.status}
                 </Badge>
@@ -328,7 +339,10 @@ function ProspectModal({
                         {item.companyPhone}
                       </a>
                       <a
-                        href={getWhatsAppUrl(item.companyPhone, `Bonjour, je vous contacte suite à...`)}
+                        href={getWhatsAppUrl(
+                          item.companyPhone,
+                          `Bonjour, je vous contacte suite à...`
+                        )}
                         target="_blank"
                         rel="noreferrer"
                         style={{
@@ -348,13 +362,15 @@ function ProspectModal({
                         onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
                       >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/>
+                          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z" />
                         </svg>
                         WhatsApp
                       </a>
                     </div>
                   ) : (
-                    <span style={{ color: 'var(--muted-foreground, #64748b)', fontStyle: 'italic' }}>
+                    <span
+                      style={{ color: 'var(--muted-foreground, #64748b)', fontStyle: 'italic' }}
+                    >
                       {t('pipeline.notSpecified')}
                     </span>
                   )
@@ -379,7 +395,9 @@ function ProspectModal({
                       {item.companyEmail}
                     </a>
                   ) : (
-                    <span style={{ color: 'var(--muted-foreground, #64748b)', fontStyle: 'italic' }}>
+                    <span
+                      style={{ color: 'var(--muted-foreground, #64748b)', fontStyle: 'italic' }}
+                    >
                       {t('pipeline.notSpecified')}
                     </span>
                   )
@@ -440,7 +458,13 @@ function ProspectModal({
             {/* Read-only metrics — Manager cannot edit */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               {/* Visual metrics row */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                  gap: 12
+                }}
+              >
                 {/* Amount display */}
                 <div
                   style={{
@@ -462,7 +486,15 @@ function ProspectModal({
                   >
                     Valeur de l&apos;opportunité
                   </div>
-                  <div style={{ fontSize: 15, fontWeight: 800, color: item.amount ? 'var(--pipeline-opportunity-color, #047857)' : 'var(--muted-foreground, #64748b)' }}>
+                  <div
+                    style={{
+                      fontSize: 15,
+                      fontWeight: 800,
+                      color: item.amount
+                        ? 'var(--pipeline-opportunity-color, #047857)'
+                        : 'var(--muted-foreground, #64748b)'
+                    }}
+                  >
                     {item.amount != null && item.amount > 0
                       ? `${new Intl.NumberFormat('fr-FR').format(item.amount)} FCFA`
                       : '0 FCFA'}
@@ -495,9 +527,17 @@ function ProspectModal({
                     {aging.isConclue ? 'Cycle de vente' : 'Temps dans pipeline'}
                   </div>
                   <div style={{ fontSize: 14, fontWeight: 800, color: aging.color }}>
-                    {aging.daysInPipeline === 0 ? 'Aujourd’hui' : `${aging.daysInPipeline} jour${aging.daysInPipeline > 1 ? 's' : ''}`}
+                    {aging.daysInPipeline === 0
+                      ? 'Aujourd’hui'
+                      : `${aging.daysInPipeline} jour${aging.daysInPipeline > 1 ? 's' : ''}`}
                   </div>
-                  <div style={{ fontSize: 10, color: 'var(--muted-foreground, #64748b)', marginTop: 2 }}>
+                  <div
+                    style={{
+                      fontSize: 10,
+                      color: 'var(--muted-foreground, #64748b)',
+                      marginTop: 2
+                    }}
+                  >
                     {aging.relativeTimeFormatted}
                   </div>
                 </div>
@@ -509,7 +549,9 @@ function ProspectModal({
                       background: 'var(--pipeline-card-bg, #ffffff)',
                       borderRadius: 10,
                       padding: '10px 14px',
-                      border: isOverdue ? '1px solid rgba(239,68,68,0.3)' : '1px solid var(--pipeline-card-border, #e2e8f0)'
+                      border: isOverdue
+                        ? '1px solid rgba(239,68,68,0.3)'
+                        : '1px solid var(--pipeline-card-border, #e2e8f0)'
                     }}
                   >
                     <div
@@ -528,18 +570,38 @@ function ProspectModal({
                       <Calendar size={12} />
                       Prochaine relance
                     </div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: isOverdue ? '#ef4444' : 'var(--foreground, #f1f5f9)' }}>
+                    <div
+                      style={{
+                        fontSize: 13,
+                        fontWeight: 700,
+                        color: isOverdue ? '#ef4444' : 'var(--foreground, #f1f5f9)'
+                      }}
+                    >
                       {item.nextFollowUp ? (
                         <span>
                           {item.nextFollowUp}
                           {isOverdue && (
-                            <span style={{ marginLeft: 6, fontSize: 10, color: '#f87171', fontWeight: 800 }}>
+                            <span
+                              style={{
+                                marginLeft: 6,
+                                fontSize: 10,
+                                color: '#f87171',
+                                fontWeight: 800
+                              }}
+                            >
                               (EN RETARD)
                             </span>
                           )}
                         </span>
                       ) : (
-                        <span style={{ color: 'var(--muted-foreground, #64748b)', fontStyle: 'italic', fontSize: 12, fontWeight: 400 }}>
+                        <span
+                          style={{
+                            color: 'var(--muted-foreground, #64748b)',
+                            fontStyle: 'italic',
+                            fontSize: 12,
+                            fontWeight: 400
+                          }}
+                        >
                           Aucune date
                         </span>
                       )}
@@ -562,7 +624,9 @@ function ProspectModal({
                   }}
                 >
                   <AlertTriangle size={18} style={{ color: aging.color, flexShrink: 0 }} />
-                  <span style={{ fontSize: 12, color: aging.color, fontWeight: 600, lineHeight: 1.4 }}>
+                  <span
+                    style={{ fontSize: 12, color: aging.color, fontWeight: 600, lineHeight: 1.4 }}
+                  >
                     {aging.warningMessage}
                   </span>
                 </div>
@@ -581,8 +645,18 @@ function ProspectModal({
                     gap: 10
                   }}
                 >
-                  <CheckCircle2 size={18} style={{ color: 'var(--pipeline-concluded-color, #047857)', flexShrink: 0 }} />
-                  <span style={{ fontSize: 12, color: 'var(--pipeline-concluded-color, #047857)', fontWeight: 700, lineHeight: 1.4 }}>
+                  <CheckCircle2
+                    size={18}
+                    style={{ color: 'var(--pipeline-concluded-color, #047857)', flexShrink: 0 }}
+                  />
+                  <span
+                    style={{
+                      fontSize: 12,
+                      color: 'var(--pipeline-concluded-color, #047857)',
+                      fontWeight: 700,
+                      lineHeight: 1.4
+                    }}
+                  >
                     {aging.badgeText} · Vente finalisée avec succès !
                   </span>
                 </div>
@@ -616,7 +690,9 @@ function ProspectModal({
                 <div
                   style={{
                     fontSize: 13,
-                    color: originalNote ? 'var(--foreground, #f1f5f9)' : 'var(--muted-foreground, #64748b)',
+                    color: originalNote
+                      ? 'var(--foreground, #f1f5f9)'
+                      : 'var(--muted-foreground, #64748b)',
                     fontStyle: originalNote ? 'normal' : 'italic',
                     lineHeight: 1.5,
                     whiteSpace: 'pre-wrap'
@@ -704,7 +780,9 @@ function InfoRow({
         >
           {label}
         </span>
-        <span style={{ color: 'var(--foreground, #f1f5f9)', fontWeight: 500, lineHeight: 1.4 }}>{value}</span>
+        <span style={{ color: 'var(--foreground, #f1f5f9)', fontWeight: 500, lineHeight: 1.4 }}>
+          {value}
+        </span>
       </div>
     </div>
   )
@@ -775,7 +853,8 @@ function TargetsPanel({ members }: { members?: Member[] }) {
           display: 'flex',
           alignItems: 'center',
           gap: 8,
-          background: 'linear-gradient(135deg, rgba(16,185,129,0.12) 0%, rgba(5,150,105,0.12) 100%)',
+          background:
+            'linear-gradient(135deg, rgba(16,185,129,0.12) 0%, rgba(5,150,105,0.12) 100%)',
           border: '1px solid rgba(16,185,129,0.3)',
           borderRadius: 10,
           padding: '9px 16px',
@@ -841,7 +920,17 @@ function TargetsPanel({ members }: { members?: Member[] }) {
                 alignItems: 'center'
               }}
             >
-              <span style={{ fontSize: 12, fontWeight: 700, color: '#6ee7b7', letterSpacing: '.04em', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <span
+                style={{
+                  fontSize: 12,
+                  fontWeight: 700,
+                  color: '#6ee7b7',
+                  letterSpacing: '.04em',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6
+                }}
+              >
                 <Globe size={13} />
                 OBJECTIF GLOBAL (R/O)
               </span>
@@ -898,7 +987,7 @@ function TargetsPanel({ members }: { members?: Member[] }) {
             <label style={labelStyle}>Période (optionnel)</label>
             <input
               type="text"
-              placeholder='ex : 2026-Q1, 2026-S1, 2026-12'
+              placeholder="ex : 2026-Q1, 2026-S1, 2026-12"
               value={period}
               onChange={(e) => setPeriod(e.target.value)}
               style={inputStyle}
@@ -912,7 +1001,7 @@ function TargetsPanel({ members }: { members?: Member[] }) {
               <input
                 type="number"
                 min={0}
-                placeholder='ex : 50'
+                placeholder="ex : 50"
                 value={targetVolume}
                 onChange={(e) => setTargetVolume(e.target.value)}
                 style={inputStyle}
@@ -923,7 +1012,7 @@ function TargetsPanel({ members }: { members?: Member[] }) {
               <input
                 type="number"
                 min={0}
-                placeholder='ex : 5000000'
+                placeholder="ex : 5000000"
                 value={targetValue}
                 onChange={(e) => setTargetValue(e.target.value)}
                 style={inputStyle}
@@ -971,21 +1060,38 @@ function TargetsPanel({ members }: { members?: Member[] }) {
                         border: '1px solid var(--border, rgba(255,255,255,0.08))'
                       }}
                     >
-                      <span style={{ fontWeight: 600, color: 'var(--foreground, #f1f5f9)', minWidth: 120 }}>
+                      <span
+                        style={{
+                          fontWeight: 600,
+                          color: 'var(--foreground, #f1f5f9)',
+                          minWidth: 120
+                        }}
+                      >
                         {name}
                       </span>
                       {t.period && (
-                        <span style={{ color: 'var(--muted-foreground, #94a3b8)', fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                        <span
+                          style={{
+                            color: 'var(--muted-foreground, #94a3b8)',
+                            fontSize: 11,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 4
+                          }}
+                        >
                           <Calendar size={11} />
                           {t.period}
                         </span>
                       )}
                       {t.targetVolume != null && (
-                        <span style={{ color: '#60a5fa' }}>Vol. : <strong>{t.targetVolume}</strong></span>
+                        <span style={{ color: '#60a5fa' }}>
+                          Vol. : <strong>{t.targetVolume}</strong>
+                        </span>
                       )}
                       {t.targetValue != null && (
                         <span style={{ color: '#34d399' }}>
-                          Val. : <strong>{new Intl.NumberFormat('fr-FR').format(t.targetValue)}</strong> F
+                          Val. :{' '}
+                          <strong>{new Intl.NumberFormat('fr-FR').format(t.targetValue)}</strong> F
                         </span>
                       )}
                     </div>
@@ -1228,7 +1334,8 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
   // Group by normalized status
   const normalize = (s: string) => {
     const st = (s || '').toLowerCase().trim()
-    if (['prospection', 'prospect', 'to_contact', 'contact', 'nouveau', 'lead'].includes(st)) return 'prospection'
+    if (['prospection', 'prospect', 'to_contact', 'contact', 'nouveau', 'lead'].includes(st))
+      return 'prospection'
     if (['negociation', 'negotiation', 'in_progress', 'en_cours'].includes(st)) return 'negociation'
     if (['conclue', 'conclusion', 'won', 'closed', 'gagne', 'signe'].includes(st)) return 'conclue'
     return 'prospection'
@@ -1339,41 +1446,62 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                             </span>
                           )}
                           {item.amount != null && item.amount > 0 && (
-                            <span style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: 4,
-                              fontWeight: 700,
-                              color: 'var(--pipeline-opportunity-color, #047857)',
-                              background: 'var(--pipeline-fresh-bg, #ecfdf5)',
-                              border: '1px solid var(--pipeline-fresh-border, rgba(5, 150, 105, 0.25))',
-                              borderRadius: 4,
-                              padding: '1px 6px',
-                              fontSize: 10.5
-                            }}>
+                            <span
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: 4,
+                                fontWeight: 700,
+                                color: 'var(--pipeline-opportunity-color, #047857)',
+                                background: 'var(--pipeline-fresh-bg, #ecfdf5)',
+                                border:
+                                  '1px solid var(--pipeline-fresh-border, rgba(5, 150, 105, 0.25))',
+                                borderRadius: 4,
+                                padding: '1px 6px',
+                                fontSize: 10.5
+                              }}
+                            >
                               <Banknote size={11} />
                               {new Intl.NumberFormat('fr-FR').format(item.amount)} F
                             </span>
                           )}
-                          {item.nextFollowUp && item.status !== 'conclue' && item.status !== 'conclusion' && (
-                            <span style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: 4,
-                              fontWeight: 600,
-                              color: item.nextFollowUp < new Date().toISOString().slice(0, 10) ? '#ef4444' : '#60a5fa',
-                              background: item.nextFollowUp < new Date().toISOString().slice(0, 10) ? 'rgba(239,68,68,0.08)' : 'rgba(96,165,250,0.08)',
-                              border: item.nextFollowUp < new Date().toISOString().slice(0, 10) ? '1px solid rgba(239,68,68,0.25)' : '1px solid rgba(96,165,250,0.2)',
-                              borderRadius: 4,
-                              padding: '1px 6px',
-                              fontSize: 10.5
-                            }}>
-                              <Calendar size={10} />
-                              {item.nextFollowUp}
-                            </span>
-                          )}
+                          {item.nextFollowUp &&
+                            item.status !== 'conclue' &&
+                            item.status !== 'conclusion' && (
+                              <span
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: 4,
+                                  fontWeight: 600,
+                                  color:
+                                    item.nextFollowUp < new Date().toISOString().slice(0, 10)
+                                      ? '#ef4444'
+                                      : '#60a5fa',
+                                  background:
+                                    item.nextFollowUp < new Date().toISOString().slice(0, 10)
+                                      ? 'rgba(239,68,68,0.08)'
+                                      : 'rgba(96,165,250,0.08)',
+                                  border:
+                                    item.nextFollowUp < new Date().toISOString().slice(0, 10)
+                                      ? '1px solid rgba(239,68,68,0.25)'
+                                      : '1px solid rgba(96,165,250,0.2)',
+                                  borderRadius: 4,
+                                  padding: '1px 6px',
+                                  fontSize: 10.5
+                                }}
+                              >
+                                <Calendar size={10} />
+                                {item.nextFollowUp}
+                              </span>
+                            )}
                           {(() => {
-                            const aging = getPipelineAging(item.createdAt || (item as any).enteredAt, item.status, (item as any).assignedAt, (item as any).updatedAt)
+                            const aging = getPipelineAging(
+                              item.createdAt || (item as any).enteredAt,
+                              item.status,
+                              (item as any).assignedAt,
+                              (item as any).updatedAt
+                            )
                             return (
                               <span
                                 title={`Entré le ${aging.enteredDateFormatted} (${aging.relativeTimeFormatted})`}
@@ -1402,18 +1530,20 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                                 !(item.assignedByName && pa.memberName === item.assignedByName)
                             )
                             return filtered.length > 0 ? (
-                              <span style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: 4,
-                                fontWeight: 600,
-                                color: '#f87171',
-                                background: 'rgba(239,68,68,0.08)',
-                                border: '1px solid rgba(239,68,68,0.2)',
-                                borderRadius: 4,
-                                padding: '1px 6px',
-                                fontSize: 10.5
-                              }}>
+                              <span
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: 4,
+                                  fontWeight: 600,
+                                  color: '#f87171',
+                                  background: 'rgba(239,68,68,0.08)',
+                                  border: '1px solid rgba(239,68,68,0.2)',
+                                  borderRadius: 4,
+                                  padding: '1px 6px',
+                                  fontSize: 10.5
+                                }}
+                              >
                                 <AlertTriangle size={10} />
                                 Déjà visité
                               </span>
@@ -1436,7 +1566,16 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                         )}
                       </div>
                       {item.assignedTo && item.assignedTo !== managerUid && (
-                        <div style={{ fontSize: 11, color: 'rgba(99,102,241,0.7)', marginTop: 3, display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <div
+                          style={{
+                            fontSize: 11,
+                            color: 'rgba(99,102,241,0.7)',
+                            marginTop: 3,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 4
+                          }}
+                        >
                           <User size={10} />
                           {resolveMemberLabel(item, members) ?? t('sidebar.member')}
                         </div>

@@ -4,47 +4,47 @@ Objectif : une **source de vérité par domaine**, sans duplication métier.
 
 ## Next.js Route Handlers (`apps/web/src/app/api/`)
 
-| Domaine | Routes | Stockage |
-|---------|--------|----------|
-| Recherche | `/api/search/companies` | Firestore |
-| Pipeline | `/api/pipeline/*` | Firestore |
-| Sauvegardes | `/api/saved-searches`, `/api/saved-companies` | Firestore |
-| Auth | `/api/auth/*` | Firebase Auth + Firestore |
-| Paiement | `/api/payment/*` | Firestore + Campay |
-| IA | `/api/ai/chat` | Groq + `app_config` |
-| Admin web | `/api/admin/*` | Firestore |
-| Imports manager | `/api/imports` | Firestore |
-| **Support utilisateur** | `/api/support/threads/*` | Firestore (phase 3) |
+| Domaine                 | Routes                                        | Stockage                  |
+| ----------------------- | --------------------------------------------- | ------------------------- |
+| Recherche               | `/api/search/companies`                       | Firestore                 |
+| Pipeline                | `/api/pipeline/*`                             | Firestore                 |
+| Sauvegardes             | `/api/saved-searches`, `/api/saved-companies` | Firestore                 |
+| Auth                    | `/api/auth/*`                                 | Firebase Auth + Firestore |
+| Paiement                | `/api/payment/*`                              | Firestore + Campay        |
+| IA                      | `/api/ai/chat`                                | Groq + `app_config`       |
+| Admin web               | `/api/admin/*`                                | Firestore                 |
+| Imports manager         | `/api/imports`                                | Firestore                 |
+| **Support utilisateur** | `/api/support/threads/*`                      | Firestore (phase 3)       |
 
 ## Express (`apps/server`)
 
-| Domaine | Routes | Notes |
-|---------|--------|-------|
-| Santé | `GET /health` | Healthcheck |
-| Équipe | `/team/*` | Accès, membres, activation |
-| Assignations | `/assignments` | Manager → membre |
-| Pipeline (legacy) | `/pipeline/*` | Doublon partiel avec Next — clients web utilisent Next |
-| Admin imports lourds | `/admin/import*` | CSV/Excel |
-| Admin support | `/admin/support` | Réponses admin |
-| Admin users/companies | `/admin/*` | Partiellement doublonné par Next admin |
+| Domaine               | Routes           | Notes                                                  |
+| --------------------- | ---------------- | ------------------------------------------------------ |
+| Santé                 | `GET /health`    | Healthcheck                                            |
+| Équipe                | `/team/*`        | Accès, membres, activation                             |
+| Assignations          | `/assignments`   | Manager → membre                                       |
+| Pipeline (legacy)     | `/pipeline/*`    | Doublon partiel avec Next — clients web utilisent Next |
+| Admin imports lourds  | `/admin/import*` | CSV/Excel                                              |
+| Admin support         | `/admin/support` | Réponses admin                                         |
+| Admin users/companies | `/admin/*`       | Partiellement doublonné par Next admin                 |
 
 ## Proxys Next → Express
 
 Fichier : `apps/web/src/lib/proxy-backend.ts`
 
-| Route Next | Backend Express |
-|------------|-----------------|
+| Route Next                | Backend Express           |
+| ------------------------- | ------------------------- |
 | `POST /api/team/accesses` | `POST /api/team/accesses` |
-| `GET /api/team/members` | `GET /api/team/members` |
+| `GET /api/team/members`   | `GET /api/team/members`   |
 
 Variable : `BACKEND_URL` (prod : URL du backend Express)
 
 ## UI temps réel (sans API)
 
-| Page | Accès données |
-|------|----------------|
-| `/support` | Firestore client direct (`onSnapshot`) |
-| Équipe (partiel) | Firestore + API |
+| Page             | Accès données                          |
+| ---------------- | -------------------------------------- |
+| `/support`       | Firestore client direct (`onSnapshot`) |
+| Équipe (partiel) | Firestore + API                        |
 
 Les hooks `useSupportThreads` / `useReplySupportThread` utilisent les routes Next ci-dessus si activés hors page support.
 

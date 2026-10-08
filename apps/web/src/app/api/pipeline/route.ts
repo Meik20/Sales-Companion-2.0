@@ -102,20 +102,36 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'companyName requis' }, { status: 400 })
     }
 
-    // ── Find previous assignees ──────────────────────────────────
+    const userDoc = await adminDb.collection('users').doc(userId).get()
+    const userData = userDoc.data() || {}
+    const isManagerUser = userData.role === 'manager'
+    const orgCode = (userData.orgCode as string) || null
+    // Multi-tenant guard : le managerUid est EXCLUSIVEMENT déduit du profil serveur
+    const managerUid = isManagerUser ? userId : (userData.managerUid as string | null) || null
+
+    // ── Find previous assignees (Strictement isolé par Organisation / Manager) ──
     const prevAssigneesMap = new Map<
       string,
       { userId: string; memberName: string; assignedAt: string }
     >()
     if (companyName) {
       try {
-        const byName = await adminDb
-          .collection('pipeline')
-          .where('companyName', '==', companyName)
-          .get()
+        let query = adminDb.collection('pipeline').where('companyName', '==', companyName)
+        if (orgCode) {
+          query = query.where('orgCode', '==', orgCode)
+        } else if (managerUid) {
+          query = query.where('managerUid', '==', managerUid)
+        } else {
+          query = query.where('userId', '==', userId)
+        }
+
+        const byName = await query.get()
         byName.docs.forEach((doc) => {
           const d = doc.data()
-          const isManager = d.role === 'manager' || d.isManager === true || (d.managerUid && d.userId === d.managerUid)
+          const isManager =
+            d.role === 'manager' ||
+            d.isManager === true ||
+            (d.managerUid && d.userId === d.managerUid)
           if (d.userId && d.userId !== userId && !isManager) {
             prevAssigneesMap.set(d.userId, {
               userId: d.userId,
@@ -125,15 +141,10 @@ export async function POST(request: NextRequest) {
           }
         })
       } catch (err) {
-        console.error('Error fetching by companyName', err)
+        console.error('Error fetching previousAssignees by companyName', err)
       }
     }
     const previousAssignees = Array.from(prevAssigneesMap.values())
-    const userDoc = await adminDb.collection('users').doc(userId).get()
-    const userData = userDoc.data() || {}
-    const isManagerUser = userData.role === 'manager'
-    const managerUid = (body.managerUid as string) || (isManagerUser ? userId : (userData.managerUid as string | null)) || null
-    const orgCode = (userData.orgCode as string) || null
 
     const ref = adminDb.collection('pipeline').doc()
     await ref.set({

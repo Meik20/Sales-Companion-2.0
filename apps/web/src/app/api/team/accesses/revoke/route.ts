@@ -23,7 +23,10 @@ export async function POST(request: NextRequest) {
       managerUid = decoded.uid
       const managerDoc = await adminDb.collection('users').doc(managerUid).get()
       if (!hasActivePaidManagerAccess(managerDoc.data()) || decoded.email_verified !== true) {
-        return NextResponse.json({ error: 'Un abonnement Manager actif et vérifié est requis.' }, { status: 403 })
+        return NextResponse.json(
+          { error: 'Un abonnement Manager actif et vérifié est requis.' },
+          { status: 403 }
+        )
       }
     } catch {
       return NextResponse.json({ error: 'Token invalide' }, { status: 401 })

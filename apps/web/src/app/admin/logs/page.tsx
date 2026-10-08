@@ -42,8 +42,8 @@ function useSearchLogs() {
       return res.json()
     },
     enabled: !!user?.uid,
-    staleTime: 2 * 60 * 1000,   // 2 min de cache
-    refetchOnWindowFocus: false  // Le bouton "Actualiser" suffit
+    staleTime: 2 * 60 * 1000, // 2 min de cache
+    refetchOnWindowFocus: false // Le bouton "Actualiser" suffit
   })
 }
 
@@ -77,7 +77,14 @@ export default function AdminLogsPage() {
         }
       >
         {isLoading && (
-          <div style={{ textAlign: 'center', padding: 40, color: 'var(--muted-foreground, #94a3b8)', fontSize: 13 }}>
+          <div
+            style={{
+              textAlign: 'center',
+              padding: 40,
+              color: 'var(--muted-foreground, #94a3b8)',
+              fontSize: 13
+            }}
+          >
             {t('team.loading')}
           </div>
         )}
@@ -136,7 +143,9 @@ export default function AdminLogsPage() {
                         borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                         transition: 'background 200ms ease'
                       }}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--card, #131c2e)')}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.backgroundColor = 'var(--card, #131c2e)')
+                      }
                       onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                     >
                       <td style={{ padding: '12px' }}>
@@ -158,12 +167,24 @@ export default function AdminLogsPage() {
                           >
                             {(log.userName || log.userEmail || '?')[0]!.toUpperCase()}
                           </div>
-                          <span style={{ fontWeight: 700, color: 'var(--foreground, #f1f5f9)', fontSize: 13 }}>
+                          <span
+                            style={{
+                              fontWeight: 700,
+                              color: 'var(--foreground, #f1f5f9)',
+                              fontSize: 13
+                            }}
+                          >
                             {log.userName || '—'}
                           </span>
                         </div>
                       </td>
-                      <td style={{ padding: '12px', color: 'var(--muted-foreground, #94a3b8)', fontSize: 12 }}>
+                      <td
+                        style={{
+                          padding: '12px',
+                          color: 'var(--muted-foreground, #94a3b8)',
+                          fontSize: 12
+                        }}
+                      >
                         {log.userEmail || '—'}
                       </td>
                       <td
@@ -190,7 +211,8 @@ export default function AdminLogsPage() {
                             display: 'inline-flex',
                             alignItems: 'center',
                             gap: 6,
-                            color: log.resultsCount > 0 ? '#60a5fa' : 'var(--muted-foreground, #64748b)',
+                            color:
+                              log.resultsCount > 0 ? '#60a5fa' : 'var(--muted-foreground, #64748b)',
                             fontWeight: 800,
                             fontSize: 14
                           }}

@@ -22,9 +22,7 @@ describe('useAdminStats', () => {
   })
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   )
 
   it('should fetch admin stats successfully', async () => {
@@ -32,12 +30,12 @@ describe('useAdminStats', () => {
       totalUsers: 100,
       totalCompanies: 500,
       totalPipelineItems: 1000,
-      activeUsers: 50,
+      activeUsers: 50
     }
 
     global.fetch = vi.fn().mockResolvedValueOnce({
       ok: true,
-      json: async () => mockStats,
+      json: async () => mockStats
     })
 
     const { result } = renderHook(() => useAdminStats(), { wrapper })
@@ -52,7 +50,7 @@ describe('useAdminStats', () => {
   it('should handle fetch errors', async () => {
     global.fetch = vi.fn().mockResolvedValueOnce({
       ok: false,
-      status: 500,
+      status: 500
     })
 
     const { result } = renderHook(() => useAdminStats(), { wrapper })
@@ -61,5 +59,4 @@ describe('useAdminStats', () => {
       expect(result.current.isError).toBe(true)
     })
   })
-
 })

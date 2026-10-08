@@ -6,9 +6,13 @@ const mocks = vi.hoisted(() => {
   const mockUserGet = vi.fn()
   const mockPipelineAdd = vi.fn()
   const mockQueryGet = vi.fn()
+  const createQuery = (): any => ({
+    where: () => createQuery(),
+    get: mockQueryGet
+  })
   const mockCollection = vi.fn((name: string) => {
     if (name === 'users') return { doc: () => ({ get: mockUserGet }) }
-    return { add: mockPipelineAdd, where: () => ({ get: mockQueryGet }) }
+    return { add: mockPipelineAdd, where: () => createQuery() }
   })
 
   return { mockVerifyIdToken, mockUserGet, mockPipelineAdd, mockQueryGet, mockCollection }

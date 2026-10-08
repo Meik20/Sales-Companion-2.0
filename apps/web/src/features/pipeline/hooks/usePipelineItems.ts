@@ -58,7 +58,10 @@ export function usePipelineItems() {
 
       // Fetch assigned items if any
       try {
-        const assignedQ = query(collection(firestore, 'pipeline'), where('assignedTo', '==', user.uid))
+        const assignedQ = query(
+          collection(firestore, 'pipeline'),
+          where('assignedTo', '==', user.uid)
+        )
         const assignedSnap = await getDocsWithOfflineFallback(assignedQ)
         assignedSnap.docs.forEach((docSnap) => {
           if (!seen.has(docSnap.id)) {
@@ -93,4 +96,3 @@ export function usePipelineItems() {
     refetchOnWindowFocus: false
   })
 }
-
