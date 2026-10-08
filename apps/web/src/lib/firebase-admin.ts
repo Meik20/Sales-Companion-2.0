@@ -83,6 +83,7 @@ function initAdminApp() {
 export const adminDb = new Proxy({} as Firestore, {
   get(_, prop) {
     initAdminApp()
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { getFirestore } = require('firebase-admin/firestore')
     return Reflect.get(getFirestore(), prop)
   }
@@ -91,6 +92,7 @@ export const adminDb = new Proxy({} as Firestore, {
 export const adminAuth = new Proxy({} as Auth, {
   get(_, prop) {
     initAdminApp()
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { getAuth } = require('firebase-admin/auth')
     return Reflect.get(getAuth(), prop)
   }

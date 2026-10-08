@@ -252,7 +252,9 @@ service cloud.firestore {
           isManager()
           && request.resource.data.managerUid == authUid()
           && (request.resource.data.role == 'member' || request.resource.data.role == 'support_agent')
+          && !request.resource.data.keys().hasAny(['activated', 'activatedAt', 'activatedUid', 'firebaseUid'])
         );
+
 
       allow update: if isAdmin()
         || (

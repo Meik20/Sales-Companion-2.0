@@ -99,9 +99,17 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // ── PHASE A: Fix pipeline items with email-like userId ────────────────
-    const allPipelineSnap = await adminDb.collection('pipeline').get()
-    for (const doc of allPipelineSnap.docs) {
+    // ── PHASE A: Fix pipeline items with email-like userId (isolé au manager) ──
+    const [managerPipeSnap, teamPipeSnap] = await Promise.all([
+      adminDb.collection('pipeline').where('managerUid', '==', managerUid).get(),
+      adminDb.collection('pipeline').where('userId', '==', managerUid).get()
+    ])
+    const pipelineMap = new Map<string, FirebaseFirestore.QueryDocumentSnapshot>()
+    managerPipeSnap.docs.forEach((d) => pipelineMap.set(d.id, d))
+    teamPipeSnap.docs.forEach((d) => pipelineMap.set(d.id, d))
+    const scopedPipelineDocs = Array.from(pipelineMap.values())
+
+    for (const doc of scopedPipelineDocs) {
       const d = doc.data()
       const currentUserId: string = d.userId ?? ''
       const currentAssignedTo: string = d.assignedTo ?? ''

@@ -10,6 +10,20 @@ export async function POST(request: NextRequest) {
   try {
     const { adminDb, adminAuth } = await getAdminModules()
 
+    // ── 0. Rate limiting strict pour prévenir les attaques par force brute ──
+    const { checkRateLimit, getClientIp } = await import('@/lib/rate-limit')
+    const ip = getClientIp(request)
+    const rl = await checkRateLimit(`team-activate:${ip}`, {
+      limit: 10,
+      windowMs: 15 * 60 * 1000
+    })
+    if (!rl.success) {
+      return NextResponse.json(
+        { message: 'Trop de tentatives. Veuillez réessayer dans quelques minutes.' },
+        { status: 429 }
+      )
+    }
+
     const body = await request.json().catch(() => null)
     if (!body) {
       return NextResponse.json({ message: 'Corps de requête invalide' }, { status: 400 })
@@ -28,6 +42,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
+
 
     // ── 1. Chercher le document d'accès (plusieurs collections possibles) ──
     let snap: any = null
@@ -93,6 +108,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Vérification de validité temporelle de l'invitation
+    if (data.expiresAt) {
+      const expDate =
+        typeof data.expiresAt.toDate === 'function' ? data.expiresAt.toDate() : new Date(data.expiresAt)
+      if (expDate < new Date()) {
+        return NextResponse.json(
+          {
+            message:
+              "Cette invitation a expiré. Veuillez contacter votre manager pour recevoir un nouveau lien d'activation."
+          },
+          { status: 410 }
+        )
+      }
+    }
+
     const officialEmail = data.email?.trim()
     const requestedEmail = (body as { email?: string }).email?.trim()
 
@@ -128,12 +158,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // ── 2. Créer ou mettre à jour l'utilisateur Firebase Auth ──
+    // ── 2. Créer ou associer l'utilisateur Firebase Auth ──
     let uid: string
+    let accountLinked = false
     try {
       const existing = await adminAuth.getUserByEmail(email)
-      await adminAuth.updateUser(existing.uid, { password })
       uid = existing.uid
+      accountLinked = true
+      // Protection anti-prise de contrôle de compte :
+      // Si le compte existe déjà, on ne remplace PAS son mot de passe en aveugle.
+      // L'utilisateur conserve ses identifiants et son compte est rattaché à l'organisation.
     } catch (authErr: unknown) {
       const authCode = typeof (authErr as Record<string, unknown>).code === 'string'
         ? (authErr as Record<string, unknown>).code as string
@@ -156,6 +190,7 @@ export async function POST(request: NextRequest) {
         throw authErr
       }
     }
+
 
     const userDocRef = adminDb.collection('users').doc(uid)
     const userDocSnap = await userDocRef.get()
@@ -243,7 +278,15 @@ export async function POST(request: NextRequest) {
 
     // Activation successful — no sensitive log in production
 
-    return NextResponse.json({ success: true, uid })
+    return NextResponse.json({
+      success: true,
+      uid,
+      accountLinked,
+      message: accountLinked
+        ? 'Compte rattaché avec succès. Utilisez votre mot de passe habituel pour vous connecter.'
+        : 'Compte activé avec succès.'
+    })
+
   } catch (error) {
     console.error('[team/activate] Error:', {
       message: error instanceof Error ? error.message : String(error),

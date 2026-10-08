@@ -61,8 +61,10 @@ export async function POST(request: NextRequest) {
       canAssign: false
     }
 
-    // Génération d'un code magique pour l'activation simplifiée (Magic Link)
-    const magicCode = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+    // Génération d'un code magique cryptographiquement sécurisé pour l'activation (Magic Link)
+    const crypto = await import('crypto')
+    const magicCode = crypto.randomBytes(24).toString('base64url')
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // Valide 7 jours
 
     const managerPlan = (managerData?.plan || 'free') as keyof typeof PLAN_LIMITS
 
@@ -90,9 +92,11 @@ export async function POST(request: NextRequest) {
       plan: managerPlan,
       dailyLimit: PLAN_LIMITS[managerPlan as keyof typeof PLAN_LIMITS] ?? 10,
       magicCode,
+      expiresAt,
       createdAt: new Date(),
       updatedAt: new Date()
     }
+
 
     const docRef = await adminDb.collection('team_accesses').add(newAccess)
 

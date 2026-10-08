@@ -153,11 +153,12 @@ export async function POST(request: NextRequest) {
 
     let managerUid: string
     let managerName = ''
+    let managerData: Record<string, any> | undefined
     try {
       const decoded = await adminAuth.verifyIdToken(token)
       managerUid = decoded.uid
       const managerDoc = await adminDb.collection('users').doc(managerUid).get()
-      const managerData = managerDoc.data()
+      managerData = managerDoc.data()
       if (!hasActivePaidManagerAccess(managerData) || decoded.email_verified !== true) {
         return NextResponse.json({ message: 'Un abonnement Manager actif et vérifié est requis.' }, { status: 403 })
       }
@@ -165,6 +166,7 @@ export async function POST(request: NextRequest) {
     } catch {
       return NextResponse.json({ message: 'Token invalide' }, { status: 401 })
     }
+
 
     const body = (await request.json().catch(() => ({}))) as {
       pipelineItemId?: string
@@ -246,9 +248,44 @@ export async function POST(request: NextRequest) {
       if (foundDoc) prospectData = foundDoc.data() || {}
     }
 
-    // ── Step 2: Get member info ────────────────────────────────────────────
+    // Contrôle d'isolation sur le prospect source :
+    // Si le prospect est déjà rattaché à un manager/utilisateur différent hors de l'organisation, interdire l'assignation.
+    const prospectManagerUid = (prospectData.managerUid || prospectData.userId) as string | undefined
+    const prospectOrgCode = prospectData.orgCode as string | undefined
+    if (prospectManagerUid && prospectManagerUid !== managerUid) {
+      const isOrgMatch = Boolean(managerData?.orgCode && prospectOrgCode && prospectOrgCode === managerData.orgCode)
+      if (!isOrgMatch) {
+        return NextResponse.json(
+          { message: "Vous n'avez pas l'autorisation d'assigner ce prospect." },
+          { status: 403 }
+        )
+      }
+    }
+
+    // ── Step 2: Get member info & verify team membership ──────────────────
     const memberDoc = await adminDb.collection('users').doc(memberId).get()
+    if (!memberDoc.exists) {
+      return NextResponse.json({ message: 'Membre introuvable' }, { status: 404 })
+    }
     const memberData = memberDoc.data() || {}
+
+    // Contrôle d'isolation multi-tenant : le membre doit être rattaché au manager ou à la même org
+    const isSameManager = memberData.managerUid === managerUid
+    const isSameOrg = Boolean(managerData?.orgCode && memberData.orgCode && memberData.orgCode === managerData.orgCode)
+    if (!isSameManager && !isSameOrg) {
+      return NextResponse.json(
+        { message: "Ce membre n'appartient pas à votre équipe ni à votre organisation." },
+        { status: 403 }
+      )
+    }
+
+    if (memberData.role !== 'member' && memberData.role !== 'support_agent') {
+      return NextResponse.json(
+        { message: "Seuls les membres d'équipe et agents support peuvent recevoir des prospects." },
+        { status: 400 }
+      )
+    }
+
     let memberName: string = memberData.name ?? ''
     const memberEmail: string = memberData.email ?? ''
     const memberAccessId: string | null = memberData.accessId ?? null
