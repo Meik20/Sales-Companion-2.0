@@ -12,10 +12,12 @@ export function DataTrustSection() {
   const pillars = [
     {
       icon: FileCheck,
-      title: isEn ? 'Legal & Fiscal Identification' : 'Identification légale (RCCM & NIU)',
+      title: isEn
+        ? `Legal & Fiscal Identification (RCCM & ${country.taxLabel})`
+        : `Identification légale (RCCM & ${country.taxLabel})`,
       desc: isEn
-        ? 'Access Trade Register (RCCM) and Tax ID (NIU) numbers whenever available to verify legal existence before signing contracts.'
-        : 'Retrouvez les numéros RCCM et NIU lorsqu’ils sont disponibles pour sécuriser vos relations commerciales avant la contractualisation.'
+        ? `Access Trade Register (RCCM) and Tax ID (${country.taxLabel}) numbers whenever available to verify legal existence before signing contracts.`
+        : `Retrouvez les numéros RCCM et ${country.taxLabel} lorsqu’ils sont disponibles pour sécuriser vos relations commerciales avant la contractualisation.`
     },
     {
       icon: MapPin,

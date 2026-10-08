@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { useProspectingCountry } from '@/hooks/useProspectingCountry'
 import { useTranslation } from '@/providers/I18nProvider'
 import { COUNTRY_FRENCH_IN, COUNTRY_FRENCH_MARKET_ADJECTIVE, COUNTRY_NAMES, type CountryCode } from '@sales-companion/shared'
 import { Loader2, RotateCcw } from 'lucide-react'
@@ -18,7 +19,7 @@ interface Message {
 export default function AIAssistantPage() {
   const { user } = useCurrentUser()
   const { lang, t } = useTranslation()
-  const countryCode = (user?.country || 'CM') as CountryCode
+  const countryCode = useProspectingCountry()
   const countryName = COUNTRY_NAMES[countryCode] || 'Cameroun'
   const countryIn = COUNTRY_FRENCH_IN[countryCode] || 'au Cameroun'
   const countryAdjective = COUNTRY_FRENCH_MARKET_ADJECTIVE[countryCode] || 'camerounais'
@@ -145,7 +146,7 @@ export default function AIAssistantPage() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ message: trimmedInput, lang, history: recentHistory })
+        body: JSON.stringify({ message: trimmedInput, lang, history: recentHistory, country: countryCode })
       })
 
       if (!response.ok) {

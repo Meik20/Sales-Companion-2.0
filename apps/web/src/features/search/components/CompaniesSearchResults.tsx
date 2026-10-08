@@ -3,6 +3,8 @@ import { AddToPipelineButton } from './AddToPipelineButton'
 import { SaveCompanyButton } from './SaveCompanyButton'
 import { Company } from '@/features/search/hooks/useCompaniesSearch'
 import { useTranslation } from '@/providers/I18nProvider'
+import { useProspectingCountry } from '@/hooks/useProspectingCountry'
+import { COUNTRY_TAX_LABELS } from '@sales-companion/shared'
 import { getWhatsAppUrl } from '@/utils/whatsapp'
 import { Phone, Mail, MapPin, User, Building2, Check } from 'lucide-react'
 
@@ -84,6 +86,8 @@ function formatFieldLabel(key: string, t: any): string {
 
 export function CompaniesSearchResults({ items }: Props) {
   const { t } = useTranslation()
+  const prospectingCountry = useProspectingCountry()
+  const taxLabel = COUNTRY_TAX_LABELS[prospectingCountry] || 'NIU'
   if (!items.length) return null
 
   return (
@@ -283,7 +287,7 @@ export function CompaniesSearchResults({ items }: Props) {
               >
                 {company.niu && (
                   <span style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)' }}>
-                    <span style={{ fontWeight: 600 }}>{t('field.niu')}:</span> {String(company.niu)}
+                    <span style={{ fontWeight: 600 }}>{taxLabel}:</span> {String(company.niu)}
                   </span>
                 )}
                 {company.rccm && (

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { routes } from '@/constants/routes'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { useProspectingCountry } from '@/hooks/useProspectingCountry'
 import { SidebarLink } from './SidebarLink'
 import { useAuthActions } from '@/features/auth/hooks/useAuthActions'
 import { useToast } from '@/hooks/useToast'
@@ -254,8 +255,10 @@ export function AppSidebar({
     onCloseAction?.()
   }
 
+  const prospectingCountry = useProspectingCountry()
+
   function handleLocateMe() {
-    if ((user?.country || 'CM') !== 'CM') return
+    if (prospectingCountry !== 'CM') return
     if (!navigator.geolocation) return
     setGeoState('loading')
     navigator.geolocation.getCurrentPosition(
@@ -284,7 +287,7 @@ export function AppSidebar({
 
   if (!user) return null
 
-  const geography = GEOGRAPHY[user.country || 'CM'] ?? GEOGRAPHY.CM!
+  const geography = GEOGRAPHY[prospectingCountry] ?? GEOGRAPHY.CM!
 
   const handleLogout = async () => {
     try {

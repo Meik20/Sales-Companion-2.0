@@ -2,8 +2,12 @@ import { Metadata } from 'next'
 import Link from 'next/link'
 import { PublicNav } from '@/components/landing/PublicNav'
 import { PublicFooter } from '@/components/landing/PublicFooter'
+import { getServerProspectingCountry } from '@/lib/country-server'
+import { CountryMaintenanceView } from '@/components/landing/CountryMaintenanceView'
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://salescompanion2-0.com'
+
+export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: 'Base de Données Entreprises Cameroun — 50 000+ Sociétés | Annuaire B2B',
@@ -58,7 +62,12 @@ const FAQ_ITEMS = [
   }
 ]
 
-export default function AnnuaireHub() {
+export default async function AnnuaireHub() {
+  const country = await getServerProspectingCountry()
+  if (country !== 'CM') {
+    return <CountryMaintenanceView pageType="annuaire" countryCode={country} />
+  }
+
   const faqJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',

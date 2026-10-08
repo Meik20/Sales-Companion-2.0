@@ -37,11 +37,11 @@ export function BlogSection() {
     {
       slug: country.code === 'CM' ? 'niu-rccm-identifier-entreprise-camerounaise' : 'blog',
       title: lang === 'en'
-        ? 'NIU and RCCM: how to identify and qualify a company'
-        : 'NIU et RCCM : comment identifier et qualifier une entreprise',
+        ? `${country.taxLabel} and RCCM: how to identify and qualify a company`
+        : `${country.taxLabel} et RCCM : comment identifier et qualifier une entreprise`,
       desc: lang === 'en'
-        ? 'Understand the NIU and RCCM to verify your prospects and secure your commercial contracts.'
-        : 'Comprendre le NIU et le RCCM pour vérifier vos prospects et sécuriser vos contrats commercialement.',
+        ? `Understand ${country.taxLabel} and RCCM to verify your prospects and secure your commercial contracts.`
+        : `Comprendre le ${country.taxLabel} et le RCCM pour vérifier vos prospects et sécuriser vos contrats commercialement.`,
       badge: lang === 'en' ? 'Legal & Tax Guide' : 'Guide Légal & Fiscal',
       readTime: '5 min',
       icon: ShieldCheck

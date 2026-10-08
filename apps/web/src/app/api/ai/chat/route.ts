@@ -211,12 +211,21 @@ export async function POST(request: NextRequest) {
       message,
       history = [],
       userProfile,
-      lang: reqLang
+      lang: reqLang,
+      country: reqCountry
     } = body as {
       message: string
       history?: { role: 'user' | 'model'; parts: [{ text: string }] }[]
       userProfile?: { sector?: string; company?: string; region?: string; name?: string }
       lang?: 'fr' | 'en'
+      country?: string
+    }
+
+    // Override du pays de prospection actif (envoyé par le client ou présent dans les cookies)
+    const cookieCountry = request.cookies.get('sc_country')?.value?.toUpperCase()
+    const targetCountryCode = (reqCountry?.toUpperCase() || cookieCountry) as CountryCode | undefined
+    if (targetCountryCode && COUNTRY_NAMES[targetCountryCode]) {
+      userCountry = targetCountryCode
     }
 
     if (!message?.trim()) {

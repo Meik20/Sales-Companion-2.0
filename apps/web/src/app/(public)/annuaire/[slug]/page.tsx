@@ -3,6 +3,10 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { PublicNav } from '@/components/landing/PublicNav'
 import { PublicFooter } from '@/components/landing/PublicFooter'
+import { getServerProspectingCountry } from '@/lib/country-server'
+import { CountryMaintenanceView } from '@/components/landing/CountryMaintenanceView'
+
+export const dynamic = 'force-dynamic'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -192,6 +196,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function AnnuaireSlugPage({ params }: Props) {
+  const country = await getServerProspectingCountry()
+  if (country !== 'CM') {
+    return <CountryMaintenanceView pageType="annuaire" countryCode={country} />
+  }
+
   const { slug } = await params
   const data = DATA_MAP[slug]
 

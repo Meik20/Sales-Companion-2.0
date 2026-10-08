@@ -29,8 +29,8 @@ export function WorkflowSection() {
         ? 'Review available verified details before making contact.'
         : 'Consultez les informations disponibles avant de prendre contact.',
       details: isEn
-        ? 'Access legal data (NIU, RCCM), verified phone numbers, and corporate emails.'
-        : 'Vérifiez le RCCM, NIU, téléphones et adresses géographiques précises.',
+        ? `Access legal data (${country.taxLabel}, RCCM), verified phone numbers, and corporate emails.`
+        : `Vérifiez le RCCM, ${country.taxLabel}, téléphones et adresses géographiques précises.`,
       icon: ShieldCheck,
       tag: isEn ? 'Verified Profiles' : 'Fiches enrichies'
     },

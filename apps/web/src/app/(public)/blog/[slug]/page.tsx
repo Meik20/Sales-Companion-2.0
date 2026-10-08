@@ -3,6 +3,10 @@ import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import { PublicNav } from '@/components/landing/PublicNav'
 import { PublicFooter } from '@/components/landing/PublicFooter'
+import { getServerProspectingCountry } from '@/lib/country-server'
+import { CountryMaintenanceView } from '@/components/landing/CountryMaintenanceView'
+
+export const dynamic = 'force-dynamic'
 
 // ── Données des Articles (Simulation DB/CMS) ─────────────────────────────
 const ARTICLES_CONTENT: Record<string, {
@@ -1159,6 +1163,11 @@ export default async function BlogPostPage({
 }: {
   params: Promise<{ slug: string }>
 }) {
+  const country = await getServerProspectingCountry()
+  if (country !== 'CM') {
+    return <CountryMaintenanceView pageType="blog" countryCode={country} />
+  }
+
   const resolvedParams = await params
   const article = ARTICLES_CONTENT[resolvedParams.slug]
 

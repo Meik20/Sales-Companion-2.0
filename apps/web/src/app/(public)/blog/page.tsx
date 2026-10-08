@@ -2,8 +2,12 @@ import Link from 'next/link'
 import { Metadata } from 'next'
 import { PublicNav } from '@/components/landing/PublicNav'
 import { PublicFooter } from '@/components/landing/PublicFooter'
+import { getServerProspectingCountry } from '@/lib/country-server'
+import { CountryMaintenanceView } from '@/components/landing/CountryMaintenanceView'
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://salescompanion2-0.com'
+
+export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: 'Blog — Prospection B2B & CRM au Cameroun | Sales Companion 2.0',
@@ -168,7 +172,12 @@ function CategoryBadge({ category }: { category: string }) {
   )
 }
 
-export default function BlogPage() {
+export default async function BlogPage() {
+  const country = await getServerProspectingCountry()
+  if (country !== 'CM') {
+    return <CountryMaintenanceView pageType="blog" countryCode={country} />
+  }
+
   const featured = ARTICLES.find((a) => a.featured)
   const rest = ARTICLES.filter((a) => !a.featured)
 

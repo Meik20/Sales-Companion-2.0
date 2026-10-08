@@ -59,13 +59,29 @@ function SearchContent() {
 
   // AI B2B chat state
   type ChatMsg = { role: 'user' | 'assistant'; text: string }
+
+  const getAiGreeting = () =>
+    lang === 'en'
+      ? `Hello 👋 I am your Companion IA.\nAsk me questions about prospection in ${countryName}, business sectors, or ask me to draft an outreach email.`
+      : `Bonjour 👋 Je suis votre Companion IA.\nPosez-moi vos questions sur la prospection ${countryIn}, les secteurs d'activité, ou demandez-moi de rédiger un email d'approche.`
+
   const [chatMessages, setChatMessages] = useState<ChatMsg[]>([
-    { role: 'assistant', text: t('search.aiGreeting') }
+    { role: 'assistant', text: getAiGreeting() }
   ])
   const [chatInput, setChatInput] = useState('')
   const [isSendingChat, setIsSendingChat] = useState(false)
   const chatMessagesContainerRef = useRef<HTMLDivElement>(null)
   const chatTextareaRef = useRef<HTMLTextAreaElement>(null)
+
+  // Update greeting when country or lang changes if chat not started
+  useEffect(() => {
+    setChatMessages((prev) => {
+      if (prev.length === 1 && prev[0]?.role === 'assistant') {
+        return [{ role: 'assistant', text: getAiGreeting() }]
+      }
+      return prev
+    })
+  }, [userCountry, lang, countryIn, countryName])
 
   // Scroll chat messages container internally without triggering page scroll
   useEffect(() => {
@@ -87,7 +103,7 @@ function SearchContent() {
 
   function resetChat() {
     setChatMessages([
-      { role: 'assistant', text: t('search.aiGreeting') }
+      { role: 'assistant', text: getAiGreeting() }
     ])
     setChatInput('')
     if (chatTextareaRef.current) {
@@ -141,7 +157,7 @@ function SearchContent() {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {})
         },
-        body: JSON.stringify({ message: userMsg, history, userProfile })
+        body: JSON.stringify({ message: userMsg, history, userProfile, country: userCountry })
       })
       const json = await res.json()
       setChatMessages((prev) => [

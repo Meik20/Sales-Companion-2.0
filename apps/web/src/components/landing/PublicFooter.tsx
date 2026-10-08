@@ -4,14 +4,16 @@ import Link from 'next/link'
 import { ScIcon } from '@/components/ui/ScIcon'
 import { routes } from '@/constants/routes'
 import { useTranslation } from '@/providers/I18nProvider'
+import { useLandingCountry } from '@/features/landing/landing-country'
 
 export function PublicFooter() {
   const { lang } = useTranslation()
+  const { country } = useLandingCountry()
   const isEn = lang === 'en'
   const year = new Date().getFullYear()
 
   const footerLinks = {
-    ressources: [
+    ressources: country.code === 'CM' ? [
       { label: isEn ? 'B2B Blog' : 'Blog B2B Cameroun', href: '/blog' },
       { label: isEn ? 'Company directory' : 'Annuaire entreprises', href: '/annuaire' },
       { label: isEn ? 'Companies in Douala' : 'Entreprises à Douala', href: '/annuaire/douala' },
@@ -23,6 +25,18 @@ export function PublicFooter() {
       {
         label: isEn ? 'B2B Database' : 'Base de données Cameroun',
         href: '/blog/base-de-donnees-entreprises-cameroun-2026'
+      }
+    ] : [
+      { label: isEn ? `B2B Blog (${country.nameEn})` : `Blog B2B (${country.nameFr})`, href: '/blog' },
+      { label: isEn ? 'Company directory' : 'Annuaire entreprises', href: '/annuaire' },
+      { label: isEn ? `Companies in ${country.cities[0] || 'capitale'}` : `Entreprises à ${country.cities[0] || 'capitale'}`, href: '/annuaire' },
+      {
+        label: isEn ? `${country.taxLabel} & RCCM Guide` : `Guide ${country.taxLabel} & RCCM`,
+        href: '/blog'
+      },
+      {
+        label: isEn ? `B2B Database (${country.nameEn})` : `Base de données (${country.nameFr})`,
+        href: '/blog'
       }
     ],
     produit: [

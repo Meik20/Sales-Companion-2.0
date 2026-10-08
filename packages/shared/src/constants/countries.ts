@@ -184,3 +184,27 @@ export function validatePhoneForCountry(phone: string, countryCode: string): boo
   return country.dialPattern.test(withDial) || country.dialPattern.test(withDialNoPlus)
 }
 
+/** Identifiants fiscaux nationaux par pays (ex: NIU au Cameroun, NINEA au Sénégal, NCC en Côte d'Ivoire) */
+export const COUNTRY_TAX_LABELS: Record<CountryCode, string> = {
+  CM: 'NIU',
+  SN: 'NINEA',
+  CI: 'NCC',
+  BJ: 'IFU',
+  TG: 'NIF',
+  TD: 'NIF',
+  CF: 'NIF'
+}
+
+/** Devises officielles par pays */
+export const COUNTRY_CURRENCIES: Record<CountryCode, string> = {
+  CM: 'XAF',
+  SN: 'XOF',
+  CI: 'XOF',
+  BJ: 'XOF',
+  TG: 'XOF',
+  TD: 'XAF',
+  CF: 'XAF'
+}
+
+
+

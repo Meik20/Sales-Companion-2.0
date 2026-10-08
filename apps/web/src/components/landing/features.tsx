@@ -56,12 +56,12 @@ export function Features() {
         lang === 'en'
           ? [
               'Complete contact details: phone numbers, corporate emails, addresses and GPS locations',
-              'Enriched company profiles with legal & fiscal data (NIU, RCCM)',
+              `Enriched company profiles with legal & fiscal data (${country.taxLabel}, RCCM)`,
               'Continuous data updates and deduplication for reliable prospecting'
             ]
           : [
               'Coordonnées complètes : téléphones, emails professionnels, adresses et localisation précise',
-              'Fiches entreprises enrichies avec informations légales et fiscales (NIU, RCCM)',
+              `Fiches entreprises enrichies avec informations légales et fiscales (${country.taxLabel}, RCCM)`,
               'Mise à jour continue et suppression des doublons pour des données fiables'
             ],
       illustration: '/illustrations/landing/cameroon-directory.png',

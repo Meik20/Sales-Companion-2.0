@@ -31,8 +31,8 @@ export function Faq() {
         ? 'Is the data verified and structured?'
         : 'Les données sont-elles vérifiées et à jour ?',
       answer: isEn
-        ? 'Our data is structured and normalized from official registries and verified business directories. We provide legal identifiers (RCCM, NIU) and direct phone numbers whenever available, and users can flag outdated info in one click.'
-        : 'Nos données sont structurées et normalisées à partir de sources officielles et d’annuaires professionnels. Vous retrouvez les informations légales (RCCM, NIU) et coordonnées directes lorsqu’elles sont disponibles, et chaque utilisateur peut signaler toute information à mettre à jour en 1 clic.'
+        ? `Our data is structured and normalized from official registries and verified business directories. We provide legal identifiers (RCCM, ${country.taxLabel}) and direct phone numbers whenever available, and users can flag outdated info in one click.`
+        : `Nos données sont structurées et normalisées à partir de sources officielles et d’annuaires professionnels. Vous retrouvez les informations légales (RCCM, ${country.taxLabel}) et coordonnées directes lorsqu’elles sont disponibles, et chaque utilisateur peut signaler toute information à mettre à jour en 1 clic.`
     },
     {
       question: isEn
