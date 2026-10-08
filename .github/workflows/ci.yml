@@ -29,6 +29,9 @@ jobs:
       - name: Check Production Security Audit
         run: npm audit --omit=dev
 
+      - name: Build Shared Package
+        run: npm run build:shared
+
       - name: TypeScript Typecheck
         run: npm run typecheck
 

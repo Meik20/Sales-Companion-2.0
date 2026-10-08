@@ -14,7 +14,7 @@
     "build": "npm run build:shared && npm run build:web",
     "typecheck:web": "npm --workspace apps/web run typecheck",
     "typecheck:shared": "npm --workspace packages/shared run typecheck",
-    "typecheck": "npm run typecheck:shared && npm run typecheck:web",
+    "typecheck": "npm run build:shared && npm run typecheck:shared && npm run typecheck:web",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier . --write",
