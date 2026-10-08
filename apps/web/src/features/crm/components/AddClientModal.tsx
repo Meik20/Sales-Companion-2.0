@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import {
   X,
   Building2,
@@ -16,7 +16,9 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useTranslation } from '@/providers/I18nProvider'
-import { CRM_SECTORS, CRM_CITIES, CRM_STATUS_LIST } from '../constants'
+import { getGeography } from '@sales-companion/shared'
+import { useProspectingCountryDetails } from '@/hooks/useProspectingCountry'
+import { CRM_SECTORS, CRM_STATUS_LIST } from '../constants'
 import type { CrmClient, CrmClientStatus } from '../types'
 
 import type { CurrentUser } from '@/hooks/useCurrentUser'
@@ -31,8 +33,30 @@ type Props = {
 
 export function AddClientModal({ isOpen, onClose, onSuccess, userToken, user }: Props) {
   const { t } = useTranslation()
+  const {
+    code: countryCode,
+    flag,
+    name: countryName,
+    examplePhone,
+    currency,
+    taxLabel
+  } = useProspectingCountryDetails()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const geography = useMemo(() => getGeography(countryCode), [countryCode])
+  const dynamicCities = useMemo(() => {
+    const citiesSet = new Set<string>()
+    const citiesByRegion = geography?.citiesByRegion as Record<string, string[]> | undefined
+    if (citiesByRegion) {
+      Object.values(citiesByRegion).forEach((cities: string[]) => {
+        cities.forEach((c: string) => citiesSet.add(c))
+      })
+    }
+    const list = Array.from(citiesSet).sort()
+    if (!list.includes('Autre')) list.push('Autre')
+    return list
+  }, [geography])
 
   const [companyName, setCompanyName] = useState('')
   const [contactName, setContactName] = useState('')
@@ -208,7 +232,7 @@ export function AddClientModal({ isOpen, onClose, onSuccess, userToken, user }: 
                 required
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="Ex: +237 6XX XX XX XX"
+                placeholder={`Ex: ${examplePhone}`}
                 className="w-full px-3 py-2 rounded-lg text-xs border bg-background text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
                 style={{ borderColor: 'var(--border, rgba(255, 255, 255, 0.12))' }}
               />
@@ -222,7 +246,7 @@ export function AddClientModal({ isOpen, onClose, onSuccess, userToken, user }: 
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="contact@entreprise.cm"
+                placeholder="contact@entreprise.com"
                 className="w-full px-3 py-2 rounded-lg text-xs border bg-background text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
                 style={{ borderColor: 'var(--border, rgba(255, 255, 255, 0.12))' }}
               />
@@ -253,7 +277,7 @@ export function AddClientModal({ isOpen, onClose, onSuccess, userToken, user }: 
             <div>
               <label className="block text-xs font-semibold text-foreground mb-1.5 flex items-center gap-1.5">
                 <MapPin size={13} className="text-primary" />
-                {t('crm.colCity') || 'Ville'}
+                {t('crm.colCity') || 'Ville'} ({flag} {countryName})
               </label>
               <select
                 value={city}
@@ -262,7 +286,7 @@ export function AddClientModal({ isOpen, onClose, onSuccess, userToken, user }: 
                 style={{ borderColor: 'var(--border, rgba(255, 255, 255, 0.12))' }}
               >
                 <option value="">-- {t('crm.selectCity') || 'Choisir une ville'} --</option>
-                {CRM_CITIES.map((c) => (
+                {dynamicCities.map((c) => (
                   <option key={c} value={c}>
                     {c}
                   </option>

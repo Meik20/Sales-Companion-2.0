@@ -15,6 +15,8 @@ import { useNetworkStatus } from '@/hooks/useNetworkStatus'
 import { useProspectingCountry } from '@/hooks/useProspectingCountry'
 import { COUNTRY_NAMES } from '@sales-companion/shared'
 
+import { CountryTerritoryBadge } from './CountryTerritoryBadge'
+
 export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void }) {
   const { t } = useTranslation()
   const { isOnline } = useNetworkStatus()
@@ -100,8 +102,10 @@ export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void 
           </Link>
         </div>
 
-        {/* ── CENTER/RIGHT: Admin notification bell + Offline Voyant ─────── */}
-        <div className="flex flex-1 items-center justify-end gap-2 sm:gap-2.5">
+        {/* ── CENTER/RIGHT: Country Switcher + Admin bell + Offline Voyant ─────── */}
+        <div className="flex flex-1 items-center justify-end gap-2 sm:gap-3">
+          <CountryTerritoryBadge />
+
           {!isOnline && (
             <div
               className="flex items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 px-2 sm:px-2.5 py-1 text-[11px] font-semibold text-amber-600 dark:text-amber-400 shadow-sm animate-pulse shrink-0"

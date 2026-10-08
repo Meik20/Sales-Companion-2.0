@@ -443,3 +443,107 @@
   --color-teal-50: rgba(170, 191, 255, 0.1);
   --color-teal-900: #aabfff;
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   COUNTRY ACCENTS & AMBIENT IDENTITY TOKENS
+   Activated by: <html data-country="CM|SN|CI|BJ|TG|TD|CF">
+   ════════════════════════════════════════════════════════════════════ */
+
+:root,
+[data-country='CM'] {
+  --country-primary: #059669;
+  --country-accent: #d97706;
+  --country-glow: rgba(5, 150, 105, 0.25);
+  --country-badge-bg: rgba(5, 150, 105, 0.12);
+  --country-badge-border: rgba(5, 150, 105, 0.3);
+  --country-badge-text: #059669;
+  --country-gradient: linear-gradient(
+    135deg,
+    rgba(5, 150, 105, 0.15) 0%,
+    rgba(217, 119, 6, 0.12) 100%
+  );
+}
+
+[data-country='SN'] {
+  --country-primary: #0d9488;
+  --country-accent: #eab308;
+  --country-glow: rgba(13, 148, 136, 0.25);
+  --country-badge-bg: rgba(13, 148, 136, 0.12);
+  --country-badge-border: rgba(13, 148, 136, 0.3);
+  --country-badge-text: #0d9488;
+  --country-gradient: linear-gradient(
+    135deg,
+    rgba(13, 148, 136, 0.15) 0%,
+    rgba(234, 179, 8, 0.12) 100%
+  );
+}
+
+[data-country='CI'] {
+  --country-primary: #ea580c;
+  --country-accent: #16a34a;
+  --country-glow: rgba(234, 88, 12, 0.25);
+  --country-badge-bg: rgba(234, 88, 12, 0.12);
+  --country-badge-border: rgba(234, 88, 12, 0.3);
+  --country-badge-text: #ea580c;
+  --country-gradient: linear-gradient(
+    135deg,
+    rgba(234, 88, 12, 0.15) 0%,
+    rgba(22, 163, 74, 0.12) 100%
+  );
+}
+
+[data-country='BJ'] {
+  --country-primary: #0284c7;
+  --country-accent: #16a34a;
+  --country-glow: rgba(2, 132, 199, 0.25);
+  --country-badge-bg: rgba(2, 132, 199, 0.12);
+  --country-badge-border: rgba(2, 132, 199, 0.3);
+  --country-badge-text: #0284c7;
+  --country-gradient: linear-gradient(
+    135deg,
+    rgba(2, 132, 199, 0.15) 0%,
+    rgba(22, 163, 74, 0.12) 100%
+  );
+}
+
+[data-country='TG'] {
+  --country-primary: #16a34a;
+  --country-accent: #dc2626;
+  --country-glow: rgba(22, 163, 74, 0.25);
+  --country-badge-bg: rgba(22, 163, 74, 0.12);
+  --country-badge-border: rgba(22, 163, 74, 0.3);
+  --country-badge-text: #16a34a;
+  --country-gradient: linear-gradient(
+    135deg,
+    rgba(22, 163, 74, 0.15) 0%,
+    rgba(220, 38, 38, 0.12) 100%
+  );
+}
+
+[data-country='TD'] {
+  --country-primary: #2563eb;
+  --country-accent: #e11d48;
+  --country-glow: rgba(37, 99, 235, 0.25);
+  --country-badge-bg: rgba(37, 99, 235, 0.12);
+  --country-badge-border: rgba(37, 99, 235, 0.3);
+  --country-badge-text: #2563eb;
+  --country-gradient: linear-gradient(
+    135deg,
+    rgba(37, 99, 235, 0.15) 0%,
+    rgba(225, 29, 72, 0.12) 100%
+  );
+}
+
+[data-country='CF'] {
+  --country-primary: #3b82f6;
+  --country-accent: #16a34a;
+  --country-glow: rgba(59, 130, 246, 0.25);
+  --country-badge-bg: rgba(59, 130, 246, 0.12);
+  --country-badge-border: rgba(59, 130, 246, 0.3);
+  --country-badge-text: #3b82f6;
+  --country-gradient: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.15) 0%,
+    rgba(22, 163, 74, 0.12) 100%
+  );
+}

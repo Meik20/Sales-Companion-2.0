@@ -6,9 +6,12 @@ import { GEMINI_TOOLS, GROQ_TOOLS, executeAITool } from '@/lib/ai-tools'
 import { searchCompanies, type CompanyRecord } from '@/lib/company-search'
 import { PLAN_LIMITS } from '@sales-companion/shared'
 import {
+  COUNTRY_BUSINESS_CULTURE,
+  COUNTRY_CURRENCIES,
   COUNTRY_FRENCH_ADJECTIVE,
   COUNTRY_FRENCH_IN,
   COUNTRY_NAMES,
+  COUNTRY_TAX_LABELS,
   GEOGRAPHY,
   type CountryCode
 } from '@sales-companion/shared'
@@ -136,7 +139,7 @@ function detectCityFromText(text: string, country: string): string | undefined {
 
 /**
  * Construit un system prompt contextualisé ultra-performant bilingue (FR/EN)
- * avec injection directe des entreprises réelles pour un temps de réponse instantané (< 1.5s).
+ * avec injection directe des entreprises réelles, des spécificités fiscales et culturelles par pays.
  */
 function buildSystemPrompt(
   userContext?: {
@@ -147,6 +150,7 @@ function buildSystemPrompt(
   },
   preFetchedCompanies?: Partial<CompanyRecord>[],
   lang: 'fr' | 'en' = 'fr',
+  countryCode: CountryCode = 'CM',
   countryName = 'Cameroun',
   countryIn = 'au Cameroun',
   countryAdjective = 'camerounais'
@@ -155,6 +159,10 @@ function buildSystemPrompt(
   const company = userContext?.company?.trim()
   const region = userContext?.region?.trim()
   const name = userContext?.name?.trim()
+
+  const taxLabel = COUNTRY_TAX_LABELS[countryCode] ?? 'NIU'
+  const currency = COUNTRY_CURRENCIES[countryCode] ?? 'XAF'
+  const culture = COUNTRY_BUSINESS_CULTURE[countryCode] ?? COUNTRY_BUSINESS_CULTURE.CM
 
   const contextBlock =
     sector || company || region
@@ -170,7 +178,7 @@ ${preFetchedCompanies
     (c, i) =>
       `${i + 1}. **${c.raisonSociale}** ${c.sigle ? `(${c.sigle})` : ''}
    - Secteur / Sector : ${c.sector || 'Général'} | Localisation : ${c.city || ''} (${c.region || ''})
-   - Dirigeant / Executive : ${c.dirigeant || 'Non spécifié'} | NIU : ${c.niu || 'N/A'}
+   - Dirigeant / Executive : ${c.dirigeant || 'Non spécifié'} | ${taxLabel} : ${c.niu || 'N/A'}
    - Téléphone : ${c.telephone || 'Non renseigné'} | Email : ${c.email || 'Non renseigné'}
    - Adresse : ${c.adresse || 'Non spécifiée'}`
   )
@@ -182,6 +190,13 @@ You are the AI Companion for Sales Companion 2.0, the ultra-fast B2B sales and p
 
 ${contextBlock}
 ${preFetchedBlock}
+
+## 📍 IDENTITÉ LOCALE & CONTEXTE DU MARCHÉ (${countryName.toUpperCase()})
+- **Territoire & Monnaie** : Marché de ${countryName} (Devise : **${currency}**).
+- **Identifiant Fiscal Légal** : **${taxLabel}** (Numéro fiscal d'entreprise applicable).
+- **Culture d'affaires & Négociation** : ${culture.businessStyle}.
+- **Style de relation & Salutations** : ${culture.greeting}.
+- **Argumentaire d'impact** : ${culture.pitchHint}.
 
 ## 🌐 LANGUE / LANGUAGE POLICY (STRICT)
 - **BILINGUAL CAPABILITY** : You must seamlessly support both French and English.
@@ -195,8 +210,8 @@ ${preFetchedBlock}
    - Présente chaque entreprise avec sa fiche claire :
      • **Nom de l'entreprise / Company Name** (et sigle)
      • **Secteur & Localisation / Sector & Location** (Ville, Région, Adresse)
-     • **Contacts vérifiés / Verified Contacts** (Dirigeant, Téléphone, Email, NIU)
-     • **Angle d'approche commercial / Recommended Sales Angle** (pourquoi et comment l'approcher efficacement / why and how to pitch them)
+     • **Contacts vérifiés / Verified Contacts** (Dirigeant, Téléphone, Email, ${taxLabel})
+     • **Angle d'approche commercial / Recommended Sales Angle** (pourquoi et comment l'approcher efficacement avec le style d'affaires local)
    - Sois direct, structuré et orienté closing B2B.
 
 2. **Recherches avancées / Advanced custom queries** :
@@ -371,6 +386,7 @@ export async function POST(request: NextRequest) {
       mergedContext,
       preFetchedCompanies,
       activeLang,
+      userCountry as CountryCode,
       COUNTRY_NAMES[userCountry] || 'Cameroun',
       COUNTRY_FRENCH_IN[userCountry as CountryCode] || 'au Cameroun',
       COUNTRY_FRENCH_ADJECTIVE[userCountry as CountryCode] || 'camerounaises'

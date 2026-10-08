@@ -205,3 +205,112 @@ export const COUNTRY_CURRENCIES: Record<CountryCode, string> = {
   TD: 'XAF',
   CF: 'XAF'
 }
+
+/** Configuration UI et tokens d'ambiance visuelle par pays */
+export interface CountryThemeConfig {
+  primaryColor: string
+  accentColor: string
+  glowColor: string
+  gradient: string
+  telecoms: string[]
+}
+
+export const COUNTRY_THEME_CONFIG: Record<CountryCode, CountryThemeConfig> = {
+  CM: {
+    primaryColor: '#059669',
+    accentColor: '#d97706',
+    glowColor: 'rgba(5, 150, 105, 0.25)',
+    gradient: 'linear-gradient(135deg, rgba(5, 150, 105, 0.15) 0%, rgba(217, 119, 6, 0.12) 100%)',
+    telecoms: ['MTN MoMo', 'Orange Money']
+  },
+  SN: {
+    primaryColor: '#0d9488',
+    accentColor: '#eab308',
+    glowColor: 'rgba(13, 148, 136, 0.25)',
+    gradient: 'linear-gradient(135deg, rgba(13, 148, 136, 0.15) 0%, rgba(234, 179, 8, 0.12) 100%)',
+    telecoms: ['Wave', 'Orange Money', 'Free Money']
+  },
+  CI: {
+    primaryColor: '#ea580c',
+    accentColor: '#16a34a',
+    glowColor: 'rgba(234, 88, 12, 0.25)',
+    gradient: 'linear-gradient(135deg, rgba(234, 88, 12, 0.15) 0%, rgba(22, 163, 74, 0.12) 100%)',
+    telecoms: ['Wave CI', 'Orange Money', 'MTN MoMo', 'Moov']
+  },
+  BJ: {
+    primaryColor: '#0284c7',
+    accentColor: '#16a34a',
+    glowColor: 'rgba(2, 132, 199, 0.25)',
+    gradient: 'linear-gradient(135deg, rgba(2, 132, 199, 0.15) 0%, rgba(22, 163, 74, 0.12) 100%)',
+    telecoms: ['Moov Money', 'MTN MoMo', 'Celtiis']
+  },
+  TG: {
+    primaryColor: '#16a34a',
+    accentColor: '#dc2626',
+    glowColor: 'rgba(22, 163, 74, 0.25)',
+    gradient: 'linear-gradient(135deg, rgba(22, 163, 74, 0.15) 0%, rgba(220, 38, 38, 0.12) 100%)',
+    telecoms: ['TMoney', 'Moov Money']
+  },
+  TD: {
+    primaryColor: '#2563eb',
+    accentColor: '#e11d48',
+    glowColor: 'rgba(37, 99, 235, 0.25)',
+    gradient: 'linear-gradient(135deg, rgba(37, 99, 235, 0.15) 0%, rgba(225, 29, 72, 0.12) 100%)',
+    telecoms: ['Airtel Money', 'Moov Africa']
+  },
+  CF: {
+    primaryColor: '#3b82f6',
+    accentColor: '#16a34a',
+    glowColor: 'rgba(59, 130, 246, 0.25)',
+    gradient: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(22, 163, 74, 0.12) 100%)',
+    telecoms: ['Orange Money', 'Telecel']
+  }
+}
+
+/** Recommandations culturelles et commerciales par pays pour l'IA et l'UX */
+export const COUNTRY_BUSINESS_CULTURE: Record<
+  CountryCode,
+  {
+    greeting: string
+    businessStyle: string
+    pitchHint: string
+  }
+> = {
+  CM: {
+    greeting: 'Chaleureux, respectueux des hiérarchies et dynamique',
+    businessStyle: 'Pragmatique, orienté retour sur investissement rapide et preuve par l’exemple',
+    pitchHint:
+      'Mettre en avant la fiabilité, la rapidité d’exécution et la conformité fiscale (NIU)'
+  },
+  SN: {
+    greeting: 'Élégant, fondé sur la Teranga et la confiance relationnelle mutuelle',
+    businessStyle: 'Relationnel soutenu, écoute active et partenariat sur le long terme',
+    pitchHint: 'Valoriser la relation humaine, la réputation et l’accompagnement de proximité'
+  },
+  CI: {
+    greeting: 'Direct, énergique, chaleureux et axé sur les opportunités business',
+    businessStyle: 'Rapide, orienté croissance, modernité et digitalisation',
+    pitchHint:
+      'Souligner l’impact immédiat sur le chiffre d’affaires, la vitesse et le gain de temps'
+  },
+  BJ: {
+    greeting: 'Courtois, rigoureux et attentif aux détails techniques',
+    businessStyle: 'Analytique, attaché à la structure formelle et à la clarté des engagements',
+    pitchHint: 'Détailler les garanties, la méthodologie et les économies d’échelle'
+  },
+  TG: {
+    greeting: 'Bienveillant, respectueux et axé sur la collaboration',
+    businessStyle: 'Efficace, axé sur le commerce transfrontalier et les services logistiques',
+    pitchHint: 'Insister sur l’agilité opérationnelle et la simplicité de mise en œuvre'
+  },
+  TD: {
+    greeting: 'Sobre, direct, fondé sur la parole donnée et le respect',
+    businessStyle: 'Direct, focalisé sur les partenariats solides et la disponibilité locale',
+    pitchHint: 'Montrer la robustesse de la solution et la disponibilité de l’équipe'
+  },
+  CF: {
+    greeting: 'Attentif, solennel et cordial',
+    businessStyle: 'Prudent, orienté vers la reconstruction et le développement durable',
+    pitchHint: 'Apporter des solutions concrètes, sécurisées et faciles à prendre en main'
+  }
+}
