@@ -42,6 +42,9 @@
     "send": "^0.19.0",
     "cookie": "^0.7.0",
     "@grpc/grpc-js": "^1.14.5",
+    "exceljs": {
+      "uuid": "^11.1.1"
+    },
     "jwks-rsa": {
       "jose": "4.15.9"
     }
