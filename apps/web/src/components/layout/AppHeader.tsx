@@ -12,6 +12,8 @@ import { Settings, User, LogOut, Menu, ChevronDown, WifiOff } from 'lucide-react
 import { useTranslation } from '@/providers/I18nProvider'
 import { AdminNotificationBell } from '@/features/admin/components/AdminNotificationBell'
 import { useNetworkStatus } from '@/hooks/useNetworkStatus'
+import { useProspectingCountry } from '@/hooks/useProspectingCountry'
+import { COUNTRY_NAMES } from '@sales-companion/shared'
 
 export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void }) {
   const { t } = useTranslation()
@@ -20,6 +22,8 @@ export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void 
   const { logout } = useAuthActions()
   const router = useRouter()
   const [isProfileOpen, setIsProfileOpen] = useState(false)
+  const prospectingCountry = useProspectingCountry()
+  const countryLabel = COUNTRY_NAMES[prospectingCountry] ?? 'Cameroun'
 
   const handleLogout = async () => {
     try {
@@ -89,7 +93,7 @@ export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void 
                 Sales <em className="not-italic font-normal opacity-75">Companion</em> <em className="text-[12px] not-italic font-normal opacity-55">2.0</em>
               </span>
               <span className="hdr-logo-sub text-[9.5px] uppercase tracking-[.12em] text-muted-foreground">
-                B2B Cameroun
+                B2B {countryLabel}
               </span>
             </div>
           </Link>
