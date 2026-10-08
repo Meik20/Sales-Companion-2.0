@@ -1,8 +1,8 @@
 // apps/web/src/lib/firebase-admin.ts
 // Server-side only — do NOT import in client components
 import { initializeApp, getApps, getApp, cert } from 'firebase-admin/app'
-import { getFirestore } from 'firebase-admin/firestore'
-import { getAuth } from 'firebase-admin/auth'
+import type { Firestore } from 'firebase-admin/firestore'
+import type { Auth } from 'firebase-admin/auth'
 
 function initAdminApp() {
   if (getApps().length > 0) return getApp()
@@ -69,16 +69,18 @@ function initAdminApp() {
   )
 }
 
-export const adminDb = new Proxy({} as ReturnType<typeof getFirestore>, {
+export const adminDb = new Proxy({} as Firestore, {
   get(_, prop) {
     initAdminApp()
+    const { getFirestore } = require('firebase-admin/firestore')
     return Reflect.get(getFirestore(), prop)
   }
 })
 
-export const adminAuth = new Proxy({} as ReturnType<typeof getAuth>, {
+export const adminAuth = new Proxy({} as Auth, {
   get(_, prop) {
     initAdminApp()
+    const { getAuth } = require('firebase-admin/auth')
     return Reflect.get(getAuth(), prop)
   }
 })

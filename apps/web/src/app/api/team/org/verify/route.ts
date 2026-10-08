@@ -43,6 +43,21 @@ export async function GET(request: NextRequest) {
     }
 
     const { adminDb } = await import('@/lib/firebase-admin')
+    
+    // 1. Chercher d'abord dans la collection organisations (clé primaire = orgCode)
+    const orgDoc = await adminDb.collection('organisations').doc(code).get()
+    if (orgDoc.exists) {
+      const data = orgDoc.data()!
+      return NextResponse.json({
+        valid: true,
+        orgCode: code,
+        companyName: data.companyName || data.name || 'Organisation',
+        sector: data.sector || null,
+        country: data.country || 'CM'
+      })
+    }
+
+    // 2. Fallback dans la collection users si l'organisation n'a pas encore de doc direct
     const snap = await adminDb
       .collection('users')
       .where('orgCode', '==', code)
@@ -50,26 +65,24 @@ export async function GET(request: NextRequest) {
       .limit(1)
       .get()
 
-    if (snap.empty) {
-      return NextResponse.json(
-        {
-          valid: false,
-          error: `Aucune organisation trouvée avec le code "${code}". Vérifiez le code partagé par votre Senior Manager.`
-        },
-        { status: 404 }
-      )
+    if (!snap.empty) {
+      const data = snap.docs[0]!.data()
+      return NextResponse.json({
+        valid: true,
+        orgCode: code,
+        companyName: data.companyName || data.company || 'Organisation',
+        sector: data.sector || null,
+        country: data.country || 'CM'
+      })
     }
 
-    const data = snap.docs[0]!.data()
-
-    // Ne pas exposer le nom du Senior Manager pour limiter la fuite d'information
-    return NextResponse.json({
-      valid: true,
-      orgCode: code,
-      companyName: data.companyName || data.company || 'Organisation',
-      sector: data.sector || null,
-      country: data.country || 'CM'
-    })
+    return NextResponse.json(
+      {
+        valid: false,
+        error: `Aucune organisation trouvée avec le code "${code}". Vérifiez le code partagé par votre Senior Manager.`
+      },
+      { status: 404 }
+    )
   } catch (error: any) {
     console.error('[GET /api/team/org/verify] error:', error)
     return NextResponse.json(

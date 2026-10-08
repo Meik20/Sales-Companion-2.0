@@ -1,12 +1,6 @@
 import { NextResponse } from 'next/server'
-import { FieldValue } from 'firebase-admin/firestore'
 
 export const dynamic = 'force-dynamic'
-
-async function getAdmin() {
-  const { adminDb } = await import('@/lib/firebase-admin')
-  return { adminDb }
-}
 
 /**
  * POST /api/support/public
@@ -28,7 +22,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Le message est obligatoire.' }, { status: 400 })
     }
 
-    const { adminDb } = await getAdmin()
+    const { adminDb } = await import('@/lib/firebase-admin')
+    const { FieldValue } = await import('firebase-admin/firestore')
 
     const sanitizedName = name.trim()
     const sanitizedEmail = email.trim().toLowerCase()
@@ -89,30 +84,34 @@ export async function POST(request: Request) {
       createdAt: now
     })
 
-    // 3. Activer la notification temps réel pour l'administrateur
-    const { createAdminNotification } = await import('@/lib/admin-notifications')
-    await createAdminNotification({
-      type: 'support_ticket',
-      title:
-        requestType === 'corporate_domain_request'
-          ? '🏢 Demande dérogation domaine Manager'
-          : '🎧 Nouveau ticket support public',
-      message: `${sanitizedName}${sanitizedCompany ? ` (${sanitizedCompany})` : ''} : ${sanitizedSubject}`,
-      userId: 'guest_unregistered',
-      userEmail: sanitizedEmail,
-      reference: threadRef.id,
-      link: '/admin/support'
-    })
+    // 3. Activer la notification temps réel pour l'administrateur (best-effort)
+    try {
+      const { createAdminNotification } = await import('@/lib/admin-notifications')
+      await createAdminNotification({
+        type: 'support_ticket',
+        title:
+          requestType === 'corporate_domain_request'
+            ? '🏢 Demande dérogation domaine Manager'
+            : '🎧 Nouveau ticket support public',
+        message: `${sanitizedName}${sanitizedCompany ? ` (${sanitizedCompany})` : ''} : ${sanitizedSubject}`,
+        userId: 'guest_unregistered',
+        userEmail: sanitizedEmail,
+        reference: threadRef.id,
+        link: '/admin/support'
+      })
+    } catch (notifErr) {
+      console.warn('[support/public POST] Erreur non-bloquante lors de la notification admin:', notifErr)
+    }
 
     return NextResponse.json({
       success: true,
       threadId: threadRef.id,
       message: 'Demande enregistrée avec succès.'
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('[support/public POST]', error)
     return NextResponse.json(
-      { error: 'Une erreur est survenue lors de la transmission de votre requête.' },
+      { error: error?.message || 'Une erreur est survenue lors de la transmission de votre requête.' },
       { status: 500 }
     )
   }
