@@ -90,6 +90,7 @@ function useCurrentUserSource(): UserContextValue {
     let unsubscribeSnapshot: (() => void) | null = null
     let prevPlan: string | null = null
     let expiryTimer: NodeJS.Timeout | null = null
+    let prevUserSnapshot: string | null = null // Fingerprint for structural equality check
 
     const unsubscribeAuth = auth.onAuthStateChanged((firebaseUser) => {
       if (unsubscribeSnapshot) {
@@ -216,8 +217,31 @@ function useCurrentUserSource(): UserContextValue {
               getIdToken: (forceRefresh?: boolean) => firebaseUser.getIdToken(forceRefresh)
             } as CurrentUser
 
-            setUser(currentUserObj)
-            saveCachedUser(currentUserObj)
+            // ── Filtrage des re-renders non structurels ────────────────────────
+            // Si seuls dailyUsed / dailyLimit ont changé, ne pas mettre à jour le
+            // state React ni le cache sessionStorage : évite des re-renders et des
+            // écritures inutiles à chaque incrément de quota de recherche.
+            const structuralFingerprint = JSON.stringify({
+              uid: currentUserObj.uid,
+              role: currentUserObj.role,
+              orgRole: currentUserObj.orgRole,
+              orgCode: currentUserObj.orgCode,
+              plan: currentUserObj.plan,
+              active: currentUserObj.active,
+              subscriptionExpired: currentUserObj.subscriptionExpired,
+              subscriptionExpiresAt: currentUserObj.subscriptionExpiresAt,
+              managerUid: currentUserObj.managerUid,
+              companyId: currentUserObj.companyId,
+            })
+            if (structuralFingerprint === prevUserSnapshot) {
+              // Seuls des champs volatiles (dailyUsed, dailyLimit) ont changé —
+              // mettre à jour le state de manière légère sans écrire sessionStorage
+              setUser((prev) => prev ? { ...prev, dailyUsed: currentDailyUsed, dailyLimit: resolvedDailyLimit } : currentUserObj)
+            } else {
+              prevUserSnapshot = structuralFingerprint
+              setUser(currentUserObj)
+              saveCachedUser(currentUserObj)
+            }
           } else {
             const fallbackUser: CurrentUser = {
               uid: firebaseUser.uid,

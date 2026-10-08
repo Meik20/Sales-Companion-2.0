@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { db } from '@/lib/firebase'
-import { collection, query, where, onSnapshot } from 'firebase/firestore'
+import { collection, query, where, onSnapshot, getDocs } from 'firebase/firestore'
 import { PLAN_LIMITS } from '@sales-companion/shared'
 
 /**
@@ -38,20 +38,23 @@ export type UseTeamRoleMembersOptions = {
 }
 
 /**
- * Real-time hook — listens to TWO Firestore sources in parallel:
+ * Real-time hook — listens to ONE Firestore source in real-time:
  *
- *  1. `team_accesses` where managerUid == currentUser.uid
+ *  1. `team_accesses` where managerUid == currentUser.uid  [onSnapshot]
  *     → Primary source of truth for ALL members (created by manager).
  *     → A member is "active" when `activated === true`.
  *
- *  2. `users` where managerUid == currentUser.uid
- *     → Enriches data (dailyUsed, dailyLimit) once a member has registered.
+ *  2. `users` where managerUid == currentUser.uid           [getDocs — one-shot]
+ *     → Enriches data (dailyUsed, dailyLimit, name) once at load.
+ *     → Uses getDocs instead of onSnapshot to avoid a permanent listener
+ *       on a collection that changes rarely. This significantly reduces
+ *       Firestore read quota usage.
  *
  * The two lists are merged by email, deduplicating so a member never
  * appears twice regardless of which collection is newer.
  *
  * Any manual toggle of `activated` in the Firestore console is reflected
- * in the UI within milliseconds with no page refresh.
+ * in the UI within milliseconds with no page refresh (via team_accesses listener).
  */
 export function useTeamRoleMembers(options: UseTeamRoleMembersOptions = {}) {
   const { role, excludeRole } = options
@@ -125,7 +128,7 @@ export function useTeamRoleMembers(options: UseTeamRoleMembersOptions = {}) {
       }
     }
 
-    // ── Listener 1 : team_accesses ─────────────────────────────────────────
+    // ── Listener 1 : team_accesses [onSnapshot — temps réel] ───────────────
     const accessesBaseQuery = query(
       collection(db, 'team_accesses'),
       where('managerUid', '==', managerUid),
@@ -173,15 +176,16 @@ export function useTeamRoleMembers(options: UseTeamRoleMembersOptions = {}) {
       }
     )
 
-    // ── Listener 2 : users ─────────────────────────────────────────────────
+    // ── Source 2 : users [getDocs — one-shot, évite un listener permanent] ─
+    // Les données utilisateurs (dailyUsed, name) sont stables : pas besoin de
+    // temps réel. Un seul fetch au montage suffit pour l'enrichissement.
     const usersBaseQuery = query(
       collection(db, 'users'),
       where('managerUid', '==', managerUid),
       ...(role ? [where('role', '==', role)] : [])
     )
-    const unsubUsers = onSnapshot(
-      usersBaseQuery,
-      (snap) => {
+    getDocs(usersBaseQuery)
+      .then((snap) => {
         usersMap = {}
         snap.docs.forEach((d) => {
           const data = d.data()
@@ -206,16 +210,14 @@ export function useTeamRoleMembers(options: UseTeamRoleMembersOptions = {}) {
           }
         })
         merge()
-      },
-      (error) => {
+      })
+      .catch((error) => {
         // Non-fatal — users collection may not have records yet
-        console.warn('[useTeamRoleMembers] users error:', error)
-      }
-    )
+        console.warn('[useTeamRoleMembers] users getDocs error:', error)
+      })
 
     return () => {
       unsubAccesses()
-      unsubUsers()
     }
   }, [user?.uid, role, excludeRole])
 

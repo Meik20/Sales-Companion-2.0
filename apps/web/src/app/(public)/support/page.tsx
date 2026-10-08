@@ -72,6 +72,7 @@ function AuthenticatedSupportView() {
   const [threads, setThreads] = useState<Thread[]>([])
   const [threadError, setThreadError] = useState<string | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [debouncedSelectedId, setDebouncedSelectedId] = useState<string | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
   const [inputText, setInputText] = useState('')
   const [sending, setSending] = useState(false)
@@ -119,6 +120,13 @@ function AuthenticatedSupportView() {
     }
   }, [threads, selectedId, ticketParam])
 
+  // Debounce thread selection — évite d'ouvrir/fermer un listener messages
+  // à chaque frappe rapide de l'utilisateur entre plusieurs tickets
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSelectedId(selectedId), 300)
+    return () => clearTimeout(timer)
+  }, [selectedId])
+
   // Mark thread as read once when selected
   useEffect(() => {
     if (!selectedId) return
@@ -127,14 +135,14 @@ function AuthenticatedSupportView() {
     )
   }, [selectedId])
 
-  // Messages for selected thread
+  // Messages for selected thread (uses debouncedSelectedId to reduce listener churn)
   useEffect(() => {
-    if (!selectedId) {
+    if (!debouncedSelectedId) {
       setMessages([])
       return
     }
     const q = query(
-      collection(firestore, 'support_threads', selectedId, 'messages'),
+      collection(firestore, 'support_threads', debouncedSelectedId, 'messages'),
       orderBy('createdAt', 'asc')
     )
     return onSnapshot(
