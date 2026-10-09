@@ -56,6 +56,7 @@ export type LandingCountry = {
   kanbanTech: string
   neighborhoods: string
   testimonials: LandingTestimonial[]
+  landmarkWatermark?: string
 }
 
 export type LandingCountryItem = {
@@ -373,7 +374,8 @@ function buildLandingCountry(code: CountryCode, isEn: boolean): LandingCountry {
     kanbanContacted: details.kanbanContacted,
     kanbanTech: details.kanbanTech,
     neighborhoods: details.neighborhoods,
-    testimonials: details.testimonials
+    testimonials: details.testimonials,
+    landmarkWatermark: code === 'CM' ? '/images/landmarks/cm-reunification.webp' : undefined
   }
 }
 

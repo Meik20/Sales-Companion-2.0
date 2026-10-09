@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import {
   ArrowRight,
   Play,
@@ -32,6 +33,23 @@ export function Hero() {
         aria-hidden
         className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(60%_50%_at_50%_-10%,color-mix(in_oklch,var(--primary)_18%,transparent),transparent)] animate-pulse-glow"
       />
+
+      {/* Subtle identity watermark for country landing page */}
+      {country.landmarkWatermark && (
+        <div
+          aria-hidden
+          className="pointer-events-none select-none absolute right-[-6%] lg:right-[3%] top-1/2 -translate-y-1/2 -z-10 w-[260px] sm:w-[360px] lg:w-[440px] h-[580px] opacity-[0.06] dark:opacity-[0.10] mix-blend-luminosity transition-opacity duration-700 [mask-image:radial-gradient(ellipse_at_center,black_35%,transparent_72%)]"
+        >
+          <Image
+            src={country.landmarkWatermark}
+            alt=""
+            fill
+            sizes="(max-width: 768px) 260px, 440px"
+            className="object-contain object-center scale-105"
+            priority={false}
+          />
+        </div>
+      )}
 
       <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 lg:grid-cols-[1.1fr_0.9fr]">
         {/* Left column: Text & Value Proposition */}
