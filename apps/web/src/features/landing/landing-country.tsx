@@ -7,8 +7,10 @@ import {
   COUNTRY_ENGLISH_IN,
   COUNTRY_ENGLISH_MARKET,
   COUNTRY_FRENCH_ADJECTIVE,
+  COUNTRY_FRENCH_FEM_SING_ADJECTIVE,
   COUNTRY_FRENCH_IN,
   COUNTRY_FRENCH_MARKET_ADJECTIVE,
+  COUNTRY_FRENCH_MASC_PLUR_ADJECTIVE,
   COUNTRY_NAMES,
   COUNTRY_NAMES_EN,
   SUPPORTED_COUNTRIES,
@@ -34,6 +36,8 @@ export type LandingCountry = {
   frenchIn: string
   frenchAdjective: string
   frenchMarketAdjective: string
+  frenchMascPluralAdjective: string
+  frenchFemSingularAdjective: string
   englishIn: string
   englishFor: string
   englishMarket: string
@@ -355,6 +359,8 @@ function buildLandingCountry(code: CountryCode, isEn: boolean): LandingCountry {
     frenchIn: COUNTRY_FRENCH_IN[code],
     frenchAdjective: COUNTRY_FRENCH_ADJECTIVE[code],
     frenchMarketAdjective: COUNTRY_FRENCH_MARKET_ADJECTIVE[code],
+    frenchMascPluralAdjective: COUNTRY_FRENCH_MASC_PLUR_ADJECTIVE[code],
+    frenchFemSingularAdjective: COUNTRY_FRENCH_FEM_SING_ADJECTIVE[code],
     englishIn: COUNTRY_ENGLISH_IN[code] ?? `in ${nameEn}`,
     englishFor: COUNTRY_ENGLISH_FOR[code] ?? `for ${nameEn}`,
     englishMarket: COUNTRY_ENGLISH_MARKET[code] ?? `the ${nameEn} market`,

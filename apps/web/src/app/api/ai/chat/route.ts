@@ -153,7 +153,7 @@ function buildSystemPrompt(
   countryCode: CountryCode = 'CM',
   countryName = 'Cameroun',
   countryIn = 'au Cameroun',
-  countryAdjective = 'camerounais'
+  countryAdjective = 'camerounaises'
 ): string {
   const sector = userContext?.sector?.trim()
   const company = userContext?.company?.trim()

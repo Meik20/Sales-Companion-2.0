@@ -19,7 +19,7 @@ export function BlogSection() {
       desc:
         lang === 'en'
           ? `Complete guide to identify, prospect and close B2B clients on ${country.englishMarket}.`
-          : `Guide complet pour identifier, prospecter et signer des clients B2B sur le marché ${country.frenchAdjective}.`,
+          : `Guide complet pour identifier, prospecter et signer des clients B2B sur le marché ${country.frenchMarketAdjective}.`,
       badge: lang === 'en' ? 'B2B Prospecting' : 'Prospection B2B',
       readTime: '8 min',
       icon: BookOpen

@@ -19,7 +19,7 @@ export function Testimonials() {
           <h2 className="mt-3 font-heading text-3xl font-semibold tracking-tight text-foreground text-balance sm:text-4xl">
             {isEn
               ? `Adopted by ${country.englishAdjective} field sales teams`
-              : `Adopté par les commerciaux du terrain ${country.frenchAdjective}`}
+              : `Adopté par les équipes commerciales ${country.frenchAdjective}`}
           </h2>
         </div>
 

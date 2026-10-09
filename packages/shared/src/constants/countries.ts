@@ -82,7 +82,8 @@ export const COUNTRY_FRENCH_IN: Record<CountryCode, string> = {
   CF: 'en République centrafricaine'
 }
 
-export const COUNTRY_FRENCH_ADJECTIVE: Record<CountryCode, string> = {
+/** Formes adjectivales françaises : Féminin Pluriel (ex: "entreprises camerounaises", "équipes tchadiennes") */
+export const COUNTRY_FRENCH_FEM_PLUR_ADJECTIVE: Record<CountryCode, string> = {
   CM: 'camerounaises',
   SN: 'sénégalaises',
   CI: 'ivoiriennes',
@@ -92,7 +93,19 @@ export const COUNTRY_FRENCH_ADJECTIVE: Record<CountryCode, string> = {
   CF: 'centrafricaines'
 }
 
-export const COUNTRY_FRENCH_MARKET_ADJECTIVE: Record<CountryCode, string> = {
+/** Formes adjectivales françaises : Féminin Singulier (ex: "l'économie tchadienne", "une entreprise sénégalaise") */
+export const COUNTRY_FRENCH_FEM_SING_ADJECTIVE: Record<CountryCode, string> = {
+  CM: 'camerounaise',
+  SN: 'sénégalaise',
+  CI: 'ivoirienne',
+  BJ: 'béninoise',
+  TG: 'togolaise',
+  TD: 'tchadienne',
+  CF: 'centrafricaine'
+}
+
+/** Formes adjectivales françaises : Masculin Singulier (ex: "le marché tchadien", "l'annuaire camerounais") */
+export const COUNTRY_FRENCH_MASC_SING_ADJECTIVE: Record<CountryCode, string> = {
   CM: 'camerounais',
   SN: 'sénégalais',
   CI: 'ivoirien',
@@ -101,6 +114,29 @@ export const COUNTRY_FRENCH_MARKET_ADJECTIVE: Record<CountryCode, string> = {
   TD: 'tchadien',
   CF: 'centrafricain'
 }
+
+/** Formes adjectivales françaises : Masculin Pluriel (ex: "les commerciaux tchadiens", "les professionnels sénégalais") */
+export const COUNTRY_FRENCH_MASC_PLUR_ADJECTIVE: Record<CountryCode, string> = {
+  CM: 'camerounais',
+  SN: 'sénégalais',
+  CI: 'ivoiriens',
+  BJ: 'béninois',
+  TG: 'togolais',
+  TD: 'tchadiens',
+  CF: 'centrafricains'
+}
+
+/**
+ * Adjectif féminin pluriel (compatibilité descendante).
+ * ATTENTION : Ne pas utiliser devant un nom masculin tel que "marché" ! Utiliser COUNTRY_FRENCH_MARKET_ADJECTIVE ou COUNTRY_FRENCH_MASC_SING_ADJECTIVE.
+ */
+export const COUNTRY_FRENCH_ADJECTIVE = COUNTRY_FRENCH_FEM_PLUR_ADJECTIVE
+
+/**
+ * Adjectif masculin singulier pour les marchés et contextes économiques.
+ * Ex : "le marché tchadien", "l'écosystème camerounais".
+ */
+export const COUNTRY_FRENCH_MARKET_ADJECTIVE = COUNTRY_FRENCH_MASC_SING_ADJECTIVE
 
 export const COUNTRY_ENGLISH_IN: Record<CountryCode, string> = {
   CM: 'in Cameroon',
