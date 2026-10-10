@@ -379,7 +379,7 @@ function buildLandingCountry(code: CountryCode, isEn: boolean): LandingCountry {
       {
         CM: '/images/landmarks/cm-reunification-monument.webp',
         SN: '/images/landmarks/sn-renaissance.webp',
-        CI: '/images/landmarks/ci-pont-cocody.webp',
+        CI: '/images/landmarks/ci-pont-hkb.webp',
         BJ: '/images/landmarks/bj-amazone.webp',
         TG: '/images/landmarks/tg-independance.webp',
         CF: '/images/landmarks/cf-colombe-monument.webp',
