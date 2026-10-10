@@ -34,18 +34,18 @@ export function Hero() {
         className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(60%_50%_at_50%_-10%,color-mix(in_oklch,var(--primary)_18%,transparent),transparent)] animate-pulse-glow"
       />
 
-      {/* Subtle identity watermark for country landing page */}
+      {/* Subtle identity watermark for country landing page (e.g. Monument de la Réunification) */}
       {country.landmarkWatermark && (
         <div
           aria-hidden
-          className="pointer-events-none select-none absolute right-[-6%] lg:right-[3%] top-1/2 -translate-y-1/2 -z-10 w-[260px] sm:w-[360px] lg:w-[440px] h-[580px] opacity-[0.06] dark:opacity-[0.10] mix-blend-luminosity transition-opacity duration-700 [mask-image:radial-gradient(ellipse_at_center,black_35%,transparent_72%)]"
+          className="pointer-events-none select-none absolute right-[1%] sm:right-[3%] md:right-[5%] lg:right-[7%] xl:right-[10%] top-1/2 -translate-y-[48%] -z-10 w-[290px] sm:w-[380px] md:w-[460px] lg:w-[500px] xl:w-[540px] h-[620px] sm:h-[700px] md:h-[760px] lg:h-[820px] opacity-[0.16] dark:opacity-[0.12] transition-opacity duration-700 [mask-image:linear-gradient(to_bottom,black_68%,transparent_98%)]"
         >
           <Image
             src={country.landmarkWatermark}
             alt=""
             fill
-            sizes="(max-width: 768px) 260px, 440px"
-            className="object-contain object-center scale-105"
+            sizes="(max-width: 768px) 340px, (max-width: 1200px) 480px, 540px"
+            className="object-contain object-bottom scale-100 drop-shadow-xs"
             priority={false}
           />
         </div>
