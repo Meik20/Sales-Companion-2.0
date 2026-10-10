@@ -162,6 +162,30 @@ export function proxy(req: NextRequest) {
   response.headers.set('X-Content-Type-Options', 'nosniff')
   response.headers.set('X-Frame-Options', 'DENY')
 
+  // ── 5. Auto-détection du pays par géolocalisation si sc_country n'est pas encore positionné ──
+  if (!pathname.startsWith('/api/')) {
+    const existingCookie = req.cookies.get('sc_country')?.value?.toUpperCase()
+    const supportedCountries = new Set<string>(['CM', 'SN', 'CI', 'BJ', 'TG', 'TD', 'CF'])
+    if (!existingCookie || !supportedCountries.has(existingCookie)) {
+      const detectedGeo = (
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (req as any).geo?.country ||
+        req.headers.get('x-vercel-ip-country') ||
+        req.headers.get('cf-ipcountry') ||
+        req.headers.get('x-country-code') ||
+        ''
+      ).toUpperCase()
+
+      // Règle métier : Si le pays est listé parmi les 7, l'utiliser. Sinon, Cameroun (CM) priorisé.
+      const defaultCountry = supportedCountries.has(detectedGeo) ? detectedGeo : 'CM'
+      response.cookies.set('sc_country', defaultCountry, {
+        path: '/',
+        maxAge: 60 * 60 * 24 * 365,
+        sameSite: 'lax'
+      })
+    }
+  }
+
   return response
 }
 

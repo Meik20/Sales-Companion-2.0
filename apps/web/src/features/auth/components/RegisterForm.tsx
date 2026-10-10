@@ -20,6 +20,9 @@ import { useTranslation } from '@/providers/I18nProvider'
 import { isCorporateEmail } from '../utils/email-validator'
 import { CountrySelect } from '@/components/ui/CountrySelect'
 import { ShieldCheck, Lock, HelpCircle, ArrowRight, ArrowLeft } from 'lucide-react'
+import { detectClientCountry } from '@/features/landing/landing-country'
+import { setProspectingCountryCookie } from '@/hooks/useProspectingCountry'
+import type { CountryCode } from '@sales-companion/shared'
 
 type RoleOption = 'independent' | 'manager'
 
@@ -47,7 +50,14 @@ export function RegisterForm() {
   const [role, setRole] = useState<RoleOption>(
     roleParam === 'manager' || exemptionParam || orgParam ? 'manager' : 'independent'
   )
-  const [country, setCountry] = useState<string>('CM')
+  const [country, setCountry] = useState<string>(() => {
+    if (typeof document !== 'undefined') {
+      const match = document.cookie.match(/(?:^|;\s*)sc_country=([^;]+)/)
+      const val = match?.[1]?.toUpperCase()
+      if (val && SUPPORTED_COUNTRIES.some((c) => c.code === val)) return val
+    }
+    return detectClientCountry() ?? 'CM'
+  })
   const [phone, setPhone] = useState('')
   const [email, setEmail] = useState(emailParam || '')
   const [password, setPassword] = useState('')
@@ -420,7 +430,14 @@ export function RegisterForm() {
             {/* Pays & Téléphone */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <FormField label={t('auth.country')} required>
-                <CountrySelect value={country} onChange={setCountry} lang={lang as 'fr' | 'en'} />
+                <CountrySelect
+                  value={country}
+                  onChange={(val) => {
+                    setCountry(val)
+                    setProspectingCountryCookie(val as CountryCode)
+                  }}
+                  lang={lang as 'fr' | 'en'}
+                />
               </FormField>
 
               <FormField label={t('auth.phone')} required>

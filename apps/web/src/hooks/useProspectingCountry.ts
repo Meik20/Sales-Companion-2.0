@@ -26,6 +26,7 @@ import {
   type CountryThemeConfig
 } from '@sales-companion/shared'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { detectClientCountry } from '@/features/landing/landing-country'
 
 const COUNTRY_COOKIE = 'sc_country'
 const COUNTRY_CHANGE_EVENT = 'sc_country_changed'
@@ -68,7 +69,11 @@ export function useProspectingCountry(): CountryCode {
     const fromProfile = user?.country?.toUpperCase() as CountryCode | undefined
     if (fromProfile && COUNTRY_NAMES[fromProfile]) return fromProfile
 
-    // Fallback
+    // Priorité 3 : détection locale (fuseau horaire / locale du client)
+    const detected = detectClientCountry()
+    if (detected && COUNTRY_NAMES[detected]) return detected
+
+    // Fallback : Cameroun priorisé
     return 'CM'
   }, [cookieCountry, user?.country])
 

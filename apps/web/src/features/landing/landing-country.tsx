@@ -335,6 +335,40 @@ const COUNTRY_DETAILS: Record<
   }
 }
 
+export function detectClientCountry(): CountryCode | null {
+  if (typeof window === 'undefined') return null
+
+  // 1. Fuseau horaire du système (détection instantanée à 0ms)
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+    const tzMap: Record<string, CountryCode> = {
+      'Africa/Abidjan': 'CI',
+      'Africa/Dakar': 'SN',
+      'Africa/Douala': 'CM',
+      'Africa/Porto-Novo': 'BJ',
+      'Africa/Lome': 'TG',
+      'Africa/Bangui': 'CF',
+      'Africa/Ndjamena': 'TD'
+    }
+    if (tz && tzMap[tz]) return tzMap[tz]
+  } catch {}
+
+  // 2. Langues et paramètres régionaux du navigateur (ex: fr-CI, fr-SN, fr-CM)
+  try {
+    const languages = navigator.languages || [navigator.language]
+    for (const l of languages) {
+      if (!l) continue
+      const parts = l.split(/[-_]/)
+      if (parts.length > 1) {
+        const region = parts[parts.length - 1]?.toUpperCase() as CountryCode | undefined
+        if (region && COUNTRY_NAMES[region]) return region
+      }
+    }
+  } catch {}
+
+  return null
+}
+
 function readCountryCookie(): CountryCode | null {
   if (typeof document === 'undefined') return null
   const match = document.cookie.match(/(?:^|;\s*)sc_country=([^;]+)/)
@@ -400,9 +434,12 @@ const LandingCountryContext = createContext<LandingCountryContextValue | null>(n
 export function LandingCountryProvider({ children }: { children: ReactNode }) {
   const { lang } = useTranslation()
   const isEn = lang === 'en'
-  const [countryCode, setCountryCode] = useState<CountryCode>(() => readCountryCookie() ?? 'CM')
+  const [countryCode, setCountryCode] = useState<CountryCode>(
+    () => readCountryCookie() ?? detectClientCountry() ?? 'CM'
+  )
 
   useEffect(() => {
+    // Si l'utilisateur avait déjà un cookie, on ne force rien
     if (readCountryCookie()) return
 
     fetch('/api/geo/country', { cache: 'no-store' })
