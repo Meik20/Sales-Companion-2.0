@@ -280,6 +280,7 @@ export async function POST(request: NextRequest) {
             plan: memberPlan,
             active: true,
             activated: true,
+            emailVerified: true,
             company: data.company ?? null,
             sector: data.sector ?? null,
             region: data.region ?? null,

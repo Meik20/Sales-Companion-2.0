@@ -375,7 +375,17 @@ function buildLandingCountry(code: CountryCode, isEn: boolean): LandingCountry {
     kanbanTech: details.kanbanTech,
     neighborhoods: details.neighborhoods,
     testimonials: details.testimonials,
-    landmarkWatermark: code === 'CM' ? '/images/landmarks/cm-reunification-monument.webp' : undefined
+    landmarkWatermark: (
+      {
+        CM: '/images/landmarks/cm-reunification-monument.webp',
+        SN: '/images/landmarks/sn-renaissance.webp',
+        CI: '/images/landmarks/ci-pont-cocody.webp',
+        BJ: '/images/landmarks/bj-amazone.webp',
+        TG: '/images/landmarks/tg-independance.webp',
+        CF: '/images/landmarks/cf-colombe-monument.webp',
+        TD: '/images/landmarks/td-place-nation.webp',
+      } as Record<string, string>
+    )[code] ?? undefined
   }
 }
 

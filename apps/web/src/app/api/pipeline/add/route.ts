@@ -31,11 +31,17 @@ export async function POST(request: NextRequest) {
 
     const callerDoc = await adminDb.collection('users').doc(userId).get()
     const callerData = callerDoc.data()
+
+    // Membres activés via invitation manageur : ils n'ont pas de flux email-verification.
+    // Leur `activated: true` est l'équivalent fonctionnel de la vérification email.
+    const isMemberByInvitation =
+      callerData?.role === 'member' && callerData?.activated === true && callerData?.active === true
+
     if (
       !callerData ||
       callerData.active !== true ||
       callerData.activated !== true ||
-      callerData.emailVerified !== true
+      (!isMemberByInvitation && callerData.emailVerified !== true)
     ) {
       return NextResponse.json(
         { message: 'Un compte actif et vérifié est requis.' },
