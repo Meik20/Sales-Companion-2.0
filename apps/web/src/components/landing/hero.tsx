@@ -27,7 +27,7 @@ export function Hero() {
   const [addedToPipeline, setAddedToPipeline] = useState(false)
 
   return (
-    <section className="relative overflow-hidden pt-12 pb-16 md:pt-20 md:pb-24">
+    <section className="relative z-0 overflow-hidden pt-12 pb-16 md:pt-20 md:pb-24">
       {/* Dynamic background glow */}
       <div
         aria-hidden
@@ -38,12 +38,13 @@ export function Hero() {
       {country.landmarkWatermark && (
         <div
           aria-hidden
-          className="pointer-events-none select-none absolute right-[1%] sm:right-[3%] md:right-[5%] lg:right-[7%] xl:right-[10%] top-1/2 -translate-y-[48%] -z-10 w-[290px] sm:w-[380px] md:w-[460px] lg:w-[500px] xl:w-[540px] h-[620px] sm:h-[700px] md:h-[760px] lg:h-[820px] opacity-[0.16] dark:opacity-[0.12] transition-opacity duration-700 [mask-image:linear-gradient(to_bottom,black_68%,transparent_98%)]"
+          className="pointer-events-none select-none absolute right-[12%] sm:right-[16%] md:right-[20%] lg:right-[24%] xl:right-[28%] top-1/2 -translate-y-[48%] z-0 w-[300px] sm:w-[380px] md:w-[460px] lg:w-[500px] xl:w-[540px] h-[640px] sm:h-[720px] md:h-[780px] lg:h-[840px] opacity-[0.25] dark:opacity-[0.18] transition-opacity duration-700 [mask-image:linear-gradient(to_bottom,black_68%,transparent_98%)]"
         >
           <Image
             src={country.landmarkWatermark}
             alt=""
             fill
+            unoptimized
             sizes="(max-width: 768px) 340px, (max-width: 1200px) 480px, 540px"
             className="object-contain object-bottom scale-100 drop-shadow-xs"
             priority={false}
@@ -51,7 +52,7 @@ export function Hero() {
         </div>
       )}
 
-      <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 lg:grid-cols-[1.1fr_0.9fr]">
+      <div className="relative z-10 mx-auto grid max-w-6xl items-center gap-12 px-5 lg:grid-cols-[1.1fr_0.9fr]">
         {/* Left column: Text & Value Proposition */}
         <div className="flex flex-col items-start">
           {/* H1 */}
