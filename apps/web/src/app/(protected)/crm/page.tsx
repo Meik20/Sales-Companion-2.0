@@ -10,6 +10,7 @@ import { CrmMobileCard } from '@/features/crm/components/CrmMobileCard'
 import { CrmFilters, type CrmFiltersState } from '@/features/crm/components/CrmFilters'
 import { CrmSkeleton, CrmMobileSkeleton } from '@/features/crm/components/CrmSkeleton'
 import { AddClientModal } from '@/features/crm/components/AddClientModal'
+import { Trash2 } from 'lucide-react'
 import type { CrmClient, CrmClientStatus } from '@/features/crm/types'
 
 const PAGE_SIZE = 20
@@ -31,6 +32,8 @@ export default function CrmPage() {
   const [loading, setLoading] = useState(true)
   const [selectedClient, setSelectedClient] = useState<CrmClient | null>(null)
   const [showAddModal, setShowAddModal] = useState(false)
+  const [showClearConfirm, setShowClearConfirm] = useState(false)
+  const [clearing, setClearing] = useState(false)
 
   // Filters + pagination
   const [filters, setFilters] = useState<CrmFiltersState>({
@@ -198,25 +201,58 @@ export default function CrmPage() {
     void fetchClients()
   }, [fetchClients])
 
+  const handleClearCrm = useCallback(async () => {
+    if (!user) return
+    setClearing(true)
+    try {
+      const token = await user.getIdToken()
+      const res = await fetch('/api/crm/clients/clear', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (res.ok) {
+        setClients([])
+        setSelectedClient(null)
+        setShowClearConfirm(false)
+      }
+    } catch (e) {
+      console.error('[CRM] clear error', e)
+    } finally {
+      setClearing(false)
+    }
+  }, [user])
+
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <AppShell>
       {/* Page Title */}
-      <div className="mb-6">
-        <h1 className="font-['Syne',sans-serif] text-[24px] font-extrabold text-foreground">
-          {t('crm.title')}
-        </h1>
-        {!loading && (
-          <p className="mt-1 text-[13px] text-muted-foreground">
-            {clients.length} {t('crm.headerClients')} ·{' '}
-            <span className="font-semibold text-green-600 dark:text-green-400">
-              {activeCount} {t('crm.headerActive')}
-            </span>{' '}
-            ·{' '}
-            <span className="font-semibold text-amber-600 dark:text-amber-400">
-              {toFollowUpCount} {t('crm.headerToFollowUp')}
-            </span>
-          </p>
+      <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+        <div>
+          <h1 className="font-['Syne',sans-serif] text-[24px] font-extrabold text-foreground">
+            {t('crm.title')}
+          </h1>
+          {!loading && (
+            <p className="mt-1 text-[13px] text-muted-foreground">
+              {clients.length} {t('crm.headerClients')} ·{' '}
+              <span className="font-semibold text-green-600 dark:text-green-400">
+                {activeCount} {t('crm.headerActive')}
+              </span>{' '}
+              ·{' '}
+              <span className="font-semibold text-amber-600 dark:text-amber-400">
+                {toFollowUpCount} {t('crm.headerToFollowUp')}
+              </span>
+            </p>
+          )}
+        </div>
+
+        {clients.length > 0 && (
+          <button
+            onClick={() => setShowClearConfirm(true)}
+            className="inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3.5 text-[13px] font-medium text-red-600 transition hover:bg-red-500/20 dark:text-red-400"
+          >
+            <Trash2 size={15} />
+            <span>Vider mon CRM</span>
+          </button>
         )}
       </div>
 
@@ -274,6 +310,44 @@ export default function CrmPage() {
           onClose={() => setShowAddModal(false)}
           onSuccess={handleClientAdded}
         />
+      )}
+
+      {/* Clear CRM Confirmation Modal */}
+      {showClearConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-xl animate-in fade-in zoom-in-95">
+            <div className="flex items-center gap-3 text-red-600 dark:text-red-400">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-500/10">
+                <Trash2 size={20} />
+              </div>
+              <h3 className="font-['Syne',sans-serif] text-[18px] font-bold text-foreground">
+                Vider votre CRM ?
+              </h3>
+            </div>
+            <p className="mt-3 text-[13px] text-muted-foreground">
+              Êtes-vous sûr de vouloir vider votre CRM ? Tous les clients actuels seront retirés de votre espace support.
+            </p>
+            <div className="mt-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-[12px] text-emerald-700 dark:text-emerald-300">
+              🛡️ <strong>Garantie d’indépendance :</strong> Cette action n’affecte en aucun cas la <strong>Base de données clients</strong> du Team Manager ni les ventes conclues de l’entreprise.
+            </div>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={() => setShowClearConfirm(false)}
+                disabled={clearing}
+                className="rounded-lg border border-border px-4 py-2 text-[13px] font-medium text-muted-foreground hover:bg-muted"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleClearCrm}
+                disabled={clearing}
+                className="rounded-lg bg-red-600 px-4 py-2 text-[13px] font-medium text-white transition hover:bg-red-700 disabled:opacity-50"
+              >
+                {clearing ? 'Suppression en cours...' : 'Oui, vider mon CRM'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </AppShell>
   )

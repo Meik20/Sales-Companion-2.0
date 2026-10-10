@@ -438,6 +438,52 @@ service cloud.firestore {
         || (isManager() && resource.data.managerUid == authUid());
     }
 
+    // ── Base de Données Clients (conclus après 72h) ───────────────────────────
+    match /clients/{clientId} {
+      // Lecture : Admin, Manager propriétaire / Senior Manager, commercial vendeur assigné, ou Support Agent lié
+      allow read: if isAdmin()
+        || (isManager() && (resource.data.managerUid == authUid() || (currentUserDoc().orgRole == 'senior_manager' && currentUserDoc().orgCode == resource.data.orgCode)))
+        || (isSignedIn() && resource.data.assignedTo == authUid())
+        || (isSupportAgent() && (
+             resource.data.managerUid == currentUserDoc().managerUid
+             || (currentUserDoc().linkedManagerUids != null && resource.data.managerUid in currentUserDoc().linkedManagerUids)
+           ));
+
+      // Écriture :
+      // Création exclusivement via Admin SDK serveur
+      allow create: if false;
+
+      // Mise à jour : Admin ou Manager propriétaire (protégeant les champs invariants)
+      allow update: if isAdmin()
+        || (
+          isManager()
+          && resource.data.managerUid == authUid()
+          && !request.resource.data.diff(resource.data).affectedKeys()
+              .hasAny(['managerUid', 'orgCode', 'pipelineItemId', 'createdAt', 'concludedAt', 'assignedTo', 'assignedEmail', 'assignedName'])
+        );
+
+      // Suppression : Admin ou Manager propriétaire uniquement (JAMAIS support agent)
+      allow delete: if isAdmin()
+        || (isManager() && resource.data.managerUid == authUid());
+    }
+
+    // ── CRM Clients Dédiés ──────────────────────────────────────────────────
+    match /crm_clients/{clientId} {
+      allow read: if isAdmin()
+        || (isManager() && resource.data.managerUid == authUid())
+        || (isSignedIn() && resource.data.owner == authUid())
+        || (isSupportAgent() && (
+             resource.data.managerUid == currentUserDoc().managerUid
+             || (currentUserDoc().linkedManagerUids != null && resource.data.managerUid in currentUserDoc().linkedManagerUids)
+           ));
+      allow create: if isSignedIn();
+      allow update: if isSignedIn()
+        && (resource.data.owner == authUid() || (isManager() && resource.data.managerUid == authUid()) || isAdmin());
+      allow delete: if isAdmin()
+        || (resource.data.owner == authUid())
+        || (isManager() && resource.data.managerUid == authUid());
+    }
+
     // ── Organisations ────────────────────────────────────────────────────────
     // Collection dédiée au référentiel d'organisation (source de vérité unique)
     // Écritures exclusivement via Admin SDK (API routes serveur)

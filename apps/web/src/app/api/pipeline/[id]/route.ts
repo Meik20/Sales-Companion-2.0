@@ -96,8 +96,22 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       )
     }
 
-    const cleanData = parseResult.data
+    const cleanData: Record<string, any> = { ...parseResult.data }
+    const isConcluded = cleanData.status === 'conclue' || cleanData.status === 'conclusion'
+    if (isConcluded && !data.concludedAt) {
+      cleanData.concludedAt = new Date()
+    }
+
     await doc.ref.update({ ...cleanData, updatedAt: new Date() })
+
+    if (isConcluded) {
+      try {
+        const { syncPipelineItemToClient } = await import('@/lib/clients-sync')
+        await syncPipelineItemToClient(adminDb, id, { ...data, ...cleanData })
+      } catch (err) {
+        console.error('[pipeline/[id]/PUT] Erreur lors de la synchronisation client:', err)
+      }
+    }
 
     const updated = await doc.ref.get()
     return NextResponse.json({ id: updated.id, ...updated.data() })

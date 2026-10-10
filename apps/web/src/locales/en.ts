@@ -263,6 +263,7 @@ export const en = {
     prospection: 'Prospection',
     searchProspects: 'Search prospects',
     pipeline: 'Sales Pipeline',
+    clientDatabase: 'Client Database',
     savedSearches: 'Saved searches',
     importProspects: 'Import prospects',
     support: 'Support',

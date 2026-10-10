@@ -11,7 +11,7 @@ async function getAdmin() {
 function normalizeClientDoc(
   id: string,
   data: Record<string, any>,
-  source: 'pipeline' | 'imported' | 'crm_clients'
+  source: 'pipeline' | 'imported' | 'crm_clients' | 'clients_db'
 ) {
   const companyName = data.companyName ?? data.name ?? 'Sans nom'
   const contactName = data.contactName ?? data.contact ?? data.managerName ?? ''
@@ -25,7 +25,7 @@ function normalizeClientDoc(
 
   // Normalisation du statut
   let status = data.status ?? 'new'
-  if (status === 'conclue' || status === 'conclusion') status = 'won'
+  if (status === 'conclue' || status === 'conclusion' || status === 'active') status = 'won'
   else if (status === 'imported') status = 'to_contact'
 
   const createdAt =
@@ -34,6 +34,9 @@ function normalizeClientDoc(
   const updatedAt =
     data.updatedAt?.toDate?.()?.toISOString() ??
     (typeof data.updatedAt === 'string' ? data.updatedAt : null)
+  const concludedAt =
+    data.concludedAt?.toDate?.()?.toISOString() ??
+    (typeof data.concludedAt === 'string' ? data.concludedAt : null)
   const nextActionAt =
     data.nextActionAt?.toDate?.()?.toISOString() ??
     (typeof data.nextActionAt === 'string'
@@ -59,15 +62,20 @@ function normalizeClientDoc(
     postalCode,
     country,
     status,
-    owner: data.owner ?? data.managerUid ?? data.importedBy ?? data.userId ?? '',
-    ownerName: data.ownerName ?? data.memberName ?? '',
+    amount: data.amount != null ? Number(data.amount) : null,
+    owner: data.assignedTo ?? data.owner ?? data.managerUid ?? data.importedBy ?? data.userId ?? '',
+    ownerName: data.assignedName ?? data.ownerName ?? data.memberName ?? '',
+    assignedTo: data.assignedTo ?? null,
+    assignedName: data.assignedName ?? data.memberName ?? null,
+    assignedEmail: data.assignedEmail ?? null,
     managerUid: data.managerUid ?? data.managerId ?? null,
     nextAction: data.nextAction ?? data.nextStep ?? '',
     nextActionAt,
     lastActivityAt,
     lastActivityType: data.lastActivityType ?? null,
     lastActivityTitle: data.lastActivityTitle ?? null,
-    notes: data.notes ?? '',
+    notes: data.notes ?? data.note ?? '',
+    concludedAt,
     createdAt,
     updatedAt,
     _source: source
@@ -130,48 +138,50 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // 2. Clients pipeline conclus
-    let pipeQuery = adminDb.collection('pipeline') as any
-    if (agentData.role === 'admin') {
-      pipeQuery = pipeQuery.where('status', 'in', ['conclue', 'conclusion']).limit(1000)
-    } else if (agentData.role === 'manager') {
-      pipeQuery = pipeQuery
-        .where('managerUid', '==', agentUid)
-        .where('status', 'in', ['conclue', 'conclusion'])
-        .limit(1000)
-    } else if (agentData.role === 'support_agent') {
+    // 2. Base de données clients (collection "clients")
+    if (agentData.role === 'support_agent') {
       const managerUids: string[] = [
         agentData.managerUid,
         ...(agentData.linkedManagerUids ?? [])
       ].filter(Boolean)
 
       if (managerUids.length > 0) {
-        const pipeSnaps = await Promise.all(
+        const clientSnaps = await Promise.all(
           managerUids.map((uid) =>
             adminDb
-              .collection('pipeline')
+              .collection('clients')
               .where('managerUid', '==', uid)
-              .where('status', 'in', ['conclue', 'conclusion'])
               .limit(500)
               .get()
           )
         )
-        for (const snap of pipeSnaps) {
+        for (const snap of clientSnaps) {
           for (const doc of snap.docs) {
+            const d = doc.data()
+            // Découplage d'indépendance : ignorer si l'agent support a masqué/supprimé ce client de son CRM local
+            if (Array.isArray(d.dismissedBySupportAgents) && d.dismissedBySupportAgents.includes(agentUid)) {
+              continue
+            }
+
             if (!seen.has(doc.id)) {
               seen.add(doc.id)
-              clients.push(normalizeClientDoc(doc.id, doc.data(), 'pipeline'))
+              clients.push(normalizeClientDoc(doc.id, d, 'clients_db'))
             }
           }
         }
       }
-    }
-    if (agentData.role === 'admin' || agentData.role === 'manager') {
-      const pipeSnap = await pipeQuery.get()
-      for (const doc of pipeSnap.docs) {
+    } else if (agentData.role === 'admin' || agentData.role === 'manager') {
+      let clientQ = adminDb.collection('clients') as any
+      if (agentData.role === 'manager') {
+        clientQ = clientQ.where('managerUid', '==', agentUid).limit(1000)
+      } else {
+        clientQ = clientQ.limit(1000)
+      }
+      const clientSnap = await clientQ.get()
+      for (const doc of clientSnap.docs) {
         if (!seen.has(doc.id)) {
           seen.add(doc.id)
-          clients.push(normalizeClientDoc(doc.id, doc.data(), 'pipeline'))
+          clients.push(normalizeClientDoc(doc.id, doc.data(), 'clients_db'))
         }
       }
     }

@@ -499,6 +499,13 @@ export function AppSidebar({
               badge={totalPipeline > 0 ? totalPipeline : undefined}
             />
           )}
+          {(user.role === 'manager' || user.role === 'member' || user.role === 'admin') && (
+            <SidebarLink
+              href={routes.clients}
+              label={t('sidebar.clientDatabase')}
+              icon={Users}
+            />
+          )}
           <SidebarLink href={routes.saved} label={t('sidebar.savedSearches')} icon={Bookmark} />
           {user.role === 'independent' && (
             <SidebarLink

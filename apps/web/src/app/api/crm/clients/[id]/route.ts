@@ -41,17 +41,23 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     let snap = await docRef.get()
 
     if (!snap.exists) {
-      docRef = adminDb.collection('pipeline').doc(id)
+      docRef = adminDb.collection('clients').doc(id)
       snap = await docRef.get()
       if (snap.exists) {
-        targetCollection = 'pipeline'
+        targetCollection = 'clients'
       } else {
-        docRef = adminDb.collection('manager_prospects').doc(id)
+        docRef = adminDb.collection('pipeline').doc(id)
         snap = await docRef.get()
         if (snap.exists) {
-          targetCollection = 'manager_prospects'
+          targetCollection = 'pipeline'
         } else {
-          return NextResponse.json({ message: 'Client introuvable' }, { status: 404 })
+          docRef = adminDb.collection('manager_prospects').doc(id)
+          snap = await docRef.get()
+          if (snap.exists) {
+            targetCollection = 'manager_prospects'
+          } else {
+            return NextResponse.json({ message: 'Client introuvable' }, { status: 404 })
+          }
         }
       }
     }
@@ -61,20 +67,18 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       updatedAt: now
     }
 
-    // ── Guard: support agents cannot change the status of pipeline-sourced clients ──
-    // Pipeline docs are already CONCLU (Customer). Only the status field is locked;
-    // other fields (notes, nextAction…) remain editable.
+    // ── Guard: support agents cannot change the status of clients-db / pipeline-sourced clients ──
     const isSupportAgent = agentData.role === 'support_agent'
     if (
       isSupportAgent &&
-      targetCollection === 'pipeline' &&
+      (targetCollection === 'pipeline' || targetCollection === 'clients') &&
       body.status !== undefined &&
       body.status !== prevData.status
     ) {
       return NextResponse.json(
         {
           message:
-            'Ce client est déjà CONCLU dans le pipeline. Son statut ne peut pas être modifié par un agent support.'
+            'Ce client est déjà validé dans la base clients du manager. Son statut patrimonial ne peut pas être modifié par un agent support.'
         },
         { status: 403 }
       )
@@ -167,29 +171,45 @@ export async function DELETE(
     if (!token) return NextResponse.json({ message: 'Non authentifié' }, { status: 401 })
 
     const decoded = await adminAuth.verifyIdToken(token)
-    const agentDoc = await adminDb.collection('users').doc(decoded.uid).get()
+    const agentUid = decoded.uid
+    const agentDoc = await adminDb.collection('users').doc(agentUid).get()
     const agentData = agentDoc.data()
     if (!agentData || !['admin', 'manager', 'support_agent'].includes(agentData.role)) {
       return NextResponse.json({ message: 'Action non autorisée' }, { status: 403 })
     }
 
-    // 1. Vérifier si le client provient de la collection 'pipeline'
+    const { FieldValue } = await import('firebase-admin/firestore')
+
+    // 1. Vérifier si le client provient de la collection 'clients'
+    const clientRef = adminDb.collection('clients').doc(id)
+    const clientSnap = await clientRef.get()
+    if (clientSnap.exists) {
+      if (agentData.role === 'support_agent') {
+        // Découplage strict : masquer pour cet agent support sans supprimer pour le manager
+        await clientRef.update({
+          dismissedBySupportAgents: FieldValue.arrayUnion(agentUid)
+        })
+        return NextResponse.json({ success: true, message: 'Client retiré de votre CRM support' })
+      }
+      await clientRef.delete()
+      return NextResponse.json({ success: true })
+    }
+
+    // 2. Vérifier si le client provient de la collection 'pipeline' (rétrocompatibilité)
     const pipeRef = adminDb.collection('pipeline').doc(id)
     const pipeSnap = await pipeRef.get()
     if (pipeSnap.exists) {
       if (agentData.role === 'support_agent') {
-        return NextResponse.json(
-          {
-            message: 'Un agent support ne peut pas supprimer un client issu du pipeline du manager'
-          },
-          { status: 403 }
-        )
+        await pipeRef.update({
+          dismissedBySupportAgents: FieldValue.arrayUnion(agentUid)
+        })
+        return NextResponse.json({ success: true, message: 'Client retiré de votre CRM support' })
       }
       await pipeRef.delete()
       return NextResponse.json({ success: true })
     }
 
-    // 2. Tenter suppression dans crm_clients
+    // 3. Tenter suppression dans crm_clients (données propres au CRM)
     const crmRef = adminDb.collection('crm_clients').doc(id)
     const crmSnap = await crmRef.get()
     if (crmSnap.exists) {
@@ -197,7 +217,7 @@ export async function DELETE(
       return NextResponse.json({ success: true })
     }
 
-    // 3. Tenter suppression dans manager_prospects
+    // 4. Tenter suppression dans manager_prospects
     const impRef = adminDb.collection('manager_prospects').doc(id)
     const impSnap = await impRef.get()
     if (impSnap.exists) {

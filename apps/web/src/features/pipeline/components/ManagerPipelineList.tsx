@@ -61,6 +61,7 @@ type PipelineItem = {
   updatedAt?: any
   assignedAt?: any
   enteredAt?: any
+  concludedAt?: any
 }
 
 type Member = { uid: string; name?: string; email?: string; accessId?: string }
@@ -1344,7 +1345,16 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
   const grouped: Record<string, PipelineItem[]> = {
     prospection: items.filter((i) => normalize(i.status) === 'prospection'),
     negociation: items.filter((i) => normalize(i.status) === 'negociation'),
-    conclue: items.filter((i) => normalize(i.status) === 'conclue')
+    conclue: items.filter((i) => {
+      if (normalize(i.status) !== 'conclue') return false
+      if (i.concludedAt) {
+        const t = new Date(i.concludedAt as any).getTime()
+        if (!isNaN(t) && Date.now() - t > 72 * 60 * 60 * 1000) {
+          return false
+        }
+      }
+      return true
+    })
   }
 
   return (

@@ -43,6 +43,7 @@ type PipelineItem = {
   updatedAt?: any
   assignedAt?: any
   enteredAt?: any
+  concludedAt?: any
 }
 
 type Props = {
@@ -659,6 +660,12 @@ export function UserPipelineKanban({ items, onStatusChange, onItemClick }: Props
     }
     items.forEach((item) => {
       const status = normalizeStatus(item.status)
+      if (status === 'conclue' && item.concludedAt) {
+        const t = new Date(item.concludedAt as any).getTime()
+        if (!isNaN(t) && Date.now() - t > 72 * 60 * 60 * 1000) {
+          return
+        }
+      }
       if (newCols[status]) newCols[status].push(item)
     })
     setColumns(newCols)

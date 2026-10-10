@@ -14,6 +14,7 @@ export * from './types/support'
 export * from './types/team'
 export * from './types/assignment'
 export * from './types/config'
+export * from './types/client'
 
 export * from './schemas/user.schema'
 export * from './schemas/company.schema'

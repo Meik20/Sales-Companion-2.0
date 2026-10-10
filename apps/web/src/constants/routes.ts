@@ -5,6 +5,7 @@ export const routes = {
   activate: '/activate',
   search: '/search',
   pipeline: '/pipeline',
+  clients: '/clients',
   profile: '/profile',
   saved: '/saved',
   settings: '/settings',

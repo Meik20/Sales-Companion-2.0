@@ -26,6 +26,7 @@ export type PipelineDoc = {
   nextFollowUp?: string | null
   amount?: number | null // Montant de la transaction en devise locale
   currency?: string | null // Devise (ex: FCFA, EUR, USD)
+  concludedAt?: FirestoreTimestampLike | null
   createdAt: FirestoreTimestampLike
   updatedAt: FirestoreTimestampLike
 }
