@@ -47,6 +47,24 @@ sales-companion/
 - ✅ Firestore Rules & Security
 - ✅ Firestore Indexes
 
+## 🏢 Annuaire des entreprises (Supabase)
+
+Supabase héberge uniquement l'annuaire des entreprises. Firebase Authentication et les
+autres données applicatives (CRM, pipeline, rôles, équipes et support) restent sur Firebase.
+
+1. Exécuter [`scripts/supabase-schema-companies.sql`](./scripts/supabase-schema-companies.sql)
+   dans le SQL Editor du projet Supabase.
+2. Définir `NEXT_PUBLIC_SUPABASE_URL` et `SUPABASE_SERVICE_ROLE_KEY` dans l'environnement
+   serveur Next.js. La clé `service_role` ne doit jamais être exposée au navigateur.
+3. La recherche d'entreprises et les imports administrateur utilisent Supabase dès que ces
+   variables sont configurées. L'historique des imports reste dans Firestore.
+4. Pour migrer les entreprises camerounaises déjà stockées dans Firestore, lancer
+   `npm run migrate:companies` depuis la racine. Cette commande effectue une simulation
+   paginée, sans écrire dans Supabase. Après vérification du nombre de fiches et des NIU en
+   doublon, lancer `npm run migrate:companies -- --execute` pour faire les upserts par lots.
+   Les IDs Firestore sont conservés, les fiches sans raison sociale et les NIU en doublon
+   bloquent l'exécution, et Firestore n'est jamais modifié par le script.
+
 ---
 
 ## 🌐 Frontend (Web)

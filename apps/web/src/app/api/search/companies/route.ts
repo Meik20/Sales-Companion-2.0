@@ -3,6 +3,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getClientIp, checkRateLimit, checkRateLimitByUser } from '@/lib/rate-limit'
 import { PLAN_LIMITS, COUNTRY_NAMES } from '@sales-companion/shared'
 import { getCachedCompanies } from '@/lib/company-search'
+import {
+  isSupabaseCompaniesConfigured,
+  searchSupabaseCompanies
+} from '@/lib/supabase-companies'
 
 // Lazy import pour éviter les erreurs si firebase-admin ne s'initialise pas
 async function getAdminModules() {
@@ -462,21 +466,62 @@ export async function GET(request: NextRequest) {
       return { matches: true, score }
     }
 
-    // ── 3. Récupération des données (via Cache Redis Upstash + fallback mémoire) ──
+    // ── 3. Supabase est la source des entreprises dès que configuré. ──
     let internalCompanies: any[] = []
-    try {
-      const allCompanies = await getCachedCompanies()
-      internalCompanies = [...allCompanies]
-    } catch (err) {
-      console.warn('[search/companies] Failed to load cached companies:', err)
-      internalCompanies = []
+    let usedSupabase = false
+
+    if (isSupabaseCompaniesConfigured()) {
+      const sbResult = await searchSupabaseCompanies({
+        country: userCountry,
+        query,
+        sector,
+        city,
+        region,
+        limit: 100
+      })
+
+      if (sbResult) {
+        internalCompanies = sbResult.companies.map((c) => ({
+          id: c.id,
+          raisonSociale: c.raison_sociale,
+          sigle: c.sigle || '',
+          niu: c.niu || '',
+          sector: c.sector || '',
+          region: c.region || '',
+          city: c.city || '',
+          adresse: c.adresse || '',
+          telephone: c.telephone || '',
+          email: c.email || '',
+          dirigeant: c.dirigeant || '',
+          rccm: c.rccm || '',
+          formeJuridique: c.forme_juridique || '',
+          capital: c.capital || '',
+          country: c.country_code
+        }))
+        usedSupabase = true
+      } else {
+        return NextResponse.json(
+          { error: 'La base de données des entreprises est temporairement indisponible.' },
+          { status: 503 }
+        )
+      }
     }
 
-    // ── 3.1 Filtrage strict par pays de l'utilisateur (défini à l'inscription) ──
-    internalCompanies = internalCompanies.filter((c) => {
-      const cCountry = (c.country || 'CM').toUpperCase()
-      return cCountry === userCountry
-    })
+    if (!usedSupabase) {
+      try {
+        const allCompanies = await getCachedCompanies()
+        internalCompanies = [...allCompanies]
+      } catch (err) {
+        console.warn('[search/companies] Failed to load cached companies:', err)
+        internalCompanies = []
+      }
+
+      // ── 3.1 Filtrage strict par pays de l'utilisateur ──
+      internalCompanies = internalCompanies.filter((c) => {
+        const cCountry = (c.country || 'CM').toUpperCase()
+        return cCountry === userCountry
+      })
+    }
 
     // ── 4. Filtrage intelligent & scoring ──
     const matchLocationKeywords = (dataValue: string, filterValue: string) => {

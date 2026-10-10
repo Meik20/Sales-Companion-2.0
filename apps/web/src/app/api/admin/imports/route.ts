@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { adminDb } from '@/lib/firebase-admin'
 import { verifyAdminCached } from '@/lib/api-admin-auth'
 import { SUPPORTED_COUNTRIES } from '@sales-companion/shared'
+import type { SupabaseCompanyRecord } from '@/lib/supabase-companies'
 import ExcelJS from 'exceljs'
 
 async function verifyAdmin(request: NextRequest) {
@@ -66,7 +67,7 @@ export async function DELETE(request: NextRequest) {
   }
 }
 
-/* ── POST /api/admin/imports — upload + parse CSV/Excel and save to Firestore ── */
+/* ── POST /api/admin/imports — upload + parse CSV/Excel and save companies to Supabase ── */
 export async function POST(request: NextRequest) {
   try {
     const adminUid = await verifyAdmin(request)
@@ -176,21 +177,12 @@ export async function POST(request: NextRequest) {
       if (mapped) detectedColumns[h] = mapped
     })
 
-    // ── Import rows into Firestore (multi-batch, max 499 ops each) ──
+    // ── Prepare company rows for Supabase; import history remains in Firestore. ──
     let imported = 0,
-      updated = 0,
       skipped = 0,
       errors = 0
-    let currentBatch = adminDb.batch()
-    let batchCount = 0
-
-    const flushBatch = async () => {
-      if (batchCount > 0) {
-        await currentBatch.commit()
-        currentBatch = adminDb.batch()
-        batchCount = 0
-      }
-    }
+    const updated = 0
+    const supabaseRecords: SupabaseCompanyRecord[] = []
 
     for (const row of rows) {
       try {
@@ -247,26 +239,29 @@ export async function POST(request: NextRequest) {
           .replace(/[\u0300-\u036f]/g, '')
           .replace(/[^a-z0-9]/g, '_')
         const docId = niu ? `${country}_${niu}` : `${country}_name_${nameSlug}`
-        const ref = adminDb.collection('companies').doc(docId)
+        supabaseRecords.push({
+          id: docId,
+          country_code: country,
+          raison_sociale: String(company.raisonSociale || ''),
+          sigle: (company.sigle as string) || null,
+          niu: (company.niu as string) || null,
+          sector: (company.sector as string) || null,
+          region: (company.region as string) || null,
+          city: (company.city as string) || null,
+          adresse: (company.adresse as string) || null,
+          telephone: (company.telephone as string) || null,
+          email: (company.email as string) || null,
+          dirigeant: (company.dirigeant as string) || null,
+          rccm: (company.rccm as string) || null,
+          forme_juridique: (company.formeJuridique as string) || null,
+          capital: (company.capital as string) || null,
+          date_creation: (company.dateCreation as string) || null,
+          active: true,
+          imported_by: adminUid,
+          raw_data: company
+        })
 
-        // Utiliser set({ merge: true }) pour éviter 1 lecture (ref.get()) par ligne
-        // Économise 100% des lectures Firestore lors de l'importation de fichiers
-        currentBatch.set(
-          ref,
-          {
-            ...company,
-            importedBy: adminUid,
-            updatedAt: new Date()
-          },
-          { merge: true }
-        )
         imported++
-
-        batchCount++
-        // Commit every 499 writes (Firestore batch limit is 500)
-        if (batchCount >= 499) {
-          await flushBatch()
-        }
       } catch (rowErr) {
         errors++
         console.error('[Admin Import] Row error:', {
@@ -276,8 +271,22 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Flush remaining writes
-    await flushBatch()
+    const { bulkUpsertSupabaseCompanies, isSupabaseCompaniesConfigured } = await import(
+      '@/lib/supabase-companies'
+    )
+    if (!isSupabaseCompaniesConfigured()) {
+      return NextResponse.json(
+        { error: 'La configuration Supabase des entreprises est manquante.' },
+        { status: 503 }
+      )
+    }
+
+    const supabaseResult = await bulkUpsertSupabaseCompanies(supabaseRecords)
+    imported = supabaseResult.count
+    if (!supabaseResult.success) {
+      errors++
+      console.error('[Admin Import] Supabase bulk upsert failed:', supabaseResult.error)
+    }
 
     // ── Save import log ──
     await adminDb.collection('imports').add({
@@ -290,7 +299,7 @@ export async function POST(request: NextRequest) {
       updated,
       skipped,
       errors,
-      status: 'completed',
+      status: supabaseResult.success ? 'completed' : imported > 0 ? 'partial' : 'failed',
       importedBy: adminUid,
       importedAt: new Date(),
       columnsDetected: detectedColumns
@@ -303,6 +312,19 @@ export async function POST(request: NextRequest) {
       skipped,
       errors
     })
+
+    if (!supabaseResult.success) {
+      return NextResponse.json(
+        {
+          error: `Import Supabase incomplet : ${supabaseResult.error || 'erreur inconnue'}`,
+          total: rows.length,
+          imported,
+          skipped,
+          errors
+        },
+        { status: 502 }
+      )
+    }
 
     return NextResponse.json({
       total: rows.length,
