@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Badge } from '@/components/ui/index'
 import { Button } from '@/components/ui/Button'
 import { useDeletePipelineItem } from '@/features/pipeline/hooks/useDeletePipelineItem'
@@ -1342,12 +1342,18 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
     return 'prospection'
   }
 
-  const grouped: Record<string, PipelineItem[]> = {
+  // Fix: use isMounted to guarantee identical HTML between SSR and client initial hydration (React error #418)
+  const [isMounted, setIsMounted] = useState(false)
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
+  const grouped: Record<string, PipelineItem[]> = useMemo(() => ({
     prospection: items.filter((i) => normalize(i.status) === 'prospection'),
     negociation: items.filter((i) => normalize(i.status) === 'negociation'),
     conclue: items.filter((i) => {
       if (normalize(i.status) !== 'conclue') return false
-      if (i.concludedAt) {
+      if (isMounted && i.concludedAt) {
         const t = new Date(i.concludedAt as any).getTime()
         if (!isNaN(t) && Date.now() - t > 72 * 60 * 60 * 1000) {
           return false
@@ -1355,7 +1361,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
       }
       return true
     })
-  }
+  }), [items, isMounted])
 
   return (
     <>

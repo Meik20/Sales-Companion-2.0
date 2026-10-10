@@ -54,10 +54,19 @@ export default function ClientDatabasePage() {
       })
       if (res.ok) {
         const data = await res.json()
-        setClients(data)
+        // Guard: ensure response correctly extracts the array whether returned as { clients: [...] } or direct array
+        const list = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.clients)
+            ? data.clients
+            : []
+        setClients(list)
+      } else {
+        setClients([])
       }
     } catch (err) {
       console.error('[Clients] fetch error:', err)
+      setClients([])
     } finally {
       setLoading(false)
     }
@@ -67,10 +76,13 @@ export default function ClientDatabasePage() {
     void fetchClients()
   }, [fetchClients])
 
+  // Defensive array fallback
+  const safeClients = useMemo(() => (Array.isArray(clients) ? clients : []), [clients])
+
   // Extract unique sellers / assigned members
   const teamMembers = useMemo(() => {
     const map = new Map<string, { id: string; name: string; email?: string }>()
-    clients.forEach((c) => {
+    safeClients.forEach((c) => {
       if (c.assignedTo) {
         map.set(c.assignedTo, {
           id: c.assignedTo,
@@ -80,20 +92,20 @@ export default function ClientDatabasePage() {
       }
     })
     return Array.from(map.values())
-  }, [clients])
+  }, [safeClients])
 
   // Extract unique sectors
   const sectors = useMemo(() => {
     const set = new Set<string>()
-    clients.forEach((c) => {
+    safeClients.forEach((c) => {
       if (c.companySector) set.add(c.companySector)
     })
     return Array.from(set).sort()
-  }, [clients])
+  }, [safeClients])
 
   // Filter clients
   const filteredClients = useMemo(() => {
-    return clients.filter((c) => {
+    return safeClients.filter((c) => {
       const q = search.toLowerCase().trim()
       const matchSearch =
         !q ||
@@ -113,23 +125,23 @@ export default function ClientDatabasePage() {
 
       return matchSearch && matchMember && matchSector
     })
-  }, [clients, search, selectedMember, selectedSector])
+  }, [safeClients, search, selectedMember, selectedSector])
 
   // KPIs
   const totalRevenue = useMemo(() => {
-    return clients.reduce((acc, c) => acc + (Number(c.amount) || 0), 0)
-  }, [clients])
+    return safeClients.reduce((acc, c) => acc + (Number(c.amount) || 0), 0)
+  }, [safeClients])
 
   const thisMonthCount = useMemo(() => {
     const now = new Date()
     const currentMonth = now.getMonth()
     const currentYear = now.getFullYear()
-    return clients.filter((c) => {
+    return safeClients.filter((c) => {
       if (!c.concludedAt) return false
       const d = new Date(c.concludedAt as any)
       return d.getMonth() === currentMonth && d.getFullYear() === currentYear
     }).length
-  }, [clients])
+  }, [safeClients])
 
   // Export CSV
   const handleExportCSV = () => {
