@@ -34,23 +34,32 @@ export function Hero() {
         className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(60%_50%_at_50%_-10%,color-mix(in_oklch,var(--primary)_18%,transparent),transparent)] animate-pulse-glow"
       />
 
-      {/* Subtle identity watermark for country landing page (e.g. Monument de la Réunification) */}
+      {/* Subtle identity watermark — anchored left, behind the H1/text column */}
       {country.landmarkWatermark && (
         <div
           aria-hidden
-          className="pointer-events-none select-none absolute right-[12%] sm:right-[16%] md:right-[20%] lg:right-[24%] xl:right-[28%] top-1/2 -translate-y-[48%] z-0 w-[300px] sm:w-[380px] md:w-[460px] lg:w-[500px] xl:w-[540px] h-[640px] sm:h-[720px] md:h-[780px] lg:h-[840px] opacity-[0.25] dark:opacity-[0.18] transition-opacity duration-700 [mask-image:linear-gradient(to_bottom,black_68%,transparent_98%)]"
+          className="pointer-events-none select-none absolute left-0 inset-y-0 z-0 w-[52%] sm:w-[50%] opacity-[0.22] dark:opacity-[0.15] transition-opacity duration-700"
+          style={{
+            maskImage:
+              'linear-gradient(to right, black 42%, transparent 86%), linear-gradient(to bottom, transparent 3%, black 14%, black 80%, transparent 100%)',
+            maskComposite: 'intersect',
+            WebkitMaskImage:
+              'linear-gradient(to right, black 42%, transparent 86%), linear-gradient(to bottom, transparent 3%, black 14%, black 80%, transparent 100%)',
+            WebkitMaskComposite: 'source-in',
+          }}
         >
           <Image
             src={country.landmarkWatermark}
             alt=""
             fill
             unoptimized
-            sizes="(max-width: 768px) 340px, (max-width: 1200px) 480px, 540px"
-            className="object-contain object-bottom scale-100 drop-shadow-xs"
+            sizes="(max-width: 768px) 55vw, 50vw"
+            className="object-contain object-left-bottom"
             priority={false}
           />
         </div>
       )}
+
 
       <div className="relative z-10 mx-auto grid max-w-6xl items-center gap-12 px-5 lg:grid-cols-[1.1fr_0.9fr]">
         {/* Left column: Text & Value Proposition */}
@@ -64,7 +73,7 @@ export function Hero() {
               </>
             ) : (
               <>
-                Trouvez vos prochains <span className="text-[#1B7A3E]">clients B2B</span>{' '}
+                Trouvez vos prochains <span className="text-[#1B7A3E]">prospects B2B</span>{' '}
                 {country.frenchIn}.
               </>
             )}
@@ -206,11 +215,10 @@ export function Hero() {
                   <button
                     type="button"
                     onClick={() => setAddedToPipeline(true)}
-                    className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition-all shadow-xs shrink-0 ${
-                      addedToPipeline
+                    className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition-all shadow-xs shrink-0 ${addedToPipeline
                         ? 'bg-blue-600 text-white cursor-default'
                         : 'bg-[#1B7A3E] text-white hover:bg-[#135A2E] hover:scale-105 active:scale-95'
-                    }`}
+                      }`}
                   >
                     {addedToPipeline ? (
                       <>
