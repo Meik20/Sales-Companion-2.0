@@ -499,7 +499,7 @@ export function AppSidebar({
               badge={totalPipeline > 0 ? totalPipeline : undefined}
             />
           )}
-          {(user.role === 'manager' || user.role === 'member' || user.role === 'admin') && (
+          {user.role === 'manager' && user.orgRole === 'team_manager' && (
             <SidebarLink
               href={routes.clients}
               label={t('sidebar.clientDatabase')}

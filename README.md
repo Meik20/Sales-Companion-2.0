@@ -33,6 +33,19 @@ sales-companion/
 
 ---
 
+## 📚 Consolidation documentaire
+
+La documentation du projet est structurée selon un plan de lecture clair :
+
+- [README.md](./README.md) : vue d’ensemble produit, stack, commandes et points d’entrée.
+- [AGENTS.md](./AGENTS.md) : invariants d’architecture, règles métier et garde-fous de conception.
+- [docs/README.md](./docs/README.md) : index documentaire du dépôt.
+- [docs/architecture/README.md](./docs/architecture/README.md) : index du sous-dossier technique et carte des sujets maintenus.
+- [firestore/rules/firestore.rules](./firestore/rules/firestore.rules) : règles de sécurité Firestore.
+- [DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md), [DESIGN.md](./DESIGN.md), [DEVELOPMENT_SUMMARY.md](./DEVELOPMENT_SUMMARY.md), [ERRORS_FOUND.md](./ERRORS_FOUND.md) : références historiques/opérationnelles, utiles comme contexte mais non sources de vérité.
+
+Pour les évolutions, la source de vérité reste la combinaison README + AGENTS + docs/architecture. Les fichiers historiques servent de contexte et de suivi de correctifs, sans remplacer la documentation active. Tout changement architecture / flux métier doit être documenté dans le dossier [docs/architecture](./docs/architecture) et, si nécessaire, relancé dans le README / index du sous-dossier.
+
 ## 🔥 Firebase Configuration
 
 ### Credentials Firebase

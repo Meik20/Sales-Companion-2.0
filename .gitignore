@@ -29,6 +29,11 @@ Thumbs.db
 # Testing and Coverage
 coverage/
 *.lcov
+playwright-report/
+test-results/
+apps/web/playwright-report/
+apps/web/test-results/
+.turbo/
 
 # Debug/System Logs
 *.log

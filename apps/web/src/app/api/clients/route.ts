@@ -10,7 +10,7 @@ async function getAdmin() {
 
 /**
  * GET /api/clients
- * Récupère les clients de la "Base de données clients" pour le Team Manager ou Senior Manager.
+ * Récupère les clients de la "Base de données clients" pour les Team Managers.
  */
 export async function GET(request: NextRequest) {
   try {
@@ -31,12 +31,12 @@ export async function GET(request: NextRequest) {
     const userData = userDoc.data()
     if (!userData) return NextResponse.json({ message: 'Profil introuvable' }, { status: 404 })
 
-    // Contrôle d'accès : Manager, Admin, ou Member
-    if (!['manager', 'admin', 'member'].includes(userData.role)) {
-      return NextResponse.json({ message: 'Accès réservé aux managers et administrateurs' }, { status: 403 })
+    // Contrôle d'accès : uniquement les Team Managers peuvent accéder à la base clients.
+    if (userData.role !== 'manager' || userData.orgRole !== 'team_manager') {
+      return NextResponse.json({ message: 'Accès réservé aux Team Managers' }, { status: 403 })
     }
 
-    if (userData.role === 'manager' && !hasActivePaidManagerAccess(userData)) {
+    if (!hasActivePaidManagerAccess(userData)) {
       return NextResponse.json(
         { message: 'Un abonnement Manager actif et vérifié est requis.' },
         { status: 403 }

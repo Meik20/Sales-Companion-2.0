@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { AppShell } from '@/components/layout/AppShell'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useTranslation } from '@/providers/I18nProvider'
@@ -33,6 +34,8 @@ function formatCurrency(amount: number | null | undefined, currency: string = 'F
 export default function ClientDatabasePage() {
   const { user } = useCurrentUser()
   const { t } = useTranslation()
+  const router = useRouter()
+  const isTeamManager = user?.role === 'manager' && user?.orgRole === 'team_manager'
 
   const [clients, setClients] = useState<ClientDoc[]>([])
   const [loading, setLoading] = useState(true)
@@ -43,6 +46,13 @@ export default function ClientDatabasePage() {
   const [isEditingNotes, setIsEditingNotes] = useState(false)
   const [notesContent, setNotesContent] = useState('')
   const [savingNotes, setSavingNotes] = useState(false)
+
+  useEffect(() => {
+    if (!user) return
+    if (!isTeamManager) {
+      router.replace('/search')
+    }
+  }, [user, isTeamManager, router])
 
   const fetchClients = useCallback(async () => {
     if (!user) return
@@ -213,6 +223,8 @@ export default function ClientDatabasePage() {
       setSavingNotes(false)
     }
   }
+
+  if (!user || !isTeamManager) return null
 
   return (
     <AppShell>
