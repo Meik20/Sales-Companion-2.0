@@ -34,18 +34,15 @@ export function Hero() {
         className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(60%_50%_at_50%_-10%,color-mix(in_oklch,var(--primary)_18%,transparent),transparent)] animate-pulse-glow"
       />
 
-      {/* Subtle identity watermark — anchored left, behind the H1/text column */}
+      {/* Identity landmark watermark — anchored left, net et prestigieux */}
       {country.landmarkWatermark && (
         <div
           aria-hidden
-          className="pointer-events-none select-none absolute left-0 inset-y-0 z-0 w-[52%] sm:w-[50%] opacity-[0.22] dark:opacity-[0.15] transition-opacity duration-700"
+          className="pointer-events-none select-none absolute left-0 bottom-0 z-0 w-[55%] sm:w-[48%] max-w-[640px] h-[85%] opacity-[0.45] dark:opacity-[0.30] transition-opacity duration-700"
           style={{
-            maskImage:
-              'linear-gradient(to right, black 42%, transparent 86%), linear-gradient(to bottom, transparent 3%, black 14%, black 80%, transparent 100%)',
-            maskComposite: 'intersect',
-            WebkitMaskImage:
-              'linear-gradient(to right, black 42%, transparent 86%), linear-gradient(to bottom, transparent 3%, black 14%, black 80%, transparent 100%)',
-            WebkitMaskComposite: 'source-in',
+            // Masque très doux uniquement à l'extrême droite pour fondre naturellement avant la colonne de droite
+            maskImage: 'linear-gradient(to right, black 80%, transparent 100%)',
+            WebkitMaskImage: 'linear-gradient(to right, black 80%, transparent 100%)',
           }}
         >
           <Image
@@ -53,8 +50,8 @@ export function Hero() {
             alt=""
             fill
             unoptimized
-            sizes="(max-width: 768px) 55vw, 50vw"
-            className="object-contain object-left-bottom"
+            sizes="(max-width: 768px) 55vw, 48vw"
+            className="object-contain object-left-bottom drop-shadow-[0_10px_30px_rgba(0,0,0,0.06)]"
             priority={false}
           />
         </div>

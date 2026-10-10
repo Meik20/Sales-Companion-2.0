@@ -17,6 +17,8 @@ import {
   Check,
   X
 } from 'lucide-react'
+import { CountrySelect } from '@/components/ui/CountrySelect'
+import type { CountryCode } from '@sales-companion/shared'
 
 /* ── types ── */
 type ImportResult = {
@@ -41,6 +43,7 @@ export default function AdminImportsPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [uploadState, setUploadState] = useState<UploadState>({ status: 'idle' })
   const [isDragging, setIsDragging] = useState(false)
+  const [targetCountry, setTargetCountry] = useState<CountryCode>('CM')
   const [historyPage, setHistoryPage] = useState(1)
   const { data, isLoading, isError, refetch } = useAdminImports(historyPage)
   const { t } = useTranslation()
@@ -63,6 +66,7 @@ export default function AdminImportsPage() {
       const token = await user?.getIdToken()
       const fd = new FormData()
       fd.append('file', file)
+      fd.append('country', targetCountry)
 
       setUploadState({ status: 'uploading', progress: 60, fileName: file.name })
 
@@ -187,6 +191,27 @@ export default function AdminImportsPage() {
           >
             <Upload size={16} className="text-primary" />
             <span>{t('admin.newImport')}</span>
+          </div>
+
+          {/* ── Sélection obligatoire du pays cible pour étanchéité stricte ── */}
+          <div className="flex flex-col gap-2 rounded-xl border border-border/70 bg-card/60 p-3.5">
+            <div className="flex items-center justify-between">
+              <label className="text-[12.5px] font-semibold text-foreground flex items-center gap-1.5">
+                <span>Pays de destination des entreprises</span>
+                <span className="text-red-500">*</span>
+              </label>
+              <span className="text-[11px] font-medium text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                Isolation stricte
+              </span>
+            </div>
+            <CountrySelect
+              value={targetCountry}
+              onChange={(c) => setTargetCountry(c as CountryCode)}
+              lang="fr"
+            />
+            <p className="text-[11px] text-muted-foreground">
+              Les entreprises importées seront exclusivement indexées sous ce pays. Les identifiants sont préfixés pour empêcher tout mélange inter-pays.
+            </p>
           </div>
 
           {/* Drop zone */}

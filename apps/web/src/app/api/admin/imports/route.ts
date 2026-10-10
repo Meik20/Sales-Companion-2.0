@@ -73,6 +73,7 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData()
     const file = formData.get('file') as File | null
+    const targetCountry = (formData.get('country') as string || '').trim().toUpperCase()
     if (!file) {
       return NextResponse.json({ error: 'Aucun fichier fourni' }, { status: 400 })
     }
@@ -222,23 +223,30 @@ export async function POST(request: NextRequest) {
           continue
         }
 
-        const country = String(company.country ?? '')
+        let country = String(company.country ?? '')
           .trim()
           .toUpperCase()
+        if (!country && targetCountry) {
+          country = targetCountry
+        }
         if (!SUPPORTED_COUNTRIES.some((supported) => supported.code === country)) {
-          skipped++
-          continue
+          if (targetCountry && SUPPORTED_COUNTRIES.some((supported) => supported.code === targetCountry)) {
+            country = targetCountry
+          } else {
+            skipped++
+            continue
+          }
         }
         company.country = country
 
-        // Use NIU as document ID for deduplication, or generate a stable one from name
+        // Préfixage strict avec le code pays pour une étanchéité absolue (aucune collision inter-pays)
         const niu = (company.niu as string)?.replace(/\s+/g, '').toUpperCase()
         const nameSlug = ((company.raisonSociale as string) || '')
           .toLowerCase()
           .normalize('NFD')
           .replace(/[\u0300-\u036f]/g, '')
           .replace(/[^a-z0-9]/g, '_')
-        const docId = niu || `name_${nameSlug}`
+        const docId = niu ? `${country}_${niu}` : `${country}_name_${nameSlug}`
         const ref = adminDb.collection('companies').doc(docId)
 
         // Utiliser set({ merge: true }) pour éviter 1 lecture (ref.get()) par ligne
@@ -274,6 +282,7 @@ export async function POST(request: NextRequest) {
     // ── Save import log ──
     await adminDb.collection('imports').add({
       fileName: file.name,
+      country: targetCountry || 'AUTO',
       totalRecords: rows.length,
       successCount: imported + updated,
       errorCount: errors,
