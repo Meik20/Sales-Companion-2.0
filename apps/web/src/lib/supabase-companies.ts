@@ -34,6 +34,10 @@ export function isSupabaseCompaniesConfigured(): boolean {
   return Boolean(SUPABASE_URL && SUPABASE_SERVICE_KEY)
 }
 
+function getSupabaseBaseUrl(): string {
+  return SUPABASE_URL.replace(/\/+$/, '')
+}
+
 function getHeaders(extraHeaders: Record<string, string> = {}) {
   return {
     apikey: SUPABASE_SERVICE_KEY,
@@ -43,13 +47,129 @@ function getHeaders(extraHeaders: Record<string, string> = {}) {
   }
 }
 
+async function supabaseRequest(path: string, init: RequestInit = {}): Promise<Response> {
+  if (!isSupabaseCompaniesConfigured()) {
+    throw new Error('Configuration Supabase manquante')
+  }
+
+  const response = await fetch(`${getSupabaseBaseUrl()}/rest/v1/${path}`, {
+    ...init,
+    headers: getHeaders(init.headers as Record<string, string> | undefined)
+  })
+  if (!response.ok) {
+    const details = await response.text()
+    throw new Error(`Supabase HTTP ${response.status}: ${details}`)
+  }
+  return response
+}
+
+function parseExactCount(response: Response, fallback = 0): number {
+  const contentRange = response.headers.get('content-range')
+  const count = contentRange?.split('/')[1]
+  return count && count !== '*' ? Number.parseInt(count, 10) || 0 : fallback
+}
+
+export function supabaseCompanyToAppRecord(
+  company: SupabaseCompanyRecord
+): Record<string, unknown> {
+  const rawData = company.raw_data ?? {}
+  return {
+    ...rawData,
+    id: company.id,
+    raisonSociale: company.raison_sociale,
+    sigle: company.sigle || '',
+    niu: company.niu || '',
+    sector: company.sector || '',
+    region: company.region || '',
+    city: company.city || '',
+    adresse: company.adresse || '',
+    telephone: company.telephone || '',
+    email: company.email || '',
+    dirigeant: company.dirigeant || '',
+    rccm: company.rccm || '',
+    formeJuridique: company.forme_juridique || '',
+    capital: company.capital || '',
+    dateCreation: company.date_creation || '',
+    country: company.country_code,
+    importedBy: company.imported_by || '',
+    importedAt: rawData.importedAt ?? company.created_at,
+    createdAt: company.created_at ?? rawData.createdAt ?? rawData.created_at,
+    updatedAt: company.updated_at ?? rawData.updatedAt ?? rawData.updated_at
+  }
+}
+
+export async function getSupabaseCompaniesPage(params: {
+  limit: number
+  offset: number
+  order?: string
+}): Promise<{ companies: SupabaseCompanyRecord[]; total: number }> {
+  const searchParams = new URLSearchParams({
+    select: '*',
+    order: params.order ?? 'created_at.desc,id.asc',
+    limit: String(params.limit),
+    offset: String(params.offset)
+  })
+  const response = await supabaseRequest(`companies?${searchParams}`, {
+    headers: { Prefer: 'count=exact' }
+  })
+  const companies = (await response.json()) as SupabaseCompanyRecord[]
+  return { companies, total: parseExactCount(response, companies.length) }
+}
+
+export async function getAllSupabaseCompanies(pageSize = 1000): Promise<SupabaseCompanyRecord[]> {
+  const companies: SupabaseCompanyRecord[] = []
+  while (true) {
+    const page = await getSupabaseCompaniesPage({
+      limit: pageSize,
+      offset: companies.length,
+      order: 'id.asc'
+    })
+    companies.push(...page.companies)
+    if (companies.length >= page.total || page.companies.length < pageSize) return companies
+  }
+}
+
+export async function getSupabaseCompanyById(id: string): Promise<SupabaseCompanyRecord | null> {
+  const searchParams = new URLSearchParams({
+    select: '*',
+    id: `eq.${id}`,
+    limit: '1'
+  })
+  const response = await supabaseRequest(`companies?${searchParams}`)
+  const companies = (await response.json()) as SupabaseCompanyRecord[]
+  return companies[0] ?? null
+}
+
+export async function countSupabaseCompanies(filter?: {
+  sector?: string
+  city?: string
+}): Promise<number> {
+  const searchParams = new URLSearchParams({ select: 'id', limit: '0' })
+  if (filter?.sector) searchParams.set('sector', `eq.${filter.sector}`)
+  if (filter?.city) searchParams.set('city', `eq.${filter.city}`)
+  const response = await supabaseRequest(`companies?${searchParams}`, {
+    headers: { Prefer: 'count=exact' }
+  })
+  return parseExactCount(response)
+}
+
+export async function deleteSupabaseCompany(id: string): Promise<void> {
+  const searchParams = new URLSearchParams({ id: `eq.${id}` })
+  await supabaseRequest(`companies?${searchParams}`, { method: 'DELETE' })
+}
+
+export async function deleteAllSupabaseCompanies(): Promise<void> {
+  const searchParams = new URLSearchParams({ id: 'not.is.null' })
+  await supabaseRequest(`companies?${searchParams}`, { method: 'DELETE' })
+}
+
 /**
  * Vérifie si la table companies est disponible sur Supabase.
  */
 export async function isSupabaseCompaniesAvailable(): Promise<boolean> {
   if (!isSupabaseCompaniesConfigured()) return false
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/companies?limit=1`, {
+    const res = await fetch(`${getSupabaseBaseUrl()}/rest/v1/companies?limit=1`, {
       method: 'GET',
       headers: getHeaders(),
       signal: AbortSignal.timeout(2000)
@@ -105,7 +225,7 @@ export async function searchSupabaseCompanies(params: {
     searchParams.set('offset', String(offset))
     searchParams.set('order', 'created_at.desc')
 
-    const url = `${SUPABASE_URL}/rest/v1/companies?${searchParams.toString()}`
+    const url = `${getSupabaseBaseUrl()}/rest/v1/companies?${searchParams.toString()}`
 
     const res = await fetch(url, {
       method: 'GET',
@@ -149,7 +269,7 @@ export async function bulkUpsertSupabaseCompanies(
   }
 
   try {
-    const url = `${SUPABASE_URL}/rest/v1/companies`
+    const url = `${getSupabaseBaseUrl()}/rest/v1/companies`
 
     // Découpage en lots de 500 pour respecter les limites HTTP
     const CHUNK_SIZE = 500

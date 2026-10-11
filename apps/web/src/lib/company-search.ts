@@ -1,4 +1,4 @@
-import { adminDb } from '@/lib/firebase-admin'
+import { getAllSupabaseCompanies, supabaseCompanyToAppRecord } from '@/lib/supabase-companies'
 
 export interface CompanyRecord {
   id: string
@@ -20,14 +20,8 @@ export interface CompanyRecord {
 }
 
 /**
- * Limite haute du batch Firestore pour les entreprises.
- * Si la collection dépasse ce seuil, les résultats seront tronqués
- * et un avertissement sera émis. Migrer vers Algolia/Typesense au-delà de 20 000.
- */
-const COMPANIES_LIMIT = 15000
-
 /** Clé Redis et durée du cache (1 heure) */
-const REDIS_KEY = 'companies:cache:v1'
+const REDIS_KEY = 'companies:cache:v2'
 const CACHE_TTL_SEC = 60 * 60 // 1 heure
 
 /** Fallback mémoire — utilisé si Redis n'est pas disponible */
@@ -81,41 +75,29 @@ async function redisSet(key: string, value: string, ttlSec: number): Promise<voi
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Chargement depuis Firestore
+// Chargement depuis Supabase
 // ─────────────────────────────────────────────────────────────────────────────
 
-async function loadFromFirestore(): Promise<CompanyRecord[]> {
-  const snap = await adminDb.collection('companies').limit(COMPANIES_LIMIT).get()
-
-  if (snap.size >= COMPANIES_LIMIT) {
-    console.warn(
-      `[company-search] ⚠️  La collection companies a atteint la limite de ${COMPANIES_LIMIT} documents.`,
-      'Les résultats de recherche peuvent être tronqués.',
-      'Migrez vers Algolia ou Typesense pour une recherche complète.'
-    )
-  }
-
-  return snap.docs.map((d) => {
-    const data = d.data()
-    return {
-      ...data,
-      id: d.id,
-      raisonSociale: (data.raisonSociale ?? data.name ?? '') as string,
-      sector: (data.sector ?? data.activite_principale ?? '') as string,
-      region: (data.region ?? data.centre_de_rattachement ?? '') as string,
-      city: (data.city ?? data.ville ?? '') as string,
-      niu: (data.niu ?? '') as string,
-      sigle: (data.sigle ?? '') as string,
-      dirigeant: (data.dirigeant ?? '') as string,
-      telephone: (data.telephone ?? '') as string,
-      email: (data.email ?? '') as string,
-      rccm: (data.rccm ?? '') as string,
-      adresse: (data.adresse ?? '') as string,
-      formeJuridique: (data.formeJuridique ?? '') as string,
-      capital: (data.capital ?? '') as string,
-      country: String(data.country || 'CM').toUpperCase()
-    } as CompanyRecord
-  })
+async function loadFromSupabase(): Promise<CompanyRecord[]> {
+  const records = await getAllSupabaseCompanies()
+  return records.map((record) => ({
+    ...supabaseCompanyToAppRecord(record),
+    id: record.id,
+    raisonSociale: record.raison_sociale,
+    sector: record.sector ?? '',
+    region: record.region ?? '',
+    city: record.city ?? '',
+    niu: record.niu ?? '',
+    sigle: record.sigle ?? '',
+    dirigeant: record.dirigeant ?? '',
+    telephone: record.telephone ?? '',
+    email: record.email ?? '',
+    rccm: record.rccm ?? '',
+    adresse: record.adresse ?? '',
+    formeJuridique: record.forme_juridique ?? '',
+    capital: record.capital ?? '',
+    country: record.country_code.toUpperCase()
+  })) as CompanyRecord[]
 }
 
 /**
@@ -133,7 +115,7 @@ export function normalizeString(str: string): string {
  * Récupère l'ensemble des entreprises :
  *   1. Redis (Upstash) — partagé entre toutes les instances serverless ✅
  *   2. Mémoire locale — fallback si Redis indisponible
- *   3. Firestore — source de vérité, résultat stocké dans Redis + mémoire
+ *   3. Supabase — source de vérité, résultat stocké dans Redis + mémoire
  */
 export async function getCachedCompanies(): Promise<CompanyRecord[]> {
   // ── 1. Essai Redis ──────────────────────────────────────────────────────
@@ -146,7 +128,7 @@ export async function getCachedCompanies(): Promise<CompanyRecord[]> {
       memoryCacheAt = Date.now()
       return parsed
     } catch {
-      console.warn('[company-search] Redis cache parse error, fallback to Firestore')
+      console.warn('[company-search] Redis cache parse error, fallback to Supabase')
     }
   }
 
@@ -155,9 +137,9 @@ export async function getCachedCompanies(): Promise<CompanyRecord[]> {
     return memoryCache
   }
 
-  // ── 3. Chargement Firestore ────────────────────────────────────────────
+  // ── 3. Chargement Supabase ─────────────────────────────────────────────
   try {
-    const companies = await loadFromFirestore()
+    const companies = await loadFromSupabase()
 
     // Stocker dans Redis (asynchrone, non-bloquant)
     redisSet(REDIS_KEY, JSON.stringify(companies), CACHE_TTL_SEC).catch((e) =>
@@ -170,8 +152,9 @@ export async function getCachedCompanies(): Promise<CompanyRecord[]> {
 
     return companies
   } catch (err) {
-    console.error('[company-search] Error loading companies from Firestore:', err)
-    return memoryCache || []
+    console.error('[company-search] Error loading companies from Supabase:', err)
+    if (memoryCache) return memoryCache
+    throw err
   }
 }
 

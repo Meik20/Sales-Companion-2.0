@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData()
     const file = formData.get('file') as File | null
-    const targetCountry = (formData.get('country') as string || '').trim().toUpperCase()
+    const targetCountry = ((formData.get('country') as string) || '').trim().toUpperCase()
     if (!file) {
       return NextResponse.json({ error: 'Aucun fichier fourni' }, { status: 400 })
     }
@@ -222,7 +222,10 @@ export async function POST(request: NextRequest) {
           country = targetCountry
         }
         if (!SUPPORTED_COUNTRIES.some((supported) => supported.code === country)) {
-          if (targetCountry && SUPPORTED_COUNTRIES.some((supported) => supported.code === targetCountry)) {
+          if (
+            targetCountry &&
+            SUPPORTED_COUNTRIES.some((supported) => supported.code === targetCountry)
+          ) {
             country = targetCountry
           } else {
             skipped++
@@ -271,9 +274,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const { bulkUpsertSupabaseCompanies, isSupabaseCompaniesConfigured } = await import(
-      '@/lib/supabase-companies'
-    )
+    const { bulkUpsertSupabaseCompanies, isSupabaseCompaniesConfigured } =
+      await import('@/lib/supabase-companies')
     if (!isSupabaseCompaniesConfigured()) {
       return NextResponse.json(
         { error: 'La configuration Supabase des entreprises est manquante.' },
@@ -286,6 +288,9 @@ export async function POST(request: NextRequest) {
     if (!supabaseResult.success) {
       errors++
       console.error('[Admin Import] Supabase bulk upsert failed:', supabaseResult.error)
+    } else {
+      const { invalidateCompanyCache } = await import('@/lib/company-search')
+      await invalidateCompanyCache()
     }
 
     // ── Save import log ──

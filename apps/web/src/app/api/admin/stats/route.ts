@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { adminDb } from '@/lib/firebase-admin'
 import { Timestamp } from 'firebase-admin/firestore'
 import { verifyAdminCached } from '@/lib/api-admin-auth'
+import { countSupabaseCompanies } from '@/lib/supabase-companies'
 
 export async function GET(request: NextRequest) {
   try {
@@ -48,7 +49,7 @@ export async function GET(request: NextRequest) {
       enterprisePlanCount
     ] = await Promise.all([
       adminDb.collection('users').count().get(),
-      adminDb.collection('companies').count().get(),
+      countSupabaseCompanies(),
       adminDb.collection('pipeline').count().get(),
       adminDb
         .collection('users')
@@ -101,7 +102,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       totalUsers: usersSnap.data().count,
-      totalCompanies: companiesSnap.data().count,
+      totalCompanies: companiesSnap,
       totalPipelineItems: pipelineSnap.data().count,
       activeUsers: activeUsersSnap.data().count,
       newUsersThisWeek: newUsersSnap.data().count,

@@ -54,4 +54,49 @@ describe('supabase-companies', () => {
     expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))).toHaveLength(500)
     expect(JSON.parse(String(fetchMock.mock.calls[1]?.[1]?.body))).toHaveLength(1)
   })
+
+  it('pages through all records while preserving Supabase fields in app records', async () => {
+    fetchMock.mockResolvedValueOnce(
+      new Response(
+        JSON.stringify([
+          {
+            id: 'CM_1',
+            country_code: 'CM',
+            raison_sociale: 'Entreprise Un',
+            raw_data: { regime: 'Réel' }
+          }
+        ]),
+        { status: 200, headers: { 'content-range': '0-0/1' } }
+      )
+    )
+
+    const { getAllSupabaseCompanies, supabaseCompanyToAppRecord } =
+      await import('../supabase-companies')
+    const companies = await getAllSupabaseCompanies(10)
+    const appRecord = supabaseCompanyToAppRecord(companies[0]!)
+
+    expect(companies).toHaveLength(1)
+    expect(appRecord).toMatchObject({
+      id: 'CM_1',
+      raisonSociale: 'Entreprise Un',
+      country: 'CM',
+      regime: 'Réel'
+    })
+  })
+
+  it('returns an exact filtered count and deletes a company by id', async () => {
+    fetchMock
+      .mockResolvedValueOnce(
+        new Response(null, { status: 200, headers: { 'content-range': '*/7' } })
+      )
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+
+    const { countSupabaseCompanies, deleteSupabaseCompany } = await import('../supabase-companies')
+    await expect(countSupabaseCompanies({ city: 'Douala' })).resolves.toBe(7)
+    await deleteSupabaseCompany('CM_1')
+
+    expect(new URL(fetchMock.mock.calls[0]![0]).searchParams.get('city')).toBe('eq.Douala')
+    expect(fetchMock.mock.calls[1]![1]).toMatchObject({ method: 'DELETE' })
+    expect(new URL(fetchMock.mock.calls[1]![0]).searchParams.get('id')).toBe('eq.CM_1')
+  })
 })

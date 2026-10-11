@@ -55,8 +55,7 @@ function getFirebaseCredential() {
   )
   if (serviceAccount) return cert(serviceAccount)
 
-  const projectId =
-    process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID
+  const projectId = process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID
   const clientEmail = process.env.FIREBASE_CLIENT_EMAIL
   const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n')
 
@@ -144,10 +143,7 @@ async function readAllCompanies(db) {
   let cursor = null
 
   while (true) {
-    let query = db
-      .collection('companies')
-      .orderBy(FieldPath.documentId())
-      .limit(PAGE_SIZE)
+    let query = db.collection('companies').orderBy(FieldPath.documentId()).limit(PAGE_SIZE)
     if (cursor) query = query.startAfter(cursor)
 
     let snapshot
@@ -155,7 +151,10 @@ async function readAllCompanies(db) {
       snapshot = await query.get()
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
-      if (message.includes('RESOURCE_EXHAUSTED') || message.toLowerCase().includes('quota exceeded')) {
+      if (
+        message.includes('RESOURCE_EXHAUSTED') ||
+        message.toLowerCase().includes('quota exceeded')
+      ) {
         throw new Error(
           `Quota de lecture Firestore atteinte après ${records.length} fiches. ` +
             'Aucune écriture Supabase n’a été effectuée; relancez la simulation après le rétablissement du quota.'
@@ -220,30 +219,42 @@ async function assertSupabaseSchema() {
 }
 
 async function upsertCompanies(records, baseUrl, serviceKey) {
-  for (let start = 0; start < records.length; start += SUPABASE_CHUNK_SIZE) {
-    const chunk = records.slice(start, start + SUPABASE_CHUNK_SIZE)
-    const response = await fetch(`${baseUrl}/rest/v1/companies?on_conflict=id`, {
-      method: 'POST',
-      headers: {
-        apikey: serviceKey,
-        Authorization: `Bearer ${serviceKey}`,
-        'Content-Type': 'application/json',
-        Prefer: 'resolution=merge-duplicates,return=minimal'
-      },
-      body: JSON.stringify(chunk),
-      signal: AbortSignal.timeout(30000)
-    })
+  const recordsByShape = new Map()
+  for (const record of records) {
+    const shape = Object.keys(record).sort().join(',')
+    const group = recordsByShape.get(shape) ?? []
+    group.push(record)
+    recordsByShape.set(shape, group)
+  }
 
-    if (!response.ok) {
-      const details = await response.text()
-      throw new Error(
-        `Échec Supabase au lot ${Math.floor(start / SUPABASE_CHUNK_SIZE) + 1} (HTTP ${response.status}); ` +
-          `${start} fiches confirmées avant ce lot. ${details}`
-      )
+  let confirmed = 0
+  let batchNumber = 0
+  for (const group of recordsByShape.values()) {
+    for (let start = 0; start < group.length; start += SUPABASE_CHUNK_SIZE) {
+      const chunk = group.slice(start, start + SUPABASE_CHUNK_SIZE)
+      batchNumber++
+      const response = await fetch(`${baseUrl}/rest/v1/companies?on_conflict=id`, {
+        method: 'POST',
+        headers: {
+          apikey: serviceKey,
+          Authorization: `Bearer ${serviceKey}`,
+          'Content-Type': 'application/json',
+          Prefer: 'resolution=merge-duplicates,return=minimal'
+        },
+        body: JSON.stringify(chunk),
+        signal: AbortSignal.timeout(30000)
+      })
+
+      if (!response.ok) {
+        const details = await response.text()
+        throw new Error(
+          `Échec Supabase au lot ${batchNumber} (HTTP ${response.status}); ` +
+            `${confirmed} fiches confirmées avant ce lot. ${details}`
+        )
+      }
+      confirmed += chunk.length
+      console.log(`Supabase enregistrées : ${confirmed}/${records.length}`)
     }
-    console.log(
-      `Supabase enregistrées : ${Math.min(start + chunk.length, records.length)}/${records.length}`
-    )
   }
 }
 

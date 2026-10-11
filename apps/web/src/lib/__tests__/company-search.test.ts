@@ -55,28 +55,35 @@ const mocks = vi.hoisted(() => {
     }
   ]
 
-  const mockGet = vi.fn().mockResolvedValue({
-    size: sampleCompanies.length,
-    docs: sampleCompanies.map((c) => ({
-      id: c.id,
-      data: () => c
+  const mockGetAll = vi.fn().mockResolvedValue(
+    sampleCompanies.map((company) => ({
+      id: company.id,
+      country_code: company.country,
+      raison_sociale: company.raisonSociale,
+      sigle: company.sigle,
+      niu: company.niu,
+      sector: company.sector,
+      region: company.region,
+      city: company.city,
+      rccm: company.rccm,
+      dirigeant: company.dirigeant,
+      telephone: company.telephone,
+      email: company.email,
+      adresse: company.adresse,
+      forme_juridique: company.formeJuridique,
+      capital: company.capital
     }))
-  })
+  )
 
   return {
     sampleCompanies,
-    mockGet
+    mockGetAll
   }
 })
 
-vi.mock('@/lib/firebase-admin', () => ({
-  adminDb: {
-    collection: vi.fn(() => ({
-      limit: vi.fn(() => ({
-        get: mocks.mockGet
-      }))
-    }))
-  }
+vi.mock('@/lib/supabase-companies', () => ({
+  getAllSupabaseCompanies: mocks.mockGetAll,
+  supabaseCompanyToAppRecord: (record: Record<string, unknown>) => record
 }))
 
 import {

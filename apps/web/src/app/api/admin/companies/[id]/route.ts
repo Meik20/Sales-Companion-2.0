@@ -1,7 +1,8 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
-import { adminDb } from '@/lib/firebase-admin'
 import { verifyAdminCached } from '@/lib/api-admin-auth'
+import { deleteSupabaseCompany } from '@/lib/supabase-companies'
+import { invalidateCompanyCache } from '@/lib/company-search'
 
 async function verifyAdmin(token: string | null) {
   return verifyAdminCached(token)
@@ -16,7 +17,8 @@ export async function DELETE(
     await verifyAdmin(token)
 
     const { id } = await params
-    await adminDb.collection('companies').doc(id).delete()
+    await deleteSupabaseCompany(id)
+    await invalidateCompanyCache()
 
     return NextResponse.json({ success: true, id })
   } catch (error: unknown) {

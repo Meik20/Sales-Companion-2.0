@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
-import { adminDb } from '@/lib/firebase-admin'
 import { verifyAdminCached } from '@/lib/api-admin-auth'
+import { getAllSupabaseCompanies } from '@/lib/supabase-companies'
 
 async function verifyAdmin(request: NextRequest) {
   const token = request.headers.get('authorization')?.split(' ')[1]
@@ -12,9 +12,8 @@ export async function GET(request: NextRequest) {
   try {
     await verifyAdmin(request)
 
-    // Fetch all companies
-    const snap = await adminDb.collection('companies').orderBy('createdAt', 'desc').get()
-    const companies = snap.docs.map((doc) => doc.data())
+    const companies = await getAllSupabaseCompanies()
+    companies.sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''))
 
     // Define CSV Headers according to requested format
     // N°, RAISON_SOCIALE, SIGLE, NIU, SECTEUR D'ACTIVITE, REGIME, REGION, VILLE
@@ -34,11 +33,11 @@ export async function GET(request: NextRequest) {
     const csvRows = companies.map((c, index) => {
       const row = [
         index + 1,
-        c.raisonSociale || '',
+        c.raison_sociale || '',
         c.sigle || '',
         c.niu || '',
         c.sector || '',
-        c.regime || '',
+        c.raw_data?.regime || '',
         c.region || '',
         c.city || '',
         c.telephone || '',

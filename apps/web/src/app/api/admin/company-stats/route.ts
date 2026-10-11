@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
-import { adminDb } from '@/lib/firebase-admin'
 import { verifyAdminCached } from '@/lib/api-admin-auth'
+import { countSupabaseCompanies } from '@/lib/supabase-companies'
 
 // ── Cache in-memory (TTL 15 min) ──────────────────────────────────────────────
 // Évite de relancer des scans massifs de la collection companies à chaque appel.
@@ -72,33 +72,28 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(statsCache.data)
     }
 
-    // ── Calcul via count() par secteur et par ville (pas de scan massif) ─────
-    // Chaque count() = 1 opération d'index Firestore (quel que soit le nb de docs)
+    // ── Exact counts via PostgREST (no full table scan) ─────────────────────
     const [sectorCounts, cityCounts, totalSnap] = await Promise.all([
       Promise.all(
         KNOWN_SECTORS.map(async (sector) => ({
           sector,
-          count: (
-            await adminDb.collection('companies').where('sector', '==', sector).count().get()
-          ).data().count
+          count: await countSupabaseCompanies({ sector })
         }))
       ),
       Promise.all(
         KNOWN_CITIES.map(async (city) => ({
           region: city,
-          count: (
-            await adminDb.collection('companies').where('city', '==', city).count().get()
-          ).data().count
+          count: await countSupabaseCompanies({ city })
         }))
       ),
-      adminDb.collection('companies').count().get()
+      countSupabaseCompanies()
     ])
 
     const bySector = sectorCounts.filter((s) => s.count > 0).sort((a, b) => b.count - a.count)
 
     const byRegion = cityCounts.filter((r) => r.count > 0).sort((a, b) => b.count - a.count)
 
-    const total = totalSnap.data().count
+    const total = totalSnap
 
     const result = { bySector, byRegion, total }
 

@@ -1,7 +1,12 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
-import { adminDb } from '@/lib/firebase-admin'
 import { verifyAdminCached } from '@/lib/api-admin-auth'
+import { invalidateCompanyCache } from '@/lib/company-search'
+import {
+  deleteAllSupabaseCompanies,
+  getSupabaseCompaniesPage,
+  supabaseCompanyToAppRecord
+} from '@/lib/supabase-companies'
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,40 +20,26 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
     }
 
-    const page = parseInt(request.nextUrl.searchParams.get('page') || '1', 10)
-    const pageSize = parseInt(request.nextUrl.searchParams.get('pageSize') || '20', 10)
+    const page = Math.max(1, Number.parseInt(request.nextUrl.searchParams.get('page') || '1', 10))
+    const pageSize = Math.min(
+      100,
+      Math.max(1, Number.parseInt(request.nextUrl.searchParams.get('pageSize') || '20', 10))
+    )
 
-    const totalSnap = await adminDb.collection('companies').count().get()
-    const total = totalSnap.data().count
+    const result = await getSupabaseCompaniesPage({
+      limit: pageSize,
+      offset: (page - 1) * pageSize
+    })
 
-    const snap = await adminDb
-      .collection('companies')
-      .orderBy('createdAt', 'desc')
-      .limit(pageSize)
-      .offset((page - 1) * pageSize)
-      .get()
-
-    const companies = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-
-    return NextResponse.json({ items: companies, total, page, pageSize })
+    return NextResponse.json({
+      items: result.companies.map(supabaseCompanyToAppRecord),
+      total: result.total,
+      page,
+      pageSize
+    })
   } catch (error) {
     console.error('Companies error:', error)
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
-  }
-}
-
-async function deleteAllCompanies() {
-  const batchSize = 500
-
-  while (true) {
-    const snapshot = await adminDb.collection('companies').limit(batchSize).get()
-    if (snapshot.empty) {
-      break
-    }
-
-    const batch = adminDb.batch()
-    snapshot.docs.forEach((doc) => batch.delete(doc.ref))
-    await batch.commit()
   }
 }
 
@@ -64,7 +55,8 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Accès refusé' }, { status: 403 })
     }
 
-    await deleteAllCompanies()
+    await deleteAllSupabaseCompanies()
+    await invalidateCompanyCache()
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Delete all companies error:', error)

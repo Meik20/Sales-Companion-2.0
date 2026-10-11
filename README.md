@@ -77,6 +77,10 @@ autres données applicatives (CRM, pipeline, rôles, équipes et support) resten
    doublon, lancer `npm run migrate:companies -- --execute` pour faire les upserts par lots.
    Les IDs Firestore sont conservés, les fiches sans raison sociale et les NIU en doublon
    bloquent l'exécution, et Firestore n'est jamais modifié par le script.
+5. Après migration, la recherche IA, la recherche générale, l'administration (liste,
+   export, statistiques et suppressions) et la résolution des entreprises pour les
+   affectations d'équipe lisent l'annuaire dans Supabase. Les autres collections restent
+   dans Firebase/Firestore.
 
 ---
 

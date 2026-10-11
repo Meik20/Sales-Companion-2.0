@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { FieldValue } from 'firebase-admin/firestore'
 import { hasActivePaidManagerAccess } from '@/lib/manager-access'
+import { getSupabaseCompanyById, supabaseCompanyToAppRecord } from '@/lib/supabase-companies'
 
 async function getAdmin() {
   const { adminDb, adminAuth } = await import('@/lib/firebase-admin')
@@ -199,11 +200,12 @@ export async function POST(request: NextRequest) {
         companyName = d.companyName || d.name || pipelineItemId
         prospectData = d
       } else {
-        // Look in companies first
-        const companyDoc = await adminDb.collection('companies').doc(pipelineItemId).get()
-        if (companyDoc.exists) {
-          const d = companyDoc.data() || {}
-          companyName = d.raisonSociale || d.name || pipelineItemId
+        // Look in the companies directory on Supabase first.
+        const companyRecord = await getSupabaseCompanyById(pipelineItemId)
+        if (companyRecord) {
+          const d = supabaseCompanyToAppRecord(companyRecord)
+          const resolvedName = d.raisonSociale || d.name
+          companyName = typeof resolvedName === 'string' ? resolvedName : pipelineItemId
           prospectData = d
         } else {
           // Primary CSV import collection
@@ -232,28 +234,19 @@ export async function POST(request: NextRequest) {
     } else {
       // If name provided, still try to fetch extra data (like email, phone) if possible
       const pDoc = await adminDb.collection('pipeline').doc(pipelineItemId).get()
-      const cDoc = !pDoc.exists
-        ? await adminDb.collection('companies').doc(pipelineItemId).get()
-        : null
+      const companyRecord = !pDoc.exists ? await getSupabaseCompanyById(pipelineItemId) : null
       const mDoc =
-        !pDoc.exists && !cDoc?.exists
+        !pDoc.exists && !companyRecord
           ? await adminDb.collection('manager_prospects').doc(pipelineItemId).get()
           : null
       const iDoc =
-        !pDoc.exists && !cDoc?.exists && !mDoc?.exists
+        !pDoc.exists && !companyRecord && !mDoc?.exists
           ? await adminDb.collection('imported_prospects').doc(pipelineItemId).get()
           : null
-
-      const foundDoc = pDoc.exists
-        ? pDoc
-        : cDoc?.exists
-          ? cDoc
-          : mDoc?.exists
-            ? mDoc
-            : iDoc?.exists
-              ? iDoc
-              : null
-      if (foundDoc) prospectData = foundDoc.data() || {}
+      if (pDoc.exists) prospectData = pDoc.data() || {}
+      else if (companyRecord) prospectData = supabaseCompanyToAppRecord(companyRecord)
+      else if (mDoc?.exists) prospectData = mDoc.data() || {}
+      else if (iDoc?.exists) prospectData = iDoc.data() || {}
     }
 
     // Contrôle d'isolation sur le prospect source :
