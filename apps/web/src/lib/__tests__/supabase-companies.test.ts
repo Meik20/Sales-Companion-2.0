@@ -37,6 +37,25 @@ describe('supabase-companies', () => {
     )
   })
 
+  it('sanitizes special characters in search queries to prevent PostgREST syntax errors', async () => {
+    fetchMock.mockResolvedValue(
+      new Response(JSON.stringify([]), {
+        status: 200,
+        headers: { 'content-range': '*/0' }
+      })
+    )
+
+    const { searchSupabaseCompanies } = await import('../supabase-companies')
+    await searchSupabaseCompanies({ country: 'cm', query: 'pharmacie (douala), "centre"' })
+
+    const [requestUrl] = fetchMock.mock.calls[0] as [string, RequestInit]
+    const url = new URL(requestUrl)
+    const orParam = url.searchParams.get('or')
+    // No unescaped parentheses or commas inside the query term
+    expect(orParam).not.toContain('(douala)')
+    expect(orParam).toContain('pharmacie douala centre')
+  })
+
   it('bulk upserts records in chunks of 500', async () => {
     fetchMock.mockResolvedValue(new Response(null, { status: 201 }))
 

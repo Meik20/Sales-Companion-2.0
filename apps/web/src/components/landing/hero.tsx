@@ -34,24 +34,19 @@ export function Hero() {
         className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(60%_50%_at_50%_-10%,color-mix(in_oklch,var(--primary)_18%,transparent),transparent)] animate-pulse-glow"
       />
 
-      {/* Identity landmark watermark — anchored left, net et prestigieux */}
+      {/* Identity landmark watermark — responsive: haut-droit derrière le texte sur mobile, ancré à gauche sur desktop */}
       {country.landmarkWatermark && (
         <div
           aria-hidden
-          className="pointer-events-none select-none absolute left-0 bottom-0 z-0 w-[55%] sm:w-[48%] max-w-[640px] h-[85%] opacity-[0.45] dark:opacity-[0.30] transition-opacity duration-700"
-          style={{
-            // Masque très doux uniquement à l'extrême droite pour fondre naturellement avant la colonne de droite
-            maskImage: 'linear-gradient(to right, black 80%, transparent 100%)',
-            WebkitMaskImage: 'linear-gradient(to right, black 80%, transparent 100%)',
-          }}
+          className="pointer-events-none select-none absolute z-0 transition-opacity duration-700 top-2 right-[-10px] w-[210px] h-[340px] sm:top-4 sm:right-0 sm:w-[280px] sm:h-[420px] opacity-[0.38] dark:opacity-[0.24] [mask-image:radial-gradient(ellipse_at_80%_35%,black_45%,transparent_90%)] [-webkit-mask-image:radial-gradient(ellipse_at_80%_35%,black_45%,transparent_90%)] lg:top-auto lg:bottom-0 lg:left-0 lg:right-auto lg:w-[48%] lg:max-w-[640px] lg:h-[85%] lg:opacity-[0.45] dark:lg:opacity-[0.30] lg:[mask-image:linear-gradient(to_right,black_80%,transparent_100%)] lg:[-webkit-mask-image:linear-gradient(to_right,black_80%,transparent_100%)]"
         >
           <Image
             src={country.landmarkWatermark}
             alt=""
             fill
             unoptimized
-            sizes="(max-width: 768px) 55vw, 48vw"
-            className="object-contain object-left-bottom drop-shadow-[0_10px_30px_rgba(0,0,0,0.06)]"
+            sizes="(max-width: 640px) 210px, (max-width: 1024px) 280px, 48vw"
+            className="object-contain object-top-right lg:object-left-bottom drop-shadow-[0_10px_30px_rgba(0,0,0,0.06)]"
             priority={false}
           />
         </div>
@@ -65,7 +60,7 @@ export function Hero() {
           <h1 className="mt-5 font-heading text-3xl font-extrabold leading-[1.12] tracking-tight text-foreground text-balance sm:text-4xl lg:text-5xl">
             {isEn ? (
               <>
-                Find your next <span className="text-[#1B7A3E]">B2B clients</span>{' '}
+                Find your next <span className="text-[#1B7A3E]">B2B prospects</span>{' '}
                 {country.englishIn}.
               </>
             ) : (

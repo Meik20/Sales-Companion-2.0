@@ -327,6 +327,7 @@ export const fr = {
     title: "Recherche d'entreprises",
     placeholder: 'Entreprise, secteur, ville…',
     quickAll: 'Tous',
+    goHome: 'Accueil',
     btp: 'BTP',
     commerce: 'Commerce',
     tech: 'Tech',

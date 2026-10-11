@@ -215,6 +215,12 @@ function SearchContent() {
             setIsBackAction(false)
             setHasSearched(true)
           }}
+          onHome={() => {
+            setFilters({})
+            setCurrentPage(1)
+            setIsBackAction(false)
+            setHasSearched(false)
+          }}
         />
       </div>
 

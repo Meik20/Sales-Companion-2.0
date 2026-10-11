@@ -110,8 +110,8 @@ export function Features() {
       icon: Search,
       title:
         lang === 'en'
-          ? 'Find your ideal future clients in seconds'
-          : 'Trouvez vos futurs clients idéaux en quelques secondes',
+          ? 'Find your ideal future prospects in seconds'
+          : 'Trouvez vos futurs prospects idéaux en quelques secondes',
       description:
         lang === 'en'
           ? 'Target your market precisely without wasting hours on manual searches. Instantly filter companies matching your high-priority sales criteria.'

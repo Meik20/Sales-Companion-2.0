@@ -13,6 +13,7 @@ import {
   Truck,
   Stethoscope,
   LayoutGrid,
+  Home,
   X
 } from 'lucide-react'
 
@@ -104,10 +105,10 @@ type Filters = {
   lng?: string
   radius?: string
 }
-type Props = { initialValues?: Filters; onSubmit: (v: Filters) => void }
+type Props = { initialValues?: Filters; onSubmit: (v: Filters) => void; onHome?: () => void }
 
 // ─── Component ───────────────────────────────────────────────────────────────
-export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
+export function SearchFiltersForm({ initialValues = {}, onSubmit, onHome }: Props) {
   const { t } = useTranslation()
   const { user } = useCurrentUser()
   // Pays de prospection actif : cookie sc_country (landing) > user.country (Firestore)
@@ -344,6 +345,23 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
           color: #fff;
           font-weight: 700;
         }
+        /* ── Bouton Accueil ── */
+        .sc-home-btn {
+          display: inline-flex; align-items: center; gap: 5px;
+          height: 28px; padding: 0 12px;
+          border-radius: 999px;
+          border: 1.5px solid var(--color-primary);
+          background: transparent;
+          color: var(--color-primary);
+          font-size: 12px; font-weight: 700;
+          cursor: pointer; font-family: inherit;
+          transition: all 150ms ease; white-space: nowrap;
+          flex-shrink: 0;
+        }
+        .sc-home-btn:hover {
+          background: var(--color-primary);
+          color: #fff;
+        }
         .sc-adv-btn:hover { color: var(--color-primary); }
         .sc-adv-chevron { transition: transform 200ms ease; }
         .sc-adv-chevron.open { transform: rotate(180deg); }
@@ -502,6 +520,18 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit }: Props) {
             <div className="sc-pills-row">
               <div className="sc-pills-scroll">
                 <div className="sc-pills">
+                  {/* Bouton Accueil — réinitialise à la page d'accueil de recherche */}
+                  {onHome && (
+                    <button
+                      type="button"
+                      className="sc-home-btn"
+                      onClick={onHome}
+                      aria-label={t('search.goHome' as any) || 'Accueil'}
+                    >
+                      <Home size={13} style={{ flexShrink: 0 }} />
+                      {t('search.goHome' as any) || 'Accueil'}
+                    </button>
+                  )}
                   {QUICK_SECTORS.map((s) => {
                     return (
                       <button

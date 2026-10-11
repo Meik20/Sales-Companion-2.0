@@ -327,6 +327,7 @@ export const en = {
     title: 'Company Search',
     placeholder: 'Company, sector, city...',
     quickAll: 'All',
+    goHome: 'Home',
     btp: 'BTP',
     commerce: 'Commerce',
     tech: 'Tech',

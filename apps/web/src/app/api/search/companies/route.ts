@@ -14,7 +14,7 @@ async function getAdminModules() {
 
 /**
  * GET /api/search/companies
- * Recherche dans la collection Firestore "companies" importée par l'admin.
+ * Recherche dans la table Supabase "companies" (annuaire B2B consolidé).
  * Déduit 1 crédit par recherche pour l'utilisateur authentifié.
  */
 const COUNTRY_BOUNDS: Record<
@@ -472,13 +472,17 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    const pageSize = 10
+    const requestedOffset = (page - 1) * pageSize
+    const fetchLimit = Math.max(100, Math.min(requestedOffset + pageSize * 2, 500))
+
     const sbResult = await searchSupabaseCompanies({
       country: userCountry,
       query,
       sector,
       city,
       region,
-      limit: 100
+      limit: fetchLimit
     })
 
     if (!sbResult) {
@@ -569,8 +573,7 @@ export async function GET(request: NextRequest) {
     }
 
     // ── 6. Pagination (Plafond factuel fixé à 10 résultats par requête) ──
-    const pageSize = 10
-    const start = (page - 1) * pageSize
+    const start = requestedOffset
     const end = start + pageSize
     const paginatedCompanies = allCompanies.slice(start, end)
 
@@ -600,12 +603,15 @@ export async function GET(request: NextRequest) {
       console.error('[search/companies] Search logging error:', err)
     }
 
+    const totalCount =
+      sbResult.total > 0 ? Math.max(sbResult.total, allCompanies.length) : allCompanies.length
+
     return NextResponse.json({
       items: paginatedCompanies,
-      total: allCompanies.length,
+      total: totalCount,
       page,
       pageSize,
-      totalPages: Math.ceil(allCompanies.length / pageSize)
+      totalPages: Math.ceil(totalCount / pageSize) || 1
     })
   } catch (error) {
     console.error('[search/companies] Global Critical Error:', error)

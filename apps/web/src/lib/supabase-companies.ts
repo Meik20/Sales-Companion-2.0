@@ -201,10 +201,7 @@ export async function searchSupabaseCompanies(params: {
     // 1. Isolation stricte par pays
     searchParams.set('country_code', `eq.${country.toUpperCase()}`)
 
-    // 2. Filtres sectoriels et géographiques
-    if (sector) {
-      searchParams.set('sector', `ilike.*${sector}*`)
-    }
+    // 2. Filtre géographique (city & region : safe car pas de & dans ces valeurs)
     if (city) {
       searchParams.set('city', `ilike.*${city}*`)
     }
@@ -212,13 +209,84 @@ export async function searchSupabaseCompanies(params: {
       searchParams.set('region', `ilike.*${region}*`)
     }
 
-    // 3. Recherche textuelle multi-colonnes (nom, sigle, NIU, dirigeant)
+    // 3. Filtre sectoriel via or= pour éviter que le "&" des noms composés
+    //    (ex: "BTP & Construction") ne casse le parsing de l'URL PostgREST.
+    //    Chaque libellé UI est traduit en mots-clés individuels d'ilike.
+    const SECTOR_KEYWORDS_MAP: Record<string, string[]> = {
+      'btp construction':             ['BTP', 'Construction', 'Batiment', 'Travaux', 'Genie', 'Architecture', 'Immobilier', 'Chantier'],
+      'technologies numerique':       ['Technologie', 'Technologies', 'Informatique', 'Numerique', 'Logiciel', 'Telecom', 'Digital', 'Reseau', 'IT'],
+      'agriculture agroalimentaire':  ['Agriculture', 'Agroalimentaire', 'Agro', 'Elevage', 'Alimentaire', 'Peche', 'Agricole', 'Aviculture'],
+      'transport logistique':         ['Transport', 'Logistique', 'Transit', 'Fret', 'Livraison', 'Voyage', 'Messagerie'],
+      'services conseil':             ['Service', 'Services', 'Conseil', 'Consulting', 'Prestation'],
+      'finance assurance':            ['Banque', 'Finance', 'Assurance', 'Microfinance', 'Credit', 'Caisse', 'Epargne', 'Comptabilite', 'Audit'],
+      'hotellerie restauration':      ['Hotel', 'Hotellerie', 'Restaurant', 'Restauration', 'Auberge', 'Traiteur', 'Tourisme'],
+      'education formation':          ['Education', 'Formation', 'Ecole', 'Universite', 'Institut', 'College', 'Lycee', 'Enseignement'],
+      'energie mines':                ['Energie', 'Mines', 'Petrole', 'Gaz', 'Solaire', 'Electricite', 'Hydrocarbures'],
+      'commerce':                     ['Commerce', 'Vente', 'Boutique', 'Distribution', 'Supermarche', 'Negoce', 'Import'],
+      'sante':                        ['Sante', 'Pharmacie', 'Medical', 'Clinique', 'Hopital', 'Laboratoire', 'Soins', 'Dentiste', 'Dispensaire', 'Cabinet'],
+      'industrie':                    ['Industrie', 'Manufacturier', 'Manufacture', 'Usine', 'Production', 'Fabrication'],
+    }
+
+    function normForSectorMap(s: string) {
+      return s
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9 ]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+    }
+
+    let sectorOrClause: string | null = null
+    if (sector) {
+      const normTarget = normForSectorMap(sector)
+      let bestKeywords: string[] | null = null
+      for (const [groupNorm, kws] of Object.entries(SECTOR_KEYWORDS_MAP)) {
+        if (
+          normTarget.includes(groupNorm) ||
+          groupNorm.includes(normTarget) ||
+          groupNorm.split(' ').every((part) => normTarget.includes(part))
+        ) {
+          bestKeywords = kws
+          break
+        }
+      }
+      if (bestKeywords) {
+        sectorOrClause = '(' + bestKeywords.map((kw) => `sector.ilike.*${kw}*`).join(',') + ')'
+      } else {
+        // Fallback : premier mot du libellé (sans & ni caractères spéciaux)
+        const firstWord = normTarget.split(/\s+/)[0]
+        if (firstWord && firstWord.length >= 2) {
+          sectorOrClause = `(sector.ilike.*${firstWord}*)`
+        }
+      }
+    }
+
+    // 4. Recherche textuelle multi-colonnes (nom, sigle, NIU, dirigeant)
+    let textOrClause: string | null = null
     if (query && query.trim()) {
-      const q = query.trim()
-      searchParams.set(
-        'or',
-        `(raison_sociale.ilike.*${q}*,sigle.ilike.*${q}*,niu.ilike.*${q}*,dirigeant.ilike.*${q}*)`
-      )
+      // Nettoyage des caractères de syntaxe PostgREST
+      const q = query
+        .replace(/[(),"\\]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+      if (q) {
+        textOrClause = `(raison_sociale.ilike.*${q}*,sigle.ilike.*${q}*,niu.ilike.*${q}*,dirigeant.ilike.*${q}*)`
+      }
+    }
+
+    // 5. Combinaison des clauses sector et text :
+    //    - Sector seul   → or=(...)
+    //    - Text seul     → or=(...)
+    //    - Sector + Text → and=(or(...),or(...))
+    if (sectorOrClause && textOrClause) {
+      const sectorInner = sectorOrClause.slice(1, -1)
+      const textInner = textOrClause.slice(1, -1)
+      searchParams.set('and', `(or(${sectorInner}),or(${textInner}))`)
+    } else if (sectorOrClause) {
+      searchParams.set('or', sectorOrClause)
+    } else if (textOrClause) {
+      searchParams.set('or', textOrClause)
     }
 
     searchParams.set('limit', String(limit))

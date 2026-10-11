@@ -83,6 +83,23 @@ try {
   errors.push(`❌ Impossible de lire firestore.rules : ${e.message}`)
 }
 
+// 4. Vérifier l'isolation du connecteur Supabase (PostgREST natif sans dépendance ESM tierce)
+try {
+  const supabaseConnector = fs.readFileSync(
+    path.resolve(__dirname, '../apps/web/src/lib/supabase-companies.ts'),
+    'utf8'
+  )
+  if (supabaseConnector.includes('@supabase/supabase-js')) {
+    errors.push(
+      '❌ Dépendance interdite : @supabase/supabase-js trouvé dans supabase-companies.ts. Utiliser PostgREST natif (fetch) pour prévenir les conflits de packaging ESM sur Vercel.'
+    )
+  } else {
+    console.log('✅ Connecteur Supabase conforme (PostgREST natif sans dépendance externe)')
+  }
+} catch (e) {
+  errors.push(`❌ Impossible de vérifier supabase-companies.ts : ${e.message}`)
+}
+
 if (errors.length > 0) {
   console.error("\n🚨 ÉCHEC DES CONTRÔLES D'INTÉGRITÉ ARCHITECTURALE :")
   errors.forEach((err) => console.error(err))

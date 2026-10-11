@@ -98,7 +98,7 @@
 
 ## 🌐 Phase 4: Database
 
-### Firestore Configuration
+### Firestore Configuration (CRM, Auth, Équipes, Support)
 
 - [ ] Collections created:
   - [ ] `users`
@@ -106,7 +106,6 @@
   - [ ] `payments`
   - [ ] `webhook_logs`
   - [ ] `subscription_logs`
-  - [ ] `companies`
   - [ ] `pipeline`
   - [ ] `saved_searches`
   - [ ] `support_threads`
@@ -114,12 +113,20 @@
   - [ ] `assignments`
   - [ ] `app_config`
   - [ ] `usage_logs`
-  - [ ] `import_logs`
+  - [ ] `imports`
 - [ ] Indexes created for:
-  - [ ] `companies`: region+sector, city+sector, etc.
-  - [ ] `pipeline`: userId+status, userId+priority, assignedTo+status
+  - [ ] `pipeline`: userId+status, userId+priority, assignedTo+status, managerUid+status, orgCode+managerUid
   - [ ] `saved_searches`: userId+createdAt
   - [ ] `support_threads`: userId+status, status+createdAt
+
+### Supabase Configuration (Annuaire Entreprises B2B)
+
+- [ ] Schéma exécuté : `scripts/supabase-schema-companies.sql`
+- [ ] Table `public.companies` créée avec RLS activée
+- [ ] Extensions actives : `pg_trgm`, `unaccent`
+- [ ] Index Trigrammes GIN créés (`idx_companies_trgm_name`, `idx_companies_trgm_sigle`, `idx_companies_trgm_niu`, `idx_companies_trgm_dirigeant`)
+- [ ] Index unique créé : `idx_companies_country_niu`
+- [ ] Variables d'environnement configurées sur Vercel : `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`
 
 ### Data Integrity
 

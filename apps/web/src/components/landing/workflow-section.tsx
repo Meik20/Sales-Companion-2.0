@@ -54,7 +54,7 @@ export function WorkflowSection() {
         : 'Organisez vos contacts, relances et opportunités.',
       details: isEn
         ? 'Kanban board (To Contact → In Negotiation → Won) for smooth deal progression.'
-        : 'Tableau Kanban visuel pour ne plus jamais manquer une relance client.',
+        : 'Tableau Kanban visuel pour ne plus jamais manquer une relance prospect.',
       icon: Kanban,
       tag: isEn ? 'Kanban Pipeline' : 'Pipeline visuel'
     }
