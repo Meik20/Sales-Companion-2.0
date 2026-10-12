@@ -19,7 +19,7 @@ import {
 import { useTranslation } from '@/providers/I18nProvider'
 import { isCorporateEmail } from '../utils/email-validator'
 import { CountrySelect } from '@/components/ui/CountrySelect'
-import { ShieldCheck, Lock, HelpCircle, ArrowRight, ArrowLeft, Crown, Users2 } from 'lucide-react'
+import { ShieldCheck, Lock, HelpCircle, ArrowRight, ArrowLeft, Crown, Users2, Tag, UserCheck } from 'lucide-react'
 import { detectClientCountry } from '@/features/landing/landing-country'
 import { setProspectingCountryCookie } from '@/hooks/useProspectingCountry'
 import type { CountryCode } from '@sales-companion/shared'
@@ -161,9 +161,9 @@ export function RegisterForm() {
       })
   }, [exemptionParam, emailParam])
 
-  const roleOptions: { value: RoleOption; label: string; desc: string }[] = [
-    { value: 'independent', label: t('auth.independent'), desc: t('auth.independentDesc') },
-    { value: 'manager', label: t('auth.manager'), desc: t('auth.managerDesc') }
+  const roleOptions: { value: RoleOption; label: string; desc: string; icon: React.ReactNode }[] = [
+    { value: 'independent', label: t('auth.independent'), desc: t('auth.independentDesc'), icon: <UserCheck size={15} className="shrink-0" /> },
+    { value: 'manager', label: t('auth.manager'), desc: t('auth.managerDesc'), icon: <Crown size={15} className="shrink-0" /> }
   ]
 
   async function handleGoogleSignIn() {
@@ -374,18 +374,26 @@ export function RegisterForm() {
         <div className="mb-5 rounded-xl border border-indigo-500/30 bg-indigo-500/10 p-3.5 text-xs text-indigo-300 flex items-start gap-2.5">
           <ShieldCheck size={18} className="text-indigo-400 shrink-0 mt-0.5" />
           <div className="flex-1">
-            <div className="font-semibold text-indigo-300 text-[12.5px]">
-              {orgInviteInfo.type === 'senior_manager'
-                ? 'Invitation Senior Manager — Nouveau Segment'
-                : 'Invitation Team Manager'}
+            <div className="font-semibold text-indigo-300 text-[12.5px] flex items-center gap-1.5">
+              {orgInviteInfo.type === 'senior_manager' ? (
+                <><Crown size={13} className="text-violet-400 shrink-0" /> Invitation Senior Manager — Nouveau Segment</>
+              ) : (
+                <><Users2 size={13} className="text-indigo-400 shrink-0" /> Invitation Team Manager</>
+              )}
             </div>
             <div className="text-[11.5px] text-indigo-200/80 mt-1 leading-relaxed">
               Organisation : <strong>{orgInviteInfo.companyName}</strong> (Code : {orgInviteInfo.orgCode})
               {orgInviteInfo.seniorManagerName && (
-                <div>Invité par : <strong>{orgInviteInfo.seniorManagerName}</strong></div>
+                <div className="flex items-center gap-1 mt-0.5">
+                  <Crown size={10} className="text-indigo-400/70 shrink-0" />
+                  Invité par : <strong>{orgInviteInfo.seniorManagerName}</strong>
+                </div>
               )}
               {orgInviteInfo.type === 'team_manager' && orgInviteInfo.segment && (
-                <div>Segment rattaché : <strong>{orgInviteInfo.segment}</strong></div>
+                <div className="flex items-center gap-1 mt-0.5">
+                  <Tag size={10} className="text-indigo-400/70 shrink-0" />
+                  Segment rattaché : <strong>{orgInviteInfo.segment}</strong>
+                </div>
               )}
             </div>
           </div>
@@ -575,8 +583,9 @@ export function RegisterForm() {
                     }`}
                   >
                     <div
-                      className={`text-[13px] font-semibold ${role === opt.value ? 'text-blue-400' : 'text-foreground'}`}
+                      className={`flex items-center gap-1.5 text-[13px] font-semibold ${role === opt.value ? 'text-blue-400' : 'text-foreground'}`}
                     >
+                      {opt.icon}
                       {opt.label}
                     </div>
                     <div className="mt-0.5 text-[11px] text-muted-foreground">{opt.desc}</div>
