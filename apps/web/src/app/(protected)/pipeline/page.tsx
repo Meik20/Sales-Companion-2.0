@@ -483,9 +483,10 @@ export default function PipelinePage() {
             subtitle={`${t('pipeline.orgPipelineSubtitle') || 'Tous les prospects de votre organisation'}${filterManagerUid ? (t('pipeline.filteredByManager') || ' — filtré par manager') : ''}`}
           >
             {orgPipelineQuery.isLoading ? <LoadingState /> : null}
-            {!orgPipelineQuery.isLoading && selectedManager && (
+            {!orgPipelineQuery.isLoading && (
               <TeamManagerPerformanceCard
                 manager={selectedManager}
+                managers={orgPipelineQuery.data?.managers}
                 items={(orgPipelineQuery.data?.items ?? []) as Parameters<typeof TeamManagerPerformanceCard>[0]['items']}
                 onClear={() => setFilterManagerUid(undefined)}
               />

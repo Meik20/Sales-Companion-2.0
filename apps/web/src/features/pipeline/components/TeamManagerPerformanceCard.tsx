@@ -1,23 +1,26 @@
 'use client'
 
 import { useMemo } from 'react'
-import { TrendingUp, CheckCircle2, Calendar, Wallet, X, Users } from 'lucide-react'
+import { TrendingUp, CheckCircle2, Calendar, Wallet, X, Users, Building2 } from 'lucide-react'
 import { useTranslation } from '@/providers/I18nProvider'
 import type { OrgManagerStats, OrgPipelineItem } from '@/features/pipeline/hooks/useOrgPipeline'
 
 interface TeamManagerPerformanceCardProps {
-  manager: OrgManagerStats
+  manager?: OrgManagerStats
+  managers?: OrgManagerStats[]
   items: OrgPipelineItem[]
-  onClear: () => void
+  onClear?: () => void
 }
 
 export function TeamManagerPerformanceCard({
   manager,
+  managers,
   items,
   onClear
 }: TeamManagerPerformanceCardProps) {
   const { t } = useTranslation()
   const todayStr = useMemo(() => new Date().toISOString().slice(0, 10), [])
+  const isGlobal = !manager
 
   const stats = useMemo(() => {
     let prospectionCount = 0
@@ -31,9 +34,11 @@ export function TeamManagerPerformanceCard({
 
     for (const item of items) {
       const st = (item.status || '').toLowerCase().trim()
-      const isAssigned = item.assignedTo && item.assignedTo !== manager.uid
+      const isAssigned = isGlobal
+        ? Boolean(item.assignedTo)
+        : Boolean(item.assignedTo && item.assignedTo !== manager?.uid)
 
-      if (isAssigned) {
+      if (isAssigned && item.assignedTo) {
         memberIds.add(item.assignedTo as string)
       } else {
         unassignedCount++
@@ -62,6 +67,10 @@ export function TeamManagerPerformanceCard({
       }
     }
 
+    const teamManagersCount = managers
+      ? managers.filter((m) => !m.isSenior).length
+      : 0
+
     return {
       totalCount: items.length,
       prospectionCount,
@@ -71,11 +80,12 @@ export function TeamManagerPerformanceCard({
       activePipelineAmount,
       overdueCount,
       memberCount: memberIds.size,
+      teamManagersCount,
       unassignedCount
     }
-  }, [items, manager.uid, todayStr])
+  }, [items, manager?.uid, isGlobal, managers, todayStr])
 
-  const initials = (manager.name || manager.email || 'TM').slice(0, 2).toUpperCase()
+  const initials = manager ? (manager.name || manager.email || 'TM').slice(0, 2).toUpperCase() : ''
 
   return (
     <div
@@ -88,7 +98,7 @@ export function TeamManagerPerformanceCard({
         boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
       }}
     >
-      {/* ── Header du Team Manager ─────────────────────────────────── */}
+      {/* ── Header : Organisation ou Team Manager ───────────────────────── */}
       <div
         style={{
           display: 'flex',
@@ -105,18 +115,22 @@ export function TeamManagerPerformanceCard({
               width: 38,
               height: 38,
               borderRadius: 10,
-              background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+              background: isGlobal
+                ? 'linear-gradient(135deg, #6366f1, #8b5cf6)'
+                : 'linear-gradient(135deg, #6366f1, #4f46e5)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               color: '#ffffff',
               fontWeight: 700,
               fontSize: 14,
-              boxShadow: '0 2px 8px rgba(99,102,241,0.35)',
+              boxShadow: isGlobal
+                ? '0 2px 8px rgba(139,92,246,0.35)'
+                : '0 2px 8px rgba(99,102,241,0.35)',
               flexShrink: 0
             }}
           >
-            {initials}
+            {isGlobal ? <Building2 size={18} /> : initials}
           </div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
@@ -128,19 +142,21 @@ export function TeamManagerPerformanceCard({
                   color: 'var(--foreground, #f1f5f9)'
                 }}
               >
-                {manager.name || manager.email}
+                {isGlobal
+                  ? (t('pipeline.globalOrgPerformance') || "Performance Globale de l'Organisation")
+                  : (manager?.name || manager?.email)}
               </h4>
               <span
                 style={{
                   fontSize: 10.5,
                   padding: '1px 8px',
                   borderRadius: 12,
-                  background: 'rgba(99,102,241,0.15)',
-                  color: '#818cf8',
+                  background: isGlobal ? 'rgba(139,92,246,0.15)' : 'rgba(99,102,241,0.15)',
+                  color: isGlobal ? '#a78bfa' : '#818cf8',
                   fontWeight: 600
                 }}
               >
-                Team Manager
+                {isGlobal ? (t('pipeline.orgConsolidated') || 'Vue Consolidée') : 'Team Manager'}
               </span>
             </div>
             <div
@@ -154,38 +170,57 @@ export function TeamManagerPerformanceCard({
                 flexWrap: 'wrap'
               }}
             >
-              <span>{t('pipeline.teamManagerSubtitle') || "Portefeuille opérationnel et métriques de l'équipe managée"}</span>
-              <span>•</span>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                <Users size={11} />
-                {stats.memberCount} {stats.memberCount > 1 ? 'commerciaux' : 'commercial'}
-              </span>
+              {isGlobal ? (
+                <>
+                  <span>
+                    {t('pipeline.globalOrgSubtitle') || "Synthèse consolidée du chiffre d'affaires et du portefeuille de l'organisation"}
+                  </span>
+                  <span>•</span>
+                  <span>{stats.teamManagersCount} Team Managers</span>
+                  <span>•</span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    <Users size={11} />
+                    {stats.memberCount} {stats.memberCount > 1 ? 'commerciaux' : 'commercial'}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span>{t('pipeline.teamManagerSubtitle') || "Portefeuille opérationnel et métriques de l'équipe managée"}</span>
+                  <span>•</span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    <Users size={11} />
+                    {stats.memberCount} {stats.memberCount > 1 ? 'commerciaux' : 'commercial'}
+                  </span>
+                </>
+              )}
             </div>
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={onClear}
-          style={{
-            padding: '5px 12px',
-            borderRadius: 8,
-            border: '1px solid var(--border, rgba(255,255,255,0.1))',
-            background: 'var(--secondary, #1e2a3b)',
-            color: 'var(--muted-foreground, #94a3b8)',
-            fontSize: 11,
-            fontWeight: 600,
-            cursor: 'pointer',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 5,
-            transition: 'all 150ms ease'
-          }}
-          title={t('pipeline.viewAllOrg') || "Voir toute l'organisation"}
-        >
-          <X size={12} />
-          <span>{t('pipeline.viewAllOrg') || "Voir toute l'organisation"}</span>
-        </button>
+        {!isGlobal && onClear && (
+          <button
+            type="button"
+            onClick={onClear}
+            style={{
+              padding: '5px 12px',
+              borderRadius: 8,
+              border: '1px solid var(--border, rgba(255,255,255,0.1))',
+              background: 'var(--secondary, #1e2a3b)',
+              color: 'var(--muted-foreground, #94a3b8)',
+              fontSize: 11,
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 5,
+              transition: 'all 150ms ease'
+            }}
+            title={t('pipeline.viewAllOrg') || "Voir toute l'organisation"}
+          >
+            <X size={12} />
+            <span>{t('pipeline.viewAllOrg') || "Voir toute l'organisation"}</span>
+          </button>
+        )}
       </div>
 
       {/* ── Grille des 4 métriques de performance d'équipe ──────────── */}
@@ -266,7 +301,7 @@ export function TeamManagerPerformanceCard({
           </div>
         </div>
 
-        {/* 3. Relances & Suivi équipe */}
+        {/* 3. Relances & Suivi équipe / organisation */}
         <div
           style={{
             background: 'var(--card, #131c2e)',
@@ -311,8 +346,12 @@ export function TeamManagerPerformanceCard({
           </div>
           <div style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)' }}>
             {stats.overdueCount > 0
-              ? t('pipeline.overdueRequiresAttention') || "Relances d'équipe nécessitant attention"
-              : t('pipeline.noOverdueOnTeam') || "Aucune relance expirée sur l'équipe"}
+              ? (isGlobal
+                  ? (t('pipeline.allOrgOverdueRequiresAttention') || "Relances à traiter sur toute l'organisation")
+                  : (t('pipeline.overdueRequiresAttention') || "Relances d'équipe nécessitant attention"))
+              : (isGlobal
+                  ? (t('pipeline.noOverdueOnOrg') || "Aucune relance expirée sur toute l'organisation")
+                  : (t('pipeline.noOverdueOnTeam') || "Aucune relance expirée sur l'équipe"))}
           </div>
         </div>
 
@@ -350,7 +389,15 @@ export function TeamManagerPerformanceCard({
             </span>
           </div>
           <div style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)' }}>
-            {stats.memberCount} {stats.memberCount > 1 ? 'commerciaux' : 'commercial'} · {stats.unassignedCount} {t('pipeline.unassignedLeads') || 'non assigné(s)'}
+            {isGlobal ? (
+              <>
+                {stats.teamManagersCount} managers · {stats.memberCount} commerciaux · {stats.unassignedCount} {t('pipeline.unassignedLeads') || 'non assigné(s)'}
+              </>
+            ) : (
+              <>
+                {stats.memberCount} commercial{stats.memberCount > 1 ? 's' : ''} · {stats.unassignedCount} {t('pipeline.unassignedLeads') || 'non assigné(s)'}
+              </>
+            )}
           </div>
         </div>
       </div>
