@@ -62,10 +62,15 @@ export async function GET(request: NextRequest) {
         )
       }
       orgRole = 'senior_manager'
+      const initialSegment = userData.segment || userData.sector || 'Principal'
 
       // Batch : mettre à jour le user + créer le document Organisation
       const batch = adminDb.batch()
-      batch.update(userDocRef, { orgCode, orgRole })
+      batch.update(userDocRef, {
+        orgCode,
+        orgRole,
+        segment: userData.segment || initialSegment
+      })
       const orgDocRef = adminDb.collection('organisations').doc(orgCode)
       batch.set(orgDocRef, {
         orgCode,
@@ -87,7 +92,9 @@ export async function GET(request: NextRequest) {
       if (orgDocSnap.exists) {
         const orgData = orgDocSnap.data()
         expectedOrgRole =
-          orgData?.seniorManagerUid === managerUid ? 'senior_manager' : 'team_manager'
+          orgData?.seniorManagerUid === managerUid || userData.orgRole === 'senior_manager'
+            ? 'senior_manager'
+            : 'team_manager'
       } else {
         // Protection P1 contre l'auto-promotion :
         // Seul un utilisateur déjà explicitement senior_manager peut rétablir le document organisation
@@ -147,6 +154,8 @@ export async function GET(request: NextRequest) {
             email: mData.email,
             phone: mData.phone || null,
             orgRole: resolvedOrgRole,
+            segment: mData.segment || null,
+            seniorManagerUid: mData.seniorManagerUid || null,
             isCurrent: d.id === managerUid,
             isSenior: resolvedOrgRole === 'senior_manager',
             createdAt: mData.createdAt?.toDate ? mData.createdAt.toDate().toISOString() : null
@@ -166,6 +175,8 @@ export async function GET(request: NextRequest) {
       orgCode,
       orgRole,
       isSeniorManager,
+      segment: userData.segment || null,
+      seniorManagerUid: userData.seniorManagerUid || null,
       niu,
       isVerified,
       companyName: userData.companyName || userData.company || 'Mon Organisation',
@@ -297,8 +308,62 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
-    // 2. Rattachement explicite à une organisation existante via orgCode
-    if (body.joinOrgCode) {
+    // 2. Rattachement via Jeton d'Invitation (Multi-SM / Team Manager)
+    if (body.inviteToken) {
+      const inviteToken = String(body.inviteToken).trim()
+      const inviteDoc = await adminDb.collection('orgInvites').doc(inviteToken).get()
+      if (!inviteDoc.exists) {
+        return NextResponse.json(
+          { error: "Lien d'invitation introuvable ou invalide." },
+          { status: 404 }
+        )
+      }
+
+      const inviteData = inviteDoc.data()!
+      if (inviteData.used === true) {
+        return NextResponse.json(
+          { error: "Ce jeton d'invitation a déjà été utilisé." },
+          { status: 410 }
+        )
+      }
+
+      const expiresAt = inviteData.expiresAt?.toDate
+        ? inviteData.expiresAt.toDate()
+        : new Date(inviteData.expiresAt)
+      if (expiresAt < new Date()) {
+        return NextResponse.json(
+          { error: "Ce jeton d'invitation a expiré (validité 7 jours)." },
+          { status: 410 }
+        )
+      }
+
+      const targetCode = inviteData.orgCode
+      updates.orgCode = targetCode
+      orgCodeChangedTo = targetCode
+
+      if (inviteData.companyName) {
+        updates.companyName = inviteData.companyName
+      }
+
+      if (inviteData.type === 'senior_manager') {
+        updates.orgRole = 'senior_manager'
+        updates.segment = body.segment?.trim() || 'Principal'
+        updates.seniorManagerUid = null
+      } else {
+        updates.orgRole = 'team_manager'
+        updates.segment = inviteData.segment || 'Principal'
+        updates.seniorManagerUid =
+          inviteData.seniorManagerUid || inviteData.createdByUid || null
+      }
+
+      // Consommer le jeton
+      await inviteDoc.ref.update({
+        used: true,
+        usedByUid: managerUid,
+        usedAt: new Date()
+      }).catch(() => {})
+    } else if (body.joinOrgCode) {
+      // 2. Rattachement explicite à une organisation existante via orgCode (legacy)
       const targetCode = String(body.joinOrgCode).trim().toUpperCase()
       if (targetCode !== userData.orgCode) {
         // Rechercher si un manager ou un document organisation avec cet orgCode existe
@@ -348,6 +413,14 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
+    // 3. Mise à jour directe du segment (si fourni sans inviteToken)
+    if (body.segment !== undefined && !body.inviteToken) {
+      const segVal = String(body.segment).trim()
+      if (segVal) {
+        updates.segment = segVal
+      }
+    }
+
     if (Object.keys(updates).length > 1) {
       await userDocRef.update(updates)
     }
@@ -361,11 +434,25 @@ export async function PATCH(request: NextRequest) {
     const updatedData = updatedDoc.data() || {}
     const updatedNiu = updatedData.niu ? normalizeNiu(updatedData.niu) : null
 
+    // Synchroniser les Custom Claims auth token
+    try {
+      await adminAuth.setCustomUserClaims(managerUid, {
+        role: 'manager',
+        orgRole: updatedData.orgRole || 'team_manager',
+        orgCode: updatedData.orgCode || null,
+        segment: updatedData.segment || null
+      })
+    } catch (claimErr) {
+      console.warn('[PATCH /api/team/org] setCustomUserClaims warn:', claimErr)
+    }
+
     return NextResponse.json({
       success: true,
       orgCode: updatedData.orgCode,
       orgRole: updatedData.orgRole || 'team_manager',
       isSeniorManager: updatedData.orgRole === 'senior_manager',
+      segment: updatedData.segment || null,
+      seniorManagerUid: updatedData.seniorManagerUid || null,
       niu: updatedNiu,
       isVerified: Boolean(updatedNiu),
       companyName: updatedData.companyName || updatedData.company || 'Mon Organisation',

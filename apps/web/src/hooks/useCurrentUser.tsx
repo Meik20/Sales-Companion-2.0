@@ -17,6 +17,8 @@ export type CurrentUser = {
   companyName?: string | null
   orgCode?: string | null
   orgRole?: 'senior_manager' | 'team_manager' | null
+  segment?: string | null
+  seniorManagerUid?: string | null
   niu?: string | null
   company?: string | null
   sector?: string | null
@@ -238,6 +240,8 @@ function useCurrentUserSource(): UserContextValue {
               role: currentUserObj.role,
               orgRole: currentUserObj.orgRole,
               orgCode: currentUserObj.orgCode,
+              segment: currentUserObj.segment,
+              seniorManagerUid: currentUserObj.seniorManagerUid,
               plan: currentUserObj.plan,
               active: currentUserObj.active,
               subscriptionExpired: currentUserObj.subscriptionExpired,

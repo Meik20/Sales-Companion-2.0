@@ -35,7 +35,10 @@ export function RegisterForm() {
   const searchParams = useSearchParams()
   const { user, loading: authLoading } = useCurrentUser()
 
-  const exemptionParam = searchParams.get('exemption') || searchParams.get('token')
+  const inviteTypeParam = searchParams.get('inviteType') as 'senior_manager' | 'team_manager' | null
+  const tokenParam = searchParams.get('token')
+  const isOrgInvite = Boolean(inviteTypeParam || (tokenParam && tokenParam.startsWith('inv_')))
+  const exemptionParam = !isOrgInvite ? (searchParams.get('exemption') || tokenParam) : searchParams.get('exemption')
   const emailParam = searchParams.get('email')
   const roleParam = searchParams.get('role')
   const nameParam = searchParams.get('name')
@@ -48,7 +51,7 @@ export function RegisterForm() {
 
   const [name, setName] = useState(nameParam || '')
   const [role, setRole] = useState<RoleOption>(
-    roleParam === 'manager' || exemptionParam || orgParam ? 'manager' : 'independent'
+    roleParam === 'manager' || exemptionParam || orgParam || isOrgInvite ? 'manager' : 'independent'
   )
   const [country, setCountry] = useState<string>(() => {
     if (typeof document !== 'undefined') {
@@ -63,6 +66,7 @@ export function RegisterForm() {
   const [password, setPassword] = useState('')
   const [companyName, setCompanyName] = useState(companyParam || '')
   const [sector, setSector] = useState<string>(sectorParam || '')
+  const [segment, setSegment] = useState('')
   const [niu, setNiu] = useState('')
   const [joinOrgCode, setJoinOrgCode] = useState(orgParam || '')
   const [joinOrgInfo, setJoinOrgInfo] = useState<{
@@ -74,6 +78,17 @@ export function RegisterForm() {
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const [orgInviteInfo, setOrgInviteInfo] = useState<{
+    valid: boolean
+    type: 'senior_manager' | 'team_manager'
+    orgCode: string
+    companyName: string
+    segment?: string | null
+    seniorManagerName?: string | null
+    seniorManagerUid?: string | null
+  } | null>(null)
+  const [orgInviteLoading, setOrgInviteLoading] = useState(false)
 
   const [exemptionToken, setExemptionToken] = useState<string | null>(exemptionParam)
   const [exemptionValid, setExemptionValid] = useState<boolean | null>(null)
@@ -91,6 +106,33 @@ export function RegisterForm() {
   useEffect(() => {
     if (!authLoading && user) router.replace(routes.search)
   }, [user, authLoading, router])
+
+  // Vérifier et appliquer le jeton d'invitation d'organisation (Multi-SM / Team Manager)
+  useEffect(() => {
+    if (!tokenParam || !isOrgInvite) return
+    setOrgInviteLoading(true)
+    fetch(`/api/team/org/invite?token=${encodeURIComponent(tokenParam)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.valid) {
+          setOrgInviteInfo(data)
+          setRole('manager')
+          if (data.companyName) setCompanyName(data.companyName)
+          if (data.orgCode) setJoinOrgCode(data.orgCode)
+          if (data.type === 'team_manager' && data.segment) {
+            setSegment(data.segment)
+          }
+        } else {
+          setError(data.error || "Lien d'invitation invalide ou expiré.")
+        }
+      })
+      .catch(() => {
+        setError("Erreur lors de la vérification de l'invitation.")
+      })
+      .finally(() => {
+        setOrgInviteLoading(false)
+      })
+  }, [tokenParam, isOrgInvite])
 
   // Vérifier et appliquer le jeton de dérogation si présent
   useEffect(() => {
@@ -232,6 +274,11 @@ export function RegisterForm() {
       return
     }
 
+    if (role === 'manager' && orgInviteInfo?.type === 'senior_manager' && !segment.trim()) {
+      setError('Veuillez renseigner le segment commercial de votre direction.')
+      return
+    }
+
     setLoading(true)
     try {
       const trimmedPhone = phone.trim()
@@ -248,10 +295,13 @@ export function RegisterForm() {
         phone: formattedPhone,
         companyName: companyName.trim()
           ? companyName.trim()
-          : joinOrgInfo?.companyName || undefined,
+          : orgInviteInfo?.companyName || joinOrgInfo?.companyName || undefined,
         sector: sector || joinOrgInfo?.sector || undefined,
+        segment: segment.trim() ? segment.trim() : (orgInviteInfo?.segment || sector || undefined),
         niu: role === 'manager' && niu.trim() ? niu.trim() : undefined,
-        joinOrgCode: role === 'manager' && joinOrgCode.trim() ? joinOrgCode.trim() : undefined
+        joinOrgCode: role === 'manager' && !orgInviteInfo && joinOrgCode.trim() ? joinOrgCode.trim() : undefined,
+        inviteToken: orgInviteInfo ? tokenParam || undefined : undefined,
+        inviteType: orgInviteInfo ? orgInviteInfo.type : undefined
       })
 
       // Marquer le jeton de dérogation comme consommé
@@ -294,7 +344,11 @@ export function RegisterForm() {
       <div className="mb-5 text-center">
         <ScIcon size={44} interactive style={{ marginBottom: 12 }} />
         <h1 className="mb-1.5 mt-0 font-['Syne',sans-serif] text-[21px] font-extrabold tracking-[-0.03em] text-foreground">
-          {t('auth.registerTitle')}
+          {orgInviteInfo
+            ? orgInviteInfo.type === 'senior_manager'
+              ? 'Rejoindre en tant que Senior Manager'
+              : "Rejoindre l'équipe Manager"
+            : t('auth.registerTitle')}
         </h1>
         <p className="m-0 text-[12.5px] text-muted-foreground">
           {step === 1 ? t('auth.step1Subtitle') : t('auth.step2Subtitle')}
@@ -315,8 +369,31 @@ export function RegisterForm() {
         </div>
       </div>
 
+      {/* Bannière Invitation Organisation (Multi-SM / Team Manager) */}
+      {orgInviteInfo && (
+        <div className="mb-5 rounded-xl border border-indigo-500/30 bg-indigo-500/10 p-3.5 text-xs text-indigo-300 flex items-start gap-2.5">
+          <ShieldCheck size={18} className="text-indigo-400 shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <div className="font-semibold text-indigo-300 text-[12.5px]">
+              {orgInviteInfo.type === 'senior_manager'
+                ? 'Invitation Senior Manager — Nouveau Segment'
+                : 'Invitation Team Manager'}
+            </div>
+            <div className="text-[11.5px] text-indigo-200/80 mt-1 leading-relaxed">
+              Organisation : <strong>{orgInviteInfo.companyName}</strong> (Code : {orgInviteInfo.orgCode})
+              {orgInviteInfo.seniorManagerName && (
+                <div>Invité par : <strong>{orgInviteInfo.seniorManagerName}</strong></div>
+              )}
+              {orgInviteInfo.type === 'team_manager' && orgInviteInfo.segment && (
+                <div>Segment rattaché : <strong>{orgInviteInfo.segment}</strong></div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Dérogation autorisée par l'admin */}
-      {exemptionValid && (
+      {exemptionValid && !orgInviteInfo && (
         <div className="mb-5 rounded-xl border border-blue-500/30 bg-blue-500/10 p-3 text-xs text-blue-300 flex items-start gap-2.5">
           <ShieldCheck size={18} className="text-blue-400 shrink-0 mt-0.5" />
           <div>
@@ -483,46 +560,60 @@ export function RegisterForm() {
       {step === 2 && (
         <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-col gap-4">
           {/* Type de compte */}
-          <FormField label={t('auth.accountType')}>
-            <div className="grid grid-cols-2 gap-2">
-              {roleOptions.map((opt) => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => setRole(opt.value)}
-                  className={`rounded-[10px] border px-3.5 py-3 text-left transition-all duration-200 ${
-                    role === opt.value
-                      ? 'border-blue-500/50 bg-blue-500/10'
-                      : 'border-border bg-white/[0.03] hover:bg-white/[0.06]'
-                  }`}
-                >
-                  <div
-                    className={`text-[13px] font-semibold ${role === opt.value ? 'text-blue-400' : 'text-foreground'}`}
+          {!orgInviteInfo ? (
+            <FormField label={t('auth.accountType')}>
+              <div className="grid grid-cols-2 gap-2">
+                {roleOptions.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setRole(opt.value)}
+                    className={`rounded-[10px] border px-3.5 py-3 text-left transition-all duration-200 ${
+                      role === opt.value
+                        ? 'border-blue-500/50 bg-blue-500/10'
+                        : 'border-border bg-white/[0.03] hover:bg-white/[0.06]'
+                    }`}
                   >
-                    {opt.label}
-                  </div>
-                  <div className="mt-0.5 text-[11px] text-muted-foreground">{opt.desc}</div>
-                </button>
-              ))}
+                    <div
+                      className={`text-[13px] font-semibold ${role === opt.value ? 'text-blue-400' : 'text-foreground'}`}
+                    >
+                      {opt.label}
+                    </div>
+                    <div className="mt-0.5 text-[11px] text-muted-foreground">{opt.desc}</div>
+                  </button>
+                ))}
+              </div>
+
+              {role === 'manager' && (
+                <p className="mt-2 flex items-center gap-1.5 text-[11px] text-muted-foreground/80">
+                  <HelpCircle size={12} className="shrink-0 text-primary" />
+                  <span>
+                    {t('auth.noCorporateEmailContactSupport')}{' '}
+                    <Link
+                      href={`${routes.support}?type=corporate_domain${email.trim() ? `&email=${encodeURIComponent(email.trim())}` : ''}${name.trim() ? `&name=${encodeURIComponent(name.trim())}` : ''}${companyName.trim() ? `&company=${encodeURIComponent(companyName.trim())}` : ''}${sector.trim() ? `&sector=${encodeURIComponent(sector.trim())}` : ''}`}
+                      className="font-semibold text-primary underline underline-offset-2"
+                    >
+                      {t('sidebar.support')}
+                    </Link>
+                  </span>
+                </p>
+              )}
+            </FormField>
+          ) : (
+            <div className="rounded-xl border border-border bg-secondary/30 p-3.5 flex items-center justify-between">
+              <div>
+                <span className="text-[11px] uppercase tracking-wider font-bold text-muted-foreground">Rôle assigné</span>
+                <div className="text-[14px] font-bold text-foreground mt-0.5">
+                  {orgInviteInfo.type === 'senior_manager' ? '👔 Senior Manager' : "🧑‍💼 Team Manager"}
+                </div>
+              </div>
+              <span className="text-[11.5px] font-semibold bg-primary/15 text-primary px-2.5 py-1 rounded-md">
+                Invitation validée
+              </span>
             </div>
+          )}
 
-            {role === 'manager' && (
-              <p className="mt-2 flex items-center gap-1.5 text-[11px] text-muted-foreground/80">
-                <HelpCircle size={12} className="shrink-0 text-primary" />
-                <span>
-                  {t('auth.noCorporateEmailContactSupport')}{' '}
-                  <Link
-                    href={`${routes.support}?type=corporate_domain${email.trim() ? `&email=${encodeURIComponent(email.trim())}` : ''}${name.trim() ? `&name=${encodeURIComponent(name.trim())}` : ''}${companyName.trim() ? `&company=${encodeURIComponent(companyName.trim())}` : ''}${sector.trim() ? `&sector=${encodeURIComponent(sector.trim())}` : ''}`}
-                    className="font-semibold text-primary underline underline-offset-2"
-                  >
-                    {t('sidebar.support')}
-                  </Link>
-                </span>
-              </p>
-            )}
-          </FormField>
-
-          {/* Nom entreprise (Requis pour Manager, optionnel pour Indépendant) */}
+          {/* Nom entreprise */}
           <FormField
             label={t('auth.companyName')}
             required={role === 'manager'}
@@ -537,7 +628,9 @@ export function RegisterForm() {
                     : 'Ex: Acme Corp (optionnel)'
               }
               value={companyName}
+              readOnly={Boolean(orgInviteInfo)}
               onChange={(e) => setCompanyName(e.target.value)}
+              className={orgInviteInfo ? 'bg-muted/40 cursor-not-allowed opacity-90' : ''}
             />
           </FormField>
 
@@ -557,8 +650,36 @@ export function RegisterForm() {
             </select>
           </FormField>
 
+          {/* Segment Commercial (Multi-SM / Héritage TM / Choix libre SM) */}
+          {role === 'manager' && (
+            <FormField
+              label="Segment commercial"
+              required={Boolean(orgInviteInfo?.type === 'senior_manager')}
+              hint={
+                orgInviteInfo?.type === 'team_manager'
+                  ? 'Hérité automatiquement de votre Senior Manager'
+                  : orgInviteInfo?.type === 'senior_manager'
+                    ? "Indiquez la division / secteur que vous dirigez (ex: BTP, IT, Agro, Retail)"
+                    : "Optionnel — Segment ou division commerciale (ex: BTP, Tech, Services)"
+              }
+            >
+              <div className="relative">
+                <Input
+                  placeholder="Ex: BTP, Technologies, Grande Distribution…"
+                  value={segment}
+                  readOnly={Boolean(orgInviteInfo?.type === 'team_manager')}
+                  onChange={(e) => setSegment(e.target.value)}
+                  className={orgInviteInfo?.type === 'team_manager' ? 'bg-muted/40 cursor-not-allowed opacity-90 pl-8' : ''}
+                />
+                {orgInviteInfo?.type === 'team_manager' && (
+                  <Lock size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                )}
+              </div>
+            </FormField>
+          )}
+
           {/* Numéro d'Identification Unique (NIU strict - Manager only, optionnel) */}
-          {role === 'manager' && !joinOrgCode.trim() && (
+          {role === 'manager' && !joinOrgCode.trim() && !orgInviteInfo && (
             <FormField label={t('auth.niuLabel')} hint={t('auth.niuHint')}>
               <Input
                 placeholder={t('auth.niuPlaceholder')}
@@ -568,8 +689,8 @@ export function RegisterForm() {
             </FormField>
           )}
 
-          {/* Code ORG de rattachement (Manager only) */}
-          {role === 'manager' && (
+          {/* Code ORG de rattachement (Manager only, si non invité par token) */}
+          {role === 'manager' && !orgInviteInfo && (
             <FormField
               label={
                 lang === 'en'

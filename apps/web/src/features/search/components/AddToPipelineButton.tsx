@@ -47,6 +47,10 @@ export function AddToPipelineButton({ company }: Props) {
       companyPhone: company.telephone ?? null,
       companyEmail: company.email ?? null,
       managerUid: user.role === 'member' ? (user.managerUid ?? null) : user.uid,
+      orgCode: user.orgCode ?? null,
+      segment: user.segment ?? null,
+      seniorManagerUid:
+        user.seniorManagerUid ?? (user.orgRole === 'senior_manager' ? user.uid : null),
       assignedTo: isManager ? null : user.uid,
       memberName: isManager ? null : user.name || user.email,
       memberAccessId: isManager ? null : (user.accessId ?? null),

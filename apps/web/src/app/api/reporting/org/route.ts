@@ -56,18 +56,31 @@ export async function GET(request: NextRequest) {
       .where('role', '==', 'manager')
       .get()
 
-    const managerUids = managersSnap.docs.map((d) => d.id)
+    const callerSegment = callerData.segment || null
+    const filteredManagersDocs = callerSegment
+      ? managersSnap.docs.filter((d) => {
+          const mData = d.data()
+          return (
+            d.id === decoded.uid ||
+            mData.seniorManagerUid === decoded.uid ||
+            mData.segment === callerSegment
+          )
+        })
+      : managersSnap.docs
+
+    const managerUids = filteredManagersDocs.map((d) => d.id)
     const managersMap: Record<
       string,
-      { name: string; email: string; orgRole: string; isSenior: boolean }
+      { name: string; email: string; orgRole: string; isSenior: boolean; segment?: string | null }
     > = {}
-    managersSnap.docs.forEach((d) => {
+    filteredManagersDocs.forEach((d) => {
       const m = d.data()
       managersMap[d.id] = {
         name: m.displayName || m.name || m.email || d.id,
         email: m.email || '',
         orgRole: m.orgRole || 'team_manager',
-        isSenior: m.orgRole === 'senior_manager'
+        isSenior: m.orgRole === 'senior_manager',
+        segment: m.segment || null
       }
     })
 
@@ -96,6 +109,9 @@ export async function GET(request: NextRequest) {
           const data = d.data()
           // Strict multi-tenant guard: si la fiche a un orgCode explicite, il doit correspondre à celui de l'organisation
           if (data.orgCode && data.orgCode !== orgCode) {
+            return
+          }
+          if (callerSegment && data.segment && data.segment !== callerSegment) {
             return
           }
           allItems.push({ id: d.id, ...data, orgCode: data.orgCode || orgCode })

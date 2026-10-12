@@ -46,6 +46,8 @@ interface OrgManagerItem {
   email: string
   phone?: string | null
   orgRole: string
+  segment?: string | null
+  seniorManagerUid?: string | null
   isCurrent: boolean
   isSenior: boolean
   createdAt?: string | null
@@ -55,6 +57,8 @@ interface OrgData {
   orgCode: string
   orgRole: 'senior_manager' | 'team_manager'
   isSeniorManager: boolean
+  segment?: string | null
+  seniorManagerUid?: string | null
   niu: string | null
   isVerified: boolean
   companyName: string
@@ -75,9 +79,16 @@ export function OrgGovernanceTab() {
   const [niuError, setNiuError] = useState<string | null>(null)
   const [niuSuccess, setNiuSuccess] = useState<string | null>(null)
 
+  // Segment commercial
+  const [segmentInput, setSegmentInput] = useState('')
+  const [editingSegment, setEditingSegment] = useState(false)
+  const [segmentSaving, setSegmentSaving] = useState(false)
+
   // Copy code & invite
   const [copiedCode, setCopiedCode] = useState(false)
-  const [copiedInvite, setCopiedInvite] = useState(false)
+  const [copiedTmInvite, setCopiedTmInvite] = useState(false)
+  const [copiedSmInvite, setCopiedSmInvite] = useState(false)
+  const [generatingInvite, setGeneratingInvite] = useState<'tm' | 'sm' | null>(null)
 
   // Prospect selection & transfer tool
   const [seniorProspects, setSeniorProspects] = useState<SeniorProspect[]>([])
@@ -128,6 +139,8 @@ export function OrgGovernanceTab() {
       if (data && !data.error) {
         setOrgData(data)
         if (data.niu) setNiuInput(data.niu)
+        if (data.segment) setSegmentInput(data.segment)
+        else if (user?.segment) setSegmentInput(user.segment)
         // Débogage : si l'API signale une erreur de chargement des managers, logger en console
         if (data._managersLoadError) {
           console.error(
@@ -163,14 +176,85 @@ export function OrgGovernanceTab() {
     pushToast({ type: 'success', title: 'Code organisation copié dans le presse-papiers' })
   }
 
-  const copyInviteLink = async () => {
-    const code = orgData?.orgCode || user?.orgCode
-    if (!code) return
-    const link = `${window.location.origin}/register?role=manager&org=${code}`
-    await navigator.clipboard.writeText(link)
-    setCopiedInvite(true)
-    setTimeout(() => setCopiedInvite(false), 2000)
-    pushToast({ type: 'success', title: "Lien d'invitation copié" })
+  const generateAndCopyTmInvite = async () => {
+    setGeneratingInvite('tm')
+    try {
+      const token = await user?.getIdToken()
+      const res = await fetch('/api/team/org/invite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ type: 'team_manager' })
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Erreur génération lien')
+      await navigator.clipboard.writeText(data.inviteUrl)
+      setCopiedTmInvite(true)
+      setTimeout(() => setCopiedTmInvite(false), 2500)
+      pushToast({
+        type: 'success',
+        title: "Lien d'invitation Team Manager copié !",
+        description: `Le manager rejoindra le segment "${data.segment || 'Principal'}".`
+      })
+    } catch (err: any) {
+      pushToast({
+        type: 'error',
+        title: "Erreur d'invitation",
+        description: err.message || 'Impossible de créer le lien'
+      })
+    } finally {
+      setGeneratingInvite(null)
+    }
+  }
+
+  const generateAndCopySmInvite = async () => {
+    setGeneratingInvite('sm')
+    try {
+      const token = await user?.getIdToken()
+      const res = await fetch('/api/team/org/invite-sm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Erreur génération lien Senior Manager')
+      await navigator.clipboard.writeText(data.inviteUrl)
+      setCopiedSmInvite(true)
+      setTimeout(() => setCopiedSmInvite(false), 2500)
+      pushToast({
+        type: 'success',
+        title: "Lien d'invitation Senior Manager copié !",
+        description: "L'invité renseignera son segment commercial lors de son inscription."
+      })
+    } catch (err: any) {
+      pushToast({
+        type: 'error',
+        title: "Erreur d'invitation",
+        description: err.message || 'Impossible de créer le lien'
+      })
+    } finally {
+      setGeneratingInvite(null)
+    }
+  }
+
+  const handleUpdateSegment = async () => {
+    if (!segmentInput.trim()) return
+    setSegmentSaving(true)
+    try {
+      const token = await user?.getIdToken()
+      const res = await fetch('/api/team/org', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ segment: segmentInput.trim() })
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Erreur lors de la mise à jour')
+      setOrgData(data)
+      setEditingSegment(false)
+      pushToast({ type: 'success', title: 'Segment commercial mis à jour !' })
+    } catch (err: any) {
+      pushToast({ type: 'error', title: err.message || 'Erreur mise à jour segment' })
+    } finally {
+      setSegmentSaving(false)
+    }
   }
 
   const handleUpdateNiu = async (e: React.FormEvent) => {
@@ -339,9 +423,66 @@ export function OrgGovernanceTab() {
             </div>
           </div>
 
-          {/* Code Organisation unique + Partage */}
-          <div className="rounded-xl border border-border bg-secondary/30 p-4">
+          {/* Segment Commercial Actuel & Édition */}
+          <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
             <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <div className="text-[12px] font-semibold text-muted-foreground flex items-center gap-1.5">
+                  <span>🏷️</span> Votre Segment Commercial Actuel
+                </div>
+                {!editingSegment ? (
+                  <div className="mt-1 flex items-center gap-2">
+                    <span className="text-[16px] font-bold text-foreground">
+                      {orgData?.segment || user?.segment || 'Principal'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSegmentInput(orgData?.segment || user?.segment || '')
+                        setEditingSegment(true)
+                      }}
+                      className="ml-2 text-[12px] text-primary hover:underline font-semibold cursor-pointer"
+                    >
+                      Modifier
+                    </button>
+                  </div>
+                ) : (
+                  <div className="mt-2 flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={segmentInput}
+                      onChange={(e) => setSegmentInput(e.target.value)}
+                      placeholder="Ex: BTP, Technologies, Agroalimentaire…"
+                      className="h-8 rounded-lg border border-border bg-card px-2.5 text-[13px] text-foreground focus:border-primary focus:outline-none"
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="primary"
+                      loading={segmentSaving}
+                      onClick={() => void handleUpdateSegment()}
+                    >
+                      Enregistrer
+                    </Button>
+                    <button
+                      type="button"
+                      onClick={() => setEditingSegment(false)}
+                      className="text-[12px] text-muted-foreground hover:text-foreground cursor-pointer px-2"
+                    >
+                      Annuler
+                    </button>
+                  </div>
+                )}
+              </div>
+              <p className="m-0 text-[11.5px] text-muted-foreground max-w-sm">
+                Vos Team Managers et commerciaux rattachés hériteront automatiquement de ce segment.
+              </p>
+            </div>
+          </div>
+
+          {/* Code Organisation unique + Actions d'invitation */}
+          <div className="rounded-xl border border-border bg-secondary/30 p-5 flex flex-col gap-4">
+            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border/50 pb-4">
               <div>
                 <div className="text-[12px] font-semibold text-muted-foreground">
                   Code Organisation Unique (ORG Code)
@@ -360,25 +501,67 @@ export function OrgGovernanceTab() {
                     ) : (
                       <Copy size={13} />
                     )}
-                    {copiedCode ? 'Copié !' : 'Copier'}
+                    {copiedCode ? 'Copié !' : 'Copier le code'}
                   </button>
                 </div>
               </div>
+              <div className="text-[11.5px] text-muted-foreground max-w-xs">
+                Code maître de l&apos;entreprise pour rattacher les managers et unifier les équipes.
+              </div>
+            </div>
 
-              {/* Bouton d'invitation Manager */}
-              <div className="flex flex-col gap-1.5">
+            {/* Deux boutons d'invitations distincts */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
+              {/* 1. Inviter un Team Manager dans mon segment */}
+              <div className="flex flex-col justify-between rounded-xl border border-border bg-card/60 p-4">
+                <div>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-bold text-[13.5px] text-foreground flex items-center gap-1.5">
+                      🧑‍💼 Team Manager
+                    </span>
+                    <span className="text-[11px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-md">
+                      Segment : {orgData?.segment || user?.segment || 'Principal'}
+                    </span>
+                  </div>
+                  <p className="mt-1.5 text-[11.5px] text-muted-foreground leading-relaxed">
+                    Génère un lien personnalisé pour intégrer un Team Manager sous votre tutelle. Il héritera automatiquement de votre segment.
+                  </p>
+                </div>
                 <button
                   type="button"
-                  onClick={() => void copyInviteLink()}
-                  className="inline-flex items-center gap-2 rounded-lg border border-primary/40 bg-primary/15 px-3.5 py-1.5 text-[12.5px] font-semibold text-primary transition-colors hover:bg-primary/25"
+                  onClick={() => void generateAndCopyTmInvite()}
+                  disabled={generatingInvite === 'tm'}
+                  className="mt-3 inline-flex items-center justify-center gap-2 rounded-lg border border-primary/40 bg-primary/15 px-3 py-2 text-[12.5px] font-semibold text-primary transition-colors hover:bg-primary/25 cursor-pointer disabled:opacity-50"
                 >
-                  {copiedInvite ? <Check size={14} /> : <span>🔗</span>}
-                  {copiedInvite ? 'Lien copié !' : "Copier le lien d'invitation Team Manager"}
+                  {copiedTmInvite ? <Check size={14} className="text-green-400" /> : <span>🔗</span>}
+                  {copiedTmInvite ? 'Lien copié !' : generatingInvite === 'tm' ? 'Génération…' : "Copier le lien Team Manager"}
                 </button>
-                <p className="text-[11px] text-muted-foreground">
-                  Partagez ce lien à vos managers d&apos;équipe pour qu&apos;ils rejoignent
-                  directement l&apos;organisation.
-                </p>
+              </div>
+
+              {/* 2. Inviter un Senior Manager pour un nouveau segment */}
+              <div className="flex flex-col justify-between rounded-xl border border-border bg-card/60 p-4">
+                <div>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-bold text-[13.5px] text-foreground flex items-center gap-1.5">
+                      👔 Senior Manager
+                    </span>
+                    <span className="text-[11px] font-semibold text-violet-400 bg-violet-500/10 px-2 py-0.5 rounded-md">
+                      Nouveau Segment Libre
+                    </span>
+                  </div>
+                  <p className="mt-1.5 text-[11.5px] text-muted-foreground leading-relaxed">
+                    Permet à un autre dirigeant de rejoindre l&apos;organisation pour piloter une nouvelle division (ex: Direction Technique, BTP, etc.).
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => void generateAndCopySmInvite()}
+                  disabled={generatingInvite === 'sm'}
+                  className="mt-3 inline-flex items-center justify-center gap-2 rounded-lg border border-violet-500/40 bg-violet-500/15 px-3 py-2 text-[12.5px] font-semibold text-violet-300 transition-colors hover:bg-violet-500/25 cursor-pointer disabled:opacity-50"
+                >
+                  {copiedSmInvite ? <Check size={14} className="text-green-400" /> : <span>★</span>}
+                  {copiedSmInvite ? 'Lien copié !' : generatingInvite === 'sm' ? 'Génération…' : "Copier le lien Senior Manager"}
+                </button>
               </div>
             </div>
           </div>

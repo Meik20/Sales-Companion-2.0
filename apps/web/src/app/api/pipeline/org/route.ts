@@ -71,13 +71,28 @@ export async function GET(request: NextRequest) {
       .where('role', '==', 'manager')
       .get()
 
-    const orgManagerUids = orgManagersSnap.docs.map((d) => d.id)
-    const managersMap: Record<string, { name: string; orgRole: string }> = {}
-    orgManagersSnap.docs.forEach((d) => {
+    const callerSegment = callerData.segment || null
+
+    // Filtrer les managers de l'organisation selon le segment du Senior Manager appelant
+    const filteredManagersDocs = callerSegment
+      ? orgManagersSnap.docs.filter((d) => {
+          const mData = d.data()
+          return (
+            d.id === callerUid ||
+            mData.seniorManagerUid === callerUid ||
+            mData.segment === callerSegment
+          )
+        })
+      : orgManagersSnap.docs
+
+    const orgManagerUids = filteredManagersDocs.map((d) => d.id)
+    const managersMap: Record<string, { name: string; orgRole: string; segment?: string | null }> = {}
+    filteredManagersDocs.forEach((d) => {
       const data = d.data()
       managersMap[d.id] = {
         name: data.displayName || data.name || data.email || d.id,
-        orgRole: data.orgRole || 'team_manager'
+        orgRole: data.orgRole || 'team_manager',
+        segment: data.segment || null
       }
     })
 
@@ -144,6 +159,9 @@ export async function GET(request: NextRequest) {
           const data = d.data()
           // Strict multi-tenant guard: si la fiche a un orgCode explicite, il doit correspondre à celui de l'organisation
           if (data.orgCode && data.orgCode !== orgCode) {
+            return
+          }
+          if (callerSegment && data.segment && data.segment !== callerSegment) {
             return
           }
           seen.add(d.id)

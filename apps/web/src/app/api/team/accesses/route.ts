@@ -86,6 +86,10 @@ export async function POST(request: NextRequest) {
       managerUid,
       managerEmail: managerData?.email || null,
       orgCode: managerOrgCode,
+      segment: managerData?.segment || null,
+      seniorManagerUid:
+        managerData?.seniorManagerUid ||
+        (managerData?.orgRole === 'senior_manager' ? managerUid : null),
       niu: managerData?.niu || null,
       accessId,
       firstname,

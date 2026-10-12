@@ -59,7 +59,7 @@ service cloud.firestore {
         // FIX P0: orgRole NE DOIT PAS être écrit à la création par le client.
         // Ce champ est exclusivement attribué par l'Admin SDK post-inscription (via /api/team/org).
         // Sans cette protection, un utilisateur peut se déclarer 'senior_manager' à l'inscription.
-        && !(request.resource.data.keys().hasAny(['orgRole']))
+        && !(request.resource.data.keys().hasAny(['orgRole', 'seniorManagerUid']))
         // Activation : JAMAIS active/activated = true à la création (géré par API)
         && request.resource.data.get('active', false) == false
         && request.resource.data.get('activated', false) == false
@@ -71,6 +71,7 @@ service cloud.firestore {
         // ── Protection cross-tenant (P0) ─────────────────────────────────────
         && !('linkedManagerUids' in request.resource.data)
         && !('managerUid' in request.resource.data)
+        && !('seniorManagerUid' in request.resource.data)
         && !('managerEmail' in request.resource.data)
         && !('orgCode' in request.resource.data)
       );
@@ -90,6 +91,8 @@ service cloud.firestore {
               'emailVerified',
               'orgRole',
               'orgCode',
+              'segment',
+              'seniorManagerUid',
               'managerUid',
               'managerEmail',
               'linkedManagerUids',
@@ -173,8 +176,10 @@ service cloud.firestore {
               .hasAny([
                 'userId',
                 'managerUid',
+                'seniorManagerUid',
                 'assignedTo',
                 'orgCode',
+                'segment',
                 'memberAccessId',
                 'sourceProspectId',
                 'assignedBy',
@@ -186,12 +191,19 @@ service cloud.firestore {
           // Le manager peut réassigner mais ne peut pas changer le propriétaire ni l'orgCode
           && request.resource.data.userId == resource.data.userId
           && !request.resource.data.diff(resource.data).affectedKeys()
-              .hasAny(['managerUid', 'orgCode', 'sourceProspectId', 'importedBy'])
+              .hasAny(['managerUid', 'seniorManagerUid', 'orgCode', 'segment', 'sourceProspectId', 'importedBy'])
         );
         
       allow delete: if isAdmin()
         || (isSignedIn() && resource.data.userId == authUid() && !isSupportAgent())
         || isManagedUser(resource.data.managerUid);
+    }
+
+    match /orgInvites/{inviteId} {
+      // Lecture autorisée pour pré-remplissage du formulaire d'inscription
+      allow read: if true;
+      // Écriture réservée strictement à l'Admin SDK
+      allow write: if false;
     }
 
     match /saved_searches/{savedSearchId} {

@@ -25,6 +25,8 @@ interface OrgManager {
   email: string
   phone?: string | null
   orgRole: string
+  segment?: string | null
+  seniorManagerUid?: string | null
   isCurrent: boolean
   isSenior: boolean
   createdAt?: string | null
@@ -154,6 +156,24 @@ function ManagerCard({ manager, orgStats }: { manager: OrgManager; orgStats?: Or
             </span>
             {manager.isSenior && <Badge variant="info">Senior Manager</Badge>}
             {!manager.isSenior && <Badge variant="default">Team Manager</Badge>}
+            {manager.segment && (
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  borderRadius: 6,
+                  background: 'rgba(99, 102, 241, 0.12)',
+                  border: '1px solid rgba(99, 102, 241, 0.25)',
+                  padding: '2px 8px',
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: 'var(--primary, #6366f1)'
+                }}
+              >
+                🏷️ {manager.segment}
+              </span>
+            )}
             {manager.isCurrent && (
               <span style={{ fontSize: 11, color: 'var(--muted-foreground)', fontStyle: 'italic' }}>
                 (vous)

@@ -281,6 +281,9 @@ export async function POST(request: NextRequest) {
             active: true,
             activated: true,
             emailVerified: true,
+            orgCode: data.orgCode ?? null,
+            segment: data.segment ?? null,
+            seniorManagerUid: data.seniorManagerUid ?? null,
             company: data.company ?? null,
             sector: data.sector ?? null,
             region: data.region ?? null,
@@ -322,7 +325,11 @@ export async function POST(request: NextRequest) {
     }
 
     // ── 3.5. SET CUSTOM CLAIMS for Firestore rules ──────────────────────────
-    await adminAuth.setCustomUserClaims(uid, { role: userRole })
+    await adminAuth.setCustomUserClaims(uid, {
+      role: userRole,
+      orgCode: data.orgCode ?? null,
+      segment: data.segment ?? null
+    })
 
     // Activation successful — no sensitive log in production
 

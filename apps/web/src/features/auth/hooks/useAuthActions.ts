@@ -28,6 +28,9 @@ type RegisterInput = {
   niu?: string
   orgCode?: string
   joinOrgCode?: string // Code ORG fourni par un Senior Manager pour rejoindre son organisation
+  segment?: string // Segment commercial (ex: "BTP", "Tech")
+  inviteToken?: string // Jeton sécurisé d'invitation Team Manager ou Senior Manager
+  inviteType?: 'senior_manager' | 'team_manager'
 }
 
 /** Upsert the Firestore user document after any Google sign-in */
@@ -65,8 +68,9 @@ export function useAuthActions() {
       await updateProfile(user, { displayName: input.name })
 
       const isManager = (input.role || 'independent') === 'manager'
-      // Si un code ORG de rattachement est fourni → Team Manager, sinon Senior Manager (premier de l'org)
-      const joiningExistingOrg = isManager && Boolean(input.joinOrgCode?.trim())
+      const hasInviteToken = Boolean(input.inviteToken?.trim())
+      const joiningExistingOrg =
+        isManager && (Boolean(input.joinOrgCode?.trim()) || hasInviteToken)
       const niu = input.niu ? normalizeNiu(input.niu) : null
 
       // Save user profile data to Firestore
@@ -81,6 +85,7 @@ export function useAuthActions() {
           country: input.country || 'CM',
           phone: input.phone || null,
           sector: input.sector || null,
+          segment: input.segment?.trim() || null,
           plan: 'free',
           dailyLimit: 10,
           dailyUsed: 0,
@@ -112,7 +117,13 @@ export function useAuthActions() {
             ...(joiningExistingOrg ? { 'Content-Type': 'application/json' } : {})
           },
           ...(joiningExistingOrg
-            ? { body: JSON.stringify({ joinOrgCode: input.joinOrgCode?.trim() }) }
+            ? {
+                body: JSON.stringify({
+                  joinOrgCode: input.joinOrgCode?.trim() || undefined,
+                  inviteToken: input.inviteToken?.trim() || undefined,
+                  segment: input.segment?.trim() || undefined
+                })
+              }
             : {})
         })
         if (!response.ok) throw new Error("Impossible d'initialiser l'organisation du compte.")

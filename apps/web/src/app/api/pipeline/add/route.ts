@@ -173,6 +173,10 @@ export async function POST(request: NextRequest) {
       userId,
       managerUid: managerUid ?? null,
       orgCode: callerData.orgCode ?? null,
+      segment: callerData.segment ?? null,
+      seniorManagerUid:
+        callerData.seniorManagerUid ||
+        (callerData.orgRole === 'senior_manager' ? userId : null),
       assignedTo: finalAssignedTo,
       memberName: finalMemberName,
       memberAccessId: isManagerRole ? null : (memberAccessId ?? null),
