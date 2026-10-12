@@ -999,7 +999,7 @@ function TargetsPanel({ members }: { members?: Member[] }) {
           {/* Volume + Valeur */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <div>
-              <label style={labelStyle}>Objectif Volume (nbre de prospects)</label>
+              <label style={labelStyle}>Objectif Volume (nbre de leads)</label>
               <input
                 type="number"
                 min={0}
@@ -1723,13 +1723,15 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
               outline: 'none'
             }}
           >
-            <option value="all">👥 Toute l'équipe ({items.length} prospects)</option>
+            <option value="all">
+              👥 Toute l'équipe ({items.length} {items.length > 1 ? 'leads' : 'lead'})
+            </option>
             {unassignedCount > 0 && (
               <option value="unassigned">📥 Non assignés ({unassignedCount})</option>
             )}
             {memberSummaries.map((m) => (
               <option key={m.uid} value={m.uid}>
-                👤 {m.name} ({m.totalCount} prospect{m.totalCount > 1 ? 's' : ''}
+                👤 {m.name} ({m.totalCount} {m.totalCount > 1 ? 'leads' : 'lead'}
                 {m.overdueCount > 0 ? ` · ⚠️ ${m.overdueCount} en retard` : ''})
               </option>
             ))}
@@ -1864,7 +1866,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                     color: 'var(--muted-foreground, #94a3b8)'
                   }}
                 >
-                  prospects
+                  {activeMemberSummary.totalCount > 1 ? 'leads' : 'lead'}
                 </span>
               </div>
               <div
