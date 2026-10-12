@@ -412,8 +412,7 @@ function MemberPerformanceModal({ member, onClose }: { member: MemberStat; onClo
                 <div
                   style={{ fontSize: 12, color: 'var(--muted-foreground, #94a3b8)', marginTop: 2 }}
                 >
-                  {member.accessId ? `Identifiant : ${member.accessId}` : 'Commercial'} ·{' '}
-                  {member.total} opportunités
+                  Commercial · {member.total} opportunité{member.total > 1 ? 's' : ''}
                 </div>
               </div>
             </div>
@@ -852,11 +851,6 @@ function Leaderboard({ members }: { members: MemberStat[] }) {
                   >
                     {member.name}
                   </span>
-                  {member.accessId && (
-                    <span style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)' }}>
-                      ({member.accessId})
-                    </span>
-                  )}
                   {member.overdueFollowUps > 0 && (
                     <span
                       style={{

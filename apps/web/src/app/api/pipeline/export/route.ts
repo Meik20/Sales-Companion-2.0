@@ -548,6 +548,21 @@ export async function GET(request: NextRequest) {
     // ── Filters ──────────────────────────────────────────────────────────────
     let filtered = allItems
 
+    // Le Team Manager n'étant pas lui-même membre opérationnel de son équipe, il ne doit pas figurer sur le rapport de performance.
+    // Les prospects non encore assignés par lui dans le pipeline ne lui sont pas attribués : ils y sont en attente d'assignation
+    // et ne doivent pas figurer dans le rapport de performance de l'équipe.
+    filtered = filtered.filter((i) => {
+      if (!i.assignedTo) return false
+      if (
+        i.assignedTo === managerUid ||
+        orgManagerUids.includes(i.assignedTo) ||
+        i.assignedTo === '__manager__'
+      ) {
+        return false
+      }
+      return true
+    })
+
     if (memberId) filtered = filtered.filter((i) => i.assignedTo === memberId)
 
     if (fromDate) {
@@ -577,7 +592,6 @@ export async function GET(request: NextRequest) {
     type MemberStat = {
       uid: string
       memberName: string
-      memberAccessId: string
       total: number
       prospection: number
       negociation: number
@@ -591,31 +605,59 @@ export async function GET(request: NextRequest) {
 
     const byMember: Record<string, MemberStat> = {}
 
+    // Pré-remplir avec les membres opérationnels connus de l'équipe
+    if (memberId) {
+      const m = membersMap.get(memberId)
+      if (m && memberId !== managerUid && !orgManagerUids.includes(memberId)) {
+        const tgt = targetsMap.get(memberId)
+        byMember[memberId] = {
+          uid: memberId,
+          memberName: m.name,
+          total: 0,
+          prospection: 0,
+          negociation: 0,
+          conclue: 0,
+          conversionRate: 0,
+          revenue: 0,
+          targetVolume: tgt?.targetVolume ?? null,
+          targetValue: tgt?.targetValue ?? null,
+          period: formatPeriod(tgt?.period ?? null, fromDate, toDate)
+        }
+      }
+    } else {
+      membersMap.forEach((m, uid) => {
+        if (uid === managerUid || orgManagerUids.includes(uid)) return
+        const tgt = targetsMap.get(uid)
+        byMember[uid] = {
+          uid,
+          memberName: m.name,
+          total: 0,
+          prospection: 0,
+          negociation: 0,
+          conclue: 0,
+          conversionRate: 0,
+          revenue: 0,
+          targetVolume: tgt?.targetVolume ?? null,
+          targetValue: tgt?.targetValue ?? null,
+          period: formatPeriod(tgt?.period ?? null, fromDate, toDate)
+        }
+      })
+    }
+
     for (const item of filtered) {
-      const uid = item.assignedTo ?? '__manager__'
+      const uid = item.assignedTo!
 
       let name = item.memberName
-      // Prioriser memberAccessId du doc pipeline s'il a le bon format (contient '@')
-      // Sinon, chercher dans membersMap
-      let id = item.memberAccessId && item.memberAccessId.includes('@') ? item.memberAccessId : ''
-
-      if (!name || !id) {
-        if (uid !== '__manager__' && uid !== managerUid) {
-          const m = membersMap.get(uid)
-          name = name || m?.name || uid
-          if (!id) id = m?.accessId || ''
-        } else {
-          name = 'Manager'
-          id = ''
-        }
+      if (!name) {
+        const m = membersMap.get(uid)
+        name = m?.name || uid
       }
 
       if (!byMember[uid]) {
-        const tgt = uid !== '__manager__' ? targetsMap.get(uid) : null
+        const tgt = targetsMap.get(uid)
         byMember[uid] = {
           uid,
           memberName: name ?? '',
-          memberAccessId: id ?? '',
           total: 0,
           prospection: 0,
           negociation: 0,
@@ -646,13 +688,22 @@ export async function GET(request: NextRequest) {
       stat.conversionRate = stat.total > 0 ? Math.round((stat.conclue / stat.total) * 100) : 0
     }
 
-    // ── Objectif Global du pipeline (tous membres) ────────────────────────────
+    // ── Objectif Global du pipeline (membres opérationnels) ───────────────────
     let globalTargetVolume: number | null = null
     let globalTargetValue: number | null = null
-    targetsMap.forEach((t) => {
-      if (t.targetVolume != null) globalTargetVolume = (globalTargetVolume ?? 0) + t.targetVolume
-      if (t.targetValue != null) globalTargetValue = (globalTargetValue ?? 0) + t.targetValue
-    })
+    if (memberId) {
+      const t = targetsMap.get(memberId)
+      if (t) {
+        globalTargetVolume = t.targetVolume
+        globalTargetValue = t.targetValue
+      }
+    } else {
+      targetsMap.forEach((t, mid) => {
+        if (mid === managerUid || orgManagerUids.includes(mid)) return
+        if (t.targetVolume != null) globalTargetVolume = (globalTargetVolume ?? 0) + t.targetVolume
+        if (t.targetValue != null) globalTargetValue = (globalTargetValue ?? 0) + t.targetValue
+      })
+    }
 
     const totalRealizedVolume = Object.values(byMember).reduce((acc, s) => acc + s.conclue, 0)
     const totalRealizedValue = Object.values(byMember).reduce((acc, s) => acc + s.revenue, 0)
@@ -685,11 +736,10 @@ export async function GET(request: NextRequest) {
 
     const headerFont = { name: 'Calibri', bold: true, size: 11, color: { argb: COLOR_HEADER_FG } }
     const cellFont = { name: 'Calibri', size: 10 }
-    const boldFont = { name: 'Calibri', bold: true, size: 10 }
     const globalFont = { name: 'Calibri', bold: true, size: 11, color: { argb: COLOR_GLOBAL_FG } }
 
-    // Titre du rapport
-    summarySheet.mergeCells('A1:N1')
+    // Titre du rapport (13 colonnes : A1:M1)
+    summarySheet.mergeCells('A1:M1')
     const titleCell = summarySheet.getCell('A1')
     titleCell.value = `📊 RAPPORT DE PERFORMANCE — PIPELINE ${exportScopeLabel}`
     titleCell.font = { name: 'Calibri', bold: true, size: 14, color: { argb: COLOR_HEADER_FG } }
@@ -697,8 +747,8 @@ export async function GET(request: NextRequest) {
     titleCell.alignment = { horizontal: 'center', vertical: 'middle' }
     summarySheet.getRow(1).height = 32
 
-    // Sous-titre avec date
-    summarySheet.mergeCells('A2:N2')
+    // Sous-titre avec date (A2:M2)
+    summarySheet.mergeCells('A2:M2')
     const subTitleCell = summarySheet.getCell('A2')
     const today = new Date()
     subTitleCell.value = `Exporté le ${today.toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`
@@ -710,10 +760,9 @@ export async function GET(request: NextRequest) {
     // Ligne vide
     summarySheet.getRow(3).height = 8
 
-    // Colonnes header (ligne 4)
+    // Colonnes header (ligne 4) — SANS "Access ID"
     const summaryHeaders = [
       'Membre',
-      'Access ID',
       'Période',
       'Total Prospects',
       'Prospection',
@@ -742,7 +791,7 @@ export async function GET(request: NextRequest) {
     headerRow.height = 40
 
     // Données par membre
-    const statsArray = Object.values(byMember)
+    const statsArray = Object.values(byMember).sort((a, b) => b.total - a.total || a.memberName.localeCompare(b.memberName))
     statsArray.forEach((stat, rowIdx) => {
       const row = summarySheet.getRow(5 + rowIdx)
       const isAlt = rowIdx % 2 === 1
@@ -759,7 +808,6 @@ export async function GET(request: NextRequest) {
           : null
 
       // R/O = (% Réal. Volume + % Réal. Valeur) / 2
-      // Si une seule des deux est disponible, on l'utilise seule
       const roValue: number | null = (() => {
         if (pctVolume != null && pctValue != null) return (pctVolume + pctValue) / 2 / 100
         if (pctVolume != null) return pctVolume / 100
@@ -769,7 +817,6 @@ export async function GET(request: NextRequest) {
 
       const cells: (string | number | null)[] = [
         stat.memberName,
-        stat.memberAccessId || '—',
         stat.period || formatPeriod(null, fromDate, toDate),
         stat.total,
         stat.prospection,
@@ -792,20 +839,21 @@ export async function GET(request: NextRequest) {
         cell.alignment = { vertical: 'middle', horizontal: colIdx === 0 ? 'left' : 'center' }
 
         // Formatage numérique
-        if (colIdx === 7) cell.numFmt = '0%' // Taux conversion
-        if (colIdx === 8) cell.numFmt = '#,##0' // CA Réalisé
-        if (colIdx === 10) cell.numFmt = '0%' // % Volume
-        if (colIdx === 11) cell.numFmt = '#,##0' // Obj. Valeur
-        if (colIdx === 12) cell.numFmt = '0%' // % Valeur
-        if (colIdx === 13) cell.numFmt = '0%' // R/O
+        if (colIdx === 6) cell.numFmt = '0%' // Taux conversion
+        if (colIdx === 7) cell.numFmt = '#,##0' // CA Réalisé
+        if (colIdx === 8 && typeof val === 'number') cell.numFmt = '#,##0' // Obj. Volume
+        if (colIdx === 9) cell.numFmt = '0%' // % Volume
+        if (colIdx === 10 && typeof val === 'number') cell.numFmt = '#,##0' // Obj. Valeur
+        if (colIdx === 11) cell.numFmt = '0%' // % Valeur
+        if (colIdx === 12) cell.numFmt = '0%' // R/O
 
-        // Colorisation conditionnelle : cols 10, 12 et 13
-        if ((colIdx === 10 || colIdx === 12 || colIdx === 13) && val != null) {
+        // Colorisation conditionnelle : cols 9, 11 et 12 (% Volume, % Valeur, R/O)
+        if ((colIdx === 9 || colIdx === 11 || colIdx === 12) && val != null) {
           const pct = (val as number) * 100
           cell.font = {
             ...cellFont,
-            bold: colIdx === 13, // R/O en gras pour le mettre en avant
-            size: colIdx === 13 ? 11 : 10,
+            bold: colIdx === 12, // R/O en gras pour le mettre en avant
+            size: colIdx === 12 ? 11 : 10,
             color: {
               argb: pct >= 100 ? COLOR_GREEN : pct >= 75 ? COLOR_ORANGE : COLOR_RED
             }
@@ -813,7 +861,7 @@ export async function GET(request: NextRequest) {
         }
 
         // Col R/O — fond légèrement différencié
-        if (colIdx === 13) {
+        if (colIdx === 12) {
           if (val == null) {
             cell.value = '—'
             cell.font = { name: 'Calibri', italic: true, size: 10, color: { argb: '999999' } }
@@ -858,7 +906,6 @@ export async function GET(request: NextRequest) {
     const totalCells: (string | number | null)[] = [
       totalLabel,
       '',
-      '',
       totalProspects,
       statsArray.reduce((a, s) => a + s.prospection, 0),
       statsArray.reduce((a, s) => a + s.negociation, 0),
@@ -878,12 +925,13 @@ export async function GET(request: NextRequest) {
       cell.font = globalFont
       cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: COLOR_GLOBAL_BG } }
       cell.alignment = { vertical: 'middle', horizontal: colIdx === 0 ? 'left' : 'center' }
-      if (colIdx === 7) cell.numFmt = '0%'
-      if (colIdx === 8) cell.numFmt = '#,##0'
-      if (colIdx === 10) cell.numFmt = '0%'
-      if (colIdx === 11) cell.numFmt = '#,##0'
-      if (colIdx === 12) cell.numFmt = '0%'
-      if (colIdx === 13) {
+      if (colIdx === 6) cell.numFmt = '0%'
+      if (colIdx === 7) cell.numFmt = '#,##0'
+      if (colIdx === 8 && typeof val === 'number') cell.numFmt = '#,##0'
+      if (colIdx === 9) cell.numFmt = '0%'
+      if (colIdx === 10 && typeof val === 'number') cell.numFmt = '#,##0'
+      if (colIdx === 11) cell.numFmt = '0%'
+      if (colIdx === 12) {
         cell.numFmt = '0%'
         if (val == null) {
           cell.value = '—'
@@ -893,18 +941,17 @@ export async function GET(request: NextRequest) {
     })
     totalRow.height = 26
 
-    // ── Largeurs colonnes ────────────────────────────────────────────────────
+    // ── Largeurs colonnes (13 colonnes) ──────────────────────────────────────
     summarySheet.columns = [
-      { width: 22 }, // Membre
-      { width: 14 }, // Access ID
-      { width: 12 }, // Période
+      { width: 24 }, // Membre
+      { width: 16 }, // Période
       { width: 14 }, // Total prospects
       { width: 13 }, // Prospection
       { width: 13 }, // Négociation
       { width: 13 }, // Conclue Vol.
       { width: 15 }, // Taux conversion
       { width: 18 }, // CA Réalisé
-      { width: 13 }, // Obj. Volume
+      { width: 14 }, // Obj. Volume
       { width: 15 }, // % Réal. Vol
       { width: 18 }, // Obj. Valeur
       { width: 15 }, // % Réal. Val
@@ -926,7 +973,6 @@ export async function GET(request: NextRequest) {
       'Statut',
       'Montant (FCFA)',
       'Membre',
-      'Access ID',
       'Ville',
       'Secteur',
       'Téléphone',
@@ -966,18 +1012,11 @@ export async function GET(request: NextRequest) {
 
     // Rows
     filtered.forEach((item, rowIdx) => {
-      const uid = item.assignedTo ?? '__manager__'
+      const uid = item.assignedTo
       let name = item.memberName
-      let id = item.memberAccessId
-      if (!name || !id) {
-        if (uid !== '__manager__' && uid !== managerUid) {
-          const m = membersMap.get(uid)
-          name = name || m?.name || uid
-          id = id || m?.accessId || ''
-        } else {
-          name = 'Manager'
-          id = ''
-        }
+      if (!name && uid) {
+        const m = membersMap.get(uid)
+        name = m?.name || uid
       }
 
       const row = detailSheet.getRow(3 + rowIdx)
@@ -993,7 +1032,6 @@ export async function GET(request: NextRequest) {
         statusNorm,
         item.amount ?? '',
         name ?? '',
-        id ?? '',
         item.companyCity ?? '',
         item.companySector ?? '',
         item.companyPhone ?? '',
@@ -1015,7 +1053,7 @@ export async function GET(request: NextRequest) {
         cell.alignment = {
           vertical: 'middle',
           horizontal: colIdx === 2 ? 'right' : 'left',
-          wrapText: colIdx === 9 // notes
+          wrapText: colIdx === 8 // notes
         }
         if (colIdx === 2 && typeof val === 'number') cell.numFmt = '#,##0'
       })
@@ -1027,8 +1065,7 @@ export async function GET(request: NextRequest) {
       { width: 24 }, // Entreprise
       { width: 14 }, // Statut
       { width: 16 }, // Montant
-      { width: 20 }, // Membre
-      { width: 13 }, // Access ID
+      { width: 22 }, // Membre
       { width: 16 }, // Ville
       { width: 18 }, // Secteur
       { width: 16 }, // Téléphone

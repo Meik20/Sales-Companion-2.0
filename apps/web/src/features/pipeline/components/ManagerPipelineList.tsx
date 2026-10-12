@@ -1236,7 +1236,6 @@ function ExportPanel({ members }: { members?: Member[] }) {
               {members?.map((m) => (
                 <option key={m.uid} value={m.uid}>
                   {m.name ?? m.email ?? m.uid}
-                  {m.accessId ? ` (${m.accessId.toLowerCase()})` : ''}
                 </option>
               ))}
             </select>
@@ -1792,21 +1791,6 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                   >
                     {activeMemberSummary.name}
                   </h4>
-                  {activeMemberSummary.accessId && (
-                    <span
-                      style={{
-                        fontSize: 10.5,
-                        padding: '1px 6px',
-                        borderRadius: 4,
-                        background: 'rgba(99,102,241,0.15)',
-                        color: '#a5b4fc',
-                        fontFamily: 'monospace',
-                        fontWeight: 600
-                      }}
-                    >
-                      {activeMemberSummary.accessId.toUpperCase()}
-                    </span>
-                  )}
                 </div>
                 <div
                   style={{
