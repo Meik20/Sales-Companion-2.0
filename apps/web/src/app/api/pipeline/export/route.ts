@@ -791,7 +791,7 @@ export async function GET(request: NextRequest) {
     const summaryHeaders = [
       'Membre',
       'Période',
-      'Total Prospects',
+      'Total Leads',
       'Prospection',
       'Négociation',
       'Conclue (Vol.)',
@@ -972,7 +972,7 @@ export async function GET(request: NextRequest) {
     summarySheet.columns = [
       { width: 24 }, // Membre
       { width: 16 }, // Période
-      { width: 14 }, // Total prospects
+      { width: 14 }, // Total leads
       { width: 13 }, // Prospection
       { width: 13 }, // Négociation
       { width: 13 }, // Conclue Vol.

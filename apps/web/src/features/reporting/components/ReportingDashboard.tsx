@@ -295,7 +295,7 @@ function MonthlyTrendChart({
           <div
             style={{ width: 10, height: 10, borderRadius: 2, background: 'rgba(96,165,250,0.4)' }}
           />{' '}
-          Total prospects
+          Total leads
         </div>
         <div
           style={{

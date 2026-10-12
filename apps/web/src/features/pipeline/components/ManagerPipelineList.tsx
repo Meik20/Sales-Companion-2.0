@@ -1549,9 +1549,8 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
           )}
         </div>
 
-        {/* Desktop & Tablet: Horizontal chips bar */}
+        {/* ── Barre de filtre membres ─────────────────────────────────── */}
         <div
-          className="hidden sm:flex"
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -1559,7 +1558,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
             flexWrap: 'wrap'
           }}
         >
-          {/* Option: Toute l'équipe */}
+          {/* Pill : Toute l'équipe */}
           <button
             type="button"
             onClick={() => setSelectedMemberId('all')}
@@ -1578,10 +1577,11 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
               transition: 'all 150ms ease',
               display: 'inline-flex',
               alignItems: 'center',
-              gap: 6
+              gap: 6,
+              flexShrink: 0
             }}
           >
-            <span>Toute l'équipe</span>
+            <span>Toute l&apos;équipe</span>
             <span
               style={{
                 fontSize: 10.5,
@@ -1598,7 +1598,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
             </span>
           </button>
 
-          {/* Option: Non assignés */}
+          {/* Pill : Non assignés */}
           {unassignedCount > 0 && (
             <button
               type="button"
@@ -1620,7 +1620,8 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                 transition: 'all 150ms ease',
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: 6
+                gap: 6,
+                flexShrink: 0
               }}
             >
               <span>Non assignés</span>
@@ -1641,102 +1642,78 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
             </button>
           )}
 
-          {/* Membres individuels */}
-          {memberSummaries.map((m) => {
-            const isSelected = selectedMemberId === m.uid
-            return (
-              <button
-                key={m.uid}
-                type="button"
-                onClick={() => setSelectedMemberId(m.uid)}
+          {/* Dropdown : Filtrer par commercial */}
+          {memberSummaries.length > 0 && (
+            <div style={{ position: 'relative', flexShrink: 0 }}>
+              <select
+                value={
+                  selectedMemberId === 'all' || selectedMemberId === 'unassigned'
+                    ? ''
+                    : selectedMemberId
+                }
+                onChange={(e) => {
+                  if (e.target.value) setSelectedMemberId(e.target.value)
+                }}
                 style={{
-                  padding: '6px 12px',
+                  appearance: 'none',
+                  WebkitAppearance: 'none',
+                  height: 34,
+                  paddingLeft: 12,
+                  paddingRight: 32,
                   borderRadius: 20,
+                  border:
+                    selectedMemberId !== 'all' && selectedMemberId !== 'unassigned'
+                      ? '1px solid #6366f1'
+                      : '1px solid var(--border, rgba(255,255,255,0.12))',
+                  background:
+                    selectedMemberId !== 'all' && selectedMemberId !== 'unassigned'
+                      ? '#6366f1'
+                      : 'var(--secondary, #1e2a3b)',
+                  color:
+                    selectedMemberId !== 'all' && selectedMemberId !== 'unassigned'
+                      ? '#ffffff'
+                      : 'var(--foreground, #f1f5f9)',
                   fontSize: 12,
                   fontWeight: 600,
                   cursor: 'pointer',
-                  border: isSelected
-                    ? '1px solid #6366f1'
-                    : m.overdueCount > 0
-                      ? '1px solid rgba(239,68,68,0.35)'
-                      : '1px solid var(--border, rgba(255,255,255,0.1))',
-                  background: isSelected
-                    ? '#6366f1'
-                    : m.overdueCount > 0
-                      ? 'rgba(239,68,68,0.06)'
-                      : 'var(--secondary, #1e2a3b)',
-                  color: isSelected ? '#ffffff' : 'var(--foreground, #f1f5f9)',
-                  transition: 'all 150ms ease',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 6
+                  outline: 'none',
+                  minWidth: 200,
+                  transition: 'all 150ms ease'
                 }}
               >
-                <span>{m.name}</span>
-                <span
-                  style={{
-                    fontSize: 10.5,
-                    padding: '1px 6px',
-                    borderRadius: 10,
-                    background: isSelected
-                      ? 'rgba(255,255,255,0.25)'
-                      : 'rgba(255,255,255,0.08)',
-                    fontWeight: 700
-                  }}
-                >
-                  {m.totalCount}
-                </span>
-                {m.overdueCount > 0 && (
-                  <span
-                    title={`${m.overdueCount} relance(s) en retard`}
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 800,
-                      color: isSelected ? '#fee2e2' : '#ef4444',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 2
-                    }}
-                  >
-                    ⚠️ {m.overdueCount}
-                  </span>
+                {(selectedMemberId === 'all' || selectedMemberId === 'unassigned') && (
+                  <option value="" disabled>
+                    👤 Filtrer par commercial…
+                  </option>
                 )}
-              </button>
-            )
-          })}
-        </div>
-
-        {/* Mobile dropdown selector */}
-        <div className="sm:hidden" style={{ marginTop: 4 }}>
-          <select
-            value={selectedMemberId}
-            onChange={(e) => setSelectedMemberId(e.target.value)}
-            style={{
-              width: '100%',
-              height: 38,
-              borderRadius: 8,
-              border: '1px solid var(--border, rgba(255,255,255,0.1))',
-              background: 'var(--secondary, #1e2a3b)',
-              color: 'var(--foreground, #f1f5f9)',
-              padding: '0 10px',
-              fontSize: 13,
-              fontWeight: 600,
-              outline: 'none'
-            }}
-          >
-            <option value="all">
-              👥 Toute l'équipe ({items.length} {items.length > 1 ? 'leads' : 'lead'})
-            </option>
-            {unassignedCount > 0 && (
-              <option value="unassigned">📥 Non assignés ({unassignedCount})</option>
-            )}
-            {memberSummaries.map((m) => (
-              <option key={m.uid} value={m.uid}>
-                👤 {m.name} ({m.totalCount} {m.totalCount > 1 ? 'leads' : 'lead'}
-                {m.overdueCount > 0 ? ` · ⚠️ ${m.overdueCount} en retard` : ''})
-              </option>
-            ))}
-          </select>
+                {memberSummaries.map((m) => {
+                  const warn = m.overdueCount > 0 ? ` · ⚠️ ${m.overdueCount}` : ''
+                  return (
+                    <option key={m.uid} value={m.uid}>
+                      {m.name} — {m.totalCount} lead{m.totalCount > 1 ? 's' : ''}{warn}
+                    </option>
+                  )
+                })}
+              </select>
+              <span
+                style={{
+                  position: 'absolute',
+                  right: 10,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  pointerEvents: 'none',
+                  color:
+                    selectedMemberId !== 'all' && selectedMemberId !== 'unassigned'
+                      ? 'rgba(255,255,255,0.8)'
+                      : 'var(--muted-foreground, #94a3b8)',
+                  fontSize: 11,
+                  lineHeight: 1
+                }}
+              >
+                ▾
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
