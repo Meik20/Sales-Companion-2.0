@@ -16,6 +16,7 @@ import { useTeamMembers } from '@/features/team/hooks/useTeamMembers'
 import { useExportTeamPerformance } from '@/features/pipeline/hooks/useExportTeamPerformance'
 import { useTeamTargets, useSaveTeamTarget } from '@/features/pipeline/hooks/useTeamTargets'
 import { useOrgPipeline, type OrgManagerStats } from '@/features/pipeline/hooks/useOrgPipeline'
+import { TeamManagerPerformanceCard } from '@/features/pipeline/components/TeamManagerPerformanceCard'
 import { useState, useEffect, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslation } from '@/providers/I18nProvider'
@@ -34,6 +35,10 @@ export default function PipelinePage() {
   // ── Org pipeline (Senior Manager uniquement) ─────────────────────────
   const [filterManagerUid, setFilterManagerUid] = useState<string | undefined>(undefined)
   const orgPipelineQuery = useOrgPipeline({ managerUid: filterManagerUid })
+  const selectedManager =
+    filterManagerUid && orgPipelineQuery.data?.managers
+      ? orgPipelineQuery.data.managers.find((m: OrgManagerStats) => m.uid === filterManagerUid)
+      : undefined
 
   const managerPipelineQuery = useManagerPipeline()
   const userPipelineQuery = useUserPipeline()
@@ -478,11 +483,22 @@ export default function PipelinePage() {
             subtitle={`${t('pipeline.orgPipelineSubtitle') || 'Tous les prospects de votre organisation'}${filterManagerUid ? (t('pipeline.filteredByManager') || ' — filtré par manager') : ''}`}
           >
             {orgPipelineQuery.isLoading ? <LoadingState /> : null}
+            {!orgPipelineQuery.isLoading && selectedManager && (
+              <TeamManagerPerformanceCard
+                manager={selectedManager}
+                items={(orgPipelineQuery.data?.items ?? []) as Parameters<typeof TeamManagerPerformanceCard>[0]['items']}
+                onClear={() => setFilterManagerUid(undefined)}
+              />
+            )}
             {!orgPipelineQuery.isLoading && !orgPipelineQuery.data?.items?.length ? (
               <EmptyState
                 illustration="/illustrations/empty-states/empty-pipeline.png"
                 title="Aucun prospect dans l'organisation"
-                description="Vos Team Managers n'ont pas encore de prospects enregistrés."
+                description={
+                  selectedManager
+                    ? "Ce Team Manager n'a pas encore de prospects enregistrés."
+                    : "Vos Team Managers n'ont pas encore de prospects enregistrés."
+                }
               />
             ) : null}
             {orgPipelineQuery.data?.items?.length ? (
