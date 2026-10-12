@@ -198,17 +198,6 @@ export async function searchSupabaseCompanies(params: {
     const { country, query, sector, city, region, limit = 50, offset = 0 } = params
     const searchParams = new URLSearchParams()
 
-    // 1. Isolation stricte par pays
-    searchParams.set('country_code', `eq.${country.toUpperCase()}`)
-
-    // 2. Filtre géographique (city & region : safe car pas de & dans ces valeurs)
-    if (city) {
-      searchParams.set('city', `ilike.*${city}*`)
-    }
-    if (region) {
-      searchParams.set('region', `ilike.*${region}*`)
-    }
-
     // 3. Filtre sectoriel via or= pour éviter que le "&" des noms composés
     //    (ex: "BTP & Construction") ne casse le parsing de l'URL PostgREST.
     //    Chaque libellé UI est traduit en mots-clés individuels d'ilike.
@@ -275,19 +264,29 @@ export async function searchSupabaseCompanies(params: {
       }
     }
 
-    // 5. Combinaison des clauses sector et text :
-    //    - Sector seul   → or=(...)
-    //    - Text seul     → or=(...)
-    //    - Sector + Text → and=(or(...),or(...))
+    // 5. Toutes les conditions sont regroupées dans un seul and=(...) pour garantir
+    //    que l'isolation par pays est TOUJOURS un AND strict, et non un OR.
+    //    PostgREST : country_code=eq.CM & or=(...) → traités comme OR au top-level.
+    //    Solution : and=(country_code.eq.CM, city..., region..., or(sector...), or(text...))
+    const andParts: string[] = []
+    andParts.push(`country_code.eq.${country.toUpperCase()}`)
+    if (city) andParts.push(`city.ilike.*${city}*`)
+    if (region) andParts.push(`region.ilike.*${region}*`)
+
     if (sectorOrClause && textOrClause) {
       const sectorInner = sectorOrClause.slice(1, -1)
       const textInner = textOrClause.slice(1, -1)
-      searchParams.set('and', `(or(${sectorInner}),or(${textInner}))`)
+      andParts.push(`or(${sectorInner})`)
+      andParts.push(`or(${textInner})`)
     } else if (sectorOrClause) {
-      searchParams.set('or', sectorOrClause)
+      const sectorInner = sectorOrClause.slice(1, -1)
+      andParts.push(`or(${sectorInner})`)
     } else if (textOrClause) {
-      searchParams.set('or', textOrClause)
+      const textInner = textOrClause.slice(1, -1)
+      andParts.push(`or(${textInner})`)
     }
+
+    searchParams.set('and', `(${andParts.join(',')})`)
 
     searchParams.set('limit', String(limit))
     searchParams.set('offset', String(offset))
