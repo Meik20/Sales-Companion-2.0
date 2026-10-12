@@ -1371,8 +1371,9 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
   const { memberSummaries, unassignedCount, activeMemberSummary } = useMemo(() => {
     const map = new Map<string, MemberSummary>()
 
-    // Initialiser avec les membres connus de l'équipe
+    // Initialiser avec les membres commerciaux connus de l'équipe (exclure support_agent)
     for (const m of members || []) {
+      if ((m as any).role === 'support_agent') continue
       map.set(m.uid, {
         uid: m.uid,
         name: m.name || m.email || m.accessId || 'Commercial',

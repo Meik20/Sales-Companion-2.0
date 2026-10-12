@@ -369,10 +369,22 @@ export async function GET(request: NextRequest) {
       )
 
     const memberUidChunks = chunkArray(orgManagerUids, 30)
+    const supportAgentUids = new Set<string>()
+
     for (const chunk of memberUidChunks) {
       const membersSnap = await adminDb.collection('users').where('managerUid', 'in', chunk).get()
       membersSnap.docs.forEach((doc) => {
         const d = doc.data()
+        // 🚨 IMPORTANT : Les agents de support ('support_agent') et les managers ne sont pas des commerciaux de terrain.
+        // Ils ne doivent PAS figurer dans le rapport de performance des commerciaux.
+        if (d.role === 'support_agent') {
+          supportAgentUids.add(doc.id)
+          return
+        }
+        if (d.role === 'manager' || d.role === 'admin' || d.role === 'senior_manager') {
+          return
+        }
+
         if (!membersMap.has(doc.id)) {
           membersMap.set(doc.id, {
             name: d.name || d.email || doc.id,
@@ -391,6 +403,10 @@ export async function GET(request: NextRequest) {
           .get()
         accessesSnap.docs.forEach((doc) => {
           const ad = doc.data()
+          if (ad.role === 'support_agent') {
+            if (ad.firebaseUid) supportAgentUids.add(ad.firebaseUid)
+            return
+          }
           const validAccessId = isValidAccessId(ad.accessId)
             ? ad.accessId
             : isValidAccessId(doc.id)
@@ -556,6 +572,7 @@ export async function GET(request: NextRequest) {
       if (
         i.assignedTo === managerUid ||
         orgManagerUids.includes(i.assignedTo) ||
+        supportAgentUids.has(i.assignedTo) ||
         i.assignedTo === '__manager__'
       ) {
         return false
@@ -608,7 +625,12 @@ export async function GET(request: NextRequest) {
     // Pré-remplir avec les membres opérationnels connus de l'équipe
     if (memberId) {
       const m = membersMap.get(memberId)
-      if (m && memberId !== managerUid && !orgManagerUids.includes(memberId)) {
+      if (
+        m &&
+        memberId !== managerUid &&
+        !orgManagerUids.includes(memberId) &&
+        !supportAgentUids.has(memberId)
+      ) {
         const tgt = targetsMap.get(memberId)
         byMember[memberId] = {
           uid: memberId,
@@ -626,7 +648,7 @@ export async function GET(request: NextRequest) {
       }
     } else {
       membersMap.forEach((m, uid) => {
-        if (uid === managerUid || orgManagerUids.includes(uid)) return
+        if (uid === managerUid || orgManagerUids.includes(uid) || supportAgentUids.has(uid)) return
         const tgt = targetsMap.get(uid)
         byMember[uid] = {
           uid,
@@ -646,6 +668,11 @@ export async function GET(request: NextRequest) {
 
     for (const item of filtered) {
       const uid = item.assignedTo!
+
+      // Ignorer si ce n'est pas un membre commercial
+      if (supportAgentUids.has(uid) || orgManagerUids.includes(uid) || uid === managerUid) {
+        continue
+      }
 
       let name = item.memberName
       if (!name) {
@@ -699,7 +726,7 @@ export async function GET(request: NextRequest) {
       }
     } else {
       targetsMap.forEach((t, mid) => {
-        if (mid === managerUid || orgManagerUids.includes(mid)) return
+        if (mid === managerUid || orgManagerUids.includes(mid) || supportAgentUids.has(mid)) return
         if (t.targetVolume != null) globalTargetVolume = (globalTargetVolume ?? 0) + t.targetVolume
         if (t.targetValue != null) globalTargetValue = (globalTargetValue ?? 0) + t.targetValue
       })
