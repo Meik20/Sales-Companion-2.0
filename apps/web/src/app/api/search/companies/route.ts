@@ -199,7 +199,8 @@ export async function GET(request: NextRequest) {
         .toLowerCase()
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '')
-        .replace(/['’\-]/g, ' ')
+        .replace(/[^a-z0-9]/g, ' ')
+        .replace(/\s+/g, ' ')
         .trim()
     }
 
@@ -337,11 +338,15 @@ export async function GET(request: NextRequest) {
     // pour éviter qu'un mot-clé d'activité ne matche par erreur sur les voisins ou repères
     function cleanAddressLandmarks(rawAddress: string): string {
       if (!rawAddress) return ''
-      const norm = normalize(rawAddress)
-      return norm.replace(
-        /\b(?:derriere|en\s+face(?:\s+de|\s+du|\s+des)?|face\s+(?:a|au|aux|\s+a\s+la)?|a\s+cote(?:\s+de|\s+du|\s+des)?|non\s+loin(?:\s+de|\s+du|\s+des)?|pres(?:\s+de|\s+du|\s+des)?|proche(?:\s+de|\s+du|\s+des)?|apres|vers|voisin(?:\s+de)?)\s+(?:la|le|les|l|un|une|du|des|au|aux)?\s*[a-z0-9\s'-]{2,40}?(?=[,.;\n\-]|\s+(?:face|derriere|a\s+cote|rue|boulevard|bvd|av|avenue|carrefour|rond\s*point|quartier|douala|yaounde|akwa|bonanjo|bastos)|$)/gi,
-        ' '
-      )
+      const preClean = String(rawAddress)
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(
+          /\b(?:derriere|en\s+face(?:\s+de|\s+du|\s+des)?|face\s+(?:a|au|aux|\s+a\s+la)?|a\s+cote(?:\s+de|\s+du|\s+des)?|non\s+loin(?:\s+de|\s+du|\s+des)?|pres(?:\s+de|\s+du|\s+des)?|proche(?:\s+de|\s+du|\s+des)?|apres|vers|voisin(?:\s+de)?)\s+(?:la|le|les|l|un|une|du|des|au|aux)?\s*[a-z0-9\s'-]{2,40}?(?=[,.;\n\-]|\s+(?:face|derriere|a\s+cote|rue|boulevard|bvd|av|avenue|carrefour|rond\s*point|quartier|douala|yaounde|akwa|bonanjo|bastos)|$)/gi,
+          ' '
+        )
+      return normalize(preClean)
     }
 
     // Vérifie si un secteur correspond à une cible (avec synonymes)
@@ -407,7 +412,9 @@ export async function GET(request: NextRequest) {
         if (inIdentity) identityMatchCount++
 
         const inTechnical = variants.some((v) => technicalNorm.includes(v))
-        const inLocation = variants.some((v) => cleanAddressNorm.includes(v))
+        const inLocation = variants.some(
+          (v) => cityNorm.includes(v) || regionNorm.includes(v) || cleanAddressNorm.includes(v)
+        )
 
         if (!inIdentity && !inTechnical && !inLocation) {
           matchesAllTokens = false
@@ -482,7 +489,9 @@ export async function GET(request: NextRequest) {
 
     const pageSize = 10
     const requestedOffset = (page - 1) * pageSize
-    const fetchLimit = Math.max(100, Math.min(requestedOffset + pageSize * 2, 500))
+    const isBufferMode = requestedOffset < 100
+    const sbOffset = isBufferMode ? 0 : requestedOffset
+    const fetchLimit = isBufferMode ? 100 : pageSize
 
     const sbResult = await searchSupabaseCompanies({
       country: userCountry,
@@ -490,7 +499,8 @@ export async function GET(request: NextRequest) {
       sector,
       city,
       region,
-      limit: fetchLimit
+      limit: fetchLimit,
+      offset: sbOffset
     })
 
     if (!sbResult) {
@@ -581,9 +591,9 @@ export async function GET(request: NextRequest) {
     }
 
     // ── 6. Pagination (Plafond factuel fixé à 10 résultats par requête) ──
-    const start = requestedOffset
-    const end = start + pageSize
-    const paginatedCompanies = allCompanies.slice(start, end)
+    const paginatedCompanies = isBufferMode
+      ? allCompanies.slice(requestedOffset, requestedOffset + pageSize)
+      : allCompanies.slice(0, pageSize)
 
     // ── Enregistrement de la recherche pour les stats admin (toujours) ──
     try {

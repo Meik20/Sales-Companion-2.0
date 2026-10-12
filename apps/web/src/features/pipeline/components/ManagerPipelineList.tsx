@@ -30,7 +30,8 @@ import {
   Trash2,
   ChevronDown,
   Clock,
-  CheckCircle2
+  CheckCircle2,
+  Users
 } from 'lucide-react'
 import { getPipelineAging } from '@/lib/pipelineAging'
 
@@ -1348,10 +1349,111 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
     setIsMounted(true)
   }, [])
 
+  // ── Filtre par membre & statistiques individuelles ──────────────────────────
+  const [selectedMemberId, setSelectedMemberId] = useState<string>('all')
+  const { data: allTargets } = useTeamTargets()
+
+  const todayStr = useMemo(() => new Date().toISOString().slice(0, 10), [])
+
+  type MemberSummary = {
+    uid: string
+    name: string
+    email?: string
+    accessId?: string
+    totalCount: number
+    prospectionCount: number
+    negociationCount: number
+    conclueCount: number
+    overdueCount: number
+    totalAmount: number
+    concludedAmount: number
+  }
+
+  const { memberSummaries, unassignedCount, activeMemberSummary } = useMemo(() => {
+    const map = new Map<string, MemberSummary>()
+
+    // Initialiser avec les membres connus de l'équipe
+    for (const m of members || []) {
+      map.set(m.uid, {
+        uid: m.uid,
+        name: m.name || m.email || m.accessId || 'Commercial',
+        email: m.email,
+        accessId: m.accessId,
+        totalCount: 0,
+        prospectionCount: 0,
+        negociationCount: 0,
+        conclueCount: 0,
+        overdueCount: 0,
+        totalAmount: 0,
+        concludedAmount: 0
+      })
+    }
+
+    let unassigned = 0
+
+    for (const item of items) {
+      const isAssigned = item.assignedTo && item.assignedTo !== managerUid
+      if (!isAssigned) {
+        unassigned++
+        continue
+      }
+
+      let summary = map.get(item.assignedTo!)
+      if (!summary) {
+        summary = {
+          uid: item.assignedTo!,
+          name: item.memberName || resolveMemberLabel(item, members) || 'Commercial',
+          email: undefined,
+          accessId: item.memberAccessId || undefined,
+          totalCount: 0,
+          prospectionCount: 0,
+          negociationCount: 0,
+          conclueCount: 0,
+          overdueCount: 0,
+          totalAmount: 0,
+          concludedAmount: 0
+        }
+        map.set(item.assignedTo!, summary)
+      }
+
+      summary.totalCount++
+      const st = normalize(item.status)
+      if (st === 'prospection') summary.prospectionCount++
+      else if (st === 'negociation') summary.negociationCount++
+      else if (st === 'conclue') {
+        summary.conclueCount++
+        if (item.amount) summary.concludedAmount += item.amount
+      }
+
+      if (item.amount) summary.totalAmount += item.amount
+
+      if (item.nextFollowUp && item.nextFollowUp < todayStr && st !== 'conclue') {
+        summary.overdueCount++
+      }
+    }
+
+    const list = Array.from(map.values()).sort((a, b) => b.totalCount - a.totalCount)
+    const active =
+      selectedMemberId !== 'all' && selectedMemberId !== 'unassigned'
+        ? map.get(selectedMemberId) ?? null
+        : null
+
+    return { memberSummaries: list, unassignedCount: unassigned, activeMemberSummary: active }
+  }, [items, members, managerUid, todayStr, selectedMemberId])
+
+  // Fiches filtrées selon le membre sélectionné
+  const displayedItems = useMemo(() => {
+    if (selectedMemberId === 'all') return items
+    if (selectedMemberId === 'unassigned') {
+      return items.filter((i) => !i.assignedTo || i.assignedTo === managerUid)
+    }
+    return items.filter((i) => i.assignedTo === selectedMemberId)
+  }, [items, selectedMemberId, managerUid])
+
   const grouped: Record<string, PipelineItem[]> = useMemo(() => ({
-    prospection: items.filter((i) => normalize(i.status) === 'prospection'),
-    negociation: items.filter((i) => normalize(i.status) === 'negociation'),
-    conclue: items.filter((i) => {
+    prospection: displayedItems.filter((i) => normalize(i.status) === 'prospection'),
+    negociation: displayedItems.filter((i) => normalize(i.status) === 'negociation'),
+    conclue: displayedItems.filter((i) => {
       if (normalize(i.status) !== 'conclue') return false
       if (isMounted && i.concludedAt) {
         const t = new Date(i.concludedAt as any).getTime()
@@ -1361,7 +1463,12 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
       }
       return true
     })
-  }), [items, isMounted])
+  }), [displayedItems, isMounted])
+
+  const activeTarget = useMemo(() => {
+    if (!activeMemberSummary) return null
+    return (allTargets ?? []).find((t) => t.memberId === activeMemberSummary.uid)
+  }, [allTargets, activeMemberSummary])
 
   return (
     <>
@@ -1380,6 +1487,591 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
 
       {/* Export panel — always shown for managers */}
       <ExportPanel members={members} />
+
+      {/* ── Sélecteur d'activité individuelle par commercial ───────────── */}
+      <div
+        style={{
+          marginBottom: 16,
+          background: 'var(--card, #131c2e)',
+          border: '1px solid var(--border, rgba(255,255,255,0.08))',
+          borderRadius: 12,
+          padding: '12px 16px',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: 10,
+            gap: 8,
+            flexWrap: 'wrap'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Users size={14} style={{ color: '#818cf8' }} />
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '.06em',
+                color: 'var(--foreground, #f1f5f9)'
+              }}
+            >
+              Pipeline par commercial
+            </span>
+            <span style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)' }}>
+              ({memberSummaries.length} membre{memberSummaries.length > 1 ? 's' : ''})
+            </span>
+          </div>
+
+          {selectedMemberId !== 'all' && (
+            <button
+              onClick={() => setSelectedMemberId('all')}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#818cf8',
+                fontSize: 11,
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                padding: '2px 6px'
+              }}
+            >
+              <X size={11} />
+              Voir toute l'équipe
+            </button>
+          )}
+        </div>
+
+        {/* Desktop & Tablet: Horizontal chips bar */}
+        <div
+          className="hidden sm:flex"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            flexWrap: 'wrap'
+          }}
+        >
+          {/* Option: Toute l'équipe */}
+          <button
+            type="button"
+            onClick={() => setSelectedMemberId('all')}
+            style={{
+              padding: '6px 14px',
+              borderRadius: 20,
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: 'pointer',
+              border:
+                selectedMemberId === 'all'
+                  ? '1px solid #6366f1'
+                  : '1px solid var(--border, rgba(255,255,255,0.1))',
+              background: selectedMemberId === 'all' ? '#6366f1' : 'var(--secondary, #1e2a3b)',
+              color: selectedMemberId === 'all' ? '#ffffff' : 'var(--foreground, #f1f5f9)',
+              transition: 'all 150ms ease',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6
+            }}
+          >
+            <span>Toute l'équipe</span>
+            <span
+              style={{
+                fontSize: 10.5,
+                padding: '1px 6px',
+                borderRadius: 10,
+                background:
+                  selectedMemberId === 'all'
+                    ? 'rgba(255,255,255,0.25)'
+                    : 'rgba(255,255,255,0.08)',
+                fontWeight: 700
+              }}
+            >
+              {items.length}
+            </span>
+          </button>
+
+          {/* Option: Non assignés */}
+          {unassignedCount > 0 && (
+            <button
+              type="button"
+              onClick={() => setSelectedMemberId('unassigned')}
+              style={{
+                padding: '6px 14px',
+                borderRadius: 20,
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: 'pointer',
+                border:
+                  selectedMemberId === 'unassigned'
+                    ? '1px solid #f59e0b'
+                    : '1px solid var(--border, rgba(255,255,255,0.1))',
+                background:
+                  selectedMemberId === 'unassigned' ? '#f59e0b' : 'var(--secondary, #1e2a3b)',
+                color:
+                  selectedMemberId === 'unassigned' ? '#ffffff' : 'var(--foreground, #f1f5f9)',
+                transition: 'all 150ms ease',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6
+              }}
+            >
+              <span>Non assignés</span>
+              <span
+                style={{
+                  fontSize: 10.5,
+                  padding: '1px 6px',
+                  borderRadius: 10,
+                  background:
+                    selectedMemberId === 'unassigned'
+                      ? 'rgba(255,255,255,0.25)'
+                      : 'rgba(255,255,255,0.08)',
+                  fontWeight: 700
+                }}
+              >
+                {unassignedCount}
+              </span>
+            </button>
+          )}
+
+          {/* Membres individuels */}
+          {memberSummaries.map((m) => {
+            const isSelected = selectedMemberId === m.uid
+            return (
+              <button
+                key={m.uid}
+                type="button"
+                onClick={() => setSelectedMemberId(m.uid)}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: 20,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  border: isSelected
+                    ? '1px solid #6366f1'
+                    : m.overdueCount > 0
+                      ? '1px solid rgba(239,68,68,0.35)'
+                      : '1px solid var(--border, rgba(255,255,255,0.1))',
+                  background: isSelected
+                    ? '#6366f1'
+                    : m.overdueCount > 0
+                      ? 'rgba(239,68,68,0.06)'
+                      : 'var(--secondary, #1e2a3b)',
+                  color: isSelected ? '#ffffff' : 'var(--foreground, #f1f5f9)',
+                  transition: 'all 150ms ease',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6
+                }}
+              >
+                <span>{m.name}</span>
+                <span
+                  style={{
+                    fontSize: 10.5,
+                    padding: '1px 6px',
+                    borderRadius: 10,
+                    background: isSelected
+                      ? 'rgba(255,255,255,0.25)'
+                      : 'rgba(255,255,255,0.08)',
+                    fontWeight: 700
+                  }}
+                >
+                  {m.totalCount}
+                </span>
+                {m.overdueCount > 0 && (
+                  <span
+                    title={`${m.overdueCount} relance(s) en retard`}
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 800,
+                      color: isSelected ? '#fee2e2' : '#ef4444',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 2
+                    }}
+                  >
+                    ⚠️ {m.overdueCount}
+                  </span>
+                )}
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Mobile dropdown selector */}
+        <div className="sm:hidden" style={{ marginTop: 4 }}>
+          <select
+            value={selectedMemberId}
+            onChange={(e) => setSelectedMemberId(e.target.value)}
+            style={{
+              width: '100%',
+              height: 38,
+              borderRadius: 8,
+              border: '1px solid var(--border, rgba(255,255,255,0.1))',
+              background: 'var(--secondary, #1e2a3b)',
+              color: 'var(--foreground, #f1f5f9)',
+              padding: '0 10px',
+              fontSize: 13,
+              fontWeight: 600,
+              outline: 'none'
+            }}
+          >
+            <option value="all">👥 Toute l'équipe ({items.length} prospects)</option>
+            {unassignedCount > 0 && (
+              <option value="unassigned">📥 Non assignés ({unassignedCount})</option>
+            )}
+            {memberSummaries.map((m) => (
+              <option key={m.uid} value={m.uid}>
+                👤 {m.name} ({m.totalCount} prospect{m.totalCount > 1 ? 's' : ''}
+                {m.overdueCount > 0 ? ` · ⚠️ ${m.overdueCount} en retard` : ''})
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* ── Bannière d'activité détaillée du membre sélectionné ─────────── */}
+      {activeMemberSummary && (
+        <div
+          style={{
+            marginBottom: 20,
+            background:
+              'linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(139,92,246,0.04) 100%)',
+            border: '1px solid rgba(99,102,241,0.25)',
+            borderRadius: 14,
+            padding: 16,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.15)'
+          }}
+        >
+          {/* Header du membre */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: 14,
+              flexWrap: 'wrap',
+              gap: 8
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 10,
+                  background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#fff',
+                  fontWeight: 700,
+                  fontSize: 14,
+                  boxShadow: '0 2px 8px rgba(99,102,241,0.4)'
+                }}
+              >
+                {activeMemberSummary.name.slice(0, 2).toUpperCase()}
+              </div>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <h4
+                    style={{
+                      margin: 0,
+                      fontSize: 15,
+                      fontWeight: 700,
+                      color: 'var(--foreground, #f1f5f9)'
+                    }}
+                  >
+                    {activeMemberSummary.name}
+                  </h4>
+                  {activeMemberSummary.accessId && (
+                    <span
+                      style={{
+                        fontSize: 10.5,
+                        padding: '1px 6px',
+                        borderRadius: 4,
+                        background: 'rgba(99,102,241,0.15)',
+                        color: '#a5b4fc',
+                        fontFamily: 'monospace',
+                        fontWeight: 600
+                      }}
+                    >
+                      {activeMemberSummary.accessId.toUpperCase()}
+                    </span>
+                  )}
+                </div>
+                <div
+                  style={{
+                    fontSize: 11,
+                    color: 'var(--muted-foreground, #94a3b8)',
+                    marginTop: 2
+                  }}
+                >
+                  Portefeuille opérationnel assigné à ce commercial
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setSelectedMemberId('all')}
+              style={{
+                padding: '4px 10px',
+                borderRadius: 6,
+                border: '1px solid rgba(255,255,255,0.1)',
+                background: 'var(--secondary, #1e2a3b)',
+                color: 'var(--muted-foreground, #94a3b8)',
+                fontSize: 11,
+                cursor: 'pointer',
+                transition: 'all 150ms ease'
+              }}
+            >
+              Afficher toute l'équipe
+            </button>
+          </div>
+
+          {/* Grille des 4 métriques clés */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+              gap: 12
+            }}
+          >
+            {/* 1. Portefeuille actif */}
+            <div
+              style={{
+                background: 'var(--card, #131c2e)',
+                borderRadius: 10,
+                padding: '10px 14px',
+                border: '1px solid var(--border, rgba(255,255,255,0.08))'
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 10.5,
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  color: '#818cf8',
+                  marginBottom: 4,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 5
+                }}
+              >
+                <TrendingUp size={12} />
+                Portefeuille actif
+              </div>
+              <div
+                style={{ fontSize: 18, fontWeight: 800, color: 'var(--foreground, #f1f5f9)' }}
+              >
+                {activeMemberSummary.totalCount}{' '}
+                <span
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 500,
+                    color: 'var(--muted-foreground, #94a3b8)'
+                  }}
+                >
+                  prospects
+                </span>
+              </div>
+              <div
+                style={{
+                  fontSize: 11,
+                  color: 'var(--muted-foreground, #94a3b8)',
+                  marginTop: 2
+                }}
+              >
+                {activeMemberSummary.prospectionCount} en prospection ·{' '}
+                {activeMemberSummary.negociationCount} en négo
+              </div>
+            </div>
+
+            {/* 2. Ventes conclues & CA */}
+            <div
+              style={{
+                background: 'var(--card, #131c2e)',
+                borderRadius: 10,
+                padding: '10px 14px',
+                border: '1px solid var(--border, rgba(255,255,255,0.08))'
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 10.5,
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  color: '#34d399',
+                  marginBottom: 4,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 5
+                }}
+              >
+                <CheckCircle2 size={12} />
+                Ventes conclues
+              </div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: '#34d399' }}>
+                {activeMemberSummary.conclueCount}{' '}
+                <span
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 500,
+                    color: 'var(--muted-foreground, #94a3b8)'
+                  }}
+                >
+                  signatures
+                </span>
+              </div>
+              <div
+                style={{
+                  fontSize: 11,
+                  color: 'var(--muted-foreground, #94a3b8)',
+                  marginTop: 2
+                }}
+              >
+                {new Intl.NumberFormat('fr-FR').format(activeMemberSummary.concludedAmount)} FCFA
+                encaissés
+              </div>
+            </div>
+
+            {/* 3. Relances & Vigilance */}
+            <div
+              style={{
+                background: 'var(--card, #131c2e)',
+                borderRadius: 10,
+                padding: '10px 14px',
+                border:
+                  activeMemberSummary.overdueCount > 0
+                    ? '1px solid rgba(239,68,68,0.3)'
+                    : '1px solid var(--border, rgba(255,255,255,0.08))'
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 10.5,
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  color: activeMemberSummary.overdueCount > 0 ? '#ef4444' : '#60a5fa',
+                  marginBottom: 4,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 5
+                }}
+              >
+                <Calendar size={12} />
+                Relances & Suivi
+              </div>
+              <div
+                style={{
+                  fontSize: 18,
+                  fontWeight: 800,
+                  color: activeMemberSummary.overdueCount > 0 ? '#ef4444' : '#60a5fa'
+                }}
+              >
+                {activeMemberSummary.overdueCount > 0 ? (
+                  <span>{activeMemberSummary.overdueCount} en retard ⚠️</span>
+                ) : (
+                  <span>À jour ✅</span>
+                )}
+              </div>
+              <div
+                style={{
+                  fontSize: 11,
+                  color: 'var(--muted-foreground, #94a3b8)',
+                  marginTop: 2
+                }}
+              >
+                {activeMemberSummary.overdueCount > 0
+                  ? 'Nécessite une relance urgente'
+                  : 'Aucune relance expirée'}
+              </div>
+            </div>
+
+            {/* 4. Objectifs fixés */}
+            <div
+              style={{
+                background: 'var(--card, #131c2e)',
+                borderRadius: 10,
+                padding: '10px 14px',
+                border: '1px solid var(--border, rgba(255,255,255,0.08))'
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 10.5,
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  color: '#fbbf24',
+                  marginBottom: 4,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 5
+                }}
+              >
+                <Target size={12} />
+                Objectifs {activeTarget?.period ? `(${activeTarget.period})` : ''}
+              </div>
+              {activeTarget &&
+              (activeTarget.targetVolume != null || activeTarget.targetValue != null) ? (
+                <>
+                  <div
+                    style={{
+                      fontSize: 15,
+                      fontWeight: 800,
+                      color: 'var(--foreground, #f1f5f9)'
+                    }}
+                  >
+                    {activeTarget.targetVolume != null
+                      ? `${activeMemberSummary.conclueCount} / ${activeTarget.targetVolume} ventes (${Math.min(100, Math.round((activeMemberSummary.conclueCount / activeTarget.targetVolume) * 100))}%)`
+                      : `${new Intl.NumberFormat('fr-FR').format(activeMemberSummary.concludedAmount)} FCFA`}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 11,
+                      color: 'var(--muted-foreground, #94a3b8)',
+                      marginTop: 2
+                    }}
+                  >
+                    {activeTarget.targetValue != null
+                      ? `Cible : ${new Intl.NumberFormat('fr-FR').format(activeTarget.targetValue)} FCFA`
+                      : 'Objectif de volume'}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div
+                    style={{
+                      fontSize: 14,
+                      fontWeight: 600,
+                      color: 'var(--muted-foreground, #64748b)'
+                    }}
+                  >
+                    Non configuré
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 11,
+                      color: 'var(--muted-foreground, #94a3b8)',
+                      marginTop: 2
+                    }}
+                  >
+                    Définir dans le panneau ci-dessus
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       <div
         style={{
