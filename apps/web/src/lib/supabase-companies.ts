@@ -251,39 +251,48 @@ export async function searchSupabaseCompanies(params: {
       }
     }
 
-    // 4. Recherche textuelle multi-colonnes (nom, sigle, NIU, dirigeant)
-    let textOrClause: string | null = null
+    // 4. Recherche textuelle multi-tokens sur toutes les colonnes pertinentes.
+    //    La requête est découpée en tokens individuels (séparateur : espace, virgule, point-virgule).
+    //    Chaque token doit être trouvé dans AU MOINS UNE colonne (OR par token).
+    //    Tous les tokens doivent matcher (AND des OR) → "Commerce, Douala" ≡
+    //    (…has 'Commerce'…) AND (…has 'Douala'…), quel que soit l'ordre.
+    const SEARCHABLE_COLS = [
+      'raison_sociale', 'sigle', 'niu', 'dirigeant',
+      'sector', 'city', 'region', 'adresse'
+    ]
+    const textTokenClauses: string[] = []
     if (query && query.trim()) {
-      // Nettoyage des caractères de syntaxe PostgREST
-      const q = query
+      const rawQ = query
         .replace(/[(),"\\]/g, ' ')
         .replace(/\s+/g, ' ')
         .trim()
-      if (q) {
-        textOrClause = `(raison_sociale.ilike.*${q}*,sigle.ilike.*${q}*,niu.ilike.*${q}*,dirigeant.ilike.*${q}*)`
+      // Split par espace, virgule ou point-virgule
+      const tokens = rawQ
+        .split(/[\s,;]+/)
+        .map((t) => t.trim())
+        .filter((t) => t.length >= 2)
+      for (const t of tokens) {
+        const colClauses = SEARCHABLE_COLS.map((col) => `${col}.ilike.*${t}*`).join(',')
+        textTokenClauses.push(`or(${colClauses})`)
       }
     }
 
     // 5. Toutes les conditions sont regroupées dans un seul and=(...) pour garantir
     //    que l'isolation par pays est TOUJOURS un AND strict, et non un OR.
     //    PostgREST : country_code=eq.CM & or=(...) → traités comme OR au top-level.
-    //    Solution : and=(country_code.eq.CM, city..., region..., or(sector...), or(text...))
+    //    Solution : and=(country_code.eq.CM, city..., region..., or(sector...), or(token1...), or(token2...)...)
     const andParts: string[] = []
     andParts.push(`country_code.eq.${country.toUpperCase()}`)
     if (city) andParts.push(`city.ilike.*${city}*`)
     if (region) andParts.push(`region.ilike.*${region}*`)
 
-    if (sectorOrClause && textOrClause) {
-      const sectorInner = sectorOrClause.slice(1, -1)
-      const textInner = textOrClause.slice(1, -1)
-      andParts.push(`or(${sectorInner})`)
-      andParts.push(`or(${textInner})`)
-    } else if (sectorOrClause) {
+    if (sectorOrClause) {
       const sectorInner = sectorOrClause.slice(1, -1)
       andParts.push(`or(${sectorInner})`)
-    } else if (textOrClause) {
-      const textInner = textOrClause.slice(1, -1)
-      andParts.push(`or(${textInner})`)
+    }
+    // Chaque token textuel est un AND séparé (tous les mots doivent matcher)
+    for (const clause of textTokenClauses) {
+      andParts.push(clause)
     }
 
     searchParams.set('and', `(${andParts.join(',')})`)

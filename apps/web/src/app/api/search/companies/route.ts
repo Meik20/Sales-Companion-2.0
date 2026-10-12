@@ -439,11 +439,19 @@ export async function GET(request: NextRequest) {
       else if (nameNorm.startsWith(normalizedQuery)) score += 150
 
       // Barrière anti-faux positifs :
-      // Si la requête contient au moins 2 mots (ex: "PHARMACIES AKWA"),
-      // et qu'AUCUN mot n'a matché dans l'identité (nom, sigle, secteur) :
-      // le résultat ne provient que de repères d'adresse -> rejeté !
+      // Rejeté seulement si AUCUN token n'a matché dans l'identité (nom/sigle/secteur)
+      // ET AUCUN token ne matche dans une vraie localisation (city/region).
+      // Cela évite que "pharmacie akwa" matche un ATM à l'adresse "en face pharmacie Akwa",
+      // tout en permettant les recherches pure-localisation ("Douala Akwa")
+      // et les recherches secteur+quartier ("Commerce Douala", "BTP Bonanjo").
       if (queryTokens.length >= 2 && identityMatchCount === 0) {
-        return { matches: false, score: 0 }
+        const hasDirectLocationMatch = queryTokens.some((tok) => {
+          const v = getWordVariants(tok)
+          return v.some((variant) => cityNorm.includes(variant) || regionNorm.includes(variant))
+        })
+        if (!hasDirectLocationMatch) {
+          return { matches: false, score: 0 }
+        }
       }
 
       // Pénalité pour les points relais / TPE / guichets bancaires lorsqu'on cherche une activité spécifique
