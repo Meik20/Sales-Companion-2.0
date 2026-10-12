@@ -18,6 +18,7 @@ import {
 import { useTranslation } from '@/providers/I18nProvider'
 import { routes } from '@/constants/routes'
 import { useLandingCountry } from '@/features/landing/landing-country'
+import { ScIcon } from '@/components/ui/ScIcon'
 
 export function Hero() {
   const { lang, t } = useTranslation()
@@ -139,12 +140,10 @@ export function Hero() {
           {/* Main App Container */}
           <div className="rounded-2xl border border-border bg-card p-3 shadow-2xl shadow-primary/10 transition-all hover:shadow-primary/15">
             {/* Window control bar */}
-            <div className="flex items-center gap-1.5 px-3 py-2 border-b border-border/60 mb-3">
-              <span className="h-2.5 w-2.5 rounded-full bg-rose-400/80" />
-              <span className="h-2.5 w-2.5 rounded-full bg-amber-400/80" />
-              <span className="h-2.5 w-2.5 rounded-full bg-emerald-400/80" />
-              <div className="ml-3 flex-1 rounded-md bg-secondary/80 px-3 py-1 text-[11px] text-muted-foreground font-mono text-center sm:text-left">
-                app.salescompanion2-0.com/search
+            <div className="flex items-center gap-2 px-3 py-2 border-b border-border/60 mb-3">
+              <ScIcon size={18} />
+              <div className="flex-1 rounded-md bg-secondary/80 px-3 py-1 text-[11px] text-muted-foreground font-mono text-center sm:text-left">
+                salescompanion2-0.com/search
               </div>
             </div>
 

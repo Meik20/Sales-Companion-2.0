@@ -7,6 +7,7 @@ import { LanguageSwitcher } from '@/components/landing/LanguageSwitcher'
 import { useTranslation } from '@/providers/I18nProvider'
 import { routes } from '@/constants/routes'
 import { useLandingCountry } from '@/features/landing/landing-country'
+import { CountryFlag } from '@/components/ui/CountrySelect'
 
 const LinkedInIcon = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="currentColor">
@@ -244,10 +245,11 @@ export function CtaFooter() {
                 <span>LinkedIn</span>
               </a>
               <span>·</span>
-              <p>
+              <p className="flex items-center gap-1.5">
                 {isEn
-                  ? `Designed for sales teams ${country.englishIn} ${country.flag}`
-                  : `Conçu pour les commerciaux ${country.frenchIn} ${country.flag}`}
+                  ? `Designed for sales teams ${country.englishIn}`
+                  : `Conçu pour les commerciaux ${country.frenchIn}`}
+                <CountryFlag code={country.code} size="sm" />
               </p>
             </div>
           </div>
