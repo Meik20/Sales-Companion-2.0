@@ -30,8 +30,12 @@ describe('supabase-companies', () => {
     expect(result?.total).toBe(1)
     const [requestUrl, requestInit] = fetchMock.mock.calls[0] as [string, RequestInit]
     const url = new URL(requestUrl)
-    expect(url.searchParams.get('country_code')).toBe('eq.CM')
-    expect(url.searchParams.get('or')).toContain('raison_sociale.ilike.*pharmacie*')
+    // Depuis le fix, tout est regroupé dans un seul paramètre and=(...)
+    // country_code et or(...) ne sont plus des params séparés.
+    const andParam = url.searchParams.get('and')
+    expect(andParam).not.toBeNull()
+    expect(andParam).toContain('country_code.eq.CM')
+    expect(andParam).toContain('raison_sociale.ilike.*pharmacie*')
     expect(requestInit.headers).toEqual(
       expect.objectContaining({ apikey: 'test-service-role-key' })
     )
@@ -46,14 +50,23 @@ describe('supabase-companies', () => {
     )
 
     const { searchSupabaseCompanies } = await import('../supabase-companies')
+    // La requête "pharmacie (douala), \"centre\"" est nettoyée puis découpée en tokens.
+    // Les caractères ()"\\  sont remplacés par des espaces avant tokenisation.
+    // Tokens obtenus : ['pharmacie', 'douala', 'centre']
     await searchSupabaseCompanies({ country: 'cm', query: 'pharmacie (douala), "centre"' })
 
     const [requestUrl] = fetchMock.mock.calls[0] as [string, RequestInit]
     const url = new URL(requestUrl)
-    const orParam = url.searchParams.get('or')
-    // No unescaped parentheses or commas inside the query term
-    expect(orParam).not.toContain('(douala)')
-    expect(orParam).toContain('pharmacie douala centre')
+    const andParam = url.searchParams.get('and')
+    // Tous les filtres sont dans and=(...), plus de paramètre or= séparé
+    expect(url.searchParams.get('or')).toBeNull()
+    expect(andParam).not.toBeNull()
+    // Aucune parenthèse non échappée dans le terme de recherche
+    expect(andParam).not.toContain('(douala)')
+    // Chaque token doit apparaître dans la clause and
+    expect(andParam).toContain('raison_sociale.ilike.*pharmacie*')
+    expect(andParam).toContain('raison_sociale.ilike.*douala*')
+    expect(andParam).toContain('raison_sociale.ilike.*centre*')
   })
 
   it('bulk upserts records in chunks of 500', async () => {
