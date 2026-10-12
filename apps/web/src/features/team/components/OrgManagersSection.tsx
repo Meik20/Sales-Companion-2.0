@@ -15,7 +15,8 @@ import {
   TrendingUp,
   Filter,
   CheckCircle2,
-  Calendar
+  Calendar,
+  Tag
 } from 'lucide-react'
 import { useOrgPipeline, type OrgManagerStats } from '@/features/pipeline/hooks/useOrgPipeline'
 
@@ -171,7 +172,8 @@ function ManagerCard({ manager, orgStats }: { manager: OrgManager; orgStats?: Or
                   color: 'var(--primary, #6366f1)'
                 }}
               >
-                🏷️ {manager.segment}
+                <Tag size={11} style={{ marginRight: 2, flexShrink: 0 }} />
+                {manager.segment}
               </span>
             )}
             {manager.isCurrent && (

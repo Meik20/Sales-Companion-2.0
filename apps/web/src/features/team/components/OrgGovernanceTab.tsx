@@ -17,6 +17,9 @@ import {
   ArrowRightLeft,
   AlertCircle,
   Users2,
+  Crown,
+  Link2,
+  Tag,
   Search,
   CheckSquare,
   Square,
@@ -428,7 +431,7 @@ export function OrgGovernanceTab() {
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <div className="text-[12px] font-semibold text-muted-foreground flex items-center gap-1.5">
-                  <span>🏷️</span> Votre Segment Commercial Actuel
+                  <Tag size={13} className="text-primary shrink-0" /> Votre Segment Commercial Actuel
                 </div>
                 {!editingSegment ? (
                   <div className="mt-1 flex items-center gap-2">
@@ -516,8 +519,9 @@ export function OrgGovernanceTab() {
               <div className="flex flex-col justify-between rounded-xl border border-border bg-card/60 p-4">
                 <div>
                   <div className="flex items-center justify-between gap-2">
-                    <span className="font-bold text-[13.5px] text-foreground flex items-center gap-1.5">
-                      🧑‍💼 Team Manager
+                    <span className="font-bold text-[13.5px] text-foreground flex items-center gap-2">
+                      <Users2 size={16} className="text-primary shrink-0" />
+                      <span>Team Manager</span>
                     </span>
                     <span className="text-[11px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-md">
                       Segment : {orgData?.segment || user?.segment || 'Principal'}
@@ -533,7 +537,7 @@ export function OrgGovernanceTab() {
                   disabled={generatingInvite === 'tm'}
                   className="mt-3 inline-flex items-center justify-center gap-2 rounded-lg border border-primary/40 bg-primary/15 px-3 py-2 text-[12.5px] font-semibold text-primary transition-colors hover:bg-primary/25 cursor-pointer disabled:opacity-50"
                 >
-                  {copiedTmInvite ? <Check size={14} className="text-green-400" /> : <span>🔗</span>}
+                  {copiedTmInvite ? <Check size={14} className="text-green-400" /> : <Link2 size={14} className="shrink-0" />}
                   {copiedTmInvite ? 'Lien copié !' : generatingInvite === 'tm' ? 'Génération…' : "Copier le lien Team Manager"}
                 </button>
               </div>
@@ -542,8 +546,9 @@ export function OrgGovernanceTab() {
               <div className="flex flex-col justify-between rounded-xl border border-border bg-card/60 p-4">
                 <div>
                   <div className="flex items-center justify-between gap-2">
-                    <span className="font-bold text-[13.5px] text-foreground flex items-center gap-1.5">
-                      👔 Senior Manager
+                    <span className="font-bold text-[13.5px] text-foreground flex items-center gap-2">
+                      <Crown size={16} className="text-violet-400 shrink-0" />
+                      <span>Senior Manager</span>
                     </span>
                     <span className="text-[11px] font-semibold text-violet-400 bg-violet-500/10 px-2 py-0.5 rounded-md">
                       Nouveau Segment Libre
@@ -559,7 +564,7 @@ export function OrgGovernanceTab() {
                   disabled={generatingInvite === 'sm'}
                   className="mt-3 inline-flex items-center justify-center gap-2 rounded-lg border border-violet-500/40 bg-violet-500/15 px-3 py-2 text-[12.5px] font-semibold text-violet-300 transition-colors hover:bg-violet-500/25 cursor-pointer disabled:opacity-50"
                 >
-                  {copiedSmInvite ? <Check size={14} className="text-green-400" /> : <span>★</span>}
+                  {copiedSmInvite ? <Check size={14} className="text-green-400" /> : <Link2 size={14} className="shrink-0" />}
                   {copiedSmInvite ? 'Lien copié !' : generatingInvite === 'sm' ? 'Génération…' : "Copier le lien Senior Manager"}
                 </button>
               </div>

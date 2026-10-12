@@ -19,7 +19,7 @@ import {
 import { useTranslation } from '@/providers/I18nProvider'
 import { isCorporateEmail } from '../utils/email-validator'
 import { CountrySelect } from '@/components/ui/CountrySelect'
-import { ShieldCheck, Lock, HelpCircle, ArrowRight, ArrowLeft } from 'lucide-react'
+import { ShieldCheck, Lock, HelpCircle, ArrowRight, ArrowLeft, Crown, Users2 } from 'lucide-react'
 import { detectClientCountry } from '@/features/landing/landing-country'
 import { setProspectingCountryCookie } from '@/hooks/useProspectingCountry'
 import type { CountryCode } from '@sales-companion/shared'
@@ -603,8 +603,18 @@ export function RegisterForm() {
             <div className="rounded-xl border border-border bg-secondary/30 p-3.5 flex items-center justify-between">
               <div>
                 <span className="text-[11px] uppercase tracking-wider font-bold text-muted-foreground">Rôle assigné</span>
-                <div className="text-[14px] font-bold text-foreground mt-0.5">
-                  {orgInviteInfo.type === 'senior_manager' ? '👔 Senior Manager' : "🧑‍💼 Team Manager"}
+                <div className="flex items-center gap-1.5 text-[14px] font-bold text-foreground mt-0.5">
+                  {orgInviteInfo.type === 'senior_manager' ? (
+                    <>
+                      <Crown size={15} className="text-violet-400 shrink-0" />
+                      <span>Senior Manager</span>
+                    </>
+                  ) : (
+                    <>
+                      <Users2 size={15} className="text-primary shrink-0" />
+                      <span>Team Manager</span>
+                    </>
+                  )}
                 </div>
               </div>
               <span className="text-[11.5px] font-semibold bg-primary/15 text-primary px-2.5 py-1 rounded-md">
