@@ -440,9 +440,12 @@ function ProspectModal({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: 10,
                 marginBottom: 16
               }}
             >
+              {/* Titre section */}
               <div
                 style={{
                   fontSize: 11,
@@ -459,70 +462,73 @@ function ProspectModal({
                 Suivi commercial & Métriques
               </div>
 
-              {!isEditing ? (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => setIsEditing(true)}
-                  style={{
-                    fontSize: 11,
-                    padding: '4px 10px',
-                    minHeight: 26,
-                    color: '#60a5fa',
-                    borderColor: 'rgba(96,165,250,0.25)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 4
-                  }}
-                >
-                  <Edit3 size={11} />
-                  {t('common.edit') || 'Modifier'}
-                </Button>
-              ) : (
-                <div style={{ display: 'flex', gap: 8 }}>
+              {/* Boutons d'action alignés à droite */}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginLeft: 'auto' }}>
+                {!isEditing ? (
                   <Button
                     size="sm"
                     variant="ghost"
-                    onClick={() => {
-                      setNoteText(originalNote)
-                      setAmountVal(originalAmount)
-                      setFollowUpVal(originalFollowUp)
-                      setIsEditing(false)
-                    }}
+                    onClick={() => setIsEditing(true)}
                     style={{
                       fontSize: 11,
                       padding: '4px 10px',
                       minHeight: 26,
+                      color: '#60a5fa',
+                      borderColor: 'rgba(96,165,250,0.25)',
                       display: 'flex',
                       alignItems: 'center',
                       gap: 4
                     }}
                   >
-                    <RotateCcw size={11} />
-                    {t('common.cancel') || 'Annuler'}
+                    <Edit3 size={11} />
+                    {t('common.edit') || 'Modifier'}
                   </Button>
-                  <Button
-                    size="sm"
-                    variant="primary"
-                    loading={noteSaving}
-                    disabled={!isChanged || noteSaving}
-                    onClick={() => void handleSaveNote()}
-                    style={{
-                      fontSize: 11,
-                      padding: '4px 12px',
-                      minHeight: 26,
-                      background: '#2563eb',
-                      borderColor: '#2563eb',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 4
-                    }}
-                  >
-                    <Save size={11} />
-                    Enregistrer
-                  </Button>
-                </div>
-              )}
+                ) : (
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        setNoteText(originalNote)
+                        setAmountVal(originalAmount)
+                        setFollowUpVal(originalFollowUp)
+                        setIsEditing(false)
+                      }}
+                      style={{
+                        fontSize: 11,
+                        padding: '4px 10px',
+                        minHeight: 26,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4
+                      }}
+                    >
+                      <RotateCcw size={11} />
+                      {t('common.cancel') || 'Annuler'}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="primary"
+                      loading={noteSaving}
+                      disabled={!isChanged || noteSaving}
+                      onClick={() => void handleSaveNote()}
+                      style={{
+                        fontSize: 11,
+                        padding: '4px 12px',
+                        minHeight: 26,
+                        background: '#2563eb',
+                        borderColor: '#2563eb',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4
+                      }}
+                    >
+                      <Save size={11} />
+                      Enregistrer
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
 
             {isEditing ? (

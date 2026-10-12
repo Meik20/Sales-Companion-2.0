@@ -19,9 +19,9 @@ const getNavItems = (role: string, plan: string, t: (key: any) => string) => {
 
   const items = [
     { href: routes.search, label: t('header.search') },
-    ...(role !== 'admin' ? [{ href: routes.pipeline, label: t('sidebar.pipeline') }] : []),
-    { href: routes.saved, label: t('sidebar.saved') },
-    ...(plan !== 'free' ? [{ href: routes.ai, label: t('header.aiAssistant') }] : []),
+    ...(role !== 'admin' ? [{ href: routes.pipeline, label: 'Pipeline' }] : []),
+    { href: routes.saved, label: 'Favoris' },
+    ...(plan !== 'free' ? [{ href: routes.ai, label: 'AI' }] : []),
     { href: routes.profile, label: t('header.profile') }
   ]
 
@@ -83,12 +83,15 @@ const NAV_STYLES = `
   animation: navIconBounce 300ms ease forwards;
 }
 .mobile-nav-btn span {
-  font-size: 9.5px;
+  font-size: 9px;
   font-weight: 500;
   margin-top: 3px;
   font-family: inherit;
   transition: all 200ms ease;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
   text-align: center;
   line-height: 1.1;
 }
@@ -302,11 +305,11 @@ export function MobileNav() {
             {user.role !== 'admin' && (
               <NavItem
                 href={routes.pipeline}
-                label={t('sidebar.pipeline')}
+                label="Pipeline"
                 icon={<PipelineIcon />}
               />
             )}
-            <NavItem href={routes.saved} label={t('sidebar.saved')} icon={<SavedIcon />} />
+            <NavItem href={routes.saved} label="Favoris" icon={<SavedIcon />} />
 
             {user.role === 'manager' && (
               <>

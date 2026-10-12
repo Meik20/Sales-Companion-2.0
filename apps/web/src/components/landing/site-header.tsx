@@ -31,14 +31,14 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-[100] border-b border-border/70 bg-background/85 backdrop-blur-md transition-all">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:px-5">
         <Link
           href="/"
-          className="flex items-center gap-2.5 group shrink-0"
+          className="flex items-center gap-2 sm:gap-2.5 group shrink-0 min-w-0"
           aria-label="Sales Companion 2.0, accueil"
         >
-          <ScIcon size={34} interactive className="group-hover:scale-105 transition-transform" />
-          <span className="font-heading text-[15px] font-semibold tracking-tight text-foreground">
+          <ScIcon size={32} interactive className="group-hover:scale-105 transition-transform shrink-0 sm:w-[34px] sm:h-[34px]" />
+          <span className="font-heading text-sm sm:text-[15px] font-semibold tracking-tight text-foreground whitespace-nowrap">
             Sales Companion <span className="text-[#1B7A3E]">2.0</span>
           </span>
         </Link>
@@ -58,7 +58,7 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        <div className="flex shrink-0 items-center gap-2.5 sm:gap-3">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           <label className="hidden lg:flex shrink-0 items-center gap-1.5 rounded-lg border border-border bg-secondary/60 px-2.5 text-xs font-semibold text-foreground">
             <span className="flex items-center" aria-hidden="true">
               <CountryFlag code={country.code} size="sm" />
@@ -81,8 +81,10 @@ export function SiteHeader() {
             </select>
           </label>
 
-          {/* Sélecteur de langue */}
-          <LanguageSwitcher />
+          {/* Sélecteur de langue (visible à partir de sm) */}
+          <div className="hidden sm:flex items-center">
+            <LanguageSwitcher />
+          </div>
 
           <a
             href="https://www.linkedin.com/company/sales-companion-2-0/"
@@ -104,7 +106,7 @@ export function SiteHeader() {
 
           <Link
             href={routes.register}
-            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-[13px] font-medium text-primary-foreground tracking-wide transition-all hover:bg-primary/85 hover:shadow-sm active:scale-[0.97]"
+            className="inline-flex h-9 items-center justify-center rounded-lg bg-primary px-3 sm:px-3.5 text-xs sm:text-[13px] font-semibold text-primary-foreground tracking-wide transition-all hover:bg-primary/90 hover:shadow-sm active:scale-[0.97]"
           >
             <span className="sm:hidden">{lang === 'en' ? 'Try' : 'Essayer'}</span>
             <span className="hidden sm:inline">{t('landing.startFree')}</span>
@@ -113,7 +115,7 @@ export function SiteHeader() {
           {/* Toggle menu mobile */}
           <button
             onClick={() => setMobileOpen((v) => !v)}
-            className="inline-flex items-center justify-center rounded-lg border border-border p-2 text-muted-foreground transition-colors hover:bg-secondary md:hidden"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border p-0 text-muted-foreground transition-colors hover:bg-secondary md:hidden shrink-0"
             aria-label={mobileOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
             aria-expanded={mobileOpen}
           >
@@ -137,29 +139,36 @@ export function SiteHeader() {
               </a>
             ))}
           </nav>
-          <div className="mt-4 flex flex-col gap-2 pt-4 border-t border-border">
-            {/* Sélecteur de pays dans le menu mobile */}
-            <label className="flex items-center gap-2 rounded-lg border border-border bg-secondary/60 px-3 py-2 text-xs font-semibold text-foreground">
-              <span aria-hidden="true" className="flex items-center">
-                <CountryFlag code={country.code} size="sm" />
-              </span>
-              <select
-                value={country.code}
-                onChange={(event) => setCountry(event.target.value as typeof country.code)}
-                className="flex-1 cursor-pointer bg-transparent text-xs font-semibold outline-none"
-                aria-label={lang === 'en' ? 'Select country' : 'Pays de la homepage'}
-              >
-                {countries.map((option) => (
-                  <option
-                    key={option.code}
-                    value={option.code}
-                    className="bg-background text-foreground"
-                  >
-                    {option.name}
-                  </option>
-                ))}
-              </select>
-            </label>
+          <div className="mt-4 flex flex-col gap-2.5 pt-4 border-t border-border">
+            {/* Pays et Langue dans le menu mobile */}
+            <div className="flex items-center justify-between gap-2">
+              <label className="flex flex-1 items-center gap-2 rounded-lg border border-border bg-secondary/60 px-3 py-2 text-xs font-semibold text-foreground">
+                <span aria-hidden="true" className="flex items-center">
+                  <CountryFlag code={country.code} size="sm" />
+                </span>
+                <select
+                  value={country.code}
+                  onChange={(event) => setCountry(event.target.value as typeof country.code)}
+                  className="flex-1 cursor-pointer bg-transparent text-xs font-semibold outline-none"
+                  aria-label={lang === 'en' ? 'Select country' : 'Pays de la homepage'}
+                >
+                  {countries.map((option) => (
+                    <option
+                      key={option.code}
+                      value={option.code}
+                      className="bg-background text-foreground"
+                    >
+                      {option.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <div className="shrink-0 sm:hidden">
+                <LanguageSwitcher />
+              </div>
+            </div>
+
             <Link
               href={routes.login}
               className="w-full rounded-lg border border-border px-4 py-2.5 text-center text-sm font-medium text-foreground transition-colors hover:bg-secondary"
