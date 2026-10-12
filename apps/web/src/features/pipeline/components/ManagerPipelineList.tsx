@@ -1982,79 +1982,188 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
               </div>
             </div>
 
-            {/* 4. Objectifs fixés */}
-            <div
-              style={{
-                background: 'var(--card, #131c2e)',
-                borderRadius: 10,
-                padding: '10px 14px',
-                border: '1px solid var(--border, rgba(255,255,255,0.08))'
-              }}
-            >
-              <div
-                style={{
-                  fontSize: 10.5,
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  color: '#fbbf24',
-                  marginBottom: 4,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 5
-                }}
-              >
-                <Target size={12} />
-                Objectifs {activeTarget?.period ? `(${activeTarget.period})` : ''}
-              </div>
-              {activeTarget &&
-              (activeTarget.targetVolume != null || activeTarget.targetValue != null) ? (
-                <>
+            {/* 4. Objectifs fixés (Volume %, Valeur %, R/O) */}
+            {(() => {
+              const hasTargets =
+                activeTarget &&
+                (activeTarget.targetVolume != null || activeTarget.targetValue != null)
+
+              const pctVolume =
+                activeTarget?.targetVolume != null && activeTarget.targetVolume > 0
+                  ? Math.round((activeMemberSummary.conclueCount / activeTarget.targetVolume) * 100)
+                  : null
+
+              const pctValue =
+                activeTarget?.targetValue != null && activeTarget.targetValue > 0
+                  ? Math.round((activeMemberSummary.concludedAmount / activeTarget.targetValue) * 100)
+                  : null
+
+              const roValue: number | null = (() => {
+                if (pctVolume != null && pctValue != null)
+                  return Math.round((pctVolume + pctValue) / 2)
+                if (pctVolume != null) return pctVolume
+                if (pctValue != null) return pctValue
+                return null
+              })()
+
+              const getScoreColor = (score: number | null) => {
+                if (score == null) return 'var(--muted-foreground, #94a3b8)'
+                if (score >= 100) return '#34d399'
+                if (score >= 75) return '#fbbf24'
+                return '#f87171'
+              }
+
+              return (
+                <div
+                  style={{
+                    background: 'var(--card, #131c2e)',
+                    borderRadius: 10,
+                    padding: '10px 14px',
+                    border: '1px solid var(--border, rgba(255,255,255,0.08))',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between'
+                  }}
+                >
                   <div
                     style={{
-                      fontSize: 15,
-                      fontWeight: 800,
-                      color: 'var(--foreground, #f1f5f9)'
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      marginBottom: 6
                     }}
                   >
-                    {activeTarget.targetVolume != null
-                      ? `${activeMemberSummary.conclueCount} / ${activeTarget.targetVolume} ventes (${Math.min(100, Math.round((activeMemberSummary.conclueCount / activeTarget.targetVolume) * 100))}%)`
-                      : `${new Intl.NumberFormat('fr-FR').format(activeMemberSummary.concludedAmount)} FCFA`}
+                    <div
+                      style={{
+                        fontSize: 10.5,
+                        fontWeight: 700,
+                        textTransform: 'uppercase',
+                        color: '#fbbf24',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 5
+                      }}
+                    >
+                      <Target size={12} />
+                      Objectifs {activeTarget?.period ? `(${activeTarget.period})` : ''}
+                    </div>
+                    {roValue != null && (
+                      <span
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 800,
+                          padding: '1px 6px',
+                          borderRadius: 6,
+                          background:
+                            roValue >= 100
+                              ? 'rgba(52,211,153,0.15)'
+                              : roValue >= 75
+                                ? 'rgba(251,191,36,0.15)'
+                                : 'rgba(239,68,68,0.15)',
+                          color: getScoreColor(roValue)
+                        }}
+                      >
+                        R/O {roValue}%
+                      </span>
+                    )}
                   </div>
-                  <div
-                    style={{
-                      fontSize: 11,
-                      color: 'var(--muted-foreground, #94a3b8)',
-                      marginTop: 2
-                    }}
-                  >
-                    {activeTarget.targetValue != null
-                      ? `Cible : ${new Intl.NumberFormat('fr-FR').format(activeTarget.targetValue)} FCFA`
-                      : 'Objectif de volume'}
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div
-                    style={{
-                      fontSize: 14,
-                      fontWeight: 600,
-                      color: 'var(--muted-foreground, #64748b)'
-                    }}
-                  >
-                    Non configuré
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 11,
-                      color: 'var(--muted-foreground, #94a3b8)',
-                      marginTop: 2
-                    }}
-                  >
-                    Définir dans le panneau ci-dessus
-                  </div>
-                </>
-              )}
-            </div>
+
+                  {hasTargets ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      {/* 1. Volume avec pourcentage */}
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          fontSize: 11.5
+                        }}
+                      >
+                        <span style={{ color: 'var(--muted-foreground, #94a3b8)' }}>Volume :</span>
+                        <span style={{ fontWeight: 700, color: 'var(--foreground, #f1f5f9)' }}>
+                          {activeMemberSummary.conclueCount} / {activeTarget.targetVolume ?? '—'}{' '}
+                          {pctVolume != null && (
+                            <strong style={{ color: getScoreColor(pctVolume) }}>
+                              ({pctVolume}%)
+                            </strong>
+                          )}
+                        </span>
+                      </div>
+
+                      {/* 2. Valeur avec pourcentage */}
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          fontSize: 11.5
+                        }}
+                      >
+                        <span style={{ color: 'var(--muted-foreground, #94a3b8)' }}>Valeur :</span>
+                        <span style={{ fontWeight: 700, color: 'var(--foreground, #f1f5f9)' }}>
+                          {new Intl.NumberFormat('fr-FR').format(activeMemberSummary.concludedAmount)}
+                          {activeTarget.targetValue != null
+                            ? ` / ${new Intl.NumberFormat('fr-FR').format(activeTarget.targetValue)} F`
+                            : ' F'}
+                          {pctValue != null && (
+                            <strong style={{ marginLeft: 4, color: getScoreColor(pctValue) }}>
+                              ({pctValue}%)
+                            </strong>
+                          )}
+                        </span>
+                      </div>
+
+                      {/* 3. Taux R/O */}
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          fontSize: 11.5,
+                          borderTop: '1px dashed var(--border, rgba(255,255,255,0.08))',
+                          paddingTop: 4,
+                          marginTop: 2
+                        }}
+                      >
+                        <span style={{ color: 'var(--muted-foreground, #94a3b8)', fontWeight: 600 }}>
+                          Taux R/O :
+                        </span>
+                        <span
+                          style={{
+                            fontWeight: 800,
+                            fontSize: 12,
+                            color: getScoreColor(roValue)
+                          }}
+                        >
+                          {roValue != null ? `${roValue}%` : '—'}
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div
+                        style={{
+                          fontSize: 14,
+                          fontWeight: 600,
+                          color: 'var(--muted-foreground, #64748b)'
+                        }}
+                      >
+                        Non configuré
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 11,
+                          color: 'var(--muted-foreground, #94a3b8)',
+                          marginTop: 2
+                        }}
+                      >
+                        Définir dans le panneau ci-dessus
+                      </div>
+                    </>
+                  )}
+                </div>
+              )
+            })()}
           </div>
         </div>
       )}
