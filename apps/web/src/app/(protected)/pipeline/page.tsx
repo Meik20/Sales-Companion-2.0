@@ -189,14 +189,7 @@ export default function PipelinePage() {
 
       {/* Stats rapides */}
       {user?.role === 'member' || user?.role === 'independent' ? (
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: 12,
-            marginBottom: 20
-          }}
-        >
+        <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-5">
           {[
             {
               id: 'prospection' as const,
@@ -236,12 +229,14 @@ export default function PipelinePage() {
                   border: isSelected
                     ? `2px solid ${color}`
                     : '1px solid var(--border, rgba(255,255,255,0.1))',
-                  padding: '14px 18px',
+                  padding: '12px 10px',
                   outline: 'none',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  gap: 6
+                  justifyContent: 'center',
+                  gap: 6,
+                  minWidth: 0
                 }}
               >
                 <div
@@ -285,56 +280,56 @@ export default function PipelinePage() {
         <>
           {/* KPI Org globaux */}
           {orgPipelineQuery.data && (
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(4, 1fr)',
-                gap: 12,
-                marginBottom: 20
-              }}
-            >
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 mb-5">
               {[
                 {
-                  label: 'Prospection',
+                  id: 'prospection',
+                  label: t('pipeline.prospection') || 'Prospection',
                   count: orgPipelineQuery.data.counts.prospection,
                   color: '#60a5fa',
                   icon: <TrendingUp size={16} />
                 },
                 {
-                  label: 'Négociation',
+                  id: 'negociation',
+                  label: t('pipeline.negotiation') || 'Négociation',
                   count: orgPipelineQuery.data.counts.negociation,
                   color: '#fbbf24',
                   icon: <Filter size={16} />
                 },
                 {
-                  label: 'Conclus',
+                  id: 'conclue',
+                  label: t('pipeline.closed') || 'Conclus',
                   count: orgPipelineQuery.data.counts.conclue,
                   color: '#34d399',
                   icon: <Building2 size={16} />
                 },
                 {
-                  label: 'Total Org',
+                  id: 'total',
+                  label: t('pipeline.totalOrg') || 'Total Org',
                   count: orgPipelineQuery.data.counts.total,
                   color: '#a78bfa',
                   icon: <Users2 size={16} />
                 }
-              ].map(({ label, count, color, icon }) => (
+              ].map(({ id, label, count, color, icon }) => (
                 <div
-                  key={label}
+                  key={id}
                   style={{
                     background: 'var(--card, #131c2e)',
                     border: '1px solid var(--border, rgba(255,255,255,0.1))',
                     borderRadius: 12,
-                    padding: '14px 18px',
+                    padding: '12px 14px',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    gap: 6
+                    justifyContent: 'center',
+                    gap: 6,
+                    minWidth: 0
                   }}
+                  className="transition-all duration-150 hover:shadow-sm"
                 >
                   <div
                     style={{
-                      fontSize: 28,
+                      fontSize: 26,
                       fontWeight: 800,
                       color,
                       fontFamily: "'Syne',sans-serif",
@@ -349,10 +344,14 @@ export default function PipelinePage() {
                       alignItems: 'center',
                       gap: 5,
                       color: 'var(--muted-foreground)',
-                      fontSize: 12
+                      fontSize: 12,
+                      fontWeight: 500,
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
                     }}
                   >
-                    {icon} {label}
+                    {icon} <span>{label}</span>
                   </div>
                 </div>
               ))}
@@ -363,78 +362,120 @@ export default function PipelinePage() {
           {orgPipelineQuery.data?.managers &&
             orgPipelineQuery.data.managers.filter((m: OrgManagerStats) => !m.isSenior).length >
               0 && (
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  marginBottom: 16,
-                  flexWrap: 'wrap'
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: 'var(--muted-foreground)',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em'
-                  }}
-                >
-                  Filtrer par Team Manager :
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setFilterManagerUid(undefined)}
-                  style={{
-                    padding: '4px 12px',
-                    borderRadius: 20,
-                    border: '1px solid var(--border)',
-                    background: !filterManagerUid ? 'var(--primary, #6366f1)' : 'transparent',
-                    color: !filterManagerUid ? '#fff' : 'var(--foreground)',
-                    fontSize: 12,
-                    fontWeight: 600,
-                    cursor: 'pointer'
-                  }}
-                >
-                  Tous
-                </button>
-                {orgPipelineQuery.data.managers
-                  .filter((m: OrgManagerStats) => !m.isSenior)
-                  .map((mgr: OrgManagerStats) => (
-                    <button
-                      key={mgr.uid}
-                      type="button"
-                      onClick={() =>
-                        setFilterManagerUid(mgr.uid === filterManagerUid ? undefined : mgr.uid)
-                      }
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-4">
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 700,
+                      color: 'var(--muted-foreground)',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em'
+                    }}
+                  >
+                    {t('pipeline.filterByTeamManager') || 'Filtrer par Team Manager :'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => setFilterManagerUid(undefined)}
+                    style={{
+                      padding: '5px 12px',
+                      borderRadius: 20,
+                      border: !filterManagerUid
+                        ? '1px solid #6366f1'
+                        : '1px solid var(--border, rgba(255,255,255,0.1))',
+                      background: !filterManagerUid
+                        ? '#6366f1'
+                        : 'var(--secondary, #1e2a3b)',
+                      color: !filterManagerUid
+                        ? '#ffffff'
+                        : 'var(--foreground, #f1f5f9)',
+                      fontSize: 12,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      transition: 'all 150ms ease'
+                    }}
+                  >
+                    <span>{t('pipeline.all') || 'Tous'}</span>
+                    <span
                       style={{
-                        padding: '4px 12px',
-                        borderRadius: 20,
-                        border: '1px solid var(--border)',
-                        background:
-                          filterManagerUid === mgr.uid ? 'var(--primary, #6366f1)' : 'transparent',
-                        color: filterManagerUid === mgr.uid ? '#fff' : 'var(--foreground)',
-                        fontSize: 12,
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 5
+                        fontSize: 10.5,
+                        padding: '1px 6px',
+                        borderRadius: 10,
+                        background: !filterManagerUid
+                          ? 'rgba(255,255,255,0.25)'
+                          : 'rgba(255,255,255,0.08)',
+                        fontWeight: 700
                       }}
                     >
-                      {mgr.name || mgr.email}
-                      {mgr.isSenior && <span style={{ fontSize: 10, opacity: 0.7 }}>(vous)</span>}
-                      <span style={{ fontSize: 11, opacity: 0.6 }}>({mgr.stats.total})</span>
-                    </button>
-                  ))}
+                      {orgPipelineQuery.data.counts.total}
+                    </span>
+                  </button>
+                  {orgPipelineQuery.data.managers
+                    .filter((m: OrgManagerStats) => !m.isSenior)
+                    .map((mgr: OrgManagerStats) => {
+                      const isSelected = filterManagerUid === mgr.uid
+                      return (
+                        <button
+                          key={mgr.uid}
+                          type="button"
+                          onClick={() =>
+                            setFilterManagerUid(isSelected ? undefined : mgr.uid)
+                          }
+                          style={{
+                            padding: '5px 12px',
+                            borderRadius: 20,
+                            border: isSelected
+                              ? '1px solid #6366f1'
+                              : '1px solid var(--border, rgba(255,255,255,0.1))',
+                            background: isSelected
+                              ? '#6366f1'
+                              : 'var(--secondary, #1e2a3b)',
+                            color: isSelected
+                              ? '#ffffff'
+                              : 'var(--foreground, #f1f5f9)',
+                            fontSize: 12,
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 6,
+                            transition: 'all 150ms ease'
+                          }}
+                        >
+                          <span>{mgr.name || mgr.email}</span>
+                          {mgr.isSenior && (
+                            <span style={{ fontSize: 10, opacity: 0.7 }}>(vous)</span>
+                          )}
+                          <span
+                            style={{
+                              fontSize: 10.5,
+                              padding: '1px 6px',
+                              borderRadius: 10,
+                              background: isSelected
+                                ? 'rgba(255,255,255,0.25)'
+                                : 'rgba(255,255,255,0.08)',
+                              fontWeight: 700
+                            }}
+                          >
+                            {mgr.stats.total}
+                          </span>
+                        </button>
+                      )
+                    })}
+                </div>
               </div>
             )}
 
           {/* Liste consolidée org */}
           <DataCard
-            title="Pipeline Organisation"
-            subtitle={`Tous les prospects de votre organisation${filterManagerUid ? ' — filtré par manager' : ''}`}
+            title={t('pipeline.orgPipeline') || 'Pipeline Organisation'}
+            subtitle={`${t('pipeline.orgPipelineSubtitle') || 'Tous les prospects de votre organisation'}${filterManagerUid ? (t('pipeline.filteredByManager') || ' — filtré par manager') : ''}`}
           >
             {orgPipelineQuery.isLoading ? <LoadingState /> : null}
             {!orgPipelineQuery.isLoading && !orgPipelineQuery.data?.items?.length ? (

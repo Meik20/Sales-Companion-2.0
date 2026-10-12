@@ -516,10 +516,6 @@ body {
     font-size: 20px !important;
   }
 
-  /* Pipeline stats grid */
-  [style*="gridTemplateColumns: 'repeat(3, 1fr)'"] {
-    grid-template-columns: repeat(3, 1fr) !important;
-  }
 
   /* Form fields — pleine largeur */
   form > div[style*='grid'] {
