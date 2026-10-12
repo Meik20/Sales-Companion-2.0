@@ -88,7 +88,8 @@ export const useManagerPipeline = () => {
         return tb - ta
       })
 
-      return items
+      // Exclure les leads archivés du pipeline actif — ils sont dans le tiroir Archives
+      return items.filter((item) => !(item as any).archived)
     },
     enabled: !loading && !!user?.uid && user.role === 'manager',
     staleTime: 2 * 60 * 1000,

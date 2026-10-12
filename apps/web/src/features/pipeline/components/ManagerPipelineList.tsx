@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import { Badge } from '@/components/ui/index'
 import { Button } from '@/components/ui/Button'
 import { useDeletePipelineItem } from '@/features/pipeline/hooks/useDeletePipelineItem'
@@ -10,6 +10,8 @@ import { useTranslation } from '@/providers/I18nProvider'
 import { getWhatsAppUrl } from '@/utils/whatsapp'
 import { useExportTeamPerformance } from '@/features/pipeline/hooks/useExportTeamPerformance'
 import { useTeamTargets, useSaveTeamTarget } from '@/features/pipeline/hooks/useTeamTargets'
+import { useArchiveLeads } from '@/features/pipeline/hooks/useArchivePipeline'
+import { ArchivesDrawer } from '@/features/pipeline/components/ArchivesDrawer'
 import {
   Building2,
   MapPin,
@@ -1300,6 +1302,7 @@ function ExportPanel({ members }: { members?: Member[] }) {
 export function ManagerPipelineList({ items, members, managerUid, showTargets = true }: Props) {
   const { t } = useTranslation()
   const deleteMutation = useDeletePipelineItem()
+  const { archiveLeads, loading: archiving } = useArchiveLeads()
 
   const statusLabel: Record<string, string> = {
     prospection: t('pipeline.prospection'),
@@ -1347,6 +1350,24 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
   useEffect(() => {
     setIsMounted(true)
   }, [])
+
+  // ── Sélection pour archivage ──────────────────────────────────────────────
+  const [selectedForArchive, setSelectedForArchive] = useState<Set<string>>(new Set())
+
+  const toggleArchiveSelect = useCallback((id: string) => {
+    setSelectedForArchive((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }, [])
+
+  async function handleArchiveSelected() {
+    const ids = Array.from(selectedForArchive)
+    await archiveLeads(ids)
+    setSelectedForArchive(new Set())
+  }
 
   // ── Filtre par membre & statistiques individuelles ──────────────────────────
   const [selectedMemberId, setSelectedMemberId] = useState<string>('all')
@@ -1485,8 +1506,57 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
       {/* Targets panel — objectifs Volume/Valeur par membre (Team Manager uniquement) */}
       {showTargets && <TargetsPanel members={members} />}
 
-      {/* Export panel — always shown for managers */}
-      <ExportPanel members={members} />
+      {/* Export panel + Archives drawer */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, flexWrap: 'wrap' }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <ExportPanel members={members} />
+        </div>
+        <div style={{ paddingTop: 4 }}>
+          <ArchivesDrawer />
+        </div>
+      </div>
+
+      {/* ── Panneau d'archivage — s'affiche quand des leads sont sélectionnés ── */}
+      {selectedForArchive.size > 0 && (
+        <div
+          style={{
+            marginBottom: 12,
+            padding: '12px 16px',
+            borderRadius: 10,
+            background: 'rgba(251,191,36,0.08)',
+            border: '1px solid rgba(251,191,36,0.3)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            flexWrap: 'wrap'
+          }}
+        >
+          <span style={{ fontSize: 13, fontWeight: 600, color: '#fbbf24', flex: 1 }}>
+            {selectedForArchive.size} lead{selectedForArchive.size > 1 ? 's sélectionnés' : ' sélectionné'} pour archivage
+          </span>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setSelectedForArchive(new Set())}
+            style={{ fontSize: 12 }}
+          >
+            Annuler
+          </Button>
+          <Button
+            size="sm"
+            variant="primary"
+            loading={archiving}
+            onClick={() => void handleArchiveSelected()}
+            style={{
+              background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+              border: 'none',
+              fontSize: 12
+            }}
+          >
+            Archiver la sélection
+          </Button>
+        </div>
+      )}
 
       {/* ── Sélecteur d'activité individuelle par commercial ───────────── */}
       <div
@@ -2362,15 +2432,48 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                         </div>
                       )}
                     </div>
-                    <Button
-                      size="sm"
-                      variant="danger"
-                      loading={deletingId === item.id}
-                      onClick={(e) => void handleDelete(e as React.MouseEvent, item.id)}
-                      style={{ flexShrink: 0, padding: '0 8px', minHeight: 28 }}
-                    >
-                      <Trash2 size={13} />
-                    </Button>
+                    <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                      {/* Bouton archivage (leads non conclus uniquement) */}
+                      {normalize(item.status) !== 'conclue' && (
+                        <button
+                          type="button"
+                          title={selectedForArchive.has(item.id) ? 'Désélectionner' : 'Sélectionner pour archiver'}
+                          onClick={(e) => { e.stopPropagation(); toggleArchiveSelect(item.id) }}
+                          style={{
+                            flexShrink: 0,
+                            padding: '0 8px',
+                            minHeight: 28,
+                            borderRadius: 6,
+                            border: selectedForArchive.has(item.id)
+                              ? '1px solid #f59e0b'
+                              : '1px solid var(--border, rgba(255,255,255,0.1))',
+                            background: selectedForArchive.has(item.id)
+                              ? 'rgba(251,191,36,0.15)'
+                              : 'transparent',
+                            color: selectedForArchive.has(item.id) ? '#fbbf24' : 'var(--muted-foreground, #94a3b8)',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            transition: 'all 120ms ease'
+                          }}
+                        >
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="21 8 21 21 3 21 3 8" />
+                            <rect x="1" y="3" width="22" height="5" />
+                            <line x1="10" y1="12" x2="14" y2="12" />
+                          </svg>
+                        </button>
+                      )}
+                      <Button
+                        size="sm"
+                        variant="danger"
+                        loading={deletingId === item.id}
+                        onClick={(e) => void handleDelete(e as React.MouseEvent, item.id)}
+                        style={{ flexShrink: 0, padding: '0 8px', minHeight: 28 }}
+                      >
+                        <Trash2 size={13} />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))}
