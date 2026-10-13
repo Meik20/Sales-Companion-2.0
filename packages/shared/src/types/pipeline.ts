@@ -8,8 +8,14 @@ export type PipelineDoc = {
   companyName: string
   companySector?: string
   companyCity?: string
+  companyRegion?: string
+  companyQuarter?: string
   companyPhone?: string
   companyEmail?: string
+  region?: string
+  quarter?: string
+  phone?: string
+  email?: string
   assignedTo?: string | null
   memberName?: string | null // Nom du membre qui a ajouté/est assigné
   memberAccessId?: string | null // Access ID du membre (ex: "prenomnom@entreprise")

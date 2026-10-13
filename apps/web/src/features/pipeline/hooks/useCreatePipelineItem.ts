@@ -14,6 +14,8 @@ type PipelineItemInput = {
   companyName: string
   companySector?: string
   companyCity?: string
+  companyRegion?: string
+  companyQuarter?: string
   companyPhone?: string
   companyEmail?: string
   status: string
@@ -36,6 +38,11 @@ export function useCreatePipelineItem() {
       const nowIso = new Date().toISOString()
       return addDoc(collection(firestore, 'pipeline'), {
         ...input,
+        // Compatibilité ascendante pour les requêtes CRM et synchronisation
+        phone: input.companyPhone || null,
+        email: input.companyEmail || null,
+        region: input.companyRegion || null,
+        quarter: input.companyQuarter || null,
         enteredAt: input.enteredAt || nowIso,
         assignedAt: input.assignedAt || (input.assignedTo ? nowIso : null),
         createdAt: serverTimestamp(),

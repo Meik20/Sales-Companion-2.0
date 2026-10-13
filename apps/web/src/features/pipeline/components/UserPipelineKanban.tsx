@@ -28,9 +28,15 @@ type PipelineItem = {
   companyName: string
   status: string
   companyCity?: string | null
+  companyQuarter?: string | null
+  companyRegion?: string | null
+  quarter?: string | null
+  region?: string | null
   companySector?: string | null
   companyPhone?: string | null
   companyEmail?: string | null
+  phone?: string | null
+  email?: string | null
   note?: string | null
   notes?: string | null
   amount?: number | null
@@ -253,7 +259,7 @@ function KanbanCard({
                 }}
               >
                 <MapPin size={10} style={{ opacity: 0.7 }} />
-                {item.companyCity}
+                {[item.companyQuarter || item.quarter, item.companyCity].filter(Boolean).join(', ') || item.companyCity}
               </span>
             )}
             {item.amount != null && item.amount > 0 && (

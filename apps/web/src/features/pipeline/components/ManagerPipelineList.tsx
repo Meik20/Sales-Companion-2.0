@@ -33,6 +33,7 @@ import {
   ChevronDown,
   Clock,
   CheckCircle2,
+  Check,
   Users
 } from 'lucide-react'
 import { getPipelineAging } from '@/lib/pipelineAging'
@@ -43,9 +44,15 @@ type PipelineItem = {
   status: string
   userId: string
   companyCity?: string | null
+  companyQuarter?: string | null
+  companyRegion?: string | null
+  quarter?: string | null
+  region?: string | null
   companySector?: string | null
   companyPhone?: string | null
   companyEmail?: string | null
+  phone?: string | null
+  email?: string | null
   note?: string | null
   notes?: string | null
   assignedTo?: string | null
@@ -322,11 +329,27 @@ function ProspectModal({
             )}
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 4 }}>
+              {(item.companyQuarter || item.quarter) && (
+                <InfoRow
+                  icon={<MapPin size={15} />}
+                  label={t('pipeline.quarter') || 'Quartier'}
+                  value={(item.companyQuarter || item.quarter)!}
+                />
+              )}
+
               {item.companyCity && (
                 <InfoRow
                   icon={<MapPin size={15} />}
                   label={t('pipeline.city')}
                   value={item.companyCity}
+                />
+              )}
+
+              {(item.companyRegion || item.region) && (
+                <InfoRow
+                  icon={<MapPin size={15} />}
+                  label={t('pipeline.region') || 'Région'}
+                  value={(item.companyRegion || item.region)!}
                 />
               )}
 
@@ -2008,13 +2031,50 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                 style={{
                   fontSize: 18,
                   fontWeight: 800,
-                  color: activeMemberSummary.overdueCount > 0 ? '#ef4444' : '#60a5fa'
+                  color: activeMemberSummary.overdueCount > 0 ? '#ef4444' : '#34d399',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 7
                 }}
               >
                 {activeMemberSummary.overdueCount > 0 ? (
-                  <span>{activeMemberSummary.overdueCount} en retard ⚠️</span>
+                  <>
+                    <span>{activeMemberSummary.overdueCount} en retard</span>
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: 20,
+                        height: 20,
+                        borderRadius: 5,
+                        background: 'rgba(239, 68, 68, 0.16)',
+                        border: '1px solid rgba(239, 68, 68, 0.35)',
+                        color: '#ef4444'
+                      }}
+                    >
+                      <AlertTriangle size={12} strokeWidth={2.5} />
+                    </span>
+                  </>
                 ) : (
-                  <span>À jour ✅</span>
+                  <>
+                    <span>À jour</span>
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: 20,
+                        height: 20,
+                        borderRadius: 5,
+                        background: '#10b981',
+                        color: '#ffffff',
+                        boxShadow: '0 1px 3px rgba(16, 185, 129, 0.3)'
+                      }}
+                    >
+                      <Check size={13} strokeWidth={3} />
+                    </span>
+                  </>
                 )}
               </div>
               <div
@@ -2293,7 +2353,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                           {item.companyCity && (
                             <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                               <MapPin size={10} style={{ opacity: 0.7 }} />
-                              {item.companyCity}
+                              {[item.companyQuarter || item.quarter, item.companyCity].filter(Boolean).join(', ') || item.companyCity}
                             </span>
                           )}
                           {item.amount != null && item.amount > 0 && (

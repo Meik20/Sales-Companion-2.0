@@ -68,6 +68,8 @@ export async function POST(request: NextRequest) {
       companyName,
       companySector,
       companyCity,
+      companyRegion,
+      companyQuarter,
       companyPhone,
       companyEmail,
       googlePlaceId
@@ -76,6 +78,8 @@ export async function POST(request: NextRequest) {
       companyName?: string
       companySector?: string
       companyCity?: string
+      companyRegion?: string
+      companyQuarter?: string
       companyPhone?: string
       companyEmail?: string
       googlePlaceId?: string | null
@@ -184,8 +188,14 @@ export async function POST(request: NextRequest) {
       companyName: companyName,
       companySector: companySector ?? null,
       companyCity: companyCity ?? null,
+      companyRegion: companyRegion ?? null,
+      companyQuarter: companyQuarter ?? null,
+      region: companyRegion ?? null,
+      quarter: companyQuarter ?? null,
       companyPhone: finalPhone ?? null,
+      phone: finalPhone ?? null,
       companyEmail: companyEmail ?? null,
+      email: companyEmail ?? null,
       companyWebsite: finalWebsite ?? null,
       status: 'prospection',
       nextDate: null,

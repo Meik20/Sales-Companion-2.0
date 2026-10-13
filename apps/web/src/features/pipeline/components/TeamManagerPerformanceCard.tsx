@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { TrendingUp, CheckCircle2, Calendar, Wallet, X, Users, Building2 } from 'lucide-react'
+import { TrendingUp, CheckCircle2, Calendar, Wallet, X, Users, Building2, Check, AlertTriangle } from 'lucide-react'
 import { useTranslation } from '@/providers/I18nProvider'
 import type { OrgManagerStats, OrgPipelineItem } from '@/features/pipeline/hooks/useOrgPipeline'
 
@@ -335,13 +335,50 @@ export function TeamManagerPerformanceCard({
             style={{
               fontSize: 18,
               fontWeight: 800,
-              color: stats.overdueCount > 0 ? '#ef4444' : '#34d399'
+              color: stats.overdueCount > 0 ? '#ef4444' : '#34d399',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 7
             }}
           >
             {stats.overdueCount > 0 ? (
-              <span>{stats.overdueCount} {t('pipeline.overdueAlert') || 'en retard ⚠️'}</span>
+              <>
+                <span>{stats.overdueCount} {t('pipeline.overdueAlert') || 'en retard'}</span>
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 20,
+                    height: 20,
+                    borderRadius: 5,
+                    background: 'rgba(239, 68, 68, 0.16)',
+                    border: '1px solid rgba(239, 68, 68, 0.35)',
+                    color: '#ef4444'
+                  }}
+                >
+                  <AlertTriangle size={12} strokeWidth={2.5} />
+                </span>
+              </>
             ) : (
-              <span>{t('pipeline.upToDate') || 'À jour ✅'}</span>
+              <>
+                <span>{t('pipeline.upToDate') || 'À jour'}</span>
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 20,
+                    height: 20,
+                    borderRadius: 5,
+                    background: '#10b981',
+                    color: '#ffffff',
+                    boxShadow: '0 1px 3px rgba(16, 185, 129, 0.3)'
+                  }}
+                >
+                  <Check size={13} strokeWidth={3} />
+                </span>
+              </>
             )}
           </div>
           <div style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)' }}>

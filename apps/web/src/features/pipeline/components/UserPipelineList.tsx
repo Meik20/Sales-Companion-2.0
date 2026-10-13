@@ -41,9 +41,15 @@ type PipelineItem = {
   companyName: string
   status: string
   companyCity?: string | null
+  companyQuarter?: string | null
+  companyRegion?: string | null
+  quarter?: string | null
+  region?: string | null
   companySector?: string | null
   companyPhone?: string | null
   companyEmail?: string | null
+  phone?: string | null
+  email?: string | null
   note?: string | null
   notes?: string | null
   nextAction?: string | null
@@ -332,11 +338,27 @@ function ProspectModal({
             )}
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 4 }}>
+              {(item.companyQuarter || item.quarter) && (
+                <InfoRow
+                  icon={<MapPin size={15} />}
+                  label={t('pipeline.quarter') || 'Quartier'}
+                  value={(item.companyQuarter || item.quarter)!}
+                />
+              )}
+
               {item.companyCity && (
                 <InfoRow
                   icon={<MapPin size={15} />}
                   label={t('pipeline.city')}
                   value={item.companyCity}
+                />
+              )}
+
+              {(item.companyRegion || item.region) && (
+                <InfoRow
+                  icon={<MapPin size={15} />}
+                  label={t('pipeline.region') || 'Région'}
+                  value={(item.companyRegion || item.region)!}
                 />
               )}
 
@@ -1328,7 +1350,7 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
                         }}
                       >
                         <MapPin size={10} style={{ opacity: 0.7 }} />
-                        {item.companyCity}
+                        {[item.companyQuarter || item.quarter, item.companyCity].filter(Boolean).join(', ') || item.companyCity}
                       </span>
                     )}
                     {item.amount != null && item.amount > 0 && (

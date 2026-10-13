@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { FormField } from '@/components/forms/FormField'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -9,6 +9,8 @@ import { getErrorMessage } from '@/lib/errors'
 import { useCreatePipelineItem } from '../hooks/useCreatePipelineItem'
 import { useTranslation } from '@/providers/I18nProvider'
 import { FileText } from 'lucide-react'
+import { getGeography } from '@sales-companion/shared'
+import { useProspectingCountryDetails } from '@/hooks/useProspectingCountry'
 
 type Props = {
   onSuccess?: () => void
@@ -17,7 +19,9 @@ type Props = {
 export function CreatePipelineItemForm({ onSuccess }: Props) {
   const { t } = useTranslation()
   const { user } = useCurrentUser()
+  const { code: countryCode, examplePhone, currency } = useProspectingCountryDetails()
 
+  const geography = useMemo(() => getGeography(countryCode), [countryCode])
   const STATUS_OPTIONS = [
     { value: 'prospection', label: t('pipeline.prospection') },
     { value: 'negociation', label: t('pipeline.negotiation') },
@@ -26,13 +30,31 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
   const mutation = useCreatePipelineItem()
 
   const [companyName, setCompanyName] = useState('')
+  const [companyPhone, setCompanyPhone] = useState('')
+  const [companyEmail, setCompanyEmail] = useState('')
+  const [companyRegion, setCompanyRegion] = useState('')
   const [companyCity, setCompanyCity] = useState('')
+  const [companyQuarter, setCompanyQuarter] = useState('')
   const [companySector, setCompanySector] = useState('')
   const [amount, setAmount] = useState('')
   const [note, setNote] = useState('')
   const [nextAction, setNextAction] = useState('')
   const [status, setStatus] = useState<'prospection' | 'negociation' | 'conclue'>('prospection')
   const [error, setError] = useState<string | null>(null)
+
+  // Villes dynamiques selon la région sélectionnée ou toute la liste
+  const availableCities = useMemo(() => {
+    if (companyRegion && geography?.citiesByRegion?.[companyRegion]) {
+      return geography.citiesByRegion[companyRegion]
+    }
+    const set = new Set<string>()
+    if (geography?.citiesByRegion) {
+      Object.values(geography.citiesByRegion).forEach((cities) => {
+        cities.forEach((c) => set.add(c))
+      })
+    }
+    return Array.from(set).sort()
+  }, [geography, companyRegion])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -58,19 +80,27 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
         memberAccessId: user.accessId ?? null,
         companyId: null,
         companyName: companyName.trim(),
-        companySector: companySector || undefined,
-        companyCity: companyCity || undefined,
+        companyPhone: companyPhone.trim() || undefined,
+        companyEmail: companyEmail.trim() || undefined,
+        companyRegion: companyRegion.trim() || undefined,
+        companyCity: companyCity.trim() || undefined,
+        companyQuarter: companyQuarter.trim() || undefined,
+        companySector: companySector.trim() || undefined,
         status,
         amount: parsedAmount && !isNaN(parsedAmount) ? parsedAmount : undefined,
-        currency: 'FCFA',
-        note: note || undefined,
-        nextAction: nextAction || undefined,
+        currency: currency || 'FCFA',
+        note: note.trim() || undefined,
+        nextAction: nextAction.trim() || undefined,
         nextDate: null,
         createdAt: null,
         updatedAt: null
       })
       setCompanyName('')
+      setCompanyPhone('')
+      setCompanyEmail('')
+      setCompanyRegion('')
       setCompanyCity('')
+      setCompanyQuarter('')
       setCompanySector('')
       setAmount('')
       setNote('')
@@ -87,10 +117,11 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
       onSubmit={(e) => void handleSubmit(e)}
       style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
     >
+      {/* ── 1. ENTREPRISE & COORDONNÉES ── */}
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
           gap: 12
         }}
       >
@@ -102,23 +133,79 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
           />
         </FormField>
 
-        <FormField label={t('pipeline.city')}>
+        <FormField label={t('pipeline.phone') || 'Téléphone'}>
           <Input
-            placeholder={t('pipeline.placeholderCity')}
-            value={companyCity}
-            onChange={(e) => setCompanyCity(e.target.value)}
+            type="tel"
+            placeholder={examplePhone ? `Ex: ${examplePhone}` : (t('pipeline.placeholderPhone') || 'Ex: 699 00 00 00')}
+            value={companyPhone}
+            onChange={(e) => setCompanyPhone(e.target.value)}
           />
         </FormField>
 
-        <FormField label={t('pipeline.sector')}>
+        <FormField label={t('pipeline.email') || 'Email'}>
           <Input
-            placeholder={t('pipeline.placeholderSector')}
+            type="email"
+            placeholder={t('pipeline.placeholderEmail') || 'contact@entreprise.com'}
+            value={companyEmail}
+            onChange={(e) => setCompanyEmail(e.target.value)}
+          />
+        </FormField>
+      </div>
+
+      {/* ── 2. LOCALISATION & SECTEUR D'ACTIVITÉ ── */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gap: 12
+        }}
+      >
+        <FormField label={t('pipeline.region') || 'Région'}>
+          <Input
+            list="pipeline-regions-datalist"
+            placeholder={t('pipeline.placeholderRegion') || 'Littoral, Centre…'}
+            value={companyRegion}
+            onChange={(e) => setCompanyRegion(e.target.value)}
+          />
+          <datalist id="pipeline-regions-datalist">
+            {geography?.regions?.map((reg) => (
+              <option key={reg} value={reg} />
+            ))}
+          </datalist>
+        </FormField>
+
+        <FormField label={t('pipeline.city') || 'Ville'}>
+          <Input
+            list="pipeline-cities-datalist"
+            placeholder={t('pipeline.placeholderCity') || 'Douala, Yaoundé…'}
+            value={companyCity}
+            onChange={(e) => setCompanyCity(e.target.value)}
+          />
+          <datalist id="pipeline-cities-datalist">
+            {availableCities.map((c) => (
+              <option key={c} value={c} />
+            ))}
+          </datalist>
+        </FormField>
+
+        <FormField label={t('pipeline.quarter') || 'Quartier'}>
+          <Input
+            placeholder={t('pipeline.placeholderQuarter') || 'Akwa, Bonanjo, Bastos…'}
+            value={companyQuarter}
+            onChange={(e) => setCompanyQuarter(e.target.value)}
+          />
+        </FormField>
+
+        <FormField label={t('pipeline.sector') || 'Secteur'}>
+          <Input
+            placeholder={t('pipeline.placeholderSector') || 'BTP, Commerce…'}
             value={companySector}
             onChange={(e) => setCompanySector(e.target.value)}
           />
         </FormField>
       </div>
 
+      {/* ── 3. STATUT, ACTION & MONTANT ── */}
       <div
         style={{
           display: 'grid',
@@ -161,7 +248,7 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
           />
         </FormField>
 
-        <FormField label="Montant estimé (FCFA)">
+        <FormField label={`Montant estimé (${currency || 'FCFA'})`}>
           <Input
             type="number"
             placeholder="Ex: 500000"
@@ -171,7 +258,7 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
         </FormField>
       </div>
 
-      {/* ── NOTES — champ dédié, pleine largeur ── */}
+      {/* ── 4. NOTES COMMERCIALES — champ dédié, pleine largeur ── */}
       <div
         style={{
           background: 'rgba(251,191,36,0.05)',
