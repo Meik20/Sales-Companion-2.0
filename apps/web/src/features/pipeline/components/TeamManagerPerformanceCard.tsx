@@ -3,6 +3,7 @@
 import { useMemo } from 'react'
 import { TrendingUp, CheckCircle2, Calendar, Wallet, X, Users, Building2, Check, AlertTriangle } from 'lucide-react'
 import { useTranslation } from '@/providers/I18nProvider'
+import { useProspectingCountryDetails } from '@/hooks/useProspectingCountry'
 import type { OrgManagerStats, OrgPipelineItem } from '@/features/pipeline/hooks/useOrgPipeline'
 
 interface TeamManagerPerformanceCardProps {
@@ -19,6 +20,7 @@ export function TeamManagerPerformanceCard({
   onClear
 }: TeamManagerPerformanceCardProps) {
   const { t } = useTranslation()
+  const { currency } = useProspectingCountryDetails()
   const todayStr = useMemo(() => new Date().toISOString().slice(0, 10), [])
   const isGlobal = !manager
 
@@ -297,7 +299,7 @@ export function TeamManagerPerformanceCard({
             </span>
           </div>
           <div style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)' }}>
-            {new Intl.NumberFormat('fr-FR').format(stats.concludedAmount)} FCFA {t('pipeline.encashed') || 'encaissés'}
+            {new Intl.NumberFormat('fr-FR').format(stats.concludedAmount)} {currency || 'FCFA'} {t('pipeline.encashed') || 'encaissés'}
           </div>
         </div>
 
@@ -422,7 +424,7 @@ export function TeamManagerPerformanceCard({
           <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--foreground, #f1f5f9)' }}>
             {new Intl.NumberFormat('fr-FR').format(stats.activePipelineAmount)}{' '}
             <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--muted-foreground, #94a3b8)' }}>
-              FCFA
+              {currency || 'FCFA'}
             </span>
           </div>
           <div style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)' }}>

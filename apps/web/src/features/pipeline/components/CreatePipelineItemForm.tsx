@@ -56,6 +56,41 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
     return Array.from(set).sort()
   }, [geography, companyRegion])
 
+  // Placeholders contextuels selon le pays actif
+  const regionPlaceholder = useMemo(() => {
+    if (geography?.regions && geography.regions.length >= 2) {
+      return `${geography.regions[0]}, ${geography.regions[1]}…`
+    }
+    return t('pipeline.placeholderRegion') || 'Littoral, Centre…'
+  }, [geography, t])
+
+  const cityPlaceholder = useMemo(() => {
+    if (availableCities && availableCities.length >= 2) {
+      return `${availableCities[0]}, ${availableCities[1]}…`
+    }
+    return t('pipeline.placeholderCity') || 'Douala, Yaoundé…'
+  }, [availableCities, t])
+
+  const quarterPlaceholder = useMemo(() => {
+    switch (countryCode) {
+      case 'SN':
+        return 'Almadies, Plateau, Médina…'
+      case 'CI':
+        return 'Plateau, Cocody, Marcory…'
+      case 'BJ':
+        return 'Ganhi, Haie Vive, Cadjehoun…'
+      case 'TG':
+        return 'Bè, Déckon, Nyékonakpoé…'
+      case 'TD':
+        return 'N’Djamena, Chagoua, Moursal…'
+      case 'CF':
+        return 'Kilomètre 5, Lakouanga, Sica…'
+      case 'CM':
+      default:
+        return 'Akwa, Bonanjo, Bastos…'
+    }
+  }, [countryCode])
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!user) {
@@ -86,6 +121,7 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
         companyCity: companyCity.trim() || undefined,
         companyQuarter: companyQuarter.trim() || undefined,
         companySector: companySector.trim() || undefined,
+        country: countryCode,
         status,
         amount: parsedAmount && !isNaN(parsedAmount) ? parsedAmount : undefined,
         currency: currency || 'FCFA',
@@ -163,7 +199,7 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
         <FormField label={t('pipeline.region') || 'Région'}>
           <Input
             list="pipeline-regions-datalist"
-            placeholder={t('pipeline.placeholderRegion') || 'Littoral, Centre…'}
+            placeholder={regionPlaceholder}
             value={companyRegion}
             onChange={(e) => setCompanyRegion(e.target.value)}
           />
@@ -177,7 +213,7 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
         <FormField label={t('pipeline.city') || 'Ville'}>
           <Input
             list="pipeline-cities-datalist"
-            placeholder={t('pipeline.placeholderCity') || 'Douala, Yaoundé…'}
+            placeholder={cityPlaceholder}
             value={companyCity}
             onChange={(e) => setCompanyCity(e.target.value)}
           />
@@ -190,7 +226,7 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
 
         <FormField label={t('pipeline.quarter') || 'Quartier'}>
           <Input
-            placeholder={t('pipeline.placeholderQuarter') || 'Akwa, Bonanjo, Bastos…'}
+            placeholder={quarterPlaceholder}
             value={companyQuarter}
             onChange={(e) => setCompanyQuarter(e.target.value)}
           />

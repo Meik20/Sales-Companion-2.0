@@ -18,6 +18,7 @@ type PipelineItemInput = {
   companyQuarter?: string
   companyPhone?: string
   companyEmail?: string
+  country?: string
   status: string
   amount?: number
   currency?: string
