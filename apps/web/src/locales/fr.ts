@@ -443,6 +443,7 @@ export const fr = {
     closedSales: 'Ventes conclues',
     followUpAndAlerts: 'Relances & Suivi',
     pipelineValue: 'Valeur du pipeline',
+    achievements: 'Réalisations',
     encashed: 'encaissés',
     overdueAlert: 'en retard',
     upToDate: 'À jour',
@@ -601,6 +602,7 @@ export const fr = {
     proceedStep3: 'Votre compte sera activé automatiquement.',
     noEmail: "Pas d'email ? Vérifiez vos spams ou attendez quelques instants.",
     resend: "Renvoyer l'email",
+    resendIn: 'Renvoyer dans {seconds}s',
     pageAutoUpdates: 'Cette page se met à jour automatiquement dès que votre email est vérifié.',
     emailVerified: 'Email vérifié !',
     accountActive: 'Votre compte est maintenant actif. Redirection…'
@@ -654,6 +656,7 @@ export const fr = {
     companyLabel: 'Entreprise',
     sectorLabel: "Secteur d'activité",
     regionLabel: 'Région principale',
+    selectRegion: 'Sélectionner une région',
     noCompany: 'Non renseignée',
     noSector: 'Non renseigné',
     editProfileBtn: 'Modifier mes informations',
@@ -785,6 +788,8 @@ export const fr = {
   team: {
     title: "Gestion de l'équipe",
     subtitle: 'Gérez les membres de votre équipe, leurs accès et vos prospects importés.',
+    saving: 'Enregistrement…',
+    noUserMatch: 'Aucun utilisateur ne correspond.',
     tabTeam: 'Mon équipe',
     tabImports: 'Mes prospects importés',
     prospectsSelected: "prospect(s) sélectionné(s) depuis la liste d'imports",
@@ -922,6 +927,7 @@ export const fr = {
   support: {
     title: 'Support',
     subtitle: 'Suivez vos conversations avec notre équipe',
+    contactUser: "Contacter l'utilisateur via le support",
     cancel: 'Annuler',
     newConversation: 'Nouvelle conversation',
     subjectLabel: 'Sujet de votre demande',
@@ -1229,9 +1235,21 @@ export const fr = {
     noResultDesc: 'Essayez un autre terme de recherche',
     noClientsDesc: 'Ajoutez votre premier client ou importez depuis le pipeline.',
     colCompany: 'Entreprise',
+    colContact: 'Nom du contact',
     colCity: 'Ville',
     colSector: 'Secteur',
     colPhone: 'Téléphone',
+    colStatus: 'Statut CRM',
+    colNextAction: 'Prochaine action',
+    nextActionDate: "Date d'échéance",
+    selectSector: 'Choisir un secteur',
+    selectCity: 'Choisir une ville',
+    notes: 'Notes commerciales',
+    addModal: {
+      title: 'Ajouter un client',
+      subtitle: 'Créer une fiche de pilotage commercial',
+      submit: 'Ajouter le client'
+    },
     colAction: 'Action',
     viewDetails: 'Consulter',
     open: 'Ouvert',
@@ -1333,6 +1351,7 @@ export const fr = {
     edit: 'Modifier',
     cancel: 'Annuler',
     reset: 'Réinitialiser',
-    retry: 'Réessayer'
+    retry: 'Réessayer',
+    confirm: 'Confirmer'
   }
 }

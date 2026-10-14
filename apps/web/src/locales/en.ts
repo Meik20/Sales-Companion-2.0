@@ -432,6 +432,9 @@ export const en = {
     globalOrgPerformance: 'Global Organization Performance',
     orgConsolidated: 'Consolidated View',
     globalOrgSubtitle: 'Consolidated revenue and pipeline overview across the organization',
+    globalTeamPerformance: 'Global Team Performance',
+    teamConsolidated: 'Team View',
+    globalTeamSubtitle: 'Consolidated revenue and pipeline overview across the team',
     teamManagerPerformance: 'Team Performance',
     teamManagerSubtitle: 'Operational portfolio and metrics of the managed team',
     viewAllOrg: 'View entire organization',
@@ -439,6 +442,7 @@ export const en = {
     closedSales: 'Closed sales',
     followUpAndAlerts: 'Follow-ups & Tracking',
     pipelineValue: 'Pipeline Value',
+    achievements: 'Achievements',
     encashed: 'collected',
     overdueAlert: 'overdue',
     upToDate: 'Up to date',
@@ -591,6 +595,7 @@ export const en = {
     proceedStep3: 'Your account will be activated automatically.',
     noEmail: 'No email? Check your spam folder or wait a few moments.',
     resend: 'Resend email',
+    resendIn: 'Resend in {seconds}s',
     pageAutoUpdates: 'This page updates automatically once your email is verified.',
     emailVerified: 'Email verified!',
     accountActive: 'Your account is now active. Redirecting...'
@@ -644,6 +649,7 @@ export const en = {
     companyLabel: 'Company',
     sectorLabel: 'Industry / Sector',
     regionLabel: 'Main Region',
+    selectRegion: 'Select a region',
     noCompany: 'Not specified',
     noSector: 'Not specified',
     editProfileBtn: 'Edit Profile Information',
@@ -772,6 +778,8 @@ export const en = {
   team: {
     title: 'Team management',
     subtitle: 'Manage your team members, their access, and your imported prospects.',
+    saving: 'Saving…',
+    noUserMatch: 'No matching user found.',
     tabTeam: 'My team',
     tabImports: 'My imported prospects',
     prospectsSelected: 'prospect(s) selected from imports list',
@@ -908,6 +916,7 @@ export const en = {
   support: {
     title: 'Support',
     subtitle: 'Track your conversations with our team',
+    contactUser: 'Contact user via support',
     cancel: 'Cancel',
     newConversation: 'New conversation',
     subjectLabel: 'Subject of your request',
@@ -1214,9 +1223,21 @@ export const en = {
     noResultDesc: 'Try another search term',
     noClientsDesc: 'Add your first client or import from the pipeline.',
     colCompany: 'Company',
+    colContact: 'Contact name',
     colCity: 'City',
     colSector: 'Sector',
     colPhone: 'Phone',
+    colStatus: 'CRM status',
+    colNextAction: 'Next action',
+    nextActionDate: 'Due date',
+    selectSector: 'Choose a sector',
+    selectCity: 'Choose a city',
+    notes: 'Sales notes',
+    addModal: {
+      title: 'Add a Client',
+      subtitle: 'Create a commercial tracking record',
+      submit: 'Add Client'
+    },
     colAction: 'Action',
     viewDetails: 'View',
     open: 'Open',
@@ -1318,6 +1339,7 @@ export const en = {
     edit: 'Edit',
     cancel: 'Cancel',
     reset: 'Reset',
-    retry: 'Retry'
+    retry: 'Retry',
+    confirm: 'Confirm'
   }
 }

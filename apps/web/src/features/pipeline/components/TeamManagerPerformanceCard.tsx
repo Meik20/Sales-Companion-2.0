@@ -310,7 +310,7 @@ export function TeamManagerPerformanceCard({
             }}
           >
             <Banknote size={12} />
-            <span>{t('pipeline.activePipelineValue') || 'Valeur du pipeline'}</span>
+            <span>{t('pipeline.pipelineValue') || 'Valeur du pipeline'}</span>
           </div>
           <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--foreground, #f1f5f9)' }}>
             {new Intl.NumberFormat('fr-FR').format(stats.activePipelineAmount)}{' '}

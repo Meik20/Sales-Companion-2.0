@@ -274,7 +274,7 @@ export default function AdminConfigPage() {
             {t('admin.apiKeyGroqHelp2')}
           </p>
           <button onClick={saveApiKey} disabled={saving} style={btnStyle}>
-            {saving ? t('team.saving') : t('admin.saveApiKey')}
+            {saving ? t('admin.saving') : t('admin.saveApiKey')}
           </button>
           {apiMsg && (
             <div style={msgStyle(apiMsg.type)}>
@@ -329,7 +329,7 @@ export default function AdminConfigPage() {
             {t('admin.newPasswordHelp')}
           </p>
           <button onClick={changePassword} disabled={changingPass} style={btnStyle}>
-            {changingPass ? t('team.saving') : t('admin.changePassword')}
+            {changingPass ? t('admin.saving') : t('admin.changePassword')}
           </button>
           {passMsg && (
             <div style={msgStyle(passMsg.type)}>

@@ -86,7 +86,7 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
           padding: '32px 0'
         }}
       >
-        {t('team.noUserMatch') || 'Aucun utilisateur.'}
+        {t('admin.noUserMatch')}
       </p>
     )
   }
