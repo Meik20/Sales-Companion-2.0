@@ -9,17 +9,17 @@ async function getAdmin() {
 /**
  * POST /api/pipeline/archive
  *
- * Corpus d'actions pour la gestion des archives du pipeline (Team Manager only).
+ * Gestion des archives du pipeline — réservé aux Team Managers (orgRole != senior_manager).
  *
- * Body: { action: 'archive', ids: string[] }           → archive une sélection de leads
- *       { action: 'restore', ids: string[] }            → restaure une sélection de leads
- *       { action: 'list' }                              → retourne tous les leads archivés du manager
+ * Body: { action: 'archive', ids: string[] }   → archive une sélection de leads
+ *       { action: 'restore', ids: string[] }    → restaure une sélection de leads
+ *       { action: 'list' }                      → retourne tous les leads archivés du TM
  *
  * Règles :
- * - Seul un utilisateur avec role='manager' peut opérer.
- * - Seuls les leads liés à managerUid du manager appelant sont accessibles.
+ * - Seul un utilisateur avec role='manager' ET orgRole!='senior_manager' peut opérer.
+ * - Seuls les leads dont managerUid==callerUid OU userId==callerUid sont accessibles.
  * - Les leads avec status='conclue'|'conclusion' ne peuvent pas être archivés.
- * - Les champs `archived` et `archivedAt` ne sont JAMAIS écrits côté client.
+ * - Les champs `archived`, `archivedAt`, `archivedBy` ne sont JAMAIS écrits côté client.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -29,33 +29,43 @@ export async function POST(request: NextRequest) {
     const token = request.headers.get('authorization')?.split(' ')[1]
     if (!token) return NextResponse.json({ message: 'Non authentifié' }, { status: 401 })
 
-    let managerUid: string
-    let userRole: string
+    let callerUid: string
+    let claimRole: string
     try {
       const decoded = await adminAuth.verifyIdToken(token)
-      managerUid = decoded.uid
-      userRole = (decoded.role as string) || ''
+      callerUid = decoded.uid
+      claimRole = (decoded.role as string) || ''
     } catch {
       return NextResponse.json({ message: 'Token invalide' }, { status: 401 })
     }
 
-    // ── Vérification du rôle manager ──────────────────────────────────────
-    if (userRole !== 'manager') {
-      // Fallback : lire le document utilisateur si le claim n'est pas encore propagé
-      const userDoc = await adminDb.collection('users').doc(managerUid).get()
-      if (!userDoc.exists || userDoc.data()?.role !== 'manager') {
-        return NextResponse.json(
-          { message: 'Accès réservé aux Team Managers.' },
-          { status: 403 }
-        )
-      }
+    // ── Lire le profil Firestore pour rôle définitif + orgRole ─────────────
+    const userDoc = await adminDb.collection('users').doc(callerUid).get()
+    if (!userDoc.exists) {
+      return NextResponse.json({ message: 'Profil utilisateur introuvable.' }, { status: 403 })
+    }
+    const userData = userDoc.data()!
+    const firestoreRole: string = userData.role || claimRole || ''
+    const orgRole: string = userData.orgRole || ''
+
+    // ── Accès réservé aux Team Managers uniquement (pas Senior Manager) ────
+    if (firestoreRole !== 'manager') {
+      return NextResponse.json(
+        { message: 'Accès réservé aux Team Managers.' },
+        { status: 403 }
+      )
+    }
+    if (orgRole === 'senior_manager') {
+      return NextResponse.json(
+        { message: 'La gestion des archives est réservée aux Team Managers.' },
+        { status: 403 }
+      )
     }
 
     const body = await request.json().catch(() => ({})) as {
       action?: string
       ids?: string[]
     }
-
     const { action, ids } = body
 
     if (!action || !['archive', 'restore', 'list'].includes(action)) {
@@ -67,16 +77,16 @@ export async function POST(request: NextRequest) {
 
     // ── ACTION : LIST ─────────────────────────────────────────────────────
     if (action === 'list') {
-      // Leads archivés pour ce manager (managerUid OU userId = managerUid)
+      // Leads archivés dont ce TM est responsable (managerUid) OU créateur (userId)
       const [teamSnap, ownSnap] = await Promise.all([
         adminDb
           .collection('pipeline')
-          .where('managerUid', '==', managerUid)
+          .where('managerUid', '==', callerUid)
           .where('archived', '==', true)
           .get(),
         adminDb
           .collection('pipeline')
-          .where('userId', '==', managerUid)
+          .where('userId', '==', callerUid)
           .where('archived', '==', true)
           .get()
       ])
@@ -95,8 +105,12 @@ export async function POST(request: NextRequest) {
 
       // Tri par date d'archivage (plus récent en premier)
       results.sort((a: any, b: any) => {
-        const ta = a.archivedAt ? new Date(a.archivedAt._seconds ? a.archivedAt._seconds * 1000 : a.archivedAt).getTime() : 0
-        const tb = b.archivedAt ? new Date(b.archivedAt._seconds ? b.archivedAt._seconds * 1000 : b.archivedAt).getTime() : 0
+        const ta = a.archivedAt
+          ? new Date(a.archivedAt._seconds ? a.archivedAt._seconds * 1000 : a.archivedAt).getTime()
+          : 0
+        const tb = b.archivedAt
+          ? new Date(b.archivedAt._seconds ? b.archivedAt._seconds * 1000 : b.archivedAt).getTime()
+          : 0
         return tb - ta
       })
 
@@ -110,7 +124,6 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
-
     if (ids.length > 200) {
       return NextResponse.json(
         { message: 'Maximum 200 leads par opération.' },
@@ -120,9 +133,9 @@ export async function POST(request: NextRequest) {
 
     const successes: string[] = []
     const skipped: string[] = []
+    const skippedReasons: Record<string, string> = {}
     const errors: string[] = []
 
-    // Traitement par lot (Firestore batch = max 500 ops)
     const batch = adminDb.batch()
 
     for (const id of ids) {
@@ -132,16 +145,17 @@ export async function POST(request: NextRequest) {
 
         if (!docSnap.exists) {
           skipped.push(id)
+          skippedReasons[id] = 'not_found'
           continue
         }
 
         const data = docSnap.data()!
 
-        // Vérification tenant : le lead doit appartenir à ce manager
-        const belongsToManager =
-          data.managerUid === managerUid || data.userId === managerUid
+        // Vérification tenant : le lead doit appartenir à ce TM
+        const belongsToManager = data.managerUid === callerUid || data.userId === callerUid
         if (!belongsToManager) {
           skipped.push(id)
+          skippedReasons[id] = 'access_denied'
           continue
         }
 
@@ -150,13 +164,20 @@ export async function POST(request: NextRequest) {
           const status = (data.status || '').toLowerCase()
           if (status === 'conclue' || status === 'conclusion') {
             skipped.push(id)
+            skippedReasons[id] = 'concluded'
+            continue
+          }
+          // Refus de ré-archiver un lead déjà archivé
+          if (data.archived === true) {
+            skipped.push(id)
+            skippedReasons[id] = 'already_archived'
             continue
           }
 
           batch.update(docRef, {
             archived: true,
             archivedAt: new Date(),
-            archivedBy: managerUid
+            archivedBy: callerUid
           })
           successes.push(id)
         } else {
@@ -168,7 +189,8 @@ export async function POST(request: NextRequest) {
           })
           successes.push(id)
         }
-      } catch {
+      } catch (err) {
+        console.error(`[/api/pipeline/archive] Error processing id=${id}:`, err)
         errors.push(id)
       }
     }

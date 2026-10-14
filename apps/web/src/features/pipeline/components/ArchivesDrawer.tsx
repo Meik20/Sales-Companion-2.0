@@ -53,15 +53,15 @@ export function ArchivesDrawer() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [filterMonth, setFilterMonth] = useState<string>('') // 'YYYY-MM'
 
-  const { items, loading, fetched, fetchArchived, refresh } = useArchivedLeads()
+  const { items, loading, fetchArchived, refresh } = useArchivedLeads()
   const { restoreLeads, loading: restoring } = useRestoreLeads()
 
-  // Charger les archives à l'ouverture
+  // Charger les archives à chaque ouverture
   useEffect(() => {
-    if (open && !fetched) {
+    if (open) {
       void fetchArchived()
     }
-  }, [open, fetched, fetchArchived])
+  }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Filtres
   const filtered = useMemo(() => {

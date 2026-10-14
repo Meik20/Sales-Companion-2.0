@@ -552,6 +552,7 @@ export default function PipelinePage() {
               items={managerPipelineQuery.data}
               members={members}
               managerUid={user?.uid}
+              enableArchive
             />
           ) : null}
         </DataCard>

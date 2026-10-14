@@ -99,13 +99,12 @@ export function useRestoreLeads() {
   return { restoreLeads, loading }
 }
 
-/** Récupérer tous les leads archivés du manager. */
+/** Récupérer tous les leads archivés du Team Manager. */
 export function useArchivedLeads() {
   const { user } = useCurrentUser()
   const { pushToast } = useToast()
   const [loading, setLoading] = useState(false)
   const [items, setItems] = useState<any[]>([])
-  const [fetched, setFetched] = useState(false)
 
   const fetchArchived = async () => {
     if (!user?.uid) return
@@ -123,7 +122,6 @@ export function useArchivedLeads() {
       const json = await res.json()
       if (!res.ok) throw new Error(json.message || 'Erreur de chargement')
       setItems(json.items || [])
-      setFetched(true)
     } catch (err) {
       pushToast({
         type: 'error',
@@ -135,7 +133,8 @@ export function useArchivedLeads() {
     }
   }
 
-  const refresh = () => fetchArchived()
+  const refresh = () => void fetchArchived()
 
-  return { items, loading, fetched, fetchArchived, refresh }
+  return { items, loading, fetchArchived, refresh }
 }
+

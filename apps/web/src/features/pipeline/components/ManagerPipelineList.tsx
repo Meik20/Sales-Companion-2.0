@@ -81,6 +81,7 @@ type Props = {
   members?: Member[]
   managerUid?: string
   showTargets?: boolean
+  enableArchive?: boolean  // N'activer que pour le pipeline Team Manager
 }
 
 /** Résout le nom d'affichage d'un membre pour un item du pipeline */
@@ -1324,7 +1325,7 @@ function ExportPanel({ members }: { members?: Member[] }) {
   )
 }
 
-export function ManagerPipelineList({ items, members, managerUid, showTargets = true }: Props) {
+export function ManagerPipelineList({ items, members, managerUid, showTargets = true, enableArchive = false }: Props) {
   const { t } = useTranslation()
   const deleteMutation = useDeletePipelineItem()
   const { archiveLeads, loading: archiving } = useArchiveLeads()
@@ -1531,18 +1532,20 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
       {/* Targets panel — objectifs Volume/Valeur par membre (Team Manager uniquement) */}
       {showTargets && <TargetsPanel members={members} />}
 
-      {/* Export panel + Archives drawer */}
+      {/* Export panel + Archives drawer (TM uniquement) */}
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, flexWrap: 'wrap' }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <ExportPanel members={members} />
         </div>
-        <div style={{ paddingTop: 4 }}>
-          <ArchivesDrawer />
-        </div>
+        {enableArchive && (
+          <div style={{ paddingTop: 4 }}>
+            <ArchivesDrawer />
+          </div>
+        )}
       </div>
 
-      {/* ── Panneau d'archivage — s'affiche quand des leads sont sélectionnés ── */}
-      {selectedForArchive.size > 0 && (
+      {/* ── Panneau d'archivage — TM uniquement, s'affiche quand des leads sont sélectionnés ── */}
+      {enableArchive && selectedForArchive.size > 0 && (
         <div
           style={{
             marginBottom: 12,
@@ -2506,8 +2509,8 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                       )}
                     </div>
                     <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-                      {/* Bouton archivage (leads non conclus uniquement) */}
-                      {normalize(item.status) !== 'conclue' && (
+                      {/* Bouton archivage (TM uniquement, leads non conclus) */}
+                      {enableArchive && normalize(item.status) !== 'conclue' && (
                         <button
                           type="button"
                           title={selectedForArchive.has(item.id) ? 'Désélectionner' : 'Sélectionner pour archiver'}
