@@ -405,10 +405,10 @@ export function TeamManagerPerformanceCard({
           </div>
           <div style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)' }}>
             {stats.overdueCount > 0
-              ? (isGlobal
+              ? (isGlobal && !isTeamContext
                   ? (t('pipeline.allOrgOverdueRequiresAttention') || "Relances à traiter sur toute l'organisation")
                   : (t('pipeline.overdueRequiresAttention') || "Relances d'équipe nécessitant attention"))
-              : (isGlobal
+              : (isGlobal && !isTeamContext
                   ? (t('pipeline.noOverdueOnOrg') || "Aucune relance expirée sur toute l'organisation")
                   : (t('pipeline.noOverdueOnTeam') || "Aucune relance expirée sur l'équipe"))}
           </div>
