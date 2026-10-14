@@ -58,6 +58,12 @@ export default function PipelinePage() {
   const isIndependent = user?.role === 'independent'
   const isFree = (user?.plan ?? 'free') === 'free'
   const { data: myTargets } = useTeamTargets(isIndependent ? user?.uid : undefined)
+  // Objectifs du Team Manager (scopé sur son propre uid)
+  const { data: tmTargets } = useTeamTargets(isTeamManager ? user?.uid : undefined)
+  const tmTarget = tmTargets?.[0] ?? null
+  // Objectifs du Senior Manager (pour la carte SM, scopé sur son propre uid)
+  const { data: smTargets } = useTeamTargets(isSeniorManager ? user?.uid : undefined)
+  const smTarget = smTargets?.[0] ?? null
   const saveTarget = useSaveTeamTarget()
   const prevFreeRef = useRef<boolean>(isFree)
 
@@ -489,6 +495,7 @@ export default function PipelinePage() {
                 managers={orgPipelineQuery.data?.managers}
                 items={(orgPipelineQuery.data?.items ?? []) as Parameters<typeof TeamManagerPerformanceCard>[0]['items']}
                 onClear={() => setFilterManagerUid(undefined)}
+                targets={smTarget}
               />
             )}
             {!orgPipelineQuery.isLoading && !orgPipelineQuery.data?.items?.length ? (
@@ -522,6 +529,16 @@ export default function PipelinePage() {
       {isTeamManager ? (
         <DataCard title={t('pipeline.teamView')} subtitle={t('pipeline.teamSubtitle')}>
           {managerPipelineQuery.isLoading ? <LoadingState /> : null}
+          {!managerPipelineQuery.isLoading && (
+            <TeamManagerPerformanceCard
+              manager={undefined}
+              managers={undefined}
+              items={
+                (managerPipelineQuery.data ?? []) as Parameters<typeof TeamManagerPerformanceCard>[0]['items']
+              }
+              targets={tmTarget}
+            />
+          )}
           {!managerPipelineQuery.isLoading && !managerPipelineQuery.data?.length ? (
             <EmptyState
               illustration="/illustrations/empty-states/empty-pipeline.png"

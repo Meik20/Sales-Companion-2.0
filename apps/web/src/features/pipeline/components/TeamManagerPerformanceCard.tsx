@@ -1,23 +1,27 @@
 'use client'
 
 import { useMemo } from 'react'
-import { TrendingUp, CheckCircle2, Calendar, Wallet, X, Users, Building2, Check, AlertTriangle } from 'lucide-react'
+import { TrendingUp, CheckCircle2, Calendar, X, Users, Building2, Check, AlertTriangle, Trophy } from 'lucide-react'
 import { useTranslation } from '@/providers/I18nProvider'
 import { useProspectingCountryDetails } from '@/hooks/useProspectingCountry'
 import type { OrgManagerStats, OrgPipelineItem } from '@/features/pipeline/hooks/useOrgPipeline'
+import type { MemberTarget } from '@/features/pipeline/hooks/useTeamTargets'
 
 interface TeamManagerPerformanceCardProps {
   manager?: OrgManagerStats
   managers?: OrgManagerStats[]
   items: OrgPipelineItem[]
   onClear?: () => void
+  /** Objectifs du manager (volume cible & valeur cible) */
+  targets?: MemberTarget | null
 }
 
 export function TeamManagerPerformanceCard({
   manager,
   managers,
   items,
-  onClear
+  onClear,
+  targets
 }: TeamManagerPerformanceCardProps) {
   const { t } = useTranslation()
   const { currency } = useProspectingCountryDetails()
@@ -394,51 +398,255 @@ export function TeamManagerPerformanceCard({
           </div>
         </div>
 
-        {/* 4. Valeur du pipeline & Affectation */}
-        <div
-          style={{
-            background: 'var(--card, #131c2e)',
-            borderRadius: 10,
-            padding: '11px 14px',
-            border: '1px solid var(--border, rgba(255,255,255,0.08))',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            gap: 4
-          }}
-        >
-          <div
-            style={{
-              fontSize: 10.5,
-              fontWeight: 700,
-              textTransform: 'uppercase',
-              color: '#fbbf24',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 5
-            }}
-          >
-            <Wallet size={12} />
-            <span>{t('pipeline.pipelineValue') || 'Valeur du pipeline'}</span>
-          </div>
-          <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--foreground, #f1f5f9)' }}>
-            {new Intl.NumberFormat('fr-FR').format(stats.activePipelineAmount)}{' '}
-            <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--muted-foreground, #94a3b8)' }}>
-              {currency || 'FCFA'}
-            </span>
-          </div>
-          <div style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)' }}>
-            {isGlobal ? (
-              <>
-                {stats.teamManagersCount} managers · {stats.memberCount} commerciaux · {stats.unassignedCount} {t('pipeline.unassignedLeads') || 'non assigné(s)'}
-              </>
-            ) : (
-              <>
-                {stats.memberCount} commercial{stats.memberCount > 1 ? 's' : ''} · {stats.unassignedCount} {t('pipeline.unassignedLeads') || 'non assigné(s)'}
-              </>
-            )}
-          </div>
-        </div>
+        {/* 4. Réalisations — Volume / Valeur / Taux R/O */}
+        {(() => {
+          const tgtVol = targets?.targetVolume ?? null
+          const tgtVal = targets?.targetValue ?? null
+          const roRate =
+            stats.totalCount > 0
+              ? Math.round((stats.conclueCount / stats.totalCount) * 100)
+              : 0
+          const volPct =
+            tgtVol && tgtVol > 0
+              ? Math.round((stats.conclueCount / tgtVol) * 100)
+              : null
+          const valPct =
+            tgtVal && tgtVal > 0
+              ? Math.round((stats.concludedAmount / tgtVal) * 100)
+              : null
+
+          const roColor =
+            roRate >= 40 ? '#34d399' : roRate >= 20 ? '#fbbf24' : '#f87171'
+
+          return (
+            <div
+              style={{
+                background: 'var(--card, #131c2e)',
+                borderRadius: 10,
+                padding: '11px 14px',
+                border: '1px solid rgba(251,191,36,0.18)',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                gap: 6
+              }}
+            >
+              {/* Header */}
+              <div
+                style={{
+                  fontSize: 10.5,
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  color: '#fbbf24',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 5
+                }}
+              >
+                <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <Trophy size={12} />
+                  <span>{t('pipeline.achievements') || 'Réalisations'}</span>
+                </span>
+                <span
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 800,
+                    color: roColor,
+                    background: `${roColor}18`,
+                    border: `1px solid ${roColor}40`,
+                    borderRadius: 6,
+                    padding: '1px 6px'
+                  }}
+                >
+                  R/O {roRate}%
+                </span>
+              </div>
+
+              {/* Volume */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between'
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 600,
+                      color: 'var(--muted-foreground, #94a3b8)',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em'
+                    }}
+                  >
+                    Volume
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 700,
+                      color: 'var(--foreground, #f1f5f9)'
+                    }}
+                  >
+                    {stats.conclueCount}
+                    {tgtVol != null && (
+                      <span
+                        style={{
+                          fontWeight: 400,
+                          color: 'var(--muted-foreground, #94a3b8)',
+                          fontSize: 10
+                        }}
+                      >
+                        {' '}/ {tgtVol}{volPct !== null && ` (${volPct}%)`}
+                      </span>
+                    )}
+                  </span>
+                </div>
+                {/* Progress bar volume */}
+                {tgtVol != null && tgtVol > 0 && (
+                  <div
+                    style={{
+                      height: 3,
+                      borderRadius: 4,
+                      background: 'rgba(255,255,255,0.06)',
+                      overflow: 'hidden'
+                    }}
+                  >
+                    <div
+                      style={{
+                        height: '100%',
+                        width: `${Math.min(volPct ?? 0, 100)}%`,
+                        borderRadius: 4,
+                        background:
+                          (volPct ?? 0) >= 80
+                            ? '#34d399'
+                            : (volPct ?? 0) >= 40
+                              ? '#fbbf24'
+                              : '#f87171',
+                        transition: 'width 600ms ease'
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Valeur */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between'
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 600,
+                      color: 'var(--muted-foreground, #94a3b8)',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em'
+                    }}
+                  >
+                    Valeur
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 700,
+                      color: 'var(--foreground, #f1f5f9)'
+                    }}
+                  >
+                    {new Intl.NumberFormat('fr-FR').format(stats.concludedAmount)}
+                    {tgtVal != null && (
+                      <span
+                        style={{
+                          fontWeight: 400,
+                          color: 'var(--muted-foreground, #94a3b8)',
+                          fontSize: 10
+                        }}
+                      >
+                        {' '}/ {new Intl.NumberFormat('fr-FR').format(tgtVal)}{' '}{currency || 'F'}
+                        {valPct !== null && ` (${valPct}%)`}
+                      </span>
+                    )}
+                    {tgtVal == null && (
+                      <span
+                        style={{
+                          fontWeight: 400,
+                          color: 'var(--muted-foreground, #94a3b8)',
+                          fontSize: 10
+                        }}
+                      >
+                        {' '}{currency || 'FCFA'}
+                      </span>
+                    )}
+                  </span>
+                </div>
+                {/* Progress bar valeur */}
+                {tgtVal != null && tgtVal > 0 && (
+                  <div
+                    style={{
+                      height: 3,
+                      borderRadius: 4,
+                      background: 'rgba(255,255,255,0.06)',
+                      overflow: 'hidden'
+                    }}
+                  >
+                    <div
+                      style={{
+                        height: '100%',
+                        width: `${Math.min(valPct ?? 0, 100)}%`,
+                        borderRadius: 4,
+                        background:
+                          (valPct ?? 0) >= 80
+                            ? '#34d399'
+                            : (valPct ?? 0) >= 40
+                              ? '#fbbf24'
+                              : '#f87171',
+                        transition: 'width 600ms ease'
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Taux R/O */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  paddingTop: 2,
+                  borderTop: '1px solid rgba(255,255,255,0.05)'
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 600,
+                    color: 'var(--muted-foreground, #94a3b8)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.04em'
+                  }}
+                >
+                  Taux R/O
+                </span>
+                <span
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 800,
+                    color: roColor
+                  }}
+                >
+                  {roRate}%
+                </span>
+              </div>
+            </div>
+          )
+        })()}
       </div>
     </div>
   )
