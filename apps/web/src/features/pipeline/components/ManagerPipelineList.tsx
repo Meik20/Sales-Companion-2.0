@@ -1558,7 +1558,19 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
 
   // Fiches filtrées selon le TM (isOrgView) ou le commercial (TM view) sélectionné
   const displayedItems = useMemo(() => {
-    if (selectedMemberId === 'all') return items
+    if (selectedMemberId === 'all') {
+      if (isOrgView) {
+        // En vue organisation "Tous les Team Managers" :
+        // Les leads non assignés du SM ne doivent pas être visibles ici (uniquement dans l'onglet "Non assignés")
+        return items.filter((i) => {
+          const isSeniorLead =
+            (i as any).managerOrgRole === 'senior_manager' ||
+            Boolean(managerUid && (i as any).managerUid === managerUid)
+          return !isSeniorLead
+        })
+      }
+      return items
+    }
     if (selectedMemberId === 'unassigned') {
       if (isOrgView) {
         // Vue SM : les leads du SM lui-même + leads sans TM assigné
@@ -2622,22 +2634,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                             (item as any).managerOrgRole === 'senior_manager' ||
                             Boolean(managerUid && (item as any).managerUid === managerUid)
                           if (isSeniorLead) {
-                            return (
-                              <div
-                                style={{
-                                  fontSize: 11,
-                                  color: '#c084fc',
-                                  marginTop: 3,
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: 4,
-                                  fontWeight: 600
-                                }}
-                              >
-                                <Crown size={11} />
-                                <span>Compte Senior · En attente de délégation</span>
-                              </div>
-                            )
+                            return null
                           }
                           return (
                             <div

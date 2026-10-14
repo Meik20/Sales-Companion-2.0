@@ -87,15 +87,17 @@ export default function PipelinePage() {
   // Synthèse consolidée pour le Senior Manager (vue globale : somme des objectifs de tous les Team Managers)
   const smGlobalTarget = useMemo(() => {
     if (!isSeniorManager || !allTeamTargets?.length) return null
-    const targetVolume = allTeamTargets.reduce(
+    const tmOnlyTargets = allTeamTargets.filter((t) => t.managerUid !== user?.uid)
+    if (!tmOnlyTargets.length) return null
+    const targetVolume = tmOnlyTargets.reduce(
       (sum, t) => (t.targetVolume != null ? sum + t.targetVolume : sum),
       0
     )
-    const targetValue = allTeamTargets.reduce(
+    const targetValue = tmOnlyTargets.reduce(
       (sum, t) => (t.targetValue != null ? sum + t.targetValue : sum),
       0
     )
-    const period = allTeamTargets.find((t) => t.period)?.period ?? null
+    const period = tmOnlyTargets.find((t) => t.period)?.period ?? null
     return {
       memberId: 'org',
       memberName: "Organisation",
@@ -103,7 +105,7 @@ export default function PipelinePage() {
       targetValue: targetValue > 0 ? targetValue : null,
       period
     }
-  }, [isSeniorManager, allTeamTargets])
+  }, [isSeniorManager, allTeamTargets, user?.uid])
 
   // Synthèse ciblée pour le Senior Manager (lorsqu'un Team Manager précis est filtré)
   const smFilteredTarget = useMemo(() => {
@@ -529,7 +531,15 @@ export default function PipelinePage() {
               <TeamManagerPerformanceCard
                 manager={selectedManager}
                 managers={orgPipelineQuery.data?.managers}
-                items={(orgPipelineQuery.data?.items ?? []) as Parameters<typeof TeamManagerPerformanceCard>[0]['items']}
+                items={
+                  ((selectedManager
+                    ? orgPipelineQuery.data?.items?.filter((i) => (i as any).managerUid === selectedManager.uid)
+                    : orgPipelineQuery.data?.items?.filter(
+                        (i) =>
+                          (i as any).managerOrgRole !== 'senior_manager' &&
+                          (i as any).managerUid !== user?.uid
+                      )) ?? []) as Parameters<typeof TeamManagerPerformanceCard>[0]['items']
+                }
                 onClear={() => setFilterManagerUid(undefined)}
                 targets={selectedManager ? smFilteredTarget : smGlobalTarget}
               />
