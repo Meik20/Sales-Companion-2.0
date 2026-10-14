@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { TrendingUp, CheckCircle2, Calendar, X, Users, Users2, Building2, Check, AlertTriangle, Trophy } from 'lucide-react'
+import { TrendingUp, CheckCircle2, Calendar, X, Users, Users2, Building2, Check, AlertTriangle, Trophy, Banknote } from 'lucide-react'
 import { useTranslation } from '@/providers/I18nProvider'
 import { useProspectingCountryDetails } from '@/hooks/useProspectingCountry'
 import type { OrgManagerStats, OrgPipelineItem } from '@/features/pipeline/hooks/useOrgPipeline'
@@ -285,7 +285,7 @@ export function TeamManagerPerformanceCard({
           </div>
         </div>
 
-        {/* 2. Ventes conclues & CA encaissé */}
+        {/* 2. Valeur du pipeline (deals actifs en cours) */}
         <div
           style={{
             background: 'var(--card, #131c2e)',
@@ -303,23 +303,23 @@ export function TeamManagerPerformanceCard({
               fontSize: 10.5,
               fontWeight: 700,
               textTransform: 'uppercase',
-              color: '#34d399',
+              color: '#fbbf24',
               display: 'flex',
               alignItems: 'center',
               gap: 5
             }}
           >
-            <CheckCircle2 size={12} />
-            <span>{t('pipeline.closedSales') || 'Ventes conclues'}</span>
+            <Banknote size={12} />
+            <span>{t('pipeline.activePipelineValue') || 'Valeur du pipeline'}</span>
           </div>
-          <div style={{ fontSize: 18, fontWeight: 800, color: '#34d399' }}>
-            {stats.conclueCount}{' '}
+          <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--foreground, #f1f5f9)' }}>
+            {new Intl.NumberFormat('fr-FR').format(stats.activePipelineAmount)}{' '}
             <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--muted-foreground, #94a3b8)' }}>
-              {stats.conclueCount > 1 ? 'signatures' : 'signature'}
+              {currency || 'FCFA'}
             </span>
           </div>
           <div style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)' }}>
-            {new Intl.NumberFormat('fr-FR').format(stats.concludedAmount)} {currency || 'FCFA'} {t('pipeline.encashed') || 'encaissés'}
+            {stats.prospectionCount} en prospection · {stats.negociationCount} en négo
           </div>
         </div>
 

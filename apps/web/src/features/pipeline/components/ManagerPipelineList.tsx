@@ -1952,7 +1952,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
               </div>
             </div>
 
-            {/* 2. Ventes conclues & CA */}
+            {/* 2. Valeur du pipeline (deals actifs en cours) */}
             <div
               style={{
                 background: 'var(--card, #131c2e)',
@@ -1966,18 +1966,20 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                   fontSize: 10.5,
                   fontWeight: 700,
                   textTransform: 'uppercase',
-                  color: '#34d399',
+                  color: '#fbbf24',
                   marginBottom: 4,
                   display: 'flex',
                   alignItems: 'center',
                   gap: 5
                 }}
               >
-                <CheckCircle2 size={12} />
-                Ventes conclues
+                <Banknote size={12} />
+                Valeur du pipeline
               </div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: '#34d399' }}>
-                {activeMemberSummary.conclueCount}{' '}
+              <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--foreground, #f1f5f9)' }}>
+                {new Intl.NumberFormat('fr-FR').format(
+                  activeMemberSummary.totalAmount - activeMemberSummary.concludedAmount
+                )}{' '}
                 <span
                   style={{
                     fontSize: 12,
@@ -1985,7 +1987,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                     color: 'var(--muted-foreground, #94a3b8)'
                   }}
                 >
-                  signatures
+                  FCFA
                 </span>
               </div>
               <div
@@ -1995,8 +1997,8 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                   marginTop: 2
                 }}
               >
-                {new Intl.NumberFormat('fr-FR').format(activeMemberSummary.concludedAmount)} FCFA
-                encaissés
+                {activeMemberSummary.prospectionCount} en prospection ·{' '}
+                {activeMemberSummary.negociationCount} en négo
               </div>
             </div>
 
