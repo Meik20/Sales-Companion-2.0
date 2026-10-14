@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { TrendingUp, CheckCircle2, Calendar, X, Users, Building2, Check, AlertTriangle, Trophy } from 'lucide-react'
+import { TrendingUp, CheckCircle2, Calendar, X, Users, Users2, Building2, Check, AlertTriangle, Trophy } from 'lucide-react'
 import { useTranslation } from '@/providers/I18nProvider'
 import { useProspectingCountryDetails } from '@/hooks/useProspectingCountry'
 import type { OrgManagerStats, OrgPipelineItem } from '@/features/pipeline/hooks/useOrgPipeline'
@@ -14,6 +14,8 @@ interface TeamManagerPerformanceCardProps {
   onClear?: () => void
   /** Objectifs du manager (volume cible & valeur cible) */
   targets?: MemberTarget | null
+  /** 'org' = Senior Manager (défaut) | 'team' = Team Manager */
+  context?: 'org' | 'team'
 }
 
 export function TeamManagerPerformanceCard({
@@ -21,7 +23,8 @@ export function TeamManagerPerformanceCard({
   managers,
   items,
   onClear,
-  targets
+  targets,
+  context = 'org'
 }: TeamManagerPerformanceCardProps) {
   const { t } = useTranslation()
   const { currency } = useProspectingCountryDetails()
@@ -92,6 +95,7 @@ export function TeamManagerPerformanceCard({
   }, [items, manager?.uid, isGlobal, managers, todayStr])
 
   const initials = manager ? (manager.name || manager.email || 'TM').slice(0, 2).toUpperCase() : ''
+  const isTeamContext = context === 'team'
 
   return (
     <div
@@ -136,7 +140,7 @@ export function TeamManagerPerformanceCard({
               flexShrink: 0
             }}
           >
-            {isGlobal ? <Building2 size={18} /> : initials}
+            {isGlobal ? (isTeamContext ? <Users2 size={18} /> : <Building2 size={18} />) : initials}
           </div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
@@ -149,7 +153,9 @@ export function TeamManagerPerformanceCard({
                 }}
               >
                 {isGlobal
-                  ? (t('pipeline.globalOrgPerformance') || "Performance Globale de l'Organisation")
+                  ? (isTeamContext
+                      ? (t('pipeline.globalTeamPerformance') || "Performance Globale de l'\u00c9quipe")
+                      : (t('pipeline.globalOrgPerformance') || "Performance Globale de l'Organisation"))
                   : (manager?.name || manager?.email)}
               </h4>
               <span
@@ -162,7 +168,11 @@ export function TeamManagerPerformanceCard({
                   fontWeight: 600
                 }}
               >
-                {isGlobal ? (t('pipeline.orgConsolidated') || 'Vue Consolidée') : 'Team Manager'}
+                {isGlobal
+                  ? (isTeamContext
+                      ? (t('pipeline.teamConsolidated') || 'Vue Équipe')
+                      : (t('pipeline.orgConsolidated') || 'Vue Consolidée'))
+                  : 'Team Manager'}
               </span>
             </div>
             <div
@@ -179,10 +189,16 @@ export function TeamManagerPerformanceCard({
               {isGlobal ? (
                 <>
                   <span>
-                    {t('pipeline.globalOrgSubtitle') || "Synthèse consolidée du chiffre d'affaires et du portefeuille de l'organisation"}
+                    {isTeamContext
+                      ? (t('pipeline.globalTeamSubtitle') || "Synth\u00e8se consolid\u00e9e du chiffre d'affaires et du portefeuille de l'\u00e9quipe")
+                      : (t('pipeline.globalOrgSubtitle') || "Synth\u00e8se consolid\u00e9e du chiffre d'affaires et du portefeuille de l'organisation")}
                   </span>
-                  <span>•</span>
-                  <span>{stats.teamManagersCount} Team Managers</span>
+                  {!isTeamContext && (
+                    <>
+                      <span>•</span>
+                      <span>{stats.teamManagersCount} Team Managers</span>
+                    </>
+                  )}
                   <span>•</span>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                     <Users size={11} />
@@ -191,7 +207,7 @@ export function TeamManagerPerformanceCard({
                 </>
               ) : (
                 <>
-                  <span>{t('pipeline.teamManagerSubtitle') || "Portefeuille opérationnel et métriques de l'équipe managée"}</span>
+                  <span>{t('pipeline.teamManagerSubtitle') || "Portefeuille op\u00e9rationnel et m\u00e9triques de l'\u00e9quipe manag\u00e9e"}</span>
                   <span>•</span>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                     <Users size={11} />

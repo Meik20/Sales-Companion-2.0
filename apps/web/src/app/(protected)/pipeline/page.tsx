@@ -537,6 +537,7 @@ export default function PipelinePage() {
                 (managerPipelineQuery.data ?? []) as Parameters<typeof TeamManagerPerformanceCard>[0]['items']
               }
               targets={tmTarget}
+              context="team"
             />
           )}
           {!managerPipelineQuery.isLoading && !managerPipelineQuery.data?.length ? (
