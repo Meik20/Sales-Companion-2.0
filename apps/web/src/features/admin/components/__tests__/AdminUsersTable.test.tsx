@@ -27,7 +27,9 @@ describe('AdminUsersTable', () => {
   it('should render empty state when no users', () => {
     render(<AdminUsersTable users={[]} onDelete={() => {}} />)
 
-    expect(screen.getByText(/Aucun utilisateur|team\.noUserMatch/i)).toBeInTheDocument()
+    expect(
+      screen.getByText(/Aucun utilisateur|admin\.noUserMatch|team\.noUserMatch/i)
+    ).toBeInTheDocument()
   })
 
   it('should render users table with data', () => {
