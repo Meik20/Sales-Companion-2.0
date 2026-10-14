@@ -882,12 +882,12 @@ function TargetsPanel({ members }: { members?: Member[] }) {
           gap: 8,
           background:
             'linear-gradient(135deg, rgba(16,185,129,0.12) 0%, rgba(5,150,105,0.12) 100%)',
-          border: '1px solid rgba(16,185,129,0.3)',
+          border: '1px solid rgba(16,185,129,0.35)',
           borderRadius: 10,
           padding: '9px 16px',
           cursor: 'pointer',
-          color: '#6ee7b7',
-          fontWeight: 600,
+          color: 'var(--pipeline-concluded-color, #047857)',
+          fontWeight: 700,
           fontSize: 13,
           fontFamily: "'Syne',sans-serif",
           transition: 'all 200ms ease',
@@ -895,24 +895,25 @@ function TargetsPanel({ members }: { members?: Member[] }) {
           justifyContent: 'space-between'
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.borderColor = 'rgba(16,185,129,0.55)'
+          e.currentTarget.style.borderColor = 'rgba(16,185,129,0.6)'
           e.currentTarget.style.background =
-            'linear-gradient(135deg, rgba(16,185,129,0.22) 0%, rgba(5,150,105,0.22) 100%)'
+            'linear-gradient(135deg, rgba(16,185,129,0.2) 0%, rgba(5,150,105,0.2) 100%)'
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.borderColor = 'rgba(16,185,129,0.3)'
+          e.currentTarget.style.borderColor = 'rgba(16,185,129,0.35)'
           e.currentTarget.style.background =
             'linear-gradient(135deg, rgba(16,185,129,0.12) 0%, rgba(5,150,105,0.12) 100%)'
         }}
       >
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
-          <Target size={15} style={{ color: '#10b981' }} />
+          <Target size={15} style={{ color: 'var(--pipeline-concluded-color, #059669)' }} />
           Définir les objectifs de l'équipe
         </span>
         <ChevronDown
           size={14}
           style={{
-            opacity: 0.7,
+            opacity: 0.85,
+            color: 'var(--pipeline-concluded-color, #047857)',
             transform: open ? 'rotate(180deg)' : 'none',
             transition: 'transform 200ms ease'
           }}
@@ -951,7 +952,7 @@ function TargetsPanel({ members }: { members?: Member[] }) {
                 style={{
                   fontSize: 12,
                   fontWeight: 700,
-                  color: '#6ee7b7',
+                  color: 'var(--pipeline-concluded-color, #047857)',
                   letterSpacing: '.04em',
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -962,12 +963,12 @@ function TargetsPanel({ members }: { members?: Member[] }) {
                 OBJECTIF GLOBAL (R/O)
               </span>
               {globalVolume > 0 && (
-                <span style={{ fontSize: 13, color: '#a7f3d0' }}>
+                <span style={{ fontSize: 13, color: 'var(--foreground, #1e293b)' }}>
                   Vol. : <strong>{globalVolume}</strong> prospects
                 </span>
               )}
               {globalValue > 0 && (
-                <span style={{ fontSize: 13, color: '#a7f3d0' }}>
+                <span style={{ fontSize: 13, color: 'var(--foreground, #1e293b)' }}>
                   Val. : <strong>{new Intl.NumberFormat('fr-FR').format(globalValue)}</strong> FCFA
                 </span>
               )}
@@ -1191,13 +1192,13 @@ function ExportPanel({ members }: { members?: Member[] }) {
           alignItems: 'center',
           gap: 8,
           background:
-            'linear-gradient(135deg, rgba(99,102,241,0.15) 0%, rgba(139,92,246,0.15) 100%)',
+            'linear-gradient(135deg, rgba(99,102,241,0.12) 0%, rgba(139,92,246,0.12) 100%)',
           border: '1px solid rgba(99,102,241,0.35)',
           borderRadius: 10,
           padding: '9px 16px',
           cursor: 'pointer',
-          color: '#a5b4fc',
-          fontWeight: 600,
+          color: '#4338ca',
+          fontWeight: 700,
           fontSize: 13,
           fontFamily: "'Syne',sans-serif",
           transition: 'all 200ms ease',
@@ -1207,22 +1208,23 @@ function ExportPanel({ members }: { members?: Member[] }) {
         onMouseEnter={(e) => {
           e.currentTarget.style.borderColor = 'rgba(99,102,241,0.6)'
           e.currentTarget.style.background =
-            'linear-gradient(135deg, rgba(99,102,241,0.25) 0%, rgba(139,92,246,0.25) 100%)'
+            'linear-gradient(135deg, rgba(99,102,241,0.2) 0%, rgba(139,92,246,0.2) 100%)'
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.borderColor = 'rgba(99,102,241,0.35)'
           e.currentTarget.style.background =
-            'linear-gradient(135deg, rgba(99,102,241,0.15) 0%, rgba(139,92,246,0.15) 100%)'
+            'linear-gradient(135deg, rgba(99,102,241,0.12) 0%, rgba(139,92,246,0.12) 100%)'
         }}
       >
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
-          <BarChart3 size={15} style={{ color: '#a5b4fc' }} />
+          <BarChart3 size={15} style={{ color: '#4f46e5' }} />
           {t('pipeline.exportPerformances')}
         </span>
         <ChevronDown
           size={14}
           style={{
-            opacity: 0.7,
+            opacity: 0.85,
+            color: '#4338ca',
             transform: open ? 'rotate(180deg)' : 'none',
             transition: 'transform 200ms ease'
           }}
@@ -1916,7 +1918,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                   fontSize: 10.5,
                   fontWeight: 700,
                   textTransform: 'uppercase',
-                  color: '#818cf8',
+                  color: 'var(--pipeline-progress-color, #1d4ed8)',
                   marginBottom: 4,
                   display: 'flex',
                   alignItems: 'center',
@@ -1934,7 +1936,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                   style={{
                     fontSize: 12,
                     fontWeight: 500,
-                    color: 'var(--muted-foreground, #94a3b8)'
+                    color: 'var(--muted-foreground, #64748b)'
                   }}
                 >
                   {activeMemberSummary.totalCount > 1 ? 'leads' : 'lead'}
@@ -1943,7 +1945,8 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
               <div
                 style={{
                   fontSize: 11,
-                  color: 'var(--muted-foreground, #94a3b8)',
+                  color: 'var(--muted-foreground, #64748b)',
+                  fontWeight: 500,
                   marginTop: 2
                 }}
               >
@@ -1966,7 +1969,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                   fontSize: 10.5,
                   fontWeight: 700,
                   textTransform: 'uppercase',
-                  color: '#fbbf24',
+                  color: 'var(--pipeline-warning-color, #b45309)',
                   marginBottom: 4,
                   display: 'flex',
                   alignItems: 'center',
@@ -1984,7 +1987,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                   style={{
                     fontSize: 12,
                     fontWeight: 500,
-                    color: 'var(--muted-foreground, #94a3b8)'
+                    color: 'var(--muted-foreground, #64748b)'
                   }}
                 >
                   FCFA
@@ -1993,7 +1996,8 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
               <div
                 style={{
                   fontSize: 11,
-                  color: 'var(--muted-foreground, #94a3b8)',
+                  color: 'var(--muted-foreground, #64748b)',
+                  fontWeight: 500,
                   marginTop: 2
                 }}
               >
@@ -2019,7 +2023,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                   fontSize: 10.5,
                   fontWeight: 700,
                   textTransform: 'uppercase',
-                  color: activeMemberSummary.overdueCount > 0 ? '#ef4444' : '#60a5fa',
+                  color: activeMemberSummary.overdueCount > 0 ? 'var(--pipeline-alert-color, #b91c1c)' : 'var(--pipeline-progress-color, #1d4ed8)',
                   marginBottom: 4,
                   display: 'flex',
                   alignItems: 'center',
@@ -2033,7 +2037,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                 style={{
                   fontSize: 18,
                   fontWeight: 800,
-                  color: activeMemberSummary.overdueCount > 0 ? '#ef4444' : '#34d399',
+                  color: activeMemberSummary.overdueCount > 0 ? 'var(--pipeline-alert-color, #b91c1c)' : 'var(--pipeline-concluded-color, #047857)',
                   display: 'flex',
                   alignItems: 'center',
                   gap: 7
@@ -2117,10 +2121,10 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
               })()
 
               const getScoreColor = (score: number | null) => {
-                if (score == null) return 'var(--muted-foreground, #94a3b8)'
-                if (score >= 100) return '#34d399'
-                if (score >= 75) return '#fbbf24'
-                return '#f87171'
+                if (score == null) return 'var(--muted-foreground, #64748b)'
+                if (score >= 100) return 'var(--pipeline-concluded-color, #047857)'
+                if (score >= 75) return 'var(--pipeline-warning-color, #b45309)'
+                return 'var(--pipeline-alert-color, #b91c1c)'
               }
 
               return (
@@ -2148,7 +2152,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                         fontSize: 10.5,
                         fontWeight: 700,
                         textTransform: 'uppercase',
-                        color: '#fbbf24',
+                        color: 'var(--pipeline-warning-color, #b45309)',
                         display: 'flex',
                         alignItems: 'center',
                         gap: 5
@@ -2162,14 +2166,21 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                         style={{
                           fontSize: 11,
                           fontWeight: 800,
-                          padding: '1px 6px',
+                          padding: '1px 7px',
                           borderRadius: 6,
                           background:
                             roValue >= 100
-                              ? 'rgba(52,211,153,0.15)'
+                              ? 'rgba(16,185,129,0.12)'
                               : roValue >= 75
-                                ? 'rgba(251,191,36,0.15)'
-                                : 'rgba(239,68,68,0.15)',
+                                ? 'rgba(217,119,6,0.12)'
+                                : 'rgba(239,68,68,0.12)',
+                          border: `1px solid ${
+                            roValue >= 100
+                              ? 'rgba(16,185,129,0.35)'
+                              : roValue >= 75
+                                ? 'rgba(217,119,6,0.35)'
+                                : 'rgba(239,68,68,0.35)'
+                          }`,
                           color: getScoreColor(roValue)
                         }}
                       >
@@ -2189,7 +2200,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                           fontSize: 11.5
                         }}
                       >
-                        <span style={{ color: 'var(--muted-foreground, #94a3b8)' }}>Volume :</span>
+                        <span style={{ color: 'var(--muted-foreground, #64748b)', fontWeight: 600 }}>Volume :</span>
                         <span style={{ fontWeight: 700, color: 'var(--foreground, #f1f5f9)' }}>
                           {activeMemberSummary.conclueCount} / {activeTarget.targetVolume ?? '—'}{' '}
                           {pctVolume != null && (
@@ -2209,7 +2220,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                           fontSize: 11.5
                         }}
                       >
-                        <span style={{ color: 'var(--muted-foreground, #94a3b8)' }}>Valeur :</span>
+                        <span style={{ color: 'var(--muted-foreground, #64748b)', fontWeight: 600 }}>Valeur :</span>
                         <span style={{ fontWeight: 700, color: 'var(--foreground, #f1f5f9)' }}>
                           {new Intl.NumberFormat('fr-FR').format(activeMemberSummary.concludedAmount)}
                           {activeTarget.targetValue != null
@@ -2235,7 +2246,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                           marginTop: 2
                         }}
                       >
-                        <span style={{ color: 'var(--muted-foreground, #94a3b8)', fontWeight: 600 }}>
+                        <span style={{ color: 'var(--muted-foreground, #64748b)', fontWeight: 600 }}>
                           Taux R/O :
                         </span>
                         <span

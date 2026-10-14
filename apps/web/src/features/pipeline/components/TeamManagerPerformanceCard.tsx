@@ -161,11 +161,12 @@ export function TeamManagerPerformanceCard({
               <span
                 style={{
                   fontSize: 10.5,
-                  padding: '1px 8px',
+                  padding: '2px 9px',
                   borderRadius: 12,
-                  background: isGlobal ? 'rgba(139,92,246,0.15)' : 'rgba(99,102,241,0.15)',
-                  color: isGlobal ? '#a78bfa' : '#818cf8',
-                  fontWeight: 600
+                  background: 'rgba(99, 102, 241, 0.12)',
+                  color: 'var(--primary, #4338ca)',
+                  border: '1px solid rgba(99, 102, 241, 0.28)',
+                  fontWeight: 700
                 }}
               >
                 {isGlobal
@@ -265,7 +266,7 @@ export function TeamManagerPerformanceCard({
               fontSize: 10.5,
               fontWeight: 700,
               textTransform: 'uppercase',
-              color: '#818cf8',
+              color: 'var(--pipeline-progress-color, #1d4ed8)',
               display: 'flex',
               alignItems: 'center',
               gap: 5
@@ -276,11 +277,11 @@ export function TeamManagerPerformanceCard({
           </div>
           <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--foreground, #f1f5f9)' }}>
             {stats.totalCount}{' '}
-            <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--muted-foreground, #94a3b8)' }}>
+            <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--muted-foreground, #64748b)' }}>
               {stats.totalCount > 1 ? 'leads' : 'lead'}
             </span>
           </div>
-          <div style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)' }}>
+          <div style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)', fontWeight: 500 }}>
             {stats.prospectionCount} en prospection · {stats.negociationCount} en négo
           </div>
         </div>
@@ -303,7 +304,7 @@ export function TeamManagerPerformanceCard({
               fontSize: 10.5,
               fontWeight: 700,
               textTransform: 'uppercase',
-              color: '#fbbf24',
+              color: 'var(--pipeline-warning-color, #b45309)',
               display: 'flex',
               alignItems: 'center',
               gap: 5
@@ -314,11 +315,11 @@ export function TeamManagerPerformanceCard({
           </div>
           <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--foreground, #f1f5f9)' }}>
             {new Intl.NumberFormat('fr-FR').format(stats.activePipelineAmount)}{' '}
-            <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--muted-foreground, #94a3b8)' }}>
+            <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--muted-foreground, #64748b)' }}>
               {currency || 'FCFA'}
             </span>
           </div>
-          <div style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)' }}>
+          <div style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)', fontWeight: 500 }}>
             {stats.prospectionCount} en prospection · {stats.negociationCount} en négo
           </div>
         </div>
@@ -344,7 +345,7 @@ export function TeamManagerPerformanceCard({
               fontSize: 10.5,
               fontWeight: 700,
               textTransform: 'uppercase',
-              color: stats.overdueCount > 0 ? '#ef4444' : '#60a5fa',
+              color: stats.overdueCount > 0 ? 'var(--pipeline-alert-color, #b91c1c)' : 'var(--pipeline-progress-color, #1d4ed8)',
               display: 'flex',
               alignItems: 'center',
               gap: 5
@@ -357,7 +358,7 @@ export function TeamManagerPerformanceCard({
             style={{
               fontSize: 18,
               fontWeight: 800,
-              color: stats.overdueCount > 0 ? '#ef4444' : '#34d399',
+              color: stats.overdueCount > 0 ? 'var(--pipeline-alert-color, #b91c1c)' : 'var(--pipeline-concluded-color, #047857)',
               display: 'flex',
               alignItems: 'center',
               gap: 7
@@ -432,7 +433,23 @@ export function TeamManagerPerformanceCard({
               : null
 
           const roColor =
-            roRate >= 40 ? '#34d399' : roRate >= 20 ? '#fbbf24' : '#f87171'
+            roRate >= 40
+              ? 'var(--pipeline-concluded-color, #047857)'
+              : roRate >= 20
+                ? 'var(--pipeline-warning-color, #b45309)'
+                : 'var(--pipeline-alert-color, #b91c1c)'
+          const roBg =
+            roRate >= 40
+              ? 'rgba(16, 185, 129, 0.12)'
+              : roRate >= 20
+                ? 'rgba(217, 119, 6, 0.12)'
+                : 'rgba(239, 68, 68, 0.12)'
+          const roBorder =
+            roRate >= 40
+              ? 'rgba(16, 185, 129, 0.35)'
+              : roRate >= 20
+                ? 'rgba(217, 119, 6, 0.35)'
+                : 'rgba(239, 68, 68, 0.35)'
 
           return (
             <div
@@ -440,7 +457,7 @@ export function TeamManagerPerformanceCard({
                 background: 'var(--card, #131c2e)',
                 borderRadius: 10,
                 padding: '11px 14px',
-                border: '1px solid rgba(251,191,36,0.18)',
+                border: '1px solid var(--border, rgba(255,255,255,0.08))',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
@@ -453,7 +470,7 @@ export function TeamManagerPerformanceCard({
                   fontSize: 10.5,
                   fontWeight: 700,
                   textTransform: 'uppercase',
-                  color: '#fbbf24',
+                  color: 'var(--pipeline-warning-color, #b45309)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
@@ -469,8 +486,8 @@ export function TeamManagerPerformanceCard({
                     fontSize: 10,
                     fontWeight: 800,
                     color: roColor,
-                    background: `${roColor}18`,
-                    border: `1px solid ${roColor}40`,
+                    background: roBg,
+                    border: `1px solid ${roBorder}`,
                     borderRadius: 6,
                     padding: '1px 6px'
                   }}
@@ -492,7 +509,7 @@ export function TeamManagerPerformanceCard({
                     style={{
                       fontSize: 10,
                       fontWeight: 600,
-                      color: 'var(--muted-foreground, #94a3b8)',
+                      color: 'var(--muted-foreground, #64748b)',
                       textTransform: 'uppercase',
                       letterSpacing: '0.04em'
                     }}
@@ -510,8 +527,8 @@ export function TeamManagerPerformanceCard({
                     {tgtVol != null && (
                       <span
                         style={{
-                          fontWeight: 400,
-                          color: 'var(--muted-foreground, #94a3b8)',
+                          fontWeight: 500,
+                          color: 'var(--muted-foreground, #64748b)',
                           fontSize: 10
                         }}
                       >
@@ -537,10 +554,10 @@ export function TeamManagerPerformanceCard({
                         borderRadius: 4,
                         background:
                           (volPct ?? 0) >= 80
-                            ? '#34d399'
+                            ? 'var(--pipeline-concluded-color, #047857)'
                             : (volPct ?? 0) >= 40
-                              ? '#fbbf24'
-                              : '#f87171',
+                              ? 'var(--pipeline-warning-color, #b45309)'
+                              : 'var(--pipeline-alert-color, #b91c1c)',
                         transition: 'width 600ms ease'
                       }}
                     />
@@ -560,8 +577,8 @@ export function TeamManagerPerformanceCard({
                   <span
                     style={{
                       fontSize: 10,
-                      fontWeight: 600,
-                      color: 'var(--muted-foreground, #94a3b8)',
+                      fontWeight: 700,
+                      color: 'var(--muted-foreground, #64748b)',
                       textTransform: 'uppercase',
                       letterSpacing: '0.04em'
                     }}
@@ -579,8 +596,8 @@ export function TeamManagerPerformanceCard({
                     {tgtVal != null && (
                       <span
                         style={{
-                          fontWeight: 400,
-                          color: 'var(--muted-foreground, #94a3b8)',
+                          fontWeight: 500,
+                          color: 'var(--muted-foreground, #64748b)',
                           fontSize: 10
                         }}
                       >
@@ -591,8 +608,8 @@ export function TeamManagerPerformanceCard({
                     {tgtVal == null && (
                       <span
                         style={{
-                          fontWeight: 400,
-                          color: 'var(--muted-foreground, #94a3b8)',
+                          fontWeight: 500,
+                          color: 'var(--muted-foreground, #64748b)',
                           fontSize: 10
                         }}
                       >
@@ -618,10 +635,10 @@ export function TeamManagerPerformanceCard({
                         borderRadius: 4,
                         background:
                           (valPct ?? 0) >= 80
-                            ? '#34d399'
+                            ? 'var(--pipeline-concluded-color, #047857)'
                             : (valPct ?? 0) >= 40
-                              ? '#fbbf24'
-                              : '#f87171',
+                              ? 'var(--pipeline-warning-color, #b45309)'
+                              : 'var(--pipeline-alert-color, #b91c1c)',
                         transition: 'width 600ms ease'
                       }}
                     />
@@ -642,8 +659,8 @@ export function TeamManagerPerformanceCard({
                 <span
                   style={{
                     fontSize: 10,
-                    fontWeight: 600,
-                    color: 'var(--muted-foreground, #94a3b8)',
+                    fontWeight: 700,
+                    color: 'var(--muted-foreground, #64748b)',
                     textTransform: 'uppercase',
                     letterSpacing: '0.04em'
                   }}
