@@ -157,6 +157,9 @@ export async function GET(request: NextRequest) {
       snap.docs.forEach((d) => {
         if (!seen.has(d.id)) {
           const data = d.data()
+          // Exclure les leads archivés du pipeline actif
+          if (data.archived === true) return
+
           // Strict multi-tenant guard: si la fiche a un orgCode explicite, il doit correspondre à celui de l'organisation
           if (data.orgCode && data.orgCode !== orgCode) {
             return

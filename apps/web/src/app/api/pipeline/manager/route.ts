@@ -31,13 +31,19 @@ export async function GET(request: NextRequest) {
     }
 
     // Items assigned TO the team (managerUid set by team assignments route)
+    // Les leads archivés sont exclus du pipeline actif
     const teamSnap = await adminDb
       .collection('pipeline')
       .where('managerUid', '==', managerUid)
+      .where('archived', '!=', true)
       .get()
 
-    // Items in the manager's own pipeline (userId = managerUid)
-    const ownSnap = await adminDb.collection('pipeline').where('userId', '==', managerUid).get()
+    // Items in the manager's own pipeline (userId = managerUid), non archivés
+    const ownSnap = await adminDb
+      .collection('pipeline')
+      .where('userId', '==', managerUid)
+      .where('archived', '!=', true)
+      .get()
 
     // Merge & deduplicate:
     // If a company is already assigned to a team member in teamSnap,

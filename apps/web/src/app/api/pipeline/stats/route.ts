@@ -59,6 +59,9 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Exclure les leads archivés des statistiques du pipeline actif
+    docs = docs.filter((doc) => doc.data().archived !== true)
+
     const stats = {
       total: docs.length,
       prospection: 0,
@@ -77,6 +80,7 @@ export async function GET(request: NextRequest) {
     })
 
     stats.conversionRate = stats.total > 0 ? Math.round((stats.conclusion / stats.total) * 100) : 0
+
 
     return NextResponse.json(stats)
   } catch (error) {

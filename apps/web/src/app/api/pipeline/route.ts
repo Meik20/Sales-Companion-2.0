@@ -42,12 +42,15 @@ export async function GET(request: NextRequest) {
     for (const snap of [ownedSnap, assignedSnap]) {
       snap.docs.forEach((doc) => {
         if (!seen.has(doc.id)) {
+          const data = doc.data()
+          // Exclure les leads archivés du pipeline actif
+          if (data.archived === true) return
           seen.add(doc.id)
           items.push({
             id: doc.id,
-            ...doc.data(),
-            createdAt: doc.data().createdAt?.toDate?.()?.toISOString() ?? null,
-            updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() ?? null
+            ...data,
+            createdAt: data.createdAt?.toDate?.()?.toISOString() ?? null,
+            updatedAt: data.updatedAt?.toDate?.()?.toISOString() ?? null
           })
         }
       })
