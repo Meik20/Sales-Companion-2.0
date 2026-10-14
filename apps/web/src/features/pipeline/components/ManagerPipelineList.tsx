@@ -1417,20 +1417,14 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
     concludedAmount: number
   }
 
-  const { memberSummaries, unassignedCount, activeMemberSummary, seniorPendingCount, seniorPendingSummary } = useMemo(() => {
+  const { memberSummaries, unassignedCount, activeMemberSummary } = useMemo(() => {
     const map = new Map<string, MemberSummary>()
 
     if (isOrgView) {
       // Vue SM : regrouper STRICTEMENT par Team Manager.
       // INVARIANT MÉTIER CRITIQUE : Le Senior Manager n'est PAS un Team Manager !
-      // Ses leads éventuels sont des prospects en attente de délégation vers ses TMs.
-      let seniorCount = 0
-      let seniorProspection = 0
-      let seniorNegociation = 0
-      let seniorConclue = 0
-      let seniorOverdue = 0
-      let seniorTotalAmount = 0
-      let seniorConcludedAmount = 0
+      // Ses leads éventuels sont neutres (non assignés) et masqués dans cette vue.
+      let unassigned = 0
 
       for (const item of items) {
         const tmUid = (item as any).managerUid as string | undefined
@@ -1439,22 +1433,12 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
           Boolean(managerUid && tmUid === managerUid)
 
         if (isSeniorLead) {
-          seniorCount++
-          const st = normalize(item.status)
-          if (st === 'prospection') seniorProspection++
-          else if (st === 'negociation') seniorNegociation++
-          else if (st === 'conclue') {
-            seniorConclue++
-            if (item.amount) seniorConcludedAmount += item.amount
-          }
-          if (item.amount) seniorTotalAmount += item.amount
-          if (item.nextFollowUp && item.nextFollowUp < todayStr && st !== 'conclue') {
-            seniorOverdue++
-          }
+          // Les leads SM sont masqués de la vue consolidée TM — comptés comme non assignés
+          unassigned++
           continue
         }
 
-        if (!tmUid) continue
+        if (!tmUid) { unassigned++; continue }
         let summary = map.get(tmUid)
         if (!summary) {
           summary = {
@@ -1485,34 +1469,15 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
       }
       const list = Array.from(map.values()).sort((a, b) => b.totalCount - a.totalCount)
 
-      const seniorSummary: MemberSummary | null =
-        seniorCount > 0
-          ? {
-              uid: 'senior_pending',
-              name: 'Compte Senior Manager',
-              totalCount: seniorCount,
-              prospectionCount: seniorProspection,
-              negociationCount: seniorNegociation,
-              conclueCount: seniorConclue,
-              overdueCount: seniorOverdue,
-              totalAmount: seniorTotalAmount,
-              concludedAmount: seniorConcludedAmount
-            }
-          : null
-
       const active =
-        selectedMemberId === 'senior_pending'
-          ? seniorSummary
-          : selectedMemberId !== 'all' && selectedMemberId !== 'unassigned'
-            ? map.get(selectedMemberId) ?? null
-            : null
+        selectedMemberId !== 'all' && selectedMemberId !== 'unassigned'
+          ? map.get(selectedMemberId) ?? null
+          : null
 
       return {
         memberSummaries: list,
-        unassignedCount: 0,
-        activeMemberSummary: active,
-        seniorPendingCount: seniorCount,
-        seniorPendingSummary: seniorSummary
+        unassignedCount: unassigned,
+        activeMemberSummary: active
       }
     }
 
@@ -1587,9 +1552,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
     return {
       memberSummaries: list,
       unassignedCount: unassigned,
-      activeMemberSummary: active,
-      seniorPendingCount: 0,
-      seniorPendingSummary: null
+      activeMemberSummary: active
     }
   }, [items, members, managerUid, todayStr, selectedMemberId, isOrgView])
 
@@ -1597,16 +1560,18 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
   const displayedItems = useMemo(() => {
     if (selectedMemberId === 'all') return items
     if (selectedMemberId === 'unassigned') {
-      return items.filter((i) => !i.assignedTo || i.assignedTo === managerUid)
-    }
-    if (isOrgView) {
-      if (selectedMemberId === 'senior_pending') {
+      if (isOrgView) {
+        // Vue SM : les leads du SM lui-même + leads sans TM assigné
         return items.filter(
           (i) =>
             (i as any).managerOrgRole === 'senior_manager' ||
-            Boolean(managerUid && (i as any).managerUid === managerUid)
+            Boolean(managerUid && (i as any).managerUid === managerUid) ||
+            !(i as any).managerUid
         )
       }
+      return items.filter((i) => !i.assignedTo || i.assignedTo === managerUid)
+    }
+    if (isOrgView) {
       // En vue SM : filtrer par managerUid (Team Manager)
       return items.filter((i) => (i as any).managerUid === selectedMemberId)
     }
@@ -1753,21 +1718,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                 : `membre${memberSummaries.length > 1 ? 's' : ''}`
               })
             </span>
-            {isOrgView && seniorPendingCount > 0 && (
-              <span
-                style={{
-                  fontSize: 10.5,
-                  padding: '1px 7px',
-                  borderRadius: 10,
-                  background: 'rgba(168, 85, 247, 0.12)',
-                  color: '#c084fc',
-                  border: '1px solid rgba(168, 85, 247, 0.25)',
-                  fontWeight: 600
-                }}
-              >
-                + {seniorPendingCount} à déléguer
-              </span>
-            )}
+
           </div>
 
           {selectedMemberId !== 'all' && (
@@ -1843,59 +1794,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
             )}
           </button>
 
-          {/* Pill : Prospects du compte Senior Manager (en attente de délégation) */}
-          {isOrgView && seniorPendingCount > 0 && (
-            <button
-              type="button"
-              onClick={() =>
-                setSelectedMemberId(
-                  selectedMemberId === 'senior_pending' ? 'all' : 'senior_pending'
-                )
-              }
-              title="Prospects enregistrés par le Senior Manager en attente de transfert vers un Team Manager"
-              style={{
-                padding: '6px 14px',
-                borderRadius: 20,
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: 'pointer',
-                border:
-                  selectedMemberId === 'senior_pending'
-                    ? '1px solid #a855f7'
-                    : '1px solid rgba(168, 85, 247, 0.35)',
-                background:
-                  selectedMemberId === 'senior_pending'
-                    ? '#9333ea'
-                    : 'rgba(168, 85, 247, 0.12)',
-                color:
-                  selectedMemberId === 'senior_pending'
-                    ? '#ffffff'
-                    : 'var(--foreground, #f1f5f9)',
-                transition: 'all 150ms ease',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                flexShrink: 0
-              }}
-            >
-              <span>📋 Prospects compte Senior</span>
-              <span
-                style={{
-                  fontSize: 10.5,
-                  padding: '1px 6px',
-                  borderRadius: 10,
-                  background:
-                    selectedMemberId === 'senior_pending'
-                      ? 'rgba(255,255,255,0.25)'
-                      : 'rgba(168, 85, 247, 0.25)',
-                  color: selectedMemberId === 'senior_pending' ? '#ffffff' : '#c084fc',
-                  fontWeight: 700
-                }}
-              >
-                {seniorPendingCount}
-              </span>
-            </button>
-          )}
+
 
           {/* Pill : Non assignés */}
           {unassignedCount > 0 && (
@@ -1942,7 +1841,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
           )}
 
           {/* Dropdown : Filtrer par TM (SM) ou par commercial (TM) */}
-          {(memberSummaries.length > 0 || (isOrgView && seniorPendingCount > 0)) && (
+          {memberSummaries.length > 0 && (
             <div style={{ position: 'relative', flexShrink: 0 }}>
               <select
                 value={
@@ -1999,13 +1898,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                         })}
                       </optgroup>
                     )}
-                    {seniorPendingCount > 0 && (
-                      <optgroup label="Direction (En attente de délégation)">
-                        <option value="senior_pending">
-                          📋 Compte Senior (à transférer)
-                        </option>
-                      </optgroup>
-                    )}
+
                   </>
                 ) : (
                   memberSummaries.map((m) => {
@@ -2045,14 +1938,8 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
         <div
           style={{
             marginBottom: 20,
-            background:
-              selectedMemberId === 'senior_pending'
-                ? 'linear-gradient(135deg, rgba(168,85,247,0.12) 0%, rgba(99,102,241,0.06) 100%)'
-                : 'linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(139,92,246,0.04) 100%)',
-            border:
-              selectedMemberId === 'senior_pending'
-                ? '1px solid rgba(168,85,247,0.35)'
-                : '1px solid rgba(99,102,241,0.25)',
+            background: 'linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(139,92,246,0.04) 100%)',
+            border: '1px solid rgba(99,102,241,0.25)',
             borderRadius: 14,
             padding: 16,
             boxShadow: '0 8px 32px rgba(0,0,0,0.15)'
@@ -2075,27 +1962,17 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                   width: 36,
                   height: 36,
                   borderRadius: 10,
-                  background:
-                    selectedMemberId === 'senior_pending'
-                      ? 'linear-gradient(135deg, #a855f7, #6366f1)'
-                      : 'linear-gradient(135deg, #6366f1, #4f46e5)',
+                  background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: '#fff',
                   fontWeight: 700,
                   fontSize: 14,
-                  boxShadow:
-                    selectedMemberId === 'senior_pending'
-                      ? '0 2px 8px rgba(168,85,247,0.4)'
-                      : '0 2px 8px rgba(99,102,241,0.4)'
+                  boxShadow: '0 2px 8px rgba(99,102,241,0.4)'
                 }}
               >
-                {selectedMemberId === 'senior_pending' ? (
-                  <Crown size={18} />
-                ) : (
-                  activeMemberSummary.name.slice(0, 2).toUpperCase()
-                )}
+                {activeMemberSummary.name.slice(0, 2).toUpperCase()}
               </div>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
@@ -2109,21 +1986,6 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                   >
                     {activeMemberSummary.name}
                   </h4>
-                  {selectedMemberId === 'senior_pending' && (
-                    <span
-                      style={{
-                        fontSize: 10.5,
-                        fontWeight: 700,
-                        padding: '1px 8px',
-                        borderRadius: 10,
-                        background: 'rgba(168, 85, 247, 0.2)',
-                        color: '#c084fc',
-                        border: '1px solid rgba(168, 85, 247, 0.35)'
-                      }}
-                    >
-                      Direction Organisation
-                    </span>
-                  )}
                 </div>
                 <div
                   style={{
@@ -2132,36 +1994,15 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                     marginTop: 2
                   }}
                 >
-                  {selectedMemberId === 'senior_pending'
-                    ? 'Prospects saisis par la direction en attente de transfert vers un Team Manager'
-                    : isOrgView
-                      ? 'Portefeuille supervisé par ce Team Manager'
-                      : 'Portefeuille opérationnel assigné à ce commercial'}
+                  {isOrgView
+                    ? 'Portefeuille supervisé par ce Team Manager'
+                    : 'Portefeuille opérationnel assigné à ce commercial'}
                 </div>
               </div>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              {selectedMemberId === 'senior_pending' && (
-                <a
-                  href="/team?tab=org"
-                  style={{
-                    padding: '5px 12px',
-                    borderRadius: 8,
-                    background: 'linear-gradient(135deg, #9333ea, #6366f1)',
-                    color: '#ffffff',
-                    fontSize: 11.5,
-                    fontWeight: 700,
-                    textDecoration: 'none',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    boxShadow: '0 2px 8px rgba(147, 51, 234, 0.3)'
-                  }}
-                >
-                  Déléguer aux Team Managers →
-                </a>
-              )}
+
               <button
                 onClick={() => setSelectedMemberId('all')}
                 style={{
@@ -2380,76 +2221,8 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
               </div>
             </div>
 
-            {/* 4. Objectifs fixés ou Statut de délégation */}
+            {/* 4. Objectifs fixés */}
             {(() => {
-              if (selectedMemberId === 'senior_pending') {
-                return (
-                  <div
-                    style={{
-                      background: 'var(--card, #131c2e)',
-                      borderRadius: 10,
-                      padding: '10px 14px',
-                      border: '1px solid rgba(168,85,247,0.3)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'space-between'
-                    }}
-                  >
-                    <div>
-                      <div
-                        style={{
-                          fontSize: 10.5,
-                          fontWeight: 700,
-                          textTransform: 'uppercase',
-                          color: '#c084fc',
-                          marginBottom: 4,
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 5
-                        }}
-                      >
-                        <Crown size={12} />
-                        Statut de délégation
-                      </div>
-                      <div
-                        style={{
-                          fontSize: 14,
-                          fontWeight: 700,
-                          color: '#e9d5ff',
-                          marginTop: 4
-                        }}
-                      >
-                        En attente de transfert
-                      </div>
-                      <div
-                        style={{
-                          fontSize: 11,
-                          color: 'var(--muted-foreground, #94a3b8)',
-                          marginTop: 2
-                        }}
-                      >
-                        Non soumis aux quotas opérationnels terrain
-                      </div>
-                    </div>
-                    <div style={{ marginTop: 8 }}>
-                      <a
-                        href="/team?tab=org"
-                        style={{
-                          fontSize: 11,
-                          fontWeight: 700,
-                          color: '#c084fc',
-                          textDecoration: 'none',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 4
-                        }}
-                      >
-                        Ouvrir l&apos;outil de transfert →
-                      </a>
-                    </div>
-                  </div>
-                )
-              }
 
               const hasTargets =
                 activeTarget &&

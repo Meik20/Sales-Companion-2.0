@@ -142,8 +142,6 @@ export function TeamManagerPerformanceCard({
           >
             {isGlobal ? (
               isTeamContext ? <Users2 size={18} /> : <Building2 size={18} />
-            ) : manager?.isSenior ? (
-              <Crown size={18} />
             ) : (
               initials
             )}
@@ -175,13 +173,11 @@ export function TeamManagerPerformanceCard({
                   fontWeight: 700
                 }}
               >
-                {isGlobal
+                  {isGlobal
                   ? (isTeamContext
                       ? (t('pipeline.teamConsolidated') || 'Vue Équipe')
                       : (t('pipeline.orgConsolidated') || 'Vue Consolidée'))
-                  : manager?.isSenior
-                    ? 'Direction (À déléguer)'
-                    : 'Team Manager'}
+                  : 'Team Manager'}
               </span>
             </div>
             <div
@@ -431,10 +427,6 @@ export function TeamManagerPerformanceCard({
         {(() => {
           const tgtVol = targets?.targetVolume ?? null
           const tgtVal = targets?.targetValue ?? null
-          const roRate =
-            stats.totalCount > 0
-              ? Math.round((stats.conclueCount / stats.totalCount) * 100)
-              : 0
           const volPct =
             tgtVol && tgtVol > 0
               ? Math.round((stats.conclueCount / tgtVol) * 100)
@@ -444,20 +436,48 @@ export function TeamManagerPerformanceCard({
               ? Math.round((stats.concludedAmount / tgtVal) * 100)
               : null
 
-          const roColor =
-            roRate >= 40
+          const hasTargets = tgtVol != null || tgtVal != null
+
+          const roRate = (() => {
+            if (volPct != null && valPct != null) return Math.round((volPct + valPct) / 2)
+            if (volPct != null) return volPct
+            if (valPct != null) return valPct
+            return stats.totalCount > 0
+              ? Math.round((stats.conclueCount / stats.totalCount) * 100)
+              : 0
+          })()
+
+          const roColor = hasTargets
+            ? roRate >= 100
+              ? 'var(--pipeline-concluded-color, #047857)'
+              : roRate >= 70
+                ? 'var(--pipeline-warning-color, #b45309)'
+                : 'var(--pipeline-alert-color, #b91c1c)'
+            : roRate >= 40
               ? 'var(--pipeline-concluded-color, #047857)'
               : roRate >= 20
                 ? 'var(--pipeline-warning-color, #b45309)'
                 : 'var(--pipeline-alert-color, #b91c1c)'
-          const roBg =
-            roRate >= 40
+
+          const roBg = hasTargets
+            ? roRate >= 100
+              ? 'rgba(16, 185, 129, 0.12)'
+              : roRate >= 70
+                ? 'rgba(217, 119, 6, 0.12)'
+                : 'rgba(239, 68, 68, 0.12)'
+            : roRate >= 40
               ? 'rgba(16, 185, 129, 0.12)'
               : roRate >= 20
                 ? 'rgba(217, 119, 6, 0.12)'
                 : 'rgba(239, 68, 68, 0.12)'
-          const roBorder =
-            roRate >= 40
+
+          const roBorder = hasTargets
+            ? roRate >= 100
+              ? 'rgba(16, 185, 129, 0.35)'
+              : roRate >= 70
+                ? 'rgba(217, 119, 6, 0.35)'
+                : 'rgba(239, 68, 68, 0.35)'
+            : roRate >= 40
               ? 'rgba(16, 185, 129, 0.35)'
               : roRate >= 20
                 ? 'rgba(217, 119, 6, 0.35)'
@@ -504,7 +524,7 @@ export function TeamManagerPerformanceCard({
                     padding: '1px 6px'
                   }}
                 >
-                  R/O {roRate}%
+                  {hasTargets ? `R/O ${roRate}%` : `Conv. ${roRate}%`}
                 </span>
               </div>
 
