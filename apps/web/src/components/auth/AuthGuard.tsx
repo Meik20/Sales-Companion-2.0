@@ -223,10 +223,10 @@ export function AuthGuard({ children }: PropsWithChildren) {
 
           {status && (
             <div
-              className={`mb-4 rounded-[10px] border px-3.5 py-2.5 text-center text-[13px] ${
+              className={`mb-4 rounded-[10px] border px-3.5 py-2.5 text-center text-[13px] font-medium ${
                 status.type === 'success'
-                  ? 'border-blue-500/30 bg-blue-500/10 text-blue-400'
-                  : 'border-red-500/30 bg-red-500/10 text-red-400'
+                  ? 'border-blue-300 dark:border-blue-500/30 bg-blue-50 dark:bg-blue-500/10 text-blue-900 dark:text-blue-300'
+                  : 'border-red-300 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-900 dark:text-red-300'
               }`}
             >
               {status.message}

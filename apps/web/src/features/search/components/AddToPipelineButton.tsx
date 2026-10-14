@@ -121,7 +121,7 @@ export function AddToPipelineButton({ company }: Props) {
 
   if (status === 'done') {
     return (
-      <span className="whitespace-nowrap text-[12px] font-semibold text-blue-400">
+      <span className="whitespace-nowrap text-[12px] font-bold text-blue-600 dark:text-blue-400">
         {t('search.inPipeline')}
       </span>
     )
@@ -134,8 +134,8 @@ export function AddToPipelineButton({ company }: Props) {
         disabled={status === 'loading'}
         className={`h-8 whitespace-nowrap rounded-lg px-3 text-[12px] font-semibold transition-all duration-150 ${
           status === 'error'
-            ? 'border border-red-500/40 bg-red-500/8 text-red-400'
-            : 'border border-border bg-secondary text-foreground hover:border-blue-500/50 hover:bg-blue-500/10 hover:text-blue-400'
+            ? 'border border-red-500/40 bg-red-500/8 text-red-600 dark:text-red-400'
+            : 'border border-border bg-secondary text-foreground hover:border-blue-500/50 hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-400'
         } ${status === 'loading' ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
       >
         {status === 'loading'

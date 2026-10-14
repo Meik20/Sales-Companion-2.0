@@ -39,17 +39,72 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const memberId = searchParams.get('memberId') || null
+    const reqManagerUid = searchParams.get('managerUid') || null
 
-    let query = adminDb
-      .collection('teamTargets')
-      .where('managerUid', '==', managerUid) as FirebaseFirestore.Query
+    const userData = managerDoc.data() || {}
+    const isSeniorManager = userData.orgRole === 'senior_manager' && Boolean(userData.orgCode)
 
-    if (memberId) {
-      query = query.where('memberId', '==', memberId)
+    let targets: Array<{ id: string; [key: string]: any }> = []
+
+    if (isSeniorManager) {
+      // ── Vue consolidée Senior Manager : récupérer les objectifs des managers de l'organisation ──
+      const orgManagersSnap = await adminDb
+        .collection('users')
+        .where('orgCode', '==', userData.orgCode)
+        .where('role', '==', 'manager')
+        .get()
+
+      const allowedManagerUids = orgManagersSnap.docs.map((d) => d.id)
+      if (!allowedManagerUids.includes(managerUid)) {
+        allowedManagerUids.push(managerUid)
+      }
+
+      let targetManagerUids: string[] = []
+      if (reqManagerUid) {
+        if (!allowedManagerUids.includes(reqManagerUid)) {
+          return NextResponse.json(
+            { message: 'Accès non autorisé aux données de ce manager' },
+            { status: 403 }
+          )
+        }
+        targetManagerUids = [reqManagerUid]
+      } else {
+        targetManagerUids = allowedManagerUids
+      }
+
+      if (targetManagerUids.length === 0) {
+        return NextResponse.json({ targets: [] }, { status: 200 })
+      }
+
+      // Traitement par lots de 30 (limite Firestore de la clause 'in')
+      const chunks: string[][] = []
+      for (let i = 0; i < targetManagerUids.length; i += 30) {
+        chunks.push(targetManagerUids.slice(i, i + 30))
+      }
+
+      const snaps = await Promise.all(
+        chunks.map((chunk) => {
+          let q = adminDb.collection('teamTargets').where('managerUid', 'in', chunk) as FirebaseFirestore.Query
+          if (memberId) {
+            q = q.where('memberId', '==', memberId)
+          }
+          return q.get()
+        })
+      )
+
+      targets = snaps.flatMap((snap) => snap.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
+    } else {
+      let query = adminDb
+        .collection('teamTargets')
+        .where('managerUid', '==', managerUid) as FirebaseFirestore.Query
+
+      if (memberId) {
+        query = query.where('memberId', '==', memberId)
+      }
+
+      const snap = await query.get()
+      targets = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
     }
-
-    const snap = await query.get()
-    const targets = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
 
     return NextResponse.json({ targets }, { status: 200 })
   } catch (error) {
@@ -111,6 +166,7 @@ export async function POST(request: NextRequest) {
     await docRef.set(
       {
         managerUid,
+        orgCode: callerDoc.data()?.orgCode || null,
         memberId,
         memberName: memberName ?? null,
         targetVolume: typeof targetVolume === 'number' ? targetVolume : null,

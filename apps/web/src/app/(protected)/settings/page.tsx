@@ -304,8 +304,8 @@ export default function SettingsPage() {
                     {t('settings.upgradeBtn')}
                   </button>
                 ) : plan !== 'enterprise' && isTeamManager ? (
-                  <div className="flex items-center gap-2 rounded-xl border border-yellow-500/30 bg-yellow-500/8 px-3.5 py-2 text-[12px] text-yellow-500/80">
-                    <Lock size={13} className="shrink-0" />
+                  <div className="flex items-center gap-2 rounded-xl border border-amber-300 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 px-3.5 py-2 text-[12px] text-amber-900 dark:text-amber-200">
+                    <Lock size={13} className="shrink-0 text-amber-700 dark:text-amber-400" />
                     <span>
                       La gestion de l&apos;abonnement est réservée au{' '}
                       <strong>Senior Manager</strong> de votre organisation.
@@ -375,9 +375,9 @@ export default function SettingsPage() {
                         {t('settings.updateBtn')}
                       </Button>
                     </div>
-                    {emailError && <div className="text-[12px] text-red-400">{emailError}</div>}
+                    {emailError && <div className="text-[12px] text-red-600 dark:text-red-400 font-semibold">{emailError}</div>}
                     {emailSuccess && (
-                      <div className="text-[12px] text-blue-400">{emailSuccess}</div>
+                      <div className="text-[12px] text-emerald-700 dark:text-emerald-400 font-bold">{emailSuccess}</div>
                     )}
                     <span className="text-[11px] text-muted-foreground/80">
                       {t('settings.emailHint')}
@@ -406,8 +406,8 @@ export default function SettingsPage() {
                     >
                       {t('settings.sendResetBtn')}
                     </Button>
-                    {pwError && <div className="text-[12px] text-red-400">{pwError}</div>}
-                    {pwSuccess && <div className="text-[12px] text-blue-400">{pwSuccess}</div>}
+                    {pwError && <div className="text-[12px] text-red-600 dark:text-red-400 font-semibold">{pwError}</div>}
+                    {pwSuccess && <div className="text-[12px] text-emerald-700 dark:text-emerald-400 font-bold">{pwSuccess}</div>}
                     <span className="text-[11px] text-muted-foreground/80">
                       {t('settings.passwordHint')}
                     </span>

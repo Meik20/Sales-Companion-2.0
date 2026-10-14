@@ -117,8 +117,8 @@ export function SupportContactModal({ client, onClose }: Props) {
             <div className="flex flex-col gap-4 p-5">
               {/* No email warning */}
               {!clientEmail && (
-                <div className="flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2.5 text-[12px] text-amber-400">
-                  <AlertCircle size={14} strokeWidth={2} className="mt-0.5 shrink-0" />
+                <div className="flex items-start gap-2 rounded-xl border border-amber-300 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 px-3 py-2.5 text-[12px] text-amber-900 dark:text-amber-200">
+                  <AlertCircle size={14} strokeWidth={2} className="mt-0.5 shrink-0 text-amber-700 dark:text-amber-400" />
                   <span>
                     Aucune adresse email renseignée pour ce client. Ajoutez-en une dans sa fiche
                     avant d'envoyer.

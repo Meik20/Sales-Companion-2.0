@@ -113,7 +113,7 @@ export function SaveCompanyButton({ company }: Props) {
   const isDone = status === 'done' || status === 'duplicate'
   if (isDone) {
     return (
-      <span className="whitespace-nowrap text-[12px] font-semibold text-blue-400 inline-flex items-center gap-1">
+      <span className="whitespace-nowrap text-[12px] font-bold text-blue-600 dark:text-blue-400 inline-flex items-center gap-1">
         {status === 'duplicate' ? (
           t('search.alreadySaved')
         ) : (
@@ -133,8 +133,8 @@ export function SaveCompanyButton({ company }: Props) {
         disabled={status === 'loading'}
         className={`h-8 whitespace-nowrap rounded-lg px-3 text-[12px] font-semibold transition-all duration-150 inline-flex items-center gap-1.5 ${
           status === 'error'
-            ? 'border border-red-500/40 bg-red-500/8 text-red-400'
-            : 'border border-border bg-secondary text-foreground hover:border-blue-400/60 hover:bg-blue-400/8 hover:text-blue-400'
+            ? 'border border-red-500/40 bg-red-500/8 text-red-600 dark:text-red-400'
+            : 'border border-border bg-secondary text-foreground hover:border-blue-500/60 hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-400'
         } ${status === 'loading' ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
       >
         {status === 'loading' ? (

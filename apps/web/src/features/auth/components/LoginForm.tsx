@@ -222,13 +222,13 @@ export function LoginForm() {
           </FormField>
 
           {resetSuccess && (
-            <div className="rounded-lg border border-blue-500/25 bg-blue-500/8 px-3.5 py-2.5 text-[13px] text-blue-400">
+            <div className="rounded-lg border border-blue-200 dark:border-blue-500/25 bg-blue-50 dark:bg-blue-500/8 px-3.5 py-2.5 text-[13px] text-blue-800 dark:text-blue-300 font-medium">
               Un email de réinitialisation a été envoyé à l&apos;adresse indiquée.
             </div>
           )}
 
           {error && (
-            <div className="rounded-lg border border-red-500/25 bg-red-500/8 px-3.5 py-2.5 text-[13px] text-red-400">
+            <div className="rounded-lg border border-red-200 dark:border-red-500/25 bg-red-50 dark:bg-red-500/8 px-3.5 py-2.5 text-[13px] text-red-700 dark:text-red-400 font-medium">
               {error}
             </div>
           )}
@@ -317,7 +317,7 @@ export function LoginForm() {
           )}
 
           {error && (
-            <div className="rounded-lg border border-red-500/25 bg-red-500/8 px-3.5 py-2.5 text-[13px] text-red-400">
+            <div className="rounded-lg border border-red-200 dark:border-red-500/25 bg-red-50 dark:bg-red-500/8 px-3.5 py-2.5 text-[13px] text-red-700 dark:text-red-400 font-medium">
               {error}
             </div>
           )}

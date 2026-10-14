@@ -6,6 +6,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 export type MemberTarget = {
   id?: string
+  managerUid?: string
+  orgCode?: string | null
   memberId: string
   memberName?: string
   targetVolume: number | null
@@ -13,17 +15,18 @@ export type MemberTarget = {
   period?: string | null
 }
 
-/** Fetches all targets defined by the manager */
-export function useTeamTargets(memberId?: string) {
+/** Fetches targets defined by the manager (or all org managers if senior manager) */
+export function useTeamTargets(memberId?: string, managerUid?: string) {
   const { user } = useCurrentUser()
 
   return useQuery({
-    queryKey: ['teamTargets', memberId ?? 'all'],
+    queryKey: ['teamTargets', memberId ?? 'all', managerUid ?? 'all'],
     enabled: !!user,
     queryFn: async () => {
       const token = await user!.getIdToken()
       const params = new URLSearchParams()
       if (memberId) params.set('memberId', memberId)
+      if (managerUid) params.set('managerUid', managerUid)
       const res = await fetch(`/api/team/targets${params.toString() ? `?${params}` : ''}`, {
         headers: { Authorization: `Bearer ${token}` }
       })

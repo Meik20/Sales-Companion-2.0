@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { TrendingUp, CheckCircle2, Calendar, X, Users, Users2, Building2, Check, AlertTriangle, Trophy, Banknote } from 'lucide-react'
+import { TrendingUp, CheckCircle2, Calendar, X, Users, Users2, Building2, Check, AlertTriangle, Trophy, Banknote, Crown } from 'lucide-react'
 import { useTranslation } from '@/providers/I18nProvider'
 import { useProspectingCountryDetails } from '@/hooks/useProspectingCountry'
 import type { OrgManagerStats, OrgPipelineItem } from '@/features/pipeline/hooks/useOrgPipeline'
@@ -140,7 +140,13 @@ export function TeamManagerPerformanceCard({
               flexShrink: 0
             }}
           >
-            {isGlobal ? (isTeamContext ? <Users2 size={18} /> : <Building2 size={18} />) : initials}
+            {isGlobal ? (
+              isTeamContext ? <Users2 size={18} /> : <Building2 size={18} />
+            ) : manager?.isSenior ? (
+              <Crown size={18} />
+            ) : (
+              initials
+            )}
           </div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
@@ -173,7 +179,9 @@ export function TeamManagerPerformanceCard({
                   ? (isTeamContext
                       ? (t('pipeline.teamConsolidated') || 'Vue Équipe')
                       : (t('pipeline.orgConsolidated') || 'Vue Consolidée'))
-                  : 'Team Manager'}
+                  : manager?.isSenior
+                    ? 'Direction (À déléguer)'
+                    : 'Team Manager'}
               </span>
             </div>
             <div
@@ -208,7 +216,11 @@ export function TeamManagerPerformanceCard({
                 </>
               ) : (
                 <>
-                  <span>{t('pipeline.teamManagerSubtitle') || "Portefeuille op\u00e9rationnel et m\u00e9triques de l'\u00e9quipe manag\u00e9e"}</span>
+                  <span>
+                    {manager?.isSenior
+                      ? 'Prospects saisis par la direction en attente de transfert vers les Team Managers'
+                      : (t('pipeline.teamManagerSubtitle') || "Portefeuille op\u00e9rationnel et m\u00e9triques de l'\u00e9quipe manag\u00e9e")}
+                  </span>
                   <span>•</span>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                     <Users size={11} />

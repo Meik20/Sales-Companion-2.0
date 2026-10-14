@@ -35,8 +35,23 @@ export default function PipelinePage() {
   // ── Org pipeline (Senior Manager uniquement) ─────────────────────────
   const [filterManagerUid, setFilterManagerUid] = useState<string | undefined>(undefined)
   const orgPipelineQuery = useOrgPipeline({ managerUid: filterManagerUid })
-  const selectedManager =
-    filterManagerUid && orgPipelineQuery.data?.managers
+  const isSeniorSelected = Boolean(filterManagerUid && user?.uid && filterManagerUid === user.uid)
+  const selectedManager = isSeniorSelected
+    ? ({
+        uid: user!.uid,
+        name: user!.name || 'Compte Senior Manager',
+        email: user!.email || '',
+        orgRole: 'senior_manager',
+        isSenior: true,
+        isCurrent: true,
+        stats: {
+          prospection: 0,
+          negociation: 0,
+          conclue: 0,
+          total: 0
+        }
+      } as unknown as OrgManagerStats)
+    : filterManagerUid && orgPipelineQuery.data?.managers
       ? orgPipelineQuery.data.managers.find((m: OrgManagerStats) => m.uid === filterManagerUid)
       : undefined
 
@@ -61,8 +76,8 @@ export default function PipelinePage() {
   // Objectifs du Team Manager (scopé sur son propre uid)
   const { data: tmTargets } = useTeamTargets(isTeamManager ? user?.uid : undefined)
   const tmTarget = tmTargets?.[0] ?? null
-  // Objectifs du Senior Manager (pour la carte SM, scopé sur son propre uid)
-  const { data: smTargets } = useTeamTargets(isSeniorManager ? user?.uid : undefined)
+  // Objectifs du Senior Manager : récupérer les objectifs de son organisation (vue consolidée)
+  const { data: smTargets } = useTeamTargets(undefined, isSeniorManager ? user?.uid : undefined)
   const smTarget = smTargets?.[0] ?? null
   const saveTarget = useSaveTeamTarget()
   const prevFreeRef = useRef<boolean>(isFree)
@@ -413,19 +428,6 @@ export default function PipelinePage() {
                     }}
                   >
                     <span>{t('pipeline.all') || 'Tous'}</span>
-                    <span
-                      style={{
-                        fontSize: 10.5,
-                        padding: '1px 6px',
-                        borderRadius: 10,
-                        background: !filterManagerUid
-                          ? 'rgba(255,255,255,0.25)'
-                          : 'rgba(255,255,255,0.08)',
-                        fontWeight: 700
-                      }}
-                    >
-                      {orgPipelineQuery.data.counts.total}
-                    </span>
                   </button>
                   {orgPipelineQuery.data.managers
                     .filter((m: OrgManagerStats) => !m.isSenior)
@@ -460,25 +462,63 @@ export default function PipelinePage() {
                           }}
                         >
                           <span>{mgr.name || mgr.email}</span>
-                          {mgr.isSenior && (
-                            <span style={{ fontSize: 10, opacity: 0.7 }}>(vous)</span>
-                          )}
-                          <span
-                            style={{
-                              fontSize: 10.5,
-                              padding: '1px 6px',
-                              borderRadius: 10,
-                              background: isSelected
-                                ? 'rgba(255,255,255,0.25)'
-                                : 'rgba(255,255,255,0.08)',
-                              fontWeight: 700
-                            }}
-                          >
-                            {mgr.stats.total}
-                          </span>
                         </button>
                       )
                     })}
+                  {(() => {
+                    const seniorPendingCount = (orgPipelineQuery.data?.items ?? []).filter(
+                      (i) =>
+                        (i as any).managerOrgRole === 'senior_manager' ||
+                        Boolean(user?.uid && (i as any).managerUid === user?.uid)
+                    ).length
+                    if (seniorPendingCount === 0) return null
+                    const isSelected = filterManagerUid === user?.uid
+                    return (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setFilterManagerUid(isSelected ? undefined : user?.uid)
+                        }
+                        title="Prospects enregistrés par le Senior Manager en attente de délégation"
+                        style={{
+                          padding: '5px 12px',
+                          borderRadius: 20,
+                          border: isSelected
+                            ? '1px solid #a855f7'
+                            : '1px solid rgba(168, 85, 247, 0.35)',
+                          background: isSelected
+                            ? '#9333ea'
+                            : 'rgba(168, 85, 247, 0.12)',
+                          color: isSelected
+                            ? '#ffffff'
+                            : 'var(--foreground, #f1f5f9)',
+                          fontSize: 12,
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          transition: 'all 150ms ease'
+                        }}
+                      >
+                        <span>📋 Compte Senior</span>
+                        <span
+                          style={{
+                            fontSize: 10.5,
+                            padding: '1px 6px',
+                            borderRadius: 10,
+                            background: isSelected
+                              ? 'rgba(255,255,255,0.25)'
+                              : 'rgba(168, 85, 247, 0.25)',
+                            color: isSelected ? '#ffffff' : '#c084fc',
+                            fontWeight: 700
+                          }}
+                        >
+                          {seniorPendingCount}
+                        </span>
+                      </button>
+                    )
+                  })()}
                 </div>
               </div>
             )}

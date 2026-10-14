@@ -372,26 +372,26 @@ export function RegisterForm() {
       {/* Bannière Invitation Organisation (Multi-SM / Team Manager) */}
       {orgInviteInfo && (
         <div className="mb-5 rounded-xl border border-indigo-500/30 bg-indigo-500/10 p-3.5 text-xs text-indigo-300 flex items-start gap-2.5">
-          <ShieldCheck size={18} className="text-indigo-400 shrink-0 mt-0.5" />
+          <ShieldCheck size={18} className="text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
           <div className="flex-1">
-            <div className="font-semibold text-indigo-300 text-[12.5px] flex items-center gap-1.5">
+            <div className="font-bold text-indigo-900 dark:text-indigo-300 text-[12.5px] flex items-center gap-1.5">
               {orgInviteInfo.type === 'senior_manager' ? (
-                <><Crown size={13} className="text-violet-400 shrink-0" /> Invitation Senior Manager — Nouveau Segment</>
+                <><Crown size={13} className="text-violet-600 dark:text-violet-400 shrink-0" /> Invitation Senior Manager — Nouveau Segment</>
               ) : (
-                <><Users2 size={13} className="text-indigo-400 shrink-0" /> Invitation Team Manager</>
+                <><Users2 size={13} className="text-indigo-600 dark:text-indigo-400 shrink-0" /> Invitation Team Manager</>
               )}
             </div>
-            <div className="text-[11.5px] text-indigo-200/80 mt-1 leading-relaxed">
+            <div className="text-[11.5px] text-indigo-800 dark:text-indigo-200/90 mt-1 leading-relaxed">
               Organisation : <strong>{orgInviteInfo.companyName}</strong> (Code : {orgInviteInfo.orgCode})
               {orgInviteInfo.seniorManagerName && (
                 <div className="flex items-center gap-1 mt-0.5">
-                  <Crown size={10} className="text-indigo-400/70 shrink-0" />
+                  <Crown size={10} className="text-indigo-600 dark:text-indigo-400/70 shrink-0" />
                   Invité par : <strong>{orgInviteInfo.seniorManagerName}</strong>
                 </div>
               )}
               {orgInviteInfo.type === 'team_manager' && orgInviteInfo.segment && (
                 <div className="flex items-center gap-1 mt-0.5">
-                  <Tag size={10} className="text-indigo-400/70 shrink-0" />
+                  <Tag size={10} className="text-indigo-600 dark:text-indigo-400/70 shrink-0" />
                   Segment rattaché : <strong>{orgInviteInfo.segment}</strong>
                 </div>
               )}
@@ -402,13 +402,13 @@ export function RegisterForm() {
 
       {/* Dérogation autorisée par l'admin */}
       {exemptionValid && !orgInviteInfo && (
-        <div className="mb-5 rounded-xl border border-blue-500/30 bg-blue-500/10 p-3 text-xs text-blue-300 flex items-start gap-2.5">
-          <ShieldCheck size={18} className="text-blue-400 shrink-0 mt-0.5" />
+        <div className="mb-5 rounded-xl border border-blue-300 dark:border-blue-500/30 bg-blue-50 dark:bg-blue-500/10 p-3 text-xs text-blue-900 dark:text-blue-300 flex items-start gap-2.5">
+          <ShieldCheck size={18} className="text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
           <div>
-            <div className="font-semibold text-blue-400 text-[12.5px]">
+            <div className="font-bold text-blue-900 dark:text-blue-400 text-[12.5px]">
               Dérogation de domaine approuvée
             </div>
-            <div className="text-[11px] text-blue-200/80 mt-0.5 leading-relaxed">
+            <div className="text-[11px] text-blue-800 dark:text-blue-200/90 mt-0.5 leading-relaxed">
               Votre demande de compte Manager pour l'entreprise{' '}
               <strong>{companyName || exemptionInfo?.companyName || 'votre organisation'}</strong> a
               été validée.
@@ -583,7 +583,7 @@ export function RegisterForm() {
                     }`}
                   >
                     <div
-                      className={`flex items-center gap-1.5 text-[13px] font-semibold ${role === opt.value ? 'text-blue-400' : 'text-foreground'}`}
+                      className={`flex items-center gap-1.5 text-[13px] font-semibold ${role === opt.value ? 'text-blue-600 dark:text-blue-400 font-bold' : 'text-foreground'}`}
                     >
                       {opt.icon}
                       {opt.label}
@@ -615,7 +615,7 @@ export function RegisterForm() {
                 <div className="flex items-center gap-1.5 text-[14px] font-bold text-foreground mt-0.5">
                   {orgInviteInfo.type === 'senior_manager' ? (
                     <>
-                      <Crown size={15} className="text-violet-400 shrink-0" />
+                      <Crown size={15} className="text-violet-600 dark:text-violet-400 shrink-0" />
                       <span>Senior Manager</span>
                     </>
                   ) : (

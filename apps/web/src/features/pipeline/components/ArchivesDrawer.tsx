@@ -144,43 +144,13 @@ export function ArchivesDrawer() {
     <button
       type="button"
       onClick={() => setOpen(true)}
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 8,
-        padding: '8px 14px',
-        borderRadius: 10,
-        border: '1px solid rgba(251,191,36,0.3)',
-        background: 'rgba(251,191,36,0.06)',
-        color: '#fbbf24',
-        fontSize: 13,
-        fontWeight: 600,
-        cursor: 'pointer',
-        transition: 'all 150ms ease'
-      }}
-      onMouseEnter={(e) => {
-        const el = e.currentTarget
-        el.style.background = 'rgba(251,191,36,0.12)'
-        el.style.borderColor = 'rgba(251,191,36,0.5)'
-      }}
-      onMouseLeave={(e) => {
-        const el = e.currentTarget
-        el.style.background = 'rgba(251,191,36,0.06)'
-        el.style.borderColor = 'rgba(251,191,36,0.3)'
-      }}
+      className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-amber-300 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 text-amber-900 dark:text-amber-300 font-bold text-[13px] cursor-pointer transition-all hover:bg-amber-100 dark:hover:bg-amber-500/20 shadow-xs"
     >
-      <Archive size={15} />
+      <Archive size={15} className="text-amber-700 dark:text-amber-400" />
       Archives
       {items.length > 0 && (
         <span
-          style={{
-            background: '#f59e0b',
-            color: '#000',
-            borderRadius: 10,
-            padding: '1px 7px',
-            fontSize: 10.5,
-            fontWeight: 800
-          }}
+          className="bg-amber-600 text-white rounded-full px-2 py-0.5 text-[10.5px] font-black"
         >
           {items.length}
         </span>

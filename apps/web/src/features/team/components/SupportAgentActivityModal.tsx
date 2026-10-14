@@ -175,9 +175,9 @@ export function SupportAgentActivityModal({ agent, onClose }: Props) {
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <div className="rounded-xl border border-border bg-secondary/20 p-3 flex flex-col">
                     <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-                      <Phone size={11} className="text-blue-400" /> Appels
+                      <Phone size={11} className="text-blue-600 dark:text-blue-400" /> Appels
                     </span>
-                    <span className="text-xl font-black text-blue-400 mt-1">
+                    <span className="text-xl font-black text-blue-600 dark:text-blue-400 mt-1">
                       {data.kpis.callsCount}
                     </span>
                     <span className="text-[10px] text-muted-foreground">appels enregistrés</span>
@@ -185,9 +185,9 @@ export function SupportAgentActivityModal({ agent, onClose }: Props) {
 
                   <div className="rounded-xl border border-border bg-secondary/20 p-3 flex flex-col">
                     <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-                      <Ticket size={11} className="text-amber-400" /> Tickets
+                      <Ticket size={11} className="text-amber-600 dark:text-amber-400" /> Tickets
                     </span>
-                    <span className="text-xl font-black text-amber-400 mt-1">
+                    <span className="text-xl font-black text-amber-600 dark:text-amber-400 mt-1">
                       {data.kpis.ticketsCount}
                     </span>
                     <span className="text-[10px] text-muted-foreground">
@@ -197,9 +197,9 @@ export function SupportAgentActivityModal({ agent, onClose }: Props) {
 
                   <div className="rounded-xl border border-border bg-secondary/20 p-3 flex flex-col">
                     <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-                      <CheckCircle2 size={11} className="text-emerald-400" /> Résolus
+                      <CheckCircle2 size={11} className="text-emerald-600 dark:text-emerald-400" /> Résolus
                     </span>
-                    <span className="text-xl font-black text-emerald-400 mt-1">
+                    <span className="text-xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
                       {data.kpis.resolutionRate}%
                     </span>
                     <span className="text-[10px] text-muted-foreground">
@@ -209,9 +209,9 @@ export function SupportAgentActivityModal({ agent, onClose }: Props) {
 
                   <div className="rounded-xl border border-border bg-secondary/20 p-3 flex flex-col">
                     <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-                      <FileText size={11} className="text-purple-400" /> CRM
+                      <FileText size={11} className="text-purple-600 dark:text-purple-400" /> CRM
                     </span>
-                    <span className="text-xl font-black text-purple-400 mt-1">
+                    <span className="text-xl font-black text-purple-600 dark:text-purple-400 mt-1">
                       {data.kpis.crmActivitiesCount}
                     </span>
                     <span className="text-[10px] text-muted-foreground">notes & actions CRM</span>

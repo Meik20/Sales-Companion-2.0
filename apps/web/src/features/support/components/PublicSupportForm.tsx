@@ -220,9 +220,9 @@ export function PublicSupportForm() {
 
           {/* Context banner for corporate domain */}
           {requestType === 'corporate_domain' && (
-            <div className="mt-6 rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-xs leading-relaxed text-amber-200/90 sm:text-[13px]">
-              <div className="flex items-center gap-2 font-semibold text-amber-400">
-                <ShieldCheck size={16} />
+            <div className="mt-6 rounded-xl border border-amber-300 dark:border-amber-500/20 bg-amber-50 dark:bg-amber-500/5 p-4 text-xs leading-relaxed text-amber-900 dark:text-amber-200/90 sm:text-[13px]">
+              <div className="flex items-center gap-2 font-bold text-amber-900 dark:text-amber-400">
+                <ShieldCheck size={16} className="text-amber-700 dark:text-amber-400" />
                 <span>
                   {t('support.corporateDomainBannerTitle') ||
                     "Création de compte Manager sans domaine d'entreprise personnalisé"}

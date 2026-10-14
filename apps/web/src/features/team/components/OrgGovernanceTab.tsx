@@ -409,17 +409,17 @@ export function OrgGovernanceTab() {
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-500/30 bg-violet-500/10 px-3 py-1 text-[12px] font-bold text-violet-400">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-300 dark:border-violet-500/30 bg-violet-100 dark:bg-violet-500/15 px-3 py-1 text-[12px] font-bold text-violet-800 dark:text-violet-300 shadow-xs">
                 ★ Senior Manager
               </span>
               {orgData?.isVerified || Boolean(user?.niu) ? (
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-green-500/30 bg-green-500/10 px-3 py-1 text-[12px] font-bold text-green-400">
-                  <ShieldCheck size={14} className="text-green-400" />
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300 dark:border-emerald-500/30 bg-emerald-100 dark:bg-emerald-500/15 px-3 py-1 text-[12px] font-bold text-emerald-800 dark:text-emerald-300 shadow-xs">
+                  <ShieldCheck size={14} className="text-emerald-700 dark:text-emerald-400" />
                   Organisation vérifiée DGI
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-[12px] font-semibold text-amber-400">
-                  <ShieldAlert size={14} className="text-amber-400" />
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-300 dark:border-amber-500/30 bg-amber-100 dark:bg-amber-500/15 px-3 py-1 text-[12px] font-bold text-amber-900 dark:text-amber-300 shadow-xs">
+                  <ShieldAlert size={14} className="text-amber-700 dark:text-amber-400" />
                   Organisation standard
                 </span>
               )}
@@ -523,7 +523,7 @@ export function OrgGovernanceTab() {
                       <Users2 size={16} className="text-primary shrink-0" />
                       <span>Team Manager</span>
                     </span>
-                    <span className="text-[11px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-md">
+                    <span className="text-[11px] font-bold text-primary bg-primary/10 border border-primary/25 px-2 py-0.5 rounded-md">
                       Segment : {orgData?.segment || user?.segment || 'Principal'}
                     </span>
                   </div>
@@ -535,9 +535,9 @@ export function OrgGovernanceTab() {
                   type="button"
                   onClick={() => void generateAndCopyTmInvite()}
                   disabled={generatingInvite === 'tm'}
-                  className="mt-3 inline-flex items-center justify-center gap-2 rounded-lg border border-primary/40 bg-primary/15 px-3 py-2 text-[12.5px] font-semibold text-primary transition-colors hover:bg-primary/25 cursor-pointer disabled:opacity-50"
+                  className="mt-3 inline-flex items-center justify-center gap-2 rounded-lg border border-primary/40 bg-primary/10 dark:bg-primary/20 px-3 py-2 text-[12.5px] font-bold text-primary transition-colors hover:bg-primary/20 dark:hover:bg-primary/30 cursor-pointer disabled:opacity-50 shadow-xs"
                 >
-                  {copiedTmInvite ? <Check size={14} className="text-green-400" /> : <Link2 size={14} className="shrink-0" />}
+                  {copiedTmInvite ? <Check size={14} className="text-emerald-600 dark:text-emerald-400" /> : <Link2 size={14} className="shrink-0" />}
                   {copiedTmInvite ? 'Lien copié !' : generatingInvite === 'tm' ? 'Génération…' : "Copier le lien Team Manager"}
                 </button>
               </div>
@@ -547,10 +547,10 @@ export function OrgGovernanceTab() {
                 <div>
                   <div className="flex items-center justify-between gap-2">
                     <span className="font-bold text-[13.5px] text-foreground flex items-center gap-2">
-                      <Crown size={16} className="text-violet-400 shrink-0" />
+                      <Crown size={16} className="text-violet-600 dark:text-violet-400 shrink-0" />
                       <span>Senior Manager</span>
                     </span>
-                    <span className="text-[11px] font-semibold text-violet-400 bg-violet-500/10 px-2 py-0.5 rounded-md">
+                    <span className="text-[11px] font-bold text-violet-800 dark:text-violet-300 bg-violet-100 dark:bg-violet-500/20 border border-violet-300 dark:border-violet-500/30 px-2 py-0.5 rounded-md">
                       Nouveau Segment Libre
                     </span>
                   </div>
@@ -562,9 +562,9 @@ export function OrgGovernanceTab() {
                   type="button"
                   onClick={() => void generateAndCopySmInvite()}
                   disabled={generatingInvite === 'sm'}
-                  className="mt-3 inline-flex items-center justify-center gap-2 rounded-lg border border-violet-500/40 bg-violet-500/15 px-3 py-2 text-[12.5px] font-semibold text-violet-300 transition-colors hover:bg-violet-500/25 cursor-pointer disabled:opacity-50"
+                  className="mt-3 inline-flex items-center justify-center gap-2 rounded-lg border border-violet-400 dark:border-violet-500/50 bg-violet-100 dark:bg-violet-500/20 px-3 py-2 text-[12.5px] font-bold text-violet-800 dark:text-violet-200 transition-colors hover:bg-violet-200 dark:hover:bg-violet-500/30 cursor-pointer disabled:opacity-50 shadow-xs"
                 >
-                  {copiedSmInvite ? <Check size={14} className="text-green-400" /> : <Link2 size={14} className="shrink-0" />}
+                  {copiedSmInvite ? <Check size={14} className="text-emerald-600 dark:text-emerald-400" /> : <Link2 size={14} className="shrink-0" />}
                   {copiedSmInvite ? 'Lien copié !' : generatingInvite === 'sm' ? 'Génération…' : "Copier le lien Senior Manager"}
                 </button>
               </div>
@@ -599,8 +599,8 @@ export function OrgGovernanceTab() {
                   Enregistrer
                 </Button>
               </div>
-              {niuError && <div className="text-[12px] text-red-400">{niuError}</div>}
-              {niuSuccess && <div className="text-[12px] text-green-400">{niuSuccess}</div>}
+              {niuError && <div className="text-[12px] text-red-600 dark:text-red-400 font-semibold">{niuError}</div>}
+              {niuSuccess && <div className="text-[12px] text-emerald-700 dark:text-emerald-400 font-bold">{niuSuccess}</div>}
             </form>
           </div>
         </div>
@@ -803,10 +803,10 @@ export function OrgGovernanceTab() {
                               <span
                                 className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-bold ${
                                   p.status === 'conclue'
-                                    ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                                    ? 'bg-emerald-100 dark:bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/30'
                                     : p.status === 'negociation'
-                                      ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
-                                      : 'bg-blue-500/15 text-blue-400 border border-blue-500/30'
+                                      ? 'bg-amber-100 dark:bg-amber-500/15 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-500/30'
+                                      : 'bg-blue-100 dark:bg-blue-500/15 text-blue-800 dark:text-blue-300 border border-blue-300 dark:border-blue-500/30'
                                 }`}
                               >
                                 {p.status === 'conclue'
@@ -884,7 +884,7 @@ export function OrgGovernanceTab() {
                 </div>
 
                 {migrationResult && (
-                  <div className="rounded-lg border border-green-500/30 bg-green-500/10 p-3 text-[13px] text-green-400 font-medium">
+                  <div className="rounded-lg border border-emerald-300 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 p-3 text-[13px] text-emerald-800 dark:text-emerald-300 font-semibold">
                     {migrationResult}
                   </div>
                 )}

@@ -457,10 +457,10 @@ export function IndependentImportPanel() {
 
       {/* ── Résultat ── */}
       {result && (
-        <div className="flex items-center gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/8 px-4 py-3 mt-2">
-          <CheckCircle2 size={20} className="text-emerald-400 shrink-0" />
+        <div className="flex items-center gap-3 rounded-xl border border-emerald-300 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/8 px-4 py-3 mt-2">
+          <CheckCircle2 size={20} className="text-emerald-700 dark:text-emerald-400 shrink-0" />
           <div>
-            <p className="text-sm font-bold text-emerald-400">
+            <p className="text-sm font-bold text-emerald-800 dark:text-emerald-400">
               {result.count} prospect{result.count > 1 ? 's' : ''} importé
               {result.count > 1 ? 's' : ''} avec succès
             </p>
