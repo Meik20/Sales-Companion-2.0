@@ -44,6 +44,7 @@ export function usePipelineItems() {
       ownedSnap.docs.forEach((docSnap) => {
         seen.add(docSnap.id)
         const data = docSnap.data()
+        if (data.archived === true) return
         items.push({
           id: docSnap.id,
           ...data,
@@ -67,6 +68,7 @@ export function usePipelineItems() {
           if (!seen.has(docSnap.id)) {
             seen.add(docSnap.id)
             const data = docSnap.data()
+            if (data.archived === true) return
             items.push({
               id: docSnap.id,
               ...data,

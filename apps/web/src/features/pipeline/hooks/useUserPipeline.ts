@@ -26,6 +26,7 @@ export const useUserPipeline = () => {
       ownedSnap.docs.forEach((docSnap) => {
         seen.add(docSnap.id)
         const data = docSnap.data()
+        if (data.archived === true) return
         items.push({
           id: docSnap.id,
           ...data,
@@ -49,6 +50,7 @@ export const useUserPipeline = () => {
           if (!seen.has(docSnap.id)) {
             seen.add(docSnap.id)
             const data = docSnap.data()
+            if (data.archived === true) return
             items.push({
               id: docSnap.id,
               ...data,

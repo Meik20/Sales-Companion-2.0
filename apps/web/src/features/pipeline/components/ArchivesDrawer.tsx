@@ -22,12 +22,23 @@ type ArchivedItem = {
   createdAt?: any
 }
 
+function parseTimestampMs(value: any): number | null {
+  if (!value) return null
+  if (value instanceof Date) return value.getTime()
+  if (typeof value === 'number') return value
+  if (value._seconds != null) return value._seconds * 1000
+  if (value.seconds != null) return value.seconds * 1000
+  if (typeof value === 'string') {
+    const parsed = Date.parse(value)
+    return isNaN(parsed) ? null : parsed
+  }
+  return null
+}
+
 function formatDate(value: any): string {
-  if (!value) return '—'
+  const ts = parseTimestampMs(value)
+  if (!ts) return '—'
   try {
-    // Firestore Timestamp
-    const ts = value._seconds ? value._seconds * 1000 : typeof value === 'string' ? Date.parse(value) : null
-    if (!ts) return '—'
     return new Date(ts).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
   } catch {
     return '—'
@@ -69,10 +80,8 @@ export function ArchivesDrawer() {
 
     if (filterMonth) {
       list = list.filter((item) => {
-        if (!item.archivedAt) return false
-        const ts = item.archivedAt._seconds
-          ? item.archivedAt._seconds * 1000
-          : Date.parse(item.archivedAt)
+        const ts = parseTimestampMs(item.archivedAt)
+        if (!ts) return false
         const d = new Date(ts)
         const ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
         return ym === filterMonth
@@ -96,10 +105,8 @@ export function ArchivesDrawer() {
   const availableMonths = useMemo(() => {
     const months = new Map<string, string>()
     for (const item of items as ArchivedItem[]) {
-      if (!item.archivedAt) continue
-      const ts = item.archivedAt._seconds
-        ? item.archivedAt._seconds * 1000
-        : Date.parse(item.archivedAt)
+      const ts = parseTimestampMs(item.archivedAt)
+      if (!ts) continue
       const d = new Date(ts)
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
       const label = d.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })

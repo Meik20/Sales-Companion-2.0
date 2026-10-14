@@ -82,6 +82,7 @@ type Props = {
   managerUid?: string
   showTargets?: boolean
   enableArchive?: boolean  // N'activer que pour le pipeline Team Manager
+  isOrgView?: boolean      // Vue Senior Manager : regrouper par TM au lieu de par commercial
 }
 
 /** Résout le nom d'affichage d'un membre pour un item du pipeline */
@@ -1325,7 +1326,7 @@ function ExportPanel({ members }: { members?: Member[] }) {
   )
 }
 
-export function ManagerPipelineList({ items, members, managerUid, showTargets = true, enableArchive = false }: Props) {
+export function ManagerPipelineList({ items, members, managerUid, showTargets = true, enableArchive = false, isOrgView = false }: Props) {
   const { t } = useTranslation()
   const deleteMutation = useDeletePipelineItem()
   const { archiveLeads, loading: archiving } = useArchiveLeads()
@@ -1418,6 +1419,48 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
   const { memberSummaries, unassignedCount, activeMemberSummary } = useMemo(() => {
     const map = new Map<string, MemberSummary>()
 
+    if (isOrgView) {
+      // Vue SM : regrouper par managerUid (Team Manager)
+      for (const item of items) {
+        const tmUid = (item as any).managerUid as string | undefined
+        if (!tmUid) continue
+        let summary = map.get(tmUid)
+        if (!summary) {
+          summary = {
+            uid: tmUid,
+            name: (item as any).managerName || tmUid,
+            totalCount: 0,
+            prospectionCount: 0,
+            negociationCount: 0,
+            conclueCount: 0,
+            overdueCount: 0,
+            totalAmount: 0,
+            concludedAmount: 0
+          }
+          map.set(tmUid, summary)
+        }
+        summary.totalCount++
+        const st = normalize(item.status)
+        if (st === 'prospection') summary.prospectionCount++
+        else if (st === 'negociation') summary.negociationCount++
+        else if (st === 'conclue') {
+          summary.conclueCount++
+          if (item.amount) summary.concludedAmount += item.amount
+        }
+        if (item.amount) summary.totalAmount += item.amount
+        if (item.nextFollowUp && item.nextFollowUp < todayStr && st !== 'conclue') {
+          summary.overdueCount++
+        }
+      }
+      const list = Array.from(map.values()).sort((a, b) => b.totalCount - a.totalCount)
+      const active =
+        selectedMemberId !== 'all' && selectedMemberId !== 'unassigned'
+          ? map.get(selectedMemberId) ?? null
+          : null
+      return { memberSummaries: list, unassignedCount: 0, activeMemberSummary: active }
+    }
+
+    // Vue TM : regrouper par assignedTo (commercial)
     // Initialiser avec les membres commerciaux connus de l'équipe (exclure support_agent)
     for (const m of members || []) {
       if ((m as any).role === 'support_agent') continue
@@ -1486,16 +1529,20 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
         : null
 
     return { memberSummaries: list, unassignedCount: unassigned, activeMemberSummary: active }
-  }, [items, members, managerUid, todayStr, selectedMemberId])
+  }, [items, members, managerUid, todayStr, selectedMemberId, isOrgView])
 
-  // Fiches filtrées selon le membre sélectionné
+  // Fiches filtrées selon le TM (isOrgView) ou le commercial (TM view) sélectionné
   const displayedItems = useMemo(() => {
     if (selectedMemberId === 'all') return items
     if (selectedMemberId === 'unassigned') {
       return items.filter((i) => !i.assignedTo || i.assignedTo === managerUid)
     }
+    if (isOrgView) {
+      // En vue SM : filtrer par managerUid (Team Manager)
+      return items.filter((i) => (i as any).managerUid === selectedMemberId)
+    }
     return items.filter((i) => i.assignedTo === selectedMemberId)
-  }, [items, selectedMemberId, managerUid])
+  }, [items, selectedMemberId, managerUid, isOrgView])
 
   const grouped: Record<string, PipelineItem[]> = useMemo(() => ({
     prospection: displayedItems.filter((i) => normalize(i.status) === 'prospection'),
@@ -1618,10 +1665,14 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                 color: 'var(--foreground, #f1f5f9)'
               }}
             >
-              Pipeline par commercial
+              {isOrgView ? 'Pipeline par Team Manager' : 'Pipeline par commercial'}
             </span>
             <span style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)' }}>
-              ({memberSummaries.length} membre{memberSummaries.length > 1 ? 's' : ''})
+              ({memberSummaries.length}{' '}
+              {isOrgView
+                ? `Team Manager${memberSummaries.length > 1 ? 's' : ''}`
+                : `membre${memberSummaries.length > 1 ? 's' : ''}`
+              })
             </span>
           </div>
 
@@ -1642,7 +1693,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
               }}
             >
               <X size={11} />
-              Voir toute l'équipe
+              {isOrgView ? 'Voir tous les TMs' : "Voir toute l'\u00e9quipe"}
             </button>
           )}
         </div>
@@ -1656,7 +1707,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
             flexWrap: 'wrap'
           }}
         >
-          {/* Pill : Toute l'équipe */}
+          {/* Pill : Toute l'équipe / Tous les TMs */}
           <button
             type="button"
             onClick={() => setSelectedMemberId('all')}
@@ -1679,7 +1730,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
               flexShrink: 0
             }}
           >
-            <span>Toute l&apos;équipe</span>
+            <span>{isOrgView ? 'Tous les Team Managers' : "Toute l'équipe"}</span>
             <span
               style={{
                 fontSize: 10.5,
@@ -1740,7 +1791,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
             </button>
           )}
 
-          {/* Dropdown : Filtrer par commercial */}
+          {/* Dropdown : Filtrer par TM (SM) ou par commercial (TM) */}
           {memberSummaries.length > 0 && (
             <div style={{ position: 'relative', flexShrink: 0 }}>
               <select
@@ -1781,7 +1832,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
               >
                 {(selectedMemberId === 'all' || selectedMemberId === 'unassigned') && (
                   <option value="" disabled>
-                    👤 Filtrer par commercial…
+                    {isOrgView ? '\uD83D\uDC65 Filtrer par Team Manager\u2026' : '\uD83D\uDC64 Filtrer par commercial\u2026'}
                   </option>
                 )}
                 {memberSummaries.map((m) => {
@@ -1877,7 +1928,9 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                     marginTop: 2
                   }}
                 >
-                  Portefeuille opérationnel assigné à ce commercial
+                  {isOrgView
+                    ? 'Portefeuille supervisé par ce Team Manager'
+                    : 'Portefeuille opérationnel assigné à ce commercial'}
                 </div>
               </div>
             </div>
@@ -1895,7 +1948,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                 transition: 'all 150ms ease'
               }}
             >
-              Afficher toute l'équipe
+              {isOrgView ? 'Afficher tous les Team Managers' : "Afficher toute l'équipe"}
             </button>
           </div>
 
@@ -2281,7 +2334,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                           marginTop: 2
                         }}
                       >
-                        Définir dans le panneau ci-dessus
+                        {isOrgView ? 'Supervisé au niveau organisation' : 'Définir dans le panneau ci-dessus'}
                       </div>
                     </>
                   )}

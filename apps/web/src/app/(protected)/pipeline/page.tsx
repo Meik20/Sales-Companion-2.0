@@ -517,6 +517,7 @@ export default function PipelinePage() {
                 members={members}
                 managerUid={user?.uid}
                 showTargets={false}
+                isOrgView
               />
             ) : null}
           </DataCard>

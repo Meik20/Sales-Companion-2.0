@@ -75,15 +75,19 @@ export function usePipelineStats() {
         const q = query(collection(firestore, 'pipeline'), where('managerUid', '==', user.uid))
         const snap = await getDocsWithOfflineFallback(q)
         snap.docs.forEach((d) => {
+          const data = d.data()
+          if (data.archived === true) return
           seen.add(d.id)
-          docs.push({ status: (d.data().status || '') as string })
+          docs.push({ status: (data.status || '') as string })
         })
       } else {
         const ownedQ = query(collection(firestore, 'pipeline'), where('userId', '==', user.uid))
         const ownedSnap = await getDocsWithOfflineFallback(ownedQ)
         ownedSnap.docs.forEach((d) => {
+          const data = d.data()
+          if (data.archived === true) return
           seen.add(d.id)
-          docs.push({ status: (d.data().status || '') as string })
+          docs.push({ status: (data.status || '') as string })
         })
 
         try {
@@ -94,8 +98,10 @@ export function usePipelineStats() {
           const assignedSnap = await getDocsWithOfflineFallback(assignedQ)
           assignedSnap.docs.forEach((d) => {
             if (!seen.has(d.id)) {
+              const data = d.data()
+              if (data.archived === true) return
               seen.add(d.id)
-              docs.push({ status: (d.data().status || '') as string })
+              docs.push({ status: (data.status || '') as string })
             }
           })
         } catch {

@@ -75,20 +75,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // ── Résolution des membres de l'équipe du TM ──────────────────────────
+    const membersSnap = await adminDb
+      .collection('users')
+      .where('managerUid', '==', callerUid)
+      .get()
+    const memberUids = new Set(membersSnap.docs.map((d) => d.id))
+
     // ── ACTION : LIST ─────────────────────────────────────────────────────
     if (action === 'list') {
       // Leads archivés dont ce TM est responsable (managerUid) OU créateur (userId)
+      // Note : filtrage en mémoire pour éviter le besoin de composite index Firestore (managerUid + archived)
       const [teamSnap, ownSnap] = await Promise.all([
-        adminDb
-          .collection('pipeline')
-          .where('managerUid', '==', callerUid)
-          .where('archived', '==', true)
-          .get(),
-        adminDb
-          .collection('pipeline')
-          .where('userId', '==', callerUid)
-          .where('archived', '==', true)
-          .get()
+        adminDb.collection('pipeline').where('managerUid', '==', callerUid).get(),
+        adminDb.collection('pipeline').where('userId', '==', callerUid).get()
       ])
 
       const seen = new Set<string>()
@@ -97,8 +97,35 @@ export async function POST(request: NextRequest) {
       for (const snap of [teamSnap, ownSnap]) {
         for (const doc of snap.docs) {
           if (!seen.has(doc.id)) {
-            seen.add(doc.id)
-            results.push({ id: doc.id, ...doc.data() })
+            const d = doc.data()
+            if (d.archived === true) {
+              seen.add(doc.id)
+              results.push({ id: doc.id, ...d })
+            }
+          }
+        }
+      }
+
+      // Récupérer également les fiches assignées aux membres de ce TM dont managerUid n'était pas encore synchronisé
+      if (memberUids.size > 0) {
+        const memberUidChunks: string[][] = []
+        const allMemberUids = Array.from(memberUids)
+        for (let i = 0; i < allMemberUids.length; i += 10) {
+          memberUidChunks.push(allMemberUids.slice(i, i + 10))
+        }
+        for (const chunk of memberUidChunks) {
+          const chunkSnap = await adminDb
+            .collection('pipeline')
+            .where('assignedTo', 'in', chunk)
+            .get()
+          for (const doc of chunkSnap.docs) {
+            if (!seen.has(doc.id)) {
+              const d = doc.data()
+              if (d.archived === true) {
+                seen.add(doc.id)
+                results.push({ id: doc.id, ...d })
+              }
+            }
           }
         }
       }
@@ -151,8 +178,13 @@ export async function POST(request: NextRequest) {
 
         const data = docSnap.data()!
 
-        // Vérification tenant : le lead doit appartenir à ce TM
-        const belongsToManager = data.managerUid === callerUid || data.userId === callerUid
+        // Vérification tenant : le lead doit appartenir à ce TM ou à un de ses commerciaux
+        const belongsToManager =
+          data.managerUid === callerUid ||
+          data.userId === callerUid ||
+          data.assignedTo === callerUid ||
+          (data.assignedTo && memberUids.has(data.assignedTo)) ||
+          (data.userId && memberUids.has(data.userId))
         if (!belongsToManager) {
           skipped.push(id)
           skippedReasons[id] = 'access_denied'
@@ -177,7 +209,8 @@ export async function POST(request: NextRequest) {
           batch.update(docRef, {
             archived: true,
             archivedAt: new Date(),
-            archivedBy: callerUid
+            archivedBy: callerUid,
+            managerUid: data.managerUid || callerUid
           })
           successes.push(id)
         } else {

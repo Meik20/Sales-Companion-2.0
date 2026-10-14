@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { auth } from '@/services/firebase/client'
 import { useToast } from '@/hooks/useToast'
@@ -29,8 +29,16 @@ export function useArchiveLeads() {
       const json = await res.json()
       if (!res.ok) throw new Error(json.message || 'Erreur lors de l\'archivage')
 
-      await queryClient.invalidateQueries({ queryKey: ['manager-pipeline', user.uid] })
-      await queryClient.invalidateQueries({ queryKey: ['archived-leads', user.uid] })
+      // Invalider immédiatement TOUTES les vues de pipeline pour que le lead disparaisse partout
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['pipeline'] }),
+        queryClient.invalidateQueries({ queryKey: ['manager-pipeline'] }),
+        queryClient.invalidateQueries({ queryKey: ['org-pipeline'] }),
+        queryClient.invalidateQueries({ queryKey: ['pipeline-stats'] }),
+        queryClient.invalidateQueries({ queryKey: ['archived-leads'] }),
+        queryClient.invalidateQueries({ queryKey: ['reporting'] }),
+        queryClient.invalidateQueries({ queryKey: ['org-report'] })
+      ])
 
       pushToast({
         type: 'success',
@@ -76,8 +84,16 @@ export function useRestoreLeads() {
       const json = await res.json()
       if (!res.ok) throw new Error(json.message || 'Erreur lors de la restauration')
 
-      await queryClient.invalidateQueries({ queryKey: ['manager-pipeline', user.uid] })
-      await queryClient.invalidateQueries({ queryKey: ['archived-leads', user.uid] })
+      // Invalider immédiatement TOUTES les vues de pipeline pour réintégrer le lead partout
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['pipeline'] }),
+        queryClient.invalidateQueries({ queryKey: ['manager-pipeline'] }),
+        queryClient.invalidateQueries({ queryKey: ['org-pipeline'] }),
+        queryClient.invalidateQueries({ queryKey: ['pipeline-stats'] }),
+        queryClient.invalidateQueries({ queryKey: ['archived-leads'] }),
+        queryClient.invalidateQueries({ queryKey: ['reporting'] }),
+        queryClient.invalidateQueries({ queryKey: ['org-report'] })
+      ])
 
       pushToast({
         type: 'success',
@@ -99,17 +115,15 @@ export function useRestoreLeads() {
   return { restoreLeads, loading }
 }
 
-/** Récupérer tous les leads archivés du Team Manager. */
+/** Récupérer tous les leads archivés du Team Manager avec synchronisation réactive React Query. */
 export function useArchivedLeads() {
   const { user } = useCurrentUser()
-  const { pushToast } = useToast()
-  const [loading, setLoading] = useState(false)
-  const [items, setItems] = useState<any[]>([])
+  const queryClient = useQueryClient()
 
-  const fetchArchived = async () => {
-    if (!user?.uid) return
-    setLoading(true)
-    try {
+  const query = useQuery({
+    queryKey: ['archived-leads', user?.uid],
+    queryFn: async () => {
+      if (!user?.uid) return []
       const token = await auth.currentUser?.getIdToken()
       const res = await fetch('/api/pipeline/archive', {
         method: 'POST',
@@ -121,20 +135,21 @@ export function useArchivedLeads() {
       })
       const json = await res.json()
       if (!res.ok) throw new Error(json.message || 'Erreur de chargement')
-      setItems(json.items || [])
-    } catch (err) {
-      pushToast({
-        type: 'error',
-        title: 'Impossible de charger les archives',
-        description: err instanceof Error ? err.message : 'Erreur inconnue'
-      })
-    } finally {
-      setLoading(false)
+      return (json.items || []) as any[]
+    },
+    enabled: !!user?.uid,
+    staleTime: 30 * 1000
+  })
+
+  return {
+    items: query.data ?? [],
+    loading: query.isLoading || query.isFetching,
+    fetchArchived: async () => {
+      await query.refetch()
+    },
+    refresh: () => {
+      void queryClient.invalidateQueries({ queryKey: ['archived-leads'] })
     }
   }
-
-  const refresh = () => void fetchArchived()
-
-  return { items, loading, fetchArchived, refresh }
 }
 
