@@ -3,14 +3,35 @@ import { Timestamp } from 'firebase-admin/firestore'
 
 /**
  * Synchronise un prospect conclu du pipeline vers la collection "clients" (Base de données clients).
- * Enregistre les métadonnées de l'entreprise, du deal et surtout les informations relatives
- * au membre de l'équipe (commercial) ayant conclu la vente.
+ *
+ * ARCHITECTURE :
+ * - Cette fonction relit TOUJOURS les données fraîches depuis Firestore avant de construire
+ *   le payload client. Cela garantit que le montant (amount), le statut et tous les champs
+ *   sont à jour au moment de la synchro, quelle que soit la séquence d'écriture côté client.
+ * - Les données passées en `pipelineDataHint` servent de fallback si le document pipeline
+ *   est introuvable (ex: déjà archivé ou en cours de suppression).
  */
 export async function syncPipelineItemToClient(
   adminDb: Firestore,
   pipelineId: string,
-  pipelineData: Record<string, any>
+  pipelineDataHint: Record<string, any> = {}
 ) {
+  // ── Relecture fraîche depuis Firestore (source de vérité absolue) ──────────
+  let pipelineData: Record<string, any> = pipelineDataHint
+
+  try {
+    const freshDoc = await adminDb.collection('pipeline').doc(pipelineId).get()
+    if (freshDoc.exists) {
+      // Les données fraîches ont priorité sur le hint passé en paramètre
+      pipelineData = { ...pipelineDataHint, ...freshDoc.data() }
+    }
+    // Si le document n'existe plus (déjà archivé), on utilise pipelineDataHint
+  } catch (e) {
+    console.warn('[syncPipelineItemToClient] Impossible de relire la fiche pipeline fraîche:', e)
+    // On continue avec le hint
+  }
+
+  // ── Validation du statut ───────────────────────────────────────────────────
   const status = String(pipelineData.status || '').toLowerCase().trim()
   if (status !== 'conclue' && status !== 'conclusion') {
     return null
@@ -20,7 +41,8 @@ export async function syncPipelineItemToClient(
   const clientRef = adminDb.collection('clients').doc(clientId)
   const existingSnap = await clientRef.get()
 
-  // Déterminer le commercial vendeur (assignedTo en priorité, sinon le créateur de la fiche)
+  // ── Résolution du commercial vendeur ──────────────────────────────────────
+  // assignedTo en priorité (commercial terrain), sinon le créateur de la fiche
   const assignedUid = pipelineData.assignedTo || pipelineData.userId || null
   let assignedName = pipelineData.memberName || pipelineData.assignedName || null
   let assignedEmail = pipelineData.memberEmail || pipelineData.assignedEmail || null
@@ -40,11 +62,25 @@ export async function syncPipelineItemToClient(
     }
   }
 
+  // ── Date de conclusion ─────────────────────────────────────────────────────
   const now = Timestamp.now()
   const concludedAt = pipelineData.concludedAt
-    ? (pipelineData.concludedAt.toDate ? pipelineData.concludedAt : Timestamp.fromDate(new Date(pipelineData.concludedAt)))
+    ? (pipelineData.concludedAt.toDate
+        ? pipelineData.concludedAt
+        : Timestamp.fromDate(new Date(pipelineData.concludedAt)))
     : now
 
+  // ── Montant du deal ────────────────────────────────────────────────────────
+  // Priorité : amount > estimatedDeal > null
+  // On s'assure de ne JAMAIS écrire null si l'une des deux sources est valide
+  let dealAmount: number | null = null
+  if (pipelineData.amount != null && pipelineData.amount !== '') {
+    dealAmount = Number(pipelineData.amount)
+  } else if (pipelineData.estimatedDeal != null && pipelineData.estimatedDeal !== '') {
+    dealAmount = Number(pipelineData.estimatedDeal)
+  }
+
+  // ── Construction du payload client ────────────────────────────────────────
   const clientPayload: Record<string, any> = {
     companyName: pipelineData.companyName || pipelineData.name || 'Sans nom',
     contactName: pipelineData.contactName || pipelineData.contact || '',
@@ -55,7 +91,7 @@ export async function syncPipelineItemToClient(
     address: pipelineData.address || pipelineData.companyQuarter || pipelineData.quarter || '',
     region: pipelineData.companyRegion || pipelineData.region || '',
     country: pipelineData.country || 'Cameroun',
-    amount: pipelineData.amount != null ? Number(pipelineData.amount) : (pipelineData.estimatedDeal != null ? Number(pipelineData.estimatedDeal) : null),
+    amount: dealAmount,
     currency: pipelineData.currency || 'XAF',
     notes: pipelineData.notes || pipelineData.note || '',
     status: 'active',

@@ -436,7 +436,7 @@ export function OverdueFollowUpsDrawer({
                       margin: 0,
                       fontSize: 17,
                       fontWeight: 800,
-                      color: 'var(--foreground, #f1f5f9)',
+                      color: 'var(--foreground, #0f172a)',
                       fontFamily: "'Syne', sans-serif"
                     }}
                   >
@@ -448,9 +448,9 @@ export function OverdueFollowUpsDrawer({
                       fontWeight: 700,
                       padding: '2px 8px',
                       borderRadius: 20,
-                      background: 'rgba(239,68,68,0.2)',
-                      color: '#ef4444',
-                      border: '1px solid rgba(239,68,68,0.35)'
+                      background: 'rgba(239,68,68,0.12)',
+                      color: '#b91c1c',
+                      border: '1px solid rgba(239,68,68,0.28)'
                     }}
                   >
                     {stats.overdueCount} en retard
@@ -459,19 +459,19 @@ export function OverdueFollowUpsDrawer({
                     <span
                       style={{
                         fontSize: 10.5,
-                        fontWeight: 600,
-                        padding: '2px 7px',
+                        fontWeight: 700,
+                        padding: '2px 8px',
                         borderRadius: 20,
-                        background: 'rgba(99,102,241,0.15)',
-                        color: '#818cf8',
-                        border: '1px solid rgba(99,102,241,0.3)'
+                        background: 'rgba(99,102,241,0.12)',
+                        color: '#4338ca',
+                        border: '1px solid rgba(99,102,241,0.28)'
                       }}
                     >
                       Vue Organisation
                     </span>
                   )}
                 </div>
-                <p style={{ margin: '3px 0 0 0', fontSize: 12, color: 'var(--muted-foreground, #94a3b8)' }}>
+                <p style={{ margin: '3px 0 0 0', fontSize: 12, color: 'var(--muted-foreground, #64748b)' }}>
                   Suivi des opportunités nécessitant une action immédiate du commercial ou du manager.
                 </p>
               </div>
@@ -519,32 +519,34 @@ export function OverdueFollowUpsDrawer({
           >
             <div
               style={{
-                background: 'rgba(0,0,0,0.22)',
-                border: '1px solid rgba(255,255,255,0.06)',
-                borderRadius: 8,
-                padding: '8px 10px'
+                background: 'var(--card, #ffffff)',
+                border: '1px solid var(--border, rgba(0,0,0,0.08))',
+                borderRadius: 10,
+                padding: '9px 12px',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
               }}
             >
-              <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--muted-foreground, #94a3b8)', textTransform: 'uppercase' }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--muted-foreground, #64748b)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 Valeur en risque
               </div>
-              <div style={{ fontSize: 15, fontWeight: 800, color: '#f59e0b', marginTop: 2 }}>
+              <div style={{ fontSize: 15, fontWeight: 800, color: '#b45309', marginTop: 2 }}>
                 {new Intl.NumberFormat('fr-FR').format(stats.totalAmount)} {currency}
               </div>
             </div>
 
             <div
               style={{
-                background: 'rgba(0,0,0,0.22)',
-                border: '1px solid rgba(255,255,255,0.06)',
-                borderRadius: 8,
-                padding: '8px 10px'
+                background: 'var(--card, #ffffff)',
+                border: '1px solid var(--border, rgba(0,0,0,0.08))',
+                borderRadius: 10,
+                padding: '9px 12px',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
               }}
             >
-              <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--muted-foreground, #94a3b8)', textTransform: 'uppercase' }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--muted-foreground, #64748b)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 Journées affectées
               </div>
-              <div style={{ fontSize: 15, fontWeight: 800, color: '#38bdf8', marginTop: 2 }}>
+              <div style={{ fontSize: 15, fontWeight: 800, color: '#0369a1', marginTop: 2 }}>
                 {stats.distinctDates} {stats.distinctDates > 1 ? 'dates' : 'date'}
               </div>
             </div>
@@ -552,16 +554,16 @@ export function OverdueFollowUpsDrawer({
             {stats.unassignedTotal > 0 && (
               <div
                 style={{
-                  background: 'rgba(239,68,68,0.12)',
-                  border: '1px solid rgba(239,68,68,0.3)',
-                  borderRadius: 8,
-                  padding: '8px 10px'
+                  background: 'rgba(239,68,68,0.06)',
+                  border: '1px solid rgba(239,68,68,0.25)',
+                  borderRadius: 10,
+                  padding: '9px 12px'
                 }}
               >
-                <div style={{ fontSize: 10, fontWeight: 700, color: '#ef4444', textTransform: 'uppercase' }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: '#b91c1c', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                   Non assignés
                 </div>
-                <div style={{ fontSize: 15, fontWeight: 800, color: '#ef4444', marginTop: 2 }}>
+                <div style={{ fontSize: 15, fontWeight: 800, color: '#b91c1c', marginTop: 2 }}>
                   {stats.unassignedTotal} sans commercial
                 </div>
               </div>
@@ -595,9 +597,9 @@ export function OverdueFollowUpsDrawer({
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 6,
-                border: tab === 'overdue' ? '1px solid #ef4444' : '1px solid var(--border, rgba(255,255,255,0.08))',
-                background: tab === 'overdue' ? '#ef4444' : 'var(--secondary, rgba(255,255,255,0.04))',
-                color: tab === 'overdue' ? '#ffffff' : 'var(--foreground, #f1f5f9)',
+                border: tab === 'overdue' ? '1px solid #dc2626' : '1px solid var(--border, rgba(0,0,0,0.1))',
+                background: tab === 'overdue' ? '#dc2626' : 'var(--card, #ffffff)',
+                color: tab === 'overdue' ? '#ffffff' : 'var(--foreground, #0f172a)',
                 transition: 'all 150ms ease'
               }}
             >
@@ -608,8 +610,8 @@ export function OverdueFollowUpsDrawer({
                   fontWeight: 900,
                   padding: '1px 6px',
                   borderRadius: 10,
-                  background: tab === 'overdue' ? 'rgba(0,0,0,0.25)' : 'rgba(239,68,68,0.2)',
-                  color: tab === 'overdue' ? '#ffffff' : '#ef4444'
+                  background: tab === 'overdue' ? 'rgba(0,0,0,0.25)' : 'rgba(239,68,68,0.12)',
+                  color: tab === 'overdue' ? '#ffffff' : '#b91c1c'
                 }}
               >
                 {stats.overdueCount}
@@ -629,9 +631,9 @@ export function OverdueFollowUpsDrawer({
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: 6,
-                  border: tab === 'today' ? '1px solid #3b82f6' : '1px solid var(--border, rgba(255,255,255,0.08))',
-                  background: tab === 'today' ? '#3b82f6' : 'var(--secondary, rgba(255,255,255,0.04))',
-                  color: tab === 'today' ? '#ffffff' : 'var(--foreground, #f1f5f9)',
+                  border: tab === 'today' ? '1px solid #2563eb' : '1px solid var(--border, rgba(0,0,0,0.1))',
+                  background: tab === 'today' ? '#2563eb' : 'var(--card, #ffffff)',
+                  color: tab === 'today' ? '#ffffff' : 'var(--foreground, #0f172a)',
                   transition: 'all 150ms ease'
                 }}
               >
@@ -642,8 +644,8 @@ export function OverdueFollowUpsDrawer({
                     fontWeight: 900,
                     padding: '1px 6px',
                     borderRadius: 10,
-                    background: tab === 'today' ? 'rgba(0,0,0,0.25)' : 'rgba(59,130,246,0.2)',
-                    color: tab === 'today' ? '#ffffff' : '#60a5fa'
+                    background: tab === 'today' ? 'rgba(0,0,0,0.25)' : 'rgba(37,99,235,0.12)',
+                    color: tab === 'today' ? '#ffffff' : '#1d4ed8'
                   }}
                 >
                   {stats.todayCount}
@@ -663,9 +665,9 @@ export function OverdueFollowUpsDrawer({
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 6,
-                border: tab === 'all' ? '1px solid #6366f1' : '1px solid var(--border, rgba(255,255,255,0.08))',
-                background: tab === 'all' ? '#6366f1' : 'var(--secondary, rgba(255,255,255,0.04))',
-                color: tab === 'all' ? '#ffffff' : 'var(--foreground, #f1f5f9)',
+                border: tab === 'all' ? '1px solid #4f46e5' : '1px solid var(--border, rgba(0,0,0,0.1))',
+                background: tab === 'all' ? '#4f46e5' : 'var(--card, #ffffff)',
+                color: tab === 'all' ? '#ffffff' : 'var(--foreground, #0f172a)',
                 transition: 'all 150ms ease'
               }}
             >
@@ -676,8 +678,8 @@ export function OverdueFollowUpsDrawer({
                   fontWeight: 900,
                   padding: '1px 6px',
                   borderRadius: 10,
-                  background: tab === 'all' ? 'rgba(0,0,0,0.25)' : 'rgba(99,102,241,0.2)',
-                  color: tab === 'all' ? '#ffffff' : '#818cf8'
+                  background: tab === 'all' ? 'rgba(0,0,0,0.25)' : 'rgba(99,102,241,0.12)',
+                  color: tab === 'all' ? '#ffffff' : '#4338ca'
                 }}
               >
                 {stats.totalCount}
@@ -708,9 +710,9 @@ export function OverdueFollowUpsDrawer({
                   height: 36,
                   padding: '0 10px 0 32px',
                   borderRadius: 8,
-                  border: '1px solid var(--border, rgba(255,255,255,0.1))',
-                  background: 'var(--background, rgba(0,0,0,0.2))',
-                  color: 'var(--foreground, #f1f5f9)',
+                  border: '1px solid var(--border, rgba(0,0,0,0.12))',
+                  background: 'var(--background, #ffffff)',
+                  color: 'var(--foreground, #0f172a)',
                   fontSize: 12.5,
                   outline: 'none'
                 }}
@@ -744,9 +746,9 @@ export function OverdueFollowUpsDrawer({
                 height: 36,
                 padding: '0 10px',
                 borderRadius: 8,
-                border: '1px solid var(--border, rgba(255,255,255,0.1))',
-                background: 'var(--secondary, rgba(255,255,255,0.05))',
-                color: 'var(--foreground, #f1f5f9)',
+                border: '1px solid var(--border, rgba(0,0,0,0.12))',
+                background: 'var(--card, #ffffff)',
+                color: 'var(--foreground, #0f172a)',
                 fontSize: 12,
                 cursor: 'pointer',
                 outline: 'none',
@@ -773,9 +775,9 @@ export function OverdueFollowUpsDrawer({
                   height: 36,
                   padding: '0 10px',
                   borderRadius: 8,
-                  border: '1px solid var(--border, rgba(255,255,255,0.1))',
-                  background: 'var(--secondary, rgba(255,255,255,0.05))',
-                  color: 'var(--foreground, #f1f5f9)',
+                  border: '1px solid var(--border, rgba(0,0,0,0.12))',
+                  background: 'var(--card, #ffffff)',
+                  color: 'var(--foreground, #0f172a)',
                   fontSize: 12,
                   cursor: 'pointer',
                   outline: 'none',
@@ -864,17 +866,17 @@ export function OverdueFollowUpsDrawer({
                     style={{
                       padding: '10px 14px',
                       background: group.isToday
-                        ? 'linear-gradient(90deg, rgba(59,130,246,0.12), transparent)'
+                        ? 'rgba(59,130,246,0.06)'
                         : group.daysOverdue >= 3
-                          ? 'linear-gradient(90deg, rgba(239,68,68,0.14), transparent)'
-                          : 'linear-gradient(90deg, rgba(245,158,11,0.12), transparent)',
+                          ? 'rgba(239,68,68,0.06)'
+                          : 'rgba(245,158,11,0.07)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
                       cursor: 'pointer',
                       borderBottom: isCollapsed
                         ? 'none'
-                        : '1px solid var(--border, rgba(255,255,255,0.06))'
+                        : '1px solid var(--border, rgba(0,0,0,0.06))'
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
@@ -882,17 +884,17 @@ export function OverdueFollowUpsDrawer({
                         size={15}
                         style={{
                           color: group.isToday
-                            ? '#60a5fa'
+                            ? '#2563eb'
                             : group.daysOverdue >= 3
-                              ? '#ef4444'
-                              : '#f59e0b'
+                              ? '#dc2626'
+                              : '#d97706'
                         }}
                       />
                       <span
                         style={{
                           fontSize: 13,
                           fontWeight: 800,
-                          color: 'var(--foreground, #f1f5f9)',
+                          color: 'var(--foreground, #0f172a)',
                           textTransform: 'capitalize'
                         }}
                       >
@@ -907,9 +909,9 @@ export function OverdueFollowUpsDrawer({
                             fontWeight: 700,
                             padding: '2px 8px',
                             borderRadius: 12,
-                            background: 'rgba(59,130,246,0.2)',
-                            color: '#60a5fa',
-                            border: '1px solid rgba(59,130,246,0.35)'
+                            background: 'rgba(59,130,246,0.12)',
+                            color: '#1d4ed8',
+                            border: '1px solid rgba(59,130,246,0.28)'
                           }}
                         >
                           Aujourd'hui
@@ -923,13 +925,13 @@ export function OverdueFollowUpsDrawer({
                             borderRadius: 12,
                             background:
                               group.daysOverdue >= 3
-                                ? 'rgba(239,68,68,0.22)'
-                                : 'rgba(245,158,11,0.2)',
-                            color: group.daysOverdue >= 3 ? '#ef4444' : '#f59e0b',
+                                ? 'rgba(239,68,68,0.12)'
+                                : 'rgba(245,158,11,0.12)',
+                            color: group.daysOverdue >= 3 ? '#b91c1c' : '#92400e',
                             border:
                               group.daysOverdue >= 3
-                                ? '1px solid rgba(239,68,68,0.35)'
-                                : '1px solid rgba(245,158,11,0.35)'
+                                ? '1px solid rgba(239,68,68,0.28)'
+                                : '1px solid rgba(245,158,11,0.28)'
                           }}
                         >
                           {group.daysOverdue === 1
@@ -943,8 +945,9 @@ export function OverdueFollowUpsDrawer({
                         style={{
                           fontSize: 11,
                           fontWeight: 700,
-                          color: 'var(--muted-foreground, #94a3b8)',
-                          background: 'rgba(255,255,255,0.06)',
+                          color: 'var(--foreground, #0f172a)',
+                          background: 'var(--secondary, rgba(0,0,0,0.05))',
+                          border: '1px solid var(--border, rgba(0,0,0,0.06))',
                           padding: '1px 7px',
                           borderRadius: 8
                         }}
@@ -954,7 +957,7 @@ export function OverdueFollowUpsDrawer({
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: '#f59e0b' }}>
+                      <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--foreground, #0f172a)' }}>
                         {new Intl.NumberFormat('fr-FR').format(group.totalAmount)} {currency}
                       </span>
                       <button
@@ -981,22 +984,22 @@ export function OverdueFollowUpsDrawer({
                         <div
                           key={lead.id}
                           style={{
-                            background: 'var(--card, #131c2e)',
+                            background: 'var(--card, #ffffff)',
                             borderRadius: 10,
                             padding: '12px 14px',
-                            border: '1px solid var(--border, rgba(255,255,255,0.07))',
-                            boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+                            border: '1px solid var(--border, rgba(0,0,0,0.08))',
+                            boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
                             display: 'flex',
                             flexDirection: 'column',
-                            gap: 9
+                            gap: 10
                           }}
                         >
                           {/* Ligne 1 : Nom de l'entreprise & Statut + Montant */}
                           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
                             <div>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
-                                <Building2 size={15} className="text-indigo-400" />
-                                <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--foreground, #f1f5f9)' }}>
+                                <Building2 size={15} className="text-indigo-600 dark:text-indigo-400" />
+                                <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--foreground, #0f172a)' }}>
                                   {lead.companyName}
                                 </span>
                                 {(lead.city || lead.quarter) && (
@@ -1006,14 +1009,14 @@ export function OverdueFollowUpsDrawer({
                                 )}
                               </div>
                               {lead.sector && (
-                                <div style={{ fontSize: 11, color: 'var(--muted-foreground)', marginTop: 2 }}>
+                                <div style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)', marginTop: 2 }}>
                                   Secteur : {lead.sector}
                                 </div>
                               )}
                             </div>
 
                             <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                              <div style={{ fontSize: 14, fontWeight: 800, color: '#f59e0b' }}>
+                              <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--foreground, #0f172a)' }}>
                                 {lead.amount > 0
                                   ? `${new Intl.NumberFormat('fr-FR').format(lead.amount)} ${lead.currency}`
                                   : 'Montant non défini'}
@@ -1021,17 +1024,19 @@ export function OverdueFollowUpsDrawer({
                               <span
                                 style={{
                                   fontSize: 10,
-                                  fontWeight: 700,
+                                  fontWeight: 800,
                                   textTransform: 'uppercase',
-                                  padding: '1px 6px',
+                                  padding: '2px 8px',
                                   borderRadius: 4,
                                   display: 'inline-block',
                                   marginTop: 3,
-                                  background:
-                                    lead.status.includes('nego')
-                                      ? 'rgba(245,158,11,0.15)'
-                                      : 'rgba(59,130,246,0.15)',
-                                  color: lead.status.includes('nego') ? '#f59e0b' : '#60a5fa'
+                                  background: lead.status.includes('nego')
+                                    ? 'rgba(245,158,11,0.14)'
+                                    : 'rgba(59,130,246,0.12)',
+                                  color: lead.status.includes('nego') ? '#92400e' : '#1d4ed8',
+                                  border: lead.status.includes('nego')
+                                    ? '1px solid rgba(245,158,11,0.3)'
+                                    : '1px solid rgba(59,130,246,0.3)'
                                 }}
                               >
                                 {lead.status}
@@ -1039,7 +1044,7 @@ export function OverdueFollowUpsDrawer({
                             </div>
                           </div>
 
-                          {/* Ligne 2 : Commercial Assigné & Manager (Le cœur de la demande !) */}
+                          {/* Ligne 2 : Commercial Assigné & Manager */}
                           <div
                             style={{
                               display: 'flex',
@@ -1049,8 +1054,8 @@ export function OverdueFollowUpsDrawer({
                               gap: 8,
                               padding: '8px 10px',
                               borderRadius: 8,
-                              background: 'rgba(255,255,255,0.025)',
-                              border: '1px solid rgba(255,255,255,0.05)'
+                              background: 'var(--secondary, rgba(0,0,0,0.03))',
+                              border: '1px solid var(--border, rgba(0,0,0,0.06))'
                             }}
                           >
                             {/* Commercial responsable */}
@@ -1061,9 +1066,9 @@ export function OverdueFollowUpsDrawer({
                                   height: 24,
                                   borderRadius: 6,
                                   background: lead.assignedTo
-                                    ? 'rgba(99,102,241,0.2)'
-                                    : 'rgba(239,68,68,0.2)',
-                                  color: lead.assignedTo ? '#818cf8' : '#ef4444',
+                                    ? 'rgba(79,70,229,0.12)'
+                                    : 'rgba(239,68,68,0.12)',
+                                  color: lead.assignedTo ? '#4338ca' : '#b91c1c',
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',
@@ -1074,13 +1079,13 @@ export function OverdueFollowUpsDrawer({
                                 <User size={13} />
                               </div>
                               <div>
-                                <div style={{ fontSize: 10, color: 'var(--muted-foreground)', textTransform: 'uppercase', fontWeight: 600 }}>
+                                <div style={{ fontSize: 10, color: 'var(--muted-foreground, #64748b)', textTransform: 'uppercase', fontWeight: 600 }}>
                                   Commercial en charge
                                 </div>
-                                <div style={{ fontSize: 12, fontWeight: 700, color: lead.assignedTo ? 'var(--foreground)' : '#ef4444' }}>
+                                <div style={{ fontSize: 12, fontWeight: 700, color: lead.assignedTo ? 'var(--foreground, #0f172a)' : '#b91c1c' }}>
                                   {lead.memberName || (lead.assignedTo ? `Membre (${lead.assignedTo.slice(0, 6)})` : (
                                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                                      <AlertTriangle size={12} className="text-red-500 shrink-0" />
+                                      <AlertTriangle size={12} className="text-red-600 shrink-0" />
                                       <span>Non assigné (Action Requise)</span>
                                     </span>
                                   ))}
@@ -1091,12 +1096,12 @@ export function OverdueFollowUpsDrawer({
                             {/* Team Manager de rattachement (si vue organisation) */}
                             {context === 'org' && lead.managerName && (
                               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                <Crown size={13} className="text-amber-400" />
+                                <Crown size={13} className="text-amber-600 dark:text-amber-400" />
                                 <div>
-                                  <div style={{ fontSize: 10, color: 'var(--muted-foreground)', textTransform: 'uppercase', fontWeight: 600 }}>
+                                  <div style={{ fontSize: 10, color: 'var(--muted-foreground, #64748b)', textTransform: 'uppercase', fontWeight: 600 }}>
                                     Team Manager
                                   </div>
-                                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--foreground)' }}>
+                                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--foreground, #0f172a)' }}>
                                     {lead.managerName}
                                   </div>
                                 </div>
@@ -1106,8 +1111,8 @@ export function OverdueFollowUpsDrawer({
 
                           {/* Ligne 3 : Action prévue et contacts directs */}
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--foreground)' }}>
-                              <Clock size={13} className="text-rose-400 shrink-0" />
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--foreground, #0f172a)' }}>
+                              <Clock size={13} className="text-rose-600 dark:text-rose-400 shrink-0" />
                               <span>
                                 <strong>Action :</strong> {lead.nextAction}
                               </span>
@@ -1124,14 +1129,14 @@ export function OverdueFollowUpsDrawer({
                                       display: 'inline-flex',
                                       alignItems: 'center',
                                       gap: 4,
-                                      padding: '4px 8px',
+                                      padding: '4px 10px',
                                       borderRadius: 6,
-                                      background: 'rgba(59,130,246,0.12)',
-                                      color: '#60a5fa',
-                                      fontSize: 11,
+                                      background: 'rgba(37,99,235,0.08)',
+                                      color: '#1d4ed8',
+                                      fontSize: 11.5,
                                       fontWeight: 700,
                                       textDecoration: 'none',
-                                      border: '1px solid rgba(59,130,246,0.25)'
+                                      border: '1px solid rgba(37,99,235,0.25)'
                                     }}
                                   >
                                     <Phone size={11} />
@@ -1150,14 +1155,14 @@ export function OverdueFollowUpsDrawer({
                                       display: 'inline-flex',
                                       alignItems: 'center',
                                       gap: 4,
-                                      padding: '4px 8px',
+                                      padding: '4px 10px',
                                       borderRadius: 6,
-                                      background: 'rgba(37,211,102,0.15)',
-                                      color: '#25d366',
-                                      fontSize: 11,
+                                      background: 'rgba(22,163,74,0.1)',
+                                      color: '#15803d',
+                                      fontSize: 11.5,
                                       fontWeight: 700,
                                       textDecoration: 'none',
-                                      border: '1px solid rgba(37,211,102,0.3)'
+                                      border: '1px solid rgba(22,163,74,0.28)'
                                     }}
                                   >
                                     <MessageSquare size={11} />
@@ -1176,12 +1181,12 @@ export function OverdueFollowUpsDrawer({
                                     gap: 4,
                                     padding: '4px 8px',
                                     borderRadius: 6,
-                                    background: 'rgba(255,255,255,0.06)',
-                                    color: 'var(--muted-foreground)',
+                                    background: 'var(--secondary, rgba(0,0,0,0.04))',
+                                    color: 'var(--foreground, #334155)',
                                     fontSize: 11,
                                     fontWeight: 600,
                                     textDecoration: 'none',
-                                    border: '1px solid var(--border, rgba(255,255,255,0.1))'
+                                    border: '1px solid var(--border, rgba(0,0,0,0.1))'
                                   }}
                                 >
                                   <Mail size={11} />
