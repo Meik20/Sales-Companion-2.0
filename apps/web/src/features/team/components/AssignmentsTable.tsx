@@ -137,9 +137,9 @@ export function AssignmentsTable() {
                   repairResult.nameFixed > 0 &&
                     `${repairResult.nameFixed} ${t('team.repairSuccessName')}`,
                   (repairResult.deletedDupes || 0) > 0 &&
-                    `${repairResult.deletedDupes} doublons supprimés`,
+                    `${repairResult.deletedDupes} ${t('team.repairDuplicatesDeleted')}`,
                   (repairResult.deletedStale || 0) > 0 &&
-                    `${repairResult.deletedStale} éléments obsolètes retirés`,
+                    `${repairResult.deletedStale} ${t('team.repairStaleRemoved')}`,
                   (repairResult.protected || 0) > 0 &&
                     `${repairResult.protected} ${t('team.repairProtected')}`
                 ]

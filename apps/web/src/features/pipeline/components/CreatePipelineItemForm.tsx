@@ -285,7 +285,7 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
           />
         </FormField>
 
-        <FormField label={`Montant estimé (${currency || 'FCFA'})`}>
+        <FormField label={t('pipeline.estimatedValue') || `Montant estimé (${currency || 'FCFA'})`}>
           <Input
             type="number"
             placeholder="Ex: 500000"

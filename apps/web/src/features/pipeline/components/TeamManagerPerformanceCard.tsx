@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { TrendingUp, CheckCircle2, Calendar, X, Users, Users2, Building2, Check, AlertTriangle, Trophy, Banknote, Crown, ArrowRight } from 'lucide-react'
+import { TrendingUp, Calendar, X, Users, Users2, Building2, Check, AlertTriangle, Trophy, Banknote, ArrowRight } from 'lucide-react'
 import { useTranslation } from '@/providers/I18nProvider'
 import { useProspectingCountryDetails } from '@/hooks/useProspectingCountry'
 import type { OrgManagerStats, OrgPipelineItem } from '@/features/pipeline/hooks/useOrgPipeline'
@@ -197,32 +197,39 @@ export function TeamManagerPerformanceCard({
                 <>
                   <span>
                     {isTeamContext
-                      ? (t('pipeline.globalTeamSubtitle') || "Synth\u00e8se consolid\u00e9e du chiffre d'affaires et du portefeuille de l'\u00e9quipe")
-                      : (t('pipeline.globalOrgSubtitle') || "Synth\u00e8se consolid\u00e9e du chiffre d'affaires et du portefeuille de l'organisation")}
+                      ? (t('pipeline.globalTeamSubtitle') || "Synthèse consolidée du chiffre d'affaires et du portefeuille de l'équipe")
+                      : (t('pipeline.globalOrgSubtitle') || "Synthèse consolidée du chiffre d'affaires et du portefeuille de l'organisation")}
                   </span>
                   {!isTeamContext && (
                     <>
                       <span>•</span>
-                      <span>{stats.teamManagersCount} Team Managers</span>
+                      <span>
+                        {stats.teamManagersCount}{' '}
+                        {stats.teamManagersCount > 1
+                          ? t('pipeline.teamManagerCount_other')
+                          : t('pipeline.teamManagerCount_one')}
+                      </span>
                     </>
                   )}
                   <span>•</span>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                     <Users size={11} />
-                    {stats.memberCount} {stats.memberCount > 1 ? 'commerciaux' : 'commercial'}
+                    {stats.memberCount}{' '}
+                    {stats.memberCount > 1 ? t('pipeline.salespeople') : t('pipeline.salesperson')}
                   </span>
                 </>
               ) : (
                 <>
                   <span>
                     {manager?.isSenior
-                      ? 'Prospects saisis par la direction en attente de transfert vers les Team Managers'
-                      : (t('pipeline.teamManagerSubtitle') || "Portefeuille op\u00e9rationnel et m\u00e9triques de l'\u00e9quipe manag\u00e9e")}
+                      ? t('pipeline.seniorStagingDesc')
+                      : (t('pipeline.teamManagerSubtitle') || "Portefeuille opérationnel et métriques de l'équipe managée")}
                   </span>
                   <span>•</span>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                     <Users size={11} />
-                    {stats.memberCount} {stats.memberCount > 1 ? 'commerciaux' : 'commercial'}
+                    {stats.memberCount}{' '}
+                    {stats.memberCount > 1 ? t('pipeline.salespeople') : t('pipeline.salesperson')}
                   </span>
                 </>
               )}
@@ -257,80 +264,96 @@ export function TeamManagerPerformanceCard({
       </div>
 
       {/* ── Grille des 4 métriques de performance d'équipe ──────────── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
         {/* 1. Portefeuille actif */}
         <div
           style={{
             background: 'var(--card, #131c2e)',
             borderRadius: 10,
-            padding: '11px 14px',
+            padding: '10px 12px',
             border: '1px solid var(--border, rgba(255,255,255,0.08))',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
-            gap: 4
+            gap: 4,
+            minWidth: 0,
+            overflow: 'hidden'
           }}
         >
           <div
             style={{
-              fontSize: 10.5,
+              fontSize: 10,
               fontWeight: 700,
               textTransform: 'uppercase',
               color: 'var(--pipeline-progress-color, #1d4ed8)',
               display: 'flex',
               alignItems: 'center',
-              gap: 5
+              gap: 5,
+              minWidth: 0
             }}
           >
-            <TrendingUp size={12} />
-            <span>{t('pipeline.activePortfolio') || 'Portefeuille actif'}</span>
-          </div>
-          <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--foreground, #f1f5f9)' }}>
-            {stats.totalCount}{' '}
-            <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--muted-foreground, #64748b)' }}>
-              {stats.totalCount > 1 ? 'leads' : 'lead'}
+            <TrendingUp size={12} style={{ flexShrink: 0 }} />
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {t('pipeline.activePortfolio')}
             </span>
           </div>
-          <div style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)', fontWeight: 500 }}>
-            {stats.prospectionCount} en prospection · {stats.negociationCount} en négo
+          <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--foreground, #f1f5f9)', display: 'flex', alignItems: 'baseline', gap: 4, flexWrap: 'wrap' }}>
+            {stats.totalCount}
+            <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--muted-foreground, #64748b)' }}>
+              {stats.totalCount > 1 ? t('pipeline.leads') : t('pipeline.lead')}
+            </span>
+          </div>
+          <div
+            style={{ fontSize: 10, color: 'var(--muted-foreground, #64748b)', fontWeight: 500, lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+            title={`${stats.prospectionCount} ${t('pipeline.inProspection')} · ${stats.negociationCount} ${t('pipeline.inNegotiation')}`}
+          >
+            {stats.prospectionCount} {t('pipeline.inProspection')} · {stats.negociationCount} {t('pipeline.inNegotiation')}
           </div>
         </div>
 
-        {/* 2. Valeur du pipeline (deals actifs en cours) */}
+        {/* 2. Valeur du pipeline */}
         <div
           style={{
             background: 'var(--card, #131c2e)',
             borderRadius: 10,
-            padding: '11px 14px',
+            padding: '10px 12px',
             border: '1px solid var(--border, rgba(255,255,255,0.08))',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
-            gap: 4
+            gap: 4,
+            minWidth: 0,
+            overflow: 'hidden'
           }}
         >
           <div
             style={{
-              fontSize: 10.5,
+              fontSize: 10,
               fontWeight: 700,
               textTransform: 'uppercase',
               color: 'var(--pipeline-warning-color, #b45309)',
               display: 'flex',
               alignItems: 'center',
-              gap: 5
+              gap: 5,
+              minWidth: 0
             }}
           >
-            <Banknote size={12} />
-            <span>{t('pipeline.pipelineValue') || 'Valeur du pipeline'}</span>
+            <Banknote size={12} style={{ flexShrink: 0 }} />
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {t('pipeline.pipelineValue')}
+            </span>
           </div>
-          <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--foreground, #f1f5f9)' }}>
-            {new Intl.NumberFormat('fr-FR').format(stats.activePipelineAmount)}{' '}
-            <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--muted-foreground, #64748b)' }}>
+          <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--foreground, #f1f5f9)', display: 'flex', alignItems: 'baseline', gap: 4, flexWrap: 'wrap' }}>
+            {new Intl.NumberFormat('fr-FR').format(stats.activePipelineAmount)}
+            <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--muted-foreground, #64748b)' }}>
               {currency || 'FCFA'}
             </span>
           </div>
-          <div style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)', fontWeight: 500 }}>
-            {stats.prospectionCount} en prospection · {stats.negociationCount} en négo
+          <div
+            style={{ fontSize: 10, color: 'var(--muted-foreground, #64748b)', fontWeight: 500, lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+            title={`${stats.prospectionCount} ${t('pipeline.inProspection')} · ${stats.negociationCount} ${t('pipeline.inNegotiation')}`}
+          >
+            {stats.prospectionCount} {t('pipeline.inProspection')} · {stats.negociationCount} {t('pipeline.inNegotiation')}
           </div>
         </div>
 
@@ -349,7 +372,7 @@ export function TeamManagerPerformanceCard({
           style={{
             background: 'var(--card, #131c2e)',
             borderRadius: 10,
-            padding: '11px 14px',
+            padding: '10px 12px',
             border:
               stats.overdueCount > 0
                 ? '1px solid rgba(239,68,68,0.4)'
@@ -359,103 +382,117 @@ export function TeamManagerPerformanceCard({
             justifyContent: 'space-between',
             gap: 4,
             cursor: 'pointer',
-            outline: 'none'
+            outline: 'none',
+            minWidth: 0,
+            overflow: 'hidden'
           }}
           title={
             stats.overdueCount > 0
-              ? 'Cliquer pour voir le détail des prospects et commerciaux en alerte'
-              : 'Cliquer pour consulter les relances'
+              ? (t('pipeline.overdueRequiresAttention') || 'Relances nécessitant attention')
+              : (t('pipeline.upToDate') || 'À jour')
           }
         >
           <div
             style={{
-              fontSize: 10.5,
+              fontSize: 10,
               fontWeight: 700,
               textTransform: 'uppercase',
               color: stats.overdueCount > 0 ? 'var(--pipeline-alert-color, #b91c1c)' : 'var(--pipeline-progress-color, #1d4ed8)',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'space-between'
+              justifyContent: 'space-between',
+              gap: 4,
+              minWidth: 0
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-              <Calendar size={12} />
-              <span>{t('pipeline.followUpAndAlerts') || 'Relances & Suivi'}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0, overflow: 'hidden' }}>
+              <Calendar size={12} style={{ flexShrink: 0 }} />
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {t('pipeline.followUpAndAlerts')}
+              </span>
             </div>
             {stats.overdueCount > 0 && (
               <span
                 style={{
-                  fontSize: 10,
+                  fontSize: 9,
                   fontWeight: 800,
                   color: '#ef4444',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 3
+                  gap: 2,
+                  flexShrink: 0
                 }}
                 className="opacity-90 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all"
               >
-                Détails <ArrowRight size={10} />
+                {t('pipeline.detailsLink')} <ArrowRight size={9} />
               </span>
             )}
           </div>
           <div
             style={{
-              fontSize: 18,
+              fontSize: 16,
               fontWeight: 800,
               color: stats.overdueCount > 0 ? 'var(--pipeline-alert-color, #b91c1c)' : 'var(--pipeline-concluded-color, #047857)',
               display: 'flex',
               alignItems: 'center',
-              gap: 7
+              justifyContent: 'space-between',
+              gap: 4
             }}
           >
             {stats.overdueCount > 0 ? (
               <>
-                <span>{stats.overdueCount} {t('pipeline.overdueAlert') || 'en retard'}</span>
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 14 }}>
+                  {stats.overdueCount} {t('pipeline.overdueAlert')}
+                </span>
                 <span
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    width: 20,
-                    height: 20,
-                    borderRadius: 5,
+                    width: 18,
+                    height: 18,
+                    borderRadius: 4,
                     background: 'rgba(239, 68, 68, 0.16)',
                     border: '1px solid rgba(239, 68, 68, 0.35)',
-                    color: '#ef4444'
+                    color: '#ef4444',
+                    flexShrink: 0
                   }}
                 >
-                  <AlertTriangle size={12} strokeWidth={2.5} />
+                  <AlertTriangle size={11} strokeWidth={2.5} />
                 </span>
               </>
             ) : (
               <>
-                <span>{t('pipeline.upToDate') || 'À jour'}</span>
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 14 }}>
+                  {t('pipeline.upToDate')}
+                </span>
                 <span
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    width: 20,
-                    height: 20,
-                    borderRadius: 5,
+                    width: 18,
+                    height: 18,
+                    borderRadius: 4,
                     background: '#10b981',
                     color: '#ffffff',
-                    boxShadow: '0 1px 3px rgba(16, 185, 129, 0.3)'
+                    boxShadow: '0 1px 3px rgba(16, 185, 129, 0.3)',
+                    flexShrink: 0
                   }}
                 >
-                  <Check size={13} strokeWidth={3} />
+                  <Check size={11} strokeWidth={3} />
                 </span>
               </>
             )}
           </div>
-          <div style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)' }}>
+          <div style={{ fontSize: 10, color: 'var(--muted-foreground, #94a3b8)', lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {stats.overdueCount > 0
               ? (isGlobal && !isTeamContext
-                  ? (t('pipeline.allOrgOverdueRequiresAttention') || "Relances à traiter sur toute l'organisation")
-                  : (t('pipeline.overdueRequiresAttention') || "Relances d'équipe nécessitant attention"))
+                  ? t('pipeline.allOrgOverdueRequiresAttention')
+                  : t('pipeline.overdueRequiresAttention'))
               : (isGlobal && !isTeamContext
-                  ? (t('pipeline.noOverdueOnOrg') || "Aucune relance expirée sur toute l'organisation")
-                  : (t('pipeline.noOverdueOnTeam') || "Aucune relance expirée sur l'équipe"))}
+                  ? t('pipeline.noOverdueOnOrg')
+                  : t('pipeline.noOverdueOnTeam'))}
           </div>
         </div>
 
@@ -524,43 +561,50 @@ export function TeamManagerPerformanceCard({
               style={{
                 background: 'var(--card, #131c2e)',
                 borderRadius: 10,
-                padding: '11px 14px',
+                padding: '10px 12px',
                 border: '1px solid var(--border, rgba(255,255,255,0.08))',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
-                gap: 6
+                gap: 5,
+                minWidth: 0,
+                overflow: 'hidden'
               }}
             >
               {/* Header */}
               <div
                 style={{
-                  fontSize: 10.5,
+                  fontSize: 10,
                   fontWeight: 700,
                   textTransform: 'uppercase',
                   color: 'var(--pipeline-warning-color, #b45309)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  gap: 5
+                  gap: 4,
+                  minWidth: 0
                 }}
               >
-                <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                  <Trophy size={12} />
-                  <span>{t('pipeline.achievements') || 'Réalisations'}</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0, overflow: 'hidden' }}>
+                  <Trophy size={12} style={{ flexShrink: 0 }} />
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {t('pipeline.achievements')}
+                  </span>
                 </span>
                 <span
                   style={{
-                    fontSize: 10,
+                    fontSize: 9,
                     fontWeight: 800,
                     color: roColor,
                     background: roBg,
                     border: `1px solid ${roBorder}`,
-                    borderRadius: 6,
-                    padding: '1px 6px'
+                    borderRadius: 5,
+                    padding: '1px 5px',
+                    flexShrink: 0,
+                    whiteSpace: 'nowrap'
                   }}
                 >
-                  {hasTargets ? `R/O ${roRate}%` : `Conv. ${roRate}%`}
+                  {hasTargets ? `${t('pipeline.roRateLabel')} ${roRate}%` : `${t('pipeline.convRateLabel')} ${roRate}%`}
                 </span>
               </div>
 
@@ -570,25 +614,27 @@ export function TeamManagerPerformanceCard({
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'space-between'
+                    justifyContent: 'space-between',
+                    gap: 4
                   }}
                 >
                   <span
                     style={{
-                      fontSize: 10,
+                      fontSize: 9.5,
                       fontWeight: 600,
                       color: 'var(--muted-foreground, #64748b)',
                       textTransform: 'uppercase',
                       letterSpacing: '0.04em'
                     }}
                   >
-                    Volume
+                    {t('pipeline.volumeLabel')}
                   </span>
                   <span
                     style={{
-                      fontSize: 11,
+                      fontSize: 10.5,
                       fontWeight: 700,
-                      color: 'var(--foreground, #f1f5f9)'
+                      color: 'var(--foreground, #f1f5f9)',
+                      whiteSpace: 'nowrap'
                     }}
                   >
                     {stats.conclueCount}
@@ -597,7 +643,7 @@ export function TeamManagerPerformanceCard({
                         style={{
                           fontWeight: 500,
                           color: 'var(--muted-foreground, #64748b)',
-                          fontSize: 10
+                          fontSize: 9.5
                         }}
                       >
                         {' '}/ {tgtVol}{volPct !== null && ` (${volPct}%)`}
@@ -639,25 +685,27 @@ export function TeamManagerPerformanceCard({
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'space-between'
+                    justifyContent: 'space-between',
+                    gap: 4
                   }}
                 >
                   <span
                     style={{
-                      fontSize: 10,
+                      fontSize: 9.5,
                       fontWeight: 700,
                       color: 'var(--muted-foreground, #64748b)',
                       textTransform: 'uppercase',
                       letterSpacing: '0.04em'
                     }}
                   >
-                    Valeur
+                    {t('pipeline.valueLabel')}
                   </span>
                   <span
                     style={{
-                      fontSize: 11,
+                      fontSize: 10.5,
                       fontWeight: 700,
-                      color: 'var(--foreground, #f1f5f9)'
+                      color: 'var(--foreground, #f1f5f9)',
+                      whiteSpace: 'nowrap'
                     }}
                   >
                     {new Intl.NumberFormat('fr-FR').format(stats.concludedAmount)}
@@ -666,7 +714,7 @@ export function TeamManagerPerformanceCard({
                         style={{
                           fontWeight: 500,
                           color: 'var(--muted-foreground, #64748b)',
-                          fontSize: 10
+                          fontSize: 9.5
                         }}
                       >
                         {' '}/ {new Intl.NumberFormat('fr-FR').format(tgtVal)}{' '}{currency || 'F'}
@@ -678,7 +726,7 @@ export function TeamManagerPerformanceCard({
                         style={{
                           fontWeight: 500,
                           color: 'var(--muted-foreground, #64748b)',
-                          fontSize: 10
+                          fontSize: 9.5
                         }}
                       >
                         {' '}{currency || 'FCFA'}
@@ -726,18 +774,18 @@ export function TeamManagerPerformanceCard({
               >
                 <span
                   style={{
-                    fontSize: 10,
+                    fontSize: 9.5,
                     fontWeight: 700,
                     color: 'var(--muted-foreground, #64748b)',
                     textTransform: 'uppercase',
                     letterSpacing: '0.04em'
                   }}
                 >
-                  Taux R/O
+                  {t('pipeline.roRateLabel')}
                 </span>
                 <span
                   style={{
-                    fontSize: 12,
+                    fontSize: 11,
                     fontWeight: 800,
                     color: roColor
                   }}

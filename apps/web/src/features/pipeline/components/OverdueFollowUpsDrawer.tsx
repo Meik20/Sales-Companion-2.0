@@ -22,6 +22,7 @@ import {
   ExternalLink
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import { useTranslation } from '@/providers/I18nProvider'
 import { getWhatsAppUrl } from '@/utils/whatsapp'
 import type { OrgPipelineItem, OrgManagerStats } from '@/features/pipeline/hooks/useOrgPipeline'
 
@@ -99,6 +100,7 @@ export function OverdueFollowUpsDrawer({
   context = 'org',
   managers
 }: OverdueFollowUpsDrawerProps) {
+  const { t } = useTranslation()
   const todayStr = useMemo(() => new Date().toISOString().slice(0, 10), [])
   const [search, setSearch] = useState('')
   const [selectedCommercial, setSelectedCommercial] = useState<string>('all')
@@ -440,7 +442,7 @@ export function OverdueFollowUpsDrawer({
                       fontFamily: "'Syne', sans-serif"
                     }}
                   >
-                    Alertes & Relances Échues
+                    {t('pipeline.overdueAlertsTitle')}
                   </h2>
                   <span
                     style={{
@@ -453,7 +455,7 @@ export function OverdueFollowUpsDrawer({
                       border: '1px solid rgba(239,68,68,0.28)'
                     }}
                   >
-                    {stats.overdueCount} en retard
+                    {stats.overdueCount} {t('pipeline.overdueAlert')}
                   </span>
                   {context === 'org' && (
                     <span
@@ -467,12 +469,12 @@ export function OverdueFollowUpsDrawer({
                         border: '1px solid rgba(99,102,241,0.28)'
                       }}
                     >
-                      Vue Organisation
+                      {t('pipeline.orgViewBadge')}
                     </span>
                   )}
                 </div>
                 <p style={{ margin: '3px 0 0 0', fontSize: 12, color: 'var(--muted-foreground, #64748b)' }}>
-                  Suivi des opportunités nécessitant une action immédiate du commercial ou du manager.
+                  {t('pipeline.overdueAlertsSubtitle')}
                 </p>
               </div>
             </div>
@@ -527,7 +529,7 @@ export function OverdueFollowUpsDrawer({
               }}
             >
               <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--muted-foreground, #64748b)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                Valeur en risque
+                {t('pipeline.valueAtRisk')}
               </div>
               <div style={{ fontSize: 15, fontWeight: 800, color: '#b45309', marginTop: 2 }}>
                 {new Intl.NumberFormat('fr-FR').format(stats.totalAmount)} {currency}
@@ -544,7 +546,7 @@ export function OverdueFollowUpsDrawer({
               }}
             >
               <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--muted-foreground, #64748b)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                Journées affectées
+                {t('pipeline.affectedDays')}
               </div>
               <div style={{ fontSize: 15, fontWeight: 800, color: '#0369a1', marginTop: 2 }}>
                 {stats.distinctDates} {stats.distinctDates > 1 ? 'dates' : 'date'}
@@ -561,10 +563,10 @@ export function OverdueFollowUpsDrawer({
                 }}
               >
                 <div style={{ fontSize: 10, fontWeight: 700, color: '#b91c1c', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  Non assignés
+                  {t('pipeline.unassignedLeads')}
                 </div>
                 <div style={{ fontSize: 15, fontWeight: 800, color: '#b91c1c', marginTop: 2 }}>
-                  {stats.unassignedTotal} sans commercial
+                  {stats.unassignedTotal} {t('pipeline.withoutSalesperson')}
                 </div>
               </div>
             )}
@@ -603,7 +605,7 @@ export function OverdueFollowUpsDrawer({
                 transition: 'all 150ms ease'
               }}
             >
-              <span>En retard</span>
+              <span>{t('pipeline.overdueAlert')}</span>
               <span
                 style={{
                   fontSize: 10,
@@ -637,7 +639,7 @@ export function OverdueFollowUpsDrawer({
                   transition: 'all 150ms ease'
                 }}
               >
-                <span>Aujourd'hui</span>
+                <span>{t('common.today')}</span>
                 <span
                   style={{
                     fontSize: 10,
@@ -671,7 +673,7 @@ export function OverdueFollowUpsDrawer({
                 transition: 'all 150ms ease'
               }}
             >
-              <span>Toutes les alertes</span>
+              <span>{t('pipeline.allAlerts')}</span>
               <span
                 style={{
                   fontSize: 10,
@@ -702,7 +704,7 @@ export function OverdueFollowUpsDrawer({
               />
               <input
                 type="text"
-                placeholder="Rechercher prospect, commercial, téléphone..."
+                placeholder={t('pipeline.searchOverduePlaceholder')}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 style={{
@@ -755,9 +757,9 @@ export function OverdueFollowUpsDrawer({
                 maxWidth: 180
               }}
             >
-              <option value="all">Tous les commerciaux ({stats.totalCount})</option>
+              <option value="all">{t('pipeline.allCommercials')} ({stats.totalCount})</option>
               {availableCommercials.unassignedCount > 0 && (
-                <option value="unassigned">Non assignés ({availableCommercials.unassignedCount})</option>
+                <option value="unassigned">{t('pipeline.unassignedLeads')} ({availableCommercials.unassignedCount})</option>
               )}
               {availableCommercials.commercials.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -784,7 +786,7 @@ export function OverdueFollowUpsDrawer({
                   maxWidth: 160
                 }}
               >
-                <option value="all">Toutes équipes</option>
+                <option value="all">{t('pipeline.allTeams')}</option>
                 {availableManagers.map((m) => (
                   <option key={m.id} value={m.id}>
                     {m.label} ({m.count})
@@ -833,13 +835,13 @@ export function OverdueFollowUpsDrawer({
               </div>
               <h3 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 6px 0', color: 'var(--foreground)' }}>
                 {search || selectedCommercial !== 'all' || selectedManager !== 'all'
-                  ? 'Aucune relance ne correspond à ces filtres'
-                  : 'Aucune relance en retard !'}
+                  ? t('pipeline.noOverdueMatchesFilters')
+                  : t('pipeline.noOverdueCongrats')}
               </h3>
               <p style={{ fontSize: 13, color: 'var(--muted-foreground)', margin: 0, maxWidth: 360, marginInline: 'auto' }}>
                 {search || selectedCommercial !== 'all' || selectedManager !== 'all'
-                  ? 'Essayez de réinitialiser la recherche ou de sélectionner tous les commerciaux.'
-                  : 'Toutes les relances de votre pipeline sont à jour pour cette période.'}
+                  ? t('pipeline.resetSearchHint')
+                  : t('pipeline.allFollowUpsUpToDate')}
               </p>
             </div>
           ) : (
@@ -914,7 +916,7 @@ export function OverdueFollowUpsDrawer({
                             border: '1px solid rgba(59,130,246,0.28)'
                           }}
                         >
-                          Aujourd'hui
+                          {t('common.today')}
                         </span>
                       ) : (
                         <span
@@ -935,8 +937,8 @@ export function OverdueFollowUpsDrawer({
                           }}
                         >
                           {group.daysOverdue === 1
-                            ? 'En retard de 1 jour'
-                            : `En retard de ${group.daysOverdue} jours`}
+                            ? t('pipeline.overdueDaysCount_one')
+                            : t('pipeline.overdueDaysCount_other').replace('{count}', String(group.daysOverdue))}
                         </span>
                       )}
 
@@ -952,7 +954,7 @@ export function OverdueFollowUpsDrawer({
                           borderRadius: 8
                         }}
                       >
-                        {group.leads.length} {group.leads.length > 1 ? 'leads prévus ce jour' : 'lead'}
+                        {group.leads.length} {group.leads.length > 1 ? t('pipeline.leadsPlannedToday_other') : t('pipeline.leadsPlannedToday_one')}
                       </span>
                     </div>
 
@@ -1080,13 +1082,13 @@ export function OverdueFollowUpsDrawer({
                               </div>
                               <div>
                                 <div style={{ fontSize: 10, color: 'var(--muted-foreground, #64748b)', textTransform: 'uppercase', fontWeight: 600 }}>
-                                  Commercial en charge
+                                  {t('pipeline.commercialInCharge')}
                                 </div>
                                 <div style={{ fontSize: 12, fontWeight: 700, color: lead.assignedTo ? 'var(--foreground, #0f172a)' : '#b91c1c' }}>
                                   {lead.memberName || (lead.assignedTo ? `Membre (${lead.assignedTo.slice(0, 6)})` : (
                                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                                       <AlertTriangle size={12} className="text-red-600 shrink-0" />
-                                      <span>Non assigné (Action Requise)</span>
+                                      <span>{t('pipeline.unassignedActionRequired')}</span>
                                     </span>
                                   ))}
                                 </div>
@@ -1114,7 +1116,7 @@ export function OverdueFollowUpsDrawer({
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--foreground, #0f172a)' }}>
                               <Clock size={13} className="text-rose-600 dark:text-rose-400 shrink-0" />
                               <span>
-                                <strong>Action :</strong> {lead.nextAction}
+                                <strong>{t('pipeline.actionLabel')}</strong> {lead.nextAction}
                               </span>
                             </div>
 
@@ -1140,7 +1142,7 @@ export function OverdueFollowUpsDrawer({
                                     }}
                                   >
                                     <Phone size={11} />
-                                    <span>Appeler</span>
+                                    <span>{t('pipeline.callBtn')}</span>
                                   </a>
 
                                   <a
@@ -1217,10 +1219,10 @@ export function OverdueFollowUpsDrawer({
           }}
         >
           <div style={{ fontSize: 11, color: 'var(--muted-foreground)' }}>
-            Total : <strong>{filteredLeads.length}</strong> {filteredLeads.length > 1 ? 'alertes affichées' : 'alerte affichée'}
+            Total : <strong>{filteredLeads.length}</strong> {filteredLeads.length > 1 ? t('pipeline.totalAlertsDisplayed_other') : t('pipeline.totalAlertsDisplayed_one')}
           </div>
           <Button variant="outline" size="sm" onClick={onClose} style={{ fontSize: 12 }}>
-            Fermer
+            {t('pipeline.closeBtn')}
           </Button>
         </div>
       </div>

@@ -3,6 +3,7 @@ import { DataCard, Badge } from '@/components/ui/index'
 import { EmptyState, LoadingState } from '@/components/feedback/index'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
+import { InfoTooltip } from '@/components/ui/InfoTooltip'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useToast } from '@/hooks/useToast'
 import { db } from '@/lib/firebase'
@@ -366,10 +367,18 @@ export function TeamAccessManager() {
                   fontSize: 11,
                   fontWeight: 700,
                   color: 'var(--muted-foreground, #94a3b8)',
-                  textTransform: 'uppercase'
+                  textTransform: 'uppercase',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4
                 }}
               >
                 Rôle du collaborateur
+                <InfoTooltip
+                  size={12}
+                  placement="right"
+                  content="Collaborateur commercial (Sales) : accède au pipeline. Agent de support CRM (Support) : gère les clients convertîs (statut Conclu)."
+                />
               </label>
               <select
                 value={formData.role}
@@ -391,6 +400,16 @@ export function TeamAccessManager() {
               </select>
             </div>
 
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 4 }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted-foreground, #94a3b8)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Permissions
+              </span>
+              <InfoTooltip
+                size={12}
+                placement="right"
+                content="Permissions optionnelles : Exporter = télécharger les fiches. Supprimer = effacer des prospects. Réassigner = déplacer un prospect vers un autre commercial."
+              />
+            </div>
             <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
               <label
                 style={{

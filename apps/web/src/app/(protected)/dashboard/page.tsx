@@ -4,6 +4,7 @@ import { AppShell } from '@/components/layout/AppShell'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { DataCard } from '@/components/ui/index'
 import { LoadingState } from '@/components/feedback/index'
+import { InfoTooltip } from '@/components/ui/InfoTooltip'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import {
   useOrgReport,
@@ -394,7 +395,12 @@ export default function DashboardPage() {
             {/* Top Performers */}
             <DataCard
               title="Top Performers"
-              subtitle="Managers classés par nombre de prospects conclus"
+              actions={
+                <InfoTooltip
+                  placement="left"
+                  content="Managers classés par nombre de prospects conclus dans votre organisation."
+                />
+              }
             >
               {!data?.managers?.length ? (
                 <div
@@ -419,7 +425,12 @@ export default function DashboardPage() {
             {/* Activité Récente */}
             <DataCard
               title="Activité Récente"
-              subtitle="10 derniers prospects conclus dans l'organisation"
+              actions={
+                <InfoTooltip
+                  placement="left"
+                  content="Les 10 derniers prospects conclus dans l'ensemble de votre organisation, toutes équipes confondues."
+                />
+              }
             >
               {!data?.recentActivity?.length ? (
                 <div

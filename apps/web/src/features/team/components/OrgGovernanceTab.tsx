@@ -1,10 +1,11 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { DataCard } from '@/components/ui/index'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { EmptyState } from '@/components/feedback'
+import { InfoTooltip } from '@/components/ui/InfoTooltip'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useToast } from '@/hooks/useToast'
 import { OrgManagersSection } from './OrgManagersSection'
@@ -393,7 +394,12 @@ export function OrgGovernanceTab() {
       {/* ── 1. Carte Identité & Gouvernance ────────────────────────── */}
       <DataCard
         title="Organisation & Gouvernance"
-        subtitle="Identifiant unique de votre entreprise, certification fiscale DGI et recrutement de managers"
+        actions={
+          <InfoTooltip
+            placement="left"
+            content="Identifiant unique de votre entreprise, certification fiscale DGI et recrutement de managers."
+          />
+        }
       >
         <div className="flex flex-col gap-6">
           {/* Entreprise & Badges */}
@@ -478,9 +484,10 @@ export function OrgGovernanceTab() {
                   </div>
                 )}
               </div>
-              <p className="m-0 text-[11.5px] text-muted-foreground max-w-sm">
-                Vos Team Managers et commerciaux rattachés hériteront automatiquement de ce segment.
-              </p>
+              <InfoTooltip
+                placement="left"
+                content="Vos Team Managers et commerciaux rattachés hériteront automatiquement de ce segment."
+              />
             </div>
           </div>
 
@@ -508,10 +515,10 @@ export function OrgGovernanceTab() {
                     {copiedCode ? 'Copié !' : 'Copier le code'}
                   </button>
                 </div>
-              </div>
-              <div className="text-[11.5px] text-muted-foreground max-w-xs">
-                Code maître de l&apos;entreprise pour rattacher les managers et unifier les équipes.
-              </div>
+              <InfoTooltip
+                placement="left"
+                content="Code maître de l'entreprise pour rattacher les managers et unifier les équipes."
+              />
             </div>
 
             {/* Deux boutons d'invitations distincts */}
@@ -528,9 +535,10 @@ export function OrgGovernanceTab() {
                       Segment : {orgData?.segment || user?.segment || 'Principal'}
                     </span>
                   </div>
-                  <p className="mt-1.5 text-[11.5px] text-muted-foreground leading-relaxed">
-                    Génère un lien personnalisé pour intégrer un Team Manager sous votre tutelle. Il héritera automatiquement de votre segment.
-                  </p>
+                  <InfoTooltip
+                    placement="top"
+                    content="Génère un lien personnalisé pour intégrer un Team Manager sous votre tutelle. Il héritera automatiquement de votre segment."
+                  />
                 </div>
                 <button
                   type="button"
@@ -555,9 +563,10 @@ export function OrgGovernanceTab() {
                       Nouveau Segment Libre
                     </span>
                   </div>
-                  <p className="mt-1.5 text-[11.5px] text-muted-foreground leading-relaxed">
-                    Permet à un autre dirigeant de rejoindre l&apos;organisation pour piloter une nouvelle division (ex: Direction Technique, BTP, etc.).
-                  </p>
+                  <InfoTooltip
+                    placement="top"
+                    content="Permet à un autre dirigeant de rejoindre l'organisation pour piloter une nouvelle division (ex: Direction Technique, BTP, etc.)."
+                  />
                 </div>
                 <button
                   type="button"
@@ -571,17 +580,17 @@ export function OrgGovernanceTab() {
               </div>
             </div>
           </div>
+          </div>
 
           {/* NIU Fiscal Section */}
           <div className="flex flex-col gap-3 border-t border-border pt-6">
-            <h4 className="m-0 text-[14px] font-bold text-foreground">
+            <h4 className="m-0 text-[14px] font-bold text-foreground flex items-center gap-1.5">
               Numéro d&apos;Identification Unique (NIU fiscal DGI)
+              <InfoTooltip
+                placement="right"
+                content="Renseignez le NIU fiscal officiel de votre société délivré par la DGI (carte de contribuable) pour certifier votre organisation et unifier l'ensemble de vos managers d'équipe."
+              />
             </h4>
-            <p className="m-0 text-[12.5px] leading-relaxed text-muted-foreground">
-              Renseignez le NIU fiscal officiel de votre société délivré par la DGI (carte de
-              contribuable) pour certifier votre organisation et unifier l&apos;ensemble de vos
-              managers d&apos;équipe.
-            </p>
 
             <form onSubmit={handleUpdateNiu} className="flex max-w-[440px] flex-col gap-2.5">
               <div className="flex gap-2">
@@ -611,20 +620,20 @@ export function OrgGovernanceTab() {
       {isSeniorManager && (
         <DataCard
           title="Transfert de Prospects vers un Team Manager"
-          subtitle="Sélectionnez précisément les prospects de votre compte Senior à transférer à un Team Manager de terrain"
+          subtitle="Sélectionnez les prospects Senior à transférer vers un Team Manager"
+          actions={
+            <InfoTooltip
+              placement="left"
+              content={
+                <>
+                  <strong className="block mb-1">Séparation stricte des rôles</strong>
+                  Le Senior Manager supervise l&apos;organisation globale. Le Team Manager n&apos;est pas un commercial : lorsqu&apos;il reçoit des prospects, ils intègrent son portefeuille en attente d&apos;attribution. Il pourra ensuite les déléguer à ses commerciaux de terrain.
+                </>
+              }
+            />
+          }
         >
           <div className="flex flex-col gap-5">
-            {/* Bannière explicative - Séparation des rôles */}
-            <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 text-[13px] text-blue-300 flex items-start gap-3">
-              <AlertCircle size={18} className="shrink-0 text-blue-400 mt-0.5" />
-              <div>
-                <strong>Transfert de portefeuille (séparation stricte des rôles) :</strong> Le
-                Senior Manager supervise l&apos;organisation globale. Le Team Manager n&apos;est pas
-                un commercial : lorsqu&apos;il reçoit des prospects, ils intègrent son portefeuille
-                en attente d&apos;attribution (non assignés). Le Team Manager pourra ensuite les
-                déléguer individuellement à ses propres commerciaux de terrain.
-              </div>
-            </div>
 
             {/* Outils de filtre & recherche */}
             <div className="flex flex-col gap-3 rounded-xl border border-border bg-card/60 p-4">

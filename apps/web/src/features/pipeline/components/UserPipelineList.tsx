@@ -120,7 +120,10 @@ function ProspectModal({
           nextFollowUp: followUpVal.trim() || null
         }
       })
-      pushToast({ type: 'success', title: 'Modifications enregistrées' })
+      pushToast({
+        type: 'success',
+        title: t('pipeline.notesSaved') || 'Modifications enregistrées'
+      })
       setIsEditing(false)
     } catch {
       pushToast({ type: 'error', title: t('pipeline.notesSaveError') })
@@ -481,7 +484,7 @@ function ProspectModal({
                 }}
               >
                 <TrendingUp size={13} strokeWidth={3} />
-                Suivi commercial & Métriques
+                {t('pipeline.salesTrackingMetrics') || 'Suivi commercial & Métriques'}
               </div>
 
               {/* Boutons d'action alignés à droite */}
@@ -546,7 +549,7 @@ function ProspectModal({
                       }}
                     >
                       <Save size={11} />
-                      Enregistrer
+                      {t('common.save') || 'Enregistrer'}
                     </Button>
                   </div>
                 )}
@@ -575,7 +578,7 @@ function ProspectModal({
                         marginBottom: 6
                       }}
                     >
-                      Valeur estimée (FCFA)
+                      {t('pipeline.estimatedValue') || 'Valeur estimée (FCFA)'}
                     </label>
                     <input
                       type="number"
@@ -613,7 +616,7 @@ function ProspectModal({
                           marginBottom: 6
                         }}
                       >
-                        Prochaine relance
+                        {t('pipeline.nextFollowUpLabel') || 'Prochaine relance'}
                       </label>
                       <input
                         type="date"
@@ -648,7 +651,7 @@ function ProspectModal({
                       marginBottom: 6
                     }}
                   >
-                    Notes & Commentaires
+                    {t('pipeline.notesAndComments') || 'Notes & Commentaires'}
                   </label>
                   <textarea
                     value={noteText}
@@ -685,7 +688,7 @@ function ProspectModal({
                     }}
                   >
                     <AlertTriangle size={11} />
-                    Modifications non enregistrées
+                    {t('pipeline.unsavedChanges') || 'Modifications non enregistrées'}
                   </div>
                 )}
               </div>
@@ -718,7 +721,7 @@ function ProspectModal({
                         marginBottom: 4
                       }}
                     >
-                      Valeur de l&apos;opportunité
+                      {t('pipeline.opportunityValue') || "Valeur de l'opportunité"}
                     </div>
                     <div
                       style={{
@@ -758,11 +761,13 @@ function ProspectModal({
                       }}
                     >
                       <Clock size={11} />
-                      {aging.isConclue ? 'Cycle de vente' : 'Temps dans pipeline'}
+                      {aging.isConclue
+                        ? (t('pipeline.salesCycle') || 'Cycle de vente')
+                        : (t('pipeline.timeInPipeline') || 'Temps dans pipeline')}
                     </div>
                     <div style={{ fontSize: 14, fontWeight: 800, color: aging.color }}>
                       {aging.daysInPipeline === 0
-                        ? 'Aujourd’hui'
+                        ? (t('common.today') || 'Aujourd’hui')
                         : `${aging.daysInPipeline} jour${aging.daysInPipeline > 1 ? 's' : ''}`}
                     </div>
                     <div
@@ -802,7 +807,7 @@ function ProspectModal({
                         }}
                       >
                         <Calendar size={12} />
-                        Prochaine relance
+                        {t('pipeline.nextFollowUpLabel') || 'Prochaine relance'}
                       </div>
                       <div
                         style={{
@@ -823,7 +828,7 @@ function ProspectModal({
                                   fontWeight: 800
                                 }}
                               >
-                                (EN RETARD)
+                                {t('pipeline.overdueTag') || '(EN RETARD)'}
                               </span>
                             )}
                           </span>
@@ -836,7 +841,7 @@ function ProspectModal({
                               fontWeight: 400
                             }}
                           >
-                            Aucune date
+                            {t('pipeline.noDate') || 'Aucune date'}
                           </span>
                         )}
                       </div>
@@ -891,7 +896,8 @@ function ProspectModal({
                         lineHeight: 1.4
                       }}
                     >
-                      {aging.badgeText} · Vente finalisée avec succès !
+                      {aging.badgeText} ·{' '}
+                      {t('pipeline.saleSuccessBanner') || 'Vente finalisée avec succès !'}
                     </span>
                   </div>
                 )}
@@ -919,7 +925,7 @@ function ProspectModal({
                     }}
                   >
                     <MessageSquare size={12} />
-                    Notes & Commentaires
+                    {t('pipeline.notesAndComments') || 'Notes & Commentaires'}
                   </div>
                   <div
                     style={{
@@ -932,7 +938,7 @@ function ProspectModal({
                       whiteSpace: 'pre-wrap'
                     }}
                   >
-                    {noteText || 'Aucune note pour le moment.'}
+                    {noteText || (t('pipeline.noNotesYet') || 'Aucune note pour le moment.')}
                   </div>
                 </div>
               </div>
@@ -980,8 +986,11 @@ function ProspectModal({
             >
               <AlertTriangle size={18} style={{ flexShrink: 0, marginTop: 2 }} />
               <div>
-                <strong style={{ display: 'block', marginBottom: 4 }}>Attention :</strong>
-                Ce prospect a déjà été visité/assigné précédemment à :
+                <strong style={{ display: 'block', marginBottom: 4 }}>
+                  {t('pipeline.attention') || 'Attention :'}
+                </strong>
+                {t('pipeline.previouslyVisitedBy') ||
+                  'Ce prospect a déjà été visité/assigné précédemment à :'}
                 <ul style={{ margin: '8px 0 0 0', paddingLeft: 16, fontSize: 12, opacity: 0.9 }}>
                   {filteredPreviousAssignees.map((pa, idx) => (
                     <li key={idx} style={{ marginBottom: 4 }}>
@@ -1179,7 +1188,7 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
               }}
             >
               {mode === 'kanban' ? <LayoutGrid size={14} /> : <List size={14} />}
-              {mode === 'kanban' ? 'Kanban' : 'Liste'}
+              {mode === 'kanban' ? 'Kanban' : (t('pipeline.listView') || 'Liste')}
             </button>
           ))}
         </div>
@@ -1481,7 +1490,7 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
                           }}
                         >
                           <AlertTriangle size={10} />
-                          Déjà visité
+                          {t('pipeline.alreadyVisited') || 'Déjà visité'}
                         </span>
                       ) : null
                     })()}

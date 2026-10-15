@@ -69,6 +69,7 @@ const COLUMNS = [
     accent: '#60a5fa',
     icon: TrendingUp,
     emptyIcon: Target,
+    emptyKey: 'pipeline.emptyProspection',
     emptyText: 'Aucun prospect en cours'
   },
   {
@@ -81,6 +82,7 @@ const COLUMNS = [
     accent: '#fb923c',
     icon: Handshake,
     emptyIcon: Handshake,
+    emptyKey: 'pipeline.emptyNegotiation',
     emptyText: 'Aucune négociation active'
   },
   {
@@ -93,6 +95,7 @@ const COLUMNS = [
     accent: '#0284c7',
     icon: CheckCircle2,
     emptyIcon: Trophy,
+    emptyKey: 'pipeline.emptyConcluded',
     emptyText: 'Aucune vente conclue'
   }
 ]
@@ -135,6 +138,7 @@ function KanbanCard({
   innerRef?: any
   isDragging?: boolean
 }) {
+  const { t } = useTranslation()
   const otherCols = COLUMNS.filter((c) => c.id !== col.id)
   const aging = getPipelineAging(
     item.createdAt || item.enteredAt,
@@ -297,7 +301,7 @@ function KanbanCard({
                 }}
               >
                 <Phone size={10} />
-                Tél
+                {t('pipeline.phone')}
               </span>
             )}
             {(item.notes ?? item.note) && (
@@ -316,7 +320,7 @@ function KanbanCard({
                 }}
               >
                 <MessageSquare size={10} />
-                Notes
+                {t('pipeline.hasNotes')}
               </span>
             )}
             {item.nextFollowUp && item.status !== 'conclue' && item.status !== 'conclusion' && (
@@ -369,7 +373,7 @@ function KanbanCard({
                   }}
                 >
                   <AlertTriangle size={10} />
-                  Déjà visité
+                  {t('pipeline.alreadyVisited')}
                 </span>
               ) : null
             })()}
@@ -390,7 +394,7 @@ function KanbanCard({
               }}
             >
               <Clock size={10} />
-              {aging.daysInPipeline === 0 ? 'Aujourd’hui' : `${aging.daysInPipeline}j`}
+              {aging.daysInPipeline === 0 ? t('common.today') : `${aging.daysInPipeline}j`}
               {aging.level === 'alert' && (
                 <AlertTriangle size={10} style={{ color: aging.color }} />
               )}
@@ -430,7 +434,7 @@ function KanbanCard({
                   }}
                 >
                   <ChevronRight size={10} />
-                  {targetCol.label}
+                  {t(targetCol.labelKey) || targetCol.label}
                 </button>
               ))}
             </div>
@@ -520,7 +524,7 @@ function MobileKanban({
                   fontFamily: "'Syne', sans-serif"
                 }}
               >
-                {col.label}
+                {t(col.labelKey) || col.label}
               </span>
               <div
                 style={{
@@ -568,7 +572,7 @@ function MobileKanban({
             letterSpacing: '-0.01em'
           }}
         >
-          {activeCol.label}
+          {t(activeCol.labelKey) || activeCol.label}
         </span>
         <span
           style={{
@@ -617,7 +621,7 @@ function MobileKanban({
             <span
               style={{ fontSize: 13, fontWeight: 600, color: activeCol.color, textAlign: 'center' }}
             >
-              {activeCol.emptyText}
+              {t((activeCol as any).emptyKey) || activeCol.emptyText}
             </span>
             <span
               style={{
@@ -626,7 +630,8 @@ function MobileKanban({
                 textAlign: 'center'
               }}
             >
-              Utilisez les boutons sur les cartes pour déplacer vos prospects
+              {t('pipeline.kanbanMoveHint') ||
+                'Utilisez les boutons sur les cartes pour déplacer vos prospects'}
             </span>
           </div>
         ) : (
@@ -844,7 +849,7 @@ export function UserPipelineKanban({ items, onStatusChange, onItemClick }: Props
                             textAlign: 'center'
                           }}
                         >
-                          {col.emptyText}
+                          {t((col as any).emptyKey) || col.emptyText}
                         </span>
                         <span
                           style={{
@@ -853,7 +858,7 @@ export function UserPipelineKanban({ items, onStatusChange, onItemClick }: Props
                             textAlign: 'center'
                           }}
                         >
-                          Glissez un prospect ici
+                          {t('pipeline.dragProspectHere') || 'Glissez un prospect ici'}
                         </span>
                       </div>
                     ) : (

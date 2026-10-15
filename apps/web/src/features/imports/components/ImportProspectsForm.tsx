@@ -3,11 +3,11 @@
 import { useState, useRef } from 'react'
 import { useTranslation } from '@/providers/I18nProvider'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { InfoTooltip } from '@/components/ui/InfoTooltip'
 import {
   FolderOpen,
   CheckCircle2,
   FileText,
-  Info,
   AlertTriangle,
   Upload,
   Loader2,
@@ -366,16 +366,31 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
           </div>
         ) : (
           <>
-            <div
-              style={{
-                fontSize: 13,
-                fontWeight: 600,
-                color: 'var(--foreground, #f1f5f9)',
-                marginBottom: 4
-              }}
-            >
-              {t('team.dragDrop')}
-            </div>
+          <div
+            style={{
+              fontSize: 13,
+              fontWeight: 600,
+              color: 'var(--foreground, #f1f5f9)',
+              marginBottom: 4,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 6
+            }}
+          >
+            {t('team.dragDrop')}
+            <InfoTooltip
+              placement="top"
+              content={
+                <>
+                  <strong className="block mb-1">Formats supportés</strong>
+                  CSV, TSV, TXT, XLSX, XLS, JSON — séparateurs auto-détectés (, ; Tab | ~).
+                  <br />
+                  <span className="text-muted-foreground">Colonnes acceptées : Nom entreprise, Téléphone, Email, Ville, Secteur, Notes</span>
+                </>
+              }
+            />
+          </div>
             <div style={{ fontSize: 12, color: 'var(--muted-foreground, #94a3b8)' }}>
               {t('team.orClick')}
             </div>
@@ -398,51 +413,6 @@ export function ImportProspectsForm({ managerId, onImported }: Props) {
         />
       </div>
 
-      {/* Aide format */}
-      <div
-        style={{
-          fontSize: 11.5,
-          color: 'var(--muted-foreground, #94a3b8)',
-          lineHeight: 1.65,
-          padding: '8px 12px',
-          background: 'var(--card, #131c2e)',
-          borderRadius: 8,
-          border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, marginBottom: 4 }}>
-          <FileText
-            size={13}
-            strokeWidth={2}
-            style={{ color: 'var(--muted-foreground, #94a3b8)', marginTop: 1, flexShrink: 0 }}
-          />
-          <span>
-            <strong>{t('team.supportedFormats')}</strong> CSV, TSV, TXT, XLSX, XLS, JSON, etc.
-          </span>
-        </div>
-        <br />
-        <strong>{t('team.autoSeparators')}</strong> {t('team.separatorsList')}
-        <br />
-        <code
-          style={{
-            fontSize: 11,
-            background: 'var(--secondary, #1e2a3b)',
-            padding: '1px 4px',
-            borderRadius: 3
-          }}
-        >
-          {t('team.exampleColumns')}
-        </code>
-        <br />
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, marginTop: 4 }}>
-          <Info
-            size={12}
-            strokeWidth={2}
-            style={{ color: 'var(--muted-foreground, #94a3b8)', marginTop: 1, flexShrink: 0 }}
-          />
-          <span>{t('team.flexibleColumns')}</span>
-        </div>
-      </div>
 
       {/* Messages */}
       {error && (
