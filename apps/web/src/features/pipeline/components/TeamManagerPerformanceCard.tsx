@@ -1,11 +1,12 @@
 'use client'
 
-import { useMemo } from 'react'
-import { TrendingUp, CheckCircle2, Calendar, X, Users, Users2, Building2, Check, AlertTriangle, Trophy, Banknote, Crown } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { TrendingUp, CheckCircle2, Calendar, X, Users, Users2, Building2, Check, AlertTriangle, Trophy, Banknote, Crown, ArrowRight } from 'lucide-react'
 import { useTranslation } from '@/providers/I18nProvider'
 import { useProspectingCountryDetails } from '@/hooks/useProspectingCountry'
 import type { OrgManagerStats, OrgPipelineItem } from '@/features/pipeline/hooks/useOrgPipeline'
 import type { MemberTarget } from '@/features/pipeline/hooks/useTeamTargets'
+import { OverdueFollowUpsDrawer } from './OverdueFollowUpsDrawer'
 
 interface TeamManagerPerformanceCardProps {
   manager?: OrgManagerStats
@@ -30,6 +31,7 @@ export function TeamManagerPerformanceCard({
   const { currency } = useProspectingCountryDetails()
   const todayStr = useMemo(() => new Date().toISOString().slice(0, 10), [])
   const isGlobal = !manager
+  const [showOverdueDrawer, setShowOverdueDrawer] = useState(false)
 
   const stats = useMemo(() => {
     let prospectionCount = 0
@@ -334,19 +336,36 @@ export function TeamManagerPerformanceCard({
 
         {/* 3. Relances & Suivi équipe / organisation */}
         <div
+          role="button"
+          tabIndex={0}
+          onClick={() => setShowOverdueDrawer(true)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              setShowOverdueDrawer(true)
+            }
+          }}
+          className="group transition-all duration-150 hover:shadow-md"
           style={{
             background: 'var(--card, #131c2e)',
             borderRadius: 10,
             padding: '11px 14px',
             border:
               stats.overdueCount > 0
-                ? '1px solid rgba(239,68,68,0.3)'
+                ? '1px solid rgba(239,68,68,0.4)'
                 : '1px solid var(--border, rgba(255,255,255,0.08))',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
-            gap: 4
+            gap: 4,
+            cursor: 'pointer',
+            outline: 'none'
           }}
+          title={
+            stats.overdueCount > 0
+              ? 'Cliquer pour voir le détail des prospects et commerciaux en alerte'
+              : 'Cliquer pour consulter les relances'
+          }
         >
           <div
             style={{
@@ -356,11 +375,28 @@ export function TeamManagerPerformanceCard({
               color: stats.overdueCount > 0 ? 'var(--pipeline-alert-color, #b91c1c)' : 'var(--pipeline-progress-color, #1d4ed8)',
               display: 'flex',
               alignItems: 'center',
-              gap: 5
+              justifyContent: 'space-between'
             }}
           >
-            <Calendar size={12} />
-            <span>{t('pipeline.followUpAndAlerts') || 'Relances & Suivi'}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <Calendar size={12} />
+              <span>{t('pipeline.followUpAndAlerts') || 'Relances & Suivi'}</span>
+            </div>
+            {stats.overdueCount > 0 && (
+              <span
+                style={{
+                  fontSize: 10,
+                  fontWeight: 800,
+                  color: '#ef4444',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 3
+                }}
+                className="opacity-90 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all"
+              >
+                Détails <ArrowRight size={10} />
+              </span>
+            )}
           </div>
           <div
             style={{
@@ -713,6 +749,16 @@ export function TeamManagerPerformanceCard({
           )
         })()}
       </div>
+
+      {/* ── Tiroir des relances et alertes détaillées ────────────────── */}
+      <OverdueFollowUpsDrawer
+        open={showOverdueDrawer}
+        onClose={() => setShowOverdueDrawer(false)}
+        items={items}
+        currency={currency || 'FCFA'}
+        context={context}
+        managers={managers}
+      />
     </div>
   )
 }
