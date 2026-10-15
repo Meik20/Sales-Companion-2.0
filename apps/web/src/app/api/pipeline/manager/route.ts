@@ -31,18 +31,15 @@ export async function GET(request: NextRequest) {
     }
 
     // Items assigned TO the team (managerUid set by team assignments route)
-    // Les leads archivés sont exclus du pipeline actif
     const teamSnap = await adminDb
       .collection('pipeline')
       .where('managerUid', '==', managerUid)
-      .where('archived', '!=', true)
       .get()
 
-    // Items in the manager's own pipeline (userId = managerUid), non archivés
+    // Items in the manager's own pipeline (userId = managerUid)
     const ownSnap = await adminDb
       .collection('pipeline')
       .where('userId', '==', managerUid)
-      .where('archived', '!=', true)
       .get()
 
     // Merge & deduplicate:
@@ -52,10 +49,12 @@ export async function GET(request: NextRequest) {
     const assignedCompanies = new Set<string>()
     const items: Record<string, unknown>[] = []
 
-    // 1. Process items assigned to members
+    // 1. Process items assigned to members (exclure les archivés)
     teamSnap.docs.forEach((doc) => {
-      seen.add(doc.id)
       const data = doc.data()
+      if (data.archived === true) return
+
+      seen.add(doc.id)
       const compName = String(data.companyName || data.name || '')
         .trim()
         .toLowerCase()
@@ -70,10 +69,12 @@ export async function GET(request: NextRequest) {
       })
     })
 
-    // 2. Process manager's own items
+    // 2. Process manager's own items (exclure les archivés)
     for (const doc of ownSnap.docs) {
       if (!seen.has(doc.id)) {
         const data = doc.data()
+        if (data.archived === true) continue
+
         const compName = String(data.companyName || data.name || '')
           .trim()
           .toLowerCase()
