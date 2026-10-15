@@ -22,82 +22,280 @@ import {
   CheckCircle2,
   TrendingUp,
   Clock,
-  Medal
+  Medal,
+  ChevronRight,
+  Check
 } from 'lucide-react'
 
 // ── KPI Card ──────────────────────────────────────────────────────────────────
+interface KpiCardProps {
+  label: string
+  value: string | number
+  sub?: string
+  color: string
+  icon: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number; className?: string }>
+  badge?: { text: string; color?: string; bg?: string }
+  isPerson?: boolean
+}
+
 function KpiCard({
   label,
   value,
   sub,
   color,
-  icon: Icon
-}: {
-  label: string
-  value: string | number
-  sub?: string
-  color: string
-  icon: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>
-}) {
+  icon: Icon,
+  badge,
+  isPerson
+}: KpiCardProps) {
+  const isRetard = label.toLowerCase().includes('retard')
+  const numVal = typeof value === 'number' ? value : Number(value)
+  const isZeroRetard = isRetard && (value === 0 || value === '0')
+  const hasRetard = isRetard && !isZeroRetard && !isNaN(numVal) && numVal > 0
+
+  // Person detection: either flag or "top commercial" label
+  const isPersonCard = isPerson || label.toLowerCase().includes('top commercial')
+
+  // Check if string ends with F, FCFA, or %
+  const strVal = String(value ?? '—')
+  let mainNumber = strVal
+  let suffix = ''
+
+  if (strVal.endsWith(' FCFA')) {
+    mainNumber = strVal.replace(' FCFA', '')
+    suffix = 'FCFA'
+  } else if (strVal.endsWith(' F')) {
+    mainNumber = strVal.replace(' F', '')
+    suffix = 'FCFA'
+  } else if (strVal.endsWith('%')) {
+    mainNumber = strVal.replace('%', '')
+    suffix = '%'
+  }
+
+  // Get initials for person
+  let initials = ''
+  if (isPersonCard && strVal && strVal !== '—') {
+    initials = strVal
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((w) => w[0]?.toUpperCase())
+      .join('')
+  }
+
   return (
     <div
       style={{
-        background: 'var(--card, #131c2e)',
-        border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+        background: 'var(--card, #ffffff)',
+        border: '1px solid var(--border, rgba(0,0,0,0.08))',
         borderRadius: 16,
-        padding: '20px 24px',
+        padding: '18px 20px',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
         position: 'relative',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        minHeight: 132,
+        boxShadow: '0 1px 3px rgba(0,0,0,0.03), 0 4px 14px -2px rgba(0,0,0,0.02)',
+        transition: 'transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease'
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = 'translateY(-2px)'
+        e.currentTarget.style.boxShadow = '0 6px 20px -4px rgba(0,0,0,0.08)'
+        e.currentTarget.style.borderColor = `${color}66`
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = 'translateY(0)'
+        e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.03), 0 4px 14px -2px rgba(0,0,0,0.02)'
+        e.currentTarget.style.borderColor = 'var(--border, rgba(0,0,0,0.08))'
       }}
     >
+      {/* Top micro-gradient indicator */}
       <div
         style={{
           position: 'absolute',
-          top: -6,
-          right: -6,
-          opacity: 0.07,
-          pointerEvents: 'none'
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 3,
+          background: `linear-gradient(90deg, ${color}, ${color}22)`
         }}
-      >
-        <Icon size={64} color={color} strokeWidth={1.5} />
-      </div>
+      />
+
+      {/* Header: Label + Vector Icon Squircle */}
       <div
         style={{
-          fontSize: 11,
-          fontWeight: 700,
-          color: 'var(--muted-foreground, #94a3b8)',
-          textTransform: 'uppercase',
-          letterSpacing: '.06em',
-          marginBottom: 10,
           display: 'flex',
           alignItems: 'center',
-          gap: 6
+          justifyContent: 'space-between',
+          gap: 10,
+          marginBottom: 10
         }}
       >
-        <Icon size={13} color={color} />
-        {label}
+        <span
+          style={{
+            fontSize: 11,
+            fontWeight: 700,
+            color: 'var(--muted-foreground, #64748b)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.06em',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis'
+          }}
+        >
+          {label}
+        </span>
+        <div
+          style={{
+            width: 32,
+            height: 32,
+            borderRadius: 9,
+            background: `${color}15`,
+            color: color,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0
+          }}
+        >
+          <Icon size={16} strokeWidth={2.2} />
+        </div>
       </div>
+
+      {/* Main Metric Value Area */}
+      <div style={{ margin: '2px 0 8px' }}>
+        {isPersonCard ? (
+          strVal && strVal !== '—' ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                  color: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 800,
+                  fontSize: 13,
+                  boxShadow: '0 2px 8px rgba(245, 158, 11, 0.28)',
+                  flexShrink: 0
+                }}
+              >
+                {initials || <Trophy size={15} />}
+              </div>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div
+                  style={{
+                    fontSize: 15,
+                    fontWeight: 700,
+                    color: 'var(--foreground, #0f172a)',
+                    lineHeight: 1.25,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap'
+                  }}
+                  title={strVal}
+                >
+                  {strVal}
+                </div>
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    fontSize: 11,
+                    fontWeight: 600,
+                    color: '#d97706',
+                    marginTop: 2
+                  }}
+                >
+                  <Trophy size={11} /> Leader du mois
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--muted-foreground, #94a3b8)' }}>
+              Aucun deal clôturé
+            </div>
+          )
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', gap: 4 }}>
+            <span
+              style={{
+                fontSize: 27,
+                fontWeight: 800,
+                color: hasRetard ? '#ef4444' : isZeroRetard ? '#10b981' : 'var(--foreground, #0f172a)',
+                fontFamily: "'Syne', -apple-system, sans-serif",
+                lineHeight: 1.1,
+                letterSpacing: '-0.02em'
+              }}
+            >
+              {mainNumber}
+            </span>
+            {suffix && (
+              <span
+                style={{
+                  fontSize: suffix === '%' ? 17 : 12,
+                  fontWeight: 700,
+                  color: suffix === '%' ? color : 'var(--muted-foreground, #64748b)',
+                  letterSpacing: suffix === '%' ? '-0.01em' : '0.04em'
+                }}
+              >
+                {suffix}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Subtext / contextual status */}
       <div
         style={{
-          fontSize: 36,
-          fontWeight: 800,
-          color,
-          fontFamily: "'Syne', sans-serif",
-          lineHeight: 1
+          fontSize: 11.5,
+          color: 'var(--muted-foreground, #64748b)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          lineHeight: 1.3
         }}
       >
-        {value}
+        {isZeroRetard ? (
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 4,
+              color: '#059669',
+              fontWeight: 600,
+              fontSize: 11
+            }}
+          >
+            <CheckCircle2 size={12} /> À jour · Aucun retard
+          </span>
+        ) : hasRetard ? (
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 4,
+              color: '#dc2626',
+              fontWeight: 600,
+              fontSize: 11
+            }}
+          >
+            <AlertTriangle size={12} /> Échéances dépassées
+          </span>
+        ) : sub ? (
+          <span>{sub}</span>
+        ) : null}
       </div>
-      {sub && (
-        <div style={{ fontSize: 12, color: 'var(--muted-foreground, #94a3b8)', marginTop: 6 }}>
-          {sub}
-        </div>
-      )}
     </div>
   )
 }
 
-// ── Pipeline Funnel (SVG pur) ─────────────────────────────────────────────────
+// ── Pipeline Funnel ───────────────────────────────────────────────────────────
 function PipelineFunnel({
   prospection,
   negociation,
@@ -110,192 +308,489 @@ function PipelineFunnel({
   const total = prospection + negociation + conclue || 1
   const stages = [
     {
+      step: 1,
       label: 'Prospection',
+      subtitle: 'Prise de contact & qualification',
       value: prospection,
-      color: '#60a5fa',
+      color: '#3b82f6',
+      bg: 'rgba(59, 130, 246, 0.1)',
+      icon: Target,
       pct: Math.round((prospection / total) * 100)
     },
     {
+      step: 2,
       label: 'Négociation',
+      subtitle: 'Offre envoyée & discussions',
       value: negociation,
-      color: '#fbbf24',
+      color: '#f59e0b',
+      bg: 'rgba(245, 158, 11, 0.1)',
+      icon: Handshake,
       pct: Math.round((negociation / total) * 100)
     },
-    { label: 'Conclue', value: conclue, color: '#0284c7', pct: Math.round((conclue / total) * 100) }
+    {
+      step: 3,
+      label: 'Conclue',
+      subtitle: 'Contrat signé & deal gagné',
+      value: conclue,
+      color: '#10b981',
+      bg: 'rgba(16, 185, 129, 0.1)',
+      icon: CheckCircle2,
+      pct: Math.round((conclue / total) * 100)
+    }
   ]
+
+  // Conversion dropoff calculation
+  const pToN = (prospection + negociation + conclue) > 0
+    ? Math.round(((negociation + conclue) / (prospection + negociation + conclue)) * 100)
+    : 0
+  const nToC = (negociation + conclue) > 0
+    ? Math.round((conclue / (negociation + conclue)) * 100)
+    : 0
 
   return (
     <div>
+      {/* Header */}
       <div
         style={{
-          fontSize: 13,
-          fontWeight: 700,
-          color: 'var(--muted-foreground, #94a3b8)',
-          textTransform: 'uppercase',
-          letterSpacing: '.06em',
-          marginBottom: 16
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: 18
         }}
       >
-        Entonnoir de conversion
+        <div>
+          <div
+            style={{
+              fontSize: 13,
+              fontWeight: 800,
+              color: 'var(--foreground, #0f172a)',
+              letterSpacing: '-0.01em',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8
+            }}
+          >
+            <div
+              style={{
+                width: 24,
+                height: 24,
+                borderRadius: 6,
+                background: 'rgba(59, 130, 246, 0.15)',
+                color: '#3b82f6',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <Target size={13} />
+            </div>
+            Entonnoir de Conversion
+          </div>
+          <div style={{ fontSize: 11.5, color: 'var(--muted-foreground, #64748b)', marginTop: 2 }}>
+            Progression des {total} opportunités à travers le cycle de vente
+          </div>
+        </div>
+        <span
+          style={{
+            fontSize: 11,
+            fontWeight: 700,
+            padding: '3px 8px',
+            borderRadius: 6,
+            background: 'var(--secondary, rgba(0,0,0,0.04))',
+            color: 'var(--muted-foreground, #64748b)',
+            border: '1px solid var(--border, rgba(0,0,0,0.06))'
+          }}
+        >
+          {total} lead{total > 1 ? 's' : ''}
+        </span>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+
+      {/* Stages list with elegant progress bars & transitions */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {stages.map((stage, i) => {
-          const width = Math.max(30, 100 - i * 18)
+          const StageIcon = stage.icon
+          const conversionRate = i === 0 ? pToN : nToC
           return (
-            <div key={stage.label} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div key={stage.label}>
               <div
                 style={{
-                  width: 90,
-                  fontSize: 12,
-                  color: 'var(--muted-foreground, #94a3b8)',
-                  textAlign: 'right',
-                  flexShrink: 0
+                  background: 'var(--card, #ffffff)',
+                  border: '1px solid var(--border, rgba(0,0,0,0.07))',
+                  borderRadius: 12,
+                  padding: '12px 14px'
                 }}
               >
-                {stage.label}
-              </div>
-              <div style={{ flex: 1, position: 'relative', height: 36 }}>
                 <div
                   style={{
-                    position: 'absolute',
-                    left: `${(100 - width) / 2}%`,
-                    width: `${width}%`,
-                    height: '100%',
-                    background: `${stage.color}22`,
-                    border: `1px solid ${stage.color}55`,
-                    borderRadius: 8,
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    transition: 'all 0.4s ease'
+                    justifyContent: 'space-between',
+                    marginBottom: 8
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div
+                      style={{
+                        width: 28,
+                        height: 28,
+                        borderRadius: 8,
+                        background: stage.bg,
+                        color: stage.color,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0
+                      }}
+                    >
+                      <StageIcon size={14} />
+                    </div>
+                    <div>
+                      <div
+                        style={{
+                          fontSize: 13,
+                          fontWeight: 700,
+                          color: 'var(--foreground, #0f172a)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 6
+                        }}
+                      >
+                        {stage.label}
+                      </div>
+                      <div style={{ fontSize: 10.5, color: 'var(--muted-foreground, #64748b)' }}>
+                        {stage.subtitle}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ textAlign: 'right' }}>
+                    <span
+                      style={{
+                        fontSize: 14,
+                        fontWeight: 800,
+                        color: stage.color,
+                        fontFamily: "'Syne', -apple-system, sans-serif"
+                      }}
+                    >
+                      {stage.value}
+                    </span>{' '}
+                    <span
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 600,
+                        color: 'var(--muted-foreground, #64748b)'
+                      }}
+                    >
+                      ({stage.pct}%)
+                    </span>
+                  </div>
+                </div>
+
+                {/* Progress bar */}
+                <div
+                  style={{
+                    height: 8,
+                    borderRadius: 999,
+                    background: 'var(--secondary, rgba(0,0,0,0.06))',
+                    overflow: 'hidden',
+                    position: 'relative'
                   }}
                 >
                   <div
                     style={{
+                      height: '100%',
                       width: `${stage.pct}%`,
-                      height: '70%',
-                      background: stage.color,
-                      borderRadius: 5,
-                      transition: 'width 0.8s ease',
-                      minWidth: stage.value > 0 ? 4 : 0
+                      borderRadius: 999,
+                      background: `linear-gradient(90deg, ${stage.color}, ${stage.color}cc)`,
+                      transition: 'width 0.8s ease'
                     }}
                   />
                 </div>
               </div>
-              <div
-                style={{
-                  width: 60,
-                  fontSize: 13,
-                  fontWeight: 700,
-                  color: stage.color,
-                  flexShrink: 0
-                }}
-              >
-                {stage.value}{' '}
-                <span style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)' }}>
-                  ({stage.pct}%)
-                </span>
-              </div>
+
+              {/* Transition connector between steps */}
+              {i < stages.length - 1 && (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6,
+                    margin: '5px 0',
+                    fontSize: 10.5,
+                    color: 'var(--muted-foreground, #64748b)'
+                  }}
+                >
+                  <div
+                    style={{
+                      height: 10,
+                      width: 1,
+                      background: 'var(--border, rgba(0,0,0,0.1))'
+                    }}
+                  />
+                  <span
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 600,
+                      padding: '1px 7px',
+                      borderRadius: 10,
+                      background: 'var(--secondary, rgba(0,0,0,0.04))',
+                      color: 'var(--muted-foreground, #64748b)'
+                    }}
+                  >
+                    Taux d&apos;avancement : {conversionRate}%
+                  </span>
+                  <div
+                    style={{
+                      height: 10,
+                      width: 1,
+                      background: 'var(--border, rgba(0,0,0,0.1))'
+                    }}
+                  />
+                </div>
+              )}
             </div>
           )
         })}
+      </div>
+
+      {/* Footer efficiency metric */}
+      <div
+        style={{
+          marginTop: 16,
+          padding: '10px 14px',
+          borderRadius: 10,
+          background: 'rgba(16, 185, 129, 0.06)',
+          border: '1px solid rgba(16, 185, 129, 0.18)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          fontSize: 11.5
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#047857', fontWeight: 600 }}>
+          <CheckCircle2 size={13} /> Taux global de signature
+        </div>
+        <div style={{ fontWeight: 800, color: '#047857', fontSize: 13 }}>
+          {Math.round((conclue / total) * 100)}%
+        </div>
       </div>
     </div>
   )
 }
 
-// ── Monthly Trend Bar Chart (SVG pur) ─────────────────────────────────────────
+// ── Monthly Trend Bar Chart ──────────────────────────────────────────────────
 function MonthlyTrendChart({
   data
 }: {
   data: { month: string; conclue: number; total: number }[]
 }) {
   const maxVal = Math.max(...data.map((d) => d.total), 1)
-  const chartH = 120
+  const chartH = 140
+  const totalLeadsPeriod = data.reduce((acc, d) => acc + d.total, 0)
+  const totalConcluePeriod = data.reduce((acc, d) => acc + d.conclue, 0)
 
   return (
     <div>
+      {/* Header */}
       <div
         style={{
-          fontSize: 13,
-          fontWeight: 700,
-          color: 'var(--muted-foreground, #94a3b8)',
-          textTransform: 'uppercase',
-          letterSpacing: '.06em',
-          marginBottom: 16
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: 18
         }}
       >
-        Activité mensuelle (6 derniers mois)
-      </div>
-      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, height: chartH + 32 }}>
-        {data.map((d) => {
-          const totalH = Math.round((d.total / maxVal) * chartH)
-          const conclueH = d.total > 0 ? Math.round((d.conclue / d.total) * totalH) : 0
-          return (
+        <div>
+          <div
+            style={{
+              fontSize: 13,
+              fontWeight: 800,
+              color: 'var(--foreground, #0f172a)',
+              letterSpacing: '-0.01em',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8
+            }}
+          >
             <div
-              key={d.month}
               style={{
-                flex: 1,
+                width: 24,
+                height: 24,
+                borderRadius: 6,
+                background: 'rgba(99, 102, 241, 0.15)',
+                color: '#6366f1',
                 display: 'flex',
-                flexDirection: 'column',
                 alignItems: 'center',
-                gap: 6
+                justifyContent: 'center'
               }}
             >
-              <div style={{ fontSize: 10, color: 'var(--muted-foreground, #64748b)' }}>
-                {d.total > 0 ? d.total : ''}
-              </div>
+              <Calendar size={13} />
+            </div>
+            Activité Mensuelle
+          </div>
+          <div style={{ fontSize: 11.5, color: 'var(--muted-foreground, #64748b)', marginTop: 2 }}>
+            Nouveaux leads et affaires conclues (6 derniers mois)
+          </div>
+        </div>
+        <span
+          style={{
+            fontSize: 11,
+            fontWeight: 700,
+            padding: '3px 8px',
+            borderRadius: 6,
+            background: 'var(--secondary, rgba(0,0,0,0.04))',
+            color: 'var(--muted-foreground, #64748b)',
+            border: '1px solid var(--border, rgba(0,0,0,0.06))'
+          }}
+        >
+          {totalConcluePeriod} signée{totalConcluePeriod > 1 ? 's' : ''} / {totalLeadsPeriod} lead{totalLeadsPeriod > 1 ? 's' : ''}
+        </span>
+      </div>
+
+      {/* Chart container with horizontal gridlines */}
+      <div style={{ position: 'relative', marginTop: 10 }}>
+        {/* Guidelines at 50% and 100% */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 24,
+            left: 0,
+            right: 0,
+            borderTop: '1px dashed var(--border, rgba(0,0,0,0.08))',
+            pointerEvents: 'none'
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            top: 24 + chartH / 2,
+            left: 0,
+            right: 0,
+            borderTop: '1px dashed var(--border, rgba(0,0,0,0.05))',
+            pointerEvents: 'none'
+          }}
+        />
+
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'flex-end',
+            gap: 10,
+            height: chartH + 50,
+            paddingTop: 24
+          }}
+        >
+          {data.map((d, idx) => {
+            const isLast = idx === data.length - 1
+            const totalH = Math.round((d.total / maxVal) * chartH)
+            const conclueH = d.total > 0 ? Math.round((d.conclue / d.total) * totalH) : 0
+
+            return (
               <div
+                key={d.month}
                 style={{
-                  width: '100%',
-                  height: Math.max(totalH, 4),
-                  borderRadius: '6px 6px 0 0',
-                  background: 'rgba(96,165,250,0.15)',
-                  border: '1px solid rgba(96,165,250,0.3)',
-                  position: 'relative',
-                  overflow: 'hidden',
+                  flex: 1,
                   display: 'flex',
                   flexDirection: 'column',
-                  justifyContent: 'flex-end'
+                  alignItems: 'center',
+                  gap: 6,
+                  height: '100%',
+                  justifyContent: 'flex-end',
+                  cursor: 'default'
                 }}
+                title={`${d.month} : ${d.total} prospect${d.total > 1 ? 's' : ''}, ${d.conclue} conclu${d.conclue > 1 ? 's' : ''}`}
               >
+                {/* Value tooltip pill above active bar */}
+                <div
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    color: d.total > 0 ? 'var(--foreground, #0f172a)' : 'transparent',
+                    marginBottom: 2
+                  }}
+                >
+                  {d.total > 0 ? d.total : '·'}
+                </div>
+
+                {/* Vertical Bar Stack */}
                 <div
                   style={{
                     width: '100%',
-                    height: Math.max(conclueH, d.conclue > 0 ? 4 : 0),
-                    background: '#0284c7',
-                    borderRadius: '4px 4px 0 0',
-                    transition: 'height 0.6s ease'
+                    maxWidth: 38,
+                    height: Math.max(totalH, 4),
+                    borderRadius: '8px 8px 0 0',
+                    background: 'rgba(59, 130, 246, 0.15)',
+                    border: '1px solid rgba(59, 130, 246, 0.25)',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'flex-end',
+                    transition: 'all 0.3s ease'
                   }}
-                />
+                >
+                  {/* Concluded deals fill inside */}
+                  <div
+                    style={{
+                      width: '100%',
+                      height: Math.max(conclueH, d.conclue > 0 ? 4 : 0),
+                      background: 'linear-gradient(180deg, #10b981 0%, #059669 100%)',
+                      borderRadius: '6px 6px 0 0',
+                      transition: 'height 0.6s ease'
+                    }}
+                  />
+                </div>
+
+                {/* Month label */}
+                <div
+                  style={{
+                    fontSize: 11,
+                    fontWeight: isLast ? 800 : 500,
+                    color: isLast ? 'var(--primary, #3b82f6)' : 'var(--muted-foreground, #64748b)',
+                    textAlign: 'center',
+                    marginTop: 4
+                  }}
+                >
+                  {d.month}
+                </div>
               </div>
-              <div
-                style={{
-                  fontSize: 10,
-                  color: 'var(--muted-foreground, #94a3b8)',
-                  textAlign: 'center'
-                }}
-              >
-                {d.month}
-              </div>
-            </div>
-          )
-        })}
+            )
+          })}
+        </div>
       </div>
-      <div style={{ display: 'flex', gap: 16, marginTop: 8 }}>
+
+      {/* Legend */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 20,
+          marginTop: 14,
+          paddingTop: 12,
+          borderTop: '1px solid var(--border, rgba(0,0,0,0.06))'
+        }}
+      >
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
             gap: 6,
             fontSize: 11,
-            color: 'var(--muted-foreground, #94a3b8)'
+            color: 'var(--muted-foreground, #64748b)'
           }}
         >
           <div
-            style={{ width: 10, height: 10, borderRadius: 2, background: 'rgba(96,165,250,0.4)' }}
-          />{' '}
-          Total leads
+            style={{
+              width: 10,
+              height: 10,
+              borderRadius: 3,
+              background: 'rgba(59, 130, 246, 0.25)',
+              border: '1px solid rgba(59, 130, 246, 0.5)'
+            }}
+          />
+          Total prospects
         </div>
         <div
           style={{
@@ -303,11 +798,18 @@ function MonthlyTrendChart({
             alignItems: 'center',
             gap: 6,
             fontSize: 11,
-            color: 'var(--muted-foreground, #94a3b8)'
+            color: 'var(--muted-foreground, #64748b)'
           }}
         >
-          <div style={{ width: 10, height: 10, borderRadius: 2, background: '#0284c7' }} /> Affaires
-          conclues
+          <div
+            style={{
+              width: 10,
+              height: 10,
+              borderRadius: 3,
+              background: 'linear-gradient(180deg, #10b981 0%, #059669 100%)'
+            }}
+          />
+          Affaires conclues
         </div>
       </div>
     </div>
@@ -1182,7 +1684,7 @@ function SupportActivitySection({
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
           gap: 16
         }}
       >
@@ -1190,7 +1692,7 @@ function SupportActivitySection({
           label="Appels support"
           value={callsCount}
           sub={selectedAgent ? `Passés par ${selectedAgent.name}` : 'Passés par vos agents'}
-          color="#60a5fa"
+          color="#3b82f6"
           icon={Phone}
         />
         <KpiCard
@@ -1204,14 +1706,14 @@ function SupportActivitySection({
           label="Tickets ouverts"
           value={openTicketsCount}
           sub="En attente de résolution"
-          color="#f87171"
+          color="#ef4444"
           icon={Clock}
         />
         <KpiCard
           label="Taux de résolution"
           value={`${resolutionRate}%`}
           sub="Tickets résolus ou fermés"
-          color={resolutionRate >= 70 ? '#0284c7' : '#f59e0b'}
+          color={resolutionRate >= 70 ? '#10b981' : '#f59e0b'}
           icon={CheckCircle2}
         />
       </div>
@@ -1220,10 +1722,11 @@ function SupportActivitySection({
       {agents.length > 0 && selectedAgentUid === 'all' && (
         <div
           style={{
-            background: 'var(--card, #131c2e)',
-            border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+            background: 'var(--card, #ffffff)',
+            border: '1px solid var(--border, rgba(0,0,0,0.08))',
             borderRadius: 16,
-            padding: 24,
+            padding: 22,
+            boxShadow: '0 1px 3px rgba(0,0,0,0.03), 0 4px 12px rgba(0,0,0,0.02)',
             display: 'flex',
             flexDirection: 'column',
             gap: 16
@@ -1722,50 +2225,51 @@ export function ReportingDashboard({ data }: { data: ReportingData }) {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
-              gap: 14
+              gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+              gap: 16
             }}
           >
             <KpiCard
               label="CA Total Encaissé"
               value={formatFcfa(data.totalRevenue || 0)}
               sub="Deals clôturés et validés"
-              color="#34d399"
+              color="#10b981"
               icon={Banknote}
             />
             <KpiCard
               label="Valeur du Pipeline"
               value={formatFcfa(data.pipelineValue || 0)}
-              sub="En prospection & négo"
-              color="#60a5fa"
+              sub="En prospection & négociation"
+              color="#3b82f6"
               icon={Briefcase}
             />
             <KpiCard
               label="Affaires conclues"
               value={data.totalConclue}
-              sub={`Sur ${data.totalItems} prospects`}
-              color="#0284c7"
+              sub={`Sur ${data.totalItems} prospect${data.totalItems > 1 ? 's' : ''} analysé${data.totalItems > 1 ? 's' : ''}`}
+              color="#0ea5e9"
               icon={CheckCircle2}
             />
             <KpiCard
               label="Taux de conversion"
               value={`${data.overallConversionRate}%`}
               sub="Prospection → Clôture"
-              color={data.overallConversionRate >= 30 ? '#0284c7' : '#fbbf24'}
+              color={data.overallConversionRate >= 30 ? '#10b981' : '#f59e0b'}
               icon={TrendingUp}
             />
             <KpiCard
               label="Top Commercial"
               value={data.topPerformer ?? '—'}
               sub="Plus grand nombre de ventes"
-              color="#fbbf24"
+              color="#f59e0b"
               icon={Trophy}
+              isPerson
             />
             <KpiCard
               label="Relances en retard"
               value={data.totalOverdueFollowUps ?? 0}
-              sub="Dates de suivi dépassées"
-              color={(data.totalOverdueFollowUps ?? 0) > 0 ? '#f87171' : '#94a3b8'}
+              sub={(data.totalOverdueFollowUps ?? 0) > 0 ? "Dates de suivi dépassées" : "Aucun retard enregistré"}
+              color={(data.totalOverdueFollowUps ?? 0) > 0 ? '#ef4444' : '#10b981'}
               icon={AlertTriangle}
             />
           </div>
@@ -1774,16 +2278,17 @@ export function ReportingDashboard({ data }: { data: ReportingData }) {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
               gap: 20
             }}
           >
             <div
               style={{
-                background: 'var(--card, #131c2e)',
-                border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+                background: 'var(--card, #ffffff)',
+                border: '1px solid var(--border, rgba(0,0,0,0.08))',
                 borderRadius: 16,
-                padding: 24
+                padding: '22px 24px',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.03), 0 4px 12px rgba(0,0,0,0.02)'
               }}
             >
               <PipelineFunnel
@@ -1794,10 +2299,11 @@ export function ReportingDashboard({ data }: { data: ReportingData }) {
             </div>
             <div
               style={{
-                background: 'var(--card, #131c2e)',
-                border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+                background: 'var(--card, #ffffff)',
+                border: '1px solid var(--border, rgba(0,0,0,0.08))',
                 borderRadius: 16,
-                padding: 24
+                padding: '22px 24px',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.03), 0 4px 12px rgba(0,0,0,0.02)'
               }}
             >
               <MonthlyTrendChart data={data.monthlyTrend} />
@@ -1807,10 +2313,11 @@ export function ReportingDashboard({ data }: { data: ReportingData }) {
           {/* Leaderboard */}
           <div
             style={{
-              background: 'var(--card, #131c2e)',
-              border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+              background: 'var(--card, #ffffff)',
+              border: '1px solid var(--border, rgba(0,0,0,0.08))',
               borderRadius: 16,
-              padding: 24
+              padding: '22px 24px',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.03), 0 4px 12px rgba(0,0,0,0.02)'
             }}
           >
             <Leaderboard members={data.memberStats} />

@@ -40,44 +40,120 @@ function KpiCard({
   icon: React.ReactNode
   subtitle?: string
 }) {
+  const strVal = String(value)
+  let mainNumber = strVal
+  let suffix = ''
+
+  if (strVal.endsWith('%')) {
+    mainNumber = strVal.replace('%', '')
+    suffix = '%'
+  }
+
   return (
     <div
       style={{
-        background: 'var(--card, #131c2e)',
-        border: '1px solid var(--border, rgba(255,255,255,0.1))',
-        borderRadius: 14,
-        padding: '20px 22px',
+        background: 'var(--card, #ffffff)',
+        border: '1px solid var(--border, rgba(0,0,0,0.08))',
+        borderRadius: 16,
+        padding: '18px 20px',
         display: 'flex',
         flexDirection: 'column',
-        gap: 10
+        justifyContent: 'space-between',
+        position: 'relative',
+        overflow: 'hidden',
+        minHeight: 128,
+        boxShadow: '0 1px 3px rgba(0,0,0,0.03), 0 4px 14px -2px rgba(0,0,0,0.02)',
+        transition: 'transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease'
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = 'translateY(-2px)'
+        e.currentTarget.style.boxShadow = '0 6px 20px -4px rgba(0,0,0,0.08)'
+        e.currentTarget.style.borderColor = `${color}66`
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = 'translateY(0)'
+        e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.03), 0 4px 14px -2px rgba(0,0,0,0.02)'
+        e.currentTarget.style.borderColor = 'var(--border, rgba(0,0,0,0.08))'
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      {/* Top micro-gradient indicator */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 3,
+          background: `linear-gradient(90deg, ${color}, ${color}22)`
+        }}
+      />
+
+      {/* Header: Label + Vector Icon Squircle */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 8 }}>
         <span
           style={{
-            fontSize: 12,
-            fontWeight: 600,
-            color: 'var(--muted-foreground)',
+            fontSize: 11,
+            fontWeight: 700,
+            color: 'var(--muted-foreground, #64748b)',
             textTransform: 'uppercase',
-            letterSpacing: '0.07em'
+            letterSpacing: '0.06em',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis'
           }}
         >
           {label}
         </span>
-        <span style={{ color, opacity: 0.8 }}>{icon}</span>
+        <div
+          style={{
+            width: 32,
+            height: 32,
+            borderRadius: 9,
+            background: `${color}15`,
+            color: color,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0
+          }}
+        >
+          {icon}
+        </div>
       </div>
-      <div
-        style={{
-          fontSize: 36,
-          fontWeight: 900,
-          color,
-          fontFamily: "'Syne',sans-serif",
-          lineHeight: 1
-        }}
-      >
-        {value}
+
+      {/* Value */}
+      <div style={{ margin: '2px 0 6px', display: 'flex', alignItems: 'baseline', gap: 3 }}>
+        <span
+          style={{
+            fontSize: 27,
+            fontWeight: 800,
+            color: 'var(--foreground, #0f172a)',
+            fontFamily: "'Syne', -apple-system, sans-serif",
+            lineHeight: 1.1,
+            letterSpacing: '-0.02em'
+          }}
+        >
+          {mainNumber}
+        </span>
+        {suffix && (
+          <span
+            style={{
+              fontSize: 17,
+              fontWeight: 700,
+              color: color
+            }}
+          >
+            {suffix}
+          </span>
+        )}
       </div>
-      {subtitle && <div style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>{subtitle}</div>}
+
+      {/* Subtitle */}
+      {subtitle && (
+        <div style={{ fontSize: 11.5, color: 'var(--muted-foreground, #64748b)', lineHeight: 1.3 }}>
+          {subtitle}
+        </div>
+      )}
     </div>
   )
 }
@@ -264,51 +340,51 @@ export default function DashboardPage() {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-              gap: 14,
+              gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+              gap: 16,
               marginBottom: 24
             }}
           >
             <KpiCard
               label="Managers"
               value={data?.totalManagers ?? 0}
-              color="#a78bfa"
-              icon={<Users2 size={18} />}
+              color="#8b5cf6"
+              icon={<Users2 size={16} />}
               subtitle="dans votre organisation"
             />
             <KpiCard
               label="Prospection"
               value={data?.globalCounts.prospection ?? 0}
-              color="#60a5fa"
-              icon={<TrendingUp size={18} />}
+              color="#3b82f6"
+              icon={<TrendingUp size={16} />}
               subtitle="prospects en cours"
             />
             <KpiCard
               label="Négociation"
               value={data?.globalCounts.negociation ?? 0}
-              color="#fbbf24"
-              icon={<Filter size={18} />}
+              color="#f59e0b"
+              icon={<Filter size={16} />}
               subtitle="en négociation"
             />
             <KpiCard
               label="Conclus"
               value={data?.globalCounts.conclue ?? 0}
-              color="#34d399"
-              icon={<CheckCircle2 size={18} />}
+              color="#10b981"
+              icon={<CheckCircle2 size={16} />}
               subtitle="contrats signés"
             />
             <KpiCard
               label="Total Pipeline"
               value={data?.globalCounts.total ?? 0}
-              color="#f472b6"
-              icon={<BarChart3 size={18} />}
+              color="#6366f1"
+              icon={<BarChart3 size={16} />}
               subtitle="prospects au total"
             />
             <KpiCard
               label="Taux de Conversion"
               value={`${data?.conversionRate ?? 0}%`}
-              color="#fb923c"
-              icon={<Trophy size={18} />}
+              color="#0ea5e9"
+              icon={<Trophy size={16} />}
               subtitle="conclus / total"
             />
           </div>
