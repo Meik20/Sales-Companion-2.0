@@ -19,7 +19,8 @@ import {
   Building2,
   CreditCard,
   Clock,
-  ArrowRight
+  ArrowRight,
+  KeyRound
 } from 'lucide-react'
 import { routes } from '@/constants/routes'
 
@@ -242,7 +243,11 @@ export default function UpgradePage() {
     <main>
       <AppShell>
         <PageHeader
-          title={isNewManager ? '🔐 Activez votre compte Manager' : 'Passer à un plan supérieur'}
+          title={
+            isNewManager
+              ? <span className="inline-flex items-center gap-2"><KeyRound size={20} className="text-primary" /> Activez votre compte Manager</span>
+              : 'Passer à un plan supérieur'
+          }
           subtitle={
             isNewManager
               ? 'Votre compte a été créé avec succès. Choisissez un plan pour débloquer votre accès.'

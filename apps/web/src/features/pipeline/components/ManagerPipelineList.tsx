@@ -35,7 +35,8 @@ import {
   CheckCircle2,
   Check,
   Users,
-  Crown
+  Crown,
+  Download
 } from 'lucide-react'
 import { getPipelineAging } from '@/lib/pipelineAging'
 
@@ -1318,7 +1319,7 @@ function ExportPanel({ members }: { members?: Member[] }) {
                 })
               }
             >
-              ⬇ {t('pipeline.exportDownload')}
+              <Download size={14} className="mr-1.5" /> {t('pipeline.exportDownload')}
             </Button>
           </div>
         </div>
@@ -1901,7 +1902,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                     {memberSummaries.length > 0 && (
                       <optgroup label="Team Managers de l'organisation">
                         {memberSummaries.map((m) => {
-                          const warn = m.overdueCount > 0 ? ` · ⚠️ ${m.overdueCount}` : ''
+                          const warn = m.overdueCount > 0 ? ` (${m.overdueCount} en retard)` : ''
                           return (
                             <option key={m.uid} value={m.uid}>
                               {m.name}{warn}
@@ -1914,7 +1915,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                   </>
                 ) : (
                   memberSummaries.map((m) => {
-                    const warn = m.overdueCount > 0 ? ` · ⚠️ ${m.overdueCount}` : ''
+                    const warn = m.overdueCount > 0 ? ` (${m.overdueCount} en retard)` : ''
                     return (
                       <option key={m.uid} value={m.uid}>
                         {m.name} — {m.totalCount} lead{m.totalCount > 1 ? 's' : ''}{warn}

@@ -19,7 +19,7 @@ import {
 import { useTranslation } from '@/providers/I18nProvider'
 import { isCorporateEmail } from '../utils/email-validator'
 import { CountrySelect } from '@/components/ui/CountrySelect'
-import { ShieldCheck, Lock, HelpCircle, ArrowRight, ArrowLeft, Crown, Users2, Tag, UserCheck } from 'lucide-react'
+import { ShieldCheck, Lock, HelpCircle, ArrowRight, ArrowLeft, Crown, Users2, Tag, UserCheck, Check } from 'lucide-react'
 import { detectClientCountry } from '@/features/landing/landing-country'
 import { setProspectingCountryCookie } from '@/hooks/useProspectingCountry'
 import type { CountryCode } from '@sales-companion/shared'
@@ -358,7 +358,7 @@ export function RegisterForm() {
       {/* Jauge de progression / Stepper */}
       <div className="mb-6">
         <div className="flex items-center justify-between text-[11px] font-semibold text-muted-foreground mb-1.5">
-          <span>{step === 1 ? '1. Coordonnées' : '✓ 1. Coordonnées'}</span>
+          <span>{step === 1 ? '1. Coordonnées' : <span className="inline-flex items-center gap-1 text-green-400"><Check size={11} strokeWidth={2.5} /> 1. Coordonnées</span>}</span>
           <span className={step === 2 ? 'text-primary font-bold' : ''}>2. Organisation</span>
         </div>
         <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary">
@@ -745,7 +745,7 @@ export function RegisterForm() {
                 {/* Confirmation banner lorsqu'une organisation est reconnue */}
                 {joinOrgInfo && (
                   <div className="flex items-start gap-2.5 rounded-lg border border-green-500/30 bg-green-500/10 px-3 py-2.5 text-[12px]">
-                    <span className="mt-0.5 text-green-400">✓</span>
+                    <Check size={14} className="mt-0.5 text-green-400 shrink-0" strokeWidth={2.5} />
                     <div>
                       <p className="font-bold text-green-400">
                         {lang === 'en' ? 'Organisation recognised:' : 'Organisation reconnue :'}{' '}

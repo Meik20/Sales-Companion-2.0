@@ -731,7 +731,7 @@ export function OverdueFollowUpsDrawer({
                     fontSize: 12
                   }}
                 >
-                  ✕
+                  <X size={13} />
                 </button>
               )}
             </div>
@@ -755,7 +755,7 @@ export function OverdueFollowUpsDrawer({
             >
               <option value="all">Tous les commerciaux ({stats.totalCount})</option>
               {availableCommercials.unassignedCount > 0 && (
-                <option value="unassigned">⚠️ Non assignés ({availableCommercials.unassignedCount})</option>
+                <option value="unassigned">Non assignés ({availableCommercials.unassignedCount})</option>
               )}
               {availableCommercials.commercials.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -1078,7 +1078,12 @@ export function OverdueFollowUpsDrawer({
                                   Commercial en charge
                                 </div>
                                 <div style={{ fontSize: 12, fontWeight: 700, color: lead.assignedTo ? 'var(--foreground)' : '#ef4444' }}>
-                                  {lead.memberName || (lead.assignedTo ? `Membre (${lead.assignedTo.slice(0, 6)})` : '⚠️ Non assigné (Action Requise)')}
+                                  {lead.memberName || (lead.assignedTo ? `Membre (${lead.assignedTo.slice(0, 6)})` : (
+                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                      <AlertTriangle size={12} className="text-red-500 shrink-0" />
+                                      <span>Non assigné (Action Requise)</span>
+                                    </span>
+                                  ))}
                                 </div>
                               </div>
                             </div>

@@ -113,3 +113,51 @@ Avant TOUT push vers `main` :
 1. **Contrôle TypeScript & Build** : Exécuter `npm run build:web` pour vérifier l'absence d'erreurs de compilation et de bundling.
 2. **Vérification d'intégrité des flux métier** : S'assurer que les flux transversaux (auth, organisation, pipeline, support) ne sont pas altérés.
 3. **Respect strict de l'architecture** : Vérifier qu'aucune règle ad-hoc ou bricolage spécifique à un compte de test n'a été inséré.
+
+---
+
+## 6. Politique Obligatoire — Icônes Vectorielles
+
+> [!IMPORTANT]
+> **RÈGLE ABSOLUE : Toutes les icônes UI de l'application DOIVENT être vectorielles.**
+> L'utilisation d'emojis Unicode ou de symboles typographiques bruts en tant qu'icônes visuelles est **strictement interdite** dans les composants React/TSX.
+
+### Sources autorisées
+
+| Source | Usage |
+|---|---|
+| **Lucide React** (`lucide-react`) | Icônes UI génériques — navigation, actions, statuts |
+| **`ScIcon`** (composant interne) | Logo et icône de marque Sales Companion |
+| **`CountryFlag`** (composant interne) | Drapeaux pays en SVG inline |
+| **SVG inline** | Icônes custom absentes de Lucide |
+
+### Patterns interdits dans les composants JSX/TSX
+
+```tsx
+// ❌ INTERDIT
+<span>🔥</span>          // emoji rendu comme icône
+<div>🥇</div>            // médaille emoji
+<button>⬇ Download</button>  // flèche Unicode
+<span>✓</span>           // checkmark symbole
+<span>⚠️</span>          // warning emoji
+```
+
+```tsx
+// ✅ CORRECT
+import { Download, Check, AlertTriangle, Medal, Flame } from 'lucide-react'
+
+<button><Download size={14} className="mr-1.5" /> Download</button>
+<span><Check size={14} className="text-emerald-500" /></span>
+<span><AlertTriangle size={14} className="text-amber-500" /></span>
+<Medal size={18} style={{ color: '#fbbf24' }} />   // rang 1 (or)
+<Flame size={14} className="text-orange-500" />    // thème Firebase
+```
+
+### Cas acceptés hors JSX
+
+Les emojis restent autorisés dans : commentaires de code (`// ✅`), `console.log` serveur, sujets d'emails transactionnels, et contenu éditorial des pages publiques (blog, annuaire).
+
+### Indicateurs de couleur de statut
+
+Ne **jamais** utiliser un emoji cercle coloré (`🟢🔴🟡`) pour indiquer un statut. Utiliser un `<span>` CSS avec `backgroundColor: config.color` (le champ `color` hex est disponible dans `CRM_STATUS_CONFIG` et `getPipelineAging`).
+

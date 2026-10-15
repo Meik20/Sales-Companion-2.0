@@ -23,6 +23,7 @@ import {
   AlertTriangle,
   ArrowRight
 } from 'lucide-react'
+import { CountryFlag } from '@/components/ui/CountrySelect'
 import { getSubscriptionStatus } from '@/lib/subscriptionStatus'
 
 const planBadge: Record<string, 'default' | 'info' | 'success' | 'gold'> = {
@@ -561,9 +562,8 @@ export function ProfileCard() {
                   color: 'var(--foreground, #f1f5f9)'
                 }}
               >
-                <span aria-hidden="true">
-                  {SUPPORTED_COUNTRIES.find((country) => country.code === userCountry)?.flag ??
-                    '🌍'}
+                <span aria-hidden="true" style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  <CountryFlag code={userCountry} size="sm" />
                 </span>
                 <span>
                   <strong style={{ color: 'var(--muted-foreground, #94a3b8)', fontWeight: 500 }}>

@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/Button'
 import { useAuthActions } from '@/features/auth/hooks/useAuthActions'
 import { auth } from '@/services/firebase/client'
 import { PLAN_LIMITS } from '@sales-companion/shared'
-import { ArrowUpRight, Check, Lock } from 'lucide-react'
+import { ArrowUpRight, Check, Lock, Flame, Briefcase } from 'lucide-react'
 
 const planDetails: Record<string, { labelKey: string; featureKeys: string[] }> = {
   free: {
@@ -253,8 +253,10 @@ export default function SettingsPage() {
               <div className="flex flex-wrap items-center justify-between gap-2.5 rounded-xl border border-border bg-secondary p-3.5">
                 <span className="text-[13px] font-medium text-muted-foreground">
                   {t('settings.activeThemeLabel')}{' '}
-                  <strong className="text-foreground">
-                    {activeDesign === 'firebase' ? '🔥 Firebase Console' : '💼 LinkedIn Design'}
+                  <strong className="inline-flex items-center gap-1 text-foreground">
+                    {activeDesign === 'firebase'
+                      ? <><Flame size={14} className="text-orange-500" /> Firebase Console</>
+                      : <><Briefcase size={14} className="text-blue-500" /> LinkedIn Design</>}
                   </strong>
                 </span>
                 <button

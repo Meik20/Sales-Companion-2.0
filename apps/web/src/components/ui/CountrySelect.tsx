@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react'
 import { SUPPORTED_COUNTRIES } from '@sales-companion/shared'
-import { ChevronDown, Check } from 'lucide-react'
+import { ChevronDown, Check, Globe } from 'lucide-react'
 
 export function CountryFlag({ code, size = 'md' }: { code: string; size?: 'sm' | 'md' | 'lg' }) {
   const width = size === 'sm' ? 18 : size === 'lg' ? 24 : 20
@@ -136,7 +136,7 @@ export function CountryFlag({ code, size = 'md' }: { code: string; size?: 'sm' |
         </svg>
       )
     default:
-      return <span className="text-sm">🌍</span>
+      return <Globe size={16} className="shrink-0 text-muted-foreground inline-block" />
   }
 }
 

@@ -10,7 +10,7 @@ import {
   COUNTRY_NAMES,
   type CountryCode
 } from '@sales-companion/shared'
-import { Loader2, RotateCcw } from 'lucide-react'
+import { Loader2, RotateCcw, Bot, Zap } from 'lucide-react'
 import {
   collection,
   query,
@@ -256,11 +256,12 @@ export default function AIAssistantPage() {
           style={{
             fontSize: '4rem',
             marginBottom: '20px',
-            display: 'block',
+            display: 'flex',
+            justifyContent: 'center',
             animation: 'floatSubtle 6s infinite ease-in-out'
           }}
         >
-          🤖
+          <Bot size={64} style={{ color: '#6366f1' }} strokeWidth={1.5} />
         </span>
         <h1
           style={{
@@ -300,7 +301,7 @@ export default function AIAssistantPage() {
             transition: 'all 200ms ease'
           }}
         >
-          🚀 Voir les abonnements
+          <Zap size={15} style={{ marginRight: 6 }} /> Voir les abonnements
         </a>
       </div>
     )

@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { PublicNav } from '@/components/landing/PublicNav'
 import { PublicFooter } from '@/components/landing/PublicFooter'
 import { COUNTRY_NAMES, type CountryCode } from '@sales-companion/shared'
+import { Clock } from 'lucide-react'
 import { useTranslation } from '@/providers/I18nProvider'
 
 interface CountryMaintenanceViewProps {
@@ -52,8 +53,10 @@ export function CountryMaintenanceView({
         backLink={{ href: '/', label: isEn ? 'Back to home' : "Retour à l'accueil" }}
       />
       <div className="flex flex-1 flex-col items-center justify-center px-5 py-24 text-center">
-        <div className="text-5xl mb-4" role="img" aria-label="Maintenance">
-          ⏳
+        <div className="flex items-center justify-center mb-4" role="img" aria-label="Maintenance">
+          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
+            <Clock size={40} className="text-primary" strokeWidth={1.5} />
+          </div>
         </div>
         <h1 className="font-heading text-2xl md:text-3xl font-bold text-foreground mb-3 tracking-tight">
           {title}

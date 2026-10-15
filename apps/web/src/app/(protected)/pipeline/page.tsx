@@ -20,7 +20,7 @@ import { TeamManagerPerformanceCard } from '@/features/pipeline/components/TeamM
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslation } from '@/providers/I18nProvider'
-import { FileDown, Loader2, Target, Users2, Building2, TrendingUp, Filter } from 'lucide-react'
+import { FileDown, Loader2, Target, Users2, Building2, TrendingUp, Filter, X } from 'lucide-react'
 
 export default function PipelinePage() {
   const { t } = useTranslation()
@@ -880,7 +880,8 @@ export default function PipelinePage() {
                   onClick={() => router.push('/pipeline')}
                   style={{ fontSize: 12, height: 30, padding: '0 10px' }}
                 >
-                  ✕ {t('search.clearStageFilter')}
+                  <X size={12} className="inline mr-1 shrink-0" />
+                  <span>{t('search.clearStageFilter')}</span>
                 </Button>
               ) : undefined
             }

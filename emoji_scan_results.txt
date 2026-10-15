@@ -1,0 +1,145 @@
+app\(protected)\ai\page.tsx:54:           ? '👋 Hello! I am your AI Sales Companion 2.0. I can help you with B2B prospecting, finding companies in our database, and drafting outreach 
+app\(protected)\ai\page.tsx:55:           : `👋 Bonjour ! Je suis votre Companion IA. Je peux vous aider avec des conseils commerciaux, la recherche d'entreprises dans la base et la p
+app\(protected)\search\page.tsx:65:       ? `Hello 👋 I am your Companion IA.\nAsk me questions about prospection in ${countryName}, business sectors, or ask me to draft an outreach email
+app\(protected)\search\page.tsx:66:       : `Bonjour 👋 Je suis votre Companion IA.\nPosez-moi vos questions sur la prospection ${countryIn}, les secteurs d'activité, ou demandez-moi de r
+app\(protected)\search\page.tsx:243:                   ? `${totalResults} ${t('search.companiesFound')}${searchData?.fromCache ? ` • 💾 ${t('offline.cachedResults')}` : ''}`
+app\(protected)\settings\page.tsx:257:                     {activeDesign === 'firebase' ? '🔥 Firebase Console' : '💼 LinkedIn Design'}
+app\(protected)\upgrade\page.tsx:245:           title={isNewManager ? '🔐 Activez votre compte Manager' : 'Passer à un plan supérieur'}
+app\(public)\annuaire\[slug]\page.tsx:271:             🏢 Profils d&apos;entreprises disponibles ({companiesToDisplay.length})
+app\(public)\annuaire\[slug]\page.tsx:292:                   <span>📍 {company.city.charAt(0).toUpperCase() + company.city.slice(1)}</span>
+app\(public)\annuaire\[slug]\page.tsx:293:                   <span>📁 {company.sector.toUpperCase()}</span>
+app\(public)\annuaire\page.tsx:111:     { name: 'Bâtiment & Travaux Publics (BTP)', slug: 'btp', icon: '🏗️' },
+app\(public)\annuaire\page.tsx:112:     { name: "Technologies de l'Information (Tech)", slug: 'tech', icon: '💻' },
+app\(public)\annuaire\page.tsx:113:     { name: 'Banque, Finance & Assurance', slug: 'finance', icon: '🏦' },
+app\(public)\annuaire\page.tsx:114:     { name: 'Logistique & Transport', slug: 'logistique', icon: '🚚' },
+app\(public)\annuaire\page.tsx:115:     { name: 'Agroalimentaire & Agriculture', slug: 'agro', icon: '🌾' },
+app\(public)\annuaire\page.tsx:116:     { name: 'Commerce & Distribution', slug: 'commerce', icon: '🛒' }
+app\(public)\annuaire\page.tsx:176:             📍 Parcourir par Région / Ville
+app\(public)\annuaire\page.tsx:199:             🏢 Parcourir par Secteur d&apos;Activité
+app\(public)\annuaire\page.tsx:252:             ❓ Questions fréquentes sur notre base de données
+app\(public)\blog\[slug]\page.tsx:31:     emoji: '🗂️',
+app\(public)\blog\[slug]\page.tsx:202:     emoji: '🎯',
+app\(public)\blog\[slug]\page.tsx:422:     emoji: '🏗️',
+app\(public)\blog\[slug]\page.tsx:513:     emoji: '📋',
+app\(public)\blog\[slug]\page.tsx:597:     emoji: '🗺️',
+app\(public)\blog\[slug]\page.tsx:688:     emoji: '⚙️',
+app\(public)\blog\[slug]\page.tsx:777:     emoji: '📊',
+app\(public)\blog\[slug]\page.tsx:860:     emoji: '🏙️',
+app\(public)\blog\[slug]\page.tsx:1122:     emoji: '🗺️',
+app\(public)\blog\[slug]\page.tsx:1369:     emoji: '⚖️',
+app\(public)\blog\[slug]\page.tsx:1567:     emoji: '🚧',
+app\(public)\blog\[slug]\page.tsx:1873:           <div className="text-5xl mb-4">⏳</div>
+app\(public)\blog\page.tsx:35:     emoji: '🗂️',
+app\(public)\blog\page.tsx:46:     emoji: '🎯',
+app\(public)\blog\page.tsx:57:     emoji: '🏗️',
+app\(public)\blog\page.tsx:68:     emoji: '📋',
+app\(public)\blog\page.tsx:79:     emoji: '🗺️',
+app\(public)\blog\page.tsx:90:     emoji: '⚙️',
+app\(public)\blog\page.tsx:101:     emoji: '📊',
+app\(public)\blog\page.tsx:112:     emoji: '🏙️',
+app\(public)\blog\page.tsx:123:     emoji: '🗺️',
+app\(public)\blog\page.tsx:134:     emoji: '⚖️',
+app\(public)\blog\page.tsx:145:     emoji: '🚧',
+app\(public)\blog\page.tsx:221:                   ⭐ Article à la une
+app\(public)\privacy\page.tsx:166:           🔒 Politique de <em>Confidentialité</em>
+app\(public)\privacy\page.tsx:224:           <span style={{ fontSize: '2rem' }}>🛡️</span>
+app\(public)\privacy\page.tsx:344:               ✉️ Contacter le DPO
+app\(public)\terms\page.tsx:174:           📋 Conditions Générales <em>d&apos;Utilisation</em>
+app\(public)\terms\page.tsx:239:           <span style={{ fontSize: '2rem' }}>⚖️</span>
+app\(public)\terms\page.tsx:419:               ✉️ Nous contacter
+app\admin\config\page.tsx:150:           text: `✅ ${data.managersProcessed} managers synchronisés — ${data.totalUsersUpdated} utilisateurs, ${data.totalAccessesUpdated} accès mis à 
+app\api\admin\payments\[reference]\route.ts:47:       // ✅ Activer le compte, appliquer le plan et fixer l'échéance à 30 jours à minuit
+app\api\admin\payments\[reference]\route.ts:78:           `[admin/payments] 👥 sync équipe: ${syncResult.updatedUsers} utilisateurs, ${syncResult.updatedAccesses} accès mis à jour`
+app\api\admin\payments\[reference]\route.ts:85:       // ✅ Fix 6 — Email de confirmation d'activation
+app\api\admin\payments\[reference]\route.ts:91:           subject: `✅ Votre compte Manager ${planLabel} est activé — Sales Companion 2.0`,
+app\api\admin\payments\[reference]\route.ts:97:               <h2 style="color:#111827;font-size:20px;font-weight:700;text-align:center;margin-bottom:24px;">🎉 Votre compte est activé !</h2>
+app\api\admin\payments\[reference]\route.ts:127:       // ✅ Email d'information en cas de rejet (non-bloquant)
+app\api\admin\payments\[reference]\route.ts:132:           subject: `⚠️ Paiement non confirmé — Sales Companion 2.0`,
+app\api\admin\support\approve-domain\route.ts:75:       content: `✅ [Action Admin] La dérogation pour l'adresse ${sanitizedEmail} (${sanitizedCompany || 'Entreprise'}) a été validée. Un email contenan
+app\api\admin\support\approve-domain\route.ts:116:                 Demande d'accès approuvée ! 🎉
+app\api\admin\support\approve-domain\route.ts:175:                 ⏱️ Ce lien est strictement personnel et valide pendant <strong>7 jours</strong>. Passé ce délai, une nouvelle demande devra être soumi
+app\api\admin\support\approve-domain\route.ts:197:       subject: `🎉 Votre compte Manager Sales Companion 2.0 a été validé !`,
+app\api\admin\support\approve-profile-change\route.ts:76:     const chatMessage = `✅ [Action Support] Votre demande de modification de profil a été validée par notre équipe !
+app\api\admin\support\approve-profile-change\route.ts:81: 🔒 Usage unique strict (valable 24h) : Dès que vous enregistrez vos modifications ou en cas d'actualisation de la page, le formulaire disparaît et ne s
+app\api\admin\support\approve-profile-change\route.ts:141:                 Votre demande de modification a été validée ! 🎉
+app\api\admin\support\approve-profile-change\route.ts:155:                   🔒 <strong>Usage unique strict :</strong> Ce lien sécurisé est valable pendant <strong>${expirationHoursFormatted}</strong> (jusqu'au
+app\api\admin\support\approve-profile-change\route.ts:192:       subject: `✅ Modification de profil autorisée - Sales Companion 2.0`,
+app\api\admin\support\reject-profile-change\route.ts:43:     const chatMessage = `❌ [Action Support] Votre demande de modification de profil n'a pas pu être validée.
+app\api\admin\support\reply\route.ts:122:                 Nouvelle réponse à votre ticket 🎧
+app\api\admin\support\reply\route.ts:177:                 ℹ️ <strong>Rappel :</strong> Vous pouvez également retrouver tous vos tickets à tout moment depuis votre espace Sales Companion 2.0 da
+app\api\admin\support\reply\route.ts:202:           subject: `🎧 [Support Sales Companion 2.0] Réponse à votre ticket : ${threadSubject}`,
+app\api\admin\users\[uid]\route.ts:96:           `[admin/users] 👥 sync équipe manager=${uid}: ${syncResult.updatedUsers} utilisateurs, ${syncResult.updatedAccesses} accès mis à jour`
+app\api\ai\chat\route.ts:174:       ? `\n\n## 🏢 Entreprises Réelles de la Base / Real Verified Companies in Database
+app\api\ai\chat\route.ts:194: ## 📍 IDENTITÉ LOCALE & CONTEXTE DU MARCHÉ (${countryName.toUpperCase()})
+app\api\ai\chat\route.ts:201: ## 🌐 LANGUE / LANGUAGE POLICY (STRICT)
+app\api\ai\chat\route.ts:207: ## ⚡ RÈGLE DE PERFORMANCE & RÉPONSE INSTANTANÉE / FAST RESPONSE RULES
+app\api\auth\verify-email\route.ts:67:     // ✅ Les managers NE doivent PAS être activés à la vérification email.
+app\api\auth\verify-email\route.ts:91:     // ✅ Notification admin quand un manager vérifie son email
+app\api\payment\manual-submit\route.ts:41:     // ✅ Ne PAS activer le plan ici — l'admin doit valider d'abord.
+app\api\payment\manual-submit\route.ts:52:     // ✅ Notification temps réel pour l'admin
+app\api\payment\status\[ref]\route.ts:59:         console.error('[payment/status] 🚨 Discordance de montant détectée:', {
+app\api\payment\webhook\route.ts:30:       '[webhook/campay] ⚠️  CAMPAY_WEBHOOK_SECRET absent — vérification ignorée (dev uniquement)'
+app\api\payment\webhook\route.ts:85:     console.error('[webhook/campay] 🚨 Signature invalide:', sigCheck.reason, {
+app\api\payment\webhook\route.ts:101:   console.log('[webhook/campay] ✉️  reçu:', { status, reference, external_reference, operator })
+app\api\payment\webhook\route.ts:136:         console.log('[webhook/campay] ♻️  doublon ignoré (déjà SUCCESSFUL):', external_reference)
+app\api\payment\webhook\route.ts:154:         console.error('[webhook/campay] 🚨 Fraude / Discordance de montant détectée:', {
+app\api\payment\webhook\route.ts:201:         `[webhook/campay] ✅ plan "${paymentData.plan}" activé pour user ${paymentData.userId}`
+app\api\payment\webhook\route.ts:211:           console.log(`[webhook/campay] 👥 sync équipe: ${r.updatedUsers} utilisateurs mis à jour`)
+app\api\payment\webhook\route.ts:220:         console.log('[webhook/campay] ❌ paiement échoué:', external_reference)
+app\api\payment\webhook\route.ts:224:       console.log('[webhook/campay] ⏳ PENDING reçu, attente de confirmation:', external_reference)
+app\api\pipeline\export\route.ts:378:         // 🚨 IMPORTANT : Les agents de support ('support_agent') et les managers ne sont pas des commerciaux de terrain.
+app\api\pipeline\export\route.ts:771:     titleCell.value = `📊 RAPPORT DE PERFORMANCE — PIPELINE ${exportScopeLabel}`
+app\api\pipeline\export\route.ts:1015:     detailTitleCell.value = '📋 DÉTAIL DES PROSPECTS'
+app\api\support\notify\route.ts:67:       title: '🎧 Nouveau ticket support',
+app\api\support\public\route.ts:142:       `👤 Nom : ${sanitizedName}`,
+app\api\support\public\route.ts:143:       `📧 Email : ${sanitizedEmail}`,
+app\api\support\public\route.ts:144:       sanitizedCompany ? `🏢 Entreprise : ${sanitizedCompany}` : null,
+app\api\support\public\route.ts:145:       sanitizedPhone ? `📱 Téléphone / WhatsApp : ${sanitizedPhone}` : null,
+app\api\support\public\route.ts:146:       sanitizedSector ? `🏷️ Secteur : ${sanitizedSector}` : null,
+app\api\support\public\route.ts:147:       `📌 Motif : ${requestType === 'corporate_domain_request' ? 'Dérogation domaine entreprise (Compte Manager)' : requestType}`,
+app\api\support\public\route.ts:169:             ? '🏢 Demande dérogation domaine Manager'
+app\api\support\public\route.ts:170:             : '🎧 Nouveau ticket support public',
+app\api\team\assignments\route.ts:135:     // ⚠️ Wrap in { items } — useTeamAssignments reads json.items
+components\auth\AuthGuard.tsx:23:   // ✅ Rétrogradation automatique vers FREE : notification et restriction
+components\auth\AuthGuard.tsx:48:   // ✅ Email verification finalization
+components\auth\AuthGuard.tsx:82:   // ✅ Rédirection automatique manager → /upgrade après vérification email
+components\auth\AuthGuard.tsx:97:   // ✅ Rédirection automatique support_agent vers l'espace CRM unique
+components\landing\CountryMaintenanceView.tsx:56:           ⏳
+features\auth\hooks\useAuthActions.ts:146:       // ✅ FORCE TOKEN REFRESH to get custom claims
+features\auth\hooks\useAuthActions.ts:159:       // ✅ FORCE TOKEN REFRESH to get custom claims
+features\crm\types.ts:20:     emoji: '🔵'
+features\crm\types.ts:27:     emoji: '🟡'
+features\crm\types.ts:34:     emoji: '🟡'
+features\crm\types.ts:41:     emoji: '🟠'
+features\crm\types.ts:48:     emoji: '🟣'
+features\crm\types.ts:55:     emoji: '🟢'
+features\crm\types.ts:62:     emoji: '🔴'
+features\crm\types.ts:69:     emoji: '⚪'
+features\pipeline\components\ManagerPipelineList.tsx:1321:               ⬇ {t('pipeline.exportDownload')}
+features\team\components\ActivateMemberForm.tsx:80:       // ✅ Pass email and password to parent for auto-login
+features\team\components\OrgGovernanceTab.tsx:363:       const summary = `✓ Transfert réussi vers ${targetManager.name} : ${migratedCount.pipeline} prospect(s) transféré(s) dans son portefeuille (en at
+lib\company-search.ts:116:  *   1. Redis (Upstash) — partagé entre toutes les instances serverless ✅
+lib\firebase-admin.ts:4: // ⚠️ =========================================================================
+lib\firebase-admin.ts:5: // ⚠️ AVERTISSEMENT CRITIQUE — INTÉGRITÉ ARCHITECTURALE & RUNTIME SERVERLESS
+lib\firebase-admin.ts:6: // ⚠️ =========================================================================
+lib\firebase-admin.ts:7: // ⚠️ 1. firebase-admin DOIT RESTER en version 13.x (ex: ^13.10.0).
+lib\firebase-admin.ts:8: // ⚠️    La v14 introduit un conflit ESM fatale (ERR_REQUIRE_ESM via jwks-rsa/jose)
+lib\firebase-admin.ts:9: // ⚠️    dans l'environnement CommonJS de Vercel qui fait crasher toutes les API.
+lib\firebase-admin.ts:10: // ⚠️ 2. Ne PAS importer statiquement getFirestore() ou getAuth() au sommet de ce
+lib\firebase-admin.ts:11: // ⚠️    fichier. Le chargement dynamique via Proxies est obligatoire pour garantir
+lib\firebase-admin.ts:12: // ⚠️    l'isolation et la compatibilité serverless.
+lib\firebase-admin.ts:13: // ⚠️ =========================================================================
+lib\pipelineAging.ts:10:   | 'fresh' // 🟢 Récent / dans les temps
+lib\pipelineAging.ts:11:   | 'warning' // 🟡 Attention / délai qui s'allonge
+lib\pipelineAging.ts:12:   | 'alert' // 🔴 Alerte / stagnation critique
+lib\pipelineAging.ts:13:   | 'concluded' // 🔵/🟢 Vente conclue avec succès
+lib\subscription.ts:78:       `[subscription] ⚠️ Utilisateur ${uid} rétrogradé vers "free" (ancien plan: ${oldPlan}, raison: ${reason})`
+lib\subscription.ts:89:           `[subscription] 👥 Équipe synchronisée vers free pour manager ${uid} (${syncRes.updatedUsers} membres)`
+lib\subscription.ts:176:       `[subscription/cron] 🕒 Vérification globale terminée : ${checked} comptes payants vérifiés, ${expiredUids.length} expirés et rétrogradés.`
+lib\sync-team-plan.ts:155:     `[syncTeamMemberPlans] ✅ manager=${managerUid} plan=${newPlan} validité=${subscriptionExpiresAt}` +
+locales\en.ts:374:       'Hello 👋 I am your Companion IA.\nAsk me questions about prospection in Cameroon, business sectors, or ask me to draft an outreach email.',
+locales\en.ts:543:     niuHint: 'Optional — Official Taxpayer ID (DGI). Activates the Verified Organization badge 🛡️',
+locales\en.ts:706:     orgVerifiedBadge: 'Verified Organization 🛡️',
+locales\fr.ts:375:       "Bonjour 👋 Je suis votre Companion IA.\nPosez-moi vos questions sur la prospection au Cameroun, les secteurs d'activité, ou demandez-moi de rédi
+locales\fr.ts:546:       'Optionnel — Numéro fiscal officiel DGI (carte de contribuable). Active le badge Organisation vérifiée 🛡️',
+locales\fr.ts:714:     orgVerifiedBadge: 'Organisation vérifiée 🛡️',

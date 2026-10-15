@@ -22,7 +22,8 @@ import {
   Trophy,
   Clock,
   Building2,
-  RefreshCw
+  RefreshCw,
+  Medal
 } from 'lucide-react'
 
 // ── KPI Card ────────────────────────────────────────────────────────────────
@@ -91,7 +92,11 @@ function TopPerformerRow({ rank, manager }: { rank: number; manager: OrgReportMa
         : rank === 3
           ? '#cd7c3d'
           : 'var(--muted-foreground)'
-  const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`
+  const medalIcon =
+    rank === 1 ? <Medal size={18} style={{ color: '#fbbf24' }} /> :
+    rank === 2 ? <Medal size={18} style={{ color: '#94a3b8' }} /> :
+    rank === 3 ? <Medal size={18} style={{ color: '#cd7c3d' }} /> :
+    <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--muted-foreground)' }}>#{rank}</span>
 
   return (
     <div
@@ -104,7 +109,7 @@ function TopPerformerRow({ rank, manager }: { rank: number; manager: OrgReportMa
       }}
     >
       {/* Rang */}
-      <div style={{ width: 28, textAlign: 'center', fontSize: 18, flexShrink: 0 }}>{medal}</div>
+      <div style={{ width: 28, textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{medalIcon}</div>
 
       {/* Avatar */}
       <div

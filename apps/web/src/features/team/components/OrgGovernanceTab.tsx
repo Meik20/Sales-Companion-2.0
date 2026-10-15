@@ -410,7 +410,8 @@ export function OrgGovernanceTab() {
 
             <div className="flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-300 dark:border-violet-500/30 bg-violet-100 dark:bg-violet-500/15 px-3 py-1 text-[12px] font-bold text-violet-800 dark:text-violet-300 shadow-xs">
-                ★ Senior Manager
+                <Crown size={12} className="text-violet-700 dark:text-violet-400" />
+                Senior Manager
               </span>
               {orgData?.isVerified || Boolean(user?.niu) ? (
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300 dark:border-emerald-500/30 bg-emerald-100 dark:bg-emerald-500/15 px-3 py-1 text-[12px] font-bold text-emerald-800 dark:text-emerald-300 shadow-xs">
