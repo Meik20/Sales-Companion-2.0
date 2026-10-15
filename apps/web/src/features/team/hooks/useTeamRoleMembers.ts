@@ -18,6 +18,7 @@ export type TeamRoleMember = {
   managerUid: string
   active: boolean
   accessId?: string
+  docId?: string
   magicCode?: string
   dailyUsed?: number
   dailyLimit?: number
@@ -155,6 +156,7 @@ export function useTeamRoleMembers(options: UseTeamRoleMembersOptions = {}) {
           const currentDailyUsed = data.lastResetDate === today ? (data.dailyUsed ?? 0) : 0
 
           accessesMap[uid] = {
+            docId: d.id,
             uid,
             accessId: data.accessId || d.id,
             email: data.email ?? '',

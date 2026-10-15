@@ -62,7 +62,7 @@ export function TeamAccessManager() {
 
   // Convertit les membres (format TeamMember) en format accesses pour la compatibilité de l'UI
   const accesses = allTeam.map((m) => ({
-    id: m.accessId || m.uid,
+    id: m.docId || m.accessId || m.uid,
     uid: m.uid,
     accessId: m.accessId,
     firstname: m.name?.split(' ')[0] ?? '',

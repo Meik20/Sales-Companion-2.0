@@ -105,14 +105,15 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
     setError(null)
     try {
       const parsedAmount = amount.trim() ? parseFloat(amount.replace(/\s+/g, '')) : undefined
+      const isManager = user.role === 'manager' || (!user.role && !user.managerUid)
 
       await mutation.mutateAsync({
         userId: user.uid,
         managerUid: user.role === 'member' ? (user.managerUid ?? null) : user.uid,
-        // Passer l'identité de l'assigné pour qu'il soit affiché correctement
-        assignedTo: user.uid,
-        memberName: user.name || user.email,
-        memberAccessId: user.accessId ?? null,
+        // Un manager ne saurait être lui-même le destinataire : le prospect est créé non assigné (null)
+        assignedTo: isManager ? null : user.uid,
+        memberName: isManager ? null : (user.name || user.email),
+        memberAccessId: isManager ? null : (user.accessId ?? null),
         companyId: null,
         companyName: companyName.trim(),
         companyPhone: companyPhone.trim() || undefined,

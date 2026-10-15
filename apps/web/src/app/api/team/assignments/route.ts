@@ -459,8 +459,8 @@ export async function POST(request: NextRequest) {
         const origDoc = await adminDb.collection('pipeline').doc(pipelineItemId).get()
         if (
           origDoc.exists &&
-          origDoc.data()?.userId === managerUid &&
-          !origDoc.data()?.assignedTo
+          (origDoc.data()?.userId === managerUid || origDoc.data()?.managerUid === managerUid) &&
+          (!origDoc.data()?.assignedTo || origDoc.data()?.assignedTo === managerUid)
         ) {
           await origDoc.ref.delete()
         }
@@ -473,7 +473,10 @@ export async function POST(request: NextRequest) {
           .where('companyName', '==', companyName)
           .get()
         for (const d of ownDupes.docs) {
-          if (d.id !== pipelineRef.id && !d.data().assignedTo) {
+          if (
+            d.id !== pipelineRef.id &&
+            (!d.data().assignedTo || d.data().assignedTo === managerUid)
+          ) {
             await d.ref.delete()
           }
         }

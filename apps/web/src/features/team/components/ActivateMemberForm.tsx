@@ -164,7 +164,7 @@ export function ActivateMemberForm({ accessId, onSuccess }: Props) {
               textTransform: 'lowercase'
             }}
           >
-            {accessId}
+            {accessInfo?.accessId || accessId}
           </div>
         </div>
         <div>

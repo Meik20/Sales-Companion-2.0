@@ -39,9 +39,23 @@ export async function POST(request: NextRequest) {
     }
 
     // 3. Vérification de propriété
-    const accessRef = adminDb.collection('team_accesses').doc(accessId)
-    const accessDoc = await accessRef.get()
-    const accessData = accessDoc.data()
+    let accessRef = adminDb.collection('team_accesses').doc(accessId)
+    let accessDoc = await accessRef.get()
+    let accessData = accessDoc.data()
+
+    if (!accessDoc.exists) {
+      const byField = await adminDb
+        .collection('team_accesses')
+        .where('accessId', '==', accessId.toLowerCase().trim())
+        .where('managerUid', '==', managerUid)
+        .limit(1)
+        .get()
+      if (!byField.empty && byField.docs[0]) {
+        accessRef = byField.docs[0].ref
+        accessDoc = byField.docs[0]
+        accessData = accessDoc.data()
+      }
+    }
 
     if (!accessDoc.exists || !accessData) {
       return NextResponse.json({ error: 'Accès introuvable' }, { status: 404 })

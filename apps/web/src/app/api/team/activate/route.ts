@@ -267,6 +267,16 @@ export async function POST(request: NextRequest) {
         })
 
         // Écrire / fusionner le profil utilisateur Firestore
+        const memberAccessId = (
+          freshData?.accessId ||
+          freshData?.access_id ||
+          data.accessId ||
+          data.access_id ||
+          ''
+        )
+          .trim()
+          .toLowerCase()
+
         transaction.set(
           userDocRef,
           {
@@ -290,7 +300,7 @@ export async function POST(request: NextRequest) {
             managerId: data.managerId ?? null,
             managerUid: data.managerUid ?? data.managerId ?? null,
             managerEmail: data.managerEmail ?? null,
-            accessId: accessIdLower,
+            accessId: memberAccessId || accessIdLower,
             dailyUsed: 0,
             dailyLimit: memberDailyLimit,
             subscriptionExpiresAt: managerExpiresAt,

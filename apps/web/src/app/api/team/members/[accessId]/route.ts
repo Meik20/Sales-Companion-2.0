@@ -43,8 +43,22 @@ export async function DELETE(
     if (!accessId) return NextResponse.json({ message: 'accessId manquant' }, { status: 400 })
 
     // Verify the access belongs to this manager
-    const accessDoc = await adminDb.collection('team_accesses').doc(accessId).get()
-    const accessData = accessDoc.data()
+    let accessDoc = await adminDb.collection('team_accesses').doc(accessId).get()
+    let accessData = accessDoc.data()
+
+    if (!accessDoc.exists) {
+      const byField = await adminDb
+        .collection('team_accesses')
+        .where('accessId', '==', accessId.toLowerCase().trim())
+        .where('managerUid', '==', managerUid)
+        .limit(1)
+        .get()
+      if (!byField.empty && byField.docs[0]) {
+        accessDoc = byField.docs[0] as any
+        accessData = accessDoc.data()
+      }
+    }
+
     if (!accessDoc.exists || !accessData) {
       return NextResponse.json({ message: 'Accès introuvable' }, { status: 404 })
     }

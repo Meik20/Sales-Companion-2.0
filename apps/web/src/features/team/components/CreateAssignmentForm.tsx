@@ -128,23 +128,38 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
 
   // Filter out prospects that are already assigned to a team member
   const availableProspects = pipelineProspects.filter((p: PipelineItem) => {
-    // 1. Assigné à un MEMBRE d'équipe (pas le manager lui-même)
-    //    assignedTo non null ET différent du UID manager = déjà assigné à quelqu'un
-    if (p.assignedTo && p.assignedTo.trim() !== '' && p.assignedTo !== user?.uid) return false
-
-    // 2. A un memberName = déjà assigné (seuls les membres ont memberName dans les docs de pipeline)
-    if (p.memberName && p.memberName.trim() !== '') return false
-
-    // 3. Appartient à un autre utilisateur (ni le manager)
-    if (p.userId && user?.uid && p.userId !== user.uid) return false
-
-    // 4. Déjà présent dans les assignations d'équipe par ID
+    // 1. Déjà présent dans les assignations d'équipe actives par ID ou source
     if (p.id && assignedItemIds.has(p.id)) return false
     if (p.sourceProspectId && assignedItemIds.has(p.sourceProspectId)) return false
 
-    // 5. Déjà présent dans les assignations d'équipe par nom d'entreprise
+    // 2. Déjà présent dans les assignations d'équipe actives par nom d'entreprise
     const normName = normalizeCompName(p.companyName)
     if (normName && assignedCompanyNames.has(normName)) return false
+
+    // 3. Assigné à un MEMBRE d'équipe (assignedTo différent du manager et non vide)
+    const isAssignedToOtherMember =
+      p.assignedTo &&
+      p.assignedTo.trim() !== '' &&
+      p.assignedTo !== user?.uid
+
+    if (isAssignedToOtherMember) return false
+
+    // 4. Si un nom de membre est renseigné et que ce n'est PAS le manager lui-même
+    //    (cas d'une fiche déjà confiée à un collaborateur terrain)
+    if (
+      p.memberName &&
+      p.memberName.trim() !== '' &&
+      p.memberName !== user?.name &&
+      p.memberName !== user?.email &&
+      p.assignedTo !== user?.uid
+    ) {
+      return false
+    }
+
+    // 5. Doit appartenir au manager (créé par lui ou sous sa responsabilité managériale)
+    const belongsToManager =
+      !p.managerUid || p.managerUid === user?.uid || p.userId === user?.uid
+    if (!belongsToManager) return false
 
     return true
   })

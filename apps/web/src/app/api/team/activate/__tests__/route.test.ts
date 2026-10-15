@@ -110,6 +110,7 @@ describe('POST /api/team/activate — Protection contre l’élévation de privi
     // Tentative d'escalade de privilèges : la fiche a été falsifiée avec role: 'admin'
     mocks.setAccessData({
       role: 'admin',
+      accessId: 'jeandupont@acme',
       email: 'invitee@test.com',
       managerUid: 'manager-123',
       magicCode: VALID_MAGIC_CODE,
@@ -137,11 +138,12 @@ describe('POST /api/team/activate — Protection contre l’élévation de privi
       role: 'admin'
     })
 
-    // Vérifier que le document utilisateur dans Firestore a role: 'member'
+    // Vérifier que le document utilisateur dans Firestore a role: 'member' et l'identifiant légitime accessId (et non le magic code)
     expect(mocks.mockUserSet).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({
-        role: 'member'
+        role: 'member',
+        accessId: 'jeandupont@acme'
       }),
       { merge: true }
     )
