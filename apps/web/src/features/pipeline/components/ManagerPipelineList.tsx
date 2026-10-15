@@ -1690,17 +1690,18 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
         </div>
       )}
 
-      {/* ── Sélecteur d'activité individuelle par commercial ───────────── */}
-      <div
-        style={{
-          marginBottom: 16,
-          background: 'var(--card, #131c2e)',
-          border: '1px solid var(--border, rgba(255,255,255,0.08))',
-          borderRadius: 12,
-          padding: '12px 16px',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
-        }}
-      >
+      {/* ── Sélecteur d'activité individuelle par commercial (Team Manager uniquement, masqué en vue Org SM) ───────────── */}
+      {!isOrgView && (
+        <div
+          style={{
+            marginBottom: 16,
+            background: 'var(--card, #131c2e)',
+            border: '1px solid var(--border, rgba(255,255,255,0.08))',
+            borderRadius: 12,
+            padding: '12px 16px',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
+          }}
+        >
         <div
           style={{
             display: 'flex',
@@ -1945,9 +1946,10 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
           )}
         </div>
       </div>
+      )}
 
       {/* ── Bannière d'activité détaillée du membre sélectionné ─────────── */}
-      {activeMemberSummary && (
+      {!isOrgView && activeMemberSummary && (
         <div
           style={{
             marginBottom: 20,
