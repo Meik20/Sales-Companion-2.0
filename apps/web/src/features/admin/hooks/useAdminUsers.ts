@@ -12,7 +12,7 @@ type AdminUsersResponse = {
   pageSize: number
 }
 
-export function useAdminUsers(page = 1, pageSize = 100) {
+export function useAdminUsers(page = 1, pageSize = 50) {
   const { user } = useCurrentUser()
 
   return useQuery({

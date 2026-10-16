@@ -14,7 +14,7 @@ import { useToast } from '@/hooks/useToast'
 import { useTranslation } from '@/providers/I18nProvider'
 import { Search, ChevronLeft, ChevronRight, Users } from 'lucide-react'
 
-const PAGE_SIZE = 100
+const PAGE_SIZE = 50
 
 export default function AdminUsersPage() {
   const [page, setPage] = useState(1)
