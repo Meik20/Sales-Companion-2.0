@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import type { ReportingData, MemberStat, SupportAgentStat } from '../hooks/useReportingData'
+import { useTranslation } from '@/providers/I18nProvider'
 import {
   Target,
   Handshake,
@@ -47,13 +48,14 @@ function KpiCard({
   badge,
   isPerson
 }: KpiCardProps) {
-  const isRetard = label.toLowerCase().includes('retard')
+  const { t } = useTranslation()
+  const isRetard = label.toLowerCase().includes('retard') || label.toLowerCase().includes('overdue')
   const numVal = typeof value === 'number' ? value : Number(value)
   const isZeroRetard = isRetard && (value === 0 || value === '0')
   const hasRetard = isRetard && !isZeroRetard && !isNaN(numVal) && numVal > 0
 
-  // Person detection: either flag or "top commercial" label
-  const isPersonCard = isPerson || label.toLowerCase().includes('top commercial')
+  // Person detection: either flag or "top commercial" / "top sales" label
+  const isPersonCard = isPerson || label.toLowerCase().includes('top commercial') || label.toLowerCase().includes('top sales')
 
   // Check if string ends with F, FCFA, or %
   const strVal = String(value ?? '—')
@@ -211,13 +213,13 @@ function KpiCard({
                     marginTop: 2
                   }}
                 >
-                  <Trophy size={11} /> Leader du mois
+                  <Trophy size={11} /> {t('reporting.leaderOfMonth')}
                 </div>
               </div>
             </div>
           ) : (
             <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--muted-foreground, #94a3b8)' }}>
-              Aucun deal clôturé
+              {t('reporting.noClosedDeals')}
             </div>
           )
         ) : (
@@ -305,12 +307,13 @@ function PipelineFunnel({
   negociation: number
   conclue: number
 }) {
+  const { t } = useTranslation()
   const total = prospection + negociation + conclue || 1
   const stages = [
     {
       step: 1,
-      label: 'Prospection',
-      subtitle: 'Prise de contact & qualification',
+      label: t('reporting.stageProspection'),
+      subtitle: t('reporting.stageProspectionSub'),
       value: prospection,
       color: '#3b82f6',
       bg: 'rgba(59, 130, 246, 0.1)',
@@ -319,8 +322,8 @@ function PipelineFunnel({
     },
     {
       step: 2,
-      label: 'Négociation',
-      subtitle: 'Offre envoyée & discussions',
+      label: t('reporting.stageNegociation'),
+      subtitle: t('reporting.stageNegociationSub'),
       value: negociation,
       color: '#f59e0b',
       bg: 'rgba(245, 158, 11, 0.1)',
@@ -329,8 +332,8 @@ function PipelineFunnel({
     },
     {
       step: 3,
-      label: 'Conclue',
-      subtitle: 'Contrat signé & deal gagné',
+      label: t('reporting.stageConclue'),
+      subtitle: t('reporting.stageConclueSub'),
       value: conclue,
       color: '#10b981',
       bg: 'rgba(16, 185, 129, 0.1)',
@@ -384,10 +387,10 @@ function PipelineFunnel({
             >
               <Target size={13} />
             </div>
-            Entonnoir de Conversion
+            {t('reporting.funnelTitle')}
           </div>
           <div style={{ fontSize: 11.5, color: 'var(--muted-foreground, #64748b)', marginTop: 2 }}>
-            Progression des {total} opportunités à travers le cycle de vente
+            {t('reporting.funnelSubtitle', { total })}
           </div>
         </div>
         <span
@@ -401,7 +404,7 @@ function PipelineFunnel({
             border: '1px solid var(--border, rgba(0,0,0,0.06))'
           }}
         >
-          {total} lead{total > 1 ? 's' : ''}
+          {t('reporting.funnelCount', { total })}
         </span>
       </div>
 
@@ -538,7 +541,7 @@ function PipelineFunnel({
                       color: 'var(--muted-foreground, #64748b)'
                     }}
                   >
-                    Taux d&apos;avancement : {conversionRate}%
+                    {t('reporting.advancementRate', { rate: conversionRate })}
                   </span>
                   <div
                     style={{
@@ -569,7 +572,7 @@ function PipelineFunnel({
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#047857', fontWeight: 600 }}>
-          <CheckCircle2 size={13} /> Taux global de signature
+          <CheckCircle2 size={13} /> {t('reporting.globalClosingRate')}
         </div>
         <div style={{ fontWeight: 800, color: '#047857', fontSize: 13 }}>
           {Math.round((conclue / total) * 100)}%
@@ -585,6 +588,7 @@ function MonthlyTrendChart({
 }: {
   data: { month: string; conclue: number; total: number }[]
 }) {
+  const { t } = useTranslation()
   const maxVal = Math.max(...data.map((d) => d.total), 1)
   const chartH = 140
   const totalLeadsPeriod = data.reduce((acc, d) => acc + d.total, 0)
@@ -627,10 +631,10 @@ function MonthlyTrendChart({
             >
               <Calendar size={13} />
             </div>
-            Activité Mensuelle
+            {t('reporting.monthlyActivityTitle')}
           </div>
           <div style={{ fontSize: 11.5, color: 'var(--muted-foreground, #64748b)', marginTop: 2 }}>
-            Nouveaux leads et affaires conclues (6 derniers mois)
+            {t('reporting.monthlyActivitySubtitle')}
           </div>
         </div>
         <span
@@ -644,7 +648,7 @@ function MonthlyTrendChart({
             border: '1px solid var(--border, rgba(0,0,0,0.06))'
           }}
         >
-          {totalConcluePeriod} signée{totalConcluePeriod > 1 ? 's' : ''} / {totalLeadsPeriod} lead{totalLeadsPeriod > 1 ? 's' : ''}
+          {t('reporting.monthlyActivityBadge', { concluded: totalConcluePeriod, total: totalLeadsPeriod })}
         </span>
       </div>
 
@@ -790,7 +794,7 @@ function MonthlyTrendChart({
               border: '1px solid rgba(59, 130, 246, 0.5)'
             }}
           />
-          Total prospects
+          {t('reporting.totalOpportunities')}
         </div>
         <div
           style={{
@@ -809,7 +813,7 @@ function MonthlyTrendChart({
               background: 'linear-gradient(180deg, #10b981 0%, #059669 100%)'
             }}
           />
-          Affaires conclues
+          {t('reporting.closedDeals')}
         </div>
       </div>
     </div>
@@ -826,6 +830,7 @@ function formatFcfa(amount: number) {
 
 // ── Member Performance Detail Modal ──────────────────────────────────────────
 function MemberPerformanceModal({ member, onClose }: { member: MemberStat; onClose: () => void }) {
+  const { t } = useTranslation()
   const [dealFilter, setDealFilter] = useState<'all' | 'conclue' | 'negociation' | 'prospection'>(
     'all'
   )
@@ -914,7 +919,7 @@ function MemberPerformanceModal({ member, onClose }: { member: MemberStat; onClo
                 <div
                   style={{ fontSize: 12, color: 'var(--muted-foreground, #94a3b8)', marginTop: 2 }}
                 >
-                  Commercial · {member.total} opportunité{member.total > 1 ? 's' : ''}
+                  {t('reporting.modalSalespersonRole', { count: member.total })}
                 </div>
               </div>
             </div>
@@ -935,7 +940,7 @@ function MemberPerformanceModal({ member, onClose }: { member: MemberStat; onClo
               }}
             >
               <X size={14} />
-              Fermer
+              {t('reporting.modalClose')}
             </button>
           </div>
 
@@ -960,7 +965,7 @@ function MemberPerformanceModal({ member, onClose }: { member: MemberStat; onClo
                   textTransform: 'uppercase'
                 }}
               >
-                CA Clôturé
+                {t('reporting.colClosedRevenue')}
               </div>
               <div style={{ fontSize: 16, fontWeight: 800, color: '#34d399', marginTop: 4 }}>
                 {formatFcfa(member.revenue || 0)}
@@ -975,7 +980,7 @@ function MemberPerformanceModal({ member, onClose }: { member: MemberStat; onClo
                   textTransform: 'uppercase'
                 }}
               >
-                Pipeline en cours
+                {t('reporting.kpiPipelineValue')}
               </div>
               <div style={{ fontSize: 16, fontWeight: 800, color: '#60a5fa', marginTop: 4 }}>
                 {formatFcfa(member.pipelineValue || 0)}
@@ -990,7 +995,7 @@ function MemberPerformanceModal({ member, onClose }: { member: MemberStat; onClo
                   textTransform: 'uppercase'
                 }}
               >
-                Conversion
+                {t('reporting.kpiConversionRate')}
               </div>
               <div style={{ fontSize: 16, fontWeight: 800, color: '#fbbf24', marginTop: 4 }}>
                 {member.conversionRate}%
@@ -1005,7 +1010,7 @@ function MemberPerformanceModal({ member, onClose }: { member: MemberStat; onClo
                   textTransform: 'uppercase'
                 }}
               >
-                Relances retard
+                {t('reporting.kpiOverdue')}
               </div>
               <div
                 style={{
@@ -1032,21 +1037,21 @@ function MemberPerformanceModal({ member, onClose }: { member: MemberStat; onClo
                 marginBottom: 6
               }}
             >
-              <span>Répartition du portefeuille :</span>
+              <span>{t('reporting.modalPortfolioBreakdown')}</span>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                   <Target size={12} color="#60a5fa" />
-                  <strong>{member.prospection}</strong> prospection
+                  <strong>{member.prospection}</strong> {t('reporting.stageProspection').toLowerCase()}
                 </span>
                 <span>·</span>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                   <Handshake size={12} color="#fb923c" />
-                  <strong>{member.negociation}</strong> négociation
+                  <strong>{member.negociation}</strong> {t('reporting.stageNegociation').toLowerCase()}
                 </span>
                 <span>·</span>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                   <Trophy size={12} color="#0284c7" />
-                  <strong>{member.conclue}</strong> conclues
+                  <strong>{member.conclue}</strong> {t('reporting.stageConclue').toLowerCase()}
                 </span>
               </span>
             </div>
@@ -1090,10 +1095,10 @@ function MemberPerformanceModal({ member, onClose }: { member: MemberStat; onClo
             }}
           >
             {[
-              { id: 'all', label: `Toutes (${member.deals.length})` },
-              { id: 'conclue', label: `Conclues (${member.conclue})` },
-              { id: 'negociation', label: `En Négociation (${member.negociation})` },
-              { id: 'prospection', label: `En Prospection (${member.prospection})` }
+              { id: 'all', label: t('reporting.modalFilterAll', { count: member.deals.length }) },
+              { id: 'conclue', label: t('reporting.modalFilterConclue', { count: member.conclue }) },
+              { id: 'negociation', label: t('reporting.modalFilterNegociation', { count: member.negociation }) },
+              { id: 'prospection', label: t('reporting.modalFilterProspection', { count: member.prospection }) }
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -1134,7 +1139,7 @@ function MemberPerformanceModal({ member, onClose }: { member: MemberStat; onClo
                   padding: '30px 0'
                 }}
               >
-                Aucune opportunité dans cette catégorie.
+                {t('reporting.modalNoDeals')}
               </div>
             ) : (
               filteredDeals.map((deal) => {
@@ -1250,6 +1255,7 @@ function MemberPerformanceModal({ member, onClose }: { member: MemberStat; onClo
 
 // ── Leaderboard & Individual Performance Section ──────────────────────────────
 function Leaderboard({ members }: { members: MemberStat[] }) {
+  const { t } = useTranslation()
   const [selectedMember, setSelectedMember] = useState<MemberStat | null>(null)
 
   return (
@@ -1279,11 +1285,10 @@ function Leaderboard({ members }: { members: MemberStat[] }) {
             }}
           >
             <Trophy size={16} color="#fbbf24" />
-            Performances individuelles détaillées & Leaderboard
+            {t('reporting.leaderboardTitle')}
           </h3>
           <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--muted-foreground, #94a3b8)' }}>
-            Cliquez sur un commercial pour analyser son portefeuille et l&apos;ensemble de ses
-            affaires en détail.
+            {t('reporting.leaderboardSubtitle')}
           </p>
         </div>
       </div>
@@ -1368,8 +1373,7 @@ function Leaderboard({ members }: { members: MemberStat[] }) {
                       }}
                     >
                       <AlertTriangle size={10} />
-                      {member.overdueFollowUps} relance{member.overdueFollowUps > 1 ? 's' : ''} en
-                      retard
+                      {t('reporting.overdueCount', { count: member.overdueFollowUps })}
                     </span>
                   )}
                 </div>
@@ -1405,15 +1409,15 @@ function Leaderboard({ members }: { members: MemberStat[] }) {
               >
                 <div>
                   <div style={{ fontWeight: 700, color: '#60a5fa' }}>{member.prospection}</div>
-                  <div>Prosp.</div>
+                  <div>{t('reporting.colProsp')}</div>
                 </div>
                 <div>
                   <div style={{ fontWeight: 700, color: '#fb923c' }}>{member.negociation}</div>
-                  <div>Négo.</div>
+                  <div>{t('reporting.colNego')}</div>
                 </div>
                 <div>
                   <div style={{ fontWeight: 700, color: '#0284c7' }}>{member.conclue}</div>
-                  <div>Conclues</div>
+                  <div>{t('reporting.colConclue')}</div>
                 </div>
               </div>
 
@@ -1423,7 +1427,7 @@ function Leaderboard({ members }: { members: MemberStat[] }) {
                   {formatFcfa(member.revenue || 0)}
                 </div>
                 <div style={{ fontSize: 10, color: 'var(--muted-foreground, #94a3b8)' }}>
-                  CA Clôturé
+                  {t('reporting.colClosedRevenue')}
                 </div>
               </div>
 
@@ -1444,12 +1448,12 @@ function Leaderboard({ members }: { members: MemberStat[] }) {
                   {member.conversionRate}%
                 </div>
                 <div style={{ fontSize: 10, color: 'var(--muted-foreground, #94a3b8)' }}>
-                  taux conv.
+                  {t('reporting.colConvRate')}
                 </div>
               </div>
 
               {/* Bouton inspecter */}
-              <div style={{ fontSize: 12, color: '#60a5fa', fontWeight: 600 }}>Détails →</div>
+              <div style={{ fontSize: 12, color: '#60a5fa', fontWeight: 600 }}>{t('reporting.detailsBtn')}</div>
             </div>
           )
         })}
@@ -1480,6 +1484,7 @@ function SupportActivitySection({
   stats: NonNullable<ReportingData['supportStats']>
   initialAgentUid?: string
 }) {
+  const { t } = useTranslation()
   const agents = stats.agentsBreakdown || []
   const [selectedAgentUid, setSelectedAgentUid] = useState<string>(initialAgentUid || 'all')
 
@@ -1513,25 +1518,25 @@ function SupportActivitySection({
     ticketsCount > 0 ? Math.round((resolvedTicketsCount / ticketsCount) * 100) : 0
 
   const CALL_STATUS_LABELS: Record<string, { label: string; color: string }> = {
-    connected: { label: 'Décroché', color: '#3b82f6' },
-    no_answer: { label: 'Non joint', color: '#f59e0b' },
-    busy: { label: 'Occupé', color: '#f97316' },
-    voicemail: { label: 'Répondeur', color: '#a78bfa' },
-    failed: { label: 'Échec', color: '#f87171' }
+    connected: { label: t('reporting.statusConnected'), color: '#3b82f6' },
+    no_answer: { label: t('reporting.statusNoAnswer'), color: '#f59e0b' },
+    busy: { label: t('reporting.statusBusy'), color: '#f97316' },
+    voicemail: { label: t('reporting.statusVoicemail'), color: '#a78bfa' },
+    failed: { label: t('reporting.statusFailed'), color: '#f87171' }
   }
 
   const PRIORITY_LABELS: Record<string, { label: string; color: string }> = {
-    low: { label: 'Basse', color: '#60a5fa' },
-    medium: { label: 'Moyenne', color: '#f59e0b' },
-    high: { label: 'Haute', color: '#f97316' },
-    urgent: { label: 'Urgente', color: '#f87171' }
+    low: { label: t('reporting.priorityLow'), color: '#60a5fa' },
+    medium: { label: t('reporting.priorityMedium'), color: '#f59e0b' },
+    high: { label: t('reporting.priorityHigh'), color: '#f97316' },
+    urgent: { label: t('reporting.priorityUrgent'), color: '#f87171' }
   }
 
   const TICKET_STATUS_LABELS: Record<string, { label: string; color: string }> = {
-    open: { label: 'Ouvert', color: '#f87171' },
-    in_progress: { label: 'En cours', color: '#f59e0b' },
-    resolved: { label: 'Résolu', color: '#0284c7' },
-    closed: { label: 'Fermé', color: '#94a3b8' }
+    open: { label: t('reporting.ticketOpen'), color: '#f87171' },
+    in_progress: { label: t('reporting.ticketInProgress'), color: '#f59e0b' },
+    resolved: { label: t('reporting.ticketResolved'), color: '#0284c7' },
+    closed: { label: t('reporting.ticketClosed'), color: '#94a3b8' }
   }
 
   return (
@@ -1572,7 +1577,7 @@ function SupportActivitySection({
             >
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                 <Users size={14} />
-                Filtrer l'activité par agent support
+                {t('reporting.supportFilterTitle')}
               </span>
               {selectedAgentUid !== 'all' && (
                 <span
@@ -1587,7 +1592,7 @@ function SupportActivitySection({
                     border: '1px solid rgba(59,130,246,0.3)'
                   }}
                 >
-                  Filtre actif : {selectedAgent?.name}
+                  {t('reporting.supportActiveFilter', { name: selectedAgent?.name })}
                 </span>
               )}
             </div>
@@ -1604,7 +1609,7 @@ function SupportActivitySection({
                   textDecoration: 'underline'
                 }}
               >
-                Afficher toute l'équipe
+                {t('reporting.supportAllAgents')}
               </button>
             )}
           </div>
@@ -1629,7 +1634,7 @@ function SupportActivitySection({
               }}
             >
               <Users size={13} />
-              Tous ({stats.callsCount} appels · {stats.ticketsCount} tickets)
+              {t('reporting.supportAllAgents')} ({stats.callsCount} · {stats.ticketsCount})
             </button>
 
             {agents.map((ag) => {
@@ -1671,7 +1676,7 @@ function SupportActivitySection({
                   </span>
                   <span>{ag.name}</span>
                   <span style={{ fontSize: 11, opacity: 0.7 }}>
-                    ({ag.callsCount} appels · {ag.ticketsCount} tickets)
+                    ({ag.callsCount} · {ag.ticketsCount})
                   </span>
                 </button>
               )
@@ -1689,30 +1694,30 @@ function SupportActivitySection({
         }}
       >
         <KpiCard
-          label="Appels support"
+          label={t('reporting.supportCallsCount')}
           value={callsCount}
-          sub={selectedAgent ? `Passés par ${selectedAgent.name}` : 'Passés par vos agents'}
+          sub={t('reporting.supportCallsCountSub')}
           color="#3b82f6"
           icon={Phone}
         />
         <KpiCard
-          label="Total tickets SAV"
+          label={t('reporting.supportTicketsCount')}
           value={ticketsCount}
-          sub={selectedAgent ? `Traités par ${selectedAgent.name}` : 'Créés pour vos clients'}
+          sub={t('reporting.supportTicketsCountSub')}
           color="#f59e0b"
           icon={Ticket}
         />
         <KpiCard
-          label="Tickets ouverts"
+          label={t('reporting.ticketOpen')}
           value={openTicketsCount}
           sub="En attente de résolution"
           color="#ef4444"
           icon={Clock}
         />
         <KpiCard
-          label="Taux de résolution"
+          label={t('reporting.supportResolutionRate')}
           value={`${resolutionRate}%`}
-          sub="Tickets résolus ou fermés"
+          sub={t('reporting.supportResolutionRateSub')}
           color={resolutionRate >= 70 ? '#10b981' : '#f59e0b'}
           icon={CheckCircle2}
         />
@@ -2159,6 +2164,7 @@ function SupportActivitySection({
 
 // ── Main Dashboard Component ──────────────────────────────────────────────────
 export function ReportingDashboard({ data }: { data: ReportingData }) {
+  const { t } = useTranslation()
   const searchParams = useSearchParams()
   const tabParam = searchParams.get('tab')
   const initialAgentUid = searchParams.get('agentUid') || undefined
@@ -2193,7 +2199,7 @@ export function ReportingDashboard({ data }: { data: ReportingData }) {
             gap: 8
           }}
         >
-          <BarChart3 size={15} /> Ventes & Conversion
+          <BarChart3 size={15} /> {t('reporting.tabSales')}
         </button>
         {data.supportStats && (
           <button
@@ -2214,7 +2220,7 @@ export function ReportingDashboard({ data }: { data: ReportingData }) {
               gap: 8
             }}
           >
-            <Headphones size={15} /> Activité Support SAV
+            <Headphones size={15} /> {t('reporting.tabSupport')}
           </button>
         )}
       </div>
@@ -2230,45 +2236,45 @@ export function ReportingDashboard({ data }: { data: ReportingData }) {
             }}
           >
             <KpiCard
-              label="CA Total Encaissé"
+              label={t('reporting.kpiRevenue')}
               value={formatFcfa(data.totalRevenue || 0)}
-              sub="Deals clôturés et validés"
+              sub={t('reporting.kpiRevenueSub')}
               color="#10b981"
               icon={Banknote}
             />
             <KpiCard
-              label="Valeur du Pipeline"
+              label={t('reporting.kpiPipelineValue')}
               value={formatFcfa(data.pipelineValue || 0)}
-              sub="En prospection & négociation"
+              sub={t('reporting.kpiPipelineValueSub')}
               color="#3b82f6"
               icon={Briefcase}
             />
             <KpiCard
-              label="Affaires conclues"
+              label={t('reporting.kpiClosed')}
               value={data.totalConclue}
-              sub={`Sur ${data.totalItems} prospect${data.totalItems > 1 ? 's' : ''} analysé${data.totalItems > 1 ? 's' : ''}`}
+              sub={t('reporting.kpiClosedSub', { count: data.totalItems })}
               color="#0ea5e9"
               icon={CheckCircle2}
             />
             <KpiCard
-              label="Taux de conversion"
+              label={t('reporting.kpiConversionRate')}
               value={`${data.overallConversionRate}%`}
-              sub="Prospection → Clôture"
+              sub={t('reporting.kpiConversionRateSub')}
               color={data.overallConversionRate >= 30 ? '#10b981' : '#f59e0b'}
               icon={TrendingUp}
             />
             <KpiCard
-              label="Top Commercial"
+              label={t('reporting.kpiTopCommercial')}
               value={data.topPerformer ?? '—'}
-              sub="Plus grand nombre de ventes"
+              sub={t('reporting.kpiTopCommercialSub')}
               color="#f59e0b"
               icon={Trophy}
               isPerson
             />
             <KpiCard
-              label="Relances en retard"
+              label={t('reporting.kpiOverdue')}
               value={data.totalOverdueFollowUps ?? 0}
-              sub={(data.totalOverdueFollowUps ?? 0) > 0 ? "Dates de suivi dépassées" : "Aucun retard enregistré"}
+              sub={(data.totalOverdueFollowUps ?? 0) > 0 ? t('reporting.kpiOverdueSub') : t('reporting.kpiNoOverdue')}
               color={(data.totalOverdueFollowUps ?? 0) > 0 ? '#ef4444' : '#10b981'}
               icon={AlertTriangle}
             />

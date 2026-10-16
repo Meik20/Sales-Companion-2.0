@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useToast } from '@/hooks/useToast'
+import { useTranslation } from '@/providers/I18nProvider'
 import { EmptyState } from '@/components/feedback'
 import { X, Link2, Loader2, Headphones, Copy, Check, ShieldCheck, ShieldAlert } from 'lucide-react'
 
@@ -18,6 +19,7 @@ type SupportLink = {
 export function CrossTeamSupportManager() {
   const { user } = useCurrentUser()
   const { pushToast } = useToast()
+  const { t, lang } = useTranslation()
   const [links, setLinks] = useState<SupportLink[]>([])
   const [loading, setLoading] = useState(false)
   const [inputId, setInputId] = useState('')
@@ -73,11 +75,11 @@ export function CrossTeamSupportManager() {
       setCopiedCode(true)
       pushToast({
         type: 'success',
-        title: `Code organisation (${code}) copié dans le presse-papiers.`
+        title: t('team.crossTeamSupport.copyToast').replace('{code}', code)
       })
       setTimeout(() => setCopiedCode(false), 2500)
     } catch {
-      pushToast({ type: 'info', title: `Code organisation : ${code}` })
+      pushToast({ type: 'info', title: `${t('team.crossTeamSupport.orgCodeLabel')} ${code}` })
     }
   }
 
@@ -95,7 +97,7 @@ export function CrossTeamSupportManager() {
       if (!res.ok) throw new Error(data.error || 'Erreur')
       pushToast({
         type: 'success',
-        title: `Agent "${data.agentName || inputId}" lié avec succès à votre équipe.`
+        title: t('team.crossTeamSupport.linkSuccess').replace('{name}', data.agentName || inputId)
       })
       setInputId('')
       void fetchLinks()
@@ -107,7 +109,7 @@ export function CrossTeamSupportManager() {
   }
 
   async function handleRevoke(linkId: string, agentName: string) {
-    if (!user || !confirm(`Révoquer l'accès de ${agentName} à votre équipe ?`)) return
+    if (!user || !confirm(t('team.crossTeamSupport.revokeConfirm').replace('{name}', agentName))) return
     setRevoking(linkId)
     try {
       const token = await user.getIdToken()
@@ -115,8 +117,8 @@ export function CrossTeamSupportManager() {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       })
-      if (!res.ok) throw new Error('Erreur lors de la révocation')
-      pushToast({ type: 'success', title: `Accès de ${agentName} révoqué.` })
+      if (!res.ok) throw new Error(t('team.crossTeamSupport.revokeError'))
+      pushToast({ type: 'success', title: t('team.crossTeamSupport.revokeSuccess').replace('{name}', agentName) })
       void fetchLinks()
     } catch (e: any) {
       pushToast({ type: 'error', title: e.message })
@@ -150,7 +152,7 @@ export function CrossTeamSupportManager() {
             gap: 8
           }}
         >
-          <Link2 size={16} className="text-primary" /> Agents Support — Accès Cross-Équipe
+          <Link2 size={16} className="text-primary" /> {t('team.crossTeamSupport.title')}
         </h3>
         <p
           style={{
@@ -160,15 +162,9 @@ export function CrossTeamSupportManager() {
             lineHeight: 1.6
           }}
         >
-          Invitez un agent support d'une autre équipe (même organisation) à accéder aux clients
-          conclus de votre équipe. L'agent doit vous fournir son{' '}
-          <strong style={{ color: 'var(--foreground, #f1f5f9)' }}>Access ID</strong> (ex :{' '}
-          <code
-            style={{ background: 'rgba(255,255,255,0.06)', padding: '1px 6px', borderRadius: 4 }}
-          >
-            jdupont@monentreprise
-          </code>
-          ).
+          {t('team.crossTeamSupport.descPrefix')}{' '}
+          <strong style={{ color: 'var(--foreground, #f1f5f9)' }}>{t('team.crossTeamSupport.accessId')}</strong>{' '}
+          {t('team.crossTeamSupport.accessIdExample')}
         </p>
       </div>
 
@@ -189,7 +185,7 @@ export function CrossTeamSupportManager() {
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <span style={{ fontSize: 13, color: 'var(--muted-foreground, #94a3b8)' }}>
-            Code Organisation :
+            {t('team.crossTeamSupport.orgCodeLabel')}
           </span>
           <code
             style={{
@@ -202,7 +198,7 @@ export function CrossTeamSupportManager() {
               letterSpacing: '0.05em'
             }}
           >
-            {orgData?.orgCode || user?.orgCode || 'Chargement…'}
+            {orgData?.orgCode || user?.orgCode || t('team.crossTeamSupport.loading')}
           </code>
           <button
             type="button"
@@ -222,7 +218,7 @@ export function CrossTeamSupportManager() {
             }}
           >
             {copiedCode ? <Check size={12} className="text-green-400" /> : <Copy size={12} />}
-            {copiedCode ? 'Copié !' : 'Copier'}
+            {copiedCode ? t('team.crossTeamSupport.copied') : t('team.crossTeamSupport.copy')}
           </button>
         </div>
 
@@ -243,7 +239,7 @@ export function CrossTeamSupportManager() {
               }}
             >
               <ShieldCheck size={14} />
-              Organisation vérifiée {orgData?.niu ? `(NIU: ${orgData.niu})` : ''}
+              {t('team.crossTeamSupport.verifiedOrg')} {orgData?.niu ? `(NIU: ${orgData.niu})` : ''}
             </span>
           ) : (
             <span
@@ -261,7 +257,7 @@ export function CrossTeamSupportManager() {
               }}
             >
               <ShieldAlert size={14} />
-              Organisation standard (NIU non configuré)
+              {t('team.crossTeamSupport.standardOrg')}
             </span>
           )}
         </div>
@@ -281,7 +277,7 @@ export function CrossTeamSupportManager() {
       >
         <input
           type="text"
-          placeholder="Access ID de l'agent (ex: jdupont@monentreprise)"
+          placeholder={t('team.crossTeamSupport.inputPlaceholder')}
           value={inputId}
           onChange={(e) => setInputId(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && void handleLink()}
@@ -318,12 +314,12 @@ export function CrossTeamSupportManager() {
           {linking ? (
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
               <Loader2 size={14} className="animate-spin" />
-              Liaison…
+              {t('team.crossTeamSupport.linkingBtn')}
             </span>
           ) : (
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
               <Link2 size={14} />
-              Lier l'agent
+              {t('team.crossTeamSupport.linkBtn')}
             </span>
           )}
         </button>
@@ -332,13 +328,13 @@ export function CrossTeamSupportManager() {
       {/* Linked agents list */}
       {loading ? (
         <p style={{ color: 'var(--muted-foreground, #94a3b8)', fontSize: 13, textAlign: 'center' }}>
-          Chargement…
+          {t('team.crossTeamSupport.loading')}
         </p>
       ) : links.length === 0 ? (
         <EmptyState
           illustration="/illustrations/empty-states/no-support-agent.png"
-          title="Aucun agent lié pour l'instant"
-          description="Saisissez l'Access ID d'un agent support pour lui accorder l'accès à vos clients."
+          title={t('team.crossTeamSupport.emptyTitle')}
+          description={t('team.crossTeamSupport.emptyDesc')}
           illustrationSize="sm"
         />
       ) : (
@@ -353,8 +349,7 @@ export function CrossTeamSupportManager() {
               margin: '0 0 4px'
             }}
           >
-            {links.length} agent{links.length > 1 ? 's' : ''} lié{links.length > 1 ? 's' : ''} à
-            votre équipe
+            {links.length} {links.length > 1 ? t('team.crossTeamSupport.agentsLinked_other') : t('team.crossTeamSupport.agentsLinked_one')}
           </p>
           {links.map((link) => (
             <div
@@ -386,8 +381,8 @@ export function CrossTeamSupportManager() {
                 <div
                   style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)', marginTop: 2 }}
                 >
-                  {link.agentAccessId} · Lié le{' '}
-                  {new Date(link.grantedAt).toLocaleDateString('fr-FR')}
+                  {link.agentAccessId} · {t('team.crossTeamSupport.linkedOn')}{' '}
+                  {new Date(link.grantedAt).toLocaleDateString(lang === 'en' ? 'en-US' : 'fr-FR')}
                 </div>
               </div>
               <button
@@ -414,7 +409,7 @@ export function CrossTeamSupportManager() {
                 ) : (
                   <>
                     <X size={13} />
-                    <span>Révoquer</span>
+                    <span>{t('team.crossTeamSupport.revoke')}</span>
                   </>
                 )}
               </button>

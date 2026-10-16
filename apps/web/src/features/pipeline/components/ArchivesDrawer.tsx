@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import { X, Archive, RotateCcw, Search, Calendar, User, Building2, AlertTriangle } from 'lucide-react'
 import { useArchivedLeads, useRestoreLeads } from '@/features/pipeline/hooks/useArchivePipeline'
+import { useTranslation } from '@/providers/I18nProvider'
 import { Button } from '@/components/ui/Button'
 
 type ArchivedItem = {
@@ -35,11 +36,11 @@ function parseTimestampMs(value: any): number | null {
   return null
 }
 
-function formatDate(value: any): string {
+function formatDate(value: any, lang: string = 'fr'): string {
   const ts = parseTimestampMs(value)
   if (!ts) return '—'
   try {
-    return new Date(ts).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
+    return new Date(ts).toLocaleDateString(lang === 'en' ? 'en-US' : 'fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
   } catch {
     return '—'
   }
@@ -59,6 +60,7 @@ const statusColor: Record<string, string> = {
 
 // ── Archives Drawer ──────────────────────────────────────────────────────────
 export function ArchivesDrawer() {
+  const { t, lang } = useTranslation()
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
@@ -109,11 +111,11 @@ export function ArchivesDrawer() {
       if (!ts) continue
       const d = new Date(ts)
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-      const label = d.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
+      const label = d.toLocaleDateString(lang === 'en' ? 'en-US' : 'fr-FR', { month: 'long', year: 'numeric' })
       if (!months.has(key)) months.set(key, label)
     }
     return Array.from(months.entries()).sort((a, b) => b[0].localeCompare(a[0]))
-  }, [items])
+  }, [items, lang])
 
   function toggleSelect(id: string) {
     setSelectedIds((prev) => {
@@ -147,7 +149,7 @@ export function ArchivesDrawer() {
       className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-amber-300 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 text-amber-900 dark:text-amber-300 font-bold text-[13px] cursor-pointer transition-all hover:bg-amber-100 dark:hover:bg-amber-500/20 shadow-xs"
     >
       <Archive size={15} className="text-amber-700 dark:text-amber-400" />
-      Archives
+      {t('pipeline.archivesTitle')}
       {items.length > 0 && (
         <span
           className="bg-amber-600 text-white rounded-full px-2 py-0.5 text-[10.5px] font-black"
@@ -231,10 +233,10 @@ export function ArchivesDrawer() {
                     letterSpacing: '-0.02em'
                   }}
                 >
-                  Archives
+                  {t('pipeline.archivesTitle')}
                 </h2>
                 <p style={{ margin: 0, fontSize: 12, color: 'var(--muted-foreground, #94a3b8)' }}>
-                  {items.length} lead{items.length > 1 ? 's archivés' : ' archivé'} au total
+                  {(items.length > 1 ? t('pipeline.archivesCount_other') : t('pipeline.archivesCount_one')).replace('{count}', String(items.length))}
                 </p>
               </div>
             </div>
@@ -282,7 +284,7 @@ export function ArchivesDrawer() {
             />
             <input
               type="text"
-              placeholder="Rechercher un lead archivé…"
+              placeholder={t('pipeline.searchArchivesPlaceholder')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               style={{
@@ -320,7 +322,7 @@ export function ArchivesDrawer() {
                 cursor: 'pointer'
               }}
             >
-              <option value="">Tous les mois</option>
+              <option value="">{t('pipeline.allMonths')}</option>
               {availableMonths.map(([key, label]) => (
                 <option key={key} value={key}>{label}</option>
               ))}
@@ -343,7 +345,7 @@ export function ArchivesDrawer() {
                   cursor: 'pointer'
                 }}
               >
-                {selectedIds.size === filtered.length ? 'Désélectionner tout' : 'Sélectionner tout'}
+                {selectedIds.size === filtered.length ? t('pipeline.deselectAll') : t('pipeline.selectAll')}
               </button>
             )}
 
@@ -362,7 +364,7 @@ export function ArchivesDrawer() {
                 }}
               >
                 <RotateCcw size={12} style={{ marginRight: 4 }} />
-                Restaurer ({selectedIds.size})
+                {t('pipeline.restoreSelection').replace('{count}', String(selectedIds.size))}
               </Button>
             )}
           </div>
@@ -370,7 +372,7 @@ export function ArchivesDrawer() {
           {/* Résultat count */}
           {(search || filterMonth) && (
             <p style={{ margin: 0, fontSize: 11, color: 'var(--muted-foreground, #94a3b8)' }}>
-              {filtered.length} résultat{filtered.length > 1 ? 's' : ''} sur {items.length}
+              {t('pipeline.resultsCount').replace('{filtered}', String(filtered.length)).replace('{total}', String(items.length))}
             </p>
           )}
         </div>
@@ -379,7 +381,7 @@ export function ArchivesDrawer() {
         <div style={{ flex: 1, overflowY: 'auto', padding: '12px 20px', display: 'flex', flexDirection: 'column', gap: 8 }}>
           {loading && (
             <div style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--muted-foreground, #94a3b8)', fontSize: 13 }}>
-              Chargement des archives…
+              {t('pipeline.loadingArchives')}
             </div>
           )}
 
@@ -395,12 +397,12 @@ export function ArchivesDrawer() {
             >
               <Archive size={32} style={{ color: 'var(--muted-foreground, #94a3b8)', marginBottom: 12 }} />
               <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: 'var(--foreground, #f1f5f9)' }}>
-                {items.length === 0 ? 'Aucun lead archivé' : 'Aucun résultat'}
+                {items.length === 0 ? t('pipeline.emptyArchivesTitle') : t('pipeline.emptyArchivesFilterTitle')}
               </p>
               <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--muted-foreground, #94a3b8)' }}>
                 {items.length === 0
-                  ? 'Les leads archivés par le manager apparaîtront ici.'
-                  : 'Essayez d\'ajuster vos filtres.'}
+                  ? t('pipeline.emptyArchivesDesc')
+                  : t('pipeline.emptyArchivesFilterDesc')}
               </p>
             </div>
           )}
@@ -507,12 +509,12 @@ export function ArchivesDrawer() {
                     )}
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                       <Calendar size={10} />
-                      Archivé le {formatDate(item.archivedAt)}
+                      {t('pipeline.archivedOn')} {formatDate(item.archivedAt, lang)}
                     </span>
                     {item.nextFollowUp && item.nextFollowUp < new Date().toISOString().slice(0, 10) && (
                       <span style={{ color: '#ef4444', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
                         <AlertTriangle size={10} />
-                        Relance en retard
+                        {t('pipeline.overdueReminder')}
                       </span>
                     )}
                   </div>
@@ -536,8 +538,8 @@ export function ArchivesDrawer() {
         >
           <p style={{ margin: 0, fontSize: 11, color: 'var(--muted-foreground, #94a3b8)' }}>
             {selectedIds.size > 0
-              ? `${selectedIds.size} lead${selectedIds.size > 1 ? 's sélectionnés' : ' sélectionné'}`
-              : 'Cliquez sur un lead pour le sélectionner'}
+              ? (selectedIds.size > 1 ? t('pipeline.selectedItemsCount_other') : t('pipeline.selectedItemsCount_one')).replace('{count}', String(selectedIds.size))
+              : t('pipeline.clickToSelectHint')}
           </p>
           <button
             type="button"
@@ -553,7 +555,7 @@ export function ArchivesDrawer() {
               cursor: 'pointer'
             }}
           >
-            Fermer
+            {t('pipeline.closeDrawer')}
           </button>
         </div>
       </div>

@@ -821,7 +821,7 @@ function InfoRow({
 
 // ── Targets Panel ────────────────────────────────────────────────────────
 function TargetsPanel({ members }: { members?: Member[] }) {
-  const { t: _t } = useTranslation()
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const [selectedMemberId, setSelectedMemberId] = useState('')
   const [period, setPeriod] = useState('')
@@ -911,7 +911,7 @@ function TargetsPanel({ members }: { members?: Member[] }) {
       >
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
           <Target size={15} style={{ color: 'var(--pipeline-concluded-color, #059669)' }} />
-          Définir les objectifs de l'équipe
+          {t('pipeline.setTeamTargets')}
         </span>
         <ChevronDown
           size={14}
@@ -964,16 +964,16 @@ function TargetsPanel({ members }: { members?: Member[] }) {
                 }}
               >
                 <Globe size={13} />
-                OBJECTIF GLOBAL (R/O)
+                {t('pipeline.globalTargetRo')}
               </span>
               {globalVolume > 0 && (
                 <span style={{ fontSize: 13, color: 'var(--foreground, #1e293b)' }}>
-                  Vol. : <strong>{globalVolume}</strong> prospects
+                  {t('pipeline.volLabel')} <strong>{globalVolume}</strong> {t('pipeline.leads')}
                 </span>
               )}
               {globalValue > 0 && (
                 <span style={{ fontSize: 13, color: 'var(--foreground, #1e293b)' }}>
-                  Val. : <strong>{new Intl.NumberFormat('fr-FR').format(globalValue)}</strong> FCFA
+                  {t('pipeline.valLabel')} <strong>{new Intl.NumberFormat('fr-FR').format(globalValue)}</strong> FCFA
                 </span>
               )}
               <span
@@ -984,19 +984,18 @@ function TargetsPanel({ members }: { members?: Member[] }) {
                   marginLeft: 'auto'
                 }}
               >
-                Lecture seule · calculé automatiquement
+                {t('pipeline.roCalculated')}
               </span>
             </div>
           )}
 
           {/* Member selector */}
           <div>
-            <label style={labelStyle}>Membre de l'équipe</label>
+            <label style={labelStyle}>{t('pipeline.teamMember')}</label>
             <select
               value={selectedMemberId}
               onChange={(e) => {
                 setSelectedMemberId(e.target.value)
-                // Pré-remplir si déjà un objectif défini
                 const existing = allTargets?.find((t) => t.memberId === e.target.value)
                 setTargetVolume(existing?.targetVolume != null ? String(existing.targetVolume) : '')
                 setTargetValue(existing?.targetValue != null ? String(existing.targetValue) : '')
@@ -1004,7 +1003,7 @@ function TargetsPanel({ members }: { members?: Member[] }) {
               }}
               style={inputStyle}
             >
-              <option value="">— Sélectionner un membre —</option>
+              <option value="">{t('pipeline.selectMemberPlaceholder')}</option>
               {members?.map((m) => (
                 <option key={m.uid} value={m.uid}>
                   {m.name ?? m.email ?? m.uid}
@@ -1016,10 +1015,10 @@ function TargetsPanel({ members }: { members?: Member[] }) {
 
           {/* Period */}
           <div>
-            <label style={labelStyle}>Période (optionnel)</label>
+            <label style={labelStyle}>{t('pipeline.periodOptional')}</label>
             <input
               type="text"
-              placeholder="ex : 2026-Q1, 2026-S1, 2026-12"
+              placeholder={t('pipeline.periodPlaceholder')}
               value={period}
               onChange={(e) => setPeriod(e.target.value)}
               style={inputStyle}
@@ -1029,7 +1028,7 @@ function TargetsPanel({ members }: { members?: Member[] }) {
           {/* Volume + Valeur */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <div>
-              <label style={labelStyle}>Objectif Volume (nbre de leads)</label>
+              <label style={labelStyle}>{t('pipeline.targetVolumeLabel')}</label>
               <input
                 type="number"
                 min={0}
@@ -1040,7 +1039,7 @@ function TargetsPanel({ members }: { members?: Member[] }) {
               />
             </div>
             <div>
-              <label style={labelStyle}>Objectif Valeur (FCFA)</label>
+              <label style={labelStyle}>{t('pipeline.targetValueLabel')}</label>
               <input
                 type="number"
                 min={0}
@@ -1072,15 +1071,15 @@ function TargetsPanel({ members }: { members?: Member[] }) {
                   marginBottom: 8
                 }}
               >
-                Objectifs définis
+                {t('pipeline.definedTargets')}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {allTargets.map((t) => {
-                  const member = members?.find((m) => m.uid === t.memberId)
-                  const name = member?.name ?? member?.email ?? t.memberId
+                {allTargets.map((tItem) => {
+                  const member = members?.find((m) => m.uid === tItem.memberId)
+                  const name = member?.name ?? member?.email ?? tItem.memberId
                   return (
                     <div
-                      key={t.memberId}
+                      key={tItem.memberId}
                       style={{
                         display: 'flex',
                         flexWrap: 'wrap',
@@ -1101,7 +1100,7 @@ function TargetsPanel({ members }: { members?: Member[] }) {
                       >
                         {name}
                       </span>
-                      {t.period && (
+                      {tItem.period && (
                         <span
                           style={{
                             color: 'var(--muted-foreground, #94a3b8)',
@@ -1112,18 +1111,18 @@ function TargetsPanel({ members }: { members?: Member[] }) {
                           }}
                         >
                           <Calendar size={11} />
-                          {t.period}
+                          {tItem.period}
                         </span>
                       )}
-                      {t.targetVolume != null && (
+                      {tItem.targetVolume != null && (
                         <span style={{ color: '#60a5fa' }}>
-                          Vol. : <strong>{t.targetVolume}</strong>
+                          {t('pipeline.volLabel')} <strong>{tItem.targetVolume}</strong>
                         </span>
                       )}
-                      {t.targetValue != null && (
+                      {tItem.targetValue != null && (
                         <span style={{ color: '#34d399' }}>
-                          Val. :{' '}
-                          <strong>{new Intl.NumberFormat('fr-FR').format(t.targetValue)}</strong> F
+                          {t('pipeline.valLabel')}{' '}
+                          <strong>{new Intl.NumberFormat('fr-FR').format(tItem.targetValue)}</strong> F
                         </span>
                       )}
                     </div>
@@ -1146,7 +1145,7 @@ function TargetsPanel({ members }: { members?: Member[] }) {
               }}
             >
               <Save size={14} style={{ marginRight: 6 }} />
-              Enregistrer les objectifs
+              {t('pipeline.saveTargets')}
             </Button>
           </div>
         </div>

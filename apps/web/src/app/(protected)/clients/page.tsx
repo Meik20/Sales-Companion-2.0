@@ -33,7 +33,7 @@ function formatCurrency(amount: number | null | undefined, currency: string = 'F
 
 export default function ClientDatabasePage() {
   const { user } = useCurrentUser()
-  const { t } = useTranslation()
+  const { t, lang } = useTranslation()
   const router = useRouter()
   const isTeamManager = user?.role === 'manager' && user?.orgRole === 'team_manager'
 
@@ -237,10 +237,10 @@ export default function ClientDatabasePage() {
             </div>
             <div>
               <h1 className="font-['Syne',sans-serif] text-[22px] font-extrabold tracking-tight text-foreground sm:text-[26px]">
-                Base de données clients
+                {t('clientDatabase.title')}
               </h1>
               <p className="text-[13px] text-muted-foreground">
-                Portefeuille officiel des clients enregistrés et ventes conclues de l’équipe.
+                {t('clientDatabase.subtitle')}
               </p>
             </div>
           </div>
@@ -252,7 +252,7 @@ export default function ClientDatabasePage() {
           className="inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-border bg-card px-3.5 text-[13px] font-medium text-foreground shadow-sm transition hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Download size={15} />
-          <span>Exporter CSV</span>
+          <span>{t('clientDatabase.exportCsv')}</span>
         </button>
       </div>
 
@@ -261,49 +261,49 @@ export default function ClientDatabasePage() {
         {/* Total Clients */}
         <div className="rounded-xl border border-border/80 bg-card p-4 shadow-sm">
           <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-[12px] font-medium">Clients enregistrés</span>
+            <span className="text-[12px] font-medium">{t('clientDatabase.kpiClients')}</span>
             <Building2 size={16} className="text-primary" />
           </div>
           <div className="mt-2 font-['Syne',sans-serif] text-[24px] font-bold text-foreground">
             {clients.length}
           </div>
-          <span className="text-[11px] text-muted-foreground">Total portefeuille</span>
+          <span className="text-[11px] text-muted-foreground">{t('clientDatabase.kpiClientsSub')}</span>
         </div>
 
         {/* Chiffre d'Affaires Conclu */}
         <div className="rounded-xl border border-border/80 bg-card p-4 shadow-sm">
           <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-[12px] font-medium">CA Conclu Total</span>
+            <span className="text-[12px] font-medium">{t('clientDatabase.kpiRevenue')}</span>
             <DollarSign size={16} className="text-emerald-500" />
           </div>
           <div className="mt-2 font-['Syne',sans-serif] text-[22px] font-bold text-foreground">
             {formatCurrency(totalRevenue, 'XAF')}
           </div>
-          <span className="text-[11px] text-muted-foreground">Ventes validées</span>
+          <span className="text-[11px] text-muted-foreground">{t('clientDatabase.kpiRevenueSub')}</span>
         </div>
 
         {/* Conclus ce mois */}
         <div className="rounded-xl border border-border/80 bg-card p-4 shadow-sm">
           <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-[12px] font-medium">Conclus ce mois</span>
+            <span className="text-[12px] font-medium">{t('clientDatabase.kpiThisMonth')}</span>
             <TrendingUp size={16} className="text-blue-500" />
           </div>
           <div className="mt-2 font-['Syne',sans-serif] text-[24px] font-bold text-foreground">
             {thisMonthCount}
           </div>
-          <span className="text-[11px] text-muted-foreground">Nouvelles signatures</span>
+          <span className="text-[11px] text-muted-foreground">{t('clientDatabase.kpiThisMonthSub')}</span>
         </div>
 
         {/* Membres Actifs */}
         <div className="rounded-xl border border-border/80 bg-card p-4 shadow-sm">
           <div className="flex items-center justify-between text-muted-foreground">
-            <span className="text-[12px] font-medium">Commerciaux vendeurs</span>
+            <span className="text-[12px] font-medium">{t('clientDatabase.kpiMembers')}</span>
             <UserCheck size={16} className="text-amber-500" />
           </div>
           <div className="mt-2 font-['Syne',sans-serif] text-[24px] font-bold text-foreground">
             {teamMembers.length}
           </div>
-          <span className="text-[11px] text-muted-foreground">Contributeurs</span>
+          <span className="text-[11px] text-muted-foreground">{t('clientDatabase.kpiMembersSub')}</span>
         </div>
       </div>
 
@@ -316,7 +316,7 @@ export default function ClientDatabasePage() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Rechercher par entreprise, contact, ville, commercial..."
+            placeholder={t('clientDatabase.searchPlaceholder')}
             className="h-9 w-full rounded-lg border border-border bg-background pl-9 pr-3 text-[13px] text-foreground outline-none transition focus:border-primary"
           />
         </div>
@@ -328,7 +328,7 @@ export default function ClientDatabasePage() {
             onChange={(e) => setSelectedMember(e.target.value)}
             className="h-9 w-full rounded-lg border border-border bg-background px-3 text-[12.5px] text-foreground outline-none transition focus:border-primary sm:w-[200px]"
           >
-            <option value="all">Tous les commerciaux ({clients.length})</option>
+            <option value="all">{t('clientDatabase.allMembers').replace('{count}', String(clients.length))}</option>
             {teamMembers.map((m) => (
               <option key={m.id} value={m.id}>
                 {m.name}
@@ -343,7 +343,7 @@ export default function ClientDatabasePage() {
               onChange={(e) => setSelectedSector(e.target.value)}
               className="h-9 w-full rounded-lg border border-border bg-background px-3 text-[12.5px] text-foreground outline-none transition focus:border-primary sm:w-[170px]"
             >
-              <option value="all">Tous les secteurs</option>
+              <option value="all">{t('clientDatabase.allSectors')}</option>
               {sectors.map((s) => (
                 <option key={s} value={s}>
                   {s}
@@ -359,7 +359,7 @@ export default function ClientDatabasePage() {
         <div className="flex h-64 items-center justify-center rounded-xl border border-border bg-card">
           <div className="flex flex-col items-center gap-3">
             <div className="h-7 w-7 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-            <span className="text-[13px] text-muted-foreground">Chargement de la base de données clients...</span>
+            <span className="text-[13px] text-muted-foreground">{t('clientDatabase.loading')}</span>
           </div>
         </div>
       ) : filteredClients.length === 0 ? (
@@ -367,11 +367,11 @@ export default function ClientDatabasePage() {
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
             <Users size={24} />
           </div>
-          <h3 className="mt-3 text-[15px] font-semibold text-foreground">Aucun client trouvé</h3>
+          <h3 className="mt-3 text-[15px] font-semibold text-foreground">{t('clientDatabase.noClientsFound')}</h3>
           <p className="mt-1 max-w-sm text-[13px] text-muted-foreground">
             {clients.length === 0
-              ? 'Dès qu’une opportunité est conclue dans le pipeline depuis plus de 72 heures, elle est archivée automatiquement ici avec le détail du vendeur.'
-              : 'Aucun client ne correspond à vos filtres actuels.'}
+              ? t('clientDatabase.emptyNoticeInitial')
+              : t('clientDatabase.emptyNoticeFiltered')}
           </p>
         </div>
       ) : (
@@ -380,18 +380,18 @@ export default function ClientDatabasePage() {
             <table className="w-full text-left text-[13px]">
               <thead className="border-b border-border bg-muted/40 text-[11.5px] font-semibold uppercase tracking-wider text-muted-foreground">
                 <tr>
-                  <th className="px-4 py-3">Client & Entreprise</th>
-                  <th className="px-4 py-3">Vendu par (Commercial)</th>
-                  <th className="px-4 py-3">Montant Conclu</th>
-                  <th className="px-4 py-3">Date Conclusion</th>
-                  <th className="px-4 py-3">Coordonnées</th>
-                  <th className="px-4 py-3 text-right">Action</th>
+                  <th className="px-4 py-3">{t('clientDatabase.colClient')}</th>
+                  <th className="px-4 py-3">{t('clientDatabase.colSoldBy')}</th>
+                  <th className="px-4 py-3">{t('clientDatabase.colAmount')}</th>
+                  <th className="px-4 py-3">{t('clientDatabase.colDate')}</th>
+                  <th className="px-4 py-3">{t('clientDatabase.colContact')}</th>
+                  <th className="px-4 py-3 text-right">{t('clientDatabase.colAction')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {filteredClients.map((client) => {
                   const concludedDate = client.concludedAt
-                    ? new Date(client.concludedAt as any).toLocaleDateString('fr-FR', {
+                    ? new Date(client.concludedAt as any).toLocaleDateString(lang === 'en' ? 'en-US' : 'fr-FR', {
                         day: '2-digit',
                         month: 'short',
                         year: 'numeric'
@@ -421,10 +421,10 @@ export default function ClientDatabasePage() {
                           </div>
                           <div>
                             <div className="font-medium text-foreground">
-                              {client.assignedName || 'Non assigné'}
+                              {client.assignedName || t('clientDatabase.unassigned')}
                             </div>
                             <div className="text-[11px] text-muted-foreground">
-                              {client.assignedEmail || client.assignedRole || 'Commercial terrain'}
+                              {client.assignedEmail || client.assignedRole || t('clientDatabase.fieldRep')}
                             </div>
                           </div>
                         </div>
@@ -452,7 +452,7 @@ export default function ClientDatabasePage() {
                             <a
                               href={`tel:${client.companyPhone}`}
                               onClick={(e) => e.stopPropagation()}
-                              title={`Appeler : ${client.companyPhone}`}
+                              title={t('clientDatabase.callTooltip').replace('{phone}', client.companyPhone)}
                               className="flex h-7 w-7 items-center justify-center rounded-md border border-border bg-background text-muted-foreground transition hover:border-primary hover:text-primary"
                             >
                               <Phone size={13} />
@@ -462,7 +462,7 @@ export default function ClientDatabasePage() {
                             <a
                               href={`mailto:${client.companyEmail}`}
                               onClick={(e) => e.stopPropagation()}
-                              title={`Envoyer un email : ${client.companyEmail}`}
+                              title={t('clientDatabase.emailTooltip').replace('{email}', client.companyEmail)}
                               className="flex h-7 w-7 items-center justify-center rounded-md border border-border bg-background text-muted-foreground transition hover:border-primary hover:text-primary"
                             >
                               <Mail size={13} />
@@ -474,7 +474,7 @@ export default function ClientDatabasePage() {
                       {/* Action */}
                       <td className="px-4 py-3.5 text-right">
                         <span className="inline-flex items-center gap-1 text-[12px] font-medium text-primary hover:underline">
-                          Détails
+                          {t('clientDatabase.details')}
                           <ChevronRight size={14} />
                         </span>
                       </td>
@@ -495,13 +495,13 @@ export default function ClientDatabasePage() {
             <div className="flex items-start justify-between border-b border-border pb-4">
               <div>
                 <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-                  Client Conclu
+                  {t('clientDatabase.modalBadge')}
                 </span>
                 <h3 className="mt-1 font-['Syne',sans-serif] text-[20px] font-bold text-foreground">
                   {selectedClient.companyName}
                 </h3>
                 <p className="text-[12px] text-muted-foreground">
-                  {selectedClient.companySector || 'Secteur non spécifié'} · {selectedClient.companyCity || 'Ville non spécifiée'}
+                  {selectedClient.companySector || t('clientDatabase.modalSectorUnspecified')} · {selectedClient.companyCity || t('clientDatabase.modalCityUnspecified')}
                 </p>
               </div>
               <button
@@ -515,7 +515,7 @@ export default function ClientDatabasePage() {
             {/* Informations du Vendeur */}
             <div className="mt-4 rounded-xl border border-border/80 bg-muted/30 p-3.5">
               <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Commercial responsable de la signature
+                {t('clientDatabase.modalResponsibleTitle')}
               </span>
               <div className="mt-2 flex items-center gap-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/20 text-[14px] font-bold text-primary">
@@ -523,13 +523,13 @@ export default function ClientDatabasePage() {
                 </div>
                 <div>
                   <div className="font-semibold text-foreground">
-                    {selectedClient.assignedName || 'Non assigné'}
+                    {selectedClient.assignedName || t('clientDatabase.unassigned')}
                   </div>
                   <div className="text-[12px] text-muted-foreground">
-                    {selectedClient.assignedEmail || 'Email non renseigné'}
+                    {selectedClient.assignedEmail || t('clientDatabase.modalEmailUnspecified')}
                   </div>
                   <div className="text-[11px] text-primary">
-                    {selectedClient.assignedRole ? `Rôle : ${selectedClient.assignedRole}` : 'Commercial terrain'}
+                    {selectedClient.assignedRole ? `${t('clientDatabase.modalRolePrefix')}${selectedClient.assignedRole}` : t('clientDatabase.fieldRep')}
                   </div>
                 </div>
               </div>
@@ -538,21 +538,21 @@ export default function ClientDatabasePage() {
             {/* Données financières et contact */}
             <div className="mt-4 grid grid-cols-2 gap-3 text-[12.5px]">
               <div className="rounded-lg border border-border p-3">
-                <span className="text-muted-foreground">Montant du contrat</span>
+                <span className="text-muted-foreground">{t('clientDatabase.modalContractAmount')}</span>
                 <div className="mt-1 font-['Syne',sans-serif] text-[16px] font-bold text-emerald-600 dark:text-emerald-400">
-                  {selectedClient.amount ? formatCurrency(selectedClient.amount, selectedClient.currency || 'XAF') : 'Non renseigné'}
+                  {selectedClient.amount ? formatCurrency(selectedClient.amount, selectedClient.currency || 'XAF') : t('clientDatabase.modalNotSpecified')}
                 </div>
               </div>
               <div className="rounded-lg border border-border p-3">
-                <span className="text-muted-foreground">Date de conclusion</span>
+                <span className="text-muted-foreground">{t('clientDatabase.modalConcludedDate')}</span>
                 <div className="mt-1 font-medium text-foreground">
                   {selectedClient.concludedAt
-                    ? new Date(selectedClient.concludedAt as any).toLocaleDateString('fr-FR', {
+                    ? new Date(selectedClient.concludedAt as any).toLocaleDateString(lang === 'en' ? 'en-US' : 'fr-FR', {
                         day: '2-digit',
                         month: 'long',
                         year: 'numeric'
                       })
-                    : 'Non daté'}
+                    : t('clientDatabase.modalUndated')}
                 </div>
               </div>
             </div>
@@ -560,11 +560,11 @@ export default function ClientDatabasePage() {
             {/* Coordonnées du contact */}
             <div className="mt-4 space-y-2 rounded-xl border border-border p-3.5 text-[13px]">
               <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Contact référent :</span>
+                <span className="text-muted-foreground">{t('clientDatabase.modalReferentContact')}</span>
                 <span className="font-medium text-foreground">{selectedClient.contactName || '—'}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Téléphone :</span>
+                <span className="text-muted-foreground">{t('clientDatabase.modalPhone')}</span>
                 {selectedClient.companyPhone ? (
                   <a
                     href={`tel:${selectedClient.companyPhone}`}
@@ -578,7 +578,7 @@ export default function ClientDatabasePage() {
                 )}
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Email :</span>
+                <span className="text-muted-foreground">{t('clientDatabase.modalEmail')}</span>
                 {selectedClient.companyEmail ? (
                   <a
                     href={`mailto:${selectedClient.companyEmail}`}
@@ -593,7 +593,7 @@ export default function ClientDatabasePage() {
               </div>
               {selectedClient.address && (
                 <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Adresse :</span>
+                  <span className="text-muted-foreground">{t('clientDatabase.modalAddress')}</span>
                   <span className="text-right text-foreground">{selectedClient.address}</span>
                 </div>
               )}
@@ -603,14 +603,14 @@ export default function ClientDatabasePage() {
             <div className="mt-4">
               <div className="flex items-center justify-between">
                 <span className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  Notes & Historique
+                  {t('clientDatabase.modalNotesHistory')}
                 </span>
                 {!isEditingNotes && (
                   <button
                     onClick={() => setIsEditingNotes(true)}
                     className="text-[12px] font-medium text-primary hover:underline"
                   >
-                    Modifier
+                    {t('clientDatabase.modalEditNotes')}
                   </button>
                 )}
               </div>
@@ -621,7 +621,7 @@ export default function ClientDatabasePage() {
                     value={notesContent}
                     onChange={(e) => setNotesContent(e.target.value)}
                     rows={4}
-                    placeholder="Ajouter des notes sur le contrat ou le client..."
+                    placeholder={t('clientDatabase.modalNotesPlaceholder')}
                     className="w-full rounded-lg border border-border bg-background p-2.5 text-[13px] text-foreground outline-none focus:border-primary"
                   />
                   <div className="flex justify-end gap-2">
@@ -629,14 +629,14 @@ export default function ClientDatabasePage() {
                       onClick={() => setIsEditingNotes(false)}
                       className="rounded-md border border-border px-3 py-1.5 text-[12px] text-muted-foreground hover:bg-muted"
                     >
-                      Annuler
+                      {t('clientDatabase.modalCancelNotes')}
                     </button>
                     <button
                       onClick={handleSaveNotes}
                       disabled={savingNotes}
                       className="rounded-md bg-primary px-3 py-1.5 text-[12px] font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
                     >
-                      {savingNotes ? 'Enregistrement...' : 'Enregistrer'}
+                      {savingNotes ? t('clientDatabase.modalSavingNotes') : t('clientDatabase.modalSaveNotes')}
                     </button>
                   </div>
                 </div>
@@ -645,7 +645,7 @@ export default function ClientDatabasePage() {
                   {selectedClient.notes ? (
                     <p className="whitespace-pre-wrap">{selectedClient.notes}</p>
                   ) : (
-                    <p className="italic text-muted-foreground">Aucune note pour le moment.</p>
+                    <p className="italic text-muted-foreground">{t('clientDatabase.modalNoNotesYet')}</p>
                   )}
                 </div>
               )}
@@ -657,7 +657,7 @@ export default function ClientDatabasePage() {
                 onClick={() => setSelectedClient(null)}
                 className="rounded-lg border border-border bg-muted px-4 py-2 text-[13px] font-medium text-foreground transition hover:bg-muted/80"
               >
-                Fermer
+                {t('clientDatabase.modalClose')}
               </button>
             </div>
           </div>

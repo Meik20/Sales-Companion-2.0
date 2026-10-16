@@ -16,13 +16,13 @@ export type Language = 'fr' | 'en'
 
 interface I18nContextType {
   lang: Language
-  t: (key: string) => string
+  t: (key: string, params?: Record<string, string | number | undefined | null>) => string
   setLang: (lang: Language) => void
 }
 
 const I18nContext = createContext<I18nContextType>({
   lang: 'fr',
-  t: (key: string) => key,
+  t: (key: string, _params?: Record<string, string | number | undefined | null>) => key,
   setLang: () => {}
 })
 
@@ -64,7 +64,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const translations = lang === 'fr' ? fr : en
 
   const t = useCallback(
-    (key: string): string => {
+    (key: string, params?: Record<string, string | number | undefined | null>): string => {
       const keys = key.split('.')
       let val: any = translations
       for (const k of keys) {
@@ -74,7 +74,12 @@ export function I18nProvider({ children }: { children: ReactNode }) {
           return key
         }
       }
-      return typeof val === 'string' ? val : key
+      if (typeof val !== 'string') return key
+      if (!params) return val
+
+      return Object.entries(params).reduce((str, [k, v]) => {
+        return str.replace(new RegExp(`\\{${k}\\}`, 'g'), String(v ?? ''))
+      }, val)
       // eslint-disable-next-line react-hooks/exhaustive-deps
     },
     [lang]

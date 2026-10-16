@@ -8,9 +8,11 @@ import { useReportingData } from '@/features/reporting/hooks/useReportingData'
 import { ReportingDashboard } from '@/features/reporting/components/ReportingDashboard'
 import { BarChart2, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import { useTranslation } from '@/providers/I18nProvider'
 
 export default function ReportingPage() {
   const { user } = useCurrentUser()
+  const { t } = useTranslation()
   const { data, isLoading, isError, error, refetch, isFetching } = useReportingData()
 
   if (user?.role !== 'manager') {
@@ -19,8 +21,8 @@ export default function ReportingPage() {
         <EmptyState
           illustration="/illustrations/empty-states/no-access.png"
           illustrationSize="md"
-          title="Accès réservé"
-          description="Cette section est réservée aux managers. Contactez votre responsable pour y accéder."
+          title={t('reporting.accessReserved')}
+          description={t('reporting.accessReservedDesc')}
         />
       </AppShell>
     )
@@ -29,8 +31,8 @@ export default function ReportingPage() {
   return (
     <AppShell>
       <PageHeader
-        title="Tableau de bord"
-        subtitle="Performances commerciales de votre équipe en temps réel"
+        title={t('reporting.title')}
+        subtitle={t('reporting.subtitle')}
         actions={
           <Button
             variant="ghost"
@@ -43,7 +45,7 @@ export default function ReportingPage() {
               size={14}
               style={{ animation: isFetching ? 'spin 1s linear infinite' : 'none' }}
             />
-            Actualiser
+            {t('reporting.refresh')}
           </Button>
         }
       />
@@ -61,7 +63,7 @@ export default function ReportingPage() {
           }}
         >
           <BarChart2 size={12} />
-          Données en temps réel · {data.totalItems} prospects analysés
+          {t('reporting.realTimeInfo', { count: data.totalItems })}
         </div>
       )}
 
@@ -79,7 +81,7 @@ export default function ReportingPage() {
           }}
         >
           <strong>Erreur :</strong>{' '}
-          {error instanceof Error ? error.message : 'Impossible de charger les données'}
+          {error instanceof Error ? error.message : t('reporting.errorLoading')}
         </div>
       )}
 
@@ -87,8 +89,8 @@ export default function ReportingPage() {
         <EmptyState
           illustration="/illustrations/empty-states/empty-pipeline.png"
           illustrationSize="md"
-          title="Aucune donnée"
-          description="Votre équipe n'a pas encore enregistré de prospects. Les statistiques apparaîtront ici dès que l'activité commence."
+          title={t('reporting.noData')}
+          description={t('reporting.noDataDesc')}
         />
       )}
 
