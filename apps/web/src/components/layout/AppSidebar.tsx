@@ -377,116 +377,120 @@ export function AppSidebar({
         </>
       ) : (
         <>
-          {/* ── Filtres rapides (Sales / Manager / Admin) ────────────── */}
-          <SectionLabel>{t('sidebar.quickFilters')}</SectionLabel>
+          {/* ── Filtres rapides (Commerciaux terrain & Indépendants) ────── */}
+          {user.role !== 'manager' && (
+            <>
+              <SectionLabel>{t('sidebar.quickFilters')}</SectionLabel>
 
-          {/* Région */}
-          <div className="px-2.5 py-0.5">
-            <label className="mb-1 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-              <MapPin size={12} /> {t('sidebar.region')}
-            </label>
-            <select
-              value={region}
-              onChange={(e) => {
-                setRegion(e.target.value)
-                setCity('')
-              }}
-              className="h-8 w-full rounded-lg border border-border bg-background px-2 text-[12px] text-foreground outline-none"
-            >
-              <option value="">{t('sidebar.allRegions')}</option>
-              {geography.regions.map((r) => (
-                <option key={r} value={r}>
-                  {REGION_KEYS[r] ? t(`regions.${REGION_KEYS[r]}` as `regions.${string}`) : r}
-                </option>
-              ))}
-            </select>
-          </div>
+              {/* Région */}
+              <div className="px-2.5 py-0.5">
+                <label className="mb-1 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                  <MapPin size={12} /> {t('sidebar.region')}
+                </label>
+                <select
+                  value={region}
+                  onChange={(e) => {
+                    setRegion(e.target.value)
+                    setCity('')
+                  }}
+                  className="h-8 w-full rounded-lg border border-border bg-background px-2 text-[12px] text-foreground outline-none"
+                >
+                  <option value="">{t('sidebar.allRegions')}</option>
+                  {geography.regions.map((r) => (
+                    <option key={r} value={r}>
+                      {REGION_KEYS[r] ? t(`regions.${REGION_KEYS[r]}` as `regions.${string}`) : r}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-          {/* Ville */}
-          {region && (
-            <div className="px-2.5 py-0.5">
-              <label className="mb-1 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                <MapPin size={12} /> {t('sidebar.city')}
-              </label>
-              <select
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                className="h-8 w-full rounded-lg border border-border bg-background px-2 text-[12px] text-foreground outline-none"
-              >
-                <option value="">{t('sidebar.allCities')}</option>
-                {geography.citiesByRegion[region]?.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {/* Secteur */}
-          <div className="px-2.5 py-0.5">
-            <label className="mb-1 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-              <Filter size={12} /> {t('sidebar.sector')}
-            </label>
-            <select
-              value={sector}
-              onChange={(e) => setSector(e.target.value)}
-              className="h-8 w-full rounded-lg border border-border bg-background px-2 text-[12px] text-foreground outline-none"
-            >
-              <option value="">{t('sidebar.allSectors')}</option>
-              {SECTORS.map((s) => (
-                <option key={s} value={s}>
-                  {t(`sectors.${SECTOR_KEYS[s]}` as `sectors.${string}`)}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Buttons */}
-          <div className="flex flex-col gap-1.5 px-2.5 py-1">
-            <button
-              onClick={() => applyFilters()}
-              className="flex h-[34px] items-center justify-center gap-1.5 rounded-lg bg-primary text-[12px] font-bold text-primary-foreground transition-all duration-150 hover:bg-primary/90"
-            >
-              <Search size={13} /> {t('sidebar.search')}
-            </button>
-
-            <button
-              onClick={handleLocateMe}
-              disabled={geoState === 'loading'}
-              className={`flex h-[34px] items-center justify-center gap-1.5 rounded-lg border border-primary/30 text-[12px] font-semibold text-primary transition-all duration-150 ${geoState === 'done' ? 'bg-primary/10' : 'bg-transparent'} ${geoState === 'loading' ? 'cursor-wait' : 'cursor-pointer hover:bg-primary/5'}`}
-            >
-              <MapPin size={13} />
-              {geoState === 'loading' ? (
-                t('sidebar.detecting')
-              ) : geoState === 'done' ? (
-                <span className="flex items-center gap-1">
-                  {t('sidebar.aroundMe')}
-                  <Check size={12} strokeWidth={2.5} />
-                </span>
-              ) : (
-                t('sidebar.aroundMe')
+              {/* Ville */}
+              {region && (
+                <div className="px-2.5 py-0.5">
+                  <label className="mb-1 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                    <MapPin size={12} /> {t('sidebar.city')}
+                  </label>
+                  <select
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    className="h-8 w-full rounded-lg border border-border bg-background px-2 text-[12px] text-foreground outline-none"
+                  >
+                    <option value="">{t('sidebar.allCities')}</option>
+                    {geography.citiesByRegion[region]?.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               )}
-            </button>
 
-            <div className="flex items-center justify-between px-0.5 text-[12px] text-muted-foreground">
-              <span className="flex items-center gap-1">
-                <Filter size={11} /> {t('sidebar.radius')}
-              </span>
-              <select
-                value={radius}
-                onChange={(e) => setRadius(e.target.value)}
-                className="rounded-md border border-border bg-transparent px-1.5 py-0.5 text-[11px] text-foreground outline-none"
-              >
-                <option className="bg-popover text-foreground">5 km</option>
-                <option className="bg-popover text-foreground">10 km</option>
-                <option className="bg-popover text-foreground">50 km</option>
-                <option className="bg-popover text-foreground">National</option>
-              </select>
-            </div>
-          </div>
+              {/* Secteur */}
+              <div className="px-2.5 py-0.5">
+                <label className="mb-1 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                  <Filter size={12} /> {t('sidebar.sector')}
+                </label>
+                <select
+                  value={sector}
+                  onChange={(e) => setSector(e.target.value)}
+                  className="h-8 w-full rounded-lg border border-border bg-background px-2 text-[12px] text-foreground outline-none"
+                >
+                  <option value="">{t('sidebar.allSectors')}</option>
+                  {SECTORS.map((s) => (
+                    <option key={s} value={s}>
+                      {t(`sectors.${SECTOR_KEYS[s]}` as `sectors.${string}`)}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-          <SectionDivider />
+              {/* Buttons */}
+              <div className="flex flex-col gap-1.5 px-2.5 py-1">
+                <button
+                  onClick={() => applyFilters()}
+                  className="flex h-[34px] items-center justify-center gap-1.5 rounded-lg bg-primary text-[12px] font-bold text-primary-foreground transition-all duration-150 hover:bg-primary/90"
+                >
+                  <Search size={13} /> {t('sidebar.search')}
+                </button>
+
+                <button
+                  onClick={handleLocateMe}
+                  disabled={geoState === 'loading'}
+                  className={`flex h-[34px] items-center justify-center gap-1.5 rounded-lg border border-primary/30 text-[12px] font-semibold text-primary transition-all duration-150 ${geoState === 'done' ? 'bg-primary/10' : 'bg-transparent'} ${geoState === 'loading' ? 'cursor-wait' : 'cursor-pointer hover:bg-primary/5'}`}
+                >
+                  <MapPin size={13} />
+                  {geoState === 'loading' ? (
+                    t('sidebar.detecting')
+                  ) : geoState === 'done' ? (
+                    <span className="flex items-center gap-1">
+                      {t('sidebar.aroundMe')}
+                      <Check size={12} strokeWidth={2.5} />
+                    </span>
+                  ) : (
+                    t('sidebar.aroundMe')
+                  )}
+                </button>
+
+                <div className="flex items-center justify-between px-0.5 text-[12px] text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <Filter size={11} /> {t('sidebar.radius')}
+                  </span>
+                  <select
+                    value={radius}
+                    onChange={(e) => setRadius(e.target.value)}
+                    className="rounded-md border border-border bg-transparent px-1.5 py-0.5 text-[11px] text-foreground outline-none"
+                  >
+                    <option className="bg-popover text-foreground">5 km</option>
+                    <option className="bg-popover text-foreground">10 km</option>
+                    <option className="bg-popover text-foreground">50 km</option>
+                    <option className="bg-popover text-foreground">National</option>
+                  </select>
+                </div>
+              </div>
+
+              <SectionDivider />
+            </>
+          )}
 
           {/* ── P4 — Section: Outils Principaux ─────────────────────────── */}
           <SectionLabel>{t('sidebar.prospection')}</SectionLabel>
@@ -537,18 +541,53 @@ export function AppSidebar({
           {user.orgRole === 'senior_manager' ? (
             <>
               {/* Senior Manager : Gestion de l'Organisation + Dashboard Organisation */}
-              <SidebarLink href={routes.team} label={t('sidebar.orgManagement')} icon={Building2} />
+              <SidebarLink
+                href={routes.team}
+                label={t('sidebar.orgManagement')}
+                icon={Building2}
+                onClick={(e) => {
+                  if (user.plan === 'free') {
+                    e.preventDefault()
+                    router.push('/upgrade?redirect=' + encodeURIComponent(routes.team))
+                  }
+                }}
+              />
               <SidebarLink
                 href={routes.dashboard}
                 label={t('sidebar.orgDashboard')}
                 icon={LayoutDashboard}
+                onClick={(e) => {
+                  if (user.plan === 'free') {
+                    e.preventDefault()
+                    router.push('/upgrade?redirect=' + encodeURIComponent(routes.dashboard))
+                  }
+                }}
               />
             </>
           ) : (
             <>
               {/* Team Manager : Gestion d'équipe terrain + Tableau de bord personnel */}
-              <SidebarLink href={routes.team} label={t('sidebar.teamManagement')} icon={Users} />
-              <SidebarLink href={routes.reporting} label={t('sidebar.teamDashboard')} icon={BarChart2} />
+              <SidebarLink
+                href={routes.team}
+                label={t('sidebar.teamManagement')}
+                icon={Users}
+                onClick={(e) => {
+                  if (user.plan === 'free') {
+                    e.preventDefault()
+                    pushToast({
+                      type: 'error',
+                      title: 'Gestion d’équipe verrouillée',
+                      description:
+                        'Le plan actuel de votre organisation ne vous permet pas de gérer l’équipe. Veuillez contacter votre Senior Manager pour la mise à niveau.'
+                    })
+                  }
+                }}
+              />
+              <SidebarLink
+                href={routes.reporting}
+                label={t('sidebar.teamDashboard')}
+                icon={BarChart2}
+              />
             </>
           )}
         </>

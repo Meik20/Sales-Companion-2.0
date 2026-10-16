@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { AppShell } from '@/components/layout/AppShell'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { TeamMembersSection } from '@/features/team/components/TeamMembersSection'
@@ -10,6 +11,7 @@ import { AssignmentsTable } from '@/features/team/components/AssignmentsTable'
 import { TeamAccessManager } from '@/features/team/components/TeamAccessManager'
 import { CrossTeamSupportManager } from '@/features/crm/components/CrossTeamSupportManager'
 import { ImportProspectsForm } from '@/features/imports/components/ImportProspectsForm'
+import { routes } from '@/constants/routes'
 
 import {
   ManagerProspectsList,
@@ -26,7 +28,9 @@ import {
   UploadCloud,
   AlertTriangle,
   X,
-  Building2
+  Building2,
+  ShieldAlert,
+  ArrowRight
 } from 'lucide-react'
 
 type Tab = 'org' | 'team' | 'imports'
@@ -37,6 +41,7 @@ export default function TeamPage() {
   const [selectedProspects, setSelectedProspects] = useState<Prospect[]>([])
   const assignFormRef = useRef<HTMLDivElement>(null)
 
+  const router = useRouter()
   const { user } = useCurrentUser()
   const { data: members = [] } = useTeamMembers()
   const { t } = useTranslation()
@@ -45,6 +50,7 @@ export default function TeamPage() {
   const isManager = user?.role === 'manager'
   const isSupportAgent = user?.role === 'support_agent'
   const canImport = isManager || isSupportAgent
+  const isFreePlan = user && (user.plan === 'free' || !user.plan)
 
   const [teamManagers, setTeamManagers] = useState<
     Array<{ uid: string; name: string; email: string }>
@@ -126,6 +132,164 @@ export default function TeamPage() {
   function handleAssigned() {
     setSelectedProspects([])
     setImportRefresh((n) => n + 1)
+  }
+
+  // ── Protection Plan FREE : Gestion de l'Organisation (SM) ──────────────────
+  if (isSeniorManager && isFreePlan) {
+    return (
+      <AppShell>
+        <PageHeader title={t('team.orgTitle')} subtitle={t('team.orgSubtitle')} />
+        <div
+          style={{
+            maxWidth: 580,
+            margin: '32px auto',
+            background: 'var(--card, #131c2e)',
+            borderRadius: 20,
+            padding: '40px 32px',
+            border: '1px solid var(--border, rgba(255,255,255,0.1))',
+            textAlign: 'center',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.2)'
+          }}
+        >
+          <div
+            style={{
+              width: 64,
+              height: 64,
+              borderRadius: '50%',
+              background: 'rgba(245, 158, 11, 0.12)',
+              color: '#f59e0b',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 20px',
+              border: '1px solid rgba(245, 158, 11, 0.25)'
+            }}
+          >
+            <ShieldAlert size={32} />
+          </div>
+          <h2
+            style={{
+              fontSize: 20,
+              fontWeight: 800,
+              margin: '0 0 12px',
+              color: 'var(--foreground, #f1f5f9)'
+            }}
+          >
+            Gouvernance d'organisation verrouillée
+          </h2>
+          <p
+            style={{
+              fontSize: 14,
+              color: 'var(--muted-foreground, #94a3b8)',
+              lineHeight: 1.6,
+              marginBottom: 28
+            }}
+          >
+            Votre organisation est actuellement sur le plan Gratuit. Les fonctionnalités de
+            gouvernance, de transfert d'opportunités et d'invitation de Team Managers sont réservées
+            aux forfaits Pro et Enterprise.
+          </p>
+          <button
+            onClick={() => router.push('/upgrade?redirect=/team')}
+            style={{
+              padding: '12px 28px',
+              borderRadius: 10,
+              border: 'none',
+              background: '#2563eb',
+              color: '#fff',
+              fontSize: 14,
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8
+            }}
+          >
+            Mettre à niveau mon organisation
+            <ArrowRight size={16} />
+          </button>
+        </div>
+      </AppShell>
+    )
+  }
+
+  // ── Protection Plan FREE : Gestion d'équipe (TM) ───────────────────────────
+  if (isManager && !isSeniorManager && isFreePlan) {
+    return (
+      <AppShell>
+        <PageHeader title={t('team.title')} subtitle={t('team.subtitle')} />
+        <div
+          style={{
+            maxWidth: 580,
+            margin: '32px auto',
+            background: 'var(--card, #131c2e)',
+            borderRadius: 20,
+            padding: '40px 32px',
+            border: '1px solid var(--border, rgba(255,255,255,0.1))',
+            textAlign: 'center',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.2)'
+          }}
+        >
+          <div
+            style={{
+              width: 64,
+              height: 64,
+              borderRadius: '50%',
+              background: 'rgba(245, 158, 11, 0.12)',
+              color: '#f59e0b',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 20px',
+              border: '1px solid rgba(245, 158, 11, 0.25)'
+            }}
+          >
+            <ShieldAlert size={32} />
+          </div>
+          <h2
+            style={{
+              fontSize: 20,
+              fontWeight: 800,
+              margin: '0 0 12px',
+              color: 'var(--foreground, #f1f5f9)'
+            }}
+          >
+            Gestion d'équipe restreinte — Plan Gratuit
+          </h2>
+          <p
+            style={{
+              fontSize: 14,
+              color: 'var(--muted-foreground, #94a3b8)',
+              lineHeight: 1.6,
+              marginBottom: 28
+            }}
+          >
+            Le plan actuel de votre organisation ne vous permet pas de créer de nouveaux accès pour
+            les commerciaux ni d'assigner des opportunités. Veuillez vous rapprocher du Senior
+            Manager de votre entreprise pour demander la mise à niveau du compte.
+          </p>
+          <button
+            onClick={() => router.push(routes.pipeline)}
+            style={{
+              padding: '12px 28px',
+              borderRadius: 10,
+              border: 'none',
+              background: '#2563eb',
+              color: '#fff',
+              fontSize: 14,
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8
+            }}
+          >
+            Retourner au pipeline
+            <ArrowRight size={16} />
+          </button>
+        </div>
+      </AppShell>
+    )
   }
 
   // ── Vue dédiée pour l'agent support : FICHIER CLIENTS uniquement ──────

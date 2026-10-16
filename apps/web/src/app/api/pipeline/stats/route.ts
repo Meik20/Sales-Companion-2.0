@@ -28,20 +28,53 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ total: 0, prospection: 0, negotiation: 0, conclusion: 0, lost: 0 })
     }
 
-    // Check if user is manager — get team stats
+    // Vérification du rôle utilisateur pour le calcul des statistiques
     const userDoc = await adminDb.collection('users').doc(userId).get()
     const userData = userDoc.data()
-    const isManager = hasActivePaidManagerAccess(userData)
+    const role = userData?.role || 'member'
+    const orgRole = userData?.orgRole || null
+    const orgCode = userData?.orgCode || null
 
     let docs: Array<import('firebase-admin/firestore').QueryDocumentSnapshot> = []
 
-    if (isManager) {
+    if (role === 'manager' && orgRole === 'senior_manager' && orgCode) {
+      // 1. Senior Manager : agrégation consolidée de tous les managers de l'organisation
+      const orgManagersSnap = await adminDb
+        .collection('users')
+        .where('orgCode', '==', orgCode)
+        .where('role', '==', 'manager')
+        .get()
+
+      const managerUids = orgManagersSnap.docs.map((d) => d.id)
+      if (!managerUids.includes(userId)) managerUids.push(userId)
+
+      const CHUNK_SIZE = 30
+      const seen = new Set<string>()
+      docs = []
+
+      for (let i = 0; i < managerUids.length; i += CHUNK_SIZE) {
+        const chunk = managerUids.slice(i, i + CHUNK_SIZE)
+        const snap = await adminDb
+          .collection('pipeline')
+          .where('managerUid', 'in', chunk)
+          .get()
+
+        snap.docs.forEach((doc) => {
+          if (!seen.has(doc.id)) {
+            seen.add(doc.id)
+            docs.push(doc)
+          }
+        })
+      }
+    } else if (role === 'manager') {
+      // 2. Team Manager : opportunités pilotées sous son managerUid
       const managerSnapshot = await adminDb
         .collection('pipeline')
         .where('managerUid', '==', userId)
         .get()
       docs = managerSnapshot.docs
     } else {
+      // 3. Commercial terrain ou indépendant : opportunités assignées ou créées
       const ownedSnapshot = await adminDb.collection('pipeline').where('userId', '==', userId).get()
       const assignedSnapshot = await adminDb
         .collection('pipeline')

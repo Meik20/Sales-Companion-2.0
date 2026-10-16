@@ -10,6 +10,7 @@ import {
   Check,
   Zap,
   Shield,
+  ShieldAlert,
   Users,
   Loader2,
   Copy,
@@ -143,10 +144,6 @@ export default function UpgradePage() {
   // ── Protection et redirection automatique dès activation ─────────────────
   useEffect(() => {
     if (!userLoading && user) {
-      if (user.role !== 'manager' && user.role !== 'independent') {
-        router.replace(routes.search)
-        return
-      }
 
       const redirectParam = searchParams.get('redirect') || searchParams.get('from')
       const isForced =
@@ -237,6 +234,97 @@ export default function UpgradePage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  // Seul le Senior Manager (ou compte indépendant individuel ou admin) gère la facturation
+  const isBillingOwner =
+    user?.role === 'independent' ||
+    user?.role === 'admin' ||
+    (user?.role === 'manager' && user?.orgRole === 'senior_manager') ||
+    (user?.role === 'manager' && Boolean(user?.orgCode) && !user?.seniorManagerUid)
+
+  // ── Écran d'avertissement informatif pour les non-gestionnaires de facturation ──
+  if (!userLoading && user && !isBillingOwner) {
+    return (
+      <main>
+        <AppShell>
+          <PageHeader
+            title="Mise à niveau de l'abonnement"
+            subtitle="Cette opération est gérée au niveau de votre organisation."
+          />
+          <div
+            style={{
+              maxWidth: 580,
+              margin: '32px auto',
+              background: 'var(--card, #131c2e)',
+              borderRadius: 20,
+              padding: '40px 32px',
+              border: '1px solid var(--border, rgba(255,255,255,0.1))',
+              textAlign: 'center',
+              boxShadow: '0 10px 30px rgba(0,0,0,0.2)'
+            }}
+          >
+            <div
+              style={{
+                width: 64,
+                height: 64,
+                borderRadius: '50%',
+                background: 'rgba(245, 158, 11, 0.12)',
+                color: '#f59e0b',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 20px',
+                border: '1px solid rgba(245, 158, 11, 0.25)'
+              }}
+            >
+              <ShieldAlert size={32} />
+            </div>
+            <h2
+              style={{
+                fontSize: 20,
+                fontWeight: 800,
+                margin: '0 0 12px',
+                color: 'var(--foreground, #f1f5f9)'
+              }}
+            >
+              Abonnement géré par votre Senior Manager
+            </h2>
+            <p
+              style={{
+                fontSize: 14,
+                color: 'var(--muted-foreground, #94a3b8)',
+                lineHeight: 1.6,
+                marginBottom: 28
+              }}
+            >
+              {user?.orgRole === 'team_manager'
+                ? "En tant que Team Manager, l'abonnement et la facturation de votre organisation sont centralisés et gérés exclusivement par votre Senior Manager. Votre forfait actuel ne vous permet pas de bénéficier de ce service. Veuillez vous rapprocher de lui pour mettre à niveau le plan de l'organisation."
+                : "Votre compte est rattaché à une organisation. Le forfait actuel ne permet pas d'accéder à ce service. Veuillez contacter votre responsable d'équipe ou votre Senior Manager pour mettre à niveau l'abonnement."}
+            </p>
+            <button
+              onClick={() => router.push(routes.pipeline)}
+              style={{
+                padding: '12px 28px',
+                borderRadius: 10,
+                border: 'none',
+                background: '#2563eb',
+                color: '#fff',
+                fontSize: 14,
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8
+              }}
+            >
+              Retourner à mon pipeline
+              <ArrowRight size={16} />
+            </button>
+          </div>
+        </AppShell>
+      </main>
+    )
   }
 
   return (

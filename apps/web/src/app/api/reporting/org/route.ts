@@ -34,13 +34,7 @@ export async function GET(request: NextRequest) {
     const callerData = callerDoc.data()
     if (!callerDoc.exists || !callerData)
       return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 })
-    if (!hasActivePaidManagerAccess(callerData)) {
-      return NextResponse.json(
-        { error: 'Un abonnement Manager actif et vérifié est requis.' },
-        { status: 403 }
-      )
-    }
-    if (callerData.orgRole !== 'senior_manager') {
+    if (callerData.role !== 'manager' || callerData.orgRole !== 'senior_manager') {
       return NextResponse.json({ error: 'Accès réservé au Senior Manager' }, { status: 403 })
     }
 

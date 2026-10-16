@@ -85,15 +85,29 @@ export function assertManagerWithActivePlan(session: ServerSession): void {
 }
 
 /**
- * Garantit que l'utilisateur est le Senior Manager de son organisation.
+ * Garantit que l'utilisateur est le Senior Manager de son organisation (vérification de rôle pour consultation).
+ * Permet au Senior Manager de consulter son organisation et son pipeline même si son plan est repassé en FREE.
  */
-export function assertSeniorManager(session: ServerSession): void {
-  assertManagerWithActivePlan(session)
+export function assertSeniorManagerRole(session: ServerSession): void {
+  if (session.role !== 'manager') {
+    throw new AuthGuardError('Accès réservé aux managers', 403)
+  }
   if (session.orgRole !== 'senior_manager') {
     throw new AuthGuardError("Accès réservé au Senior Manager de l'organisation", 403)
   }
   if (!session.orgCode) {
     throw new AuthGuardError('Aucun code organisation rattaché', 400)
+  }
+}
+
+/**
+ * Garantit que l'utilisateur est le Senior Manager de son organisation AVEC un abonnement actif.
+ * Requis pour les actions de gouvernance et de gestion payantes (invitations, transferts, assignations).
+ */
+export function assertSeniorManager(session: ServerSession): void {
+  assertSeniorManagerRole(session)
+  if (!hasActivePaidManagerAccess(session.userData)) {
+    throw new AuthGuardError('Un abonnement Manager actif et vérifié est requis.', 403)
   }
 }
 
