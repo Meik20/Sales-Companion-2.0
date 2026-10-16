@@ -392,6 +392,12 @@ export async function PATCH(request: NextRequest) {
         updates.orgRole = 'team_manager' // Le manager qui rejoint devient Manager d'équipe
         orgCodeChangedTo = targetCode
 
+        // Propager le seniorManagerUid depuis le document organisation.
+        // Invariant critique : sans ce champ, le pipeline consolidé du SM ne peut pas
+        // identifier ce TM comme subordonné si le segment a changé depuis le rattachement.
+        const resolvedSeniorManagerUid = orgData?.seniorManagerUid || null
+        updates.seniorManagerUid = resolvedSeniorManagerUid
+
         // Adopter la raison sociale et le secteur de l'organisation rejointe
         if (orgData?.companyName || targetManagerData?.companyName) {
           updates.companyName = orgData?.companyName || targetManagerData?.companyName

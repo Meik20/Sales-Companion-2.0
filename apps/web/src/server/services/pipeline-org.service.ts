@@ -44,17 +44,12 @@ export async function fetchOrgConsolidatedPipeline(
     .where('role', '==', 'manager')
     .get()
 
-  // 2. Filtrer selon le segment du Senior Manager appelant
-  const filteredManagersDocs = callerSegment
-    ? orgManagersSnap.docs.filter((d) => {
-        const mData = d.data()
-        return (
-          d.id === callerUid ||
-          mData.seniorManagerUid === callerUid ||
-          mData.segment === callerSegment
-        )
-      })
-    : orgManagersSnap.docs
+  // 2. Le Senior Manager voit TOUS les managers de son orgCode.
+  // Le champ `segment` d'un manager est son propre libellé de secteur, pas un critère
+  // de visibilité pour le SM. Filtrer par segment ici exclurait les TMs dont le segment
+  // diffère de celui du SM après une mise à jour — c'est le bug rapporté.
+  // L'appartenance à l'org est garantie par la requête `orgCode == orgCode` ci-dessus.
+  const filteredManagersDocs = orgManagersSnap.docs
 
   const orgManagerUids = filteredManagersDocs.map((d) => d.id)
   const managersMap: Record<string, { name: string; orgRole: string; segment?: string | null }> = {}
@@ -131,7 +126,8 @@ export async function fetchOrgConsolidatedPipeline(
 
         // Multi-tenant guard strict : si la fiche a un orgCode explicite, il doit correspondre
         if (data.orgCode && data.orgCode !== orgCode) return
-        if (callerSegment && data.segment && data.segment !== callerSegment) return
+        // Note: ne pas filtrer par segment ici — le segment d'un item reflète celui du TM
+        // qui l'a créé, pas celui du SM appelant. Le SM consolide tout le pipeline de l'org.
 
         seen.add(d.id)
         const mgr = managersMap[data.managerUid as string]
