@@ -8,18 +8,25 @@ import type { UserDoc } from '@sales-companion/shared'
 type AdminUsersResponse = {
   items: UserDoc[]
   total: number
+  page: number
+  pageSize: number
 }
 
-export function useAdminUsers() {
+export function useAdminUsers(page = 1, pageSize = 100) {
   const { user } = useCurrentUser()
 
   return useQuery({
-    queryKey: ['admin-users'],
+    queryKey: ['admin-users', page, pageSize],
     queryFn: async () => {
       const backendUrl = ''
       const token = await user?.getIdToken()
 
-      const response = await fetch(`${backendUrl}/api/admin/users`, {
+      const params = new URLSearchParams({
+        page: String(page),
+        pageSize: String(pageSize)
+      })
+
+      const response = await fetch(`${backendUrl}/api/admin/users?${params}`, {
         headers: {
           Authorization: `Bearer ${token || ''}`
         }
