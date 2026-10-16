@@ -46,6 +46,33 @@ export default function TeamPage() {
   const isSupportAgent = user?.role === 'support_agent'
   const canImport = isManager || isSupportAgent
 
+  const [teamManagers, setTeamManagers] = useState<
+    Array<{ uid: string; name: string; email: string }>
+  >([])
+
+  useEffect(() => {
+    if (!isSeniorManager || !user) return
+    user
+      .getIdToken()
+      .then((token) =>
+        fetch('/api/team/org', { headers: { Authorization: `Bearer ${token}` } })
+      )
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && Array.isArray(data.managers)) {
+          const tms = data.managers
+            .filter((m: any) => !m.isSenior && m.uid !== user.uid)
+            .map((m: any) => ({
+              uid: m.uid,
+              name: m.name || m.email,
+              email: m.email
+            }))
+          setTeamManagers(tms)
+        }
+      })
+      .catch(() => {})
+  }, [isSeniorManager, user])
+
   useEffect(() => {
     if (isSeniorManager) {
       setActiveTab('org')
@@ -429,10 +456,10 @@ export default function TeamPage() {
                   {t('team.myProspects')}
                 </h2>
                 <p style={{ fontSize: 12.5, color: 'var(--muted-foreground, #94a3b8)', margin: 0 }}>
-                  {t('team.myProspectsDesc')}
+                  {isSeniorManager ? t('team.smImportsSubtitle') : t('team.myProspectsDesc')}
                 </p>
               </div>
-              {selectedProspects.length > 0 && (
+              {!isSeniorManager && selectedProspects.length > 0 && (
                 <button
                   onClick={() => {
                     setActiveTab('team')
@@ -469,8 +496,10 @@ export default function TeamPage() {
                   email: m.email,
                   active: m.active
                 }))}
+                isSeniorManager={isSeniorManager}
+                teamManagers={teamManagers}
                 refreshTrigger={importRefresh}
-                onAssignSelection={handleAssignSelection}
+                onAssignSelection={isSeniorManager ? undefined : handleAssignSelection}
               />
             )}
           </div>

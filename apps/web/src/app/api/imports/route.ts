@@ -66,15 +66,33 @@ export async function GET(request: NextRequest) {
     }
 
     // Query simplifiée : where seulement (pas d'orderBy pour éviter les composite indexes)
-    const q = adminDb
-      .collection('manager_prospects')
-      .where('managerId', '==', managerId)
-      .limit(3000)
+    let snapDocs: FirebaseFirestore.QueryDocumentSnapshot[] = []
 
-    const snap = await q.get()
+    if (callerData?.orgRole === 'senior_manager' && managerId === callerUid) {
+      // Pour le Senior Manager, on récupère à la fois les prospects encore sous son managerId,
+      // ET ceux qu'il a importés et transférés à des Team Managers
+      const [byManagerSnap, byImportedSnap] = await Promise.all([
+        adminDb.collection('manager_prospects').where('managerId', '==', callerUid).limit(3000).get(),
+        adminDb.collection('manager_prospects').where('importedBy', '==', callerUid).limit(3000).get()
+      ])
+      const seen = new Set<string>()
+      for (const d of [...byManagerSnap.docs, ...byImportedSnap.docs]) {
+        if (!seen.has(d.id)) {
+          seen.add(d.id)
+          snapDocs.push(d)
+        }
+      }
+    } else {
+      const q = adminDb
+        .collection('manager_prospects')
+        .where('managerId', '==', managerId)
+        .limit(3000)
+      const snap = await q.get()
+      snapDocs = snap.docs
+    }
 
     // Tri et filtrage côté app
-    let prospects = snap.docs.map((d) => {
+    let prospects = snapDocs.map((d) => {
       const data = d.data()
       return {
         id: d.id,
@@ -598,7 +616,11 @@ export async function DELETE(request: NextRequest) {
         return NextResponse.json({ success: true, count: 0 })
       }
       const data = snap.data()
-      if (data?.managerId !== managerId && callerRole !== 'admin') {
+      const isOwner =
+        data?.managerId === managerId ||
+        data?.importedBy === callerUid ||
+        data?.transferredFromSeniorUid === callerUid
+      if (!isOwner && callerRole !== 'admin') {
         return NextResponse.json({ message: 'Accès refusé' }, { status: 403 })
       }
       await ref.delete()

@@ -3,8 +3,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useTranslation } from '@/providers/I18nProvider'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { useToast } from '@/hooks/useToast'
 import { EmptyState } from '@/components/feedback'
-import { RotateCw, Loader2, Trash2, Check, X } from 'lucide-react'
+import { RotateCw, Loader2, Trash2, Check, X, ArrowRightLeft, Users } from 'lucide-react'
 
 export type Prospect = {
   id: string
@@ -17,6 +18,9 @@ export type Prospect = {
   assignedTo?: string | null
   status?: string
   createdAt?: string
+  managerId?: string
+  transferredToManagerName?: string
+  transferredToManagerUid?: string
   [key: string]: unknown
 }
 
@@ -27,6 +31,12 @@ type TeamMember = {
   active?: boolean
 }
 
+export type TeamManager = {
+  uid: string
+  name: string
+  email: string
+}
+
 type Props = {
   managerId: string
   members: TeamMember[]
@@ -35,6 +45,9 @@ type Props = {
   onAssignSelection?: (prospects: Prospect[]) => void
   /** When true, hides the assign column and all assignment controls (support agent mode) */
   hideAssign?: boolean
+  /** When true, operates in Senior Manager delegation mode (transfer to Team Managers) */
+  isSeniorManager?: boolean
+  teamManagers?: TeamManager[]
 }
 
 const STATUS_COLOR: Record<string, string> = {
@@ -73,14 +86,20 @@ export function ManagerProspectsList({
   members,
   refreshTrigger = 0,
   onAssignSelection,
-  hideAssign = false
+  hideAssign = false,
+  isSeniorManager = false,
+  teamManagers = []
 }: Props) {
   const { t } = useTranslation()
   const { user } = useCurrentUser()
+  const { pushToast } = useToast()
   const [prospects, setProspects] = useState<Prospect[]>([])
   const [loading, setLoading] = useState(false)
   const [search, setSearch] = useState('')
   const [filterMember, setFilterMember] = useState('')
+  const [filterTm, setFilterTm] = useState('')
+  const [selectedTargetTmUid, setSelectedTargetTmUid] = useState('')
+  const [transferring, setTransferring] = useState(false)
   const [assigning, setAssigning] = useState<string | null>(null)
   const [selected, setSelected] = useState<Set<string>>(new Set())
 
@@ -215,11 +234,123 @@ export function ManagerProspectsList({
     }
   }
 
+  async function handleTransferSelected() {
+    if (!user || selected.size === 0) return
+    if (!selectedTargetTmUid) {
+      pushToast({ type: 'warning', title: t('team.noTargetTmWarning') })
+      return
+    }
+    const targetTm = teamManagers.find((tm) => tm.uid === selectedTargetTmUid)
+    const targetName = targetTm?.name || selectedTargetTmUid
+    const confirmMsg = t('team.confirmTransferSm')
+      .replace('{count}', String(selected.size))
+      .replace('{name}', targetName)
+
+    if (!window.confirm(confirmMsg)) return
+
+    setTransferring(true)
+    try {
+      const token = await user.getIdToken()
+      const res = await fetch('/api/imports/transfer', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          targetManagerUid: selectedTargetTmUid,
+          prospectIds: Array.from(selected)
+        })
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message || t('team.errorServer'))
+
+      pushToast({
+        type: 'success',
+        title: t('team.transferSuccessTitle'),
+        description: t('team.transferSuccessDesc')
+          .replace('{count}', String(data.count))
+          .replace('{name}', targetName)
+      })
+      setSelected(new Set())
+      void loadProspects()
+    } catch (err: any) {
+      pushToast({
+        type: 'error',
+        title: t('team.importError'),
+        description: err.message
+      })
+    } finally {
+      setTransferring(false)
+    }
+  }
+
+  async function handleTransferOne(prospectId: string, targetTmUid: string) {
+    if (!user || !targetTmUid) return
+    const targetTm = teamManagers.find((tm) => tm.uid === targetTmUid)
+    const targetName = targetTm?.name || targetTmUid
+
+    setAssigning(prospectId)
+    try {
+      const token = await user.getIdToken()
+      const res = await fetch('/api/imports/transfer', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          targetManagerUid: targetTmUid,
+          prospectIds: [prospectId]
+        })
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message || t('team.errorServer'))
+
+      pushToast({
+        type: 'success',
+        title: t('team.transferSuccessTitle'),
+        description: t('team.transferSuccessDesc')
+          .replace('{count}', '1')
+          .replace('{name}', targetName)
+      })
+      void loadProspects()
+    } catch (err: any) {
+      pushToast({
+        type: 'error',
+        title: t('team.importError'),
+        description: err.message
+      })
+    } finally {
+      setAssigning(null)
+    }
+  }
+
+  function getTmName(uid: string | null | undefined) {
+    if (!uid) return '—'
+    const tm = teamManagers.find((m) => m.uid === uid)
+    return tm?.name ?? tm?.email ?? uid
+  }
+
   // Filtering
   const filtered = prospects.filter((p) => {
     const term = search.toLowerCase()
     const matchSearch =
       !term || Object.values(p).some((v) => v && String(v).toLowerCase().includes(term))
+
+    if (isSeniorManager) {
+      const isTransferred = Boolean(
+        p.transferredToManagerUid || (p.managerId && p.managerId !== managerId)
+      )
+      const targetTmUid = (p.transferredToManagerUid || p.managerId) as string
+      if (filterTm === '__untransferred') {
+        if (isTransferred) return false
+      } else if (filterTm) {
+        if (targetTmUid !== filterTm) return false
+      }
+      return matchSearch
+    }
+
     const matchMember =
       !filterMember ||
       p.assignedTo === filterMember ||
@@ -289,11 +420,11 @@ export function ManagerProspectsList({
             outline: 'none'
           }}
         />
-        {/* Filtre membre — masqué si hideAssign */}
-        {!hideAssign && (
+        {/* Filtre Team Manager pour Senior Manager ou Membre pour Manager standard */}
+        {isSeniorManager ? (
           <select
-            value={filterMember}
-            onChange={(e) => setFilterMember(e.target.value)}
+            value={filterTm}
+            onChange={(e) => setFilterTm(e.target.value)}
             style={{
               height: 36,
               padding: '0 10px',
@@ -307,14 +438,41 @@ export function ManagerProspectsList({
               cursor: 'pointer'
             }}
           >
-            <option value="">{t('team.allMembers')}</option>
-            <option value="__unassigned">{t('team.unassigned')}</option>
-            {activeMembers.map((m) => (
-              <option key={m.uid} value={m.uid}>
-                {m.name ?? m.email}
+            <option value="">{t('team.allProspects')}</option>
+            <option value="__untransferred">{t('team.untransferred')}</option>
+            {teamManagers.map((tm) => (
+              <option key={tm.uid} value={tm.uid}>
+                {tm.name}
               </option>
             ))}
           </select>
+        ) : (
+          !hideAssign && (
+            <select
+              value={filterMember}
+              onChange={(e) => setFilterMember(e.target.value)}
+              style={{
+                height: 36,
+                padding: '0 10px',
+                border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+                borderRadius: 8,
+                fontSize: 12,
+                fontFamily: 'inherit',
+                background: 'var(--card, #131c2e)',
+                color: 'var(--foreground, #f1f5f9)',
+                outline: 'none',
+                cursor: 'pointer'
+              }}
+            >
+              <option value="">{t('team.allMembers')}</option>
+              <option value="__unassigned">{t('team.unassigned')}</option>
+              {activeMembers.map((m) => (
+                <option key={m.uid} value={m.uid}>
+                  {m.name ?? m.email}
+                </option>
+              ))}
+            </select>
+          )
         )}
         <button
           onClick={() => void loadProspects()}
@@ -391,8 +549,67 @@ export function ManagerProspectsList({
             </button>
           )}
 
-          {/* Assigner la sélection */}
-          {someSelected && onAssignSelection && !hideAssign && (
+          {/* Transfert pour Senior Manager vers Team Manager */}
+          {isSeniorManager && someSelected && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+              <select
+                value={selectedTargetTmUid}
+                onChange={(e) => setSelectedTargetTmUid(e.target.value)}
+                style={{
+                  height: 32,
+                  padding: '0 8px',
+                  border: '1px solid rgba(37,99,235,0.3)',
+                  borderRadius: 8,
+                  fontSize: 12,
+                  fontFamily: 'inherit',
+                  background: 'var(--card, #131c2e)',
+                  color: 'var(--foreground, #f1f5f9)',
+                  cursor: 'pointer',
+                  outline: 'none',
+                  maxWidth: 220
+                }}
+              >
+                <option value="">{t('team.selectTargetTmPlaceholder')}</option>
+                {teamManagers.map((tm) => (
+                  <option key={tm.uid} value={tm.uid}>
+                    {tm.name} ({tm.email})
+                  </option>
+                ))}
+              </select>
+
+              <button
+                onClick={() => void handleTransferSelected()}
+                disabled={transferring || !selectedTargetTmUid}
+                style={{
+                  height: 32,
+                  padding: '0 14px',
+                  background: !selectedTargetTmUid
+                    ? 'var(--border, rgba(255,255,255,0.1))'
+                    : '#2563eb',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 8,
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: !selectedTargetTmUid ? 'not-allowed' : 'pointer',
+                  fontFamily: 'inherit',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6
+                }}
+              >
+                {transferring ? (
+                  <Loader2 size={13} className="animate-spin" />
+                ) : (
+                  <ArrowRightLeft size={13} strokeWidth={2} />
+                )}
+                {t('team.transferSelection')} ({selected.size})
+              </button>
+            </div>
+          )}
+
+          {/* Assigner la sélection (Manager standard) */}
+          {!isSeniorManager && someSelected && onAssignSelection && !hideAssign && (
             <button
               onClick={() => onAssignSelection(selectedProspects)}
               style={{
@@ -550,7 +767,11 @@ export function ManagerProspectsList({
                   t('field.city'),
                   t('field.sector'),
                   t('pipeline.status'),
-                  ...(!hideAssign ? [t('pipeline.assignedTo')] : []),
+                  ...(isSeniorManager
+                    ? [t('team.colTeamManager')]
+                    : !hideAssign
+                      ? [t('pipeline.assignedTo')]
+                      : []),
                   t('team.actionsCol')
                 ].map((h) => (
                   <th
@@ -659,8 +880,8 @@ export function ManagerProspectsList({
                         {getStatusLabel(p.status ?? 'new', t)}
                       </span>
                     </td>
-                    {/* Colonne Assigné à — masquée pour l'agent support */}
-                    {!hideAssign && (
+                    {/* Colonne Team Manager (Senior Manager) ou Assigné à (Manager standard) */}
+                    {isSeniorManager ? (
                       <td style={{ padding: '9px 12px' }}>
                         {assigning === p.id ? (
                           <span style={{ display: 'inline-flex', alignItems: 'center' }}>
@@ -670,21 +891,69 @@ export function ManagerProspectsList({
                               style={{ color: 'var(--muted-foreground, #94a3b8)' }}
                             />
                           </span>
+                        ) : p.transferredToManagerName || (p.managerId && p.managerId !== managerId) ? (
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 5,
+                              fontSize: 11,
+                              fontWeight: 700,
+                              padding: '2px 8px',
+                              borderRadius: 6,
+                              background: 'rgba(37,99,235,0.12)',
+                              color: '#60a5fa',
+                              border: '1px solid rgba(37,99,235,0.25)'
+                            }}
+                          >
+                            <Users size={11} />
+                            {p.transferredToManagerName ||
+                              getTmName((p.transferredToManagerUid || p.managerId) as string)}
+                          </span>
                         ) : (
                           <select
-                            value={p.assignedTo ?? ''}
-                            onChange={(e) => void handleAssign(p.id, e.target.value || null)}
+                            value=""
+                            onChange={(e) => {
+                              if (e.target.value) void handleTransferOne(p.id, e.target.value)
+                            }}
                             style={SELECT_STYLE}
                           >
-                            <option value="">{t('team.notAssigned')}</option>
-                            {activeMembers.map((m) => (
-                              <option key={m.uid} value={m.uid}>
-                                {m.name ?? m.email}
+                            <option value="">{t('team.notTransferred')}</option>
+                            {teamManagers.map((tm) => (
+                              <option key={tm.uid} value={tm.uid}>
+                                {tm.name}
                               </option>
                             ))}
                           </select>
                         )}
                       </td>
+                    ) : (
+                      !hideAssign && (
+                        <td style={{ padding: '9px 12px' }}>
+                          {assigning === p.id ? (
+                            <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                              <Loader2
+                                size={13}
+                                className="animate-spin"
+                                style={{ color: 'var(--muted-foreground, #94a3b8)' }}
+                              />
+                            </span>
+                          ) : (
+                            <select
+                              value={p.assignedTo ?? ''}
+                              onChange={(e) => void handleAssign(p.id, e.target.value || null)}
+                              style={SELECT_STYLE}
+                            >
+                              <option value="">{t('team.notAssigned')}</option>
+                              {activeMembers.map((m) => (
+                                <option key={m.uid} value={m.uid}>
+                                  {m.name ?? m.email}
+                                </option>
+                              ))}
+                            </select>
+                          )}
+                        </td>
+                      )
                     )}
 
                     {/* Colonne Actions (Suppression individuelle) */}
