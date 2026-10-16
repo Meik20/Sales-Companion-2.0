@@ -27,11 +27,25 @@ export function TeamManagerPerformanceCard({
   targets,
   context = 'org'
 }: TeamManagerPerformanceCardProps) {
-  const { t } = useTranslation()
+  const { t, lang } = useTranslation()
   const { currency } = useProspectingCountryDetails()
   const todayStr = useMemo(() => new Date().toISOString().slice(0, 10), [])
   const isGlobal = !manager
   const [showOverdueDrawer, setShowOverdueDrawer] = useState(false)
+
+  const formatCompactAmount = (val: number) => {
+    if (val >= 1_000_000) {
+      const num = val / 1_000_000
+      return `${num >= 10 ? Math.round(num) : num.toFixed(1).replace('.0', '')}M`
+    }
+    if (val >= 10_000) {
+      return `${Math.round(val / 1_000)}k`
+    }
+    if (val >= 1_000) {
+      return `${(val / 1_000).toFixed(1).replace('.0', '')}k`
+    }
+    return String(val)
+  }
 
   const stats = useMemo(() => {
     let prospectionCount = 0
@@ -344,9 +358,9 @@ export function TeamManagerPerformanceCard({
             </span>
           </div>
           <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--foreground, #f1f5f9)', display: 'flex', alignItems: 'baseline', gap: 4, flexWrap: 'wrap' }}>
-            {new Intl.NumberFormat('fr-FR').format(stats.activePipelineAmount)}
+            {new Intl.NumberFormat(lang === 'en' ? 'en-US' : 'fr-FR').format(stats.activePipelineAmount)}
             <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--muted-foreground, #64748b)' }}>
-              {currency || 'FCFA'}
+              {currency || 'XAF'}
             </span>
           </div>
           <div
@@ -603,8 +617,9 @@ export function TeamManagerPerformanceCard({
                     flexShrink: 0,
                     whiteSpace: 'nowrap'
                   }}
+                  title={hasTargets ? `${t('pipeline.roRateLabel')}: ${roRate}%` : `${t('pipeline.convRateLabel')}: ${roRate}%`}
                 >
-                  {hasTargets ? `${t('pipeline.roRateLabel')} ${roRate}%` : `${t('pipeline.convRateLabel')} ${roRate}%`}
+                  {`${roRate}%`}
                 </span>
               </div>
 
@@ -707,30 +722,39 @@ export function TeamManagerPerformanceCard({
                       color: 'var(--foreground, #f1f5f9)',
                       whiteSpace: 'nowrap'
                     }}
+                    title={
+                      tgtVal != null
+                        ? `${new Intl.NumberFormat(lang === 'en' ? 'en-US' : 'fr-FR').format(stats.concludedAmount)} / ${new Intl.NumberFormat(lang === 'en' ? 'en-US' : 'fr-FR').format(tgtVal)} ${currency || 'XAF'}${valPct !== null ? ` (${valPct}%)` : ''}`
+                        : `${new Intl.NumberFormat(lang === 'en' ? 'en-US' : 'fr-FR').format(stats.concludedAmount)} ${currency || 'XAF'}`
+                    }
                   >
-                    {new Intl.NumberFormat('fr-FR').format(stats.concludedAmount)}
-                    {tgtVal != null && (
-                      <span
-                        style={{
-                          fontWeight: 500,
-                          color: 'var(--muted-foreground, #64748b)',
-                          fontSize: 9.5
-                        }}
-                      >
-                        {' '}/ {new Intl.NumberFormat('fr-FR').format(tgtVal)}{' '}{currency || 'F'}
-                        {valPct !== null && ` (${valPct}%)`}
-                      </span>
-                    )}
-                    {tgtVal == null && (
-                      <span
-                        style={{
-                          fontWeight: 500,
-                          color: 'var(--muted-foreground, #64748b)',
-                          fontSize: 9.5
-                        }}
-                      >
-                        {' '}{currency || 'FCFA'}
-                      </span>
+                    {tgtVal != null ? (
+                      <>
+                        <span>{formatCompactAmount(stats.concludedAmount)}</span>
+                        <span
+                          style={{
+                            fontWeight: 500,
+                            color: 'var(--muted-foreground, #64748b)',
+                            fontSize: 9.5
+                          }}
+                        >
+                          {' '}/ {formatCompactAmount(tgtVal)}{' '}{currency || 'XAF'}
+                          {valPct !== null && ` (${valPct}%)`}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <span>{formatCompactAmount(stats.concludedAmount)}</span>
+                        <span
+                          style={{
+                            fontWeight: 500,
+                            color: 'var(--muted-foreground, #64748b)',
+                            fontSize: 9.5
+                          }}
+                        >
+                          {' '}{currency || 'XAF'}
+                        </span>
+                      </>
                     )}
                   </span>
                 </div>

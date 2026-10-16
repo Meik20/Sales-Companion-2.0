@@ -265,6 +265,7 @@ export const en = {
     pipeline: 'Sales Pipeline',
     clientDatabase: 'Client Database',
     savedSearches: 'Saved searches',
+    favorites: 'Favorites',
     importProspects: 'Import prospects',
     support: 'Support',
     help: 'Help & Support',
@@ -426,6 +427,8 @@ export const en = {
     prospection: 'Prospection',
     negotiation: 'Negotiation',
     closed: 'Closed',
+    concluded: 'Closed',
+    opportunities: 'opportunities',
     totalOrg: 'Total Org',
     filterByTeamManager: 'Filter by Team Manager:',
     all: 'All',
@@ -980,7 +983,13 @@ export const en = {
       orgTeamCardTitle: 'Organization Team Management',
       orgTeamCardSubtitle: 'Supervision of all Team Managers linked to your organization and their pipeline performance',
       refreshing: 'Refreshing...',
-      refresh: 'Refresh'
+      refresh: 'Refresh',
+      teamManagers: 'Team Managers',
+      teamManagersSupervised: 'Team Managers under your supervision ({count})',
+      emptyManagersTitle: 'No Team Manager attached yet',
+      emptyManagersDesc: 'Share the invitation link or organization code to allow your team managers to join your organization.',
+      managerPipeline: "This manager's pipeline",
+      sinceDate: 'Since {date}'
     },
     prospectsSelected: 'prospect(s) selected from imports list',
     clearSelection: 'Clear selection',
@@ -1754,6 +1763,8 @@ export const en = {
     retry: 'Retry',
     confirm: 'Confirm',
     save: 'Save',
-    today: 'Today'
+    today: 'Today',
+    you: 'you',
+    total: 'Total'
   }
 }

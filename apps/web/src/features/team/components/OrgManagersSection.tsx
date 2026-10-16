@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Badge } from '@/components/ui/index'
 import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/feedback'
+import { useTranslation } from '@/providers/I18nProvider'
 import {
   Users2,
   Mail,
@@ -46,6 +47,7 @@ function ManagerStatsRow({
   manager: OrgManager
   stats?: OrgManagerStats['stats']
 }) {
+  const { t } = useTranslation()
   return (
     <div
       style={{
@@ -55,10 +57,10 @@ function ManagerStatsRow({
       }}
     >
       {[
-        { label: 'Prospection', value: stats?.prospection ?? '—', color: '#60a5fa' },
-        { label: 'Négociation', value: stats?.negociation ?? '—', color: '#fbbf24' },
-        { label: 'Conclus', value: stats?.conclue ?? '—', color: '#34d399' },
-        { label: 'Total', value: stats?.total ?? '—', color: '#a78bfa' }
+        { label: t('pipeline.prospection'), value: stats?.prospection ?? '—', color: '#60a5fa' },
+        { label: t('pipeline.negotiation'), value: stats?.negociation ?? '—', color: '#fbbf24' },
+        { label: t('pipeline.concluded'), value: stats?.conclue ?? '—', color: '#34d399' },
+        { label: t('common.total'), value: stats?.total ?? '—', color: '#a78bfa' }
       ].map(({ label, value, color }) => (
         <div
           key={label}
@@ -90,6 +92,7 @@ function ManagerStatsRow({
 }
 
 function ManagerCard({ manager, orgStats }: { manager: OrgManager; orgStats?: OrgManagerStats }) {
+  const { t, lang } = useTranslation()
   const [expanded, setExpanded] = useState(false)
 
   return (
@@ -178,7 +181,7 @@ function ManagerCard({ manager, orgStats }: { manager: OrgManager; orgStats?: Or
             )}
             {manager.isCurrent && (
               <span style={{ fontSize: 11, color: 'var(--muted-foreground)', fontStyle: 'italic' }}>
-                (vous)
+                ({t('common.you')})
               </span>
             )}
           </div>
@@ -200,7 +203,7 @@ function ManagerCard({ manager, orgStats }: { manager: OrgManager; orgStats?: Or
             >
               {orgStats.stats.total}
             </div>
-            <div style={{ fontSize: 10, color: 'var(--muted-foreground)' }}>prospects</div>
+            <div style={{ fontSize: 10, color: 'var(--muted-foreground)' }}>{t('pipeline.opportunities')}</div>
           </div>
         )}
 
@@ -260,7 +263,11 @@ function ManagerCard({ manager, orgStats }: { manager: OrgManager; orgStats?: Or
                 }}
               >
                 <Calendar size={13} />
-                <span>Depuis le {new Date(manager.createdAt).toLocaleDateString('fr-FR')}</span>
+                <span>
+                  {t('team.orgGovernance.sinceDate', {
+                    date: new Date(manager.createdAt).toLocaleDateString(lang === 'en' ? 'en-US' : 'fr-FR')
+                  })}
+                </span>
               </div>
             )}
           </div>
@@ -277,7 +284,7 @@ function ManagerCard({ manager, orgStats }: { manager: OrgManager; orgStats?: Or
                 marginBottom: 8
               }}
             >
-              Pipeline de ce manager
+              {t('team.orgGovernance.managerPipeline')}
             </div>
             <ManagerStatsRow manager={manager} stats={orgStats?.stats} />
           </div>
@@ -292,6 +299,7 @@ function ManagerCard({ manager, orgStats }: { manager: OrgManager; orgStats?: Or
  * Liste tous les managers de l'organisation avec leurs stats pipeline.
  */
 export function OrgManagersSection({ managers, orgCode }: OrgManagersSectionProps) {
+  const { t } = useTranslation()
   // Récupère les stats pipeline de tous les managers de l'org
   const orgPipelineQuery = useOrgPipeline()
 
@@ -328,25 +336,25 @@ export function OrgManagersSection({ managers, orgCode }: OrgManagersSectionProp
         >
           {[
             {
-              label: 'Team Managers',
+              label: t('team.orgGovernance.teamManagers'),
               value: teamManagers.length,
               color: '#a78bfa',
               icon: <Users2 size={14} />
             },
             {
-              label: 'Prospection',
+              label: t('pipeline.prospection'),
               value: orgCounts.prospection,
               color: '#60a5fa',
               icon: <TrendingUp size={14} />
             },
             {
-              label: 'Négociation',
+              label: t('pipeline.negotiation'),
               value: orgCounts.negociation,
               color: '#fbbf24',
               icon: <Filter size={14} />
             },
             {
-              label: 'Conclus',
+              label: t('pipeline.concluded'),
               value: orgCounts.conclue,
               color: '#34d399',
               icon: <CheckCircle2 size={14} />
@@ -392,7 +400,7 @@ export function OrgManagersSection({ managers, orgCode }: OrgManagersSectionProp
               gap: 6
             }}
           >
-            <Users2 size={12} /> Team Managers sous votre supervision ({teamManagers.length})
+            <Users2 size={12} /> {t('team.orgGovernance.teamManagersSupervised', { count: teamManagers.length })}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {teamManagers.map((mgr) => (
@@ -404,8 +412,8 @@ export function OrgManagersSection({ managers, orgCode }: OrgManagersSectionProp
         <EmptyState
           illustration="/illustrations/empty-states/empty-team.png"
           illustrationSize="sm"
-          title="Aucun Team Manager rattaché pour l'instant"
-          description="Partagez le lien d'invitation ou le code organisation pour permettre à vos managers d'équipe de rejoindre votre organisation."
+          title={t('team.orgGovernance.emptyManagersTitle')}
+          description={t('team.orgGovernance.emptyManagersDesc')}
         />
       )}
     </div>

@@ -20,7 +20,7 @@ const getNavItems = (role: string, plan: string, t: (key: any) => string) => {
   const items = [
     { href: routes.search, label: t('header.search') },
     ...(role !== 'admin' ? [{ href: routes.pipeline, label: 'Pipeline' }] : []),
-    { href: routes.saved, label: 'Favoris' },
+    { href: routes.saved, label: t('sidebar.favorites') },
     ...(plan !== 'free' ? [{ href: routes.ai, label: 'AI' }] : []),
     { href: routes.profile, label: t('header.profile') }
   ]
@@ -309,7 +309,7 @@ export function MobileNav() {
                 icon={<PipelineIcon />}
               />
             )}
-            <NavItem href={routes.saved} label="Favoris" icon={<SavedIcon />} />
+            <NavItem href={routes.saved} label={t('sidebar.favorites')} icon={<SavedIcon />} />
 
             {user.role === 'manager' && (
               <>
