@@ -10,24 +10,30 @@
  * Usage : node scripts/backfill-senior-manager-uid.js
  */
 
-const admin = require('firebase-admin')
+const fs = require('fs')
 const path = require('path')
 
-// Charger les credentials service account
-const serviceAccountPath = path.resolve(__dirname, '../service-account.json')
-let serviceAccount
-try {
-  serviceAccount = require(serviceAccountPath)
-} catch {
-  console.error('❌ service-account.json introuvable dans la racine du projet.')
-  process.exit(1)
+// Lecture manuelle du .env.local avec support des valeurs multi-lignes entre guillemets
+const envPath = path.join(__dirname, '../.env.local')
+const raw = fs.readFileSync(envPath, 'utf8')
+const env = {}
+const regex = /^([A-Z0-9_]+)=("[\s\S]*?(?<!\\)"|[^\n]*)/gm
+let m
+while ((m = regex.exec(raw)) !== null) {
+  let v = m[2].trim()
+  if (v.startsWith('"') && v.endsWith('"')) v = v.slice(1, -1)
+  env[m[1]] = v
 }
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
-})
+const { initializeApp, cert } = require('firebase-admin/app')
+const { getFirestore } = require('firebase-admin/firestore')
 
-const db = admin.firestore()
+const privateKey = env['FIREBASE_PRIVATE_KEY'].replace(/\\n/g, '\n')
+const clientEmail = env['FIREBASE_CLIENT_EMAIL']
+const projectId = env['NEXT_PUBLIC_FIREBASE_PROJECT_ID']
+
+const app = initializeApp({ credential: cert({ projectId, privateKey, clientEmail }) })
+const db = getFirestore(app)
 
 async function run() {
   console.log('\n🔍 Recherche des Team Managers sans seniorManagerUid...\n')
@@ -88,7 +94,7 @@ async function run() {
       chunk.forEach(({ ref }) => {
         batch.update(ref, {
           seniorManagerUid,
-          updatedAt: admin.firestore.FieldValue.serverTimestamp()
+          updatedAt: new Date()
         })
       })
       await batch.commit()
