@@ -6,6 +6,7 @@ import { routes } from '@/constants/routes'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useProspectingCountry } from '@/hooks/useProspectingCountry'
 import { SidebarLink } from './SidebarLink'
+import { SidebarCrossCountry } from './SidebarCrossCountry'
 import { useAuthActions } from '@/features/auth/hooks/useAuthActions'
 import { useToast } from '@/hooks/useToast'
 import { usePipelineStats } from '@/features/pipeline/hooks/usePipelineStats'
@@ -374,6 +375,7 @@ export function AppSidebar({
           <SectionLabel>{t('sidebar.crmSection')}</SectionLabel>
           <SidebarLink href="/crm" label={t('sidebar.crmClients')} icon={Users} />
           <SidebarLink href="/team" label={t('sidebar.imports')} icon={Upload} />
+          <SidebarCrossCountry onCloseAction={onCloseAction} />
         </>
       ) : (
         <>
@@ -511,6 +513,7 @@ export function AppSidebar({
             />
           )}
           <SidebarLink href={routes.saved} label={t('sidebar.savedSearches')} icon={Bookmark} />
+          <SidebarCrossCountry onCloseAction={onCloseAction} />
           {user.role === 'independent' && (
             <SidebarLink
               href={routes.importProspects}
