@@ -990,7 +990,7 @@ function ProspectModal({
                   {t('pipeline.attention') || 'Attention :'}
                 </strong>
                 {t('pipeline.previouslyVisitedBy') ||
-                  'Ce prospect a déjà été visité/assigné précédemment à :'}
+                  'Cette opportunité a déjà été visitée/assignée précédemment à :'}
                 <ul style={{ margin: '8px 0 0 0', paddingLeft: 16, fontSize: 12, opacity: 0.9 }}>
                   {filteredPreviousAssignees.map((pa, idx) => (
                     <li key={idx} style={{ marginBottom: 4 }}>

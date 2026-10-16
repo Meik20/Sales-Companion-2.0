@@ -547,11 +547,11 @@ export default function PipelinePage() {
             {!orgPipelineQuery.isLoading && !orgPipelineQuery.data?.items?.length ? (
               <EmptyState
                 illustration="/illustrations/empty-states/empty-pipeline.png"
-                title="Aucun prospect dans l'organisation"
+                title={t('pipeline.noProspect')}
                 description={
                   selectedManager
-                    ? "Ce Team Manager n'a pas encore de prospects enregistrés."
-                    : "Vos Team Managers n'ont pas encore de prospects enregistrés."
+                    ? "Ce Team Manager n'a pas encore d'opportunités enregistrées."
+                    : "Vos Team Managers n'ont pas encore d'opportunités enregistrées."
                 }
               />
             ) : null}
@@ -612,7 +612,7 @@ export default function PipelinePage() {
           {isIndependent && !isFree && showTargets && (
             <DataCard
               title="Mes objectifs"
-              subtitle="Définis ton objectif de volume (nombre de prospects conclus) et de valeur (CA en FCFA) pour la période choisie."
+              subtitle="Définis ton objectif de volume (nombre d'opportunités conclues) et de valeur (CA en FCFA) pour la période choisie."
             >
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16, padding: '4px 0' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
@@ -627,7 +627,7 @@ export default function PipelinePage() {
                         letterSpacing: '0.05em'
                       }}
                     >
-                      Volume (prospects conclus)
+                      Volume (opportunités conclues)
                     </label>
                     <input
                       type="number"
@@ -753,7 +753,7 @@ export default function PipelinePage() {
           {user?.role === 'independent' && !isFree && showExport && (
             <DataCard
               title="Exporter mon pipeline"
-              subtitle="Télécharge un fichier Excel (.xlsx) avec ta synthèse et le détail de tes prospects."
+              subtitle="Télécharge un fichier Excel (.xlsx) avec ta synthèse et le détail de tes opportunités."
             >
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16, padding: '4px 0' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>

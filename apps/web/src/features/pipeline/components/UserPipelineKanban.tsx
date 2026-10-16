@@ -70,7 +70,7 @@ const COLUMNS = [
     icon: TrendingUp,
     emptyIcon: Target,
     emptyKey: 'pipeline.emptyProspection',
-    emptyText: 'Aucun prospect en cours'
+    emptyText: 'Aucune opportunité en cours'
   },
   {
     id: 'negociation',
@@ -631,7 +631,7 @@ function MobileKanban({
               }}
             >
               {t('pipeline.kanbanMoveHint') ||
-                'Utilisez les boutons sur les cartes pour déplacer vos prospects'}
+                'Utilisez les boutons sur les cartes pour déplacer vos opportunités'}
             </span>
           </div>
         ) : (
@@ -858,7 +858,7 @@ export function UserPipelineKanban({ items, onStatusChange, onItemClick }: Props
                             textAlign: 'center'
                           }}
                         >
-                          {t('pipeline.dragProspectHere') || 'Glissez un prospect ici'}
+                          {t('pipeline.dragProspectHere') || 'Glissez une opportunité ici'}
                         </span>
                       </div>
                     ) : (
