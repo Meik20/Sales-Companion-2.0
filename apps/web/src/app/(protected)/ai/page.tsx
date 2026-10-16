@@ -7,7 +7,7 @@ import { useTranslation } from '@/providers/I18nProvider'
 import {
   COUNTRY_FRENCH_IN,
   COUNTRY_FRENCH_MARKET_ADJECTIVE,
-  COUNTRY_NAMES,
+  getCountryName,
   type CountryCode
 } from '@sales-companion/shared'
 import { Loader2, RotateCcw, Bot, Zap } from 'lucide-react'
@@ -35,7 +35,7 @@ export default function AIAssistantPage() {
   const { user } = useCurrentUser()
   const { lang, t } = useTranslation()
   const countryCode = useProspectingCountry()
-  const countryName = COUNTRY_NAMES[countryCode] || 'Cameroun'
+  const countryName = getCountryName(countryCode, lang)
   const countryIn = COUNTRY_FRENCH_IN[countryCode] || 'au Cameroun'
   const countryAdjective = COUNTRY_FRENCH_MARKET_ADJECTIVE[countryCode] || 'camerounais'
   const [messages, setMessages] = useState<Message[]>([])

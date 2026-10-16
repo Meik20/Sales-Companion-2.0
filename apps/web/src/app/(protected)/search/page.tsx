@@ -12,7 +12,7 @@ import { useCompaniesSearch } from '@/features/search/hooks/useCompaniesSearch'
 import { usePipelineStats } from '@/features/pipeline/hooks/usePipelineStats'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useProspectingCountry } from '@/hooks/useProspectingCountry'
-import { COUNTRY_FRENCH_IN, COUNTRY_NAMES, type CountryCode } from '@sales-companion/shared'
+import { COUNTRY_FRENCH_IN, getCountryName, type CountryCode } from '@sales-companion/shared'
 import { ShortcutCard } from '@/components/ui/ShortcutCard'
 import { Button } from '@/components/ui/Button'
 import { useTranslation } from '@/providers/I18nProvider'
@@ -37,7 +37,7 @@ function SearchContent() {
   const isFreePlan = !user?.plan || user?.plan === 'free'
   // Pays de prospection actif : cookie sc_country (landing) > user.country (Firestore)
   const userCountry = useProspectingCountry()
-  const countryName = COUNTRY_NAMES[userCountry] || 'Cameroun'
+  const countryName = getCountryName(userCountry, lang)
   const countryIn = COUNTRY_FRENCH_IN[userCountry] || 'au Cameroun'
   const highlightCities = COUNTRY_HIGHLIGHT_CITIES[userCountry] ?? COUNTRY_HIGHLIGHT_CITIES.CM!
   const [filters, setFilters] = useState<{
@@ -818,38 +818,72 @@ function SearchContent() {
 
                           let chips: string[] = []
 
-                          if (hasResults) {
-                            chips = [
-                              `Script d'appel pour ces ${results.length} prospects`,
-                              sector
-                                ? `Pitch d'accroche ${sector}`
-                                : "Email d'approche personnalisé",
-                              'Questions de qualification B2B'
-                            ]
-                          } else if (sector && city) {
-                            chips = [
-                              `Opportunités ${sector} à ${city}`,
-                              `Email d'approche ${sector} ${city}`,
-                              `Script appel DG ${sector}`
-                            ]
-                          } else if (sector) {
-                            chips = [
-                              `Tendances marché ${sector}`,
-                              `Email d'approche ${sector}`,
-                              `Script appel DG ${sector}`
-                            ]
-                          } else if (city) {
-                            chips = [
-                              `Marché B2B à ${city}`,
-                              `Email prospection ${city}`,
-                              `Comment aborder un DG à ${city}`
-                            ]
+                          if (lang === 'en') {
+                            if (hasResults) {
+                              chips = [
+                                `Call script for these ${results.length} prospects`,
+                                sector ? `Pitch for ${sector}` : 'Personalized outreach email',
+                                'B2B qualification questions'
+                              ]
+                            } else if (sector && city) {
+                              chips = [
+                                `Opportunities in ${sector} in ${city}`,
+                                `Outreach email ${sector} ${city}`,
+                                `CEO call script for ${sector}`
+                              ]
+                            } else if (sector) {
+                              chips = [
+                                `Market trends for ${sector}`,
+                                `Outreach email ${sector}`,
+                                `CEO call script for ${sector}`
+                              ]
+                            } else if (city) {
+                              chips = [
+                                `B2B market in ${city}`,
+                                `Outreach email in ${city}`,
+                                `How to approach a CEO in ${city}`
+                              ]
+                            } else {
+                              chips = [
+                                `BTP trends ${highlightCities.btp}`,
+                                `Tech outreach email ${highlightCities.tech}`,
+                                'CEO call script Agri-food'
+                              ]
+                            }
                           } else {
-                            chips = [
-                              `Tendances BTP ${highlightCities.btp}`,
-                              `Email d'approche Tech ${highlightCities.tech}`,
-                              'Script appel DG Agroalimentaire'
-                            ]
+                            if (hasResults) {
+                              chips = [
+                                `Script d'appel pour ces ${results.length} prospects`,
+                                sector
+                                  ? `Pitch d'accroche ${sector}`
+                                  : "Email d'approche personnalisé",
+                                'Questions de qualification B2B'
+                              ]
+                            } else if (sector && city) {
+                              chips = [
+                                `Opportunités ${sector} à ${city}`,
+                                `Email d'approche ${sector} ${city}`,
+                                `Script appel DG ${sector}`
+                              ]
+                            } else if (sector) {
+                              chips = [
+                                `Tendances marché ${sector}`,
+                                `Email d'approche ${sector}`,
+                                `Script appel DG ${sector}`
+                              ]
+                            } else if (city) {
+                              chips = [
+                                `Marché B2B à ${city}`,
+                                `Email prospection ${city}`,
+                                `Comment aborder un DG à ${city}`
+                              ]
+                            } else {
+                              chips = [
+                                `Tendances BTP ${highlightCities.btp}`,
+                                `Email d'approche Tech ${highlightCities.tech}`,
+                                'Script appel DG Agroalimentaire'
+                              ]
+                            }
                           }
 
                           return chips.map((chip) => (

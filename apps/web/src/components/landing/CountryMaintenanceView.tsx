@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { PublicNav } from '@/components/landing/PublicNav'
 import { PublicFooter } from '@/components/landing/PublicFooter'
-import { COUNTRY_NAMES, type CountryCode } from '@sales-companion/shared'
+import { getCountryName, type CountryCode } from '@sales-companion/shared'
 import { Clock } from 'lucide-react'
 import { useTranslation } from '@/providers/I18nProvider'
 
@@ -22,7 +22,7 @@ export function CountryMaintenanceView({
 }: CountryMaintenanceViewProps) {
   const { lang } = useTranslation()
   const isEn = lang === 'en'
-  const countryName = COUNTRY_NAMES[countryCode] || countryCode
+  const countryName = getCountryName(countryCode, lang)
 
   const sectionLabel =
     pageType === 'blog'
