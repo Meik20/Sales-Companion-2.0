@@ -301,6 +301,11 @@ export async function PATCH(request: NextRequest) {
             orgCodeChangedTo = emData.orgCode
             if (emData.companyName) updates.companyName = emData.companyName
             if (emData.sector) updates.sector = emData.sector
+            // Propager seniorManagerUid depuis le document organisation cible.
+            // Invariant : tout TM doit avoir ce champ pour que le pipeline consolidé
+            // du SM soit stable même après changement de segment.
+            const orgDocForNiu = await adminDb.collection('organisations').doc(emData.orgCode).get()
+            updates.seniorManagerUid = orgDocForNiu.data()?.seniorManagerUid || emData.seniorManagerUid || null
           }
         }
       } else {

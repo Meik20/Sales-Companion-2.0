@@ -189,6 +189,44 @@ try {
   errors.push(`❌ Impossible de vérifier supabase-companies.ts : ${e.message}`)
 }
 
+// 7. Vérifier l'invariant du pipeline consolidé Senior Manager :
+//    le service pipeline-org NE DOIT PAS filtrer les managers par segment.
+//    Ce filtre était la cause racine du bug "disparition des données TM après changement de segment".
+//    Toute réintroduction de cette logique casse la visibilité consolidée du SM.
+try {
+  const pipelineOrgService = fs.readFileSync(
+    path.resolve(__dirname, '../apps/web/src/server/services/pipeline-org.service.ts'),
+    'utf8'
+  )
+  // Détecter le pattern de filtre segment sur les managers (la régression connue)
+  const segmentManagerFilterPattern =
+    /filteredManagersDocs\s*=\s*callerSegment\s*\?/
+  if (segmentManagerFilterPattern.test(pipelineOrgService)) {
+    errors.push(
+      '❌ RÉGRESSION DÉTECTÉE : pipeline-org.service.ts filtre les managers par callerSegment. ' +
+      'Ce pattern masque les TMs du pipeline consolidé du SM après un changement de segment. ' +
+      'Le SM doit voir TOUS les managers de son orgCode sans filtre segment.'
+    )
+  } else {
+    console.log('✅ pipeline-org.service.ts conforme (pas de filtre segment sur les managers)')
+  }
+
+  // Détecter le filtre segment sur les items pipeline (même régression côté items)
+  const segmentItemFilterPattern =
+    /callerSegment\s*&&\s*data\.segment\s*&&\s*data\.segment\s*!==\s*callerSegment/
+  if (segmentItemFilterPattern.test(pipelineOrgService)) {
+    errors.push(
+      '❌ RÉGRESSION DÉTECTÉE : pipeline-org.service.ts filtre les items pipeline par callerSegment. ' +
+      'Le segment d\'un item reflète celui du TM créateur, pas celui du SM appelant. ' +
+      'Ce filtre exclut à tort les items des TMs avec un segment différent.'
+    )
+  } else {
+    console.log('✅ pipeline-org.service.ts conforme (pas de filtre segment sur les items)')
+  }
+} catch (e) {
+  errors.push(`❌ Impossible de vérifier pipeline-org.service.ts : ${e.message}`)
+}
+
 // Affichage du bilan
 if (warnings.length > 0) {
   console.warn("\n⚠️ AVERTISSEMENTS D'INTÉGRITÉ :")
