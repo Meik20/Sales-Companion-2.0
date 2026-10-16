@@ -13,17 +13,17 @@ import { useTranslation } from '@/providers/I18nProvider'
 import { AdminNotificationBell } from '@/features/admin/components/AdminNotificationBell'
 import { useNetworkStatus } from '@/hooks/useNetworkStatus'
 import { useProspectingCountry } from '@/hooks/useProspectingCountry'
-import { COUNTRY_NAMES } from '@sales-companion/shared'
+import { getCountryName } from '@sales-companion/shared'
 
 export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void }) {
-  const { t } = useTranslation()
+  const { t, lang } = useTranslation()
   const { isOnline } = useNetworkStatus()
   const { user } = useCurrentUser()
   const { logout } = useAuthActions()
   const router = useRouter()
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const prospectingCountry = useProspectingCountry()
-  const countryLabel = COUNTRY_NAMES[prospectingCountry] ?? 'Cameroun'
+  const countryLabel = getCountryName(prospectingCountry, lang)
 
   const handleLogout = async () => {
     try {

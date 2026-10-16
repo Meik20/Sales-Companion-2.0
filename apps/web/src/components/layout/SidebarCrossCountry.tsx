@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Globe, ChevronDown, Check, Lock, Sparkles } from 'lucide-react'
-import { SUPPORTED_COUNTRIES, type CountryCode } from '@sales-companion/shared'
+import { SUPPORTED_COUNTRIES, getCountryName, type CountryCode } from '@sales-companion/shared'
 import { CountryFlag } from '@/components/ui/CountrySelect'
 import { useProspectingCountryDetails } from '@/hooks/useProspectingCountry'
 import { useToast } from '@/hooks/useToast'
@@ -16,7 +16,7 @@ interface SidebarCrossCountryProps {
 
 export function SidebarCrossCountry({ onCloseAction }: SidebarCrossCountryProps) {
   const router = useRouter()
-  const { t } = useTranslation()
+  const { t, lang } = useTranslation()
   const { pushToast } = useToast()
   const {
     code: activeCountryCode,
@@ -38,9 +38,15 @@ export function SidebarCrossCountry({ onCloseAction }: SidebarCrossCountryProps)
     if (success) {
       pushToast({
         type: 'success',
-        title: t('sidebar.countrySwitched')?.replace('{country}', targetName) ||
-          `Plateforme basculée sur : ${targetName}`,
-        description: `La base de données et les opportunités sont maintenant synchronisées avec ${targetName}.`
+        title:
+          t('sidebar.countrySwitched')?.replace('{country}', targetName) ||
+          (lang === 'en'
+            ? `Platform switched to: ${targetName}`
+            : `Plateforme basculée sur : ${targetName}`),
+        description:
+          lang === 'en'
+            ? `Database and opportunities are now synchronized with ${targetName}.`
+            : `La base de données et les opportunités sont maintenant synchronisées avec ${targetName}.`
       })
       setIsOpen(false)
       // Redirige vers la recherche pour actualiser les données sans résidu de filtres région/ville
@@ -119,12 +125,13 @@ export function SidebarCrossCountry({ onCloseAction }: SidebarCrossCountryProps)
             {SUPPORTED_COUNTRIES.map((country) => {
               const isCurrent = country.code === activeCountryCode
               const locked = isCountryLocked(country.code)
+              const countryName = getCountryName(country.code, lang)
 
               return (
                 <button
                   key={country.code}
                   type="button"
-                  onClick={() => handleSelectCountry(country.code, country.name)}
+                  onClick={() => handleSelectCountry(country.code, countryName)}
                   className={`group/item flex w-full items-center justify-between px-2.5 py-1.5 rounded-md text-[12px] transition-all duration-150 cursor-pointer text-left ${
                     isCurrent
                       ? 'bg-primary/15 text-primary font-bold shadow-xs border-l-2 border-primary'
@@ -133,7 +140,7 @@ export function SidebarCrossCountry({ onCloseAction }: SidebarCrossCountryProps)
                 >
                   <div className="flex items-center gap-2 min-w-0">
                     <CountryFlag code={country.code} size="sm" />
-                    <span className="truncate">{country.name}</span>
+                    <span className="truncate">{countryName}</span>
                   </div>
 
                   <div className="flex items-center gap-1.5 shrink-0">

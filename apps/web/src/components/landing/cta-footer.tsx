@@ -32,7 +32,7 @@ export function CtaFooter() {
   const footerLinks = {
     product: [
       {
-        label: isEn ? `${country.name} B2B Directory` : `Annuaire B2B ${country.name}`,
+        label: isEn ? `${country.nameEn ?? country.name} B2B Directory` : `Annuaire B2B ${country.name}`,
         href: '#fonctionnalites'
       },
       { label: isEn ? 'CRM Sales Pipeline' : 'Pipeline Commercial CRM', href: '#fonctionnalites' },
@@ -53,7 +53,7 @@ export function CtaFooter() {
           ]
         : [
             {
-              label: isEn ? `${country.name} B2B Blog` : `Blog B2B ${country.name}`,
+              label: isEn ? `${country.nameEn ?? country.name} B2B Blog` : `Blog B2B ${country.name}`,
               href: '/blog'
             },
             { label: isEn ? 'Prospecting guides' : 'Guides de prospection', href: '/blog' }

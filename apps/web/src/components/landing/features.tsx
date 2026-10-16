@@ -38,7 +38,7 @@ export function Features() {
   const cities = country.cities.join(', ')
   const deepDiveFeatures: DeepDiveFeature[] = [
     {
-      tag: lang === 'en' ? `${country.name} B2B Directory` : `Annuaire B2B ${country.name}`,
+      tag: lang === 'en' ? `${country.nameEn ?? country.name} B2B Directory` : `Annuaire B2B ${country.name}`,
       icon: Building2,
       title:
         lang === 'en'
