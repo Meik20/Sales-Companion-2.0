@@ -62,7 +62,7 @@ export default function TeamPage() {
     ? [
         {
           id: 'org',
-          label: "GESTION DE L'ORGANISATION",
+          label: t('team.tabOrg'),
           icon: <Building2 size={15} strokeWidth={2} />
         },
         ...(canImport
@@ -233,10 +233,10 @@ export default function TeamPage() {
   return (
     <AppShell>
       <PageHeader
-        title={isSeniorManager ? "Gestion de l'Organisation" : t('team.title')}
+        title={isSeniorManager ? t('team.orgTitle') : t('team.title')}
         subtitle={
           isSeniorManager
-            ? "Gouvernance d'entreprise, certification légale et supervision des équipes"
+            ? t('team.orgSubtitle')
             : t('team.subtitle')
         }
       />

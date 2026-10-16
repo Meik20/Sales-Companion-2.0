@@ -8,6 +8,7 @@ import { EmptyState } from '@/components/feedback'
 import { InfoTooltip } from '@/components/ui/InfoTooltip'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useToast } from '@/hooks/useToast'
+import { useTranslation } from '@/providers/I18nProvider'
 import { OrgManagersSection } from './OrgManagersSection'
 import {
   ShieldCheck,
@@ -73,6 +74,7 @@ interface OrgData {
 export function OrgGovernanceTab() {
   const { user } = useCurrentUser()
   const { pushToast } = useToast()
+  const { t } = useTranslation()
 
   const [orgData, setOrgData] = useState<OrgData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -177,7 +179,7 @@ export function OrgGovernanceTab() {
     await navigator.clipboard.writeText(code)
     setCopiedCode(true)
     setTimeout(() => setCopiedCode(false), 2000)
-    pushToast({ type: 'success', title: 'Code organisation copié dans le presse-papiers' })
+    pushToast({ type: 'success', title: t('team.orgGovernance.orgCodeCopiedToast') })
   }
 
   const generateAndCopyTmInvite = async () => {
@@ -196,14 +198,14 @@ export function OrgGovernanceTab() {
       setTimeout(() => setCopiedTmInvite(false), 2500)
       pushToast({
         type: 'success',
-        title: "Lien d'invitation Team Manager copié !",
-        description: `Le manager rejoindra le segment "${data.segment || 'Principal'}".`
+        title: t('team.orgGovernance.tmInviteSuccessTitle'),
+        description: t('team.orgGovernance.tmInviteSuccessDesc').replace('{segment}', data.segment || t('team.orgGovernance.segmentDefault'))
       })
     } catch (err: any) {
       pushToast({
         type: 'error',
-        title: "Erreur d'invitation",
-        description: err.message || 'Impossible de créer le lien'
+        title: t('team.orgGovernance.inviteErrorTitle'),
+        description: err.message || t('team.orgGovernance.inviteErrorFallback')
       })
     } finally {
       setGeneratingInvite(null)
@@ -225,14 +227,14 @@ export function OrgGovernanceTab() {
       setTimeout(() => setCopiedSmInvite(false), 2500)
       pushToast({
         type: 'success',
-        title: "Lien d'invitation Senior Manager copié !",
-        description: "L'invité renseignera son segment commercial lors de son inscription."
+        title: t('team.orgGovernance.smInviteSuccessTitle'),
+        description: t('team.orgGovernance.smInviteSuccessDesc')
       })
     } catch (err: any) {
       pushToast({
         type: 'error',
-        title: "Erreur d'invitation",
-        description: err.message || 'Impossible de créer le lien'
+        title: t('team.orgGovernance.inviteErrorTitle'),
+        description: err.message || t('team.orgGovernance.inviteErrorFallback')
       })
     } finally {
       setGeneratingInvite(null)
@@ -253,9 +255,9 @@ export function OrgGovernanceTab() {
       if (!res.ok) throw new Error(data.error || 'Erreur lors de la mise à jour')
       setOrgData(data)
       setEditingSegment(false)
-      pushToast({ type: 'success', title: 'Segment commercial mis à jour !' })
+      pushToast({ type: 'success', title: t('team.orgGovernance.segmentUpdateSuccess') })
     } catch (err: any) {
-      pushToast({ type: 'error', title: err.message || 'Erreur mise à jour segment' })
+      pushToast({ type: 'error', title: err.message || t('team.orgGovernance.niuUpdateError') })
     } finally {
       setSegmentSaving(false)
     }
@@ -276,8 +278,8 @@ export function OrgGovernanceTab() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Erreur lors de la mise à jour')
       setOrgData(data)
-      setNiuSuccess("Numéro d'identification mis à jour avec succès.")
-      pushToast({ type: 'success', title: 'NIU fiscal mis à jour' })
+      setNiuSuccess(t('team.orgGovernance.niuSuccessMessage'))
+      pushToast({ type: 'success', title: t('team.orgGovernance.niuSuccessToast') })
     } catch (err: any) {
       setNiuError(err.message)
     } finally {
@@ -322,8 +324,8 @@ export function OrgGovernanceTab() {
     if (!selectedTargetUid) {
       pushToast({
         type: 'warning',
-        title: 'Sélectionnez un Team Manager',
-        description: 'Veuillez choisir le Team Manager destinataire du transfert.'
+        title: t('team.orgGovernance.noManagerWarningTitle'),
+        description: t('team.orgGovernance.noManagerWarningDesc')
       })
       return
     }
@@ -332,15 +334,18 @@ export function OrgGovernanceTab() {
     if (count === 0) {
       pushToast({
         type: 'warning',
-        title: 'Aucun prospect sélectionné',
-        description: 'Veuillez cocher au moins un prospect avant de lancer le transfert.'
+        title: t('team.orgGovernance.noProspectWarningTitle'),
+        description: t('team.orgGovernance.noProspectWarningDesc')
       })
       return
     }
 
     const targetMgr = orgData?.managers?.find((m) => m.uid === selectedTargetUid)
     const targetName = targetMgr?.name || selectedTargetUid
-    const confirmMsg = `Confirmez-vous le transfert de ${count} prospect${count > 1 ? 's' : ''} vers le Team Manager "${targetName}" ?\n\nCes prospects intègreront son portefeuille sans être assignés à un commercial. Le Team Manager pourra ensuite les attribuer à ses commerciaux de terrain.`
+    const confirmMsg = t('team.orgGovernance.transferConfirm')
+      .replace('{count}', String(count))
+      .replace('{plural}', count > 1 ? 's' : '')
+      .replace('{name}', targetName)
     if (!window.confirm(confirmMsg)) return
 
     setMigrating(true)
@@ -361,13 +366,17 @@ export function OrgGovernanceTab() {
       if (!res.ok) throw new Error(data.error || 'Erreur lors du transfert')
 
       const { migratedCount, targetManager } = data
-      const summary = `✓ Transfert réussi vers ${targetManager.name} : ${migratedCount.pipeline} prospect(s) transféré(s) dans son portefeuille (en attente d'attribution à ses commerciaux).`
+      const summary = t('team.orgGovernance.transferSuccessDesc')
+        .replace('{count}', String(migratedCount.pipeline))
+        .replace('{name}', targetManager.name)
       setMigrationResult(summary)
       setSelectedProspectIds([])
       pushToast({
         type: 'success',
-        title: 'Transfert réussi',
-        description: `${count} prospect(s) transféré(s) vers ${targetManager.name}`
+        title: t('team.orgGovernance.transferSuccessTitle'),
+        description: t('team.orgGovernance.transferSuccessDesc')
+          .replace('{count}', String(count))
+          .replace('{name}', targetManager.name)
       })
       void fetchOrg()
       void fetchSeniorProspects()
@@ -384,7 +393,7 @@ export function OrgGovernanceTab() {
   if (loading) {
     return (
       <div style={{ padding: 40, textAlign: 'center', color: 'var(--muted-foreground)' }}>
-        Chargement des paramètres de l&apos;organisation…
+        {t('team.orgGovernance.loadingOrg')}
       </div>
     )
   }
@@ -393,11 +402,11 @@ export function OrgGovernanceTab() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       {/* ── 1. Carte Identité & Gouvernance ────────────────────────── */}
       <DataCard
-        title="Organisation & Gouvernance"
+        title={t('team.orgGovernance.cardTitle')}
         actions={
           <InfoTooltip
             placement="left"
-            content="Identifiant unique de votre entreprise, certification fiscale DGI et recrutement de managers."
+            content={t('team.orgGovernance.cardTooltip')}
           />
         }
       >
@@ -406,11 +415,11 @@ export function OrgGovernanceTab() {
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-6">
             <div>
               <span className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Entreprise
+                {t('team.orgGovernance.companyLabel')}
               </span>
               <h4 className="mt-1 text-[17px] font-bold text-foreground flex items-center gap-2">
                 <Building2 size={18} className="text-primary" />
-                {orgData?.companyName || user?.companyName || user?.company || 'Votre Organisation'}
+                {orgData?.companyName || user?.companyName || user?.company || t('team.orgGovernance.defaultOrgName')}
               </h4>
             </div>
 
@@ -422,12 +431,12 @@ export function OrgGovernanceTab() {
               {orgData?.isVerified || Boolean(user?.niu) ? (
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300 dark:border-emerald-500/30 bg-emerald-100 dark:bg-emerald-500/15 px-3 py-1 text-[12px] font-bold text-emerald-800 dark:text-emerald-300 shadow-xs">
                   <ShieldCheck size={14} className="text-emerald-700 dark:text-emerald-400" />
-                  Organisation vérifiée DGI
+                  {t('team.orgGovernance.verifiedBadge')}
                 </span>
               ) : (
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-300 dark:border-amber-500/30 bg-amber-100 dark:bg-amber-500/15 px-3 py-1 text-[12px] font-bold text-amber-900 dark:text-amber-300 shadow-xs">
                   <ShieldAlert size={14} className="text-amber-700 dark:text-amber-400" />
-                  Organisation standard
+                  {t('team.orgGovernance.standardBadge')}
                 </span>
               )}
             </div>
@@ -438,12 +447,12 @@ export function OrgGovernanceTab() {
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <div className="text-[12px] font-semibold text-muted-foreground flex items-center gap-1.5">
-                  <Tag size={13} className="text-primary shrink-0" /> Votre Segment Commercial Actuel
+                  <Tag size={13} className="text-primary shrink-0" /> {t('team.orgGovernance.segmentLabel')}
                 </div>
                 {!editingSegment ? (
                   <div className="mt-1 flex items-center gap-2">
                     <span className="text-[16px] font-bold text-foreground">
-                      {orgData?.segment || user?.segment || 'Principal'}
+                      {orgData?.segment || user?.segment || t('team.orgGovernance.segmentDefault')}
                     </span>
                     <button
                       type="button"
@@ -453,7 +462,7 @@ export function OrgGovernanceTab() {
                       }}
                       className="ml-2 text-[12px] text-primary hover:underline font-semibold cursor-pointer"
                     >
-                      Modifier
+                      {t('team.orgGovernance.editSegment')}
                     </button>
                   </div>
                 ) : (
@@ -462,7 +471,7 @@ export function OrgGovernanceTab() {
                       type="text"
                       value={segmentInput}
                       onChange={(e) => setSegmentInput(e.target.value)}
-                      placeholder="Ex: BTP, Technologies, Agroalimentaire…"
+                      placeholder={t('team.orgGovernance.segmentPlaceholder')}
                       className="h-8 rounded-lg border border-border bg-card px-2.5 text-[13px] text-foreground focus:border-primary focus:outline-none"
                     />
                     <Button
@@ -472,21 +481,21 @@ export function OrgGovernanceTab() {
                       loading={segmentSaving}
                       onClick={() => void handleUpdateSegment()}
                     >
-                      Enregistrer
+                      {t('team.orgGovernance.saveSegment')}
                     </Button>
                     <button
                       type="button"
                       onClick={() => setEditingSegment(false)}
                       className="text-[12px] text-muted-foreground hover:text-foreground cursor-pointer px-2"
                     >
-                      Annuler
+                      {t('team.orgGovernance.cancelSegment')}
                     </button>
                   </div>
                 )}
               </div>
               <InfoTooltip
                 placement="left"
-                content="Vos Team Managers et commerciaux rattachés hériteront automatiquement de ce segment."
+                content={t('team.orgGovernance.segmentTooltip')}
               />
             </div>
           </div>
@@ -496,15 +505,15 @@ export function OrgGovernanceTab() {
             <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border/50 pb-4">
               <div>
                 <div className="flex items-center gap-1.5 text-[12px] font-semibold text-muted-foreground">
-                  <span>Code Organisation Unique (ORG Code)</span>
+                  <span>{t('team.orgGovernance.orgCodeLabel')}</span>
                   <InfoTooltip
                     placement="top"
-                    content="Code maître de l'entreprise pour rattacher les managers et unifier les équipes."
+                    content={t('team.orgGovernance.orgCodeTooltip')}
                   />
                 </div>
                 <div className="mt-1.5 flex items-center gap-2.5">
                   <code className="rounded-md bg-primary/10 px-3 py-1 font-mono text-[16px] font-extrabold text-primary">
-                    {orgData?.orgCode || user?.orgCode || 'Chargement…'}
+                    {orgData?.orgCode || user?.orgCode || t('team.orgGovernance.orgCodeLoading')}
                   </code>
                   <button
                     type="button"
@@ -516,7 +525,7 @@ export function OrgGovernanceTab() {
                     ) : (
                       <Copy size={13} />
                     )}
-                    {copiedCode ? 'Copié !' : 'Copier le code'}
+                    {copiedCode ? t('team.orgGovernance.codeCopied') : t('team.orgGovernance.copyCode')}
                   </button>
                 </div>
               </div>
@@ -530,15 +539,15 @@ export function OrgGovernanceTab() {
                   <div className="flex items-center justify-between gap-2">
                     <span className="font-bold text-[13.5px] text-foreground flex items-center gap-2">
                       <Users2 size={16} className="text-primary shrink-0" />
-                      <span>Team Manager</span>
+                      <span>{t('team.orgGovernance.tmInviteTitle')}</span>
                     </span>
                     <span className="text-[11px] font-bold text-primary bg-primary/10 border border-primary/25 px-2 py-0.5 rounded-md">
-                      Segment : {orgData?.segment || user?.segment || 'Principal'}
+                      {t('team.orgGovernance.tmSegmentBadge').replace('{segment}', orgData?.segment || user?.segment || t('team.orgGovernance.segmentDefault'))}
                     </span>
                   </div>
                   <InfoTooltip
                     placement="top"
-                    content="Génère un lien personnalisé pour intégrer un Team Manager sous votre tutelle. Il héritera automatiquement de votre segment."
+                    content={t('team.orgGovernance.tmInviteTooltip')}
                   />
                 </div>
                 <button
@@ -548,7 +557,7 @@ export function OrgGovernanceTab() {
                   className="mt-3 inline-flex items-center justify-center gap-2 rounded-lg border border-primary/40 bg-primary/10 dark:bg-primary/20 px-3 py-2 text-[12.5px] font-bold text-primary transition-colors hover:bg-primary/20 dark:hover:bg-primary/30 cursor-pointer disabled:opacity-50 shadow-xs"
                 >
                   {copiedTmInvite ? <Check size={14} className="text-emerald-600 dark:text-emerald-400" /> : <Link2 size={14} className="shrink-0" />}
-                  {copiedTmInvite ? 'Lien copié !' : generatingInvite === 'tm' ? 'Génération…' : "Copier le lien Team Manager"}
+                  {copiedTmInvite ? t('team.orgGovernance.tmLinkCopied') : generatingInvite === 'tm' ? t('team.orgGovernance.generating') : t('team.orgGovernance.copyTmLink')}
                 </button>
               </div>
 
@@ -558,15 +567,15 @@ export function OrgGovernanceTab() {
                   <div className="flex items-center justify-between gap-2">
                     <span className="font-bold text-[13.5px] text-foreground flex items-center gap-2">
                       <Crown size={16} className="text-violet-600 dark:text-violet-400 shrink-0" />
-                      <span>Senior Manager</span>
+                      <span>{t('team.orgGovernance.smInviteTitle')}</span>
                     </span>
                     <span className="text-[11px] font-bold text-violet-800 dark:text-violet-300 bg-violet-100 dark:bg-violet-500/20 border border-violet-300 dark:border-violet-500/30 px-2 py-0.5 rounded-md">
-                      Nouveau Segment Libre
+                      {t('team.orgGovernance.smNewSegmentBadge')}
                     </span>
                   </div>
                   <InfoTooltip
                     placement="top"
-                    content="Permet à un autre dirigeant de rejoindre l'organisation pour piloter une nouvelle division (ex: Direction Technique, BTP, etc.)."
+                    content={t('team.orgGovernance.smInviteTooltip')}
                   />
                 </div>
                 <button
@@ -576,7 +585,7 @@ export function OrgGovernanceTab() {
                   className="mt-3 inline-flex items-center justify-center gap-2 rounded-lg border border-violet-400 dark:border-violet-500/50 bg-violet-100 dark:bg-violet-500/20 px-3 py-2 text-[12.5px] font-bold text-violet-800 dark:text-violet-200 transition-colors hover:bg-violet-200 dark:hover:bg-violet-500/30 cursor-pointer disabled:opacity-50 shadow-xs"
                 >
                   {copiedSmInvite ? <Check size={14} className="text-emerald-600 dark:text-emerald-400" /> : <Link2 size={14} className="shrink-0" />}
-                  {copiedSmInvite ? 'Lien copié !' : generatingInvite === 'sm' ? 'Génération…' : "Copier le lien Senior Manager"}
+                  {copiedSmInvite ? t('team.orgGovernance.smLinkCopied') : generatingInvite === 'sm' ? t('team.orgGovernance.generating') : t('team.orgGovernance.copySmLink')}
                 </button>
               </div>
             </div>
@@ -585,10 +594,10 @@ export function OrgGovernanceTab() {
           {/* NIU Fiscal Section */}
           <div className="flex flex-col gap-3 border-t border-border pt-6">
             <h4 className="m-0 text-[14px] font-bold text-foreground flex items-center gap-1.5">
-              Numéro d&apos;Identification Unique (NIU fiscal DGI)
+              {t('team.orgGovernance.niuTitle')}
               <InfoTooltip
                 placement="right"
-                content="Renseignez le NIU fiscal officiel de votre société délivré par la DGI (carte de contribuable) pour certifier votre organisation et unifier l'ensemble de vos managers d'équipe."
+                content={t('team.orgGovernance.niuTooltip')}
               />
             </h4>
 
@@ -606,7 +615,7 @@ export function OrgGovernanceTab() {
                   loading={niuLoading}
                   style={{ flexShrink: 0 }}
                 >
-                  Enregistrer
+                  {t('team.orgGovernance.niuSave')}
                 </Button>
               </div>
               {niuError && <div className="text-[12px] text-red-600 dark:text-red-400 font-semibold">{niuError}</div>}
@@ -619,15 +628,15 @@ export function OrgGovernanceTab() {
       {/* ── 2. Outil de Sélection & Transfert de Prospects vers un Team Manager ── */}
       {isSeniorManager && (
         <DataCard
-          title="Transfert de Prospects vers un Team Manager"
-          subtitle="Sélectionnez les prospects Senior à transférer vers un Team Manager"
+          title={t('team.orgGovernance.transferCardTitle')}
+          subtitle={t('team.orgGovernance.transferCardSubtitle')}
           actions={
             <InfoTooltip
               placement="left"
               content={
                 <>
-                  <strong className="block mb-1">Séparation stricte des rôles</strong>
-                  Le Senior Manager supervise l&apos;organisation globale. Le Team Manager n&apos;est pas un commercial : lorsqu&apos;il reçoit des prospects, ils intègrent son portefeuille en attente d&apos;attribution. Il pourra ensuite les déléguer à ses commerciaux de terrain.
+                  <strong className="block mb-1">{t('team.orgGovernance.transferTooltipTitle')}</strong>
+                  {t('team.orgGovernance.transferTooltipDesc')}
                 </>
               }
             />
@@ -641,12 +650,13 @@ export function OrgGovernanceTab() {
                 <div className="flex items-center gap-2">
                   <h5 className="m-0 text-[14px] font-bold text-foreground flex items-center gap-2">
                     <Briefcase size={16} className="text-primary" />
-                    Prospects du compte Senior ({seniorProspects.length})
+                    {t('team.orgGovernance.seniorProspectsTitle').replace('{count}', String(seniorProspects.length))}
                   </h5>
                   {selectedProspectIds.length > 0 && (
                     <span className="rounded-full bg-primary/20 px-2.5 py-0.5 text-[11.5px] font-bold text-primary">
-                      {selectedProspectIds.length} sélectionné
-                      {selectedProspectIds.length > 1 ? 's' : ''}
+                      {t('team.orgGovernance.selectedCount')
+                        .replace('{count}', String(selectedProspectIds.length))
+                        .replace('{plural}', selectedProspectIds.length > 1 ? 's' : '')}
                     </span>
                   )}
                 </div>
@@ -656,11 +666,11 @@ export function OrgGovernanceTab() {
                     type="button"
                     onClick={() => void fetchSeniorProspects()}
                     disabled={loadingProspects}
-                    title="Actualiser la liste des prospects"
+                    title={t('team.orgGovernance.refreshBtn')}
                     className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1 text-[12px] font-semibold text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
                   >
                     <RefreshCw size={12} className={loadingProspects ? 'animate-spin' : ''} />
-                    Actualiser
+                    {t('team.orgGovernance.refreshBtn')}
                   </button>
 
                   {filteredProspects.length > 0 && (
@@ -670,7 +680,7 @@ export function OrgGovernanceTab() {
                       className="inline-flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/10 px-3 py-1 text-[12px] font-semibold text-primary hover:bg-primary/20 transition-colors"
                     >
                       {allFilteredSelected ? <Square size={13} /> : <CheckSquare size={13} />}
-                      {allFilteredSelected ? 'Tout désélectionner' : 'Tout sélectionner'}
+                      {allFilteredSelected ? t('team.orgGovernance.deselectAllBtn') : t('team.orgGovernance.selectAllBtn')}
                     </button>
                   )}
                 </div>
@@ -685,7 +695,7 @@ export function OrgGovernanceTab() {
                   />
                   <input
                     type="text"
-                    placeholder="Filtrer par nom, ville ou secteur…"
+                    placeholder={t('team.orgGovernance.filterPlaceholder')}
                     value={prospectSearch}
                     onChange={(e) => setProspectSearch(e.target.value)}
                     className="h-9 w-full rounded-lg border border-border bg-card pl-9 pr-3 text-[12.5px] text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
@@ -706,12 +716,12 @@ export function OrgGovernanceTab() {
                       }`}
                     >
                       {st === 'all'
-                        ? 'Tous'
+                        ? t('team.orgGovernance.statusAll')
                         : st === 'prospection'
-                          ? 'Prospection'
+                          ? t('team.orgGovernance.statusProspection')
                           : st === 'negociation'
-                            ? 'Négociation'
-                            : 'Conclue'}
+                            ? t('team.orgGovernance.statusNegociation')
+                            : t('team.orgGovernance.statusConclue')}
                     </button>
                   ))}
                 </div>
@@ -721,7 +731,7 @@ export function OrgGovernanceTab() {
               <div className="mt-2 max-h-[360px] overflow-y-auto rounded-lg border border-border bg-background/50">
                 {loadingProspects ? (
                   <div className="p-8 text-center text-[13px] text-muted-foreground">
-                    Chargement des prospects du compte Senior…
+                    {t('team.orgGovernance.loadingProspects')}
                   </div>
                 ) : filteredProspects.length === 0 ? (
                   <div className="py-6">
@@ -730,13 +740,13 @@ export function OrgGovernanceTab() {
                       illustrationSize="sm"
                       title={
                         seniorProspects.length === 0
-                          ? 'Aucun prospect à transférer'
-                          : 'Aucun résultat'
+                          ? t('team.orgGovernance.noProspectsTitle')
+                          : t('team.orgGovernance.noResultsTitle')
                       }
                       description={
                         seniorProspects.length === 0
-                          ? 'Aucun prospect rattaché à votre compte Senior. Tous vos prospects ont été transférés ou sont gérés directement par vos Team Managers.'
-                          : 'Aucun prospect ne correspond à vos critères de recherche.'
+                          ? t('team.orgGovernance.noProspectsDesc')
+                          : t('team.orgGovernance.noResultsDesc')
                       }
                     />
                   </div>
@@ -750,13 +760,13 @@ export function OrgGovernanceTab() {
                             checked={allFilteredSelected}
                             onChange={toggleSelectAll}
                             className="cursor-pointer accent-primary"
-                            aria-label="Sélectionner tous les prospects"
+                            aria-label={t('team.orgGovernance.selectAllAriaLabel')}
                           />
                         </th>
-                        <th className="py-2.5 px-3">Entreprise</th>
-                        <th className="py-2.5 px-3">Ville &amp; Secteur</th>
-                        <th className="py-2.5 px-3">Statut Pipeline</th>
-                        <th className="py-2.5 pr-3 text-right">Date d&apos;ajout</th>
+                        <th className="py-2.5 px-3">{t('team.orgGovernance.colCompany')}</th>
+                        <th className="py-2.5 px-3">{t('team.orgGovernance.colCityAndSector')}</th>
+                        <th className="py-2.5 px-3">{t('team.orgGovernance.colPipelineStatus')}</th>
+                        <th className="py-2.5 pr-3 text-right">{t('team.orgGovernance.colAddedDate')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -779,7 +789,7 @@ export function OrgGovernanceTab() {
                                 checked={isSelected}
                                 onChange={() => toggleSelectProspect(p.id)}
                                 className="cursor-pointer accent-primary"
-                                aria-label={`Sélectionner ${p.companyName}`}
+                                aria-label={t('team.orgGovernance.selectProspectAriaLabel').replace('{name}', p.companyName)}
                               />
                             </td>
                             <td className="py-3 px-3">
@@ -820,15 +830,17 @@ export function OrgGovernanceTab() {
                                 }`}
                               >
                                 {p.status === 'conclue'
-                                  ? 'Conclue'
+                                  ? t('team.orgGovernance.statusConclue')
                                   : p.status === 'negociation'
-                                    ? 'Négociation'
-                                    : 'Prospection'}
+                                    ? t('team.orgGovernance.statusNegociation')
+                                    : t('team.orgGovernance.statusProspection')}
                               </span>
                             </td>
                             <td className="py-3 pr-3 text-right text-[11.5px] text-muted-foreground">
                               {p.createdAt
-                                ? new Date(p.createdAt).toLocaleDateString('fr-FR')
+                                ? new Date(p.createdAt).toLocaleDateString(
+                                    t('team.orgGovernance.statusAll') === 'All' ? 'en-US' : 'fr-FR'
+                                  )
                                 : '—'}
                             </td>
                           </tr>
@@ -846,11 +858,10 @@ export function OrgGovernanceTab() {
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <label className="text-[13px] font-bold text-foreground block">
-                      1. Choisir le Team Manager récepteur :
+                      {t('team.orgGovernance.receiverLabel')}
                     </label>
                     <p className="m-0 text-[11.5px] text-muted-foreground">
-                      Les prospects sélectionnés lui seront transférés pour qu&apos;il puisse les
-                      assigner à ses commerciaux.
+                      {t('team.orgGovernance.receiverDesc')}
                     </p>
                   </div>
 
@@ -870,7 +881,7 @@ export function OrgGovernanceTab() {
                     className="h-10 rounded-lg border border-border bg-card px-3 text-[13px] text-foreground focus:border-primary focus:outline-none"
                     style={{ minWidth: 280 }}
                   >
-                    <option value="">-- Choisir un Team Manager --</option>
+                    <option value="">{t('team.orgGovernance.selectManagerPlaceholder')}</option>
                     {teamManagers.map((mgr) => (
                       <option key={mgr.uid} value={mgr.uid}>
                         {mgr.name} ({mgr.email})
@@ -888,8 +899,10 @@ export function OrgGovernanceTab() {
                   >
                     <ArrowRightLeft size={14} />
                     {selectedProspectIds.length > 0
-                      ? `Transférer ${selectedProspectIds.length} prospect${selectedProspectIds.length > 1 ? 's' : ''} vers le Team Manager`
-                      : 'Transférer vers le Team Manager'}
+                      ? t('team.orgGovernance.transferBtnCount')
+                          .replace('{count}', String(selectedProspectIds.length))
+                          .replace('{plural}', selectedProspectIds.length > 1 ? 's' : '')
+                      : t('team.orgGovernance.transferBtn')}
                   </Button>
                 </div>
 
@@ -906,8 +919,7 @@ export function OrgGovernanceTab() {
               </div>
             ) : (
               <div className="text-[13px] text-muted-foreground italic">
-                Aucun Team Manager n&apos;est encore disponible dans votre organisation. Invitez un
-                premier manager d&apos;équipe pour pouvoir lui transférer des prospects.
+                {t('team.orgGovernance.noTeamManagerYet')}
               </div>
             )}
           </div>
@@ -916,8 +928,8 @@ export function OrgGovernanceTab() {
 
       {/* ── 3. Supervision des Team Managers ────────────────────────── */}
       <DataCard
-        title="Gestion de l'Équipe Organisation"
-        subtitle="Supervision de tous les Team Managers rattachés à votre organisation et leurs performances pipeline"
+        title={t('team.orgGovernance.orgTeamCardTitle')}
+        subtitle={t('team.orgGovernance.orgTeamCardSubtitle')}
         actions={
           <button
             type="button"
@@ -942,7 +954,7 @@ export function OrgGovernanceTab() {
               size={12}
               style={{ animation: refreshing ? 'spin 1s linear infinite' : 'none' }}
             />
-            {refreshing ? 'Actualisation...' : 'Actualiser'}
+            {refreshing ? t('team.orgGovernance.refreshing') : t('team.orgGovernance.refresh')}
           </button>
         }
       >

@@ -11,6 +11,7 @@ import {
   type OrgReportManager,
   type OrgRecentActivity
 } from '@/features/pipeline/hooks/useOrgReport'
+import { useTranslation } from '@/providers/I18nProvider'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import {
@@ -246,9 +247,12 @@ function TopPerformerRow({ rank, manager }: { rank: number; manager: OrgReportMa
 }
 
 // ── Activité Récente ───────────────────────────────────────────────────────
-function ActivityItem({ activity }: { activity: OrgRecentActivity }) {
+function ActivityItem({ activity, lang }: { activity: OrgRecentActivity; lang: string }) {
   const date = activity.updatedAt
-    ? new Date(activity.updatedAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })
+    ? new Date(activity.updatedAt).toLocaleDateString(
+        lang === 'en' ? 'en-US' : 'fr-FR',
+        { day: '2-digit', month: 'short' }
+      )
     : '—'
 
   return (
@@ -289,6 +293,7 @@ function ActivityItem({ activity }: { activity: OrgRecentActivity }) {
 export default function DashboardPage() {
   const { user } = useCurrentUser()
   const router = useRouter()
+  const { t, lang } = useTranslation()
   const isSeniorManager = user?.role === 'manager' && user?.orgRole === 'senior_manager'
 
   // Rediriger si pas Senior Manager
@@ -306,8 +311,8 @@ export default function DashboardPage() {
   return (
     <AppShell>
       <PageHeader
-        title="Tableau de Bord Organisation"
-        subtitle={`Vue consolidée de votre organisation · ${data?.orgCode ?? '…'}`}
+        title={t('dashboard.title')}
+        subtitle={`${t('dashboard.subtitlePrefix')} · ${data?.orgCode ?? '…'}`}
         actions={
           <button
             type="button"
@@ -328,7 +333,7 @@ export default function DashboardPage() {
             }}
           >
             <RefreshCw size={13} className={orgReportQuery.isFetching ? 'animate-spin' : ''} />
-            Actualiser
+            {orgReportQuery.isFetching ? t('dashboard.refreshing') : t('dashboard.refresh')}
           </button>
         }
       />
@@ -347,46 +352,46 @@ export default function DashboardPage() {
             }}
           >
             <KpiCard
-              label="Managers"
+              label={t('dashboard.kpiManagers')}
               value={data?.totalManagers ?? 0}
               color="#8b5cf6"
               icon={<Users2 size={16} />}
-              subtitle="dans votre organisation"
+              subtitle={t('dashboard.kpiManagersSub')}
             />
             <KpiCard
-              label="Prospection"
+              label={t('dashboard.kpiProspection')}
               value={data?.globalCounts.prospection ?? 0}
               color="#3b82f6"
               icon={<TrendingUp size={16} />}
-              subtitle="prospects en cours"
+              subtitle={t('dashboard.kpiProspectionSub')}
             />
             <KpiCard
-              label="Négociation"
+              label={t('dashboard.kpiNegociation')}
               value={data?.globalCounts.negociation ?? 0}
               color="#f59e0b"
               icon={<Filter size={16} />}
-              subtitle="en négociation"
+              subtitle={t('dashboard.kpiNegociationSub')}
             />
             <KpiCard
-              label="Conclus"
+              label={t('dashboard.kpiConclus')}
               value={data?.globalCounts.conclue ?? 0}
               color="#10b981"
               icon={<CheckCircle2 size={16} />}
-              subtitle="contrats signés"
+              subtitle={t('dashboard.kpiConclusSub')}
             />
             <KpiCard
-              label="Total Pipeline"
+              label={t('dashboard.kpiTotal')}
               value={data?.globalCounts.total ?? 0}
               color="#6366f1"
               icon={<BarChart3 size={16} />}
-              subtitle="prospects au total"
+              subtitle={t('dashboard.kpiTotalSub')}
             />
             <KpiCard
-              label="Taux de Conversion"
+              label={t('dashboard.kpiRate')}
               value={`${data?.conversionRate ?? 0}%`}
               color="#0ea5e9"
               icon={<Trophy size={16} />}
-              subtitle="conclus / total"
+              subtitle={t('dashboard.kpiRateSub')}
             />
           </div>
 
@@ -394,11 +399,11 @@ export default function DashboardPage() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
             {/* Top Performers */}
             <DataCard
-              title="Top Performers"
+              title={t('dashboard.topPerformers')}
               actions={
                 <InfoTooltip
                   placement="left"
-                  content="Managers classés par nombre de prospects conclus dans votre organisation."
+                  content={t('dashboard.topPerformersTooltip')}
                 />
               }
             >
@@ -411,7 +416,7 @@ export default function DashboardPage() {
                     fontSize: 13
                   }}
                 >
-                  Aucune donnée disponible
+                  {t('dashboard.noData')}
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -424,11 +429,11 @@ export default function DashboardPage() {
 
             {/* Activité Récente */}
             <DataCard
-              title="Activité Récente"
+              title={t('dashboard.recentActivity')}
               actions={
                 <InfoTooltip
                   placement="left"
-                  content="Les 10 derniers prospects conclus dans l'ensemble de votre organisation, toutes équipes confondues."
+                  content={t('dashboard.recentActivityTooltip')}
                 />
               }
             >
@@ -441,12 +446,12 @@ export default function DashboardPage() {
                     fontSize: 13
                   }}
                 >
-                  Aucune activité récente
+                  {t('dashboard.noActivity')}
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                   {data.recentActivity.map((a) => (
-                    <ActivityItem key={a.id} activity={a} />
+                    <ActivityItem key={a.id} activity={a} lang={lang} />
                   ))}
                 </div>
               )}

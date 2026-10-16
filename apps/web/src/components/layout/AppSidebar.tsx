@@ -537,10 +537,10 @@ export function AppSidebar({
           {user.orgRole === 'senior_manager' ? (
             <>
               {/* Senior Manager : Gestion de l'Organisation + Dashboard Organisation */}
-              <SidebarLink href={routes.team} label="Gestion de l'Organisation" icon={Building2} />
+              <SidebarLink href={routes.team} label={t('sidebar.orgManagement')} icon={Building2} />
               <SidebarLink
                 href={routes.dashboard}
-                label="Dashboard Organisation"
+                label={t('sidebar.orgDashboard')}
                 icon={LayoutDashboard}
               />
             </>
@@ -548,7 +548,7 @@ export function AppSidebar({
             <>
               {/* Team Manager : Gestion d'équipe terrain + Tableau de bord personnel */}
               <SidebarLink href={routes.team} label={t('sidebar.teamManagement')} icon={Users} />
-              <SidebarLink href={routes.reporting} label="Tableau de bord" icon={BarChart2} />
+              <SidebarLink href={routes.reporting} label={t('sidebar.teamDashboard')} icon={BarChart2} />
             </>
           )}
         </>
