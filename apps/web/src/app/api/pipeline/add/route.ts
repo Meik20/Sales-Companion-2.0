@@ -185,6 +185,8 @@ export async function POST(request: NextRequest) {
       memberName: finalMemberName,
       memberAccessId: isManagerRole ? null : (memberAccessId ?? null),
       companyId: companyId ?? null,
+      originSource: companyId ? 'supabase_directory' : 'manual',
+      externalDirectoryId: companyId ?? null,
       companyName: companyName,
       companySector: companySector ?? null,
       companyCity: companyCity ?? null,

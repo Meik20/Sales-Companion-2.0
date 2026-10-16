@@ -1,140 +1,34 @@
+// apps/web/src/app/api/team/assignments/route.ts
+// Façade HTTP pour la gestion des assignations de prospects d'équipe.
+// Rôle strict : Guards d'authentification + validation de payload + appel au service métier.
+
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
-import { FieldValue } from 'firebase-admin/firestore'
-import { hasActivePaidManagerAccess } from '@/lib/manager-access'
-import { getSupabaseCompanyById, supabaseCompanyToAppRecord } from '@/lib/supabase-companies'
-
-async function getAdmin() {
-  const { adminDb, adminAuth } = await import('@/lib/firebase-admin')
-  return { adminDb, adminAuth }
-}
+import {
+  authenticateServerRequest,
+  assertManagerWithActivePlan,
+  AuthGuardError
+} from '@/server/guards/auth.guard'
+import {
+  TeamAssignmentService,
+  AssignmentBusinessError
+} from '@/server/services/team-assignment.service'
 
 /**
  * GET /api/team/assignments
- * Returns all assignments created by the authenticated manager.
+ * Retourne toutes les assignations créées par le manager authentifié.
  */
 export async function GET(request: NextRequest) {
   try {
-    const { adminDb, adminAuth } = await getAdmin()
+    const session = await authenticateServerRequest(request)
+    assertManagerWithActivePlan(session)
 
-    const token = request.headers.get('authorization')?.split(' ')[1]
-    if (!token) return NextResponse.json({ message: 'Non authentifié' }, { status: 401 })
-
-    let managerUid: string
-    try {
-      const decoded = await adminAuth.verifyIdToken(token)
-      managerUid = decoded.uid
-    } catch {
-      return NextResponse.json({ message: 'Token invalide' }, { status: 401 })
-    }
-
-    const managerDoc = await adminDb.collection('users').doc(managerUid).get()
-    if (!hasActivePaidManagerAccess(managerDoc.data())) {
-      return NextResponse.json(
-        { message: 'Un abonnement Manager actif et vérifié est requis.' },
-        { status: 403 }
-      )
-    }
-
-    const [teamSnap, legacySnap] = await Promise.all([
-      adminDb.collection('team_assignments').where('managerUid', '==', managerUid).get(),
-      adminDb.collection('assignments').where('managerUid', '==', managerUid).get()
-    ])
-
-    const teamItems = teamSnap.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-      createdAt: doc.data().createdAt?.toDate?.()?.toISOString() ?? new Date().toISOString(),
-      updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() ?? new Date().toISOString()
-    }))
-
-    // Enrich legacy assignments: resolve companyName from pipeline + member info from team_accesses
-    const legacyItemsRaw = legacySnap.docs.filter((doc) => doc.data().status !== 'done')
-
-    const legacyItems = await Promise.all(
-      legacyItemsRaw.map(async (doc) => {
-        const data = doc.data()
-        const prospectIds: string[] = Array.isArray(data.prospectIds) ? data.prospectIds : []
-        const firstProspectId = prospectIds[0] ?? ''
-        const count = prospectIds.length
-
-        // Resolve company name: try pipeline → manager_prospects → imported_prospects
-        let companyName = count > 1 ? `${count} prospects` : firstProspectId
-        if (firstProspectId) {
-          try {
-            const pDoc = await adminDb.collection('pipeline').doc(firstProspectId).get()
-            if (pDoc.exists) {
-              const pd = pDoc.data() || {}
-              companyName = pd.companyName ?? pd.name ?? companyName
-            } else {
-              // Primary CSV import collection
-              const mDoc = await adminDb.collection('manager_prospects').doc(firstProspectId).get()
-              if (mDoc.exists) {
-                const md = mDoc.data() || {}
-                companyName = md.name ?? md.companyName ?? companyName
-              } else {
-                // Legacy import collection
-                const iDoc = await adminDb
-                  .collection('imported_prospects')
-                  .doc(firstProspectId)
-                  .get()
-                if (iDoc.exists) {
-                  const id = iDoc.data() || {}
-                  companyName = id.name ?? id.companyName ?? companyName
-                }
-              }
-            }
-          } catch {
-            /* ignore */
-          }
-        }
-
-        // Resolve member name/email from team_accesses (legacy assigneeId = accessId)
-        const assigneeId: string = data.assigneeId ?? ''
-        let memberName = ''
-        let memberEmail = ''
-        let memberUid = data.assigneeUid ?? ''
-        if (assigneeId) {
-          try {
-            const aDoc = await adminDb
-              .collection('team_accesses')
-              .doc(assigneeId.trim().toLowerCase())
-              .get()
-            if (aDoc.exists) {
-              const ad = aDoc.data() || {}
-              memberName = `${ad.firstname ?? ''} ${ad.lastname ?? ''}`.trim()
-              memberEmail = ad.email ?? ''
-              memberUid = ad.firebaseUid ?? memberUid
-            }
-          } catch {
-            /* ignore */
-          }
-        }
-
-        return {
-          id: doc.id,
-          managerUid: data.managerUid ?? managerUid,
-          managerName: data.managerName ?? '',
-          memberId: memberUid || assigneeId,
-          memberName,
-          memberEmail,
-          pipelineItemId: firstProspectId,
-          pipelineEntryId: '',
-          companyName,
-          status: 'active' as const,
-          createdAt: data.createdAt?.toDate?.()?.toISOString() ?? new Date().toISOString(),
-          updatedAt: data.updatedAt?.toDate?.()?.toISOString() ?? new Date().toISOString()
-        }
-      })
-    )
-
-    const items = [...teamItems, ...legacyItems].sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    )
-
-    // ⚠️ Wrap in { items } — useTeamAssignments reads json.items
+    const items = await TeamAssignmentService.getAssignmentsByManager(session.uid)
     return NextResponse.json({ items })
   } catch (error) {
+    if (error instanceof AuthGuardError) {
+      return NextResponse.json({ message: error.message }, { status: error.status })
+    }
     console.error('[team/assignments GET]', error)
     return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 })
   }
@@ -142,39 +36,19 @@ export async function GET(request: NextRequest) {
 
 /**
  * POST /api/team/assignments
- *
- * Body: { pipelineItemId: string, memberId: string }
- *
- * This endpoint:
- *  1. Looks up the pipeline item (or imported prospect) to get its details
- *  2. Creates a record in `team_assignments` (shown in "Assignations actives")
- *  3. Creates a pipeline item owned by the member (shown in their Pipeline tab)
- *     with `managerUid` set so the manager can see it too via /api/pipeline/manager
+ * Assigne un prospect à un membre d'équipe ou agent support.
+ * Payload: { pipelineItemId: string, memberId: string, companyName?: string }
  */
 export async function POST(request: NextRequest) {
   try {
-    const { adminDb, adminAuth } = await getAdmin()
+    const session = await authenticateServerRequest(request)
+    assertManagerWithActivePlan(session)
 
-    const token = request.headers.get('authorization')?.split(' ')[1]
-    if (!token) return NextResponse.json({ message: 'Non authentifié' }, { status: 401 })
-
-    let managerUid: string
-    let managerName = ''
-    let managerData: Record<string, any> | undefined
-    try {
-      const decoded = await adminAuth.verifyIdToken(token)
-      managerUid = decoded.uid
-      const managerDoc = await adminDb.collection('users').doc(managerUid).get()
-      managerData = managerDoc.data()
-      if (!hasActivePaidManagerAccess(managerData) || decoded.email_verified !== true) {
-        return NextResponse.json(
-          { message: 'Un abonnement Manager actif et vérifié est requis.' },
-          { status: 403 }
-        )
-      }
-      managerName = managerData?.name ?? managerData?.email ?? ''
-    } catch {
-      return NextResponse.json({ message: 'Token invalide' }, { status: 401 })
+    if (session.userData.emailVerificationPending === true || session.emailVerified !== true) {
+      return NextResponse.json(
+        { message: 'Un abonnement Manager actif et vérifié est requis.' },
+        { status: 403 }
+      )
     }
 
     const body = (await request.json().catch(() => ({}))) as {
@@ -182,332 +56,27 @@ export async function POST(request: NextRequest) {
       memberId?: string
       companyName?: string
     }
-    const { pipelineItemId, memberId, companyName: providedName } = body
+
+    const { pipelineItemId, memberId, companyName } = body
 
     if (!pipelineItemId || !memberId) {
       return NextResponse.json({ message: 'pipelineItemId et memberId requis' }, { status: 400 })
     }
 
-    // ── Step 1: Resolve prospect details ──────────────────────────────────
-    // Try provided name first, then look up in collections
-    let companyName = providedName || pipelineItemId
-    let prospectData: Record<string, unknown> = {}
-
-    if (!providedName) {
-      const pipelineDoc = await adminDb.collection('pipeline').doc(pipelineItemId).get()
-      if (pipelineDoc.exists) {
-        const d = pipelineDoc.data() || {}
-        companyName = d.companyName || d.name || pipelineItemId
-        prospectData = d
-      } else {
-        // Look in the companies directory on Supabase first.
-        const companyRecord = await getSupabaseCompanyById(pipelineItemId)
-        if (companyRecord) {
-          const d = supabaseCompanyToAppRecord(companyRecord)
-          const resolvedName = d.raisonSociale || d.name
-          companyName = typeof resolvedName === 'string' ? resolvedName : pipelineItemId
-          prospectData = d
-        } else {
-          // Primary CSV import collection
-          const managerProspectDoc = await adminDb
-            .collection('manager_prospects')
-            .doc(pipelineItemId)
-            .get()
-          if (managerProspectDoc.exists) {
-            const d = managerProspectDoc.data() || {}
-            companyName = d.name || d.companyName || d.raisonSociale || pipelineItemId
-            prospectData = d
-          } else {
-            // Legacy import collection
-            const importedDoc = await adminDb
-              .collection('imported_prospects')
-              .doc(pipelineItemId)
-              .get()
-            if (importedDoc.exists) {
-              const d = importedDoc.data() || {}
-              companyName = d.name || d.companyName || pipelineItemId
-              prospectData = d
-            }
-          }
-        }
-      }
-    } else {
-      // If name provided, still try to fetch extra data (like email, phone) if possible
-      const pDoc = await adminDb.collection('pipeline').doc(pipelineItemId).get()
-      const companyRecord = !pDoc.exists ? await getSupabaseCompanyById(pipelineItemId) : null
-      const mDoc =
-        !pDoc.exists && !companyRecord
-          ? await adminDb.collection('manager_prospects').doc(pipelineItemId).get()
-          : null
-      const iDoc =
-        !pDoc.exists && !companyRecord && !mDoc?.exists
-          ? await adminDb.collection('imported_prospects').doc(pipelineItemId).get()
-          : null
-      if (pDoc.exists) prospectData = pDoc.data() || {}
-      else if (companyRecord) prospectData = supabaseCompanyToAppRecord(companyRecord)
-      else if (mDoc?.exists) prospectData = mDoc.data() || {}
-      else if (iDoc?.exists) prospectData = iDoc.data() || {}
-    }
-
-    // Contrôle d'isolation sur le prospect source :
-    // Si le prospect est déjà rattaché à un manager/utilisateur différent hors de l'organisation, interdire l'assignation.
-    const prospectManagerUid = (prospectData.managerUid || prospectData.userId) as
-      | string
-      | undefined
-    const prospectOrgCode = prospectData.orgCode as string | undefined
-    if (prospectManagerUid && prospectManagerUid !== managerUid) {
-      const isOrgMatch = Boolean(
-        managerData?.orgCode && prospectOrgCode && prospectOrgCode === managerData.orgCode
-      )
-      if (!isOrgMatch) {
-        return NextResponse.json(
-          { message: "Vous n'avez pas l'autorisation d'assigner ce prospect." },
-          { status: 403 }
-        )
-      }
-    }
-
-    // ── Step 2: Get member info & verify team membership ──────────────────
-    const memberDoc = await adminDb.collection('users').doc(memberId).get()
-    if (!memberDoc.exists) {
-      return NextResponse.json({ message: 'Membre introuvable' }, { status: 404 })
-    }
-    const memberData = memberDoc.data() || {}
-
-    // Contrôle d'isolation multi-tenant : le membre doit être rattaché au manager ou à la même org
-    const isSameManager = memberData.managerUid === managerUid
-    const isSameOrg = Boolean(
-      managerData?.orgCode && memberData.orgCode && memberData.orgCode === managerData.orgCode
-    )
-    if (!isSameManager && !isSameOrg) {
-      return NextResponse.json(
-        { message: "Ce membre n'appartient pas à votre équipe ni à votre organisation." },
-        { status: 403 }
-      )
-    }
-
-    if (memberData.role !== 'member' && memberData.role !== 'support_agent') {
-      return NextResponse.json(
-        { message: "Seuls les membres d'équipe et agents support peuvent recevoir des prospects." },
-        { status: 400 }
-      )
-    }
-
-    let memberName: string = memberData.name ?? ''
-    const memberEmail: string = memberData.email ?? ''
-    const memberAccessId: string | null = memberData.accessId ?? null
-
-    // If name is empty, fall back to team_accesses (firstname + lastname)
-    if (!memberName) {
-      const accessKey = memberAccessId || memberId
-      try {
-        const accessDoc = await adminDb
-          .collection('team_accesses')
-          .doc(accessKey.trim().toLowerCase())
-          .get()
-        if (accessDoc.exists) {
-          const ad = accessDoc.data() || {}
-          memberName = `${ad.firstname ?? ''} ${ad.lastname ?? ''}`.trim()
-        }
-      } catch {
-        /* ignore */
-      }
-    }
-
-    // Final fallback: email or memberId (never expose raw UID — use email instead)
-    if (!memberName) {
-      memberName = memberEmail || ''
-    }
-
-    // ── Step 2.5: Find previous assignees ──────────────────────────────────
-    const prevAssigneesMap = new Map<
-      string,
-      { userId: string; memberName: string; assignedAt: string }
-    >()
-    if (pipelineItemId) {
-      try {
-        const bySource = await adminDb
-          .collection('pipeline')
-          .where('sourceProspectId', '==', pipelineItemId)
-          .get()
-        bySource.docs.forEach((doc) => {
-          const d = doc.data()
-          const isManager =
-            d.userId === managerUid || d.assignedTo === managerUid || d.role === 'manager'
-          if (d.userId && d.userId !== memberId && !isManager) {
-            prevAssigneesMap.set(d.userId, {
-              userId: d.userId,
-              memberName: d.memberName || d.userId,
-              assignedAt: d.createdAt?.toDate?.()?.toISOString() || new Date().toISOString()
-            })
-          }
-        })
-      } catch (err) {
-        console.error('Error fetching by sourceProspectId', err)
-      }
-    }
-    if (companyName) {
-      try {
-        const byName = await adminDb
-          .collection('pipeline')
-          .where('companyName', '==', companyName)
-          .get()
-        byName.docs.forEach((doc) => {
-          const d = doc.data()
-          const isManager =
-            d.userId === managerUid || d.assignedTo === managerUid || d.role === 'manager'
-          if (d.userId && d.userId !== memberId && !isManager) {
-            prevAssigneesMap.set(d.userId, {
-              userId: d.userId,
-              memberName: d.memberName || d.userId,
-              assignedAt: d.createdAt?.toDate?.()?.toISOString() || new Date().toISOString()
-            })
-          }
-        })
-      } catch (err) {
-        console.error('Error fetching by companyName', err)
-      }
-    }
-    const previousAssignees = Array.from(prevAssigneesMap.values())
-
-    // ── Step 2.6: Check for existing assignment to avoid duplicates ──────
-    const existingSnap = await adminDb
-      .collection('team_assignments')
-      .where('managerUid', '==', managerUid)
-      .where('memberId', '==', memberId)
-      .where('pipelineItemId', '==', pipelineItemId)
-      .limit(1)
-      .get()
-
-    if (!existingSnap.empty) {
-      return NextResponse.json({
-        success: true,
-        message: 'Déjà assigné',
-        assignmentId: existingSnap.docs[0]!.id,
-        pipelineEntryId: existingSnap.docs[0]!.data().pipelineEntryId
-      })
-    }
-
-    // ── Step 3: Create pipeline item owned by the MEMBER ──────────────────
-    // This makes it visible in the member's own Pipeline tab
-    // AND in the manager's consolidated view (/api/pipeline/manager)
-    const pipelineRef = adminDb.collection('pipeline').doc()
-    await pipelineRef.set({
-      // Preserve all original prospect fields except those explicitly overridden
-      ...Object.fromEntries(
-        Object.entries(prospectData).filter(
-          ([k]) =>
-            ![
-              'userId',
-              'managerUid',
-              'createdAt',
-              'updatedAt',
-              'status',
-              'assignedTo',
-              'memberName',
-              'memberAccessId',
-              'assignedBy',
-              'assignedByName',
-              'id',
-              'sourceProspectId',
-              'previousAssignees'
-            ].includes(k)
-        )
-      ),
-      companyPhone:
-        prospectData.companyPhone ||
-        prospectData.telephone ||
-        prospectData.phone ||
-        prospectData.tel ||
-        null,
-      companyEmail: prospectData.companyEmail || prospectData.email || prospectData.mail || null,
-      companySector:
-        prospectData.companySector ||
-        prospectData.sector ||
-        prospectData.secteur ||
-        prospectData.activite ||
-        null,
-      companyCity:
-        prospectData.companyCity ||
-        prospectData.city ||
-        prospectData.ville ||
-        prospectData.region ||
-        null,
-      userId: memberId, // member sees it in their pipeline
-      assignedTo: memberId, // explicit assignment metadata
-      memberName: memberName,
-      memberAccessId: memberAccessId ? memberAccessId.toLowerCase() : null,
-      managerUid, // manager sees it via /api/pipeline/manager
-      companyName,
-      name: companyName,
-      status: 'prospection',
-      assignedBy: managerUid,
-      assignedByName: managerName,
-      sourceProspectId: pipelineItemId,
-      previousAssignees,
-      enteredAt: new Date().toISOString(),
-      assignedAt: new Date().toISOString(),
-      createdAt: FieldValue.serverTimestamp(),
-      updatedAt: FieldValue.serverTimestamp()
-    })
-
-    // ── Step 3.5: Clean up manager's unassigned copy ──────────────────────
-    // Lorsqu'un prospect est assigné, la copie initiale du manager ne doit plus
-    // rester comme doublon dans le pipeline consolidé : seule la fiche assignée reste.
-    try {
-      if (pipelineItemId) {
-        const origDoc = await adminDb.collection('pipeline').doc(pipelineItemId).get()
-        if (
-          origDoc.exists &&
-          (origDoc.data()?.userId === managerUid || origDoc.data()?.managerUid === managerUid) &&
-          (!origDoc.data()?.assignedTo || origDoc.data()?.assignedTo === managerUid)
-        ) {
-          await origDoc.ref.delete()
-        }
-      }
-
-      if (companyName) {
-        const ownDupes = await adminDb
-          .collection('pipeline')
-          .where('userId', '==', managerUid)
-          .where('companyName', '==', companyName)
-          .get()
-        for (const d of ownDupes.docs) {
-          if (
-            d.id !== pipelineRef.id &&
-            (!d.data().assignedTo || d.data().assignedTo === managerUid)
-          ) {
-            await d.ref.delete()
-          }
-        }
-      }
-    } catch (cleanupErr) {
-      console.warn('[team/assignments POST] Clean up manager copy error:', cleanupErr)
-    }
-
-    // ── Step 4: Create assignment record ──────────────────────────────────
-    // This is what "Assignations actives" reads from
-    const assignmentRef = adminDb.collection('team_assignments').doc()
-    await assignmentRef.set({
-      managerUid,
-      managerName,
+    const result = await TeamAssignmentService.createAssignment(session, {
+      pipelineItemId,
       memberId,
-      memberName,
-      memberEmail,
-      pipelineItemId, // original prospect id
-      pipelineEntryId: pipelineRef.id, // new member pipeline item
-      companyName,
-      status: 'active',
-      createdAt: FieldValue.serverTimestamp(),
-      updatedAt: FieldValue.serverTimestamp()
+      companyName
     })
 
-    return NextResponse.json({
-      success: true,
-      assignmentId: assignmentRef.id,
-      pipelineEntryId: pipelineRef.id
-    })
+    return NextResponse.json(result)
   } catch (error) {
+    if (error instanceof AuthGuardError) {
+      return NextResponse.json({ message: error.message }, { status: error.status })
+    }
+    if (error instanceof AssignmentBusinessError) {
+      return NextResponse.json({ message: error.message }, { status: error.status })
+    }
     console.error('[team/assignments POST]', error)
     return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 })
   }
