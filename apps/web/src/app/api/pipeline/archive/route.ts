@@ -230,6 +230,18 @@ export async function POST(request: NextRequest) {
 
     if (successes.length > 0) {
       await batch.commit()
+
+      // Propagation temps réel vers le Senior Manager après archivage/restauration.
+      const callerOrgCode = (userData.orgCode as string) || undefined
+      if (callerOrgCode) {
+        adminDb
+          .collection('organisations')
+          .doc(callerOrgCode)
+          .update({ lastPipelineUpdate: new Date().toISOString() })
+          .catch((orgErr: unknown) => {
+            console.warn('[pipeline/archive] lastPipelineUpdate write failed:', orgErr)
+          })
+      }
     }
 
     return NextResponse.json({
@@ -240,6 +252,7 @@ export async function POST(request: NextRequest) {
       errors: errors.length,
       ids: successes
     })
+
   } catch (error) {
     console.error('[/api/pipeline/archive] Error:', error)
     return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 })

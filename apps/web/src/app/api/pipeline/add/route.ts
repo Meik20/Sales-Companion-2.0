@@ -209,7 +209,24 @@ export async function POST(request: NextRequest) {
       updatedAt: now
     })
 
+    // Propagation temps réel vers le Senior Manager :
+    // on met à jour lastPipelineUpdate sur le document organisation.
+    // Le hook useOrgPipelineRealtimeSync écoute ce champ via onSnapshot
+    // et invalide immédiatement le cache org-pipeline côté client SM.
+    const orgCode = callerData.orgCode as string | undefined
+    if (orgCode) {
+      adminDb
+        .collection('organisations')
+        .doc(orgCode)
+        .update({ lastPipelineUpdate: new Date().toISOString() })
+        .catch((orgErr: unknown) => {
+          // Non bloquant — ne doit pas faire échouer la réponse principale.
+          console.warn('[pipeline/add] lastPipelineUpdate write failed:', orgErr)
+        })
+    }
+
     return NextResponse.json({ success: true, id: docRef.id })
+
   } catch (error) {
     console.error('[pipeline/add] Error:', error)
     return NextResponse.json(

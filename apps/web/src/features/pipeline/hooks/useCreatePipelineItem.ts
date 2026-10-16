@@ -54,6 +54,10 @@ export function useCreatePipelineItem() {
       await queryClient.invalidateQueries({ queryKey: ['pipeline'] })
       await queryClient.invalidateQueries({ queryKey: ['manager-pipeline'] })
       await queryClient.invalidateQueries({ queryKey: ['pipeline-stats'] })
+      // Sync pipeline consolidé du Senior Manager (vue org)
+      await queryClient.invalidateQueries({ queryKey: ['org-pipeline'] })
+      await queryClient.invalidateQueries({ queryKey: ['org-report'] })
     }
+
   })
 }

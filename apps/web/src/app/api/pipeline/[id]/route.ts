@@ -110,7 +110,24 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     await doc.ref.update({ ...cleanData, updatedAt: new Date() })
 
+    // Propagation temps réel vers le Senior Manager :
+    // on met à jour lastPipelineUpdate sur le document organisation.
+    // Le hook useOrgPipelineRealtimeSync écoute ce champ via onSnapshot
+    // et invalide immédiatement le cache org-pipeline côté client SM.
+    const orgCode = data.orgCode as string | undefined
+    if (orgCode) {
+      adminDb
+        .collection('organisations')
+        .doc(orgCode)
+        .update({ lastPipelineUpdate: new Date().toISOString() })
+        .catch((orgErr: unknown) => {
+          // Non bloquant — ne doit pas faire échouer la réponse principale.
+          console.warn('[pipeline/[id]/PUT] lastPipelineUpdate write failed:', orgErr)
+        })
+    }
+
     if (isConcluded) {
+
       try {
         const { syncPipelineItemToClient } = await import('@/lib/clients-sync')
         await syncPipelineItemToClient(adminDb, id, { ...data, ...cleanData })

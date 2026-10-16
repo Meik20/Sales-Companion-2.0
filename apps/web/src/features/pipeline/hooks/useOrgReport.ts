@@ -63,7 +63,9 @@ export function useOrgReport() {
       return res.json() as Promise<OrgReportResult>
     },
     enabled: !!user?.uid && isSeniorManager,
-    staleTime: 3 * 60 * 1000,
-    refetchOnWindowFocus: false
+    staleTime: 0,
+    refetchInterval: 15 * 1000,
+    refetchOnWindowFocus: true
   })
 }
+
