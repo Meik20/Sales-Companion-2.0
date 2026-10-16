@@ -19,38 +19,92 @@ import {
   Sparkles
 } from 'lucide-react'
 
-// ── Colonnes attendues (insensible à la casse) ─────────────────────────────
-const COLUMN_ALIASES: Record<string, string> = {
-  // name
+// ── Normalisation des en-têtes (insensible à la casse, accents et caractères spéciaux) ──
+function normalizeHeader(raw: string): string {
+  return raw
+    .replace(/^\uFEFF/, '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // strip accents
+    .toLowerCase()
+    .replace(/['\'\-]/g, '') // remove apostrophes / hyphens
+    .replace(/[^a-z0-9]+/g, '_') // non-alphanum → underscore
+    .replace(/^_+|_+$/g, '') // trim underscores
+}
+
+const HEADER_ALIASES: Record<string, string> = {
+  // ── Raison sociale / Nom entreprise / Contact ──────────────
   nom: 'name',
-  name: 'name',
+  prenom: 'name',
   entreprise: 'name',
+  societe: 'name',
+  denomination: 'name',
+  raison_sociale: 'name',
+  raisonsociale: 'name',
+  nom_entreprise: 'name',
+  company_name: 'name',
   company: 'name',
-  société: 'name',
-  // phone
-  téléphone: 'phone',
+  name: 'name',
+  contact: 'name',
+  prospect: 'name',
+  client: 'name',
+
+  // ── Téléphone ──────────────────────────────────────────────
   telephone: 'phone',
-  phone: 'phone',
   tel: 'phone',
+  phone: 'phone',
   mobile: 'phone',
-  // email
+  numero: 'phone',
+  num: 'phone',
+  gsm: 'phone',
+  portable: 'phone',
+  contact_tel: 'phone',
+
+  // ── Email ──────────────────────────────────────────────────
   email: 'email',
   mail: 'email',
   courriel: 'email',
-  // city
+  adresse_email: 'email',
+  adresse_mail: 'email',
+  contact_email: 'email',
+
+  // ── Ville / Adresse ────────────────────────────────────────
   ville: 'city',
+  localite: 'city',
   city: 'city',
-  localité: 'city',
-  // sector
+  region: 'city',
+  adresse: 'city',
+  address: 'city',
+  lieu: 'city',
+  commune: 'city',
+  pays: 'city',
+  country: 'city',
+
+  // ── Secteur ────────────────────────────────────────────────
   secteur: 'sector',
+  activite: 'sector',
+  activite_principale: 'sector',
+  secteur_activite: 'sector',
+  secteur_dactivite: 'sector',
+  secteur_d_activite: 'sector',
+  domaine: 'sector',
+  domaine_activite: 'sector',
+  industry: 'sector',
   sector: 'sector',
-  activité: 'sector',
-  activity: 'sector',
-  // notes
+  categorie: 'sector',
+
+  // ── Notes / Commentaires ───────────────────────────────────
   notes: 'notes',
   note: 'notes',
+  remarque: 'notes',
   commentaire: 'notes',
-  remarque: 'notes'
+  observations: 'notes',
+  description: 'notes',
+  details: 'notes'
+}
+
+function resolveHeader(raw: string): string {
+  const key = normalizeHeader(raw)
+  return HEADER_ALIASES[key] ?? key
 }
 
 type ParsedProspect = {
@@ -66,27 +120,32 @@ type ImportResult = {
   count: number
 }
 
-// ── Parse CSV ──────────────────────────────────────────────────────────────
+// ── Parse CSV avec détection de séparateur et normalisation ───────────────
 function parseCSV(text: string): ParsedProspect[] {
-  const lines = text.split(/\r?\n/).filter((l) => l.trim())
+  const cleanText = text.replace(/^\uFEFF/, '').trim()
+  const lines = cleanText.split(/\r?\n/).filter((l) => l.trim())
   if (lines.length < 2) return []
 
-  // Detect delimiter
-  const firstLine = lines[0]!
-  const delimiter = firstLine.includes(';') ? ';' : ','
+  const headerLine = lines[0]!
+  let sep = ','
 
-  const headers = firstLine.split(delimiter).map((h) => h.trim().toLowerCase().replace(/['"]/g, ''))
+  // Détecter le séparateur le plus fréquent parmi , ; \t | ~
+  const separators = [',', ';', '\t', '|', '~']
+  let maxCount = 0
+  for (const s of separators) {
+    const count = (headerLine.match(new RegExp(`\\${s}`, 'g')) || []).length
+    if (count > maxCount) {
+      maxCount = count
+      sep = s
+    }
+  }
 
-  // Map header → field
-  const fieldMap: Record<number, string> = {}
-  headers.forEach((h, i) => {
-    const field = COLUMN_ALIASES[h]
-    if (field) fieldMap[i] = field
-  })
+  const rawHeaders = headerLine.split(sep).map((h) => h.replace(/^["'`]|["'`]$/g, '').trim())
+  const mappedHeaders = rawHeaders.map(resolveHeader)
 
   const rows: ParsedProspect[] = []
   for (let r = 1; r < lines.length; r++) {
-    const cells = lines[r]!.split(delimiter).map((c) => c.trim().replace(/^["']|["']$/g, ''))
+    const cols = lines[r]!.split(sep).map((c) => c.replace(/^["'`]|["'`]$/g, '').trim())
     const prospect: ParsedProspect = {
       name: '',
       phone: '',
@@ -95,12 +154,92 @@ function parseCSV(text: string): ParsedProspect[] {
       sector: '',
       notes: ''
     }
-    cells.forEach((val, i) => {
-      const field = fieldMap[i]
-      if (field) (prospect as Record<string, string>)[field] = val
+    mappedHeaders.forEach((field, i) => {
+      if (field in prospect) {
+        (prospect as Record<string, string>)[field] = cols[i] ?? ''
+      }
     })
-    if (prospect.name || prospect.phone || prospect.email) rows.push(prospect)
+    if (prospect.name || prospect.phone || prospect.email) {
+      rows.push(prospect)
+    }
   }
+  return rows
+}
+
+// ── Parse Excel (.xlsx, .xls) via ExcelJS ───────────────────────────────────
+async function parseExcelBuffer(buffer: ArrayBuffer): Promise<ParsedProspect[]> {
+  const ExcelJS = await import('exceljs')
+  const workbook = new ExcelJS.Workbook()
+  await workbook.xlsx.load(buffer)
+  const sheet = workbook.worksheets[0]
+  if (!sheet) return []
+
+  const rows: ParsedProspect[] = []
+  let headers: string[] = []
+
+  sheet.eachRow((row, rowNumber) => {
+    let values: any[] = []
+    if (Array.isArray(row.values)) {
+      values = row.values
+    } else if (row.values && typeof row.values === 'object') {
+      const maxCol = sheet.columnCount
+      for (let c = 0; c <= maxCol; c++) {
+        values.push((row.values as any)[c])
+      }
+    }
+
+    if (rowNumber === 1) {
+      headers = values
+        .slice(1)
+        .map((v) => (v != null ? String(v) : '').replace(/^["'`]|["'`]$/g, '').trim())
+      return
+    }
+
+    const rowObj: Record<string, string> = {}
+    headers.forEach((header, i) => {
+      const cell = row.getCell(i + 1)
+      let val = ''
+      if (cell.value != null) {
+        if (typeof cell.value === 'object') {
+          if ('result' in cell.value) {
+            val = String(cell.value.result ?? '')
+          } else if ('text' in cell.value) {
+            val = String(cell.value.text ?? '')
+          } else if ('hyperlink' in cell.value) {
+            val = String((cell.value as any).text ?? cell.value.hyperlink ?? '')
+          } else {
+            val = JSON.stringify(cell.value)
+          }
+        } else {
+          val = String(cell.value)
+        }
+      }
+      if (header) {
+        rowObj[header] = val.trim()
+      }
+    })
+
+    const prospect: ParsedProspect = {
+      name: '',
+      phone: '',
+      email: '',
+      city: '',
+      sector: '',
+      notes: ''
+    }
+
+    Object.keys(rowObj).forEach((h) => {
+      const canonicalKey = resolveHeader(h)
+      if (canonicalKey in prospect) {
+        (prospect as Record<string, string>)[canonicalKey] = rowObj[h] ?? ''
+      }
+    })
+
+    if (prospect.name || prospect.phone || prospect.email) {
+      rows.push(prospect)
+    }
+  })
+
   return rows
 }
 
@@ -128,6 +267,7 @@ export function IndependentImportPanel() {
 
   const [dragging, setDragging] = useState(false)
   const [file, setFile] = useState<File | null>(null)
+  const [rows, setRows] = useState<ParsedProspect[]>([])
   const [preview, setPreview] = useState<ParsedProspect[]>([])
   const [parseError, setParseError] = useState<string | null>(null)
   const [importing, setImporting] = useState(false)
@@ -137,48 +277,58 @@ export function IndependentImportPanel() {
 
   const reset = () => {
     setFile(null)
+    setRows([])
     setPreview([])
     setParseError(null)
     setResult(null)
     if (inputRef.current) inputRef.current.value = ''
   }
 
-  const processFile = useCallback((f: File) => {
+  const processFile = useCallback(async (f: File) => {
     setResult(null)
     setParseError(null)
+    setRows([])
+    setPreview([])
 
-    if (!f.name.match(/\.(csv|xlsx|xls)$/i)) {
-      setParseError('Format non supporté. Utilisez un fichier CSV (.csv).')
+    const isExcel = Boolean(f.name.match(/\.(xlsx|xls)$/i))
+    const isText = Boolean(
+      f.type.startsWith('text/') || f.name.match(/\.(csv|txt|tsv|dat|log)$/i)
+    )
+
+    if (!isExcel && !isText) {
+      setParseError('Format non supporté. Utilisez un fichier CSV (.csv) ou Excel (.xlsx, .xls).')
       return
     }
 
-    // Only CSV parsing for now (no xlsx binary without server)
-    if (!f.name.match(/\.csv$/i)) {
-      setParseError(
-        "Pour l'import depuis le profil, seul le format CSV est supporté. Téléchargez le modèle ci-dessous."
-      )
-      return
-    }
+    try {
+      let parsed: ParsedProspect[] = []
+      if (isExcel) {
+        const buffer = await f.arrayBuffer()
+        parsed = await parseExcelBuffer(buffer)
+      } else {
+        const text = await f.text()
+        parsed = parseCSV(text)
+      }
 
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      const text = e.target?.result as string
-      const rows = parseCSV(text)
-      if (rows.length === 0) {
+      if (parsed.length === 0) {
         setParseError(
-          'Aucun prospect détecté. Vérifiez les colonnes du fichier (nom, téléphone, email, ville, secteur, notes).'
+          'Aucun prospect détecté. Vérifiez que votre fichier contient au moins une colonne de contact (nom, entreprise, raison sociale, téléphone ou email).'
         )
         return
       }
-      if (rows.length > 3000) {
-        setParseError('Maximum 3 000 prospects par import.')
+
+      if (parsed.length > 3000) {
+        setParseError(`${parsed.length} prospects détectés. Le maximum autorisé est de 3 000 par import.`)
         return
       }
+
       setFile(f)
-      setPreview(rows.slice(0, 5))
+      setRows(parsed)
+      setPreview(parsed.slice(0, 5))
+    } catch (err) {
+      console.error('[IndependentImportPanel] file processing error:', err)
+      setParseError('Impossible de lire le fichier. Assurez-vous qu’il n’est pas corrompu ou protégé.')
     }
-    reader.onerror = () => setParseError('Impossible de lire le fichier.')
-    reader.readAsText(f, 'UTF-8')
   }, [])
 
   const handleDrop = useCallback(
@@ -186,24 +336,20 @@ export function IndependentImportPanel() {
       e.preventDefault()
       setDragging(false)
       const f = e.dataTransfer.files[0]
-      if (f) processFile(f)
+      if (f) void processFile(f)
     },
     [processFile]
   )
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0]
-    if (f) processFile(f)
+    if (f) void processFile(f)
   }
 
   const handleImport = async () => {
-    if (!file || preview.length === 0 || !user?.uid) return
+    if (!file || rows.length === 0 || !user?.uid) return
     setImporting(true)
     try {
-      // Re-parse full file
-      const text = await file.text()
-      const prospects = parseCSV(text)
-
       const token = await user.getIdToken()
       const res = await fetch('/api/imports', {
         method: 'POST',
@@ -211,7 +357,7 @@ export function IndependentImportPanel() {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ managerId: user.uid, prospects })
+        body: JSON.stringify({ managerId: user.uid, prospects: rows })
       })
 
       if (!res.ok) {
@@ -220,11 +366,11 @@ export function IndependentImportPanel() {
       }
 
       const data = await res.json()
-      setResult({ count: data.count ?? prospects.length })
+      setResult({ count: data.count ?? rows.length })
       pushToast({
         type: 'success',
         title: 'Import réussi',
-        description: `${data.count ?? prospects.length} prospects importés avec succès.`
+        description: `${data.count ?? rows.length} prospects importés avec succès dans votre pipeline commercial.`
       })
       reset()
     } catch (err: unknown) {
@@ -314,8 +460,8 @@ export function IndependentImportPanel() {
       >
         <Info size={14} className="text-blue-400 mt-0.5 shrink-0" />
         <span>
-          Importez vos prospects existants depuis un fichier <strong>CSV</strong>. Colonnes
-          reconnues : <code>nom</code>, <code>téléphone</code>, <code>email</code>,{' '}
+          Importez vos prospects existants depuis un fichier <strong>CSV ou Excel (.xlsx, .xls)</strong>.
+          Colonnes reconnues : <code>nom / raison sociale</code>, <code>téléphone</code>, <code>email</code>,{' '}
           <code>ville</code>, <code>secteur</code>, <code>notes</code>. Max 3 000 lignes.
         </span>
       </div>
@@ -343,14 +489,16 @@ export function IndependentImportPanel() {
           />
           <div>
             <p className="text-sm font-semibold text-foreground">
-              Glisser-déposer votre fichier CSV ici
+              Glisser-déposer votre fichier CSV ou Excel ici
             </p>
-            <p className="text-xs text-muted-foreground mt-1">ou cliquer pour sélectionner</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              ou cliquer pour sélectionner (.csv, .xlsx, .xls)
+            </p>
           </div>
           <input
             ref={inputRef}
             type="file"
-            accept=".csv"
+            accept=".csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
             className="hidden"
             onChange={handleFileChange}
           />
