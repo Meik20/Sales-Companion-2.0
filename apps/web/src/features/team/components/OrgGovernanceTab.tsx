@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect } from 'react'
 import { DataCard } from '@/components/ui/index'
@@ -495,8 +495,12 @@ export function OrgGovernanceTab() {
           <div className="rounded-xl border border-border bg-secondary/30 p-5 flex flex-col gap-4">
             <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border/50 pb-4">
               <div>
-                <div className="text-[12px] font-semibold text-muted-foreground">
-                  Code Organisation Unique (ORG Code)
+                <div className="flex items-center gap-1.5 text-[12px] font-semibold text-muted-foreground">
+                  <span>Code Organisation Unique (ORG Code)</span>
+                  <InfoTooltip
+                    placement="top"
+                    content="Code maître de l'entreprise pour rattacher les managers et unifier les équipes."
+                  />
                 </div>
                 <div className="mt-1.5 flex items-center gap-2.5">
                   <code className="rounded-md bg-primary/10 px-3 py-1 font-mono text-[16px] font-extrabold text-primary">
@@ -515,10 +519,7 @@ export function OrgGovernanceTab() {
                     {copiedCode ? 'Copié !' : 'Copier le code'}
                   </button>
                 </div>
-              <InfoTooltip
-                placement="left"
-                content="Code maître de l'entreprise pour rattacher les managers et unifier les équipes."
-              />
+              </div>
             </div>
 
             {/* Deux boutons d'invitations distincts */}
@@ -579,7 +580,6 @@ export function OrgGovernanceTab() {
                 </button>
               </div>
             </div>
-          </div>
           </div>
 
           {/* NIU Fiscal Section */}
