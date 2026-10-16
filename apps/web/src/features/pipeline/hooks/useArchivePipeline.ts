@@ -42,8 +42,8 @@ export function useArchiveLeads() {
 
       pushToast({
         type: 'success',
-        title: `${json.archived} lead${json.archived > 1 ? 's archivés' : ' archivé'}`,
-        description: json.skipped > 0 ? `${json.skipped} ignoré(s) (leads conclus)` : undefined
+        title: `${json.archived} opportunité${json.archived > 1 ? 's archivées' : ' archivée'}`,
+        description: json.skipped > 0 ? `${json.skipped} ignorée(s) (opportunités conclues)` : undefined
       })
       return json
     } catch (err) {
@@ -97,7 +97,7 @@ export function useRestoreLeads() {
 
       pushToast({
         type: 'success',
-        title: `${json.archived} lead${json.archived > 1 ? 's restaurés' : ' restauré'}`,
+        title: `${json.archived} opportunité${json.archived > 1 ? 's restaurées' : ' restaurée'}`,
       })
       return json
     } catch (err) {

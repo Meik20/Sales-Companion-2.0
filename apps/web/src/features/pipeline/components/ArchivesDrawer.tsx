@@ -5,6 +5,8 @@ import { X, Archive, RotateCcw, Search, Calendar, User, Building2, AlertTriangle
 import { useArchivedLeads, useRestoreLeads } from '@/features/pipeline/hooks/useArchivePipeline'
 import { useTranslation } from '@/providers/I18nProvider'
 import { Button } from '@/components/ui/Button'
+import { formatCompactAmount, formatFullAmount } from '@/lib/formatters'
+import { useProspectingCountryDetails } from '@/hooks/useProspectingCountry'
 
 type ArchivedItem = {
   id: string
@@ -61,6 +63,7 @@ const statusColor: Record<string, string> = {
 // ── Archives Drawer ──────────────────────────────────────────────────────────
 export function ArchivesDrawer() {
   const { t, lang } = useTranslation()
+  const { currency } = useProspectingCountryDetails()
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
@@ -487,8 +490,11 @@ export function ArchivesDrawer() {
                       {status}
                     </span>
                     {item.amount ? (
-                      <span style={{ fontSize: 11, fontWeight: 600, color: '#34d399' }}>
-                        {new Intl.NumberFormat('fr-FR').format(item.amount)} FCFA
+                      <span
+                        title={`${formatFullAmount(item.amount, lang)} ${item.currency || currency || 'XAF'}`}
+                        style={{ fontSize: 11, fontWeight: 600, color: '#34d399' }}
+                      >
+                        {formatCompactAmount(item.amount, lang)} {item.currency || currency || 'XAF'}
                       </span>
                     ) : null}
                   </div>

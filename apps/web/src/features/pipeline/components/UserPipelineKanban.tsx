@@ -22,6 +22,8 @@ import {
 } from 'lucide-react'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { getPipelineAging } from '@/lib/pipelineAging'
+import { formatCompactAmount, formatFullAmount } from '@/lib/formatters'
+import { useProspectingCountryDetails } from '@/hooks/useProspectingCountry'
 
 type PipelineItem = {
   id: string
@@ -138,7 +140,8 @@ function KanbanCard({
   innerRef?: any
   isDragging?: boolean
 }) {
-  const { t } = useTranslation()
+  const { t, lang } = useTranslation()
+  const { currency } = useProspectingCountryDetails()
   const otherCols = COLUMNS.filter((c) => c.id !== col.id)
   const aging = getPipelineAging(
     item.createdAt || item.enteredAt,
@@ -268,6 +271,7 @@ function KanbanCard({
             )}
             {item.amount != null && item.amount > 0 && (
               <span
+                title={`${formatFullAmount(item.amount, lang)} ${currency || 'XAF'}`}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -282,7 +286,7 @@ function KanbanCard({
                 }}
               >
                 <Banknote size={10} />
-                {new Intl.NumberFormat('fr-FR').format(item.amount)} F
+                {formatCompactAmount(item.amount, lang)} {currency || 'XAF'}
               </span>
             )}
             {item.companyPhone && (

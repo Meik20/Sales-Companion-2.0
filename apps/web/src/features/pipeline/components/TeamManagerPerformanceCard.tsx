@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import { TrendingUp, Calendar, X, Users, Users2, Building2, Check, AlertTriangle, Trophy, Banknote, ArrowRight } from 'lucide-react'
 import { useTranslation } from '@/providers/I18nProvider'
+import { formatCompactAmount } from '@/lib/formatters'
 import { useProspectingCountryDetails } from '@/hooks/useProspectingCountry'
 import type { OrgManagerStats, OrgPipelineItem } from '@/features/pipeline/hooks/useOrgPipeline'
 import type { MemberTarget } from '@/features/pipeline/hooks/useTeamTargets'
@@ -33,19 +34,6 @@ export function TeamManagerPerformanceCard({
   const isGlobal = !manager
   const [showOverdueDrawer, setShowOverdueDrawer] = useState(false)
 
-  const formatCompactAmount = (val: number) => {
-    if (val >= 1_000_000) {
-      const num = val / 1_000_000
-      return `${num >= 10 ? Math.round(num) : num.toFixed(1).replace('.0', '')}M`
-    }
-    if (val >= 10_000) {
-      return `${Math.round(val / 1_000)}k`
-    }
-    if (val >= 1_000) {
-      return `${(val / 1_000).toFixed(1).replace('.0', '')}k`
-    }
-    return String(val)
-  }
 
   const stats = useMemo(() => {
     let prospectionCount = 0
@@ -357,8 +345,11 @@ export function TeamManagerPerformanceCard({
               {t('pipeline.pipelineValue')}
             </span>
           </div>
-          <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--foreground, #f1f5f9)', display: 'flex', alignItems: 'baseline', gap: 4, flexWrap: 'wrap' }}>
-            {new Intl.NumberFormat(lang === 'en' ? 'en-US' : 'fr-FR').format(stats.activePipelineAmount)}
+          <div
+            style={{ fontSize: 17, fontWeight: 800, color: 'var(--foreground, #f1f5f9)', display: 'flex', alignItems: 'baseline', gap: 4, flexWrap: 'wrap' }}
+            title={`${new Intl.NumberFormat(lang === 'en' ? 'en-US' : 'fr-FR').format(stats.activePipelineAmount)} ${currency || 'XAF'}`}
+          >
+            {formatCompactAmount(stats.activePipelineAmount, lang)}
             <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--muted-foreground, #64748b)' }}>
               {currency || 'XAF'}
             </span>
@@ -730,7 +721,7 @@ export function TeamManagerPerformanceCard({
                   >
                     {tgtVal != null ? (
                       <>
-                        <span>{formatCompactAmount(stats.concludedAmount)}</span>
+                        <span>{formatCompactAmount(stats.concludedAmount, lang)}</span>
                         <span
                           style={{
                             fontWeight: 500,
@@ -738,13 +729,13 @@ export function TeamManagerPerformanceCard({
                             fontSize: 9.5
                           }}
                         >
-                          {' '}/ {formatCompactAmount(tgtVal)}{' '}{currency || 'XAF'}
+                          {' '}/ {formatCompactAmount(tgtVal, lang)}{' '}{currency || 'XAF'}
                           {valPct !== null && ` (${valPct}%)`}
                         </span>
                       </>
                     ) : (
                       <>
-                        <span>{formatCompactAmount(stats.concludedAmount)}</span>
+                        <span>{formatCompactAmount(stats.concludedAmount, lang)}</span>
                         <span
                           style={{
                             fontWeight: 500,

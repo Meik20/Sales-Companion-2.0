@@ -23,6 +23,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useTranslation } from '@/providers/I18nProvider'
+import { formatCompactAmount, formatFullAmount } from '@/lib/formatters'
 import { getWhatsAppUrl } from '@/utils/whatsapp'
 import type { OrgPipelineItem, OrgManagerStats } from '@/features/pipeline/hooks/useOrgPipeline'
 
@@ -557,8 +558,11 @@ export function OverdueFollowUpsDrawer({
               <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--muted-foreground, #64748b)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 {t('pipeline.valueAtRisk')}
               </div>
-              <div style={{ fontSize: 15, fontWeight: 800, color: '#b45309', marginTop: 2 }}>
-                {new Intl.NumberFormat('fr-FR').format(stats.totalAmount)} {currency}
+              <div
+                title={`${formatFullAmount(stats.totalAmount, lang)} ${currency}`}
+                style={{ fontSize: 15, fontWeight: 800, color: '#b45309', marginTop: 2 }}
+              >
+                {formatCompactAmount(stats.totalAmount, lang)} {currency}
               </div>
             </div>
 
@@ -985,8 +989,11 @@ export function OverdueFollowUpsDrawer({
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--foreground, #0f172a)' }}>
-                        {new Intl.NumberFormat('fr-FR').format(group.totalAmount)} {currency}
+                      <span
+                        title={`${formatFullAmount(group.totalAmount, lang)} ${currency}`}
+                        style={{ fontSize: 13, fontWeight: 800, color: 'var(--foreground, #0f172a)' }}
+                      >
+                        {formatCompactAmount(group.totalAmount, lang)} {currency}
                       </span>
                       <button
                         type="button"
@@ -1044,9 +1051,12 @@ export function OverdueFollowUpsDrawer({
                             </div>
 
                             <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                              <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--foreground, #0f172a)' }}>
+                              <div
+                                title={`${formatFullAmount(lead.amount, lang)} ${lead.currency}`}
+                                style={{ fontSize: 14, fontWeight: 800, color: 'var(--foreground, #0f172a)' }}
+                              >
                                 {lead.amount > 0
-                                  ? `${new Intl.NumberFormat(lang === 'en' ? 'en-US' : 'fr-FR').format(lead.amount)} ${lead.currency}`
+                                  ? `${formatCompactAmount(lead.amount, lang)} ${lead.currency}`
                                   : t('pipeline.amountUndefined')}
                               </div>
                               <span

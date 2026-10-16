@@ -33,6 +33,8 @@ import {
   CheckCircle2
 } from 'lucide-react'
 import { getPipelineAging } from '@/lib/pipelineAging'
+import { formatCompactAmount, formatFullAmount } from '@/lib/formatters'
+import { useProspectingCountryDetails } from '@/hooks/useProspectingCountry'
 
 import { UserPipelineKanban } from './UserPipelineKanban'
 
@@ -98,7 +100,8 @@ function ProspectModal({
   onStatusChange?: (id: string, status: 'prospection' | 'negociation' | 'conclue') => void
   statusLabel: Record<string, string>
 }) {
-  const { t } = useTranslation()
+  const { t, lang } = useTranslation()
+  const { currency } = useProspectingCountryDetails()
   const updateMutation = useUpdatePipelineItem()
   const { pushToast } = useToast()
 
@@ -724,6 +727,7 @@ function ProspectModal({
                       {t('pipeline.opportunityValue') || "Valeur de l'opportunité"}
                     </div>
                     <div
+                      title={`${formatFullAmount(item.amount, lang)} ${currency || 'XAF'}`}
                       style={{
                         fontSize: 15,
                         fontWeight: 800,
@@ -733,8 +737,8 @@ function ProspectModal({
                       }}
                     >
                       {item.amount != null && item.amount > 0
-                        ? `${new Intl.NumberFormat('fr-FR').format(item.amount)} FCFA`
-                        : '0 FCFA'}
+                        ? `${formatCompactAmount(item.amount, lang)} ${currency || 'XAF'}`
+                        : `0 ${currency || 'XAF'}`}
                     </div>
                   </div>
 
@@ -1101,7 +1105,8 @@ function InfoRow({
 
 // ── Main List Component ────────────────────────────────────────────────
 export function UserPipelineList({ items, onStatusChange }: Props) {
-  const { t } = useTranslation()
+  const { t, lang } = useTranslation()
+  const { currency } = useProspectingCountryDetails()
   const deleteMutation = useDeletePipelineItem()
 
   const statusLabel: Record<string, string> = {
@@ -1364,6 +1369,7 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
                     )}
                     {item.amount != null && item.amount > 0 && (
                       <span
+                        title={`${formatFullAmount(item.amount, lang)} ${currency || 'XAF'}`}
                         style={{
                           display: 'inline-flex',
                           alignItems: 'center',
@@ -1378,7 +1384,7 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
                         }}
                       >
                         <Banknote size={10} />
-                        {new Intl.NumberFormat('fr-FR').format(item.amount)} F
+                        {formatCompactAmount(item.amount, lang)} {currency || 'XAF'}
                       </span>
                     )}
                     {item.nextFollowUp &&

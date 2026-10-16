@@ -39,6 +39,8 @@ import {
   Download
 } from 'lucide-react'
 import { getPipelineAging } from '@/lib/pipelineAging'
+import { formatCompactAmount, formatFullAmount } from '@/lib/formatters'
+import { useProspectingCountryDetails } from '@/hooks/useProspectingCountry'
 
 type PipelineItem = {
   id: string
@@ -129,7 +131,8 @@ function ProspectModal({
   members?: Member[]
   managerUid?: string
 }) {
-  const { t } = useTranslation()
+  const { t, lang } = useTranslation()
+  const { currency } = useProspectingCountryDetails()
 
   const originalNote = item.notes ?? item.note ?? ''
 
@@ -518,6 +521,7 @@ function ProspectModal({
                     Valeur de l&apos;opportunité
                   </div>
                   <div
+                    title={`${formatFullAmount(item.amount, lang)} ${currency || 'XAF'}`}
                     style={{
                       fontSize: 15,
                       fontWeight: 800,
@@ -527,8 +531,8 @@ function ProspectModal({
                     }}
                   >
                     {item.amount != null && item.amount > 0
-                      ? `${new Intl.NumberFormat('fr-FR').format(item.amount)} FCFA`
-                      : '0 FCFA'}
+                      ? `${formatCompactAmount(item.amount, lang)} ${currency || 'XAF'}`
+                      : `0 ${currency || 'XAF'}`}
                   </div>
                 </div>
 
@@ -821,7 +825,8 @@ function InfoRow({
 
 // ── Targets Panel ────────────────────────────────────────────────────────
 function TargetsPanel({ members }: { members?: Member[] }) {
-  const { t } = useTranslation()
+  const { t, lang } = useTranslation()
+  const { currency } = useProspectingCountryDetails()
   const [open, setOpen] = useState(false)
   const [selectedMemberId, setSelectedMemberId] = useState('')
   const [period, setPeriod] = useState('')
@@ -972,8 +977,11 @@ function TargetsPanel({ members }: { members?: Member[] }) {
                 </span>
               )}
               {globalValue > 0 && (
-                <span style={{ fontSize: 13, color: 'var(--foreground, #1e293b)' }}>
-                  {t('pipeline.valLabel')} <strong>{new Intl.NumberFormat('fr-FR').format(globalValue)}</strong> FCFA
+                <span
+                  style={{ fontSize: 13, color: 'var(--foreground, #1e293b)' }}
+                  title={`${formatFullAmount(globalValue, lang)} ${currency || 'XAF'}`}
+                >
+                  {t('pipeline.valLabel')} <strong>{formatCompactAmount(globalValue, lang)}</strong> {currency || 'XAF'}
                 </span>
               )}
               <span
@@ -1120,9 +1128,12 @@ function TargetsPanel({ members }: { members?: Member[] }) {
                         </span>
                       )}
                       {tItem.targetValue != null && (
-                        <span style={{ color: '#34d399' }}>
+                        <span
+                          style={{ color: '#34d399' }}
+                          title={`${formatFullAmount(tItem.targetValue, lang)} ${currency || 'XAF'}`}
+                        >
                           {t('pipeline.valLabel')}{' '}
-                          <strong>{new Intl.NumberFormat('fr-FR').format(tItem.targetValue)}</strong> F
+                          <strong>{formatCompactAmount(tItem.targetValue, lang)}</strong> {currency || 'XAF'}
                         </span>
                       )}
                     </div>
@@ -1328,7 +1339,8 @@ function ExportPanel({ members }: { members?: Member[] }) {
 }
 
 export function ManagerPipelineList({ items, members, managerUid, showTargets = true, enableArchive = false, isOrgView = false }: Props) {
-  const { t } = useTranslation()
+  const { t, lang } = useTranslation()
+  const { currency } = useProspectingCountryDetails()
   const deleteMutation = useDeletePipelineItem()
   const { archiveLeads, loading: archiving } = useArchiveLeads()
 
@@ -1722,14 +1734,12 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                 color: 'var(--foreground, #f1f5f9)'
               }}
             >
-              {isOrgView ? 'Pipeline par Team Manager' : 'Pipeline par commercial'}
+              {isOrgView ? t('pipeline.pipelineByTM') : t('pipeline.pipelineByMember')}
             </span>
             <span style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)' }}>
-              ({memberSummaries.length}{' '}
-              {isOrgView
-                ? `Team Manager${memberSummaries.length > 1 ? 's' : ''}`
-                : `membre${memberSummaries.length > 1 ? 's' : ''}`
-              })
+              ({isOrgView
+                ? t('pipeline.teamManagerCount', { count: memberSummaries.length })
+                : t('pipeline.memberCount', { count: memberSummaries.length })})
             </span>
 
           </div>
@@ -1751,7 +1761,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
               }}
             >
               <X size={11} />
-              {isOrgView ? 'Voir tous les TMs' : "Voir toute l'\u00e9quipe"}
+              {isOrgView ? t('pipeline.seeAllTMs') : t('pipeline.seeAllTeam')}
             </button>
           )}
         </div>
@@ -1788,7 +1798,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
               flexShrink: 0
             }}
           >
-            <span>{isOrgView ? 'Tous les Team Managers' : "Toute l'équipe"}</span>
+            <span>{isOrgView ? t('pipeline.allTMs') : t('pipeline.allTeam')}</span>
             {!isOrgView && (
               <span
                 style={{
@@ -1806,8 +1816,6 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
               </span>
             )}
           </button>
-
-
 
           {/* Pill : Non assignés */}
           {unassignedCount > 0 && (
@@ -1835,7 +1843,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                 flexShrink: 0
               }}
             >
-              <span>Non assignés</span>
+              <span>{t('pipeline.unassigned')}</span>
               <span
                 style={{
                   fontSize: 10.5,
@@ -1894,15 +1902,15 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
               >
                 {(selectedMemberId === 'all' || selectedMemberId === 'unassigned') && (
                   <option value="" disabled>
-                    {isOrgView ? '\uD83D\uDC65 Filtrer par Team Manager\u2026' : '\uD83D\uDC64 Filtrer par commercial\u2026'}
+                    {isOrgView ? t('pipeline.filterByTM') : t('pipeline.filterByMember')}
                   </option>
                 )}
                 {isOrgView ? (
                   <>
                     {memberSummaries.length > 0 && (
-                      <optgroup label="Team Managers de l'organisation">
+                      <optgroup label={t('pipeline.orgTeamManagers')}>
                         {memberSummaries.map((m) => {
-                          const warn = m.overdueCount > 0 ? ` (${m.overdueCount} en retard)` : ''
+                          const warn = m.overdueCount > 0 ? ` (${t('pipeline.overdueBadge', { count: m.overdueCount })})` : ''
                           return (
                             <option key={m.uid} value={m.uid}>
                               {m.name}{warn}
@@ -1915,10 +1923,10 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                   </>
                 ) : (
                   memberSummaries.map((m) => {
-                    const warn = m.overdueCount > 0 ? ` (${m.overdueCount} en retard)` : ''
+                    const warn = m.overdueCount > 0 ? ` (${t('pipeline.overdueBadge', { count: m.overdueCount })})` : ''
                     return (
                       <option key={m.uid} value={m.uid}>
-                        {m.name} — {m.totalCount} lead{m.totalCount > 1 ? 's' : ''}{warn}
+                        {m.name} — {m.totalCount} {m.totalCount > 1 ? t('pipeline.leads') : t('pipeline.lead')}{warn}
                       </option>
                     )
                   })
@@ -2009,8 +2017,8 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                   }}
                 >
                   {isOrgView
-                    ? 'Portefeuille supervisé par ce Team Manager'
-                    : 'Portefeuille opérationnel assigné à ce commercial'}
+                    ? t('pipeline.supervisedByTM')
+                    : t('pipeline.assignedToMember')}
                 </div>
               </div>
             </div>
@@ -2030,7 +2038,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                   transition: 'all 150ms ease'
                 }}
               >
-                {isOrgView ? 'Afficher tous les Team Managers' : "Afficher toute l'équipe"}
+                {isOrgView ? t('pipeline.showAllTMs') : t('pipeline.showAllTeam')}
               </button>
             </div>
           </div>
@@ -2065,7 +2073,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                 }}
               >
                 <TrendingUp size={12} />
-                Portefeuille actif
+                {t('pipeline.activePortfolio')}
               </div>
               <div
                 style={{ fontSize: 18, fontWeight: 800, color: 'var(--foreground, #f1f5f9)' }}
@@ -2078,7 +2086,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                     color: 'var(--muted-foreground, #64748b)'
                   }}
                 >
-                  {activeMemberSummary.totalCount > 1 ? 'leads' : 'lead'}
+                  {activeMemberSummary.totalCount > 1 ? t('pipeline.leads') : t('pipeline.lead')}
                 </span>
               </div>
               <div
@@ -2089,8 +2097,8 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                   marginTop: 2
                 }}
               >
-                {activeMemberSummary.prospectionCount} en prospection ·{' '}
-                {activeMemberSummary.negociationCount} en négo
+                {activeMemberSummary.prospectionCount} {t('pipeline.inProspectionShort')} ·{' '}
+                {activeMemberSummary.negociationCount} {t('pipeline.inNegoShort')}
               </div>
             </div>
 
@@ -2116,11 +2124,15 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                 }}
               >
                 <Banknote size={12} />
-                Valeur du pipeline
+                {t('pipeline.pipelineValueLabel')}
               </div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--foreground, #f1f5f9)' }}>
-                {new Intl.NumberFormat('fr-FR').format(
-                  activeMemberSummary.totalAmount - activeMemberSummary.concludedAmount
+              <div
+                title={`${formatFullAmount(activeMemberSummary.totalAmount - activeMemberSummary.concludedAmount, lang)} ${currency || 'XAF'}`}
+                style={{ fontSize: 18, fontWeight: 800, color: 'var(--foreground, #f1f5f9)' }}
+              >
+                {formatCompactAmount(
+                  activeMemberSummary.totalAmount - activeMemberSummary.concludedAmount,
+                  lang
                 )}{' '}
                 <span
                   style={{
@@ -2129,7 +2141,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                     color: 'var(--muted-foreground, #64748b)'
                   }}
                 >
-                  FCFA
+                  {currency || 'XAF'}
                 </span>
               </div>
               <div
@@ -2140,8 +2152,8 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                   marginTop: 2
                 }}
               >
-                {activeMemberSummary.prospectionCount} en prospection ·{' '}
-                {activeMemberSummary.negociationCount} en négo
+                {activeMemberSummary.prospectionCount} {t('pipeline.inProspectionShort')} ·{' '}
+                {activeMemberSummary.negociationCount} {t('pipeline.inNegoShort')}
               </div>
             </div>
 
@@ -2170,7 +2182,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                 }}
               >
                 <Calendar size={12} />
-                Relances & Suivi
+                {t('pipeline.followUpsAndTracking')}
               </div>
               <div
                 style={{
@@ -2184,7 +2196,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
               >
                 {activeMemberSummary.overdueCount > 0 ? (
                   <>
-                    <span>{activeMemberSummary.overdueCount} en retard</span>
+                    <span>{t('pipeline.overdueBadge', { count: activeMemberSummary.overdueCount })}</span>
                     <span
                       style={{
                         display: 'inline-flex',
@@ -2203,7 +2215,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                   </>
                 ) : (
                   <>
-                    <span>À jour</span>
+                    <span>{t('pipeline.upToDate')}</span>
                     <span
                       style={{
                         display: 'inline-flex',
@@ -2230,8 +2242,8 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                 }}
               >
                 {activeMemberSummary.overdueCount > 0
-                  ? 'Nécessite une relance urgente'
-                  : 'Aucune relance expirée'}
+                  ? t('pipeline.urgentFollowUpRequired')
+                  : t('pipeline.noExpiredFollowUps')}
               </div>
             </div>
 
@@ -2299,7 +2311,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                       }}
                     >
                       <Target size={12} />
-                      {isOrgView ? "Objectifs de l'équipe" : 'Objectifs'}{' '}
+                      {isOrgView ? t('pipeline.setTeamTargets') : t('pipeline.definedTargets')}{' '}
                       {activeTarget?.period ? `(${activeTarget.period})` : ''}
                     </div>
                     {roValue != null && (
@@ -2341,7 +2353,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                           fontSize: 11.5
                         }}
                       >
-                        <span style={{ color: 'var(--muted-foreground, #64748b)', fontWeight: 600 }}>Volume :</span>
+                        <span style={{ color: 'var(--muted-foreground, #64748b)', fontWeight: 600 }}>{t('pipeline.volumeLabel')} :</span>
                         <span style={{ fontWeight: 700, color: 'var(--foreground, #f1f5f9)' }}>
                           {activeMemberSummary.conclueCount} / {activeTarget.targetVolume ?? '—'}{' '}
                           {pctVolume != null && (
@@ -2361,12 +2373,15 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                           fontSize: 11.5
                         }}
                       >
-                        <span style={{ color: 'var(--muted-foreground, #64748b)', fontWeight: 600 }}>Valeur :</span>
-                        <span style={{ fontWeight: 700, color: 'var(--foreground, #f1f5f9)' }}>
-                          {new Intl.NumberFormat('fr-FR').format(activeMemberSummary.concludedAmount)}
+                        <span style={{ color: 'var(--muted-foreground, #64748b)', fontWeight: 600 }}>{t('pipeline.dealValue')}</span>
+                        <span
+                          style={{ fontWeight: 700, color: 'var(--foreground, #f1f5f9)' }}
+                          title={`${formatFullAmount(activeMemberSummary.concludedAmount, lang)} / ${activeTarget.targetValue != null ? formatFullAmount(activeTarget.targetValue, lang) : ''} ${currency || 'XAF'}`}
+                        >
+                          {formatCompactAmount(activeMemberSummary.concludedAmount, lang)}
                           {activeTarget.targetValue != null
-                            ? ` / ${new Intl.NumberFormat('fr-FR').format(activeTarget.targetValue)} F`
-                            : ' F'}
+                            ? ` / ${formatCompactAmount(activeTarget.targetValue, lang)} ${currency || 'XAF'}`
+                            : ` ${currency || 'XAF'}`}
                           {pctValue != null && (
                             <strong style={{ marginLeft: 4, color: getScoreColor(pctValue) }}>
                               ({pctValue}%)
@@ -2388,7 +2403,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                         }}
                       >
                         <span style={{ color: 'var(--muted-foreground, #64748b)', fontWeight: 600 }}>
-                          Taux R/O :
+                          {t('pipeline.roRateLabel')} :
                         </span>
                         <span
                           style={{
@@ -2512,6 +2527,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                           )}
                           {item.amount != null && item.amount > 0 && (
                             <span
+                              title={`${formatFullAmount(item.amount, lang)} ${currency || 'XAF'}`}
                               style={{
                                 display: 'inline-flex',
                                 alignItems: 'center',
@@ -2527,7 +2543,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                               }}
                             >
                               <Banknote size={11} />
-                              {new Intl.NumberFormat('fr-FR').format(item.amount)} F
+                              {formatCompactAmount(item.amount, lang)} {currency || 'XAF'}
                             </span>
                           )}
                           {item.nextFollowUp &&

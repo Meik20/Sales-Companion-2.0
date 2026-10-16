@@ -53,16 +53,16 @@ export function Faq() {
         ? 'Can I collaborate with my sales team?'
         : 'Puis-je travailler avec une équipe commerciale ?',
       answer: isEn
-        ? 'Yes. Our team plans allow you to centralize company accounts, assign leads to specific sales reps, prevent prospect duplication, and monitor global pipeline velocity in real time.'
-        : 'Oui. Nos offres adaptées aux équipes permettent de centraliser les comptes, d’attribuer des prospects à des commerciaux spécifiques, d’éviter les doublons et de piloter l’avancement global du pipeline en temps réel.'
+        ? 'Yes. Our team plans allow you to centralize company accounts, assign opportunities to specific sales reps, prevent opportunity duplication, and monitor global pipeline velocity in real time.'
+        : 'Oui. Nos offres adaptées aux équipes permettent de centraliser les comptes, d’attribuer des opportunités à des commerciaux spécifiques, d’éviter les doublons et de piloter l’avancement global du pipeline en temps réel.'
     },
     {
       question: isEn
-        ? 'Can I export my company data and leads?'
-        : 'Puis-je exporter mes données et prospects ?',
+        ? 'Can I export my company data and opportunities?'
+        : 'Puis-je exporter mes données et opportunités ?',
       answer: isEn
-        ? 'Yes. Depending on your subscription plan, you can export targeted company lists and leads to Excel or CSV formats to enrich your reporting tools or external outreach campaigns.'
-        : 'Oui. Selon votre offre, vous pouvez exporter vos listes d’entreprises et prospects ciblés aux formats Excel ou CSV pour alimenter vos outils de reporting ou vos campagnes commerciales.'
+        ? 'Yes. Depending on your subscription plan, you can export targeted company lists and opportunities to Excel or CSV formats to enrich your reporting tools or external outreach campaigns.'
+        : 'Oui. Selon votre offre, vous pouvez exporter vos listes d’entreprises et opportunités ciblées aux formats Excel ou CSV pour alimenter vos outils de reporting ou vos campagnes commerciales.'
     },
     {
       question: isEn ? 'Is there a free plan available?' : 'Existe-t-il une offre gratuite ?',

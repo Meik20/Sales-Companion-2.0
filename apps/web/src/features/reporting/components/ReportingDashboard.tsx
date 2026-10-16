@@ -1484,7 +1484,7 @@ function SupportActivitySection({
   stats: NonNullable<ReportingData['supportStats']>
   initialAgentUid?: string
 }) {
-  const { t } = useTranslation()
+  const { t, lang } = useTranslation()
   const agents = stats.agentsBreakdown || []
   const [selectedAgentUid, setSelectedAgentUid] = useState<string>(initialAgentUid || 'all')
 
@@ -1710,7 +1710,7 @@ function SupportActivitySection({
         <KpiCard
           label={t('reporting.ticketOpen')}
           value={openTicketsCount}
-          sub="En attente de résolution"
+          sub={t('reporting.awaitingResolution')}
           color="#ef4444"
           icon={Clock}
         />
@@ -1750,12 +1750,12 @@ function SupportActivitySection({
               }}
             >
               <Trophy size={16} color="#fbbf24" />
-              Performances individuelles des agents support
+              {t('reporting.supportAgentsPerformance')}
             </h3>
             <p
               style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--muted-foreground, #94a3b8)' }}
             >
-              Volume d'appels, réclamations traitées et efficacité de clôture par agent.
+              {t('reporting.supportAgentsPerformanceSub')}
             </p>
           </div>
 
@@ -1829,7 +1829,7 @@ function SupportActivitySection({
                       )}
                     </div>
                   </div>
-                  <span style={{ fontSize: 11, color: '#60a5fa', fontWeight: 600 }}>Filtrer →</span>
+                  <span style={{ fontSize: 11, color: '#60a5fa', fontWeight: 600 }}>{t('reporting.filterAction')}</span>
                 </div>
 
                 <div
@@ -1848,7 +1848,7 @@ function SupportActivitySection({
                       {ag.callsCount}
                     </div>
                     <div style={{ fontSize: 10, color: 'var(--muted-foreground, #94a3b8)' }}>
-                      Appels
+                      {t('reporting.calls')}
                     </div>
                   </div>
                   <div>
@@ -1856,7 +1856,7 @@ function SupportActivitySection({
                       {ag.ticketsCount}
                     </div>
                     <div style={{ fontSize: 10, color: 'var(--muted-foreground, #94a3b8)' }}>
-                      Tickets
+                      {t('reporting.tickets')}
                     </div>
                   </div>
                   <div>
@@ -1870,7 +1870,7 @@ function SupportActivitySection({
                       {ag.resolutionRate}%
                     </div>
                     <div style={{ fontSize: 10, color: 'var(--muted-foreground, #94a3b8)' }}>
-                      Résolus
+                      {t('reporting.resolved')}
                     </div>
                   </div>
                 </div>
@@ -1912,14 +1912,14 @@ function SupportActivitySection({
                 gap: 8
               }}
             >
-              <Phone size={16} /> Journal des Appels Clients
+              <Phone size={16} /> {t('reporting.clientCallsLog')}
             </h3>
             <p
               style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--muted-foreground, #94a3b8)' }}
             >
               {selectedAgent
-                ? `Historique des appels passés par ${selectedAgent.name}.`
-                : 'Les appels de support récents passés par vos agents.'}
+                ? t('reporting.callsHistoryAgent', { name: selectedAgent.name })
+                : t('reporting.callsHistoryAll')}
             </p>
           </div>
 
@@ -1943,8 +1943,8 @@ function SupportActivitySection({
                 }}
               >
                 {selectedAgent
-                  ? `Aucun appel enregistré pour ${selectedAgent.name}.`
-                  : 'Aucun appel enregistré pour le moment.'}
+                  ? t('reporting.noCallsAgent', { name: selectedAgent.name })
+                  : t('reporting.noCallsAll')}
               </p>
             ) : (
               displayedCalls.map((call) => (
@@ -1966,10 +1966,10 @@ function SupportActivitySection({
                     }}
                   >
                     <strong style={{ fontSize: 13, color: 'var(--foreground, #f1f5f9)' }}>
-                      {call.clientName || 'Client inconnu'}
+                      {call.clientName || t('reporting.unknownClient')}
                     </strong>
                     <span style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)' }}>
-                      {new Date(call.createdAt).toLocaleString('fr-FR', {
+                      {new Date(call.createdAt).toLocaleString(lang === 'en' ? 'en-US' : 'fr-FR', {
                         day: '2-digit',
                         month: '2-digit',
                         hour: '2-digit',
@@ -1991,7 +1991,7 @@ function SupportActivitySection({
                       {CALL_STATUS_LABELS[call.status]?.label}
                     </span>
                     <span style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)' }}>
-                      par {call.agentName}
+                      {t('reporting.byAgent', { name: call.agentName })}
                     </span>
                   </div>
                   {call.notes && (
@@ -2039,14 +2039,14 @@ function SupportActivitySection({
                 gap: 8
               }}
             >
-              <Ticket size={16} /> Tickets SAV / Réclamations
+              <Ticket size={16} /> {t('reporting.supportTicketsTitle')}
             </h3>
             <p
               style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--muted-foreground, #94a3b8)' }}
             >
               {selectedAgent
-                ? `Tickets pris en charge par ${selectedAgent.name}.`
-                : 'Les tickets de support récents de vos clients.'}
+                ? t('reporting.ticketsHistoryAgent', { name: selectedAgent.name })
+                : t('reporting.ticketsHistoryAll')}
             </p>
           </div>
 
@@ -2070,8 +2070,8 @@ function SupportActivitySection({
                 }}
               >
                 {selectedAgent
-                  ? `Aucun ticket SAV enregistré pour ${selectedAgent.name}.`
-                  : 'Aucun ticket SAV ouvert pour le moment.'}
+                  ? t('reporting.noTicketsAgent', { name: selectedAgent.name })
+                  : t('reporting.noTicketsAll')}
               </p>
             ) : (
               displayedTickets.map((ticket) => (
@@ -2139,7 +2139,7 @@ function SupportActivitySection({
                       color: 'var(--muted-foreground, #64748b)'
                     }}
                   >
-                    <span>Par {ticket.agentName}</span>
+                    <span>{t('reporting.byAgent', { name: ticket.agentName })}</span>
                     <span
                       style={{
                         padding: '2px 8px',

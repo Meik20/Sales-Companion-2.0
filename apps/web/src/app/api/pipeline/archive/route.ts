@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
     }
     if (ids.length > 200) {
       return NextResponse.json(
-        { message: 'Maximum 200 leads par opération.' },
+        { message: 'Maximum 200 opportunités par opération.' },
         { status: 400 }
       )
     }

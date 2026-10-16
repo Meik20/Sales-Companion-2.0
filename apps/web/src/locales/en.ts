@@ -80,7 +80,7 @@ export const en = {
       mgrDesc:
         'Deploy a data-driven sales strategy. Supervise your teams and increase your conversion rate.',
       mgrPerk1: 'Global team pipeline view',
-      mgrPerk2: 'Lead distribution',
+      mgrPerk2: 'Opportunity distribution',
       mgrPerk3: 'Performance reports',
       mgrPerk4: 'Access control'
     },
@@ -155,7 +155,7 @@ export const en = {
         'Identify new construction companies, find real estate developers and material suppliers. Export contacts for your tenders in one click.',
       uc2Title: 'Tech & B2B Services',
       uc2Desc:
-        'Target technology SMEs or consulting firms. Use the AI assistant to personalize your approach and qualify your leads before the very first call.',
+        'Target technology SMEs or consulting firms. Use the AI assistant to personalize your approach and qualify your opportunities before the very first call.',
       uc3Title: 'Banking & Insurance',
       uc3Desc:
         'Find companies by capital ranges to offer your financial services (credits, professional insurance). Manage your follow-ups via the integrated pipeline.'
@@ -619,7 +619,31 @@ export const en = {
     selectedItemsCount_one: '{count} opportunity selected',
     selectedItemsCount_other: '{count} opportunities selected',
     clickToSelectHint: 'Click an opportunity to select it',
-    closeDrawer: 'Close'
+    closeDrawer: 'Close',
+    pipelineByTM: 'Pipeline by Team Manager',
+    pipelineByMember: 'Pipeline by Sales Rep',
+    teamManagerCount: '{count} Team Manager(s)',
+    memberCount: '{count} member(s)',
+    seeAllTMs: 'View all TMs',
+    seeAllTeam: 'View entire team',
+    allTMs: 'All Team Managers',
+    allTeam: 'Entire team',
+    unassigned: 'Unassigned',
+    filterByTM: 'Filter by Team Manager…',
+    filterByMember: 'Filter by sales rep…',
+    orgTeamManagers: 'Organization Team Managers',
+    overdueBadge: '{count} overdue',
+    showAllTMs: 'Show all Team Managers',
+    showAllTeam: 'Show entire team',
+    inProspectionShort: 'in prospecting',
+    inNegoShort: 'in negotiation',
+    pipelineValueLabel: 'Pipeline value',
+    dealValue: 'Value:',
+    supervisedByTM: 'Portfolio supervised by this Team Manager',
+    assignedToMember: 'Operational portfolio assigned to this sales rep',
+    followUpsAndTracking: 'Follow-ups & Tracking',
+    urgentFollowUpRequired: 'Urgent follow-up required',
+    noExpiredFollowUps: 'No expired follow-ups'
   },
   auth: {
     loginTitle: 'Log in',
@@ -1743,7 +1767,26 @@ export const en = {
     detailsBtn: 'Details →',
     noClosedDeals: 'No closed deal',
     modalSalespersonRole: 'Salesperson · {count} opportunity(ies)',
-    modalPortfolioBreakdown: 'Portfolio breakdown:'
+    modalPortfolioBreakdown: 'Portfolio breakdown:',
+    awaitingResolution: 'Awaiting resolution',
+    supportAgentsPerformance: 'Individual Support Agent Performance',
+    supportAgentsPerformanceSub: 'Call volume, tickets processed, and closing rate per agent.',
+    filterAction: 'Filter →',
+    calls: 'Calls',
+    tickets: 'Tickets',
+    resolved: 'Resolved',
+    clientCallsLog: 'Customer Call Log',
+    callsHistoryAgent: 'Call history for {name}.',
+    callsHistoryAll: 'Recent support calls logged by your team.',
+    noCallsAgent: 'No calls logged for {name}.',
+    noCallsAll: 'No calls logged yet.',
+    unknownClient: 'Unknown Client',
+    byAgent: 'by {name}',
+    supportTicketsTitle: 'Support Tickets / Inquiries',
+    ticketsHistoryAgent: 'Tickets handled by {name}.',
+    ticketsHistoryAll: 'Recent support tickets from your customers.',
+    noTicketsAgent: 'No support tickets recorded for {name}.',
+    noTicketsAll: 'No support tickets open at the moment.'
   },
   offline: {
     banner: 'You are offline — Cached data remains accessible',

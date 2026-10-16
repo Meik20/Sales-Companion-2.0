@@ -82,25 +82,25 @@ export function Features() {
           : 'Suivez chaque opportunité de la prospection au closing',
       description:
         lang === 'en'
-          ? 'Never let another lead slip through the cracks. Our intuitive Kanban board gives you complete visibility across all negotiations and accelerates closing.'
-          : 'Ne laissez plus aucun prospect s’endormir. Notre tableau Kanban intuitif vous offre une visibilité totale sur l’ensemble de vos négociations et accélère la signature de vos contrats.',
+          ? 'Never let another opportunity slip through the cracks. Our intuitive Kanban board gives you complete visibility across all negotiations and accelerates closing.'
+          : 'Ne laissez plus aucune opportunité s’endormir. Notre tableau Kanban intuitif vous offre une visibilité totale sur l’ensemble de vos négociations et accélère la signature de vos contrats.',
       bullets:
         lang === 'en'
           ? [
-              'Clear sales stages: New Lead, Contacted, In Negotiation, Deal Won',
+              'Clear sales stages: New Opportunity, Contacted, In Negotiation, Deal Won',
               'Smooth drag-and-drop to update deal stages with one click',
               'Complete activity history, call notes, and follow-up reminders'
             ]
           : [
-              'Étapes de vente personnalisables : Nouveau lead, Contact pris, Négociation, Gagné',
+              'Étapes de vente personnalisables : Nouvelle opportunité, Contact pris, Négociation, Gagné',
               'Glisser-déposer fluide pour actualiser l’état de vos affaires en un geste',
               'Historique complet des interactions, comptes-rendus d’appels et rappels de relance'
             ],
       illustration: '/illustrations/landing/pipeline-crm.png',
       alt:
         lang === 'en'
-          ? 'Kanban CRM sales pipeline for managing leads and deals'
-          : 'Pipeline commercial Kanban pour gérer vos prospects et ventes',
+          ? 'Kanban CRM sales pipeline for managing opportunities and deals'
+          : 'Pipeline commercial Kanban pour gérer vos opportunités et ventes',
       ctaText: lang === 'en' ? 'Discover the CRM' : 'Découvrir le CRM',
       ctaLink: routes.register,
       reverse: true

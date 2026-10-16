@@ -80,7 +80,7 @@ export const fr = {
       mgrDesc:
         'Déployez une stratégie commerciale data-driven. Supervisez vos équipes et augmentez votre taux de conversion.',
       mgrPerk1: 'Vue globale du pipeline équipe',
-      mgrPerk2: 'Distribution des leads',
+      mgrPerk2: 'Distribution des opportunités',
       mgrPerk3: 'Rapports de performance',
       mgrPerk4: 'Contrôle des accès'
     },
@@ -155,7 +155,7 @@ export const fr = {
         "Identifiez les nouvelles entreprises de BTP, trouvez les promoteurs immobiliers et fournisseurs de matériaux. Exportez les contacts pour vos appels d'offres en un clic.",
       uc2Title: 'Tech & Services B2B',
       uc2Desc:
-        "Ciblez les PME technologiques ou les cabinets de conseil. Utilisez l'assistant IA pour personnaliser votre approche et qualifier vos leads avant même le premier appel.",
+        "Ciblez les PME technologiques ou les cabinets de conseil. Utilisez l'assistant IA pour personnaliser votre approche et qualifier vos opportunités avant même le premier appel.",
       uc3Title: 'Banque & Assurance',
       uc3Desc:
         'Trouvez les entreprises par tranches de capital pour proposer vos services financiers (crédits, assurances professionnelles). Gérez vos relances via le pipeline intégré.'
@@ -622,7 +622,31 @@ export const fr = {
     selectedItemsCount_one: '{count} opportunité sélectionnée',
     selectedItemsCount_other: '{count} opportunités sélectionnées',
     clickToSelectHint: 'Cliquez sur une opportunité pour la sélectionner',
-    closeDrawer: 'Fermer'
+    closeDrawer: 'Fermer',
+    pipelineByTM: 'Pipeline par Team Manager',
+    pipelineByMember: 'Pipeline par commercial',
+    teamManagerCount: '{count} Team Manager(s)',
+    memberCount: '{count} membre(s)',
+    seeAllTMs: 'Voir tous les TMs',
+    seeAllTeam: "Voir toute l'équipe",
+    allTMs: 'Tous les Team Managers',
+    allTeam: "Toute l'équipe",
+    unassigned: 'Non assignés',
+    filterByTM: 'Filtrer par Team Manager…',
+    filterByMember: 'Filtrer par commercial…',
+    orgTeamManagers: "Team Managers de l'organisation",
+    overdueBadge: '{count} en retard',
+    showAllTMs: 'Afficher tous les Team Managers',
+    showAllTeam: "Afficher toute l'équipe",
+    inProspectionShort: 'en prospection',
+    inNegoShort: 'en négo',
+    pipelineValueLabel: 'Valeur du pipeline',
+    dealValue: 'Valeur :',
+    supervisedByTM: 'Portefeuille supervisé par ce Team Manager',
+    assignedToMember: 'Portefeuille opérationnel assigné à ce commercial',
+    followUpsAndTracking: 'Relances & Suivi',
+    urgentFollowUpRequired: 'Nécessite une relance urgente',
+    noExpiredFollowUps: 'Aucune relance expirée'
   },
   auth: {
     loginTitle: 'Connexion',
@@ -1756,7 +1780,26 @@ export const fr = {
     detailsBtn: 'Détails →',
     noClosedDeals: 'Aucun deal clôturé',
     modalSalespersonRole: 'Commercial · {count} opportunité(s)',
-    modalPortfolioBreakdown: 'Répartition du portefeuille :'
+    modalPortfolioBreakdown: 'Répartition du portefeuille :',
+    awaitingResolution: 'En attente de résolution',
+    supportAgentsPerformance: 'Performances individuelles des agents support',
+    supportAgentsPerformanceSub: "Volume d'appels, réclamations traitées et efficacité de clôture par agent.",
+    filterAction: 'Filtrer →',
+    calls: 'Appels',
+    tickets: 'Tickets',
+    resolved: 'Résolus',
+    clientCallsLog: 'Journal des Appels Clients',
+    callsHistoryAgent: 'Historique des appels passés par {name}.',
+    callsHistoryAll: 'Les appels de support récents passés par vos agents.',
+    noCallsAgent: 'Aucun appel enregistré pour {name}.',
+    noCallsAll: 'Aucun appel enregistré pour le moment.',
+    unknownClient: 'Client inconnu',
+    byAgent: 'par {name}',
+    supportTicketsTitle: 'Tickets SAV / Réclamations',
+    ticketsHistoryAgent: 'Tickets pris en charge par {name}.',
+    ticketsHistoryAll: 'Les tickets de support récents de vos clients.',
+    noTicketsAgent: 'Aucun ticket SAV enregistré pour {name}.',
+    noTicketsAll: 'Aucun ticket SAV ouvert pour le moment.'
   },
   offline: {
     banner: 'Vous êtes hors ligne — Les données en cache restent accessibles',
