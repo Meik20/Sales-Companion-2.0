@@ -242,6 +242,8 @@ export async function POST(request: NextRequest) {
     let currentBatch = adminDb.batch()
     let batchOps = 0
     const colRef = adminDb.collection('manager_prospects')
+    const isIndependent = callerRole === 'independent'
+    const pipeColRef = isIndependent ? adminDb.collection('pipeline') : null
     const now = new Date()
 
     const flush = async () => {
@@ -256,6 +258,7 @@ export async function POST(request: NextRequest) {
       const ref = colRef.doc()
       currentBatch.set(ref, {
         managerId,
+        orgCode: callerData?.orgCode ?? null,
         name: (p.name ?? '').trim(),
         phone: (p.phone ?? '').trim(),
         email: (p.email ?? '').trim(),
@@ -271,7 +274,35 @@ export async function POST(request: NextRequest) {
       })
       batchOps++
       importedCount++
-      if (batchOps >= 499) await flush()
+
+      // Pour un indépendant, insérer aussi directement dans son pipeline
+      if (isIndependent && pipeColRef) {
+        const pipeRef = pipeColRef.doc()
+        currentBatch.set(pipeRef, {
+          userId: callerUid,
+          managerUid: null,
+          orgCode: null,
+          assignedTo: null,
+          memberName: callerData?.displayName || callerData?.name || null,
+          companyName: (p.name ?? '').trim() || '—',
+          companyPhone: (p.phone ?? '').trim() || null,
+          companyEmail: (p.email ?? '').trim() || null,
+          companyCity: (p.city ?? '').trim() || null,
+          companySector: (p.sector ?? '').trim() || null,
+          notes: (p.notes ?? '').trim() || null,
+          status: 'prospection',
+          source: 'import',
+          originSource: 'import',
+          sourceProspectId: ref.id,
+          country: (callerData?.country || 'CM').toUpperCase(),
+          companyCountry: (callerData?.country || 'CM').toUpperCase(),
+          createdAt: now,
+          updatedAt: now
+        })
+        batchOps++
+      }
+
+      if (batchOps >= 490) await flush()
     }
     await flush()
 
@@ -523,7 +554,7 @@ export async function DELETE(request: NextRequest) {
     const callerData = callerDoc.data()
     const callerRole = callerData?.role as string | undefined
 
-    if (!['manager', 'support_agent', 'admin'].includes(callerRole ?? '')) {
+    if (!['manager', 'support_agent', 'admin', 'independent'].includes(callerRole ?? '')) {
       return NextResponse.json({ message: 'Accès refusé' }, { status: 403 })
     }
 
@@ -540,7 +571,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Sécurité permissions
-    if (callerRole === 'manager' && managerId !== callerUid) {
+    if ((callerRole === 'manager' || callerRole === 'independent') && managerId !== callerUid) {
       return NextResponse.json({ message: 'Accès refusé' }, { status: 403 })
     }
     if (callerRole === 'support_agent') {

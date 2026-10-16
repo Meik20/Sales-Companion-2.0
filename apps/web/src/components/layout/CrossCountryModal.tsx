@@ -90,7 +90,7 @@ export function CrossCountryModal({
         <div className="flex items-center gap-2 mb-3">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-purple-500/30 bg-purple-500/10 px-2.5 py-1 text-xs font-bold text-purple-600 dark:text-purple-400">
             <Lock size={12} className="shrink-0" />
-            {lang === 'en' ? 'Enterprise Cross-Country Feature' : 'Option Cross-Country Enterprise'}
+            {lang === 'en' ? 'Enterprise Multi-Country Feature' : 'Option Multi-Pays Enterprise'}
           </span>
           {targetCountry && (
             <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary/60 px-2 py-0.5 text-xs text-foreground font-medium">
@@ -207,13 +207,13 @@ export function CrossCountryModal({
                     <>
                       Your account is attached to an organization. Please contact your{' '}
                       <strong>Senior Manager</strong> to upgrade your company subscription to the{' '}
-                      <strong>Enterprise</strong> plan and unlock Cross-Country prospection for your team.
+                      <strong>Enterprise</strong> plan and unlock Multi-Country prospection for your team.
                     </>
                   ) : (
                     <>
                       Votre compte est rattaché à une organisation. Veuillez vous rapprocher de votre{' '}
                       <strong>Senior Manager</strong> pour faire évoluer le forfait de l&apos;entreprise
-                      vers le plan <strong>Enterprise</strong> afin de débloquer le Cross-Country pour
+                      vers le plan <strong>Enterprise</strong> afin de débloquer la prospection Multi-Pays pour
                       l&apos;équipe.
                     </>
                   )}

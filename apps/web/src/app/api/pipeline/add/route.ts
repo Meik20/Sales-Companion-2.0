@@ -105,8 +105,7 @@ export async function POST(request: NextRequest) {
           {
             error: 'cross_country_restricted',
             code: CROSS_COUNTRY_ERROR_CODE,
-            message:
-              "L'ajout au pipeline d'une entreprise située dans un autre pays (Cross-Country) est réservé au forfait Enterprise."
+            message: CROSS_COUNTRY_ERROR_MESSAGE
           },
           { status: 403 }
         )

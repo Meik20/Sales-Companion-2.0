@@ -101,8 +101,26 @@ export function AddToPipelineButton({ company }: Props) {
           googlePlaceId: company._source === 'google_places' ? company.id : null
         })
       })
-      const json = await res.json().catch(() => ({}))
-      if (!res.ok) throw new Error((json as { message?: string }).message ?? `Erreur ${res.status}`)
+      const json = (await res.json().catch(() => ({}))) as {
+        message?: string
+        code?: string
+        error?: string
+      }
+      if (!res.ok) {
+        if (
+          json.code === 'CROSS_COUNTRY_REQUIRES_ENTERPRISE' ||
+          json.error === 'cross_country_restricted'
+        ) {
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(
+              new CustomEvent('sc_cross_country_locked', {
+                detail: { targetCountry }
+              })
+            )
+          }
+        }
+        throw new Error(json.message ?? `Erreur ${res.status}`)
+      }
       await queryClient.invalidateQueries({ queryKey: ['pipeline'] })
       await queryClient.invalidateQueries({ queryKey: ['pipeline-stats'] })
       notifySuccess()

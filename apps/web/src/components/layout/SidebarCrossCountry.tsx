@@ -71,7 +71,10 @@ export function SidebarCrossCountry({ onCloseAction }: SidebarCrossCountryProps)
             ? 'bg-secondary/70 text-foreground font-semibold shadow-xs'
             : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'
         }`}
-        title={t('sidebar.crossCountryDesc') || 'Prospection Panafricaine'}
+        title={
+          t('sidebar.crossCountryDesc') ||
+          (lang === 'en' ? 'Multi-Country Prospection' : 'Prospection Multi-Pays')
+        }
         aria-expanded={isOpen}
       >
         <div className="flex items-center gap-2.5 min-w-0">
@@ -82,7 +85,9 @@ export function SidebarCrossCountry({ onCloseAction }: SidebarCrossCountryProps)
               isOpen || hasCrossCountry ? 'text-violet-500 dark:text-violet-400' : 'text-muted-foreground'
             }`}
           />
-          <span className="truncate">{t('sidebar.crossCountry') || 'Cross Country'}</span>
+          <span className="truncate">
+            {t('sidebar.crossCountry') || (lang === 'en' ? 'Multi-Country' : 'Multi-Pays')}
+          </span>
         </div>
 
         <div className="flex items-center gap-1.5 shrink-0">
@@ -93,7 +98,11 @@ export function SidebarCrossCountry({ onCloseAction }: SidebarCrossCountryProps)
           {!hasCrossCountry && (
             <span
               className="flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider bg-violet-500/15 text-violet-700 dark:text-violet-300 border border-violet-500/25"
-              title="Disponible à partir du plan Enterprise"
+              title={
+                lang === 'en'
+                  ? 'Available starting from Enterprise plan'
+                  : 'Disponible à partir du plan Enterprise'
+              }
             >
               <Lock size={9} className="shrink-0" />
               <span>Enterprise</span>
@@ -151,7 +160,11 @@ export function SidebarCrossCountry({ onCloseAction }: SidebarCrossCountryProps)
                     ) : locked ? (
                       <span
                         className="flex items-center gap-1 text-[10px] text-muted-foreground/70 bg-muted/60 px-1.5 py-0.5 rounded"
-                        title="Réservé au plan Enterprise — cliquez pour débloquer"
+                        title={
+                          lang === 'en'
+                            ? 'Reserved for Enterprise plan — click to unlock'
+                            : 'Réservé au plan Enterprise — cliquez pour débloquer'
+                        }
                       >
                         <Lock size={11} className="text-violet-500/80 shrink-0" />
                       </span>

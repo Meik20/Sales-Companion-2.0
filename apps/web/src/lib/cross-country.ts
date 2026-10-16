@@ -52,4 +52,4 @@ export function hasCrossCountryAccess(user: UserAccessProfile | null | undefined
 
 export const CROSS_COUNTRY_ERROR_CODE = 'CROSS_COUNTRY_REQUIRES_ENTERPRISE'
 export const CROSS_COUNTRY_ERROR_MESSAGE =
-  "L'accès aux bases de données des autres pays (Cross-Country) est réservé au forfait Enterprise."
+  "L'accès aux bases de données des autres pays (Multi-Pays) est réservé au forfait Enterprise."

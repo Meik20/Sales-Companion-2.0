@@ -116,15 +116,26 @@ export function ManagerProspectsList({
     if (!managerId) return
     setLoading(true)
     try {
-      const res = await fetch(`/api/imports?managerId=${encodeURIComponent(managerId)}`)
+      const token = user ? await user.getIdToken() : null
+      const headers: Record<string, string> = {}
+      if (token) headers['Authorization'] = `Bearer ${token}`
+
+      const res = await fetch(`/api/imports?managerId=${encodeURIComponent(managerId)}`, {
+        headers
+      })
       if (res.ok) {
         const json = await res.json()
         setProspects(json.prospects ?? [])
+      } else {
+        const errJson = await res.json().catch(() => ({}))
+        console.error('[ManagerProspectsList] Failed to load prospects:', res.status, errJson)
       }
+    } catch (err) {
+      console.error('[ManagerProspectsList] Network error loading prospects:', err)
     } finally {
       setLoading(false)
     }
-  }, [managerId])
+  }, [managerId, user])
 
   useEffect(() => {
     void loadProspects()

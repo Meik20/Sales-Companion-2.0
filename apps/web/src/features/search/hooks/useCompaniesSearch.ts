@@ -112,6 +112,18 @@ export function useCompaniesSearch(filters: SearchFilters & { page?: number; cha
           let errMessage = 'Failed to search companies'
           try {
             const errData = await response.json()
+            if (
+              errData?.code === 'CROSS_COUNTRY_REQUIRES_ENTERPRISE' ||
+              errData?.error === 'cross_country_restricted'
+            ) {
+              if (typeof window !== 'undefined') {
+                window.dispatchEvent(
+                  new CustomEvent('sc_cross_country_locked', {
+                    detail: { targetCountry: userCountry }
+                  })
+                )
+              }
+            }
             if (errData?.message) errMessage = errData.message
           } catch (e) {}
           throw new Error(errMessage)
