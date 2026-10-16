@@ -569,7 +569,16 @@ export const en = {
     leadsPlannedToday_one: 'lead planned today',
     leadsPlannedToday_other: 'leads planned today',
     totalAlertsDisplayed_one: 'alert displayed',
-    totalAlertsDisplayed_other: 'alerts displayed'
+    totalAlertsDisplayed_other: 'alerts displayed',
+    defaultFollowUpAction: 'Sales follow-up',
+    amountUndefined: 'Amount not defined',
+    unnamedLead: 'Unnamed prospect',
+    callContact: 'Call {phone}',
+    whatsAppContact: 'Contact on WhatsApp',
+    sendEmailContact: 'Send an email to {email}',
+    whatsAppDefaultMessage: 'Hello, I am contacting you regarding your file {company} on Sales Companion.',
+    emailDefaultSubject: 'Sales follow-up - {company}',
+    totalLabel: 'Total:'
   },
   auth: {
     loginTitle: 'Log in',

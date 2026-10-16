@@ -571,7 +571,16 @@ export const fr = {
     leadsPlannedToday_one: 'lead prévu ce jour',
     leadsPlannedToday_other: 'leads prévus ce jour',
     totalAlertsDisplayed_one: 'alerte affichée',
-    totalAlertsDisplayed_other: 'alertes affichées'
+    totalAlertsDisplayed_other: 'alertes affichées',
+    defaultFollowUpAction: 'Relance commerciale',
+    amountUndefined: 'Montant non défini',
+    unnamedLead: 'Prospect sans nom',
+    callContact: 'Appeler {phone}',
+    whatsAppContact: 'Contacter sur WhatsApp',
+    sendEmailContact: 'Envoyer un email à {email}',
+    whatsAppDefaultMessage: 'Bonjour, je vous contacte concernant votre dossier {company} sur Sales Companion.',
+    emailDefaultSubject: 'Suivi commercial - {company}',
+    totalLabel: 'Total :'
   },
   auth: {
     loginTitle: 'Connexion',

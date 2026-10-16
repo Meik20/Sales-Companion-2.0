@@ -78,10 +78,11 @@ function calculateDaysDiff(dateStr: string, todayStr: string): number {
   return Math.round(diffTime / (1000 * 60 * 60 * 24))
 }
 
-function formatFrenchDate(dateStr: string): string {
+function formatFollowUpDate(dateStr: string, lang: 'fr' | 'en'): string {
   try {
     const d = new Date(dateStr + 'T00:00:00')
-    return new Intl.DateTimeFormat('fr-FR', {
+    const locale = lang === 'en' ? 'en-US' : 'fr-FR'
+    return new Intl.DateTimeFormat(locale, {
       weekday: 'long',
       day: 'numeric',
       month: 'long',
@@ -92,6 +93,31 @@ function formatFrenchDate(dateStr: string): string {
   }
 }
 
+function getStatusLabel(rawStatus: string, t: (k: string) => string): string {
+  const s = (rawStatus || '').toLowerCase().trim()
+  if (['negociation', 'negotiation', 'nego', 'in_progress', 'en_cours'].includes(s)) {
+    return t('pipeline.negotiation')
+  }
+  if (['conclue', 'conclusion', 'won', 'closed', 'gagne', 'signe'].includes(s)) {
+    return t('pipeline.closed')
+  }
+  return t('pipeline.prospection')
+}
+
+function formatActionLabel(action: string, t: (k: string) => string): string {
+  if (!action) return t('pipeline.defaultFollowUpAction')
+  const lower = action.trim().toLowerCase()
+  if (
+    lower === 'relance commerciale' ||
+    lower === 'commercial follow-up' ||
+    lower === 'sales follow-up' ||
+    lower === 'relance'
+  ) {
+    return t('pipeline.defaultFollowUpAction')
+  }
+  return action
+}
+
 export function OverdueFollowUpsDrawer({
   open,
   onClose,
@@ -100,7 +126,7 @@ export function OverdueFollowUpsDrawer({
   context = 'org',
   managers
 }: OverdueFollowUpsDrawerProps) {
-  const { t } = useTranslation()
+  const { t, lang } = useTranslation()
   const todayStr = useMemo(() => new Date().toISOString().slice(0, 10), [])
   const [search, setSearch] = useState('')
   const [selectedCommercial, setSelectedCommercial] = useState<string>('all')
@@ -226,7 +252,7 @@ export function OverdueFollowUpsDrawer({
     for (const lead of allAlertLeads) {
       if (lead.assignedTo) {
         const key = lead.assignedTo
-        const label = lead.memberName || `Commercial (${lead.assignedTo.slice(0, 6)})`
+        const label = lead.memberName || `${t('pipeline.salesperson')} (${lead.assignedTo.slice(0, 6)})`
         const prev = map.get(key)
         if (prev) {
           prev.count++
@@ -325,7 +351,7 @@ export function OverdueFollowUpsDrawer({
 
       groups.push({
         date,
-        dateLabel: formatFrenchDate(date),
+        dateLabel: formatFollowUpDate(date, lang),
         daysOverdue: Math.max(days, 0),
         isToday,
         totalAmount,
@@ -336,7 +362,7 @@ export function OverdueFollowUpsDrawer({
     // Trier les groupes chronologiquement (les dates les plus anciennes en premier)
     groups.sort((a, b) => a.date.localeCompare(b.date))
     return groups
-  }, [filteredLeads, todayStr])
+  }, [filteredLeads, todayStr, lang])
 
   // Statistiques globales de l'alerte
   const stats = useMemo(() => {
@@ -1002,7 +1028,7 @@ export function OverdueFollowUpsDrawer({
                               <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
                                 <Building2 size={15} className="text-indigo-600 dark:text-indigo-400" />
                                 <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--foreground, #0f172a)' }}>
-                                  {lead.companyName}
+                                  {lead.companyName === 'Prospect sans nom' ? t('pipeline.unnamedLead') : lead.companyName}
                                 </span>
                                 {(lead.city || lead.quarter) && (
                                   <span style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)' }}>
@@ -1012,7 +1038,7 @@ export function OverdueFollowUpsDrawer({
                               </div>
                               {lead.sector && (
                                 <div style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)', marginTop: 2 }}>
-                                  Secteur : {lead.sector}
+                                  {t('pipeline.sector')} : {lead.sector}
                                 </div>
                               )}
                             </div>
@@ -1020,8 +1046,8 @@ export function OverdueFollowUpsDrawer({
                             <div style={{ textAlign: 'right', flexShrink: 0 }}>
                               <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--foreground, #0f172a)' }}>
                                 {lead.amount > 0
-                                  ? `${new Intl.NumberFormat('fr-FR').format(lead.amount)} ${lead.currency}`
-                                  : 'Montant non défini'}
+                                  ? `${new Intl.NumberFormat(lang === 'en' ? 'en-US' : 'fr-FR').format(lead.amount)} ${lead.currency}`
+                                  : t('pipeline.amountUndefined')}
                               </div>
                               <span
                                 style={{
@@ -1041,7 +1067,7 @@ export function OverdueFollowUpsDrawer({
                                     : '1px solid rgba(59,130,246,0.3)'
                                 }}
                               >
-                                {lead.status}
+                                {getStatusLabel(lead.status, t)}
                               </span>
                             </div>
                           </div>
@@ -1085,7 +1111,7 @@ export function OverdueFollowUpsDrawer({
                                   {t('pipeline.commercialInCharge')}
                                 </div>
                                 <div style={{ fontSize: 12, fontWeight: 700, color: lead.assignedTo ? 'var(--foreground, #0f172a)' : '#b91c1c' }}>
-                                  {lead.memberName || (lead.assignedTo ? `Membre (${lead.assignedTo.slice(0, 6)})` : (
+                                  {lead.memberName || (lead.assignedTo ? `${t('pipeline.salesperson')} (${lead.assignedTo.slice(0, 6)})` : (
                                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                                       <AlertTriangle size={12} className="text-red-600 shrink-0" />
                                       <span>{t('pipeline.unassignedActionRequired')}</span>
@@ -1116,7 +1142,7 @@ export function OverdueFollowUpsDrawer({
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--foreground, #0f172a)' }}>
                               <Clock size={13} className="text-rose-600 dark:text-rose-400 shrink-0" />
                               <span>
-                                <strong>{t('pipeline.actionLabel')}</strong> {lead.nextAction}
+                                <strong>{t('pipeline.actionLabel')}</strong> {formatActionLabel(lead.nextAction, t)}
                               </span>
                             </div>
 
@@ -1126,7 +1152,7 @@ export function OverdueFollowUpsDrawer({
                                 <>
                                   <a
                                     href={`tel:${lead.phone}`}
-                                    title={`Appeler ${lead.phone}`}
+                                    title={t('pipeline.callContact').replace('{phone}', lead.phone)}
                                     style={{
                                       display: 'inline-flex',
                                       alignItems: 'center',
@@ -1148,11 +1174,11 @@ export function OverdueFollowUpsDrawer({
                                   <a
                                     href={getWhatsAppUrl(
                                       lead.phone,
-                                      `Bonjour, je vous contacte concernant votre dossier ${lead.companyName} sur Sales Companion.`
+                                      t('pipeline.whatsAppDefaultMessage').replace('{company}', lead.companyName)
                                     )}
                                     target="_blank"
                                     rel="noreferrer"
-                                    title="Contacter sur WhatsApp"
+                                    title={t('pipeline.whatsAppContact')}
                                     style={{
                                       display: 'inline-flex',
                                       alignItems: 'center',
@@ -1175,8 +1201,10 @@ export function OverdueFollowUpsDrawer({
 
                               {lead.email && (
                                 <a
-                                  href={`mailto:${lead.email}?subject=${encodeURIComponent(`Suivi commercial - ${lead.companyName}`)}`}
-                                  title={`Envoyer un email à ${lead.email}`}
+                                  href={`mailto:${lead.email}?subject=${encodeURIComponent(
+                                    t('pipeline.emailDefaultSubject').replace('{company}', lead.companyName)
+                                  )}`}
+                                  title={t('pipeline.sendEmailContact').replace('{email}', lead.email)}
                                   style={{
                                     display: 'inline-flex',
                                     alignItems: 'center',
@@ -1219,7 +1247,7 @@ export function OverdueFollowUpsDrawer({
           }}
         >
           <div style={{ fontSize: 11, color: 'var(--muted-foreground)' }}>
-            Total : <strong>{filteredLeads.length}</strong> {filteredLeads.length > 1 ? t('pipeline.totalAlertsDisplayed_other') : t('pipeline.totalAlertsDisplayed_one')}
+            {t('pipeline.totalLabel')} <strong>{filteredLeads.length}</strong> {filteredLeads.length > 1 ? t('pipeline.totalAlertsDisplayed_other') : t('pipeline.totalAlertsDisplayed_one')}
           </div>
           <Button variant="outline" size="sm" onClick={onClose} style={{ fontSize: 12 }}>
             {t('pipeline.closeBtn')}
