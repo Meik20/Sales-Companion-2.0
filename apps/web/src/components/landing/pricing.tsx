@@ -87,7 +87,8 @@ export function Pricing() {
         t('landing.plansSection.pEnterprise3'),
         t('landing.plansSection.pEnterprise4'),
         t('landing.plansSection.pEnterprise5'),
-        t('landing.plansSection.pEnterprise6')
+        t('landing.plansSection.pEnterprise6'),
+        t('landing.plansSection.pEnterprise7')
       ],
       cta: t('landing.plansSection.contactEnterpriseBtn'),
       highlighted: false,

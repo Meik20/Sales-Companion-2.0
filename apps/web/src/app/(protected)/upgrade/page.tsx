@@ -98,6 +98,7 @@ const PLANS = [
       'Tout Pro inclus',
       `${PLAN_LIMITS.enterprise} recherches / jour`,
       'Gestion équipe complète',
+      'Prospection Panafricaine (Cross-Country)',
       'Support dédié'
     ]
   }

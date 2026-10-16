@@ -27,6 +27,7 @@ import {
 } from '@sales-companion/shared'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { detectClientCountry } from '@/features/landing/landing-country'
+import { hasCrossCountryAccess } from '@/lib/cross-country'
 
 const COUNTRY_COOKIE = 'sc_country'
 const COUNTRY_CHANGE_EVENT = 'sc_country_changed'
@@ -62,12 +63,20 @@ export function useProspectingCountry(): CountryCode {
   }, [])
 
   const resolvedCountry = useMemo<CountryCode>(() => {
-    // Priorité 1 : cookie
+    const userHome = user?.country?.toUpperCase() as CountryCode | undefined
+    const validUserHome: CountryCode = userHome && COUNTRY_NAMES[userHome] ? userHome : 'CM'
+
+    // Si l'utilisateur est connecté et n'a pas accès au Cross-Country,
+    // son pays de prospection est STRICTEMENT verrouillé sur son pays d'inscription.
+    if (user && !hasCrossCountryAccess(user)) {
+      return validUserHome
+    }
+
+    // Priorité 1 : cookie (pour Enterprise, Admin ou visiteur public non authentifié)
     if (cookieCountry && COUNTRY_NAMES[cookieCountry]) return cookieCountry
 
     // Priorité 2 : pays du profil Firestore
-    const fromProfile = user?.country?.toUpperCase() as CountryCode | undefined
-    if (fromProfile && COUNTRY_NAMES[fromProfile]) return fromProfile
+    if (userHome && COUNTRY_NAMES[userHome]) return userHome
 
     // Priorité 3 : détection locale (fuseau horaire / locale du client)
     const detected = detectClientCountry()
@@ -75,7 +84,7 @@ export function useProspectingCountry(): CountryCode {
 
     // Fallback : Cameroun priorisé
     return 'CM'
-  }, [cookieCountry, user?.country])
+  }, [cookieCountry, user])
 
   // Sync data-country sur <html>
   useEffect(() => {
@@ -103,11 +112,18 @@ export interface ProspectingCountryDetails {
     pitchHint: string
   }
   telecoms: string[]
-  setCountry: (code: CountryCode) => void
+  setCountry: (code: CountryCode) => boolean
+  hasCrossCountry: boolean
+  userHomeCountry: CountryCode
+  isCountryLocked: (targetCode: CountryCode) => boolean
 }
 
 export function useProspectingCountryDetails(): ProspectingCountryDetails {
+  const { user } = useCurrentUser()
   const code = useProspectingCountry()
+  const hasCrossCountry = hasCrossCountryAccess(user)
+  const userHome = (user?.country?.toUpperCase() as CountryCode) || 'CM'
+  const userHomeCountry: CountryCode = COUNTRY_NAMES[userHome] ? userHome : 'CM'
 
   const countryDef = useMemo(
     () => SUPPORTED_COUNTRIES.find((c) => c.code === code) ?? SUPPORTED_COUNTRIES[0],
@@ -121,9 +137,30 @@ export function useProspectingCountryDetails(): ProspectingCountryDetails {
     [code]
   )
 
-  const setCountry = useCallback((newCode: CountryCode) => {
-    setProspectingCountryCookie(newCode)
-  }, [])
+  const isCountryLocked = useCallback(
+    (targetCode: CountryCode) => {
+      if (!user) return false
+      if (hasCrossCountry) return false
+      return targetCode !== userHomeCountry
+    },
+    [user, hasCrossCountry, userHomeCountry]
+  )
+
+  const setCountry = useCallback(
+    (newCode: CountryCode): boolean => {
+      if (isCountryLocked(newCode)) {
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(
+            new CustomEvent('sc_cross_country_locked', { detail: { targetCountry: newCode } })
+          )
+        }
+        return false
+      }
+      setProspectingCountryCookie(newCode)
+      return true
+    },
+    [isCountryLocked]
+  )
 
   return {
     code,
@@ -137,6 +174,9 @@ export function useProspectingCountryDetails(): ProspectingCountryDetails {
     theme,
     culture,
     telecoms: theme.telecoms,
-    setCountry
+    setCountry,
+    hasCrossCountry,
+    userHomeCountry,
+    isCountryLocked
   }
 }

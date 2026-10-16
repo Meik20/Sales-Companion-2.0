@@ -1,6 +1,11 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { hasActivePaidManagerAccess } from '@/lib/manager-access'
+import {
+  hasCrossCountryAccess,
+  CROSS_COUNTRY_ERROR_CODE,
+  CROSS_COUNTRY_ERROR_MESSAGE
+} from '@/lib/cross-country'
 
 async function getAdminModules() {
   const { adminDb, adminAuth } = await import('@/lib/firebase-admin')
@@ -72,6 +77,8 @@ export async function POST(request: NextRequest) {
       companyQuarter,
       companyPhone,
       companyEmail,
+      companyCountry,
+      country,
       googlePlaceId
     } = body as {
       companyId?: string
@@ -82,7 +89,28 @@ export async function POST(request: NextRequest) {
       companyQuarter?: string
       companyPhone?: string
       companyEmail?: string
+      companyCountry?: string
+      country?: string
       googlePlaceId?: string | null
+    }
+
+    const callerHomeCountry = ((callerData.country as string) || 'CM').toUpperCase().trim()
+    const rawTargetCountry = (companyCountry || country || '').toUpperCase().trim()
+    const targetCountry = rawTargetCountry || callerHomeCountry
+
+    if (rawTargetCountry && rawTargetCountry !== callerHomeCountry) {
+      const hasAccess = hasCrossCountryAccess(callerData)
+      if (!hasAccess) {
+        return NextResponse.json(
+          {
+            error: 'cross_country_restricted',
+            code: CROSS_COUNTRY_ERROR_CODE,
+            message:
+              "L'ajout au pipeline d'une entreprise située dans un autre pays (Cross-Country) est réservé au forfait Enterprise."
+          },
+          { status: 403 }
+        )
+      }
     }
 
     const isManagerRole = callerData.role === 'manager'
@@ -185,6 +213,8 @@ export async function POST(request: NextRequest) {
       memberName: finalMemberName,
       memberAccessId: isManagerRole ? null : (memberAccessId ?? null),
       companyId: companyId ?? null,
+      country: targetCountry,
+      companyCountry: targetCountry,
       originSource: companyId ? 'supabase_directory' : 'manual',
       externalDirectoryId: companyId ?? null,
       companyName: companyName,

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useTranslation } from '@/providers/I18nProvider'
 import { useToast } from '@/hooks/useToast'
+import { useProspectingCountry } from '@/hooks/useProspectingCountry'
 import { Company } from '@/features/search/hooks/useCompaniesSearch'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { firestore } from '@/services/firebase/client'
@@ -15,6 +16,7 @@ type Props = { company: Company }
 export function AddToPipelineButton({ company }: Props) {
   const { t } = useTranslation()
   const { user } = useCurrentUser()
+  const prospectingCountry = useProspectingCountry()
   const { pushToast } = useToast()
   const queryClient = useQueryClient()
   const [status, setStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
@@ -37,6 +39,7 @@ export function AddToPipelineButton({ company }: Props) {
     const isOffline = isMobileRuntime() && typeof navigator !== 'undefined' && !navigator.onLine
 
     const isManager = user.role === 'manager' || (!user.role && !user.managerUid)
+    const targetCountry = (company.country as string) || prospectingCountry
     const pipelineData = {
       userId: user.uid,
       companyId: company.id,
@@ -44,6 +47,8 @@ export function AddToPipelineButton({ company }: Props) {
       name: company.raisonSociale ?? '—',
       companySector: company.sector ?? null,
       companyCity: company.city ?? company.region ?? null,
+      companyCountry: targetCountry,
+      country: targetCountry,
       companyPhone: company.telephone ?? null,
       companyEmail: company.email ?? null,
       managerUid: user.role === 'member' ? (user.managerUid ?? null) : user.uid,
@@ -84,6 +89,8 @@ export function AddToPipelineButton({ company }: Props) {
           companyName: company.raisonSociale ?? '—',
           companySector: company.sector ?? null,
           companyCity: company.city ?? company.region ?? null,
+          companyCountry: targetCountry,
+          country: targetCountry,
           companyPhone: company.telephone ?? null,
           companyEmail: company.email ?? null,
           managerUid: user.role === 'member' ? (user.managerUid ?? null) : user.uid,

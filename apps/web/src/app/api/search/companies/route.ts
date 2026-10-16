@@ -3,6 +3,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getClientIp, checkRateLimit, checkRateLimitByUser } from '@/lib/rate-limit'
 import { PLAN_LIMITS, COUNTRY_NAMES } from '@sales-companion/shared'
 import { isSupabaseCompaniesConfigured, searchSupabaseCompanies } from '@/lib/supabase-companies'
+import {
+  hasCrossCountryAccess,
+  CROSS_COUNTRY_ERROR_CODE,
+  CROSS_COUNTRY_ERROR_MESSAGE
+} from '@/lib/cross-country'
 
 // Lazy import pour éviter les erreurs si firebase-admin ne s'initialise pas
 async function getAdminModules() {
@@ -108,10 +113,24 @@ export async function GET(request: NextRequest) {
       }
 
       // Pays de prospection : le client peut transmettre un pays différent
-      // (sélectionné sur la landing via sc_country cookie).
-      // On l'accepte seulement s'il est valide dans COUNTRY_NAMES.
+      // (sélectionné via le sélecteur Cross-Country ou le cookie sc_country).
+      // On l'accepte seulement s'il est valide dans COUNTRY_NAMES et réservé aux abonnés Enterprise / Admin.
       const requestedCountry = searchParams.get('country')?.toUpperCase()
       if (requestedCountry && COUNTRY_NAMES[requestedCountry]) {
+        if (requestedCountry !== userCountry) {
+          const hasAccess = hasCrossCountryAccess(userData)
+          if (!hasAccess) {
+            return NextResponse.json(
+              {
+                error: 'cross_country_restricted',
+                code: CROSS_COUNTRY_ERROR_CODE,
+                message: CROSS_COUNTRY_ERROR_MESSAGE,
+                userCountry
+              },
+              { status: 403 }
+            )
+          }
+        }
         userCountry = requestedCountry
       }
     } catch (err) {
