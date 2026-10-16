@@ -29,13 +29,21 @@ service cloud.firestore {
       return userDoc != null ? userDoc : {};
     }
 
-    function isManager() {
+    function isManagerRole() {
       return isSignedIn()
         && currentUserDoc().role == 'manager'
         && currentUserDoc().active == true
-        && currentUserDoc().get('emailVerificationPending', false) != true
+        && currentUserDoc().get('emailVerificationPending', false) != true;
+    }
+
+    function isPaidManager() {
+      return isManagerRole()
         && currentUserDoc().get('plan', 'free') != 'free'
         && currentUserDoc().get('subscriptionExpired', false) != true;
+    }
+
+    function isManager() {
+      return isPaidManager();
     }
 
     function isOwner(userId) {
@@ -43,13 +51,13 @@ service cloud.firestore {
     }
 
     function isManagedUser(resourceManagerUid) {
-      return isManager() && resourceManagerUid == authUid();
+      return isManagerRole() && resourceManagerUid == authUid();
     }
 
     match /users/{uid} {
       allow read: if isAdmin()
         || isOwner(uid)
-        || (isManager() && resource.data.managerUid == authUid());
+        || (isManagerRole() && resource.data.managerUid == authUid());
 
       allow create: if isAdmin() || (
         isOwner(uid)
@@ -127,7 +135,7 @@ service cloud.firestore {
     match /manager_prospects/{prospectId} {
       // Lecture : le manager propriétaire ou un agent lié
       allow read: if isAdmin()
-        || (isManager() && resource.data.managerId == authUid())
+        || (isManagerRole() && resource.data.managerId == authUid())
         || (isSupportAgent() && (
               resource.data.managerId == currentUserDoc().managerUid
               || (currentUserDoc().linkedManagerUids != null
@@ -168,7 +176,7 @@ service cloud.firestore {
       allow update: if isAdmin()
         || (
           isSignedIn()
-          && resource.data.userId == authUid()
+          && (resource.data.userId == authUid() || resource.data.assignedTo == authUid())
           // FIX: les support agents ne peuvent pas modifier les fiches pipeline
           && !isSupportAgent()
           // Invariants d'appartenance — jamais modifiables par le propriétaire

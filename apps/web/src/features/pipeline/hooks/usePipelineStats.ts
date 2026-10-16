@@ -66,7 +66,23 @@ export function usePipelineStats() {
         }
       }
 
-      // ── Autres rôles : requêtes Firestore directes ──────────────────────────
+      // ── Team Manager : statistiques directes via /api/pipeline/stats ────────
+      if (user.role === 'manager' && !isSeniorManager) {
+        try {
+          const token = await user.getIdToken()
+          const res = await fetch('/api/pipeline/stats', {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+          if (res.ok) {
+            const data = (await res.json()) as PipelineStats
+            return data
+          }
+        } catch {
+          // Fallback sur requête Firestore locale si offline
+        }
+      }
+
+      // ── Autres rôles / Fallback : requêtes Firestore directes ────────────────
       const isManager = user.role === 'manager'
       const seen = new Set<string>()
       const docs: { status: string }[] = []

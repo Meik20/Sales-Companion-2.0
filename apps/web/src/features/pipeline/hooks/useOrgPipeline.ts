@@ -118,10 +118,9 @@ export function useOrgPipelineRealtimeSync() {
   const unsubRef = useRef<(() => void) | null>(null)
 
   useEffect(() => {
-    const isSeniorManager = user?.role === 'manager' && user?.orgRole === 'senior_manager'
     const orgCode = user?.orgCode
 
-    if (!isSeniorManager || !orgCode || !firestore) {
+    if (!orgCode || !firestore) {
       return
     }
 
@@ -150,11 +149,16 @@ export function useOrgPipelineRealtimeSync() {
             return
           }
 
-          // Changement détecté → refetch immédiat
+          // Changement détecté → refetch immédiat pour l'ensemble des rôles de l'organisation
           if (current !== lastKnownUpdate) {
             lastKnownUpdate = current
             void queryClient.invalidateQueries({ queryKey: ['org-pipeline'] })
             void queryClient.invalidateQueries({ queryKey: ['org-report'] })
+            void queryClient.invalidateQueries({ queryKey: ['manager-pipeline'] })
+            void queryClient.invalidateQueries({ queryKey: ['pipeline'] })
+            void queryClient.invalidateQueries({ queryKey: ['pipeline-stats'] })
+            void queryClient.invalidateQueries({ queryKey: ['reporting'] })
+            void queryClient.invalidateQueries({ queryKey: ['clients'] })
           }
         },
         (error: any) => {

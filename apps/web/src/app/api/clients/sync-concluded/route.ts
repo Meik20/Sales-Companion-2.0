@@ -65,6 +65,18 @@ export async function POST(request: NextRequest) {
 
     const client = await syncPipelineItemToClient(adminDb, pipelineId, pipeData)
 
+    // Propagation temps réel vers le Senior Manager et le Team Manager
+    const orgCode = (pipeData.orgCode as string | undefined) || null
+    if (orgCode) {
+      adminDb
+        .collection('organisations')
+        .doc(orgCode)
+        .update({ lastPipelineUpdate: new Date().toISOString() })
+        .catch((orgErr: unknown) => {
+          console.warn('[sync-concluded POST] lastPipelineUpdate write failed:', orgErr)
+        })
+    }
+
     return NextResponse.json({ success: true, client })
   } catch (error) {
     console.error('[sync-concluded POST]', error)

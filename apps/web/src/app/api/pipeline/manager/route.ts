@@ -1,55 +1,50 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
+import { authenticateServerRequest, AuthGuardError } from '@/server/guards/auth.guard'
 
-async function getAdmin() {
-  const { adminDb, adminAuth } = await import('@/lib/firebase-admin')
-  return { adminDb, adminAuth }
+function normalizeStatus(s: string) {
+  const st = (s || '').toLowerCase().trim()
+  if (['prospection', 'prospect', 'to_contact', 'contact', 'nouveau', 'lead'].includes(st))
+    return 'prospection'
+  if (['negociation', 'negotiation', 'in_progress', 'en_cours'].includes(st)) return 'negociation'
+  if (['conclue', 'conclusion', 'won', 'closed', 'gagne', 'signe'].includes(st)) return 'conclue'
+  return 'prospection'
 }
 
 /**
  * GET /api/pipeline/manager
  *
- * Returns the consolidated pipeline for the manager:
- * ALL pipeline items where managerUid === currentUser.uid
- * (includes items assigned to members via team assignments).
- *
- * Sorted in memory — no composite index needed.
+ * Pipeline consolidé de l'équipe pour le Team Manager (et Senior Manager pour ses leads propres).
+ * Source de vérité serveur via Admin SDK.
+ * Accessible en consultation même en plan FREE (AGENTS.md).
  */
 export async function GET(request: NextRequest) {
   try {
-    const { adminDb, adminAuth } = await getAdmin()
-
-    const token = request.headers.get('authorization')?.split(' ')[1]
-    if (!token) return NextResponse.json({ message: 'Non authentifié' }, { status: 401 })
-
-    let managerUid: string
-    try {
-      const decoded = await adminAuth.verifyIdToken(token)
-      managerUid = decoded.uid
-    } catch {
-      return NextResponse.json({ message: 'Token invalide' }, { status: 401 })
+    const session = await authenticateServerRequest(request)
+    if (session.role !== 'manager' && session.role !== 'admin') {
+      return NextResponse.json({ message: 'Accès réservé aux managers' }, { status: 403 })
     }
 
-    // Items assigned TO the team (managerUid set by team assignments route)
+    const { adminDb } = await import('@/lib/firebase-admin')
+    const managerUid = session.uid
+
+    // 1. Opportunités assignées à l'équipe du manager (managerUid === managerUid)
     const teamSnap = await adminDb
       .collection('pipeline')
       .where('managerUid', '==', managerUid)
       .get()
 
-    // Items in the manager's own pipeline (userId = managerUid)
+    // 2. Opportunités créées directement par le manager (userId === managerUid)
     const ownSnap = await adminDb
       .collection('pipeline')
       .where('userId', '==', managerUid)
       .get()
 
-    // Merge & deduplicate:
-    // If a company is already assigned to a team member in teamSnap,
-    // the manager's initial unassigned copy is an obsolete duplicate.
     const seen = new Set<string>()
     const assignedCompanies = new Set<string>()
     const items: Record<string, unknown>[] = []
 
-    // 1. Process items assigned to members (exclure les archivés)
+    // A. Traitement des fiches d'équipe (membres et prospects assignés)
     teamSnap.docs.forEach((doc) => {
       const data = doc.data()
       if (data.archived === true) return
@@ -61,15 +56,21 @@ export async function GET(request: NextRequest) {
       if (compName) {
         assignedCompanies.add(compName)
       }
+
       items.push({
         id: doc.id,
         ...data,
-        createdAt: data.createdAt?.toDate?.()?.toISOString() ?? null,
-        updatedAt: data.updatedAt?.toDate?.()?.toISOString() ?? null
+        companyName: (data.companyName || data.name || '') as string,
+        companyId: (data.companyId || doc.id) as string,
+        status: normalizeStatus(data.status as string),
+        userId: (data.userId || managerUid) as string,
+        createdAt: data.createdAt?.toDate?.()?.toISOString() ?? (typeof data.createdAt === 'string' ? data.createdAt : new Date().toISOString()),
+        updatedAt: data.updatedAt?.toDate?.()?.toISOString() ?? (typeof data.updatedAt === 'string' ? data.updatedAt : new Date().toISOString()),
+        concludedAt: data.concludedAt?.toDate?.()?.toISOString() ?? (typeof data.concludedAt === 'string' ? data.concludedAt : null)
       })
     })
 
-    // 2. Process manager's own items (exclure les archivés)
+    // B. Traitement des fiches propres du manager non encore capturées
     for (const doc of ownSnap.docs) {
       if (!seen.has(doc.id)) {
         const data = doc.data()
@@ -79,16 +80,14 @@ export async function GET(request: NextRequest) {
           .trim()
           .toLowerCase()
 
-        // Supprimer la copie manager résiduelle seulement si l'entreprise est déjà
-        // complètement assignée à un membre (assignedTo != null && != managerUid).
-        // Un prospect en attente (assignedTo = null) DOIT rester visible pour être assigné.
+        // Déduplication : si l'entreprise est déjà assignée à un membre terrain dans teamSnap,
+        // la copie initiale non assignée est masquée.
         if (
           compName &&
           assignedCompanies.has(compName) &&
           data.assignedTo &&
           data.assignedTo !== managerUid
         ) {
-          doc.ref.delete().catch(() => {})
           continue
         }
 
@@ -96,12 +95,18 @@ export async function GET(request: NextRequest) {
         items.push({
           id: doc.id,
           ...data,
-          createdAt: data.createdAt?.toDate?.()?.toISOString() ?? null,
-          updatedAt: data.updatedAt?.toDate?.()?.toISOString() ?? null
+          companyName: (data.companyName || data.name || '') as string,
+          companyId: (data.companyId || doc.id) as string,
+          status: normalizeStatus(data.status as string),
+          userId: (data.userId || managerUid) as string,
+          createdAt: data.createdAt?.toDate?.()?.toISOString() ?? (typeof data.createdAt === 'string' ? data.createdAt : new Date().toISOString()),
+          updatedAt: data.updatedAt?.toDate?.()?.toISOString() ?? (typeof data.updatedAt === 'string' ? data.updatedAt : new Date().toISOString()),
+          concludedAt: data.concludedAt?.toDate?.()?.toISOString() ?? (typeof data.concludedAt === 'string' ? data.concludedAt : null)
         })
       }
     }
 
+    // Tri chronologique antéchronologique
     items.sort((a, b) => {
       const ta = a.createdAt ? new Date(a.createdAt as string).getTime() : 0
       const tb = b.createdAt ? new Date(b.createdAt as string).getTime() : 0
@@ -110,7 +115,13 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(items)
   } catch (error) {
+    if (error instanceof AuthGuardError) {
+      return NextResponse.json({ message: error.message }, { status: error.status })
+    }
     console.error('[pipeline/manager GET]', error)
-    return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 })
+    return NextResponse.json(
+      { message: error instanceof Error ? error.message : 'Erreur serveur' },
+      { status: 500 }
+    )
   }
 }

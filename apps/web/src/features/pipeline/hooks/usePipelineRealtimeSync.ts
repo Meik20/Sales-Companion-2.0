@@ -85,9 +85,9 @@ function setupListeners(
         if (!merged.has(id)) merged.set(id, val)
       })
 
-      const items = Array.from(merged.entries()).map(([id, data]) =>
-        formatPipelineDoc(id, data, user.uid)
-      )
+      const items = Array.from(merged.entries())
+        .filter(([, data]) => (data as any)?.archived !== true)
+        .map(([id, data]) => formatPipelineDoc(id, data, user.uid))
 
       items.sort((a, b) => {
         const ta = a.createdAt ? new Date(a.createdAt as unknown as string).getTime() : 0
