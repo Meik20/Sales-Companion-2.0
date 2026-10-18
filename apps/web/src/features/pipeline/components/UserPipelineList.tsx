@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Badge } from '@/components/ui/index'
+import { Badge, ConfirmDialog } from '@/components/ui/index'
 import { Button } from '@/components/ui/Button'
 import { useDeletePipelineItem } from '@/features/pipeline/hooks/useDeletePipelineItem'
 import { useUpdatePipelineItem } from '@/features/pipeline/hooks/useUpdatePipelineItem'
@@ -22,6 +22,7 @@ import {
   RotateCcw,
   CheckCircle,
   ChevronRight,
+  ChevronLeft,
   MessageSquare,
   LayoutGrid,
   List,
@@ -1123,13 +1124,24 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [selectedItem, setSelectedItem] = useState<PipelineItem | null>(null)
   const [viewMode, setViewMode] = useState<'list' | 'kanban'>('kanban')
+  const [itemToDelete, setItemToDelete] = useState<{ id: string; name: string } | null>(null)
+  const [listPage, setListPage] = useState(1)
+  const LIST_PAGE_SIZE = 10
+  const totalListPages = Math.max(1, Math.ceil(items.length / LIST_PAGE_SIZE))
+  const currentListPage = Math.min(listPage, totalListPages)
+  const paginatedListItems = items.slice(
+    (currentListPage - 1) * LIST_PAGE_SIZE,
+    currentListPage * LIST_PAGE_SIZE
+  )
 
-  async function handleDelete(e: React.MouseEvent, id: string) {
-    e.stopPropagation()
+  async function confirmDelete() {
+    if (!itemToDelete) return
+    const id = itemToDelete.id
     setDeletingId(id)
     try {
       await deleteMutation.mutateAsync(id)
       pushToast({ type: 'success', title: t('pipeline.deleteSuccess') })
+      setItemToDelete(null)
     } catch (err) {
       pushToast({
         type: 'error',
@@ -1187,7 +1199,7 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
         />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {items.map((item) => {
+          {paginatedListItems.map((item) => {
             const accentColor =
               item.status === 'prospection' || item.status === 'prospect'
                 ? '#60a5fa'
@@ -1502,8 +1514,12 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
                     size="sm"
                     variant="danger"
                     loading={deletingId === item.id}
-                    onClick={(e) => void handleDelete(e as React.MouseEvent, item.id)}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setItemToDelete({ id: item.id, name: item.companyName })
+                    }}
                     style={{ padding: '0 8px', minHeight: 30 }}
+                    title={lang === 'en' ? 'Delete' : 'Supprimer'}
                   >
                     <Trash2 size={13} />
                   </Button>
@@ -1511,8 +1527,87 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
               </div>
             )
           })}
+
+          {totalListPages > 1 && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginTop: 14,
+                padding: '10px 14px',
+                borderRadius: 10,
+                background: 'var(--secondary, #1e2a3b)',
+                border: '1px solid var(--border, rgba(255,255,255,0.08))'
+              }}
+            >
+              <button
+                type="button"
+                disabled={currentListPage <= 1}
+                onClick={() => setListPage((p) => Math.max(1, p - 1))}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  padding: '6px 12px',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  borderRadius: 6,
+                  background: 'transparent',
+                  color: currentListPage <= 1 ? 'var(--muted-foreground, #64748b)' : 'var(--foreground, #f1f5f9)',
+                  border: '1px solid var(--border, rgba(255,255,255,0.1))',
+                  cursor: currentListPage <= 1 ? 'not-allowed' : 'pointer',
+                  opacity: currentListPage <= 1 ? 0.45 : 1
+                }}
+              >
+                <ChevronLeft size={14} />
+                <span>{lang === 'en' ? 'Previous' : 'Précédent'}</span>
+              </button>
+              <span style={{ fontSize: 12, color: 'var(--muted-foreground, #94a3b8)', fontWeight: 600 }}>
+                Page {currentListPage} / {totalListPages}
+              </span>
+              <button
+                type="button"
+                disabled={currentListPage >= totalListPages}
+                onClick={() => setListPage((p) => Math.min(totalListPages, p + 1))}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  padding: '6px 12px',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  borderRadius: 6,
+                  background: 'transparent',
+                  color: currentListPage >= totalListPages ? 'var(--muted-foreground, #64748b)' : 'var(--foreground, #f1f5f9)',
+                  border: '1px solid var(--border, rgba(255,255,255,0.1))',
+                  cursor: currentListPage >= totalListPages ? 'not-allowed' : 'pointer',
+                  opacity: currentListPage >= totalListPages ? 0.45 : 1
+                }}
+              >
+                <span>{lang === 'en' ? 'Next' : 'Suivant'}</span>
+                <ChevronRight size={14} />
+              </button>
+            </div>
+          )}
         </div>
       )}
+
+      <ConfirmDialog
+        isOpen={Boolean(itemToDelete)}
+        title={t('pipeline.confirmDeleteTitle')}
+        description={t('pipeline.confirmDeleteDesc', {
+          companyName: itemToDelete?.name || ''
+        })}
+        confirmText={lang === 'en' ? 'Delete' : 'Supprimer'}
+        cancelText={lang === 'en' ? 'Cancel' : 'Annuler'}
+        variant="danger"
+        isLoading={Boolean(deletingId && itemToDelete && deletingId === itemToDelete.id)}
+        onConfirm={confirmDelete}
+        onCancel={() => {
+          if (!deletingId) setItemToDelete(null)
+        }}
+      />
     </>
   )
 }

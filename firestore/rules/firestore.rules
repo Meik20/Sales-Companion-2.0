@@ -204,7 +204,8 @@ service cloud.firestore {
         
       allow delete: if isAdmin()
         || (isSignedIn() && resource.data.userId == authUid() && !isSupportAgent())
-        || isManagedUser(resource.data.managerUid);
+        || isManagedUser(resource.data.managerUid)
+        || (isManagerRole() && currentUserDoc().get('orgRole', '') == 'senior_manager' && currentUserDoc().get('orgCode', '') != '' && resource.data.get('orgCode', '') == currentUserDoc().get('orgCode', ''));
     }
 
     match /orgInvites/{inviteId} {

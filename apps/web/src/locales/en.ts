@@ -509,6 +509,9 @@ export const en = {
     clickForDetails: 'Click for details',
     deleteSuccess: 'Opportunity deleted',
     deleteError: 'Unable to delete',
+    confirmDeleteTitle: 'Delete opportunity?',
+    confirmDeleteDesc:
+      'Are you sure you want to delete "{companyName}" from the pipeline? This action cannot be undone.',
     assignedTo: 'Assigned to',
     exportPerformances: 'Export performances',
     exportDesc: 'Download an Excel file with a summary and detailed opportunities per member.',

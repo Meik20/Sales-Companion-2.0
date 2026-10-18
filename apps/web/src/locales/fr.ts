@@ -510,6 +510,9 @@ export const fr = {
     clickForDetails: 'Cliquer pour voir les détails',
     deleteSuccess: 'Opportunité supprimée',
     deleteError: 'Suppression impossible',
+    confirmDeleteTitle: "Supprimer l'opportunité ?",
+    confirmDeleteDesc:
+      'Voulez-vous vraiment supprimer "{companyName}" du pipeline ? Cette action est irréversible.',
     assignedTo: 'Assigné à',
     exportPerformances: 'Exporter les performances',
     exportDesc:

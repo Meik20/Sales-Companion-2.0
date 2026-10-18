@@ -13,6 +13,7 @@ import {
   Handshake,
   CheckCircle2,
   ChevronRight,
+  ChevronLeft,
   Target,
   Trophy,
   Banknote,
@@ -392,8 +393,13 @@ function MobileKanban({
   t: (key: string) => string
 }) {
   const [activeTab, setActiveTab] = useState('prospection')
+  const [mobilePages, setMobilePages] = useState<Record<string, number>>({})
   const activeCol = COLUMNS.find((c) => c.id === activeTab)!
   const colItems = columns[activeTab] || []
+  const PAGE_SIZE = 10
+  const totalPages = Math.max(1, Math.ceil(colItems.length / PAGE_SIZE))
+  const currentPage = Math.min(mobilePages[activeTab] || 1, totalPages)
+  const paginatedColItems = colItems.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
@@ -534,7 +540,7 @@ function MobileKanban({
           minHeight: 200
         }}
       >
-        {colItems.length === 0 ? (
+        {paginatedColItems.length === 0 ? (
           <div
             style={{
               display: 'flex',
@@ -569,7 +575,7 @@ function MobileKanban({
             </span>
           </div>
         ) : (
-          colItems.map((item) => (
+          paginatedColItems.map((item) => (
             <KanbanCard
               key={item.id}
               item={item}
@@ -579,6 +585,77 @@ function MobileKanban({
               isMobile={true}
             />
           ))
+        )}
+
+        {totalPages > 1 && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginTop: 12,
+              padding: '8px 10px',
+              borderRadius: 8,
+              background: 'var(--secondary, #1e2a3b)',
+              border: '1px solid var(--border, rgba(255,255,255,0.08))'
+            }}
+          >
+            <button
+              type="button"
+              disabled={currentPage <= 1}
+              onClick={() =>
+                setMobilePages((prev) => ({
+                  ...prev,
+                  [activeTab]: Math.max(1, currentPage - 1)
+                }))
+              }
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                padding: '4px 8px',
+                fontSize: 11,
+                fontWeight: 600,
+                borderRadius: 6,
+                background: 'transparent',
+                color: currentPage <= 1 ? 'var(--muted-foreground, #64748b)' : 'var(--foreground, #f1f5f9)',
+                border: '1px solid var(--border, rgba(255,255,255,0.1))',
+                cursor: currentPage <= 1 ? 'not-allowed' : 'pointer',
+                opacity: currentPage <= 1 ? 0.45 : 1
+              }}
+            >
+              <ChevronLeft size={13} />
+            </button>
+            <span style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)', fontWeight: 600 }}>
+              Page {currentPage} / {totalPages}
+            </span>
+            <button
+              type="button"
+              disabled={currentPage >= totalPages}
+              onClick={() =>
+                setMobilePages((prev) => ({
+                  ...prev,
+                  [activeTab]: Math.min(totalPages, currentPage + 1)
+                }))
+              }
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                padding: '4px 8px',
+                fontSize: 11,
+                fontWeight: 600,
+                borderRadius: 6,
+                background: 'transparent',
+                color: currentPage >= totalPages ? 'var(--muted-foreground, #64748b)' : 'var(--foreground, #f1f5f9)',
+                border: '1px solid var(--border, rgba(255,255,255,0.1))',
+                cursor: currentPage >= totalPages ? 'not-allowed' : 'pointer',
+                opacity: currentPage >= totalPages ? 0.45 : 1
+              }}
+            >
+              <ChevronRight size={13} />
+            </button>
+          </div>
         )}
       </div>
     </div>
@@ -594,6 +671,7 @@ export function UserPipelineKanban({ items, onStatusChange, onItemClick }: Props
     negociation: [],
     conclue: []
   })
+  const [columnPages, setColumnPages] = useState<Record<string, number>>({})
   const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
@@ -636,20 +714,26 @@ export function UserPipelineKanban({ items, onStatusChange, onItemClick }: Props
     if (!destination) return
     if (source.droppableId === destination.droppableId && source.index === destination.index) return
 
+    const PAGE_SIZE = 10
     const startColId = source.droppableId
     const finishColId = destination.droppableId
+    const srcPage = columnPages[startColId] || 1
+    const destPage = columnPages[finishColId] || 1
+    const realSourceIndex = (srcPage - 1) * PAGE_SIZE + source.index
+    const realDestIndex = (destPage - 1) * PAGE_SIZE + destination.index
+
     const startItems = Array.from(columns[startColId] || [])
     const finishItems =
       startColId === finishColId ? startItems : Array.from(columns[finishColId] || [])
-    const [movedItem] = startItems.splice(source.index, 1)
+    const [movedItem] = startItems.splice(realSourceIndex, 1)
     if (!movedItem) return
 
     if (startColId === finishColId) {
-      startItems.splice(destination.index, 0, movedItem)
+      startItems.splice(realDestIndex, 0, movedItem)
       setColumns({ ...columns, [startColId]: startItems })
     } else {
       movedItem.status = finishColId
-      finishItems.splice(destination.index, 0, movedItem)
+      finishItems.splice(realDestIndex, 0, movedItem)
       setColumns({ ...columns, [startColId]: startItems, [finishColId]: finishItems })
       onStatusChange(draggableId, finishColId as 'prospection' | 'negociation' | 'conclue')
     }
@@ -670,6 +754,14 @@ export function UserPipelineKanban({ items, onStatusChange, onItemClick }: Props
         {COLUMNS.map((col) => {
           const colItems = columns[col.id] || []
           const ColIcon = col.icon
+          const PAGE_SIZE = 10
+          const totalPages = Math.max(1, Math.ceil(colItems.length / PAGE_SIZE))
+          const currentPage = Math.min(columnPages[col.id] || 1, totalPages)
+          const paginatedColItems = colItems.slice(
+            (currentPage - 1) * PAGE_SIZE,
+            currentPage * PAGE_SIZE
+          )
+
           return (
             <div
               key={col.id}
@@ -716,23 +808,30 @@ export function UserPipelineKanban({ items, onStatusChange, onItemClick }: Props
                     {t(col.labelKey)}
                   </span>
                 </div>
-                <div
-                  style={{
-                    minWidth: 26,
-                    height: 26,
-                    borderRadius: 8,
-                    background: `${col.accent}22`,
-                    border: `1px solid ${col.accent}44`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 13,
-                    fontWeight: 800,
-                    color: col.accent,
-                    padding: '0 6px'
-                  }}
-                >
-                  {colItems.length}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {totalPages > 1 && (
+                    <span style={{ fontSize: 11, color: col.color, fontWeight: 700, opacity: 0.85 }}>
+                      {currentPage}/{totalPages}
+                    </span>
+                  )}
+                  <div
+                    style={{
+                      minWidth: 26,
+                      height: 26,
+                      borderRadius: 8,
+                      background: `${col.accent}22`,
+                      border: `1px solid ${col.accent}44`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: 13,
+                      fontWeight: 800,
+                      color: col.accent,
+                      padding: '0 6px'
+                    }}
+                  >
+                    {colItems.length}
+                  </div>
                 </div>
               </div>
 
@@ -748,10 +847,10 @@ export function UserPipelineKanban({ items, onStatusChange, onItemClick }: Props
                       minHeight: 200,
                       transition: 'background-color 0.2s ease',
                       backgroundColor: snapshot.isDraggingOver ? `${col.accent}08` : 'transparent',
-                      borderRadius: '0 0 20px 20px'
+                      borderRadius: totalPages > 1 ? '0' : '0 0 20px 20px'
                     }}
                   >
-                    {colItems.length === 0 ? (
+                    {paginatedColItems.length === 0 ? (
                       <div
                         style={{
                           display: 'flex',
@@ -791,7 +890,7 @@ export function UserPipelineKanban({ items, onStatusChange, onItemClick }: Props
                         </span>
                       </div>
                     ) : (
-                      colItems.map((item, index) => (
+                      paginatedColItems.map((item, index) => (
                         <Draggable key={item.id} draggableId={item.id} index={index}>
                           {(provided, snapshot) => (
                             <KanbanCard
@@ -813,6 +912,76 @@ export function UserPipelineKanban({ items, onStatusChange, onItemClick }: Props
                   </div>
                 )}
               </Droppable>
+
+              {/* Column pagination footer */}
+              {totalPages > 1 && (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '10px 14px',
+                    borderTop: `1px solid ${col.border}`,
+                    background: 'var(--card, #131c2e)'
+                  }}
+                >
+                  <button
+                    type="button"
+                    disabled={currentPage <= 1}
+                    onClick={() =>
+                      setColumnPages((prev) => ({
+                        ...prev,
+                        [col.id]: Math.max(1, currentPage - 1)
+                      }))
+                    }
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      padding: '4px 8px',
+                      fontSize: 11,
+                      fontWeight: 600,
+                      borderRadius: 6,
+                      background: 'transparent',
+                      color: currentPage <= 1 ? 'var(--muted-foreground, #64748b)' : 'var(--foreground, #f1f5f9)',
+                      border: '1px solid var(--border, rgba(255,255,255,0.1))',
+                      cursor: currentPage <= 1 ? 'not-allowed' : 'pointer',
+                      opacity: currentPage <= 1 ? 0.45 : 1
+                    }}
+                  >
+                    <ChevronLeft size={13} />
+                  </button>
+                  <span style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)', fontWeight: 600 }}>
+                    Page {currentPage} / {totalPages}
+                  </span>
+                  <button
+                    type="button"
+                    disabled={currentPage >= totalPages}
+                    onClick={() =>
+                      setColumnPages((prev) => ({
+                        ...prev,
+                        [col.id]: Math.min(totalPages, currentPage + 1)
+                      }))
+                    }
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      padding: '4px 8px',
+                      fontSize: 11,
+                      fontWeight: 600,
+                      borderRadius: 6,
+                      background: 'transparent',
+                      color: currentPage >= totalPages ? 'var(--muted-foreground, #64748b)' : 'var(--foreground, #f1f5f9)',
+                      border: '1px solid var(--border, rgba(255,255,255,0.1))',
+                      cursor: currentPage >= totalPages ? 'not-allowed' : 'pointer',
+                      opacity: currentPage >= totalPages ? 0.45 : 1
+                    }}
+                  >
+                    <ChevronRight size={13} />
+                  </button>
+                </div>
+              )}
             </div>
           )
         })}

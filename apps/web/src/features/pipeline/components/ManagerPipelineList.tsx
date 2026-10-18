@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect, useCallback } from 'react'
-import { Badge } from '@/components/ui/index'
+import { Badge, ConfirmDialog } from '@/components/ui/index'
 import { Button } from '@/components/ui/Button'
 import { useDeletePipelineItem } from '@/features/pipeline/hooks/useDeletePipelineItem'
 import { useUpdatePipelineItem } from '@/features/pipeline/hooks/useUpdatePipelineItem'
@@ -23,6 +23,7 @@ import {
   X,
   MessageSquare,
   ChevronRight,
+  ChevronLeft,
   TrendingUp,
   Save,
   Target,
@@ -1358,15 +1359,19 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
   const { pushToast } = useToast()
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [selectedItem, setSelectedItem] = useState<PipelineItem | null>(null)
+  const [columnPages, setColumnPages] = useState<Record<string, number>>({})
+  const [itemToDelete, setItemToDelete] = useState<{ id: string; name: string } | null>(null)
 
   if (!items.length) return null
 
-  async function handleDelete(e: React.MouseEvent, id: string) {
-    e.stopPropagation()
+  async function confirmDelete() {
+    if (!itemToDelete) return
+    const id = itemToDelete.id
     setDeletingId(id)
     try {
       await deleteMutation.mutateAsync(id)
       pushToast({ type: 'success', title: t('pipeline.deleteSuccess') })
+      setItemToDelete(null)
     } catch (err) {
       pushToast({
         type: 'error',
@@ -2455,16 +2460,44 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
           gap: 16
         }}
       >
-        {Object.entries(grouped).map(([status, groupItems]) => (
-          <div key={status}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-              <Badge variant={statusVariant[status] ?? 'default'}>
-                {statusLabel[status]} ({groupItems.length})
-              </Badge>
-            </div>
+        {Object.entries(grouped).map(([status, groupItems]) => {
+          const PAGE_SIZE = 10
+          const totalPages = Math.max(1, Math.ceil(groupItems.length / PAGE_SIZE))
+          const currentPage = Math.min(columnPages[status] || 1, totalPages)
+          const paginatedItems = groupItems.slice(
+            (currentPage - 1) * PAGE_SIZE,
+            currentPage * PAGE_SIZE
+          )
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {groupItems.map((item) => (
+          return (
+            <div key={status} style={{ display: 'flex', flexDirection: 'column' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 8,
+                  marginBottom: 10
+                }}
+              >
+                <Badge variant={statusVariant[status] ?? 'default'}>
+                  {statusLabel[status]} ({groupItems.length})
+                </Badge>
+                {totalPages > 1 && (
+                  <span
+                    style={{
+                      fontSize: 11,
+                      color: 'var(--muted-foreground, #94a3b8)',
+                      fontWeight: 600
+                    }}
+                  >
+                    Page {currentPage} / {totalPages}
+                  </span>
+                )}
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flexGrow: 1 }}>
+                {paginatedItems.map((item) => (
                 <div
                   key={item.id}
                   onClick={() => setSelectedItem(item)}
@@ -2734,8 +2767,12 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                         size="sm"
                         variant="danger"
                         loading={deletingId === item.id}
-                        onClick={(e) => void handleDelete(e as React.MouseEvent, item.id)}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setItemToDelete({ id: item.id, name: item.companyName })
+                        }}
                         style={{ flexShrink: 0, padding: '0 8px', minHeight: 28 }}
+                        title={lang === 'en' ? 'Delete' : 'Supprimer'}
                       >
                         <Trash2 size={13} />
                       </Button>
@@ -2744,7 +2781,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                 </div>
               ))}
 
-              {groupItems.length === 0 && (
+              {paginatedItems.length === 0 && (
                 <div
                   style={{
                     padding: '20px 14px',
@@ -2760,9 +2797,167 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                 </div>
               )}
             </div>
+
+            {/* Pagination controls for this column */}
+            {totalPages > 1 && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginTop: 12,
+                  padding: '8px 10px',
+                  borderRadius: 8,
+                  background: 'var(--card, #131c2e)',
+                  border: '1px solid var(--border, rgba(255,255,255,0.08))'
+                }}
+              >
+                <button
+                  type="button"
+                  disabled={currentPage <= 1}
+                  onClick={() =>
+                    setColumnPages((prev) => ({
+                      ...prev,
+                      [status]: Math.max(1, currentPage - 1)
+                    }))
+                  }
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    padding: '4px 8px',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    borderRadius: 6,
+                    background: currentPage <= 1 ? 'transparent' : 'var(--secondary, #1e2a3b)',
+                    color:
+                      currentPage <= 1
+                        ? 'var(--muted-foreground, #64748b)'
+                        : 'var(--foreground, #f1f5f9)',
+                    border: '1px solid var(--border, rgba(255,255,255,0.1))',
+                    cursor: currentPage <= 1 ? 'not-allowed' : 'pointer',
+                    opacity: currentPage <= 1 ? 0.45 : 1,
+                    transition: 'all 120ms ease'
+                  }}
+                >
+                  <ChevronLeft size={13} />
+                  <span>{lang === 'en' ? 'Prev' : 'Préc.'}</span>
+                </button>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => {
+                    if (
+                      totalPages > 5 &&
+                      p !== 1 &&
+                      p !== totalPages &&
+                      Math.abs(p - currentPage) > 1
+                    ) {
+                      if (p === 2 || p === totalPages - 1) {
+                        return (
+                          <span
+                            key={p}
+                            style={{
+                              fontSize: 10,
+                              color: 'var(--muted-foreground, #64748b)',
+                              padding: '0 2px'
+                            }}
+                          >
+                            …
+                          </span>
+                        )
+                      }
+                      return null
+                    }
+                    const isActive = p === currentPage
+                    return (
+                      <button
+                        key={p}
+                        type="button"
+                        onClick={() =>
+                          setColumnPages((prev) => ({
+                            ...prev,
+                            [status]: p
+                          }))
+                        }
+                        style={{
+                          minWidth: 24,
+                          height: 24,
+                          padding: '0 4px',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: 11,
+                          fontWeight: isActive ? 700 : 500,
+                          borderRadius: 6,
+                          background: isActive ? '#6366f1' : 'var(--secondary, #1e2a3b)',
+                          color: isActive ? '#ffffff' : 'var(--foreground, #f1f5f9)',
+                          border: isActive
+                            ? '1px solid #6366f1'
+                            : '1px solid var(--border, rgba(255,255,255,0.08))',
+                          cursor: 'pointer',
+                          transition: 'all 120ms ease'
+                        }}
+                      >
+                        {p}
+                      </button>
+                    )
+                  })}
+                </div>
+
+                <button
+                  type="button"
+                  disabled={currentPage >= totalPages}
+                  onClick={() =>
+                    setColumnPages((prev) => ({
+                      ...prev,
+                      [status]: Math.min(totalPages, currentPage + 1)
+                    }))
+                  }
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    padding: '4px 8px',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    borderRadius: 6,
+                    background:
+                      currentPage >= totalPages ? 'transparent' : 'var(--secondary, #1e2a3b)',
+                    color:
+                      currentPage >= totalPages
+                        ? 'var(--muted-foreground, #64748b)'
+                        : 'var(--foreground, #f1f5f9)',
+                    border: '1px solid var(--border, rgba(255,255,255,0.1))',
+                    cursor: currentPage >= totalPages ? 'not-allowed' : 'pointer',
+                    opacity: currentPage >= totalPages ? 0.45 : 1,
+                    transition: 'all 120ms ease'
+                  }}
+                >
+                  <span>{lang === 'en' ? 'Next' : 'Suiv.'}</span>
+                  <ChevronRight size={13} />
+                </button>
+              </div>
+            )}
           </div>
-        ))}
-      </div>
+        )
+      })}
+    </div>
+
+    <ConfirmDialog
+      isOpen={Boolean(itemToDelete)}
+      title={t('pipeline.confirmDeleteTitle')}
+      description={t('pipeline.confirmDeleteDesc', {
+        companyName: itemToDelete?.name || ''
+      })}
+      confirmText={lang === 'en' ? 'Delete' : 'Supprimer'}
+      cancelText={lang === 'en' ? 'Cancel' : 'Annuler'}
+      variant="danger"
+      isLoading={Boolean(deletingId && itemToDelete && deletingId === itemToDelete.id)}
+      onConfirm={confirmDelete}
+      onCancel={() => {
+        if (!deletingId) setItemToDelete(null)
+      }}
+    />
     </>
   )
 }

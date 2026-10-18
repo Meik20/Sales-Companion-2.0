@@ -6,6 +6,47 @@ async function getAdminModules() {
   return { adminDb, adminAuth }
 }
 
+async function canAccessPipelineItem(
+  userId: string,
+  itemData: any,
+  userData?: any,
+  adminDb?: any
+): Promise<boolean> {
+  if (!itemData) return false
+  if (
+    itemData.userId === userId ||
+    itemData.managerUid === userId ||
+    itemData.seniorManagerUid === userId ||
+    itemData.assignedTo === userId
+  ) {
+    return true
+  }
+  if (userData?.role === 'admin') return true
+  if (
+    userData?.role === 'manager' &&
+    userData?.orgRole === 'senior_manager' &&
+    userData?.orgCode
+  ) {
+    if (itemData.orgCode && userData.orgCode === itemData.orgCode) {
+      return true
+    }
+    if (itemData.seniorManagerUid === userId) {
+      return true
+    }
+    if (adminDb && itemData.managerUid) {
+      try {
+        const mgrDoc = await adminDb.collection('users').doc(itemData.managerUid).get()
+        if (mgrDoc.exists && mgrDoc.data()?.orgCode === userData.orgCode) {
+          return true
+        }
+      } catch (e) {
+        console.warn('[canAccessPipelineItem] manager check failed:', e)
+      }
+    }
+  }
+  return false
+}
+
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
@@ -25,8 +66,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const doc = await adminDb.collection('pipeline').doc(id).get()
     if (!doc.exists) return NextResponse.json({ message: 'Non trouvé' }, { status: 404 })
 
-    const data = doc.data()
-    if (data?.userId !== userId && data?.managerUid !== userId) {
+    const userDoc = await adminDb.collection('users').doc(userId).get()
+    const userData = userDoc.data()
+    const data = doc.data() || {}
+
+    if (!(await canAccessPipelineItem(userId, data, userData, adminDb))) {
       return NextResponse.json({ message: 'Accès refusé' }, { status: 403 })
     }
 
@@ -85,8 +129,11 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const doc = await adminDb.collection('pipeline').doc(id).get()
     if (!doc.exists) return NextResponse.json({ message: 'Non trouvé' }, { status: 404 })
 
-    const data = doc.data()
-    if (data?.userId !== userId && data?.managerUid !== userId) {
+    const userDoc = await adminDb.collection('users').doc(userId).get()
+    const userData = userDoc.data()
+    const data = doc.data() || {}
+
+    if (!(await canAccessPipelineItem(userId, data, userData, adminDb))) {
       return NextResponse.json({ message: 'Accès refusé' }, { status: 403 })
     }
 
@@ -112,22 +159,18 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     // Propagation temps réel vers le Senior Manager :
     // on met à jour lastPipelineUpdate sur le document organisation.
-    // Le hook useOrgPipelineRealtimeSync écoute ce champ via onSnapshot
-    // et invalide immédiatement le cache org-pipeline côté client SM.
-    const orgCode = data.orgCode as string | undefined
+    const orgCode = (data.orgCode || userData?.orgCode) as string | undefined
     if (orgCode) {
       adminDb
         .collection('organisations')
         .doc(orgCode)
         .update({ lastPipelineUpdate: new Date().toISOString() })
         .catch((orgErr: unknown) => {
-          // Non bloquant — ne doit pas faire échouer la réponse principale.
           console.warn('[pipeline/[id]/PUT] lastPipelineUpdate write failed:', orgErr)
         })
     }
 
     if (isConcluded) {
-
       try {
         const { syncPipelineItemToClient } = await import('@/lib/clients-sync')
         await syncPipelineItemToClient(adminDb, id, { ...data, ...cleanData })
@@ -166,15 +209,30 @@ export async function DELETE(
     const doc = await adminDb.collection('pipeline').doc(id).get()
     if (!doc.exists) return NextResponse.json({ message: 'Non trouvé' }, { status: 404 })
 
-    const data = doc.data()
-    if (data?.userId !== userId && data?.managerUid !== userId) {
+    const userDoc = await adminDb.collection('users').doc(userId).get()
+    const userData = userDoc.data()
+    const data = doc.data() || {}
+
+    if (!(await canAccessPipelineItem(userId, data, userData, adminDb))) {
       return NextResponse.json({ message: 'Accès refusé' }, { status: 403 })
     }
 
     await doc.ref.delete()
+
+    // Propagation temps réel vers l'organisation si orgCode présent
+    const orgCode = (data?.orgCode || userData?.orgCode) as string | undefined
+    if (orgCode) {
+      adminDb
+        .collection('organisations')
+        .doc(orgCode)
+        .update({ lastPipelineUpdate: new Date().toISOString() })
+        .catch(() => {})
+    }
+
     return NextResponse.json({ success: true, id })
   } catch (error) {
     console.error('[pipeline/[id]/DELETE] Error:', error)
     return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 })
   }
 }
+
