@@ -401,7 +401,7 @@ export default function PipelinePage() {
                 },
                 {
                   id: 'total',
-                  label: t('pipeline.totalOrg') || 'Total Org',
+                  label: t('pipeline.totalOrg') || 'Total Segment',
                   count: orgPipelineQuery.data.counts.total,
                   color: '#a78bfa',
                   icon: <Users2 size={16} />
@@ -542,8 +542,8 @@ export default function PipelinePage() {
 
           {/* Liste consolidée org */}
           <DataCard
-            title={t('pipeline.orgPipeline') || 'Pipeline Organisation'}
-            subtitle={`${t('pipeline.orgPipelineSubtitle') || 'Tous les prospects de votre organisation'}${filterManagerUid ? (t('pipeline.filteredByManager') || ' — filtré par manager') : ''}`}
+            title={t('pipeline.orgPipeline') || 'Pipeline du Segment'}
+            subtitle={`${t('pipeline.orgPipelineSubtitle') || 'Tous les prospects de votre segment'}${filterManagerUid ? (t('pipeline.filteredByManager') || ' — filtré par manager') : ''}`}
           >
             {orgPipelineQuery.isLoading ? <LoadingState /> : null}
             {!orgPipelineQuery.isLoading && (

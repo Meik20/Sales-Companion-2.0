@@ -162,8 +162,8 @@ export function TeamManagerPerformanceCard({
               >
                 {isGlobal
                   ? (isTeamContext
-                      ? (t('pipeline.globalTeamPerformance') || "Performance Globale de l'\u00c9quipe")
-                      : (t('pipeline.globalOrgPerformance') || "Performance Globale de l'Organisation"))
+                      ? (t('pipeline.globalTeamPerformance') || "Performance Globale de l'Équipe")
+                      : (t('pipeline.globalOrgPerformance') || 'Performance Globale du Segment'))
                   : (manager?.name || manager?.email)}
               </h4>
               <span
@@ -200,7 +200,7 @@ export function TeamManagerPerformanceCard({
                   <span>
                     {isTeamContext
                       ? (t('pipeline.globalTeamSubtitle') || "Synthèse consolidée du chiffre d'affaires et du portefeuille de l'équipe")
-                      : (t('pipeline.globalOrgSubtitle') || "Synthèse consolidée du chiffre d'affaires et du portefeuille de l'organisation")}
+                      : (t('pipeline.globalOrgSubtitle') || "Synthèse consolidée du chiffre d'affaires et du portefeuille du segment")}
                   </span>
                   {!isTeamContext && (
                     <>
