@@ -366,6 +366,17 @@ export async function POST(request: NextRequest) {
           count
         }
       })
+
+      if (targetManagerEmail) {
+        const { sendProspectTransferEmail } = await import('@/lib/notification-emails')
+        await sendProspectTransferEmail({
+          to: targetManagerEmail,
+          recipientName: targetManagerName,
+          senderName,
+          count,
+          deadline: deadline || null
+        })
+      }
     } catch (notifErr) {
       console.warn('[migrate-senior-members] Erreur notification Team Manager:', notifErr)
     }

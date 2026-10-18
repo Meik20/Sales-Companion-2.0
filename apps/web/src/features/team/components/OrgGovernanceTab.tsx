@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { DataCard } from '@/components/ui/index'
+import { DataCard, ConfirmDialog } from '@/components/ui/index'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { EmptyState } from '@/components/feedback'
@@ -110,6 +110,11 @@ export function OrgGovernanceTab() {
   const [migrating, setMigrating] = useState(false)
   const [migrationResult, setMigrationResult] = useState<string | null>(null)
   const [migrationError, setMigrationError] = useState<string | null>(null)
+  const [pendingTransferConfirm, setPendingTransferConfirm] = useState<{
+    count: number
+    targetName: string
+    confirmMsg: string
+  } | null>(null)
 
   // Dateline / Échéance accordée au Team Manager
   const [deadlineOption, setDeadlineOption] = useState<'none' | '24h' | '48h' | '7d' | 'custom'>('48h')
@@ -368,12 +373,15 @@ export function OrgGovernanceTab() {
       .replace('{count}', String(count))
       .replace('{plural}', count > 1 ? 's' : '')
       .replace('{name}', targetName)
-    if (!window.confirm(confirmMsg)) return
+    setPendingTransferConfirm({ count, targetName, confirmMsg })
+  }
 
+  async function executeTransfer() {
+    const count = selectedProspectIds.length
+    const targetName = orgData?.managers?.find((m) => m.uid === selectedTargetUid)?.name || selectedTargetUid
     setMigrating(true)
     setMigrationError(null)
     setMigrationResult(null)
-
     try {
       const token = await user?.getIdToken()
       const deadlineIso = getCalculatedDeadlineIso()
@@ -423,6 +431,7 @@ export function OrgGovernanceTab() {
   }
 
   return (
+    <>
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       {/* ── 1. Carte Identité & Gouvernance ────────────────────────── */}
       <DataCard
@@ -1030,5 +1039,20 @@ export function OrgGovernanceTab() {
         />
       </DataCard>
     </div>
+
+      <ConfirmDialog
+        isOpen={pendingTransferConfirm !== null}
+        variant="warning"
+        title={pendingTransferConfirm?.confirmMsg ?? ''}
+        description={`${pendingTransferConfirm?.count ?? 0} prospect${(pendingTransferConfirm?.count ?? 0) > 1 ? 's seront transférés' : ' sera transféré'} à ${pendingTransferConfirm?.targetName ?? ''}.`}
+        confirmText={t('team.orgGovernance.transferBtn') || 'Transférer'}
+        isLoading={migrating}
+        onConfirm={async () => {
+          setPendingTransferConfirm(null)
+          await executeTransfer()
+        }}
+        onCancel={() => setPendingTransferConfirm(null)}
+      />
+    </>
   )
 }

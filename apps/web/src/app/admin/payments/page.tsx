@@ -1,9 +1,10 @@
 'use client'
 
+import { useState } from 'react'
 import { AppShell } from '@/components/layout/AppShell'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { LoadingState, ErrorState } from '@/components/feedback/index'
-import { DataCard } from '@/components/ui/index'
+import { DataCard, ConfirmDialog } from '@/components/ui/index'
 import { AdminPaymentsTable } from '@/features/admin/components/AdminPaymentsTable'
 import { useAdminPayments } from '@/features/admin/hooks/useAdminPayments'
 import { useValidateAdminPayment } from '@/features/admin/hooks/useValidateAdminPayment'
@@ -16,39 +17,32 @@ export default function AdminPaymentsPage() {
   const { pushToast } = useToast()
   const { t } = useTranslation()
 
-  async function handleValidate(reference: string) {
-    const confirmed = window.confirm(
-      t('admin.paymentConfirmValidate') ||
-        "Voulez-vous vraiment valider ce paiement ? Cela activera immédiatement le plan correspondant pour l'utilisateur."
-    )
-    if (!confirmed) return
+  type PendingAction = { reference: string; action: 'validate' | 'reject' }
+  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false)
+  const [confirmLoading, setConfirmLoading] = useState(false)
 
-    try {
-      await validateMutation.mutateAsync({ reference, action: 'validate' })
-      pushToast({
-        type: 'success',
-        title: t('admin.paymentValidated') || 'Paiement validé avec succès'
-      })
-    } catch (error) {
-      pushToast({
-        type: 'error',
-        title: t('admin.paymentError') || 'Erreur',
-        description: error instanceof Error ? error.message : 'Erreur inconnue'
-      })
-    }
+  function handleValidate(reference: string) {
+    setPendingAction({ reference, action: 'validate' })
+    setIsConfirmOpen(true)
   }
 
-  async function handleReject(reference: string) {
-    const confirmed = window.confirm(
-      t('admin.paymentConfirmReject') || 'Voulez-vous vraiment rejeter ce paiement ?'
-    )
-    if (!confirmed) return
+  function handleReject(reference: string) {
+    setPendingAction({ reference, action: 'reject' })
+    setIsConfirmOpen(true)
+  }
 
+  async function handleConfirmAction() {
+    if (!pendingAction) return
+    setConfirmLoading(true)
     try {
-      await validateMutation.mutateAsync({ reference, action: 'reject' })
+      await validateMutation.mutateAsync(pendingAction)
       pushToast({
         type: 'success',
-        title: t('admin.paymentRejected') || 'Paiement rejeté'
+        title:
+          pendingAction.action === 'validate'
+            ? t('admin.paymentValidated') || 'Paiement validé avec succès'
+            : t('admin.paymentRejected') || 'Paiement rejeté'
       })
     } catch (error) {
       pushToast({
@@ -56,10 +50,16 @@ export default function AdminPaymentsPage() {
         title: t('admin.paymentError') || 'Erreur',
         description: error instanceof Error ? error.message : 'Erreur inconnue'
       })
+    } finally {
+      setConfirmLoading(false)
+      setIsConfirmOpen(false)
+      setPendingAction(null)
     }
   }
 
   const payments = paymentsQuery.data?.items ?? []
+
+  const isValidate = pendingAction?.action === 'validate'
 
   return (
     <AppShell>
@@ -83,6 +83,28 @@ export default function AdminPaymentsPage() {
           />
         ) : null}
       </DataCard>
+
+      <ConfirmDialog
+        isOpen={isConfirmOpen}
+        variant={isValidate ? 'info' : 'danger'}
+        title={
+          isValidate
+            ? t('admin.paymentConfirmValidate') || 'Valider ce paiement ?'
+            : t('admin.paymentConfirmReject') || 'Rejeter ce paiement ?'
+        }
+        description={
+          isValidate
+            ? "Cette action activera immédiatement le plan correspondant pour l'utilisateur."
+            : 'Le paiement sera définitivement rejeté.'
+        }
+        confirmText={isValidate ? 'Valider' : 'Rejeter'}
+        isLoading={confirmLoading}
+        onConfirm={handleConfirmAction}
+        onCancel={() => {
+          setIsConfirmOpen(false)
+          setPendingAction(null)
+        }}
+      />
     </AppShell>
   )
 }

@@ -543,7 +543,7 @@ export async function PATCH(request: NextRequest) {
       updatedAt: new Date()
     })
 
-    // Notification In-App automatique pour le commercial assigné
+    // Notification In-App et Email automatique pour le commercial assigné
     try {
       const { createUserNotification } = await import('@/lib/user-notifications')
       const deadlineText = effectiveDeadline
@@ -566,6 +566,23 @@ export async function PATCH(request: NextRequest) {
           companyName
         }
       })
+
+      if (memberEmail) {
+        const { sendProspectAssignmentEmail } = await import('@/lib/notification-emails')
+        await sendProspectAssignmentEmail({
+          to: memberEmail,
+          recipientName: memberName,
+          managerName,
+          companyName,
+          deadline: effectiveDeadline,
+          details: {
+            sector: (prospectData.sector || prospectData.companySector || null) as string | null,
+            city: (prospectData.city || prospectData.companyCity || null) as string | null,
+            phone: (prospectData.phone || prospectData.companyPhone || null) as string | null,
+            email: (prospectData.email || prospectData.companyEmail || null) as string | null
+          }
+        })
+      }
     } catch (notifErr) {
       console.warn('[imports PATCH] Erreur envoi notification commercial:', notifErr)
     }

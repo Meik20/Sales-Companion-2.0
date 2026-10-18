@@ -6,6 +6,8 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useAdminImports } from '@/features/admin/hooks/useAdminImports'
 import { useTranslation } from '@/providers/I18nProvider'
+import { ConfirmDialog } from '@/components/ui/index'
+import { useToast } from '@/hooks/useToast'
 import {
   Upload,
   UploadCloud,
@@ -47,6 +49,9 @@ export default function AdminImportsPage() {
   const [historyPage, setHistoryPage] = useState(1)
   const { data, isLoading, isError, refetch } = useAdminImports(historyPage)
   const { t } = useTranslation()
+  const { pushToast } = useToast()
+  const [isConfirmClearOpen, setIsConfirmClearOpen] = useState(false)
+  const [clearing, setClearing] = useState(false)
 
   /* ── upload logic ── */
   async function handleFile(file: File) {
@@ -106,11 +111,12 @@ export default function AdminImportsPage() {
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
-  async function handleClearHistory() {
-    if (!window.confirm(t('admin.confirmClearHistory'))) {
-      return
-    }
+  function handleClearHistory() {
+    setIsConfirmClearOpen(true)
+  }
 
+  async function executeClearHistory() {
+    setClearing(true)
     try {
       const token = await user?.getIdToken()
       const res = await fetch('/api/admin/imports', {
@@ -120,9 +126,20 @@ export default function AdminImportsPage() {
 
       if (!res.ok) throw new Error(t('admin.errorDelete'))
 
+      pushToast({
+        type: 'success',
+        title: t('admin.historyCleared') || 'Historique effacé avec succès'
+      })
       refetch()
     } catch (e) {
-      alert(e instanceof Error ? e.message : t('admin.errorNetwork'))
+      pushToast({
+        type: 'error',
+        title: t('common.error') || 'Erreur',
+        description: e instanceof Error ? e.message : t('admin.errorNetwork')
+      })
+    } finally {
+      setClearing(false)
+      setIsConfirmClearOpen(false)
     }
   }
 
@@ -782,6 +799,17 @@ export default function AdminImportsPage() {
           )}
         </div>
       </div>
+      <ConfirmDialog
+        isOpen={isConfirmClearOpen}
+        variant="danger"
+        title={t('admin.confirmClearHistoryTitle') || "Effacer l'historique ?"}
+        description={t('admin.confirmClearHistory') || "Êtes-vous sûr de vouloir effacer tout l'historique des imports ?"}
+        confirmText={t('common.delete') || 'Effacer'}
+        cancelText={t('common.cancel') || 'Annuler'}
+        isLoading={clearing}
+        onConfirm={executeClearHistory}
+        onCancel={() => setIsConfirmClearOpen(false)}
+      />
     </AppShell>
   )
 }

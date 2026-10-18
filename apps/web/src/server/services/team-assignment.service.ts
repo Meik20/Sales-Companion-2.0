@@ -522,7 +522,7 @@ export const TeamAssignmentService = {
       updatedAt: FieldValue.serverTimestamp()
     })
 
-    // 9. Notification automatique In-App pour le commercial assigné
+    // 9. Notification automatique In-App et Email pour le commercial assigné
     try {
       const { createUserNotification } = await import('@/lib/user-notifications')
       const deadlineText = params.deadline
@@ -545,6 +545,23 @@ export const TeamAssignmentService = {
           companyName
         }
       })
+
+      if (memberEmail) {
+        const { sendProspectAssignmentEmail } = await import('@/lib/notification-emails')
+        await sendProspectAssignmentEmail({
+          to: memberEmail,
+          recipientName: memberName,
+          managerName,
+          companyName,
+          deadline: params.deadline || null,
+          details: {
+            sector: (prospectData.companySector || prospectData.sector || prospectData.secteur || null) as string | null,
+            city: (prospectData.companyCity || prospectData.city || prospectData.ville || null) as string | null,
+            phone: (prospectData.companyPhone || prospectData.telephone || prospectData.phone || null) as string | null,
+            email: (prospectData.companyEmail || prospectData.email || null) as string | null
+          }
+        })
+      }
     } catch (notifErr) {
       console.warn('[TeamAssignmentService] Erreur envoi notification commercial:', notifErr)
     }

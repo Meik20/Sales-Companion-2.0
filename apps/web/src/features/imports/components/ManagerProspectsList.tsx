@@ -5,6 +5,7 @@ import { useTranslation } from '@/providers/I18nProvider'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useToast } from '@/hooks/useToast'
 import { EmptyState } from '@/components/feedback'
+import { ConfirmDialog } from '@/components/ui/index'
 import { RotateCw, Loader2, Trash2, Check, X, ArrowRightLeft, Users, Clock } from 'lucide-react'
 import { DeadlineBadge } from '@/components/ui/DeadlineBadge'
 
@@ -307,6 +308,7 @@ export function ManagerProspectsList({
   const [clearingAll, setClearingAll] = useState(false)
   const [confirmClearAll, setConfirmClearAll] = useState(false)
   const [deletingSelected, setDeletingSelected] = useState(false)
+  const [pendingTransfer, setPendingTransfer] = useState<{ confirmMsg: string; targetName: string } | null>(null)
 
   // Only active members can receive assignments
   const activeMembers = members.filter((m) => m.active !== false)
@@ -466,8 +468,13 @@ export function ManagerProspectsList({
       .replace('{count}', String(selected.size))
       .replace('{name}', targetName)
 
-    if (!window.confirm(confirmMsg)) return
+    setPendingTransfer({ confirmMsg, targetName })
+  }
 
+  async function executeTransferSelected() {
+    if (!user || selected.size === 0 || !selectedTargetTmUid) return
+    const targetTm = teamManagers.find((tm) => tm.uid === selectedTargetTmUid)
+    const targetName = targetTm?.name || selectedTargetTmUid
     setTransferring(true)
     try {
       const token = await user.getIdToken()
@@ -620,6 +627,7 @@ export function ManagerProspectsList({
   }
 
   return (
+    <>
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       {/* ── Barre de filtres ── */}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -1400,5 +1408,21 @@ export function ManagerProspectsList({
         </div>
       )}
     </div>
+
+    <ConfirmDialog
+      isOpen={Boolean(pendingTransfer)}
+      title={t('team.confirmTransferTitle') || 'Confirmer le transfert'}
+      description={pendingTransfer?.confirmMsg}
+      confirmText={t('common.confirm') || 'Confirmer'}
+      cancelText={t('common.cancel') || 'Annuler'}
+      variant="info"
+      isLoading={transferring}
+      onConfirm={async () => {
+        setPendingTransfer(null)
+        await executeTransferSelected()
+      }}
+      onCancel={() => setPendingTransfer(null)}
+    />
+    </>
   )
 }

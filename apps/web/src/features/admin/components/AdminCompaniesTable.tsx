@@ -8,6 +8,7 @@ import { SectionCard } from '@/features/team/components/SectionCard'
 import { useToast } from '@/hooks/useToast'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useTranslation } from '@/providers/I18nProvider'
+import { ConfirmDialog } from '@/components/ui/index'
 import {
   Building2,
   Hash,
@@ -30,6 +31,7 @@ export function AdminCompaniesTable() {
   const [page, setPage] = useState(1)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [isDeleting, setIsDeleting] = useState(false)
+  const [deleteType, setDeleteType] = useState<'selected' | 'all' | null>(null)
   const { data, isLoading, isError } = useAdminCompanies(page)
   const { user } = useCurrentUser()
   const deleteMutation = useDeleteAdminCompanies()
@@ -77,45 +79,11 @@ export function AdminCompaniesTable() {
 
   const handleDeleteSelected = async () => {
     if (selectedIds.length === 0) return
-    if (!window.confirm(`Supprimer ${selectedIds.length} entreprise(s) ?`)) {
-      return
-    }
-
-    setIsDeleting(true)
-    try {
-      await deleteMutation.mutateAsync(selectedIds)
-      setSelectedIds([])
-      pushToast({ type: 'success', title: 'Entreprises supprimées' })
-    } catch (error) {
-      pushToast({
-        type: 'error',
-        title: 'Suppression impossible',
-        description: error instanceof Error ? error.message : 'Erreur inconnue'
-      })
-    } finally {
-      setIsDeleting(false)
-    }
+    setDeleteType('selected')
   }
 
   const handleDeleteAll = async () => {
-    if (!window.confirm('Supprimer toutes les entreprises importées ?')) {
-      return
-    }
-
-    setIsDeleting(true)
-    try {
-      await deleteAllMutation.mutateAsync()
-      setSelectedIds([])
-      pushToast({ type: 'success', title: 'Liste des entreprises vidée' })
-    } catch (error) {
-      pushToast({
-        type: 'error',
-        title: 'Suppression impossible',
-        description: error instanceof Error ? error.message : 'Erreur inconnue'
-      })
-    } finally {
-      setIsDeleting(false)
-    }
+    setDeleteType('all')
   }
 
   const handleExport = async () => {
@@ -508,6 +476,46 @@ export function AdminCompaniesTable() {
           )}
         </>
       )}
+
+      <ConfirmDialog
+        isOpen={deleteType !== null}
+        variant="danger"
+        title={
+          deleteType === 'all'
+            ? 'Vider la liste des entreprises ?'
+            : `Supprimer ${selectedIds.length} entreprise${selectedIds.length > 1 ? 's' : ''} ?`
+        }
+        description={
+          deleteType === 'all'
+            ? 'Toutes les entreprises importées seront définitivement supprimées. Cette action est irréversible.'
+            : `${selectedIds.length} entreprise${selectedIds.length > 1 ? 's sélectionnées seront supprimées' : ' sélectionnée sera supprimée'}. Cette action est irréversible.`
+        }
+        isLoading={isDeleting}
+        onCancel={() => setDeleteType(null)}
+        onConfirm={async () => {
+          setIsDeleting(true)
+          try {
+            if (deleteType === 'all') {
+              await deleteAllMutation.mutateAsync()
+              setSelectedIds([])
+              pushToast({ type: 'success', title: 'Liste des entreprises vidée' })
+            } else {
+              await deleteMutation.mutateAsync(selectedIds)
+              setSelectedIds([])
+              pushToast({ type: 'success', title: 'Entreprises supprimées' })
+            }
+          } catch (error) {
+            pushToast({
+              type: 'error',
+              title: 'Suppression impossible',
+              description: error instanceof Error ? error.message : 'Erreur inconnue'
+            })
+          } finally {
+            setIsDeleting(false)
+            setDeleteType(null)
+          }
+        }}
+      />
     </SectionCard>
   )
 }

@@ -5,6 +5,7 @@ import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useToast } from '@/hooks/useToast'
 import { useTranslation } from '@/providers/I18nProvider'
 import { EmptyState } from '@/components/feedback'
+import { ConfirmDialog } from '@/components/ui/index'
 import { X, Link2, Loader2, Headphones, Copy, Check, ShieldCheck, ShieldAlert } from 'lucide-react'
 
 type SupportLink = {
@@ -25,6 +26,7 @@ export function CrossTeamSupportManager() {
   const [inputId, setInputId] = useState('')
   const [linking, setLinking] = useState(false)
   const [revoking, setRevoking] = useState<string | null>(null)
+  const [pendingRevoke, setPendingRevoke] = useState<{ linkId: string; agentName: string } | null>(null)
   const [orgData, setOrgData] = useState<{
     orgCode: string
     niu: string | null
@@ -109,10 +111,14 @@ export function CrossTeamSupportManager() {
   }
 
   async function handleRevoke(linkId: string, agentName: string) {
-    if (!user || !confirm(t('team.crossTeamSupport.revokeConfirm').replace('{name}', agentName))) return
+    if (!user) return
+    setPendingRevoke({ linkId, agentName })
+  }
+
+  async function executeRevoke(linkId: string, agentName: string) {
     setRevoking(linkId)
     try {
-      const token = await user.getIdToken()
+      const token = await user!.getIdToken()
       const res = await fetch(`/api/team/support-links/${linkId}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
@@ -130,6 +136,7 @@ export function CrossTeamSupportManager() {
   if (user?.role !== 'manager') return null
 
   return (
+    <>
     <div
       style={{
         background: 'var(--card, #131c2e)',
@@ -418,5 +425,22 @@ export function CrossTeamSupportManager() {
         </div>
       )}
     </div>
+
+      <ConfirmDialog
+        isOpen={pendingRevoke !== null}
+        variant="warning"
+        title={t('team.crossTeamSupport.revokeConfirm').replace('{name}', pendingRevoke?.agentName ?? '')}
+        description={`L'agent ${pendingRevoke?.agentName ?? ''} n'aura plus accès au support de cette organisation.`}
+        confirmText={t('team.crossTeamSupport.revoke')}
+        isLoading={revoking === pendingRevoke?.linkId}
+        onConfirm={() => {
+          if (pendingRevoke) {
+            void executeRevoke(pendingRevoke.linkId, pendingRevoke.agentName)
+            setPendingRevoke(null)
+          }
+        }}
+        onCancel={() => setPendingRevoke(null)}
+      />
+    </>
   )
 }

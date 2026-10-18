@@ -162,9 +162,10 @@ export async function POST(request: NextRequest) {
       await batch.commit()
     }
 
-    // Notification automatique In-App pour le Team Manager destinataire
+    // Notification automatique In-App et Email pour le Team Manager destinataire
     try {
       const { createUserNotification } = await import('@/lib/user-notifications')
+      const { sendProspectTransferEmail } = await import('@/lib/notification-emails')
       const callerName =
         callerData.displayName || callerData.name || callerData.email || 'Senior Manager'
       const deadlineText = deadline
@@ -187,6 +188,16 @@ export async function POST(request: NextRequest) {
           deadline: deadline || null
         }
       })
+
+      if (targetData.email) {
+        await sendProspectTransferEmail({
+          to: targetData.email,
+          recipientName: targetManagerName,
+          senderName: callerName,
+          count: transferredCount,
+          deadline: deadline || null
+        })
+      }
     } catch (notifErr) {
       console.warn('[POST /api/imports/transfer] Erreur envoi notification:', notifErr)
     }

@@ -36,6 +36,7 @@ import {
   AlertTriangle
 } from 'lucide-react'
 import { useTranslation } from '@/providers/I18nProvider'
+import { ConfirmDialog } from '@/components/ui/index'
 
 type Thread = {
   id: string
@@ -91,6 +92,15 @@ export default function AdminSupportPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [filterStatus, setFilterStatus] = useState<'all' | 'open' | 'resolved'>('all')
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean
+    title: string
+    description: string
+    variant?: 'danger' | 'warning' | 'info'
+    confirmText?: string
+    cancelText?: string
+    onConfirm: () => Promise<void> | void
+  } | null>(null)
   const { t } = useTranslation()
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -180,11 +190,21 @@ export default function AdminSupportPage() {
     return () => unsubscribe()
   }, [selected?.id])
 
-  async function handleApproveDomain(thread: Thread) {
+  function handleApproveDomain(thread: Thread) {
     if (!user || !thread.userEmail) return
-    const confirmMsg = `Confirmez-vous la validation de la dérogation pour ${thread.userName || thread.userEmail} (${thread.companyName || 'Entreprise'}) ?\n\nUn email contenant le lien d'inscription sécurisé lui sera envoyé immédiatement.`
-    if (!window.confirm(confirmMsg)) return
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Validation de la dérogation',
+      description: `Confirmez-vous la validation de la dérogation pour ${thread.userName || thread.userEmail} (${thread.companyName || 'Entreprise'}) ? Un email contenant le lien d'inscription sécurisé lui sera envoyé immédiatement.`,
+      variant: 'info',
+      confirmText: 'Valider et envoyer',
+      cancelText: 'Annuler',
+      onConfirm: () => executeApproveDomain(thread)
+    })
+  }
 
+  async function executeApproveDomain(thread: Thread) {
+    if (!user || !thread.userEmail) return
     setApproving(true)
     setError(null)
     setActionSuccess(null)
@@ -241,11 +261,21 @@ export default function AdminSupportPage() {
     }
   }
 
-  async function handleApproveProfileChange(thread: Thread) {
+  function handleApproveProfileChange(thread: Thread) {
     if (!user || !thread.id) return
-    const confirmMsg = `Confirmez-vous la validation de la modification de profil pour ${thread.userName || thread.userEmail} (${thread.companyName || 'Entreprise'}) ?\n\nUn lien sécurisé valable 24h lui sera envoyé par email et dans cette discussion.`
-    if (!window.confirm(confirmMsg)) return
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Validation de modification de profil',
+      description: `Confirmez-vous la validation de la modification de profil pour ${thread.userName || thread.userEmail} (${thread.companyName || 'Entreprise'}) ? Un lien sécurisé valable 24h lui sera envoyé par email et dans cette discussion.`,
+      variant: 'info',
+      confirmText: 'Valider et envoyer',
+      cancelText: 'Annuler',
+      onConfirm: () => executeApproveProfileChange(thread)
+    })
+  }
 
+  async function executeApproveProfileChange(thread: Thread) {
+    if (!user || !thread.id) return
     setApproving(true)
     setError(null)
     setActionSuccess(null)
@@ -420,15 +450,20 @@ export default function AdminSupportPage() {
     }
   }
 
-  async function handleDeleteThread(e: React.MouseEvent, id: string) {
+  function handleDeleteThread(e: React.MouseEvent, id: string) {
     e.stopPropagation()
-    if (
-      !window.confirm(
-        'Voulez-vous vraiment supprimer définitivement ce ticket et tous ses messages ?'
-      )
-    )
-      return
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Suppression définitive du ticket',
+      description: 'Voulez-vous vraiment supprimer définitivement ce ticket et tous ses messages ? Cette action est irréversible.',
+      variant: 'danger',
+      confirmText: 'Supprimer',
+      cancelText: 'Annuler',
+      onConfirm: () => executeDeleteThread(id)
+    })
+  }
 
+  async function executeDeleteThread(id: string) {
     try {
       if (user) {
         const token = await user.getIdToken()
@@ -460,9 +495,21 @@ export default function AdminSupportPage() {
     }
   }
 
-  async function handleDeleteMessage(messageId: string) {
+  function handleDeleteMessage(messageId: string) {
     if (!selected) return
-    if (!window.confirm('Voulez-vous vraiment supprimer ce message ?')) return
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Supprimer ce message',
+      description: 'Voulez-vous vraiment supprimer ce message ?',
+      variant: 'danger',
+      confirmText: 'Supprimer',
+      cancelText: 'Annuler',
+      onConfirm: () => executeDeleteMessage(messageId)
+    })
+  }
+
+  async function executeDeleteMessage(messageId: string) {
+    if (!selected) return
 
     try {
       if (user) {
@@ -1641,6 +1688,23 @@ export default function AdminSupportPage() {
           )}
         </div>
       </div>
+      {confirmDialog && (
+        <ConfirmDialog
+          isOpen={confirmDialog.isOpen}
+          title={confirmDialog.title}
+          description={confirmDialog.description}
+          variant={confirmDialog.variant ?? 'info'}
+          confirmText={confirmDialog.confirmText}
+          cancelText={confirmDialog.cancelText}
+          isLoading={approving}
+          onConfirm={async () => {
+            const action = confirmDialog.onConfirm
+            setConfirmDialog(null)
+            await action()
+          }}
+          onCancel={() => setConfirmDialog(null)}
+        />
+      )}
     </AppShell>
   )
 }
