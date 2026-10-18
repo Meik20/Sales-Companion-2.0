@@ -254,6 +254,43 @@ export async function POST(request: NextRequest) {
         })
     }
 
+    // Miroir de sauvegarde confidentiel sur Supabase private_prospects pour délestage des quotas
+    try {
+      const { isPrivateProspectsTableAvailable, bulkInsertPrivateProspects } = await import(
+        '@/lib/supabase-private-prospects'
+      )
+      const isAvailable = await isPrivateProspectsTableAvailable()
+      if (isAvailable) {
+        await bulkInsertPrivateProspects([
+          {
+            id: docRef.id,
+            org_code: callerData.orgCode ?? null,
+            user_id: userId,
+            manager_uid: managerUid ?? null,
+            assigned_to: finalAssignedTo ?? null,
+            assigned_member_name: finalMemberName ?? null,
+            company_name: companyName,
+            country_code: targetCountry,
+            sector: companySector ?? null,
+            city: companyCity ?? null,
+            quarter: companyQuarter ?? null,
+            region: companyRegion ?? null,
+            phone: finalPhone ?? null,
+            email: companyEmail ?? null,
+            notes: null,
+            status: 'prospection',
+            transfer_deadline: null,
+            assignment_deadline: null,
+            transferred_to_manager_uid: null,
+            transferred_from_senior_uid: null,
+            pipeline_entry_id: docRef.id
+          }
+        ])
+      }
+    } catch (sbErr) {
+      console.warn('[pipeline/add] Non-blocking Supabase sync error:', sbErr)
+    }
+
     return NextResponse.json({ success: true, id: docRef.id })
 
   } catch (error) {

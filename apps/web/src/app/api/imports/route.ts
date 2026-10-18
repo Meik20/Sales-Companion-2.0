@@ -65,7 +65,27 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: 'Accès refusé' }, { status: 403 })
     }
 
-    // Query simplifiée : where seulement (pas d'orderBy pour éviter les composite indexes)
+    // ── Détection et interrogation Supabase private_prospects (Zéro quota Firestore) ──
+    let supabaseProspects: any[] = []
+    try {
+      const { isPrivateProspectsTableAvailable, getPrivateProspects, supabasePrivateProspectToApp } =
+        await import('@/lib/supabase-private-prospects')
+      if (await isPrivateProspectsTableAvailable()) {
+        const isSenior = callerData?.orgRole === 'senior_manager' && managerId === callerUid
+        const sbRes = await getPrivateProspects({
+          orgCode: callerData?.orgCode || undefined,
+          managerUid: isSenior ? undefined : managerId,
+          userId: isSenior ? callerUid : (callerData?.role === 'independent' ? callerUid : undefined),
+          assignedTo: assignedTo || undefined,
+          limit: 3000
+        })
+        supabaseProspects = sbRes.prospects.map(supabasePrivateProspectToApp)
+      }
+    } catch (sbErr) {
+      console.warn('[imports GET] Supabase lookup error:', sbErr)
+    }
+
+    // Query Firestore (legacy / transition) : where seulement (pas d'orderBy pour éviter les composite indexes)
     let snapDocs: FirebaseFirestore.QueryDocumentSnapshot[] = []
 
     if (callerData?.orgRole === 'senior_manager' && managerId === callerUid) {
@@ -102,8 +122,29 @@ export async function GET(request: NextRequest) {
       }
     })
 
+    // Fusion dédoublonnée (Supabase prioritaire + Firestore legacy)
+    const seen = new Set<string>()
+    const mergedProspects: any[] = []
+
+    for (const p of supabaseProspects) {
+      if (!seen.has(p.id)) {
+        seen.add(p.id)
+        mergedProspects.push({
+          ...p,
+          createdAt: typeof p.createdAt === 'string' ? new Date(p.createdAt) : p.createdAt
+        })
+      }
+    }
+
+    for (const p of prospects) {
+      if (!seen.has(p.id)) {
+        seen.add(p.id)
+        mergedProspects.push(p)
+      }
+    }
+
     // Trier par createdAt (descendant)
-    prospects.sort((a, b) => {
+    mergedProspects.sort((a, b) => {
       const aTime = a.createdAt instanceof Date ? a.createdAt.getTime() : 0
       const bTime = b.createdAt instanceof Date ? b.createdAt.getTime() : 0
       return bTime - aTime
@@ -111,8 +152,8 @@ export async function GET(request: NextRequest) {
 
     // Filtrage optionnel par assigné
     const filtered = assignedTo
-      ? prospects.filter((p: Record<string, unknown>) => p.assignedTo === assignedTo)
-      : prospects
+      ? mergedProspects.filter((p: Record<string, unknown>) => p.assignedTo === assignedTo)
+      : mergedProspects
 
     return NextResponse.json({ prospects: filtered })
   } catch (error) {
@@ -238,14 +279,115 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Maximum 3000 prospects par import' }, { status: 400 })
     }
 
-    // Écriture en multi-batch Firestore (limite Firestore = 500 writes par batch)
+    const now = new Date()
+    const targetCountry = ((callerData?.country as string) || 'CM').toUpperCase()
+    const isIndependent = callerRole === 'independent'
+
+    // ── Détection et écriture directe sur Supabase private_prospects (Délestage quotas) ──
+    let useSupabase = false
+    try {
+      const { isPrivateProspectsTableAvailable } = await import('@/lib/supabase-private-prospects')
+      useSupabase = await isPrivateProspectsTableAvailable()
+    } catch {
+      useSupabase = false
+    }
+
+    if (useSupabase) {
+      const { bulkInsertPrivateProspects } = await import('@/lib/supabase-private-prospects')
+
+      const supabaseRows = prospects.map((p, idx) => {
+        const id = `imp_${Date.now()}_${idx}_${Math.random().toString(36).substring(2, 8)}`
+        return {
+          id,
+          org_code: callerData?.orgCode ?? null,
+          user_id: callerUid,
+          manager_uid: managerId,
+          assigned_to: p.assignedTo ?? null,
+          assigned_member_name: null,
+          company_name: (p.name ?? '').trim() || '—',
+          country_code: targetCountry,
+          sector: (p.sector ?? '').trim() || null,
+          city: (p.city ?? '').trim() || null,
+          quarter: null,
+          region: null,
+          phone: (p.phone ?? '').trim() || null,
+          email: (p.email ?? '').trim() || null,
+          notes: (p.notes ?? '').trim() || null,
+          status: 'new',
+          transfer_deadline: null,
+          assignment_deadline: null,
+          transferred_to_manager_uid: null,
+          transferred_from_senior_uid: null,
+          pipeline_entry_id: null
+        }
+      })
+
+      await bulkInsertPrivateProspects(supabaseRows)
+
+      // Pour un indépendant, insérer aussi dans son pipeline de prospection direct
+      if (isIndependent) {
+        let currentBatch = adminDb.batch()
+        let batchOps = 0
+        const pipeColRef = adminDb.collection('pipeline')
+        for (let i = 0; i < prospects.length; i++) {
+          const p = prospects[i]!
+          const sbRow = supabaseRows[i]!
+          const pipeRef = pipeColRef.doc()
+          currentBatch.set(pipeRef, {
+            userId: callerUid,
+            managerUid: null,
+            orgCode: null,
+            assignedTo: null,
+            memberName: callerData?.displayName || callerData?.name || null,
+            companyName: (p.name ?? '').trim() || '—',
+            companyPhone: (p.phone ?? '').trim() || null,
+            companyEmail: (p.email ?? '').trim() || null,
+            companyCity: (p.city ?? '').trim() || null,
+            companySector: (p.sector ?? '').trim() || null,
+            notes: (p.notes ?? '').trim() || null,
+            status: 'prospection',
+            source: 'import',
+            originSource: 'import',
+            sourceProspectId: sbRow.id,
+            country: targetCountry,
+            companyCountry: targetCountry,
+            createdAt: now,
+            updatedAt: now
+          })
+          batchOps++
+          if (batchOps >= 490) {
+            await currentBatch.commit()
+            currentBatch = adminDb.batch()
+            batchOps = 0
+          }
+        }
+        if (batchOps > 0) {
+          await currentBatch.commit()
+        }
+      }
+
+      // Heartbeat temps réel de l'organisation : 1 seule écriture Firestore au lieu de 3000
+      const orgCode = callerData?.orgCode as string | undefined
+      if (orgCode) {
+        try {
+          await adminDb.collection('organisations').doc(orgCode).update({
+            lastPipelineUpdate: now.toISOString(),
+            lastImportsUpdate: now.toISOString()
+          })
+        } catch (orgErr) {
+          console.warn('[imports POST] org heartbeat update failed:', orgErr)
+        }
+      }
+
+      return NextResponse.json({ success: true, count: prospects.length, backend: 'supabase' })
+    }
+
+    // Écriture en multi-batch Firestore (fallback si Supabase private_prospects non déployé)
     let importedCount = 0
     let currentBatch = adminDb.batch()
     let batchOps = 0
     const colRef = adminDb.collection('manager_prospects')
-    const isIndependent = callerRole === 'independent'
     const pipeColRef = isIndependent ? adminDb.collection('pipeline') : null
-    const now = new Date()
 
     const flush = async () => {
       if (batchOps > 0) {
@@ -307,7 +449,7 @@ export async function POST(request: NextRequest) {
     }
     await flush()
 
-    return NextResponse.json({ success: true, count: importedCount })
+    return NextResponse.json({ success: true, count: importedCount, backend: 'firestore' })
   } catch (error) {
     console.error('[imports POST] Error importing prospects:', error)
     const msg = error instanceof Error ? error.message : 'Erreur serveur inconnue'
@@ -363,11 +505,44 @@ export async function PATCH(request: NextRequest) {
     }
 
     // ── Charger le prospect importé ───────────────────────────────────────
+    let prospectData: any = null
+    let isSupabaseProspect = false
     const prospectRef = adminDb.collection('manager_prospects').doc(prospectId)
     const prospectSnap = await prospectRef.get()
 
-    const prospectData = prospectSnap.data()
-    if (!prospectSnap.exists || !prospectData || prospectData.managerId !== managerId) {
+    if (prospectSnap.exists) {
+      prospectData = prospectSnap.data()
+    } else {
+      try {
+        const { getPrivateProspects } = await import('@/lib/supabase-private-prospects')
+        const sbRes = await getPrivateProspects({
+          orgCode: managerOrgCode,
+          managerUid,
+          limit: 100
+        })
+        const found = sbRes.prospects.find((p) => p.id === prospectId)
+        if (found) {
+          prospectData = {
+            name: found.company_name,
+            companyName: found.company_name,
+            managerId: found.manager_uid,
+            orgCode: found.org_code,
+            assignedTo: found.assigned_to,
+            phone: found.phone,
+            email: found.email,
+            city: found.city,
+            sector: found.sector,
+            transferDeadline: found.transfer_deadline,
+            assignmentDeadline: found.assignment_deadline
+          }
+          isSupabaseProspect = true
+        }
+      } catch (sbErr) {
+        console.warn('[imports PATCH] Supabase lookup error:', sbErr)
+      }
+    }
+
+    if (!prospectData || prospectData.managerId !== managerId) {
       return NextResponse.json({ message: 'Prospect non trouvé ou accès refusé' }, { status: 403 })
     }
 
@@ -377,7 +552,20 @@ export async function PATCH(request: NextRequest) {
     // ── Cas 1 : DÉSASSIGNATION (assignedTo = null / vide) ─────────────────
     if (!assignedTo) {
       // Mettre à jour le prospect importé
-      await prospectRef.update({ assignedTo: null, updatedAt: new Date() })
+      if (isSupabaseProspect) {
+        try {
+          const { updatePrivateProspect } = await import('@/lib/supabase-private-prospects')
+          await updatePrivateProspect(
+            prospectId,
+            { assigned_to: null, assigned_member_name: null },
+            { orgCode: managerOrgCode, userId: managerUid }
+          )
+        } catch (sbErr) {
+          console.warn('[imports PATCH] Supabase unassign error:', sbErr)
+        }
+      } else {
+        await prospectRef.update({ assignedTo: null, updatedAt: new Date() })
+      }
 
       // Supprimer l'entrée pipeline du membre précédent (si elle existe)
       if (previousAssignedTo) {
@@ -570,7 +758,26 @@ export async function PATCH(request: NextRequest) {
     if (currentTransferDeadline && !prospectData.transferDeadline) {
       prospectUpdateData.transferDeadline = currentTransferDeadline
     }
-    await prospectRef.update(prospectUpdateData)
+
+    if (isSupabaseProspect) {
+      try {
+        const { updatePrivateProspect } = await import('@/lib/supabase-private-prospects')
+        await updatePrivateProspect(
+          prospectId,
+          {
+            assigned_to: assignedTo,
+            assigned_member_name: memberName,
+            assignment_deadline: effectiveDeadline,
+            pipeline_entry_id: pipelineEntryId
+          },
+          { orgCode: managerOrgCode, userId: managerUid }
+        )
+      } catch (sbErr) {
+        console.warn('[imports PATCH] Supabase assign error:', sbErr)
+      }
+    } else {
+      await prospectRef.update(prospectUpdateData)
+    }
 
     // Déclenchement de la synchronisation temps réel pour l'organisation
     const orgCode = (managerOrgCode || prospectData.orgCode) as string | undefined
@@ -750,18 +957,29 @@ export async function DELETE(request: NextRequest) {
     if (prospectId) {
       const ref = adminDb.collection('manager_prospects').doc(prospectId)
       const snap = await ref.get()
-      if (!snap.exists) {
-        return NextResponse.json({ success: true, count: 0 })
+      if (snap.exists) {
+        const data = snap.data()
+        const isOwner =
+          data?.managerId === managerId ||
+          data?.importedBy === callerUid ||
+          data?.transferredFromSeniorUid === callerUid
+        if (!isOwner && callerRole !== 'admin') {
+          return NextResponse.json({ message: 'Accès refusé' }, { status: 403 })
+        }
+        await ref.delete()
       }
-      const data = snap.data()
-      const isOwner =
-        data?.managerId === managerId ||
-        data?.importedBy === callerUid ||
-        data?.transferredFromSeniorUid === callerUid
-      if (!isOwner && callerRole !== 'admin') {
-        return NextResponse.json({ message: 'Accès refusé' }, { status: 403 })
+
+      // Supprimer aussi de Supabase si présent
+      try {
+        const { deletePrivateProspect } = await import('@/lib/supabase-private-prospects')
+        await deletePrivateProspect(prospectId, {
+          orgCode: callerData?.orgCode || null,
+          userId: callerUid
+        })
+      } catch {
+        // Ignorer si n'existe pas dans Supabase
       }
-      await ref.delete()
+
       return NextResponse.json({ success: true, count: 1 })
     }
 
