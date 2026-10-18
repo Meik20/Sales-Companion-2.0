@@ -522,6 +522,25 @@ export async function PATCH(request: NextRequest) {
       updatedAt: new Date()
     })
 
+    // Notification In-App automatique pour le commercial assigné
+    try {
+      const { createUserNotification } = await import('@/lib/user-notifications')
+      await createUserNotification({
+        userId: assignedTo,
+        type: 'prospect_assignment',
+        title: 'Nouveau prospect assigné',
+        message: `Votre manager (${managerName}) vous a assigné "${companyName}". Retrouvez-le dans votre Sales Pipeline dans la colonne Prospection.`,
+        link: '/pipeline',
+        metadata: {
+          senderUid: managerUid,
+          senderName: managerName,
+          companyName
+        }
+      })
+    } catch (notifErr) {
+      console.warn('[imports PATCH] Erreur envoi notification commercial:', notifErr)
+    }
+
     return NextResponse.json({ success: true, action: 'assigned', pipelineEntryId })
   } catch (error) {
     console.error('[imports PATCH] Error updating prospect:', error)

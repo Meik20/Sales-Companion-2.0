@@ -338,6 +338,28 @@ export async function POST(request: NextRequest) {
       await batch.commit()
     }
 
+    // Notification In-App automatique pour le Team Manager récepteur
+    try {
+      const { createUserNotification } = await import('@/lib/user-notifications')
+      const senderName = callerData.displayName || callerData.name || 'Le Senior Manager'
+      const count = pipelineDocsToTransfer.length
+
+      await createUserNotification({
+        userId: targetManagerUid,
+        type: 'prospect_transfer',
+        title: 'Nouveaux prospects transférés',
+        message: `${senderName} vous a transféré ${count} prospect${count > 1 ? 's' : ''} dans votre portefeuille. Retrouvez-${count > 1 ? 'les' : 'le'} dans votre Sales Pipeline.`,
+        link: '/pipeline',
+        metadata: {
+          senderUid: callerUid,
+          senderName,
+          count
+        }
+      })
+    } catch (notifErr) {
+      console.warn('[migrate-senior-members] Erreur notification Team Manager:', notifErr)
+    }
+
     return NextResponse.json({
       success: true,
       migratedCount: {

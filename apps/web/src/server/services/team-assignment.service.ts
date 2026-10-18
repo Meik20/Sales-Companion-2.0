@@ -243,7 +243,50 @@ export const TeamAssignmentService = {
     }
 
     // 3. Récupération et vérification du membre cible
-    const memberDoc = await adminDb.collection('users').doc(memberId).get()
+    let resolvedMemberUid = memberId
+    let memberDoc = await adminDb.collection('users').doc(memberId).get()
+
+    if (!memberDoc.exists) {
+      // Fallback 1 : recherche par accessId dans users
+      const byAccessId = await adminDb
+        .collection('users')
+        .where('accessId', '==', memberId)
+        .limit(1)
+        .get()
+      if (!byAccessId.empty) {
+        memberDoc = byAccessId.docs[0]!
+        resolvedMemberUid = memberDoc.id
+      } else {
+        // Fallback 2 : recherche par email dans users
+        const byEmail = await adminDb
+          .collection('users')
+          .where('email', '==', memberId.toLowerCase())
+          .limit(1)
+          .get()
+        if (!byEmail.empty) {
+          memberDoc = byEmail.docs[0]!
+          resolvedMemberUid = memberDoc.id
+        } else {
+          // Fallback 3 : recherche dans team_accesses pour trouver le firebaseUid lié
+          try {
+            const accDoc = await adminDb.collection('team_accesses').doc(memberId.toLowerCase()).get()
+            if (accDoc.exists) {
+              const fbUid = accDoc.data()?.firebaseUid || accDoc.data()?.uid
+              if (fbUid) {
+                const uDoc = await adminDb.collection('users').doc(fbUid).get()
+                if (uDoc.exists) {
+                  memberDoc = uDoc
+                  resolvedMemberUid = uDoc.id
+                }
+              }
+            }
+          } catch {
+            /* ignore */
+          }
+        }
+      }
+    }
+
     if (!memberDoc.exists) {
       throw new AssignmentBusinessError('Membre introuvable', 404)
     }
@@ -402,8 +445,8 @@ export const TeamAssignmentService = {
         prospectData.ville ||
         prospectData.region ||
         null,
-      userId: memberId,
-      assignedTo: memberId,
+      userId: resolvedMemberUid,
+      assignedTo: resolvedMemberUid,
       memberName: memberName,
       memberAccessId: memberAccessId ? memberAccessId.toLowerCase() : null,
       managerUid,
@@ -467,7 +510,7 @@ export const TeamAssignmentService = {
     await assignmentRef.set({
       managerUid,
       managerName,
-      memberId,
+      memberId: resolvedMemberUid,
       memberName,
       memberEmail,
       pipelineItemId,
@@ -490,7 +533,7 @@ export const TeamAssignmentService = {
         : ''
 
       await createUserNotification({
-        userId: memberId,
+        userId: resolvedMemberUid,
         type: 'prospect_assignment',
         title: 'Nouveau prospect assigné',
         message: `Votre Team Manager (${managerName}) vous a assigné "${companyName}"${deadlineText}. Retrouvez-le dans votre Sales Pipeline dans la colonne Prospection.`,

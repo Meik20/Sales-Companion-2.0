@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import {
   collection,
   query,
@@ -8,8 +8,7 @@ import {
   onSnapshot,
   limit,
   doc,
-  updateDoc,
-  writeBatch
+  updateDoc
 } from 'firebase/firestore'
 import { firestore } from '@/services/firebase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
@@ -33,14 +32,45 @@ export type UserNotification = {
 }
 
 /**
- * Hook temps réel pour les notifications utilisateur (commerciaux et managers).
- * Écoute Firestore onSnapshot sans polling.
+ * Hook hybride temps réel & API pour les notifications utilisateur (commerciaux et managers).
+ * Combine onSnapshot Firestore pour l'immédiateté et /api/notifications en fallback fiable.
  */
 export function useUserNotifications() {
   const { user } = useCurrentUser()
   const [notifications, setNotifications] = useState<UserNotification[]>([])
   const [loading, setLoading] = useState(true)
+  const isMountedRef = useRef(true)
 
+  // 1. Récupération fiable côté serveur via /api/notifications
+  const fetchFromApi = useCallback(async () => {
+    if (!user?.uid) return
+    try {
+      const token = await user.getIdToken?.()
+      if (!token) return
+
+      const res = await fetch('/api/notifications', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (!res.ok) return
+
+      const data = await res.json()
+      if (Array.isArray(data.notifications) && isMountedRef.current) {
+        setNotifications(data.notifications)
+        setLoading(false)
+      }
+    } catch (err) {
+      console.warn('[useUserNotifications] fetchFromApi error:', err)
+    }
+  }, [user])
+
+  useEffect(() => {
+    isMountedRef.current = true
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [])
+
+  // 2. Chargement initial via API + rafraîchissement doux
   useEffect(() => {
     if (!user?.uid) {
       setNotifications([])
@@ -48,7 +78,21 @@ export function useUserNotifications() {
       return
     }
 
-    // Requête filtrée par userId sans orderBy serveur pour éviter l'exigence d'un index composite
+    // Appel initial immédiat
+    void fetchFromApi()
+
+    // Polling doux toutes les 30 secondes en cas de problème de connexion Firestore
+    const interval = setInterval(() => {
+      void fetchFromApi()
+    }, 30000)
+
+    return () => clearInterval(interval)
+  }, [user?.uid, fetchFromApi])
+
+  // 3. Écoute Firestore temps réel (onSnapshot)
+  useEffect(() => {
+    if (!user?.uid) return
+
     const q = query(
       collection(firestore, 'userNotifications'),
       where('userId', '==', user.uid),
@@ -80,63 +124,89 @@ export function useUserNotifications() {
           }
         })
 
-        // Tri en mémoire du plus récent au plus ancien
         notifs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
-        setNotifications(notifs)
-        setLoading(false)
+        if (isMountedRef.current) {
+          setNotifications(notifs)
+          setLoading(false)
+        }
       },
       (error) => {
-        console.warn('[useUserNotifications] Erreur snapshot:', error)
-        setLoading(false)
+        // En cas d'erreur de règles Firestore, on s'appuie sur l'API sans casser l'UI
+        console.warn('[useUserNotifications] onSnapshot fallback vers API:', error.message)
+        void fetchFromApi()
       }
     )
 
     return () => unsubscribe()
-  }, [user?.uid])
+  }, [user?.uid, fetchFromApi])
 
   const unreadCount = notifications.filter((n) => !n.read).length
 
-  const markAsRead = useCallback(async (id: string) => {
-    try {
-      const ref = doc(firestore, 'userNotifications', id)
-      await updateDoc(ref, {
-        read: true,
-        readAt: new Date().toISOString()
-      })
+  // 4. Marquer comme lu (optimiste + double enregistrement API + Firestore client)
+  const markAsRead = useCallback(
+    async (id: string) => {
       setNotifications((prev) =>
         prev.map((n) => (n.id === id ? { ...n, read: true } : n))
       )
-    } catch (err) {
-      console.warn('[useUserNotifications] Impossible de marquer comme lu:', err)
-    }
-  }, [])
 
+      try {
+        // Enregistrement via API sécurisée
+        const token = await user?.getIdToken?.()
+        if (token) {
+          await fetch('/api/notifications', {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({ id })
+          })
+        }
+
+        // Tenter également Firestore direct
+        const ref = doc(firestore, 'userNotifications', id)
+        await updateDoc(ref, {
+          read: true,
+          readAt: new Date().toISOString()
+        }).catch(() => {})
+      } catch (err) {
+        console.warn('[useUserNotifications] Erreur marquage notification:', err)
+      }
+    },
+    [user]
+  )
+
+  // 5. Tout marquer comme lu
   const markAllAsRead = useCallback(async () => {
     const unread = notifications.filter((n) => !n.read)
     if (unread.length === 0) return
 
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
+
     try {
-      const batch = writeBatch(firestore)
-      for (const n of unread) {
-        const ref = doc(firestore, 'userNotifications', n.id)
-        batch.update(ref, {
-          read: true,
-          readAt: new Date().toISOString()
+      const token = await user?.getIdToken?.()
+      if (token) {
+        await fetch('/api/notifications', {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ all: true })
         })
       }
-      await batch.commit()
-      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
     } catch (err) {
-      console.warn('[useUserNotifications] Impossible de tout marquer comme lu:', err)
+      console.warn('[useUserNotifications] Erreur tout marquer comme lu:', err)
     }
-  }, [notifications])
+  }, [notifications, user])
 
   return {
     notifications,
     unreadCount,
     loading,
     markAsRead,
-    markAllAsRead
+    markAllAsRead,
+    refresh: fetchFromApi
   }
 }
