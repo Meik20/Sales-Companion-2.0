@@ -163,7 +163,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { targetManagerUid, prospectIds, migrateMembers } = body
+    const { targetManagerUid, prospectIds, migrateMembers, deadline } = body
     if (!targetManagerUid) {
       return NextResponse.json(
         { error: 'Veuillez sélectionner un Team Manager cible' },
@@ -285,6 +285,7 @@ export async function POST(request: NextRequest) {
         transferredFromSeniorUid: callerUid,
         migratedFromSeniorAt: now,
         transferredAt: now,
+        assignmentDeadline: deadline || null,
         updatedAt: now
       })
       opCount++
@@ -328,6 +329,8 @@ export async function POST(request: NextRequest) {
     for (const doc of importDocs) {
       batch.update(doc.ref, {
         managerId: targetManagerUid,
+        transferredAt: now,
+        assignmentDeadline: deadline || null,
         migratedFromSeniorAt: now
       })
       opCount++
@@ -343,16 +346,23 @@ export async function POST(request: NextRequest) {
       const { createUserNotification } = await import('@/lib/user-notifications')
       const senderName = callerData.displayName || callerData.name || 'Le Senior Manager'
       const count = pipelineDocsToTransfer.length
+      const deadlineText = deadline
+        ? ` avec une échéance fixée au ${new Date(deadline).toLocaleDateString('fr-FR', {
+            day: 'numeric',
+            month: 'short'
+          })}`
+        : ''
 
       await createUserNotification({
         userId: targetManagerUid,
         type: 'prospect_transfer',
         title: 'Nouveaux prospects transférés',
-        message: `${senderName} vous a transféré ${count} prospect${count > 1 ? 's' : ''}. Retrouvez-${count > 1 ? 'les' : 'le'} dans "Gestion d'équipe > Mes prospects importés" pour les attribuer à votre équipe.`,
+        message: `${senderName} vous a transféré ${count} prospect${count > 1 ? 's' : ''}${deadlineText}. Retrouvez-${count > 1 ? 'les' : 'le'} dans "Gestion d'équipe > Mes prospects importés" pour les attribuer à votre équipe.`,
         link: '/team?tab=imports',
         metadata: {
           senderUid: callerUid,
           senderName,
+          deadline: deadline || null,
           count
         }
       })

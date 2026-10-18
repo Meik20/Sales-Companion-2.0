@@ -5,7 +5,8 @@ import { useTranslation } from '@/providers/I18nProvider'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useToast } from '@/hooks/useToast'
 import { EmptyState } from '@/components/feedback'
-import { RotateCw, Loader2, Trash2, Check, X, ArrowRightLeft, Users } from 'lucide-react'
+import { RotateCw, Loader2, Trash2, Check, X, ArrowRightLeft, Users, Clock } from 'lucide-react'
+import { DeadlineBadge } from '@/components/ui/DeadlineBadge'
 
 export type Prospect = {
   id: string
@@ -197,6 +198,21 @@ export function ManagerProspectsList({
   const [filterMember, setFilterMember] = useState('')
   const [filterTm, setFilterTm] = useState('')
   const [selectedTargetTmUid, setSelectedTargetTmUid] = useState('')
+  const [transferDeadlineOption, setTransferDeadlineOption] = useState<'48h' | '24h' | '7d' | 'none'>('48h')
+
+  const getCalculatedTransferDeadlineIso = (): string | null => {
+    const now = new Date()
+    if (transferDeadlineOption === '24h') {
+      return new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString()
+    }
+    if (transferDeadlineOption === '48h') {
+      return new Date(now.getTime() + 48 * 60 * 60 * 1000).toISOString()
+    }
+    if (transferDeadlineOption === '7d') {
+      return new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString()
+    }
+    return null
+  }
   const [transferring, setTransferring] = useState(false)
   const [assigning, setAssigning] = useState<string | null>(null)
   const [selected, setSelected] = useState<Set<string>>(new Set())
@@ -368,7 +384,8 @@ export function ManagerProspectsList({
         },
         body: JSON.stringify({
           targetManagerUid: selectedTargetTmUid,
-          prospectIds: Array.from(selected)
+          prospectIds: Array.from(selected),
+          deadline: getCalculatedTransferDeadlineIso()
         })
       })
       const data = await res.json()
@@ -410,7 +427,8 @@ export function ManagerProspectsList({
         },
         body: JSON.stringify({
           targetManagerUid: targetTmUid,
-          prospectIds: [prospectId]
+          prospectIds: [prospectId],
+          deadline: getCalculatedTransferDeadlineIso()
         })
       })
       const data = await res.json()
@@ -685,6 +703,32 @@ export function ManagerProspectsList({
                   </option>
                 ))}
               </select>
+
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                <Clock size={13} style={{ color: 'var(--muted-foreground, #94a3b8)' }} />
+                <select
+                  value={transferDeadlineOption}
+                  onChange={(e) => setTransferDeadlineOption(e.target.value as any)}
+                  style={{
+                    height: 32,
+                    padding: '0 8px',
+                    border: '1px solid rgba(37,99,235,0.3)',
+                    borderRadius: 8,
+                    fontSize: 12,
+                    fontFamily: 'inherit',
+                    background: 'var(--card, #131c2e)',
+                    color: 'var(--foreground, #f1f5f9)',
+                    cursor: 'pointer',
+                    outline: 'none'
+                  }}
+                  title={lang === 'en' ? 'Intervention deadline' : "Délai d'intervention"}
+                >
+                  <option value="24h">24h ({lang === 'en' ? 'Urgent' : 'Urgent'})</option>
+                  <option value="48h">48h ({lang === 'en' ? 'Default' : 'Standard'})</option>
+                  <option value="7d">7 {lang === 'en' ? 'days' : 'jours'}</option>
+                  <option value="none">{lang === 'en' ? 'No deadline' : 'Sans échéance'}</option>
+                </select>
+              </div>
 
               <button
                 onClick={() => void handleTransferSelected()}
@@ -1005,6 +1049,11 @@ export function ManagerProspectsList({
                               >
                                 {aging.subtext}
                               </span>
+                            )}
+                            {p.assignmentDeadline && (
+                              <div style={{ marginTop: 3 }}>
+                                <DeadlineBadge deadline={p.assignmentDeadline} size="sm" />
+                              </div>
                             )}
                           </div>
                         )

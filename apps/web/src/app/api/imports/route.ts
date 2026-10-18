@@ -342,10 +342,11 @@ export async function PATCH(request: NextRequest) {
     const body = await request.json().catch(() => null)
     if (!body) return NextResponse.json({ message: 'Corps invalide' }, { status: 400 })
 
-    const { prospectId, assignedTo, managerId } = body as {
+    const { prospectId, assignedTo, managerId, deadline } = body as {
       prospectId?: string
       assignedTo?: string | null
       managerId?: string
+      deadline?: string | null
     }
 
     if (!prospectId || !managerId) {
@@ -470,6 +471,8 @@ export async function PATCH(request: NextRequest) {
       const pipelineRef = adminDb.collection('pipeline').doc()
       pipelineEntryId = pipelineRef.id
 
+      const effectiveDeadline = deadline || prospectData.assignmentDeadline || null
+
       await pipelineRef.set({
         userId: assignedTo, // le membre voit dans son pipeline
         assignedTo: assignedTo,
@@ -489,6 +492,7 @@ export async function PATCH(request: NextRequest) {
         assignedByName: managerName,
         note: prospectData.notes ?? '',
         previousAssignees: [],
+        assignmentDeadline: effectiveDeadline,
         enteredAt: new Date().toISOString(),
         assignedAt: new Date().toISOString(),
         createdAt: FieldValue.serverTimestamp(),
@@ -506,6 +510,7 @@ export async function PATCH(request: NextRequest) {
         pipelineItemId: prospectId, // référence au prospect importé
         pipelineEntryId, // nouvelle entrée pipeline du membre
         companyName,
+        assignmentDeadline: effectiveDeadline,
         status: 'active',
         createdAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp()
@@ -514,26 +519,37 @@ export async function PATCH(request: NextRequest) {
       pipelineEntryId = existingTa.docs[0]!.data().pipelineEntryId ?? ''
     }
 
+    const effectiveDeadline = deadline || prospectData.assignmentDeadline || null
+
     // ── Mettre à jour le prospect importé ─────────────────────────────────
     await prospectRef.update({
       assignedTo,
       assignedMemberName: memberName,
       pipelineEntryId,
+      assignmentDeadline: effectiveDeadline,
       updatedAt: new Date()
     })
 
     // Notification In-App automatique pour le commercial assigné
     try {
       const { createUserNotification } = await import('@/lib/user-notifications')
+      const deadlineText = effectiveDeadline
+        ? ` avec une échéance fixée au ${new Date(effectiveDeadline).toLocaleDateString('fr-FR', {
+            day: 'numeric',
+            month: 'short'
+          })}`
+        : ''
+
       await createUserNotification({
         userId: assignedTo,
         type: 'prospect_assignment',
         title: 'Nouveau prospect assigné',
-        message: `Votre manager (${managerName}) vous a assigné "${companyName}". Retrouvez-le dans votre Sales Pipeline dans la colonne Prospection.`,
+        message: `Votre manager (${managerName}) vous a assigné "${companyName}"${deadlineText}. Retrouvez-le dans votre Sales Pipeline dans la colonne Prospection.`,
         link: '/pipeline',
         metadata: {
           senderUid: managerUid,
           senderName: managerName,
+          deadline: effectiveDeadline,
           companyName
         }
       })

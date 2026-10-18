@@ -30,7 +30,8 @@ import {
   Briefcase,
   Calendar,
   Filter,
-  RefreshCw
+  RefreshCw,
+  Clock
 } from 'lucide-react'
 
 interface SeniorProspect {
@@ -109,6 +110,27 @@ export function OrgGovernanceTab() {
   const [migrating, setMigrating] = useState(false)
   const [migrationResult, setMigrationResult] = useState<string | null>(null)
   const [migrationError, setMigrationError] = useState<string | null>(null)
+
+  // Dateline / Échéance accordée au Team Manager
+  const [deadlineOption, setDeadlineOption] = useState<'none' | '24h' | '48h' | '7d' | 'custom'>('48h')
+  const [customDeadlineDate, setCustomDeadlineDate] = useState<string>('')
+
+  const getCalculatedDeadlineIso = (): string | null => {
+    const now = new Date()
+    if (deadlineOption === '24h') {
+      return new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString()
+    }
+    if (deadlineOption === '48h') {
+      return new Date(now.getTime() + 48 * 60 * 60 * 1000).toISOString()
+    }
+    if (deadlineOption === '7d') {
+      return new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString()
+    }
+    if (deadlineOption === 'custom' && customDeadlineDate) {
+      return new Date(customDeadlineDate).toISOString()
+    }
+    return null
+  }
 
   const isSeniorManager = user?.orgRole === 'senior_manager'
 
@@ -354,12 +376,14 @@ export function OrgGovernanceTab() {
 
     try {
       const token = await user?.getIdToken()
+      const deadlineIso = getCalculatedDeadlineIso()
       const res = await fetch('/api/team/migrate-senior-members', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           targetManagerUid: selectedTargetUid,
-          prospectIds: selectedProspectIds
+          prospectIds: selectedProspectIds,
+          deadline: deadlineIso
         })
       })
       const data = await res.json()
@@ -870,6 +894,48 @@ export function OrgGovernanceTab() {
                       {selectedProspectIds.length} prospect
                       {selectedProspectIds.length > 1 ? 's' : ''} sélectionné
                       {selectedProspectIds.length > 1 ? 's' : ''}
+                    </div>
+                  )}
+                </div>
+
+                {/* Sélecteur de Délai d'intervention / Dateline */}
+                <div className="flex flex-col gap-2 pt-2 border-t border-border/40">
+                  <div className="flex items-center gap-1.5 text-[12px] font-bold text-foreground">
+                    <Clock size={13} className="text-primary" />
+                    <span>Délai d'intervention accordé au Team Manager :</span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {[
+                      { id: '24h', label: '24 heures' },
+                      { id: '48h', label: '48 heures (Recommandé)' },
+                      { id: '7d', label: '7 jours' },
+                      { id: 'custom', label: 'Personnalisé' },
+                      { id: 'none', label: 'Sans échéance' }
+                    ].map((opt) => (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => setDeadlineOption(opt.id as any)}
+                        className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-all cursor-pointer ${
+                          deadlineOption === opt.id
+                            ? 'bg-primary text-white shadow-sm'
+                            : 'bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-secondary'
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {deadlineOption === 'custom' && (
+                    <div className="flex items-center gap-2 pt-1">
+                      <input
+                        type="datetime-local"
+                        value={customDeadlineDate}
+                        onChange={(e) => setCustomDeadlineDate(e.target.value)}
+                        min={new Date().toISOString().slice(0, 16)}
+                        className="h-8 rounded-lg border border-border bg-card px-2.5 text-[11.5px] text-foreground focus:border-primary focus:outline-none"
+                      />
                     </div>
                   )}
                 </div>
