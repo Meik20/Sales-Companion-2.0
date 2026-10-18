@@ -302,3 +302,6 @@ export function StatsGrid({ children }: PropsWithChildren) {
 export function PageGrid({ children }: PropsWithChildren) {
   return <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>{children}</div>
 }
+
+export { ConfirmDialog } from './ConfirmDialog'
+export type { ConfirmDialogProps, ConfirmDialogVariant } from './ConfirmDialog'

@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { DataCard, Badge } from '@/components/ui/index'
+import { DataCard, Badge, ConfirmDialog } from '@/components/ui/index'
 import { EmptyState, LoadingState } from '@/components/feedback/index'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
@@ -92,6 +92,8 @@ export function TeamAccessManager() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const [revokeId, setRevokeId] = useState<string | null>(null)
+  const [isRevoking, setIsRevoking] = useState(false)
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -188,9 +190,9 @@ export function TeamAccessManager() {
     pushToast({ type: 'info', title: `ID copié: ${lowerId}` })
   }
 
-  const revokeAccess = async (id: string) => {
-    if (!user) return
-    if (!confirm(t('support.confirmDelete') || 'Voulez-vous révoquer cet accès ?')) return
+  const executeRevokeAccess = async () => {
+    if (!user || !revokeId) return
+    setIsRevoking(true)
     try {
       const token = await user.getIdToken()
       const res = await fetch('/api/team/accesses/revoke', {
@@ -199,14 +201,17 @@ export function TeamAccessManager() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ accessId: id })
+        body: JSON.stringify({ accessId: revokeId })
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Erreur lors de la révocation')
 
       pushToast({ type: 'success', title: 'Accès révoqué et membre détaché' })
+      setRevokeId(null)
     } catch (e: any) {
       pushToast({ type: 'error', title: `Erreur: ${e.message}` })
+    } finally {
+      setIsRevoking(false)
     }
   }
 
@@ -809,8 +814,9 @@ export function TeamAccessManager() {
                       {/* Revoke — only for non-revoked */}
                       {displayStatus !== 'revoked' && (
                         <button
+                          type="button"
                           title={t('team.revokeAccess')}
-                          onClick={() => revokeAccess(acc.id)}
+                          onClick={() => setRevokeId(acc.id)}
                           style={btnStyle('#f59e0b')}
                         >
                           <Ban size={13} /> {t('team.revoke')}
@@ -888,6 +894,20 @@ export function TeamAccessManager() {
           </div>
         )}
       </DataCard>
+
+      <ConfirmDialog
+        isOpen={Boolean(revokeId)}
+        title={t('team.revokeAccess') || 'Révoquer cet accès'}
+        description="Le membre ne pourra plus se connecter avec cet identifiant d'accès tant qu'il ne sera pas réactivé."
+        confirmText={t('team.revoke') || 'Révoquer'}
+        cancelText={t('team.cancel') || 'Annuler'}
+        variant="warning"
+        isLoading={isRevoking}
+        onConfirm={executeRevokeAccess}
+        onCancel={() => {
+          if (!isRevoking) setRevokeId(null)
+        }}
+      />
     </div>
   )
 }

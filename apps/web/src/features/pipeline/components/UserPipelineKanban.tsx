@@ -147,7 +147,8 @@ function KanbanCard({
     item.createdAt || item.enteredAt,
     item.status,
     item.assignedAt,
-    item.updatedAt
+    item.updatedAt,
+    lang
   )
 
   return (
@@ -312,7 +313,7 @@ function KanbanCard({
             })()}
             {/* Aging chip */}
             <span
-              title={`Entré le ${aging.enteredDateFormatted} (${aging.relativeTimeFormatted})`}
+              title={`${lang === 'en' ? 'Entered on' : 'Entré le'} ${aging.enteredDateFormatted} (${aging.relativeTimeFormatted})`}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -327,7 +328,7 @@ function KanbanCard({
               }}
             >
               <Clock size={10} />
-              {aging.daysInPipeline === 0 ? t('common.today') : `${aging.daysInPipeline}j`}
+              {aging.daysInPipeline === 0 ? t('common.today') : `${aging.daysInPipeline}${lang === 'en' ? 'd' : 'j'}`}
               {aging.level === 'alert' && (
                 <AlertTriangle size={10} style={{ color: aging.color }} />
               )}

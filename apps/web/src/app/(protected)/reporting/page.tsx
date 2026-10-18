@@ -1,5 +1,8 @@
 'use client'
 
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { routes } from '@/constants/routes'
 import { AppShell } from '@/components/layout/AppShell'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { LoadingState, EmptyState } from '@/components/feedback/index'
@@ -12,8 +15,26 @@ import { useTranslation } from '@/providers/I18nProvider'
 
 export default function ReportingPage() {
   const { user } = useCurrentUser()
+  const router = useRouter()
   const { t } = useTranslation()
+  const isSeniorManager = user?.role === 'manager' && user?.orgRole === 'senior_manager'
+
+  // Rediriger le Senior Manager vers le Dashboard Organisation consolidé (/dashboard)
+  useEffect(() => {
+    if (isSeniorManager) {
+      router.replace(routes.dashboard)
+    }
+  }, [isSeniorManager, router])
+
   const { data, isLoading, isError, error, refetch, isFetching } = useReportingData()
+
+  if (isSeniorManager) {
+    return (
+      <AppShell>
+        <LoadingState />
+      </AppShell>
+    )
+  }
 
   if (user?.role !== 'manager') {
     return (

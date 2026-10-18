@@ -8,7 +8,7 @@ import { useTranslation } from '@/providers/I18nProvider'
 import { useSwipe } from '@/hooks/useSwipe'
 
 // All navigation items in order for swipe navigation
-const getNavItems = (role: string, plan: string, t: (key: any) => string) => {
+const getNavItems = (role: string, plan: string, t: (key: any) => string, orgRole?: string | null) => {
   if (role === 'support_agent') {
     return [
       { href: '/crm', label: t('sidebar.crm') },
@@ -26,12 +26,14 @@ const getNavItems = (role: string, plan: string, t: (key: any) => string) => {
   ]
 
   if (role === 'manager') {
-    // Insert team + reporting after pipeline
+    const isSM = orgRole === 'senior_manager'
+    const dashboardHref = isSM ? routes.dashboard : routes.reporting
+    // Insert team + dashboard/reporting after pipeline
     items.splice(
       2,
       0,
       { href: routes.team, label: t('sidebar.team') },
-      { href: routes.reporting, label: 'Dashboard' }
+      { href: dashboardHref, label: 'Dashboard' }
     )
   } else if (role === 'admin') {
     items.splice(1, 0, { href: routes.admin, label: t('sidebar.admin') })
@@ -263,7 +265,9 @@ export function MobileNav() {
   const router = useRouter()
 
   // Ordered nav items for swipe support
-  const navItems = user ? getNavItems(user.role, user.plan || 'free', t) : []
+  const navItems = user ? getNavItems(user.role, user.plan || 'free', t, user.orgRole) : []
+  const isSM = user?.role === 'manager' && user?.orgRole === 'senior_manager'
+  const dashboardHref = isSM ? routes.dashboard : routes.reporting
   const currentIndex = navItems.findIndex(
     (item) => pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href))
   )
@@ -317,7 +321,7 @@ export function MobileNav() {
             {user.role === 'manager' && (
               <>
                 <NavItem href={routes.team} label={t('sidebar.team')} icon={<TeamIcon />} />
-                <NavItem href={routes.reporting} label="Dashboard" icon={<DashboardIcon />} />
+                <NavItem href={dashboardHref} label="Dashboard" icon={<DashboardIcon />} />
               </>
             )}
             {user.role === 'admin' && (

@@ -1239,7 +1239,10 @@ export const en = {
     needMoreHelp: 'Need more help?',
     typeMessage: 'Type your message… (Enter to send)',
     confirmDelete: 'Are you sure you want to delete this conversation?',
+    confirmDeleteDesc:
+      'This action cannot be undone. All messages in this conversation will be permanently deleted.',
     confirmDeleteMessage: 'Are you sure you want to delete this message?',
+    confirmDeleteMessageDesc: 'This message will be permanently removed from the conversation.',
     deleteMessage: 'Delete this message',
     errorDeleteMessage: 'An error occurred while deleting the message.',
     errorDelete: 'An error occurred during deletion.',

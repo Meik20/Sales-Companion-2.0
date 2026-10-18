@@ -58,13 +58,16 @@ export function normalizePipelineStatus(rawStatus?: string | null): PipelineStag
  * @param rawStatus - Statut courant (prospection, négociation, conclue)
  * @param assignedAt - Date ISO éventuelle d'assignation
  * @param updatedAt - Date ISO éventuelle de dernière mise à jour
+ * @param lang - Langue courante ('fr' | 'en')
  */
 export function getPipelineAging(
   createdAt?: string | null | Date,
   rawStatus?: string | null,
   assignedAt?: string | null | Date,
-  updatedAt?: string | null | Date
+  updatedAt?: string | null | Date,
+  lang: string = 'fr'
 ): PipelineAgingInfo {
+  const isEn = lang?.startsWith('en')
   const stage = normalizePipelineStatus(rawStatus)
   const isConclue = stage === 'conclue'
 
@@ -74,7 +77,7 @@ export function getPipelineAging(
 
   // Formatage de la date d'entrée
   const enteredDateFormatted = !isNaN(refDate.getTime())
-    ? refDate.toLocaleDateString('fr-FR', {
+    ? refDate.toLocaleDateString(isEn ? 'en-US' : 'fr-FR', {
         day: '2-digit',
         month: 'short',
         year: 'numeric'
@@ -86,13 +89,16 @@ export function getPipelineAging(
   const diffMs = Math.max(0, now - (isNaN(refDate.getTime()) ? now : refDate.getTime()))
   const daysInPipeline = Math.floor(diffMs / (1000 * 60 * 60 * 24))
 
-  // Libellé relatif : "Aujourd'hui", "Hier", "Il y a X jours"
-  let relativeTimeFormatted = 'Aujourd’hui'
+  // Libellé relatif : "Aujourd'hui", "Hier", "Il y a X jours" / "Today", "Yesterday", "X days ago"
+  let relativeTimeFormatted = isEn ? 'Today' : 'Aujourd’hui'
   if (daysInPipeline === 1) {
-    relativeTimeFormatted = 'Hier'
+    relativeTimeFormatted = isEn ? 'Yesterday' : 'Hier'
   } else if (daysInPipeline > 1) {
-    relativeTimeFormatted = `Il y a ${daysInPipeline} jours`
+    relativeTimeFormatted = isEn ? `${daysInPipeline} days ago` : `Il y a ${daysInPipeline} jours`
   }
+
+  // Unité jour
+  const dUnit = isEn ? 'd' : 'j'
 
   // Si la vente est déjà conclue : fin des alertes
   if (isConclue) {
@@ -108,13 +114,22 @@ export function getPipelineAging(
       }
     }
 
+    const badgeText =
+      concludedDays === 0
+        ? isEn
+          ? 'Closed the same day'
+          : 'Conclue le jour même'
+        : isEn
+          ? `Closed in ${concludedDays}${dUnit}`
+          : `Conclue en ${concludedDays}${dUnit}`
+
     return {
       daysInPipeline,
       enteredDateFormatted,
       relativeTimeFormatted,
       level: 'concluded',
       stage,
-      badgeText: concludedDays === 0 ? 'Conclue le jour même' : `Conclue en ${concludedDays}j`,
+      badgeText,
       color: 'var(--pipeline-concluded-color, #047857)',
       bgColor: 'var(--pipeline-concluded-bg, #ecfdf5)',
       borderColor: 'var(--pipeline-concluded-border, rgba(5, 150, 105, 0.25))',
@@ -134,11 +149,13 @@ export function getPipelineAging(
         relativeTimeFormatted,
         level: 'alert',
         stage,
-        badgeText: `${daysInPipeline}j · Stagnation`,
+        badgeText: isEn ? `${daysInPipeline}${dUnit} · Stagnation` : `${daysInPipeline}${dUnit} · Stagnation`,
         color: 'var(--pipeline-alert-color, #b91c1c)',
         bgColor: 'var(--pipeline-alert-bg, #fef2f2)',
         borderColor: 'var(--pipeline-alert-border, rgba(185, 28, 28, 0.25))',
-        warningMessage: `Ce prospect est en phase de prospection depuis plus de ${alert} jours sans progression. Contactez-le rapidement ou mettez à jour son statut.`,
+        warningMessage: isEn
+          ? `This lead has been in prospecting for over ${alert} days without progress. Contact them promptly or update their status.`
+          : `Ce prospect est en phase de prospection depuis plus de ${alert} jours sans progression. Contactez-le rapidement ou mettez à jour son statut.`,
         isConclue: false
       }
     }
@@ -150,11 +167,13 @@ export function getPipelineAging(
         relativeTimeFormatted,
         level: 'warning',
         stage,
-        badgeText: `${daysInPipeline}j · À relancer`,
+        badgeText: isEn ? `${daysInPipeline}${dUnit} · Follow-up needed` : `${daysInPipeline}${dUnit} · À relancer`,
         color: 'var(--pipeline-warning-color, #b45309)',
         bgColor: 'var(--pipeline-warning-bg, #fffbeb)',
         borderColor: 'var(--pipeline-warning-border, rgba(180, 83, 9, 0.25))',
-        warningMessage: `Prospect en prospection depuis ${daysInPipeline} jours. Une relance commerciale est conseillée pour faire avancer le dossier.`,
+        warningMessage: isEn
+          ? `Lead in prospecting for ${daysInPipeline} days. A sales follow-up is recommended to move forward.`
+          : `Prospect en prospection depuis ${daysInPipeline} jours. Une relance commerciale est conseillée pour faire avancer le dossier.`,
         isConclue: false
       }
     }
@@ -166,7 +185,13 @@ export function getPipelineAging(
       level: 'fresh',
       stage,
       badgeText:
-        daysInPipeline === 0 ? 'Nouveau (aujourd’hui)' : `${daysInPipeline}j dans le pipeline`,
+        daysInPipeline === 0
+          ? isEn
+            ? 'New (today)'
+            : 'Nouveau (aujourd’hui)'
+          : isEn
+            ? `${daysInPipeline}${dUnit} in pipeline`
+            : `${daysInPipeline}${dUnit} dans le pipeline`,
       color: 'var(--pipeline-fresh-color, #047857)',
       bgColor: 'var(--pipeline-fresh-bg, #ecfdf5)',
       borderColor: 'var(--pipeline-fresh-border, rgba(5, 150, 105, 0.25))',
@@ -184,11 +209,15 @@ export function getPipelineAging(
       relativeTimeFormatted,
       level: 'alert',
       stage,
-      badgeText: `${daysInPipeline}j · Négociation critique`,
+      badgeText: isEn
+        ? `${daysInPipeline}${dUnit} · Critical negotiation`
+        : `${daysInPipeline}${dUnit} · Négociation critique`,
       color: 'var(--pipeline-alert-color, #b91c1c)',
       bgColor: 'var(--pipeline-alert-bg, #fef2f2)',
       borderColor: 'var(--pipeline-alert-border, rgba(185, 28, 28, 0.25))',
-      warningMessage: `Négociation ouverte depuis plus de ${alert} jours. Risque d'abandon : prévoyez un point de clôture ou un closing rapide.`,
+      warningMessage: isEn
+        ? `Negotiation open for over ${alert} days. Risk of abandonment: schedule a closing meeting promptly.`
+        : `Négociation ouverte depuis plus de ${alert} jours. Risque d'abandon : prévoyez un point de clôture ou un closing rapide.`,
       isConclue: false
     }
   }
@@ -200,11 +229,15 @@ export function getPipelineAging(
       relativeTimeFormatted,
       level: 'warning',
       stage,
-      badgeText: `${daysInPipeline}j · Négociation longue`,
+      badgeText: isEn
+        ? `${daysInPipeline}${dUnit} · Long negotiation`
+        : `${daysInPipeline}${dUnit} · Négociation longue`,
       color: 'var(--pipeline-warning-color, #b45309)',
       bgColor: 'var(--pipeline-warning-bg, #fffbeb)',
       borderColor: 'var(--pipeline-warning-border, rgba(180, 83, 9, 0.25))',
-      warningMessage: `Négociation en cours depuis ${daysInPipeline} jours. Une offre finale ou une relance décisionnaire est recommandée.`,
+      warningMessage: isEn
+        ? `Negotiation ongoing for ${daysInPipeline} days. A final offer or decision-maker follow-up is recommended.`
+        : `Négociation en cours depuis ${daysInPipeline} jours. Une offre finale ou une relance décisionnaire est recommandée.`,
       isConclue: false
     }
   }
@@ -215,7 +248,9 @@ export function getPipelineAging(
     relativeTimeFormatted,
     level: 'fresh',
     stage,
-    badgeText: `${daysInPipeline}j · En négociation`,
+    badgeText: isEn
+      ? `${daysInPipeline}${dUnit} · In negotiation`
+      : `${daysInPipeline}${dUnit} · En négociation`,
     color: 'var(--pipeline-progress-color, #1d4ed8)',
     bgColor: 'var(--pipeline-progress-bg, #eff6ff)',
     borderColor: 'var(--pipeline-progress-border, rgba(29, 78, 216, 0.2))',

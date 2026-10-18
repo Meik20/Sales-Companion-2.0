@@ -395,8 +395,8 @@ export default function DashboardPage() {
             />
           </div>
 
-          {/* ── Corps en 2 colonnes ─────────────────────────────────────── */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+          {/* ── Corps en 2 colonnes (responsive: 1 col sur mobile, 2 cols sur desktop) ── */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
             {/* Top Performers */}
             <DataCard
               title={t('dashboard.topPerformers')}

@@ -154,7 +154,8 @@ function ProspectModal({
     item.createdAt || item.enteredAt,
     item.status,
     item.assignedAt,
-    item.updatedAt
+    item.updatedAt,
+    lang
   )
 
   return (
@@ -249,7 +250,7 @@ function ProspectModal({
                   <span>{aging.badgeText}</span>
                 </div>
                 <span style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)' }}>
-                  Entré le {aging.enteredDateFormatted}
+                  {lang === 'en' ? 'Entered on' : 'Entré le'} {aging.enteredDateFormatted}
                 </span>
               </div>
             </div>
@@ -692,7 +693,9 @@ function ProspectModal({
                       lineHeight: 1.4
                     }}
                   >
-                    {aging.badgeText} · Vente finalisée avec succès !
+                    {aging.badgeText} ·{' '}
+                    {t('pipeline.saleSuccessBanner') ||
+                      (lang === 'en' ? 'Sale successfully closed!' : 'Vente finalisée avec succès !')}
                   </span>
                 </div>
               )}
@@ -2581,11 +2584,12 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                               item.createdAt || (item as any).enteredAt,
                               item.status,
                               (item as any).assignedAt,
-                              (item as any).updatedAt
+                              (item as any).updatedAt,
+                              lang
                             )
                             return (
                               <span
-                                title={`Entré le ${aging.enteredDateFormatted} (${aging.relativeTimeFormatted})`}
+                                title={`${lang === 'en' ? 'Entered on' : 'Entré le'} ${aging.enteredDateFormatted} (${aging.relativeTimeFormatted})`}
                                 style={{
                                   display: 'inline-flex',
                                   alignItems: 'center',
@@ -2626,7 +2630,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                                 }}
                               >
                                 <AlertTriangle size={10} />
-                                Déjà visité
+                                {lang === 'en' ? 'Already visited' : 'Déjà visité'}
                               </span>
                             ) : null
                           })()}
@@ -2670,7 +2674,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                               <span>TM : {(item as any).managerName || 'Team Manager'}</span>
                               {item.assignedTo && item.assignedTo !== (item as any).managerUid && (
                                 <span style={{ opacity: 0.75 }}>
-                                  → {resolveMemberLabel(item, members) ?? 'Commercial'}
+                                  → {resolveMemberLabel(item, members) ?? (lang === 'en' ? 'Sales Rep' : 'Commercial')}
                                 </span>
                               )}
                             </div>

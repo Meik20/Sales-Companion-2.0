@@ -6,6 +6,8 @@ import { AppShell } from '@/components/layout/AppShell'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { firestore, auth } from '@/services/firebase/client'
 import { useTranslation } from '@/providers/I18nProvider'
+import { ConfirmDialog } from '@/components/ui'
+import { useToast } from '@/hooks/useToast'
 import { PublicSupportForm } from '@/features/support/components/PublicSupportForm'
 import {
   collection,
@@ -63,18 +65,20 @@ function getStatusLabel(status: string, t: any) {
   return status
 }
 
-function fmtTime(ts?: Timestamp) {
+function fmtTime(ts?: Timestamp, lang?: string) {
   if (!ts?.toDate) return ''
   const d = ts.toDate()
   const now = new Date()
   const isToday = d.toDateString() === now.toDateString()
-  if (isToday) return d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
-  return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })
+  const locale = lang?.startsWith('en') ? 'en-US' : 'fr-FR'
+  if (isToday) return d.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
+  return d.toLocaleDateString(locale, { day: '2-digit', month: 'short' })
 }
 
 function AuthenticatedSupportView() {
-  const { t } = useTranslation()
+  const { t, lang } = useTranslation()
   const { user } = useCurrentUser()
+  const { pushToast } = useToast()
   const searchParams = useSearchParams()
   const ticketParam = searchParams.get('ticket') || searchParams.get('id')
 
@@ -88,6 +92,9 @@ function AuthenticatedSupportView() {
   const [showNew, setShowNew] = useState(false)
   const [newSubject, setNewSubject] = useState('')
   const [creating, setCreating] = useState(false)
+  const [threadToDelete, setThreadToDelete] = useState<string | null>(null)
+  const [messageToDelete, setMessageToDelete] = useState<string | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -276,9 +283,10 @@ function AuthenticatedSupportView() {
     }
   }
 
-  async function handleDeleteThread(e: React.MouseEvent, id: string) {
-    e.stopPropagation()
-    if (!window.confirm(t('support.confirmDelete'))) return
+  async function executeDeleteThread() {
+    if (!threadToDelete) return
+    const id = threadToDelete
+    setIsDeleting(true)
 
     try {
       if (user) {
@@ -311,20 +319,26 @@ function AuthenticatedSupportView() {
       if (selectedId === id) {
         setSelectedId(null)
       }
+      setThreadToDelete(null)
+      pushToast({
+        type: 'success',
+        title: lang === 'en' ? 'Conversation deleted' : 'Conversation supprimée'
+      })
     } catch (err) {
       console.error('Failed to delete thread:', err)
-      alert(t('support.errorDelete'))
+      pushToast({
+        type: 'error',
+        title: t('support.errorDelete') || (lang === 'en' ? 'Error during deletion.' : 'Une erreur est survenue.')
+      })
+    } finally {
+      setIsDeleting(false)
     }
   }
 
-  async function handleDeleteMessage(messageId: string) {
-    if (!selectedId) return
-    if (
-      !window.confirm(
-        t('support.confirmDeleteMessage') || 'Voulez-vous vraiment supprimer ce message ?'
-      )
-    )
-      return
+  async function executeDeleteMessage() {
+    if (!selectedId || !messageToDelete) return
+    const messageId = messageToDelete
+    setIsDeleting(true)
 
     try {
       if (user) {
@@ -344,12 +358,21 @@ function AuthenticatedSupportView() {
       } else {
         await deleteDoc(doc(firestore, 'support_threads', selectedId, 'messages', messageId))
       }
+      setMessageToDelete(null)
+      pushToast({
+        type: 'success',
+        title: lang === 'en' ? 'Message deleted' : 'Message supprimé'
+      })
     } catch (err) {
       console.error('Failed to delete message:', err)
-      alert(
-        t('support.errorDeleteMessage') ||
-          'Une erreur est survenue lors de la suppression du message.'
-      )
+      pushToast({
+        type: 'error',
+        title:
+          t('support.errorDeleteMessage') ||
+          (lang === 'en' ? 'Error deleting message.' : 'Une erreur est survenue lors de la suppression du message.')
+      })
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -649,7 +672,7 @@ function AuthenticatedSupportView() {
                         color: 'var(--muted-foreground, #64748b)'
                       }}
                     >
-                      {fmtTime(thread.updatedAt)}
+                      {fmtTime(thread.updatedAt, lang)}
                     </span>
                   </div>
                   <div
@@ -690,7 +713,11 @@ function AuthenticatedSupportView() {
                       )}
                     </div>
                     <button
-                      onClick={(e) => handleDeleteThread(e, thread.id)}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setThreadToDelete(thread.id)
+                      }}
                       style={{
                         background: 'none',
                         border: 'none',
@@ -887,10 +914,11 @@ function AuthenticatedSupportView() {
                         >
                           <span>
                             {isMe ? t('support.me') : t('support.supportTeam')} ·{' '}
-                            {fmtTime(m.createdAt)}
+                            {fmtTime(m.createdAt, lang)}
                           </span>
                           <button
-                            onClick={() => handleDeleteMessage(m.id)}
+                            type="button"
+                            onClick={() => setMessageToDelete(m.id)}
                             style={{
                               background: 'none',
                               border: 'none',
@@ -1023,6 +1051,35 @@ function AuthenticatedSupportView() {
           )}
         </div>
       </div>
+
+      {/* Confirmation Modals */}
+      <ConfirmDialog
+        isOpen={Boolean(threadToDelete)}
+        title={t('support.confirmDelete')}
+        description={t('support.confirmDeleteDesc')}
+        confirmText={t('common.delete') || (lang === 'en' ? 'Delete' : 'Supprimer')}
+        cancelText={t('common.cancel') || (lang === 'en' ? 'Cancel' : 'Annuler')}
+        variant="danger"
+        isLoading={isDeleting}
+        onConfirm={executeDeleteThread}
+        onCancel={() => {
+          if (!isDeleting) setThreadToDelete(null)
+        }}
+      />
+
+      <ConfirmDialog
+        isOpen={Boolean(messageToDelete)}
+        title={t('support.confirmDeleteMessage')}
+        description={t('support.confirmDeleteMessageDesc')}
+        confirmText={t('common.delete') || (lang === 'en' ? 'Delete' : 'Supprimer')}
+        cancelText={t('common.cancel') || (lang === 'en' ? 'Cancel' : 'Annuler')}
+        variant="danger"
+        isLoading={isDeleting}
+        onConfirm={executeDeleteMessage}
+        onCancel={() => {
+          if (!isDeleting) setMessageToDelete(null)
+        }}
+      />
     </AppShell>
   )
 }

@@ -1251,7 +1251,10 @@ export const fr = {
     needMoreHelp: "Besoin d'aide supplémentaire ?",
     typeMessage: 'Écrivez votre message… (Entrée pour envoyer)',
     confirmDelete: 'Voulez-vous vraiment supprimer cette conversation ?',
+    confirmDeleteDesc:
+      'Cette action est irréversible. L’ensemble des messages de cet échange seront définitivement effacés.',
     confirmDeleteMessage: 'Voulez-vous vraiment supprimer ce message ?',
+    confirmDeleteMessageDesc: 'Ce message sera retiré définitivement de la conversation.',
     deleteMessage: 'Supprimer ce message',
     errorDeleteMessage: 'Une erreur est survenue lors de la suppression du message.',
     errorDelete: 'Une erreur est survenue lors de la suppression.',

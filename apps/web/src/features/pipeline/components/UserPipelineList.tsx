@@ -159,7 +159,8 @@ function ProspectModal({
     item.createdAt || item.enteredAt,
     item.status,
     item.assignedAt,
-    item.updatedAt
+    item.updatedAt,
+    lang
   )
 
   return (
@@ -239,7 +240,7 @@ function ProspectModal({
                   {statusLabel[item.status] ?? item.status}
                 </Badge>
                 <div
-                  title={`Date d'entrée : ${aging.enteredDateFormatted} (${aging.relativeTimeFormatted})`}
+                  title={`${lang === 'en' ? 'Entry date:' : "Date d'entrée :"} ${aging.enteredDateFormatted} (${aging.relativeTimeFormatted})`}
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
@@ -257,7 +258,7 @@ function ProspectModal({
                   <span>{aging.badgeText}</span>
                 </div>
                 <span style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)' }}>
-                  Entré le {aging.enteredDateFormatted}
+                  {lang === 'en' ? 'Entered on' : 'Entré le'} {aging.enteredDateFormatted}
                 </span>
               </div>
             </div>
@@ -901,7 +902,8 @@ function ProspectModal({
                       }}
                     >
                       {aging.badgeText} ·{' '}
-                      {t('pipeline.saleSuccessBanner') || 'Vente finalisée avec succès !'}
+                      {t('pipeline.saleSuccessBanner') ||
+                        (lang === 'en' ? 'Sale successfully closed!' : 'Vente finalisée avec succès !')}
                     </span>
                   </div>
                 )}
@@ -1284,11 +1286,12 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
                         item.createdAt || item.enteredAt,
                         item.status,
                         item.assignedAt,
-                        item.updatedAt
+                        item.updatedAt,
+                        lang
                       )
                       return (
                         <span
-                          title={`Entré le ${aging.enteredDateFormatted} (${aging.relativeTimeFormatted})`}
+                          title={`${lang === 'en' ? 'Entered on' : 'Entré le'} ${aging.enteredDateFormatted} (${aging.relativeTimeFormatted})`}
                           style={{
                             display: 'inline-flex',
                             alignItems: 'center',
