@@ -464,14 +464,15 @@ export async function PATCH(request: NextRequest) {
       .limit(1)
       .get()
 
-    let pipelineEntryId: string
+    const effectiveDeadline =
+      deadline !== undefined ? deadline : (prospectData.assignmentDeadline || null)
+
+    let pipelineEntryId = ''
 
     if (existingTa.empty) {
       // ── Créer l'entrée pipeline pour le membre ────────────────────────
       const pipelineRef = adminDb.collection('pipeline').doc()
       pipelineEntryId = pipelineRef.id
-
-      const effectiveDeadline = deadline || prospectData.assignmentDeadline || null
 
       await pipelineRef.set({
         userId: assignedTo, // le membre voit dans son pipeline
@@ -517,9 +518,21 @@ export async function PATCH(request: NextRequest) {
       })
     } else {
       pipelineEntryId = existingTa.docs[0]!.data().pipelineEntryId ?? ''
+      if (pipelineEntryId && deadline !== undefined) {
+        try {
+          await adminDb.collection('pipeline').doc(pipelineEntryId).update({
+            assignmentDeadline: effectiveDeadline,
+            updatedAt: FieldValue.serverTimestamp()
+          })
+          await existingTa.docs[0]!.ref.update({
+            assignmentDeadline: effectiveDeadline,
+            updatedAt: FieldValue.serverTimestamp()
+          })
+        } catch {
+          /* ignore */
+        }
+      }
     }
-
-    const effectiveDeadline = deadline || prospectData.assignmentDeadline || null
 
     // ── Mettre à jour le prospect importé ─────────────────────────────────
     await prospectRef.update({

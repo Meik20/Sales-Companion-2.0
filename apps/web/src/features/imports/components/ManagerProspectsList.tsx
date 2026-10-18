@@ -199,6 +199,7 @@ export function ManagerProspectsList({
   const [filterTm, setFilterTm] = useState('')
   const [selectedTargetTmUid, setSelectedTargetTmUid] = useState('')
   const [transferDeadlineOption, setTransferDeadlineOption] = useState<'48h' | '24h' | '7d' | 'none'>('48h')
+  const [assignDeadlineOption, setAssignDeadlineOption] = useState<'48h' | '24h' | '7d' | 'none'>('48h')
 
   const getCalculatedTransferDeadlineIso = (): string | null => {
     const now = new Date()
@@ -209,6 +210,20 @@ export function ManagerProspectsList({
       return new Date(now.getTime() + 48 * 60 * 60 * 1000).toISOString()
     }
     if (transferDeadlineOption === '7d') {
+      return new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString()
+    }
+    return null
+  }
+
+  const getCalculatedAssignDeadlineIso = (): string | null => {
+    const now = new Date()
+    if (assignDeadlineOption === '24h') {
+      return new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString()
+    }
+    if (assignDeadlineOption === '48h') {
+      return new Date(now.getTime() + 48 * 60 * 60 * 1000).toISOString()
+    }
+    if (assignDeadlineOption === '7d') {
       return new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString()
     }
     return null
@@ -262,6 +277,7 @@ export function ManagerProspectsList({
 
   async function handleAssign(prospectId: string, memberId: string | null) {
     if (!user) return
+    const deadlineIso = memberId ? getCalculatedAssignDeadlineIso() : null
     setAssigning(prospectId)
     try {
       const token = await user.getIdToken()
@@ -271,11 +287,20 @@ export function ManagerProspectsList({
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ prospectId, assignedTo: memberId, managerId })
+        body: JSON.stringify({
+          prospectId,
+          assignedTo: memberId,
+          managerId,
+          deadline: deadlineIso
+        })
       })
       if (res.ok) {
         setProspects((prev) =>
-          prev.map((p) => (p.id === prospectId ? { ...p, assignedTo: memberId } : p))
+          prev.map((p) =>
+            p.id === prospectId
+              ? { ...p, assignedTo: memberId, assignmentDeadline: deadlineIso }
+              : p
+          )
         )
       }
     } finally {
@@ -758,6 +783,48 @@ export function ManagerProspectsList({
                 )}
                 {t('team.transferSelection')} ({selected.size})
               </button>
+            </div>
+          )}
+
+          {/* Sélecteur de délai d'intervention pour Team Manager (assignation commercial) */}
+          {!isSeniorManager && !hideAssign && (
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 5,
+                background: 'var(--card, #131c2e)',
+                padding: '3px 8px',
+                borderRadius: 8,
+                border: '1px solid var(--border, rgba(255,255,255,0.08))'
+              }}
+            >
+              <Clock size={12} style={{ color: '#38bdf8' }} />
+              <span style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)', fontWeight: 600 }}>
+                {lang === 'en' ? 'Rep deadline:' : 'Échéance commercial :'}
+              </span>
+              <select
+                value={assignDeadlineOption}
+                onChange={(e) => setAssignDeadlineOption(e.target.value as any)}
+                style={{
+                  height: 26,
+                  padding: '0 6px',
+                  border: '1px solid rgba(56,189,248,0.3)',
+                  borderRadius: 6,
+                  fontSize: 11,
+                  fontFamily: 'inherit',
+                  background: 'var(--secondary, #1e2a3b)',
+                  color: 'var(--foreground, #f1f5f9)',
+                  cursor: 'pointer',
+                  outline: 'none'
+                }}
+                title={lang === 'en' ? 'Deadline assigned to sales rep upon assignment' : "Délai d'intervention accordé au commercial"}
+              >
+                <option value="24h">24h ({lang === 'en' ? 'Urgent' : 'Urgent'})</option>
+                <option value="48h">48h ({lang === 'en' ? 'Default' : 'Standard'})</option>
+                <option value="7d">7 {lang === 'en' ? 'days' : 'jours'}</option>
+                <option value="none">{lang === 'en' ? 'No deadline' : 'Sans échéance'}</option>
+              </select>
             </div>
           )}
 
