@@ -922,6 +922,50 @@ export function ManagerProspectsList({
             </button>
           )}
 
+          {/* Sélecteur de délai d'intervention pour Senior Manager (permanent sur Mes prospects importés) */}
+          {isSeniorManager && (
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                background: 'var(--card, #131c2e)',
+                padding: '3px 8px',
+                borderRadius: 8,
+                border: '1px solid rgba(59,130,246,0.3)',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.06)'
+              }}
+            >
+              <Clock size={12} style={{ color: '#3b82f6' }} />
+              <span style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)', fontWeight: 600 }}>
+                {lang === 'en' ? 'TM deadline:' : 'Échéance TM :'}
+              </span>
+              <select
+                value={transferDeadlineOption}
+                onChange={(e) => setTransferDeadlineOption(e.target.value as any)}
+                style={{
+                  height: 26,
+                  padding: '0 6px',
+                  border: '1px solid rgba(59,130,246,0.35)',
+                  borderRadius: 6,
+                  fontSize: 11,
+                  fontWeight: 600,
+                  fontFamily: 'inherit',
+                  background: 'var(--secondary, #1e2a3b)',
+                  color: 'var(--foreground, #f1f5f9)',
+                  cursor: 'pointer',
+                  outline: 'none'
+                }}
+                title={lang === 'en' ? 'Deadline granted to Team Manager for handling prospects' : "Délai accordé au Team Manager pour traiter et attribuer les prospects"}
+              >
+                <option value="24h">24h ({lang === 'en' ? 'Urgent' : 'Urgent'})</option>
+                <option value="48h">48h ({lang === 'en' ? 'Default' : 'Standard'})</option>
+                <option value="7d">7 {lang === 'en' ? 'days' : 'jours'}</option>
+                <option value="none">{lang === 'en' ? 'No deadline' : 'Sans échéance'}</option>
+              </select>
+            </div>
+          )}
+
           {/* Vider toute la liste des imports */}
           {prospects.length > 0 &&
             (confirmClearAll ? (
@@ -1057,6 +1101,7 @@ export function ManagerProspectsList({
                   t('field.city'),
                   t('field.sector'),
                   t('pipeline.status'),
+                  lang === 'en' ? 'Intervention deadline' : "Délai d'intervention",
                   ...(isSeniorManager
                     ? [t('team.colTeamManager')]
                     : !hideAssign
@@ -1187,14 +1232,21 @@ export function ManagerProspectsList({
                                 {aging.subtext}
                               </span>
                             )}
-                            {p.assignmentDeadline && (
-                              <div style={{ marginTop: 3 }}>
-                                <DeadlineBadge deadline={p.assignmentDeadline} size="sm" />
-                              </div>
-                            )}
                           </div>
                         )
                       })()}
+                    </td>
+                    {/* Colonne dédiée : Délai d'intervention */}
+                    <td style={{ padding: '9px 12px' }}>
+                      {p.assignmentDeadline ? (
+                        <DeadlineBadge
+                          deadline={p.assignmentDeadline}
+                          status={p.status}
+                          size="sm"
+                        />
+                      ) : (
+                        <span style={{ color: 'var(--muted-foreground, #64748b)', fontSize: 12 }}>—</span>
+                      )}
                     </td>
                     {/* Colonne Team Manager (Senior Manager) ou Assigné à (Manager standard) */}
                     {isSeniorManager ? (
