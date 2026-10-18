@@ -35,7 +35,8 @@ export const useUserPipeline = () => {
           status: data.status || 'prospection',
           userId: (data.userId || user.uid) as string,
           createdAt: formatTimestamp(data.createdAt) || new Date().toISOString(),
-          updatedAt: formatTimestamp(data.updatedAt) || new Date().toISOString()
+          updatedAt: formatTimestamp(data.updatedAt) || new Date().toISOString(),
+          concludedAt: formatTimestamp(data.concludedAt) || (typeof data.concludedAt === 'string' ? data.concludedAt : undefined)
         } as unknown as PipelineDoc & { id: string })
       })
 
@@ -59,7 +60,8 @@ export const useUserPipeline = () => {
               status: data.status || 'prospection',
               userId: (data.userId || user.uid) as string,
               createdAt: formatTimestamp(data.createdAt) || new Date().toISOString(),
-              updatedAt: formatTimestamp(data.updatedAt) || new Date().toISOString()
+              updatedAt: formatTimestamp(data.updatedAt) || new Date().toISOString(),
+              concludedAt: formatTimestamp(data.concludedAt) || (typeof data.concludedAt === 'string' ? data.concludedAt : undefined)
             } as unknown as PipelineDoc & { id: string })
           }
         })

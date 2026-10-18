@@ -8,8 +8,21 @@ async function getAdmin() {
 }
 
 /**
+ * Vérifie si une opportunité conclue est éligible au transfert automatique :
+ * 3 jours après la fin du mois au cours duquel le deal a été conclu.
+ * Exemple : deal conclu le 12 octobre -> fin du mois = 31 oct -> 3 jours après = 3 nov à 23:59:59.
+ */
+function isEligibleForAutoArchive(concludedDate: Date, now: Date): boolean {
+  const year = concludedDate.getFullYear()
+  const month = concludedDate.getMonth() // 0 à 11
+  // 3 jours après la fin du mois = le 3 du mois suivant à 23:59:59.999
+  const cutoff = new Date(year, month + 1, 3, 23, 59, 59, 999)
+  return now.getTime() >= cutoff.getTime()
+}
+
+/**
  * GET /api/cron/archive-pipeline-clients
- * Tâche d'arrière-plan / cron qui archive les opportunités conclues depuis plus de 72h.
+ * Tâche d'arrière-plan / cron qui archive les opportunités conclues 3 jours après la fin du mois.
  * Elles sont enregistrées dans la "Base de données clients" (collection clients)
  * et retirées du pipeline opérationnel.
  */
@@ -23,8 +36,6 @@ export async function GET(request: NextRequest) {
     if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
       return NextResponse.json({ message: 'Non autorisé' }, { status: 401 })
     }
-
-    const seventyTwoHoursAgo = new Date(Date.now() - 72 * 60 * 60 * 1000)
 
     const concludedSnaps = await Promise.all([
       adminDb
@@ -53,7 +64,7 @@ export async function GET(request: NextRequest) {
           concludedDate = data.updatedAt.toDate ? data.updatedAt.toDate() : new Date(data.updatedAt)
         }
 
-        if (concludedDate && concludedDate <= seventyTwoHoursAgo) {
+        if (concludedDate && !isNaN(concludedDate.getTime()) && isEligibleForAutoArchive(concludedDate, now)) {
           // 1. S'assurer qu'il est synchronisé dans la base clients
           await syncPipelineItemToClient(adminDb, doc.id, {
             ...data,

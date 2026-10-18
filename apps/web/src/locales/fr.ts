@@ -655,7 +655,11 @@ export const fr = {
     assignedToMember: 'Portefeuille opérationnel assigné à ce commercial',
     followUpsAndTracking: 'Relances & Suivi',
     urgentFollowUpRequired: 'Nécessite une relance urgente',
-    noExpiredFollowUps: 'Aucune relance expirée'
+    noExpiredFollowUps: 'Aucune relance expirée',
+    transferToClients: 'Transférer vers clients',
+    transferToClientsConfirmTitle: 'Transférer vers la base clients',
+    transferToClientsConfirmMsg: 'Confirmez-vous le transfert manuel de {count} opportunité(s) conclue(s) vers la base de données clients ? Elles seront enregistrées comme clients actifs et retirées du pipeline.',
+    transferSuccess: '{count} opportunité(s) conclue(s) transférée(s) avec succès dans la base clients.'
   },
   auth: {
     loginTitle: 'Connexion',
@@ -1665,7 +1669,7 @@ export const fr = {
     allSectors: 'Tous les secteurs',
     loading: 'Chargement de la base de données clients...',
     noClientsFound: 'Aucun client trouvé',
-    emptyNoticeInitial: 'Dès qu’une opportunité est conclue dans le pipeline depuis plus de 72 heures, elle est archivée automatiquement ici avec le détail du vendeur.',
+    emptyNoticeInitial: 'Dès qu’une opportunité est conclue dans le pipeline, elle est transférée automatiquement ici 3 jours après la fin du mois (ou manuellement par le manager en fin de mois) avec le détail du vendeur.',
     emptyNoticeFiltered: 'Aucun client ne correspond à vos filtres actuels.',
     colClient: 'Client & Entreprise',
     colSoldBy: 'Vendu par (Commercial)',

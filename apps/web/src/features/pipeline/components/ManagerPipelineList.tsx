@@ -12,6 +12,7 @@ import { useExportTeamPerformance } from '@/features/pipeline/hooks/useExportTea
 import { useTeamTargets, useSaveTeamTarget } from '@/features/pipeline/hooks/useTeamTargets'
 import { useArchiveLeads } from '@/features/pipeline/hooks/useArchivePipeline'
 import { ArchivesDrawer } from '@/features/pipeline/components/ArchivesDrawer'
+import { useTransferConcludedDeals } from '@/features/pipeline/hooks/useTransferConcludedDeals'
 import {
   Building2,
   MapPin,
@@ -37,7 +38,8 @@ import {
   Check,
   Users,
   Crown,
-  Download
+  Download,
+  FolderArchive
 } from 'lucide-react'
 import { getPipelineAging } from '@/lib/pipelineAging'
 import { formatCompactAmount, formatFullAmount } from '@/lib/formatters'
@@ -1417,6 +1419,48 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
     setSelectedForArchive(new Set())
   }
 
+  // ── Transfert manuel vers la base clients en fin de mois ──────────────────
+  const transferMutation = useTransferConcludedDeals()
+  const [transferringItems, setTransferringItems] = useState<PipelineItem[] | null>(null)
+  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false)
+
+  // Le bouton ne devient visible que à la fin du mois :
+  // soit les 4 derniers jours du mois calendaire, soit jusqu'au 3 du mois suivant (inclus)
+  const isEndOfMonthPeriod = useMemo(() => {
+    if (!isMounted) return false
+    const now = new Date()
+    const day = now.getDate()
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
+    return day >= lastDay - 3 || day <= 3
+  }, [isMounted])
+
+  const handleOpenTransferModal = useCallback((itemsToTransfer: PipelineItem[]) => {
+    if (!itemsToTransfer || itemsToTransfer.length === 0) return
+    setTransferringItems(itemsToTransfer)
+    setIsTransferModalOpen(true)
+  }, [])
+
+  const handleConfirmTransfer = useCallback(async () => {
+    if (!transferringItems || transferringItems.length === 0) return
+    try {
+      const res = await transferMutation.mutateAsync({
+        itemIds: transferringItems.map((i) => i.id)
+      })
+      pushToast({
+        type: 'success',
+        title: t('pipeline.transferSuccess', { count: res.transferredCount ?? transferringItems.length })
+      })
+    } catch (err: any) {
+      pushToast({
+        type: 'error',
+        title: err?.message || 'Erreur lors du transfert vers la base clients'
+      })
+    } finally {
+      setIsTransferModalOpen(false)
+      setTransferringItems(null)
+    }
+  }, [transferringItems, transferMutation, pushToast, t])
+
   // ── Filtre par membre & statistiques individuelles ──────────────────────────
   const [selectedMemberId, setSelectedMemberId] = useState<string>('all')
   const { data: allTargets } = useTeamTargets()
@@ -1613,17 +1657,8 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
   const grouped: Record<string, PipelineItem[]> = useMemo(() => ({
     prospection: displayedItems.filter((i) => normalize(i.status) === 'prospection'),
     negociation: displayedItems.filter((i) => normalize(i.status) === 'negociation'),
-    conclue: displayedItems.filter((i) => {
-      if (normalize(i.status) !== 'conclue') return false
-      if (isMounted && i.concludedAt) {
-        const t = new Date(i.concludedAt as any).getTime()
-        if (!isNaN(t) && Date.now() - t > 72 * 60 * 60 * 1000) {
-          return false
-        }
-      }
-      return true
-    })
-  }), [displayedItems, isMounted])
+    conclue: displayedItems.filter((i) => normalize(i.status) === 'conclue')
+  }), [displayedItems])
 
   const activeTarget = useMemo(() => {
     if (!activeMemberSummary) return null
@@ -2032,7 +2067,32 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-
+              {isEndOfMonthPeriod && activeMemberSummary.conclueCount > 0 && (
+                <button
+                  type="button"
+                  onClick={() => handleOpenTransferModal(grouped.conclue ?? [])}
+                  disabled={transferMutation.isPending}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 5,
+                    padding: '4px 10px',
+                    borderRadius: 6,
+                    border: '1px solid rgba(16, 185, 129, 0.4)',
+                    background: 'rgba(16, 185, 129, 0.15)',
+                    color: '#10b981',
+                    fontSize: 11,
+                    fontWeight: 700,
+                    cursor: transferMutation.isPending ? 'not-allowed' : 'pointer',
+                    transition: 'all 150ms ease'
+                  }}
+                >
+                  <FolderArchive size={12} />
+                  <span>
+                    {t('pipeline.transferToClients')} ({activeMemberSummary.conclueCount})
+                  </span>
+                </button>
+              )}
               <button
                 onClick={() => setSelectedMemberId('all')}
                 style={{
@@ -2480,9 +2540,36 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                   marginBottom: 10
                 }}
               >
-                <Badge variant={statusVariant[status] ?? 'default'}>
-                  {statusLabel[status]} ({groupItems.length})
-                </Badge>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Badge variant={statusVariant[status] ?? 'default'}>
+                    {statusLabel[status]} ({groupItems.length})
+                  </Badge>
+                  {status === 'conclue' && isEndOfMonthPeriod && groupItems.length > 0 && (
+                    <button
+                      type="button"
+                      title={t('pipeline.transferToClients')}
+                      onClick={() => handleOpenTransferModal(groupItems)}
+                      disabled={transferMutation.isPending}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        padding: '2px 8px',
+                        fontSize: 10.5,
+                        fontWeight: 700,
+                        borderRadius: 6,
+                        background: 'rgba(16, 185, 129, 0.15)',
+                        border: '1px solid rgba(16, 185, 129, 0.4)',
+                        color: '#10b981',
+                        cursor: transferMutation.isPending ? 'not-allowed' : 'pointer',
+                        transition: 'all 150ms ease'
+                      }}
+                    >
+                      <FolderArchive size={11} />
+                      <span>{t('pipeline.transferToClients')}</span>
+                    </button>
+                  )}
+                </div>
                 {totalPages > 1 && (
                   <span
                     style={{
@@ -2956,6 +3043,25 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
       onConfirm={confirmDelete}
       onCancel={() => {
         if (!deletingId) setItemToDelete(null)
+      }}
+    />
+
+    <ConfirmDialog
+      isOpen={isTransferModalOpen}
+      title={t('pipeline.transferToClientsConfirmTitle')}
+      description={t('pipeline.transferToClientsConfirmMsg', {
+        count: transferringItems?.length ?? 0
+      })}
+      confirmText={lang === 'en' ? 'Confirm Transfer' : 'Confirmer le transfert'}
+      cancelText={lang === 'en' ? 'Cancel' : 'Annuler'}
+      variant="info"
+      isLoading={transferMutation.isPending}
+      onConfirm={handleConfirmTransfer}
+      onCancel={() => {
+        if (!transferMutation.isPending) {
+          setIsTransferModalOpen(false)
+          setTransferringItems(null)
+        }
       }}
     />
     </>

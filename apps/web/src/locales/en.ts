@@ -652,7 +652,11 @@ export const en = {
     assignedToMember: 'Operational portfolio assigned to this sales rep',
     followUpsAndTracking: 'Follow-ups & Tracking',
     urgentFollowUpRequired: 'Urgent follow-up required',
-    noExpiredFollowUps: 'No expired follow-ups'
+    noExpiredFollowUps: 'No expired follow-ups',
+    transferToClients: 'Transfer to clients',
+    transferToClientsConfirmTitle: 'Transfer to client database',
+    transferToClientsConfirmMsg: 'Confirm manual transfer of {count} closed deal(s) to the client database? They will be saved as active clients and removed from the pipeline.',
+    transferSuccess: '{count} closed deal(s) successfully transferred to the client database.'
   },
   auth: {
     loginTitle: 'Log in',
@@ -1652,7 +1656,7 @@ export const en = {
     allSectors: 'All sectors',
     loading: 'Loading client database...',
     noClientsFound: 'No client found',
-    emptyNoticeInitial: 'As soon as an opportunity is closed in the pipeline for more than 72 hours, it is automatically archived here with salesperson details.',
+    emptyNoticeInitial: 'As soon as an opportunity is closed in the pipeline, it is automatically transferred here 3 days after the end of the month (or manually by the manager at month-end) with salesperson details.',
     emptyNoticeFiltered: 'No client matches your current filters.',
     colClient: 'Client & Company',
     colSoldBy: 'Sold by (Salesperson)',
