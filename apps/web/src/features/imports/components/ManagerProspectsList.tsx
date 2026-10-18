@@ -21,6 +21,8 @@ export type Prospect = {
   managerId?: string
   transferredToManagerName?: string
   transferredToManagerUid?: string
+  transferredAt?: string
+  assignmentDeadline?: string | null
   [key: string]: unknown
 }
 
@@ -67,6 +69,102 @@ function getStatusLabel(status: string, t: any) {
   return status
 }
 
+export type ProspectAgingStatus = {
+  label: string
+  color: string
+  subtext?: string | null
+}
+
+function getProspectAgingStatus(p: Prospect, lang: string, t: any): ProspectAgingStatus {
+  const isEn = lang?.startsWith('en')
+
+  // 1. Si déjà assigné à un collaborateur
+  if (p.assignedTo && String(p.assignedTo).trim() !== '') {
+    return {
+      label: isEn ? 'Assigned' : 'Assigné',
+      color: '#059669',
+      subtext: null
+    }
+  }
+
+  // 2. Si statut custom explicite autre que 'new' (ex: contacté, en_cours, converti, perdu)
+  if (p.status && p.status !== 'new') {
+    const color = STATUS_COLOR[p.status] || '#1E88E5'
+    return {
+      label: getStatusLabel(p.status, t),
+      color,
+      subtext: null
+    }
+  }
+
+  // 3. Contrôle d'échéance / deadline si fixée lors du transfert ou import
+  const now = Date.now()
+  if (p.assignmentDeadline) {
+    const deadline = new Date(p.assignmentDeadline as string)
+    if (!isNaN(deadline.getTime())) {
+      if (now > deadline.getTime()) {
+        return {
+          label: isEn ? 'Overdue' : 'Délai dépassé',
+          color: '#dc2626',
+          subtext: isEn ? 'Deadline passed' : 'Échéance dépassée'
+        }
+      }
+      const hoursLeft = (deadline.getTime() - now) / (1000 * 3600)
+      if (hoursLeft <= 24) {
+        return {
+          label: isEn ? 'Urgent' : 'Urgent',
+          color: '#ea580c',
+          subtext: isEn ? '< 24h left' : '< 24h restante(s)'
+        }
+      }
+    }
+  }
+
+  // 4. Calcul de l'ancienneté d'arrivée (transferredAt en priorité si transfert SM, sinon createdAt)
+  const arrivalDateStr = (p.transferredAt as string) || (p.createdAt as string)
+  const arrivalDate = arrivalDateStr ? new Date(arrivalDateStr) : null
+
+  if (!arrivalDate || isNaN(arrivalDate.getTime())) {
+    return {
+      label: isEn ? 'New' : 'Nouveau',
+      color: '#2563eb',
+      subtext: null
+    }
+  }
+
+  const diffMs = Math.max(0, now - arrivalDate.getTime())
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+
+  if (diffDays <= 2) {
+    return {
+      label: isEn ? 'New' : 'Nouveau',
+      color: '#2563eb',
+      subtext:
+        diffDays === 0
+          ? isEn
+            ? 'Today'
+            : "Aujourd'hui"
+          : isEn
+            ? `${diffDays}d ago`
+            : `Il y a ${diffDays}j`
+    }
+  }
+
+  if (diffDays <= 6) {
+    return {
+      label: isEn ? 'Pending' : 'En attente',
+      color: '#d97706',
+      subtext: isEn ? `${diffDays}d in queue` : `Il y a ${diffDays}j`
+    }
+  }
+
+  return {
+    label: isEn ? 'Action needed' : 'À traiter',
+    color: '#dc2626',
+    subtext: isEn ? `${diffDays}d in queue` : `Il y a ${diffDays}j`
+  }
+}
+
 const SELECT_STYLE: React.CSSProperties = {
   height: 28,
   padding: '0 6px',
@@ -90,7 +188,7 @@ export function ManagerProspectsList({
   isSeniorManager = false,
   teamManagers = []
 }: Props) {
-  const { t } = useTranslation()
+  const { t, lang } = useTranslation()
   const { user } = useCurrentUser()
   const { pushToast } = useToast()
   const [prospects, setProspects] = useState<Prospect[]>([])
@@ -805,7 +903,6 @@ export function ManagerProspectsList({
             </thead>
             <tbody>
               {filtered.map((p, i) => {
-                const statusColor = STATUS_COLOR[p.status ?? 'new'] ?? '#1E88E5'
                 const isSelected = selected.has(p.id)
                 return (
                   <tr
@@ -878,18 +975,40 @@ export function ManagerProspectsList({
                       {p.sector || '—'}
                     </td>
                     <td style={{ padding: '9px 12px' }}>
-                      <span
-                        style={{
-                          fontSize: 11,
-                          fontWeight: 700,
-                          padding: '2px 7px',
-                          borderRadius: 4,
-                          background: `${statusColor}18`,
-                          color: statusColor
-                        }}
-                      >
-                        {getStatusLabel(p.status ?? 'new', t)}
-                      </span>
+                      {(() => {
+                        const aging = getProspectAgingStatus(p, lang, t)
+                        return (
+                          <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2 }}>
+                            <span
+                              style={{
+                                fontSize: 11,
+                                fontWeight: 700,
+                                padding: '2px 7px',
+                                borderRadius: 4,
+                                background: `${aging.color}18`,
+                                color: aging.color,
+                                border: `1px solid ${aging.color}35`,
+                                whiteSpace: 'nowrap'
+                              }}
+                            >
+                              {aging.label}
+                            </span>
+                            {aging.subtext && (
+                              <span
+                                style={{
+                                  fontSize: 9.5,
+                                  color: 'var(--muted-foreground, #94a3b8)',
+                                  fontWeight: 500,
+                                  paddingLeft: 2,
+                                  whiteSpace: 'nowrap'
+                                }}
+                              >
+                                {aging.subtext}
+                              </span>
+                            )}
+                          </div>
+                        )
+                      })()}
                     </td>
                     {/* Colonne Team Manager (Senior Manager) ou Assigné à (Manager standard) */}
                     {isSeniorManager ? (

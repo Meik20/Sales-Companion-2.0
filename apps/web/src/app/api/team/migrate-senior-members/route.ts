@@ -348,8 +348,8 @@ export async function POST(request: NextRequest) {
         userId: targetManagerUid,
         type: 'prospect_transfer',
         title: 'Nouveaux prospects transférés',
-        message: `${senderName} vous a transféré ${count} prospect${count > 1 ? 's' : ''} dans votre portefeuille. Retrouvez-${count > 1 ? 'les' : 'le'} dans votre Sales Pipeline.`,
-        link: '/pipeline',
+        message: `${senderName} vous a transféré ${count} prospect${count > 1 ? 's' : ''}. Retrouvez-${count > 1 ? 'les' : 'le'} dans "Gestion d'équipe > Mes prospects importés" pour les attribuer à votre équipe.`,
+        link: '/team?tab=imports',
         metadata: {
           senderUid: callerUid,
           senderName,

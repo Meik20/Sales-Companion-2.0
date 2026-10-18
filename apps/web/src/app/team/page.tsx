@@ -80,6 +80,16 @@ export default function TeamPage() {
   }, [isSeniorManager, user])
 
   useEffect(() => {
+    // Si l'URL contient un paramètre tab (ex: /team?tab=imports), l'activer en priorité
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search)
+      const tabParam = urlParams.get('tab') as Tab | null
+      if (tabParam && ['org', 'team', 'imports'].includes(tabParam)) {
+        setActiveTab(tabParam)
+        return
+      }
+    }
+
     if (isSeniorManager) {
       setActiveTab('org')
     } else if (isManager) {

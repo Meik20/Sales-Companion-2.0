@@ -178,8 +178,8 @@ export async function POST(request: NextRequest) {
         userId: targetManagerUid,
         type: 'prospect_transfer',
         title: 'Nouveaux prospects transférés',
-        message: `Le Senior Manager (${callerName}) vous a transféré ${transferredCount} prospect(s)${deadlineText}. Retrouvez-les dans votre Pipeline sous le filtre "Non assignés" pour les attribuer à votre équipe.`,
-        link: '/pipeline',
+        message: `Le Senior Manager (${callerName}) vous a transféré ${transferredCount} prospect(s)${deadlineText}. Retrouvez-les dans "Gestion d'équipe > Mes prospects importés" pour les attribuer à votre équipe.`,
+        link: '/team?tab=imports',
         metadata: {
           count: transferredCount,
           senderUid: callerUid,
