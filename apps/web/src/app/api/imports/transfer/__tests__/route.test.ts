@@ -70,7 +70,8 @@ const mocks = vi.hoisted(() => {
       }
     }
     return {
-      get: vi.fn().mockResolvedValue({ exists: false, data: () => null })
+      get: vi.fn().mockResolvedValue({ exists: false, data: () => null }),
+      update: vi.fn().mockResolvedValue({})
     }
   })
 

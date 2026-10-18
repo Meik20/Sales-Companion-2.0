@@ -141,7 +141,7 @@ export function useOrgPipelineRealtimeSync() {
         (snapshot: any) => {
           if (!snapshot.exists()) return
           const data = snapshot.data()
-          const current = data?.lastPipelineUpdate ?? null
+          const current = `${data?.lastPipelineUpdate ?? ''}_${data?.lastImportsUpdate ?? ''}`
 
           // Premier snapshot — mémoriser sans invalider (état initial)
           if (lastKnownUpdate === null) {
@@ -159,6 +159,7 @@ export function useOrgPipelineRealtimeSync() {
             void queryClient.invalidateQueries({ queryKey: ['pipeline-stats'] })
             void queryClient.invalidateQueries({ queryKey: ['reporting'] })
             void queryClient.invalidateQueries({ queryKey: ['clients'] })
+            void queryClient.invalidateQueries({ queryKey: ['imports'] })
           }
         },
         (error: any) => {

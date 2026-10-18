@@ -71,12 +71,13 @@ export async function GET(request: NextRequest) {
     if (callerData?.orgRole === 'senior_manager' && managerId === callerUid) {
       // Pour le Senior Manager, on récupère à la fois les prospects encore sous son managerId,
       // ET ceux qu'il a importés et transférés à des Team Managers
-      const [byManagerSnap, byImportedSnap] = await Promise.all([
+      const [byManagerSnap, byImportedSnap, byTransferredSnap] = await Promise.all([
         adminDb.collection('manager_prospects').where('managerId', '==', callerUid).limit(3000).get(),
-        adminDb.collection('manager_prospects').where('importedBy', '==', callerUid).limit(3000).get()
+        adminDb.collection('manager_prospects').where('importedBy', '==', callerUid).limit(3000).get(),
+        adminDb.collection('manager_prospects').where('transferredFromSeniorUid', '==', callerUid).limit(3000).get()
       ])
       const seen = new Set<string>()
-      for (const d of [...byManagerSnap.docs, ...byImportedSnap.docs]) {
+      for (const d of [...byManagerSnap.docs, ...byImportedSnap.docs, ...byTransferredSnap.docs]) {
         if (!seen.has(d.id)) {
           seen.add(d.id)
           snapDocs.push(d)
@@ -330,11 +331,14 @@ export async function PATCH(request: NextRequest) {
 
     let managerUid: string
     let managerName = ''
+    let managerOrgCode: string | undefined
     try {
       const decoded = await adminAuth.verifyIdToken(token)
       managerUid = decoded.uid
       const managerDoc = await adminDb.collection('users').doc(managerUid).get()
-      managerName = managerDoc.data()?.name ?? managerDoc.data()?.email ?? ''
+      const mData = managerDoc.data()
+      managerName = mData?.name ?? mData?.email ?? ''
+      managerOrgCode = mData?.orgCode
     } catch {
       return NextResponse.json({ message: 'Token invalide' }, { status: 401 })
     }
@@ -401,6 +405,19 @@ export async function PATCH(request: NextRequest) {
         }
       }
 
+      // Sync heartbeat organisation
+      const orgCode = (managerOrgCode || prospectData.orgCode) as string | undefined
+      if (orgCode) {
+        try {
+          await adminDb.collection('organisations').doc(orgCode).update({
+            lastPipelineUpdate: new Date().toISOString(),
+            lastImportsUpdate: new Date().toISOString()
+          })
+        } catch (orgErr) {
+          console.warn('[imports PATCH] unassigned lastImportsUpdate write failed:', orgErr)
+        }
+      }
+
       return NextResponse.json({ success: true, action: 'unassigned' })
     }
 
@@ -464,6 +481,11 @@ export async function PATCH(request: NextRequest) {
       .limit(1)
       .get()
 
+    // Préserver l'échéance de transfert fixée par le Senior Manager
+    const currentTransferDeadline =
+      (prospectData.transferDeadline as string) ||
+      (prospectData.transferredToManagerUid ? (prospectData.assignmentDeadline as string) : null)
+
     const effectiveDeadline =
       deadline !== undefined ? deadline : (prospectData.assignmentDeadline || null)
 
@@ -493,7 +515,8 @@ export async function PATCH(request: NextRequest) {
         assignedByName: managerName,
         note: prospectData.notes ?? '',
         previousAssignees: [],
-        assignmentDeadline: effectiveDeadline,
+        transferDeadline: currentTransferDeadline || null, // Échéance fixée par le SM
+        assignmentDeadline: effectiveDeadline, // Échéance fixée par le TM pour le commercial
         enteredAt: new Date().toISOString(),
         assignedAt: new Date().toISOString(),
         createdAt: FieldValue.serverTimestamp(),
@@ -511,6 +534,7 @@ export async function PATCH(request: NextRequest) {
         pipelineItemId: prospectId, // référence au prospect importé
         pipelineEntryId, // nouvelle entrée pipeline du membre
         companyName,
+        transferDeadline: currentTransferDeadline || null,
         assignmentDeadline: effectiveDeadline,
         status: 'active',
         createdAt: FieldValue.serverTimestamp(),
@@ -535,13 +559,31 @@ export async function PATCH(request: NextRequest) {
     }
 
     // ── Mettre à jour le prospect importé ─────────────────────────────────
-    await prospectRef.update({
+    const prospectUpdateData: Record<string, any> = {
       assignedTo,
       assignedMemberName: memberName,
       pipelineEntryId,
-      assignmentDeadline: effectiveDeadline,
+      assignmentDeadline: effectiveDeadline, // Échéance commerciale fixée par le TM
       updatedAt: new Date()
-    })
+    }
+    // Si transferDeadline n'avait pas encore été stocké distinctement, le préserver
+    if (currentTransferDeadline && !prospectData.transferDeadline) {
+      prospectUpdateData.transferDeadline = currentTransferDeadline
+    }
+    await prospectRef.update(prospectUpdateData)
+
+    // Déclenchement de la synchronisation temps réel pour l'organisation
+    const orgCode = (managerOrgCode || prospectData.orgCode) as string | undefined
+    if (orgCode) {
+      try {
+        await adminDb.collection('organisations').doc(orgCode).update({
+          lastPipelineUpdate: new Date().toISOString(),
+          lastImportsUpdate: new Date().toISOString()
+        })
+      } catch (orgErr) {
+        console.warn('[imports PATCH] lastImportsUpdate write failed:', orgErr)
+      }
+    }
 
     // Notification In-App et Email automatique pour le commercial assigné
     try {

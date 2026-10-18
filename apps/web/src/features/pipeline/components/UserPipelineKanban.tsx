@@ -49,6 +49,7 @@ type PipelineItem = {
   managerUid?: string | null
   nextFollowUp?: string | null
   previousAssignees?: any[]
+  transferDeadline?: string | null
   assignmentDeadline?: string | null
   firstActionAt?: string | null
   createdAt?: any

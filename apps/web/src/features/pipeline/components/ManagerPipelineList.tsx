@@ -69,6 +69,7 @@ type PipelineItem = {
   nextFollowUp?: string | null
   amount?: number | null
   currency?: string | null
+  transferDeadline?: string | null
   assignmentDeadline?: string | null
   firstActionAt?: string | null
   previousAssignees?: {

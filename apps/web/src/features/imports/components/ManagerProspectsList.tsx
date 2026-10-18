@@ -8,6 +8,8 @@ import { EmptyState } from '@/components/feedback'
 import { ConfirmDialog } from '@/components/ui/index'
 import { RotateCw, Loader2, Trash2, Check, X, ArrowRightLeft, Users, Clock } from 'lucide-react'
 import { DeadlineBadge } from '@/components/ui/DeadlineBadge'
+import { firestore } from '@/services/firebase/client'
+import { doc, onSnapshot } from 'firebase/firestore'
 
 export type Prospect = {
   id: string
@@ -24,6 +26,7 @@ export type Prospect = {
   transferredToManagerName?: string
   transferredToManagerUid?: string
   transferredAt?: string
+  transferDeadline?: string | null
   assignmentDeadline?: string | null
   [key: string]: unknown
 }
@@ -105,8 +108,9 @@ function getProspectAgingStatus(
       }
 
       // Transféré au Team Manager, mais en attente d'assignation par le TM
-      if (p.assignmentDeadline) {
-        const deadline = new Date(p.assignmentDeadline as string)
+      const transferDl = (p.transferDeadline || p.assignmentDeadline) as string | undefined
+      if (transferDl) {
+        const deadline = new Date(transferDl)
         if (!isNaN(deadline.getTime())) {
           if (now > deadline.getTime()) {
             return {
@@ -341,6 +345,43 @@ export function ManagerProspectsList({
   useEffect(() => {
     void loadProspects()
   }, [loadProspects, refreshTrigger])
+
+  // ── Sync temps réel : écoute organisations/{orgCode} et polling de sécurité ──
+  useEffect(() => {
+    let unsub: (() => void) | null = null
+    if (user?.orgCode) {
+      try {
+        const orgDocRef = doc(firestore, 'organisations', user.orgCode)
+        let initialSkip = true
+
+        unsub = onSnapshot(
+          orgDocRef,
+          () => {
+            if (initialSkip) {
+              initialSkip = false
+              return
+            }
+            void loadProspects()
+          },
+          (err) => {
+            console.warn('[ManagerProspectsList] Realtime sync error:', err)
+          }
+        )
+      } catch (e) {
+        console.warn('[ManagerProspectsList] Failed to attach org listener:', e)
+      }
+    }
+
+    // Filet de sécurité universel : polling toutes les 15 secondes
+    const pollTimer = setInterval(() => {
+      void loadProspects()
+    }, 15000)
+
+    return () => {
+      if (unsub) unsub()
+      clearInterval(pollTimer)
+    }
+  }, [user?.orgCode, loadProspects])
 
   // Reset selection when data reloads
   useEffect(() => {
@@ -1246,14 +1287,40 @@ export function ManagerProspectsList({
                     </td>
                     {/* Colonne dédiée : Délai d'intervention */}
                     <td style={{ padding: '9px 12px' }}>
-                      {p.assignmentDeadline ? (
-                        <DeadlineBadge
-                          deadline={p.assignmentDeadline}
-                          status={p.status}
-                          size="sm"
-                        />
+                      {isSeniorManager ? (
+                        p.transferDeadline || p.assignmentDeadline ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                              <DeadlineBadge
+                                deadline={(p.transferDeadline || p.assignmentDeadline) as string}
+                                status={p.status}
+                                size="sm"
+                              />
+                            </div>
+                            {p.assignedTo && p.assignmentDeadline && p.transferDeadline && p.assignmentDeadline !== p.transferDeadline && (
+                              <div style={{ fontSize: 10, color: 'var(--muted-foreground, #94a3b8)', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                                <span>Commercial :</span>
+                                <DeadlineBadge
+                                  deadline={p.assignmentDeadline as string}
+                                  status={p.status}
+                                  size="sm"
+                                />
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <span style={{ color: 'var(--muted-foreground, #64748b)', fontSize: 12 }}>—</span>
+                        )
                       ) : (
-                        <span style={{ color: 'var(--muted-foreground, #64748b)', fontSize: 12 }}>—</span>
+                        p.assignmentDeadline || p.transferDeadline ? (
+                          <DeadlineBadge
+                            deadline={(p.assignmentDeadline || p.transferDeadline) as string}
+                            status={p.status}
+                            size="sm"
+                          />
+                        ) : (
+                          <span style={{ color: 'var(--muted-foreground, #64748b)', fontSize: 12 }}>—</span>
+                        )
                       )}
                     </td>
                     {/* Colonne Team Manager (Senior Manager) ou Assigné à (Manager standard) */}

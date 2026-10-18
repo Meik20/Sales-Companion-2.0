@@ -150,7 +150,8 @@ export async function POST(request: NextRequest) {
         transferredToManagerName: targetManagerName,
         transferredAt: now,
         assignedTo: null, // Non assigné à un commercial : le TM l'assignera
-        assignmentDeadline: deadline || null,
+        transferDeadline: deadline || null, // Échéance de transfert fixée par le Senior Manager
+        assignmentDeadline: deadline || null, // Échéance initiale
         updatedAt: now
       })
       opCount++
@@ -160,6 +161,18 @@ export async function POST(request: NextRequest) {
 
     if (opCount > 0) {
       await batch.commit()
+    }
+
+    // Mise à jour heartbeat de l'organisation pour réactivité temps réel
+    if (orgCode) {
+      try {
+        await adminDb.collection('organisations').doc(orgCode).update({
+          lastPipelineUpdate: now.toISOString(),
+          lastImportsUpdate: now.toISOString()
+        })
+      } catch (orgErr) {
+        console.warn('[POST /api/imports/transfer] lastImportsUpdate write failed:', orgErr)
+      }
     }
 
     // Notification automatique In-App et Email pour le Team Manager destinataire

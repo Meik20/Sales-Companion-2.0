@@ -285,6 +285,7 @@ export async function POST(request: NextRequest) {
         transferredFromSeniorUid: callerUid,
         migratedFromSeniorAt: now,
         transferredAt: now,
+        transferDeadline: deadline || null,
         assignmentDeadline: deadline || null,
         updatedAt: now
       })
@@ -330,6 +331,7 @@ export async function POST(request: NextRequest) {
       batch.update(doc.ref, {
         managerId: targetManagerUid,
         transferredAt: now,
+        transferDeadline: deadline || null,
         assignmentDeadline: deadline || null,
         migratedFromSeniorAt: now
       })
@@ -339,6 +341,18 @@ export async function POST(request: NextRequest) {
 
     if (opCount > 0) {
       await batch.commit()
+    }
+
+    // Mise à jour heartbeat de l'organisation pour réactivité temps réel
+    if (orgCode) {
+      try {
+        await adminDb.collection('organisations').doc(orgCode).update({
+          lastPipelineUpdate: now.toISOString(),
+          lastImportsUpdate: now.toISOString()
+        })
+      } catch (orgErr) {
+        console.warn('[migrate-senior-members] lastImportsUpdate write failed:', orgErr)
+      }
     }
 
     // Notification In-App automatique pour le Team Manager récepteur

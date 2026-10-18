@@ -466,6 +466,7 @@ export const TeamAssignmentService = {
       assignedByName: managerName,
       sourceProspectId: pipelineItemId,
       previousAssignees,
+      transferDeadline: (prospectData.transferDeadline as string) || null,
       assignmentDeadline: params.deadline || null,
       enteredAt: new Date().toISOString(),
       assignedAt: new Date().toISOString(),
@@ -516,11 +517,25 @@ export const TeamAssignmentService = {
       pipelineItemId,
       pipelineEntryId: pipelineRef.id,
       companyName,
+      transferDeadline: (prospectData.transferDeadline as string) || null,
       assignmentDeadline: params.deadline || null,
       status: 'active',
       createdAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp()
     })
+
+    // ── Déclenchement de la synchronisation temps réel pour l'organisation ────
+    const orgCode = (managerData.orgCode || prospectData.orgCode) as string | undefined
+    if (orgCode) {
+      try {
+        await adminDb.collection('organisations').doc(orgCode).update({
+          lastPipelineUpdate: new Date().toISOString(),
+          lastImportsUpdate: new Date().toISOString()
+        })
+      } catch (orgErr) {
+        console.warn('[TeamAssignmentService] lastImportsUpdate write failed:', orgErr)
+      }
+    }
 
     // 9. Notification automatique In-App et Email pour le commercial assigné
     try {
