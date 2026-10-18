@@ -108,7 +108,7 @@ function getProspectAgingStatus(
       }
 
       // Transféré au Team Manager, mais en attente d'assignation par le TM
-      const transferDl = (p.transferDeadline || p.assignmentDeadline) as string | undefined
+      const transferDl = (p.transferDeadline || (!p.assignedTo ? p.assignmentDeadline : undefined)) as string | undefined
       if (transferDl) {
         const deadline = new Date(transferDl)
         if (!isNaN(deadline.getTime())) {
@@ -1288,26 +1288,12 @@ export function ManagerProspectsList({
                     {/* Colonne dédiée : Délai d'intervention */}
                     <td style={{ padding: '9px 12px' }}>
                       {isSeniorManager ? (
-                        p.transferDeadline || p.assignmentDeadline ? (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                              <DeadlineBadge
-                                deadline={(p.transferDeadline || p.assignmentDeadline) as string}
-                                status={p.status}
-                                size="sm"
-                              />
-                            </div>
-                            {p.assignedTo && p.assignmentDeadline && p.transferDeadline && p.assignmentDeadline !== p.transferDeadline && (
-                              <div style={{ fontSize: 10, color: 'var(--muted-foreground, #94a3b8)', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-                                <span>Commercial :</span>
-                                <DeadlineBadge
-                                  deadline={p.assignmentDeadline as string}
-                                  status={p.status}
-                                  size="sm"
-                                />
-                              </div>
-                            )}
-                          </div>
+                        p.transferDeadline || (!p.assignedTo && p.assignmentDeadline) ? (
+                          <DeadlineBadge
+                            deadline={(p.transferDeadline || p.assignmentDeadline) as string}
+                            status={p.status}
+                            size="sm"
+                          />
                         ) : (
                           <span style={{ color: 'var(--muted-foreground, #64748b)', fontSize: 12 }}>—</span>
                         )
