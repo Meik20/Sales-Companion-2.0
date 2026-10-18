@@ -76,19 +76,81 @@ export type ProspectAgingStatus = {
   subtext?: string | null
 }
 
-function getProspectAgingStatus(p: Prospect, lang: string, t: any): ProspectAgingStatus {
+function getProspectAgingStatus(
+  p: Prospect,
+  lang: string,
+  t: any,
+  isSeniorManager?: boolean,
+  currentManagerId?: string
+): ProspectAgingStatus {
   const isEn = lang?.startsWith('en')
+  const now = Date.now()
 
-  // 1. Si déjà assigné à un collaborateur
+  // ── 1. Cas spécifique SENIOR MANAGER (Vue Supervision & Transfert d'organisation) ──
+  if (isSeniorManager) {
+    const isTransferred = Boolean(
+      p.transferredToManagerUid || (p.managerId && p.managerId !== currentManagerId)
+    )
+
+    // 1.a. Prospect déjà transféré à un Team Manager
+    if (isTransferred) {
+      // Si le Team Manager l'a déjà assigné à son commercial terrain
+      if (p.assignedTo && String(p.assignedTo).trim() !== '') {
+        return {
+          label: isEn ? 'Handled by team' : 'Pris en charge',
+          color: '#059669', // Vert succès
+          subtext: isEn ? 'Assigned to rep' : 'Assigné au commercial'
+        }
+      }
+
+      // Transféré au Team Manager, mais en attente d'assignation par le TM
+      if (p.assignmentDeadline) {
+        const deadline = new Date(p.assignmentDeadline as string)
+        if (!isNaN(deadline.getTime())) {
+          if (now > deadline.getTime()) {
+            return {
+              label: isEn ? 'Transfer overdue' : 'Délai TM dépassé',
+              color: '#dc2626',
+              subtext: isEn ? 'Awaiting TM action' : 'En attente du TM'
+            }
+          }
+          const hoursLeft = (deadline.getTime() - now) / (1000 * 3600)
+          if (hoursLeft <= 24) {
+            return {
+              label: isEn ? 'Transfer urgent' : 'Urgent (TM)',
+              color: '#ea580c',
+              subtext: isEn ? '< 24h TM deadline' : '< 24h restant (TM)'
+            }
+          }
+        }
+      }
+
+      return {
+        label: isEn ? 'Transferred' : 'Transféré',
+        color: '#2563eb', // Bleu roi
+        subtext: isEn ? 'Awaiting TM assignment' : "En attente d'assignation"
+      }
+    }
+
+    // 1.b. Prospect NON encore transféré par le Senior Manager
+    return {
+      label: isEn ? 'Untransferred' : 'Non transféré',
+      color: '#d97706', // Ambre / en attente de transfert
+      subtext: isEn ? 'To delegate' : 'À déléguer'
+    }
+  }
+
+  // ── 2. Cas standard TEAM MANAGER (Vue Opérationnelle & Équipe) ──
+  // Si déjà assigné à un commercial par le Team Manager
   if (p.assignedTo && String(p.assignedTo).trim() !== '') {
     return {
       label: isEn ? 'Assigned' : 'Assigné',
       color: '#059669',
-      subtext: null
+      subtext: isEn ? 'In sales pipeline' : 'Au commercial'
     }
   }
 
-  // 2. Si statut custom explicite autre que 'new' (ex: contacté, en_cours, converti, perdu)
+  // Si statut custom explicite autre que 'new' (ex: contacté, en_cours, converti, perdu)
   if (p.status && p.status !== 'new') {
     const color = STATUS_COLOR[p.status] || '#1E88E5'
     return {
@@ -98,8 +160,7 @@ function getProspectAgingStatus(p: Prospect, lang: string, t: any): ProspectAgin
     }
   }
 
-  // 3. Contrôle d'échéance / deadline si fixée lors du transfert ou import
-  const now = Date.now()
+  // Contrôle d'échéance / deadline si fixée lors du transfert ou de l'import
   if (p.assignmentDeadline) {
     const deadline = new Date(p.assignmentDeadline as string)
     if (!isNaN(deadline.getTime())) {
@@ -121,7 +182,16 @@ function getProspectAgingStatus(p: Prospect, lang: string, t: any): ProspectAgin
     }
   }
 
-  // 4. Calcul de l'ancienneté d'arrivée (transferredAt en priorité si transfert SM, sinon createdAt)
+  // Si le prospect a été reçu du Senior Manager (transféré) et doit être assigné par le TM
+  if (p.transferredFromSeniorUid) {
+    return {
+      label: isEn ? 'To assign' : 'À assigner',
+      color: '#2563eb',
+      subtext: isEn ? 'From Senior Manager' : 'Reçu du Senior Manager'
+    }
+  }
+
+  // Calcul de l'ancienneté d'arrivée classique
   const arrivalDateStr = (p.transferredAt as string) || (p.createdAt as string)
   const arrivalDate = arrivalDateStr ? new Date(arrivalDateStr) : null
 
@@ -1087,7 +1157,7 @@ export function ManagerProspectsList({
                     </td>
                     <td style={{ padding: '9px 12px' }}>
                       {(() => {
-                        const aging = getProspectAgingStatus(p, lang, t)
+                        const aging = getProspectAgingStatus(p, lang, t, isSeniorManager, managerId)
                         return (
                           <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2 }}>
                             <span
