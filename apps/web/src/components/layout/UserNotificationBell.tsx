@@ -127,114 +127,140 @@ export function UserNotificationBell() {
 
         {/* Panneau déroulant */}
         {isOpen && (
-          <div
-            className="absolute right-0 top-[48px] z-[200] flex w-[340px] max-w-[calc(100vw-24px)] flex-col overflow-hidden rounded-xl border border-border/80 bg-popover/95 shadow-elevation-3 backdrop-blur-md"
-            style={{ animation: 'notifSlide 0.2s cubic-bezier(0.16, 1, 0.3, 1)' }}
-          >
-            {/* Header du panneau */}
-            <div className="flex items-center justify-between border-b border-border/80 px-4 py-3 bg-card/60">
-              <div className="flex items-center gap-2">
-                <span className="text-[13px] font-bold text-foreground">
-                  {lang === 'en' ? 'Notifications' : 'Notifications'}
-                </span>
-                {unreadCount > 0 && (
-                  <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-bold text-primary">
-                    {unreadCount} {lang === 'en' ? 'new' : 'nouvelle(s)'}
+          <>
+            {/* Backdrop invisible pour clics extérieurs */}
+            <div
+              onClick={() => setIsOpen(false)}
+              className="fixed inset-0 z-[490]"
+              aria-hidden="true"
+            />
+
+            <div
+              className="absolute right-0 top-[48px] z-[500] flex w-[360px] max-w-[calc(100vw-24px)] flex-col overflow-hidden rounded-2xl border border-border shadow-2xl"
+              style={{
+                backgroundColor: 'var(--card, #ffffff)',
+                boxShadow:
+                  '0 20px 45px -10px rgba(0,0,0,0.28), 0 0 0 1px var(--border, rgba(0,0,0,0.1))',
+                animation: 'notifSlide 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
+              }}
+            >
+              {/* Header du panneau */}
+              <div
+                className="flex items-center justify-between border-b border-border px-4 py-3"
+                style={{ backgroundColor: 'var(--secondary, #f8fafc)' }}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-[13px] font-bold text-foreground">
+                    {lang === 'en' ? 'Notifications' : 'Notifications'}
                   </span>
+                  {unreadCount > 0 && (
+                    <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-bold text-primary">
+                      {unreadCount} {lang === 'en' ? 'new' : 'nouvelle(s)'}
+                    </span>
+                  )}
+                </div>
+
+                {unreadCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={markAllAsRead}
+                    className="flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline cursor-pointer"
+                  >
+                    <Check size={12} />
+                    <span>{lang === 'en' ? 'Mark all as read' : 'Tout marquer comme lu'}</span>
+                  </button>
                 )}
               </div>
 
-              {unreadCount > 0 && (
-                <button
-                  type="button"
-                  onClick={markAllAsRead}
-                  className="flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline cursor-pointer"
-                >
-                  <Check size={12} />
-                  <span>{lang === 'en' ? 'Mark all as read' : 'Tout marquer comme lu'}</span>
-                </button>
-              )}
-            </div>
-
-            {/* Liste des notifications */}
-            <div className="max-h-[380px] overflow-y-auto divide-y divide-border/60">
-              {notifications.length === 0 ? (
-                <div className="flex flex-col items-center justify-center p-8 text-center">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary/80 text-muted-foreground mb-2">
-                    <Bell size={18} className="opacity-40" />
-                  </div>
-                  <p className="text-[12px] text-muted-foreground font-medium">
-                    {lang === 'en' ? 'No notifications yet' : 'Aucune notification pour le moment'}
-                  </p>
-                </div>
-              ) : (
-                notifications.map((notif) => (
-                  <div
-                    key={notif.id}
-                    onClick={() => handleNotificationClick(notif)}
-                    className={`flex items-start gap-3 p-3.5 transition-colors cursor-pointer text-left ${
-                      !notif.read ? 'bg-primary/5 hover:bg-primary/10' : 'hover:bg-secondary/40'
-                    }`}
-                  >
-                    {/* Icône du type */}
-                    <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-secondary/80 border border-border/60">
-                      {getIcon(notif.type)}
+              {/* Liste des notifications */}
+              <div
+                className="max-h-[380px] overflow-y-auto divide-y divide-border/60"
+                style={{ backgroundColor: 'var(--card, #ffffff)' }}
+              >
+                {notifications.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center p-8 text-center">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary/80 text-muted-foreground mb-2">
+                      <Bell size={18} className="opacity-40" />
                     </div>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-1 mb-0.5">
-                        <span
-                          className={`text-[12px] truncate ${
-                            !notif.read ? 'font-bold text-foreground' : 'font-medium text-foreground/80'
-                          }`}
-                        >
-                          {notif.title}
-                        </span>
-                        <span className="text-[10px] text-muted-foreground shrink-0 font-medium">
-                          {formatDate(notif.createdAt)}
-                        </span>
+                    <p className="text-[12px] text-muted-foreground font-medium">
+                      {lang === 'en' ? 'No notifications yet' : 'Aucune notification pour le moment'}
+                    </p>
+                  </div>
+                ) : (
+                  notifications.map((notif) => (
+                    <div
+                      key={notif.id}
+                      onClick={() => handleNotificationClick(notif)}
+                      className="flex items-start gap-3 p-3.5 transition-colors cursor-pointer text-left hover:bg-secondary/40"
+                      style={{
+                        backgroundColor: !notif.read
+                          ? 'rgba(37, 99, 235, 0.06)'
+                          : 'var(--card, #ffffff)'
+                      }}
+                    >
+                      {/* Icône du type */}
+                      <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-secondary border border-border">
+                        {getIcon(notif.type)}
                       </div>
 
-                      <p className="text-[11.5px] text-muted-foreground leading-snug line-clamp-2">
-                        {notif.message}
-                      </p>
-
-                      {notif.metadata?.deadline && (
-                        <div className="mt-1.5 inline-flex items-center gap-1 rounded bg-amber-500/10 px-1.5 py-0.5 text-[10.5px] font-semibold text-amber-500 border border-amber-500/20">
-                          <Clock size={11} />
-                          <span>
-                            {lang === 'en' ? 'Deadline: ' : 'Échéance : '}
-                            {new Date(notif.metadata.deadline as string).toLocaleDateString(
-                              lang === 'en' ? 'en-US' : 'fr-FR',
-                              { day: 'numeric', month: 'short' }
-                            )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-1 mb-0.5">
+                          <span
+                            className={`text-[12px] truncate ${
+                              !notif.read ? 'font-bold text-foreground' : 'font-medium text-foreground/80'
+                            }`}
+                          >
+                            {notif.title}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground shrink-0 font-medium">
+                            {formatDate(notif.createdAt)}
                           </span>
                         </div>
-                      )}
-                    </div>
 
-                    <ChevronRight size={14} className="text-muted-foreground/50 self-center shrink-0" />
-                  </div>
-                ))
+                        <p className="text-[11.5px] text-muted-foreground leading-snug line-clamp-2">
+                          {notif.message}
+                        </p>
+
+                        {notif.metadata?.deadline && (
+                          <div className="mt-1.5 inline-flex items-center gap-1 rounded bg-amber-500/10 px-1.5 py-0.5 text-[10.5px] font-semibold text-amber-500 border border-amber-500/20">
+                            <Clock size={11} />
+                            <span>
+                              {lang === 'en' ? 'Deadline: ' : 'Échéance : '}
+                              {new Date(notif.metadata.deadline as string).toLocaleDateString(
+                                lang === 'en' ? 'en-US' : 'fr-FR',
+                                { day: 'numeric', month: 'short' }
+                              )}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      <ChevronRight size={14} className="text-muted-foreground/50 self-center shrink-0" />
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Pied du panneau */}
+              {notifications.length > 0 && (
+                <div
+                  className="border-t border-border px-3 py-2 text-center"
+                  style={{ backgroundColor: 'var(--secondary, #f8fafc)' }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsOpen(false)
+                      router.push('/pipeline')
+                    }}
+                    className="w-full py-1.5 rounded-lg text-[12px] font-semibold text-primary hover:bg-primary/10 transition-colors cursor-pointer"
+                  >
+                    {lang === 'en' ? 'Open Sales Pipeline' : 'Accéder au Sales Pipeline'}
+                  </button>
+                </div>
               )}
             </div>
-
-            {/* Pied du panneau */}
-            {notifications.length > 0 && (
-              <div className="border-t border-border/80 px-3 py-2 bg-card/40 text-center">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsOpen(false)
-                    router.push('/pipeline')
-                  }}
-                  className="text-[11px] font-semibold text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  {lang === 'en' ? 'Open Sales Pipeline' : 'Accéder au Sales Pipeline'}
-                </button>
-              </div>
-            )}
-          </div>
+          </>
         )}
       </div>
     </>
