@@ -64,17 +64,17 @@ function KpiCard({
         position: 'relative',
         overflow: 'hidden',
         minHeight: 128,
-        boxShadow: '0 1px 3px rgba(0,0,0,0.03), 0 4px 14px -2px rgba(0,0,0,0.02)',
-        transition: 'transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease'
+        boxShadow: 'var(--shadow-elevation-1)',
+        transition: 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease'
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.transform = 'translateY(-2px)'
-        e.currentTarget.style.boxShadow = '0 6px 20px -4px rgba(0,0,0,0.08)'
+        e.currentTarget.style.boxShadow = 'var(--shadow-elevation-2)'
         e.currentTarget.style.borderColor = `${color}66`
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.transform = 'translateY(0)'
-        e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.03), 0 4px 14px -2px rgba(0,0,0,0.02)'
+        e.currentTarget.style.boxShadow = 'var(--shadow-elevation-1)'
         e.currentTarget.style.borderColor = 'var(--border, rgba(0,0,0,0.08))'
       }}
     >
@@ -130,7 +130,7 @@ function KpiCard({
             fontSize: 27,
             fontWeight: 800,
             color: 'var(--foreground, #0f172a)',
-            fontFamily: "'Syne', -apple-system, sans-serif",
+            fontFamily: 'var(--font-heading, sans-serif)',
             lineHeight: 1.1,
             letterSpacing: '-0.02em'
           }}
@@ -235,7 +235,7 @@ function TopPerformerRow({ rank, manager }: { rank: number; manager: OrgReportMa
           { label: 'C', value: manager.stats.conclue, color: '#34d399' }
         ].map(({ label, value, color }) => (
           <div key={label} style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: 16, fontWeight: 800, color, fontFamily: "'Syne',sans-serif" }}>
+            <div style={{ fontSize: 16, fontWeight: 800, color, fontFamily: 'var(--font-heading, sans-serif)' }}>
               {value}
             </div>
             <div style={{ fontSize: 10, color: 'var(--muted-foreground)' }}>{label}</div>

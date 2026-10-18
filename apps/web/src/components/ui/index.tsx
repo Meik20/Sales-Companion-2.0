@@ -56,7 +56,7 @@ export function Badge({
 }: BadgeProps) {
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wide transition-all ${className}`}
+      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wide transition-all shadow-elevation-0 ${className}`}
       style={{
         ...badgeStyles[variant],
         ...style
@@ -87,13 +87,13 @@ export function PillBadge({
 }) {
   return (
     <span
-      className={`inline-flex items-center gap-2 rounded-full border border-border bg-card/80 backdrop-blur-md px-3.5 py-1 text-xs font-medium text-muted-foreground shadow-xs hover:border-primary/40 transition-all ${className}`}
+      className={`inline-flex items-center gap-2 rounded-full border border-border/80 bg-card/85 backdrop-blur-md px-3.5 py-1 text-xs font-medium text-muted-foreground shadow-elevation-1 hover:border-primary/40 hover:shadow-elevation-2 transition-all duration-200 ${className}`}
     >
       <span className="relative flex h-2 w-2">
         {ping && (
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#1B7A3E] opacity-75" />
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
         )}
-        <span className="relative inline-flex rounded-full h-2 w-2 bg-[#1B7A3E]" />
+        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600" />
       </span>
       {children}
     </span>
@@ -109,7 +109,7 @@ export function Card({
 }: PropsWithChildren<{ className?: string; style?: CSSProperties }>) {
   return (
     <div
-      className={`bg-card border border-border/80 rounded-xl p-5 shadow-xs transition-all hover:shadow-md ${className}`}
+      className={`bg-card border border-border/80 rounded-xl p-5 shadow-elevation-1 transition-all duration-200 ease-smooth hover:shadow-elevation-2 hover:-translate-y-0.5 ${className}`}
       style={style}
     >
       {children}
@@ -125,7 +125,7 @@ export function GlassCard({
 }: PropsWithChildren<{ className?: string; style?: CSSProperties }>) {
   return (
     <div
-      className={`backdrop-blur-md bg-card/85 border border-border/60 rounded-xl p-5 shadow-sm hover:border-primary/30 transition-all ${className}`}
+      className={`backdrop-blur-md bg-card/85 border border-border/60 rounded-xl p-5 shadow-elevation-1 hover:border-primary/30 hover:shadow-elevation-2 hover:-translate-y-0.5 transition-all duration-200 ease-smooth ${className}`}
       style={style}
     >
       {children}
@@ -135,17 +135,18 @@ export function GlassCard({
 
 // ─── Panel ───────────────────────────────────────────────────────────────────
 
-type PanelProps = PropsWithChildren<{ padded?: boolean; style?: CSSProperties }>
+type PanelProps = PropsWithChildren<{ padded?: boolean; style?: CSSProperties; className?: string }>
 
-export function Panel({ children, padded = true, style }: PanelProps) {
+export function Panel({ children, padded = true, style, className = '' }: PanelProps) {
   return (
     <div
+      className={`transition-all duration-200 ease-smooth ${className}`}
       style={{
         background: 'var(--card, #131c2e)',
-        border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
-        borderRadius: 16,
-        boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
-        padding: padded ? 24 : 0,
+        border: '1px solid var(--border, rgba(255,255,255,0.08))',
+        borderRadius: 14,
+        boxShadow: 'var(--shadow-elevation-1)',
+        padding: padded ? 20 : 0,
         ...style
       }}
     >
@@ -191,7 +192,7 @@ export function DataCard({ title, subtitle, actions, children, style }: DataCard
                 fontSize: 16,
                 fontWeight: 700,
                 color: 'var(--foreground, #f1f5f9)',
-                letterSpacing: '-.01em'
+                letterSpacing: '-.015em'
               }}
             >
               {title}
@@ -226,6 +227,7 @@ type MetricCardProps = {
   hintColor?: string
   valueColor?: string
   children?: React.ReactNode
+  className?: string
 }
 
 export function MetricCard({
@@ -235,16 +237,17 @@ export function MetricCard({
   accent,
   hintColor,
   valueColor,
-  children
+  children,
+  className = ''
 }: MetricCardProps) {
   return (
-    <Panel>
+    <Panel className={`hover:shadow-elevation-2 hover:-translate-y-0.5 ${className}`}>
       <div
         style={{
-          fontSize: 12,
-          fontWeight: 500,
+          fontSize: 11.5,
+          fontWeight: 600,
           color: 'var(--muted-foreground, #94a3b8)',
-          letterSpacing: '.04em',
+          letterSpacing: '.05em',
           textTransform: 'uppercase'
         }}
       >
@@ -252,12 +255,12 @@ export function MetricCard({
       </div>
       <div
         style={{
-          fontSize: 32,
+          fontSize: 30,
           fontWeight: 800,
           marginTop: 8,
           color: valueColor ?? (accent ? 'var(--color-primary)' : 'var(--foreground, #f1f5f9)'),
           letterSpacing: '-.03em',
-          fontFamily: 'inherit'
+          fontFamily: 'var(--font-heading, inherit)'
         }}
       >
         {value}

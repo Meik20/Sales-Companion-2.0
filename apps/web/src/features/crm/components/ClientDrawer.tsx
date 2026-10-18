@@ -181,15 +181,15 @@ export function ClientDrawer({ client, onClose, user }: Props) {
   return (
     <>
       {/* Backdrop */}
-      <div onClick={onClose} className="fixed inset-0 z-[899] bg-black/45 backdrop-blur-[2px]" />
+      <div onClick={onClose} className="fixed inset-0 z-[899] bg-black/50 backdrop-blur-sm transition-opacity" />
 
       {/* Drawer panel */}
-      <div className="fixed bottom-0 right-0 top-0 z-[900] flex w-[min(480px,100vw)] flex-col overflow-hidden border-l border-border bg-card shadow-[-12px_0_60px_rgba(0,0,0,0.4)]">
+      <div className="fixed bottom-0 right-0 top-0 z-[900] flex w-[min(480px,100vw)] flex-col overflow-hidden border-l border-border/80 bg-card shadow-elevation-5">
         {/* Header */}
-        <div className="border-b border-border bg-primary/5 p-5 pb-4">
+        <div className="border-b border-border/80 bg-primary/5 p-5 pb-4">
           <div className="flex items-start justify-between">
             <div>
-              <h2 className="m-0 font-['Syne',sans-serif] text-[18px] font-extrabold text-foreground">
+              <h2 className="m-0 font-heading text-[18px] font-extrabold tracking-tight text-foreground">
                 {client.companyName}
               </h2>
               <div className="mt-1.5 flex flex-wrap gap-3">
@@ -209,7 +209,7 @@ export function ClientDrawer({ client, onClose, user }: Props) {
             </div>
             <button
               onClick={onClose}
-              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-border bg-transparent text-muted-foreground transition-colors hover:bg-secondary"
+              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-border/80 bg-card/60 text-muted-foreground transition-all duration-150 hover:bg-secondary hover:text-foreground hover:shadow-elevation-1"
             >
               <X size={15} />
             </button>
@@ -220,21 +220,21 @@ export function ClientDrawer({ client, onClose, user }: Props) {
             <div className="mt-3.5 flex gap-2">
               <button
                 onClick={() => handleCallClick('tel')}
-                className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-blue-500/40 bg-blue-500/15 px-3.5 py-2 text-[12px] font-bold text-blue-600 dark:text-blue-400 transition-colors hover:bg-blue-500/25"
+                className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-blue-500/40 bg-blue-500/15 px-3.5 py-2 text-[12px] font-bold text-blue-600 dark:text-blue-400 shadow-elevation-0 hover:shadow-elevation-1 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-150 ease-standard"
               >
                 <PhoneCall size={13} strokeWidth={2} />
                 <span>{t('crm.drawer.call')}</span>
               </button>
               <button
                 onClick={() => handleCallClick('whatsapp')}
-                className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-emerald-500/40 bg-emerald-500/15 px-3.5 py-2 text-[12px] font-bold text-emerald-600 dark:text-emerald-400 transition-colors hover:bg-emerald-500/25"
+                className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-emerald-500/40 bg-emerald-500/15 px-3.5 py-2 text-[12px] font-bold text-emerald-600 dark:text-emerald-400 shadow-elevation-0 hover:shadow-elevation-1 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-150 ease-standard"
               >
                 <MessageCircle size={13} strokeWidth={2} />
                 <span>WhatsApp</span>
               </button>
               <button
                 onClick={() => setShowTicketModal(true)}
-                className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-amber-500/40 bg-amber-500/15 px-3.5 py-2 text-[12px] font-bold text-amber-600 dark:text-amber-400 transition-colors hover:bg-amber-500/25"
+                className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-amber-500/40 bg-amber-500/15 px-3.5 py-2 text-[12px] font-bold text-amber-600 dark:text-amber-400 shadow-elevation-0 hover:shadow-elevation-1 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] transition-all duration-150 ease-standard"
               >
                 <Ticket size={13} strokeWidth={2} />
                 <span>{t('crm.drawer.newTicket')}</span>

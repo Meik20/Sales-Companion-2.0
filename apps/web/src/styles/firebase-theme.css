@@ -1,45 +1,129 @@
 /* ════════════════════════════════════════════════════════════════════
-   THEME 2 : Firebase Console Design System — Navy + Amber
+   THEME : Firebase Console Design System — Navy + Amber
+   World-class elevation : layered shadows · elevation tokens · glow
    Activé par : <html data-design="firebase">
    Compatible avec les modes clair et sombre (.dark)
    ════════════════════════════════════════════════════════════════════ */
 
 /* ── Primitives Firebase ─────────────────────────────────────────── */
 [data-design='firebase'] {
+  /* ── Palette Amber ──────────────────────────────────────────────── */
   --fb-amber-300: #ffcb2b;
   --fb-amber-400: #ffa611;
   --fb-amber-500: #f5820d;
   --fb-amber-600: #e07000;
   --fb-amber-700: #bf5c00;
 
+  /* ── Palette Navy ───────────────────────────────────────────────── */
   --fb-navy-50: #f0f4ff;
   --fb-navy-100: #d6e2ff;
   --fb-navy-200: #aabfff;
   --fb-navy-500: #1967d2;
   --fb-navy-700: #0d47a1;
+
+  /* ── Easing Curves Premium (Material Motion + Spring) ───────────── */
+  /* Standard — entrées/sorties UI fluides */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  /* Emphasized — transitions importantes, modals */
+  --ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
+  /* Decelerate — éléments entrant dans la vue */
+  --ease-decelerate: cubic-bezier(0, 0, 0, 1);
+  /* Accelerate — éléments sortant de la vue */
+  --ease-accelerate: cubic-bezier(0.3, 0, 1, 1);
+  /* Spring — micro-interactions, hover lifts */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* Smooth — transitions générales */
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ── Durées de Transition ───────────────────────────────────────── */
+  --duration-instant: 80ms;
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-moderate: 350ms;
+  --duration-slow: 500ms;
+  --duration-deliberate: 700ms;
+
+  /* ── Typographie — Optical Sizing & Scale ───────────────────────── */
+  --font-size-2xs: 0.6875rem;   /* 11px */
+  --font-size-xs: 0.75rem;      /* 12px */
+  --font-size-sm: 0.8125rem;    /* 13px */
+  --font-size-base: 0.875rem;   /* 14px */
+  --font-size-md: 0.9375rem;    /* 15px */
+  --font-size-lg: 1rem;         /* 16px */
+  --font-size-xl: 1.125rem;     /* 18px */
+  --font-size-2xl: 1.25rem;     /* 20px */
+  --font-size-3xl: 1.5rem;      /* 24px */
+  --font-size-4xl: 1.875rem;    /* 30px */
+  --font-size-5xl: 2.25rem;     /* 36px */
+
+  --line-height-tight: 1.2;
+  --line-height-snug: 1.375;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.625;
+
+  --letter-spacing-tight: -0.025em;
+  --letter-spacing-snug: -0.015em;
+  --letter-spacing-normal: 0em;
+  --letter-spacing-wide: 0.025em;
+  --letter-spacing-caps: 0.06em;
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+
+  /* ── Radius Harmonics ───────────────────────────────────────────── */
+  --radius-2xs: 2px;
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-3xl: 24px;
+  --radius-full: 9999px;
+
+  /* ── Spacing Scale ──────────────────────────────────────────────── */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
 }
 
 /* ── Firebase Light Mode ─────────────────────────────────────────── */
 [data-design='firebase']:not(.dark) {
+  /* ── Surfaces ───────────────────────────────────────────────────── */
   --bg: #f1f3f4 !important;
   --bg2: #ffffff !important;
   --bg3: #f8f9fa !important;
   --bg4: #e8eaed !important;
 
+  /* ── Texte ──────────────────────────────────────────────────────── */
   --tx: #202124 !important;
   --tx2: #5f6368 !important;
   --tx3: #9aa0a6 !important;
 
+  /* ── Bordures ───────────────────────────────────────────────────── */
   --bd: #e8eaed !important;
   --bd2: #dadce0 !important;
 
+  /* ── Couleur primaire → Amber Firebase ──────────────────────────── */
   --color-primary: #ffa611 !important;
   --color-primary-dark: #e07000 !important;
   --color-primary-light: rgba(255, 166, 17, 0.12) !important;
 
+  /* ── Accent → Navy ──────────────────────────────────────────────── */
   --color-accent: #1967d2 !important;
   --color-secondary: #1967d2 !important;
 
+  /* ── États sémantiques ──────────────────────────────────────────── */
   --color-success: #0284c7 !important;
   --color-success-bg: #e0f2fe !important;
   --color-warning: #8a6500 !important;
@@ -47,54 +131,111 @@
   --color-danger: #d93025 !important;
   --color-danger-bg: #fce8e6 !important;
 
+  /* ── Interactions ───────────────────────────────────────────────── */
   --cr-link-color: #1967d2 !important;
   --cr-focus-outline-color: #ffa611 !important;
   --cr-hover-background-color: rgba(0, 0, 0, 0.06) !important;
   --cr-active-background-color: rgba(0, 0, 0, 0.1) !important;
 
-  --shadow-glass-light: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06) !important;
-  --shadow-glass-medium: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.06) !important;
-  --shadow-glass-strong: 0 10px 30px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.06) !important;
+  /* ── Shadow System World-Class (Ambient + Key Light layered) ────── */
+  /* Elevation 0 — flat, no shadow (focused states) */
+  --shadow-elevation-0: none;
+  /* Elevation 1 — carte au repos, subtle lift */
+  --shadow-elevation-1:
+    0 1px 2px rgba(60, 64, 67, 0.06),
+    0 1px 3px 1px rgba(60, 64, 67, 0.07);
+  /* Elevation 2 — carte hover, dropdowns */
+  --shadow-elevation-2:
+    0 1px 3px rgba(60, 64, 67, 0.08),
+    0 4px 8px 3px rgba(60, 64, 67, 0.09);
+  /* Elevation 3 — sidebar, nav flottante */
+  --shadow-elevation-3:
+    0 1px 4px rgba(60, 64, 67, 0.1),
+    0 8px 16px 4px rgba(60, 64, 67, 0.1);
+  /* Elevation 4 — modal, dialog */
+  --shadow-elevation-4:
+    0 2px 6px rgba(60, 64, 67, 0.12),
+    0 12px 24px 6px rgba(60, 64, 67, 0.12);
+  /* Elevation 5 — bottom sheet, drawer */
+  --shadow-elevation-5:
+    0 4px 12px rgba(60, 64, 67, 0.15),
+    0 20px 40px 8px rgba(60, 64, 67, 0.15);
 
+  /* Backward compat avec glass naming */
+  --shadow-glass-light: var(--shadow-elevation-1) !important;
+  --shadow-glass-medium: var(--shadow-elevation-2) !important;
+  --shadow-glass-strong: var(--shadow-elevation-4) !important;
+
+  /* ── Hover Lift (translateY + shadow augmentée) ─────────────────── */
+  --shadow-hover-lift:
+    0 2px 8px rgba(60, 64, 67, 0.1),
+    0 8px 20px rgba(60, 64, 67, 0.12);
+
+  /* ── Glow primaire (amber) ──────────────────────────────────────── */
+  --glow-primary: 0 0 0 3px rgba(255, 166, 17, 0.25);
+  --glow-primary-strong: 0 0 20px rgba(255, 166, 17, 0.3), 0 0 40px rgba(255, 166, 17, 0.15);
+
+  /* ── Glow accent (navy) ─────────────────────────────────────────── */
+  --glow-accent: 0 0 0 3px rgba(25, 103, 210, 0.2);
+  --glow-accent-strong: 0 0 20px rgba(25, 103, 210, 0.25), 0 0 40px rgba(25, 103, 210, 0.1);
+
+  /* ── Focus ring ─────────────────────────────────────────────────── */
+  --ring-focus: 0 0 0 2px #ffffff, 0 0 0 4px rgba(255, 166, 17, 0.6);
+
+  /* ── Surface inset (inputs) ─────────────────────────────────────── */
+  --shadow-inset: inset 0 1px 3px rgba(60, 64, 67, 0.1);
+  --shadow-inset-focus: inset 0 1px 3px rgba(60, 64, 67, 0.1), 0 0 0 2px rgba(255, 166, 17, 0.4);
+
+  /* ── Typographie ────────────────────────────────────────────────── */
   --font-family:
     'Outfit', 'Google Sans', 'Source Sans 3', -apple-system, Arial, sans-serif !important;
 
+  /* ── Radius (override des tokens primitifs) ─────────────────────── */
   --radius-standard: 8px !important;
   --r: 8px !important;
   --r2: 8px !important;
   --r3: 12px !important;
 
+  /* ── Blue scale override ────────────────────────────────────────── */
   --color-blue-50: rgba(255, 166, 17, 0.1) !important;
   --color-blue-100: rgba(255, 166, 17, 0.15) !important;
   --color-blue-200: rgba(255, 166, 17, 0.25) !important;
   --color-blue-600: #e07000 !important;
   --color-blue-900: #bf5c00 !important;
 
+  /* ── Teal override ──────────────────────────────────────────────── */
   --color-teal-50: rgba(25, 103, 210, 0.1) !important;
   --color-teal-900: #0d47a1 !important;
 }
 
+
 /* ── Firebase Dark Mode ──────────────────────────────────────────── */
 [data-design='firebase'].dark {
-  --bg: #202124 !important; /* Google dark base — Gris anthracite pur */
-  --bg2: #2d2e31 !important; /* Surface élevée — cartes, sidebar */
-  --bg3: #35363a !important; /* Surface secondaire — dropdowns, tags */
-  --bg4: #3c3f47 !important; /* Bordures et hovers */
+  /* ── Surfaces — Navy par élévation (jamais noir pur) ────────────── */
+  --bg: #202124 !important;   /* Google dark base — Gris anthracite */
+  --bg2: #2d2e31 !important;  /* Surface élevée — cartes, sidebar */
+  --bg3: #35363a !important;  /* Surface secondaire — dropdowns, tags */
+  --bg4: #3c3f47 !important;  /* Bordures et hovers */
 
+  /* ── Texte ──────────────────────────────────────────────────────── */
   --tx: #e8eaed !important;
   --tx2: #9aa0a6 !important;
   --tx3: #5f6368 !important;
 
+  /* ── Bordures ───────────────────────────────────────────────────── */
   --bd: rgba(255, 255, 255, 0.1) !important;
   --bd2: rgba(255, 255, 255, 0.18) !important;
 
+  /* ── Couleur primaire → Amber vif ───────────────────────────────── */
   --color-primary: #ffa611 !important;
   --color-primary-dark: #ffcb2b !important;
   --color-primary-light: rgba(255, 166, 17, 0.15) !important;
 
+  /* ── Accent → Navy clair ────────────────────────────────────────── */
   --color-accent: #aabfff !important;
   --color-secondary: #aabfff !important;
 
+  /* ── États sémantiques ──────────────────────────────────────────── */
   --color-success: #38bdf8 !important;
   --color-success-bg: rgba(2, 132, 199, 0.2) !important;
   --color-warning: #fbbc04 !important;
@@ -102,29 +243,79 @@
   --color-danger: #ea4335 !important;
   --color-danger-bg: rgba(217, 48, 37, 0.2) !important;
 
+  /* ── Interactions ───────────────────────────────────────────────── */
   --cr-link-color: #aabfff !important;
   --cr-focus-outline-color: #ffa611 !important;
   --cr-hover-background-color: rgba(255, 255, 255, 0.06) !important;
   --cr-active-background-color: rgba(255, 255, 255, 0.1) !important;
 
-  --shadow-glass-light: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
-  --shadow-glass-medium: 0 4px 12px rgba(0, 0, 0, 0.35), 0 2px 4px rgba(0, 0, 0, 0.2) !important;
-  --shadow-glass-strong: 0 10px 30px rgba(0, 0, 0, 0.4), 0 4px 8px rgba(0, 0, 0, 0.25) !important;
+  /* ── Shadow System Dark World-Class ─────────────────────────────── */
+  /* Shadows sombres : noir pur interdit, teinte navy chaude */
+  --shadow-elevation-0: none;
+  /* Elevation 1 — carte au repos */
+  --shadow-elevation-1:
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    0 1px 3px 1px rgba(0, 0, 0, 0.2);
+  /* Elevation 2 — carte hover, dropdowns */
+  --shadow-elevation-2:
+    0 1px 3px rgba(0, 0, 0, 0.35),
+    0 4px 8px 3px rgba(0, 0, 0, 0.25);
+  /* Elevation 3 — sidebar, nav flottante */
+  --shadow-elevation-3:
+    0 1px 4px rgba(0, 0, 0, 0.4),
+    0 8px 16px 4px rgba(0, 0, 0, 0.3);
+  /* Elevation 4 — modal, dialog */
+  --shadow-elevation-4:
+    0 2px 6px rgba(0, 0, 0, 0.45),
+    0 12px 24px 6px rgba(0, 0, 0, 0.35);
+  /* Elevation 5 — drawer, bottom sheet */
+  --shadow-elevation-5:
+    0 4px 12px rgba(0, 0, 0, 0.5),
+    0 20px 40px 8px rgba(0, 0, 0, 0.4);
 
+  /* Backward compat */
+  --shadow-glass-light: var(--shadow-elevation-1) !important;
+  --shadow-glass-medium: var(--shadow-elevation-2) !important;
+  --shadow-glass-strong: var(--shadow-elevation-4) !important;
+
+  /* ── Hover Lift ─────────────────────────────────────────────────── */
+  --shadow-hover-lift:
+    0 2px 8px rgba(0, 0, 0, 0.4),
+    0 8px 20px rgba(0, 0, 0, 0.35);
+
+  /* ── Glow primaire (amber chaud sur fond sombre) ────────────────── */
+  --glow-primary: 0 0 0 3px rgba(255, 166, 17, 0.3);
+  --glow-primary-strong: 0 0 20px rgba(255, 166, 17, 0.4), 0 0 60px rgba(255, 166, 17, 0.15);
+
+  /* ── Glow accent (navy clair) ───────────────────────────────────── */
+  --glow-accent: 0 0 0 3px rgba(170, 191, 255, 0.25);
+  --glow-accent-strong: 0 0 20px rgba(170, 191, 255, 0.3), 0 0 40px rgba(170, 191, 255, 0.1);
+
+  /* ── Focus ring dark ────────────────────────────────────────────── */
+  --ring-focus: 0 0 0 2px #2d2e31, 0 0 0 4px rgba(255, 166, 17, 0.7);
+
+  /* ── Surface inset (inputs dark) ───────────────────────────────── */
+  --shadow-inset: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-inset-focus: inset 0 1px 3px rgba(0, 0, 0, 0.3), 0 0 0 2px rgba(255, 166, 17, 0.5);
+
+  /* ── Typographie ────────────────────────────────────────────────── */
   --font-family:
     'Outfit', 'Google Sans', 'Source Sans 3', -apple-system, Arial, sans-serif !important;
 
+  /* ── Radius ─────────────────────────────────────────────────────── */
   --radius-standard: 8px !important;
   --r: 8px !important;
   --r2: 8px !important;
   --r3: 12px !important;
 
+  /* ── Blue scale override ────────────────────────────────────────── */
   --color-blue-50: rgba(255, 166, 17, 0.15) !important;
   --color-blue-100: rgba(255, 166, 17, 0.2) !important;
   --color-blue-200: rgba(255, 166, 17, 0.3) !important;
   --color-blue-600: #ffcb2b !important;
   --color-blue-900: #ffe082 !important;
 
+  /* ── Teal override ──────────────────────────────────────────────── */
   --color-teal-50: rgba(170, 191, 255, 0.1) !important;
   --color-teal-900: #aabfff !important;
 }
@@ -142,37 +333,43 @@
   border-radius: 99px;
 }
 [data-design='firebase'].dark ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.12);
 }
 [data-design='firebase'] ::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.3);
 }
 [data-design='firebase'].dark ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.25);
 }
 
 /* ── Component Overrides (Firebase Design) ───────────────────── */
 
-/* Clean rounded geometric buttons */
+/* Boutons : transitions premium cubic-bezier */
 [data-design='firebase'] button,
 [data-design='firebase'] .btn-primary,
 [data-design='firebase'] .btn-secondary {
   border-radius: var(--r) !important;
   font-family: var(--font-family) !important;
-  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition:
+    background-color var(--duration-fast) var(--ease-smooth),
+    box-shadow var(--duration-fast) var(--ease-smooth),
+    transform var(--duration-fast) var(--ease-spring),
+    opacity var(--duration-fast) var(--ease-smooth) !important;
 }
 
 [data-design='firebase'] .btn-primary {
-  box-shadow:
-    0 1px 2px 0 rgba(60, 64, 67, 0.3),
-    0 1px 3px 1px rgba(60, 64, 67, 0.15) !important;
-  font-weight: 500 !important;
+  box-shadow: var(--shadow-elevation-1) !important;
+  font-weight: var(--font-weight-medium) !important;
 }
 
 [data-design='firebase'] .btn-primary:hover {
-  box-shadow:
-    0 1px 3px 0 rgba(60, 64, 67, 0.3),
-    0 4px 8px 3px rgba(60, 64, 67, 0.15) !important;
+  box-shadow: var(--shadow-elevation-2) !important;
+  transform: translateY(-1px) !important;
+}
+
+[data-design='firebase'] .btn-primary:active {
+  transform: translateY(0) !important;
+  box-shadow: var(--shadow-elevation-0) !important;
 }
 
 [data-design='firebase'] .btn-secondary {
@@ -180,23 +377,46 @@
   color: var(--tx) !important;
 }
 
-/* Clean rounded inputs */
+/* Inputs */
 [data-design='firebase'] input,
 [data-design='firebase'] select,
 [data-design='firebase'] textarea {
   border-radius: var(--r) !important;
   font-family: var(--font-family) !important;
+  transition:
+    border-color var(--duration-fast) var(--ease-smooth),
+    box-shadow var(--duration-fast) var(--ease-smooth) !important;
 }
 
-/* Modern slightly-rounded cards & panels */
+[data-design='firebase'] input:focus,
+[data-design='firebase'] select:focus,
+[data-design='firebase'] textarea:focus {
+  box-shadow: var(--shadow-inset-focus) !important;
+}
+
+/* Cards */
 [data-design='firebase'] .card,
-[data-design='firebase'] .panel,
-[data-design='firebase'] [style*='borderRadius'] {
+[data-design='firebase'] .panel {
   border-radius: var(--r3) !important;
+  box-shadow: var(--shadow-elevation-1) !important;
+  transition:
+    box-shadow var(--duration-fast) var(--ease-smooth),
+    transform var(--duration-fast) var(--ease-spring) !important;
 }
 
-/* Authentic flat badge styles */
+[data-design='firebase'] .card:hover,
+[data-design='firebase'] .panel:hover {
+  box-shadow: var(--shadow-hover-lift) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* Badges */
 [data-design='firebase'] .badge {
   border-radius: 4px !important;
   font-family: var(--font-family) !important;
+  font-size: var(--font-size-xs) !important;
+  font-weight: var(--font-weight-semibold) !important;
+  letter-spacing: var(--letter-spacing-wide) !important;
 }
+
+

@@ -232,12 +232,18 @@ html[data-scroll-behavior='smooth'] {
 
 body {
   font-family: var(--font-family);
-  font-size: 81.25%;
-  line-height: 154%;
+  font-size: 87.5%; /* 14px — base premium */
+  line-height: 1.5;
   background: var(--bg);
   color: var(--tx);
   min-height: 100vh;
   overflow-x: hidden;
+  /* Rendu typographique premium */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1, 'ss01' 1;
+  font-optical-sizing: auto;
 }
 
 a {
@@ -277,40 +283,104 @@ body::before {
 
 /* ─── Focus visible ─────────────────────────────────────────────────── */
 :focus-visible {
-  outline: 2px solid var(--cr-focus-outline-color);
-  outline-offset: 2px;
+  outline: none;
+  box-shadow: var(--ring-focus, 0 0 0 2px #ffffff, 0 0 0 4px rgba(255, 166, 17, 0.6));
+  border-radius: var(--r, 8px);
 }
 
-/* ─── Animations ────────────────────────────────────────────────────── */
+/* ─── Animations World-Class ────────────────────────────────────────── */
+
+/* Float — dérive légère pour éléments décoratifs */
 @keyframes floatSubtle {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-6px);
-  }
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
 }
 
+/* Pulse Glow — halo lumineux pulsant */
 @keyframes pulseGlow {
-  0%,
-  100% {
-    opacity: 0.15;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.28;
-    transform: scale(1.05);
-  }
+  0%, 100% { opacity: 0.15; transform: scale(1); }
+  50% { opacity: 0.28; transform: scale(1.05); }
 }
 
-.animate-float {
-  animation: floatSubtle 5s ease-in-out infinite;
+/* Shimmer — squelette de chargement premium */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
-.animate-pulse-glow {
-  animation: pulseGlow 6s ease-in-out infinite;
+/* Scale In — apparition avec mise à l'échelle spring */
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
 }
+
+/* Bounce In — entrée avec ressort (spring physics) */
+@keyframes bounceIn {
+  0% { opacity: 0; transform: scale(0.8) translateY(10px); }
+  60% { opacity: 1; transform: scale(1.04) translateY(-2px); }
+  100% { transform: scale(1) translateY(0); }
+}
+
+/* Glow Pulse — token primary pulsant */
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 166, 17, 0); }
+  50% { box-shadow: 0 0 20px 4px rgba(255, 166, 17, 0.25); }
+}
+
+/* Gradient Shift — dégradé animé pour effets premium */
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Slide In From Bottom — entrée modal/toast */
+@keyframes slideInFromBottom {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Slide In From Top — entrée dropdown/notification */
+@keyframes slideInFromTop {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Count Up — compteur animé (utilisé avec JS) */
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Status Dot — indicateur de statut pulsant */
+@keyframes statusPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.5); opacity: 0.7; }
+}
+
+/* ─── Classes d'animation ─────────────────────────────────────────── */
+.animate-float { animation: floatSubtle 5s ease-in-out infinite; }
+.animate-pulse-glow { animation: pulseGlow 6s ease-in-out infinite; }
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--bg3) 25%,
+    var(--bg4) 50%,
+    var(--bg3) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+.animate-scale-in { animation: scaleIn 200ms var(--ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1)) forwards; }
+.animate-bounce-in { animation: bounceIn 350ms var(--ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1)) forwards; }
+.animate-slide-up { animation: slideInFromBottom 250ms var(--ease-decelerate, cubic-bezier(0, 0, 0, 1)) forwards; }
+.animate-slide-down { animation: slideInFromTop 200ms var(--ease-decelerate, cubic-bezier(0, 0, 0, 1)) forwards; }
+.animate-glow { animation: glowPulse 2s ease-in-out infinite; }
+.animate-gradient {
+  background-size: 300% 300%;
+  animation: gradientShift 5s ease infinite;
+}
+.animate-status-dot { animation: statusPulse 1.8s ease-in-out infinite; }
 
 .font-heading {
   font-family: var(--font-outfit, 'Outfit', var(--font-family));
@@ -370,6 +440,127 @@ body::before {
   white-space: nowrap;
   border-width: 0;
 }
+
+/* ── Hover Lift — élévation au survol ────────────────────────────── */
+.hover-lift {
+  transition:
+    transform var(--duration-fast, 150ms) var(--ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1)),
+    box-shadow var(--duration-fast, 150ms) var(--ease-smooth, cubic-bezier(0.4, 0, 0.2, 1));
+}
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover-lift, 0 8px 20px rgba(0, 0, 0, 0.12));
+}
+.hover-lift:active {
+  transform: translateY(0);
+}
+
+/* ── Surface Elevated — carte/panel avec élévation ───────────────── */
+.surface-elevated {
+  background: var(--bg2);
+  border: 1px solid var(--bd);
+  box-shadow: var(--shadow-elevation-1, 0 1px 3px rgba(0,0,0,0.08));
+  border-radius: var(--r3, 12px);
+}
+.surface-elevated-2 {
+  background: var(--bg2);
+  border: 1px solid var(--bd);
+  box-shadow: var(--shadow-elevation-2, 0 4px 8px rgba(0,0,0,0.1));
+  border-radius: var(--r3, 12px);
+}
+
+/* ── Glass — effet verre dépoli ──────────────────────────────────── */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+.dark .glass {
+  background: rgba(45, 46, 49, 0.75);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* ── Gradient Text — texte avec dégradé ──────────────────────────── */
+.gradient-text {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.gradient-text-amber {
+  background: linear-gradient(135deg, #ffa611, #ff6b00);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Gradient Background — fond premium animé ───────────────────── */
+.gradient-bg-primary {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
+}
+
+/* ── Text Utilities ──────────────────────────────────────────────── */
+.text-balance { text-wrap: balance; }
+.text-pretty { text-wrap: pretty; }
+.heading-display {
+  font-family: var(--font-outfit, 'Outfit', sans-serif);
+  font-weight: var(--font-weight-extrabold, 800);
+  letter-spacing: var(--letter-spacing-tight, -0.025em);
+  line-height: var(--line-height-tight, 1.2);
+}
+.heading-section {
+  font-family: var(--font-outfit, 'Outfit', sans-serif);
+  font-weight: var(--font-weight-bold, 700);
+  letter-spacing: var(--letter-spacing-snug, -0.015em);
+  line-height: var(--line-height-snug, 1.375);
+}
+.label-caps {
+  font-size: var(--font-size-xs, 0.75rem);
+  font-weight: var(--font-weight-semibold, 600);
+  letter-spacing: var(--letter-spacing-caps, 0.06em);
+  text-transform: uppercase;
+}
+
+/* ── Status Dot ──────────────────────────────────────────────────── */
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.status-dot-live {
+  background-color: var(--color-success);
+}
+.status-dot-live::after {
+  content: '';
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: inherit;
+  opacity: 0.5;
+  animation: statusPulse 1.8s ease-in-out infinite;
+}
+
+/* ── Divider ─────────────────────────────────────────────────────── */
+.divider {
+  height: 1px;
+  background: var(--bd);
+  margin: var(--space-4, 16px) 0;
+}
+
+/* ── Interaction Feedback ────────────────────────────────────────── */
+.interactive {
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  transition:
+    background-color var(--duration-instant, 80ms) var(--ease-smooth, cubic-bezier(0.4, 0, 0.2, 1)),
+    opacity var(--duration-fast, 150ms) ease;
+}
+.interactive:hover { background-color: var(--cr-hover-background-color); }
+.interactive:active { background-color: var(--cr-active-background-color); }
 
 /* ─── PWA / Mobile responsive ───────────────────────────────────────── */
 

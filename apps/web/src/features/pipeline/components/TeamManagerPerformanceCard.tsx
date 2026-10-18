@@ -107,9 +107,9 @@ export function TeamManagerPerformanceCard({
         marginBottom: 16,
         background: 'var(--card, #131c2e)',
         border: '1px solid var(--border, rgba(255,255,255,0.08))',
-        borderRadius: 14,
-        padding: '14px 16px',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
+        borderRadius: 16,
+        padding: '16px 18px',
+        boxShadow: 'var(--shadow-elevation-1)'
       }}
     >
       {/* ── Header : Organisation ou Team Manager ───────────────────────── */}
@@ -269,11 +269,13 @@ export function TeamManagerPerformanceCard({
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
         {/* 1. Portefeuille actif */}
         <div
+          className="transition-all duration-200 ease-smooth hover:-translate-y-0.5 hover:shadow-elevation-2"
           style={{
             background: 'var(--card, #131c2e)',
-            borderRadius: 10,
-            padding: '10px 12px',
+            borderRadius: 12,
+            padding: '12px 14px',
             border: '1px solid var(--border, rgba(255,255,255,0.08))',
+            boxShadow: 'var(--shadow-elevation-1)',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
@@ -299,14 +301,14 @@ export function TeamManagerPerformanceCard({
               {t('pipeline.activePortfolio')}
             </span>
           </div>
-          <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--foreground, #f1f5f9)', display: 'flex', alignItems: 'baseline', gap: 4, flexWrap: 'wrap' }}>
+          <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--foreground, #f1f5f9)', display: 'flex', alignItems: 'baseline', gap: 4, flexWrap: 'wrap', fontFamily: 'var(--font-heading, inherit)' }}>
             {stats.totalCount}
             <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--muted-foreground, #64748b)' }}>
               {stats.totalCount > 1 ? t('pipeline.leads') : t('pipeline.lead')}
             </span>
           </div>
           <div
-            style={{ fontSize: 10, color: 'var(--muted-foreground, #64748b)', fontWeight: 500, lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+            style={{ fontSize: 10.5, color: 'var(--muted-foreground, #64748b)', fontWeight: 500, lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
             title={`${stats.prospectionCount} ${t('pipeline.inProspection')} · ${stats.negociationCount} ${t('pipeline.inNegotiation')}`}
           >
             {stats.prospectionCount} {t('pipeline.inProspection')} · {stats.negociationCount} {t('pipeline.inNegotiation')}
@@ -315,11 +317,13 @@ export function TeamManagerPerformanceCard({
 
         {/* 2. Valeur du pipeline */}
         <div
+          className="transition-all duration-200 ease-smooth hover:-translate-y-0.5 hover:shadow-elevation-2"
           style={{
             background: 'var(--card, #131c2e)',
-            borderRadius: 10,
-            padding: '10px 12px',
+            borderRadius: 12,
+            padding: '12px 14px',
             border: '1px solid var(--border, rgba(255,255,255,0.08))',
+            boxShadow: 'var(--shadow-elevation-1)',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
@@ -346,16 +350,16 @@ export function TeamManagerPerformanceCard({
             </span>
           </div>
           <div
-            style={{ fontSize: 17, fontWeight: 800, color: 'var(--foreground, #f1f5f9)', display: 'flex', alignItems: 'baseline', gap: 4, flexWrap: 'wrap' }}
+            style={{ fontSize: 19, fontWeight: 800, color: 'var(--foreground, #f1f5f9)', display: 'flex', alignItems: 'baseline', gap: 4, flexWrap: 'wrap', fontFamily: 'var(--font-heading, inherit)' }}
             title={`${new Intl.NumberFormat(lang === 'en' ? 'en-US' : 'fr-FR').format(stats.activePipelineAmount)} ${currency || 'XAF'}`}
           >
             {formatCompactAmount(stats.activePipelineAmount, lang)}
-            <span style={{ fontSize: 10, fontWeight: 500, color: 'var(--muted-foreground, #64748b)' }}>
+            <span style={{ fontSize: 10.5, fontWeight: 500, color: 'var(--muted-foreground, #64748b)' }}>
               {currency || 'XAF'}
             </span>
           </div>
           <div
-            style={{ fontSize: 10, color: 'var(--muted-foreground, #64748b)', fontWeight: 500, lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+            style={{ fontSize: 10.5, color: 'var(--muted-foreground, #64748b)', fontWeight: 500, lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
             title={`${stats.prospectionCount} ${t('pipeline.inProspection')} · ${stats.negociationCount} ${t('pipeline.inNegotiation')}`}
           >
             {stats.prospectionCount} {t('pipeline.inProspection')} · {stats.negociationCount} {t('pipeline.inNegotiation')}
@@ -373,15 +377,16 @@ export function TeamManagerPerformanceCard({
               setShowOverdueDrawer(true)
             }
           }}
-          className="group transition-all duration-150 hover:shadow-md"
+          className="group transition-all duration-200 ease-smooth hover:-translate-y-0.5 hover:shadow-elevation-2"
           style={{
             background: 'var(--card, #131c2e)',
-            borderRadius: 10,
-            padding: '10px 12px',
+            borderRadius: 12,
+            padding: '12px 14px',
             border:
               stats.overdueCount > 0
                 ? '1px solid rgba(239,68,68,0.4)'
                 : '1px solid var(--border, rgba(255,255,255,0.08))',
+            boxShadow: 'var(--shadow-elevation-1)',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
@@ -435,13 +440,14 @@ export function TeamManagerPerformanceCard({
           </div>
           <div
             style={{
-              fontSize: 16,
+              fontSize: 17,
               fontWeight: 800,
               color: stats.overdueCount > 0 ? 'var(--pipeline-alert-color, #b91c1c)' : 'var(--pipeline-concluded-color, #047857)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              gap: 4
+              gap: 4,
+              fontFamily: 'var(--font-heading, inherit)'
             }}
           >
             {stats.overdueCount > 0 ? (
@@ -454,9 +460,9 @@ export function TeamManagerPerformanceCard({
                     display: 'inline-flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    width: 18,
-                    height: 18,
-                    borderRadius: 4,
+                    width: 20,
+                    height: 20,
+                    borderRadius: 6,
                     background: 'rgba(239, 68, 68, 0.16)',
                     border: '1px solid rgba(239, 68, 68, 0.35)',
                     color: '#ef4444',
@@ -476,12 +482,12 @@ export function TeamManagerPerformanceCard({
                     display: 'inline-flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    width: 18,
-                    height: 18,
-                    borderRadius: 4,
+                    width: 20,
+                    height: 20,
+                    borderRadius: 6,
                     background: '#10b981',
                     color: '#ffffff',
-                    boxShadow: '0 1px 3px rgba(16, 185, 129, 0.3)',
+                    boxShadow: '0 1px 4px rgba(16, 185, 129, 0.35)',
                     flexShrink: 0
                   }}
                 >
@@ -490,7 +496,7 @@ export function TeamManagerPerformanceCard({
               </>
             )}
           </div>
-          <div style={{ fontSize: 10, color: 'var(--muted-foreground, #94a3b8)', lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <div style={{ fontSize: 10.5, color: 'var(--muted-foreground, #94a3b8)', lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {stats.overdueCount > 0
               ? (isGlobal && !isTeamContext
                   ? t('pipeline.allOrgOverdueRequiresAttention')
@@ -563,11 +569,13 @@ export function TeamManagerPerformanceCard({
 
           return (
             <div
+              className="transition-all duration-200 ease-smooth hover:-translate-y-0.5 hover:shadow-elevation-2"
               style={{
                 background: 'var(--card, #131c2e)',
-                borderRadius: 10,
-                padding: '10px 12px',
+                borderRadius: 12,
+                padding: '12px 14px',
                 border: '1px solid var(--border, rgba(255,255,255,0.08))',
+                boxShadow: 'var(--shadow-elevation-1)',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',

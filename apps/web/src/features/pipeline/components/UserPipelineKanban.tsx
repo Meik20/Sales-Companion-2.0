@@ -155,17 +155,17 @@ function KanbanCard({
       ref={innerRef}
       {...(draggableProps || {})}
       onClick={() => onItemClick(item)}
+      className="transition-all duration-200 ease-smooth hover:-translate-y-0.5 hover:shadow-elevation-2"
       style={{
         marginBottom: 10,
-        background: isDragging ? 'rgba(255,255,255,0.05)' : 'var(--secondary, #1e2a3b)',
-        border: `1px solid ${isDragging ? col.accent : 'var(--border, rgba(255,255,255,0.1))'}`,
-        borderLeft: `3px solid ${col.accent}`,
-        borderRadius: 14,
+        background: isDragging ? 'var(--bg3, #2d2e31)' : 'var(--card, #131c2e)',
+        border: `1px solid ${isDragging ? col.accent : 'var(--border, rgba(255,255,255,0.08))'}`,
+        borderLeft: `3.5px solid ${col.accent}`,
+        borderRadius: 12,
         boxShadow: isDragging
-          ? `0 12px 40px rgba(0,0,0,0.25), 0 0 0 1px ${col.accent}44`
-          : '0 2px 8px rgba(0,0,0,0.06)',
+          ? `var(--shadow-elevation-4), 0 0 0 1px ${col.accent}44`
+          : 'var(--shadow-elevation-1)',
         cursor: 'pointer',
-        transition: 'box-shadow 200ms ease, border-color 200ms ease',
         overflow: 'hidden',
         ...(draggableProps?.style || {})
       }}
@@ -183,7 +183,7 @@ function KanbanCard({
               flexShrink: 0,
               cursor: 'grab',
               color: 'var(--muted-foreground, #64748b)',
-              opacity: 0.4,
+              opacity: 0.45,
               paddingLeft: 6
             }}
             onClick={(e) => e.stopPropagation()}
@@ -210,7 +210,7 @@ function KanbanCard({
                 fontWeight: 800,
                 color: col.accent,
                 flexShrink: 0,
-                fontFamily: "'Syne', sans-serif",
+                fontFamily: 'var(--font-heading, sans-serif)',
                 letterSpacing: '0.02em'
               }}
             >
@@ -219,12 +219,12 @@ function KanbanCard({
             <div style={{ flex: 1, minWidth: 0 }}>
               <div
                 style={{
-                  fontSize: 13,
+                  fontSize: 13.5,
                   fontWeight: 800,
                   color: 'var(--foreground, #f1f5f9)',
                   lineHeight: 1.3,
-                  letterSpacing: '-0.01em',
-                  fontFamily: "'Syne', sans-serif",
+                  letterSpacing: '-0.015em',
+                  fontFamily: 'var(--font-heading, sans-serif)',
                   wordBreak: 'break-word'
                 }}
               >
@@ -784,8 +784,8 @@ export function UserPipelineKanban({ items, onStatusChange, onItemClick }: Props
                       fontSize: 14,
                       fontWeight: 800,
                       color: col.color,
-                      letterSpacing: '-0.01em',
-                      fontFamily: "'Syne', sans-serif"
+                      letterSpacing: '-0.015em',
+                      fontFamily: 'var(--font-heading, sans-serif)'
                     }}
                   >
                     {t(col.labelKey)}

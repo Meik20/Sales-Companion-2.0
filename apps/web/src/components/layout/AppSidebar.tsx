@@ -674,7 +674,7 @@ export function AppSidebar({
         <div onClick={onCloseAction} className="absolute inset-0 bg-black/65 backdrop-blur-[3px]" />
 
         <div
-          className="relative h-full w-[300px] max-w-[85vw] overflow-y-auto bg-background shadow-[4px_0_32px_rgba(0,0,0,0.45)]"
+          className="relative h-full w-[300px] max-w-[85vw] overflow-y-auto border-r border-border/80 bg-background/95 backdrop-blur-md shadow-elevation-5"
           style={{ animation: 'slideInLeft 280ms cubic-bezier(0.16, 1, 0.3, 1)' }}
         >
           {content}

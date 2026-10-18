@@ -55,7 +55,7 @@ export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void 
     : null
 
   return (
-    <header className="sticky top-0 z-[100] flex h-16 items-center border-b border-border/70 bg-background/85 px-4 backdrop-blur-md transition-all">
+    <header className="sticky top-0 z-[100] flex h-16 items-center border-b border-border/80 bg-background/80 px-4 backdrop-blur-md shadow-elevation-1 transition-all">
       <style
         dangerouslySetInnerHTML={{
           __html: `
@@ -75,7 +75,7 @@ export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void 
           {onOpenMenuAction && (
             <button
               onClick={onOpenMenuAction}
-              className="flex items-center justify-center rounded-lg border border-border/50 bg-secondary/50 p-1.5 text-foreground transition-all hover:bg-secondary"
+              className="flex items-center justify-center rounded-lg border border-border/60 bg-secondary/40 p-1.5 text-foreground transition-all duration-150 hover:bg-secondary hover:shadow-elevation-1"
               aria-label="Ouvrir le menu"
             >
               <Menu size={18} />
@@ -104,7 +104,7 @@ export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void 
         <div className="flex flex-1 items-center justify-end gap-2 sm:gap-2.5">
           {!isOnline && (
             <div
-              className="flex items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 px-2 sm:px-2.5 py-1 text-[11px] font-semibold text-amber-600 dark:text-amber-400 shadow-sm animate-pulse shrink-0"
+              className="flex items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 px-2 sm:px-2.5 py-1 text-[11px] font-semibold text-amber-600 dark:text-amber-400 shadow-elevation-1 animate-pulse shrink-0"
               title="Application en mode hors connexion : l'appareil est hors ligne ou manque de data. Données en cache local actives."
             >
               <span className="h-2 w-2 rounded-full bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.8)] shrink-0" />
@@ -120,10 +120,10 @@ export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void 
             <div className="relative">
               <button
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
-                className="flex items-center gap-2.5 rounded-xl border-2 border-border bg-secondary/50 py-1.5 pl-1.5 pr-2.5 text-foreground shadow-sm transition-all hover:border-primary/50 hover:bg-secondary/80 dark:border-white/25 dark:hover:border-primary/60"
+                className="flex items-center gap-2.5 rounded-xl border border-border/80 bg-secondary/40 py-1.5 pl-1.5 pr-2.5 text-foreground shadow-elevation-1 transition-all duration-150 hover:border-primary/50 hover:bg-secondary/70 hover:shadow-elevation-2 active:scale-[0.99] dark:border-white/20 dark:hover:border-primary/50"
               >
                 {/* Avatar */}
-                <div className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-full border-2 border-primary/60 bg-primary/20 text-[13px] font-bold text-primary shadow-sm ring-2 ring-primary/15 dark:border-primary/70 dark:bg-primary/25">
+                <div className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-full border-2 border-primary/60 bg-primary/20 text-[13px] font-bold text-primary shadow-elevation-1 ring-2 ring-primary/15 dark:border-primary/70 dark:bg-primary/25">
                   {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || '?'}
                 </div>
 
@@ -157,9 +157,9 @@ export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void 
               {isProfileOpen && (
                 <>
                   <div onClick={() => setIsProfileOpen(false)} className="fixed inset-0 z-[99]" />
-                  <div className="absolute right-0 top-[46px] z-[200] flex w-[220px] animate-in fade-in zoom-in-95 flex-col overflow-hidden rounded-xl border border-border bg-popover shadow-md duration-150">
+                  <div className="absolute right-0 top-[48px] z-[200] flex w-[230px] animate-scale-in flex-col overflow-hidden rounded-xl border border-border/80 bg-popover/95 backdrop-blur-md shadow-elevation-3">
                     {/* User Info */}
-                    <div className="border-b border-border px-4 pb-3 pt-3.5">
+                    <div className="border-b border-border/80 px-4 pb-3 pt-3.5">
                       <div className="text-[14px] font-semibold text-foreground">
                         {user.name || t('sidebar.user')}
                       </div>

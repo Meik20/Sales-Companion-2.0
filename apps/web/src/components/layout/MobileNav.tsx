@@ -42,13 +42,13 @@ const getNavItems = (role: string, plan: string, t: (key: any) => string) => {
 
 const NAV_STYLES = `
 @keyframes navPillIn {
-  from { transform: scaleX(0); opacity: 0; }
-  to { transform: scaleX(1); opacity: 1; }
+  from { transform: translateX(-50%) scaleX(0); opacity: 0; }
+  to { transform: translateX(-50%) scaleX(1); opacity: 1; }
 }
 @keyframes navIconBounce {
   0% { transform: translateY(0); }
-  40% { transform: translateY(-4px); }
-  70% { transform: translateY(1px); }
+  40% { transform: translateY(-3px); }
+  70% { transform: translateY(0.5px); }
   100% { transform: translateY(0); }
 }
 .mobile-nav-btn {
@@ -60,34 +60,37 @@ const NAV_STYLES = `
   justify-content: center;
   padding: 8px 2px;
   cursor: pointer;
-  transition: all 200ms cubic-bezier(0.4, 0.0, 0.2, 1);
+  transition: all 150ms cubic-bezier(0.2, 0, 0, 1);
   border: none;
   background: transparent;
-  color: hsl(var(--muted-foreground));
+  color: var(--muted-foreground);
   position: relative;
   text-decoration: none;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
 }
+.mobile-nav-btn:active {
+  transform: scale(0.93);
+}
 .mobile-nav-btn.active {
-  color: hsl(var(--primary));
+  color: var(--color-primary, hsl(var(--primary)));
 }
 .mobile-nav-btn svg {
-  width: 22px;
-  height: 22px;
+  width: 21px;
+  height: 21px;
   stroke-width: 1.8;
-  transition: all 200ms cubic-bezier(0.4, 0.0, 0.2, 1);
+  transition: transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .mobile-nav-btn.active svg {
-  stroke-width: 2.4;
-  animation: navIconBounce 300ms ease forwards;
+  stroke-width: 2.3;
+  animation: navIconBounce 300ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 .mobile-nav-btn span {
-  font-size: 9px;
+  font-size: 9.5px;
   font-weight: 500;
   margin-top: 3px;
   font-family: inherit;
-  transition: all 200ms ease;
+  transition: all 150ms ease;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -97,16 +100,16 @@ const NAV_STYLES = `
 }
 .mobile-nav-btn.active span {
   font-weight: 700;
-  color: hsl(var(--primary));
+  color: var(--color-primary, hsl(var(--primary)));
 }
 .nav-active-pill {
   position: absolute;
-  top: 6px;
+  top: 5px;
   left: 50%;
   transform: translateX(-50%);
-  width: 36px;
+  width: 38px;
   height: 30px;
-  background: hsl(var(--primary) / 0.14);
+  background: var(--color-primary-light, rgba(255, 166, 17, 0.15));
   border-radius: 10px;
   animation: navPillIn 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
   pointer-events: none;
@@ -287,7 +290,7 @@ export function MobileNav() {
       <style dangerouslySetInnerHTML={{ __html: NAV_STYLES }} />
       <nav
         ref={swipeRef}
-        className="fixed bottom-0 left-0 right-0 z-[1000] flex items-stretch justify-around overflow-hidden bg-background/85 pb-[env(safe-area-inset-bottom,0px)] shadow-[0_-1px_0_rgba(255,255,255,0.04),0_-8px_32px_rgba(0,0,0,0.15)] backdrop-blur-[20px]"
+        className="fixed bottom-0 left-0 right-0 z-[1000] flex items-stretch justify-around overflow-hidden border-t border-border/80 bg-background/80 pb-[env(safe-area-inset-bottom,0px)] shadow-elevation-4 backdrop-blur-xl"
         style={{
           scrollbarWidth: 'none',
           WebkitOverflowScrolling: 'touch'

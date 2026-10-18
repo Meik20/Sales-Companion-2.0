@@ -1,5 +1,5 @@
 // ─── Design Tokens — Sales Companion 2.0 ───────────────────────────────────────
-// Toutes les valeurs pointent vers les CSS Variables du theme.css (Deep Blue Tech)
+// Toutes les valeurs pointent vers les CSS Variables du theme.css & firebase-theme.css
 // → modifier une couleur dans theme.css suffit à changer tout le projet.
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -64,15 +64,41 @@ export const colors = {
 } as const
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Ombres — Glass effect
+// Ombres — Système d'élévation World-Class & Glass effect
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const shadows = {
+  // Rétrocompatibilité Glass
   sm: 'var(--shadow-glass-light)',
   md: 'var(--shadow-glass-medium)',
   lg: 'var(--shadow-glass-strong)',
   xl: 'var(--shadow-glass-strong)',
-  glow: '0 0 30px rgba(24, 95, 165, 0.25)'
+  glow: '0 0 30px rgba(24, 95, 165, 0.25)',
+
+  // Échelle d'élévation hiérarchique
+  elevation0: 'var(--shadow-elevation-0)',
+  elevation1: 'var(--shadow-elevation-1)',
+  elevation2: 'var(--shadow-elevation-2)',
+  elevation3: 'var(--shadow-elevation-3)',
+  elevation4: 'var(--shadow-elevation-4)',
+  elevation5: 'var(--shadow-elevation-5)',
+
+  // Interactions & focus
+  hoverLift: 'var(--shadow-hover-lift)',
+  ringFocus: 'var(--ring-focus)',
+  inset: 'var(--shadow-inset)',
+  insetFocus: 'var(--shadow-inset-focus)'
+} as const
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Glows & Halos lumineux
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const glow = {
+  primary: 'var(--glow-primary)',
+  primaryStrong: 'var(--glow-primary-strong)',
+  accent: 'var(--glow-accent)',
+  accentStrong: 'var(--glow-accent-strong)'
 } as const
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -84,7 +110,18 @@ export const radius = {
   md: 'var(--r2)',
   lg: 'var(--r3)',
   xl: 'var(--r3)',
-  pill: '9999px'
+  pill: '9999px',
+
+  // Harmoniques complètes
+  r2xs: 'var(--radius-2xs)',
+  rxs: 'var(--radius-xs)',
+  rsm: 'var(--radius-sm)',
+  rmd: 'var(--radius-md)',
+  rlg: 'var(--radius-lg)',
+  rxl: 'var(--radius-xl)',
+  r2xl: 'var(--radius-2xl)',
+  r3xl: 'var(--radius-3xl)',
+  rfull: 'var(--radius-full)'
 } as const
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -98,25 +135,102 @@ export const spacing = {
   lg: 16,
   xl: 24,
   xxl: 32,
-  xxxl: 48
+  xxxl: 48,
+
+  scale: {
+    1: 'var(--space-1)',
+    2: 'var(--space-2)',
+    3: 'var(--space-3)',
+    4: 'var(--space-4)',
+    5: 'var(--space-5)',
+    6: 'var(--space-6)',
+    8: 'var(--space-8)',
+    10: 'var(--space-10)',
+    12: 'var(--space-12)',
+    16: 'var(--space-16)'
+  }
 } as const
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Transitions
+// Transitions & Animations
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const transitions = {
   fast: '150ms ease',
-  normal: '300ms ease'
+  normal: '300ms ease',
+
+  duration: {
+    instant: 'var(--duration-instant)',
+    fast: 'var(--duration-fast)',
+    normal: 'var(--duration-normal)',
+    moderate: 'var(--duration-moderate)',
+    slow: 'var(--duration-slow)',
+    deliberate: 'var(--duration-deliberate)'
+  },
+
+  easing: {
+    standard: 'var(--ease-standard)',
+    emphasized: 'var(--ease-emphasized)',
+    decelerate: 'var(--ease-decelerate)',
+    accelerate: 'var(--ease-accelerate)',
+    spring: 'var(--ease-spring)',
+    smooth: 'var(--ease-smooth)'
+  },
+
+  css: {
+    interactive: 'var(--transition-interactive)',
+    surface: 'var(--transition-surface)',
+    fade: 'var(--transition-fade)',
+    spring: 'var(--transition-spring)'
+  }
 } as const
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Typographie
+// Typographie & Échelle
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const fonts = {
   sans: 'var(--font-family)',
-  display: 'var(--font-family)'
+  display: 'var(--font-family)',
+  heading: 'var(--font-outfit), var(--font-heading), sans-serif',
+  body: 'var(--font-inter), var(--font-body), sans-serif'
+} as const
+
+export const fontSizes = {
+  xxs: 'var(--font-size-2xs)',
+  xs: 'var(--font-size-xs)',
+  sm: 'var(--font-size-sm)',
+  base: 'var(--font-size-base)',
+  md: 'var(--font-size-md)',
+  lg: 'var(--font-size-lg)',
+  xl: 'var(--font-size-xl)',
+  xxl: 'var(--font-size-2xl)',
+  xxxl: 'var(--font-size-3xl)',
+  display4xl: 'var(--font-size-4xl)',
+  display5xl: 'var(--font-size-5xl)'
+} as const
+
+export const lineHeights = {
+  tight: 'var(--line-height-tight)',
+  snug: 'var(--line-height-snug)',
+  normal: 'var(--line-height-normal)',
+  relaxed: 'var(--line-height-relaxed)'
+} as const
+
+export const letterSpacing = {
+  tight: 'var(--letter-spacing-tight)',
+  snug: 'var(--letter-spacing-snug)',
+  normal: 'var(--letter-spacing-normal)',
+  wide: 'var(--letter-spacing-wide)',
+  caps: 'var(--letter-spacing-caps)'
+} as const
+
+export const fontWeights = {
+  normal: 'var(--font-weight-normal)',
+  medium: 'var(--font-weight-medium)',
+  semibold: 'var(--font-weight-semibold)',
+  bold: 'var(--font-weight-bold)',
+  extrabold: 'var(--font-weight-extrabold)'
 } as const
 
 // ─────────────────────────────────────────────────────────────────────────────
