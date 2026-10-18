@@ -58,9 +58,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Corps de requête invalide' }, { status: 400 })
     }
 
-    const { targetManagerUid, prospectIds } = body as {
+    const { targetManagerUid, prospectIds, deadline } = body as {
       targetManagerUid?: string
       prospectIds?: string[]
+      deadline?: string | null
     }
 
     if (!targetManagerUid) {
@@ -149,6 +150,7 @@ export async function POST(request: NextRequest) {
         transferredToManagerName: targetManagerName,
         transferredAt: now,
         assignedTo: null, // Non assigné à un commercial : le TM l'assignera
+        assignmentDeadline: deadline || null,
         updatedAt: now
       })
       opCount++
@@ -158,6 +160,35 @@ export async function POST(request: NextRequest) {
 
     if (opCount > 0) {
       await batch.commit()
+    }
+
+    // Notification automatique In-App pour le Team Manager destinataire
+    try {
+      const { createUserNotification } = await import('@/lib/user-notifications')
+      const callerName =
+        callerData.displayName || callerData.name || callerData.email || 'Senior Manager'
+      const deadlineText = deadline
+        ? ` avec une échéance fixée au ${new Date(deadline).toLocaleDateString('fr-FR', {
+            day: 'numeric',
+            month: 'short'
+          })}`
+        : ''
+
+      await createUserNotification({
+        userId: targetManagerUid,
+        type: 'prospect_transfer',
+        title: 'Nouveaux prospects transférés',
+        message: `Le Senior Manager (${callerName}) vous a transféré ${transferredCount} prospect(s)${deadlineText}. Retrouvez-les dans votre Pipeline sous le filtre "Non assignés" pour les attribuer à votre équipe.`,
+        link: '/pipeline',
+        metadata: {
+          count: transferredCount,
+          senderUid: callerUid,
+          senderName: callerName,
+          deadline: deadline || null
+        }
+      })
+    } catch (notifErr) {
+      console.warn('[POST /api/imports/transfer] Erreur envoi notification:', notifErr)
     }
 
     return NextResponse.json({

@@ -362,6 +362,14 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
 
+    match /userNotifications/{notificationId} {
+      allow read: if isSignedIn() && (resource.data.userId == authUid() || isAdmin());
+      allow update: if isSignedIn() && resource.data.userId == authUid()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read', 'readAt']);
+      allow delete: if isSignedIn() && (resource.data.userId == authUid() || isAdmin());
+      allow create: if isAdmin();
+    }
+
     // ── CRM Collections ─────────────────────────────────────────────────────
 
     match /customer_calls/{callId} {

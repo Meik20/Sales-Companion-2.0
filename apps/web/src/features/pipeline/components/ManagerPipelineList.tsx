@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect, useCallback } from 'react'
-import { Badge, ConfirmDialog } from '@/components/ui/index'
+import { Badge, ConfirmDialog, DeadlineBadge } from '@/components/ui/index'
 import { Button } from '@/components/ui/Button'
 import { useDeletePipelineItem } from '@/features/pipeline/hooks/useDeletePipelineItem'
 import { useUpdatePipelineItem } from '@/features/pipeline/hooks/useUpdatePipelineItem'
@@ -69,6 +69,8 @@ type PipelineItem = {
   nextFollowUp?: string | null
   amount?: number | null
   currency?: string | null
+  assignmentDeadline?: string | null
+  firstActionAt?: string | null
   previousAssignees?: {
     userId: string
     memberName: string
@@ -644,6 +646,42 @@ function ProspectModal({
                           Aucune date
                         </span>
                       )}
+                    </div>
+                  </div>
+                )}
+
+                {item.assignmentDeadline && (
+                  <div
+                    style={{
+                      background: 'var(--pipeline-card-bg, #ffffff)',
+                      borderRadius: 10,
+                      padding: '10px 14px',
+                      border: '1px solid var(--pipeline-card-border, #e2e8f0)'
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 700,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em',
+                        color: 'var(--muted-foreground, #94a3b8)',
+                        marginBottom: 4,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4
+                      }}
+                    >
+                      <Clock size={12} />
+                      Objectif premier contact
+                    </div>
+                    <div style={{ marginTop: 4 }}>
+                      <DeadlineBadge
+                        deadline={item.assignmentDeadline}
+                        status={item.status}
+                        firstActionAt={item.firstActionAt}
+                        size="md"
+                      />
                     </div>
                   </div>
                 )}
@@ -2728,6 +2766,11 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                               </span>
                             )
                           })()}
+                          <DeadlineBadge
+                            deadline={item.assignmentDeadline}
+                            status={item.status}
+                            firstActionAt={item.firstActionAt}
+                          />
                           {(() => {
                             const filtered = (item.previousAssignees || []).filter(
                               (pa) =>

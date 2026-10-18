@@ -32,8 +32,27 @@ export function useCreateAssignmentForm({
   const { t } = useTranslation()
   const [pipelineItemId, setPipelineItemId] = useState('')
   const [memberId, setMemberId] = useState('')
+  const [deadlineOption, setDeadlineOption] = useState<'24h' | '48h' | '7d' | 'custom' | 'none'>('48h')
+  const [customDeadlineDate, setCustomDeadlineDate] = useState('')
   const [error, setError] = useState('')
   const [successCount, setSuccessCount] = useState(0)
+
+  const getCalculatedDeadlineIso = (): string | null => {
+    const now = new Date()
+    if (deadlineOption === '24h') {
+      return new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString()
+    }
+    if (deadlineOption === '48h') {
+      return new Date(now.getTime() + 48 * 60 * 60 * 1000).toISOString()
+    }
+    if (deadlineOption === '7d') {
+      return new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString()
+    }
+    if (deadlineOption === 'custom' && customDeadlineDate) {
+      return new Date(customDeadlineDate).toISOString()
+    }
+    return null
+  }
 
   const [pipelineProspects, setPipelineProspects] = useState<PipelineItem[]>([])
   const [loadingPipeline, setLoadingPipeline] = useState(false)
@@ -128,11 +147,13 @@ export function useCreateAssignmentForm({
     }
 
     const selectedP = availableProspects.find((p) => p.id === pipelineItemId)
+    const deadlineIso = getCalculatedDeadlineIso()
     createAssignment(
       {
         pipelineItemId: pipelineItemId.trim(),
         memberId: memberId.trim(),
-        companyName: selectedP?.companyName
+        companyName: selectedP?.companyName,
+        deadline: deadlineIso
       },
       {
         onSuccess: async () => {
@@ -164,6 +185,7 @@ export function useCreateAssignmentForm({
     }
 
     const token = await user?.getIdToken()
+    const deadlineIso = getCalculatedDeadlineIso()
     let done = 0
     for (const prospect of selectedProspects) {
       const res = await fetch('/api/team/assignments', {
@@ -175,7 +197,8 @@ export function useCreateAssignmentForm({
         body: JSON.stringify({
           pipelineItemId: prospect.id,
           memberId: memberId.trim(),
-          companyName: prospect.name || prospect.companyName || (prospect as any).raisonSociale
+          companyName: prospect.name || prospect.companyName || (prospect as any).raisonSociale,
+          deadline: deadlineIso
         })
       })
       if (res.ok) done++
@@ -197,6 +220,10 @@ export function useCreateAssignmentForm({
     setPipelineItemId,
     memberId,
     setMemberId,
+    deadlineOption,
+    setDeadlineOption,
+    customDeadlineDate,
+    setCustomDeadlineDate,
     error,
     successCount,
     availableProspects,

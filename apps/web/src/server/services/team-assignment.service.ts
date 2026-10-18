@@ -26,6 +26,8 @@ export interface AssignmentItem {
   pipelineEntryId: string
   companyName: string
   status: 'active' | 'done'
+  deadline?: string | null
+  assignmentDeadline?: string | null
   createdAt: string
   updatedAt: string
 }
@@ -34,6 +36,7 @@ export interface CreateAssignmentParams {
   pipelineItemId: string
   memberId: string
   companyName?: string
+  deadline?: string | null
 }
 
 export interface CreateAssignmentResult {
@@ -68,6 +71,8 @@ export const TeamAssignmentService = {
         pipelineEntryId: data.pipelineEntryId ?? '',
         companyName: data.companyName ?? '',
         status: (data.status as 'active' | 'done') ?? 'active',
+        deadline: data.deadline ?? data.assignmentDeadline ?? null,
+        assignmentDeadline: data.assignmentDeadline ?? data.deadline ?? null,
         createdAt: data.createdAt?.toDate?.()?.toISOString() ?? new Date().toISOString(),
         updatedAt: data.updatedAt?.toDate?.()?.toISOString() ?? new Date().toISOString()
       }
@@ -418,6 +423,7 @@ export const TeamAssignmentService = {
       assignedByName: managerName,
       sourceProspectId: pipelineItemId,
       previousAssignees,
+      assignmentDeadline: params.deadline || null,
       enteredAt: new Date().toISOString(),
       assignedAt: new Date().toISOString(),
       createdAt: FieldValue.serverTimestamp(),
@@ -467,10 +473,38 @@ export const TeamAssignmentService = {
       pipelineItemId,
       pipelineEntryId: pipelineRef.id,
       companyName,
+      assignmentDeadline: params.deadline || null,
       status: 'active',
       createdAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp()
     })
+
+    // 9. Notification automatique In-App pour le commercial assigné
+    try {
+      const { createUserNotification } = await import('@/lib/user-notifications')
+      const deadlineText = params.deadline
+        ? ` avec une échéance fixée au ${new Date(params.deadline).toLocaleDateString('fr-FR', {
+            day: 'numeric',
+            month: 'short'
+          })}`
+        : ''
+
+      await createUserNotification({
+        userId: memberId,
+        type: 'prospect_assignment',
+        title: 'Nouveau prospect assigné',
+        message: `Votre Team Manager (${managerName}) vous a assigné "${companyName}"${deadlineText}. Retrouvez-le dans votre Sales Pipeline dans la colonne Prospection.`,
+        link: '/pipeline',
+        metadata: {
+          senderUid: managerUid,
+          senderName: managerName,
+          deadline: params.deadline || null,
+          companyName
+        }
+      })
+    } catch (notifErr) {
+      console.warn('[TeamAssignmentService] Erreur envoi notification commercial:', notifErr)
+    }
 
     return {
       success: true,

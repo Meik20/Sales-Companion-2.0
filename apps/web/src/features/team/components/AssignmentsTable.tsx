@@ -16,8 +16,10 @@ import {
   MapPin,
   ArrowRight,
   ShieldCheck,
-  History
+  History,
+  Clock
 } from 'lucide-react'
+import { DeadlineBadge } from '@/components/ui/DeadlineBadge'
 
 export function AssignmentsTable() {
   const { data: assignments = [], isLoading, isError, refetch } = useTeamAssignments()
@@ -206,12 +208,13 @@ export function AssignmentsTable() {
                 {[
                   { label: t('team.prospect'), icon: <Building2 size={12} /> },
                   { label: t('pipeline.assignedTo'), icon: <User size={12} /> },
+                  { label: t('team.deadline') || 'Échéance', icon: <Clock size={12} /> },
                   { label: t('team.date'), icon: <Calendar size={12} /> }
                 ].map((h, i) => (
                   <th
                     key={h.label}
                     style={{
-                      textAlign: i === 2 ? 'right' : 'left',
+                      textAlign: i === 3 ? 'right' : 'left',
                       padding: '12px 0',
                       color: 'var(--muted-foreground, #94a3b8)',
                       fontWeight: 700,
@@ -224,7 +227,7 @@ export function AssignmentsTable() {
                       style={{
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: i === 2 ? 'flex-end' : 'flex-start',
+                        justifyContent: i === 3 ? 'flex-end' : 'flex-start',
                         gap: 6
                       }}
                     >
@@ -330,6 +333,15 @@ export function AssignmentsTable() {
                           </div>
                         </div>
                       </div>
+                    </td>
+
+                    {/* Échéance */}
+                    <td style={{ padding: '16px 0' }}>
+                      {a.deadline || a.assignmentDeadline ? (
+                        <DeadlineBadge deadline={a.deadline || a.assignmentDeadline} />
+                      ) : (
+                        <span style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)' }}>—</span>
+                      )}
                     </td>
 
                     {/* Date */}

@@ -16,6 +16,8 @@ export type TeamAssignment = {
   pipelineEntryId?: string
   companyName: string
   status: string
+  deadline?: string | null
+  assignmentDeadline?: string | null
   createdAt: string
   updatedAt: string
 }

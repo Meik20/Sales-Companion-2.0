@@ -305,3 +305,4 @@ export function PageGrid({ children }: PropsWithChildren) {
 
 export { ConfirmDialog } from './ConfirmDialog'
 export type { ConfirmDialogProps, ConfirmDialogVariant } from './ConfirmDialog'
+export { DeadlineBadge } from './DeadlineBadge'

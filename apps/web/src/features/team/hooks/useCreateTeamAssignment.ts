@@ -7,6 +7,7 @@ type Input = {
   pipelineItemId: string
   memberId: string
   companyName?: string
+  deadline?: string | null
 }
 
 /**

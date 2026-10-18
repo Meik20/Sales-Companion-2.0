@@ -38,6 +38,7 @@ import { formatCompactAmount, formatFullAmount } from '@/lib/formatters'
 import { useProspectingCountryDetails } from '@/hooks/useProspectingCountry'
 
 import { UserPipelineKanban } from './UserPipelineKanban'
+import { DeadlineBadge } from '@/components/ui/DeadlineBadge'
 
 type PipelineItem = {
   id: string
@@ -63,6 +64,8 @@ type PipelineItem = {
   assignedByName?: string | null
   managerUid?: string | null
   sourceId?: string | null
+  assignmentDeadline?: string | null
+  firstActionAt?: string | null
   previousAssignees?: {
     userId: string
     memberName: string
@@ -258,6 +261,13 @@ function ProspectModal({
                   <Clock size={11} />
                   <span>{aging.badgeText}</span>
                 </div>
+                {item.assignmentDeadline && (
+                  <DeadlineBadge
+                    deadline={item.assignmentDeadline}
+                    status={item.status}
+                    firstActionAt={item.firstActionAt}
+                  />
+                )}
                 <span style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)' }}>
                   {lang === 'en' ? 'Entered on' : 'Entré le'} {aging.enteredDateFormatted}
                 </span>
@@ -1466,6 +1476,13 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
                         <User size={10} />
                         {item.assignedByName}
                       </span>
+                    )}
+                    {item.assignmentDeadline && (
+                      <DeadlineBadge
+                        deadline={item.assignmentDeadline}
+                        status={item.status}
+                        firstActionAt={item.firstActionAt}
+                      />
                     )}
                     {(() => {
                       const filtered = (item.previousAssignees || []).filter(

@@ -11,6 +11,7 @@ import { ScIcon } from '@/components/ui/ScIcon'
 import { Settings, User, LogOut, Menu, ChevronDown, WifiOff } from 'lucide-react'
 import { useTranslation } from '@/providers/I18nProvider'
 import { AdminNotificationBell } from '@/features/admin/components/AdminNotificationBell'
+import { UserNotificationBell } from '@/components/layout/UserNotificationBell'
 import { useNetworkStatus } from '@/hooks/useNetworkStatus'
 import { useProspectingCountry } from '@/hooks/useProspectingCountry'
 import { getCountryName } from '@sales-companion/shared'
@@ -113,7 +114,11 @@ export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void 
             </div>
           )}
 
-          {user?.role === 'admin' && <AdminNotificationBell />}
+          {user?.role === 'admin' ? (
+            <AdminNotificationBell />
+          ) : user ? (
+            <UserNotificationBell />
+          ) : null}
 
           {/* ── RIGHT: User Profile ──────────────────────────────────── */}
           {user ? (

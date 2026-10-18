@@ -55,9 +55,10 @@ export async function POST(request: NextRequest) {
       pipelineItemId?: string
       memberId?: string
       companyName?: string
+      deadline?: string | null
     }
 
-    const { pipelineItemId, memberId, companyName } = body
+    const { pipelineItemId, memberId, companyName, deadline } = body
 
     if (!pipelineItemId || !memberId) {
       return NextResponse.json({ message: 'pipelineItemId et memberId requis' }, { status: 400 })
@@ -66,7 +67,8 @@ export async function POST(request: NextRequest) {
     const result = await TeamAssignmentService.createAssignment(session, {
       pipelineItemId,
       memberId,
-      companyName
+      companyName,
+      deadline: deadline || null
     })
 
     return NextResponse.json(result)

@@ -23,6 +23,7 @@ import {
 } from 'lucide-react'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { getPipelineAging } from '@/lib/pipelineAging'
+import { DeadlineBadge } from '@/components/ui/DeadlineBadge'
 import { formatCompactAmount, formatFullAmount } from '@/lib/formatters'
 import { useProspectingCountryDetails } from '@/hooks/useProspectingCountry'
 
@@ -48,6 +49,8 @@ type PipelineItem = {
   managerUid?: string | null
   nextFollowUp?: string | null
   previousAssignees?: any[]
+  assignmentDeadline?: string | null
+  firstActionAt?: string | null
   createdAt?: any
   updatedAt?: any
   assignedAt?: any
@@ -334,6 +337,11 @@ function KanbanCard({
                 <AlertTriangle size={10} style={{ color: aging.color }} />
               )}
             </span>
+            <DeadlineBadge
+              deadline={item.assignmentDeadline}
+              status={item.status}
+              firstActionAt={item.firstActionAt}
+            />
           </div>
 
           {/* Mobile: quick move buttons */}

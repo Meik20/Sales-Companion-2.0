@@ -17,7 +17,8 @@ import {
   Trash2,
   Building,
   MapPin,
-  Search
+  Search,
+  Clock
 } from 'lucide-react'
 
 type Props = {
@@ -64,12 +65,16 @@ function blurStyle(el: HTMLSelectElement, border: string) {
 }
 
 export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Props) {
-  const { t } = useTranslation()
+  const { t, lang } = useTranslation()
   const {
     pipelineItemId,
     setPipelineItemId,
     memberId,
     setMemberId,
+    deadlineOption,
+    setDeadlineOption,
+    customDeadlineDate,
+    setCustomDeadlineDate,
     error,
     successCount,
     availableProspects,
@@ -291,6 +296,93 @@ export function CreateAssignmentForm({ selectedProspects = [], onAssigned }: Pro
           )}
           {error && memberId === '' && (
             <div style={{ fontSize: 11, color: '#f87171', paddingLeft: 4 }}>{error}</div>
+          )}
+        </div>
+
+        {/* ── Sélecteur d'échéance (Objectif premier contact) ── */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <label
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                color: 'var(--muted-foreground, #94a3b8)',
+                textTransform: 'uppercase',
+                paddingLeft: 4,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 5
+              }}
+            >
+              <Clock size={13} className="text-primary" />
+              <span>{lang === 'en' ? 'First contact deadline' : 'Objectif premier contact (Échéance)'}</span>
+            </label>
+            <span style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)' }}>
+              {deadlineOption === '48h'
+                ? (lang === 'en' ? 'Standard (48h)' : 'Standard (48h)')
+                : deadlineOption === '24h'
+                  ? (lang === 'en' ? 'Express (24h)' : 'Express (24h)')
+                  : deadlineOption === '7d'
+                    ? (lang === 'en' ? '1 week' : '1 semaine')
+                    : deadlineOption === 'none'
+                      ? (lang === 'en' ? 'No deadline' : 'Sans échéance')
+                      : (lang === 'en' ? 'Custom' : 'Date personnalisée')}
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {[
+              { id: '24h', label: '24h' },
+              { id: '48h', label: '48h (' + (lang === 'en' ? 'Recommended' : 'Recommandé') + ')' },
+              { id: '7d', label: lang === 'en' ? '7 days' : '7 jours' },
+              { id: 'custom', label: lang === 'en' ? 'Custom' : 'Personnalisée' },
+              { id: 'none', label: lang === 'en' ? 'None' : 'Aucune' }
+            ].map((opt) => {
+              const isSelected = deadlineOption === opt.id
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => setDeadlineOption(opt.id as any)}
+                  disabled={isPending}
+                  style={{
+                    padding: '6px 12px',
+                    fontSize: 12,
+                    fontWeight: isSelected ? 700 : 500,
+                    borderRadius: 8,
+                    cursor: 'pointer',
+                    transition: 'all 150ms ease',
+                    background: isSelected
+                      ? 'linear-gradient(135deg, rgba(99,102,241,0.25) 0%, rgba(79,70,229,0.2) 100%)'
+                      : 'var(--card, #131c2e)',
+                    color: isSelected ? '#ffffff' : 'var(--muted-foreground, #94a3b8)',
+                    border: isSelected
+                      ? '1px solid #6366f1'
+                      : '1px solid var(--border, rgba(255,255,255,0.08))',
+                    boxShadow: isSelected ? '0 0 10px rgba(99,102,241,0.2)' : 'none'
+                  }}
+                >
+                  {opt.label}
+                </button>
+              )
+            })}
+          </div>
+
+          {deadlineOption === 'custom' && (
+            <div style={{ marginTop: 4 }}>
+              <input
+                type="date"
+                value={customDeadlineDate}
+                onChange={(e) => setCustomDeadlineDate(e.target.value)}
+                min={new Date().toISOString().slice(0, 10)}
+                disabled={isPending}
+                style={{
+                  ...SELECT_STYLE,
+                  padding: '8px 12px',
+                  fontSize: 13
+                }}
+              />
+            </div>
           )}
         </div>
 
