@@ -224,16 +224,9 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit, onHome }: Prop
           gap: 10px;
           flex-wrap: wrap;
         }
-        @media (max-width: 640px) {
-          .sc-filters-container {
-            position: sticky;
-            top: 60px; /* Exact height of AppHeader */
-            z-index: 30;
-            background: var(--bg); /* Adapts to light/dark themes */
-            padding: 12px 0;
-            margin: 0 0 8px;
-            border-bottom: 1px solid var(--bd);
-          }
+        .sc-filters-container {
+          width: 100%;
+          background: transparent;
         }
         .sc-input-wrap {
           flex: 1;
@@ -365,11 +358,6 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit, onHome }: Prop
         .sc-adv-btn:hover { color: var(--color-primary); }
         .sc-adv-chevron { transition: transform 200ms ease; }
         .sc-adv-chevron.open { transform: rotate(180deg); }
-
-          .sc-pills {
-            padding: 2px 0;
-          }
-        }
 
         /* ── Advanced panel ── */
         .sc-adv-panel {
