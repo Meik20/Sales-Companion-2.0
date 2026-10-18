@@ -266,7 +266,7 @@ export default function PipelinePage() {
 
       {/* Stats rapides */}
       {user?.role === 'member' || user?.role === 'independent' ? (
-        <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-6">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-5 sm:mb-6">
           {[
             {
               id: 'prospection' as const,
@@ -302,7 +302,7 @@ export default function PipelinePage() {
                 key={id}
                 type="button"
                 onClick={() => handleStageClick(id)}
-                className={`group relative overflow-hidden text-left cursor-pointer rounded-2xl p-4 sm:p-5 transition-all duration-200 ease-smooth ${
+                className={`group relative overflow-hidden text-left cursor-pointer rounded-xl sm:rounded-2xl p-2.5 sm:p-5 transition-all duration-200 ease-smooth ${
                   isSelected
                     ? 'shadow-elevation-2 -translate-y-0.5'
                     : 'hover:shadow-elevation-2 hover:-translate-y-0.5'
@@ -334,34 +334,66 @@ export default function PipelinePage() {
                   }}
                 />
 
-                <div className="flex items-center justify-between gap-2 mb-2">
-                  <div
-                    className="flex h-8 w-8 items-center justify-center rounded-lg transition-transform duration-200 group-hover:scale-105"
-                    style={{ background: bgLight, border: `1px solid ${color}25` }}
-                  >
-                    {icon}
+                {/* Disposition Mobile (< sm) : optimisée sans tronquage */}
+                <div className="flex sm:hidden flex-col gap-1.5">
+                  <div className="flex items-center justify-between">
+                    <div
+                      className="flex h-7 w-7 items-center justify-center rounded-lg shrink-0"
+                      style={{ background: bgLight, border: `1px solid ${color}30` }}
+                    >
+                      {icon}
+                    </div>
+                    <span
+                      style={{
+                        fontSize: 22,
+                        fontWeight: 800,
+                        color: 'var(--foreground)',
+                        fontFamily: 'var(--font-heading, sans-serif)',
+                        lineHeight: 1
+                      }}
+                    >
+                      {count}
+                    </span>
                   </div>
-                  <Badge variant={variant} className="text-[11px] font-semibold">
+                  <span
+                    className="text-[11.5px] font-bold tracking-tight truncate block"
+                    style={{ color: isSelected ? color : 'var(--foreground)' }}
+                  >
                     {label}
-                  </Badge>
+                  </span>
                 </div>
 
-                <div className="flex items-baseline gap-2 mt-1">
-                  <span
-                    style={{
-                      fontSize: 28,
-                      fontWeight: 800,
-                      color: 'var(--foreground)',
-                      fontFamily: 'var(--font-heading, sans-serif)',
-                      lineHeight: 1.1,
-                      letterSpacing: '-0.02em'
-                    }}
-                  >
-                    {count}
-                  </span>
-                  <span className="text-[11px] font-medium text-muted-foreground">
-                    {count > 1 ? t('pipeline.leads') : t('pipeline.lead')}
-                  </span>
+                {/* Disposition Desktop (>= sm) */}
+                <div className="hidden sm:block">
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <div
+                      className="flex h-8 w-8 items-center justify-center rounded-lg transition-transform duration-200 group-hover:scale-105"
+                      style={{ background: bgLight, border: `1px solid ${color}25` }}
+                    >
+                      {icon}
+                    </div>
+                    <Badge variant={variant} className="text-[11px] font-semibold">
+                      {label}
+                    </Badge>
+                  </div>
+
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <span
+                      style={{
+                        fontSize: 28,
+                        fontWeight: 800,
+                        color: 'var(--foreground)',
+                        fontFamily: 'var(--font-heading, sans-serif)',
+                        lineHeight: 1.1,
+                        letterSpacing: '-0.02em'
+                      }}
+                    >
+                      {count}
+                    </span>
+                    <span className="text-[11px] font-medium text-muted-foreground">
+                      {count > 1 ? t('pipeline.leads') : t('pipeline.lead')}
+                    </span>
+                  </div>
                 </div>
               </button>
             )
@@ -929,7 +961,11 @@ export default function PipelinePage() {
               </div>
             ) : null}
             {filteredItems.length > 0 ? (
-              <UserPipelineList items={filteredItems} onStatusChange={handleStatusChange} />
+              <UserPipelineList
+                items={filteredItems}
+                onStatusChange={handleStatusChange}
+                activeStage={activeStage}
+              />
             ) : null}
           </DataCard>
         </>

@@ -63,6 +63,7 @@ type Props = {
   items: PipelineItem[]
   onStatusChange: (id: string, status: 'prospection' | 'negociation' | 'conclue') => void
   onItemClick: (item: PipelineItem) => void
+  activeStage?: 'prospection' | 'negociation' | 'conclue' | null
 }
 
 const COLUMNS = [
@@ -394,153 +395,175 @@ function MobileKanban({
   columns,
   onStatusChange,
   onItemClick,
-  t
+  t,
+  activeStage
 }: {
   columns: Record<string, PipelineItem[]>
   onStatusChange: (id: string, status: 'prospection' | 'negociation' | 'conclue') => void
   onItemClick: (item: PipelineItem) => void
   t: (key: string) => string
+  activeStage?: 'prospection' | 'negociation' | 'conclue' | null
 }) {
-  const [activeTab, setActiveTab] = useState('prospection')
+  const [activeTab, setActiveTab] = useState<'prospection' | 'negociation' | 'conclue'>(
+    (activeStage as any) || 'prospection'
+  )
   const [mobilePages, setMobilePages] = useState<Record<string, number>>({})
-  const activeCol = COLUMNS.find((c) => c.id === activeTab)!
+  const [touchStart, setTouchStart] = useState<number | null>(null)
+
+  useEffect(() => {
+    if (activeStage && ['prospection', 'negociation', 'conclue'].includes(activeStage)) {
+      setActiveTab(activeStage)
+    }
+  }, [activeStage])
+
+  const colIndex = Math.max(0, COLUMNS.findIndex((c) => c.id === activeTab))
+  const activeCol = (COLUMNS[colIndex] ?? COLUMNS[0])!
+  const prevIndex = (colIndex - 1 + COLUMNS.length) % COLUMNS.length
+  const nextIndex = (colIndex + 1) % COLUMNS.length
+  const prevCol = (COLUMNS[prevIndex] ?? COLUMNS[0])!
+  const nextCol = (COLUMNS[nextIndex] ?? COLUMNS[0])!
+
   const colItems = columns[activeTab] || []
   const PAGE_SIZE = 10
   const totalPages = Math.max(1, Math.ceil(colItems.length / PAGE_SIZE))
   const currentPage = Math.min(mobilePages[activeTab] || 1, totalPages)
   const paginatedColItems = colItems.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const touch = e.targetTouches[0]
+    if (touch) setTouchStart(touch.clientX)
+  }
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStart === null) return
+    const touch = e.changedTouches[0]
+    if (!touch) return
+    const touchEnd = touch.clientX
+    const diff = touchStart - touchEnd
+    if (diff > 50) {
+      setActiveTab(nextCol.id as any)
+    } else if (diff < -50) {
+      setActiveTab(prevCol.id as any)
+    }
+    setTouchStart(null)
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-      {/* Tab bar */}
-      <div
-        style={{
-          display: 'flex',
-          background: 'var(--card, #131c2e)',
-          borderRadius: 14,
-          padding: 4,
-          gap: 4,
-          border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
-          marginBottom: 16
-        }}
-      >
-        {COLUMNS.map((col) => {
-          const ColIcon = col.icon
-          const count = (columns[col.id] || []).length
-          const isActive = activeTab === col.id
-          return (
-            <button
-              key={col.id}
-              onClick={() => setActiveTab(col.id)}
-              style={{
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: 4,
-                padding: '10px 4px',
-                borderRadius: 10,
-                border: 'none',
-                background: isActive ? col.gradient : 'transparent',
-                boxShadow: isActive
-                  ? `0 0 0 1.5px ${col.accent}55, 0 4px 12px rgba(0,0,0,0.08)`
-                  : 'none',
-                cursor: 'pointer',
-                transition: 'all 200ms ease',
-                fontFamily: 'inherit'
-              }}
-            >
-              <div
-                style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: 8,
-                  background: `${col.accent}22`,
-                  border: `1px solid ${col.accent}${isActive ? '66' : '33'}`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-              >
-                <ColIcon size={14} color={col.accent} strokeWidth={2.5} />
-              </div>
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: 700,
-                  color: isActive ? col.color : 'var(--muted-foreground, #94a3b8)',
-                  lineHeight: 1,
-                  fontFamily: "'Syne', sans-serif"
-                }}
-              >
-                {t(col.labelKey) || col.label}
-              </span>
-              <div
-                style={{
-                  minWidth: 20,
-                  height: 18,
-                  borderRadius: 6,
-                  background: isActive ? `${col.accent}33` : 'var(--secondary, #1e2a3b)',
-                  border: `1px solid ${isActive ? col.accent + '44' : 'var(--border, rgba(255,255,255,0.1))'}`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 11,
-                  fontWeight: 800,
-                  color: isActive ? col.accent : 'var(--muted-foreground, #64748b)',
-                  padding: '0 5px'
-                }}
-              >
-                {count}
-              </div>
-            </button>
-          )
-        })}
-      </div>
-
-      {/* Active column header */}
+      {/* Active column header with step indicator and prev/next navigation */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
+          justifyContent: 'space-between',
           gap: 8,
           padding: '10px 14px',
           background: activeCol.gradient,
           border: `1px solid ${activeCol.border}`,
-          borderRadius: '12px 12px 0 0',
+          borderRadius: '14px 14px 0 0',
           borderBottom: 'none'
         }}
       >
-        <activeCol.icon size={16} color={activeCol.accent} strokeWidth={2.5} />
-        <span
-          style={{
-            fontSize: 13,
-            fontWeight: 800,
-            color: activeCol.color,
-            fontFamily: "'Syne', sans-serif",
-            letterSpacing: '-0.01em'
-          }}
-        >
-          {t(activeCol.labelKey) || activeCol.label}
-        </span>
-        <span
-          style={{
-            marginLeft: 'auto',
-            fontSize: 12,
-            fontWeight: 700,
-            color: activeCol.accent,
-            background: `${activeCol.accent}22`,
-            border: `1px solid ${activeCol.accent}44`,
-            borderRadius: 6,
-            padding: '2px 8px'
-          }}
-        >
-          {colItems.length}
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+          <activeCol.icon size={16} color={activeCol.accent} strokeWidth={2.5} className="shrink-0" />
+          <span
+            style={{
+              fontSize: 13,
+              fontWeight: 800,
+              color: activeCol.color,
+              fontFamily: "'Syne', sans-serif",
+              letterSpacing: '-0.01em',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            {t(activeCol.labelKey) || activeCol.label}
+          </span>
+          <span
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              color: activeCol.accent,
+              background: `${activeCol.accent}22`,
+              border: `1px solid ${activeCol.accent}44`,
+              borderRadius: 6,
+              padding: '1px 6px'
+            }}
+          >
+            {colItems.length}
+          </span>
+        </div>
+
+        {/* Mini dot indicators & navigation arrows */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            {COLUMNS.map((c, idx) => (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => setActiveTab(c.id as any)}
+                aria-label={c.label}
+                style={{
+                  width: idx === colIndex ? 16 : 6,
+                  height: 6,
+                  borderRadius: 3,
+                  background: idx === colIndex ? activeCol.accent : 'var(--muted-foreground, #64748b)',
+                  opacity: idx === colIndex ? 1 : 0.35,
+                  border: 'none',
+                  padding: 0,
+                  cursor: 'pointer',
+                  transition: 'all 200ms ease'
+                }}
+              />
+            ))}
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 3, marginLeft: 4 }}>
+            <button
+              type="button"
+              onClick={() => setActiveTab(prevCol.id as any)}
+              aria-label="Étape précédente"
+              style={{
+                width: 26,
+                height: 26,
+                borderRadius: 7,
+                background: 'var(--secondary, #1e2a3b)',
+                border: `1px solid ${activeCol.border}`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: activeCol.color,
+                cursor: 'pointer'
+              }}
+            >
+              <ChevronLeft size={14} />
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab(nextCol.id as any)}
+              aria-label="Étape suivante"
+              style={{
+                width: 26,
+                height: 26,
+                borderRadius: 7,
+                background: 'var(--secondary, #1e2a3b)',
+                border: `1px solid ${activeCol.border}`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: activeCol.color,
+                cursor: 'pointer'
+              }}
+            >
+              <ChevronRight size={14} />
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* Cards area */}
+      {/* Cards area with touch swipe */}
       <div
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
         style={{
           background: 'var(--card, #131c2e)',
           border: `1px solid ${activeCol.border}`,
@@ -672,7 +695,7 @@ function MobileKanban({
 }
 
 // ── Main export ────────────────────────────────────────────────────────────────
-export function UserPipelineKanban({ items, onStatusChange, onItemClick }: Props) {
+export function UserPipelineKanban({ items, onStatusChange, onItemClick, activeStage }: Props) {
   const { t } = useTranslation()
   const isDesktop = useMediaQuery('(min-width: 768px)')
   const [columns, setColumns] = useState<Record<string, PipelineItem[]>>({
@@ -707,6 +730,7 @@ export function UserPipelineKanban({ items, onStatusChange, onItemClick }: Props
         onStatusChange={onStatusChange}
         onItemClick={onItemClick}
         t={t}
+        activeStage={activeStage}
       />
     )
   }

@@ -81,6 +81,7 @@ type PipelineItem = {
 type Props = {
   items: PipelineItem[]
   onStatusChange?: (id: string, status: 'prospection' | 'negociation' | 'conclue') => void
+  activeStage?: 'prospection' | 'negociation' | 'conclue' | null
 }
 
 const statusVariant: Record<string, 'info' | 'warning' | 'success'> = {
@@ -1118,7 +1119,7 @@ function InfoRow({
 }
 
 // ── Main List Component ────────────────────────────────────────────────
-export function UserPipelineList({ items, onStatusChange }: Props) {
+export function UserPipelineList({ items, onStatusChange, activeStage }: Props) {
   const { t, lang } = useTranslation()
   const { currency } = useProspectingCountryDetails()
   const deleteMutation = useDeletePipelineItem()
@@ -1207,6 +1208,7 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
           items={items}
           onStatusChange={onStatusChange!}
           onItemClick={setSelectedItem}
+          activeStage={activeStage}
         />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>

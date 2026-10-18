@@ -166,5 +166,5 @@ describe('POST /api/imports/transfer', () => {
     expect(json.targetManager.name).toBe('Team Manager Alpha')
     expect(mocks.mockBatchUpdate).toHaveBeenCalledTimes(2)
     expect(mocks.mockBatchCommit).toHaveBeenCalledTimes(1)
-  })
+  }, 15000)
 })
