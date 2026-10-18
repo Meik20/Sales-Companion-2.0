@@ -1154,48 +1154,26 @@ export function UserPipelineList({ items, onStatusChange }: Props) {
       )}
 
       {/* ── View Toggle ── */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 20 }}>
-        <div
-          style={{
-            display: 'flex',
-            background: 'var(--secondary, #1e2a3b)',
-            padding: 4,
-            borderRadius: 12,
-            border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
-            gap: 2,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
-          }}
-        >
-          {(['kanban', 'list'] as const).map((mode) => (
-            <button
-              key={mode}
-              onClick={() => setViewMode(mode)}
-              style={{
-                padding: '7px 16px',
-                borderRadius: 8,
-                border: 'none',
-                background:
-                  viewMode === mode
-                    ? 'linear-gradient(135deg, rgba(99,102,241,0.2) 0%, rgba(139,92,246,0.2) 100%)'
-                    : 'transparent',
-                color: viewMode === mode ? '#a5b4fc' : 'var(--muted-foreground, #94a3b8)',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 7,
-                fontSize: 13,
-                fontWeight: 700,
-                boxShadow: viewMode === mode ? '0 2px 8px rgba(99,102,241,0.15)' : 'none',
-                transition: 'all 200ms ease',
-                fontFamily: 'inherit',
-                borderRight:
-                  viewMode === mode ? '1px solid rgba(99,102,241,0.3)' : '1px solid transparent'
-              }}
-            >
-              {mode === 'kanban' ? <LayoutGrid size={14} /> : <List size={14} />}
-              {mode === 'kanban' ? 'Kanban' : (t('pipeline.listView') || 'Liste')}
-            </button>
-          ))}
+      <div className="flex justify-end mb-4">
+        <div className="inline-flex items-center p-1 rounded-xl bg-secondary/60 border border-border/80 shadow-elevation-0">
+          {(['kanban', 'list'] as const).map((mode) => {
+            const isActive = viewMode === mode
+            return (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => setViewMode(mode)}
+                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-all duration-150 ease-standard select-none ${
+                  isActive
+                    ? 'bg-card text-foreground shadow-elevation-1 border border-border/40'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+                }`}
+              >
+                {mode === 'kanban' ? <LayoutGrid size={13} className={isActive ? 'text-primary' : ''} /> : <List size={13} className={isActive ? 'text-primary' : ''} />}
+                <span>{mode === 'kanban' ? 'Kanban' : (t('pipeline.listView') || 'Liste')}</span>
+              </button>
+            )
+          })}
         </div>
       </div>
 

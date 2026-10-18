@@ -249,110 +249,50 @@ function KanbanCard({
           </div>
 
           {/* Chips */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
             {item.companyCity && (
               <span
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 4,
-                  fontSize: 11,
-                  fontWeight: 600,
-                  color: 'var(--muted-foreground, #94a3b8)',
-                  background: 'var(--card, #131c2e)',
-                  border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
-                  borderRadius: 6,
-                  padding: '2px 8px'
-                }}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold text-muted-foreground bg-secondary/60 border border-border/80"
               >
-                <MapPin size={10} style={{ opacity: 0.7 }} />
-                {[item.companyQuarter || item.quarter, item.companyCity].filter(Boolean).join(', ') || item.companyCity}
+                <MapPin size={11} className="opacity-70 text-muted-foreground shrink-0" />
+                <span>{[item.companyQuarter || item.quarter, item.companyCity].filter(Boolean).join(', ') || item.companyCity}</span>
               </span>
             )}
             {item.amount != null && item.amount > 0 && (
               <span
                 title={`${formatFullAmount(item.amount, lang)} ${currency || 'XAF'}`}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 4,
-                  fontSize: 11,
-                  fontWeight: 700,
-                  color: 'var(--pipeline-opportunity-color, #047857)',
-                  background: 'var(--pipeline-fresh-bg, #ecfdf5)',
-                  border: '1px solid var(--pipeline-fresh-border, rgba(5, 150, 105, 0.25))',
-                  borderRadius: 6,
-                  padding: '2px 8px'
-                }}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/25 shadow-elevation-0"
               >
-                <Banknote size={10} />
-                {formatCompactAmount(item.amount, lang)} {currency || 'XAF'}
+                <Banknote size={11} className="shrink-0" />
+                <span>{formatCompactAmount(item.amount, lang)} {currency || 'XAF'}</span>
               </span>
             )}
             {item.companyPhone && (
               <span
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 4,
-                  fontSize: 11,
-                  fontWeight: 600,
-                  color: '#2563eb',
-                  background: 'rgba(37,99,235,0.08)',
-                  border: '1px solid rgba(37,99,235,0.2)',
-                  borderRadius: 6,
-                  padding: '2px 8px'
-                }}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold text-blue-600 dark:text-blue-400 bg-blue-500/10 border border-blue-500/25 shadow-elevation-0"
               >
-                <Phone size={10} />
-                {t('pipeline.phone')}
+                <Phone size={11} className="shrink-0" />
+                <span>{t('pipeline.phone')}</span>
               </span>
             )}
             {(item.notes ?? item.note) && (
               <span
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 4,
-                  fontSize: 11,
-                  fontWeight: 600,
-                  color: '#fbbf24',
-                  background: 'rgba(251,191,36,0.08)',
-                  border: '1px solid rgba(251,191,36,0.2)',
-                  borderRadius: 6,
-                  padding: '2px 8px'
-                }}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/25 shadow-elevation-0"
               >
-                <MessageSquare size={10} />
-                {t('pipeline.hasNotes')}
+                <MessageSquare size={11} className="shrink-0" />
+                <span>{t('pipeline.hasNotes')}</span>
               </span>
             )}
             {item.nextFollowUp && item.status !== 'conclue' && item.status !== 'conclusion' && (
               <span
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 4,
-                  fontSize: 11,
-                  fontWeight: 600,
-                  color:
-                    item.nextFollowUp < new Date().toISOString().slice(0, 10)
-                      ? '#ef4444'
-                      : '#60a5fa',
-                  background:
-                    item.nextFollowUp < new Date().toISOString().slice(0, 10)
-                      ? 'rgba(239,68,68,0.08)'
-                      : 'rgba(96,165,250,0.08)',
-                  border:
-                    item.nextFollowUp < new Date().toISOString().slice(0, 10)
-                      ? '1px solid rgba(239,68,68,0.25)'
-                      : '1px solid rgba(96,165,250,0.2)',
-                  borderRadius: 6,
-                  padding: '2px 8px'
-                }}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold shadow-elevation-0 ${
+                  item.nextFollowUp < new Date().toISOString().slice(0, 10)
+                    ? 'text-red-600 dark:text-red-400 bg-red-500/10 border border-red-500/25'
+                    : 'text-blue-600 dark:text-blue-400 bg-blue-500/10 border border-blue-500/25'
+                }`}
               >
-                <Calendar size={10} />
-                {item.nextFollowUp}
+                <Calendar size={11} className="shrink-0" />
+                <span>{item.nextFollowUp}</span>
               </span>
             )}
             {(() => {
@@ -363,21 +303,10 @@ function KanbanCard({
               )
               return filtered.length > 0 ? (
                 <span
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 4,
-                    fontSize: 11,
-                    fontWeight: 600,
-                    color: '#f87171',
-                    background: 'rgba(239,68,68,0.08)',
-                    border: '1px solid rgba(239,68,68,0.2)',
-                    borderRadius: 6,
-                    padding: '2px 8px'
-                  }}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold text-red-600 dark:text-red-400 bg-red-500/10 border border-red-500/25"
                 >
-                  <AlertTriangle size={10} />
-                  {t('pipeline.alreadyVisited')}
+                  <AlertTriangle size={11} className="shrink-0" />
+                  <span>{t('pipeline.alreadyVisited')}</span>
                 </span>
               ) : null
             })()}
@@ -743,20 +672,15 @@ export function UserPipelineKanban({ items, onStatusChange, onItemClick }: Props
           return (
             <div
               key={col.id}
+              className="flex flex-col rounded-2xl overflow-hidden border border-border/80 shadow-elevation-1 transition-all duration-200"
               style={{
-                display: 'flex',
-                flexDirection: 'column',
-                background: 'var(--card, #131c2e)',
-                border: `1px solid ${col.border}`,
-                borderRadius: 20,
-                overflow: 'hidden',
-                boxShadow: `0 4px 24px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.04)`
+                background: 'var(--secondary, rgba(0,0,0,0.02))'
               }}
             >
               {/* Column Header */}
               <div
                 style={{
-                  padding: '18px 20px 16px',
+                  padding: '14px 18px',
                   background: col.gradient,
                   borderBottom: `1px solid ${col.border}`,
                   display: 'flex',

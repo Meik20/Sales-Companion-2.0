@@ -20,7 +20,7 @@ import { TeamManagerPerformanceCard } from '@/features/pipeline/components/TeamM
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslation } from '@/providers/I18nProvider'
-import { FileDown, Loader2, Target, Users2, Building2, TrendingUp, Filter, X } from 'lucide-react'
+import { FileDown, Loader2, Target, Users2, Building2, TrendingUp, Filter, X, Handshake, CheckCircle2 } from 'lucide-react'
 
 export default function PipelinePage() {
   const { t } = useTranslation()
@@ -266,83 +266,102 @@ export default function PipelinePage() {
 
       {/* Stats rapides */}
       {user?.role === 'member' || user?.role === 'independent' ? (
-        <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-5">
+        <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-6">
           {[
             {
               id: 'prospection' as const,
               label: t('pipeline.prospection'),
               count: counts.prospection,
-              color: '#60a5fa',
+              color: '#3b82f6',
+              bgLight: 'rgba(59, 130, 246, 0.08)',
+              icon: <TrendingUp size={16} className="text-blue-500" strokeWidth={2.3} />,
               variant: 'info' as const
             },
             {
               id: 'negociation' as const,
               label: t('pipeline.negotiation'),
               count: counts.negociation,
-              color: '#fbbf24',
+              color: '#f59e0b',
+              bgLight: 'rgba(245, 158, 11, 0.08)',
+              icon: <Handshake size={16} className="text-amber-500" strokeWidth={2.3} />,
               variant: 'warning' as const
             },
             {
               id: 'conclue' as const,
               label: t('pipeline.closed'),
               count: counts.conclue,
-              color: '#0284c7',
+              color: '#10b981',
+              bgLight: 'rgba(16, 185, 129, 0.08)',
+              icon: <CheckCircle2 size={16} className="text-emerald-500" strokeWidth={2.3} />,
               variant: 'success' as const
             }
-          ].map(({ id, label, count, color, variant }) => {
+          ].map(({ id, label, count, color, bgLight, icon, variant }) => {
             const isSelected = activeStage === id
             return (
               <button
                 key={id}
                 type="button"
                 onClick={() => handleStageClick(id)}
-                className={`group transition-all duration-200 cursor-pointer text-center relative rounded-xl ${
+                className={`group relative overflow-hidden text-left cursor-pointer rounded-2xl p-4 sm:p-5 transition-all duration-200 ease-smooth ${
                   isSelected
-                    ? 'ring-2 ring-primary ring-offset-2 ring-offset-background shadow-md'
-                    : 'hover:border-primary/50 hover:shadow-sm'
+                    ? 'shadow-elevation-2 -translate-y-0.5'
+                    : 'hover:shadow-elevation-2 hover:-translate-y-0.5'
                 }`}
                 style={{
-                  background: isSelected ? 'var(--secondary, #1e293b)' : 'var(--card, #131c2e)',
+                  background: isSelected
+                    ? `linear-gradient(135deg, var(--card) 0%, ${bgLight} 100%)`
+                    : 'var(--card)',
                   border: isSelected
-                    ? `2px solid ${color}`
-                    : '1px solid var(--border, rgba(255,255,255,0.1))',
-                  padding: '12px 10px',
-                  outline: 'none',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 6,
-                  minWidth: 0
+                    ? `1.5px solid ${color}`
+                    : '1px solid var(--border)',
+                  boxShadow: isSelected
+                    ? `var(--shadow-elevation-2), 0 0 0 3px ${color}22`
+                    : 'var(--shadow-elevation-1)',
+                  outline: 'none'
                 }}
               >
+                {/* Micro-gradient indicator au sommet */}
                 <div
                   style={{
-                    fontSize: 28,
-                    fontWeight: 800,
-                    color,
-                    fontFamily: "'Syne',sans-serif",
-                    lineHeight: 1
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: 3,
+                    background: isSelected
+                      ? color
+                      : `linear-gradient(90deg, ${color}, transparent)`
                   }}
-                >
-                  {count}
+                />
+
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <div
+                    className="flex h-8 w-8 items-center justify-center rounded-lg transition-transform duration-200 group-hover:scale-105"
+                    style={{ background: bgLight, border: `1px solid ${color}25` }}
+                  >
+                    {icon}
+                  </div>
+                  <Badge variant={variant} className="text-[11px] font-semibold">
+                    {label}
+                  </Badge>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <Badge variant={variant}>{label}</Badge>
-                  {isSelected && (
-                    <span
-                      style={{
-                        fontSize: 10,
-                        fontWeight: 700,
-                        color,
-                        display: 'inline-flex',
-                        alignItems: 'center'
-                      }}
-                      title={t('search.clearStageFilter')}
-                    >
-                      ●
-                    </span>
-                  )}
+
+                <div className="flex items-baseline gap-2 mt-1">
+                  <span
+                    style={{
+                      fontSize: 28,
+                      fontWeight: 800,
+                      color: 'var(--foreground)',
+                      fontFamily: 'var(--font-heading, sans-serif)',
+                      lineHeight: 1.1,
+                      letterSpacing: '-0.02em'
+                    }}
+                  >
+                    {count}
+                  </span>
+                  <span className="text-[11px] font-medium text-muted-foreground">
+                    {count > 1 ? t('pipeline.leads') : t('pipeline.lead')}
+                  </span>
                 </div>
               </button>
             )
