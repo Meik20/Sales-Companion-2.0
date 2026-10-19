@@ -11,6 +11,8 @@ import { firestore } from '@/services/firebase/client'
 import { useQueryClient } from '@tanstack/react-query'
 import { isMobileRuntime } from '@/lib/runtime'
 
+import { Plus, Check } from 'lucide-react'
+
 type Props = { company: Company }
 
 export function AddToPipelineButton({ company }: Props) {
@@ -31,7 +33,8 @@ export function AddToPipelineButton({ company }: Props) {
     })
   }
 
-  async function handleAdd() {
+  async function handleAdd(e?: React.MouseEvent) {
+    e?.stopPropagation()
     if (!user || status === 'loading' || status === 'done') return
     setStatus('loading')
     setErrorMsg(null)
@@ -125,7 +128,6 @@ export function AddToPipelineButton({ company }: Props) {
       await queryClient.invalidateQueries({ queryKey: ['pipeline-stats'] })
       notifySuccess()
     } catch (err) {
-      // If network fails, try direct offline save
       if (!isMobileRuntime()) {
         setErrorMsg(err instanceof Error ? err.message : 'Erreur inconnue')
         setStatus('error')
@@ -146,8 +148,9 @@ export function AddToPipelineButton({ company }: Props) {
 
   if (status === 'done') {
     return (
-      <span className="whitespace-nowrap text-[12px] font-bold text-blue-600 dark:text-blue-400">
-        {t('search.inPipeline')}
+      <span className="whitespace-nowrap text-[12px] font-semibold text-emerald-600 dark:text-emerald-400 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 shadow-2xs">
+        <Check size={13} strokeWidth={2.5} className="text-emerald-600 dark:text-emerald-400" />
+        <span>{t('search.inPipeline')}</span>
       </span>
     )
   }
@@ -155,19 +158,27 @@ export function AddToPipelineButton({ company }: Props) {
   return (
     <div className="flex flex-col items-end gap-1">
       <button
-        onClick={() => void handleAdd()}
+        onClick={handleAdd}
         disabled={status === 'loading'}
-        className={`h-8 whitespace-nowrap rounded-lg px-3 text-[12px] font-semibold transition-all duration-150 ${
+        className={`h-8 whitespace-nowrap rounded-lg px-3.5 text-[12px] font-semibold transition-all duration-150 inline-flex items-center gap-1.5 shadow-2xs ${
           status === 'error'
             ? 'border border-red-500/40 bg-red-500/8 text-red-600 dark:text-red-400'
-            : 'border border-border bg-secondary text-foreground hover:border-blue-500/50 hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-400'
+            : 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-2xs hover:shadow-xs active:scale-95'
         } ${status === 'loading' ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
       >
-        {status === 'loading'
-          ? t('search.adding')
-          : status === 'error'
-            ? t('search.retry')
-            : t('search.addPipeline')}
+        {status === 'loading' ? (
+          <>
+            <span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+            <span>{t('search.adding')}</span>
+          </>
+        ) : status === 'error' ? (
+          t('search.retry')
+        ) : (
+          <>
+            <Plus size={13} strokeWidth={2.5} />
+            <span>{t('search.addPipeline')}</span>
+          </>
+        )}
       </button>
       {errorMsg && (
         <span className="max-w-[120px] text-right text-[10.5px] leading-tight text-red-400">

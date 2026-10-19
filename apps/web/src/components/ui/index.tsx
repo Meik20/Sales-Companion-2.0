@@ -140,13 +140,13 @@ type PanelProps = PropsWithChildren<{ padded?: boolean; style?: CSSProperties; c
 export function Panel({ children, padded = true, style, className = '' }: PanelProps) {
   return (
     <div
-      className={`transition-all duration-200 ease-smooth ${className}`}
+      className={`transition-all duration-150 ease-smooth ${className}`}
       style={{
-        background: 'var(--card, #131c2e)',
-        border: '1px solid var(--border, rgba(255,255,255,0.08))',
-        borderRadius: 14,
-        boxShadow: 'var(--shadow-elevation-1)',
-        padding: padded ? 20 : 0,
+        background: 'var(--card, #ffffff)',
+        border: '1px solid var(--border, #e6e8ec)',
+        borderRadius: 12,
+        boxShadow: '0 1px 2px rgba(16, 24, 40, 0.05)',
+        padding: padded ? 16 : 0,
         ...style
       }}
     >
@@ -159,14 +159,14 @@ export function Panel({ children, padded = true, style, className = '' }: PanelP
 
 type StackProps = PropsWithChildren<{ gap?: number }>
 
-export function Stack({ children, gap = 16 }: StackProps) {
+export function Stack({ children, gap = 12 }: StackProps) {
   return <div style={{ display: 'flex', flexDirection: 'column', gap }}>{children}</div>
 }
 
 // ─── DataCard ────────────────────────────────────────────────────────────────
 
 type DataCardProps = PropsWithChildren<{
-  title: string
+  title: ReactNode
   subtitle?: string
   actions?: ReactNode
   style?: CSSProperties
@@ -175,13 +175,13 @@ type DataCardProps = PropsWithChildren<{
 export function DataCard({ title, subtitle, actions, children, style }: DataCardProps) {
   return (
     <Panel style={style}>
-      <Stack gap={16}>
+      <Stack gap={14}>
         <div
           style={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'flex-start',
-            gap: 16,
+            gap: 12,
             flexWrap: 'wrap'
           }}
         >
@@ -189,10 +189,10 @@ export function DataCard({ title, subtitle, actions, children, style }: DataCard
             <h2
               style={{
                 margin: 0,
-                fontSize: 16,
-                fontWeight: 700,
-                color: 'var(--foreground, #f1f5f9)',
-                letterSpacing: '-.015em'
+                fontSize: 14,
+                fontWeight: 600,
+                color: 'var(--foreground, #101828)',
+                letterSpacing: '-.01em'
               }}
             >
               {title}
@@ -200,9 +200,9 @@ export function DataCard({ title, subtitle, actions, children, style }: DataCard
             {subtitle ? (
               <p
                 style={{
-                  margin: '4px 0 0',
-                  fontSize: 13,
-                  color: 'var(--muted-foreground, #94a3b8)'
+                  margin: '3px 0 0',
+                  fontSize: 12,
+                  color: 'var(--muted-foreground, #475467)'
                 }}
               >
                 {subtitle}

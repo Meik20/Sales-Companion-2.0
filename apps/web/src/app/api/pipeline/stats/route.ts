@@ -101,23 +101,45 @@ export async function GET(request: NextRequest) {
       negotiation: 0,
       conclusion: 0,
       lost: 0,
-      conversionRate: 0
+      conversionRate: 0,
+      prospectionAmount: 0,
+      negotiationAmount: 0,
+      conclusionAmount: 0
     }
 
     docs.forEach((doc) => {
-      const status = doc.data().status as string
-      if (status === 'prospection' || status === 'prospect') stats.prospection++
-      else if (status === 'negociation' || status === 'negotiation') stats.negotiation++
-      else if (status === 'conclue' || status === 'conclusion') stats.conclusion++
-      else if (status === 'lost') stats.lost++
+      const data = doc.data()
+      const status = (data.status || '') as string
+      const amt = typeof data.amount === 'number' ? data.amount : Number(data.amount) || 0
+      if (status === 'prospection' || status === 'prospect') {
+        stats.prospection++
+        stats.prospectionAmount += amt
+      } else if (status === 'negociation' || status === 'negotiation') {
+        stats.negotiation++
+        stats.negotiationAmount += amt
+      } else if (status === 'conclue' || status === 'conclusion') {
+        stats.conclusion++
+        stats.conclusionAmount += amt
+      } else if (status === 'lost') {
+        stats.lost++
+      }
     })
 
     stats.conversionRate = stats.total > 0 ? Math.round((stats.conclusion / stats.total) * 100) : 0
 
-
     return NextResponse.json(stats)
   } catch (error) {
     console.error('[pipeline/stats] Error:', error)
-    return NextResponse.json({ total: 0, prospection: 0, negotiation: 0, conclusion: 0, lost: 0 })
+    return NextResponse.json({
+      total: 0,
+      prospection: 0,
+      negotiation: 0,
+      conclusion: 0,
+      lost: 0,
+      conversionRate: 0,
+      prospectionAmount: 0,
+      negotiationAmount: 0,
+      conclusionAmount: 0
+    })
   }
 }

@@ -32,7 +32,9 @@ import {
   Sun,
   Globe,
   CreditCard,
-  Check
+  Check,
+  PanelLeftClose,
+  PanelLeftOpen
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useTranslation } from '@/providers/I18nProvider'
@@ -212,7 +214,8 @@ function nearestZone(lat: number, lng: number) {
 }
 
 // ── Section label separator ─────────────────────────────────────────────
-function SectionLabel({ children }: { children: string }) {
+function SectionLabel({ children, collapsed }: { children: string; collapsed?: boolean }) {
+  if (collapsed) return null
   return (
     <div className="px-3 pb-1 pt-2.5 text-[10px] font-bold uppercase tracking-[.09em] text-muted-foreground select-none">
       {children}
@@ -220,8 +223,8 @@ function SectionLabel({ children }: { children: string }) {
   )
 }
 
-function SectionDivider() {
-  return <hr className="my-2 border-0 border-t border-border/70" />
+function SectionDivider({ collapsed }: { collapsed?: boolean }) {
+  return <hr className={`my-2 border-0 border-t border-border/70 ${collapsed ? 'mx-1' : ''}`} />
 }
 
 export function AppSidebar({
@@ -236,6 +239,9 @@ export function AppSidebar({
   const { pushToast } = useToast()
   const router = useRouter()
   const pathname = usePathname()
+
+  const [isCollapsed, setIsCollapsed] = useState(false)
+  const isNavCollapsed = !isMobile && isCollapsed
 
   const [radius, setRadius] = useState('10 km')
   const [region, setRegion] = useState('')
@@ -313,76 +319,59 @@ export function AppSidebar({
 
   const content = (
     <div
-      className={`flex h-full w-full min-w-0 flex-col gap-1 overflow-y-auto bg-transparent px-3 py-5 ${
-        isMobile ? 'border-none' : 'border-r border-border/70'
-      }`}
+      className={`flex h-full w-full min-w-0 flex-col gap-1 overflow-y-auto bg-transparent ${
+        isNavCollapsed ? 'px-1.5 py-3' : 'px-3 py-4'
+      } ${isMobile ? 'border-none' : 'border-r border-border/70'}`}
     >
-      {/* ── User Profile Card ───────────────────────────────────────── */}
-      <div className="mb-1 flex items-center gap-2.5 px-2.5 pb-3.5 pt-2.5">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/15 text-[17px] font-bold text-primary">
-          {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || '?'}
-        </div>
-        <div className="flex min-w-0 flex-col">
-          <span className="truncate text-[13.5px] font-bold text-foreground">
-            {user.name || t('sidebar.user')}
-          </span>
-          <span className="text-[11px] text-muted-foreground flex items-center gap-1.5">
-            <span
-              className="h-1.5 w-1.5 rounded-full shrink-0"
-              style={{
-                backgroundColor:
-                  user.role === 'admin'
-                    ? '#ef4444'
-                    : user.role === 'manager'
-                      ? user.orgRole === 'senior_manager'
-                        ? '#8b5cf6'
-                        : '#eab308'
-                      : user.role === 'independent'
-                        ? '#22c55e'
-                        : user.role === 'support_agent'
-                          ? '#eb8512'
-                          : '#3b82f6'
-              }}
-            />
-            <span>
-              {user.role === 'admin'
-                ? t('sidebar.adminRole')
-                : user.role === 'manager'
-                  ? user.orgRole === 'senior_manager'
-                    ? t('sidebar.seniorManagerRole')
-                    : user.orgRole === 'team_manager'
-                      ? t('sidebar.teamManagerRole')
-                      : t('sidebar.managerRole')
-                  : user.role === 'independent'
-                    ? t('sidebar.independentRole')
-                    : user.role === 'support_agent'
-                      ? t('sidebar.supportAgentRole')
-                      : t('sidebar.memberRole')}
+      {/* ── Desktop Collapse/Expand Header ── */}
+      {!isMobile && (
+        <div
+          className={`mb-1 flex items-center ${
+            isNavCollapsed ? 'justify-center' : 'justify-between'
+          } px-1`}
+        >
+          {!isNavCollapsed && (
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground select-none">
+              Menu
             </span>
-            <span>·</span>
-            <span className="uppercase">
-              {(user.plan || 'free') === 'free' ? t('header.planFree') : user.plan}
-            </span>
-          </span>
+          )}
+          <button
+            type="button"
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="flex h-7 w-7 items-center justify-center rounded-lg border border-border/80 bg-secondary/50 text-muted-foreground hover:bg-secondary hover:text-foreground transition-all cursor-pointer shadow-2xs"
+            title={
+              isNavCollapsed
+                ? lang === 'en'
+                  ? 'Expand sidebar'
+                  : 'Agrandir le menu'
+                : lang === 'en'
+                  ? 'Collapse sidebar'
+                  : 'Réduire le menu'
+            }
+          >
+            {isNavCollapsed ? (
+              <PanelLeftOpen size={15} strokeWidth={1.75} />
+            ) : (
+              <PanelLeftClose size={15} strokeWidth={1.75} />
+            )}
+          </button>
         </div>
-      </div>
-
-      <SectionDivider />
+      )}
 
       {/* ── CONDITIONAL RENDER ACCORDING TO ROLE ─────────────────── */}
       {user.role === 'support_agent' ? (
         <>
-          <SectionLabel>{t('sidebar.crmSection')}</SectionLabel>
-          <SidebarLink href="/crm" label={t('sidebar.crmClients')} icon={Users} />
-          <SidebarLink href="/team" label={t('sidebar.imports')} icon={Upload} />
-          <SidebarCrossCountry onCloseAction={onCloseAction} />
+          <SectionLabel collapsed={isNavCollapsed}>{t('sidebar.crmSection')}</SectionLabel>
+          <SidebarLink href="/crm" label={t('sidebar.crmClients')} icon={Users} collapsed={isNavCollapsed} />
+          <SidebarLink href="/team" label={t('sidebar.imports')} icon={Upload} collapsed={isNavCollapsed} />
+          {!isNavCollapsed && <SidebarCrossCountry onCloseAction={onCloseAction} />}
         </>
       ) : (
         <>
           {/* ── Filtres rapides (Commerciaux terrain & Indépendants) ────── */}
-          {user.role !== 'manager' && (
+          {user.role !== 'manager' && !isNavCollapsed && (
             <>
-              <SectionLabel>{t('sidebar.quickFilters')}</SectionLabel>
+              <SectionLabel collapsed={isNavCollapsed}>{t('sidebar.quickFilters')}</SectionLabel>
 
               {/* Région */}
               <div className="px-2.5 py-0.5">
@@ -490,19 +479,20 @@ export function AppSidebar({
                 </div>
               </div>
 
-              <SectionDivider />
+              <SectionDivider collapsed={isNavCollapsed} />
             </>
           )}
 
           {/* ── P4 — Section: Outils Principaux ─────────────────────────── */}
-          <SectionLabel>{t('sidebar.prospection')}</SectionLabel>
-          <SidebarLink href={routes.search} label={t('sidebar.searchProspects')} icon={Search} />
+          <SectionLabel collapsed={isNavCollapsed}>{t('sidebar.prospection')}</SectionLabel>
+          <SidebarLink href={routes.search} label={t('sidebar.searchProspects')} icon={Search} collapsed={isNavCollapsed} />
           {user.role !== 'admin' && (
             <SidebarLink
               href={routes.pipeline}
               label={t('sidebar.pipeline')}
               icon={BarChart2}
               badge={totalPipeline > 0 ? totalPipeline : undefined}
+              collapsed={isNavCollapsed}
             />
           )}
           {user.role === 'manager' && user.orgRole === 'team_manager' && (
@@ -510,15 +500,17 @@ export function AppSidebar({
               href={routes.clients}
               label={t('sidebar.clientDatabase')}
               icon={Users}
+              collapsed={isNavCollapsed}
             />
           )}
-          <SidebarLink href={routes.saved} label={t('sidebar.savedSearches')} icon={Bookmark} />
-          <SidebarCrossCountry onCloseAction={onCloseAction} />
+          <SidebarLink href={routes.saved} label={t('sidebar.savedSearches')} icon={Bookmark} collapsed={isNavCollapsed} />
+          {!isNavCollapsed && <SidebarCrossCountry onCloseAction={onCloseAction} />}
           {user.role === 'independent' && (
             <SidebarLink
               href={routes.importProspects}
               label={t('sidebar.importProspects')}
               icon={Upload}
+              collapsed={isNavCollapsed}
               onClick={(e) => {
                 if (user.plan === 'free') {
                   e.preventDefault()
@@ -529,18 +521,18 @@ export function AppSidebar({
               }}
             />
           )}
-          <SidebarLink href={routes.support} label={t('sidebar.support')} icon={MessageSquare} />
+          <SidebarLink href={routes.support} label={t('sidebar.support')} icon={MessageSquare} collapsed={isNavCollapsed} />
 
           {/* Indicateur Offline — actif automatiquement si hors connexion */}
-          <OfflineModeIndicator />
+          {!isNavCollapsed && <OfflineModeIndicator />}
         </>
       )}
 
       {/* ── P4 — Section: Équipe (Manager uniquement) ─────────────── */}
       {user.role === 'manager' && (
         <>
-          <SectionDivider />
-          <SectionLabel>{t('sidebar.team')}</SectionLabel>
+          <SectionDivider collapsed={isNavCollapsed} />
+          <SectionLabel collapsed={isNavCollapsed}>{t('sidebar.team')}</SectionLabel>
           {user.orgRole === 'senior_manager' ? (
             <>
               {/* Senior Manager : Gestion de l'Organisation + Dashboard Organisation */}
@@ -548,6 +540,7 @@ export function AppSidebar({
                 href={routes.team}
                 label={t('sidebar.orgManagement')}
                 icon={Building2}
+                collapsed={isNavCollapsed}
                 onClick={(e) => {
                   if (user.plan === 'free') {
                     e.preventDefault()
@@ -559,6 +552,7 @@ export function AppSidebar({
                 href={routes.dashboard}
                 label={t('sidebar.orgDashboard')}
                 icon={LayoutDashboard}
+                collapsed={isNavCollapsed}
                 onClick={(e) => {
                   if (user.plan === 'free') {
                     e.preventDefault()
@@ -574,6 +568,7 @@ export function AppSidebar({
                 href={routes.team}
                 label={t('sidebar.teamManagement')}
                 icon={Users}
+                collapsed={isNavCollapsed}
                 onClick={(e) => {
                   if (user.plan === 'free') {
                     e.preventDefault()
@@ -590,6 +585,7 @@ export function AppSidebar({
                 href={routes.reporting}
                 label={t('sidebar.teamDashboard')}
                 icon={BarChart2}
+                collapsed={isNavCollapsed}
               />
             </>
           )}
@@ -597,71 +593,141 @@ export function AppSidebar({
       )}
 
       {/* ── P4 — Section: Paramètres ────────────────────────────────── */}
-      <SectionDivider />
-      <SectionLabel>{t('sidebar.account')}</SectionLabel>
-      <SidebarLink href={routes.settings} label={t('sidebar.settings')} icon={Settings} />
+      <SectionDivider collapsed={isNavCollapsed} />
+      <SectionLabel collapsed={isNavCollapsed}>{t('sidebar.account')}</SectionLabel>
+      <SidebarLink href={routes.settings} label={t('sidebar.settings')} icon={Settings} collapsed={isNavCollapsed} />
 
       <button
         onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-        className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left transition-all duration-200 hover:bg-secondary"
+        title={isNavCollapsed ? `${t('sidebar.theme')}` : undefined}
+        className={`flex w-full items-center ${isNavCollapsed ? 'justify-center px-1' : 'justify-between px-3'} rounded-lg py-2 text-left transition-all duration-200 hover:bg-secondary cursor-pointer`}
       >
-        <span className="flex items-center gap-2.5 text-[13px] font-medium text-muted-foreground">
+        <span className={`flex items-center gap-2.5 text-[13px] font-medium text-muted-foreground ${isNavCollapsed ? 'justify-center' : ''}`}>
           {theme === 'dark' ? (
-            <Sun size={16} strokeWidth={1.8} />
+            <Sun size={18} strokeWidth={1.75} />
           ) : (
-            <Moon size={16} strokeWidth={1.8} />
+            <Moon size={18} strokeWidth={1.75} />
           )}
-          {t('sidebar.theme')} : {theme === 'dark' ? t('sidebar.light') : t('sidebar.dark')}
+          {!isNavCollapsed && `${t('sidebar.theme')} : ${theme === 'dark' ? t('sidebar.light') : t('sidebar.dark')}`}
         </span>
       </button>
 
       <button
         onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')}
-        className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left transition-all duration-200 hover:bg-secondary"
+        title={isNavCollapsed ? (lang === 'fr' ? 'EN' : 'FR') : undefined}
+        className={`flex w-full items-center ${isNavCollapsed ? 'justify-center px-1' : 'justify-between px-3'} rounded-lg py-2 text-left transition-all duration-200 hover:bg-secondary cursor-pointer`}
       >
-        <span className="flex items-center gap-2.5 text-[13px] font-medium text-muted-foreground">
-          <Globe size={16} strokeWidth={1.8} />
-          {lang === 'fr' ? 'English (EN)' : 'Français (FR)'}
+        <span className={`flex items-center gap-2.5 text-[13px] font-medium text-muted-foreground ${isNavCollapsed ? 'justify-center' : ''}`}>
+          <Globe size={18} strokeWidth={1.75} />
+          {!isNavCollapsed && (lang === 'fr' ? 'English (EN)' : 'Français (FR)')}
         </span>
       </button>
 
       {/* ── Admin Section ───────────────────────────────────────────── */}
       {user.role === 'admin' && (
         <>
-          <SectionDivider />
-          <SectionLabel>{t('sidebar.admin')}</SectionLabel>
+          <SectionDivider collapsed={isNavCollapsed} />
+          <SectionLabel collapsed={isNavCollapsed}>{t('sidebar.admin')}</SectionLabel>
           <SidebarLink
             href={routes.adminDashboard}
             label={t('sidebar.dashboard')}
             icon={LayoutDashboard}
+            collapsed={isNavCollapsed}
           />
-          <SidebarLink href={routes.adminUsers} label={t('sidebar.users')} icon={UserCheck} />
+          <SidebarLink href={routes.adminUsers} label={t('sidebar.users')} icon={UserCheck} collapsed={isNavCollapsed} />
           <SidebarLink
             href={routes.adminCompanies}
             label={t('sidebar.companies')}
             icon={Building2}
+            collapsed={isNavCollapsed}
           />
-          <SidebarLink href={routes.adminImports} label={t('sidebar.imports')} icon={Upload} />
-          <SidebarLink href={routes.adminSupport} label={t('sidebar.support')} icon={Headphones} />
-          <SidebarLink href={routes.adminLogs} label={t('sidebar.activity')} icon={Activity} />
-          <SidebarLink href={routes.adminConfig} label={t('sidebar.config')} icon={Sliders} />
+          <SidebarLink href={routes.adminImports} label={t('sidebar.imports')} icon={Upload} collapsed={isNavCollapsed} />
+          <SidebarLink href={routes.adminSupport} label={t('sidebar.support')} icon={Headphones} collapsed={isNavCollapsed} />
+          <SidebarLink href={routes.adminLogs} label={t('sidebar.activity')} icon={Activity} collapsed={isNavCollapsed} />
+          <SidebarLink href={routes.adminConfig} label={t('sidebar.config')} icon={Sliders} collapsed={isNavCollapsed} />
           <SidebarLink
             href={routes.adminPayments}
             label={t('sidebar.payments')}
             icon={CreditCard}
+            collapsed={isNavCollapsed}
           />
         </>
       )}
 
-      {/* ── Logout ──────────────────────────────────────────────────── */}
+      {/* ── Profile Unique en bas & Logout ─────────────────────────── */}
       <div className="mt-auto pt-2">
-        <SectionDivider />
+        <SectionDivider collapsed={isNavCollapsed} />
+
+        {/* User Profile Card en bas de sidebar */}
+        {isNavCollapsed ? (
+          <div
+            className="mb-1.5 flex justify-center py-1 cursor-default"
+            title={`${user.name || user.email} (${(user.plan || 'free').toUpperCase()})`}
+          >
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-sm border border-primary/20">
+              {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || '?'}
+            </div>
+          </div>
+        ) : (
+          <div className="mb-2 flex items-center gap-2.5 rounded-xl border border-border/70 bg-secondary/30 p-2.5">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[15px] font-bold text-primary border border-primary/20">
+              {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || '?'}
+            </div>
+            <div className="flex min-w-0 flex-col">
+              <span className="truncate text-[13px] font-semibold text-foreground">
+                {user.name || t('sidebar.user')}
+              </span>
+              <span className="text-[11px] text-muted-foreground flex items-center gap-1.5 truncate">
+                <span
+                  className="h-1.5 w-1.5 rounded-full shrink-0"
+                  style={{
+                    backgroundColor:
+                      user.role === 'admin'
+                        ? '#ef4444'
+                        : user.role === 'manager'
+                          ? user.orgRole === 'senior_manager'
+                            ? '#8b5cf6'
+                            : '#eab308'
+                          : user.role === 'independent'
+                            ? '#22c55e'
+                            : user.role === 'support_agent'
+                              ? '#eb8512'
+                              : '#3b82f6'
+                  }}
+                />
+                <span className="truncate">
+                  {user.role === 'admin'
+                    ? t('sidebar.adminRole')
+                    : user.role === 'manager'
+                      ? user.orgRole === 'senior_manager'
+                        ? t('sidebar.seniorManagerRole')
+                        : user.orgRole === 'team_manager'
+                          ? t('sidebar.teamManagerRole')
+                          : t('sidebar.managerRole')
+                      : user.role === 'independent'
+                        ? t('sidebar.independentRole')
+                        : user.role === 'support_agent'
+                          ? t('sidebar.supportAgentRole')
+                          : t('sidebar.memberRole')}
+                </span>
+                <span>·</span>
+                <span className="uppercase font-semibold">
+                  {(user.plan || 'free') === 'free' ? t('header.planFree') : user.plan}
+                </span>
+              </span>
+            </div>
+          </div>
+        )}
+
         <button
           onClick={handleLogout}
-          className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-[13px] font-medium text-destructive transition-all duration-200 hover:bg-destructive/10"
+          title={isNavCollapsed ? t('sidebar.logout') : undefined}
+          className={`flex w-full items-center ${
+            isNavCollapsed ? 'justify-center px-1' : 'gap-2.5 px-3'
+          } rounded-lg py-2 text-left text-[13px] font-medium text-destructive transition-all duration-150 hover:bg-destructive/10 cursor-pointer`}
         >
-          <LogOut size={15} strokeWidth={1.8} className="shrink-0" />
-          {t('sidebar.logout')}
+          <LogOut size={16} strokeWidth={1.75} className="shrink-0" />
+          {!isNavCollapsed && <span>{t('sidebar.logout')}</span>}
         </button>
       </div>
     </div>
@@ -695,7 +761,11 @@ export function AppSidebar({
   }
 
   return (
-    <aside className="sticky top-[60px] h-[calc(100vh-60px)] w-[300px] shrink-0 overflow-hidden">
+    <aside
+      className={`sticky top-[60px] h-[calc(100vh-60px)] shrink-0 overflow-hidden transition-all duration-200 ${
+        isNavCollapsed ? 'w-[64px]' : 'w-[260px]'
+      }`}
+    >
       {content}
     </aside>
   )

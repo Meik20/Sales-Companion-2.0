@@ -12,40 +12,40 @@
 /* ─── Palette Google ────────────────────────────────────────────────── */
 :root {
   color-scheme: light;
-  --background: oklch(0.994 0.002 260);
-  --foreground: oklch(0.24 0.03 260);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.24 0.03 260);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.24 0.03 260);
-  --primary: oklch(0.5 0.13 255);
-  --primary-foreground: oklch(0.99 0.01 260);
-  --secondary: oklch(0.965 0.008 260);
-  --secondary-foreground: oklch(0.34 0.04 260);
-  --muted: oklch(0.965 0.008 260);
-  --muted-foreground: oklch(0.52 0.03 260);
-  --accent: oklch(0.83 0.13 78);
-  --accent-foreground: oklch(0.28 0.06 70);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.915 0.01 260);
-  --input: oklch(0.915 0.01 260);
-  --ring: oklch(0.5 0.13 255);
+  --background: #f7f8fa;
+  --foreground: #101828;
+  --card: #ffffff;
+  --card-foreground: #101828;
+  --popover: #ffffff;
+  --popover-foreground: #101828;
+  --primary: #2F5BEA;
+  --primary-foreground: #ffffff;
+  --secondary: #f0f2f5;
+  --secondary-foreground: #344054;
+  --muted: #f0f2f5;
+  --muted-foreground: #475467;
+  --accent: #ebf0ff;
+  --accent-foreground: #2F5BEA;
+  --destructive: #ef4444;
+  --border: #e6e8ec;
+  --input: #e6e8ec;
+  --ring: #2F5BEA;
   --radius: 0.75rem;
   /* Charts */
-  --chart-1: oklch(0.5 0.13 255);
-  --chart-2: oklch(0.62 0.11 235);
-  --chart-3: oklch(0.83 0.13 78);
-  --chart-4: oklch(0.7 0.1 200);
-  --chart-5: oklch(0.4 0.09 265);
+  --chart-1: #2F5BEA;
+  --chart-2: #3b82f6;
+  --chart-3: #f59e0b;
+  --chart-4: #10b981;
+  --chart-5: #6366f1;
   /* Sidebar */
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: #ffffff;
+  --sidebar-foreground: #101828;
+  --sidebar-primary: #2F5BEA;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f0f2f5;
+  --sidebar-accent-foreground: #2F5BEA;
+  --sidebar-border: #e6e8ec;
+  --sidebar-ring: #2F5BEA;
 
   /* Blue */
   --google-blue-50: rgb(232, 240, 254);
@@ -129,39 +129,39 @@
 
 .dark {
   color-scheme: dark;
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --background: #0b0f17;
+  --foreground: #f8fafc;
+  --card: #121826;
+  --card-foreground: #f8fafc;
+  --popover: #121826;
+  --popover-foreground: #f8fafc;
+  --primary: #2F5BEA;
+  --primary-foreground: #ffffff;
+  --secondary: #1a2234;
+  --secondary-foreground: #f8fafc;
+  --muted: #1a2234;
+  --muted-foreground: #94a3b8;
+  --accent: rgba(47, 91, 234, 0.2);
+  --accent-foreground: #688aff;
+  --destructive: #ef4444;
+  --border: #1f2937;
+  --input: #1f2937;
+  --ring: #2F5BEA;
   /* Charts */
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --chart-1: #2F5BEA;
+  --chart-2: #38bdf8;
+  --chart-3: #fbbf24;
+  --chart-4: #34d399;
+  --chart-5: #a855f7;
   /* Sidebar */
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar: #0b0f17;
+  --sidebar-foreground: #f8fafc;
+  --sidebar-primary: #2F5BEA;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #1a2234;
+  --sidebar-accent-foreground: #688aff;
+  --sidebar-border: #1f2937;
+  --sidebar-ring: #2F5BEA;
 
   /* ── Pipeline & Métriques Commerciales (Mode Sombre - Cockpit Émeraude) ── */
   --pipeline-concluded-color: #34d399; /* Vert menthe luminescent 400 */

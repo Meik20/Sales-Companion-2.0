@@ -11,9 +11,9 @@ import { useQueryClient } from '@tanstack/react-query'
 import { isMobileRuntime } from '@/lib/runtime'
 import { Bookmark, Check } from 'lucide-react'
 
-type Props = { company: Company }
+type Props = { company: Company; iconOnly?: boolean }
 
-export function SaveCompanyButton({ company }: Props) {
+export function SaveCompanyButton({ company, iconOnly = false }: Props) {
   const { t } = useTranslation()
   const { user } = useCurrentUser()
   const { pushToast } = useToast()
@@ -32,7 +32,8 @@ export function SaveCompanyButton({ company }: Props) {
     }
   }
 
-  async function handleSave() {
+  async function handleSave(e?: React.MouseEvent) {
+    e?.stopPropagation()
     if (!user || status === 'loading' || status === 'done' || status === 'duplicate') return
     setStatus('loading')
     setErrorMsg(null)
@@ -82,7 +83,6 @@ export function SaveCompanyButton({ company }: Props) {
       await queryClient.invalidateQueries({ queryKey: ['saved-companies', user.uid] })
       setStatus((json as { duplicate?: boolean }).duplicate ? 'duplicate' : 'done')
     } catch (err) {
-      // If network error, try offline save directly
       if (!isMobileRuntime()) {
         setErrorMsg(err instanceof Error ? err.message : 'Erreur inconnue')
         setStatus('error')
@@ -111,9 +111,32 @@ export function SaveCompanyButton({ company }: Props) {
   }
 
   const isDone = status === 'done' || status === 'duplicate'
+
+  if (iconOnly) {
+    return (
+      <button
+        type="button"
+        onClick={handleSave}
+        disabled={status === 'loading'}
+        title={isDone ? t('search.alreadySaved') : t('search.save')}
+        className={`h-8 w-8 rounded-lg flex items-center justify-center transition-all duration-150 border cursor-pointer ${
+          isDone
+            ? 'border-primary/40 bg-primary/10 text-primary'
+            : 'border-border/80 bg-background/60 hover:bg-secondary text-muted-foreground hover:text-foreground'
+        } ${status === 'loading' ? 'opacity-60 cursor-not-allowed' : 'active:scale-95'}`}
+      >
+        {isDone ? (
+          <Bookmark size={14} className="fill-current" />
+        ) : (
+          <Bookmark size={14} strokeWidth={1.8} />
+        )}
+      </button>
+    )
+  }
+
   if (isDone) {
     return (
-      <span className="whitespace-nowrap text-[12px] font-bold text-blue-600 dark:text-blue-400 inline-flex items-center gap-1">
+      <span className="whitespace-nowrap text-[12px] font-bold text-primary inline-flex items-center gap-1">
         {status === 'duplicate' ? (
           t('search.alreadySaved')
         ) : (
@@ -129,13 +152,13 @@ export function SaveCompanyButton({ company }: Props) {
   return (
     <div className="flex flex-col items-end gap-1">
       <button
-        onClick={() => void handleSave()}
+        onClick={handleSave}
         disabled={status === 'loading'}
         className={`h-8 whitespace-nowrap rounded-lg px-3 text-[12px] font-semibold transition-all duration-150 inline-flex items-center gap-1.5 ${
           status === 'error'
             ? 'border border-red-500/40 bg-red-500/8 text-red-600 dark:text-red-400'
-            : 'border border-border bg-secondary text-foreground hover:border-blue-500/60 hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-400'
-        } ${status === 'loading' ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
+            : 'border border-border bg-secondary text-foreground hover:border-primary/60 hover:bg-primary/10 hover:text-primary'
+        } ${status === 'loading' ? 'cursor-not-allowed opacity-60' : 'cursor-pointer active:scale-95'}`}
       >
         {status === 'loading' ? (
           t('search.saving')

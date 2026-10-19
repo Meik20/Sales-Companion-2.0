@@ -8,140 +8,140 @@
 :root {
   color-scheme: light;
 
-  /* ── LinkedIn Color Palette ─────────────────────────────────────── */
-  --color-primary: #0a66c2; /* LinkedIn Science Blue */
-  --color-primary-dark: #004182; /* LinkedIn Congress Blue */
-  --color-primary-light: #dce6f1; /* LinkedIn Botticelli */
+  /* ── Core Color Palette ─────────────────────────────────────── */
+  --color-primary: #2F5BEA; /* Deep Professional Blue */
+  --color-primary-dark: #1E40AF;
+  --color-primary-light: #EBF0FF;
 
-  --color-brand-green: #83941f;
-  --color-brand-green-dark: #44712e;
-  --color-brand-green-light: #d7ebce;
+  --color-brand-green: #10b981;
+  --color-brand-green-dark: #059669;
+  --color-brand-green-light: #d1fae5;
 
-  --color-brand-amber: #e7a33e;
-  --color-brand-amber-dark: #915907;
-  --color-brand-amber-light: #fce2ba;
+  --color-brand-amber: #f59e0b;
+  --color-brand-amber-dark: #b45309;
+  --color-brand-amber-light: #fef3c7;
 
-  --color-brand-coral: #f5987e;
-  --color-brand-coral-dark: #b24020;
-  --color-brand-coral-light: #fadfd8;
+  --color-brand-coral: #f43f5e;
+  --color-brand-coral-dark: #be123c;
+  --color-brand-coral-light: #ffe4e6;
 
   /* ── Neutral Scale ──────────────────────────────────────────────── */
-  --color-neutral-900: #1d2226;
-  --color-neutral-800: #38434f;
-  --color-neutral-700: #56687a;
-  --color-neutral-600: #666666;
-  --color-neutral-500: #86888a;
-  --color-neutral-400: #adb3b8;
-  --color-neutral-300: #c2c8cc;
-  --color-neutral-200: #e9e5df;
-  --color-neutral-100: #f3f2ef; /* LinkedIn page background */
-  --color-neutral-50: #fdfaf5;
+  --color-neutral-900: #101828;
+  --color-neutral-800: #1f2937;
+  --color-neutral-700: #374151;
+  --color-neutral-600: #475467;
+  --color-neutral-500: #667085;
+  --color-neutral-400: #98a2b3;
+  --color-neutral-300: #d0d5dd;
+  --color-neutral-200: #e6e8ec;
+  --color-neutral-100: #f7f8fa; /* Clean page background */
+  --color-neutral-50: #ffffff;
   --color-white: #ffffff;
 
   /* ── Semantic Colors ────────────────────────────────────────────── */
-  --color-success: #057642;
-  --color-success-bg: #d7ebce;
-  --color-warning: #915907;
-  --color-warning-bg: #fce2ba;
-  --color-danger: #cc1016;
-  --color-danger-bg: #fadfd8;
-  --color-accent: #0a66c2;
+  --color-success: #10b981;
+  --color-success-bg: #ecfdf5;
+  --color-warning: #f59e0b;
+  --color-warning-bg: #fffbeb;
+  --color-danger: #ef4444;
+  --color-danger-bg: #fef2f2;
+  --color-accent: #2F5BEA;
 
   /* ── Typography ─────────────────────────────────────────────────── */
   --font-family: 'Source Sans 3', 'Source Sans Pro', -apple-system, Arial, sans-serif;
 
   /* ── Spacing & Borders ──────────────────────────────────────────── */
-  --radius-standard: 4px;
+  --radius-standard: 8px;
 
-  /* ── Shadows ────────────────────────────────────────────────────── */
-  --shadow-glass-light: 0 0 0 1px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.05);
-  --shadow-glass-medium: 0 0 0 1px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.08);
-  --shadow-glass-strong: 0 0 0 1px rgba(0, 0, 0, 0.08), 0 8px 16px rgba(0, 0, 0, 0.1);
+  /* ── Shadows (Subtle, diffused, no harsh blacks) ────────────────── */
+  --shadow-glass-light: 0 1px 2px rgba(16, 24, 40, 0.05);
+  --shadow-glass-medium: 0 4px 12px rgba(16, 24, 40, 0.08);
+  --shadow-glass-strong: 0 12px 24px -4px rgba(16, 24, 40, 0.1);
 
   /* ── Backward-compatible aliases ────────────────────────────────── */
   /* Surfaces */
-  --bg: #f3f2ef; /* LinkedIn page background */
-  --bg2: #ffffff; /* LinkedIn card surface */
-  --bg3: #f3f2ef;
-  --bg4: #e9e5df;
+  --bg: #f7f8fa; /* Clean page background */
+  --bg2: #ffffff; /* Card surface */
+  --bg3: #f0f2f5;
+  --bg4: #e6e8ec;
 
   /* Text */
-  --tx: #1d2226; /* LinkedIn primary text */
-  --tx2: #56687a; /* LinkedIn secondary text */
-  --tx3: #86888a; /* LinkedIn tertiary text */
+  --tx: #101828; /* Primary text */
+  --tx2: #475467; /* Secondary text (minimum #475467) */
+  --tx3: #667085; /* Tertiary text */
 
   /* Borders */
-  --bd: rgba(0, 0, 0, 0.15); /* LinkedIn default border */
-  --bd2: #c2c8cc;
+  --bd: #e6e8ec; /* 1px clean border */
+  --bd2: #d0d5dd;
 
-  /* Radius */
-  --r: var(--radius-standard);
-  --r2: var(--radius-standard);
-  --r3: var(--radius-standard);
+  /* Radius: 12px cards, 8px buttons/inputs */
+  --r: 8px;
+  --r2: 8px;
+  --r3: 12px;
 
   /* Shadows */
   --sh: none;
-  --sh2: 0 0 0 1px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.05);
+  --sh2: 0 1px 2px rgba(16, 24, 40, 0.05);
 
   /* Interaction */
-  --cr-link-color: #0a66c2;
-  --cr-focus-outline-color: #0a66c2;
-  --cr-hover-background-color: rgba(0, 0, 0, 0.08);
-  --cr-active-background-color: rgba(0, 0, 0, 0.12);
+  --cr-link-color: #2F5BEA;
+  --cr-focus-outline-color: #2F5BEA;
+  --cr-hover-background-color: rgba(47, 91, 234, 0.06);
+  --cr-active-background-color: rgba(47, 91, 234, 0.12);
 
   /* Blue scale (used in components) */
-  --color-blue-50: #dce6f1;
-  --color-blue-100: rgba(10, 102, 194, 0.12);
-  --color-blue-200: rgba(10, 102, 194, 0.2);
-  --color-blue-600: #004182;
-  --color-blue-900: #002266;
+  --color-blue-50: #ebf0ff;
+  --color-blue-100: rgba(47, 91, 234, 0.12);
+  --color-blue-200: rgba(47, 91, 234, 0.2);
+  --color-blue-600: #2F5BEA;
+  --color-blue-900: #1e3a8a;
 
   /* Teal/secondary */
-  --color-secondary: #83941f;
-  --color-teal-50: #d7ebce;
-  --color-teal-900: #44712e;
+  --color-secondary: #0d9488;
+  --color-teal-50: #f0fdfa;
+  --color-teal-900: #134e4a;
 
   /* Transitions */
-  --transition: 200ms ease;
+  --transition: 150ms ease;
   --transition-fast: 100ms ease;
 }
 
-/* ─── Dark Mode (LinkedIn) ───────────────────────────────────── */
+/* ─── Dark Mode ──────────────────────────────────────────────── */
 .dark {
   color-scheme: dark;
 
-  /* Surfaces — hiérarchie lisible */
-  --bg: #1b1f23; /* Fond de page — gris bleuté LinkedIn */
-  --bg2: #24292e; /* Surface carte — légèrement plus clair pour contraste */
-  --bg3: #2d333b; /* Surface secondaire — dropdown, tags */
-  --bg4: #373e47; /* Hover, focus, séparateurs */
+  /* Surfaces — #0B0F17 base, #121826 cards, #1F2937 borders */
+  --bg: #0b0f17; /* Fond de page */
+  --bg2: #121826; /* Surface carte */
+  --bg3: #1a2234; /* Surface secondaire */
+  --bg4: #242e42; /* Hover, focus */
 
   /* Text */
-  --tx: rgba(255, 255, 255, 0.9);
-  --tx2: rgba(255, 255, 255, 0.65);
-  --tx3: rgba(255, 255, 255, 0.4);
+  --tx: #f8fafc;
+  --tx2: #94a3b8;
+  --tx3: #64748b;
 
   /* Borders */
-  --bd: rgba(255, 255, 255, 0.12);
-  --bd2: rgba(255, 255, 255, 0.22);
+  --bd: #1f2937;
+  --bd2: #374151;
 
   /* Interaction */
-  --cr-hover-background-color: rgba(255, 255, 255, 0.08);
-  --cr-active-background-color: rgba(255, 255, 255, 0.12);
+  --cr-hover-background-color: rgba(255, 255, 255, 0.06);
+  --cr-active-background-color: rgba(255, 255, 255, 0.1);
 
   /* Shadows */
-  --sh2: 0 4px 12px rgba(0, 0, 0, 0.35);
-  --shadow-glass-light: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 2px 4px rgba(0, 0, 0, 0.25);
-  --shadow-glass-medium: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 4px 8px rgba(0, 0, 0, 0.3);
-  --shadow-glass-strong: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 8px 16px rgba(0, 0, 0, 0.4);
+  --sh2: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-glass-light: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-glass-medium: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-glass-strong: 0 12px 24px -4px rgba(0, 0, 0, 0.5);
 
   /* Blue scale in dark */
-  --color-blue-50: rgba(10, 102, 194, 0.18);
-  --color-blue-100: rgba(10, 102, 194, 0.22);
-  --color-blue-200: rgba(10, 102, 194, 0.3);
-  --color-blue-600: #7fc3f7;
-  --color-blue-900: #bfd7f5;
-  --color-primary-light: rgba(10, 102, 194, 0.2);
+  --color-blue-50: rgba(47, 91, 234, 0.18);
+  --color-blue-100: rgba(47, 91, 234, 0.24);
+  --color-blue-200: rgba(47, 91, 234, 0.32);
+  --color-blue-600: #688aff;
+  --color-blue-900: #9cb3ff;
+  --color-primary-light: rgba(47, 91, 234, 0.2);
 
   /* Semantic states in dark */
   --color-success-bg: rgba(5, 118, 66, 0.2);

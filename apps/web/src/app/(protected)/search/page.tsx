@@ -6,7 +6,10 @@ import { AppShell } from '@/components/layout/AppShell'
 import { LoadingState, EmptyState } from '@/components/feedback/index'
 import { DataCard } from '@/components/ui/index'
 import { SearchFiltersForm } from '@/features/search/components/SearchFiltersForm'
-import { CompaniesSearchResults } from '@/features/search/components/CompaniesSearchResults'
+import {
+  CompaniesSearchResults,
+  CompanyCardSkeleton
+} from '@/features/search/components/CompaniesSearchResults'
 import { SaveCurrentSearchButton } from '@/features/search/components/SaveCurrentSearchButton'
 import { useCompaniesSearch } from '@/features/search/hooks/useCompaniesSearch'
 import { usePipelineStats } from '@/features/pipeline/hooks/usePipelineStats'
@@ -17,8 +20,19 @@ import { ShortcutCard } from '@/components/ui/ShortcutCard'
 import { Button } from '@/components/ui/Button'
 import { useTranslation } from '@/providers/I18nProvider'
 import { routes } from '@/constants/routes'
-import { Send, Zap, RotateCcw } from 'lucide-react'
+import { Send, Zap, RotateCcw, Sparkles } from 'lucide-react'
 import { AiFormattedMessage } from '@/components/ui/AiFormattedMessage'
+
+function formatFcfaCompact(amount: number): string {
+  if (!amount || amount === 0) return '0 F'
+  if (amount >= 1_000_000) {
+    return `${(amount / 1_000_000).toLocaleString('fr-FR', { maximumFractionDigits: 1 })}M F`
+  }
+  if (amount >= 1_000) {
+    return `${(amount / 1_000).toLocaleString('fr-FR', { maximumFractionDigits: 0 })}k F`
+  }
+  return `${amount.toLocaleString('fr-FR')} F`
+}
 
 const COUNTRY_HIGHLIGHT_CITIES: Record<string, { btp: string; tech: string }> = {
   CM: { btp: 'Douala', tech: 'Yaoundé' },
@@ -63,8 +77,8 @@ function SearchContent() {
 
   const getAiGreeting = () =>
     lang === 'en'
-      ? `Hello 👋 I am your Companion IA.\nAsk me questions about prospection in ${countryName}, business sectors, or ask me to draft an outreach email.`
-      : `Bonjour 👋 Je suis votre Companion IA.\nPosez-moi vos questions sur la prospection ${countryIn}, les secteurs d'activité, ou demandez-moi de rédiger un email d'approche.`
+      ? `What are you looking for today? I can filter by sector, zone, or estimate a market in ${countryName}.`
+      : `Que cherchez-vous aujourd'hui ? Je peux filtrer par secteur, zone ou estimer un marché ${countryIn}.`
 
   const [chatMessages, setChatMessages] = useState<ChatMsg[]>([
     { role: 'assistant', text: getAiGreeting() }
@@ -248,20 +262,10 @@ function SearchContent() {
             >
               {searchQuery.isLoading ? (
                 <div
-                  style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '10px 0' }}
+                  style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '6px 0' }}
                 >
-                  {[1, 2, 3].map((i) => (
-                    <div
-                      key={i}
-                      style={{
-                        height: 96,
-                        borderRadius: 12,
-                        background: 'var(--color-bg2)',
-                        border: '1px solid var(--color-border)',
-                        opacity: 0.7,
-                        animation: 'pulse 1.5s infinite ease-in-out'
-                      }}
-                    />
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <CompanyCardSkeleton key={i} />
                   ))}
                 </div>
               ) : null}
@@ -685,72 +689,123 @@ function SearchContent() {
           }}
         >
           {/* Pipeline commercial */}
-          <DataCard
-            title={t('search.commercialPipeline')}
-            subtitle={`${(stats?.prospection ?? 0) + (stats?.negotiation ?? 0) + (stats?.conclusion ?? 0)} ${t('search.activeOpportunities')}`}
-            style={{
-              boxShadow: '0 8px 30px rgba(0,0,0,0.06)',
-              border: '1px solid var(--border)'
-            }}
-          >
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              {/* Stats live */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
-                {[
-                  {
-                    stage: 'prospection',
-                    label: t('search.prospection'),
-                    value: stats?.prospection ?? 0,
-                    textClass: 'text-blue-600 dark:text-blue-400',
-                    bgClass:
-                      'bg-blue-500/10 border-blue-500/20 hover:border-blue-500/50 hover:bg-blue-500/15'
-                  },
-                  {
-                    stage: 'negociation',
-                    label: t('search.negotiation'),
-                    value: stats?.negotiation ?? 0,
-                    textClass: 'text-amber-600 dark:text-amber-400',
-                    bgClass:
-                      'bg-amber-500/10 border-amber-500/20 hover:border-amber-500/50 hover:bg-amber-500/15'
-                  },
-                  {
-                    stage: 'conclue',
-                    label: t('search.conclusion'),
-                    value: stats?.conclusion ?? 0,
-                    textClass: 'text-emerald-600 dark:text-emerald-400',
-                    bgClass:
-                      'bg-emerald-500/10 border-emerald-500/20 hover:border-emerald-500/50 hover:bg-emerald-500/15'
-                  }
-                ].map(({ stage, label, value, textClass, bgClass }) => (
-                  <button
-                    key={label}
-                    type="button"
-                    onClick={() => router.push(`/pipeline?stage=${stage}`)}
-                    className={`rounded-xl border p-2.5 text-center transition-all cursor-pointer outline-none hover:scale-[1.02] active:scale-[0.98] ${bgClass}`}
-                    title={`${label}: ${value}`}
-                  >
-                    <div className={`text-[22px] font-extrabold leading-tight ${textClass}`}>
-                      {value}
-                    </div>
-                    <div className="mt-0.5 text-[10px] font-semibold text-muted-foreground">
-                      {label}
-                    </div>
-                  </button>
-                ))}
-              </div>
-              <Button
-                variant="primary"
-                style={{ width: '100%', borderRadius: 8 }}
-                onClick={() => router.push('/pipeline')}
+          {(() => {
+            const pCount = stats?.prospection ?? 0
+            const nCount = stats?.negotiation ?? 0
+            const cCount = stats?.conclusion ?? 0
+            const totalCount = pCount + nCount + cCount
+            const activeCount = pCount + nCount // Strict Rule 7: Active Portfolio = Prospection + Négociation
+
+            const pAmt = stats?.prospectionAmount ?? 0
+            const nAmt = stats?.negotiationAmount ?? 0
+            const cAmt = stats?.conclusionAmount ?? 0
+
+            const pPercent = totalCount > 0 ? Math.max((pCount / totalCount) * 100, 8) : 33.33
+            const nPercent = totalCount > 0 ? Math.max((nCount / totalCount) * 100, 8) : 33.33
+            const cPercent = totalCount > 0 ? Math.max((cCount / totalCount) * 100, 8) : 33.33
+
+            return (
+              <DataCard
+                title={t('search.commercialPipeline')}
+                subtitle={`${activeCount} ${t('search.activeOpportunities')}`}
+                style={{
+                  boxShadow: '0 1px 3px rgba(16,24,40,0.05)',
+                  border: '1px solid var(--border)'
+                }}
               >
-                {t('search.myPipelineFull')}
-              </Button>
-            </div>
-          </DataCard>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {/* Segmented horizontal funnel bar */}
+                  <div className="flex h-2 w-full overflow-hidden rounded-full bg-secondary">
+                    <div
+                      style={{ width: `${pPercent}%` }}
+                      className="bg-blue-600 transition-all duration-300"
+                      title={`${t('search.prospection')}: ${pCount} (${formatFcfaCompact(pAmt)})`}
+                    />
+                    <div
+                      style={{ width: `${nPercent}%` }}
+                      className="bg-amber-500 transition-all duration-300"
+                      title={`${t('search.negotiation')}: ${nCount} (${formatFcfaCompact(nAmt)})`}
+                    />
+                    <div
+                      style={{ width: `${cPercent}%` }}
+                      className="bg-emerald-500 transition-all duration-300"
+                      title={`${t('search.conclusion')}: ${cCount} (${formatFcfaCompact(cAmt)})`}
+                    />
+                  </div>
+
+                  {/* 3 stage segments */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                    {[
+                      {
+                        stage: 'prospection',
+                        label: t('search.prospection'),
+                        count: pCount,
+                        amount: pAmt,
+                        textClass: 'text-blue-600 dark:text-blue-400',
+                        bgClass:
+                          'bg-blue-500/10 border-blue-500/20 hover:border-blue-500/50 hover:bg-blue-500/15'
+                      },
+                      {
+                        stage: 'negociation',
+                        label: t('search.negotiation'),
+                        count: nCount,
+                        amount: nAmt,
+                        textClass: 'text-amber-600 dark:text-amber-400',
+                        bgClass:
+                          'bg-amber-500/10 border-amber-500/20 hover:border-amber-500/50 hover:bg-amber-500/15'
+                      },
+                      {
+                        stage: 'conclue',
+                        label: t('search.conclusion'),
+                        count: cCount,
+                        amount: cAmt,
+                        textClass: 'text-emerald-600 dark:text-emerald-400',
+                        bgClass:
+                          'bg-emerald-500/10 border-emerald-500/20 hover:border-emerald-500/50 hover:bg-emerald-500/15'
+                      }
+                    ].map(({ stage, label, count, amount, textClass, bgClass }) => (
+                      <button
+                        key={stage}
+                        type="button"
+                        onClick={() => router.push(`/pipeline?stage=${stage}`)}
+                        className={`rounded-xl border p-2 text-center transition-all cursor-pointer outline-none hover:scale-[1.02] active:scale-[0.98] ${bgClass}`}
+                        title={`${label}: ${count} (${formatFcfaCompact(amount)})`}
+                      >
+                        <div className={`text-[17px] font-bold leading-tight ${textClass}`}>
+                          {count}
+                        </div>
+                        <div className="mt-0.5 text-[10px] font-semibold text-muted-foreground truncate">
+                          {label}
+                        </div>
+                        <div className="mt-1 text-[10px] font-semibold text-foreground/85">
+                          {formatFcfaCompact(amount)}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    style={{ width: '100%', borderRadius: 8, height: 36, fontSize: 13 }}
+                    onClick={() => router.push('/pipeline')}
+                  >
+                    {t('search.myPipelineFull')}
+                  </Button>
+                </div>
+              </DataCard>
+            )
+          })()}
 
           {/* Assistant B2B IA */}
           <DataCard
-            title={t('search.aiAssistant')}
+            title={
+              <div className="flex items-center gap-2">
+                <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-2xs">
+                  <Sparkles size={13} className="fill-white/20" />
+                </div>
+                <span>{t('search.aiAssistant')}</span>
+              </div>
+            }
             actions={
               chatMessages.some((m) => m.role === 'user') ? (
                 <button
@@ -765,7 +820,7 @@ function SearchContent() {
               ) : null
             }
             style={{
-              boxShadow: '0 8px 30px rgba(0,0,0,0.06)',
+              boxShadow: '0 1px 3px rgba(16,24,40,0.05)',
               border: '1px solid var(--border)'
             }}
           >
@@ -983,8 +1038,8 @@ function SearchContent() {
                             borderRadius: '50%',
                             background:
                               isSendingChat || !chatInput.trim()
-                                ? 'var(--border, rgba(255,255,255,0.1))'
-                                : '#2563eb',
+                                ? 'var(--border)'
+                                : '#2F5BEA',
                             color: '#fff',
                             border: 'none',
                             cursor: isSendingChat || !chatInput.trim() ? 'not-allowed' : 'pointer',

@@ -6,6 +6,7 @@ import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useProspectingCountry } from '@/hooks/useProspectingCountry'
 import { GEOGRAPHY } from '@sales-companion/shared'
 import {
+  Search,
   HardHat,
   ShoppingBag,
   Laptop,
@@ -61,13 +62,13 @@ const SECTOR_KEYS: Record<string, string> = {
 }
 
 const QUICK_SECTORS = [
-  { labelKey: 'search.quickAll', value: '', icon: LayoutGrid },
-  { labelKey: 'search.btp', value: 'BTP & Construction', icon: HardHat },
-  { labelKey: 'search.commerce', value: 'Commerce', icon: ShoppingBag },
-  { labelKey: 'search.tech', value: 'Technologies & Numérique', icon: Laptop },
-  { labelKey: 'search.agro', value: 'Agriculture & Agroalimentaire', icon: Sprout },
-  { labelKey: 'search.transport', value: 'Transport & Logistique', icon: Truck },
-  { labelKey: 'search.sante', value: 'Santé', icon: Stethoscope }
+  { labelKey: 'search.quickAll', value: '', icon: LayoutGrid, count: null },
+  { labelKey: 'search.btp', value: 'BTP & Construction', icon: HardHat, count: 86 },
+  { labelKey: 'search.commerce', value: 'Commerce', icon: ShoppingBag, count: 142 },
+  { labelKey: 'search.tech', value: 'Technologies & Numérique', icon: Laptop, count: 94 },
+  { labelKey: 'search.agro', value: 'Agriculture & Agroalimentaire', icon: Sprout, count: 78 },
+  { labelKey: 'search.transport', value: 'Transport & Logistique', icon: Truck, count: 124 },
+  { labelKey: 'search.sante', value: 'Santé', icon: Stethoscope, count: 46 }
 ]
 
 const CAMEROON_ZONES = [
@@ -132,6 +133,21 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit, onHome }: Prop
     setRegion(initialValues.region ?? '')
     setCity(initialValues.city ?? '')
   }, [initialValues.query, initialValues.sector, initialValues.region, initialValues.city])
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault()
+        const el = document.getElementById('main-search-input') as HTMLInputElement | null
+        if (el) {
+          el.focus()
+          el.select()
+        }
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   function handleRegionChange(r: string) {
     setRegion(r)
@@ -221,8 +237,8 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit, onHome }: Prop
         .sc-bar {
           display: flex;
           align-items: center;
-          gap: 10px;
-          flex-wrap: wrap;
+          gap: 8px;
+          width: 100%;
         }
         .sc-filters-container {
           width: 100%;
@@ -233,56 +249,83 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit, onHome }: Prop
           min-width: 0;
           position: relative;
         }
-        .sc-input-wrap svg {
+        .sc-input-wrap svg.sc-search-icon {
           position: absolute;
           left: 14px;
           top: 50%;
           transform: translateY(-50%);
           pointer-events: none;
-          color: var(--cr-secondary-text-color);
+          color: var(--muted-foreground);
         }
         .sc-input {
           width: 100%;
-          height: 48px;
-          padding: 0 48px 0 44px;
-          border: 1.5px solid var(--bd);
-          border-radius: 999px;
-          background: var(--bg2);
-          color: var(--tx);
-          font-size: 14px;
+          height: 44px;
+          padding: 0 54px 0 42px;
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          background: var(--card);
+          color: var(--foreground);
+          font-size: 13.5px;
           font-family: inherit;
           outline: none;
           box-sizing: border-box;
-          transition: border-color 180ms ease, box-shadow 180ms ease;
-          box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+          transition: border-color 150ms ease, box-shadow 150ms ease;
+          box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+        }
+        .sc-kbd {
+          position: absolute;
+          right: 12px;
+          top: 50%;
+          transform: translateY(-50%);
+          display: inline-flex;
+          align-items: center;
+          padding: 2px 6px;
+          font-size: 11px;
+          font-weight: 600;
+          color: var(--muted-foreground);
+          background: var(--muted);
+          border: 1px solid var(--border);
+          border-radius: 4px;
+          pointer-events: none;
+          line-height: 1.2;
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
         }
         .sc-input::placeholder {
-          color: var(--tx2);
-          opacity: 0.7;
+          color: var(--muted-foreground);
+          opacity: 0.8;
         }
         .sc-input:focus {
-          border-color: var(--color-primary);
-          box-shadow: 0 0 0 3px rgba(0,85,255,0.12);
+          border-color: #2F5BEA;
+          box-shadow: 0 0 0 3px rgba(47, 91, 234, 0.15);
         }
         .sc-submit-btn {
-          width: 46px;
-          min-width: 46px;
-          height: 46px;
-          padding: 0;
-          border-radius: 50%;
-          background: var(--color-primary);
+          height: 44px;
+          padding: 0 18px;
+          border-radius: 8px;
+          background: #2F5BEA;
           color: #fff;
           border: none;
           display: inline-flex;
           align-items: center;
           justify-content: center;
+          gap: 6px;
+          font-size: 13px;
+          font-weight: 600;
           cursor: pointer;
           flex-shrink: 0;
-          transition: background 180ms ease, transform 120ms ease;
+          transition: background 150ms ease, transform 100ms ease;
+          box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
         }
         .sc-submit-btn:hover {
-          background: var(--color-blue-600);
-          transform: translateY(-1px);
+          background: #1e40af;
+        }
+        .sc-submit-btn:active {
+          transform: scale(0.98);
+        }
+        .sc-submit-btn svg {
+          width: 15px;
+          height: 15px;
+          stroke: currentColor;
         }
         .sc-submit-btn svg {
           width: 18px;
@@ -321,39 +364,51 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit, onHome }: Prop
           min-width: 100%;
         }
         .sc-pill {
-          display: inline-flex; align-items: center; gap: 4px;
-          height: 28px; padding: 0 12px;
-          border-radius: 999px;
-          border: 1.5px solid var(--bd);
-          background: var(--bg2);
-          color: var(--tx);
+          display: inline-flex; align-items: center; gap: 6px;
+          height: 30px; padding: 0 12px;
+          border-radius: 9999px;
+          border: 1px solid var(--border);
+          background: var(--card);
+          color: var(--foreground);
           font-size: 12px; font-weight: 500;
           cursor: pointer; font-family: inherit;
           transition: all 150ms ease; white-space: nowrap;
+          box-shadow: 0 1px 2px rgba(16, 24, 40, 0.03);
         }
-        .sc-pill:hover { border-color: var(--color-primary); color: var(--color-primary); }
+        .sc-pill:hover { border-color: #2F5BEA; color: #2F5BEA; }
         .sc-pill.active {
-          border-color: var(--color-primary);
-          background: var(--color-primary);
+          border-color: #2F5BEA;
+          background: #2F5BEA;
           color: #fff;
-          font-weight: 700;
+          font-weight: 600;
+          box-shadow: 0 2px 6px rgba(47, 91, 234, 0.25);
+        }
+        .sc-pill-counter {
+          font-size: 11px;
+          opacity: 0.65;
+          font-weight: 500;
+        }
+        .sc-pill.active .sc-pill-counter {
+          opacity: 0.9;
+          color: #fff;
         }
         /* ── Bouton Accueil ── */
         .sc-home-btn {
           display: inline-flex; align-items: center; gap: 5px;
-          height: 28px; padding: 0 12px;
-          border-radius: 999px;
-          border: 1.5px solid var(--color-primary);
-          background: transparent;
-          color: var(--color-primary);
-          font-size: 12px; font-weight: 700;
+          height: 30px; padding: 0 12px;
+          border-radius: 9999px;
+          border: 1px solid var(--border);
+          background: var(--card);
+          color: var(--muted-foreground);
+          font-size: 12px; font-weight: 600;
           cursor: pointer; font-family: inherit;
           transition: all 150ms ease; white-space: nowrap;
           flex-shrink: 0;
+          box-shadow: 0 1px 2px rgba(16, 24, 40, 0.03);
         }
         .sc-home-btn:hover {
-          background: var(--color-primary);
-          color: #fff;
+          border-color: #2F5BEA;
+          color: #2F5BEA;
         }
         .sc-adv-btn:hover { color: var(--color-primary); }
         .sc-adv-chevron { transition: transform 200ms ease; }
@@ -468,19 +523,7 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit, onHome }: Prop
             {/* ── Block 1: Search bar ── */}
             <div className="sc-bar">
               <div className="sc-input-wrap">
-                <svg
-                  width="15"
-                  height="15"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="11" cy="11" r="8" />
-                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                </svg>
+                <Search className="sc-search-icon" size={15} />
                 <input
                   id="main-search-input"
                   className="sc-input"
@@ -488,6 +531,7 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit, onHome }: Prop
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                 />
+                <kbd className="sc-kbd">⌘K</kbd>
               </div>
               <button type="submit" className="sc-submit-btn" aria-label="Lancer la recherche">
                 <svg
@@ -530,6 +574,7 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit, onHome }: Prop
                       >
                         {s.icon && <s.icon size={14} style={{ flexShrink: 0 }} />}
                         {t(s.labelKey as any)}
+                        {s.count !== null && <span className="sc-pill-counter"> · {s.count}</span>}
                       </button>
                     )
                   })}

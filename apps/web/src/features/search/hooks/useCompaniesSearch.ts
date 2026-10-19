@@ -9,6 +9,7 @@ import { isMobileRuntime } from '@/lib/runtime'
 export type Company = {
   id: string
   raisonSociale: string
+  name?: string
   niu?: string
   sigle?: string
   sector?: string
@@ -21,6 +22,7 @@ export type Company = {
   adresse?: string
   formeJuridique?: string
   capital?: string
+  verified?: boolean
   // For google maps results:
   _source?: 'google_places'
   googlePlaceId?: string

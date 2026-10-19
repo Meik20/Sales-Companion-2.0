@@ -14,6 +14,9 @@ export type PipelineStats = {
   conclusion: number
   lost: number
   conversionRate?: number
+  prospectionAmount?: number
+  negotiationAmount?: number
+  conclusionAmount?: number
 }
 
 export function usePipelineStats() {
@@ -32,7 +35,10 @@ export function usePipelineStats() {
           negotiation: 0,
           conclusion: 0,
           lost: 0,
-          conversionRate: 0
+          conversionRate: 0,
+          prospectionAmount: 0,
+          negotiationAmount: 0,
+          conclusionAmount: 0
         }
       }
 
@@ -49,20 +55,28 @@ export function usePipelineStats() {
             negotiation: 0,
             conclusion: 0,
             lost: 0,
-            conversionRate: 0
+            conversionRate: 0,
+            prospectionAmount: 0,
+            negotiationAmount: 0,
+            conclusionAmount: 0
           }
         }
         const data = (await res.json()) as {
           counts?: { prospection: number; negociation: number; conclue: number; total: number }
+          values?: { prospection: number; negociation: number; conclue: number; total: number }
         }
         const c = data.counts ?? { prospection: 0, negociation: 0, conclue: 0, total: 0 }
+        const v = data.values ?? { prospection: 0, negociation: 0, conclue: 0, total: 0 }
         return {
           total: c.total,
           prospection: c.prospection,
           negotiation: c.negociation,
           conclusion: c.conclue,
           lost: 0,
-          conversionRate: c.total > 0 ? Math.round((c.conclue / c.total) * 100) : 0
+          conversionRate: c.total > 0 ? Math.round((c.conclue / c.total) * 100) : 0,
+          prospectionAmount: v.prospection,
+          negotiationAmount: v.negociation,
+          conclusionAmount: v.conclue
         }
       }
 
@@ -85,7 +99,7 @@ export function usePipelineStats() {
       // ── Autres rôles / Fallback : requêtes Firestore directes ────────────────
       const isManager = user.role === 'manager'
       const seen = new Set<string>()
-      const docs: { status: string }[] = []
+      const docs: { status: string; amount: number }[] = []
 
       if (isManager) {
         const q = query(collection(firestore, 'pipeline'), where('managerUid', '==', user.uid))
@@ -94,7 +108,10 @@ export function usePipelineStats() {
           const data = d.data()
           if (data.archived === true) return
           seen.add(d.id)
-          docs.push({ status: (data.status || '') as string })
+          docs.push({
+            status: (data.status || '') as string,
+            amount: typeof data.amount === 'number' ? data.amount : Number(data.amount) || 0
+          })
         })
       } else {
         const ownedQ = query(collection(firestore, 'pipeline'), where('userId', '==', user.uid))
@@ -103,7 +120,10 @@ export function usePipelineStats() {
           const data = d.data()
           if (data.archived === true) return
           seen.add(d.id)
-          docs.push({ status: (data.status || '') as string })
+          docs.push({
+            status: (data.status || '') as string,
+            amount: typeof data.amount === 'number' ? data.amount : Number(data.amount) || 0
+          })
         })
 
         try {
@@ -117,7 +137,10 @@ export function usePipelineStats() {
               const data = d.data()
               if (data.archived === true) return
               seen.add(d.id)
-              docs.push({ status: (data.status || '') as string })
+              docs.push({
+                status: (data.status || '') as string,
+                amount: typeof data.amount === 'number' ? data.amount : Number(data.amount) || 0
+              })
             }
           })
         } catch {
@@ -131,20 +154,28 @@ export function usePipelineStats() {
         negotiation: 0,
         conclusion: 0,
         lost: 0,
-        conversionRate: 0
+        conversionRate: 0,
+        prospectionAmount: 0,
+        negotiationAmount: 0,
+        conclusionAmount: 0
       }
 
       docs.forEach((doc) => {
         const status = doc.status.toLowerCase()
         if (
           ['prospection', 'prospect', 'to_contact', 'contact', 'nouveau', 'lead'].includes(status)
-        )
+        ) {
           stats.prospection++
-        else if (['negociation', 'negotiation', 'in_progress', 'en_cours'].includes(status))
+          stats.prospectionAmount = (stats.prospectionAmount || 0) + doc.amount
+        } else if (['negociation', 'negotiation', 'in_progress', 'en_cours'].includes(status)) {
           stats.negotiation++
-        else if (['conclue', 'conclusion', 'won', 'closed', 'gagne', 'signe'].includes(status))
+          stats.negotiationAmount = (stats.negotiationAmount || 0) + doc.amount
+        } else if (['conclue', 'conclusion', 'won', 'closed', 'gagne', 'signe'].includes(status)) {
           stats.conclusion++
-        else if (status === 'lost' || status === 'perdu') stats.lost++
+          stats.conclusionAmount = (stats.conclusionAmount || 0) + doc.amount
+        } else if (status === 'lost' || status === 'perdu') {
+          stats.lost++
+        }
       })
 
       stats.conversionRate =
