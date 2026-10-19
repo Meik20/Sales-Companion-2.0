@@ -33,7 +33,7 @@ export async function fetchOrgConsolidatedPipeline(
   params: OrgPipelineQueryParams
 ): Promise<ConsolidatedPipelineResult> {
   const { adminDb } = await import('@/lib/firebase-admin')
-  const { runMonthlyPipelineCycleAutoArchive } = await import('@/lib/monthly-cycle')
+  const { runMonthlyPipelineCycleAutoArchive } = await import('./monthly-cycle-archive.service')
   const { orgCode, callerUid, callerSegment, filterManagerUid, filterStatus, limit = 500 } = params
 
   // ── Clôture et archivage automatique à J+3 après la fin du mois M-1 ──

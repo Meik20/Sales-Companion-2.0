@@ -34,6 +34,7 @@ import {
 import { useExportTeamPerformance } from '@/features/pipeline/hooks/useExportTeamPerformance'
 import { formatCompactAmount } from '@/lib/formatters'
 import { useProspectingCountryDetails } from '@/hooks/useProspectingCountry'
+import { getMonthPeriodLabel } from '@/lib/monthly-cycle'
 
 // ── KPI Card ────────────────────────────────────────────────────────────────
 function KpiCard({
@@ -168,7 +169,7 @@ function KpiCard({
 }
 
 // ── Top Performer Row ──────────────────────────────────────────────────────
-function TopPerformerRow({ rank, manager }: { rank: number; manager: OrgReportManager }) {
+function TopPerformerRow({ rank, manager, lang }: { rank: number; manager: OrgReportManager; lang: string }) {
   const medalColor =
     rank === 1
       ? '#fbbf24'
@@ -274,7 +275,7 @@ function TopPerformerRow({ rank, manager }: { rank: number; manager: OrgReportMa
               {manager.volumeAttainmentRate ?? 0}%
             </span>
             <div style={{ fontSize: 9.5, color: 'var(--muted-foreground)', marginTop: 2 }}>
-              /{manager.targetVolume} obj
+              /{manager.targetVolume} {lang === 'en' ? 'tgt' : 'obj'}
             </div>
           </div>
         )}
@@ -381,10 +382,10 @@ export default function DashboardPage() {
                 boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
                 transition: 'all 0.15s ease'
               }}
-              title="Exporter le rapport consolidé en Excel"
+              title={lang === 'en' ? 'Export consolidated report to Excel' : 'Exporter le rapport consolidé en Excel'}
             >
               <Download size={13} className={isExporting ? 'animate-bounce' : ''} />
-              {isExporting ? 'Exportation...' : (t('dashboard.exportReport') || 'Exporter')}
+              {isExporting ? (lang === 'en' ? 'Exporting...' : 'Exportation...') : (t('dashboard.exportReport') || (lang === 'en' ? 'Export Report' : 'Exporter'))}
             </button>
             <button
               type="button"
@@ -467,7 +468,7 @@ export default function DashboardPage() {
                   border: '1px solid #fde68a'
                 }}
               >
-                Clôture automatique le 3 à 23h59
+                {t('dashboard.monthlyCycleAutoClose') || (lang === 'en' ? 'Automatic closing on the 3rd at 23:59' : 'Clôture automatique le 3 à 23h59')}
               </span>
             </div>
           )}
@@ -542,7 +543,8 @@ export default function DashboardPage() {
                   border: '1px solid rgba(99,102,241,0.2)'
                 }}
               >
-                Mois actif : {data?.monthlyCycle?.currentPeriod?.labelFr || 'En cours'}
+                {t('dashboard.activeMonth') || (lang === 'en' ? 'Active month' : 'Mois actif')} :{' '}
+                {getMonthPeriodLabel(data?.monthlyCycle?.currentPeriod, lang)}
               </div>
             </div>
 
@@ -567,7 +569,7 @@ export default function DashboardPage() {
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted-foreground, #64748b)', textTransform: 'uppercase' }}>
-                    {t('dashboard.targetVolume') || 'Objectif Volume'}
+                    {t('dashboard.targetVolume') || (lang === 'en' ? 'Volume Target' : 'Objectif Volume')}
                   </span>
                   <span
                     style={{
@@ -579,7 +581,7 @@ export default function DashboardPage() {
                       borderRadius: 12
                     }}
                   >
-                    {volRate != null ? `${volRate}% ${t('dashboard.targetAttainmentRate') || 'atteint'}` : 'Non défini'}
+                    {volRate != null ? `${volRate}% ${t('dashboard.targetAttainmentRate') || (lang === 'en' ? 'Attainment Rate' : 'atteint')}` : (t('dashboard.notDefined') || (lang === 'en' ? 'Not defined' : 'Non défini'))}
                   </span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
@@ -587,7 +589,7 @@ export default function DashboardPage() {
                     {realVol}
                   </span>
                   <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--muted-foreground, #64748b)' }}>
-                    / {targetVol != null ? targetVol : '—'} opportunités conclues
+                    / {targetVol != null ? targetVol : '—'} {t('dashboard.concludedOpportunities') || (lang === 'en' ? 'closed opportunities' : 'opportunités conclues')}
                   </span>
                 </div>
                 {/* Progress bar */}
@@ -625,7 +627,7 @@ export default function DashboardPage() {
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted-foreground, #64748b)', textTransform: 'uppercase' }}>
-                    {t('dashboard.targetValue') || 'Objectif Valeur'}
+                    {t('dashboard.targetValue') || (lang === 'en' ? 'Value Target' : 'Objectif Valeur')}
                   </span>
                   <span
                     style={{
@@ -637,7 +639,7 @@ export default function DashboardPage() {
                       borderRadius: 12
                     }}
                   >
-                    {valRate != null ? `${valRate}% ${t('dashboard.targetAttainmentRate') || 'atteint'}` : 'Non défini'}
+                    {valRate != null ? `${valRate}% ${t('dashboard.targetAttainmentRate') || (lang === 'en' ? 'Attainment Rate' : 'atteint')}` : (t('dashboard.notDefined') || (lang === 'en' ? 'Not defined' : 'Non défini'))}
                   </span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, flexWrap: 'wrap' }}>
@@ -750,7 +752,7 @@ export default function DashboardPage() {
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                   {data.managers.map((mgr, i) => (
-                    <TopPerformerRow key={mgr.uid} rank={i + 1} manager={mgr} />
+                    <TopPerformerRow key={mgr.uid} rank={i + 1} manager={mgr} lang={lang} />
                   ))}
                 </div>
               )}

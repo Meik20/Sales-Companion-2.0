@@ -302,6 +302,23 @@ try {
   } else {
     console.log('✅ AppHeader.tsx conforme (menu profil opaque sans translucidité parasite)')
   }
+
+  // F. Vérifier l'internationalisation automatique des périodes et métriques (i18n)
+  const dashboardCode = fs.readFileSync(
+    path.resolve(__dirname, '../apps/web/src/app/(protected)/dashboard/page.tsx'),
+    'utf8'
+  )
+  if (dashboardCode.includes("Mois actif : {data?.monthlyCycle") || dashboardCode.includes("labelFr || 'En cours'")) {
+    errors.push(
+      "❌ INTERNATIONALISATION VIOLÉE DANS dashboard/page.tsx : Le libellé du mois ou de cycle est codé en dur en français. Utiliser getMonthPeriodLabel(...) et t('dashboard.activeMonth')."
+    )
+  } else if (!dashboardCode.includes("getMonthPeriodLabel")) {
+    errors.push(
+      "❌ RÈGLE D'INTERNATIONALISATION : dashboard/page.tsx doit utiliser getMonthPeriodLabel pour adapter le mois à la langue active."
+    )
+  } else {
+    console.log('✅ dashboard/page.tsx conforme (internationalisation dynamique du cycle mensuel et des métriques)')
+  }
 } catch (e) {
   errors.push(`❌ Erreur lors du contrôle des règles de calcul de pipeline : ${e.message}`)
 }

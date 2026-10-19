@@ -1249,7 +1249,13 @@ export const fr = {
     recentActivity: 'Activité Récente',
     recentActivityTooltip: "Les 10 derniers prospects conclus dans l'ensemble de votre segment, toutes équipes confondues.",
     noData: 'Aucune donnée disponible',
-    noActivity: 'Aucune activité récente'
+    noActivity: 'Aucune activité récente',
+    activeMonth: 'Mois actif',
+    concludedOpportunities: 'opportunités conclues',
+    notDefined: 'Non défini',
+    currentPeriod: 'En cours',
+    monthlyCycleAutoClose: 'Clôture automatique le 3 à 23h59',
+    targetAbbr: 'obj'
   },
   support: {
     title: 'Support',
@@ -1843,7 +1849,10 @@ export const fr = {
     ticketsHistoryAgent: 'Tickets pris en charge par {name}.',
     ticketsHistoryAll: 'Les tickets de support récents de vos clients.',
     noTicketsAgent: 'Aucun ticket SAV enregistré pour {name}.',
-    noTicketsAll: 'Aucun ticket SAV ouvert pour le moment.'
+    noTicketsAll: 'Aucun ticket SAV ouvert pour le moment.',
+    activeMonth: 'Mois',
+    notDefined: 'Non défini',
+    currentPeriod: 'En cours'
   },
   offline: {
     banner: 'Vous êtes hors ligne — Les données en cache restent accessibles',

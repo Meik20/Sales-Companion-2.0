@@ -1,10 +1,11 @@
 import { describe, it, expect, vi } from 'vitest'
 import {
   getMonthPeriodInfo,
+  getMonthPeriodLabel,
   isEligibleForAutoArchive,
-  getCurrentCycleContext,
-  runMonthlyPipelineCycleAutoArchive
+  getCurrentCycleContext
 } from '../monthly-cycle'
+import { runMonthlyPipelineCycleAutoArchive } from '../../server/services/monthly-cycle-archive.service'
 
 describe('monthly-cycle utility', () => {
   it('correctly calculates month period info and J+3 cutoff date', () => {
@@ -99,5 +100,13 @@ describe('monthly-cycle utility', () => {
     const res = await runMonthlyPipelineCycleAutoArchive(mockAdminDb)
     expect(res.archivedCount).toBe(1)
     expect(mockDelete).toHaveBeenCalledTimes(1)
+  })
+
+  it('correctly returns localized month label based on language using getMonthPeriodLabel', () => {
+    const period = { labelFr: 'Octobre 2026', labelEn: 'October 2026' }
+    expect(getMonthPeriodLabel(period, 'fr')).toBe('Octobre 2026')
+    expect(getMonthPeriodLabel(period, 'en')).toBe('October 2026')
+    expect(getMonthPeriodLabel(null, 'fr')).toBe('En cours')
+    expect(getMonthPeriodLabel(null, 'en')).toBe('Current')
   })
 })

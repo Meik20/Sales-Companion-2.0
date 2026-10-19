@@ -1237,7 +1237,13 @@ export const en = {
     recentActivity: 'Recent Activity',
     recentActivityTooltip: 'The last 10 closed prospects across your entire segment, all teams included.',
     noData: 'No data available',
-    noActivity: 'No recent activity'
+    noActivity: 'No recent activity',
+    activeMonth: 'Active month',
+    concludedOpportunities: 'closed opportunities',
+    notDefined: 'Not defined',
+    currentPeriod: 'Current',
+    monthlyCycleAutoClose: 'Automatic closing on the 3rd at 23:59',
+    targetAbbr: 'tgt'
   },
   support: {
     title: 'Support',
@@ -1830,7 +1836,10 @@ export const en = {
     ticketsHistoryAgent: 'Tickets handled by {name}.',
     ticketsHistoryAll: 'Recent support tickets from your customers.',
     noTicketsAgent: 'No support tickets recorded for {name}.',
-    noTicketsAll: 'No support tickets open at the moment.'
+    noTicketsAll: 'No support tickets open at the moment.',
+    activeMonth: 'Month',
+    notDefined: 'Not defined',
+    currentPeriod: 'Current'
   },
   offline: {
     banner: 'You are offline — Cached data remains accessible',

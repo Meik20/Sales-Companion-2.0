@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { hasActivePaidManagerAccess } from '@/lib/manager-access'
-import { getCurrentCycleContext, runMonthlyPipelineCycleAutoArchive } from '@/lib/monthly-cycle'
+import { getCurrentCycleContext } from '@/lib/monthly-cycle'
+import { runMonthlyPipelineCycleAutoArchive } from '@/server/services/monthly-cycle-archive.service'
 import { normalizePipelineStatus as normalizeStatus, calculateAttainmentRate } from '@/lib/pipeline-metrics'
 
 export const dynamic = 'force-dynamic'

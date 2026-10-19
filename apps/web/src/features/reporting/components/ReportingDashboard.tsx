@@ -2199,7 +2199,7 @@ function SupportActivitySection({
 
 // ── Main Dashboard Component ──────────────────────────────────────────────────
 export function ReportingDashboard({ data }: { data: ReportingData }) {
-  const { t } = useTranslation()
+  const { t, lang } = useTranslation()
   const { exportPerformance, loading: isExporting } = useExportTeamPerformance()
   const searchParams = useSearchParams()
   const tabParam = searchParams.get('tab')
@@ -2427,7 +2427,10 @@ export function ReportingDashboard({ data }: { data: ReportingData }) {
                   border: '1px solid rgba(99,102,241,0.2)'
                 }}
               >
-                Mois : {data.monthlyCycle?.currentPeriod?.labelFr || 'En cours'}
+                {t('reporting.activeMonth') || (lang === 'en' ? 'Month' : 'Mois')} :{' '}
+                {(lang === 'en'
+                  ? data.monthlyCycle?.currentPeriod?.labelEn
+                  : data.monthlyCycle?.currentPeriod?.labelFr) || (lang === 'en' ? 'Current' : 'En cours')}
               </div>
             </div>
 
@@ -2452,7 +2455,7 @@ export function ReportingDashboard({ data }: { data: ReportingData }) {
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted-foreground, #64748b)', textTransform: 'uppercase' }}>
-                    {t('reporting.volumeTargetLabel') || 'Objectif Volume'}
+                    {t('reporting.volumeTargetLabel') || (lang === 'en' ? 'Volume Target' : 'Objectif Volume')}
                   </span>
                   <span
                     style={{
@@ -2464,7 +2467,7 @@ export function ReportingDashboard({ data }: { data: ReportingData }) {
                       borderRadius: 12
                     }}
                   >
-                    {volRate != null ? `${volRate}% ${t('reporting.attainmentRateLabel') || 'atteint'}` : 'Non défini'}
+                    {volRate != null ? `${volRate}% ${t('reporting.attainmentRateLabel') || (lang === 'en' ? 'attained' : 'atteint')}` : (t('reporting.notDefined') || (lang === 'en' ? 'Not defined' : 'Non défini'))}
                   </span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
@@ -2472,7 +2475,7 @@ export function ReportingDashboard({ data }: { data: ReportingData }) {
                     {realVol}
                   </span>
                   <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--muted-foreground, #64748b)' }}>
-                    / {targetVol != null ? targetVol : '—'} affaires conclues
+                    / {targetVol != null ? targetVol : '—'} {t('reporting.closedDeals') || (lang === 'en' ? 'closed deals' : 'affaires conclues')}
                   </span>
                 </div>
                 {/* Progress bar */}
@@ -2510,7 +2513,7 @@ export function ReportingDashboard({ data }: { data: ReportingData }) {
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted-foreground, #64748b)', textTransform: 'uppercase' }}>
-                    {t('reporting.valueTargetLabel') || 'Objectif Valeur'}
+                    {t('reporting.valueTargetLabel') || (lang === 'en' ? 'Value Target' : 'Objectif Valeur')}
                   </span>
                   <span
                     style={{
@@ -2522,7 +2525,7 @@ export function ReportingDashboard({ data }: { data: ReportingData }) {
                       borderRadius: 12
                     }}
                   >
-                    {valRate != null ? `${valRate}% ${t('reporting.attainmentRateLabel') || 'atteint'}` : 'Non défini'}
+                    {valRate != null ? `${valRate}% ${t('reporting.attainmentRateLabel') || (lang === 'en' ? 'attained' : 'atteint')}` : (t('reporting.notDefined') || (lang === 'en' ? 'Not defined' : 'Non défini'))}
                   </span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, flexWrap: 'wrap' }}>

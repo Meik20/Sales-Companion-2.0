@@ -13,9 +13,6 @@
  *   et sont automatiquement reconduites pour le nouveau mois.
  */
 
-import type { Firestore } from 'firebase-admin/firestore'
-import { syncPipelineItemToClient } from './clients-sync'
-
 export interface MonthPeriodInfo {
   key: string // e.g. "2026-10"
   labelFr: string // e.g. "Octobre 2026"
@@ -72,6 +69,19 @@ export function getMonthPeriodInfo(year: number, month1Indexed: number, now = ne
 }
 
 /**
+ * Retourne le libellé localisé d'une période mensuelle selon la langue active.
+ */
+export function getMonthPeriodLabel(
+  period?: { labelFr?: string; labelEn?: string } | null,
+  lang: string = 'fr'
+): string {
+  if (!period) return lang === 'en' ? 'Current' : 'En cours'
+  return lang === 'en'
+    ? (period.labelEn || period.labelFr || 'Current')
+    : (period.labelFr || period.labelEn || 'En cours')
+}
+
+/**
  * Retourne la période active par défaut selon la date courante et la règle J+3 :
  * Si nous sommes entre le 1er et le 3 du mois M :
  * - Le mois M-1 est encore en période de grâce (clôture en cours).
@@ -121,63 +131,3 @@ export function isEligibleForAutoArchive(concludedDate: Date, now = new Date()):
   return now.getTime() >= cutoff.getTime()
 }
 
-/**
- * Exécute la purge et l'archivage automatique des opportunités conclues éligibles (J+3 dépassé).
- * Cette fonction est idempotente et sûre à appeler soit par CRON, soit en arrière-plan
- * lors des requêtes pipeline/reporting.
- */
-export async function runMonthlyPipelineCycleAutoArchive(
-  adminDb: Firestore,
-  filterManagerUid?: string
-): Promise<{ archivedCount: number }> {
-  try {
-    const now = new Date()
-
-    let q1: FirebaseFirestore.Query = adminDb.collection('pipeline').where('status', '==', 'conclue')
-    let q2: FirebaseFirestore.Query = adminDb.collection('pipeline').where('status', '==', 'conclusion')
-
-    if (filterManagerUid) {
-      q1 = q1.where('managerUid', '==', filterManagerUid)
-      q2 = q2.where('managerUid', '==', filterManagerUid)
-    }
-
-    const [snap1, snap2] = await Promise.all([q1.limit(100).get(), q2.limit(100).get()])
-    const seenIds = new Set<string>()
-    const docs: FirebaseFirestore.DocumentSnapshot[] = []
-    for (const d of [...snap1.docs, ...snap2.docs]) {
-      if (!seenIds.has(d.id)) {
-        seenIds.add(d.id)
-        docs.push(d)
-      }
-    }
-
-    let archivedCount = 0
-
-    for (const doc of docs) {
-      const data = doc.data() || {}
-      let concludedDate: Date | null = null
-
-      if (data.concludedAt) {
-        concludedDate = data.concludedAt.toDate ? data.concludedAt.toDate() : new Date(data.concludedAt)
-      } else if (data.updatedAt) {
-        concludedDate = data.updatedAt.toDate ? data.updatedAt.toDate() : new Date(data.updatedAt)
-      } else if (data.createdAt) {
-        concludedDate = data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt)
-      }
-
-      if (concludedDate && !isNaN(concludedDate.getTime()) && isEligibleForAutoArchive(concludedDate, now)) {
-        await syncPipelineItemToClient(adminDb, doc.id, {
-          ...data,
-          concludedAt: data.concludedAt || concludedDate
-        })
-        await doc.ref.delete()
-        archivedCount++
-      }
-    }
-
-    return { archivedCount }
-  } catch (err) {
-    console.warn('[runMonthlyPipelineCycleAutoArchive] non-blocking error:', err)
-    return { archivedCount: 0 }
-  }
-}

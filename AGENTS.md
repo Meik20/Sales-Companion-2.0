@@ -203,5 +203,23 @@ Ne **jamais** utiliser un emoji cercle coloré (`🟢🔴🟡`) pour indiquer un
 > [!IMPORTANT]
 > Sur toute la vue du Senior Manager (Dashboard de Segment, Cartes KPIs, Tooltips, Tableaux de bord), les managers opérationnels managés doivent être **clairement et explicitement désignés sous l'appellation "Team Manager(s)"** (jamais simplement "Managers"), afin d'éliminer toute ambiguïté avec le Senior Manager lui-même.
 
+---
+
+## 10. Règle Obligatoire — Internationalisation et Traduction Automatique Intégrale (i18n)
+
+> [!IMPORTANT]
+> **RÈGLE STRUCTURELLE D'INTERNATIONALISATION :**  
+> Tous les textes de l'interface, libellés de mois, qualificatifs de métriques, suffixes d'objectifs, infobulles et statuts DOIVENT s'adapter **automatiquement et intégralement** à la langue active (`lang: 'fr' | 'en'`).
+> 
+> 1. **Périodes mensuelles et cycles temporels (`monthly-cycle`) :**
+>    - Ne JAMAIS afficher directement en dur `period.labelFr` ou `"Mois actif :"` sans aiguillage de langue.
+>    - Utiliser systématiquement l'utilitaire canonique `getMonthPeriodLabel(period, lang)` ou l'aiguillage `lang === 'en' ? period.labelEn : period.labelFr`.
+> 2. **Libellés de métriques, badges et unités :**
+>    - Les unités et qualificatifs d'objectifs (`opportunités conclues` vs `closed opportunities`, `Non défini` vs `Not defined`, `obj` vs `tgt`, `Clôture automatique...` vs `Automatic closing...`) doivent obligatoirement être traduits via `t(...)` ou l'alternative explicite `lang === 'en' ? ... : ...`.
+> 3. **Statuts CRM et filtres :**
+>    - Les listes et options déroulantes (`CRM_STATUS_LIST`) doivent afficher `lang === 'en' ? item.labelEn : item.labelFr`.
+> 4. **Garde-fous automatisés pré-build :**
+>    - `scripts/check-architecture-integrity.js` valide systématiquement que les vues de dashboard et de reporting consomment `getMonthPeriodLabel` ou l'aiguillage bilingue sans texte en dur non internationalisé.
+
 
 

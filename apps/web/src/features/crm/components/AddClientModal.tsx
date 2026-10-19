@@ -32,7 +32,7 @@ type Props = {
 }
 
 export function AddClientModal({ isOpen, onClose, onSuccess, userToken, user }: Props) {
-  const { t } = useTranslation()
+  const { t, lang } = useTranslation()
   const {
     code: countryCode,
     flag,
@@ -308,7 +308,7 @@ export function AddClientModal({ isOpen, onClose, onSuccess, userToken, user }: 
             >
               {CRM_STATUS_LIST.map((item) => (
                 <option key={item.value} value={item.value}>
-                  {item.label}
+                  {lang === 'en' ? item.labelEn : item.labelFr}
                 </option>
               ))}
             </select>

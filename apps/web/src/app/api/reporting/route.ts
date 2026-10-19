@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { adminDb, adminAuth } from '@/lib/firebase-admin'
 import { hasActivePaidManagerAccess } from '@/lib/manager-access'
-import { getCurrentCycleContext, runMonthlyPipelineCycleAutoArchive } from '@/lib/monthly-cycle'
+import { getCurrentCycleContext } from '@/lib/monthly-cycle'
+import { runMonthlyPipelineCycleAutoArchive } from '@/server/services/monthly-cycle-archive.service'
 
 function normalizeStatus(status: string): 'prospection' | 'negociation' | 'conclue' | 'other' {
   if (['prospection', 'prospect'].includes(status)) return 'prospection'

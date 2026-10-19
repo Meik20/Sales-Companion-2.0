@@ -29,7 +29,7 @@ export function CrmFilters({
   activeCount,
   toFollowUpCount
 }: Props) {
-  const { t } = useTranslation()
+  const { t, lang } = useTranslation()
 
   function set<K extends keyof CrmFiltersState>(key: K, value: CrmFiltersState[K]) {
     onChange({ ...filters, [key]: value })
@@ -104,7 +104,7 @@ export function CrmFilters({
           <option value="">{t('crm.filterAllStatuses')}</option>
           {CRM_STATUS_LIST.map((s) => (
             <option key={s.value} value={s.value}>
-              {s.label}
+              {lang === 'en' ? s.labelEn : s.labelFr}
             </option>
           ))}
         </select>

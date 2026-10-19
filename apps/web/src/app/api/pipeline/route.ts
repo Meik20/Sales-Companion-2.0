@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
     }
 
     // ── Clôture et archivage automatique à J+3 après la fin du mois M-1 ──
-    const { runMonthlyPipelineCycleAutoArchive } = await import('@/lib/monthly-cycle')
+    const { runMonthlyPipelineCycleAutoArchive } = await import('@/server/services/monthly-cycle-archive.service')
     await runMonthlyPipelineCycleAutoArchive(adminDb, userId)
 
     // Fetch owned items plus any explicitly assigned items.
