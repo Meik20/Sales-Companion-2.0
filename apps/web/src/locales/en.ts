@@ -1221,6 +1221,7 @@ export const en = {
     kpiRateSub: 'closed / total',
     exportReport: 'Export Report',
     exportReportExcel: 'Export Excel (.xlsx)',
+    exportReportPdf: 'Executive PDF Report (.pdf)',
     monthlyCycleTitle: 'Monthly Lifecycle & Closing',
     monthlyCycleGraceBadge: 'M-1 closing active (D+3)',
     monthlyCycleGraceInfo: 'Reconciliation for month M-1 is open until the 3rd at 23:59. Concluded opportunities will then be archived to the client database.',

@@ -1233,6 +1233,7 @@ export const fr = {
     kpiRateSub: 'conclus / total',
     exportReport: 'Exporter le rapport',
     exportReportExcel: 'Export Excel (.xlsx)',
+    exportReportPdf: 'Rapport Exécutif PDF (.pdf)',
     monthlyCycleTitle: 'Cycle Mensuel & Clôture',
     monthlyCycleGraceBadge: 'Clôture M-1 active (J+3)',
     monthlyCycleGraceInfo: 'La réconciliation du mois M-1 est ouverte jusqu’au 3 du mois à 23h59. Les opportunités conclues seront ensuite transférées vers la base clients.',

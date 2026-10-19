@@ -13,7 +13,7 @@ import {
 } from '@/features/pipeline/hooks/useOrgReport'
 import { useTranslation } from '@/providers/I18nProvider'
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import {
   Crown,
   Users2,
@@ -29,12 +29,16 @@ import {
   Download,
   Target,
   Banknote,
-  ArrowUpRight
+  ArrowUpRight,
+  ChevronDown,
+  FileSpreadsheet,
+  FileText
 } from 'lucide-react'
 import { useExportTeamPerformance } from '@/features/pipeline/hooks/useExportTeamPerformance'
 import { formatCompactAmount } from '@/lib/formatters'
 import { useProspectingCountryDetails } from '@/hooks/useProspectingCountry'
 import { getMonthPeriodLabel } from '@/lib/monthly-cycle'
+import { exportDashboardPdf } from '@/features/pipeline/utils/exportDashboardPdf'
 
 // ── KPI Card ────────────────────────────────────────────────────────────────
 function KpiCard({
@@ -336,6 +340,22 @@ export default function DashboardPage() {
   const { exportPerformance, loading: isExporting } = useExportTeamPerformance()
   const isSeniorManager = user?.role === 'manager' && user?.orgRole === 'senior_manager'
 
+  const [exportMenuOpen, setExportMenuOpen] = useState(false)
+  const exportMenuRef = useRef<HTMLDivElement>(null)
+
+  // Fermer le menu au clic extérieur
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(event.target as Node)) {
+        setExportMenuOpen(false)
+      }
+    }
+    if (exportMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [exportMenuOpen])
+
   // Rediriger si pas Senior Manager
   useEffect(() => {
     if (user && !isSeniorManager) {
@@ -345,6 +365,24 @@ export default function DashboardPage() {
 
   const orgReportQuery = useOrgReport()
   const data = orgReportQuery.data
+
+  const handleExportPdf = () => {
+    if (!data) return
+    setExportMenuOpen(false)
+    exportDashboardPdf({
+      data,
+      seniorManagerName: user?.name,
+      companyName: user?.companyName,
+      periodLabel: getMonthPeriodLabel(data.monthlyCycle?.currentPeriod, lang),
+      currency: currency || 'XAF',
+      lang
+    })
+  }
+
+  const handleExportExcel = () => {
+    setExportMenuOpen(false)
+    void exportPerformance()
+  }
 
   if (!user || !isSeniorManager) return null
 
@@ -363,30 +401,128 @@ export default function DashboardPage() {
         subtitle={`${t('dashboard.subtitlePrefix')} · ${data?.orgCode ?? '…'}`}
         actions={
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-            <button
-              type="button"
-              onClick={() => void exportPerformance()}
-              disabled={isExporting}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                padding: '7px 14px',
-                borderRadius: 8,
-                border: '1px solid var(--border)',
-                background: 'var(--card, #ffffff)',
-                color: 'var(--foreground, #0f172a)',
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: isExporting ? 'not-allowed' : 'pointer',
-                boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
-                transition: 'all 0.15s ease'
-              }}
-              title={lang === 'en' ? 'Export consolidated report to Excel' : 'Exporter le rapport consolidé en Excel'}
-            >
-              <Download size={13} className={isExporting ? 'animate-bounce' : ''} />
-              {isExporting ? (lang === 'en' ? 'Exporting...' : 'Exportation...') : (t('dashboard.exportReport') || (lang === 'en' ? 'Export Report' : 'Exporter'))}
-            </button>
+            <div ref={exportMenuRef} style={{ position: 'relative' }}>
+              <button
+                type="button"
+                onClick={() => setExportMenuOpen((prev) => !prev)}
+                disabled={isExporting}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '7px 14px',
+                  borderRadius: 8,
+                  border: '1px solid var(--border)',
+                  background: 'var(--card, #ffffff)',
+                  color: 'var(--foreground, #0f172a)',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: isExporting ? 'not-allowed' : 'pointer',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+                  transition: 'all 0.15s ease'
+                }}
+                title={lang === 'en' ? 'Export options' : 'Options d’exportation'}
+              >
+                <Download size={13} className={isExporting ? 'animate-bounce' : ''} />
+                <span>
+                  {isExporting
+                    ? (lang === 'en' ? 'Exporting...' : 'Exportation...')
+                    : (t('dashboard.exportReport') || (lang === 'en' ? 'Export' : 'Exporter'))}
+                </span>
+                <ChevronDown
+                  size={12}
+                  style={{
+                    transform: exportMenuOpen ? 'rotate(180deg)' : 'none',
+                    transition: 'transform 0.2s ease'
+                  }}
+                />
+              </button>
+
+              {exportMenuOpen && (
+                <div
+                  className="popover-panel dropdown-menu"
+                  style={{
+                    position: 'absolute',
+                    top: 'calc(100% + 6px)',
+                    right: 0,
+                    width: 220,
+                    borderRadius: 10,
+                    border: '1px solid var(--border)',
+                    backgroundColor: 'var(--card, #ffffff)',
+                    opacity: 1,
+                    boxShadow: '0 10px 25px -5px rgba(0,0,0,0.15), 0 8px 10px -6px rgba(0,0,0,0.1)',
+                    zIndex: 60,
+                    padding: '6px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 4
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={handleExportExcel}
+                    disabled={isExporting}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 10,
+                      padding: '8px 10px',
+                      borderRadius: 6,
+                      border: 'none',
+                      backgroundColor: 'transparent',
+                      color: 'var(--foreground)',
+                      fontSize: 12,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      width: '100%',
+                      transition: 'background-color 0.15s ease'
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--muted, #f1f5f9)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                  >
+                    <FileSpreadsheet size={15} style={{ color: '#10b981', flexShrink: 0 }} />
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <span>{t('dashboard.exportReportExcel')}</span>
+                      <span style={{ fontSize: 10, color: 'var(--muted-foreground)', fontWeight: 400 }}>
+                        {lang === 'en' ? 'Detailed multi-sheet workbook' : 'Classeur multi-onglets complet'}
+                      </span>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleExportPdf}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 10,
+                      padding: '8px 10px',
+                      borderRadius: 6,
+                      border: 'none',
+                      backgroundColor: 'transparent',
+                      color: 'var(--foreground)',
+                      fontSize: 12,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      width: '100%',
+                      transition: 'background-color 0.15s ease'
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--muted, #f1f5f9)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                  >
+                    <FileText size={15} style={{ color: '#ef4444', flexShrink: 0 }} />
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <span>{t('dashboard.exportReportPdf')}</span>
+                      <span style={{ fontSize: 10, color: 'var(--muted-foreground)', fontWeight: 400 }}>
+                        {lang === 'en' ? 'Executive PDF report for leadership' : 'Synthèse exécutive pour direction'}
+                      </span>
+                    </div>
+                  </button>
+                </div>
+              )}
+            </div>
             <button
               type="button"
               onClick={() => void orgReportQuery.refetch()}

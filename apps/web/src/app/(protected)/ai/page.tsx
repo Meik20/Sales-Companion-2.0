@@ -23,6 +23,7 @@ import {
   Timestamp
 } from 'firebase/firestore'
 import { firestore } from '@/services/firebase/client'
+import { AiFormattedMessage } from '@/components/ui/AiFormattedMessage'
 
 interface Message {
   id: string
@@ -394,7 +395,11 @@ export default function AIAssistantPage() {
                 wordBreak: 'break-word'
               }}
             >
-              {msg.content}
+              {msg.role === 'assistant' ? (
+                <AiFormattedMessage content={msg.content} />
+              ) : (
+                msg.content
+              )}
             </div>
           </div>
         ))}

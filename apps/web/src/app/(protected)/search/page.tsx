@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/Button'
 import { useTranslation } from '@/providers/I18nProvider'
 import { routes } from '@/constants/routes'
 import { Send, Zap, RotateCcw } from 'lucide-react'
+import { AiFormattedMessage } from '@/components/ui/AiFormattedMessage'
 
 const COUNTRY_HIGHLIGHT_CITIES: Record<string, { btp: string; tech: string }> = {
   CM: { btp: 'Douala', tech: 'Yaoundé' },
@@ -795,9 +796,13 @@ function SearchContent() {
                               ? 'self-end max-w-[85%] rounded-[16px_16px_4px_16px] bg-primary px-3.5 py-2.5 text-[12.5px] leading-relaxed text-primary-foreground shadow-sm'
                               : 'self-start max-w-[85%] rounded-[16px_16px_16px_4px] border border-border bg-secondary/80 px-3.5 py-2.5 text-[12.5px] leading-relaxed text-foreground shadow-sm'
                           }
-                          style={{ whiteSpace: 'pre-wrap' }}
+                          style={{ whiteSpace: msg.role === 'user' ? 'pre-wrap' : 'normal' }}
                         >
-                          {msg.text}
+                          {msg.role === 'assistant' ? (
+                            <AiFormattedMessage content={msg.text} />
+                          ) : (
+                            msg.text
+                          )}
                         </div>
                       ))}
                       {isSendingChat && (

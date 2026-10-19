@@ -806,3 +806,35 @@ body {
   -webkit-backdrop-filter: none !important;
 }
 
+/* ─── Styles d'Impression Exécutive (PDF & Print) ─── */
+@media print {
+  aside,
+  header,
+  nav,
+  button,
+  .no-print,
+  [role='dialog'],
+  [data-no-print] {
+    display: none !important;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+  }
+
+  main {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .card,
+  [style*='borderRadius'] {
+    box-shadow: none !important;
+    border: 1px solid #e2e8f0 !important;
+    break-inside: avoid;
+  }
+}
+

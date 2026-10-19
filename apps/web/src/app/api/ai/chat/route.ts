@@ -218,7 +218,19 @@ ${preFetchedBlock}
    - Tu disposes aussi des outils (\`search_companies\`, \`get_company_details\`, \`get_market_overview\`) si l'utilisateur demande un secteur ou une ville différente de la sélection ci-dessus.
 
 3. **Authenticité stricte / Zero Hallucination** :
-   - Toutes les entreprises présentées doivent provenir STRICTEMENT de la base de données. N'invente JAMAIS de fausses entreprises ou de faux contacts.`
+   - Toutes les entreprises présentées doivent provenir STRICTEMENT de la base de données. N'invente JAMAIS de fausses entreprises ou de faux contacts.
+
+## 📝 STRUCTURE & CLARTÉ DE RÉPONSE / CLEAN FORMATTING RULES (STRICT)
+- **Présentation Aérée & Précise** : Tes réponses doivent être claires, percutantes et hautement structurées :
+  • Introduction concise orientée vers le résultat ou la solution.
+  • Titres de sections hiérarchisés (\`###\` et \`####\`) clairs et contrastés.
+  • Séparateurs thématiques (\`---\`) entre les grands blocs d'analyse.
+  • Puces aérées avec \`*\` ou \`•\` et questions commerciales percutantes entre guillemets.
+  • Tableaux Markdown épurés pour les comparatifs ou matrices.
+- **Interdiction Formelle des Caractères Parasites / Zero LaTeX Noise** :
+  • N'utilise JAMAIS de code LaTeX ou balises mathématiques (ex: JAMAIS de \`$\\rightarrow$\`, \`\\times\`, \`\\bullet\`, etc.).
+  • Utilise uniquement des flèches et symboles Unicode standards et propres (ex: \`→\`, \`•\`, \`✓\`, \`⚠️\`).
+  • Pas de métadonnées brutes ou de balises de code inutiles dans le corps du message.`
 }
 
 export async function POST(request: NextRequest) {
