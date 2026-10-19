@@ -276,6 +276,32 @@ try {
   } else {
     console.log('✅ TeamManagerPerformanceCard.tsx conforme (Portefeuille Actif affiche activeCount)')
   }
+
+  // D. Vérifier la désignation explicite "Team Managers" sur la vue Senior Manager
+  const frLocale = fs.readFileSync(
+    path.resolve(__dirname, '../apps/web/src/locales/fr.ts'),
+    'utf8'
+  )
+  if (!frLocale.includes("kpiManagers: 'Team Managers'") || !frLocale.includes("topPerformersTooltip: 'Team Managers")) {
+    errors.push(
+      "❌ RÈGLE MÉTIER VIOLÉE : Sur la vue du Senior Manager, les managers managés doivent être explicitement désignés comme 'Team Managers' (kpiManagers et tooltips)."
+    )
+  } else {
+    console.log('✅ Locales conformes (désignation explicite "Team Managers" sur la vue Senior Manager)')
+  }
+
+  // E. Vérifier l'opacité 100% des popovers (prévention de la superposition de caractères)
+  const headerCode = fs.readFileSync(
+    path.resolve(__dirname, '../apps/web/src/components/layout/AppHeader.tsx'),
+    'utf8'
+  )
+  if (headerCode.includes('bg-popover/95') || headerCode.includes('backdrop-blur-md shadow-elevation-3')) {
+    errors.push(
+      "❌ RÉGRESSION UI DÉTECTÉE DANS AppHeader.tsx : Le menu déroulant de profil ne doit jamais être semi-transparent (bg-popover/95 backdrop-blur). Il doit avoir un fond opaque solide (var(--card))."
+    )
+  } else {
+    console.log('✅ AppHeader.tsx conforme (menu profil opaque sans translucidité parasite)')
+  }
 } catch (e) {
   errors.push(`❌ Erreur lors du contrôle des règles de calcul de pipeline : ${e.message}`)
 }

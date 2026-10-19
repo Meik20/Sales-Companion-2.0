@@ -162,9 +162,18 @@ export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void 
               {isProfileOpen && (
                 <>
                   <div onClick={() => setIsProfileOpen(false)} className="fixed inset-0 z-[99]" />
-                  <div className="absolute right-0 top-[48px] z-[200] flex w-[230px] animate-scale-in flex-col overflow-hidden rounded-xl border border-border/80 bg-popover/95 backdrop-blur-md shadow-elevation-3">
+                  <div
+                    style={{
+                      backgroundColor: 'var(--card, #ffffff)',
+                      boxShadow: '0 16px 36px -6px rgba(0,0,0,0.25), 0 0 0 1px var(--border)'
+                    }}
+                    className="popover-panel absolute right-0 top-[48px] z-[200] flex w-[240px] animate-scale-in flex-col overflow-hidden rounded-xl border border-border"
+                  >
                     {/* User Info */}
-                    <div className="border-b border-border/80 px-4 pb-3 pt-3.5">
+                    <div
+                      className="border-b border-border px-4 pb-3 pt-3.5"
+                      style={{ backgroundColor: 'var(--secondary, #f8fafc)' }}
+                    >
                       <div className="text-[14px] font-semibold text-foreground">
                         {user.name || t('sidebar.user')}
                       </div>
@@ -172,7 +181,10 @@ export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void 
                     </div>
 
                     {/* Menu Items */}
-                    <div className="flex flex-col gap-0.5 p-1.5">
+                    <div
+                      className="flex flex-col gap-0.5 p-1.5"
+                      style={{ backgroundColor: 'var(--card, #ffffff)' }}
+                    >
                       {[
                         {
                           icon: User,

@@ -527,7 +527,7 @@ export default function DashboardPage() {
                       color: 'var(--muted-foreground, #64748b)'
                     }}
                   >
-                    Cycle mensuel · Consolidation de tous les managers du segment
+                    {t('dashboard.targetsSubtitle') || 'Cycle mensuel · Consolidation de tous les Team Managers du segment'}
                   </p>
                 </div>
               </div>

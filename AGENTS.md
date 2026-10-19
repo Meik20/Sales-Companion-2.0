@@ -187,4 +187,21 @@ Ne **jamais** utiliser un emoji cercle coloré (`🟢🔴🟡`) pour indiquer un
   2. La route `/api/reporting/org/route.ts` tente de requêter les cibles sur `managerUids` au lieu de `teamManagerUids`.
   3. Le composant `TeamManagerPerformanceCard.tsx` n'utilise pas `stats.activeCount` pour la métrique du Portefeuille Actif.
 
+---
+
+## 8. Règle UI — Opacité 100% des Popovers, Menus Déroulants et Modales
+
+> [!CAUTION]
+> **INTERDICTION FORMELLE DE FENÊTRES FLOTTANTES TRANSLUCIDES :**  
+> Les menus déroulants (dropdowns de profil, sélecteurs, popovers, drawers, dialogues) ne doivent JAMAIS comporter d'opacité partielle (`bg-popover/95`, `bg-card/90`, etc.) combinée avec `backdrop-blur` qui laisse transparaître le texte de la page sous-jacente.  
+> Ils DOIVENT OBLIGATOIREMENT être 100% opaques (`backgroundColor: var(--card)` ou `var(--popover)` solide) pour empêcher toute superposition de caractères désagréable.
+
+---
+
+## 9. Règle Terminologique — Désignation Explicite des « Team Managers » sur la Vue Senior Manager
+
+> [!IMPORTANT]
+> Sur toute la vue du Senior Manager (Dashboard de Segment, Cartes KPIs, Tooltips, Tableaux de bord), les managers opérationnels managés doivent être **clairement et explicitement désignés sous l'appellation "Team Manager(s)"** (jamais simplement "Managers"), afin d'éliminer toute ambiguïté avec le Senior Manager lui-même.
+
+
 
