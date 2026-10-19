@@ -15,6 +15,7 @@ export interface ConsolidatedPipelineResult {
   items: Record<string, unknown>[]
   managers: { uid: string; name: string; orgRole: string; segment?: string | null; email?: string; stats?: any }[]
   counts: { prospection: number; negociation: number; conclue: number; total: number; [key: string]: number }
+  values: { prospection: number; negociation: number; conclue: number; total: number; [key: string]: number }
   hasMore: boolean
   totalFetched: number
   orgCode: string
@@ -76,6 +77,7 @@ export async function fetchOrgConsolidatedPipeline(
       items: [],
       managers: [],
       counts: { prospection: 0, negociation: 0, conclue: 0, total: 0 },
+      values: { prospection: 0, negociation: 0, conclue: 0, total: 0 },
       hasMore: false,
       totalFetched: 0,
       orgCode
@@ -153,14 +155,18 @@ export async function fetchOrgConsolidatedPipeline(
     })
   }
 
-  // 5. Calcul des totaux par statut
+  // 5. Calcul des totaux par statut + sommes des montants par statut (values)
   const counts = { prospection: 0, negociation: 0, conclue: 0, total: 0 }
+  const values = { prospection: 0, negociation: 0, conclue: 0, total: 0 }
   allItems.forEach((it) => {
     const st = it.status as 'prospection' | 'negociation' | 'conclue'
+    const amt = typeof it.amount === 'number' ? it.amount : Number(it.amount) || 0
     if (counts[st] !== undefined) {
       counts[st]++
+      values[st] += amt
     }
     counts.total++
+    values.total += amt
   })
 
   // Tri plus récent en premier
@@ -197,6 +203,7 @@ export async function fetchOrgConsolidatedPipeline(
     items: allItems,
     managers: managersWithStats,
     counts,
+    values,
     hasMore,
     totalFetched: allItems.length,
     orgCode

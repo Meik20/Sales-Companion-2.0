@@ -1516,6 +1516,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
     negociationCount: number
     conclueCount: number
     overdueCount: number
+    activePipelineAmount: number
     totalAmount: number
     concludedAmount: number
   }
@@ -1552,20 +1553,26 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
             negociationCount: 0,
             conclueCount: 0,
             overdueCount: 0,
+            activePipelineAmount: 0,
             totalAmount: 0,
             concludedAmount: 0
           }
           map.set(tmUid, summary)
         }
+        const amt = Number(item.amount) || 0
         summary.totalCount++
         const st = normalize(item.status)
-        if (st === 'prospection') summary.prospectionCount++
-        else if (st === 'negociation') summary.negociationCount++
-        else if (st === 'conclue') {
+        if (st === 'prospection') {
+          summary.prospectionCount++
+          summary.activePipelineAmount += amt
+        } else if (st === 'negociation') {
+          summary.negociationCount++
+          summary.activePipelineAmount += amt
+        } else if (st === 'conclue') {
           summary.conclueCount++
-          if (item.amount) summary.concludedAmount += item.amount
+          summary.concludedAmount += amt
         }
-        if (item.amount) summary.totalAmount += item.amount
+        summary.totalAmount += amt
         if (item.nextFollowUp && item.nextFollowUp < todayStr && st !== 'conclue') {
           summary.overdueCount++
         }
@@ -1598,6 +1605,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
         negociationCount: 0,
         conclueCount: 0,
         overdueCount: 0,
+        activePipelineAmount: 0,
         totalAmount: 0,
         concludedAmount: 0
       })
@@ -1624,22 +1632,28 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
           negociationCount: 0,
           conclueCount: 0,
           overdueCount: 0,
+          activePipelineAmount: 0,
           totalAmount: 0,
           concludedAmount: 0
         }
         map.set(item.assignedTo!, summary)
       }
 
+      const amt = Number(item.amount) || 0
       summary.totalCount++
       const st = normalize(item.status)
-      if (st === 'prospection') summary.prospectionCount++
-      else if (st === 'negociation') summary.negociationCount++
-      else if (st === 'conclue') {
+      if (st === 'prospection') {
+        summary.prospectionCount++
+        summary.activePipelineAmount += amt
+      } else if (st === 'negociation') {
+        summary.negociationCount++
+        summary.activePipelineAmount += amt
+      } else if (st === 'conclue') {
         summary.conclueCount++
-        if (item.amount) summary.concludedAmount += item.amount
+        summary.concludedAmount += amt
       }
 
-      if (item.amount) summary.totalAmount += item.amount
+      summary.totalAmount += amt
 
       if (item.nextFollowUp && item.nextFollowUp < todayStr && st !== 'conclue') {
         summary.overdueCount++
@@ -2185,7 +2199,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
               <div
                 style={{ fontSize: 18, fontWeight: 800, color: 'var(--foreground, #f1f5f9)' }}
               >
-                {activeMemberSummary.totalCount}{' '}
+                {activeMemberSummary.prospectionCount + activeMemberSummary.negociationCount}{' '}
                 <span
                   style={{
                     fontSize: 12,
@@ -2193,7 +2207,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                     color: 'var(--muted-foreground, #64748b)'
                   }}
                 >
-                  {activeMemberSummary.totalCount > 1 ? t('pipeline.leads') : t('pipeline.lead')}
+                  {activeMemberSummary.prospectionCount + activeMemberSummary.negociationCount > 1 ? t('pipeline.leads') : t('pipeline.lead')}
                 </span>
               </div>
               <div
@@ -2234,11 +2248,11 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                 {t('pipeline.pipelineValueLabel')}
               </div>
               <div
-                title={`${formatFullAmount(activeMemberSummary.totalAmount - activeMemberSummary.concludedAmount, lang)} ${currency || 'XAF'}`}
+                title={`${formatFullAmount(activeMemberSummary.activePipelineAmount, lang)} ${currency || 'XAF'}`}
                 style={{ fontSize: 18, fontWeight: 800, color: 'var(--foreground, #f1f5f9)' }}
               >
                 {formatCompactAmount(
-                  activeMemberSummary.totalAmount - activeMemberSummary.concludedAmount,
+                  activeMemberSummary.activePipelineAmount,
                   lang
                 )}{' '}
                 <span

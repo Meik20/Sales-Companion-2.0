@@ -448,6 +448,10 @@ function MobileKanban({
     setTouchStart(null)
   }
 
+  const { currency } = useProspectingCountryDetails()
+  const { lang } = useTranslation()
+  const colAmount = colItems.reduce((acc, it) => acc + (Number(it.amount) || 0), 0)
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
       {/* Active column header with step indicator and prev/next navigation */}
@@ -464,7 +468,7 @@ function MobileKanban({
           borderBottom: 'none'
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, flexWrap: 'wrap' }}>
           <activeCol.icon size={16} color={activeCol.accent} strokeWidth={2.5} className="shrink-0" />
           <span
             style={{
@@ -491,6 +495,23 @@ function MobileKanban({
           >
             {colItems.length}
           </span>
+          {colAmount > 0 && (
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                color: activeCol.color,
+                background: `${activeCol.accent}15`,
+                border: `1px solid ${activeCol.accent}33`,
+                borderRadius: 6,
+                padding: '1px 6px',
+                whiteSpace: 'nowrap'
+              }}
+              title={`${formatFullAmount(colAmount, lang)} ${currency || 'XAF'}`}
+            >
+              {formatCompactAmount(colAmount, lang)} {currency || 'XAF'}
+            </span>
+          )}
         </div>
 
         {/* Mini dot indicators & navigation arrows */}
@@ -696,7 +717,8 @@ function MobileKanban({
 
 // ── Main export ────────────────────────────────────────────────────────────────
 export function UserPipelineKanban({ items, onStatusChange, onItemClick, activeStage }: Props) {
-  const { t } = useTranslation()
+  const { t, lang } = useTranslation()
+  const { currency } = useProspectingCountryDetails()
   const isDesktop = useMediaQuery('(min-width: 768px)')
   const [columns, setColumns] = useState<Record<string, PipelineItem[]>>({
     prospection: [],
@@ -780,6 +802,7 @@ export function UserPipelineKanban({ items, onStatusChange, onItemClick, activeS
       >
         {COLUMNS.map((col) => {
           const colItems = columns[col.id] || []
+          const colAmount = colItems.reduce((acc, it) => acc + (Number(it.amount) || 0), 0)
           const ColIcon = col.icon
           const PAGE_SIZE = 10
           const totalPages = Math.max(1, Math.ceil(colItems.length / PAGE_SIZE))
@@ -835,7 +858,24 @@ export function UserPipelineKanban({ items, onStatusChange, onItemClick, activeS
                     {t(col.labelKey)}
                   </span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  {colAmount > 0 && (
+                    <span
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 700,
+                        color: col.color,
+                        background: `${col.accent}15`,
+                        border: `1px solid ${col.accent}33`,
+                        borderRadius: 6,
+                        padding: '2px 7px',
+                        whiteSpace: 'nowrap'
+                      }}
+                      title={`${formatFullAmount(colAmount, lang)} ${currency || 'XAF'}`}
+                    >
+                      {formatCompactAmount(colAmount, lang)} {currency || 'XAF'}
+                    </span>
+                  )}
                   {totalPages > 1 && (
                     <span style={{ fontSize: 11, color: col.color, fontWeight: 700, opacity: 0.85 }}>
                       {currentPage}/{totalPages}

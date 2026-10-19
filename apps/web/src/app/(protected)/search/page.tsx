@@ -24,7 +24,7 @@ import { Send, Zap, RotateCcw, Sparkles } from 'lucide-react'
 import { AiFormattedMessage } from '@/components/ui/AiFormattedMessage'
 
 function formatFcfaCompact(amount: number): string {
-  if (!amount || amount === 0) return '0 F'
+  if (!amount || amount <= 0) return '—'
   if (amount >= 1_000_000) {
     return `${(amount / 1_000_000).toLocaleString('fr-FR', { maximumFractionDigits: 1 })}M F`
   }
@@ -777,7 +777,7 @@ function SearchContent() {
                         <div className="mt-0.5 text-[10px] font-semibold text-muted-foreground truncate">
                           {label}
                         </div>
-                        <div className="mt-1 text-[10px] font-semibold text-foreground/85">
+                        <div className="mt-1 text-[10px] font-semibold text-muted-foreground">
                           {formatFcfaCompact(amount)}
                         </div>
                       </button>

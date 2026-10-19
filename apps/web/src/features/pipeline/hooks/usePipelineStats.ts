@@ -5,6 +5,7 @@ import { collection, query, where } from 'firebase/firestore'
 import { firestore } from '@/services/firebase/client'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { getDocsWithOfflineFallback } from '@/lib/firestore-offline'
+import { calculatePipelineStats } from '@/lib/pipeline-metrics'
 import { usePipelineRealtimeSync } from './usePipelineRealtimeSync'
 
 export type PipelineStats = {
@@ -148,40 +149,24 @@ export function usePipelineStats() {
         }
       }
 
-      const stats: PipelineStats = {
-        total: docs.length,
-        prospection: 0,
-        negotiation: 0,
-        conclusion: 0,
-        lost: 0,
-        conversionRate: 0,
-        prospectionAmount: 0,
-        negotiationAmount: 0,
-        conclusionAmount: 0
-      }
-
+      const metrics = calculatePipelineStats(docs)
+      let lostCount = 0
       docs.forEach((doc) => {
-        const status = doc.status.toLowerCase()
-        if (
-          ['prospection', 'prospect', 'to_contact', 'contact', 'nouveau', 'lead'].includes(status)
-        ) {
-          stats.prospection++
-          stats.prospectionAmount = (stats.prospectionAmount || 0) + doc.amount
-        } else if (['negociation', 'negotiation', 'in_progress', 'en_cours'].includes(status)) {
-          stats.negotiation++
-          stats.negotiationAmount = (stats.negotiationAmount || 0) + doc.amount
-        } else if (['conclue', 'conclusion', 'won', 'closed', 'gagne', 'signe'].includes(status)) {
-          stats.conclusion++
-          stats.conclusionAmount = (stats.conclusionAmount || 0) + doc.amount
-        } else if (status === 'lost' || status === 'perdu') {
-          stats.lost++
-        }
+        const st = (doc.status || '').toLowerCase().trim()
+        if (st === 'lost' || st === 'perdu') lostCount++
       })
 
-      stats.conversionRate =
-        stats.total > 0 ? Math.round((stats.conclusion / stats.total) * 100) : 0
-
-      return stats
+      return {
+        total: metrics.totalCount,
+        prospection: metrics.prospectionCount,
+        negotiation: metrics.negociationCount,
+        conclusion: metrics.conclueCount,
+        lost: lostCount,
+        conversionRate: metrics.conversionRate,
+        prospectionAmount: metrics.prospectionAmount,
+        negotiationAmount: metrics.negociationAmount,
+        conclusionAmount: metrics.concludedAmount
+      }
     },
     enabled: !!user?.uid,
     staleTime: 30 * 1000,

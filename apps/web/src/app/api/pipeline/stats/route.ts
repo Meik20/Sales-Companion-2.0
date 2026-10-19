@@ -1,3 +1,5 @@
+import { calculatePipelineStats } from '@/lib/pipeline-metrics'
+
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { hasActivePaidManagerAccess } from '@/lib/manager-access'
@@ -95,37 +97,26 @@ export async function GET(request: NextRequest) {
     // Exclure les leads archivés des statistiques du pipeline actif
     docs = docs.filter((doc) => doc.data().archived !== true)
 
-    const stats = {
-      total: docs.length,
-      prospection: 0,
-      negotiation: 0,
-      conclusion: 0,
-      lost: 0,
-      conversionRate: 0,
-      prospectionAmount: 0,
-      negotiationAmount: 0,
-      conclusionAmount: 0
+    const pipelineItems = docs.map((doc) => doc.data())
+    const metrics = calculatePipelineStats(pipelineItems)
+
+    let lostCount = 0
+    for (const doc of docs) {
+      const st = String(doc.data().status || '').toLowerCase().trim()
+      if (st === 'lost' || st === 'perdu') lostCount++
     }
 
-    docs.forEach((doc) => {
-      const data = doc.data()
-      const status = (data.status || '') as string
-      const amt = typeof data.amount === 'number' ? data.amount : Number(data.amount) || 0
-      if (status === 'prospection' || status === 'prospect') {
-        stats.prospection++
-        stats.prospectionAmount += amt
-      } else if (status === 'negociation' || status === 'negotiation') {
-        stats.negotiation++
-        stats.negotiationAmount += amt
-      } else if (status === 'conclue' || status === 'conclusion') {
-        stats.conclusion++
-        stats.conclusionAmount += amt
-      } else if (status === 'lost') {
-        stats.lost++
-      }
-    })
-
-    stats.conversionRate = stats.total > 0 ? Math.round((stats.conclusion / stats.total) * 100) : 0
+    const stats = {
+      total: metrics.totalCount,
+      prospection: metrics.prospectionCount,
+      negotiation: metrics.negociationCount,
+      conclusion: metrics.conclueCount,
+      lost: lostCount,
+      conversionRate: metrics.conversionRate,
+      prospectionAmount: metrics.prospectionAmount,
+      negotiationAmount: metrics.negociationAmount,
+      conclusionAmount: metrics.concludedAmount
+    }
 
     return NextResponse.json(stats)
   } catch (error) {
