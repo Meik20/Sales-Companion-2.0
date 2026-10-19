@@ -154,15 +154,16 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // 5. Récupérer les objectifs (teamTargets) pour tous les managers du segment
+    // 5. Récupérer les objectifs (teamTargets) pour tous les Team Managers du segment (hors Senior Manager)
+    const teamManagerUids = managerUids.filter((uid) => !managersMap[uid]?.isSenior)
     const targetsByManager: Record<string, { targetVolume: number; targetValue: number }> = {}
     let orgTargetVolume = 0
     let orgTargetValue = 0
 
     try {
       const targetChunks: string[][] = []
-      for (let i = 0; i < managerUids.length; i += 30) {
-        targetChunks.push(managerUids.slice(i, i + 30))
+      for (let i = 0; i < teamManagerUids.length; i += 30) {
+        targetChunks.push(teamManagerUids.slice(i, i + 30))
       }
 
       await Promise.all(
@@ -192,7 +193,6 @@ export async function GET(request: NextRequest) {
     }
 
     // 6. Top performers (Team Managers uniquement, triés par nombre de conclus)
-    const teamManagerUids = managerUids.filter((uid) => !managersMap[uid]?.isSenior)
     const topPerformers = teamManagerUids
       .map((uid) => {
         const mStats = statsByManager[uid] ?? { prospection: 0, negociation: 0, conclue: 0, total: 0, concludedAmount: 0 }

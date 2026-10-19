@@ -86,6 +86,7 @@ export function TeamManagerPerformanceCard({
 
     return {
       totalCount: items.length,
+      activeCount: prospectionCount + negociationCount,
       prospectionCount,
       negociationCount,
       conclueCount,
@@ -302,9 +303,9 @@ export function TeamManagerPerformanceCard({
             </span>
           </div>
           <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--foreground, #f1f5f9)', display: 'flex', alignItems: 'baseline', gap: 4, flexWrap: 'wrap', fontFamily: 'var(--font-heading, inherit)' }}>
-            {stats.totalCount}
+            {stats.activeCount}
             <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--muted-foreground, #64748b)' }}>
-              {stats.totalCount > 1 ? t('pipeline.leads') : t('pipeline.lead')}
+              {stats.activeCount > 1 ? t('pipeline.leads') : t('pipeline.lead')}
             </span>
           </div>
           <div
