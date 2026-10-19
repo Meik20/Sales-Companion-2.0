@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { adminDb, adminAuth } from '@/lib/firebase-admin'
 import { hasActivePaidManagerAccess } from '@/lib/manager-access'
+import { getCurrentCycleContext, runMonthlyPipelineCycleAutoArchive } from '@/lib/monthly-cycle'
 
 function normalizeStatus(status: string): 'prospection' | 'negociation' | 'conclue' | 'other' {
   if (['prospection', 'prospect'].includes(status)) return 'prospection'
@@ -27,11 +28,37 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // ── Clôture et mise à jour automatique à J+3 après la fin du mois M-1 ──
+    await runMonthlyPipelineCycleAutoArchive(adminDb, decoded.uid)
+
     // Get all pipeline items for this manager's team
     const pipelineSnap = await adminDb
       .collection('pipeline')
       .where('managerUid', '==', decoded.uid)
       .get()
+
+    // Get team targets for this manager
+    const targetsSnap = await adminDb
+      .collection('teamTargets')
+      .where('managerUid', '==', decoded.uid)
+      .get()
+
+    const targetsByMember: Record<string, { targetVolume: number | null; targetValue: number | null }> = {}
+    let totalTargetVolume = 0
+    let totalTargetValue = 0
+
+    targetsSnap.docs.forEach((doc) => {
+      const d = doc.data()
+      const mId = d.memberId
+      if (mId) {
+        targetsByMember[mId] = {
+          targetVolume: typeof d.targetVolume === 'number' ? d.targetVolume : null,
+          targetValue: typeof d.targetValue === 'number' ? d.targetValue : null
+        }
+        if (typeof d.targetVolume === 'number') totalTargetVolume += d.targetVolume
+        if (typeof d.targetValue === 'number') totalTargetValue += d.targetValue
+      }
+    })
 
     const items = pipelineSnap.docs.map((d) => ({ id: d.id, ...d.data() })) as any[]
 
@@ -158,6 +185,12 @@ export async function GET(request: NextRequest) {
           return i.nextFollowUp < nowIso && normalizeStatus(i.status) !== 'conclue'
         }).length
 
+        const memberTarget = targetsByMember[m.uid] || targetsByMember[m.accessId]
+        const targetVol = memberTarget?.targetVolume ?? null
+        const targetVal = memberTarget?.targetValue ?? null
+        const volRate = targetVol && targetVol > 0 ? Math.round((c / targetVol) * 100) : null
+        const valRate = targetVal && targetVal > 0 ? Math.round((memberRevenue / targetVal) * 100) : null
+
         return {
           uid: m.uid,
           name: m.name,
@@ -170,6 +203,10 @@ export async function GET(request: NextRequest) {
           revenue: memberRevenue,
           pipelineValue: memberPipelineValue,
           overdueFollowUps,
+          targetVolume: targetVol,
+          targetValue: targetVal,
+          volumeAttainmentRate: volRate,
+          valueAttainmentRate: valRate,
           deals: memberItems.map((item) => ({
             id: item.id,
             companyName: item.companyName || item.name || 'Prospect',
@@ -372,6 +409,11 @@ export async function GET(request: NextRequest) {
       ['open', 'in_progress'].includes(t.status || '')
     ).length
 
+    const volumeAttainmentRate =
+      totalTargetVolume > 0 ? Math.round((totalConclue / totalTargetVolume) * 100) : null
+    const valueAttainmentRate =
+      totalTargetValue > 0 ? Math.round((totalRevenue / totalTargetValue) * 100) : null
+
     return NextResponse.json({
       totalItems,
       totalProspection,
@@ -382,6 +424,15 @@ export async function GET(request: NextRequest) {
       pipelineValue,
       totalOverdueFollowUps,
       topPerformer,
+      targets: {
+        targetVolume: totalTargetVolume > 0 ? totalTargetVolume : null,
+        targetValue: totalTargetValue > 0 ? totalTargetValue : null,
+        volumeRealized: totalConclue,
+        valueRealized: totalRevenue,
+        volumeAttainmentRate,
+        valueAttainmentRate
+      },
+      monthlyCycle: getCurrentCycleContext(),
       memberStats,
       monthlyTrend,
       supportStats: {

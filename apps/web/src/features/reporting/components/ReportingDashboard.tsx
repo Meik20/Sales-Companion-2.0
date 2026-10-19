@@ -25,8 +25,10 @@ import {
   Clock,
   Medal,
   ChevronRight,
-  Check
+  Check,
+  Download
 } from 'lucide-react'
+import { useExportTeamPerformance } from '@/features/pipeline/hooks/useExportTeamPerformance'
 
 // ── KPI Card ──────────────────────────────────────────────────────────────────
 interface KpiCardProps {
@@ -1431,6 +1433,39 @@ function Leaderboard({ members }: { members: MemberStat[] }) {
                 </div>
               </div>
 
+              {/* Objectif Volume & Atteinte si configuré */}
+              {member.targetVolume != null && (
+                <div style={{ textAlign: 'center', flexShrink: 0, minWidth: 65, borderLeft: '1px solid var(--border, rgba(255,255,255,0.08))', paddingLeft: 8 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--foreground, #f1f5f9)' }}>
+                    {member.conclue} / {member.targetVolume}
+                  </div>
+                  <span
+                    style={{
+                      fontSize: 9.5,
+                      fontWeight: 800,
+                      padding: '1px 5px',
+                      borderRadius: 6,
+                      background:
+                        (member.volumeAttainmentRate ?? 0) >= 100
+                          ? 'rgba(16, 185, 129, 0.15)'
+                          : (member.volumeAttainmentRate ?? 0) >= 70
+                            ? 'rgba(245, 158, 11, 0.15)'
+                            : 'rgba(239, 68, 68, 0.15)',
+                      color:
+                        (member.volumeAttainmentRate ?? 0) >= 100
+                          ? '#10b981'
+                          : (member.volumeAttainmentRate ?? 0) >= 70
+                            ? '#f59e0b'
+                            : '#ef4444',
+                      display: 'inline-block',
+                      marginTop: 2
+                    }}
+                  >
+                    {member.volumeAttainmentRate ?? 0}% obj
+                  </span>
+                </div>
+              )}
+
               {/* Taux de conversion */}
               <div style={{ textAlign: 'right', flexShrink: 0, minWidth: 55 }}>
                 <div
@@ -2165,6 +2200,7 @@ function SupportActivitySection({
 // ── Main Dashboard Component ──────────────────────────────────────────────────
 export function ReportingDashboard({ data }: { data: ReportingData }) {
   const { t } = useTranslation()
+  const { exportPerformance, loading: isExporting } = useExportTeamPerformance()
   const searchParams = useSearchParams()
   const tabParam = searchParams.get('tab')
   const initialAgentUid = searchParams.get('agentUid') || undefined
@@ -2172,46 +2208,36 @@ export function ReportingDashboard({ data }: { data: ReportingData }) {
     tabParam === 'support' ? 'support' : 'sales'
   )
 
+  const targetVol = data.targets?.targetVolume ?? null
+  const realVol = data.targets?.volumeRealized ?? data.totalConclue ?? 0
+  const volRate = data.targets?.volumeAttainmentRate ?? (targetVol && targetVol > 0 ? Math.round((realVol / targetVol) * 100) : null)
+
+  const targetVal = data.targets?.targetValue ?? null
+  const realVal = data.targets?.valueRealized ?? data.totalRevenue ?? 0
+  const valRate = data.targets?.valueAttainmentRate ?? (targetVal && targetVal > 0 ? Math.round((realVal / targetVal) * 100) : null)
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      {/* Tab Selector */}
+      {/* Tab Selector & Export Action */}
       <div
         style={{
           display: 'flex',
           borderBottom: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
-          gap: 12
+          alignItems: 'center',
+          gap: 12,
+          flexWrap: 'wrap'
         }}
       >
-        <button
-          onClick={() => setSection('sales')}
-          style={{
-            padding: '12px 20px',
-            background: 'transparent',
-            border: 'none',
-            borderBottom: section === 'sales' ? `2px solid ${'#3b82f6'}` : '2px solid transparent',
-            color: section === 'sales' ? '#3b82f6' : 'var(--muted-foreground, #94a3b8)',
-            fontWeight: section === 'sales' ? 700 : 500,
-            cursor: 'pointer',
-            fontSize: 14,
-            transition: 'all 150ms',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 8
-          }}
-        >
-          <BarChart3 size={15} /> {t('reporting.tabSales')}
-        </button>
-        {data.supportStats && (
+        <div style={{ display: 'flex', gap: 8 }}>
           <button
-            onClick={() => setSection('support')}
+            onClick={() => setSection('sales')}
             style={{
               padding: '12px 20px',
               background: 'transparent',
               border: 'none',
-              borderBottom:
-                section === 'support' ? `2px solid ${'#3b82f6'}` : '2px solid transparent',
-              color: section === 'support' ? '#3b82f6' : 'var(--muted-foreground, #94a3b8)',
-              fontWeight: section === 'support' ? 700 : 500,
+              borderBottom: section === 'sales' ? `2px solid ${'#3b82f6'}` : '2px solid transparent',
+              color: section === 'sales' ? '#3b82f6' : 'var(--muted-foreground, #94a3b8)',
+              fontWeight: section === 'sales' ? 700 : 500,
               cursor: 'pointer',
               fontSize: 14,
               transition: 'all 150ms',
@@ -2220,13 +2246,316 @@ export function ReportingDashboard({ data }: { data: ReportingData }) {
               gap: 8
             }}
           >
-            <Headphones size={15} /> {t('reporting.tabSupport')}
+            <BarChart3 size={15} /> {t('reporting.tabSales')}
           </button>
-        )}
+          {data.supportStats && (
+            <button
+              onClick={() => setSection('support')}
+              style={{
+                padding: '12px 20px',
+                background: 'transparent',
+                border: 'none',
+                borderBottom:
+                  section === 'support' ? `2px solid ${'#3b82f6'}` : '2px solid transparent',
+                color: section === 'support' ? '#3b82f6' : 'var(--muted-foreground, #94a3b8)',
+                fontWeight: section === 'support' ? 700 : 500,
+                cursor: 'pointer',
+                fontSize: 14,
+                transition: 'all 150ms',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8
+              }}
+            >
+              <Headphones size={15} /> {t('reporting.tabSupport')}
+            </button>
+          )}
+        </div>
+
+        {/* Bouton Export Excel */}
+        <div style={{ marginLeft: 'auto', paddingBottom: 6 }}>
+          <button
+            onClick={() => void exportPerformance()}
+            disabled={isExporting}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '7px 14px',
+              borderRadius: 8,
+              border: '1px solid var(--border, rgba(0,0,0,0.1))',
+              background: 'var(--card, #ffffff)',
+              color: 'var(--foreground, #0f172a)',
+              fontSize: 12.5,
+              fontWeight: 600,
+              cursor: isExporting ? 'not-allowed' : 'pointer',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+              transition: 'all 0.15s ease'
+            }}
+            title="Exporter le tableau de bord complet en Excel (.xlsx)"
+          >
+            <Download size={13} className={isExporting ? 'animate-bounce' : ''} />
+            {isExporting ? 'Exportation...' : (t('reporting.exportDashboard') || 'Exporter le rapport')}
+          </button>
+        </div>
       </div>
 
       {section === 'sales' ? (
         <>
+          {/* ── Cycle Mensuel & Clôture J+3 Notice ────────────────────────── */}
+          {data.monthlyCycle?.isWithinJ3GracePeriod && (
+            <div
+              style={{
+                background: 'linear-gradient(90deg, rgba(245,158,11,0.08), rgba(99,102,241,0.08))',
+                border: '1px solid rgba(245,158,11,0.3)',
+                borderRadius: 14,
+                padding: '12px 18px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: 12
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div
+                  style={{
+                    width: 34,
+                    height: 34,
+                    borderRadius: 8,
+                    background: 'rgba(245,158,11,0.15)',
+                    color: '#d97706',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0
+                  }}
+                >
+                  <Clock size={16} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--foreground)' }}>
+                    Clôture M-1 active (J+3)
+                  </div>
+                  <div style={{ fontSize: 11.5, color: 'var(--muted-foreground)' }}>
+                    {t('reporting.monthlyCycleNotice') || 'Les opportunités conclues du mois M-1 sont automatiquement archivées le 3e jour du mois à 23h59.'}
+                  </div>
+                </div>
+              </div>
+              <span
+                style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  padding: '4px 10px',
+                  borderRadius: 20,
+                  background: '#fef3c7',
+                  color: '#92400e',
+                  border: '1px solid #fde68a'
+                }}
+              >
+                Réconciliation J+3 en cours
+              </span>
+            </div>
+          )}
+
+          {/* ── Objectifs & Réalisations (Volume & Valeur) ──────────────── */}
+          <div
+            style={{
+              background: 'var(--card, #ffffff)',
+              border: '1px solid var(--border, rgba(0,0,0,0.08))',
+              borderRadius: 16,
+              padding: '20px 22px',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.03), 0 4px 12px rgba(0,0,0,0.02)'
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 16,
+                flexWrap: 'wrap',
+                gap: 10
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div
+                  style={{
+                    width: 34,
+                    height: 34,
+                    borderRadius: 9,
+                    background: 'rgba(99,102,241,0.12)',
+                    color: '#6366f1',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0
+                  }}
+                >
+                  <Target size={18} strokeWidth={2.2} />
+                </div>
+                <div>
+                  <h3
+                    style={{
+                      margin: 0,
+                      fontSize: 15,
+                      fontWeight: 700,
+                      color: 'var(--foreground, #0f172a)'
+                    }}
+                  >
+                    {t('reporting.targetsTitle') || 'Objectifs & Réalisations du Mois'}
+                  </h3>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: 11.5,
+                      color: 'var(--muted-foreground, #64748b)'
+                    }}
+                  >
+                    {t('reporting.targetsSubtitle') || 'Suivi des performances en volume (ventes) et en valeur (CA)'}
+                  </p>
+                </div>
+              </div>
+              <div
+                style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  padding: '3px 10px',
+                  borderRadius: 14,
+                  background: 'rgba(99,102,241,0.08)',
+                  color: 'var(--primary, #4338ca)',
+                  border: '1px solid rgba(99,102,241,0.2)'
+                }}
+              >
+                Mois : {data.monthlyCycle?.currentPeriod?.labelFr || 'En cours'}
+              </div>
+            </div>
+
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                gap: 16
+              }}
+            >
+              {/* Volume (Opportunités conclues) */}
+              <div
+                style={{
+                  background: 'var(--muted, #f8fafc)',
+                  borderRadius: 12,
+                  padding: '14px 16px',
+                  border: '1px solid var(--border, rgba(0,0,0,0.05))',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 8
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted-foreground, #64748b)', textTransform: 'uppercase' }}>
+                    {t('reporting.volumeTargetLabel') || 'Objectif Volume'}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 800,
+                      color: volRate != null ? (volRate >= 100 ? '#10b981' : volRate >= 70 ? '#f59e0b' : '#ef4444') : 'var(--muted-foreground)',
+                      background: volRate != null ? (volRate >= 100 ? '#ecfdf5' : volRate >= 70 ? '#fffbeb' : '#fef2f2') : 'transparent',
+                      padding: '2px 8px',
+                      borderRadius: 12
+                    }}
+                  >
+                    {volRate != null ? `${volRate}% ${t('reporting.attainmentRateLabel') || 'atteint'}` : 'Non défini'}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                  <span style={{ fontSize: 24, fontWeight: 800, color: '#10b981', fontFamily: "'Syne', -apple-system, sans-serif" }}>
+                    {realVol}
+                  </span>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--muted-foreground, #64748b)' }}>
+                    / {targetVol != null ? targetVol : '—'} affaires conclues
+                  </span>
+                </div>
+                {/* Progress bar */}
+                <div
+                  style={{
+                    height: 6,
+                    borderRadius: 3,
+                    background: 'var(--border, rgba(0,0,0,0.08))',
+                    overflow: 'hidden'
+                  }}
+                >
+                  <div
+                    style={{
+                      height: '100%',
+                      width: `${Math.min(volRate ?? 0, 100)}%`,
+                      borderRadius: 3,
+                      background: (volRate ?? 0) >= 100 ? '#10b981' : (volRate ?? 0) >= 70 ? '#f59e0b' : '#6366f1',
+                      transition: 'width 0.3s ease'
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Valeur (Chiffre d'affaires encaissé) */}
+              <div
+                style={{
+                  background: 'var(--muted, #f8fafc)',
+                  borderRadius: 12,
+                  padding: '14px 16px',
+                  border: '1px solid var(--border, rgba(0,0,0,0.05))',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 8
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted-foreground, #64748b)', textTransform: 'uppercase' }}>
+                    {t('reporting.valueTargetLabel') || 'Objectif Valeur'}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 800,
+                      color: valRate != null ? (valRate >= 100 ? '#10b981' : valRate >= 70 ? '#f59e0b' : '#ef4444') : 'var(--muted-foreground)',
+                      background: valRate != null ? (valRate >= 100 ? '#ecfdf5' : valRate >= 70 ? '#fffbeb' : '#fef2f2') : 'transparent',
+                      padding: '2px 8px',
+                      borderRadius: 12
+                    }}
+                  >
+                    {valRate != null ? `${valRate}% ${t('reporting.attainmentRateLabel') || 'atteint'}` : 'Non défini'}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 24, fontWeight: 800, color: '#3b82f6', fontFamily: "'Syne', -apple-system, sans-serif" }}>
+                    {formatFcfa(realVal)}
+                  </span>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--muted-foreground, #64748b)' }}>
+                    / {targetVal != null ? formatFcfa(targetVal) : '—'}
+                  </span>
+                </div>
+                {/* Progress bar */}
+                <div
+                  style={{
+                    height: 6,
+                    borderRadius: 3,
+                    background: 'var(--border, rgba(0,0,0,0.08))',
+                    overflow: 'hidden'
+                  }}
+                >
+                  <div
+                    style={{
+                      height: '100%',
+                      width: `${Math.min(valRate ?? 0, 100)}%`,
+                      borderRadius: 3,
+                      background: (valRate ?? 0) >= 100 ? '#10b981' : (valRate ?? 0) >= 70 ? '#f59e0b' : '#3b82f6',
+                      transition: 'width 0.3s ease'
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* KPI Row */}
           <div
             style={{

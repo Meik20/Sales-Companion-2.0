@@ -25,8 +25,15 @@ import {
   Clock,
   Building2,
   RefreshCw,
-  Medal
+  Medal,
+  Download,
+  Target,
+  Banknote,
+  ArrowUpRight
 } from 'lucide-react'
+import { useExportTeamPerformance } from '@/features/pipeline/hooks/useExportTeamPerformance'
+import { formatCompactAmount } from '@/lib/formatters'
+import { useProspectingCountryDetails } from '@/hooks/useProspectingCountry'
 
 // ── KPI Card ────────────────────────────────────────────────────────────────
 function KpiCard({
@@ -228,19 +235,49 @@ function TopPerformerRow({ rank, manager }: { rank: number; manager: OrgReportMa
       </div>
 
       {/* Stats */}
-      <div style={{ display: 'flex', gap: 16, flexShrink: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0 }}>
         {[
           { label: 'P', value: manager.stats.prospection, color: '#60a5fa' },
           { label: 'N', value: manager.stats.negociation, color: '#fbbf24' },
           { label: 'C', value: manager.stats.conclue, color: '#34d399' }
         ].map(({ label, value, color }) => (
           <div key={label} style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: 16, fontWeight: 800, color, fontFamily: 'var(--font-heading, sans-serif)' }}>
+            <div style={{ fontSize: 15, fontWeight: 800, color, fontFamily: 'var(--font-heading, sans-serif)' }}>
               {value}
             </div>
             <div style={{ fontSize: 10, color: 'var(--muted-foreground)' }}>{label}</div>
           </div>
         ))}
+
+        {manager.targetVolume != null && (
+          <div style={{ textAlign: 'center', borderLeft: '1px solid var(--border)', paddingLeft: 10 }}>
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 800,
+                padding: '2px 6px',
+                borderRadius: 8,
+                background:
+                  (manager.volumeAttainmentRate ?? 0) >= 100
+                    ? '#ecfdf5'
+                    : (manager.volumeAttainmentRate ?? 0) >= 70
+                      ? '#fffbeb'
+                      : '#fef2f2',
+                color:
+                  (manager.volumeAttainmentRate ?? 0) >= 100
+                    ? '#059669'
+                    : (manager.volumeAttainmentRate ?? 0) >= 70
+                      ? '#d97706'
+                      : '#dc2626'
+              }}
+            >
+              {manager.volumeAttainmentRate ?? 0}%
+            </span>
+            <div style={{ fontSize: 9.5, color: 'var(--muted-foreground)', marginTop: 2 }}>
+              /{manager.targetVolume} obj
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
@@ -294,6 +331,8 @@ export default function DashboardPage() {
   const { user } = useCurrentUser()
   const router = useRouter()
   const { t, lang } = useTranslation()
+  const { currency } = useProspectingCountryDetails()
+  const { exportPerformance, loading: isExporting } = useExportTeamPerformance()
   const isSeniorManager = user?.role === 'manager' && user?.orgRole === 'senior_manager'
 
   // Rediriger si pas Senior Manager
@@ -308,33 +347,67 @@ export default function DashboardPage() {
 
   if (!user || !isSeniorManager) return null
 
+  const targetVol = data?.targets?.targetVolume ?? null
+  const realVol = data?.targets?.volumeRealized ?? data?.globalCounts.conclue ?? 0
+  const volRate = data?.targets?.volumeAttainmentRate ?? (targetVol && targetVol > 0 ? Math.round((realVol / targetVol) * 100) : null)
+
+  const targetVal = data?.targets?.targetValue ?? null
+  const realVal = data?.targets?.valueRealized ?? data?.totalConcludedAmount ?? 0
+  const valRate = data?.targets?.valueAttainmentRate ?? (targetVal && targetVal > 0 ? Math.round((realVal / targetVal) * 100) : null)
+
   return (
     <AppShell>
       <PageHeader
         title={t('dashboard.title')}
         subtitle={`${t('dashboard.subtitlePrefix')} · ${data?.orgCode ?? '…'}`}
         actions={
-          <button
-            type="button"
-            onClick={() => void orgReportQuery.refetch()}
-            disabled={orgReportQuery.isFetching}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '7px 14px',
-              borderRadius: 8,
-              border: '1px solid var(--border)',
-              background: 'transparent',
-              color: 'var(--muted-foreground)',
-              fontSize: 12,
-              fontWeight: 600,
-              cursor: 'pointer'
-            }}
-          >
-            <RefreshCw size={13} className={orgReportQuery.isFetching ? 'animate-spin' : ''} />
-            {orgReportQuery.isFetching ? t('dashboard.refreshing') : t('dashboard.refresh')}
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              onClick={() => void exportPerformance()}
+              disabled={isExporting}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '7px 14px',
+                borderRadius: 8,
+                border: '1px solid var(--border)',
+                background: 'var(--card, #ffffff)',
+                color: 'var(--foreground, #0f172a)',
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: isExporting ? 'not-allowed' : 'pointer',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+                transition: 'all 0.15s ease'
+              }}
+              title="Exporter le rapport consolidé en Excel"
+            >
+              <Download size={13} className={isExporting ? 'animate-bounce' : ''} />
+              {isExporting ? 'Exportation...' : (t('dashboard.exportReport') || 'Exporter')}
+            </button>
+            <button
+              type="button"
+              onClick={() => void orgReportQuery.refetch()}
+              disabled={orgReportQuery.isFetching}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '7px 14px',
+                borderRadius: 8,
+                border: '1px solid var(--border)',
+                background: 'transparent',
+                color: 'var(--muted-foreground)',
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
+            >
+              <RefreshCw size={13} className={orgReportQuery.isFetching ? 'animate-spin' : ''} />
+              {orgReportQuery.isFetching ? t('dashboard.refreshing') : t('dashboard.refresh')}
+            </button>
+          </div>
         }
       />
 
@@ -342,6 +415,262 @@ export default function DashboardPage() {
         <LoadingState />
       ) : (
         <>
+          {/* ── Cycle Mensuel & Clôture J+3 Notice ────────────────────────── */}
+          {data?.monthlyCycle?.isWithinJ3GracePeriod && (
+            <div
+              style={{
+                background: 'linear-gradient(90deg, rgba(245,158,11,0.08), rgba(99,102,241,0.08))',
+                border: '1px solid rgba(245,158,11,0.3)',
+                borderRadius: 14,
+                padding: '12px 18px',
+                marginBottom: 20,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: 12
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div
+                  style={{
+                    width: 34,
+                    height: 34,
+                    borderRadius: 8,
+                    background: 'rgba(245,158,11,0.15)',
+                    color: '#d97706',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0
+                  }}
+                >
+                  <Clock size={16} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--foreground)' }}>
+                    {t('dashboard.monthlyCycleGraceBadge')}
+                  </div>
+                  <div style={{ fontSize: 11.5, color: 'var(--muted-foreground)' }}>
+                    {t('dashboard.monthlyCycleGraceInfo')}
+                  </div>
+                </div>
+              </div>
+              <span
+                style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  padding: '4px 10px',
+                  borderRadius: 20,
+                  background: '#fef3c7',
+                  color: '#92400e',
+                  border: '1px solid #fde68a'
+                }}
+              >
+                Clôture automatique le 3 à 23h59
+              </span>
+            </div>
+          )}
+
+          {/* ── Objectifs & Réalisations (Consolidé Segment) ──────────────── */}
+          <div
+            style={{
+              background: 'var(--card, #ffffff)',
+              border: '1px solid var(--border, rgba(0,0,0,0.08))',
+              borderRadius: 16,
+              padding: '20px 22px',
+              marginBottom: 24,
+              boxShadow: 'var(--shadow-elevation-1)'
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 16,
+                flexWrap: 'wrap',
+                gap: 10
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div
+                  style={{
+                    width: 34,
+                    height: 34,
+                    borderRadius: 9,
+                    background: 'rgba(99,102,241,0.12)',
+                    color: '#6366f1',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0
+                  }}
+                >
+                  <Target size={18} strokeWidth={2.2} />
+                </div>
+                <div>
+                  <h3
+                    style={{
+                      margin: 0,
+                      fontSize: 15,
+                      fontWeight: 700,
+                      color: 'var(--foreground, #0f172a)'
+                    }}
+                  >
+                    {t('dashboard.targetsAndRealizations') || 'Objectifs & Réalisations'}
+                  </h3>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: 11.5,
+                      color: 'var(--muted-foreground, #64748b)'
+                    }}
+                  >
+                    Cycle mensuel · Consolidation de tous les managers du segment
+                  </p>
+                </div>
+              </div>
+              <div
+                style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  padding: '3px 10px',
+                  borderRadius: 14,
+                  background: 'rgba(99,102,241,0.08)',
+                  color: 'var(--primary, #4338ca)',
+                  border: '1px solid rgba(99,102,241,0.2)'
+                }}
+              >
+                Mois actif : {data?.monthlyCycle?.currentPeriod?.labelFr || 'En cours'}
+              </div>
+            </div>
+
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                gap: 16
+              }}
+            >
+              {/* Volume (Opportunités conclues) */}
+              <div
+                style={{
+                  background: 'var(--muted, #f8fafc)',
+                  borderRadius: 12,
+                  padding: '14px 16px',
+                  border: '1px solid var(--border, rgba(0,0,0,0.05))',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 8
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted-foreground, #64748b)', textTransform: 'uppercase' }}>
+                    {t('dashboard.targetVolume') || 'Objectif Volume'}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 800,
+                      color: volRate != null ? (volRate >= 100 ? '#10b981' : volRate >= 70 ? '#f59e0b' : '#ef4444') : 'var(--muted-foreground)',
+                      background: volRate != null ? (volRate >= 100 ? '#ecfdf5' : volRate >= 70 ? '#fffbeb' : '#fef2f2') : 'transparent',
+                      padding: '2px 8px',
+                      borderRadius: 12
+                    }}
+                  >
+                    {volRate != null ? `${volRate}% ${t('dashboard.targetAttainmentRate') || 'atteint'}` : 'Non défini'}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                  <span style={{ fontSize: 24, fontWeight: 800, color: '#10b981', fontFamily: "'Syne', -apple-system, sans-serif" }}>
+                    {realVol}
+                  </span>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--muted-foreground, #64748b)' }}>
+                    / {targetVol != null ? targetVol : '—'} opportunités conclues
+                  </span>
+                </div>
+                {/* Progress bar */}
+                <div
+                  style={{
+                    height: 6,
+                    borderRadius: 3,
+                    background: 'var(--border, rgba(0,0,0,0.08))',
+                    overflow: 'hidden'
+                  }}
+                >
+                  <div
+                    style={{
+                      height: '100%',
+                      width: `${Math.min(volRate ?? 0, 100)}%`,
+                      borderRadius: 3,
+                      background: (volRate ?? 0) >= 100 ? '#10b981' : (volRate ?? 0) >= 70 ? '#f59e0b' : '#6366f1',
+                      transition: 'width 0.3s ease'
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Valeur (Chiffre d'affaires encaissé) */}
+              <div
+                style={{
+                  background: 'var(--muted, #f8fafc)',
+                  borderRadius: 12,
+                  padding: '14px 16px',
+                  border: '1px solid var(--border, rgba(0,0,0,0.05))',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 8
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted-foreground, #64748b)', textTransform: 'uppercase' }}>
+                    {t('dashboard.targetValue') || 'Objectif Valeur'}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 800,
+                      color: valRate != null ? (valRate >= 100 ? '#10b981' : valRate >= 70 ? '#f59e0b' : '#ef4444') : 'var(--muted-foreground)',
+                      background: valRate != null ? (valRate >= 100 ? '#ecfdf5' : valRate >= 70 ? '#fffbeb' : '#fef2f2') : 'transparent',
+                      padding: '2px 8px',
+                      borderRadius: 12
+                    }}
+                  >
+                    {valRate != null ? `${valRate}% ${t('dashboard.targetAttainmentRate') || 'atteint'}` : 'Non défini'}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 24, fontWeight: 800, color: '#3b82f6', fontFamily: "'Syne', -apple-system, sans-serif" }}>
+                    {formatCompactAmount(realVal, lang)} {currency || 'XAF'}
+                  </span>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--muted-foreground, #64748b)' }}>
+                    / {targetVal != null ? `${formatCompactAmount(targetVal, lang)} ${currency || 'XAF'}` : '—'}
+                  </span>
+                </div>
+                {/* Progress bar */}
+                <div
+                  style={{
+                    height: 6,
+                    borderRadius: 3,
+                    background: 'var(--border, rgba(0,0,0,0.08))',
+                    overflow: 'hidden'
+                  }}
+                >
+                  <div
+                    style={{
+                      height: '100%',
+                      width: `${Math.min(valRate ?? 0, 100)}%`,
+                      borderRadius: 3,
+                      background: (valRate ?? 0) >= 100 ? '#10b981' : (valRate ?? 0) >= 70 ? '#f59e0b' : '#3b82f6',
+                      transition: 'width 0.3s ease'
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* ── KPIs globaux ────────────────────────────────────────────── */}
           <div
             style={{

@@ -27,6 +27,10 @@ export type MemberStat = {
   revenue: number // Chiffre d'affaires conclu en FCFA
   pipelineValue: number // Valeur en cours de négo/prospection
   overdueFollowUps: number // Relances en retard
+  targetVolume?: number | null
+  targetValue?: number | null
+  volumeAttainmentRate?: number | null
+  valueAttainmentRate?: number | null
   deals: MemberDeal[]
 }
 
@@ -41,6 +45,15 @@ export type SupportAgentStat = {
   resolutionRate: number
 }
 
+export type ReportingTargets = {
+  targetVolume: number | null
+  targetValue: number | null
+  volumeRealized: number
+  valueRealized: number
+  volumeAttainmentRate: number | null
+  valueAttainmentRate: number | null
+}
+
 export type ReportingData = {
   totalItems: number
   totalProspection: number
@@ -51,6 +64,14 @@ export type ReportingData = {
   pipelineValue: number
   totalOverdueFollowUps: number
   topPerformer: string | null
+  targets?: ReportingTargets
+  monthlyCycle?: {
+    currentPeriod: { key: string; labelFr: string; labelEn: string; isGracePeriod: boolean; isClosed: boolean }
+    prevPeriod: { key: string; labelFr: string; labelEn: string; isGracePeriod: boolean; isClosed: boolean }
+    isWithinJ3GracePeriod: boolean
+    defaultPeriodKey: string
+    availablePeriods: Array<{ key: string; labelFr: string; labelEn: string; isGracePeriod: boolean; isClosed: boolean }>
+  }
   memberStats: MemberStat[]
   // Monthly totals (last 6 months)
   monthlyTrend: { month: string; conclue: number; total: number }[]

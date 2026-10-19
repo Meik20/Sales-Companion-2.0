@@ -14,7 +14,12 @@ export interface OrgReportManager {
     negociation: number
     conclue: number
     total: number
+    concludedAmount?: number
   }
+  targetVolume?: number | null
+  targetValue?: number | null
+  volumeAttainmentRate?: number | null
+  valueAttainmentRate?: number | null
 }
 
 export interface OrgRecentActivity {
@@ -24,6 +29,15 @@ export interface OrgRecentActivity {
   managerName: string
   memberName?: string | null
   updatedAt?: string | null
+}
+
+export interface OrgReportTargets {
+  targetVolume: number | null
+  targetValue: number | null
+  volumeRealized: number
+  valueRealized: number
+  volumeAttainmentRate: number | null
+  valueAttainmentRate: number | null
 }
 
 export interface OrgReportResult {
@@ -36,6 +50,16 @@ export interface OrgReportResult {
     total: number
   }
   conversionRate: number
+  totalConcludedAmount?: number
+  totalPipelineValue?: number
+  targets?: OrgReportTargets
+  monthlyCycle?: {
+    currentPeriod: { key: string; labelFr: string; labelEn: string; isGracePeriod: boolean; isClosed: boolean }
+    prevPeriod: { key: string; labelFr: string; labelEn: string; isGracePeriod: boolean; isClosed: boolean }
+    isWithinJ3GracePeriod: boolean
+    defaultPeriodKey: string
+    availablePeriods: Array<{ key: string; labelFr: string; labelEn: string; isGracePeriod: boolean; isClosed: boolean }>
+  }
   recentActivity: OrgRecentActivity[]
   totalManagers: number
 }

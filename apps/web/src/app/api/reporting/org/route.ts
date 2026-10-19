@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { hasActivePaidManagerAccess } from '@/lib/manager-access'
+import { getCurrentCycleContext, runMonthlyPipelineCycleAutoArchive } from '@/lib/monthly-cycle'
 
 export const dynamic = 'force-dynamic'
 
@@ -37,6 +38,9 @@ export async function GET(request: NextRequest) {
     if (callerData.role !== 'manager' || callerData.orgRole !== 'senior_manager') {
       return NextResponse.json({ error: 'Accès réservé au Senior Manager' }, { status: 403 })
     }
+
+    // ── Clôture et mise à jour automatique à J+3 après la fin du mois M-1 ──
+    await runMonthlyPipelineCycleAutoArchive(adminDb)
 
     const orgCode = callerData.orgCode
     if (!orgCode) {
@@ -113,20 +117,29 @@ export async function GET(request: NextRequest) {
       })
     )
 
-    // 3. Comptes globaux
+    // 3. Comptes globaux et montants
     const globalCounts = { prospection: 0, negociation: 0, conclue: 0, total: allItems.length }
+    let totalConcludedAmount = 0
+    let totalPipelineValue = 0
+
     for (const item of allItems) {
       const ns = normalizeStatus(item.status ?? '')
       if (ns !== 'other') globalCounts[ns]++
+      const amt = typeof item.amount === 'number' ? item.amount : Number(item.amount) || 0
+      if (ns === 'conclue') {
+        totalConcludedAmount += amt
+      } else if (ns === 'prospection' || ns === 'negociation') {
+        totalPipelineValue += amt
+      }
     }
 
-    // 4. Stats par manager
+    // 4. Stats et CA par manager
     const statsByManager: Record<
       string,
-      { prospection: number; negociation: number; conclue: number; total: number }
+      { prospection: number; negociation: number; conclue: number; total: number; concludedAmount: number }
     > = {}
     for (const uid of managerUids) {
-      statsByManager[uid] = { prospection: 0, negociation: 0, conclue: 0, total: 0 }
+      statsByManager[uid] = { prospection: 0, negociation: 0, conclue: 0, total: 0, concludedAmount: 0 }
     }
     for (const item of allItems) {
       const uid = item.managerUid
@@ -134,27 +147,85 @@ export async function GET(request: NextRequest) {
         statsByManager[uid].total++
         const ns = normalizeStatus(item.status ?? '')
         if (ns !== 'other') statsByManager[uid][ns]++
+        if (ns === 'conclue') {
+          const amt = typeof item.amount === 'number' ? item.amount : Number(item.amount) || 0
+          statsByManager[uid].concludedAmount += amt
+        }
       }
     }
 
-    // 5. Top performers (Team Managers uniquement, triés par nombre de conclus)
+    // 5. Récupérer les objectifs (teamTargets) pour tous les managers du segment
+    const targetsByManager: Record<string, { targetVolume: number; targetValue: number }> = {}
+    let orgTargetVolume = 0
+    let orgTargetValue = 0
+
+    try {
+      const targetChunks: string[][] = []
+      for (let i = 0; i < managerUids.length; i += 30) {
+        targetChunks.push(managerUids.slice(i, i + 30))
+      }
+
+      await Promise.all(
+        targetChunks.map(async (c) => {
+          const snap = await adminDb.collection('teamTargets').where('managerUid', 'in', c).get()
+          snap.docs.forEach((doc) => {
+            const d = doc.data()
+            const mUid = d.managerUid
+            if (mUid) {
+              if (!targetsByManager[mUid]) {
+                targetsByManager[mUid] = { targetVolume: 0, targetValue: 0 }
+              }
+              if (typeof d.targetVolume === 'number') {
+                targetsByManager[mUid].targetVolume += d.targetVolume
+                orgTargetVolume += d.targetVolume
+              }
+              if (typeof d.targetValue === 'number') {
+                targetsByManager[mUid].targetValue += d.targetValue
+                orgTargetValue += d.targetValue
+              }
+            }
+          })
+        })
+      )
+    } catch (e) {
+      console.warn('[reporting/org targets lookup]', e)
+    }
+
+    // 6. Top performers (Team Managers uniquement, triés par nombre de conclus)
     const teamManagerUids = managerUids.filter((uid) => !managersMap[uid]?.isSenior)
     const topPerformers = teamManagerUids
-      .map((uid) => ({
-        uid,
-        name: managersMap[uid]?.name ?? uid,
-        email: managersMap[uid]?.email ?? '',
-        orgRole: managersMap[uid]?.orgRole ?? 'team_manager',
-        isSenior: false,
-        stats: statsByManager[uid] ?? { prospection: 0, negociation: 0, conclue: 0, total: 0 }
-      }))
-      .sort((a, b) => b.stats.conclue - a.stats.conclue)
+      .map((uid) => {
+        const mStats = statsByManager[uid] ?? { prospection: 0, negociation: 0, conclue: 0, total: 0, concludedAmount: 0 }
+        const mTgt = targetsByManager[uid] ?? { targetVolume: 0, targetValue: 0 }
+        const volRate = mTgt.targetVolume > 0 ? Math.round((mStats.conclue / mTgt.targetVolume) * 100) : null
+        const valRate = mTgt.targetValue > 0 ? Math.round((mStats.concludedAmount / mTgt.targetValue) * 100) : null
 
-    // 6. Taux de conversion global (conclus / total)
+        return {
+          uid,
+          name: managersMap[uid]?.name ?? uid,
+          email: managersMap[uid]?.email ?? '',
+          orgRole: managersMap[uid]?.orgRole ?? 'team_manager',
+          isSenior: false,
+          stats: mStats,
+          targetVolume: mTgt.targetVolume > 0 ? mTgt.targetVolume : null,
+          targetValue: mTgt.targetValue > 0 ? mTgt.targetValue : null,
+          volumeAttainmentRate: volRate,
+          valueAttainmentRate: valRate
+        }
+      })
+      .sort((a, b) => b.stats.conclue - a.stats.conclue || b.stats.concludedAmount - a.stats.concludedAmount)
+
+    // 7. Taux de conversion global (conclus / total)
     const conversionRate =
       globalCounts.total > 0 ? Math.round((globalCounts.conclue / globalCounts.total) * 100) : 0
 
-    // 7. Activité récente (10 derniers prospects conclus)
+    // 8. Taux d'atteinte consolidés
+    const orgVolumeAttainment =
+      orgTargetVolume > 0 ? Math.round((globalCounts.conclue / orgTargetVolume) * 100) : null
+    const orgValueAttainment =
+      orgTargetValue > 0 ? Math.round((totalConcludedAmount / orgTargetValue) * 100) : null
+
+    // 9. Activité récente (10 derniers prospects conclus)
     const recentActivity = allItems
       .filter((i) => normalizeStatus(i.status ?? '') === 'conclue')
       .sort((a, b) => {
@@ -177,6 +248,17 @@ export async function GET(request: NextRequest) {
       managers: topPerformers,
       globalCounts,
       conversionRate,
+      totalConcludedAmount,
+      totalPipelineValue,
+      targets: {
+        targetVolume: orgTargetVolume > 0 ? orgTargetVolume : null,
+        targetValue: orgTargetValue > 0 ? orgTargetValue : null,
+        volumeRealized: globalCounts.conclue,
+        valueRealized: totalConcludedAmount,
+        volumeAttainmentRate: orgVolumeAttainment,
+        valueAttainmentRate: orgValueAttainment
+      },
+      monthlyCycle: getCurrentCycleContext(),
       recentActivity,
       totalManagers: teamManagerUids.length
     })

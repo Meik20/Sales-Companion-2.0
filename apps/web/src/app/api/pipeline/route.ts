@@ -28,6 +28,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: 'Token invalide' }, { status: 401 })
     }
 
+    // ── Clôture et archivage automatique à J+3 après la fin du mois M-1 ──
+    const { runMonthlyPipelineCycleAutoArchive } = await import('@/lib/monthly-cycle')
+    await runMonthlyPipelineCycleAutoArchive(adminDb, userId)
+
     // Fetch owned items plus any explicitly assigned items.
     const ownedSnap = await adminDb.collection('pipeline').where('userId', '==', userId).get()
 
