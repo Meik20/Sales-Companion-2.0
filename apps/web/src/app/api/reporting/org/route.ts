@@ -1,21 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { hasActivePaidManagerAccess } from '@/lib/manager-access'
 import { getCurrentCycleContext, runMonthlyPipelineCycleAutoArchive } from '@/lib/monthly-cycle'
+import { normalizePipelineStatus as normalizeStatus, calculateAttainmentRate } from '@/lib/pipeline-metrics'
 
 export const dynamic = 'force-dynamic'
 
 async function getAdmin() {
   const { adminDb, adminAuth } = await import('@/lib/firebase-admin')
   return { adminDb, adminAuth }
-}
-
-function normalizeStatus(status: string): 'prospection' | 'negociation' | 'conclue' | 'other' {
-  const s = (status || '').toLowerCase().trim()
-  if (['prospection', 'prospect', 'to_contact', 'contact', 'nouveau', 'lead'].includes(s))
-    return 'prospection'
-  if (['negociation', 'negotiation', 'in_progress', 'en_cours'].includes(s)) return 'negociation'
-  if (['conclue', 'conclusion', 'won', 'closed', 'gagne', 'signe'].includes(s)) return 'conclue'
-  return 'prospection'
 }
 
 /**
@@ -197,8 +189,8 @@ export async function GET(request: NextRequest) {
       .map((uid) => {
         const mStats = statsByManager[uid] ?? { prospection: 0, negociation: 0, conclue: 0, total: 0, concludedAmount: 0 }
         const mTgt = targetsByManager[uid] ?? { targetVolume: 0, targetValue: 0 }
-        const volRate = mTgt.targetVolume > 0 ? Math.round((mStats.conclue / mTgt.targetVolume) * 100) : null
-        const valRate = mTgt.targetValue > 0 ? Math.round((mStats.concludedAmount / mTgt.targetValue) * 100) : null
+        const volRate = calculateAttainmentRate(mStats.conclue, mTgt.targetVolume)
+        const valRate = calculateAttainmentRate(mStats.concludedAmount, mTgt.targetValue)
 
         return {
           uid,
@@ -220,10 +212,8 @@ export async function GET(request: NextRequest) {
       globalCounts.total > 0 ? Math.round((globalCounts.conclue / globalCounts.total) * 100) : 0
 
     // 8. Taux d'atteinte consolidés
-    const orgVolumeAttainment =
-      orgTargetVolume > 0 ? Math.round((globalCounts.conclue / orgTargetVolume) * 100) : null
-    const orgValueAttainment =
-      orgTargetValue > 0 ? Math.round((totalConcludedAmount / orgTargetValue) * 100) : null
+    const orgVolumeAttainment = calculateAttainmentRate(globalCounts.conclue, orgTargetVolume)
+    const orgValueAttainment = calculateAttainmentRate(totalConcludedAmount, orgTargetValue)
 
     // 9. Activité récente (10 derniers prospects conclus)
     const recentActivity = allItems

@@ -7,6 +7,11 @@ import { formatCompactAmount } from '@/lib/formatters'
 import { useProspectingCountryDetails } from '@/hooks/useProspectingCountry'
 import type { OrgManagerStats, OrgPipelineItem } from '@/features/pipeline/hooks/useOrgPipeline'
 import type { MemberTarget } from '@/features/pipeline/hooks/useTeamTargets'
+import {
+  calculatePipelineStats,
+  calculateAttainmentRate,
+  calculateRoRate
+} from '@/lib/pipeline-metrics'
 import { OverdueFollowUpsDrawer } from './OverdueFollowUpsDrawer'
 
 interface TeamManagerPerformanceCardProps {
@@ -95,7 +100,8 @@ export function TeamManagerPerformanceCard({
       overdueCount,
       memberCount: memberIds.size,
       teamManagersCount,
-      unassignedCount
+      unassignedCount,
+      conversionRate: items.length > 0 ? Math.round((conclueCount / items.length) * 100) : 0
     }
   }, [items, manager?.uid, isGlobal, managers, todayStr])
 
@@ -512,25 +518,11 @@ export function TeamManagerPerformanceCard({
         {(() => {
           const tgtVol = targets?.targetVolume ?? null
           const tgtVal = targets?.targetValue ?? null
-          const volPct =
-            tgtVol && tgtVol > 0
-              ? Math.round((stats.conclueCount / tgtVol) * 100)
-              : null
-          const valPct =
-            tgtVal && tgtVal > 0
-              ? Math.round((stats.concludedAmount / tgtVal) * 100)
-              : null
+          const volPct = calculateAttainmentRate(stats.conclueCount, tgtVol)
+          const valPct = calculateAttainmentRate(stats.concludedAmount, tgtVal)
 
           const hasTargets = tgtVol != null || tgtVal != null
-
-          const roRate = (() => {
-            if (volPct != null && valPct != null) return Math.round((volPct + valPct) / 2)
-            if (volPct != null) return volPct
-            if (valPct != null) return valPct
-            return stats.totalCount > 0
-              ? Math.round((stats.conclueCount / stats.totalCount) * 100)
-              : 0
-          })()
+          const roRate = calculateRoRate(volPct, valPct, stats.conversionRate)
 
           const roColor = hasTargets
             ? roRate >= 100

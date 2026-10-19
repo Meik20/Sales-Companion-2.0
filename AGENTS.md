@@ -161,3 +161,30 @@ Les emojis restent autorisés dans : commentaires de code (`// ✅`), `console.l
 
 Ne **jamais** utiliser un emoji cercle coloré (`🟢🔴🟡`) pour indiquer un statut. Utiliser un `<span>` CSS avec `backgroundColor: config.color` (le champ `color` hex est disponible dans `CRM_STATUS_CONFIG` et `getPipelineAging`).
 
+---
+
+## 7. Règles Canoniques de Calcul des Métriques & Balisage Automatique
+
+> [!IMPORTANT]
+> **SOURCE DE VÉRITÉ UNIQUE : `apps/web/src/lib/pipeline-metrics.ts`**  
+> Tous les calculs de KPIs, de taux d'atteinte et d'agrégation d'objectifs de segment DOIVENT consommer ce module canonique et ne jamais être redéfinis de manière ad-hoc dans les pages ou composants.
+
+### A. Règle du Portefeuille Actif
+- **Définition :** Le « Portefeuille Actif » regroupe strictement les opportunités en cours de traitement : **prospection** et **négociation**.
+- **Exclusion des conclues :** Une opportunité au statut **conclue** (ou équivalent : won, closed, signé) est clôturée avec succès ; elle est comptabilisée dans les réalisations/chiffre d'affaires, mais ne fait JAMAIS partie du nombre d'affaires actives (`activeCount = prospectionCount + negociationCount`).
+- **Valeur du Pipeline Actif :** Somme des montants (`amount`) des opportunités en prospection et négociation uniquement.
+
+### B. Règle de Consolidation des Objectifs du Segment / Organisation
+- **Règle hiérarchique inviolable :** Seuls les **Team Managers opérationnels** (`!isSenior` et `orgRole !== 'senior_manager'`) portent des objectifs consolidés du segment.
+- **Exclusion du Senior Manager :** Le Senior Manager supervise l'organisation globale et ne détient pas de portefeuille opérationnel de routine. Ses cibles résiduelles ou historiques sont **systématiquement exclues** de `orgTargetVolume` et `orgTargetValue`.
+- **Taux d'Atteinte (Volume et Valeur) :** `calculateAttainmentRate(réalisé, cible)` retourne `(réalisé / cible) * 100` ou `null` si la cible n'est pas définie (> 0).
+- **Taux R/O (Réalisé / Objectif) :** Moyenne composite des taux volume et valeur (`calculateRoRate`).
+
+### C. Balisage & Contrôle Automatique Continu
+- **Tests unitaires automatisés :** `apps/web/src/lib/__tests__/pipeline-metrics.test.ts` valide systématiquement toutes les règles mathématiques et l'exclusion du Senior Manager.
+- **Garde-fou pré-build :** `scripts/check-architecture-integrity.js` (Étape 8) bloque tout build ou push si :
+  1. Le module `apps/web/src/lib/pipeline-metrics.ts` est altéré ou incomplet.
+  2. La route `/api/reporting/org/route.ts` tente de requêter les cibles sur `managerUids` au lieu de `teamManagerUids`.
+  3. Le composant `TeamManagerPerformanceCard.tsx` n'utilise pas `stats.activeCount` pour la métrique du Portefeuille Actif.
+
+

@@ -17,6 +17,7 @@ import { useExportTeamPerformance } from '@/features/pipeline/hooks/useExportTea
 import { useTeamTargets, useSaveTeamTarget } from '@/features/pipeline/hooks/useTeamTargets'
 import { useOrgPipeline, type OrgManagerStats } from '@/features/pipeline/hooks/useOrgPipeline'
 import { TeamManagerPerformanceCard } from '@/features/pipeline/components/TeamManagerPerformanceCard'
+import { aggregateOrgSegmentTargets } from '@/lib/pipeline-metrics'
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslation } from '@/providers/I18nProvider'
@@ -87,25 +88,23 @@ export default function PipelinePage() {
   // Synthèse consolidée pour le Senior Manager (vue globale : somme des objectifs de tous les Team Managers)
   const smGlobalTarget = useMemo(() => {
     if (!isSeniorManager || !allTeamTargets?.length) return null
-    const tmOnlyTargets = allTeamTargets.filter((t) => t.managerUid !== user?.uid)
-    if (!tmOnlyTargets.length) return null
-    const targetVolume = tmOnlyTargets.reduce(
-      (sum, t) => (t.targetVolume != null ? sum + t.targetVolume : sum),
-      0
-    )
-    const targetValue = tmOnlyTargets.reduce(
-      (sum, t) => (t.targetValue != null ? sum + t.targetValue : sum),
-      0
-    )
-    const period = tmOnlyTargets.find((t) => t.period)?.period ?? null
+    const managersList = orgPipelineQuery.data?.managers ?? []
+    // Si managersList n'est pas encore dispo, on fallback sur l'exclusion directe du Senior Manager
+    const effectiveManagers = managersList.length > 0
+      ? managersList
+      : [{ uid: user?.uid ?? '', isSenior: true, orgRole: 'senior_manager' }]
+
+    const aggregated = aggregateOrgSegmentTargets(effectiveManagers, allTeamTargets)
+    if (!aggregated.targetVolume && !aggregated.targetValue) return null
+
     return {
       memberId: 'org',
       memberName: "Organisation",
-      targetVolume: targetVolume > 0 ? targetVolume : null,
-      targetValue: targetValue > 0 ? targetValue : null,
-      period
+      targetVolume: aggregated.targetVolume,
+      targetValue: aggregated.targetValue,
+      period: aggregated.period
     }
-  }, [isSeniorManager, allTeamTargets, user?.uid])
+  }, [isSeniorManager, allTeamTargets, orgPipelineQuery.data?.managers, user?.uid])
 
   // Synthèse ciblée pour le Senior Manager (lorsqu'un Team Manager précis est filtré)
   const smFilteredTarget = useMemo(() => {

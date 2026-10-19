@@ -227,6 +227,59 @@ try {
   errors.push(`❌ Impossible de vérifier pipeline-org.service.ts : ${e.message}`)
 }
 
+// 8. Vérifier les règles canoniques de calcul de pipeline et de consolidation du segment
+try {
+  // A. Présence du module canonique pipeline-metrics.ts
+  const metricsModulePath = path.resolve(__dirname, '../apps/web/src/lib/pipeline-metrics.ts')
+  if (!fs.existsSync(metricsModulePath)) {
+    errors.push("❌ Module canonique manquant : apps/web/src/lib/pipeline-metrics.ts est introuvable.")
+  } else {
+    const metricsCode = fs.readFileSync(metricsModulePath, 'utf8')
+    const requiredExports = [
+      'normalizePipelineStatus',
+      'calculatePipelineStats',
+      'calculateAttainmentRate',
+      'calculateRoRate',
+      'aggregateOrgSegmentTargets'
+    ]
+    for (const exp of requiredExports) {
+      if (!metricsCode.includes(`export function ${exp}`)) {
+        errors.push(`❌ RÈGLE DE CALCUL BALISÉE : La fonction canonique "${exp}" est absente de pipeline-metrics.ts.`)
+      }
+    }
+    console.log('✅ Module canonique pipeline-metrics.ts conforme (toutes les règles formelles sont exportées)')
+  }
+
+  // B. Vérifier que api/reporting/org/route.ts consolide les targets sur teamManagerUids (exclut le Senior Manager)
+  const reportingOrgRoute = fs.readFileSync(
+    path.resolve(__dirname, '../apps/web/src/app/api/reporting/org/route.ts'),
+    'utf8'
+  )
+  if (reportingOrgRoute.includes('for (let i = 0; i < managerUids.length; i += 30)')) {
+    errors.push(
+      '❌ RÉGRESSION DÉTECTÉE DANS api/reporting/org/route.ts : Les cibles (targets) sont requêtées sur "managerUids" (incluant le Senior Manager). ' +
+      'Les objectifs consolidés du segment doivent OBLIGATOIREMENT être requêtés sur "teamManagerUids" (exclusion stricte du SM).'
+    )
+  } else {
+    console.log('✅ api/reporting/org/route.ts conforme (consolidation exclusive des Team Managers opérationnels)')
+  }
+
+  // C. Vérifier que TeamManagerPerformanceCard affiche bien activeCount dans Portefeuille Actif
+  const perfCardCode = fs.readFileSync(
+    path.resolve(__dirname, '../apps/web/src/features/pipeline/components/TeamManagerPerformanceCard.tsx'),
+    'utf8'
+  )
+  if (!perfCardCode.includes('stats.activeCount')) {
+    errors.push(
+      '❌ RÉGRESSION DÉTECTÉE DANS TeamManagerPerformanceCard.tsx : La carte Portefeuille Actif doit afficher "stats.activeCount" (prospection + négociation), non le totalCount incluant les conclues.'
+    )
+  } else {
+    console.log('✅ TeamManagerPerformanceCard.tsx conforme (Portefeuille Actif affiche activeCount)')
+  }
+} catch (e) {
+  errors.push(`❌ Erreur lors du contrôle des règles de calcul de pipeline : ${e.message}`)
+}
+
 // Affichage du bilan
 if (warnings.length > 0) {
   console.warn("\n⚠️ AVERTISSEMENTS D'INTÉGRITÉ :")
