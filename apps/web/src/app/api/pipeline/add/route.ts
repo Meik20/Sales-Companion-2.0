@@ -27,9 +27,10 @@ export async function POST(request: NextRequest) {
     }
 
     let userId: string
+    let decodedToken: any
     try {
-      const decoded = await adminAuth.verifyIdToken(token)
-      userId = decoded.uid
+      decodedToken = await adminAuth.verifyIdToken(token)
+      userId = decodedToken.uid
     } catch {
       return NextResponse.json({ message: 'Token invalide' }, { status: 401 })
     }
@@ -38,15 +39,15 @@ export async function POST(request: NextRequest) {
     const callerData = callerDoc.data()
 
     // Membres activés via invitation manageur : ils n'ont pas de flux email-verification.
-    // Leur `activated: true` est l'équivalent fonctionnel de la vérification email.
+    // Leur `activated: true` ou `active: true` est l'équivalent fonctionnel de la vérification email.
     const isMemberByInvitation =
-      callerData?.role === 'member' && callerData?.activated === true && callerData?.active === true
+      callerData?.role === 'member' && (callerData?.activated === true || callerData?.active === true)
+    const isEmailVerified = Boolean(callerData?.emailVerified || decodedToken.email_verified)
 
     if (
       !callerData ||
       callerData.active !== true ||
-      callerData.activated !== true ||
-      (!isMemberByInvitation && callerData.emailVerified !== true)
+      (!isMemberByInvitation && !isEmailVerified)
     ) {
       return NextResponse.json(
         { message: 'Un compte actif et vérifié est requis.' },
@@ -79,7 +80,13 @@ export async function POST(request: NextRequest) {
       companyEmail,
       companyCountry,
       country,
-      googlePlaceId
+      googlePlaceId,
+      status,
+      amount,
+      currency,
+      note,
+      nextAction,
+      nextDate
     } = body as {
       companyId?: string
       companyName?: string
@@ -92,6 +99,12 @@ export async function POST(request: NextRequest) {
       companyCountry?: string
       country?: string
       googlePlaceId?: string | null
+      status?: string
+      amount?: number | string | null
+      currency?: string | null
+      note?: string | null
+      nextAction?: string | null
+      nextDate?: string | null
     }
 
     const callerHomeCountry = ((callerData.country as string) || 'CM').toUpperCase().trim()
@@ -228,9 +241,12 @@ export async function POST(request: NextRequest) {
       companyEmail: companyEmail ?? null,
       email: companyEmail ?? null,
       companyWebsite: finalWebsite ?? null,
-      status: 'prospection',
-      nextDate: null,
-      note: '',
+      status: status && ['prospection', 'negociation', 'conclue'].includes(status) ? status : 'prospection',
+      amount: typeof amount === 'number' ? amount : (amount ? parseFloat(String(amount)) : null),
+      currency: currency || 'FCFA',
+      nextAction: nextAction || null,
+      nextDate: nextDate || null,
+      note: note || '',
       previousAssignees,
       enteredAt: now.toISOString(),
       assignedAt: finalAssignedTo ? now.toISOString() : null,
@@ -277,8 +293,8 @@ export async function POST(request: NextRequest) {
             region: companyRegion ?? null,
             phone: finalPhone ?? null,
             email: companyEmail ?? null,
-            notes: null,
-            status: 'prospection',
+            notes: note || null,
+            status: status && ['prospection', 'negociation', 'conclue'].includes(status) ? status : 'prospection',
             transfer_deadline: null,
             assignment_deadline: null,
             transferred_to_manager_uid: null,
