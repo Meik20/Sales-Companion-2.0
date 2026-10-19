@@ -34,7 +34,8 @@ import {
   CreditCard,
   Check,
   PanelLeftClose,
-  PanelLeftOpen
+  PanelLeftOpen,
+  X
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useTranslation } from '@/providers/I18nProvider'
@@ -319,9 +320,12 @@ export function AppSidebar({
 
   const content = (
     <div
-      className={`flex h-full w-full min-w-0 flex-col gap-1 overflow-y-auto bg-transparent ${
+      className={`flex h-full w-full min-w-0 flex-col gap-1 overflow-y-auto ${
         isNavCollapsed ? 'px-1.5 py-3' : 'px-3 py-4'
       } ${isMobile ? 'border-none' : 'border-r border-border/70'}`}
+      style={{
+        backgroundColor: 'var(--card, #ffffff)'
+      }}
     >
       {/* ── Desktop Collapse/Expand Header ── */}
       {!isMobile && (
@@ -737,21 +741,53 @@ export function AppSidebar({
     return (
       <div className="fixed inset-0 z-[9999] flex">
         {/* Dark backdrop — tap to close */}
-        <div onClick={onCloseAction} className="absolute inset-0 bg-black/65 backdrop-blur-[3px]" />
+        <div
+          onClick={onCloseAction}
+          className="absolute inset-0 bg-black/75 transition-opacity"
+        />
 
         <div
-          className="relative h-full w-[300px] max-w-[85vw] overflow-y-auto border-r border-border/80 bg-background/95 backdrop-blur-md shadow-elevation-5"
-          style={{ animation: 'slideInLeft 280ms cubic-bezier(0.16, 1, 0.3, 1)' }}
+          className="relative flex h-full w-[310px] max-w-[86vw] flex-col overflow-hidden border-r border-border shadow-elevation-5"
+          style={{
+            backgroundColor: 'var(--card, #121826)',
+            color: 'var(--card-foreground, #f8fafc)',
+            animation: 'slideInLeft 280ms cubic-bezier(0.16, 1, 0.3, 1)'
+          }}
         >
-          {content}
+          {/* Header Mobile Opaque avec Bouton Fermer (X) */}
+          <div
+            className="flex shrink-0 items-center justify-between border-b border-border/80 px-4 py-3"
+            style={{ backgroundColor: 'var(--card, #121826)' }}
+          >
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-black text-sm shadow-xs">
+                SC
+              </div>
+              <span className="font-bold text-sm text-foreground tracking-tight">
+                Sales Companion
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={onCloseAction}
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-border/80 bg-secondary/70 text-muted-foreground hover:bg-secondary hover:text-foreground transition-all cursor-pointer"
+              aria-label="Fermer le menu"
+            >
+              <X size={16} strokeWidth={2.2} />
+            </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto" style={{ backgroundColor: 'var(--card, #121826)' }}>
+            {content}
+          </div>
         </div>
 
         <style
           dangerouslySetInnerHTML={{
             __html: `
           @keyframes slideInLeft {
-            from { transform: translateX(-100%); opacity: 0; }
-            to   { transform: translateX(0);    opacity: 1; }
+            from { transform: translateX(-100%); }
+            to   { transform: translateX(0);    }
           }
         `
           }}
@@ -765,6 +801,9 @@ export function AppSidebar({
       className={`sticky top-[60px] h-[calc(100vh-60px)] shrink-0 overflow-hidden transition-all duration-200 ${
         isNavCollapsed ? 'w-[64px]' : 'w-[260px]'
       }`}
+      style={{
+        backgroundColor: 'var(--card, #ffffff)'
+      }}
     >
       {content}
     </aside>

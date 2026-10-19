@@ -54,14 +54,14 @@ function getSectorChipClass(sector: string): string {
 
 export function CompanyCardSkeleton() {
   return (
-    <div className="flex items-center justify-between gap-4 p-4 rounded-xl border border-border/70 bg-card min-h-[88px] animate-pulse">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 sm:p-4 rounded-xl border border-border/70 bg-card min-h-[88px] animate-pulse w-full min-w-0 box-border">
       {/* Zone gauche avatar */}
-      <div className="flex items-center gap-3.5 flex-1 min-w-0">
+      <div className="flex items-center gap-3 sm:gap-3.5 flex-1 min-w-0 w-full">
         <div className="h-10 w-10 shrink-0 rounded-xl bg-secondary/80" />
         <div className="flex-1 space-y-2 min-w-0">
           <div className="flex items-center gap-2">
-            <div className="h-4 w-36 rounded bg-secondary/80" />
-            <div className="h-4 w-20 rounded-full bg-secondary/60" />
+            <div className="h-4 w-32 sm:w-36 rounded bg-secondary/80" />
+            <div className="h-4 w-16 sm:w-20 rounded-full bg-secondary/60" />
           </div>
           <div className="flex items-center gap-3">
             <div className="h-3.5 w-24 rounded bg-secondary/60" />
@@ -70,11 +70,11 @@ export function CompanyCardSkeleton() {
         </div>
       </div>
       {/* Zone droite actions */}
-      <div className="flex items-center gap-2 shrink-0">
-        <div className="h-8 w-8 rounded-lg bg-secondary/70" />
-        <div className="h-8 w-8 rounded-lg bg-secondary/70" />
-        <div className="h-8 w-8 rounded-lg bg-secondary/70" />
-        <div className="h-8 w-24 rounded-lg bg-secondary/80" />
+      <div className="flex items-center justify-end gap-1.5 shrink-0 w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-border/40">
+        <div className="h-8 w-8 rounded-lg bg-secondary/70 shrink-0" />
+        <div className="h-8 w-8 rounded-lg bg-secondary/70 shrink-0" />
+        <div className="h-8 w-8 rounded-lg bg-secondary/70 shrink-0" />
+        <div className="h-8 w-24 rounded-lg bg-secondary/80 shrink-0" />
       </div>
     </div>
   )
@@ -88,7 +88,7 @@ export function CompaniesSearchResults({ items }: Props) {
 
   return (
     <>
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2 w-full min-w-0">
         {items.map((company) => {
           const name = String(company.raisonSociale || company.name || 'Entreprise')
           const initial = name.trim().charAt(0).toUpperCase() || 'E'
@@ -101,7 +101,7 @@ export function CompaniesSearchResults({ items }: Props) {
             <div
               key={company.id}
               onClick={() => setSelectedCompany(company)}
-              className={`group relative flex items-center justify-between gap-3.5 px-4 py-3 sm:py-3.5 rounded-xl border transition-all duration-150 cursor-pointer ${
+              className={`group relative flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 sm:px-4 sm:py-3.5 rounded-xl border transition-all duration-150 cursor-pointer w-full min-w-0 box-border overflow-hidden ${
                 isSelected
                   ? 'border-2 border-primary bg-primary/[0.03] shadow-sm'
                   : 'border-border/80 bg-card hover:border-primary/40 hover:shadow-md'
@@ -114,7 +114,7 @@ export function CompaniesSearchResults({ items }: Props) {
               }}
             >
               {/* ── Zone Gauche (Avatar) + Zone Centre (Infos) ── */}
-              <div className="flex items-center gap-3.5 flex-1 min-w-0">
+              <div className="flex items-start sm:items-center gap-3 sm:gap-3.5 flex-1 min-w-0 w-full">
                 {/* Avatar initiales */}
                 <div
                   className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border text-[15px] font-bold transition-transform duration-150 group-hover:scale-105 ${avatarStyle}`}
@@ -141,7 +141,7 @@ export function CompaniesSearchResults({ items }: Props) {
 
                     {sectorStr && (
                       <span
-                        className={`inline-flex items-center h-[22px] px-2 rounded-full border text-[11px] font-semibold leading-none truncate max-w-[190px] ${sectorStyle}`}
+                        className={`inline-flex items-center h-[22px] px-2 rounded-full border text-[11px] font-semibold leading-none truncate max-w-[140px] sm:max-w-[190px] ${sectorStyle}`}
                         title={sectorStr}
                       >
                         {sectorStr}
@@ -156,11 +156,11 @@ export function CompaniesSearchResults({ items }: Props) {
                   </div>
 
                   {/* Ligne 2 : Ville/Région + Téléphone + Email */}
-                  <div className="flex items-center gap-3.5 text-[12px] text-muted-foreground flex-wrap">
+                  <div className="flex items-center gap-2.5 sm:gap-3.5 text-[12px] text-muted-foreground flex-wrap min-w-0">
                     {(company.city || company.region) && (
-                      <span className="inline-flex items-center gap-1 shrink-0">
-                        <MapPin size={12} className="text-muted-foreground" />
-                        <span>
+                      <span className="inline-flex items-center gap-1 truncate max-w-[200px] sm:max-w-none">
+                        <MapPin size={12} className="text-muted-foreground shrink-0" />
+                        <span className="truncate">
                           {String(company.city || '')}
                           {company.region && !company.city ? String(company.region) : ''}
                         </span>
@@ -175,7 +175,7 @@ export function CompaniesSearchResults({ items }: Props) {
                     )}
 
                     {company.email && (
-                      <span className="inline-flex items-center gap-1 truncate max-w-[200px] text-muted-foreground hidden sm:inline-flex">
+                      <span className="inline-flex items-center gap-1 truncate max-w-[160px] text-muted-foreground hidden md:inline-flex">
                         <Mail size={12} className="text-muted-foreground shrink-0" />
                         <span className="truncate">{String(company.email)}</span>
                       </span>
@@ -186,14 +186,14 @@ export function CompaniesSearchResults({ items }: Props) {
 
               {/* ── Zone Droite (Actions) ── */}
               <div
-                className="flex items-center gap-1.5 shrink-0"
+                className="flex items-center justify-end gap-1.5 w-full sm:w-auto shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-border/40"
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Ghost 1: Appel direct */}
                 {company.telephone && (
                   <a
                     href={`tel:${company.telephone}`}
-                    className="h-8 w-8 rounded-lg border border-border/80 bg-background/60 hover:bg-secondary flex items-center justify-center text-muted-foreground hover:text-primary transition-all duration-150"
+                    className="h-8 w-8 rounded-lg border border-border/80 bg-background/60 hover:bg-secondary flex items-center justify-center text-muted-foreground hover:text-primary transition-all duration-150 shrink-0"
                     title={`Appeler ${company.telephone}`}
                   >
                     <Phone size={14} strokeWidth={1.8} />
@@ -209,7 +209,7 @@ export function CompaniesSearchResults({ items }: Props) {
                     )}
                     target="_blank"
                     rel="noreferrer"
-                    className="h-8 w-8 rounded-lg border border-border/80 bg-background/60 hover:bg-emerald-500/10 hover:text-emerald-600 hover:border-emerald-500/30 flex items-center justify-center text-muted-foreground transition-all duration-150"
+                    className="h-8 w-8 rounded-lg border border-border/80 bg-background/60 hover:bg-emerald-500/10 hover:text-emerald-600 hover:border-emerald-500/30 flex items-center justify-center text-muted-foreground transition-all duration-150 shrink-0"
                     title="WhatsApp"
                   >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">

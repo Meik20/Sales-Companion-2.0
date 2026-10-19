@@ -245,10 +245,12 @@ function SearchContent() {
           display: 'grid',
           gap: 24,
           alignItems: 'start',
-          width: '100%'
+          width: '100%',
+          minWidth: 0,
+          maxWidth: '100%'
         }}
       >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20, width: '100%' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20, width: '100%', minWidth: 0, maxWidth: '100%' }}>
           {/* Résultats */}
           {hasSearched ? (
             <DataCard

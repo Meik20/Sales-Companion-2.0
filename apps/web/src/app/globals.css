@@ -590,13 +590,17 @@ body {
 
 /* ── Grid de recherche — colonnes gérées uniquement par CSS (pas de style inline) ── */
 .search-page-grid {
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  min-width: 0;
+  max-width: 100%;
 }
 
 /* ── Tablette (< 1024px) ── */
 @media (max-width: 1024px) {
   .search-page-grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    min-width: 0;
+    max-width: 100%;
   }
   .desktop-only-panels {
     display: none !important;
