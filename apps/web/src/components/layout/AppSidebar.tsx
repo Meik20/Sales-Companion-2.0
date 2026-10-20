@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { routes } from '@/constants/routes'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
@@ -30,7 +30,6 @@ import {
   Filter,
   Moon,
   Sun,
-  Globe,
   CreditCard,
   Check,
   PanelLeftClose,
@@ -251,8 +250,13 @@ export function AppSidebar({
   const [sector, setSector] = useState('')
   const [geoState, setGeoState] = useState<'idle' | 'loading' | 'done'>('idle')
 
-  const { theme, setTheme } = useTheme()
+  const { theme, setTheme, resolvedTheme } = useTheme()
   const { t, lang, setLang } = useTranslation()
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+  const isDark = mounted ? (resolvedTheme || theme) === 'dark' : false
 
   // Pipeline stats for badge
   const pipelineStats = usePipelineStats()
@@ -602,31 +606,115 @@ export function AppSidebar({
       <SectionLabel collapsed={isNavCollapsed}>{t('sidebar.account')}</SectionLabel>
       <SidebarLink href={routes.settings} label={t('sidebar.settings')} icon={Settings} collapsed={isNavCollapsed} />
 
-      <button
-        onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-        title={isNavCollapsed ? `${t('sidebar.theme')}` : undefined}
-        className={`flex w-full items-center ${isNavCollapsed ? 'justify-center px-1' : 'justify-between px-3'} rounded-lg py-2 text-left transition-all duration-200 hover:bg-secondary cursor-pointer`}
-      >
-        <span className={`flex items-center gap-2.5 text-[13px] font-medium text-muted-foreground ${isNavCollapsed ? 'justify-center' : ''}`}>
-          {theme === 'dark' ? (
-            <Sun size={18} strokeWidth={1.75} />
-          ) : (
-            <Moon size={18} strokeWidth={1.75} />
-          )}
-          {!isNavCollapsed && `${t('sidebar.theme')} : ${theme === 'dark' ? t('sidebar.light') : t('sidebar.dark')}`}
-        </span>
-      </button>
+      {!isNavCollapsed ? (
+        <div className="mt-1.5 flex items-center justify-between gap-2 px-1">
+          {/* Sélecteur de langue : EN | FR avec langue active en surbrillance */}
+          <div
+            className="flex flex-1 items-center rounded-lg border border-border/80 bg-secondary/60 p-0.5 text-xs"
+            role="group"
+            aria-label={lang === 'en' ? 'Language selector' : 'Sélecteur de langue'}
+          >
+            <button
+              type="button"
+              onClick={() => setLang('en')}
+              className={`flex-1 flex items-center justify-center py-1 text-[11px] rounded-md transition-all cursor-pointer ${
+                lang === 'en'
+                  ? 'bg-card text-[#1B7A3E] dark:text-[#22c55e] font-bold shadow-2xs border border-border/80'
+                  : 'text-muted-foreground hover:text-foreground font-medium'
+              }`}
+              aria-pressed={lang === 'en'}
+              title="English"
+            >
+              EN
+            </button>
+            <button
+              type="button"
+              onClick={() => setLang('fr')}
+              className={`flex-1 flex items-center justify-center py-1 text-[11px] rounded-md transition-all cursor-pointer ${
+                lang === 'fr'
+                  ? 'bg-card text-[#1B7A3E] dark:text-[#22c55e] font-bold shadow-2xs border border-border/80'
+                  : 'text-muted-foreground hover:text-foreground font-medium'
+              }`}
+              aria-pressed={lang === 'fr'}
+              title="Français"
+            >
+              FR
+            </button>
+          </div>
 
-      <button
-        onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')}
-        title={isNavCollapsed ? (lang === 'fr' ? 'EN' : 'FR') : undefined}
-        className={`flex w-full items-center ${isNavCollapsed ? 'justify-center px-1' : 'justify-between px-3'} rounded-lg py-2 text-left transition-all duration-200 hover:bg-secondary cursor-pointer`}
-      >
-        <span className={`flex items-center gap-2.5 text-[13px] font-medium text-muted-foreground ${isNavCollapsed ? 'justify-center' : ''}`}>
-          <Globe size={18} strokeWidth={1.75} />
-          {!isNavCollapsed && (lang === 'fr' ? 'English (EN)' : 'Français (FR)')}
-        </span>
-      </button>
+          {/* Sélecteur de thème : toggle soleil / lune */}
+          <div
+            className="flex flex-1 items-center rounded-lg border border-border/80 bg-secondary/60 p-0.5"
+            role="group"
+            aria-label={t('sidebar.theme')}
+          >
+            <button
+              type="button"
+              onClick={() => setTheme('light')}
+              className={`flex-1 flex items-center justify-center py-1 rounded-md transition-all cursor-pointer ${
+                !isDark
+                  ? 'bg-card text-amber-500 font-bold shadow-2xs border border-border/80'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+              aria-pressed={!isDark}
+              title={lang === 'en' ? 'Light mode' : 'Mode clair'}
+            >
+              <Sun size={15} strokeWidth={2} />
+            </button>
+            <button
+              type="button"
+              onClick={() => setTheme('dark')}
+              className={`flex-1 flex items-center justify-center py-1 rounded-md transition-all cursor-pointer ${
+                isDark
+                  ? 'bg-card text-blue-400 font-bold shadow-2xs border border-border/80'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+              aria-pressed={isDark}
+              title={lang === 'en' ? 'Dark mode' : 'Mode sombre'}
+            >
+              <Moon size={15} strokeWidth={2} />
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="mt-1 flex flex-col items-center gap-1.5 px-0.5">
+          {/* Langue collapsed */}
+          <button
+            type="button"
+            onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')}
+            title={lang === 'fr' ? 'Passer en English (EN)' : 'Passer en Français (FR)'}
+            className="flex h-8 w-8 items-center justify-center rounded-lg border border-border/80 bg-secondary/50 text-[11px] font-bold text-foreground transition-all hover:bg-secondary cursor-pointer shadow-2xs"
+            aria-label={lang === 'fr' ? 'Switch to English' : 'Passer en français'}
+          >
+            <span className="text-[#1B7A3E] dark:text-[#22c55e] font-bold">
+              {lang.toUpperCase()}
+            </span>
+          </button>
+
+          {/* Thème collapsed */}
+          <button
+            type="button"
+            onClick={() => setTheme(isDark ? 'light' : 'dark')}
+            title={
+              isDark
+                ? lang === 'en'
+                  ? 'Switch to Light mode'
+                  : 'Passer en mode clair'
+                : lang === 'en'
+                  ? 'Switch to Dark mode'
+                  : 'Passer en mode sombre'
+            }
+            className="flex h-8 w-8 items-center justify-center rounded-lg border border-border/80 bg-secondary/50 text-muted-foreground transition-all hover:bg-secondary hover:text-foreground cursor-pointer shadow-2xs"
+            aria-label="Toggle theme"
+          >
+            {isDark ? (
+              <Sun size={16} strokeWidth={1.8} className="text-amber-500" />
+            ) : (
+              <Moon size={16} strokeWidth={1.8} className="text-blue-500" />
+            )}
+          </button>
+        </div>
+      )}
 
       {/* ── Admin Section ───────────────────────────────────────────── */}
       {user.role === 'admin' && (
