@@ -319,6 +319,19 @@ try {
   } else {
     console.log('✅ dashboard/page.tsx conforme (internationalisation dynamique du cycle mensuel et des métriques)')
   }
+
+  // G. Vérifier le respect de la charte officielle de marque (ScIcon) dans la sidebar mobile
+  const sidebarCode = fs.readFileSync(
+    path.resolve(__dirname, '../apps/web/src/components/layout/AppSidebar.tsx'),
+    'utf8'
+  )
+  if (!sidebarCode.includes("<ScIcon") || !sidebarCode.includes("import { ScIcon }")) {
+    errors.push(
+      "❌ CHARTE OFFICIELLE VIOLÉE DANS AppSidebar.tsx : Le logo officiel ScIcon doit être utilisé pour l'en-tête du menu latéral mobile."
+    )
+  } else {
+    console.log('✅ AppSidebar.tsx conforme (logo officiel ScIcon balisé)')
+  }
 } catch (e) {
   errors.push(`❌ Erreur lors du contrôle des règles de calcul de pipeline : ${e.message}`)
 }

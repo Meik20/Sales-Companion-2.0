@@ -42,6 +42,7 @@ import { useTranslation } from '@/providers/I18nProvider'
 import { useNetworkStatus } from '@/hooks/useNetworkStatus'
 import { GEOGRAPHY } from '@sales-companion/shared'
 import { isMobileRuntime } from '@/lib/runtime'
+import { ScIcon } from '@/components/ui/ScIcon'
 
 // ── Indicateur & bascule du mode hors connexion dans la sidebar ───────────────
 function OfflineModeIndicator() {
@@ -754,18 +755,21 @@ export function AppSidebar({
             animation: 'slideInLeft 280ms cubic-bezier(0.16, 1, 0.3, 1)'
           }}
         >
-          {/* Header Mobile Opaque avec Bouton Fermer (X) */}
+          {/* Header Mobile Opaque avec Logo officiel Sales Companion 2.0 & Bouton Fermer */}
           <div
             className="flex shrink-0 items-center justify-between border-b border-border/80 px-4 py-3"
             style={{ backgroundColor: 'var(--card, #121826)' }}
           >
             <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-black text-sm shadow-xs">
-                SC
+              <ScIcon size={28} className="shrink-0" />
+              <div className="flex items-baseline gap-1 leading-none">
+                <span className="font-heading text-sm font-bold tracking-tight text-foreground uppercase">
+                  Sales Companion
+                </span>
+                <span className="text-xs font-semibold text-muted-foreground/80">
+                  2.0
+                </span>
               </div>
-              <span className="font-bold text-sm text-foreground tracking-tight">
-                Sales Companion
-              </span>
             </div>
             <button
               type="button"

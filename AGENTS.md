@@ -221,5 +221,14 @@ Ne **jamais** utiliser un emoji cercle coloré (`🟢🔴🟡`) pour indiquer un
 > 4. **Garde-fous automatisés pré-build :**
 >    - `scripts/check-architecture-integrity.js` valide systématiquement que les vues de dashboard et de reporting consomment `getMonthPeriodLabel` ou l'aiguillage bilingue sans texte en dur non internationalisé.
 
+---
 
+## 11. Règle Obligatoire — Respect de la Charte Officielle de Marque (Logo & Icône)
 
+> [!IMPORTANT]
+> **RÈGLE STRUCTURELLE D'IDENTITÉ VISUELLE :**  
+> L'icône de marque et le logo Sales Companion DOIVENT OBLIGATOIREMENT respecter la charte officielle vectorielle :
+> 1. **Logo et Icône :** Toujours utiliser le composant canonique `<ScIcon />` (`@/components/ui/ScIcon`), qui restitue l'icône vectorielle officielle (fond vert Cameroun `#1B7A3E`, monogramme blanc `SC` en courbes Bézier précises).
+> 2. **Interdiction de substituts ad-hoc :** Il est strictement interdit d'utiliser des carrés ou cercles colorés temporaires avec du texte brut (`<div>SC</div>`) dans les en-têtes (desktop comme mobile).
+> 3. **Typographie officielle :** Le nom de marque associé au logo s'écrit `SALES COMPANION 2.0` avec la police de titrage officielle (`font-heading`) et le suffixe `2.0`.
+> 4. **Garde-fou automatisé pré-build :** `scripts/check-architecture-integrity.js` valide systématiquement que l'en-tête du menu latéral mobile consomme `ScIcon`.
