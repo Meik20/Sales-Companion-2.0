@@ -186,6 +186,18 @@ export async function POST(request: NextRequest) {
           const impSnap = await impRef.get()
           if (impSnap.exists) {
             await impRef.update(clientUpdates)
+          } else {
+            // Tenter la mise à jour dans Supabase private_prospects
+            try {
+              const { updatePrivateProspect } = await import('@/lib/supabase-private-prospects')
+              await updatePrivateProspect(
+                clientId,
+                { notes: clientUpdates.lastActivityTitle },
+                { userId: userUid }
+              )
+            } catch (sbErr) {
+              // Non bloquant
+            }
           }
         }
       }

@@ -186,8 +186,81 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // 3. Prospects importés pour support_agent / manager
+    // 3. Prospects importés pour support_agent / manager (Migration Supabase private_prospects)
     if (['support_agent', 'manager', 'admin'].includes(agentData.role)) {
+      // A. Interrogation Supabase private_prospects (Zéro quota Firestore)
+      try {
+        const { isPrivateProspectsTableAvailable, getPrivateProspects, supabasePrivateProspectToApp } =
+          await import('@/lib/supabase-private-prospects')
+        if (await isPrivateProspectsTableAvailable()) {
+          if (agentData.role === 'manager') {
+            const isSenior = agentData.orgRole === 'senior_manager'
+            const sbRes = await getPrivateProspects({
+              orgCode: agentData.orgCode || undefined,
+              managerUid: isSenior ? undefined : agentUid,
+              userId: isSenior ? agentUid : undefined,
+              limit: 1000
+            })
+            for (const sp of sbRes.prospects) {
+              if (!seen.has(sp.id)) {
+                seen.add(sp.id)
+                const appObj = supabasePrivateProspectToApp(sp)
+                clients.push(normalizeClientDoc(sp.id, appObj, 'imported'))
+              }
+            }
+          } else if (agentData.role === 'support_agent') {
+            const linkedManagerUids: string[] = [
+              agentData.managerUid,
+              ...(agentData.linkedManagerUids ?? [])
+            ].filter(Boolean)
+
+            // Prospects importés par l'agent support lui-même
+            const sbOwnRes = await getPrivateProspects({
+              orgCode: agentData.orgCode || undefined,
+              userId: agentUid,
+              limit: 1000
+            })
+            for (const sp of sbOwnRes.prospects) {
+              if (!seen.has(sp.id)) {
+                seen.add(sp.id)
+                const appObj = supabasePrivateProspectToApp(sp)
+                clients.push(normalizeClientDoc(sp.id, appObj, 'imported'))
+              }
+            }
+
+            // Prospects importés par les managers rattachés
+            for (const mUid of linkedManagerUids) {
+              const sbMgrRes = await getPrivateProspects({
+                orgCode: agentData.orgCode || undefined,
+                managerUid: mUid,
+                limit: 500
+              })
+              for (const sp of sbMgrRes.prospects) {
+                if (!seen.has(sp.id)) {
+                  seen.add(sp.id)
+                  const appObj = supabasePrivateProspectToApp(sp)
+                  clients.push(normalizeClientDoc(sp.id, appObj, 'imported'))
+                }
+              }
+            }
+          } else if (agentData.role === 'admin') {
+            const sbRes = await getPrivateProspects({
+              limit: 500
+            })
+            for (const sp of sbRes.prospects) {
+              if (!seen.has(sp.id)) {
+                seen.add(sp.id)
+                const appObj = supabasePrivateProspectToApp(sp)
+                clients.push(normalizeClientDoc(sp.id, appObj, 'imported'))
+              }
+            }
+          }
+        }
+      } catch (sbErr) {
+        console.warn('[crm/clients GET] Supabase private_prospects lookup error:', sbErr)
+      }
+
+      // B. Fallback Firestore manager_prospects (rétrocompatibilité transitionnelle)
       let impQuery = adminDb.collection('manager_prospects') as any
       if (agentData.role === 'support_agent') {
         impQuery = impQuery.where('importedBy', '==', agentUid).limit(1000)

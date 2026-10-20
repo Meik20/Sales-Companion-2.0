@@ -56,7 +56,18 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
           if (snap.exists) {
             targetCollection = 'manager_prospects'
           } else {
-            return NextResponse.json({ message: 'Client introuvable' }, { status: 404 })
+            // Vérifier dans Supabase private_prospects (migration imports CRM)
+            try {
+              const { getPrivateProspects } = await import('@/lib/supabase-private-prospects')
+              const sbRes = await getPrivateProspects({ id, limit: 1 })
+              if (sbRes.prospects.length > 0) {
+                targetCollection = 'supabase_private_prospects'
+              } else {
+                return NextResponse.json({ message: 'Client introuvable' }, { status: 404 })
+              }
+            } catch {
+              return NextResponse.json({ message: 'Client introuvable' }, { status: 404 })
+            }
           }
         }
       }
@@ -142,7 +153,26 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         : null
     }
 
-    await docRef.update(updates)
+    if (targetCollection === 'supabase_private_prospects') {
+      const { updatePrivateProspect } = await import('@/lib/supabase-private-prospects')
+      const sbUpdates: Record<string, any> = {}
+      if (body.companyName !== undefined) sbUpdates.company_name = body.companyName.trim()
+      if (body.phone !== undefined) sbUpdates.phone = body.phone.trim()
+      if (body.email !== undefined) sbUpdates.email = body.email.trim()
+      if (body.city !== undefined) sbUpdates.city = body.city.trim()
+      if (body.sector !== undefined) sbUpdates.sector = body.sector.trim()
+      if (body.notes !== undefined) sbUpdates.notes = body.notes.trim()
+      if (body.status !== undefined) sbUpdates.status = body.status
+      if (body.assignedTo !== undefined) sbUpdates.assigned_to = body.assignedTo || null
+
+      await updatePrivateProspect(id, sbUpdates, {
+        orgCode: agentData.orgCode || undefined,
+        userId: agentUid,
+        managerUid: agentData.role === 'manager' ? agentUid : undefined
+      })
+    } else {
+      await docRef.update(updates)
+    }
 
     return NextResponse.json({
       success: true,
@@ -217,12 +247,23 @@ export async function DELETE(
       return NextResponse.json({ success: true })
     }
 
-    // 4. Tenter suppression dans manager_prospects
+    // 4. Tenter suppression dans manager_prospects (Firestore legacy)
     const impRef = adminDb.collection('manager_prospects').doc(id)
     const impSnap = await impRef.get()
     if (impSnap.exists) {
       await impRef.delete()
       return NextResponse.json({ success: true })
+    }
+
+    // 5. Tenter suppression dans Supabase private_prospects
+    try {
+      const { deletePrivateProspect } = await import('@/lib/supabase-private-prospects')
+      await deletePrivateProspect(id, {
+        orgCode: agentData.orgCode || undefined,
+        userId: agentUid
+      })
+    } catch (sbErr) {
+      console.warn('[crm/clients/[id] DELETE] Supabase delete error:', sbErr)
     }
 
     return NextResponse.json({ success: true })

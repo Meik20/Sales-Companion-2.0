@@ -127,24 +127,57 @@ export async function POST(request: NextRequest) {
     const now = new Date()
 
     // ── 4. Récupérer les documents liés au commercial ─────────────────────
-    const [pipelineSnap, assignmentsSnap, accessesSnap] = await Promise.all([
-      // Fiches de pipeline appartenant à ce commercial
-      adminDb
-        .collection('pipeline')
-        .where('userId', '==', memberUid)
-        .where('orgCode', '==', orgCode)
-        .get(),
+    const [
+      pipelineUserSnap,
+      pipelineAssignedSnap,
+      assignmentsSnap,
+      accessesSnap,
+      clientsSnap,
+      crmAssignedSnap,
+      crmOwnerSnap
+    ] = await Promise.all([
+      // Fiches de pipeline créées par ce commercial
+      adminDb.collection('pipeline').where('userId', '==', memberUid).get(),
+      // Fiches de pipeline assignées à ce commercial
+      adminDb.collection('pipeline').where('assignedTo', '==', memberUid).get(),
       // Assignations actives de ce commercial
-      adminDb
-        .collection('team_assignments')
-        .where('memberId', '==', memberUid)
-        .get(),
+      adminDb.collection('team_assignments').where('memberId', '==', memberUid).get(),
       // Fiche d'accès team_accesses du commercial
-      adminDb
-        .collection('team_accesses')
-        .where('orgCode', '==', orgCode)
-        .get()
+      adminDb.collection('team_accesses').where('orgCode', '==', orgCode).get(),
+      // Fiches de la Base de données clients conclues par le commercial
+      adminDb.collection('clients').where('assignedTo', '==', memberUid).get(),
+      // Fiches CRM dédiées assignées ou créées par ce commercial
+      adminDb.collection('crm_clients').where('assignedTo', '==', memberUid).get(),
+      adminDb.collection('crm_clients').where('owner', '==', memberUid).get()
     ])
+
+    // Agréger et dédoublonner toutes les fiches pipeline du commercial
+    const pipelineDocsMap = new Map<string, any>()
+    for (const d of [...pipelineUserSnap.docs, ...pipelineAssignedSnap.docs]) {
+      const data = d.data()
+      // Multi-tenant isolation : si orgCode est renseigné, il doit matcher, sinon la fiche est rattachée
+      if (!data.orgCode || data.orgCode === orgCode) {
+        pipelineDocsMap.set(d.id, d)
+      }
+    }
+
+    // Récupérer également les fiches pointées par les assignations actives
+    for (const aDoc of assignmentsSnap.docs) {
+      const pEntryId = aDoc.data()?.pipelineEntryId
+      if (pEntryId && !pipelineDocsMap.has(pEntryId)) {
+        try {
+          const pDoc = await adminDb.collection('pipeline').doc(pEntryId).get()
+          if (pDoc.exists) {
+            const pData = pDoc.data()
+            if (!pData?.orgCode || pData?.orgCode === orgCode) {
+              pipelineDocsMap.set(pDoc.id, pDoc)
+            }
+          }
+        } catch (err) {
+          console.warn('[POST /api/team/members/transfer] pipelineEntryId fetch error:', err)
+        }
+      }
+    }
 
     // Trouver les accès correspondant à ce commercial
     const matchingAccessDocs = accessesSnap.docs.filter((d) => {
@@ -194,13 +227,15 @@ export async function POST(request: NextRequest) {
       await commitBatchIfFull()
     }
 
-    // C. Mettre à jour le pipeline du commercial (supervision managériale)
+    // C. Mettre à jour TOUT le pipeline du commercial (supervision managériale + orgCode + assignation)
     let transferredPipelineCount = 0
-    for (const d of pipelineSnap.docs) {
+    for (const d of pipelineDocsMap.values()) {
       batch.update(d.ref, {
         managerUid: targetManagerUid,
         managerName: targetManagerName,
         previousManagerUid: sourceManagerUid,
+        orgCode: orgCode,
+        assignedTo: memberUid,
         updatedAt: now
       })
       transferredPipelineCount++
@@ -213,6 +248,38 @@ export async function POST(request: NextRequest) {
       batch.update(d.ref, {
         managerUid: targetManagerUid,
         managerName: targetManagerName,
+        updatedAt: now
+      })
+      opCount++
+      await commitBatchIfFull()
+    }
+
+    // E. Mettre à jour les fiches de la Base Clients ("clients")
+    let transferredClientsCount = 0
+    for (const d of clientsSnap.docs) {
+      const data = d.data()
+      if (!data.orgCode || data.orgCode === orgCode) {
+        batch.update(d.ref, {
+          managerUid: targetManagerUid,
+          previousManagerUid: sourceManagerUid,
+          orgCode: orgCode,
+          updatedAt: now
+        })
+        transferredClientsCount++
+        opCount++
+        await commitBatchIfFull()
+      }
+    }
+
+    // F. Mettre à jour les fiches CRM ("crm_clients")
+    const crmDocsMap = new Map<string, any>()
+    for (const d of [...crmAssignedSnap.docs, ...crmOwnerSnap.docs]) {
+      crmDocsMap.set(d.id, d)
+    }
+    for (const d of crmDocsMap.values()) {
+      batch.update(d.ref, {
+        managerUid: targetManagerUid,
+        previousManagerUid: sourceManagerUid,
         updatedAt: now
       })
       opCount++

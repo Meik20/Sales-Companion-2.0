@@ -41,17 +41,36 @@ export async function GET(request: NextRequest) {
 
     // ── Contrôle d'accès : vérifier que le caller appartient à la même org que le client ──
     if (callerRole !== 'admin') {
-      // Résoudre le managerUid du client (depuis pipeline ou crm_clients)
+      // Résoudre le managerUid du client (depuis pipeline, crm_clients, manager_prospects ou Supabase private_prospects)
       let clientManagerUid: string | null = null
+      let clientOrgCode: string | null = null
       try {
         const pipeDoc = await adminDb.collection('pipeline').doc(clientId).get()
         if (pipeDoc.exists) {
           clientManagerUid = pipeDoc.data()?.managerUid ?? null
+          clientOrgCode = pipeDoc.data()?.orgCode ?? null
         }
         if (!clientManagerUid) {
           const crmDoc = await adminDb.collection('crm_clients').doc(clientId).get()
           if (crmDoc.exists) {
             clientManagerUid = crmDoc.data()?.managerUid ?? null
+            clientOrgCode = crmDoc.data()?.orgCode ?? null
+          }
+        }
+        if (!clientManagerUid) {
+          const mpDoc = await adminDb.collection('manager_prospects').doc(clientId).get()
+          if (mpDoc.exists) {
+            clientManagerUid = mpDoc.data()?.managerUid ?? null
+            clientOrgCode = mpDoc.data()?.orgCode ?? null
+          }
+        }
+        if (!clientManagerUid) {
+          const { getPrivateProspects } = await import('@/lib/supabase-private-prospects')
+          const { prospects } = await getPrivateProspects({ id: clientId, limit: 1 })
+          const firstProspect = prospects?.[0]
+          if (firstProspect) {
+            clientManagerUid = firstProspect.manager_uid || firstProspect.user_id || null
+            clientOrgCode = firstProspect.org_code || null
           }
         }
       } catch (e) {
@@ -59,13 +78,14 @@ export async function GET(request: NextRequest) {
       }
 
       // Vérifier l'appartenance à l'org
-      const isOwnerManager = callerRole === 'manager' && uid === clientManagerUid
+      const isSameOrg = Boolean(callerData?.orgCode && clientOrgCode && callerData.orgCode === clientOrgCode)
+      const isOwnerManager = callerRole === 'manager' && (uid === clientManagerUid || isSameOrg)
       const linkedManagerUids: string[] = callerData?.linkedManagerUids ?? []
       const isLinkedAgent =
         callerRole === 'support_agent' &&
-        clientManagerUid != null &&
-        (callerData?.managerUid === clientManagerUid ||
-          linkedManagerUids.includes(clientManagerUid))
+        ((clientManagerUid != null &&
+          (callerData?.managerUid === clientManagerUid ||
+            linkedManagerUids.includes(clientManagerUid))) || isSameOrg)
       const isOwnAgent = callerRole === 'support_agent' && uid === clientManagerUid
 
       if (!isOwnerManager && !isLinkedAgent && !isOwnAgent) {
@@ -131,10 +151,24 @@ export async function POST(request: NextRequest) {
     let clientManagerUid = agentData.managerUid || agentUid
     try {
       const clientDoc = await adminDb.collection('pipeline').doc(clientId).get()
-      if (clientDoc.exists) {
-        const clientData = clientDoc.data()
-        if (clientData?.managerUid) {
-          clientManagerUid = clientData.managerUid
+      if (clientDoc.exists && clientDoc.data()?.managerUid) {
+        clientManagerUid = clientDoc.data()!.managerUid
+      } else {
+        const crmDoc = await adminDb.collection('crm_clients').doc(clientId).get()
+        if (crmDoc.exists && crmDoc.data()?.managerUid) {
+          clientManagerUid = crmDoc.data()!.managerUid
+        } else {
+          const mpDoc = await adminDb.collection('manager_prospects').doc(clientId).get()
+          if (mpDoc.exists && mpDoc.data()?.managerUid) {
+            clientManagerUid = mpDoc.data()!.managerUid
+          } else {
+            const { getPrivateProspects } = await import('@/lib/supabase-private-prospects')
+            const { prospects } = await getPrivateProspects({ id: clientId, limit: 1 })
+            const firstProspect = prospects?.[0]
+            if (firstProspect) {
+              clientManagerUid = firstProspect.manager_uid || firstProspect.user_id || clientManagerUid
+            }
+          }
         }
       }
     } catch (e) {
