@@ -76,7 +76,7 @@ export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void 
           {onOpenMenuAction && (
             <button
               onClick={onOpenMenuAction}
-              className="flex items-center justify-center rounded-lg border border-border/60 bg-secondary/40 p-1.5 text-foreground transition-all duration-150 hover:bg-secondary hover:shadow-elevation-1"
+              className="flex lg:hidden items-center justify-center rounded-lg border border-border/60 bg-secondary/40 p-1.5 text-foreground transition-all duration-150 hover:bg-secondary hover:shadow-elevation-1"
               aria-label="Ouvrir le menu"
             >
               <Menu size={18} />
