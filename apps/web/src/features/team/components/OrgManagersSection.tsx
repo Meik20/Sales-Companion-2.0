@@ -23,6 +23,7 @@ import {
   UserMinus,
   ArrowRightLeft,
   AlertTriangle,
+  ShieldAlert,
   Loader2,
   X
 } from 'lucide-react'
@@ -567,6 +568,357 @@ function TransferMemberModal({
   )
 }
 
+/** Modale formelle de demande de révocation d'un Senior Manager au Support */
+interface RequestSmRevocationModalProps {
+  isOpen: boolean
+  manager: OrgManager | null
+  availableSuccessors: OrgManager[]
+  onClose: () => void
+  onSuccess: () => void
+}
+
+function RequestSmRevocationModal({
+  isOpen,
+  manager,
+  availableSuccessors,
+  onClose,
+  onSuccess
+}: RequestSmRevocationModalProps) {
+  const { t } = useTranslation()
+  const { user } = useCurrentUser()
+  const { pushToast } = useToast()
+
+  const [reason, setReason] = useState('')
+  const [executiveContactName, setExecutiveContactName] = useState('')
+  const [executiveContactEmail, setExecutiveContactEmail] = useState('')
+  const [executiveContactPhone, setExecutiveContactPhone] = useState('')
+  const [proposedSuccessorUid, setProposedSuccessorUid] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  if (!isOpen || !manager) return null
+
+  const targetName = manager.name || manager.email
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!user) return
+
+    if (reason.trim().length < 10) {
+      pushToast({
+        type: 'error',
+        title: 'Erreur',
+        description: t('team.orgGovernance.smRevocationReasonTooShort')
+      })
+      return
+    }
+
+    if (!executiveContactName.trim() || !executiveContactEmail.trim() || !executiveContactEmail.includes('@')) {
+      pushToast({
+        type: 'error',
+        title: 'Erreur',
+        description: t('team.orgGovernance.smRevocationExecContactRequired')
+      })
+      return
+    }
+
+    setLoading(true)
+    try {
+      const token = await user.getIdToken()
+      const res = await fetch('/api/support/sm-revocation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          targetSmUid: manager.uid,
+          reason: reason.trim(),
+          executiveContactName: executiveContactName.trim(),
+          executiveContactEmail: executiveContactEmail.trim(),
+          executiveContactPhone: executiveContactPhone.trim() || undefined,
+          proposedSuccessorUid: proposedSuccessorUid || undefined
+        })
+      })
+
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message || 'Erreur lors de la soumission')
+
+      pushToast({
+        type: 'success',
+        title: t('team.orgGovernance.smRevocationSuccessTitle'),
+        description: data.message || t('team.orgGovernance.smRevocationSuccessDesc')
+      })
+      onSuccess()
+      onClose()
+    } catch (err: any) {
+      pushToast({
+        type: 'error',
+        title: 'Erreur',
+        description: err.message
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 9999,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'rgba(0,0,0,0.75)',
+        padding: 16
+      }}
+    >
+      <div
+        style={{
+          width: '100%',
+          maxWidth: 560,
+          maxHeight: '90vh',
+          overflowY: 'auto',
+          background: 'var(--card, #121826)',
+          border: '1px solid var(--border)',
+          borderRadius: 12,
+          padding: 24,
+          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)',
+          color: 'var(--foreground)'
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div
+              style={{
+                width: 38,
+                height: 38,
+                borderRadius: '50%',
+                background: 'rgba(245, 158, 11, 0.15)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#f59e0b',
+                flexShrink: 0
+              }}
+            >
+              <ShieldAlert size={20} />
+            </div>
+            <div>
+              <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>
+                {t('team.orgGovernance.smRevocationModalTitle')}
+              </h3>
+              <p style={{ fontSize: 12, color: 'var(--muted-foreground)', margin: '2px 0 0 0' }}>
+                {targetName} ({manager.segment || 'Segment Général'})
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            disabled={loading}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--muted-foreground)',
+              cursor: 'pointer',
+              padding: 4
+            }}
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Notice de gouvernance formelle */}
+        <div
+          style={{
+            padding: '12px 14px',
+            borderRadius: 8,
+            background: 'rgba(245, 158, 11, 0.08)',
+            border: '1px solid rgba(245, 158, 11, 0.25)',
+            marginBottom: 16,
+            fontSize: 12,
+            color: 'var(--foreground)',
+            lineHeight: 1.5,
+            display: 'flex',
+            gap: 10,
+            alignItems: 'flex-start'
+          }}
+        >
+          <ShieldAlert size={16} style={{ color: '#f59e0b', flexShrink: 0, marginTop: 2 }} />
+          <div>{t('team.orgGovernance.smRevocationPolicyNotice')}</div>
+        </div>
+
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {/* Motif officiel */}
+          <div>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 6 }}>
+              {t('team.orgGovernance.smRevocationReasonLabel')} <span style={{ color: '#ef4444' }}>*</span>
+            </label>
+            <textarea
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder={t('team.orgGovernance.smRevocationReasonPlaceholder')}
+              rows={3}
+              required
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                borderRadius: 8,
+                border: '1px solid var(--border)',
+                background: 'var(--background)',
+                color: 'var(--foreground)',
+                fontSize: 13,
+                outline: 'none',
+                resize: 'vertical'
+              }}
+            />
+          </div>
+
+          {/* Section Direction Générale / Mandataire Social */}
+          <div
+            style={{
+              padding: '14px',
+              borderRadius: 8,
+              border: '1px solid var(--border)',
+              background: 'rgba(255, 255, 255, 0.02)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 10
+            }}
+          >
+            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--foreground)' }}>
+              {t('team.orgGovernance.smRevocationExecTitle')}
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <div>
+                <label style={{ display: 'block', fontSize: 11, color: 'var(--muted-foreground)', marginBottom: 4 }}>
+                  {t('team.orgGovernance.smRevocationExecName')} <span style={{ color: '#ef4444' }}>*</span>
+                </label>
+                <input
+                  type="text"
+                  value={executiveContactName}
+                  onChange={(e) => setExecutiveContactName(e.target.value)}
+                  placeholder="ex: Jean Dupont (DG)"
+                  required
+                  style={{
+                    width: '100%',
+                    padding: '8px 10px',
+                    borderRadius: 6,
+                    border: '1px solid var(--border)',
+                    background: 'var(--background)',
+                    color: 'var(--foreground)',
+                    fontSize: 12.5,
+                    outline: 'none'
+                  }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: 11, color: 'var(--muted-foreground)', marginBottom: 4 }}>
+                  {t('team.orgGovernance.smRevocationExecEmail')} <span style={{ color: '#ef4444' }}>*</span>
+                </label>
+                <input
+                  type="email"
+                  value={executiveContactEmail}
+                  onChange={(e) => setExecutiveContactEmail(e.target.value)}
+                  placeholder="dg@entreprise.cm"
+                  required
+                  style={{
+                    width: '100%',
+                    padding: '8px 10px',
+                    borderRadius: 6,
+                    border: '1px solid var(--border)',
+                    background: 'var(--background)',
+                    color: 'var(--foreground)',
+                    fontSize: 12.5,
+                    outline: 'none'
+                  }}
+                />
+              </div>
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: 11, color: 'var(--muted-foreground)', marginBottom: 4 }}>
+                {t('team.orgGovernance.smRevocationExecPhone')}
+              </label>
+              <input
+                type="tel"
+                value={executiveContactPhone}
+                onChange={(e) => setExecutiveContactPhone(e.target.value)}
+                placeholder="+237 6..."
+                style={{
+                  width: '100%',
+                  padding: '8px 10px',
+                  borderRadius: 6,
+                  border: '1px solid var(--border)',
+                  background: 'var(--background)',
+                  color: 'var(--foreground)',
+                  fontSize: 12.5,
+                  outline: 'none'
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Repreneur proposé par intérim */}
+          <div>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 6 }}>
+              {t('team.orgGovernance.smRevocationSuccessorLabel')}
+            </label>
+            <select
+              value={proposedSuccessorUid}
+              onChange={(e) => setProposedSuccessorUid(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                borderRadius: 8,
+                border: '1px solid var(--border)',
+                background: 'var(--background)',
+                color: 'var(--foreground)',
+                fontSize: 13,
+                outline: 'none'
+              }}
+            >
+              <option value="">{t('team.orgGovernance.smRevocationSuccessorPlaceholder')}</option>
+              {availableSuccessors.map((tm) => (
+                <option key={tm.uid} value={tm.uid}>
+                  {tm.name || tm.email} ({tm.isSenior ? 'Senior Manager' : 'Team Manager'}{tm.segment ? ` — ${tm.segment}` : ''})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Boutons d'action */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 8 }}>
+            <Button variant="ghost" type="button" onClick={onClose} disabled={loading}>
+              Annuler
+            </Button>
+            <Button
+              variant="primary"
+              type="submit"
+              disabled={loading || !reason.trim() || !executiveContactName.trim() || !executiveContactEmail.trim()}
+              style={{
+                background: '#d97706',
+                borderColor: '#d97706',
+                color: '#ffffff'
+              }}
+            >
+              {loading ? (
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Loader2 size={14} className="animate-spin" /> {t('team.orgGovernance.smRevocationSubmitting')}
+                </span>
+              ) : (
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <ShieldAlert size={14} /> {t('team.orgGovernance.smRevocationSubmitBtn')}
+                </span>
+              )}
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 /** Carte d'un manager avec vue pipeline et liste des commerciaux supervisés */
 function ManagerCard({
   manager,
@@ -574,6 +926,7 @@ function ManagerCard({
   supervisedReps,
   availableTransferManagers,
   onRevoke,
+  onRequestSmRevocation,
   onTransferRep
 }: {
   manager: OrgManager
@@ -581,6 +934,7 @@ function ManagerCard({
   supervisedReps: TeamMemberRecord[]
   availableTransferManagers: OrgManager[]
   onRevoke: (mgr: OrgManager) => void
+  onRequestSmRevocation: (mgr: OrgManager) => void
   onTransferRep: (rep: TeamMemberRecord, currentMgr: OrgManager) => void
 }) {
   const { t, lang } = useTranslation()
@@ -725,6 +1079,36 @@ function ManagerCard({
           >
             <UserMinus size={13} />
             <span className="hidden sm:inline">{t('team.orgGovernance.revokeTmBtn')}</span>
+          </button>
+        )}
+
+        {/* Bouton Demande au Support si c'est un autre Senior Manager */}
+        {manager.isSenior && !manager.isCurrent && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              onRequestSmRevocation(manager)
+            }}
+            title={t('team.orgGovernance.requestSmRevocationTitle')}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 5,
+              padding: '5px 9px',
+              borderRadius: 6,
+              background: 'rgba(245, 158, 11, 0.1)',
+              border: '1px solid rgba(245, 158, 11, 0.3)',
+              color: '#d97706',
+              fontSize: 11,
+              fontWeight: 600,
+              cursor: 'pointer',
+              flexShrink: 0,
+              marginLeft: 4
+            }}
+          >
+            <ShieldAlert size={13} />
+            <span className="hidden sm:inline">{t('team.orgGovernance.requestSmRevocationBtn')}</span>
           </button>
         )}
 
@@ -932,6 +1316,7 @@ export function OrgManagersSection({ managers, orgCode, onRefresh }: OrgManagers
 
   // Modal states
   const [managerToRevoke, setManagerToRevoke] = useState<OrgManager | null>(null)
+  const [smToRevokeRequest, setSmToRevokeRequest] = useState<OrgManager | null>(null)
   const [transferringRep, setTransferringRep] = useState<{
     rep: TeamMemberRecord
     manager: OrgManager
@@ -980,6 +1365,7 @@ export function OrgManagersSection({ managers, orgCode, onRefresh }: OrgManagers
   }
 
   const teamManagers = managers.filter((m) => !m.isSenior)
+  const otherSeniorManagers = managers.filter((m) => m.isSenior && !m.isCurrent)
   const orgCounts = orgPipelineQuery.data?.counts
 
   const handleActionSuccess = () => {
@@ -1052,6 +1438,45 @@ export function OrgManagersSection({ managers, orgCode, onRefresh }: OrgManagers
         </div>
       )}
 
+      {/* Autres Senior Managers de l'organisation */}
+      {otherSeniorManagers.length > 0 && (
+        <div>
+          <div
+            style={{
+              fontSize: 12,
+              fontWeight: 700,
+              color: 'var(--muted-foreground)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.07em',
+              marginBottom: 10,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6
+            }}
+          >
+            <Crown size={12} style={{ color: '#fbbf24' }} /> Autres Senior Managers ({otherSeniorManagers.length})
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {otherSeniorManagers.map((mgr) => {
+              const reps = membersByManagerUid[mgr.uid] || []
+              const otherManagers = managers.filter((m) => m.uid !== mgr.uid)
+              return (
+                <ManagerCard
+                  key={mgr.uid}
+                  manager={mgr}
+                  orgStats={statsByUid[mgr.uid]}
+                  supervisedReps={reps}
+                  availableTransferManagers={otherManagers}
+                  onRevoke={(m) => setManagerToRevoke(m)}
+                  onRequestSmRevocation={(m) => setSmToRevokeRequest(m)}
+                  onTransferRep={(rep, currentMgr) => setTransferringRep({ rep, manager: currentMgr })}
+                />
+              )
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Team Managers uniquement */}
       {teamManagers.length > 0 ? (
         <div>
@@ -1082,6 +1507,7 @@ export function OrgManagersSection({ managers, orgCode, onRefresh }: OrgManagers
                   supervisedReps={reps}
                   availableTransferManagers={otherManagers}
                   onRevoke={(m) => setManagerToRevoke(m)}
+                  onRequestSmRevocation={(m) => setSmToRevokeRequest(m)}
                   onTransferRep={(rep, currentMgr) => setTransferringRep({ rep, manager: currentMgr })}
                 />
               )
@@ -1105,6 +1531,15 @@ export function OrgManagersSection({ managers, orgCode, onRefresh }: OrgManagers
         stats={managerToRevoke ? statsByUid[managerToRevoke.uid]?.stats : undefined}
         repsCount={managerToRevoke ? (membersByManagerUid[managerToRevoke.uid]?.length ?? 0) : 0}
         onClose={() => setManagerToRevoke(null)}
+        onSuccess={handleActionSuccess}
+      />
+
+      {/* Modale de demande formelle de révocation d'un Senior Manager au Support */}
+      <RequestSmRevocationModal
+        isOpen={smToRevokeRequest !== null}
+        manager={smToRevokeRequest}
+        availableSuccessors={managers.filter((m) => m.uid !== smToRevokeRequest?.uid)}
+        onClose={() => setSmToRevokeRequest(null)}
         onSuccess={handleActionSuccess}
       />
 

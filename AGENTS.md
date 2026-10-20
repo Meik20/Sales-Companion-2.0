@@ -15,18 +15,20 @@ Le système repose sur une hiérarchie stricte à 4 niveaux :
 [Organisation / Entreprise] (orgCode unique, NIU fiscal optionnel)
        │
        ▼
-[Senior Manager] (Exactement 1 par organisation)
-       │ - Supervise l'organisation globale et tous les Team Managers
-       │ - Initialise l'organisation (détient le code maître orgCode)
-       │ - Ne gère pas de portefeuille opérationnel de routine
-       │ - Délègue / transfère ses prospects initiaux aux Team Managers
-       │ - Accède au pipeline consolidé et au dashboard organisation
+[Senior Managers] (1 à N par organisation)
+       │ - Chaque Senior Manager est responsable d'un segment distinct et indépendant
+       │ - Tous les Senior Managers ont le même niveau de compétences opérationnelles que le SM1
+       │ - Le SM1 est l'initiateur technique de l'organisation (détient le code maître orgCode et les accès d'invitation)
+       │ - Le SM1 n'est pas "le propriétaire" de l'organisation (qui appartient à la personne morale cliente)
+       │ - Ne gèrent pas de portefeuille opérationnel de routine dans leur segment
+       │ - Délèguent / transfèrent leurs prospects aux Team Managers de leur segment
+       │ - Accèdent au pipeline consolidé et au dashboard de leur segment d'organisation
        │
        ▼
-[Team Managers] (0 à N par organisation)
-       │ - Managers d'équipe rattachés à l'orgCode existant
+[Team Managers] (0 à N par organisation et par segment)
+       │ - Managers d'équipe rattachés à l'orgCode et à un segment spécifique
        │ - Pilotent directement leur équipe de commerciaux et leur pipeline
-       │ - Créent les accès membres et assignent les prospects
+       │ - Créent les accès membres et assignent les prospects de leur segment
        │
        ▼
 [Commerciaux de terrain / Membres] (rôle 'member')
@@ -46,8 +48,9 @@ Le système repose sur une hiérarchie stricte à 4 niveaux :
 
 - **`role`** : `'independent'` | `'manager'` | `'member'` | `'support_agent'` | `'admin'`.
 - **`orgRole`** (managers uniquement) :
-  - `'senior_manager'` : premier manager de l'organisation (`orgCode` maître).
+  - `'senior_manager'` : Senior Manager (initiateur SM1 ou nommé sur un segment distinct).
   - `'team_manager'` : manager ayant rejoint une organisation existante via `joinOrgCode`.
+- **`segment`** : segment d'activité rattaché (ex. 'Pôle Nord', 'Grands Comptes', 'Banque').
 - **`orgCode`** : code unique de l'organisation (format `SC-[PAYS]-[5CARACTÈRES]`, ex: `SC-CM-GE9GQ`).
 - **Synchronisation Auth Claims** :
   - Le claim Firebase Auth `auth.token.role` doit **TOUJOURS correspondre strictement** au champ Firestore `users/{uid}.role`.
@@ -56,8 +59,8 @@ Le système repose sur une hiérarchie stricte à 4 niveaux :
 ### B. Document Organisation (`organisations/{orgCode}`)
 
 - Clé primaire du document = `orgCode`.
-- Contient : `seniorManagerUid`, `companyName`, `sector`, `country`, `niu`, `isVerified`.
-- Le `seniorManagerUid` est le propriétaire et administrateur de l'organisation.
+- Contient : `seniorManagerUid` (UID du SM1 initiateur technique), `companyName`, `sector`, `country`, `niu`, `isVerified`.
+- Le `seniorManagerUid` est l'administrateur technique initial de l'organisation (créateur des invitations), sans être le propriétaire de la personne morale.
 
 ### C. Fiches Pipeline (`pipeline/{itemId}`)
 
@@ -248,4 +251,9 @@ Ne **jamais** utiliser un emoji cercle coloré (`🟢🔴🟡`) pour indiquer un
 >    - Le transfert individuel d'un commercial vers un nouveau Team Manager réassigne la supervision managériale (`managerUid`), mais préserve intégralement le compte du commercial et ses opportunités actives en cours (`userId`).
 > 4. **Garde-fous automatisés pré-build :**  
 >    - `scripts/check-architecture-integrity.js` valide systématiquement la présence et la conformité des routes `/api/team/managers/revoke` et `/api/team/members/transfer`, ainsi que l'interdiction formelle de l'auto-révocation.
+> 5. **Révocation d'un Senior Manager — Arbitrage Obligatoire du Support Sales Companion :**  
+>    - La révocation directe d'un Senior Manager par un autre Senior Manager (y compris SM1) est **formellement interdite** (`/api/team/managers/revoke` rejette toute cible ayant `orgRole === 'senior_manager'`).
+>    - Toute demande de révocation d'un Senior Manager fait obligatoirement l'objet d'une demande formelle auprès du **Support de SALES COMPANION 2.0** via la route `/api/support/sm-revocation`.
+>    - L'équipe Support étudie la demande et engage impérativement des vérifications avec la Direction Générale et les responsables statutaires de l'entreprise concernée avant toute validation ou rejet.
+>    - Aucune interruption de segment ne peut survenir sans accord formel entre la direction de l'entreprise cliente et Sales Companion 2.0.
 

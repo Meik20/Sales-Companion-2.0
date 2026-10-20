@@ -365,6 +365,30 @@ try {
     }
     console.log('✅ Route /api/team/members/transfer conforme (contrôle Senior Manager et transfert atomique)')
   }
+
+  // J. Vérifier la gouvernance de révocation des Senior Managers (Section 12 AGENTS.md)
+  if (fs.existsSync(revokeRoutePath)) {
+    const revokeCode = fs.readFileSync(revokeRoutePath, 'utf8')
+    if (!revokeCode.includes("targetData.orgRole === 'senior_manager'")) {
+      errors.push("❌ GOUVERNANCE VIOLÉE : La révocation directe d'un Senior Manager doit être interdite dans /api/team/managers/revoke.")
+    } else {
+      console.log('✅ Révocation directe de Senior Manager formellement verrouillée dans /api/team/managers/revoke')
+    }
+  }
+
+  const smRevokeRoutePath = path.resolve(__dirname, '../apps/web/src/app/api/support/sm-revocation/route.ts')
+  if (!fs.existsSync(smRevokeRoutePath)) {
+    errors.push("❌ ROUTE MANQUANTE : /api/support/sm-revocation/route.ts doit exister pour l'arbitrage Support.")
+  } else {
+    const smRevokeCode = fs.readFileSync(smRevokeRoutePath, 'utf8')
+    if (!smRevokeCode.includes("targetSmUid === callerUid")) {
+      errors.push("❌ SÉCURITÉ VIOLÉE DANS support/sm-revocation : L'auto-demande de révocation doit être interdite.")
+    }
+    if (!smRevokeCode.includes("support_threads")) {
+      errors.push("❌ INTÉGRITÉ VIOLÉE DANS support/sm-revocation : Un ticket dans support_threads doit être créé.")
+    }
+    console.log('✅ Route /api/support/sm-revocation conforme (arbitrage Support et ticket de gouvernance)')
+  }
 } catch (e) {
   errors.push(`❌ Erreur lors du contrôle des règles de calcul de pipeline : ${e.message}`)
 }
