@@ -595,6 +595,45 @@ body {
   max-width: 100%;
 }
 
+/* ── En-tête de filtres de recherche fixe sur Desktop (statique pendant le défilement des fiches) ── */
+@media (min-width: 1024px) {
+  .search-filters-sticky-wrap {
+    position: sticky;
+    top: -28px; /* Épingle au sommet du container sous l'AppHeader (offset du padding de <main>) */
+    z-index: 20;
+    background: var(--background);
+    padding-top: 14px;
+    padding-bottom: 12px;
+    margin-bottom: 8px;
+    margin-top: -14px;
+    box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.08);
+  }
+
+  .pipeline-tm-filter-sticky {
+    position: sticky;
+    top: -28px;
+    z-index: 20;
+    background: var(--background);
+    padding-top: 12px;
+    padding-bottom: 10px;
+    margin-top: -12px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.08);
+  }
+}
+
+/* ── Mobile & Tablette (< 1024px) : défilement normal sans comportement sticky ── */
+@media (max-width: 1023px) {
+  .search-filters-sticky-wrap {
+    position: static;
+    padding-bottom: 8px;
+    margin-bottom: 4px;
+  }
+  .pipeline-tm-filter-sticky {
+    position: static;
+  }
+}
+
 /* ── Tablette (< 1024px) ── */
 @media (max-width: 1024px) {
   .search-page-grid {

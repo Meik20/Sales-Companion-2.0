@@ -220,8 +220,8 @@ function SearchContent() {
 
   return (
     <AppShell>
-      {/* Barre de recherche — pas de carte, fond neutre */}
-      <div style={{ paddingBottom: 8, marginBottom: 4 }}>
+      {/* Barre de recherche — fixe sur Desktop (sticky), défile normalement sur Mobile */}
+      <div className="search-filters-sticky-wrap">
         <SearchFiltersForm
           initialValues={filters}
           onSubmit={(v) => {
@@ -674,17 +674,17 @@ function SearchContent() {
           )}
         </div>
 
-        {/* Colonne de Droite : Pipeline & Assistant (Desktop uniquement) */}
+        {/* Colonne de Droite : Pipeline & Assistant (Desktop uniquement, reste statique pendant le scroll des résultats) */}
         <div
-          className="desktop-only-panels"
+          className="desktop-only-panels search-widgets-sticky-col"
           style={{
             display: 'flex',
             flexDirection: 'column',
             gap: 20,
             minWidth: 300,
             position: 'sticky',
-            top: 88,
-            maxHeight: 'calc(100vh - 116px)',
+            top: 130,
+            maxHeight: 'calc(100vh - 150px)',
             overflowY: 'auto',
             overscrollBehavior: 'contain',
             paddingRight: 4
