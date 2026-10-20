@@ -107,14 +107,12 @@ export function ConfirmDialog({
 
   const dialogContent = (
     <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="confirm-dialog-title"
       className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
       style={{ position: 'fixed', inset: 0, zIndex: 9999 }}
     >
       {/* Backdrop sombre semi-transparent (sans flou blanc laiteux) */}
       <div
+        aria-hidden="true"
         className="fixed inset-0 transition-opacity duration-200"
         style={{
           position: 'fixed',
@@ -131,6 +129,10 @@ export function ConfirmDialog({
 
       {/* Modal Dialog 100% opaque (Règle UI §8) */}
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="confirm-dialog-title"
+        data-dialog-type="confirm"
         className="relative z-10 w-full max-w-md rounded-2xl border p-6 shadow-2xl transition-all duration-200"
         style={{
           position: 'relative',

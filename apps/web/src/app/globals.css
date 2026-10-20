@@ -799,8 +799,8 @@ body {
     grid-template-columns: 1fr !important;
   }
 
-  /* Modal / panneau flottant — pleine hauteur */
-  [role='dialog'] {
+  /* Modal / panneau flottant — pleine hauteur sur mobile (les dialogues de confirmation conservent leur taille centrée) */
+  [role='dialog']:not([data-dialog-type='confirm']) {
     width: 100vw !important;
     height: 100dvh !important;
     border-radius: 0 !important;
@@ -880,11 +880,10 @@ body {
   border-radius: 9999px !important;
 }
 
-/* ─── Fenêtres, Popovers et Menus Flottants — Opacité 100% Structurelle ─── */
+/* ─── Fenêtres, Popovers et Menus Flottants — Opacité 100% Structurelle (Règle UI §8) ─── */
 .popover-panel,
 .dropdown-menu,
 [role='dialog'],
-[role='dialog'] > div,
 [role='menu'] {
   background-color: var(--card) !important;
   opacity: 1 !important;
