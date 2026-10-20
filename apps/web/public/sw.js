@@ -1,6 +1,6 @@
 // Service Worker for Sales Companion PWA
-// v11 — Strict "Default Deny" strategy for zero risk of private/stale data leakage
-const CACHE_NAME = 'sales-companion-v11'
+// v12 — Invalidation automatique des caches de rendu et composants modaux
+const CACHE_NAME = 'sales-companion-v12'
 
 // Listen for explicit skip waiting request
 self.addEventListener('message', (event) => {

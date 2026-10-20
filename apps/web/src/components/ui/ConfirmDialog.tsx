@@ -111,11 +111,18 @@ export function ConfirmDialog({
       aria-modal="true"
       aria-labelledby="confirm-dialog-title"
       className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+      style={{ position: 'fixed', inset: 0, zIndex: 9999 }}
     >
       {/* Backdrop sombre semi-transparent (sans flou blanc laiteux) */}
       <div
         className="fixed inset-0 transition-opacity duration-200"
-        style={{ backgroundColor: 'rgba(0, 0, 0, 0.65)' }}
+        style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.65)',
+          backdropFilter: 'none',
+          WebkitBackdropFilter: 'none'
+        }}
         onClick={() => {
           if (!isLoading) onCancel()
         }}
