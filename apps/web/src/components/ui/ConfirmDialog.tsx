@@ -1,6 +1,7 @@
 'use client'
 
-import React, { useEffect, useCallback } from 'react'
+import React, { useEffect, useCallback, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { AlertTriangle, Trash2, AlertCircle, X, Loader2 } from 'lucide-react'
 
 export type ConfirmDialogVariant = 'danger' | 'warning' | 'info'
@@ -69,8 +70,13 @@ export function ConfirmDialog({
   onConfirm,
   onCancel
 }: ConfirmDialogProps) {
+  const [mounted, setMounted] = useState(false)
   const config = variantConfig[variant] || variantConfig.danger
   const Icon = config.icon
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // Escape key handler
   const handleKeyDown = useCallback(
@@ -85,66 +91,72 @@ export function ConfirmDialog({
   useEffect(() => {
     if (isOpen) {
       window.addEventListener('keydown', handleKeyDown)
-      // Prevent background scrolling
-      document.body.style.overflow = 'hidden'
-    }
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown)
-      document.body.style.overflow = ''
+      // Bloquer le scroll du conteneur principal lors de l'ouverture du dialogue
+      const main = document.getElementById('main-scroll-container')
+      const prevMainOverflow = main ? main.style.overflowY : ''
+      if (main) main.style.overflowY = 'hidden'
+
+      return () => {
+        window.removeEventListener('keydown', handleKeyDown)
+        if (main) main.style.overflowY = prevMainOverflow
+      }
     }
   }, [isOpen, handleKeyDown])
 
-  if (!isOpen) return null
+  if (!isOpen || !mounted) return null
 
-  return (
+  const dialogContent = (
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby="confirm-dialog-title"
       className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
     >
-      {/* Backdrop */}
+      {/* Backdrop sombre semi-transparent (sans flou blanc laiteux) */}
       <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity animate-in fade-in duration-200"
+        className="fixed inset-0 transition-opacity duration-200"
+        style={{ backgroundColor: 'rgba(0, 0, 0, 0.65)' }}
         onClick={() => {
           if (!isLoading) onCancel()
         }}
       />
 
-      {/* Modal Dialog */}
+      {/* Modal Dialog 100% opaque (Règle UI §8) */}
       <div
-        className="relative w-full max-w-md rounded-2xl border border-border/80 bg-card p-6 shadow-2xl transition-all animate-in zoom-in-95 duration-200"
+        className="relative w-full max-w-md rounded-2xl border p-6 shadow-2xl transition-all duration-200"
         style={{
-          boxShadow: `0 20px 40px -15px ${config.glowColor}, 0 0 0 1px var(--border)`
+          backgroundColor: 'var(--card, #ffffff)',
+          borderColor: 'var(--border, rgba(255, 255, 255, 0.12))',
+          boxShadow: `0 20px 40px -15px ${config.glowColor}, 0 0 0 1px var(--border, rgba(0,0,0,0.08))`
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Subtle decorative glow at the top */}
+        {/* Halo décoratif subtil */}
         <div
           className="pointer-events-none absolute -top-24 left-1/2 h-36 w-72 -translate-x-1/2 rounded-full blur-3xl opacity-40"
           style={{ background: config.glowColor }}
         />
 
-        {/* Close Button */}
+        {/* Bouton Fermer */}
         <button
           type="button"
           disabled={isLoading}
           onClick={onCancel}
-          className="absolute right-4 top-4 rounded-lg p-1.5 text-muted-foreground hover:bg-secondary/80 hover:text-foreground transition-colors disabled:opacity-50"
+          className="absolute right-4 top-4 rounded-lg p-1.5 text-muted-foreground hover:bg-secondary/80 hover:text-foreground transition-colors disabled:opacity-50 cursor-pointer"
           aria-label="Fermer"
         >
           <X size={16} />
         </button>
 
         <div className="flex items-start gap-4">
-          {/* Icon Badge */}
+          {/* Badge Icône */}
           <div
             className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border ${config.iconBg} ${config.iconColor}`}
           >
             <Icon size={20} />
           </div>
 
-          {/* Text Content */}
+          {/* Contenu Texte */}
           <div className="flex-1 min-w-0 pr-4">
             <h3
               id="confirm-dialog-title"
@@ -160,7 +172,7 @@ export function ConfirmDialog({
           </div>
         </div>
 
-        {/* Action Buttons */}
+        {/* Boutons d'action */}
         <div className="mt-6 flex items-center justify-end gap-3 pt-2">
           <button
             type="button"
@@ -184,4 +196,6 @@ export function ConfirmDialog({
       </div>
     </div>
   )
+
+  return createPortal(dialogContent, document.body)
 }
