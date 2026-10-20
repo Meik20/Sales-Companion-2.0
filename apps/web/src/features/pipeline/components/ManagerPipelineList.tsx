@@ -1800,6 +1800,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
       {/* ── Sélecteur d'activité individuelle par commercial (Team Manager uniquement, masqué en vue Org SM) ───────────── */}
       {!isOrgView && (
         <div
+          className="pipeline-member-filter-sticky"
           style={{
             marginBottom: 16,
             background: 'var(--card, #131c2e)',

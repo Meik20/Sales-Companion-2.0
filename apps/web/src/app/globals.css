@@ -595,7 +595,7 @@ body {
   max-width: 100%;
 }
 
-/* ── En-tête de filtres de recherche fixe sur Desktop (statique pendant le défilement des fiches) ── */
+/* ── En-têtes et barres de filtres fixes sur Desktop (statique/sticky pendant le défilement) ── */
 @media (min-width: 1024px) {
   .search-filters-sticky-wrap {
     position: sticky;
@@ -607,6 +607,7 @@ body {
     margin-bottom: 8px;
     margin-top: -14px;
     box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.08);
+    backdrop-filter: none !important; /* Règle UI §8 */
   }
 
   .pipeline-tm-filter-sticky {
@@ -619,6 +620,45 @@ body {
     margin-top: -12px;
     margin-bottom: 16px;
     box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.08);
+    backdrop-filter: none !important; /* Règle UI §8 */
+  }
+
+  /* Filtre par commercial dans le Kanban Pipeline (ManagerPipelineList) */
+  .pipeline-member-filter-sticky {
+    position: sticky;
+    top: 0px;
+    z-index: 25;
+    background: var(--card, #131c2e) !important;
+    border: 1px solid var(--border, rgba(255, 255, 255, 0.12)) !important;
+    box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.25) !important;
+    backdrop-filter: none !important; /* Règle UI §8 : 100% opaque */
+  }
+
+  /* Filtres de la table CRM (crm/page — reste épinglé lors du défilement des fiches clients) */
+  .crm-filters-sticky {
+    position: sticky;
+    top: -28px;
+    z-index: 20;
+    background: var(--background) !important;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    margin-top: -12px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.08);
+    backdrop-filter: none !important; /* Règle UI §8 */
+  }
+
+  /* Barre de filtres de la liste des prospects importés (ManagerProspectsList) */
+  .imports-filter-sticky {
+    position: sticky;
+    top: 0px;
+    z-index: 20;
+    background: var(--card, #131c2e) !important;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border, rgba(255, 255, 255, 0.08)) !important;
+    box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.15) !important;
+    backdrop-filter: none !important; /* Règle UI §8 */
   }
 }
 
@@ -629,7 +669,10 @@ body {
     padding-bottom: 8px;
     margin-bottom: 4px;
   }
-  .pipeline-tm-filter-sticky {
+  .pipeline-tm-filter-sticky,
+  .pipeline-member-filter-sticky,
+  .crm-filters-sticky,
+  .imports-filter-sticky {
     position: static;
   }
 }

@@ -42,7 +42,7 @@ export function CrmFilters({
   const hasActiveFilters = filters.status || filters.sector || filters.city
 
   return (
-    <div className="flex flex-col gap-4 mb-5">
+    <div className="crm-filters-sticky flex flex-col gap-4 mb-5">
       {/* Header stats + Add button */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-2">

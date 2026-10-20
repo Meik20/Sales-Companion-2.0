@@ -672,7 +672,7 @@ export function ManagerProspectsList({
     <>
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       {/* ── Barre de filtres ── */}
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+      <div className="imports-filter-sticky" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
         <input
           type="text"
           placeholder={t('team.searchProspect')}
