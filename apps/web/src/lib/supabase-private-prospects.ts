@@ -171,6 +171,7 @@ export function supabasePrivateProspectToApp(p: SupabasePrivateProspect) {
 }
 
 export interface GetPrivateProspectsParams {
+  id?: string
   orgCode?: string | null
   managerUid?: string
   userId?: string
@@ -193,6 +194,7 @@ export async function getPrivateProspects(
   }
 
   const {
+    id,
     orgCode,
     managerUid,
     userId,
@@ -204,7 +206,7 @@ export async function getPrivateProspects(
   } = params
 
   // 🔒 GARDE-FOU MULTI-TENANT : Interdiction formelle d'interroger sans scope de locataire
-  if (!orgCode && !userId && !managerUid) {
+  if (!orgCode && !userId && !managerUid && !id) {
     throw new Error('Sécurité multi-tenant : orgCode ou userId obligatoire pour requêter private_prospects')
   }
 
@@ -213,6 +215,10 @@ export async function getPrivateProspects(
   query.set('order', 'created_at.desc')
   query.set('limit', String(limit))
   query.set('offset', String(offset))
+
+  if (id) {
+    query.set('id', `eq.${id}`)
+  }
 
   if (orgCode) {
     query.set('org_code', `eq.${orgCode}`)
@@ -260,17 +266,19 @@ export async function getPrivateProspects(
 export async function updatePrivateProspect(
   id: string,
   updates: Partial<SupabasePrivateProspectInput>,
-  scope: { orgCode?: string | null; userId?: string }
+  scope: { orgCode?: string | null; userId?: string; managerUid?: string }
 ): Promise<boolean> {
   if (!isSupabaseConfigured()) return false
-  if (!scope.orgCode && !scope.userId) {
-    throw new Error('Sécurité multi-tenant : orgCode ou userId obligatoire')
+  if (!scope.orgCode && !scope.userId && !scope.managerUid) {
+    throw new Error('Sécurité multi-tenant : orgCode, userId ou managerUid obligatoire')
   }
 
   const query = new URLSearchParams()
   query.set('id', `eq.${id}`)
   if (scope.orgCode) {
     query.set('org_code', `eq.${scope.orgCode}`)
+  } else if (scope.managerUid) {
+    query.set('manager_uid', `eq.${scope.managerUid}`)
   } else if (scope.userId) {
     query.set('user_id', `eq.${scope.userId}`)
   }
@@ -289,6 +297,69 @@ export async function updatePrivateProspect(
   })
 
   return res.ok
+}
+
+/**
+ * Transfère des prospects privés vers un Team Manager dans Supabase private_prospects.
+ * Met à jour manager_uid, transferred_to_manager_uid, transferred_from_senior_uid,
+ * transfer_deadline, assignment_deadline.
+ */
+export async function transferPrivateProspects(params: {
+  prospectIds: string[]
+  orgCode?: string | null
+  seniorUid: string
+  targetManagerUid: string
+  deadline?: string | null
+}): Promise<{ success: boolean; count: number }> {
+  if (!isSupabaseConfigured()) return { success: false, count: 0 }
+  const { prospectIds, orgCode, seniorUid, targetManagerUid, deadline } = params
+
+  if (!orgCode && !seniorUid) {
+    throw new Error('Sécurité multi-tenant : orgCode ou seniorUid obligatoire pour transférer')
+  }
+
+  const uniqueIds = Array.from(new Set(prospectIds))
+  if (uniqueIds.length === 0) return { success: true, count: 0 }
+
+  const payload = {
+    manager_uid: targetManagerUid,
+    transferred_to_manager_uid: targetManagerUid,
+    transferred_from_senior_uid: seniorUid,
+    transfer_deadline: deadline || null,
+    assignment_deadline: deadline || null,
+    assigned_to: null,
+    assigned_member_name: null,
+    updated_at: new Date().toISOString()
+  }
+
+  const CHUNK_SIZE = 50
+  let totalTransferred = 0
+
+  for (let i = 0; i < uniqueIds.length; i += CHUNK_SIZE) {
+    const chunk = uniqueIds.slice(i, i + CHUNK_SIZE)
+    const query = new URLSearchParams()
+    query.set('id', `in.(${chunk.join(',')})`)
+    if (orgCode) {
+      query.set('org_code', `eq.${orgCode}`)
+    } else {
+      query.set('user_id', `eq.${seniorUid}`)
+    }
+
+    const res = await supabaseRequest(`private_prospects?${query.toString()}`, {
+      method: 'PATCH',
+      headers: {
+        Prefer: 'return=representation'
+      },
+      body: JSON.stringify(payload)
+    })
+
+    if (res.ok) {
+      const updatedRows = await res.json().catch(() => [])
+      totalTransferred += Array.isArray(updatedRows) ? updatedRows.length : chunk.length
+    }
+  }
+
+  return { success: true, count: totalTransferred }
 }
 
 /**

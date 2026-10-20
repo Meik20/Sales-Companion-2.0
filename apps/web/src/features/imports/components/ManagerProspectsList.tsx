@@ -166,8 +166,9 @@ function getProspectAgingStatus(
   }
 
   // Contrôle d'échéance / deadline si fixée lors du transfert ou de l'import
-  if (p.assignmentDeadline) {
-    const deadline = new Date(p.assignmentDeadline as string)
+  const effectiveDl = (p.assignmentDeadline || p.transferDeadline) as string | undefined
+  if (effectiveDl) {
+    const deadline = new Date(effectiveDl)
     if (!isNaN(deadline.getTime())) {
       if (now > deadline.getTime()) {
         return {
@@ -1287,27 +1288,20 @@ export function ManagerProspectsList({
                     </td>
                     {/* Colonne dédiée : Délai d'intervention */}
                     <td style={{ padding: '9px 12px' }}>
-                      {isSeniorManager ? (
-                        p.transferDeadline || (!p.assignedTo && p.assignmentDeadline) ? (
+                      {(() => {
+                        const effectiveDeadline = isSeniorManager
+                          ? (p.transferDeadline || p.assignmentDeadline)
+                          : (p.assignmentDeadline || p.transferDeadline)
+                        return effectiveDeadline ? (
                           <DeadlineBadge
-                            deadline={(p.transferDeadline || p.assignmentDeadline) as string}
+                            deadline={effectiveDeadline as string}
                             status={p.status}
                             size="sm"
                           />
                         ) : (
                           <span style={{ color: 'var(--muted-foreground, #64748b)', fontSize: 12 }}>—</span>
                         )
-                      ) : (
-                        p.assignmentDeadline || p.transferDeadline ? (
-                          <DeadlineBadge
-                            deadline={(p.assignmentDeadline || p.transferDeadline) as string}
-                            status={p.status}
-                            size="sm"
-                          />
-                        ) : (
-                          <span style={{ color: 'var(--muted-foreground, #64748b)', fontSize: 12 }}>—</span>
-                        )
-                      )}
+                      })()}
                     </td>
                     {/* Colonne Team Manager (Senior Manager) ou Assigné à (Manager standard) */}
                     {isSeniorManager ? (

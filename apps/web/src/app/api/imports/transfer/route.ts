@@ -102,9 +102,29 @@ export async function POST(request: NextRequest) {
     const targetManagerName =
       targetData.displayName || targetData.name || targetData.email || 'Team Manager'
 
-    // Récupérer les prospects dans manager_prospects
-    const prospectsToTransfer: FirebaseFirestore.DocumentSnapshot[] = []
     const uniqueIds = Array.from(new Set(prospectIds))
+
+    // ── 1. Transfert Supabase private_prospects (si déployé) ─────────────
+    let sbTransferredCount = 0
+    try {
+      const { isPrivateProspectsTableAvailable, transferPrivateProspects } =
+        await import('@/lib/supabase-private-prospects')
+      if (await isPrivateProspectsTableAvailable()) {
+        const sbRes = await transferPrivateProspects({
+          prospectIds: uniqueIds,
+          orgCode,
+          seniorUid: callerUid,
+          targetManagerUid,
+          deadline: deadline || null
+        })
+        sbTransferredCount = sbRes.count
+      }
+    } catch (sbErr) {
+      console.warn('[POST /api/imports/transfer] Supabase transfer error:', sbErr)
+    }
+
+    // ── 2. Transfert Firestore manager_prospects (legacy / hybride) ───────
+    const prospectsToTransfer: FirebaseFirestore.DocumentSnapshot[] = []
 
     for (const id of uniqueIds) {
       const pDoc = await adminDb.collection('manager_prospects').doc(id).get()
@@ -121,7 +141,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (prospectsToTransfer.length === 0) {
+    if (prospectsToTransfer.length === 0 && sbTransferredCount === 0) {
       return NextResponse.json(
         { message: 'Aucun prospect éligible trouvé pour le transfert' },
         { status: 404 }
@@ -131,7 +151,7 @@ export async function POST(request: NextRequest) {
     // Exécuter la mise à jour par lot (batch Firestore limité à 500 ops)
     let batch = adminDb.batch()
     let opCount = 0
-    let transferredCount = 0
+    let firestoreTransferredCount = 0
     const now = new Date()
 
     const commitBatchIfFull = async () => {
@@ -155,13 +175,15 @@ export async function POST(request: NextRequest) {
         updatedAt: now
       })
       opCount++
-      transferredCount++
+      firestoreTransferredCount++
       await commitBatchIfFull()
     }
 
     if (opCount > 0) {
       await batch.commit()
     }
+
+    const transferredCount = sbTransferredCount > 0 ? sbTransferredCount : firestoreTransferredCount
 
     // Mise à jour heartbeat de l'organisation pour réactivité temps réel
     if (orgCode) {

@@ -516,11 +516,12 @@ export async function PATCH(request: NextRequest) {
       try {
         const { getPrivateProspects } = await import('@/lib/supabase-private-prospects')
         const sbRes = await getPrivateProspects({
+          id: prospectId,
           orgCode: managerOrgCode,
           managerUid,
-          limit: 100
+          limit: 1
         })
-        const found = sbRes.prospects.find((p) => p.id === prospectId)
+        const found = sbRes.prospects[0]
         if (found) {
           prospectData = {
             name: found.company_name,
@@ -768,9 +769,10 @@ export async function PATCH(request: NextRequest) {
             assigned_to: assignedTo,
             assigned_member_name: memberName,
             assignment_deadline: effectiveDeadline,
+            transfer_deadline: currentTransferDeadline || undefined,
             pipeline_entry_id: pipelineEntryId
           },
-          { orgCode: managerOrgCode, userId: managerUid }
+          { orgCode: managerOrgCode, managerUid, userId: managerUid }
         )
       } catch (sbErr) {
         console.warn('[imports PATCH] Supabase assign error:', sbErr)
