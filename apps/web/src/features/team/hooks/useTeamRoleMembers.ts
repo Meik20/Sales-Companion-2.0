@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { db } from '@/lib/firebase'
-import { collection, query, where, onSnapshot, getDocs } from 'firebase/firestore'
+import { collection, query, where, onSnapshot } from 'firebase/firestore'
 import { PLAN_LIMITS } from '@sales-companion/shared'
 
 /**
@@ -39,23 +39,22 @@ export type UseTeamRoleMembersOptions = {
 }
 
 /**
- * Real-time hook — listens to ONE Firestore source in real-time:
+ * Real-time hook — listens to TWO Firestore sources in real-time:
  *
  *  1. `team_accesses` where managerUid == currentUser.uid  [onSnapshot]
  *     → Primary source of truth for ALL members (created by manager).
  *     → A member is "active" when `activated === true`.
  *
- *  2. `users` where managerUid == currentUser.uid           [getDocs — one-shot]
- *     → Enriches data (dailyUsed, dailyLimit, name) once at load.
- *     → Uses getDocs instead of onSnapshot to avoid a permanent listener
- *       on a collection that changes rarely. This significantly reduces
- *       Firestore read quota usage.
+ *  2. `users` where managerUid == currentUser.uid           [onSnapshot — temps réel]
+ *     → Enrichit les données (dailyUsed, dailyLimit, name) en continu.
+ *     → Utilise onSnapshot pour garantir que les membres nouvellement activés
+ *       (qui créent leur document `users` via /api/team/activate) apparaissent
+ *       immédiatement dans l'UI sans rechargement de page.
  *
- * The two lists are merged by email, deduplicating so a member never
- * appears twice regardless of which collection is newer.
+ * Les deux listes sont fusionnées par email, évitant tout doublon.
  *
- * Any manual toggle of `activated` in the Firestore console is reflected
- * in the UI within milliseconds with no page refresh (via team_accesses listener).
+ * Tout changement de `activated` dans Firestore est reflété dans l'UI
+ * en quelques millisecondes sans rechargement de page.
  */
 export function useTeamRoleMembers(options: UseTeamRoleMembersOptions = {}) {
   const { role, excludeRole } = options
@@ -72,7 +71,14 @@ export function useTeamRoleMembers(options: UseTeamRoleMembersOptions = {}) {
       return
     }
 
+    // Guard : uid must be a non-empty string before firing Firestore queries
     const managerUid = user.uid
+    if (!managerUid || typeof managerUid !== 'string' || managerUid.trim() === '') {
+      setMembers([])
+      setIsLoading(false)
+      return
+    }
+
     setIsLoading(true)
     setIsError(false)
 
@@ -178,16 +184,18 @@ export function useTeamRoleMembers(options: UseTeamRoleMembersOptions = {}) {
       }
     )
 
-    // ── Source 2 : users [getDocs — one-shot, évite un listener permanent] ─
-    // Les données utilisateurs (dailyUsed, name) sont stables : pas besoin de
-    // temps réel. Un seul fetch au montage suffit pour l'enrichissement.
+    // ── Listener 2 : users [onSnapshot — temps réel] ───────────────────────
+    // Utilise onSnapshot (et non getDocs one-shot) pour garantir que les membres
+    // nouvellement activés — dont le document users/{uid} est créé par
+    // /api/team/activate — apparaissent immédiatement dans l'UI sans rechargement.
     const usersBaseQuery = query(
       collection(db, 'users'),
       where('managerUid', '==', managerUid),
       ...(role ? [where('role', '==', role)] : [])
     )
-    getDocs(usersBaseQuery)
-      .then((snap) => {
+    const unsubUsers = onSnapshot(
+      usersBaseQuery,
+      (snap) => {
         usersMap = {}
         snap.docs.forEach((d) => {
           const data = d.data()
@@ -212,14 +220,16 @@ export function useTeamRoleMembers(options: UseTeamRoleMembersOptions = {}) {
           }
         })
         merge()
-      })
-      .catch((error) => {
+      },
+      (error) => {
         // Non-fatal — users collection may not have records yet
-        console.warn('[useTeamRoleMembers] users getDocs error:', error)
-      })
+        console.warn('[useTeamRoleMembers] users onSnapshot error:', error)
+      }
+    )
 
     return () => {
       unsubAccesses()
+      unsubUsers()
     }
   }, [user?.uid, role, excludeRole])
 
