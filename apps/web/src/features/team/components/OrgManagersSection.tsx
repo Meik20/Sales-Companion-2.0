@@ -42,12 +42,19 @@ export interface OrgManager {
   createdAt?: string | null
 }
 
+/**
+ * Représente un commercial terrain (role: 'member') rattaché à un manager.
+ * INVARIANT : un support_agent (role: 'support_agent') ne doit JAMAIS
+ * figurer dans cette liste — il appartient au support CRM, pas à l'équipe
+ * commerciale. Tout filtrage sur cette interface DOIT exclure 'support_agent'.
+ */
 interface TeamMemberRecord {
   id: string
   firebaseUid?: string | null
   email?: string
   firstname?: string
   lastname?: string
+  /** 'member' uniquement — 'support_agent' est formellement exclu de cette vue */
   role?: string
   status?: string
   activated?: boolean
@@ -1354,9 +1361,15 @@ export function OrgManagersSection({ managers, orgCode, onRefresh }: OrgManagers
     }
   }
 
-  // Grouper les membres par managerUid
+  // Grouper les commerciaux (role: 'member') par managerUid.
+  // RÈGLE INVIOLABLE : les support_agents (role: 'support_agent') sont
+  // EXPLICITEMENT EXCLUS — ils appartiennent au support CRM et ne font
+  // pas partie de l'équipe commerciale. Cette exclusion constitue une
+  // défense en profondeur indépendante du filtre API.
   const membersByManagerUid: Record<string, TeamMemberRecord[]> = {}
   for (const m of members) {
+    // Exclusion formelle des agents support de la liste commerciale
+    if (m.role === 'support_agent') continue
     const mUid = m.managerUid || ''
     if (mUid) {
       if (!membersByManagerUid[mUid]) membersByManagerUid[mUid] = []
