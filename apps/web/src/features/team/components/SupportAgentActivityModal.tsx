@@ -123,10 +123,10 @@ export function SupportAgentActivityModal({ agent, onClose }: Props) {
   return (
     <>
       {/* Backdrop */}
-      <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed inset-0 z-[500] bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+      <div className="fixed inset-0 z-[510] flex items-center justify-center p-4 pointer-events-none">
         <div
           className="pointer-events-auto w-full max-w-2xl rounded-2xl border border-border bg-card shadow-[0_24px_80px_rgba(0,0,0,0.5)] flex flex-col max-h-[90vh] overflow-hidden"
           onClick={(e) => e.stopPropagation()}

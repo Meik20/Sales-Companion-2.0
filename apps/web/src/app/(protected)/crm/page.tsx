@@ -314,13 +314,19 @@ export default function CrmPage() {
 
       {/* Clear CRM Confirmation Modal */}
       {showClearConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-xl animate-in fade-in zoom-in-95">
+        <div className="fixed inset-0 z-[500] flex items-center justify-center bg-black/60 p-4">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="clear-crm-title"
+            className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-xl animate-in fade-in zoom-in-95"
+            style={{ backgroundColor: 'var(--card)', opacity: 1 }}
+          >
             <div className="flex items-center gap-3 text-red-600 dark:text-red-400">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-500/10">
                 <Trash2 size={20} />
               </div>
-              <h3 className="font-['Syne',sans-serif] text-[18px] font-bold text-foreground">
+              <h3 id="clear-crm-title" className="font-['Syne',sans-serif] text-[18px] font-bold text-foreground">
                 Vider votre CRM ?
               </h3>
             </div>

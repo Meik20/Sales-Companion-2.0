@@ -489,15 +489,21 @@ export default function ClientDatabasePage() {
 
       {/* ── Modal Détail Client ───────────────────────────────────────── */}
       {selectedClient && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
-          <div className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-border bg-card p-6 shadow-xl animate-in fade-in zoom-in-95">
+        <div className="fixed inset-0 z-[500] flex items-center justify-center bg-black/60 p-4">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="client-detail-title"
+            className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-border bg-card p-6 shadow-xl animate-in fade-in zoom-in-95"
+            style={{ backgroundColor: 'var(--card)', opacity: 1 }}
+          >
             {/* Header modal */}
             <div className="flex items-start justify-between border-b border-border pb-4">
               <div>
                 <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
                   {t('clientDatabase.modalBadge')}
                 </span>
-                <h3 className="mt-1 font-['Syne',sans-serif] text-[20px] font-bold text-foreground">
+                <h3 id="client-detail-title" className="mt-1 font-['Syne',sans-serif] text-[20px] font-bold text-foreground">
                   {selectedClient.companyName}
                 </h3>
                 <p className="text-[12px] text-muted-foreground">

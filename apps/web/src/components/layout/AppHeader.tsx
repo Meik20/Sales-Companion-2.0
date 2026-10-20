@@ -56,7 +56,13 @@ export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void 
     : null
 
   return (
-    <header className="sticky top-0 z-[100] flex h-16 items-center border-b border-border/80 bg-background/80 px-4 backdrop-blur-md shadow-elevation-1 transition-all">
+    <header
+      className="sticky top-0 z-30 flex h-16 items-center border-b border-border bg-card px-4 shadow-sm transition-all"
+      style={{
+        backgroundColor: 'var(--card, #ffffff)',
+        opacity: 1
+      }}
+    >
       <style
         dangerouslySetInnerHTML={{
           __html: `
