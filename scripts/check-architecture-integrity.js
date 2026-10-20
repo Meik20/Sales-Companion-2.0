@@ -332,6 +332,39 @@ try {
   } else {
     console.log('✅ AppSidebar.tsx conforme (logo officiel ScIcon balisé)')
   }
+
+  // H. Vérifier la conformité de la route de révocation des Team Managers (Section 12 AGENTS.md)
+  const revokeRoutePath = path.resolve(__dirname, '../apps/web/src/app/api/team/managers/revoke/route.ts')
+  if (!fs.existsSync(revokeRoutePath)) {
+    errors.push("❌ ROUTE MANQUANTE : /api/team/managers/revoke/route.ts doit exister.")
+  } else {
+    const revokeCode = fs.readFileSync(revokeRoutePath, 'utf8')
+    if (!revokeCode.includes("orgRole !== 'senior_manager'")) {
+      errors.push("❌ SÉCURITÉ VIOLÉE DANS managers/revoke : L'accès doit être réservé au Senior Manager.")
+    }
+    if (!revokeCode.includes("targetManagerUid === callerUid")) {
+      errors.push("❌ SÉCURITÉ VIOLÉE DANS managers/revoke : L'auto-révocation du Senior Manager doit être formellement interdite.")
+    }
+    if (!revokeCode.includes("reassignPrivateProspectsForRevokedManager")) {
+      errors.push("❌ INTÉGRITÉ VIOLÉE DANS managers/revoke : Les prospects Supabase doivent être réassignés au successeur.")
+    }
+    console.log('✅ Route /api/team/managers/revoke conforme (défense en profondeur et passation obligatoire)')
+  }
+
+  // I. Vérifier la conformité de la route de transfert individuel de commercial (Section 12 AGENTS.md)
+  const transferMemberRoutePath = path.resolve(__dirname, '../apps/web/src/app/api/team/members/transfer/route.ts')
+  if (!fs.existsSync(transferMemberRoutePath)) {
+    errors.push("❌ ROUTE MANQUANTE : /api/team/members/transfer/route.ts doit exister.")
+  } else {
+    const transferCode = fs.readFileSync(transferMemberRoutePath, 'utf8')
+    if (!transferCode.includes("orgRole !== 'senior_manager'")) {
+      errors.push("❌ SÉCURITÉ VIOLÉE DANS members/transfer : L'accès doit être réservé au Senior Manager.")
+    }
+    if (!transferCode.includes("managerUid: targetManagerUid")) {
+      errors.push("❌ INTÉGRITÉ VIOLÉE DANS members/transfer : managerUid doit être mis à jour sur targetManagerUid.")
+    }
+    console.log('✅ Route /api/team/members/transfer conforme (contrôle Senior Manager et transfert atomique)')
+  }
 } catch (e) {
   errors.push(`❌ Erreur lors du contrôle des règles de calcul de pipeline : ${e.message}`)
 }

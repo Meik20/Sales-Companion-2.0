@@ -232,3 +232,20 @@ Ne **jamais** utiliser un emoji cercle coloré (`🟢🔴🟡`) pour indiquer un
 > 2. **Interdiction de substituts ad-hoc :** Il est strictement interdit d'utiliser des carrés ou cercles colorés temporaires avec du texte brut (`<div>SC</div>`) dans les en-têtes (desktop comme mobile).
 > 3. **Typographie officielle :** Le nom de marque associé au logo s'écrit `SALES COMPANION 2.0` avec la police de titrage officielle (`font-heading`) et le suffixe `2.0`.
 > 4. **Garde-fou automatisé pré-build :** `scripts/check-architecture-integrity.js` valide systématiquement que l'en-tête du menu latéral mobile consomme `ScIcon`.
+
+---
+
+## 12. Règle Inviolable — Révocation des Team Managers & Transfert de Commerciaux (Gouvernance d'Entreprise)
+
+> [!IMPORTANT]
+> **RÈGLE STRUCTURELLE DE GOUVERNANCE HIÉRARCHIQUE :**  
+> 1. **Droit Exclusif du Senior Manager :**  
+>    - Seul le **Senior Manager** titulaire de l'organisation (`orgRole === 'senior_manager'`) peut révoquer un Team Manager ou transférer un commercial terrain entre Team Managers via les routes sécurisées `/api/team/managers/revoke` et `/api/team/members/transfer`.
+>    - L'auto-révocation du Senior Manager est **strictement interdite** (`targetUid !== callerUid`).
+> 2. **Continuité d'Activité et Passation de Service Obligatoire :**  
+>    - En cas de révocation d'un Team Manager, **la totalité de ses dossiers** (opportunités de pipeline, prospects importés Firestore et Supabase `private_prospects`, commerciaux terrain rattachés et assignations) DOIT être transférée de manière atomique vers un **Team Manager successeur du même segment** (ou vers le Senior Manager par intérim si aucun autre TM n'est disponible).
+> 3. **Préservation du Portefeuille Commercial lors des Transferts :**  
+>    - Le transfert individuel d'un commercial vers un nouveau Team Manager réassigne la supervision managériale (`managerUid`), mais préserve intégralement le compte du commercial et ses opportunités actives en cours (`userId`).
+> 4. **Garde-fous automatisés pré-build :**  
+>    - `scripts/check-architecture-integrity.js` valide systématiquement la présence et la conformité des routes `/api/team/managers/revoke` et `/api/team/members/transfer`, ainsi que l'interdiction formelle de l'auto-révocation.
+

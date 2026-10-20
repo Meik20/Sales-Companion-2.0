@@ -391,3 +391,43 @@ export async function deletePrivateProspect(
 
   return res.ok
 }
+
+/**
+ * Réassigne tous les prospects privés d'un manager révoqué vers un successeur
+ */
+export async function reassignPrivateProspectsForRevokedManager(params: {
+  orgCode: string
+  revokedManagerUid: string
+  successorManagerUid: string
+}): Promise<{ success: boolean; count: number }> {
+  if (!isSupabaseConfigured()) return { success: false, count: 0 }
+  const { orgCode, revokedManagerUid, successorManagerUid } = params
+  if (!orgCode || !revokedManagerUid || !successorManagerUid) {
+    throw new Error('Sécurité multi-tenant : orgCode, revokedManagerUid et successorManagerUid obligatoires')
+  }
+
+  const query = new URLSearchParams()
+  query.set('org_code', `eq.${orgCode}`)
+  query.set('manager_uid', `eq.${revokedManagerUid}`)
+
+  const payload = {
+    manager_uid: successorManagerUid,
+    transferred_to_manager_uid: successorManagerUid,
+    updated_at: new Date().toISOString()
+  }
+
+  const res = await supabaseRequest(`private_prospects?${query.toString()}`, {
+    method: 'PATCH',
+    headers: {
+      Prefer: 'return=representation'
+    },
+    body: JSON.stringify(payload)
+  })
+
+  if (res.ok) {
+    const updatedRows = await res.json().catch(() => [])
+    return { success: true, count: Array.isArray(updatedRows) ? updatedRows.length : 0 }
+  }
+  return { success: false, count: 0 }
+}
+

@@ -9,17 +9,39 @@ export async function GET(request: NextRequest) {
     if ('error' in auth) return auth.error
 
     const { adminDb } = await getFirebaseAdmin()
-    const snap = await adminDb
-      .collection('team_accesses')
-      .where('managerUid', '==', auth.user.uid)
-      .get()
+    const { searchParams } = new URL(request.url)
+    const requestedManagerUid = searchParams.get('managerUid')
+    const allOrg = searchParams.get('all') === 'true'
 
-    const members = snap.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-      createdAt: doc.data().createdAt?.toDate?.()?.toISOString() ?? null,
-      updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() ?? null
-    }))
+    const callerDoc = await adminDb.collection('users').doc(auth.user.uid).get()
+    const callerData = callerDoc.data()
+    const isSenior = callerData?.orgRole === 'senior_manager'
+    const orgCode = callerData?.orgCode as string | undefined
+
+    let query: FirebaseFirestore.Query = adminDb.collection('team_accesses')
+
+    if (isSenior && orgCode && (allOrg || requestedManagerUid)) {
+      if (requestedManagerUid) {
+        query = query.where('managerUid', '==', requestedManagerUid)
+      } else {
+        query = query.where('orgCode', '==', orgCode)
+      }
+    } else {
+      query = query.where('managerUid', '==', auth.user.uid)
+    }
+
+    const snap = await query.get()
+
+    const members = snap.docs.map((doc) => {
+      const data = doc.data()
+      return {
+        id: doc.id,
+        ...data,
+        firebaseUid: data.firebaseUid || data.activatedUid || data.memberId || null,
+        createdAt: data.createdAt?.toDate?.()?.toISOString() ?? null,
+        updatedAt: data.updatedAt?.toDate?.()?.toISOString() ?? null
+      }
+    })
 
     return NextResponse.json(members)
   } catch (error) {
@@ -27,3 +49,4 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 })
   }
 }
+

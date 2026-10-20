@@ -1036,6 +1036,7 @@ export function OrgGovernanceTab() {
         <OrgManagersSection
           managers={(orgData?.managers || []) as any}
           orgCode={orgData?.orgCode || ''}
+          onRefresh={() => void fetchOrg(true)}
         />
       </DataCard>
     </div>
