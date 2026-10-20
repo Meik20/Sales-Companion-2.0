@@ -37,15 +37,20 @@ export type UserNotification = {
  */
 export function useUserNotifications() {
   const { user } = useCurrentUser()
+  const userRef = useRef(user)
+  userRef.current = user
+
   const [notifications, setNotifications] = useState<UserNotification[]>([])
   const [loading, setLoading] = useState(true)
   const isMountedRef = useRef(true)
+  const hasFallbackFiredRef = useRef(false)
 
   // 1. Récupération fiable côté serveur via /api/notifications
   const fetchFromApi = useCallback(async () => {
-    if (!user?.uid) return
+    const currentUser = userRef.current
+    if (!currentUser?.uid) return
     try {
-      const token = await user.getIdToken?.()
+      const token = await currentUser.getIdToken?.()
       if (!token) return
 
       const res = await fetch('/api/notifications', {
@@ -61,7 +66,7 @@ export function useUserNotifications() {
     } catch (err) {
       console.warn('[useUserNotifications] fetchFromApi error:', err)
     }
-  }, [user])
+  }, [])
 
   useEffect(() => {
     isMountedRef.current = true
@@ -91,11 +96,14 @@ export function useUserNotifications() {
 
   // 3. Écoute Firestore temps réel (onSnapshot)
   useEffect(() => {
-    if (!user?.uid) return
+    const uid = user?.uid
+    if (!uid) return
+
+    hasFallbackFiredRef.current = false
 
     const q = query(
       collection(firestore, 'userNotifications'),
-      where('userId', '==', user.uid),
+      where('userId', '==', uid),
       limit(60)
     )
 
@@ -132,9 +140,12 @@ export function useUserNotifications() {
         }
       },
       (error) => {
-        // En cas d'erreur de règles Firestore, on s'appuie sur l'API sans casser l'UI
-        console.warn('[useUserNotifications] onSnapshot fallback vers API:', error.message)
-        void fetchFromApi()
+        // En cas d'erreur de règles Firestore, repli unique vers l'API sans boucle infinie
+        if (!hasFallbackFiredRef.current) {
+          hasFallbackFiredRef.current = true
+          console.warn('[useUserNotifications] onSnapshot fallback vers API:', error.message)
+          void fetchFromApi()
+        }
       }
     )
 
