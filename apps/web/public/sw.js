@@ -1,6 +1,6 @@
 // Service Worker for Sales Companion PWA
-// v12 — Invalidation automatique des caches de rendu et composants modaux
-const CACHE_NAME = 'sales-companion-v12'
+// v13 — Élimination complète de l'erreur React #418 et synchronisation hydratation SSR
+const CACHE_NAME = 'sales-companion-v13'
 
 // Listen for explicit skip waiting request
 self.addEventListener('message', (event) => {

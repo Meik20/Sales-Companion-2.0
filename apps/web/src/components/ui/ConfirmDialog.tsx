@@ -119,6 +119,7 @@ export function ConfirmDialog({
         style={{
           position: 'fixed',
           inset: 0,
+          zIndex: 1,
           backgroundColor: 'rgba(0, 0, 0, 0.65)',
           backdropFilter: 'none',
           WebkitBackdropFilter: 'none'
@@ -130,8 +131,10 @@ export function ConfirmDialog({
 
       {/* Modal Dialog 100% opaque (Règle UI §8) */}
       <div
-        className="relative w-full max-w-md rounded-2xl border p-6 shadow-2xl transition-all duration-200"
+        className="relative z-10 w-full max-w-md rounded-2xl border p-6 shadow-2xl transition-all duration-200"
         style={{
+          position: 'relative',
+          zIndex: 10,
           backgroundColor: 'var(--card, #ffffff)',
           borderColor: 'var(--border, rgba(255, 255, 255, 0.12))',
           boxShadow: `0 20px 40px -15px ${config.glowColor}, 0 0 0 1px var(--border, rgba(0,0,0,0.08))`

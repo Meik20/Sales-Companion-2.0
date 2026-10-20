@@ -85,8 +85,18 @@ interface UserContextValue {
 const UserContext = createContext<UserContextValue | null>(null)
 
 function useCurrentUserSource(): UserContextValue {
-  const [user, setUser] = useState<CurrentUser | null>(() => getCachedUser())
-  const [loading, setLoading] = useState<boolean>(() => !getCachedUser())
+  // Initialiser à null / true pour garantir la stricte parité SSR / Premier rendu Client (élimination de l'erreur React #418)
+  const [user, setUser] = useState<CurrentUser | null>(null)
+  const [loading, setLoading] = useState<boolean>(true)
+
+  useEffect(() => {
+    // Restauration immédiate du profil en cache de session au montage client (safe après hydratation)
+    const cached = getCachedUser()
+    if (cached) {
+      setUser(cached)
+      setLoading(false)
+    }
+  }, [])
 
   useEffect(() => {
     let unsubscribeSnapshot: (() => void) | null = null

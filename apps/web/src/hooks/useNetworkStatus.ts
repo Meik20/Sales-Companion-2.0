@@ -18,27 +18,24 @@ const MANUAL_OFFLINE_KEY = 'sc_manual_offline'
 
 export function useNetworkStatus(): NetworkStatus {
   const mobileRuntime = isMobileRuntime()
-  const [isBrowserOnline, setIsBrowserOnline] = useState<boolean>(() => {
-    if (mobileRuntime && typeof navigator !== 'undefined') {
-      return navigator.onLine
-    }
-    return true
-  })
+  const [isBrowserOnline, setIsBrowserOnline] = useState<boolean>(true)
 
   // Detect real data connectivity (for cases where WiFi/4G is connected but there's no data credit)
   const [hasRealInternet, setHasRealInternet] = useState<boolean>(true)
   const [isChecking, setIsChecking] = useState<boolean>(false)
 
-  const [isManualOffline, setIsManualOfflineState] = useState<boolean>(() => {
+  const [isManualOffline, setIsManualOfflineState] = useState<boolean>(false)
+
+  useEffect(() => {
+    if (mobileRuntime && typeof navigator !== 'undefined') {
+      setIsBrowserOnline(navigator.onLine)
+    }
     if (mobileRuntime && typeof window !== 'undefined') {
       try {
-        return sessionStorage.getItem(MANUAL_OFFLINE_KEY) === 'true'
-      } catch {
-        return false
-      }
+        setIsManualOfflineState(sessionStorage.getItem(MANUAL_OFFLINE_KEY) === 'true')
+      } catch {}
     }
-    return false
-  })
+  }, [mobileRuntime])
 
   const [wasOffline, setWasOffline] = useState<boolean>(false)
 
