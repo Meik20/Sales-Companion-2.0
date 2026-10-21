@@ -8,34 +8,78 @@ async function getAdmin() {
 }
 
 /**
- * GET /api/cron/archive-pipeline-clients
+ * GET / POST /api/cron/archive-pipeline-clients
  * Tâche d'arrière-plan / cron qui archive les opportunités conclues 3 jours après la fin du mois.
- * Elles sont enregistrées dans la "Base de données clients" (collection clients)
+ * Elles sont synchronisées dans la "Base de données clients" (collection clients)
  * et retirées du pipeline opérationnel.
  */
 export async function GET(request: NextRequest) {
-  try {
-    const { adminDb } = await getAdmin()
+  return handleArchiveCron(request)
+}
 
-    // Vérification optionnelle de secret CRON si configuré
-    const authHeader = request.headers.get('authorization')
+export async function POST(request: NextRequest) {
+  return handleArchiveCron(request)
+}
+
+async function handleArchiveCron(request: NextRequest) {
+  try {
     const cronSecret = process.env.CRON_SECRET
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+
+    // CRON_SECRET est obligatoire — refus immédiat si absent (misconfiguration de sécurité)
+    if (!cronSecret) {
+      console.error(
+        '[cron/archive-pipeline-clients] CRON_SECRET est absent de la configuration. ' +
+          "Définissez cette variable d'environnement avant de déployer."
+      )
+      return NextResponse.json(
+        { message: 'Service non disponible : configuration CRON_SECRET manquante.' },
+        { status: 503 }
+      )
+    }
+
+    const providedSecret =
+      request.headers.get('authorization')?.replace(/^Bearer\s+/i, '') ||
+      request.nextUrl.searchParams.get('key') ||
+      request.headers.get('x-cron-key')
+
+    if (providedSecret !== cronSecret) {
       return NextResponse.json({ message: 'Non autorisé' }, { status: 401 })
     }
 
-    const { archivedCount, hasMore } = await runMonthlyPipelineCycleAutoArchive(adminDb)
+    const { adminDb } = await getAdmin()
+
+    // Traitement en boucle par lots successifs pour drainer les arriérés sans dépasser le timeout serverless
+    let totalArchived = 0
+    let hasMore = true
+    let batchesRun = 0
+    const MAX_BATCHES = 5 // 5 lots x 300 = jusqu'à 1500 fiches par exécution
+
+    while (hasMore && batchesRun < MAX_BATCHES) {
+      batchesRun++
+      const res = await runMonthlyPipelineCycleAutoArchive(adminDb, undefined, 300)
+      totalArchived += res.archivedCount
+      hasMore = res.hasMore
+    }
+
     const now = new Date()
 
     return NextResponse.json({
       success: true,
-      message: `${archivedCount} prospect(s) conclu(s) archivé(s) vers la Base de données clients`,
-      archivedCount,
+      message: `${totalArchived} prospect(s) conclu(s) archivé(s) vers la Base de données clients (${batchesRun} lot(s) traité(s))`,
+      archivedCount: totalArchived,
+      batchesRun,
       hasMore,
       timestamp: now.toISOString()
     })
   } catch (error) {
     console.error('[archive-pipeline-clients CRON]', error)
-    return NextResponse.json({ message: 'Erreur serveur lors de l’archivage' }, { status: 500 })
+    return NextResponse.json(
+      {
+        success: false,
+        message: 'Erreur serveur lors de l’archivage',
+        error: error instanceof Error ? error.message : 'Erreur inconnue'
+      },
+      { status: 500 }
+    )
   }
 }

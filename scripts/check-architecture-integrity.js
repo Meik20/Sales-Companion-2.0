@@ -389,6 +389,34 @@ try {
     }
     console.log('✅ Route /api/support/sm-revocation conforme (arbitrage Support et ticket de gouvernance)')
   }
+
+  // 10. Vérifier la configuration des CRONs de production dans vercel.json
+  const vercelJsonPath = path.resolve(__dirname, '../vercel.json')
+  if (!fs.existsSync(vercelJsonPath)) {
+    errors.push('❌ CONFIGURATION MANQUANTE : vercel.json doit exister à la racine.')
+  } else {
+    const vercelConfig = JSON.parse(fs.readFileSync(vercelJsonPath, 'utf8'))
+    const crons = vercelConfig.crons || []
+    const paths = crons.map((c) => c.path)
+    if (!paths.includes('/api/cron/check-subscriptions')) {
+      errors.push('❌ CRON MANQUANT : /api/cron/check-subscriptions doit être configuré dans vercel.json.')
+    }
+    if (!paths.includes('/api/cron/archive-pipeline-clients')) {
+      errors.push('❌ CRON MANQUANT : /api/cron/archive-pipeline-clients doit être configuré dans vercel.json.')
+    }
+    console.log('✅ vercel.json conforme (tous les crons d\'arrière-plan sont planifiés)')
+  }
+
+  // 11. Vérifier le verrouillage de CRON_SECRET sur archive-pipeline-clients
+  const archiveCronPath = path.resolve(__dirname, '../apps/web/src/app/api/cron/archive-pipeline-clients/route.ts')
+  if (fs.existsSync(archiveCronPath)) {
+    const archiveCronCode = fs.readFileSync(archiveCronPath, 'utf8')
+    if (!archiveCronCode.includes('!cronSecret') || !archiveCronCode.includes('503')) {
+      errors.push('❌ SÉCURITÉ CRON VIOLÉE : /api/cron/archive-pipeline-clients doit exiger CRON_SECRET et renvoyer 503 en cas d\'absence.')
+    } else {
+      console.log('✅ Route /api/cron/archive-pipeline-clients conforme (sécurisée par CRON_SECRET obligatoire)')
+    }
+  }
 } catch (e) {
   errors.push(`❌ Erreur lors du contrôle des règles de calcul de pipeline : ${e.message}`)
 }

@@ -102,6 +102,16 @@ describe('monthly-cycle utility', () => {
     expect(mockDelete).toHaveBeenCalledTimes(1)
   })
 
+  it('throws and logs when Firestore fails during runMonthlyPipelineCycleAutoArchive', async () => {
+    const failingDb: any = {
+      collection: vi.fn(() => {
+        throw new Error('Firestore connection failed')
+      })
+    }
+
+    await expect(runMonthlyPipelineCycleAutoArchive(failingDb)).rejects.toThrow('Firestore connection failed')
+  })
+
   it('correctly returns localized month label based on language using getMonthPeriodLabel', () => {
     const period = { labelFr: 'Octobre 2026', labelEn: 'October 2026' }
     expect(getMonthPeriodLabel(period, 'fr')).toBe('Octobre 2026')

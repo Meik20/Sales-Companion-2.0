@@ -65,7 +65,7 @@ export async function runMonthlyPipelineCycleAutoArchive(
 
     return { archivedCount, hasMore }
   } catch (err) {
-    console.warn('[runMonthlyPipelineCycleAutoArchive] non-blocking error:', err)
-    return { archivedCount: 0, hasMore: false }
+    console.error('[runMonthlyPipelineCycleAutoArchive] error:', err)
+    throw err
   }
 }
