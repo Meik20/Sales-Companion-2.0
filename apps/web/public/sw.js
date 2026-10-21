@@ -1,6 +1,6 @@
 // Service Worker for Sales Companion PWA
-// v13 — Élimination complète de l'erreur React #418 et synchronisation hydratation SSR
-const CACHE_NAME = 'sales-companion-v13'
+// v14 — Actualisation PWA short_name SC 2.0 et revalidation dynamique du manifeste
+const CACHE_NAME = 'sales-companion-v14'
 
 // Listen for explicit skip waiting request
 self.addEventListener('message', (event) => {
@@ -99,6 +99,23 @@ self.addEventListener('fetch', (event) => {
   //    Never cache dynamic JSON/RSC payloads that may contain personal user data
   if (request.headers.get('RSC') === '1' || url.searchParams.has('_rsc')) {
     event.respondWith(fetch(request).catch(() => new Response('Offline', { status: 503 })))
+    return
+  }
+
+  // ── 4b. Manifest PWA — Strictly Network-First with Cache fallback
+  //    Ensures changes to short_name/icons/theme apply immediately without waiting
+  if (url.pathname === '/manifest.json') {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const clone = response.clone()
+            caches.open(CACHE_NAME).then((c) => c.put(request, clone))
+          }
+          return response
+        })
+        .catch(() => caches.match(request))
+    )
     return
   }
 
