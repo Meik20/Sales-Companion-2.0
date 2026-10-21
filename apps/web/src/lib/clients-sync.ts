@@ -2,77 +2,26 @@ import type { Firestore } from 'firebase-admin/firestore'
 import { Timestamp } from 'firebase-admin/firestore'
 
 /**
- * Synchronise un prospect conclu du pipeline vers la collection "clients" (Base de données clients).
- *
- * ARCHITECTURE :
- * - Cette fonction relit TOUJOURS les données fraîches depuis Firestore avant de construire
- *   le payload client. Cela garantit que le montant (amount), le statut et tous les champs
- *   sont à jour au moment de la synchro, quelle que soit la séquence d'écriture côté client.
- * - Les données passées en `pipelineDataHint` servent de fallback si le document pipeline
- *   est introuvable (ex: déjà archivé ou en cours de suppression).
+ * Construit de manière pure et déterministe le payload d'un document client
+ * à partir des données de l'opportunité pipeline et de l'état existant éventuel.
  */
-export async function syncPipelineItemToClient(
-  adminDb: Firestore,
+export function buildClientPayload(
   pipelineId: string,
-  pipelineDataHint: Record<string, any> = {}
-) {
-  // ── Relecture fraîche depuis Firestore (source de vérité absolue) ──────────
-  let pipelineData: Record<string, any> = pipelineDataHint
-
-  try {
-    const freshDoc = await adminDb.collection('pipeline').doc(pipelineId).get()
-    if (freshDoc.exists) {
-      // Les données fraîches ont priorité sur le hint passé en paramètre
-      pipelineData = { ...pipelineDataHint, ...freshDoc.data() }
-    }
-    // Si le document n'existe plus (déjà archivé), on utilise pipelineDataHint
-  } catch (e) {
-    console.warn('[syncPipelineItemToClient] Impossible de relire la fiche pipeline fraîche:', e)
-    // On continue avec le hint
-  }
-
-  // ── Validation du statut ───────────────────────────────────────────────────
-  const status = String(pipelineData.status || '').toLowerCase().trim()
-  if (status !== 'conclue' && status !== 'conclusion') {
-    return null
-  }
-
-  const clientId = `client_${pipelineId}`
-  const clientRef = adminDb.collection('clients').doc(clientId)
-  const existingSnap = await clientRef.get()
-
-  // ── Résolution du commercial vendeur ──────────────────────────────────────
-  // assignedTo en priorité (commercial terrain), sinon le créateur de la fiche
+  pipelineData: Record<string, any>,
+  existingClientData?: Record<string, any> | null,
+  now: Timestamp = Timestamp.now()
+): Record<string, any> {
   const assignedUid = pipelineData.assignedTo || pipelineData.userId || null
-  let assignedName = pipelineData.memberName || pipelineData.assignedName || null
-  let assignedEmail = pipelineData.memberEmail || pipelineData.assignedEmail || null
-  let assignedRole = 'member'
+  const assignedName = pipelineData.memberName || pipelineData.assignedName || null
+  const assignedEmail = pipelineData.memberEmail || pipelineData.assignedEmail || null
+  const assignedRole = pipelineData.assignedRole || 'member'
 
-  if (assignedUid && (!assignedName || !assignedEmail)) {
-    try {
-      const userDoc = await adminDb.collection('users').doc(assignedUid).get()
-      if (userDoc.exists) {
-        const uData = userDoc.data() || {}
-        assignedName = assignedName || uData.name || uData.displayName || uData.email || 'Commercial'
-        assignedEmail = assignedEmail || uData.email || null
-        assignedRole = uData.role || 'member'
-      }
-    } catch (e) {
-      console.warn('[syncPipelineItemToClient] Impossible de récupérer le profil du vendeur:', e)
-    }
-  }
-
-  // ── Date de conclusion ─────────────────────────────────────────────────────
-  const now = Timestamp.now()
   const concludedAt = pipelineData.concludedAt
     ? (pipelineData.concludedAt.toDate
         ? pipelineData.concludedAt
         : Timestamp.fromDate(new Date(pipelineData.concludedAt)))
     : now
 
-  // ── Montant du deal ────────────────────────────────────────────────────────
-  // Priorité : amount > estimatedDeal > null
-  // On s'assure de ne JAMAIS écrire null si l'une des deux sources est valide
   let dealAmount: number | null = null
   if (pipelineData.amount != null && pipelineData.amount !== '') {
     dealAmount = Number(pipelineData.amount)
@@ -80,8 +29,7 @@ export async function syncPipelineItemToClient(
     dealAmount = Number(pipelineData.estimatedDeal)
   }
 
-  // ── Construction du payload client ────────────────────────────────────────
-  const clientPayload: Record<string, any> = {
+  const payload: Record<string, any> = {
     companyName: pipelineData.companyName || pipelineData.name || 'Sans nom',
     contactName: pipelineData.contactName || pipelineData.contact || '',
     companyPhone: pipelineData.companyPhone || pipelineData.phone || '',
@@ -112,13 +60,107 @@ export async function syncPipelineItemToClient(
     updatedAt: now
   }
 
-  if (!existingSnap.exists) {
-    clientPayload.createdAt = now
-    clientPayload.dismissedBySupportAgents = []
-    await clientRef.set(clientPayload)
-  } else {
-    await clientRef.update(clientPayload)
+  if (!existingClientData) {
+    payload.createdAt = now
+    payload.dismissedBySupportAgents = []
+  } else if (existingClientData.createdAt) {
+    payload.createdAt = existingClientData.createdAt
   }
+
+  return payload
+}
+
+/**
+ * Exécute l'archivage atomique et idempotent d'une opportunité conclue :
+ * 1. Lit la fiche fraîche au sein d'une transaction Firestore.
+ * 2. Vérifie qu'elle existe et que son statut est toujours 'conclue' ou 'conclusion'.
+ * 3. Enregistre de manière idempotente le client dans la collection `clients`.
+ * 4. Supprime la fiche du `pipeline` dans le MÊME commit atomique.
+ *
+ * RÈGLE D'INTÉGRITÉ ABSOLUE :
+ * Si le document n'existe pas ou si son statut a été modifié concurremment,
+ * la transaction n'effectue AUCUNE suppression et préserve les données.
+ */
+export async function archivePipelineDealAtomically(
+  adminDb: Firestore,
+  pipelineId: string
+): Promise<{
+  status: 'archived' | 'skipped_not_concluded' | 'skipped_not_found'
+  clientData?: Record<string, any>
+}> {
+  return adminDb.runTransaction(async (transaction) => {
+    const pipelineRef = adminDb.collection('pipeline').doc(pipelineId)
+    const freshSnap = await transaction.get(pipelineRef)
+
+    if (!freshSnap.exists) {
+      return { status: 'skipped_not_found' }
+    }
+
+    const pipelineData = freshSnap.data() || {}
+    const status = String(pipelineData.status || '').toLowerCase().trim()
+
+    // Garde-fou atomique : si le statut a basculé concurremment (ex: repassé en négociation),
+    // on interrompt immédiatement sans supprimer du pipeline.
+    if (status !== 'conclue' && status !== 'conclusion') {
+      return { status: 'skipped_not_concluded' }
+    }
+
+    const clientId = `client_${pipelineId}`
+    const clientRef = adminDb.collection('clients').doc(clientId)
+    const existingSnap = await transaction.get(clientRef)
+
+    const now = Timestamp.now()
+    const payload = buildClientPayload(
+      pipelineId,
+      pipelineData,
+      existingSnap.exists ? existingSnap.data() : null,
+      now
+    )
+
+    // Écriture du client et suppression de l'opportunité de manière strictement atomique
+    transaction.set(clientRef, payload, { merge: true })
+    transaction.delete(pipelineRef)
+
+    return { status: 'archived', clientData: { id: clientId, ...payload } }
+  })
+}
+
+/**
+ * Synchronise un prospect conclu du pipeline vers la collection "clients" (Base de données clients).
+ * Relecture fraîche obligatoire depuis Firestore (pas de fallback d'effacement).
+ */
+export async function syncPipelineItemToClient(
+  adminDb: Firestore,
+  pipelineId: string,
+  pipelineDataHint: Record<string, any> = {}
+) {
+  let pipelineData: Record<string, any> = pipelineDataHint
+
+  const freshDoc = await adminDb.collection('pipeline').doc(pipelineId).get()
+  if (freshDoc.exists) {
+    pipelineData = { ...pipelineDataHint, ...freshDoc.data() }
+  } else if (!pipelineDataHint || Object.keys(pipelineDataHint).length === 0) {
+    return null
+  }
+
+  const status = String(pipelineData.status || '').toLowerCase().trim()
+  if (status !== 'conclue' && status !== 'conclusion') {
+    return null
+  }
+
+  const clientId = `client_${pipelineId}`
+  const clientRef = adminDb.collection('clients').doc(clientId)
+  const existingSnap = await clientRef.get()
+
+  const now = Timestamp.now()
+  const clientPayload = buildClientPayload(
+    pipelineId,
+    pipelineData,
+    existingSnap.exists ? existingSnap.data() : null,
+    now
+  )
+
+  await clientRef.set(clientPayload, { merge: true })
 
   return { id: clientId, ...clientPayload }
 }

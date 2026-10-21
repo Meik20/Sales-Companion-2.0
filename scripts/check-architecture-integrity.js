@@ -420,14 +420,21 @@ try {
     }
   }
 
-  // 12. Vérifier la protection anti-perte de données dans monthly-cycle-archive.service.ts
+  // 12. Vérifier la protection anti-perte de données et transaction atomique pour l'archivage
   const archiveServicePath = path.resolve(__dirname, '../apps/web/src/server/services/monthly-cycle-archive.service.ts')
-  if (fs.existsSync(archiveServicePath)) {
+  const clientsSyncPath = path.resolve(__dirname, '../apps/web/src/lib/clients-sync.ts')
+  if (fs.existsSync(archiveServicePath) && fs.existsSync(clientsSyncPath)) {
     const archiveServiceCode = fs.readFileSync(archiveServicePath, 'utf8')
-    if (!archiveServiceCode.includes('if (clientSync)') || !archiveServiceCode.includes('await doc.ref.delete()')) {
-      errors.push('❌ PROTECTION DONNÉES VIOLÉE : monthly-cycle-archive.service.ts doit conditionner doc.ref.delete() au succès de clientSync.')
+    const clientsSyncCode = fs.readFileSync(clientsSyncPath, 'utf8')
+
+    if (!archiveServiceCode.includes('archivePipelineDealAtomically')) {
+      errors.push('❌ PROTECTION DONNÉES VIOLÉE : monthly-cycle-archive.service.ts doit utiliser archivePipelineDealAtomically pour garantir une transaction atomique.')
+    } else if (archiveServiceCode.includes('doc.ref.delete()')) {
+      errors.push('❌ SÉCURITÉ DONNÉES VIOLÉE : monthly-cycle-archive.service.ts ne doit JAMAIS appeler doc.ref.delete() hors transaction atomique.')
+    } else if (!clientsSyncCode.includes('runTransaction') || !clientsSyncCode.includes('transaction.delete')) {
+      errors.push('❌ INTÉGRITÉ TRANSACTIONNELLE VIOLÉE : clients-sync.ts doit effectuer la suppression pipeline dans un commit atomique runTransaction.')
     } else {
-      console.log('✅ monthly-cycle-archive.service.ts conforme (protection anti-perte de données active)')
+      console.log('✅ monthly-cycle-archive.service.ts et clients-sync.ts conformes (archivage transactionnel atomique anti-perte de données)')
     }
   }
 } catch (e) {

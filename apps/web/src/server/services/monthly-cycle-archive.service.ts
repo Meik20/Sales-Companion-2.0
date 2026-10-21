@@ -4,8 +4,9 @@
  */
 
 import type { Firestore } from 'firebase-admin/firestore'
-import { syncPipelineItemToClient } from '../../lib/clients-sync'
-import { isEligibleForAutoArchive } from '../../lib/monthly-cycle'
+import { Timestamp } from 'firebase-admin/firestore'
+import { archivePipelineDealAtomically } from '../../lib/clients-sync'
+import { isEligibleForAutoArchive, getMaxEligibleConcludedDate } from '../../lib/monthly-cycle'
 
 export interface ArchiveCycleCursors {
   q1LastDoc?: FirebaseFirestore.DocumentSnapshot
@@ -14,35 +15,74 @@ export interface ArchiveCycleCursors {
 
 /**
  * Exécute la purge et l'archivage automatique des opportunités conclues éligibles (J+3 dépassé).
- * Cette fonction est idempotente et sûre à appeler soit par CRON, soit en arrière-plan.
- * Elle supporte un curseur de pagination pour traverser l'ensemble de la collection sans bloquer
- * sur les opportunités non encore éligibles.
+ * Cette fonction est strictement atomique et idempotente :
+ * - Sélectionne directement les opportunités conclues dont la date d'éligibilité est échue
+ *   (concludedAt < maxEligibleDate) pour éviter de bloquer sur les fiches récentes non éligibles.
+ * - Utilise une transaction Firestore atomique pour synchroniser vers `clients` et supprimer du `pipeline`.
+ * - Si le statut est modifié concurremment, la transaction n'effectue AUCUNE suppression.
  */
 export async function runMonthlyPipelineCycleAutoArchive(
   adminDb: Firestore,
   filterManagerUid?: string,
   limitPerStatus: number = 300,
   cursors?: ArchiveCycleCursors
-): Promise<{ archivedCount: number; hasMore: boolean; nextCursors?: ArchiveCycleCursors }> {
+): Promise<{
+  archivedCount: number
+  hasMore: boolean
+  nextCursors?: ArchiveCycleCursors
+  maxEligibleDate: string
+}> {
   try {
     const now = new Date()
+    const maxEligibleDate = getMaxEligibleConcludedDate(now)
+    const maxEligibleTimestamp = Timestamp.fromDate(maxEligibleDate)
 
-    let q1: FirebaseFirestore.Query = adminDb.collection('pipeline').where('status', '==', 'conclue')
-    let q2: FirebaseFirestore.Query = adminDb.collection('pipeline').where('status', '==', 'conclusion')
+    let snap1: FirebaseFirestore.QuerySnapshot
+    let snap2: FirebaseFirestore.QuerySnapshot
 
-    if (filterManagerUid) {
-      q1 = q1.where('managerUid', '==', filterManagerUid)
-      q2 = q2.where('managerUid', '==', filterManagerUid)
+    try {
+      // 1. Requête optimisée ciblée sur les dates échues (utilise les index composites Firestore)
+      let q1 = adminDb
+        .collection('pipeline')
+        .where('status', '==', 'conclue')
+        .where('concludedAt', '<', maxEligibleTimestamp)
+        .orderBy('concludedAt', 'asc') as FirebaseFirestore.Query
+
+      let q2 = adminDb
+        .collection('pipeline')
+        .where('status', '==', 'conclusion')
+        .where('concludedAt', '<', maxEligibleTimestamp)
+        .orderBy('concludedAt', 'asc') as FirebaseFirestore.Query
+
+      if (filterManagerUid) {
+        q1 = q1.where('managerUid', '==', filterManagerUid)
+        q2 = q2.where('managerUid', '==', filterManagerUid)
+      }
+
+      if (cursors?.q1LastDoc) {
+        q1 = q1.startAfter(cursors.q1LastDoc)
+      }
+      if (cursors?.q2LastDoc) {
+        q2 = q2.startAfter(cursors.q2LastDoc)
+      }
+
+      ;[snap1, snap2] = await Promise.all([q1.limit(limitPerStatus).get(), q2.limit(limitPerStatus).get()])
+    } catch (queryErr: any) {
+      // Repli gracieux si les index composites ne sont pas encore prêts (ou dans les mocks de test)
+      console.warn('[runMonthlyPipelineCycleAutoArchive] Index repli actif:', queryErr?.message || queryErr)
+      let fbQ1 = adminDb.collection('pipeline').where('status', '==', 'conclue') as FirebaseFirestore.Query
+      let fbQ2 = adminDb.collection('pipeline').where('status', '==', 'conclusion') as FirebaseFirestore.Query
+
+      if (filterManagerUid) {
+        fbQ1 = fbQ1.where('managerUid', '==', filterManagerUid)
+        fbQ2 = fbQ2.where('managerUid', '==', filterManagerUid)
+      }
+      if (cursors?.q1LastDoc) fbQ1 = fbQ1.startAfter(cursors.q1LastDoc)
+      if (cursors?.q2LastDoc) fbQ2 = fbQ2.startAfter(cursors.q2LastDoc)
+
+      ;[snap1, snap2] = await Promise.all([fbQ1.limit(limitPerStatus).get(), fbQ2.limit(limitPerStatus).get()])
     }
 
-    if (cursors?.q1LastDoc) {
-      q1 = q1.startAfter(cursors.q1LastDoc)
-    }
-    if (cursors?.q2LastDoc) {
-      q2 = q2.startAfter(cursors.q2LastDoc)
-    }
-
-    const [snap1, snap2] = await Promise.all([q1.limit(limitPerStatus).get(), q2.limit(limitPerStatus).get()])
     const hasMore = snap1.docs.length >= limitPerStatus || snap2.docs.length >= limitPerStatus
 
     const nextCursors: ArchiveCycleCursors = {
@@ -74,30 +114,23 @@ export async function runMonthlyPipelineCycleAutoArchive(
       }
 
       if (concludedDate && !isNaN(concludedDate.getTime()) && isEligibleForAutoArchive(concludedDate, now)) {
-        // Synchroniser vers la collection clients
-        const clientSync = await syncPipelineItemToClient(adminDb, doc.id, {
-          ...data,
-          concludedAt: data.concludedAt || concludedDate
-        })
-
-        // RÈGLE CRITIQUE D'INTÉGRITÉ & PROTECTION ANTI-PERTE DE DONNÉES :
-        // Ne supprimer la fiche du pipeline QUE si la synchronisation a effectivement
-        // créé ou mis à jour le client (clientSync !== null).
-        // Si le statut a basculé concurremment (ex: repassé en prospection ou négociation),
-        // syncPipelineItemToClient renvoie null et la fiche est conservée intacte dans le pipeline.
-        if (clientSync) {
-          await doc.ref.delete()
+        // ARCHIVAGE ATOMIQUE DANS UNE TRANSACTION FIRESTORE :
+        // 1. Relit la fiche fraîche dans la transaction.
+        // 2. Vérifie qu'elle existe et est toujours conclue.
+        // 3. Écrit dans `clients` et supprime de `pipeline` de façon atomique.
+        // Si le statut a basculé concurremment, la transaction n'effectue AUCUNE suppression.
+        const result = await archivePipelineDealAtomically(adminDb, doc.id)
+        if (result.status === 'archived') {
           archivedCount++
         } else {
           console.warn(
-            `[runMonthlyPipelineCycleAutoArchive] Fiche ${doc.id} préservée dans le pipeline : ` +
-              `statut non conclu lors de la relecture fraîche.`
+            `[runMonthlyPipelineCycleAutoArchive] Fiche ${doc.id} préservée dans le pipeline (résultat: ${result.status}).`
           )
         }
       }
     }
 
-    return { archivedCount, hasMore, nextCursors }
+    return { archivedCount, hasMore, nextCursors, maxEligibleDate: maxEligibleDate.toISOString() }
   } catch (err) {
     console.error('[runMonthlyPipelineCycleAutoArchive] error:', err)
     throw err

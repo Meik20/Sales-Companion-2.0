@@ -51,6 +51,23 @@
       ]
     },
     {
+      "collectionGroup": "pipeline",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "concludedAt", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "pipeline",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "managerUid", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "concludedAt", "order": "ASCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "support_threads",
       "queryScope": "COLLECTION",
       "fields": [

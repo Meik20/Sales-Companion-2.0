@@ -55,6 +55,7 @@ async function handleArchiveCron(request: NextRequest) {
     let hasMore = true
     let batchesRun = 0
     let currentCursors: import('@/server/services/monthly-cycle-archive.service').ArchiveCycleCursors | undefined = undefined
+    let lastEligibleDateIso: string | undefined = undefined
     const MAX_BATCHES = 5 // 5 lots x 300 = jusqu'à 1500 fiches par exécution
 
     while (hasMore && batchesRun < MAX_BATCHES) {
@@ -63,6 +64,7 @@ async function handleArchiveCron(request: NextRequest) {
       totalArchived += res.archivedCount
       hasMore = res.hasMore
       currentCursors = res.nextCursors
+      lastEligibleDateIso = res.maxEligibleDate
     }
 
     const now = new Date()
@@ -73,6 +75,7 @@ async function handleArchiveCron(request: NextRequest) {
       archivedCount: totalArchived,
       batchesRun,
       hasMore,
+      maxEligibleDate: lastEligibleDateIso,
       timestamp: now.toISOString()
     })
   } catch (error) {

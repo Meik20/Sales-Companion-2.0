@@ -3,8 +3,10 @@ import {
   getMonthPeriodInfo,
   getMonthPeriodLabel,
   isEligibleForAutoArchive,
-  getCurrentCycleContext
+  getCurrentCycleContext,
+  getMaxEligibleConcludedDate
 } from '../monthly-cycle'
+import { archivePipelineDealAtomically } from '../clients-sync'
 import { runMonthlyPipelineCycleAutoArchive } from '../../server/services/monthly-cycle-archive.service'
 
 describe('monthly-cycle utility', () => {
@@ -44,6 +46,26 @@ describe('monthly-cycle utility', () => {
     expect(isEligibleForAutoArchive(dealConcludedDate, new Date('2026-11-10T12:00:00Z'))).toBe(true)
   })
 
+  it('correctly calculates getMaxEligibleConcludedDate based on grace period cutoff', () => {
+    // 1. Day <= 3 (e.g. November 2nd): M-1 is still in grace period, eligible deals are M-2 or older (< October 1st)
+    const cutoffNov2 = getMaxEligibleConcludedDate(new Date('2026-11-02T10:00:00Z'))
+    expect(cutoffNov2.getFullYear()).toBe(2026)
+    expect(cutoffNov2.getMonth()).toBe(9) // October (0-indexed 9)
+    expect(cutoffNov2.getDate()).toBe(1)
+
+    // 2. Day > 3 (e.g. November 4th): M-1 grace period ended, eligible deals are M-1 or older (< November 1st)
+    const cutoffNov4 = getMaxEligibleConcludedDate(new Date('2026-11-04T10:00:00Z'))
+    expect(cutoffNov4.getFullYear()).toBe(2026)
+    expect(cutoffNov4.getMonth()).toBe(10) // November (0-indexed 10)
+    expect(cutoffNov4.getDate()).toBe(1)
+
+    // 3. Edge case: January 2nd (Year transition, day <= 3): eligible deals are M-2 (< December 1st of previous year)
+    const cutoffJan2 = getMaxEligibleConcludedDate(new Date('2027-01-02T10:00:00Z'))
+    expect(cutoffJan2.getFullYear()).toBe(2026)
+    expect(cutoffJan2.getMonth()).toBe(11) // December (0-indexed 11)
+    expect(cutoffJan2.getDate()).toBe(1)
+  })
+
   it('correctly sets active period and grace flag in getCurrentCycleContext', () => {
     // When today is November 2nd (within Day 1-3)
     const ctxGrace = getCurrentCycleContext(new Date('2026-11-02T10:00:00Z'))
@@ -58,17 +80,104 @@ describe('monthly-cycle utility', () => {
     expect(ctxNormal.defaultPeriodKey).toBe('2026-11') // defaults to M
   })
 
-  it('executes auto-archive on eligible concluded docs and leaves others intact', async () => {
-    const mockDelete = vi.fn().mockResolvedValue(undefined)
+  it('atomically archives a concluded deal with archivePipelineDealAtomically', async () => {
+    const pipelineData = {
+      companyName: 'ACME Sarl',
+      status: 'conclue',
+      amount: 500000,
+      assignedTo: 'user_123'
+    }
 
+    const mockTxSet = vi.fn()
+    const mockTxDelete = vi.fn()
+
+    const mockAdminDb: any = {
+      collection: vi.fn((col: string) => ({
+        doc: vi.fn((id: string) => ({ id, col }))
+      })),
+      runTransaction: vi.fn(async (cb) => {
+        const tx = {
+          get: vi.fn(async (ref: any) => {
+            if (ref.col === 'pipeline') {
+              return { exists: true, data: () => pipelineData }
+            }
+            return { exists: false, data: () => null }
+          }),
+          set: mockTxSet,
+          delete: mockTxDelete
+        }
+        return cb(tx)
+      })
+    }
+
+    const result = await archivePipelineDealAtomically(mockAdminDb, 'deal_abc')
+    expect(result.status).toBe('archived')
+    expect(mockTxSet).toHaveBeenCalledWith(
+      expect.objectContaining({ col: 'clients', id: 'client_deal_abc' }),
+      expect.objectContaining({ companyName: 'ACME Sarl', status: 'active', amount: 500000 }),
+      { merge: true }
+    )
+    expect(mockTxDelete).toHaveBeenCalledWith(
+      expect.objectContaining({ col: 'pipeline', id: 'deal_abc' })
+    )
+  })
+
+  it('archivePipelineDealAtomically aborts without deleting if doc does not exist', async () => {
+    const mockTxDelete = vi.fn()
+    const mockAdminDb: any = {
+      collection: vi.fn(() => ({
+        doc: vi.fn((id: string) => ({ id }))
+      })),
+      runTransaction: vi.fn(async (cb) => {
+        const tx = {
+          get: vi.fn(async () => ({ exists: false })),
+          set: vi.fn(),
+          delete: mockTxDelete
+        }
+        return cb(tx)
+      })
+    }
+
+    const result = await archivePipelineDealAtomically(mockAdminDb, 'non_existent_id')
+    expect(result.status).toBe('skipped_not_found')
+    expect(mockTxDelete).not.toHaveBeenCalled()
+  })
+
+  it('archivePipelineDealAtomically strictly aborts without deleting if status changed concurrently', async () => {
+    const mockTxDelete = vi.fn()
+    const mockTxSet = vi.fn()
+
+    const mockAdminDb: any = {
+      collection: vi.fn(() => ({
+        doc: vi.fn((id: string) => ({ id }))
+      })),
+      runTransaction: vi.fn(async (cb) => {
+        const tx = {
+          get: vi.fn(async () => ({
+            exists: true,
+            data: () => ({ status: 'negociation', companyName: 'Concurrent Corp' })
+          })),
+          set: mockTxSet,
+          delete: mockTxDelete
+        }
+        return cb(tx)
+      })
+    }
+
+    const result = await archivePipelineDealAtomically(mockAdminDb, 'deal_concurrent')
+    expect(result.status).toBe('skipped_not_concluded')
+    expect(mockTxSet).not.toHaveBeenCalled()
+    expect(mockTxDelete).not.toHaveBeenCalled()
+  })
+
+  it('executes auto-archive on eligible concluded docs and leaves others intact', async () => {
     const eligibleDoc = {
       id: 'deal-1',
       data: () => ({
         companyName: 'ACME Corp',
         status: 'conclue',
         concludedAt: new Date('2026-09-15T10:00:00Z') // September deal, cutoff was Oct 3rd
-      }),
-      ref: { delete: mockDelete }
+      })
     }
 
     const notEligibleDoc = {
@@ -77,29 +186,55 @@ describe('monthly-cycle utility', () => {
         companyName: 'Beta Corp',
         status: 'conclue',
         concludedAt: new Date() // concluded today
-      }),
-      ref: { delete: vi.fn() }
+      })
+    }
+
+    const mockTxSet = vi.fn()
+    const mockTxDelete = vi.fn()
+
+    const createQueryChain = (docs: any[]) => {
+      const chain: any = {
+        where: vi.fn(() => chain),
+        orderBy: vi.fn(() => chain),
+        limit: vi.fn(() => chain),
+        startAfter: vi.fn(() => chain),
+        get: vi.fn().mockResolvedValue({ docs })
+      }
+      return chain
     }
 
     const mockAdminDb: any = {
-      collection: vi.fn(() => ({
-        where: vi.fn(() => ({
-          limit: vi.fn(() => ({
-            get: vi.fn().mockResolvedValue({
-              docs: [eligibleDoc, notEligibleDoc]
-            })
-          }))
-        })),
-        doc: vi.fn(() => ({
-          set: vi.fn().mockResolvedValue(undefined),
-          get: vi.fn().mockResolvedValue({ exists: false })
-        }))
-      }))
+      collection: vi.fn((col: string) => {
+        if (col === 'pipeline') {
+          return {
+            ...createQueryChain([eligibleDoc, notEligibleDoc]),
+            doc: vi.fn((id: string) => ({ id, col: 'pipeline' }))
+          }
+        }
+        return {
+          ...createQueryChain([]),
+          doc: vi.fn((id: string) => ({ id, col: 'clients' }))
+        }
+      }),
+      runTransaction: vi.fn(async (cb) => {
+        const tx = {
+          get: vi.fn(async (ref: any) => {
+            if (ref.id === 'deal-1') {
+              return { exists: true, data: () => eligibleDoc.data() }
+            }
+            return { exists: false, data: () => null }
+          }),
+          set: mockTxSet,
+          delete: mockTxDelete
+        }
+        return cb(tx)
+      })
     }
 
     const res = await runMonthlyPipelineCycleAutoArchive(mockAdminDb)
     expect(res.archivedCount).toBe(1)
-    expect(mockDelete).toHaveBeenCalledTimes(1)
+    expect(mockTxSet).toHaveBeenCalledTimes(1)
+    expect(mockTxDelete).toHaveBeenCalledTimes(1)
   })
 
   it('throws and logs when Firestore fails during runMonthlyPipelineCycleAutoArchive', async () => {
@@ -113,55 +248,60 @@ describe('monthly-cycle utility', () => {
   })
 
   it('strictly preserves pipeline doc and does NOT delete if status changed concurrently (anti-data loss)', async () => {
-    const mockDelete = vi.fn().mockResolvedValue(undefined)
-
-    // Fiche initialement conclue dans la query, mais dont le statut a basculé en 'negociation' lors de la relecture fraîche
     const concurrentDoc = {
       id: 'deal-concurrent-1',
       data: () => ({
         companyName: 'Concurrent Corp',
         status: 'conclue',
         concludedAt: new Date('2026-09-15T10:00:00Z')
-      }),
-      ref: { delete: mockDelete }
+      })
+    }
+
+    const mockTxSet = vi.fn()
+    const mockTxDelete = vi.fn()
+
+    const createQueryChain = (docs: any[]) => {
+      const chain: any = {
+        where: vi.fn(() => chain),
+        orderBy: vi.fn(() => chain),
+        limit: vi.fn(() => chain),
+        startAfter: vi.fn(() => chain),
+        get: vi.fn().mockResolvedValue({ docs })
+      }
+      return chain
     }
 
     const mockAdminDb: any = {
-      collection: vi.fn((collName: string) => {
-        if (collName === 'pipeline') {
-          return {
-            where: vi.fn(() => ({
-              limit: vi.fn(() => ({
-                get: vi.fn().mockResolvedValue({
-                  docs: [concurrentDoc]
-                })
-              }))
-            })),
-            doc: vi.fn(() => ({
-              // Relecture fraîche : le statut a été modifié en 'negociation' par le commercial !
-              get: vi.fn().mockResolvedValue({
-                exists: true,
-                data: () => ({
-                  status: 'negociation',
-                  companyName: 'Concurrent Corp'
-                })
-              })
-            }))
-          }
-        }
+      collection: vi.fn((col: string) => {
         return {
-          doc: vi.fn(() => ({
-            get: vi.fn().mockResolvedValue({ exists: false }),
-            set: vi.fn().mockResolvedValue(undefined)
-          }))
+          ...createQueryChain([concurrentDoc]),
+          doc: vi.fn((id: string) => ({ id, col }))
         }
+      }),
+      runTransaction: vi.fn(async (cb) => {
+        const tx = {
+          get: vi.fn(async (ref: any) => {
+            if (ref.id === 'deal-concurrent-1') {
+              // Relecture fraîche : le statut a basculé en 'negociation' !
+              return {
+                exists: true,
+                data: () => ({ status: 'negociation', companyName: 'Concurrent Corp' })
+              }
+            }
+            return { exists: false, data: () => null }
+          }),
+          set: mockTxSet,
+          delete: mockTxDelete
+        }
+        return cb(tx)
       })
     }
 
     const res = await runMonthlyPipelineCycleAutoArchive(mockAdminDb)
     expect(res.archivedCount).toBe(0)
-    // SÉCURITÉ CRITIQUE : doc.ref.delete ne doit JAMAIS avoir été appelé !
-    expect(mockDelete).not.toHaveBeenCalled()
+    // SÉCURITÉ CRITIQUE : transaction.delete ne doit JAMAIS avoir été appelé !
+    expect(mockTxDelete).not.toHaveBeenCalled()
+    expect(mockTxSet).not.toHaveBeenCalled()
   })
 
   it('correctly returns localized month label based on language using getMonthPeriodLabel', () => {
@@ -172,3 +312,4 @@ describe('monthly-cycle utility', () => {
     expect(getMonthPeriodLabel(null, 'en')).toBe('Current')
   })
 })
+

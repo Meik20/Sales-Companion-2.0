@@ -131,3 +131,27 @@ export function isEligibleForAutoArchive(concludedDate: Date, now = new Date()):
   return now.getTime() >= cutoff.getTime()
 }
 
+/**
+ * Calcule la date limite maximale d'éligibilité pour l'archivage J+3.
+ * Toute opportunité conclue STRICTEMENT AVANT cette date est éligible au transfert vers clients.
+ *
+ * Règle :
+ * - Si now est entre le 1er et le 3 du mois (day <= 3) : le mois M-1 est encore en période de grâce.
+ *   Seules les affaires conclues au cours de M-2 ou avant (strictement avant le 1er du mois M-1) sont éligibles.
+ * - Si now est le 4 du mois ou après (day >= 4) : la période de grâce de M-1 a pris fin le 3 à 23:59:59.
+ *   Toutes les affaires conclues au cours de M-1 ou avant (strictement avant le 1er du mois M) sont éligibles.
+ */
+export function getMaxEligibleConcludedDate(now = new Date()): Date {
+  const year = now.getFullYear()
+  const month = now.getMonth() // 0-11
+  const day = now.getDate()
+
+  if (day <= 3) {
+    // Période de grâce M-1 active : éligible seulement si conclu au mois M-2 ou plus ancien
+    return new Date(year, month - 1, 1, 0, 0, 0, 0)
+  } else {
+    // Période de grâce M-1 échue : éligible si conclu au mois M-1 ou plus ancien
+    return new Date(year, month, 1, 0, 0, 0, 0)
+  }
+}
+
