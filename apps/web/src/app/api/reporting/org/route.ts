@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { hasActivePaidManagerAccess } from '@/lib/manager-access'
 import { getCurrentCycleContext } from '@/lib/monthly-cycle'
-import { runMonthlyPipelineCycleAutoArchive } from '@/server/services/monthly-cycle-archive.service'
 import { normalizePipelineStatus as normalizeStatus, calculateAttainmentRate } from '@/lib/pipeline-metrics'
 
 export const dynamic = 'force-dynamic'
@@ -31,9 +30,6 @@ export async function GET(request: NextRequest) {
     if (callerData.role !== 'manager' || callerData.orgRole !== 'senior_manager') {
       return NextResponse.json({ error: 'Accès réservé au Senior Manager' }, { status: 403 })
     }
-
-    // ── Clôture et mise à jour automatique à J+3 après la fin du mois M-1 ──
-    await runMonthlyPipelineCycleAutoArchive(adminDb)
 
     const orgCode = callerData.orgCode
     if (!orgCode) {

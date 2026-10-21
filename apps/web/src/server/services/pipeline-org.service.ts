@@ -11,34 +11,34 @@ export interface OrgPipelineQueryParams {
   limit?: number
 }
 
+import {
+  normalizePipelineStatus,
+  type CanonicalPipelineStatus
+} from '@/lib/pipeline-metrics'
+
+export interface PipelineStatusBucket {
+  prospection: number
+  negociation: number
+  conclue: number
+  other: number
+  total: number
+}
+
 export interface ConsolidatedPipelineResult {
   items: Record<string, unknown>[]
   managers: { uid: string; name: string; orgRole: string; segment?: string | null; email?: string; stats?: any }[]
-  counts: { prospection: number; negociation: number; conclue: number; total: number; [key: string]: number }
-  values: { prospection: number; negociation: number; conclue: number; total: number; [key: string]: number }
+  counts: PipelineStatusBucket
+  values: PipelineStatusBucket
   hasMore: boolean
   totalFetched: number
   orgCode: string
-}
-
-function normalizeStatus(s: string) {
-  const st = (s || '').toLowerCase().trim()
-  if (['prospection', 'prospect', 'to_contact', 'contact', 'nouveau', 'lead'].includes(st))
-    return 'prospection'
-  if (['negociation', 'negotiation', 'in_progress', 'en_cours'].includes(st)) return 'negociation'
-  if (['conclue', 'conclusion', 'won', 'closed', 'gagne', 'signe'].includes(st)) return 'conclue'
-  return 'prospection'
 }
 
 export async function fetchOrgConsolidatedPipeline(
   params: OrgPipelineQueryParams
 ): Promise<ConsolidatedPipelineResult> {
   const { adminDb } = await import('@/lib/firebase-admin')
-  const { runMonthlyPipelineCycleAutoArchive } = await import('./monthly-cycle-archive.service')
   const { orgCode, callerUid, callerSegment, filterManagerUid, filterStatus, limit = 500 } = params
-
-  // ── Clôture et archivage automatique à J+3 après la fin du mois M-1 ──
-  await runMonthlyPipelineCycleAutoArchive(adminDb)
 
   const maxLimit = Math.min(Math.max(limit || 500, 1), 2000)
 
@@ -76,8 +76,8 @@ export async function fetchOrgConsolidatedPipeline(
     return {
       items: [],
       managers: [],
-      counts: { prospection: 0, negociation: 0, conclue: 0, total: 0 },
-      values: { prospection: 0, negociation: 0, conclue: 0, total: 0 },
+      counts: { prospection: 0, negociation: 0, conclue: 0, other: 0, total: 0 },
+      values: { prospection: 0, negociation: 0, conclue: 0, other: 0, total: 0 },
       hasMore: false,
       totalFetched: 0,
       orgCode
@@ -141,7 +141,7 @@ export async function fetchOrgConsolidatedPipeline(
           id: d.id,
           ...data,
           orgCode: data.orgCode || orgCode,
-          status: normalizeStatus(data.status as string),
+          status: normalizePipelineStatus(data.status),
           managerName: mgr?.name ?? (data.managerName as string) ?? '',
           managerOrgRole: mgr?.orgRole ?? 'team_manager',
           createdAt: data.createdAt?.toDate
@@ -156,14 +156,23 @@ export async function fetchOrgConsolidatedPipeline(
   }
 
   // 5. Calcul des totaux par statut + sommes des montants par statut (values)
-  const counts = { prospection: 0, negociation: 0, conclue: 0, total: 0 }
-  const values = { prospection: 0, negociation: 0, conclue: 0, total: 0 }
+  const counts: PipelineStatusBucket = { prospection: 0, negociation: 0, conclue: 0, other: 0, total: 0 }
+  const values: PipelineStatusBucket = { prospection: 0, negociation: 0, conclue: 0, other: 0, total: 0 }
   allItems.forEach((it) => {
-    const st = it.status as 'prospection' | 'negociation' | 'conclue'
+    const st = (it.status as CanonicalPipelineStatus) || 'other'
     const amt = typeof it.amount === 'number' ? it.amount : Number(it.amount) || 0
-    if (counts[st] !== undefined) {
-      counts[st]++
-      values[st] += amt
+    if (st === 'prospection') {
+      counts.prospection++
+      values.prospection += amt
+    } else if (st === 'negociation') {
+      counts.negociation++
+      values.negociation += amt
+    } else if (st === 'conclue') {
+      counts.conclue++
+      values.conclue += amt
+    } else {
+      counts.other++
+      values.other += amt
     }
     counts.total++
     values.total += amt
@@ -194,6 +203,7 @@ export async function fetchOrgConsolidatedPipeline(
         prospection: managerItems.filter((i) => i.status === 'prospection').length,
         negociation: managerItems.filter((i) => i.status === 'negociation').length,
         conclue: managerItems.filter((i) => i.status === 'conclue').length,
+        other: managerItems.filter((i) => i.status === 'other').length,
         total: managerItems.length
       }
     }

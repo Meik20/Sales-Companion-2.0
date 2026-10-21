@@ -19,6 +19,11 @@ describe('pipeline-metrics canonical calculation rules', () => {
       expect(normalizePipelineStatus('won')).toBe('conclue')
       expect(normalizePipelineStatus('signe')).toBe('conclue')
       expect(normalizePipelineStatus('unknown_status')).toBe('other')
+      expect(normalizePipelineStatus('perdu')).toBe('other')
+      expect(normalizePipelineStatus('abandon')).toBe('other')
+      expect(normalizePipelineStatus('')).toBe('other')
+      expect(normalizePipelineStatus(null)).toBe('other')
+      expect(normalizePipelineStatus(undefined)).toBe('other')
     })
 
     it('identifies active pipeline items (prospection & negotiation only)', () => {
@@ -26,6 +31,8 @@ describe('pipeline-metrics canonical calculation rules', () => {
       expect(isPipelineActive('negociation')).toBe(true)
       expect(isPipelineActive('conclue')).toBe(false)
       expect(isPipelineActive('other')).toBe(false)
+      expect(isPipelineActive('perdu')).toBe(false)
+      expect(isPipelineActive('corrompu')).toBe(false)
     })
   })
 
@@ -34,16 +41,18 @@ describe('pipeline-metrics canonical calculation rules', () => {
       { id: '1', status: 'prospection', amount: 10000 },
       { id: '2', status: 'prospection', amount: 20000 },
       { id: '3', status: 'negociation', amount: 30000 },
-      { id: '4', status: 'conclue', amount: 250000 }
+      { id: '4', status: 'conclue', amount: 250000 },
+      { id: '5', status: 'perdu', amount: 45000 },
+      { id: '6', status: 'unknown_corrupted', amount: 15000 }
     ]
 
-    it('calculates exact active count and active amount (excluding concluded deals)', () => {
+    it('calculates exact active count and active amount (excluding concluded deals and unknown statuses)', () => {
       const stats = calculatePipelineStats(mockItems)
 
-      expect(stats.totalCount).toBe(4)
-      // Portefeuille Actif = 2 prospection + 1 négociation = 3
+      expect(stats.totalCount).toBe(6)
+      // Portefeuille Actif = 2 prospection + 1 négociation = 3 (les 2 statuts inconnus/perdus ne sont PAS comptés)
       expect(stats.activeCount).toBe(3)
-      // Valeur du Pipeline Actif = 10k + 20k + 30k = 60k
+      // Valeur du Pipeline Actif = 10k + 20k + 30k = 60k (sans les 45k + 15k)
       expect(stats.activePipelineAmount).toBe(60000)
 
       // Détails
@@ -56,8 +65,8 @@ describe('pipeline-metrics canonical calculation rules', () => {
       expect(stats.conclueCount).toBe(1)
       expect(stats.concludedAmount).toBe(250000)
 
-      // Taux de conversion : 1 / 4 = 25%
-      expect(stats.conversionRate).toBe(25)
+      // Taux de conversion : 1 / 6 = 17%
+      expect(stats.conversionRate).toBe(17)
     })
 
     it('handles empty items without errors', () => {

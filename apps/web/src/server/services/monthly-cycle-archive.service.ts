@@ -14,8 +14,9 @@ import { isEligibleForAutoArchive } from '../../lib/monthly-cycle'
  */
 export async function runMonthlyPipelineCycleAutoArchive(
   adminDb: Firestore,
-  filterManagerUid?: string
-): Promise<{ archivedCount: number }> {
+  filterManagerUid?: string,
+  limitPerStatus: number = 300
+): Promise<{ archivedCount: number; hasMore: boolean }> {
   try {
     const now = new Date()
 
@@ -27,7 +28,8 @@ export async function runMonthlyPipelineCycleAutoArchive(
       q2 = q2.where('managerUid', '==', filterManagerUid)
     }
 
-    const [snap1, snap2] = await Promise.all([q1.limit(100).get(), q2.limit(100).get()])
+    const [snap1, snap2] = await Promise.all([q1.limit(limitPerStatus).get(), q2.limit(limitPerStatus).get()])
+    const hasMore = snap1.docs.length >= limitPerStatus || snap2.docs.length >= limitPerStatus
     const seenIds = new Set<string>()
     const docs: FirebaseFirestore.DocumentSnapshot[] = []
     for (const d of [...snap1.docs, ...snap2.docs]) {
@@ -61,9 +63,9 @@ export async function runMonthlyPipelineCycleAutoArchive(
       }
     }
 
-    return { archivedCount }
+    return { archivedCount, hasMore }
   } catch (err) {
     console.warn('[runMonthlyPipelineCycleAutoArchive] non-blocking error:', err)
-    return { archivedCount: 0 }
+    return { archivedCount: 0, hasMore: false }
   }
 }

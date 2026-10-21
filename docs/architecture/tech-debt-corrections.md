@@ -33,24 +33,20 @@ Objectif : améliorer la cohérence sans changer le comportement métier visible
 | 12b | Tests intégration              | `createServer.integration.test.ts` (supertest)                                                |
 | 13  | Fichiers de config déploiement | Supprimés (obsolètes)                                                                         |
 
-## Phase 4 — optionnel
+## Phase 4 — Consolidation & Retrait définitif d'Express (fait)
 
-| #   | Sujet                                  |
-| --- | -------------------------------------- |
-| 14  | Retirer pipeline Express si 100 % Next |
-| 15  | Tests e2e Playwright                   |
-| 16  | Sync custom claims manager             |
+| #   | Sujet                                  | Statut / Action                                                                                       |
+| --- | -------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| 14  | Retirer pipeline Express si 100 % Next | **Terminé** : Le backend Express (`apps/server`) et ses proxies (`proxy-backend.ts`, `backend-url.ts`) ont été supprimés. L'ensemble des API tourne désormais nativement sur les API Routes Next.js (runtime Serverless). |
+| 15  | Tests e2e Playwright                   | **Actif** : Configuration Playwright intégrée (`npm run test:e2e`).                                  |
+| 16  | Sync custom claims manager             | **Terminé** : Les claims auth sont synchronisés côté serveur par l'Admin SDK (`role`, `orgRole`, `orgCode`). |
+
+### Environnement d'exécution unifié
+
+Le projet fonctionne désormais avec une commande unique de développement :
 
 ```bash
-# Terminal 1
-npm run dev:server   # écoute http://localhost:3001 par défaut
-
-# Terminal 2
-npm run dev:web      # proxifie vers BACKEND_URL ou 3001
+npm run dev:web
 ```
 
-Variables **obligatoires** sur le service **web** (Vercel) :
-
-```env
-BACKEND_URL=https://mon-backend.example.com
-```
+Toutes les routes d'API (`/api/*`), l'authentification Admin SDK et le rendu client/SSR sont orchestrés par l'application Next.js. La variable `BACKEND_URL` n'est plus nécessaire.

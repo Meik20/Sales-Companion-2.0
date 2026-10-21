@@ -2,14 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { adminDb, adminAuth } from '@/lib/firebase-admin'
 import { hasActivePaidManagerAccess } from '@/lib/manager-access'
 import { getCurrentCycleContext } from '@/lib/monthly-cycle'
-import { runMonthlyPipelineCycleAutoArchive } from '@/server/services/monthly-cycle-archive.service'
-
-function normalizeStatus(status: string): 'prospection' | 'negociation' | 'conclue' | 'other' {
-  if (['prospection', 'prospect'].includes(status)) return 'prospection'
-  if (['negociation', 'negotiation'].includes(status)) return 'negociation'
-  if (['conclue', 'conclusion'].includes(status)) return 'conclue'
-  return 'other'
-}
+import { normalizePipelineStatus as normalizeStatus } from '@/lib/pipeline-metrics'
 
 function getMonthKey(date: Date): string {
   return date.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' })
@@ -28,9 +21,6 @@ export async function GET(request: NextRequest) {
         { status: 403 }
       )
     }
-
-    // ── Clôture et mise à jour automatique à J+3 après la fin du mois M-1 ──
-    await runMonthlyPipelineCycleAutoArchive(adminDb, decoded.uid)
 
     // Get all pipeline items for this manager's team
     const pipelineSnap = await adminDb
