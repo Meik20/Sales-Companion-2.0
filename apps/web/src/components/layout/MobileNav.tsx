@@ -6,6 +6,7 @@ import { routes } from '@/constants/routes'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useTranslation } from '@/providers/I18nProvider'
 import { useSwipe } from '@/hooks/useSwipe'
+import { useScrollDirection } from '@/hooks/useScrollDirection'
 
 // All navigation items in order for swipe navigation
 const getNavItems = (role: string, plan: string, t: (key: any) => string, orgRole?: string | null) => {
@@ -263,6 +264,11 @@ export function MobileNav() {
   const { user } = useCurrentUser()
   const pathname = usePathname()
   const router = useRouter()
+  const isVisible = useScrollDirection({
+    containerId: 'main-scroll-container',
+    threshold: 24,
+    topThreshold: 30,
+  })
 
   // Ordered nav items for swipe support
   const navItems = user ? getNavItems(user.role, user.plan || 'free', t, user.orgRole) : []
@@ -294,10 +300,15 @@ export function MobileNav() {
       <style dangerouslySetInnerHTML={{ __html: NAV_STYLES }} />
       <nav
         ref={swipeRef}
-        className="fixed bottom-0 left-0 right-0 z-[1000] flex items-stretch justify-around overflow-hidden border-t border-border/80 bg-background/80 pb-[env(safe-area-inset-bottom,0px)] shadow-elevation-4 backdrop-blur-xl"
+        className={`fixed bottom-0 left-0 right-0 z-[1000] flex items-stretch justify-around overflow-hidden border-t border-border/80 bg-background/80 pb-[env(safe-area-inset-bottom,0px)] shadow-elevation-4 backdrop-blur-xl transition-all duration-300 ease-in-out ${
+          isVisible
+            ? 'translate-y-0 opacity-100 pointer-events-auto'
+            : 'translate-y-full opacity-0 pointer-events-none'
+        }`}
         style={{
           scrollbarWidth: 'none',
-          WebkitOverflowScrolling: 'touch'
+          WebkitOverflowScrolling: 'touch',
+          willChange: 'transform, opacity'
         }}
       >
         {user.role === 'support_agent' ? (
