@@ -48,6 +48,11 @@ export const metadata: Metadata = {
 
   // ── PWA / Icons ───────────────────────────────────────────────────────
   manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'SC 2.0'
+  },
   icons: {
     icon: '/favicon.svg',
     apple: '/apple-touch-icon.png'
