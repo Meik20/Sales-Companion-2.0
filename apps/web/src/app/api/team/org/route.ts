@@ -316,30 +316,41 @@ export async function PATCH(request: NextRequest) {
     // 2. Rattachement via Jeton d'Invitation (Multi-SM / Team Manager)
     if (body.inviteToken) {
       const inviteToken = String(body.inviteToken).trim()
-      const inviteDoc = await adminDb.collection('orgInvites').doc(inviteToken).get()
-      if (!inviteDoc.exists) {
-        return NextResponse.json(
-          { error: "Lien d'invitation introuvable ou invalide." },
-          { status: 404 }
-        )
-      }
+      const inviteRef = adminDb.collection('orgInvites').doc(inviteToken)
+      let inviteData: FirebaseFirestore.DocumentData
 
-      const inviteData = inviteDoc.data()!
-      if (inviteData.used === true) {
-        return NextResponse.json(
-          { error: "Ce jeton d'invitation a déjà été utilisé." },
-          { status: 410 }
-        )
-      }
+      try {
+        inviteData = await adminDb.runTransaction(async (transaction) => {
+          const doc = await transaction.get(inviteRef)
+          if (!doc.exists) {
+            throw new Error("Lien d'invitation introuvable ou invalide.")
+          }
 
-      const expiresAt = inviteData.expiresAt?.toDate
-        ? inviteData.expiresAt.toDate()
-        : new Date(inviteData.expiresAt)
-      if (expiresAt < new Date()) {
-        return NextResponse.json(
-          { error: "Ce jeton d'invitation a expiré (validité 7 jours)." },
-          { status: 410 }
-        )
+          const data = doc.data()!
+          if (data.used === true) {
+            throw new Error("Ce jeton d'invitation a déjà été utilisé.")
+          }
+
+          const expiresAt = data.expiresAt?.toDate
+            ? data.expiresAt.toDate()
+            : new Date(data.expiresAt)
+          if (expiresAt < new Date()) {
+            throw new Error("Ce jeton d'invitation a expiré (validité 7 jours).")
+          }
+
+          transaction.update(inviteRef, {
+            used: true,
+            usedByUid: managerUid,
+            usedAt: new Date()
+          })
+
+          return data
+        })
+      } catch (txErr: any) {
+        const msg = txErr?.message || "Erreur lors de la validation de l'invitation."
+        const status =
+          msg.includes('déjà été utilisé') || msg.includes('expiré') ? 410 : 404
+        return NextResponse.json({ error: msg }, { status })
       }
 
       const targetCode = inviteData.orgCode
@@ -360,13 +371,6 @@ export async function PATCH(request: NextRequest) {
         updates.seniorManagerUid =
           inviteData.seniorManagerUid || inviteData.createdByUid || null
       }
-
-      // Consommer le jeton
-      await inviteDoc.ref.update({
-        used: true,
-        usedByUid: managerUid,
-        usedAt: new Date()
-      }).catch(() => {})
     } else if (body.joinOrgCode) {
       // 2. Rattachement explicite à une organisation existante via orgCode (legacy)
       const targetCode = String(body.joinOrgCode).trim().toUpperCase()

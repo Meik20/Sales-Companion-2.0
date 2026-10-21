@@ -209,10 +209,9 @@ service cloud.firestore {
     }
 
     match /orgInvites/{inviteId} {
-      // Lecture autorisée pour pré-remplissage du formulaire d'inscription
-      allow read: if true;
-      // Écriture réservée strictement à l'Admin SDK
-      allow write: if false;
+      // Lecture et écriture réservées strictement à l'Admin SDK (API /api/team/org/invite et /api/team/org)
+      // Empêche toute fuite publique ou brute-force client de jetons d'invitation d'entreprise
+      allow read, write: if false;
     }
 
     match /saved_searches/{savedSearchId} {
@@ -504,6 +503,9 @@ service cloud.firestore {
     }
 
     // ── CRM Clients Dédiés ──────────────────────────────────────────────────
+    // Lecture filtrée par permissions métier
+    // Écritures exclusivement gérées côté serveur via l'Admin SDK (/api/crm/clients)
+    // Empêche toute injection de champs d'appartenance arbitraires (owner, managerUid) par un client
     match /crm_clients/{clientId} {
       allow read: if isAdmin()
         || (isManager() && resource.data.managerUid == authUid())
@@ -512,12 +514,7 @@ service cloud.firestore {
              resource.data.managerUid == currentUserDoc().managerUid
              || (currentUserDoc().linkedManagerUids != null && resource.data.managerUid in currentUserDoc().linkedManagerUids)
            ));
-      allow create: if isSignedIn();
-      allow update: if isSignedIn()
-        && (resource.data.owner == authUid() || (isManager() && resource.data.managerUid == authUid()) || isAdmin());
-      allow delete: if isAdmin()
-        || (resource.data.owner == authUid())
-        || (isManager() && resource.data.managerUid == authUid());
+      allow write: if false;
     }
 
     // ── Organisations ────────────────────────────────────────────────────────

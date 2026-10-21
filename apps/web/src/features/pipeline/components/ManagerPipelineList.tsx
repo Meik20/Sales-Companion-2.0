@@ -4,7 +4,6 @@ import { useState, useMemo, useEffect, useCallback } from 'react'
 import { Badge, ConfirmDialog, DeadlineBadge } from '@/components/ui/index'
 import { Button } from '@/components/ui/Button'
 import { useDeletePipelineItem } from '@/features/pipeline/hooks/useDeletePipelineItem'
-import { useUpdatePipelineItem } from '@/features/pipeline/hooks/useUpdatePipelineItem'
 import { useToast } from '@/hooks/useToast'
 import { useTranslation } from '@/providers/I18nProvider'
 import { getWhatsAppUrl } from '@/utils/whatsapp'
@@ -37,7 +36,6 @@ import {
   CheckCircle2,
   Check,
   Users,
-  Crown,
   Download,
   FolderArchive
 } from 'lucide-react'
@@ -1403,8 +1401,6 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
   const [columnPages, setColumnPages] = useState<Record<string, number>>({})
   const [itemToDelete, setItemToDelete] = useState<{ id: string; name: string } | null>(null)
 
-  if (!items.length) return null
-
   async function confirmDelete() {
     if (!itemToDelete) return
     const id = itemToDelete.id
@@ -1736,6 +1732,8 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
     }
     return (allTargets ?? []).find((t) => t.memberId === activeMemberSummary.uid) ?? null
   }, [allTargets, activeMemberSummary, isOrgView])
+
+  if (!items.length) return null
 
   return (
     <>
