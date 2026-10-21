@@ -850,13 +850,6 @@ export const fr = {
       pro: 'Pro',
       enterprise: 'Entreprise'
     },
-    appearanceTitle: 'Apparence',
-    appearanceSubtitle: 'Personnalisez le style visuel de votre interface',
-    themeLinkedinDesc: 'Épuré et professionnel. Bleu LinkedIn, arrondis discrets.',
-    themeFirebaseDesc: 'Amber & Navy. Dark-first, moderne et technique.',
-    activeBadge: 'ACTIF',
-    activeThemeLabel: 'Thème actif :',
-    switchThemeBtn: 'Basculer →',
     orgTitle: 'Organisation & Gouvernance',
     orgSubtitle:
       'Identifiant unique de votre entreprise, certification légale et gouvernance des équipes',
@@ -903,7 +896,6 @@ export const fr = {
     passwordResetSuccess:
       'Un e-mail de réinitialisation de mot de passe a été envoyé à votre adresse.',
     passwordResetError: "Erreur lors de l'envoi de l'e-mail",
-    themeActivatedToast: 'Thème activé',
     features: {
       basicSearch: 'Recherche basique',
       personalPipeline: 'Pipeline personnel',

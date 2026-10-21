@@ -853,33 +853,6 @@ body {
   min-height: 100dvh;
 }
 
-/* ── Component Overrides (LinkedIn Design) ───────────────────── */
-
-/* Pill-shaped buttons and badges when LinkedIn is active */
-[data-design='linkedin'] button,
-[data-design='linkedin'] .btn-primary,
-[data-design='linkedin'] .btn-secondary {
-  border-radius: 9999px !important;
-  font-family: var(--font-family) !important;
-}
-
-/* Tight 4px rounded inputs, cards, and panels for authentic LinkedIn brand */
-[data-design='linkedin'] input,
-[data-design='linkedin'] select,
-[data-design='linkedin'] textarea {
-  border-radius: 4px !important;
-}
-
-[data-design='linkedin'] .card,
-[data-design='linkedin'] .panel,
-[data-design='linkedin'] [style*='borderRadius'] {
-  border-radius: 4px !important;
-}
-
-[data-design='linkedin'] .badge {
-  border-radius: 9999px !important;
-}
-
 /* ─── Fenêtres, Popovers et Menus Flottants — Opacité 100% Structurelle (Règle UI §8) ─── */
 .popover-panel,
 .dropdown-menu,
