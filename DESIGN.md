@@ -13,8 +13,7 @@ Sales Companion 2.0 est une plateforme B2B complète dédiée aux commerciaux et
 ```
 sales-companion/
 ├── apps/
-│   ├── web/                 # Application Next.js (Frontend PWA)
-│   └── server/              # API Express.js (Backend)
+│   └── web/                 # Application Next.js PWA fullstack (Frontend + Serverless API Routes)
 ├── packages/
 │   └── shared/              # Code partagé (types, constantes, schémas)
 ├── firestore/
@@ -28,22 +27,16 @@ sales-companion/
 
 ### Stack Technique
 
-**Frontend:**
+**Frontend & Backend (Fullstack unifié):**
 
 - Next.js 16 (Turbopack) + React 19
 - TypeScript 5.6
 - TanStack Query 5
-- Firebase SDK 11
+- Firebase SDK 11 (Client) + Firebase Admin SDK 13 (Serverless)
 - Zod (validation schemas)
 - PWA avec Service Worker
-
-**Backend:**
-
-- Express.js + TypeScript
-- Node.js runtime
-- Firebase Admin SDK
 - Groq API (IA)
-- Swagger/OpenAPI
+- Supabase (PostgREST natif) pour l'annuaire entreprises
 
 **Infrastructure:**
 
@@ -475,17 +468,13 @@ imports/
 
 **Services:**
 
-1. **Web (Next.js)**
+1. **Web & API Serverless Fullstack (Next.js)**
    - Port: 3000
+   - Dev: `npm run dev:web`
    - Build: `npm run build:web`
-   - Start: `npm run start:web`
+   - Hébergement: Vercel
 
-2. **Server (Express.js)**
-   - Port: 8000
-   - Build: `npm run build:server`
-   - Start: `npm run start:server`
-
-3. **Firebase Emulator** (dev only)
+2. **Firebase Emulator** (dev only)
    - Localhost auth testing
 
 ### Variables d'environnement
@@ -497,9 +486,9 @@ NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=sales-companion-237
 FIREBASE_ADMIN_KEY_PATH=...
 
-# API
-NEXT_PUBLIC_API_URL=https://api.salescompanion2-0.com
-BACKEND_URL=http://localhost:8000
+# Supabase (Annuaire entreprises B2B)
+NEXT_PUBLIC_SUPABASE_URL=...
+SUPABASE_SERVICE_ROLE_KEY=...
 
 # Groq AI
 GROQ_API_KEY=...
