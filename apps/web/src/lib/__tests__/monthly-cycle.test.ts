@@ -470,7 +470,7 @@ describe('monthly-cycle utility', () => {
       })),
       runTransaction: vi.fn(async (cb) => {
         const tx = {
-          get: vi.fn(async (ref: any) => ({ exists: true, data: () => ({ status: 'conclue', updatedAt: new Date('2026-08-01') }) })),
+          get: vi.fn(async (_ref: any) => ({ exists: true, data: () => ({ status: 'conclue', updatedAt: new Date('2026-08-01') }) })),
           set: vi.fn(),
           delete: vi.fn()
         }

@@ -33,18 +33,23 @@ function getAdminDb() {
     return null
   }
 
-  const app = initializeApp({ credential: cert({ projectId, privateKey, clientEmail }) })
-  return getFirestore(app)
+  const app = initializeApp({ credential: cert({ projectId, privateKey, clientEmail }), projectId })
+  const db = getFirestore(app)
+  db.projectId = projectId
+  return db
 }
 
 async function backfillPipelineConcludedAt(isDryRun = false, customDb = null) {
-  console.log(`\n🔍 Début du diagnostic des fiches conclues sans concludedAt (mode ${isDryRun ? 'DRY-RUN' : 'LIVE'})...`)
-
   const adminDb = customDb || getAdminDb()
   if (!adminDb) {
-    console.warn('⚠️ adminDb non initialisé (vérifier les identifiants Firebase). Abandon.')
-    return
+    const errorMsg = '❌ ERREUR FATALE : adminDb non initialisé. Vérifiez que .env.local ou les variables d\'environnement FIREBASE_PRIVATE_KEY, FIREBASE_CLIENT_EMAIL et NEXT_PUBLIC_FIREBASE_PROJECT_ID sont définies.'
+    console.error(errorMsg)
+    throw new Error(errorMsg)
   }
+
+  const projectId = adminDb.projectId || adminDb.app?.options?.projectId || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'inconnu'
+  console.log(`\n🔍 Début du diagnostic des fiches conclues sans concludedAt (mode ${isDryRun ? 'DRY-RUN' : 'LIVE'})...`)
+  console.log(`🎯 Projet Firebase ciblé : ${projectId}`)
 
   const snapshot = await adminDb
     .collection('pipeline')
@@ -57,6 +62,7 @@ async function backfillPipelineConcludedAt(isDryRun = false, customDb = null) {
   let missingConcludedAt = 0
   let migrated = 0
   let unresolvable = 0
+  const unresolvableDocs = []
 
   for (const doc of snapshot.docs) {
     const data = doc.data()
@@ -82,6 +88,7 @@ async function backfillPipelineConcludedAt(isDryRun = false, customDb = null) {
       if (!effectiveDate || isNaN(effectiveDate.getTime())) {
         console.warn(`  ⚠️ Fiche ${doc.id} (${data.companyName || 'Sans nom'}) : aucune date exploitable trouvée ! Préservée sans modification pour revue.`)
         unresolvable++
+        unresolvableDocs.push({ id: doc.id, companyName: data.companyName })
         continue
       }
 
@@ -98,6 +105,7 @@ async function backfillPipelineConcludedAt(isDryRun = false, customDb = null) {
   }
 
   console.log('\n📋 Bilan du diagnostic :')
+  console.log(`  🎯 Projet : ${projectId}`)
   console.log(`  ✅ Fiches conformes avec concludedAt : ${withConcludedAt}`)
   console.log(`  ⚠️ Fiches historiques sans concludedAt : ${missingConcludedAt}`)
   console.log(`  ❓ Fiches sans aucune date exploitable : ${unresolvable}`)
@@ -106,14 +114,29 @@ async function backfillPipelineConcludedAt(isDryRun = false, customDb = null) {
   } else {
     console.log(`  ℹ️ Mode DRY-RUN : aucune écriture effectuée.`)
   }
+
+  return {
+    projectId,
+    total: snapshot.docs.length,
+    withConcludedAt,
+    missingConcludedAt,
+    migrated,
+    unresolvable,
+    unresolvableDocs
+  }
 }
 
 if (require.main === module) {
   const isDryRun = process.argv.includes('--dry-run')
   backfillPipelineConcludedAt(isDryRun)
-    .then(() => process.exit(0))
+    .then((result) => {
+      if (result && result.unresolvable > 0) {
+        console.warn(`\n⚠️ ATTENTION : ${result.unresolvable} fiche(s) sans date exploitable nécessite(nt) un arbitrage.`)
+      }
+      process.exit(0)
+    })
     .catch((err) => {
-      console.error('❌ Erreur lors du diagnostic :', err)
+      console.error('\n❌ Échec de la migration / diagnostic :', err.message || err)
       process.exit(1)
     })
 }
