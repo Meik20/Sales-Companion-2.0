@@ -445,6 +445,110 @@ describe('monthly-cycle utility', () => {
     expect(mockTxDelete).toHaveBeenCalledTimes(1)
   })
 
+  it('maintains independent catchup cursors and calculates hasMore correctly for historical deals', async () => {
+    // 100 docs simulés pour saturer la limite de rattrapage
+    const docsQ1 = Array.from({ length: 100 }, (_, i) => ({
+      id: `deal-q1-${i}`,
+      data: () => ({ status: 'conclue', companyName: `Corp ${i}`, updatedAt: new Date('2026-08-01') })
+    }))
+
+    const createQueryChain = (docs: any[]) => {
+      const chain: any = {
+        where: vi.fn(() => chain),
+        orderBy: vi.fn(() => chain),
+        limit: vi.fn(() => chain),
+        startAfter: vi.fn(() => chain),
+        get: vi.fn().mockResolvedValue({ docs })
+      }
+      return chain
+    }
+
+    const mockAdminDb: any = {
+      collection: vi.fn((col: string) => ({
+        ...createQueryChain(docsQ1),
+        doc: vi.fn((id: string) => ({ id, col }))
+      })),
+      runTransaction: vi.fn(async (cb) => {
+        const tx = {
+          get: vi.fn(async (ref: any) => ({ exists: true, data: () => ({ status: 'conclue', updatedAt: new Date('2026-08-01') }) })),
+          set: vi.fn(),
+          delete: vi.fn()
+        }
+        return cb(tx)
+      })
+    }
+
+    const res = await runMonthlyPipelineCycleAutoArchive(mockAdminDb, undefined, 300)
+    // hasMore doit être true car la limite de rattrapage (100) est atteinte
+    expect(res.hasMore).toBe(true)
+    expect(res.nextCursors?.catchupQ1LastDoc).toBeDefined()
+  })
+
+  it('propagates errors when Firestore fails during historical catchup pass', async () => {
+    const mockAdminDb: any = {
+      collection: vi.fn(() => {
+        const chain: any = {
+          where: vi.fn(() => chain),
+          orderBy: vi.fn(() => chain),
+          limit: vi.fn(() => {
+            throw new Error('Firestore catchup query failure')
+          }),
+          startAfter: vi.fn(() => chain),
+          get: vi.fn().mockRejectedValue(new Error('Firestore catchup query failure'))
+        }
+        return chain
+      })
+    }
+
+    await expect(runMonthlyPipelineCycleAutoArchive(mockAdminDb)).rejects.toThrow('Firestore catchup query failure')
+  })
+
+  it('strictly preserves historical doc in pipeline if no exploitable date can be determined', async () => {
+    // Fiche corrompue sans concludedAt, updatedAt, ni createdAt
+    const corruptedDoc = {
+      id: 'deal-corrupted-no-date',
+      data: () => ({
+        companyName: 'Ghost Corp',
+        status: 'conclue'
+        // aucune date !
+      })
+    }
+
+    const mockTxDelete = vi.fn()
+    const mockTxSet = vi.fn()
+
+    const createQueryChain = (docs: any[]) => {
+      const chain: any = {
+        where: vi.fn(() => chain),
+        orderBy: vi.fn(() => chain),
+        limit: vi.fn(() => chain),
+        startAfter: vi.fn(() => chain),
+        get: vi.fn().mockResolvedValue({ docs })
+      }
+      return chain
+    }
+
+    const mockAdminDb: any = {
+      collection: vi.fn((col: string) => ({
+        ...createQueryChain([corruptedDoc]),
+        doc: vi.fn((id: string) => ({ id, col }))
+      })),
+      runTransaction: vi.fn(async (cb) => {
+        const tx = {
+          get: vi.fn(async () => ({ exists: true, data: () => corruptedDoc.data() })),
+          set: mockTxSet,
+          delete: mockTxDelete
+        }
+        return cb(tx)
+      })
+    }
+
+    const res = await runMonthlyPipelineCycleAutoArchive(mockAdminDb)
+    expect(res.archivedCount).toBe(0)
+    expect(mockTxDelete).not.toHaveBeenCalled()
+    expect(mockTxSet).not.toHaveBeenCalled()
+  })
+
   it('correctly returns localized month label based on language using getMonthPeriodLabel', () => {
     const period = { labelFr: 'Octobre 2026', labelEn: 'October 2026' }
     expect(getMonthPeriodLabel(period, 'fr')).toBe('Octobre 2026')

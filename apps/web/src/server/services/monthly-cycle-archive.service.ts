@@ -11,7 +11,8 @@ import { isEligibleForAutoArchive, getMaxEligibleConcludedDate } from '../../lib
 export interface ArchiveCycleCursors {
   q1LastDoc?: FirebaseFirestore.DocumentSnapshot
   q2LastDoc?: FirebaseFirestore.DocumentSnapshot
-  catchupLastDoc?: FirebaseFirestore.DocumentSnapshot
+  catchupQ1LastDoc?: FirebaseFirestore.DocumentSnapshot
+  catchupQ2LastDoc?: FirebaseFirestore.DocumentSnapshot
 }
 
 /**
@@ -20,7 +21,9 @@ export interface ArchiveCycleCursors {
  * - Sélectionne directement les opportunités conclues dont la date d'éligibilité est échue
  *   (concludedAt < maxEligibleDate) pour éviter de bloquer sur les fiches récentes non éligibles.
  * - Inclut une passe de rattrapage dédiée pour les fiches conclues historiques sans concludedAt
- *   (résolues via updatedAt ou createdAt).
+ *   (résolues via updatedAt, createdAt ou métadonnées Firestore).
+ * - Maintient des curseurs de pagination indépendants pour chaque statut (q1, q2, catchupQ1, catchupQ2)
+ *   et intègre le rattrapage dans le calcul de hasMore.
  * - Utilise une transaction Firestore atomique pour synchroniser vers `clients` et supprimer du `pipeline`.
  * - Revalide l'éligibilité J+3 et le statut au sein de la transaction : si le statut ou la date
  *   ont basculé concurremment, la transaction n'effectue AUCUNE suppression.
@@ -87,13 +90,6 @@ export async function runMonthlyPipelineCycleAutoArchive(
       ;[snap1, snap2] = await Promise.all([fbQ1.limit(limitPerStatus).get(), fbQ2.limit(limitPerStatus).get()])
     }
 
-    const hasMore = snap1.docs.length >= limitPerStatus || snap2.docs.length >= limitPerStatus
-
-    const nextCursors: ArchiveCycleCursors = {
-      q1LastDoc: snap1.docs.length > 0 ? snap1.docs[snap1.docs.length - 1] : cursors?.q1LastDoc,
-      q2LastDoc: snap2.docs.length > 0 ? snap2.docs[snap2.docs.length - 1] : cursors?.q2LastDoc
-    }
-
     const seenIds = new Set<string>()
     const docs: FirebaseFirestore.DocumentSnapshot[] = []
     for (const d of [...snap1.docs, ...snap2.docs]) {
@@ -104,55 +100,70 @@ export async function runMonthlyPipelineCycleAutoArchive(
     }
 
     // 2. Passe de rattrapage dédiée pour les fiches conclues historiques SANS concludedAt
-    // Dans Firestore, un filtre 'where(concludedAt, <, ...)' ignore les documents où le champ est absent.
-    // Cette passe récupère les opportunités conclues pour identifier et traiter les fiches orphelines.
-    try {
-      let catchupQ1 = adminDb.collection('pipeline').where('status', '==', 'conclue') as FirebaseFirestore.Query
-      let catchupQ2 = adminDb.collection('pipeline').where('status', '==', 'conclusion') as FirebaseFirestore.Query
+    // Pagination avec curseurs strictement indépendants pour catchupQ1 et catchupQ2
+    let catchupQ1 = adminDb.collection('pipeline').where('status', '==', 'conclue') as FirebaseFirestore.Query
+    let catchupQ2 = adminDb.collection('pipeline').where('status', '==', 'conclusion') as FirebaseFirestore.Query
 
-      if (filterManagerUid) {
-        catchupQ1 = catchupQ1.where('managerUid', '==', filterManagerUid)
-        catchupQ2 = catchupQ2.where('managerUid', '==', filterManagerUid)
-      }
-      if (cursors?.catchupLastDoc) {
-        catchupQ1 = catchupQ1.startAfter(cursors.catchupLastDoc)
-      }
+    if (filterManagerUid) {
+      catchupQ1 = catchupQ1.where('managerUid', '==', filterManagerUid)
+      catchupQ2 = catchupQ2.where('managerUid', '==', filterManagerUid)
+    }
+    if (cursors?.catchupQ1LastDoc) {
+      catchupQ1 = catchupQ1.startAfter(cursors.catchupQ1LastDoc)
+    }
+    if (cursors?.catchupQ2LastDoc) {
+      catchupQ2 = catchupQ2.startAfter(cursors.catchupQ2LastDoc)
+    }
 
-      const [cSnap1, cSnap2] = await Promise.all([
-        catchupQ1.limit(100).get().catch(() => ({ docs: [] } as any)),
-        catchupQ2.limit(100).get().catch(() => ({ docs: [] } as any))
-      ])
+    const CATCHUP_LIMIT = 100
+    // Ne jamais masquer les erreurs Firestore par un retour vide : toute défaillance doit être propagée
+    const [cSnap1, cSnap2] = await Promise.all([
+      catchupQ1.limit(CATCHUP_LIMIT).get(),
+      catchupQ2.limit(CATCHUP_LIMIT).get()
+    ])
 
-      const catchupDocs = [...(cSnap1.docs || []), ...(cSnap2.docs || [])]
-      if (catchupDocs.length > 0) {
-        nextCursors.catchupLastDoc = catchupDocs[catchupDocs.length - 1]
-      }
+    const pass1HasMore = snap1.docs.length >= limitPerStatus || snap2.docs.length >= limitPerStatus
+    const catchupHasMore = (cSnap1?.docs?.length || 0) >= CATCHUP_LIMIT || (cSnap2?.docs?.length || 0) >= CATCHUP_LIMIT
+    const hasMore = pass1HasMore || catchupHasMore
 
-      for (const d of catchupDocs) {
-        if (seenIds.has(d.id)) continue
-        const dData = d.data() || {}
-        // Fiche historique orpheline sans champ concludedAt
-        if (!dData.concludedAt) {
-          let effectiveDate: Date | null = null
-          if (dData.updatedAt) {
-            effectiveDate = dData.updatedAt.toDate ? dData.updatedAt.toDate() : new Date(dData.updatedAt)
-          } else if (dData.createdAt) {
-            effectiveDate = dData.createdAt.toDate ? dData.createdAt.toDate() : new Date(dData.createdAt)
+    const nextCursors: ArchiveCycleCursors = {
+      q1LastDoc: snap1.docs.length > 0 ? snap1.docs[snap1.docs.length - 1] : cursors?.q1LastDoc,
+      q2LastDoc: snap2.docs.length > 0 ? snap2.docs[snap2.docs.length - 1] : cursors?.q2LastDoc,
+      catchupQ1LastDoc: cSnap1.docs.length > 0 ? cSnap1.docs[cSnap1.docs.length - 1] : cursors?.catchupQ1LastDoc,
+      catchupQ2LastDoc: cSnap2.docs.length > 0 ? cSnap2.docs[cSnap2.docs.length - 1] : cursors?.catchupQ2LastDoc
+    }
+
+    const catchupDocs = [...(cSnap1?.docs || []), ...(cSnap2?.docs || [])]
+
+    for (const d of catchupDocs) {
+      if (seenIds.has(d.id)) continue
+      const dData = d.data() || {}
+      // Fiche historique orpheline sans champ concludedAt
+      if (!dData.concludedAt) {
+        let effectiveDate: Date | null = null
+        if (dData.updatedAt) {
+          effectiveDate = dData.updatedAt.toDate ? dData.updatedAt.toDate() : new Date(dData.updatedAt)
+        } else if (dData.createdAt) {
+          effectiveDate = dData.createdAt.toDate ? dData.createdAt.toDate() : new Date(dData.createdAt)
+        } else if ((d as any).createTime) {
+          const ct = (d as any).createTime
+          effectiveDate = ct.toDate ? ct.toDate() : new Date(ct)
+        }
+
+        if (effectiveDate && !isNaN(effectiveDate.getTime())) {
+          if (isEligibleForAutoArchive(effectiveDate, now)) {
+            seenIds.add(d.id)
+            docs.push(d)
+          } else {
+            // Date récente : régularisation du champ concludedAt (l'erreur est remontée en cas d'échec)
+            await d.ref.update({ concludedAt: Timestamp.fromDate(effectiveDate) })
           }
-
-          if (effectiveDate && !isNaN(effectiveDate.getTime())) {
-            if (isEligibleForAutoArchive(effectiveDate, now)) {
-              seenIds.add(d.id)
-              docs.push(d)
-            } else {
-              // Date récente : on régularise le champ concludedAt pour les cycles futurs
-              d.ref.update({ concludedAt: Timestamp.fromDate(effectiveDate) }).catch(() => {})
-            }
-          }
+        } else {
+          console.warn(
+            `[runMonthlyPipelineCycleAutoArchive] Fiche ${d.id} sans date exploitable (concludedAt/updatedAt/createdAt absents). Préservée dans le pipeline.`
+          )
         }
       }
-    } catch (catchupErr: any) {
-      console.warn('[runMonthlyPipelineCycleAutoArchive] Rattrapage fiches sans concludedAt:', catchupErr?.message || catchupErr)
     }
 
     let archivedCount = 0

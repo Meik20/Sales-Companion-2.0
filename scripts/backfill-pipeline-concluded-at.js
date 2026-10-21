@@ -26,6 +26,7 @@ async function backfillPipelineConcludedAt(isDryRun = false) {
   let withConcludedAt = 0
   let missingConcludedAt = 0
   let migrated = 0
+  let unresolvable = 0
 
   for (const doc of snapshot.docs) {
     const data = doc.data()
@@ -33,7 +34,7 @@ async function backfillPipelineConcludedAt(isDryRun = false) {
       withConcludedAt++
     } else {
       missingConcludedAt++
-      const effectiveDate = data.updatedAt?.toDate
+      let effectiveDate = data.updatedAt?.toDate
         ? data.updatedAt.toDate()
         : data.createdAt?.toDate
           ? data.createdAt.toDate()
@@ -41,7 +42,18 @@ async function backfillPipelineConcludedAt(isDryRun = false) {
             ? new Date(data.updatedAt)
             : data.createdAt
               ? new Date(data.createdAt)
-              : new Date()
+              : null
+
+      // Repli sur les métadonnées natives du document Firestore
+      if (!effectiveDate && doc.createTime) {
+        effectiveDate = doc.createTime.toDate ? doc.createTime.toDate() : new Date(doc.createTime)
+      }
+
+      if (!effectiveDate || isNaN(effectiveDate.getTime())) {
+        console.warn(`  ⚠️ Fiche ${doc.id} (${data.companyName || 'Sans nom'}) : aucune date exploitable trouvée ! Préservée sans modification pour revue.`)
+        unresolvable++
+        continue
+      }
 
       console.log(`  - Fiche ${doc.id} (${data.companyName || 'Sans nom'}) : concludedAt absent -> résolu à ${effectiveDate.toISOString()}`)
 
@@ -58,6 +70,7 @@ async function backfillPipelineConcludedAt(isDryRun = false) {
   console.log('\n📋 Bilan du diagnostic :')
   console.log(`  ✅ Fiches conformes avec concludedAt : ${withConcludedAt}`)
   console.log(`  ⚠️ Fiches historiques sans concludedAt : ${missingConcludedAt}`)
+  console.log(`  ❓ Fiches sans aucune date exploitable : ${unresolvable}`)
   if (!isDryRun) {
     console.log(`  ✨ Fiches migrées avec succès : ${migrated}`)
   } else {
