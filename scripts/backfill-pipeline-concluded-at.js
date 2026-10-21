@@ -1,16 +1,46 @@
-/**
- * scripts/backfill-pipeline-concluded-at.js
- * Script d'audit et de migration des opportunités conclues historiques sans concludedAt.
- *
- * Utilisation :
- *   node scripts/backfill-pipeline-concluded-at.js [--dry-run]
- */
+const fs = require('fs')
+const path = require('path')
+const { initializeApp, cert, getApps } = require('firebase-admin/app')
+const { getFirestore } = require('firebase-admin/firestore')
 
-const { adminDb } = require('./lib/firebase-admin-cjs')
+function getAdminDb() {
+  if (getApps().length > 0) {
+    return getFirestore(getApps()[0])
+  }
+  const envPath = path.join(__dirname, '../.env.local')
+  if (!fs.existsSync(envPath)) {
+    console.warn('⚠️ Aucun fichier .env.local trouvé.')
+    return null
+  }
+  const raw = fs.readFileSync(envPath, 'utf8')
+  const env = {}
+  const regex = /^([A-Z0-9_]+)=("[\s\S]*?(?<!\\)"|[^\n]*)/gm
+  let match
+  while ((match = regex.exec(raw)) !== null) {
+    let val = match[2].trim()
+    if (val.startsWith('"') && val.endsWith('"')) {
+      val = val.slice(1, -1)
+    }
+    env[match[1]] = val
+  }
 
-async function backfillPipelineConcludedAt(isDryRun = false) {
+  const privateKey = (env['FIREBASE_PRIVATE_KEY'] || process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n')
+  const clientEmail = env['FIREBASE_CLIENT_EMAIL'] || process.env.FIREBASE_CLIENT_EMAIL
+  const projectId = env['NEXT_PUBLIC_FIREBASE_PROJECT_ID'] || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID
+
+  if (!privateKey || !clientEmail || !projectId) {
+    console.warn('⚠️ Identifiants Firebase incomplets dans .env.local.')
+    return null
+  }
+
+  const app = initializeApp({ credential: cert({ projectId, privateKey, clientEmail }) })
+  return getFirestore(app)
+}
+
+async function backfillPipelineConcludedAt(isDryRun = false, customDb = null) {
   console.log(`\n🔍 Début du diagnostic des fiches conclues sans concludedAt (mode ${isDryRun ? 'DRY-RUN' : 'LIVE'})...`)
 
+  const adminDb = customDb || getAdminDb()
   if (!adminDb) {
     console.warn('⚠️ adminDb non initialisé (vérifier les identifiants Firebase). Abandon.')
     return
