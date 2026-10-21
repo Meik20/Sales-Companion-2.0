@@ -37,28 +37,32 @@ async function handleArchiveCron(request: NextRequest) {
       )
     }
 
+    // Sécurité stricte : secret accepté UNIQUEMENT via les en-têtes HTTP (Bearer ou x-cron-key).
+    // Interdiction formelle du passage par paramètre d'URL (?key=) pour éviter la fuite dans les logs d'accès.
     const providedSecret =
       request.headers.get('authorization')?.replace(/^Bearer\s+/i, '') ||
-      request.nextUrl.searchParams.get('key') ||
       request.headers.get('x-cron-key')
 
-    if (providedSecret !== cronSecret) {
+    if (!providedSecret || providedSecret !== cronSecret) {
       return NextResponse.json({ message: 'Non autorisé' }, { status: 401 })
     }
 
     const { adminDb } = await getAdmin()
 
-    // Traitement en boucle par lots successifs pour drainer les arriérés sans dépasser le timeout serverless
+    // Traitement en boucle par lots successifs avec curseur de pagination
+    // pour traverser l'ensemble de la collection sans bloquer sur les fiches non éligibles
     let totalArchived = 0
     let hasMore = true
     let batchesRun = 0
+    let currentCursors: import('@/server/services/monthly-cycle-archive.service').ArchiveCycleCursors | undefined = undefined
     const MAX_BATCHES = 5 // 5 lots x 300 = jusqu'à 1500 fiches par exécution
 
     while (hasMore && batchesRun < MAX_BATCHES) {
       batchesRun++
-      const res = await runMonthlyPipelineCycleAutoArchive(adminDb, undefined, 300)
+      const res = await runMonthlyPipelineCycleAutoArchive(adminDb, undefined, 300, currentCursors)
       totalArchived += res.archivedCount
       hasMore = res.hasMore
+      currentCursors = res.nextCursors
     }
 
     const now = new Date()

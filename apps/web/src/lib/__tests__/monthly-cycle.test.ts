@@ -112,6 +112,58 @@ describe('monthly-cycle utility', () => {
     await expect(runMonthlyPipelineCycleAutoArchive(failingDb)).rejects.toThrow('Firestore connection failed')
   })
 
+  it('strictly preserves pipeline doc and does NOT delete if status changed concurrently (anti-data loss)', async () => {
+    const mockDelete = vi.fn().mockResolvedValue(undefined)
+
+    // Fiche initialement conclue dans la query, mais dont le statut a basculé en 'negociation' lors de la relecture fraîche
+    const concurrentDoc = {
+      id: 'deal-concurrent-1',
+      data: () => ({
+        companyName: 'Concurrent Corp',
+        status: 'conclue',
+        concludedAt: new Date('2026-09-15T10:00:00Z')
+      }),
+      ref: { delete: mockDelete }
+    }
+
+    const mockAdminDb: any = {
+      collection: vi.fn((collName: string) => {
+        if (collName === 'pipeline') {
+          return {
+            where: vi.fn(() => ({
+              limit: vi.fn(() => ({
+                get: vi.fn().mockResolvedValue({
+                  docs: [concurrentDoc]
+                })
+              }))
+            })),
+            doc: vi.fn(() => ({
+              // Relecture fraîche : le statut a été modifié en 'negociation' par le commercial !
+              get: vi.fn().mockResolvedValue({
+                exists: true,
+                data: () => ({
+                  status: 'negociation',
+                  companyName: 'Concurrent Corp'
+                })
+              })
+            }))
+          }
+        }
+        return {
+          doc: vi.fn(() => ({
+            get: vi.fn().mockResolvedValue({ exists: false }),
+            set: vi.fn().mockResolvedValue(undefined)
+          }))
+        }
+      })
+    }
+
+    const res = await runMonthlyPipelineCycleAutoArchive(mockAdminDb)
+    expect(res.archivedCount).toBe(0)
+    // SÉCURITÉ CRITIQUE : doc.ref.delete ne doit JAMAIS avoir été appelé !
+    expect(mockDelete).not.toHaveBeenCalled()
+  })
+
   it('correctly returns localized month label based on language using getMonthPeriodLabel', () => {
     const period = { labelFr: 'Octobre 2026', labelEn: 'October 2026' }
     expect(getMonthPeriodLabel(period, 'fr')).toBe('Octobre 2026')

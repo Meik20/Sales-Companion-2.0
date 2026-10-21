@@ -72,19 +72,38 @@ describe('CRON /api/cron/archive-pipeline-clients', () => {
     expect(mocks.mockRunArchive).toHaveBeenCalledTimes(2)
   })
 
-  it('accepts valid secret via POST and ?key= query parameter', async () => {
+  it('rejects with 401 when secret is passed in URL query parameter (?key=)', async () => {
     process.env.CRON_SECRET = 'super-secret-123'
-    mocks.mockRunArchive.mockResolvedValueOnce({ archivedCount: 10, hasMore: false })
 
-    const req = new NextRequest('http://localhost/api/cron/archive-pipeline-clients?key=super-secret-123', {
-      method: 'POST'
+    const req = new NextRequest('http://localhost/api/cron/archive-pipeline-clients?key=super-secret-123')
+    const res = await GET(req)
+
+    expect(res.status).toBe(401)
+    const json = await res.json()
+    expect(json.message).toBe('Non autorisé')
+    expect(mocks.mockRunArchive).not.toHaveBeenCalled()
+  })
+
+  it('accepts valid secret via POST with x-cron-key header and propagates cursors', async () => {
+    process.env.CRON_SECRET = 'super-secret-123'
+    const mockCursor = { id: 'doc-300' } as any
+    mocks.mockRunArchive
+      .mockResolvedValueOnce({ archivedCount: 200, hasMore: true, nextCursors: { q1LastDoc: mockCursor } })
+      .mockResolvedValueOnce({ archivedCount: 50, hasMore: false })
+
+    const req = new NextRequest('http://localhost/api/cron/archive-pipeline-clients', {
+      method: 'POST',
+      headers: { 'x-cron-key': 'super-secret-123' }
     })
     const res = await POST(req)
 
     expect(res.status).toBe(200)
     const json = await res.json()
-    expect(json.archivedCount).toBe(10)
-    expect(mocks.mockRunArchive).toHaveBeenCalledTimes(1)
+    expect(json.archivedCount).toBe(250)
+    expect(json.batchesRun).toBe(2)
+    expect(mocks.mockRunArchive).toHaveBeenCalledTimes(2)
+    // Vérifier que le 2ème lot a bien reçu le curseur du 1er lot
+    expect(mocks.mockRunArchive).toHaveBeenNthCalledWith(2, expect.anything(), undefined, 300, { q1LastDoc: mockCursor })
   })
 
   it('returns 500 and reports failure when the archive service throws', async () => {

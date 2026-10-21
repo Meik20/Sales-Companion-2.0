@@ -413,8 +413,21 @@ try {
     const archiveCronCode = fs.readFileSync(archiveCronPath, 'utf8')
     if (!archiveCronCode.includes('!cronSecret') || !archiveCronCode.includes('503')) {
       errors.push('❌ SÉCURITÉ CRON VIOLÉE : /api/cron/archive-pipeline-clients doit exiger CRON_SECRET et renvoyer 503 en cas d\'absence.')
+    } else if (archiveCronCode.includes("searchParams.get('key')")) {
+      errors.push('❌ SÉCURITÉ CRON VIOLÉE : /api/cron/archive-pipeline-clients ne doit JAMAIS accepter le secret dans l\'URL (?key=).')
     } else {
-      console.log('✅ Route /api/cron/archive-pipeline-clients conforme (sécurisée par CRON_SECRET obligatoire)')
+      console.log('✅ Route /api/cron/archive-pipeline-clients conforme (sécurisée par CRON_SECRET obligatoire via en-têtes uniquement)')
+    }
+  }
+
+  // 12. Vérifier la protection anti-perte de données dans monthly-cycle-archive.service.ts
+  const archiveServicePath = path.resolve(__dirname, '../apps/web/src/server/services/monthly-cycle-archive.service.ts')
+  if (fs.existsSync(archiveServicePath)) {
+    const archiveServiceCode = fs.readFileSync(archiveServicePath, 'utf8')
+    if (!archiveServiceCode.includes('if (clientSync)') || !archiveServiceCode.includes('await doc.ref.delete()')) {
+      errors.push('❌ PROTECTION DONNÉES VIOLÉE : monthly-cycle-archive.service.ts doit conditionner doc.ref.delete() au succès de clientSync.')
+    } else {
+      console.log('✅ monthly-cycle-archive.service.ts conforme (protection anti-perte de données active)')
     }
   }
 } catch (e) {
