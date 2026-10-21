@@ -11,6 +11,7 @@ import { isEligibleForAutoArchive, getMaxEligibleConcludedDate } from '../../lib
 export interface ArchiveCycleCursors {
   q1LastDoc?: FirebaseFirestore.DocumentSnapshot
   q2LastDoc?: FirebaseFirestore.DocumentSnapshot
+  catchupLastDoc?: FirebaseFirestore.DocumentSnapshot
 }
 
 /**
@@ -18,8 +19,11 @@ export interface ArchiveCycleCursors {
  * Cette fonction est strictement atomique et idempotente :
  * - Sélectionne directement les opportunités conclues dont la date d'éligibilité est échue
  *   (concludedAt < maxEligibleDate) pour éviter de bloquer sur les fiches récentes non éligibles.
+ * - Inclut une passe de rattrapage dédiée pour les fiches conclues historiques sans concludedAt
+ *   (résolues via updatedAt ou createdAt).
  * - Utilise une transaction Firestore atomique pour synchroniser vers `clients` et supprimer du `pipeline`.
- * - Si le statut est modifié concurremment, la transaction n'effectue AUCUNE suppression.
+ * - Revalide l'éligibilité J+3 et le statut au sein de la transaction : si le statut ou la date
+ *   ont basculé concurremment, la transaction n'effectue AUCUNE suppression.
  */
 export async function runMonthlyPipelineCycleAutoArchive(
   adminDb: Firestore,
@@ -99,6 +103,58 @@ export async function runMonthlyPipelineCycleAutoArchive(
       }
     }
 
+    // 2. Passe de rattrapage dédiée pour les fiches conclues historiques SANS concludedAt
+    // Dans Firestore, un filtre 'where(concludedAt, <, ...)' ignore les documents où le champ est absent.
+    // Cette passe récupère les opportunités conclues pour identifier et traiter les fiches orphelines.
+    try {
+      let catchupQ1 = adminDb.collection('pipeline').where('status', '==', 'conclue') as FirebaseFirestore.Query
+      let catchupQ2 = adminDb.collection('pipeline').where('status', '==', 'conclusion') as FirebaseFirestore.Query
+
+      if (filterManagerUid) {
+        catchupQ1 = catchupQ1.where('managerUid', '==', filterManagerUid)
+        catchupQ2 = catchupQ2.where('managerUid', '==', filterManagerUid)
+      }
+      if (cursors?.catchupLastDoc) {
+        catchupQ1 = catchupQ1.startAfter(cursors.catchupLastDoc)
+      }
+
+      const [cSnap1, cSnap2] = await Promise.all([
+        catchupQ1.limit(100).get().catch(() => ({ docs: [] } as any)),
+        catchupQ2.limit(100).get().catch(() => ({ docs: [] } as any))
+      ])
+
+      const catchupDocs = [...(cSnap1.docs || []), ...(cSnap2.docs || [])]
+      if (catchupDocs.length > 0) {
+        nextCursors.catchupLastDoc = catchupDocs[catchupDocs.length - 1]
+      }
+
+      for (const d of catchupDocs) {
+        if (seenIds.has(d.id)) continue
+        const dData = d.data() || {}
+        // Fiche historique orpheline sans champ concludedAt
+        if (!dData.concludedAt) {
+          let effectiveDate: Date | null = null
+          if (dData.updatedAt) {
+            effectiveDate = dData.updatedAt.toDate ? dData.updatedAt.toDate() : new Date(dData.updatedAt)
+          } else if (dData.createdAt) {
+            effectiveDate = dData.createdAt.toDate ? dData.createdAt.toDate() : new Date(dData.createdAt)
+          }
+
+          if (effectiveDate && !isNaN(effectiveDate.getTime())) {
+            if (isEligibleForAutoArchive(effectiveDate, now)) {
+              seenIds.add(d.id)
+              docs.push(d)
+            } else {
+              // Date récente : on régularise le champ concludedAt pour les cycles futurs
+              d.ref.update({ concludedAt: Timestamp.fromDate(effectiveDate) }).catch(() => {})
+            }
+          }
+        }
+      }
+    } catch (catchupErr: any) {
+      console.warn('[runMonthlyPipelineCycleAutoArchive] Rattrapage fiches sans concludedAt:', catchupErr?.message || catchupErr)
+    }
+
     let archivedCount = 0
 
     for (const doc of docs) {
@@ -117,9 +173,11 @@ export async function runMonthlyPipelineCycleAutoArchive(
         // ARCHIVAGE ATOMIQUE DANS UNE TRANSACTION FIRESTORE :
         // 1. Relit la fiche fraîche dans la transaction.
         // 2. Vérifie qu'elle existe et est toujours conclue.
-        // 3. Écrit dans `clients` et supprime de `pipeline` de façon atomique.
-        // Si le statut a basculé concurremment, la transaction n'effectue AUCUNE suppression.
-        const result = await archivePipelineDealAtomically(adminDb, doc.id)
+        // 3. Revalide l'éligibilité temporelle (J+3) sur la fiche fraîche.
+        // 4. Écrit dans `clients` et supprime de `pipeline` de façon atomique.
+        // Si le statut a basculé concurremment ou si la date a été modifiée/repoussée,
+        // la transaction n'effectue AUCUNE suppression.
+        const result = await archivePipelineDealAtomically(adminDb, doc.id, now)
         if (result.status === 'archived') {
           archivedCount++
         } else {

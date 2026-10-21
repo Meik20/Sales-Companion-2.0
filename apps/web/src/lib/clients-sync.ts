@@ -1,5 +1,6 @@
 import type { Firestore } from 'firebase-admin/firestore'
 import { Timestamp } from 'firebase-admin/firestore'
+import { isEligibleForAutoArchive } from './monthly-cycle'
 
 /**
  * Construit de manière pure et déterministe le payload d'un document client
@@ -74,18 +75,23 @@ export function buildClientPayload(
  * Exécute l'archivage atomique et idempotent d'une opportunité conclue :
  * 1. Lit la fiche fraîche au sein d'une transaction Firestore.
  * 2. Vérifie qu'elle existe et que son statut est toujours 'conclue' ou 'conclusion'.
- * 3. Enregistre de manière idempotente le client dans la collection `clients`.
- * 4. Supprime la fiche du `pipeline` dans le MÊME commit atomique.
+ * 3. REVALIDE STRICTEMENT L'ÉLIGIBILITÉ TEMPORELLE (J+3) sur la date de la fiche fraîche
+ *    (concludedAt, ou repli sur updatedAt / createdAt pour les fiches historiques).
+ *    Si la date a été modifiée concurremment ou repoussée, la transaction abandonne
+ *    immédiatement sans supprimer ni archiver.
+ * 4. Enregistre de manière idempotente le client dans la collection `clients`.
+ * 5. Supprime la fiche du `pipeline` dans le MÊME commit atomique.
  *
  * RÈGLE D'INTÉGRITÉ ABSOLUE :
- * Si le document n'existe pas ou si son statut a été modifié concurremment,
- * la transaction n'effectue AUCUNE suppression et préserve les données.
+ * Si le document n'existe pas, si son statut a changé ou si sa date ne respecte plus
+ * l'éligibilité J+3, la transaction n'effectue AUCUNE suppression et préserve les données.
  */
 export async function archivePipelineDealAtomically(
   adminDb: Firestore,
-  pipelineId: string
+  pipelineId: string,
+  now: Date = new Date()
 ): Promise<{
-  status: 'archived' | 'skipped_not_concluded' | 'skipped_not_found'
+  status: 'archived' | 'skipped_not_concluded' | 'skipped_not_found' | 'skipped_not_eligible'
   clientData?: Record<string, any>
 }> {
   return adminDb.runTransaction(async (transaction) => {
@@ -99,22 +105,51 @@ export async function archivePipelineDealAtomically(
     const pipelineData = freshSnap.data() || {}
     const status = String(pipelineData.status || '').toLowerCase().trim()
 
-    // Garde-fou atomique : si le statut a basculé concurremment (ex: repassé en négociation),
+    // Garde-fou 1 : si le statut a basculé concurremment (ex: repassé en prospection ou négociation),
     // on interrompt immédiatement sans supprimer du pipeline.
     if (status !== 'conclue' && status !== 'conclusion') {
       return { status: 'skipped_not_concluded' }
+    }
+
+    // Garde-fou 2 : revalidation stricte de la date fraîche de conclusion et de l'éligibilité J+3
+    let freshConcludedDate: Date | null = null
+    if (pipelineData.concludedAt) {
+      freshConcludedDate = pipelineData.concludedAt.toDate
+        ? pipelineData.concludedAt.toDate()
+        : new Date(pipelineData.concludedAt)
+    } else if (pipelineData.updatedAt) {
+      freshConcludedDate = pipelineData.updatedAt.toDate
+        ? pipelineData.updatedAt.toDate()
+        : new Date(pipelineData.updatedAt)
+    } else if (pipelineData.createdAt) {
+      freshConcludedDate = pipelineData.createdAt.toDate
+        ? pipelineData.createdAt.toDate()
+        : new Date(pipelineData.createdAt)
+    }
+
+    // Si aucune date n'est valide ou si la fiche fraîche n'est plus éligible (ex: date repoussée),
+    // interruption immédiate : aucune suppression ni écriture !
+    if (
+      !freshConcludedDate ||
+      isNaN(freshConcludedDate.getTime()) ||
+      !isEligibleForAutoArchive(freshConcludedDate, now)
+    ) {
+      return { status: 'skipped_not_eligible' }
     }
 
     const clientId = `client_${pipelineId}`
     const clientRef = adminDb.collection('clients').doc(clientId)
     const existingSnap = await transaction.get(clientRef)
 
-    const now = Timestamp.now()
+    const nowTs = Timestamp.fromDate(now)
     const payload = buildClientPayload(
       pipelineId,
-      pipelineData,
+      {
+        ...pipelineData,
+        concludedAt: pipelineData.concludedAt || Timestamp.fromDate(freshConcludedDate)
+      },
       existingSnap.exists ? existingSnap.data() : null,
-      now
+      nowTs
     )
 
     // Écriture du client et suppression de l'opportunité de manière strictement atomique
