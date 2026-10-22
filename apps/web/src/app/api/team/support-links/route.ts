@@ -8,7 +8,9 @@ async function getAdmin() {
 
 /**
  * POST /api/team/support-links
- * Lie un support_agent existant (d'une autre équipe) à ce Manager (même organisation)
+ * Lie un support_agent existant (d'une autre équipe) à ce Team Manager (même organisation)
+ * NOTE : seul un Team Manager peut lier un Agent Support — le Senior Manager ne dispose pas
+ * de cette fonctionnalité, car les Agents Support ne sont pas rattachés à la chaîne Senior Manager.
  */
 export async function POST(request: NextRequest) {
   try {

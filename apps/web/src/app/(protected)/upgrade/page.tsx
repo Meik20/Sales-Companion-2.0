@@ -300,8 +300,8 @@ export default function UpgradePage() {
               }}
             >
               {user?.orgRole === 'team_manager'
-                ? "En tant que Team Manager, l'abonnement et la facturation de votre organisation sont centralisés et gérés exclusivement par votre Senior Manager. Votre forfait actuel ne vous permet pas de bénéficier de ce service. Veuillez vous rapprocher de lui pour mettre à niveau le plan de l'organisation."
-                : "Votre compte est rattaché à une organisation. Le forfait actuel ne permet pas d'accéder à ce service. Veuillez contacter votre responsable d'équipe ou votre Senior Manager pour mettre à niveau l'abonnement."}
+                ? "En tant que Team Manager, l'abonnement et la facturation de votre organisation sont centralisés et gérés exclusivement par votre Senior Manager. Votre forfait actuel ne vous permet pas de bénéficier de ce service. Veuillez vous rapprocher de votre Senior Manager pour mettre à niveau le plan de l'organisation."
+                : "Votre compte est rattaché à une organisation. Le forfait actuel ne permet pas d'accéder à ce service. Veuillez contacter votre Team Manager ou votre Senior Manager pour mettre à niveau l'abonnement."}
             </p>
             <button
               onClick={() => router.push(routes.pipeline)}

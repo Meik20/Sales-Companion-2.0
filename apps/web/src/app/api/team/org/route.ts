@@ -10,7 +10,8 @@ async function getAdmin() {
 /**
  * GET /api/team/org
  * Récupère le code organisation, le rôle hiérarchique (Senior Manager vs Team Manager),
- * les informations de vérification NIU, et la liste des managers rattachés à la même organisation.
+ * les informations de vérification NIU, et la liste des Senior Managers et Team Managers
+ * rattachés à la même organisation.
  */
 export async function GET(request: NextRequest) {
   try {

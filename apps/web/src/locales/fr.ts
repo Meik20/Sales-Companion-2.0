@@ -1756,7 +1756,7 @@ export const fr = {
     refresh: 'Actualiser',
     realTimeInfo: 'Données en temps réel · {count} opportunités analysées',
     accessReserved: 'Accès réservé',
-    accessReservedDesc: 'Cette section est réservée aux managers. Contactez votre responsable pour y accéder.',
+    accessReservedDesc: 'Cette section est réservée aux Team Managers et Senior Managers. Contactez votre Team Manager ou votre Senior Manager pour y accéder.',
     errorLoading: 'Impossible de charger les données',
     noData: 'Aucune donnée',
     noDataDesc: "Votre équipe n'a pas encore enregistré d'opportunités. Les statistiques apparaîtront ici dès que l'activité commence.",

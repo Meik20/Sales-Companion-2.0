@@ -1743,7 +1743,7 @@ export const en = {
     refresh: 'Refresh',
     realTimeInfo: 'Real-time data · {count} analyzed opportunities',
     accessReserved: 'Restricted Access',
-    accessReservedDesc: 'This section is reserved for managers. Contact your supervisor for access.',
+    accessReservedDesc: 'This section is reserved for Team Managers and Senior Managers. Contact your Team Manager or Senior Manager for access.',
     errorLoading: 'Unable to load data',
     noData: 'No data',
     noDataDesc: 'Your team has not registered opportunities yet. Statistics will appear here as soon as activity begins.',

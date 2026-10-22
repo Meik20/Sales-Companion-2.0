@@ -33,7 +33,9 @@ export type UseTeamRoleMembersOptions = {
   role?: string
   /**
    * Exclude a specific role from the results (useful to exclude
-   * support_agent from the commercial team list).
+   * support_agent from the commercial team list of a Team Manager).
+   * NOTE: Agent Support accounts are linked to Team Managers only —
+   * never to Senior Managers.
    */
   excludeRole?: string
 }

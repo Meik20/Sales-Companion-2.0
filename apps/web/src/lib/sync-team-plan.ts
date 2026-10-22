@@ -9,11 +9,12 @@
  *    1. Le document `organisations/{orgCode}` est synchronisé avec le plan et sa validité.
  *    2. Tous les Team Managers de l'organisation (role === 'manager', orgRole === 'team_manager')
  *       reçoivent le plan et la période de validité en temps réel.
- *    3. Tous les membres commerciaux (role === 'member') rattachés à n'importe quel TM ou au SM
+ *    3. Tous les membres commerciaux (role === 'member') rattachés à n'importe quel Team Manager ou au Senior Manager
  *       reçoivent le plan, le quota quotidien et la période de validité.
- *    4. Tous les agents support (role === 'support_agent') reçoivent le plan et la validité tout en gardant l'illimité.
+ *    4. Tous les Agents Support (role === 'support_agent') rattachés aux Team Managers de l'organisation
+ *       reçoivent le plan et la validité tout en gardant l'illimité.
  *    5. Tous les `team_accesses` de l'organisation sont synchronisés.
- *  - Si le manager est un manager isolé (sans organisation globale) :
+ *  - Si le manager est un Team Manager autonome (sans organisation globale) :
  *    Met à jour ses membres directs et ses team_accesses.
  */
 

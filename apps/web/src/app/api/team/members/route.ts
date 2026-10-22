@@ -6,13 +6,13 @@ export const dynamic = 'force-dynamic'
 /**
  * GET /api/team/members
  *
- * Retourne les membres COMMERCIAUX (role: 'member') rattachés à un manager.
+ * Retourne les membres COMMERCIAUX (role: 'member') rattachés à un Team Manager.
  *
  * INVARIANT MÉTIER : les support_agents (role: 'support_agent') sont
- * FORMELLEMENT EXCLUS de cette réponse. Un agent support appartient au
- * support CRM, pas à l'équipe commerciale. Cette route est consommée par
- * la vue "Supervised Sales Reps" du Senior Manager — mélanger les deux
- * rôles induirait des erreurs de calcul de métriques commerciales.
+ * FORMELLEMENT EXCLUS de cette réponse. Un Agent Support appartient à l'espace
+ * CRM / SAV du Team Manager, pas à l'équipe commerciale terrain. Cette route
+ * est consommée par la vue "Supervised Sales Reps" du Senior Manager — mélanger
+ * les deux rôles induirait des erreurs de calcul de métriques commerciales.
  */
 export async function GET(request: NextRequest) {
   try {

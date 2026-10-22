@@ -36,7 +36,7 @@ Le système repose sur une hiérarchie stricte à 4 niveaux :
          - Remontent le statut dans le pipeline opérationnel
 
 [Agents Support Transversaux] (rôle 'support_agent')
-         - Liés à un ou plusieurs managers au sein de l'organisation
+         - Liés à un ou plusieurs **Team Managers** au sein de l'organisation (JAMAIS directement au Senior Manager)
          - Rôle strictement limité : gèrent l'assistance, le SAV et les clients convertis (statut conclu)
          - Ne sont PAS des Team Managers : ne pilotent pas de commerciaux et ne reçoivent pas de prospects délégués
          - Ne figurent JAMAIS dans les formulaires, sélecteurs ou colonnes de Team Managers

@@ -43,10 +43,10 @@ export interface OrgManager {
 }
 
 /**
- * Représente un commercial terrain (role: 'member') rattaché à un manager.
+ * Représente un commercial terrain (role: 'member') rattaché à un Team Manager.
  * INVARIANT : un support_agent (role: 'support_agent') ne doit JAMAIS
- * figurer dans cette liste — il appartient au support CRM, pas à l'équipe
- * commerciale. Tout filtrage sur cette interface DOIT exclure 'support_agent'.
+ * figurer dans cette liste — il appartient à l'espace CRM / SAV du Team Manager,
+ * pas à l'équipe commerciale terrain. Tout filtrage sur cette interface DOIT exclure 'support_agent'.
  */
 interface TeamMemberRecord {
   id: string
@@ -506,7 +506,7 @@ function TransferMemberModal({
         </div>
 
         <div style={{ fontSize: 13, color: 'var(--muted-foreground)', marginBottom: 14 }}>
-          Actuellement rattaché à : <strong>{currentManager.name || currentManager.email}</strong>.
+          Actuellement rattaché à : <strong>{currentManager.name || currentManager.email}</strong> (Team Manager).
         </div>
 
         {/* Sélecteur du nouveau manager */}

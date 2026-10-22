@@ -9,10 +9,11 @@ export type TeamMember = TeamRoleMember & {
 }
 
 /**
- * Real-time hook that returns all commercial team members for the current manager.
+ * Real-time hook that returns all commercial team members for the current Team Manager.
  *
  * Delegates to `useTeamRoleMembers` which handles the dual-listener merge
- * between `team_accesses` and `users`, automatically excluding support_agents.
+ * between `team_accesses` and `users`, automatically excluding support_agents
+ * (Agent Support accounts are linked to Team Managers, not to Senior Managers).
  *
  * Any manual toggle of `activated` in Firestore is reflected in the UI
  * within milliseconds — no page refresh required.

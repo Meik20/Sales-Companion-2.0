@@ -228,7 +228,7 @@ export async function GET(request: NextRequest) {
               }
             }
 
-            // Prospects importés par les managers rattachés
+            // Prospects importés par les Team Managers rattachés à cet Agent Support
             for (const mUid of linkedManagerUids) {
               const sbMgrRes = await getPrivateProspects({
                 orgCode: agentData.orgCode || undefined,
