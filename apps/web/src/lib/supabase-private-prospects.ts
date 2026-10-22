@@ -176,6 +176,7 @@ export interface GetPrivateProspectsParams {
   orgCode?: string | null
   managerUid?: string
   userId?: string
+  seniorUid?: string
   assignedTo?: string | null
   status?: string
   search?: string
@@ -199,6 +200,7 @@ export async function getPrivateProspects(
     orgCode,
     managerUid,
     userId,
+    seniorUid,
     assignedTo,
     status,
     search,
@@ -207,7 +209,7 @@ export async function getPrivateProspects(
   } = params
 
   // 🔒 GARDE-FOU MULTI-TENANT : Interdiction formelle d'interroger sans scope de locataire
-  if (!orgCode && !userId && !managerUid && !id) {
+  if (!orgCode && !userId && !managerUid && !id && !seniorUid) {
     throw new Error('Sécurité multi-tenant : orgCode ou userId obligatoire pour requêter private_prospects')
   }
 
@@ -227,7 +229,15 @@ export async function getPrivateProspects(
     query.set('user_id', `eq.${userId}`)
   }
 
-  if (managerUid) {
+  if (seniorUid) {
+    // 🔒 GARDE-FOU RÔLE SENIOR MANAGER :
+    // Le Senior Manager ne doit voir que ses opportunités importées, gérées ou transférées par lui.
+    // Les imports privés des agents support ou autres managers sont strictement exclus.
+    query.set(
+      'or',
+      `(user_id.eq.${seniorUid},manager_uid.eq.${seniorUid},transferred_from_senior_uid.eq.${seniorUid})`
+    )
+  } else if (managerUid) {
     query.set('manager_uid', `eq.${managerUid}`)
   }
 

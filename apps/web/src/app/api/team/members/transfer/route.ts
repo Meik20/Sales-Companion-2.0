@@ -12,12 +12,18 @@ async function getAdmin() {
  * POST /api/team/members/transfer
  * Transfert individuel d'un commercial terrain ('member') entre deux Team Managers par le Senior Manager.
  *
- * RÈGLES D'OR ARCHITECTURALES (AGENTS.md) :
+ * RÈGLES D'OR ARCHITECTURALES (AGENTS.md §12) :
  * 1. Seul le Senior Manager titulaire de l'organisation peut arbitrer et transférer des commerciaux.
- * 2. Continuité opérationnelle : Le commercial conserve son compte et ses opportunités actives en cours (pipeline),
- *    mais la supervision managériale bascule vers le nouveau Team Manager d'accueil.
- * 3. Cohérence atomique : users/{memberUid}, team_accesses, pipeline et team_assignments sont synchronisés simultanément.
+ * 2. PORTEFEUILLE ACTIF UNIQUEMENT : Seules les opportunités au statut 'prospection' ou 'negociation'
+ *    suivent le commercial vers le nouveau Team Manager. Les affaires 'conclue' (closed/won) restent
+ *    définitivement dans la base clients (collection 'clients') de l'ANCIEN Team Manager. La collection
+ *    'clients' n'est JAMAIS modifiée lors d'un transfert de commercial.
+ * 3. Cohérence atomique : users/{memberUid}, team_accesses, pipeline actif et team_assignments
+ *    sont synchronisés simultanément dans un batch Firestore.
  */
+
+/** Statuts considérés comme « actifs » (portefeuille en cours de traitement). */
+const ACTIVE_PIPELINE_STATUSES = ['prospection', 'negociation']
 export async function POST(request: NextRequest) {
   try {
     const { adminDb, adminAuth } = await getAdmin()
@@ -132,7 +138,6 @@ export async function POST(request: NextRequest) {
       pipelineAssignedSnap,
       assignmentsSnap,
       accessesSnap,
-      clientsSnap,
       crmAssignedSnap,
       crmOwnerSnap
     ] = await Promise.all([
@@ -144,37 +149,51 @@ export async function POST(request: NextRequest) {
       adminDb.collection('team_assignments').where('memberId', '==', memberUid).get(),
       // Fiche d'accès team_accesses du commercial
       adminDb.collection('team_accesses').where('orgCode', '==', orgCode).get(),
-      // Fiches de la Base de données clients conclues par le commercial
-      adminDb.collection('clients').where('assignedTo', '==', memberUid).get(),
       // Fiches CRM dédiées assignées ou créées par ce commercial
       adminDb.collection('crm_clients').where('assignedTo', '==', memberUid).get(),
       adminDb.collection('crm_clients').where('owner', '==', memberUid).get()
+      // ⚠️ RÈGLE MÉTIER INVARIANTE : La collection 'clients' (base clients conclues) n'est JAMAIS
+      // récupérée ici. Les affaires conclues restent définitivement sous la supervision de l'ANCIEN
+      // Team Manager — elles constituent son bilan commercial et ne suivent pas le commercial.
     ])
 
-    // Agréger et dédoublonner toutes les fiches pipeline du commercial
+    // ── PORTEFEUILLE ACTIF UNIQUEMENT ────────────────────────────────────────
+    // Agréger et dédoublonner toutes les fiches pipeline du commercial,
+    // EN EXCLUANT STRICTEMENT les affaires conclues (statut 'conclue').
+    // Les conclues sont clôturées et restent dans le bilan de l'ancien TM.
     const pipelineDocsMap = new Map<string, any>()
     for (const d of [...pipelineUserSnap.docs, ...pipelineAssignedSnap.docs]) {
       const data = d.data()
-      // Multi-tenant isolation : si orgCode est renseigné, il doit matcher, sinon la fiche est rattachée
+      // Multi-tenant isolation : si orgCode est renseigné, il doit matcher
       if (!data.orgCode || data.orgCode === orgCode) {
-        pipelineDocsMap.set(d.id, d)
+        // 🔒 FILTRE ACTIF : exclure toute affaire conclue (won/closed)
+        if (ACTIVE_PIPELINE_STATUSES.includes(data.status)) {
+          pipelineDocsMap.set(d.id, d)
+        }
       }
     }
 
-    // Récupérer également les fiches pointées par les assignations actives
+    // Récupérer les fiches pointées par les assignations actives (si non encore dans la map)
+    const activeAssignmentDocs: FirebaseFirestore.QueryDocumentSnapshot[] = []
     for (const aDoc of assignmentsSnap.docs) {
       const pEntryId = aDoc.data()?.pipelineEntryId
-      if (pEntryId && !pipelineDocsMap.has(pEntryId)) {
-        try {
-          const pDoc = await adminDb.collection('pipeline').doc(pEntryId).get()
-          if (pDoc.exists) {
-            const pData = pDoc.data()
-            if (!pData?.orgCode || pData?.orgCode === orgCode) {
-              pipelineDocsMap.set(pDoc.id, pDoc)
+      if (pEntryId) {
+        if (!pipelineDocsMap.has(pEntryId)) {
+          try {
+            const pDoc = await adminDb.collection('pipeline').doc(pEntryId).get()
+            if (pDoc.exists) {
+              const pData = pDoc.data()
+              if ((!pData?.orgCode || pData?.orgCode === orgCode) && ACTIVE_PIPELINE_STATUSES.includes(pData?.status)) {
+                pipelineDocsMap.set(pDoc.id, pDoc)
+                activeAssignmentDocs.push(aDoc)
+              }
             }
+          } catch (err) {
+            console.warn('[POST /api/team/members/transfer] pipelineEntryId fetch error:', err)
           }
-        } catch (err) {
-          console.warn('[POST /api/team/members/transfer] pipelineEntryId fetch error:', err)
+        } else {
+          // La fiche de pipeline est déjà dans la map (active) — inclure l'assignation
+          activeAssignmentDocs.push(aDoc)
         }
       }
     }
@@ -227,9 +246,19 @@ export async function POST(request: NextRequest) {
       await commitBatchIfFull()
     }
 
-    // C. Mettre à jour TOUT le pipeline du commercial (supervision managériale + orgCode + assignation)
+    // C. Transférer UNIQUEMENT les opportunités actives (prospection + négociation)
+    // ⚠️ INVARIANT MÉTIER : les affaires 'conclue' ne sont JAMAIS transférées.
+    // Elles restent dans la base clients (collection 'clients') de l'ancien TM.
     let transferredPipelineCount = 0
     for (const d of pipelineDocsMap.values()) {
+      // Double-vérification défensive du statut (le filtre amont est déjà appliqué)
+      const pData = d.data()
+      if (!ACTIVE_PIPELINE_STATUSES.includes(pData?.status)) {
+        console.warn(
+          `[POST /api/team/members/transfer] Fiche ${d.id} ignorée (statut non actif: ${pData?.status})`
+        )
+        continue
+      }
       batch.update(d.ref, {
         managerUid: targetManagerUid,
         managerName: targetManagerName,
@@ -243,8 +272,8 @@ export async function POST(request: NextRequest) {
       await commitBatchIfFull()
     }
 
-    // D. Mettre à jour les assignations de ce commercial
-    for (const d of assignmentsSnap.docs) {
+    // D. Mettre à jour uniquement les assignations liées aux opportunités actives transférées
+    for (const d of activeAssignmentDocs) {
       batch.update(d.ref, {
         managerUid: targetManagerUid,
         managerName: targetManagerName,
@@ -254,26 +283,18 @@ export async function POST(request: NextRequest) {
       await commitBatchIfFull()
     }
 
-    // E. Mettre à jour les fiches de la Base Clients ("clients")
-    let transferredClientsCount = 0
-    for (const d of clientsSnap.docs) {
-      const data = d.data()
-      if (!data.orgCode || data.orgCode === orgCode) {
-        batch.update(d.ref, {
-          managerUid: targetManagerUid,
-          previousManagerUid: sourceManagerUid,
-          orgCode: orgCode,
-          updatedAt: now
-        })
-        transferredClientsCount++
-        opCount++
-        await commitBatchIfFull()
-      }
-    }
+    // E. Base Clients (collection 'clients') — INTOUCHABLE
+    // ⛔ Les fiches conclues (clients) de la collection 'clients' restent DÉFINITIVEMENT
+    //    attachées à l'ancien Team Manager. Elles ne sont PAS modifiées lors du transfert
+    //    du commercial. C'est une règle métier fondamentale de gouvernance commerciale.
 
-    // F. Mettre à jour les fiches CRM ("crm_clients")
+    // F. Mettre à jour les fiches CRM actives ("crm_clients")
+    // Seules les fiches CRM en cours (non conclues) sont transférées avec le commercial.
     const crmDocsMap = new Map<string, any>()
     for (const d of [...crmAssignedSnap.docs, ...crmOwnerSnap.docs]) {
+      const crmData = d.data()
+      // Exclure les fiches CRM de type 'client converti' (statut conclue) — elles restent à l'ancien TM
+      if (crmData?.status === 'conclue' || crmData?.type === 'client') continue
       crmDocsMap.set(d.id, d)
     }
     for (const d of crmDocsMap.values()) {
@@ -321,7 +342,7 @@ export async function POST(request: NextRequest) {
         userId: targetManagerUid,
         type: 'general',
         title: 'Nouveau commercial dans votre équipe',
-        message: `Le commercial ${memberName} a été transféré dans votre équipe par le Senior Manager (${callerName}), avec ${transferredPipelineCount} opportunité(s) active(s).`,
+        message: `Le commercial ${memberName} a été transféré dans votre équipe par le Senior Manager (${callerName}), avec ${transferredPipelineCount} opportunité(s) active(s) transférée(s). Les affaires conclues restent enregistrées dans la base clients de l'ancien Team Manager.`,
         link: '/team'
       })
 
@@ -331,7 +352,7 @@ export async function POST(request: NextRequest) {
           userId: sourceManagerUid,
           type: 'general',
           title: 'Réaffectation d’un commercial',
-          message: `Le commercial ${memberName} a été réaffecté vers l'équipe de ${targetManagerName} par le Senior Manager.`,
+          message: `Le commercial ${memberName} a été réaffecté vers l'équipe de ${targetManagerName} par le Senior Manager (${callerName}). Vos affaires conclues avec ce commercial restent intégralement dans votre base clients.`,
           link: '/team'
         })
       }
@@ -353,7 +374,8 @@ export async function POST(request: NextRequest) {
         uid: targetManagerUid,
         name: targetManagerName
       },
-      transferredPipelineCount
+      // Nombre d'opportunités ACTIVES transférées (conclues exclues — restent à l'ancien TM)
+      transferredActivePipelineCount: transferredPipelineCount
     })
   } catch (error: any) {
     console.error('[POST /api/team/members/transfer] error:', error)

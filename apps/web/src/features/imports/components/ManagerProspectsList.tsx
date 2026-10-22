@@ -93,7 +93,8 @@ function getProspectAgingStatus(
   // ── 1. Cas spécifique SENIOR MANAGER (Vue Supervision & Transfert d'organisation) ──
   if (isSeniorManager) {
     const isTransferred = Boolean(
-      p.transferredToManagerUid || (p.managerId && p.managerId !== currentManagerId)
+      p.transferredToManagerUid ||
+        (p.transferredFromSeniorUid && p.transferredFromSeniorUid === currentManagerId)
     )
 
     // 1.a. Prospect déjà transféré à un Team Manager
@@ -602,49 +603,30 @@ export function ManagerProspectsList({
 
   function getTmName(uid: string | null | undefined): string {
     if (!uid) return '—'
-    // 1. Recherche dans les Team Managers transmis en props
+    // 1. Recherche dans les Team Managers légitimes transmis en props
     const tm = teamManagers.find((m) => m.uid === uid)
     if (tm?.name || tm?.email) return tm.name ?? tm.email!
 
-    // 2. Recherche si un prospect porte déjà ce nom résolu par le serveur
+    // 2. Recherche si un prospect porte déjà ce nom résolu par le serveur ET est un TM connu
     const fromProspect = prospects.find(
       (p) =>
         (p.transferredToManagerUid === uid || p.managerId === uid) &&
-        p.transferredToManagerName
+        p.transferredToManagerName &&
+        teamManagers.some((m) => m.uid === uid)
     )
     if (fromProspect?.transferredToManagerName) {
       return fromProspect.transferredToManagerName
     }
 
-    // 3. Cas où l'UID est le compte courant
-    if (user?.uid === uid) {
-      return user.name || user.email || (lang === 'en' ? 'Me' : 'Moi')
-    }
-
-    // 4. Recherche dans les membres
-    const member = members.find((m) => m.uid === uid)
-    if (member?.name || member?.email) return member.name ?? member.email!
-
-    // 5. Garde-fou strict anti-fuite d'identifiants bruts : ne JAMAIS retourner un UID en clair
+    // 3. Garde-fou strict : un agent support ou non-TM ne doit JAMAIS être affiché comme TM
     return lang === 'en' ? 'Team Manager' : 'Team Manager'
   }
 
-  // Managers disponibles pour le filtre (Team Managers déclarés + managers/agents détectés dans les fiches avec leur nom)
+  // Managers disponibles pour le filtre : Team Managers déclarés uniquement.
+  // Les agents support ou autres rôles non-TM en sont formellement exclus.
   const availableManagersForFilter = useMemo(() => {
-    const map = new Map<string, { uid: string; name: string }>()
-    for (const tm of teamManagers) {
-      if (tm.uid && tm.name) {
-        map.set(tm.uid, { uid: tm.uid, name: tm.name })
-      }
-    }
-    for (const p of prospects) {
-      const targetUid = (p.transferredToManagerUid || p.managerId) as string | undefined
-      if (targetUid && !map.has(targetUid) && p.transferredToManagerName) {
-        map.set(targetUid, { uid: targetUid, name: p.transferredToManagerName })
-      }
-    }
-    return Array.from(map.values())
-  }, [teamManagers, prospects])
+    return teamManagers.filter((tm) => tm.uid && tm.name)
+  }, [teamManagers])
 
   // Filtering
   const filtered = prospects.filter((p) => {
@@ -654,9 +636,11 @@ export function ManagerProspectsList({
 
     if (isSeniorManager) {
       const isTransferred = Boolean(
-        p.transferredToManagerUid || (p.managerId && p.managerId !== managerId)
+        p.transferredToManagerUid ||
+          (p.transferredFromSeniorUid && p.transferredFromSeniorUid === managerId) ||
+          (p.managerId && p.managerId !== managerId && teamManagers.some((tm) => tm.uid === p.managerId))
       )
-      const targetTmUid = (p.transferredToManagerUid || p.managerId) as string
+      const targetTmUid = (p.transferredToManagerUid || (p.transferredFromSeniorUid ? p.managerId : undefined)) as string | undefined
       if (filterTm === '__untransferred') {
         if (isTransferred) return false
       } else if (filterTm) {
@@ -1374,7 +1358,9 @@ export function ManagerProspectsList({
                               style={{ color: 'var(--muted-foreground, #94a3b8)' }}
                             />
                           </span>
-                        ) : p.transferredToManagerName || (p.managerId && p.managerId !== managerId) ? (
+                        ) : (p.transferredToManagerUid ||
+                            (p.transferredFromSeniorUid && p.transferredFromSeniorUid === managerId) ||
+                            (p.managerId && p.managerId !== managerId && teamManagers.some((tm) => tm.uid === p.managerId))) ? (
                           <span
                             style={{
                               display: 'inline-flex',
@@ -1390,8 +1376,7 @@ export function ManagerProspectsList({
                             }}
                           >
                             <Users size={11} />
-                            {p.transferredToManagerName ||
-                              getTmName((p.transferredToManagerUid || p.managerId) as string)}
+                            {getTmName((p.transferredToManagerUid || p.managerId) as string)}
                           </span>
                         ) : (
                           <select

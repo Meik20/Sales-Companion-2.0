@@ -474,6 +474,77 @@ try {
 
     console.log("✅ Règle anti-fuite d'UID conforme (résolution automatique serveur + garde-fous UI hermétiques)")
   }
+
+  // 14. Balisage strict des Rôles & Confinement de l'Agent Support
+  const transferRoutePath = path.resolve(
+    __dirname,
+    '../apps/web/src/app/api/imports/transfer/route.ts'
+  )
+  const supabaseProspectsPath = path.resolve(
+    __dirname,
+    '../apps/web/src/lib/supabase-private-prospects.ts'
+  )
+
+  if (fs.existsSync(transferRoutePath) && fs.existsSync(importsRoutePath) && fs.existsSync(supabaseProspectsPath)) {
+    const transferCode = fs.readFileSync(transferRoutePath, 'utf8')
+    const importsCode = fs.readFileSync(importsRoutePath, 'utf8')
+    const supabaseCode = fs.readFileSync(supabaseProspectsPath, 'utf8')
+
+    // Contrôle A : Interdiction formelle de transférer des prospects à un support_agent
+    if (!transferCode.includes("targetData.role === 'support_agent'") || !transferCode.includes("targetData.role !== 'manager'")) {
+      errors.push(
+        "❌ RÈGLE DE RÔLE VIOLÉE : /api/imports/transfer/route.ts doit formellement interdire le transfert de prospects à un Agent Support."
+      )
+    }
+
+    // Contrôle B : getPrivateProspects et GET /api/imports doivent isoler strictement la portée du Senior Manager (seniorUid)
+    if (!supabaseCode.includes('seniorUid') || !importsCode.includes('seniorUid')) {
+      errors.push(
+        "❌ CONFINEMENT DES RÔLES VIOLÉ : Supabase private_prospects et GET /api/imports doivent filtrer strictement via seniorUid pour exclure les prospects des agents support."
+      )
+    }
+
+    // Contrôle C : GET /api/imports doit filtrer scopedProspects pour exclure les imports non délégués au SM
+    if (!importsCode.includes('scopedProspects')) {
+      errors.push(
+        "❌ ISOLATION DES FLUX VIOLÉE : GET /api/imports/route.ts doit filtrer scopedProspects pour empêcher les imports privés d'apparaître dans la file SM."
+      )
+    }
+
+    console.log("✅ Confinement des Rôles conforme (Agent Support exclu des délégations et isolation stricte du Senior Manager)")
+  }
+
+  // 15. Transfert individuel de commercial : Portefeuille Actif Uniquement & Maintien des Affaires Conclues
+  const memberTransferRoutePath = path.resolve(
+    __dirname,
+    '../apps/web/src/app/api/team/members/transfer/route.ts'
+  )
+  if (fs.existsSync(memberTransferRoutePath)) {
+    const mtCode = fs.readFileSync(memberTransferRoutePath, 'utf8')
+
+    // Contrôle A : Doit filtrer sur les statuts actifs (prospection, negociation)
+    if (!mtCode.includes('ACTIVE_PIPELINE_STATUSES') || !mtCode.includes('prospection') || !mtCode.includes('negociation')) {
+      errors.push(
+        "❌ RÈGLE MÉTIER VIOLÉE DANS team/members/transfer : Le transfert de commercial doit définir et utiliser ACTIVE_PIPELINE_STATUSES (prospection, negociation)."
+      )
+    }
+
+    // Contrôle B : Ne doit JAMAIS transférer ou altérer la collection 'clients'
+    if (mtCode.includes("collection('clients')") || mtCode.includes('clientsSnap')) {
+      errors.push(
+        "❌ INTÉGRITÉ COMMERCIALE VIOLÉE : /api/team/members/transfer/route.ts ne doit JAMAIS interroger ni modifier la collection 'clients'. Les affaires conclues doivent rester à l'ancien TM."
+      )
+    }
+
+    // Contrôle C : Vérification explicite de l'exclusion des conclues
+    if (!mtCode.includes("ACTIVE_PIPELINE_STATUSES.includes(data.status)") && !mtCode.includes("ACTIVE_PIPELINE_STATUSES.includes(pData?.status)")) {
+      errors.push(
+        "❌ FILTRE ACTIF VIOLÉ : /api/team/members/transfer/route.ts doit vérifier ACTIVE_PIPELINE_STATUSES pour chaque fiche de pipeline transférée."
+      )
+    }
+
+    console.log("✅ Règle de transfert de commercial conforme (Portefeuille actif uniquement, affaires conclues préservées chez l'ancien TM)")
+  }
 } catch (e) {
   errors.push(`❌ Erreur lors du contrôle des règles de calcul de pipeline : ${e.message}`)
 }

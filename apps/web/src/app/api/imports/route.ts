@@ -74,8 +74,9 @@ export async function GET(request: NextRequest) {
         const isSenior = callerData?.orgRole === 'senior_manager' && managerId === callerUid
         const sbRes = await getPrivateProspects({
           orgCode: callerData?.orgCode || undefined,
+          seniorUid: isSenior ? callerUid : undefined,
           managerUid: isSenior ? undefined : managerId,
-          userId: isSenior ? callerUid : (callerData?.role === 'independent' ? callerUid : undefined),
+          userId: isSenior ? undefined : (callerData?.role === 'independent' ? callerUid : undefined),
           assignedTo: assignedTo || undefined,
           limit: 3000
         })
@@ -200,10 +201,24 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    const isSenior = callerData?.orgRole === 'senior_manager' && managerId === callerUid
+
+    // 🔒 GARDE-FOU RÔLE SENIOR MANAGER :
+    // Le Senior Manager ne doit voir que ses opportunités importées, gérées ou transférées par lui.
+    // Les fiches importées par des agents support ou d'autres managers non déléguées sont exclues.
+    const scopedProspects = isSenior
+      ? mergedProspects.filter(
+          (p) =>
+            p.userId === callerUid ||
+            p.managerId === callerUid ||
+            p.transferredFromSeniorUid === callerUid
+        )
+      : mergedProspects
+
     // Filtrage optionnel par assigné
     const filtered = assignedTo
-      ? mergedProspects.filter((p: Record<string, unknown>) => p.assignedTo === assignedTo)
-      : mergedProspects
+      ? scopedProspects.filter((p: Record<string, unknown>) => p.assignedTo === assignedTo)
+      : scopedProspects
 
     return NextResponse.json({ prospects: filtered })
   } catch (error) {

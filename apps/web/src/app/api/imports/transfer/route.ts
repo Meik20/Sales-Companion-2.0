@@ -92,9 +92,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Team Manager cible introuvable' }, { status: 404 })
     }
 
-    if (targetData.orgCode !== orgCode || targetData.role !== 'manager') {
+    if (targetData.orgCode !== orgCode) {
       return NextResponse.json(
-        { message: "Le manager cible n'appartient pas à votre organisation" },
+        { message: "Le destinataire cible n'appartient pas à votre organisation" },
+        { status: 400 }
+      )
+    }
+
+    // 🔒 GARDE-FOU RÔLE STRICT : Interdiction absolue de transférer à un Agent Support ou un non-Team Manager
+    if (targetData.role === 'support_agent') {
+      return NextResponse.json(
+        { message: "Un Agent Support ne peut pas recevoir de délégations de prospects opérationnels." },
+        { status: 400 }
+      )
+    }
+
+    if (targetData.role !== 'manager' || targetData.orgRole === 'senior_manager') {
+      return NextResponse.json(
+        { message: "Les prospects ne peuvent être transférés qu'à des Team Managers opérationnels." },
         { status: 400 }
       )
     }

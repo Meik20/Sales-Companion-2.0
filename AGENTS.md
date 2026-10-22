@@ -37,7 +37,9 @@ Le système repose sur une hiérarchie stricte à 4 niveaux :
 
 [Agents Support Transversaux] (rôle 'support_agent')
          - Liés à un ou plusieurs managers au sein de l'organisation
-         - Gèrent le support et les clients convertis (statut conclu)
+         - Rôle strictement limité : gèrent l'assistance, le SAV et les clients convertis (statut conclu)
+         - Ne sont PAS des Team Managers : ne pilotent pas de commerciaux et ne reçoivent pas de prospects délégués
+         - Ne figurent JAMAIS dans les formulaires, sélecteurs ou colonnes de Team Managers
 ```
 
 ---
@@ -247,10 +249,12 @@ Ne **jamais** utiliser un emoji cercle coloré (`🟢🔴🟡`) pour indiquer un
 >    - L'auto-révocation du Senior Manager est **strictement interdite** (`targetUid !== callerUid`).
 > 2. **Continuité d'Activité et Passation de Service Obligatoire :**  
 >    - En cas de révocation d'un Team Manager, **la totalité de ses dossiers** (opportunités de pipeline, prospects importés Firestore et Supabase `private_prospects`, commerciaux terrain rattachés et assignations) DOIT être transférée de manière atomique vers un **Team Manager successeur du même segment** (ou vers le Senior Manager par intérim si aucun autre TM n'est disponible).
-> 3. **Préservation du Portefeuille Commercial lors des Transferts :**  
->    - Le transfert individuel d'un commercial vers un nouveau Team Manager réassigne la supervision managériale (`managerUid`), mais préserve intégralement le compte du commercial et ses opportunités actives en cours (`userId`).
+> 3. **Préservation du Portefeuille Commercial & Règle du Portefeuille Actif Exclusif lors des Transferts :**  
+>    - Le transfert individuel d'un commercial vers un nouveau Team Manager réassigne la supervision managériale (`managerUid`), mais préserve intégralement le compte du commercial (`users/{memberUid}`) et ses opportunités actives en cours (`userId`).
+>    - **Portefeuille Actif Uniquement :** Seules les opportunités au statut **actif** (`prospection` et `negociation`) suivent le commercial vers le nouveau Team Manager.
+>    - **Intégrité de la Base Clients de l'Ancien TM :** Toutes les affaires **conclues** (`status === 'conclue'`) restent **définitivement enregistrées dans la base de données clients (`clients`) de l'ancien Team Manager**. La collection `clients` n'est JAMAIS altérée ni transférée lors d'un transfert individuel de commercial.
 > 4. **Garde-fous automatisés pré-build :**  
->    - `scripts/check-architecture-integrity.js` valide systématiquement la présence et la conformité des routes `/api/team/managers/revoke` et `/api/team/members/transfer`, ainsi que l'interdiction formelle de l'auto-révocation.
+>    - `scripts/check-architecture-integrity.js` valide systématiquement la présence et la conformité des routes `/api/team/managers/revoke` et `/api/team/members/transfer`, l'interdiction formelle de l'auto-révocation, et la restriction stricte du transfert au portefeuille actif (exclusion des affaires conclues et sanctification de la collection `clients`).
 > 5. **Révocation d'un Senior Manager — Arbitrage Obligatoire du Support Sales Companion :**  
 >    - La révocation directe d'un Senior Manager par un autre Senior Manager (y compris SM1) est **formellement interdite** (`/api/team/managers/revoke` rejette toute cible ayant `orgRole === 'senior_manager'`).
 >    - Toute demande de révocation d'un Senior Manager fait obligatoirement l'objet d'une demande formelle auprès du **Support de SALES COMPANION 2.0** via la route `/api/support/sm-revocation`.
@@ -272,4 +276,23 @@ Ne **jamais** utiliser un emoji cercle coloré (`🟢🔴🟡`) pour indiquer un
 >    - En cas d'absence temporaire du nom dans les props, elles doivent interroger les fiches déjà résolues, le profil utilisateur connecté, ou à défaut renvoyer un libellé métier qualifié (`Team Manager` ou `Commercial`), JAMAIS la clé primaire de base de données.
 > 3. **Balisage & Contrôle Automatique Continu :**  
 >    - `scripts/check-architecture-integrity.js` (Étape 13) bloque systématiquement tout build ou push si un fallback d'UID est détecté dans les composants d'import ou si la résolution par lot est altérée.
+
+---
+
+## 14. Règle Inviolable — Balisage Strict des Rôles & Confinement de l'Agent Support
+
+> [!CAUTION]
+> **CONFINEMENT STRICT DU RÔLE AGENT SUPPORT (`role: 'support_agent'`) :**  
+> L'Agent Support possède un rôle transversal d'assistance et de service après-vente hautement restreint. Il n'est en aucun cas un Team Manager ni un superviseur commercial.
+>
+> 1. **Interdiction Absolue d'Apparence dans la Chaîne Managériale Commerciale :**  
+>    - L'Agent Support ne doit **JAMAIS** figurer dans les tableaux, listes, formulaires, sélecteurs ou colonnes dédiés aux « Team Managers ».
+>    - Les filtres et dropdowns de sélection de Team Managers (`availableManagersForFilter`, etc.) doivent filtrer strictement sur les Team Managers opérationnels habilités (`role === 'manager'` et `orgRole !== 'senior_manager'`).
+> 2. **Interdiction Formelle de Délégation / Transfert de Prospects Opérationnels :**  
+>    - La route `/api/imports/transfer` rejette immédiatement (HTTP 400) toute tentative de transférer des prospects à un `support_agent`. Seuls les Team Managers peuvent recevoir des délégations du Senior Manager.
+> 3. **Isolation Étéanche des Imports d'Opportunités :**  
+>    - Les fiches importées par un Agent Support sont strictement privées à son espace Support / CRM Clients et ne doivent **JAMAIS** polluer la file d'attente d'importation et de délégation du Senior Manager.
+>    - La route `GET /api/imports` isole rigoureusement le périmètre du Senior Manager (`seniorUid` / `scopedProspects`) afin de ne remonter que les opportunités sous sa responsabilité directe ou transférées par lui à un Team Manager.
+> 4. **Garde-fous automatisés pré-build :**  
+>    - `scripts/check-architecture-integrity.js` (Étape 14) bloque systématiquement tout build ou push si le confinement de l'Agent Support ou le périmètre d'isolation du Senior Manager est altéré.
 
