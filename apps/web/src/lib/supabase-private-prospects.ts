@@ -164,6 +164,7 @@ export function supabasePrivateProspectToApp(p: SupabasePrivateProspect) {
     transferDeadline: p.transfer_deadline,
     assignmentDeadline: p.assignment_deadline,
     transferredToManagerUid: p.transferred_to_manager_uid,
+    transferredToManagerName: (p.raw_data as Record<string, unknown> | undefined)?.transferred_to_manager_name as string | undefined,
     transferredFromSeniorUid: p.transferred_from_senior_uid,
     createdAt: p.created_at,
     updatedAt: p.updated_at
@@ -309,10 +310,11 @@ export async function transferPrivateProspects(params: {
   orgCode?: string | null
   seniorUid: string
   targetManagerUid: string
+  targetManagerName?: string | null
   deadline?: string | null
 }): Promise<{ success: boolean; count: number }> {
   if (!isSupabaseConfigured()) return { success: false, count: 0 }
-  const { prospectIds, orgCode, seniorUid, targetManagerUid, deadline } = params
+  const { prospectIds, orgCode, seniorUid, targetManagerUid, targetManagerName, deadline } = params
 
   if (!orgCode && !seniorUid) {
     throw new Error('Sécurité multi-tenant : orgCode ou seniorUid obligatoire pour transférer')
@@ -329,6 +331,7 @@ export async function transferPrivateProspects(params: {
     assignment_deadline: deadline || null,
     assigned_to: null,
     assigned_member_name: null,
+    raw_data: targetManagerName ? { transferred_to_manager_name: targetManagerName } : {},
     updated_at: new Date().toISOString()
   }
 

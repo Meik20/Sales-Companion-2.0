@@ -150,6 +150,56 @@ export async function GET(request: NextRequest) {
       return bTime - aTime
     })
 
+    // ── Résolution par lot des noms d'utilisateurs (Anti-fuite d'UIDs) ──
+    const userIdsToResolve = new Set<string>()
+    for (const p of mergedProspects) {
+      if (p.transferredToManagerUid && typeof p.transferredToManagerUid === 'string') {
+        userIdsToResolve.add(p.transferredToManagerUid)
+      }
+      if (p.managerId && typeof p.managerId === 'string') {
+        userIdsToResolve.add(p.managerId)
+      }
+      if (p.assignedTo && typeof p.assignedTo === 'string') {
+        userIdsToResolve.add(p.assignedTo)
+      }
+    }
+
+    if (userIdsToResolve.size > 0) {
+      const userNamesMap = new Map<string, string>()
+      try {
+        const uids = Array.from(userIdsToResolve)
+        const docRefs = uids.map((uid) => adminDb.collection('users').doc(uid))
+        for (let i = 0; i < docRefs.length; i += 100) {
+          const chunk = docRefs.slice(i, i + 100)
+          const snaps = await adminDb.getAll(...chunk)
+          for (const snap of snaps) {
+            if (snap.exists) {
+              const uData = snap.data()
+              const name = uData?.name || uData?.displayName || uData?.email || null
+              if (name) {
+                userNamesMap.set(snap.id, name)
+              }
+            }
+          }
+        }
+      } catch (errResolve) {
+        console.warn('[imports GET] User names batch resolution error:', errResolve)
+      }
+
+      for (const p of mergedProspects) {
+        const targetTmUid = (p.transferredToManagerUid || p.managerId) as string | undefined
+        if (!p.transferredToManagerName && targetTmUid && userNamesMap.has(targetTmUid)) {
+          p.transferredToManagerName = userNamesMap.get(targetTmUid)
+        }
+        if (targetTmUid && userNamesMap.has(targetTmUid)) {
+          p.managerName = userNamesMap.get(targetTmUid)
+        }
+        if (!p.assignedMemberName && p.assignedTo && userNamesMap.has(p.assignedTo)) {
+          p.assignedMemberName = userNamesMap.get(p.assignedTo)
+        }
+      }
+    }
+
     // Filtrage optionnel par assigné
     const filtered = assignedTo
       ? mergedProspects.filter((p: Record<string, unknown>) => p.assignedTo === assignedTo)

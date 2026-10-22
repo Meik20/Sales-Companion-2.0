@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useTranslation } from '@/providers/I18nProvider'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useToast } from '@/hooks/useToast'
@@ -505,7 +505,8 @@ export function ManagerProspectsList({
       return
     }
     const targetTm = teamManagers.find((tm) => tm.uid === selectedTargetTmUid)
-    const targetName = targetTm?.name || selectedTargetTmUid
+    const targetName =
+      targetTm?.name || targetTm?.email || (lang === 'en' ? 'Team Manager' : 'Team Manager')
     const confirmMsg = t('team.confirmTransferSm')
       .replace('{count}', String(selected.size))
       .replace('{name}', targetName)
@@ -516,7 +517,8 @@ export function ManagerProspectsList({
   async function executeTransferSelected() {
     if (!user || selected.size === 0 || !selectedTargetTmUid) return
     const targetTm = teamManagers.find((tm) => tm.uid === selectedTargetTmUid)
-    const targetName = targetTm?.name || selectedTargetTmUid
+    const targetName =
+      targetTm?.name || targetTm?.email || (lang === 'en' ? 'Team Manager' : 'Team Manager')
     setTransferring(true)
     try {
       const token = await user.getIdToken()
@@ -558,7 +560,8 @@ export function ManagerProspectsList({
   async function handleTransferOne(prospectId: string, targetTmUid: string) {
     if (!user || !targetTmUid) return
     const targetTm = teamManagers.find((tm) => tm.uid === targetTmUid)
-    const targetName = targetTm?.name || targetTmUid
+    const targetName =
+      targetTm?.name || targetTm?.email || (lang === 'en' ? 'Team Manager' : 'Team Manager')
 
     setAssigning(prospectId)
     try {
@@ -597,11 +600,51 @@ export function ManagerProspectsList({
     }
   }
 
-  function getTmName(uid: string | null | undefined) {
+  function getTmName(uid: string | null | undefined): string {
     if (!uid) return '—'
+    // 1. Recherche dans les Team Managers transmis en props
     const tm = teamManagers.find((m) => m.uid === uid)
-    return tm?.name ?? tm?.email ?? uid
+    if (tm?.name || tm?.email) return tm.name ?? tm.email!
+
+    // 2. Recherche si un prospect porte déjà ce nom résolu par le serveur
+    const fromProspect = prospects.find(
+      (p) =>
+        (p.transferredToManagerUid === uid || p.managerId === uid) &&
+        p.transferredToManagerName
+    )
+    if (fromProspect?.transferredToManagerName) {
+      return fromProspect.transferredToManagerName
+    }
+
+    // 3. Cas où l'UID est le compte courant
+    if (user?.uid === uid) {
+      return user.name || user.email || (lang === 'en' ? 'Me' : 'Moi')
+    }
+
+    // 4. Recherche dans les membres
+    const member = members.find((m) => m.uid === uid)
+    if (member?.name || member?.email) return member.name ?? member.email!
+
+    // 5. Garde-fou strict anti-fuite d'identifiants bruts : ne JAMAIS retourner un UID en clair
+    return lang === 'en' ? 'Team Manager' : 'Team Manager'
   }
+
+  // Managers disponibles pour le filtre (Team Managers déclarés + managers/agents détectés dans les fiches avec leur nom)
+  const availableManagersForFilter = useMemo(() => {
+    const map = new Map<string, { uid: string; name: string }>()
+    for (const tm of teamManagers) {
+      if (tm.uid && tm.name) {
+        map.set(tm.uid, { uid: tm.uid, name: tm.name })
+      }
+    }
+    for (const p of prospects) {
+      const targetUid = (p.transferredToManagerUid || p.managerId) as string | undefined
+      if (targetUid && !map.has(targetUid) && p.transferredToManagerName) {
+        map.set(targetUid, { uid: targetUid, name: p.transferredToManagerName })
+      }
+    }
+    return Array.from(map.values())
+  }, [teamManagers, prospects])
 
   // Filtering
   const filtered = prospects.filter((p) => {
@@ -655,10 +698,27 @@ export function ManagerProspectsList({
     })
   }
 
-  function getMemberName(uid: string | null | undefined) {
+  function getMemberName(uid: string | null | undefined): string {
     if (!uid) return '—'
+    // 1. Recherche dans les membres transmis en props
     const m = members.find((m) => m.uid === uid)
-    return m?.name ?? m?.email ?? uid
+    if (m?.name || m?.email) return m.name ?? m.email!
+
+    // 2. Recherche si un prospect porte déjà le nom d'assigné
+    const fromProspect = prospects.find(
+      (p) => p.assignedTo === uid && p.assignedMemberName
+    )
+    if (fromProspect?.assignedMemberName) {
+      return fromProspect.assignedMemberName as string
+    }
+
+    // 3. Cas où l'UID est le compte courant
+    if (user?.uid === uid) {
+      return user.name || user.email || (lang === 'en' ? 'Me' : 'Moi')
+    }
+
+    // 4. Garde-fou strict anti-fuite d'identifiants bruts
+    return lang === 'en' ? 'Sales Rep' : 'Commercial'
   }
 
   const checkboxStyle: React.CSSProperties = {
@@ -712,7 +772,7 @@ export function ManagerProspectsList({
           >
             <option value="">{t('team.allProspects')}</option>
             <option value="__untransferred">{t('team.untransferred')}</option>
-            {teamManagers.map((tm) => (
+            {availableManagersForFilter.map((tm) => (
               <option key={tm.uid} value={tm.uid}>
                 {tm.name}
               </option>

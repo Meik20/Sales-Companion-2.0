@@ -75,7 +75,7 @@ interface OrgData {
 export function OrgGovernanceTab() {
   const { user } = useCurrentUser()
   const { pushToast } = useToast()
-  const { t } = useTranslation()
+  const { t, lang } = useTranslation()
 
   const [orgData, setOrgData] = useState<OrgData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -368,7 +368,8 @@ export function OrgGovernanceTab() {
     }
 
     const targetMgr = orgData?.managers?.find((m) => m.uid === selectedTargetUid)
-    const targetName = targetMgr?.name || selectedTargetUid
+    const targetName =
+      targetMgr?.name || targetMgr?.email || (lang === 'en' ? 'Team Manager' : 'Team Manager')
     const confirmMsg = t('team.orgGovernance.transferConfirm')
       .replace('{count}', String(count))
       .replace('{plural}', count > 1 ? 's' : '')
@@ -378,7 +379,9 @@ export function OrgGovernanceTab() {
 
   async function executeTransfer() {
     const count = selectedProspectIds.length
-    const targetName = orgData?.managers?.find((m) => m.uid === selectedTargetUid)?.name || selectedTargetUid
+    const targetMgr = orgData?.managers?.find((m) => m.uid === selectedTargetUid)
+    const targetName =
+      targetMgr?.name || targetMgr?.email || (lang === 'en' ? 'Team Manager' : 'Team Manager')
     setMigrating(true)
     setMigrationError(null)
     setMigrationResult(null)

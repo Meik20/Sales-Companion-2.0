@@ -916,7 +916,7 @@ function TargetsPanel({ members }: { members?: Member[] }) {
     const member = members?.find((m) => m.uid === selectedMemberId)
     saveMutation.mutate({
       memberId: selectedMemberId,
-      memberName: member?.name ?? member?.email ?? selectedMemberId,
+      memberName: member?.name ?? member?.email ?? 'Commercial',
       targetVolume: targetVolume ? parseFloat(targetVolume) : null,
       targetValue: targetValue ? parseFloat(targetValue.replace(/\s+/g, '')) : null,
       period: period.trim() || null
@@ -1127,7 +1127,7 @@ function TargetsPanel({ members }: { members?: Member[] }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {allTargets.map((tItem) => {
                   const member = members?.find((m) => m.uid === tItem.memberId)
-                  const name = member?.name ?? member?.email ?? tItem.memberId
+                  const name = member?.name ?? member?.email ?? 'Commercial'
                   return (
                     <div
                       key={tItem.memberId}

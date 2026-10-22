@@ -257,3 +257,19 @@ Ne **jamais** utiliser un emoji cercle coloré (`🟢🔴🟡`) pour indiquer un
 >    - L'équipe Support étudie la demande et engage impérativement des vérifications avec la Direction Générale et les responsables statutaires de l'entreprise concernée avant toute validation ou rejet.
 >    - Aucune interruption de segment ne peut survenir sans accord formel entre la direction de l'entreprise cliente et Sales Companion 2.0.
 
+---
+
+## 13. Règle Inviolable — Interdiction Absolue d'Affichage d'Identifiants Bruts (UID) dans l'UI & Résolution Obligatoire des Noms Humains
+
+> [!CAUTION]
+> **ZÉRO TOLÉRANCE POUR LES UIDS BRUTS EN INTERFACE UTILISATEUR :**  
+> Les identifiants techniques internes (UIDs Firebase Auth / UUIDs Supabase, ex: `Nst48TDCkfemRwou9E1h6hHkZrC2`) ne doivent **JAMAIS** être affichés en clair à l'utilisateur à la place d'un nom de Team Manager, d'un commercial ou d'un collaborateur.
+>
+> 1. **Résolution par lot côté Serveur (`/api/imports`, `/api/pipeline`, `/api/reporting`) :**  
+>    - Les routes API qui renvoient des fiches ou des prospects (`managerId`, `transferredToManagerUid`, `assignedTo`) DOIVENT résoudre par lot (`adminDb.getAll(...)`) les noms humains des utilisateurs correspondants (`name || displayName || email`) et peupler directement les champs dédiés (`transferredToManagerName`, `managerName`, `assignedMemberName`).
+> 2. **Garde-fous UI hermétiques (`ManagerProspectsList`, `ManagerPipelineList`, etc.) :**  
+>    - Les fonctions de résolution de libellé (`getTmName`, `getMemberName`) ne doivent JAMAIS utiliser d'expression de repli retournant l'identifiant brut (`?? uid` ou `|| uid`).
+>    - En cas d'absence temporaire du nom dans les props, elles doivent interroger les fiches déjà résolues, le profil utilisateur connecté, ou à défaut renvoyer un libellé métier qualifié (`Team Manager` ou `Commercial`), JAMAIS la clé primaire de base de données.
+> 3. **Balisage & Contrôle Automatique Continu :**  
+>    - `scripts/check-architecture-integrity.js` (Étape 13) bloque systématiquement tout build ou push si un fallback d'UID est détecté dans les composants d'import ou si la résolution par lot est altérée.
+

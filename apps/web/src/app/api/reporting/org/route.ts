@@ -191,7 +191,7 @@ export async function GET(request: NextRequest) {
 
         return {
           uid,
-          name: managersMap[uid]?.name ?? uid,
+          name: managersMap[uid]?.name || managersMap[uid]?.email || 'Team Manager',
           email: managersMap[uid]?.email ?? '',
           orgRole: managersMap[uid]?.orgRole ?? 'team_manager',
           isSenior: false,

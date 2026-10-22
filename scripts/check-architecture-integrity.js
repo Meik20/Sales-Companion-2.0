@@ -437,6 +437,43 @@ try {
       console.log('✅ monthly-cycle-archive.service.ts et clients-sync.ts conformes (archivage transactionnel atomique anti-perte de données)')
     }
   }
+
+  // 13. Balisage et Interdiction absolue de fuite d'UID dans l'interface utilisateur (Noms TM / Commerciaux)
+  const managerProspectsListPath = path.resolve(
+    __dirname,
+    '../apps/web/src/features/imports/components/ManagerProspectsList.tsx'
+  )
+  const importsRoutePath = path.resolve(
+    __dirname,
+    '../apps/web/src/app/api/imports/route.ts'
+  )
+
+  if (fs.existsSync(managerProspectsListPath) && fs.existsSync(importsRoutePath)) {
+    const mplCode = fs.readFileSync(managerProspectsListPath, 'utf8')
+    const importsRouteCode = fs.readFileSync(importsRoutePath, 'utf8')
+
+    // Contrôle 1 : ManagerProspectsList ne doit JAMAIS faire de fallback direct sur 'uid'
+    if (mplCode.includes('return tm?.name ?? tm?.email ?? uid') || mplCode.includes('return m?.name ?? m?.email ?? uid')) {
+      errors.push(
+        "❌ RÉGRESSION UI CRITIQUE : ManagerProspectsList.tsx retourne directement un UID brut au lieu d'un libellé humain qualifié."
+      )
+    }
+
+    if (mplCode.includes('|| selectedTargetTmUid') || mplCode.includes('|| targetTmUid')) {
+      errors.push(
+        "❌ RÉGRESSION UI CRITIQUE : ManagerProspectsList.tsx utilise un UID brut en fallback pour le nom de TM cible."
+      )
+    }
+
+    // Contrôle 2 : La route /api/imports doit obligatoirement inclure la résolution par lot des noms d'utilisateurs
+    if (!importsRouteCode.includes('userNamesMap') || !importsRouteCode.includes('userIdsToResolve')) {
+      errors.push(
+        "❌ INTÉGRITÉ DONNÉES VIOLÉE : /api/imports/route.ts doit résoudre par lot les noms d'utilisateurs (userNamesMap) pour garantir transferredToManagerName."
+      )
+    }
+
+    console.log("✅ Règle anti-fuite d'UID conforme (résolution automatique serveur + garde-fous UI hermétiques)")
+  }
 } catch (e) {
   errors.push(`❌ Erreur lors du contrôle des règles de calcul de pipeline : ${e.message}`)
 }

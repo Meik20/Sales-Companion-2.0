@@ -115,6 +115,7 @@ export async function POST(request: NextRequest) {
           orgCode,
           seniorUid: callerUid,
           targetManagerUid,
+          targetManagerName,
           deadline: deadline || null
         })
         sbTransferredCount = sbRes.count

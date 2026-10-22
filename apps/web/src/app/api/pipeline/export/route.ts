@@ -677,7 +677,7 @@ export async function GET(request: NextRequest) {
       let name = item.memberName
       if (!name) {
         const m = membersMap.get(uid)
-        name = m?.name || uid
+        name = m?.name || 'Commercial'
       }
 
       if (!byMember[uid]) {
@@ -1043,7 +1043,7 @@ export async function GET(request: NextRequest) {
       let name = item.memberName
       if (!name && uid) {
         const m = membersMap.get(uid)
-        name = m?.name || uid
+        name = m?.name || 'Commercial'
       }
 
       const row = detailSheet.getRow(3 + rowIdx)
