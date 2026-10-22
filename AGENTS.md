@@ -291,9 +291,12 @@ Ne **jamais** utiliser un emoji cercle coloré (`🟢🔴🟡`) pour indiquer un
 >    - Les filtres et dropdowns de sélection de Team Managers (`availableManagersForFilter`, etc.) doivent filtrer strictement sur les Team Managers opérationnels habilités (`role === 'manager'` et `orgRole !== 'senior_manager'`).
 > 2. **Interdiction Formelle de Délégation / Transfert de Prospects Opérationnels :**  
 >    - La route `/api/imports/transfer` rejette immédiatement (HTTP 400) toute tentative de transférer des prospects à un `support_agent`. Seuls les Team Managers peuvent recevoir des délégations du Senior Manager.
-> 3. **Isolation Étéanche des Imports d'Opportunités :**  
->    - Les fiches importées par un Agent Support sont strictement privées à son espace Support / CRM Clients et ne doivent **JAMAIS** polluer la file d'attente d'importation et de délégation du Senior Manager.
->    - La route `GET /api/imports` isole rigoureusement le périmètre du Senior Manager (`seniorUid` / `scopedProspects`) afin de ne remonter que les opportunités sous sa responsabilité directe ou transférées par lui à un Team Manager.
+> 3. **Isolation Étanche des Imports d'Opportunités (Chaque Rôle Voit Seulement Ses Propres Imports) :**  
+>    - Les fiches importées par un Agent Support sont strictement privées à son espace Support / CRM Clients et ne doivent **JAMAIS** polluer la file d'attente d'importation et de délégation du Senior Manager. Les supports n'ont aucun lien avec les Senior Managers.
+>    - **Chaque utilisateur (SM, TM, Support) voit exclusivement ses propres imports :**
+>      - Le Senior Manager ne voit dans sa liste que les opportunités qu'il a lui-même importées (et celles qu'il a transférées à ses Team Managers).
+>      - Le Team Manager ne voit dans sa liste que ses propres imports et les opportunités qui lui ont été déléguées par son Senior Manager.
+>      - L'Agent Support ne voit que ses propres imports dédiés à son activité d'assistance.
 > 4. **Garde-fous automatisés pré-build :**  
->    - `scripts/check-architecture-integrity.js` (Étape 14) bloque systématiquement tout build ou push si le confinement de l'Agent Support ou le périmètre d'isolation du Senior Manager est altéré.
+>    - `scripts/check-architecture-integrity.js` (Étape 14) bloque systématiquement tout build ou push si le confinement de l'Agent Support ou le périmètre d'isolation des imports de chaque utilisateur est altéré.
 

@@ -1358,8 +1358,8 @@ export function ManagerProspectsList({
                               style={{ color: 'var(--muted-foreground, #94a3b8)' }}
                             />
                           </span>
-                        ) : (p.transferredToManagerUid ||
-                            (p.transferredFromSeniorUid && p.transferredFromSeniorUid === managerId) ||
+                        ) : ((p.transferredToManagerUid && teamManagers.some((tm) => tm.uid === p.transferredToManagerUid)) ||
+                            (p.transferredFromSeniorUid && p.transferredFromSeniorUid === managerId && teamManagers.some((tm) => tm.uid === p.managerId)) ||
                             (p.managerId && p.managerId !== managerId && teamManagers.some((tm) => tm.uid === p.managerId))) ? (
                           <span
                             style={{

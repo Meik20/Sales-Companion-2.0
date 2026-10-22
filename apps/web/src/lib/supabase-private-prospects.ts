@@ -231,14 +231,22 @@ export async function getPrivateProspects(
 
   if (seniorUid) {
     // 🔒 GARDE-FOU RÔLE SENIOR MANAGER :
-    // Le Senior Manager ne doit voir que ses opportunités importées, gérées ou transférées par lui.
+    // Le Senior Manager ne doit voir que ses propres opportunités importées (ou transférées par lui).
     // Les imports privés des agents support ou autres managers sont strictement exclus.
     query.set(
       'or',
       `(user_id.eq.${seniorUid},manager_uid.eq.${seniorUid},transferred_from_senior_uid.eq.${seniorUid})`
     )
   } else if (managerUid) {
-    query.set('manager_uid', `eq.${managerUid}`)
+    // 🔒 GARDE-FOU RÔLE TEAM MANAGER :
+    // Le Team Manager voit ses propres imports et les opportunités qui lui ont été transférées par le SM.
+    query.set(
+      'or',
+      `(user_id.eq.${managerUid},manager_uid.eq.${managerUid},transferred_to_manager_uid.eq.${managerUid})`
+    )
+  } else if (userId) {
+    // 🔒 Support Agent ou Indépendant : voit strictement ses propres imports
+    query.set('user_id', `eq.${userId}`)
   }
 
   if (assignedTo !== undefined) {

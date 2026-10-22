@@ -72,11 +72,12 @@ export async function GET(request: NextRequest) {
         await import('@/lib/supabase-private-prospects')
       if (await isPrivateProspectsTableAvailable()) {
         const isSenior = callerData?.orgRole === 'senior_manager' && managerId === callerUid
+        const isSupport = callerData?.role === 'support_agent'
         const sbRes = await getPrivateProspects({
           orgCode: callerData?.orgCode || undefined,
           seniorUid: isSenior ? callerUid : undefined,
-          managerUid: isSenior ? undefined : managerId,
-          userId: isSenior ? undefined : (callerData?.role === 'independent' ? callerUid : undefined),
+          managerUid: isSenior ? undefined : (isSupport ? undefined : managerId),
+          userId: isSupport ? callerUid : (callerData?.role === 'independent' ? callerUid : undefined),
           assignedTo: assignedTo || undefined,
           limit: 3000
         })
@@ -202,10 +203,13 @@ export async function GET(request: NextRequest) {
     }
 
     const isSenior = callerData?.orgRole === 'senior_manager' && managerId === callerUid
+    const isSupport = callerData?.role === 'support_agent'
 
-    // 🔒 GARDE-FOU RÔLE SENIOR MANAGER :
-    // Le Senior Manager ne doit voir que ses opportunités importées, gérées ou transférées par lui.
-    // Les fiches importées par des agents support ou d'autres managers non déléguées sont exclues.
+    // 🔒 GARDE-FOU ÉTANCHÉITÉ DES IMPORTS :
+    // Chaque utilisateur (SM, TM, Support) ne voit que ses propres imports.
+    // - SM : voit uniquement ses propres imports et ce qu'il a transféré (aucun import support ou TM)
+    // - TM : voit ses propres imports et ceux qui lui ont été délégués par son SM
+    // - Support : voit strictement ses propres imports (les supports n'ont aucun lien avec les SM)
     const scopedProspects = isSenior
       ? mergedProspects.filter(
           (p) =>
@@ -213,7 +217,14 @@ export async function GET(request: NextRequest) {
             p.managerId === callerUid ||
             p.transferredFromSeniorUid === callerUid
         )
-      : mergedProspects
+      : isSupport
+      ? mergedProspects.filter((p) => p.userId === callerUid)
+      : mergedProspects.filter(
+          (p) =>
+            p.userId === callerUid ||
+            p.managerId === callerUid ||
+            p.transferredToManagerUid === callerUid
+        )
 
     // Filtrage optionnel par assigné
     const filtered = assignedTo
