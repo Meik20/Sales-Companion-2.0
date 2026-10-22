@@ -545,6 +545,30 @@ try {
 
     console.log("✅ Règle de transfert de commercial conforme (Portefeuille actif uniquement, affaires conclues préservées chez l'ancien TM)")
   }
+
+  // 16. Égalité Opérationnelle des Senior Managers & Gouvernance par Segment
+  const agentsMdPath = path.resolve(__dirname, '../AGENTS.md')
+  if (fs.existsSync(agentsMdPath) && fs.existsSync(memberTransferRoutePath) && fs.existsSync(revokeRoutePath)) {
+    const agentsMdContent = fs.readFileSync(agentsMdPath, 'utf8')
+    const transferCode = fs.readFileSync(memberTransferRoutePath, 'utf8')
+    const revokeCode = fs.readFileSync(revokeRoutePath, 'utf8')
+
+    // Contrôle A : Interdiction formelle du terme trompeur 'titulaire de l'organisation'
+    if (agentsMdContent.includes("titulaire de l'organisation") || transferCode.includes("titulaire de l'organisation") || revokeCode.includes("titulaire de l'organisation")) {
+      errors.push(
+        "❌ MODÈLE DE GOUVERNANCE VIOLÉ : L'expression 'titulaire de l'organisation' est formellement proscrite. Aucun SM n'est titulaire/propriétaire. Tous les SM ont les mêmes prérogatives opérationnelles sur leur segment respectif."
+      )
+    }
+
+    // Contrôle B : Vérification du cloisonnement de segment (callerSegment)
+    if (!transferCode.includes('callerSegment') || !revokeCode.includes('callerSegment')) {
+      errors.push(
+        "❌ ISOLATION DES SEGMENTS VIOLÉE : /api/team/members/transfer et /api/team/managers/revoke doivent vérifier callerSegment pour confiner les actions au segment respectif du Senior Manager."
+      )
+    }
+
+    console.log("✅ Gouvernance Senior Managers conforme (égalité opérationnelle de tous les SM et arbitrage par segment respectif)")
+  }
 } catch (e) {
   errors.push(`❌ Erreur lors du contrôle des règles de calcul de pipeline : ${e.message}`)
 }

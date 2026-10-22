@@ -13,7 +13,9 @@ async function getAdmin() {
  * Transfert individuel d'un commercial terrain ('member') entre deux Team Managers par le Senior Manager.
  *
  * RÈGLES D'OR ARCHITECTURALES (AGENTS.md §12) :
- * 1. Seul le Senior Manager titulaire de l'organisation peut arbitrer et transférer des commerciaux.
+ * 1. Tout Senior Manager peut arbitrer et transférer des commerciaux entre les Team Managers de son segment respectif.
+ *    (Aucun Senior Manager n'est « titulaire » ou « propriétaire » de l'organisation — celle-ci appartient à la personne morale.
+ *    Le seul privilège du SM1 est l'émission technique d'invitations pour les autres SM. Sur le plan opérationnel, tous les SM sont égaux).
  * 2. PORTEFEUILLE ACTIF UNIQUEMENT : Seules les opportunités au statut 'prospection' ou 'negociation'
  *    suivent le commercial vers le nouveau Team Manager. Les affaires 'conclue' (closed/won) restent
  *    définitivement dans la base clients (collection 'clients') de l'ANCIEN Team Manager. La collection
@@ -85,9 +87,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Commercial introuvable' }, { status: 404 })
     }
 
+    // Vérifier le cloisonnement par segment : chaque SM arbitre son segment respectif
+    const callerSegment = (callerData.segment as string | undefined)?.trim()
+
     if (memberData.orgCode !== orgCode) {
       return NextResponse.json(
         { message: "Le commercial n'appartient pas à votre organisation" },
+        { status: 400 }
+      )
+    }
+
+    if (callerSegment && memberData.segment && (memberData.segment as string).trim().toLowerCase() !== callerSegment.toLowerCase()) {
+      return NextResponse.json(
+        { message: `Ce commercial est rattaché au segment "${memberData.segment}", distinct de votre segment ("${callerSegment}")` },
         { status: 400 }
       )
     }
@@ -116,6 +128,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    if (callerSegment && targetData.segment && (targetData.segment as string).trim().toLowerCase() !== callerSegment.toLowerCase()) {
+      return NextResponse.json(
+        { message: `Le Team Manager cible (${targetData.displayName || targetData.email}) n'appartient pas à votre segment (${callerSegment}). Les transferts s'effectuent entre Team Managers d'un même segment.` },
+        { status: 400 }
+      )
+    }
+
     const targetManagerName =
       targetData.displayName || targetData.name || targetData.email || 'Team Manager'
     const targetManagerEmail = targetData.email || ''
@@ -127,6 +146,12 @@ export async function POST(request: NextRequest) {
       if (srcDoc.exists) {
         const sd = srcDoc.data()
         sourceManagerName = sd?.displayName || sd?.name || sd?.email || 'Ancien Manager'
+        if (callerSegment && sd?.segment && (sd.segment as string).trim().toLowerCase() !== callerSegment.toLowerCase()) {
+          return NextResponse.json(
+            { message: `L'ancien Team Manager (${sourceManagerName}) n'appartient pas à votre segment (${callerSegment}).` },
+            { status: 400 }
+          )
+        }
       }
     }
 

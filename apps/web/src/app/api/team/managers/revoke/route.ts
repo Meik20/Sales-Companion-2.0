@@ -12,12 +12,14 @@ async function getAdmin() {
  * POST /api/team/managers/revoke
  * Révocation d'un Team Manager par le Senior Manager avec passation de service obligatoire.
  *
- * RÈGLES D'OR ARCHITECTURALES (AGENTS.md) :
- * 1. Seul le Senior Manager titulaire de l'organisation peut révoquer un Team Manager.
- * 2. L'auto-révocation du Senior Manager est STRICTEMENT INTERDITE.
+ * RÈGLES D'OR ARCHITECTURALES (AGENTS.md §12) :
+ * 1. Tout Senior Manager peut révoquer un Team Manager de son segment respectif avec passation obligatoire.
+ *    (Aucun Senior Manager n'est « titulaire » ou « propriétaire » de l'organisation — celle-ci appartient à la personne morale.
+ *    Le seul privilège du SM1 est l'émission d'invitations pour les autres SM. Sur le plan opérationnel, tous les SM sont égaux).
+ * 2. L'auto-révocation d'un Senior Manager est STRICTEMENT INTERDITE.
  * 3. Continuité d'activité garantie : Toutes les opportunités de pipeline, les prospects importés,
  *    les commerciaux terrain et les assignations sont atomiquement transférés au Team Manager
- *    repreneur désigné (ou au Senior Manager par défaut si aucun autre TM n'est disponible).
+ *    repreneur désigné du même segment (ou au Senior Manager par défaut si aucun autre TM n'est disponible).
  * 4. Le TM révoqué est détaché de l'organisation (orgCode=null, orgRole=null, seniorManagerUid=null).
  */
 export async function POST(request: NextRequest) {
@@ -100,6 +102,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Vérifier l'appartenance au segment du Senior Manager appelant
+    const callerSegment = (callerData.segment as string | undefined)?.trim()
+    if (callerSegment && targetData.segment && (targetData.segment as string).trim().toLowerCase() !== callerSegment.toLowerCase()) {
+      return NextResponse.json(
+        { message: `Ce Team Manager appartient au segment "${targetData.segment}", distinct de votre segment ("${callerSegment}"). Chaque Senior Manager gouverne son segment respectif.` },
+        { status: 403 }
+      )
+    }
+
     const targetManagerName =
       targetData.displayName || targetData.name || targetData.email || 'Team Manager'
 
@@ -111,9 +122,16 @@ export async function POST(request: NextRequest) {
       .where('role', '==', 'manager')
       .get()
 
-    const otherTms = otherManagersSnap.docs.filter(
-      (d) => d.id !== targetManagerUid && d.id !== callerUid
-    )
+    // Filtrer les TM du même segment que le SM appelant
+    const otherTms = otherManagersSnap.docs.filter((d) => {
+      if (d.id === targetManagerUid || d.id === callerUid) return false
+      const mData = d.data()
+      if (mData.orgRole === 'senior_manager') return false
+      if (callerSegment && mData.segment && (mData.segment as string).trim().toLowerCase() !== callerSegment.toLowerCase()) {
+        return false
+      }
+      return true
+    })
 
     let effectiveSuccessorUid: string
     if (successorManagerUid) {
@@ -131,17 +149,23 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         )
       }
+      if (callerSegment && sData.segment && (sData.segment as string).trim().toLowerCase() !== callerSegment.toLowerCase()) {
+        return NextResponse.json(
+          { message: `Le Team Manager repreneur doit appartenir à votre segment ("${callerSegment}").` },
+          { status: 400 }
+        )
+      }
       effectiveSuccessorUid = successorManagerUid
     } else if (otherTms.length === 1) {
-      // S'il n'y a exactement qu'un seul autre TM, il est désigné automatiquement
+      // S'il n'y a exactement qu'un seul autre TM dans le segment, il est désigné automatiquement
       effectiveSuccessorUid = otherTms[0]!.id
     } else if (otherTms.length === 0) {
       // Aucun autre TM dans le segment : le Senior Manager reprend par intérim
       effectiveSuccessorUid = callerUid
     } else {
-      // Plusieurs autres TM existent : le Senior Manager doit en choisir un explicitement
+      // Plusieurs autres TM existent dans le segment : le Senior Manager doit en choisir un explicitement
       return NextResponse.json(
-        { message: 'Veuillez sélectionner le Team Manager qui reprendra les dossiers' },
+        { message: 'Veuillez sélectionner le Team Manager de votre segment qui reprendra les dossiers' },
         { status: 400 }
       )
     }

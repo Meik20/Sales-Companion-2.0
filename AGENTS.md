@@ -244,9 +244,10 @@ Ne **jamais** utiliser un emoji cercle coloré (`🟢🔴🟡`) pour indiquer un
 
 > [!IMPORTANT]
 > **RÈGLE STRUCTURELLE DE GOUVERNANCE HIÉRARCHIQUE :**  
-> 1. **Droit Exclusif du Senior Manager :**  
->    - Seul le **Senior Manager** titulaire de l'organisation (`orgRole === 'senior_manager'`) peut révoquer un Team Manager ou transférer un commercial terrain entre Team Managers via les routes sécurisées `/api/team/managers/revoke` et `/api/team/members/transfer`.
->    - L'auto-révocation du Senior Manager est **strictement interdite** (`targetUid !== callerUid`).
+> 1. **Droit d'Arbitrage et de Gouvernance des Senior Managers sur leur Segment Respectif :**  
+>    - **Tous les Senior Managers** (`orgRole === 'senior_manager'`) ont le même niveau de compétences opérationnelles : chaque Senior Manager arbitre et transfère les commerciaux entre les Team Managers **de son segment respectif** via les routes sécurisées `/api/team/managers/revoke` et `/api/team/members/transfer`.
+>    - **Aucun Senior Manager n'est "titulaire" ou "propriétaire" de l'organisation** (celle-ci appartient exclusivement à la personne morale cliente). Le SM1 est l'initiateur technique dont le seul privilège distinctif est de générer les invitations pour les autres Senior Managers. Sur le plan opérationnel, tous les Senior Managers supervisent leur segment avec la même autorité.
+>    - L'auto-révocation d'un Senior Manager est **strictement interdite** (`targetUid !== callerUid`).
 > 2. **Continuité d'Activité et Passation de Service Obligatoire :**  
 >    - En cas de révocation d'un Team Manager, **la totalité de ses dossiers** (opportunités de pipeline, prospects importés Firestore et Supabase `private_prospects`, commerciaux terrain rattachés et assignations) DOIT être transférée de manière atomique vers un **Team Manager successeur du même segment** (ou vers le Senior Manager par intérim si aucun autre TM n'est disponible).
 > 3. **Préservation du Portefeuille Commercial & Règle du Portefeuille Actif Exclusif lors des Transferts :**  
