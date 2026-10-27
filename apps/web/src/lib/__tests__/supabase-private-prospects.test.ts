@@ -143,7 +143,7 @@ describe('supabase-private-prospects', () => {
     const [requestUrl] = fetchMock.mock.calls[0] as [string, RequestInit]
     const url = new URL(requestUrl)
     expect(url.searchParams.get('org_code')).toBe('eq.SC-CM-ORG1')
-    expect(url.searchParams.get('manager_uid')).toBe('eq.mgr_1')
+    expect(url.searchParams.get('or')).toContain('manager_uid.eq.mgr_1')
     expect(url.searchParams.get('status')).toBe('eq.new')
   })
 
