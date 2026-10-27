@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { generateOrgCode, normalizeNiu, isValidNiuFormat } from '@/lib/org'
 import { hasActivePaidManagerAccess } from '@/lib/manager-access'
+import { PLAN_LIMITS } from '@sales-companion/shared'
 
 async function getAdmin() {
   const { adminDb, adminAuth } = await import('@/lib/firebase-admin')
@@ -450,6 +451,41 @@ export async function PATCH(request: NextRequest) {
       const segVal = String(body.segment).trim()
       if (segVal) {
         updates.segment = segVal
+      }
+    }
+
+    // 4. Héritage du plan du Senior Manager pour les Team Managers
+    // RÈGLE MÉTIER (AGENTS.md) :
+    // - Un Team Manager rattaché à un SM actif bénéficie immédiatement du plan et des quotas de ce SM.
+    // - Les autres Senior Managers (orgRole === 'senior_manager') ne bénéficient pas du plan actif et gèrent leur propre plan de segment.
+    const resolvedOrgRole = updates.orgRole || userData.orgRole
+    const resolvedSmUid = updates.seniorManagerUid || userData.seniorManagerUid
+
+    if (resolvedOrgRole === 'team_manager' && resolvedSmUid) {
+      try {
+        const smDoc = await adminDb.collection('users').doc(resolvedSmUid).get()
+        if (smDoc.exists) {
+          const smData = smDoc.data()
+          if (hasActivePaidManagerAccess(smData)) {
+            const inheritedPlan = smData?.plan || 'enterprise'
+            updates.plan = inheritedPlan
+            updates.dailyLimit =
+              PLAN_LIMITS[inheritedPlan as keyof typeof PLAN_LIMITS] ?? 50
+            updates.subscriptionExpiresAt =
+              smData?.subscriptionExpiresAt ?? smData?.planExpiresAt ?? null
+            updates.subscriptionStartedAt = smData?.subscriptionStartedAt ?? null
+            updates.subscriptionExpired = false
+
+            // Si l'email est déjà vérifié, passer directement au statut actif
+            if (userData.emailVerified === true && !userData.emailVerificationPending) {
+              updates.active = true
+              updates.activated = true
+              updates.activatedAt = new Date()
+            }
+          }
+        }
+      } catch (planInheritErr) {
+        console.warn("[PATCH /api/team/org] Erreur lors de l'héritage du plan SM:", planInheritErr)
       }
     }
 

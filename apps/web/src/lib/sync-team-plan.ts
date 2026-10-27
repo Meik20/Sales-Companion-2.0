@@ -58,6 +58,7 @@ export async function syncTeamMemberPlans(
   let subscriptionExpired = options?.subscriptionExpired
   let orgCode: string | null = null
   let isSeniorManager = false
+  let smSegment: string | null = null
 
   try {
     const managerSnap = await adminDb.collection('users').doc(managerUid).get()
@@ -73,6 +74,7 @@ export async function syncTeamMemberPlans(
         subscriptionExpired = mData?.subscriptionExpired ?? false
       }
       orgCode = mData?.orgCode || null
+      smSegment = mData?.segment || null
       isSeniorManager = mData?.orgRole === 'senior_manager' || (Boolean(orgCode) && !mData?.seniorManagerUid)
     }
   } catch (err) {
@@ -83,17 +85,24 @@ export async function syncTeamMemberPlans(
   if (orgCode && isSeniorManager) {
     try {
       const orgRef = adminDb.collection('organisations').doc(orgCode)
-      await orgRef.set(
-        {
-          plan: newPlan,
-          subscriptionExpiresAt: subscriptionExpiresAt ?? null,
-          subscriptionStartedAt: subscriptionStartedAt ?? null,
-          subscriptionExpired: subscriptionExpired ?? false,
-          updatedAt: FieldValue.serverTimestamp()
-        },
-        { merge: true }
-      )
-      result.updatedOrgs += 1
+      const orgSnap = await orgRef.get()
+      const orgData = orgSnap.data()
+      // Si l'organisation a plusieurs SM, seul le SM initiateur ou principal met à jour organisations/{orgCode}
+      const isPrimarySm = !orgData?.seniorManagerUid || orgData.seniorManagerUid === managerUid
+
+      if (isPrimarySm) {
+        await orgRef.set(
+          {
+            plan: newPlan,
+            subscriptionExpiresAt: subscriptionExpiresAt ?? null,
+            subscriptionStartedAt: subscriptionStartedAt ?? null,
+            subscriptionExpired: subscriptionExpired ?? false,
+            updatedAt: FieldValue.serverTimestamp()
+          },
+          { merge: true }
+        )
+        result.updatedOrgs += 1
+      }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
       console.error('[syncTeamMemberPlans] organisation update error:', msg)
@@ -119,9 +128,12 @@ export async function syncTeamMemberPlans(
       .get()
     usersByIdSnap.docs.forEach((d) => userDocsMap.set(d.id, d))
 
-    // B. Si Senior Manager d'une organisation, cascade sur tous les TM et leurs membres
+    // B. Si Senior Manager d'un segment, cascade sur les TM et membres de SON segment uniquement
+    // RÈGLE MÉTIER (AGENTS.md) :
+    // - Les autres Senior Managers (orgRole === 'senior_manager') ne bénéficient pas du plan actif et gèrent leur propre plan de segment.
+    // - Seuls les Team Managers et commerciaux rattachés au segment de ce Senior Manager bénéficient de son plan.
     if (orgCode && isSeniorManager) {
-      // 1. Tous les Team Managers de l'organisation
+      // 1. Tous les Team Managers de ce segment
       const orgManagersSnap = await adminDb
         .collection('users')
         .where('orgCode', '==', orgCode)
@@ -129,20 +141,40 @@ export async function syncTeamMemberPlans(
         .get()
 
       orgManagersSnap.docs.forEach((doc) => {
-        if (doc.id !== managerUid) {
+        if (doc.id === managerUid) return
+        const d = doc.data()
+        // EXCLUSION FORMELLE : Ne jamais synchroniser un autre Senior Manager
+        if (d.orgRole === 'senior_manager') return
+
+        // CONFINEMENT DE SEGMENT : Ne synchroniser que les Team Managers du segment de ce Senior Manager
+        const belongsToSegment =
+          d.seniorManagerUid === managerUid ||
+          (Boolean(smSegment) && d.segment === smSegment) ||
+          (!d.seniorManagerUid && !d.segment)
+
+        if (belongsToSegment && d.orgRole === 'team_manager') {
           userDocsMap.set(doc.id, doc)
           managerUidsSet.add(doc.id)
         }
       })
 
-      // 2. Tous les utilisateurs membres ou support_agents avec cet orgCode
+      // 2. Les utilisateurs membres ou support_agents rattachés à ce segment
       const orgMembersSnap = await adminDb
         .collection('users')
         .where('orgCode', '==', orgCode)
         .get()
 
       orgMembersSnap.docs.forEach((doc) => {
-        if (doc.id !== managerUid) {
+        if (doc.id === managerUid) return
+        const d = doc.data()
+        if (d.role === 'manager') return
+
+        const belongsToSegment =
+          (d.managerUid && managerUidsSet.has(d.managerUid)) ||
+          d.seniorManagerUid === managerUid ||
+          (Boolean(smSegment) && d.segment === smSegment)
+
+        if (belongsToSegment) {
           userDocsMap.set(doc.id, doc)
         }
       })
@@ -185,6 +217,20 @@ export async function syncTeamMemberPlans(
             updatePayload.dailyLimit = newDailyLimit
           }
 
+          // Pour un Team Manager : s'il a vérifié son email et que le plan du SM est actif et payant,
+          // il passe automatiquement au statut actif !
+          if (isManagerDoc && data.orgRole === 'team_manager') {
+            const hasVerifiedEmail =
+              data.emailVerified === true || data.emailVerificationPending === false
+            if (hasVerifiedEmail && newPlan !== 'free' && !subscriptionExpired) {
+              updatePayload.active = true
+              updatePayload.activated = true
+            } else if (subscriptionExpired === true || newPlan === 'free') {
+              updatePayload.active = false
+              updatePayload.subscriptionExpired = true
+            }
+          }
+
           batch.update(doc.ref, updatePayload)
         })
 
@@ -211,13 +257,22 @@ export async function syncTeamMemberPlans(
       accessesSnap.docs.forEach((doc) => accessDocsMap.set(doc.id, doc))
     }
 
-    // Si orgCode, chercher aussi par orgCode dans team_accesses
+    // Si orgCode, chercher aussi par orgCode dans team_accesses en filtrant par segment/manager
     if (orgCode) {
       const orgAccessesSnap = await adminDb
         .collection('team_accesses')
         .where('orgCode', '==', orgCode)
         .get()
-      orgAccessesSnap.docs.forEach((doc) => accessDocsMap.set(doc.id, doc))
+      orgAccessesSnap.docs.forEach((doc) => {
+        const d = doc.data()
+        const belongsToSegment =
+          (d.managerUid && managerUidsSet.has(d.managerUid)) ||
+          d.seniorManagerUid === managerUid ||
+          (Boolean(smSegment) && d.segment === smSegment)
+        if (belongsToSegment) {
+          accessDocsMap.set(doc.id, doc)
+        }
+      })
     }
 
     if (accessDocsMap.size > 0) {

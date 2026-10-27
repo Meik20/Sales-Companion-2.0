@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getClientIp, checkRateLimit } from '@/lib/rate-limit'
+import { hasActivePaidManagerAccess } from '@/lib/manager-access'
+import { PLAN_LIMITS } from '@sales-companion/shared'
 
 async function getAdmin() {
   const { adminDb, adminAuth } = await import('@/lib/firebase-admin')
@@ -64,33 +66,93 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, alreadyActivated: true })
     }
 
-    // ✅ Les managers NE doivent PAS être activés à la vérification email.
-    // Leur active=true viendra uniquement de l'admin via /api/admin/payments/[reference].
-    // Pour les autres rôles (independent, member), on active immédiatement.
+    // RÈGLE MÉTIER (AGENTS.md) :
+    // - Les utilisateurs non-managers (independent, member, support_agent) sont activés directement.
+    // - Les Team Managers (role === 'manager' && orgRole === 'team_manager') rattachés à un Senior Manager
+    //   ayant un forfait actif payant passent directement au statut actif et héritent de son plan.
+    // - Les Senior Managers (orgRole === 'senior_manager') et managers indépendants gèrent leur propre plan
+    //   et ne sont activés qu'après souscription et validation de paiement.
     const isManager = userData.role === 'manager'
+    let isTeamManager = isManager && userData.orgRole === 'team_manager'
+    let smUid = userData.seniorManagerUid || null
+    let shouldActivateTeamManager = false
+    let inheritedPlanData: Record<string, unknown> = {}
+
+    // Vérification de sécurité / fallback si orgRole n'est pas encore sur users/{uid}
+    if (isManager && !isTeamManager) {
+      try {
+        const inviteQuery = await adminDb
+          .collection('orgInvites')
+          .where('usedByUid', '==', uid)
+          .where('type', '==', 'team_manager')
+          .limit(1)
+          .get()
+        if (!inviteQuery.empty) {
+          isTeamManager = true
+          const invData = inviteQuery.docs[0]?.data()
+          smUid = invData?.seniorManagerUid || invData?.createdByUid || smUid
+        }
+      } catch (err) {
+        console.warn('[auth/verify-email] Erreur recherche orgInvites:', err)
+      }
+    }
+
+    if (isTeamManager) {
+      if (!smUid && userData.orgCode) {
+        try {
+          const orgSnap = await adminDb.collection('organisations').doc(userData.orgCode).get()
+          smUid = orgSnap.data()?.seniorManagerUid || null
+        } catch (err) {
+          console.warn('[auth/verify-email] Erreur recherche organisations:', err)
+        }
+      }
+
+      if (smUid) {
+        try {
+          const smDoc = await adminDb.collection('users').doc(smUid).get()
+          if (smDoc.exists) {
+            const smData = smDoc.data()
+            if (hasActivePaidManagerAccess(smData)) {
+              shouldActivateTeamManager = true
+              const plan = smData?.plan || 'enterprise'
+              inheritedPlanData = {
+                orgRole: 'team_manager',
+                seniorManagerUid: smUid,
+                plan,
+                dailyLimit: PLAN_LIMITS[plan as keyof typeof PLAN_LIMITS] ?? 50,
+                subscriptionExpiresAt:
+                  smData?.subscriptionExpiresAt ?? smData?.planExpiresAt ?? null,
+                subscriptionStartedAt: smData?.subscriptionStartedAt ?? null,
+                subscriptionExpired: false
+              }
+            }
+          }
+        } catch (err) {
+          console.warn('[auth/verify-email] Erreur lecture SM:', err)
+        }
+      }
+    }
+
+    const shouldActivateNow = !isManager || shouldActivateTeamManager
 
     await userRef.update({
-      ...(isManager
+      emailVerificationPending: false,
+      emailVerified: true,
+      updatedAt: new Date(),
+      ...(shouldActivateNow
         ? {
-            // Manager : on vérifie l'email mais on n'active PAS encore
-            emailVerificationPending: false,
-            emailVerified: true,
-            updatedAt: new Date()
-          }
-        : {
-            // Autres rôles : activation complète
             activated: true,
             active: true,
-            emailVerificationPending: false,
-            emailVerified: true,
             activatedAt: new Date(),
-            updatedAt: new Date()
-          })
+            ...inheritedPlanData
+          }
+        : {})
     })
 
-    // ✅ Notification admin quand un manager vérifie son email
-    // (il va bientôt soumettre un paiement — l'admin peut anticiper)
-    if (isManager) {
+    // ✅ Notification admin quand un manager autonome ou SM vérifie son email
+    // (il va bientôt soumettre un paiement — l'admin peut anticiper).
+    // Les Team Managers déjà activés par le forfait de leur SM n'ont pas besoin de notification d'attente de paiement.
+    if (isManager && !shouldActivateTeamManager) {
       await createAdminNotification({
         type: 'new_manager',
         title: 'Nouveau Manager inscrit',
