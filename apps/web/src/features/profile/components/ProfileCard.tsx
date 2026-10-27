@@ -21,7 +21,8 @@ import {
   RefreshCw,
   Sparkles,
   AlertTriangle,
-  ArrowRight
+  ArrowRight,
+  Tag
 } from 'lucide-react'
 import { CountryFlag } from '@/components/ui/CountrySelect'
 import { getSubscriptionStatus } from '@/lib/subscriptionStatus'
@@ -61,6 +62,8 @@ export function ProfileCard() {
     region?: string
     phone?: string
   } | null>(null)
+
+  const [resolvedSegment, setResolvedSegment] = useState<string | null>(user?.segment ?? null)
 
   const [isEditing, setIsEditing] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -130,6 +133,40 @@ export function ProfileCard() {
       })
     }
   }, [editTokenParam, user?.uid])
+
+  // Résolution et auto-guérison du segment d'appartenance s'il est manquant sur le document client
+  useEffect(() => {
+    if (user?.segment) {
+      setResolvedSegment(user.segment)
+      return
+    }
+    if (
+      user &&
+      !user.segment &&
+      (user.orgCode ||
+        user.role === 'member' ||
+        user.role === 'manager' ||
+        user.role === 'support_agent')
+    ) {
+      user
+        .getIdToken()
+        .then((idToken) => {
+          fetch('/api/profile/segment', {
+            headers: {
+              Authorization: `Bearer ${idToken}`
+            }
+          })
+            .then((res) => (res.ok ? res.json() : null))
+            .then((data) => {
+              if (data?.segment) {
+                setResolvedSegment(data.segment)
+              }
+            })
+            .catch(() => {})
+        })
+        .catch(() => {})
+    }
+  }, [user?.uid, user?.segment, user?.orgCode, user?.role])
 
   const handleRequestProfileChange = async () => {
     if (!user) return
@@ -283,6 +320,14 @@ export function ProfileCard() {
     localProfile?.sector !== undefined ? localProfile.sector : user.sector || user.industry
   const displayRegion = localProfile?.region !== undefined ? localProfile.region : user.region
   const displayPhone = localProfile?.phone !== undefined ? localProfile.phone : user.phone
+  const displaySegment = user.segment || resolvedSegment || null
+  const showSegmentBadge = Boolean(
+    displaySegment ||
+      user.orgCode ||
+      user.role === 'manager' ||
+      user.role === 'member' ||
+      user.role === 'support_agent'
+  )
 
   const subStatus = getSubscriptionStatus(user.subscriptionExpiresAt, user.plan)
 
@@ -466,6 +511,40 @@ export function ProfileCard() {
                   )}
                 </span>
               </div>
+
+              {/* Segment d'appartenance — affiché pour toute organisation / équipe ou si segment défini */}
+              {showSegmentBadge && (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    background: 'var(--secondary, #1e2a3b)',
+                    border: '1px solid var(--border, rgba(255,255,255,0.1))',
+                    padding: '6px 12px',
+                    borderRadius: 8,
+                    fontSize: 13,
+                    color: 'var(--foreground, #f1f5f9)'
+                  }}
+                >
+                  <Tag size={15} style={{ color: '#a78bfa' }} />
+                  <span>
+                    <strong style={{ color: 'var(--muted-foreground, #94a3b8)', fontWeight: 500 }}>
+                      {t('profile.segmentLabel' as any) || 'Segment'} :
+                    </strong>{' '}
+                    {displaySegment ? (
+                      <span style={{ fontWeight: 600 }}>{displaySegment}</span>
+                    ) : (
+                      <span
+                        style={{ color: 'var(--muted-foreground, #64748b)', fontStyle: 'italic' }}
+                      >
+                        {t('profile.noSegment' as any) ||
+                          (lang === 'en' ? 'Not assigned' : 'Non assigné')}
+                      </span>
+                    )}
+                  </span>
+                </div>
+              )}
 
               {/* Secteur d'activité */}
               <div

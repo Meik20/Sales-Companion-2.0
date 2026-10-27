@@ -97,20 +97,54 @@ export async function PATCH(request: NextRequest) {
     const { FieldValue } = await import('firebase-admin/firestore')
 
     // ── 4. Récupération de tous les utilisateurs du segment (SM + TMs + commerciaux) ─
-    // Stratégie : on cible tous les users ayant orgCode + segment (correspondance souple)
+    // Stratégie : on cible tous les users ayant orgCode + segment ainsi que ceux rattachés hiérarchiquement
+    const userDocsToUpdate = new Map<string, FirebaseFirestore.DocumentReference>()
+
     const usersSnap = await adminDb
       .collection('users')
       .where('orgCode', '==', orgCode)
       .where('segment', '==', oldSegment)
       .get()
+    usersSnap.docs.forEach((d) => userDocsToUpdate.set(d.id, d.ref))
 
-    const userUidsToUpdate: string[] = []
-    usersSnap.docs.forEach((d) => {
-      userUidsToUpdate.push(d.id)
-    })
+    // Récupérer aussi les TMs expressément subordonnés à ce Senior Manager
+    try {
+      const subordinateTmsSnap = await adminDb
+        .collection('users')
+        .where('orgCode', '==', orgCode)
+        .where('seniorManagerUid', '==', callerUid)
+        .get()
+      subordinateTmsSnap.docs.forEach((d) => userDocsToUpdate.set(d.id, d.ref))
 
-    // ── 5. Récupération des fiches pipeline du segment ──────────────────────
-    // Les fiches pipeline stockent le segment du manager qui les a créées
+      // Récupérer tous les commerciaux rattachés à ces TMs ou à ce SM
+      const managerUids = [callerUid, ...subordinateTmsSnap.docs.map((d) => d.id)]
+      for (let i = 0; i < managerUids.length; i += 30) {
+        const chunk = managerUids.slice(i, i + 30)
+        const managedMembersSnap = await adminDb
+          .collection('users')
+          .where('orgCode', '==', orgCode)
+          .where('managerUid', 'in', chunk)
+          .get()
+        managedMembersSnap.docs.forEach((d) => userDocsToUpdate.set(d.id, d.ref))
+      }
+    } catch (subErr) {
+      console.warn('[PATCH /api/team/org/segment/rename] subordinate users lookup warning:', subErr)
+    }
+
+    // ── 5. Récupération des accès d'équipe (team_accesses) du segment ───────
+    const accessDocsToUpdate = new Map<string, FirebaseFirestore.DocumentReference>()
+    try {
+      const accessesSnap = await adminDb
+        .collection('team_accesses')
+        .where('orgCode', '==', orgCode)
+        .where('segment', '==', oldSegment)
+        .get()
+      accessesSnap.docs.forEach((d) => accessDocsToUpdate.set(d.id, d.ref))
+    } catch (accErr) {
+      console.warn('[PATCH /api/team/org/segment/rename] team_accesses lookup warning:', accErr)
+    }
+
+    // ── 6. Récupération des fiches pipeline du segment ──────────────────────
     const pipelineSnap = await adminDb
       .collection('pipeline')
       .where('orgCode', '==', orgCode)
@@ -118,10 +152,10 @@ export async function PATCH(request: NextRequest) {
       .get()
 
     console.log(
-      `[PATCH /api/team/org/segment/rename] orgCode=${orgCode} oldSegment="${oldSegment}" → "${newSegmentTrimmed}" | ${userUidsToUpdate.length} users, ${pipelineSnap.size} pipeline docs`
+      `[PATCH /api/team/org/segment/rename] orgCode=${orgCode} oldSegment="${oldSegment}" → "${newSegmentTrimmed}" | ${userDocsToUpdate.size} users, ${accessDocsToUpdate.size} accesses, ${pipelineSnap.size} pipeline docs`
     )
 
-    // ── 6. Propagation atomique par batches ──────────────────────────────────
+    // ── 7. Propagation atomique par batches ──────────────────────────────────
     let batch = adminDb.batch()
     let opCount = 0
 
@@ -133,21 +167,27 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
-    // A. Mise à jour du SM lui-même (inclus dans usersSnap si son segment correspond)
-    // Cas de sécurité : forcer la mise à jour du SM même s'il n'apparaît pas dans la requête
+    // A. Mise à jour du SM lui-même
     batch.update(callerDoc.ref, { segment: newSegmentTrimmed, updatedAt: now })
     opCount++
     await commitBatchIfFull()
 
-    // B. Mettre à jour tous les autres utilisateurs du segment
-    for (const d of usersSnap.docs) {
-      if (d.id === callerUid) continue // déjà traité ci-dessus
-      batch.update(d.ref, { segment: newSegmentTrimmed, updatedAt: now })
+    // B. Mettre à jour tous les utilisateurs identifiés (TMs, commerciaux, etc.)
+    for (const [uid, ref] of userDocsToUpdate.entries()) {
+      if (uid === callerUid) continue // déjà traité
+      batch.update(ref, { segment: newSegmentTrimmed, updatedAt: now })
       opCount++
       await commitBatchIfFull()
     }
 
-    // C. Mettre à jour les fiches pipeline
+    // C. Mettre à jour les accès d'équipe (team_accesses)
+    for (const ref of accessDocsToUpdate.values()) {
+      batch.update(ref, { segment: newSegmentTrimmed, updatedAt: now })
+      opCount++
+      await commitBatchIfFull()
+    }
+
+    // D. Mettre à jour les fiches pipeline
     for (const d of pipelineSnap.docs) {
       batch.update(d.ref, { segment: newSegmentTrimmed, updatedAt: now })
       opCount++
@@ -184,7 +224,8 @@ export async function PATCH(request: NextRequest) {
       success: true,
       segment: newSegmentTrimmed,
       updatedCount: {
-        users: userUidsToUpdate.length,
+        users: userDocsToUpdate.size,
+        accesses: accessDocsToUpdate.size,
         pipeline: pipelineSnap.size
       }
     })
