@@ -619,7 +619,7 @@ function PromoteMemberModal({
   onClose: () => void
   onSuccess: () => void
 }) {
-  const { t } = useTranslation()
+  const { t, lang } = useTranslation()
   const { user } = useCurrentUser()
   const { pushToast } = useToast()
 
@@ -627,12 +627,12 @@ function PromoteMemberModal({
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    if (currentManager?.segment) {
-      setSegment(currentManager.segment)
-    } else {
-      setSegment('Principal')
-    }
-  }, [currentManager])
+    // Priorité absolue au segment du Senior Manager connecté (user.segment),
+    // puis au segment du TM actuel, puis au commercial
+    const activeSegment =
+      user?.segment || currentManager?.segment || (rep as any)?.segment || ''
+    setSegment(activeSegment)
+  }, [user?.segment, currentManager?.segment, rep])
 
   if (!isOpen || !rep || !currentManager) return null
 
@@ -744,7 +744,10 @@ function PromoteMemberModal({
         </div>
 
         <div style={{ fontSize: 13, color: 'var(--muted-foreground)', marginBottom: 14 }}>
-          Actuellement commercial rattaché à : <strong>{currentManager.name || currentManager.email}</strong>.
+          {lang === 'en'
+            ? 'Currently sales rep linked to: '
+            : 'Actuellement commercial rattaché à : '}
+          <strong>{currentManager.name || currentManager.email}</strong>.
         </div>
 
         {/* Champ Segment */}
@@ -756,7 +759,7 @@ function PromoteMemberModal({
             type="text"
             value={segment}
             onChange={(e) => setSegment(e.target.value)}
-            disabled={loading}
+            disabled={loading || Boolean(user?.segment || currentManager?.segment)}
             placeholder="Ex: Pôle Nord, Grands Comptes..."
             style={{
               width: '100%',
@@ -764,12 +767,20 @@ function PromoteMemberModal({
               padding: '0 10px',
               borderRadius: 8,
               border: '1px solid var(--border)',
-              background: 'var(--background)',
+              background: (user?.segment || currentManager?.segment) ? 'var(--secondary, #1e293b)' : 'var(--background)',
               color: 'var(--foreground)',
               fontSize: 13,
-              outline: 'none'
+              outline: 'none',
+              cursor: (user?.segment || currentManager?.segment) ? 'not-allowed' : 'text'
             }}
           />
+          {Boolean(user?.segment || currentManager?.segment) && (
+            <p style={{ margin: '4px 0 0 0', fontSize: 11, color: 'var(--muted-foreground)' }}>
+              {lang === 'en'
+                ? `Synchronized with your segment (${user?.segment || currentManager?.segment}).`
+                : `Synchronisé avec votre segment (${user?.segment || currentManager?.segment}).`}
+            </p>
+          )}
         </div>
 
         <div
@@ -789,7 +800,7 @@ function PromoteMemberModal({
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
           <Button variant="ghost" onClick={onClose} disabled={loading}>
-            Annuler
+            {lang === 'en' ? 'Cancel' : 'Annuler'}
           </Button>
           <Button
             variant="primary"
@@ -798,7 +809,8 @@ function PromoteMemberModal({
           >
             {loading ? (
               <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Loader2 size={14} className="animate-spin" /> Promotion...
+                <Loader2 size={14} className="animate-spin" />{' '}
+                {lang === 'en' ? 'Promoting...' : 'Promotion...'}
               </span>
             ) : (
               t('team.orgGovernance.promoteRepConfirm')

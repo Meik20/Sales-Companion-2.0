@@ -113,8 +113,8 @@ export async function POST(request: NextRequest) {
     const memberName = memberData.displayName || memberData.name || memberData.email || 'Commercial'
     const sourceManagerUid = (memberData.managerUid as string) || null
 
-    // Segment final du nouveau TM
-    const targetSegment = requestedSegment?.trim() || memberData.segment || callerSegment || 'Principal'
+    // Segment final du nouveau TM (priorité inviolable au segment du Senior Manager appelant)
+    const targetSegment = callerSegment || requestedSegment?.trim() || memberData.segment || 'Principal'
 
     // Récupérer le nom de l'ancien TM s'il existe
     let sourceManagerName = 'Ancien Manager'

@@ -146,16 +146,32 @@ export async function GET(request: NextRequest) {
           .where('role', '==', 'manager')
           .get()
 
+        const smSegmentMap = new Map<string, string>()
+        orgManagersSnap.docs.forEach((d) => {
+          const md = d.data()
+          if (md.segment && (md.orgRole === 'senior_manager' || d.id === managerUid)) {
+            smSegmentMap.set(d.id, md.segment)
+          }
+        })
+        if (userData.segment) {
+          smSegmentMap.set(managerUid, userData.segment)
+        }
+
         managers = orgManagersSnap.docs.map((d) => {
           const mData = d.data()
           const resolvedOrgRole = d.id === managerUid ? orgRole : mData.orgRole || 'team_manager'
+          const resolvedSegment =
+            mData.segment ||
+            (mData.seniorManagerUid ? smSegmentMap.get(mData.seniorManagerUid) : null) ||
+            (resolvedOrgRole !== 'senior_manager' && userData.segment ? userData.segment : null)
+
           return {
             uid: d.id,
             name: mData.displayName || mData.name || mData.email,
             email: mData.email,
             phone: mData.phone || null,
             orgRole: resolvedOrgRole,
-            segment: mData.segment || null,
+            segment: resolvedSegment || null,
             seniorManagerUid: mData.seniorManagerUid || null,
             isCurrent: d.id === managerUid,
             isSenior: resolvedOrgRole === 'senior_manager',
