@@ -46,4 +46,59 @@ describe('AdminUsersTable', () => {
     // Look for action buttons (Désactiver, Delete)
     expect(screen.getByRole('table')).toBeInTheDocument()
   })
+
+  it('renders Team Manager role badge and locks plan/quota in read-only mode', () => {
+    const mockTm: UserRow = {
+      uid: 'tm-1',
+      email: 'tm@company.com',
+      name: 'Team Manager One',
+      role: 'manager',
+      orgRole: 'team_manager',
+      seniorManagerUid: 'sm-1',
+      plan: 'enterprise',
+      dailyUsed: 3,
+      dailyLimit: 50,
+      active: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+
+    render(<AdminUsersTable users={[mockTm]} onDelete={() => {}} onUpdate={() => {}} />)
+
+    // Role badge should be 'Team Manager'
+    expect(screen.getByText('Team Manager')).toBeInTheDocument()
+
+    // Plan should be rendered as read-only badge with title, not a select
+    expect(screen.queryByRole('combobox')).toBeNull()
+    expect(screen.getByTitle('Plan synchronisé et hérité du Senior Manager')).toBeInTheDocument()
+
+    // Quota should not have number input
+    expect(screen.queryByRole('spinbutton')).toBeNull()
+  })
+
+  it('renders editable plan select for an independent manager or Senior Manager', () => {
+    const mockSm: UserRow = {
+      uid: 'sm-1',
+      email: 'sm@company.com',
+      name: 'Senior Manager One',
+      role: 'manager',
+      orgRole: 'senior_manager',
+      plan: 'enterprise',
+      dailyUsed: 0,
+      dailyLimit: 50,
+      active: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+
+    render(<AdminUsersTable users={[mockSm]} onDelete={() => {}} onUpdate={() => {}} />)
+
+    // Role badge should be 'Senior Manager'
+    expect(screen.getByText('Senior Manager')).toBeInTheDocument()
+
+    // Plan should have an editable select
+    expect(screen.getByRole('combobox')).toBeInTheDocument()
+    // Quota should have an editable input
+    expect(screen.getByRole('spinbutton')).toBeInTheDocument()
+  })
 })

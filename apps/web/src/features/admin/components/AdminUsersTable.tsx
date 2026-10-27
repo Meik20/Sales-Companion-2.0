@@ -35,6 +35,7 @@ type UserWithId = UserDoc & {
   managerId?: string | null
   subscriptionExpiresAt?: string | null
   orgRole?: string | null
+  seniorManagerUid?: string | null
 }
 
 type Props = {
@@ -207,9 +208,13 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
                     const isSenior =
                       (user.role as string) === 'senior_manager' ||
                       (user.role === 'manager' && user.orgRole === 'senior_manager')
+                    const isTeamManager =
+                      user.role === 'manager' && user.orgRole === 'team_manager'
                     return (
                       <Badge
-                        variant={isSenior ? 'gold' : (roleBadge[user.role] ?? 'default')}
+                        variant={
+                          isSenior ? 'gold' : isTeamManager ? 'success' : (roleBadge[user.role] ?? 'default')
+                        }
                         style={{
                           fontSize: 10,
                           padding: '2px 8px',
@@ -219,10 +224,16 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
                                 color: '#a78bfa',
                                 border: '1px solid rgba(139, 92, 246, 0.3)'
                               }
-                            : {})
+                            : isTeamManager
+                              ? {
+                                  background: 'rgba(16, 185, 129, 0.15)',
+                                  color: '#34d399',
+                                  border: '1px solid rgba(16, 185, 129, 0.3)'
+                                }
+                              : {})
                         }}
                       >
-                        {isSenior ? 'Senior Manager' : user.role}
+                        {isSenior ? 'Senior Manager' : isTeamManager ? 'Team Manager' : user.role}
                       </Badge>
                     )
                   })()}
@@ -231,14 +242,21 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
               {/* Plan */}
               <td style={{ padding: '11px 12px' }}>
                 {(() => {
+                  const isTeamManager =
+                    user.role === 'manager' &&
+                    (user.orgRole === 'team_manager' || Boolean(user.seniorManagerUid))
                   const isInheritedAccount =
                     user.role === 'member' ||
                     user.role === 'support_agent' ||
+                    isTeamManager ||
                     Boolean(user.managerId)
                   if (isInheritedAccount) {
+                    const tooltipText = isTeamManager
+                      ? 'Plan synchronisé et hérité du Senior Manager'
+                      : 'Plan synchronisé et géré par le compte Manager'
                     return (
                       <div
-                        title="Plan synchronisé et géré par le compte Manager"
+                        title={tooltipText}
                         style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
                       >
                         <Badge
@@ -288,9 +306,13 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
               {/* Quota */}
               <td style={{ padding: '16px 12px', minWidth: 140 }}>
                 {(() => {
+                  const isTeamManager =
+                    user.role === 'manager' &&
+                    (user.orgRole === 'team_manager' || Boolean(user.seniorManagerUid))
                   const isInheritedAccount =
                     user.role === 'member' ||
                     user.role === 'support_agent' ||
+                    isTeamManager ||
                     Boolean(user.managerId)
                   if (user.role === 'support_agent') {
                     return (
@@ -357,9 +379,11 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
                         ) : (
                           <span
                             title={
-                              isInheritedAccount
-                                ? 'Quota synchronisé depuis le compte Manager'
-                                : undefined
+                              isTeamManager
+                                ? 'Quota synchronisé depuis le compte Senior Manager'
+                                : isInheritedAccount
+                                  ? 'Quota synchronisé depuis le compte Manager'
+                                  : undefined
                             }
                             style={{
                               fontSize: 11,

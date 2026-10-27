@@ -27,10 +27,16 @@ export async function PATCH(
     const oldSnap = await userDocRef.get()
     const oldData = oldSnap.data()
 
-    // ── Protection : les profils member et support_agent héritent du manager ──
-    const isMemberOrSupport = oldData?.role === 'member' || oldData?.role === 'support_agent'
-    if (isMemberOrSupport && safeFields.plan !== undefined) {
-      delete safeFields.plan
+    // ── Protection : les profils member, support_agent et team_manager héritent de leur manager / SM ──
+    const isInheritedAccount =
+      oldData?.role === 'member' ||
+      oldData?.role === 'support_agent' ||
+      (oldData?.role === 'manager' && oldData?.orgRole === 'team_manager') ||
+      Boolean(oldData?.seniorManagerUid)
+
+    if (isInheritedAccount) {
+      if (safeFields.plan !== undefined) delete safeFields.plan
+      if (safeFields.dailyLimit !== undefined) delete safeFields.dailyLimit
     }
 
     const updatePayload: Record<string, unknown> = {
