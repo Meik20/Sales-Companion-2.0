@@ -273,16 +273,33 @@ export function OrgGovernanceTab() {
     setSegmentSaving(true)
     try {
       const token = await user?.getIdToken()
-      const res = await fetch('/api/team/org', {
+
+      // Route dédiée au renommage profond : propage le nouveau nom de segment
+      // aux TMs, commerciaux, et fiches pipeline du segment (AGENTS.md §5 renommage)
+      const res = await fetch('/api/team/org/segment/rename', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ segment: segmentInput.trim() })
+        body: JSON.stringify({ newSegment: segmentInput.trim() })
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Erreur lors de la mise à jour')
-      setOrgData(data)
+      if (!res.ok) throw new Error(data.message || data.error || 'Erreur lors de la mise à jour')
+
+      // Mettre à jour localement le segment affiché
+      setOrgData((prev: any) => prev ? { ...prev, segment: data.segment ?? segmentInput.trim() } : prev)
       setEditingSegment(false)
-      pushToast({ type: 'success', title: t('team.orgGovernance.segmentUpdateSuccess') })
+
+      const usersUpdated = data.updatedCount?.users ?? 0
+      const pipelineUpdated = data.updatedCount?.pipeline ?? 0
+      const detail =
+        usersUpdated > 0 || pipelineUpdated > 0
+          ? ` (${usersUpdated} utilisateur${usersUpdated > 1 ? 's' : ''}, ${pipelineUpdated} fiche${pipelineUpdated > 1 ? 's' : ''} mis à jour)`
+          : ''
+
+      pushToast({
+        type: 'success',
+        title: t('team.orgGovernance.segmentUpdateSuccess'),
+        description: detail || undefined
+      })
     } catch (err: any) {
       pushToast({ type: 'error', title: err.message || t('team.orgGovernance.niuUpdateError') })
     } finally {
