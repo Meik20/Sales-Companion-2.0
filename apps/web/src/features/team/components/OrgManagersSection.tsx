@@ -24,6 +24,7 @@ import {
   ArrowRightLeft,
   AlertTriangle,
   ShieldAlert,
+  ShieldCheck,
   Loader2,
   X
 } from 'lucide-react'
@@ -390,11 +391,18 @@ function TransferMemberModal({
   const [targetManagerUid, setTargetManagerUid] = useState<string>('')
   const [loading, setLoading] = useState(false)
 
-  useEffect(() => {
-    if (availableManagers.length > 0) {
-      setTargetManagerUid(availableManagers[0]!.uid)
-    }
+  // Défense en profondeur : les Senior Managers ne gèrent aucun commercial et ne peuvent JAMAIS recevoir un transfert
+  const filteredAvailableManagers = useMemo(() => {
+    return availableManagers.filter((m) => !m.isSenior && m.orgRole !== 'senior_manager')
   }, [availableManagers])
+
+  useEffect(() => {
+    if (filteredAvailableManagers.length > 0) {
+      setTargetManagerUid(filteredAvailableManagers[0]!.uid)
+    } else {
+      setTargetManagerUid('')
+    }
+  }, [filteredAvailableManagers])
 
   if (!isOpen || !rep || !currentManager) return null
 
@@ -514,28 +522,47 @@ function TransferMemberModal({
           <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 6 }}>
             {t('team.orgGovernance.targetTmSelect')} <span style={{ color: '#ef4444' }}>*</span>
           </label>
-          <select
-            value={targetManagerUid}
-            onChange={(e) => setTargetManagerUid(e.target.value)}
-            disabled={loading}
-            style={{
-              width: '100%',
-              height: 38,
-              padding: '0 10px',
-              borderRadius: 8,
-              border: '1px solid var(--border)',
-              background: 'var(--background)',
-              color: 'var(--foreground)',
-              fontSize: 13,
-              outline: 'none'
-            }}
-          >
-            {availableManagers.map((tm) => (
-              <option key={tm.uid} value={tm.uid}>
-                {tm.name || tm.email} ({tm.isSenior ? 'Senior Manager' : 'Team Manager'}{tm.segment ? ` — ${tm.segment}` : ''})
-              </option>
-            ))}
-          </select>
+          {filteredAvailableManagers.length === 0 ? (
+            <div
+              style={{
+                fontSize: 12,
+                color: '#f59e0b',
+                padding: '10px 12px',
+                background: 'rgba(245, 158, 11, 0.1)',
+                border: '1px solid rgba(245, 158, 11, 0.25)',
+                borderRadius: 8,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8
+              }}
+            >
+              <AlertTriangle size={15} style={{ color: '#f59e0b', flexShrink: 0 }} />
+              <span>{t('team.orgGovernance.noAvailableTmForTransfer')}</span>
+            </div>
+          ) : (
+            <select
+              value={targetManagerUid}
+              onChange={(e) => setTargetManagerUid(e.target.value)}
+              disabled={loading}
+              style={{
+                width: '100%',
+                height: 38,
+                padding: '0 10px',
+                borderRadius: 8,
+                border: '1px solid var(--border)',
+                background: 'var(--background)',
+                color: 'var(--foreground)',
+                fontSize: 13,
+                outline: 'none'
+              }}
+            >
+              {filteredAvailableManagers.map((tm) => (
+                <option key={tm.uid} value={tm.uid}>
+                  {tm.name || tm.email} (Team Manager{tm.segment ? ` — ${tm.segment}` : ''})
+                </option>
+              ))}
+            </select>
+          )}
         </div>
 
         <div
@@ -559,7 +586,7 @@ function TransferMemberModal({
           <Button
             variant="primary"
             onClick={handleTransfer}
-            disabled={loading || !targetManagerUid}
+            disabled={loading || !targetManagerUid || filteredAvailableManagers.length === 0}
           >
             {loading ? (
               <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -567,6 +594,214 @@ function TransferMemberModal({
               </span>
             ) : (
               'Confirmer le transfert'
+            )}
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Modale de Promotion d'un Commercial en Team Manager.
+ * 100% Opaque conforme à la règle 8 d'AGENTS.md.
+ */
+function PromoteMemberModal({
+  isOpen,
+  rep,
+  currentManager,
+  onClose,
+  onSuccess
+}: {
+  isOpen: boolean
+  rep: TeamMemberRecord | null
+  currentManager: OrgManager | null
+  onClose: () => void
+  onSuccess: () => void
+}) {
+  const { t } = useTranslation()
+  const { user } = useCurrentUser()
+  const { pushToast } = useToast()
+
+  const [segment, setSegment] = useState<string>('')
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (currentManager?.segment) {
+      setSegment(currentManager.segment)
+    } else {
+      setSegment('Principal')
+    }
+  }, [currentManager])
+
+  if (!isOpen || !rep || !currentManager) return null
+
+  const repName = `${rep.firstname || ''} ${rep.lastname || ''}`.trim() || rep.email || 'Commercial'
+
+  const handlePromote = async () => {
+    if (!user) return
+    const memberUid = rep.firebaseUid || rep.id
+    setLoading(true)
+    try {
+      const token = await user.getIdToken()
+      const res = await fetch('/api/team/members/promote', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          memberUid,
+          segment: segment.trim()
+        })
+      })
+
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message || 'Erreur lors de la promotion du commercial')
+
+      pushToast({
+        type: 'success',
+        title: t('team.orgGovernance.promoteRepTitle'),
+        description: t('team.orgGovernance.promoteRepSuccess')
+      })
+      onSuccess()
+      onClose()
+    } catch (err: any) {
+      pushToast({
+        type: 'error',
+        title: 'Erreur',
+        description: err.message
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 9999,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'rgba(0,0,0,0.75)',
+        padding: 16
+      }}
+    >
+      <div
+        style={{
+          width: '100%',
+          maxWidth: 480,
+          background: 'var(--card, #121826)',
+          border: '1px solid var(--border)',
+          borderRadius: 12,
+          padding: 24,
+          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)',
+          color: 'var(--foreground)'
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div
+              style={{
+                width: 38,
+                height: 38,
+                borderRadius: '50%',
+                background: 'rgba(16, 185, 129, 0.15)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#10b981',
+                flexShrink: 0
+              }}
+            >
+              <ShieldCheck size={20} />
+            </div>
+            <div>
+              <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>
+                {t('team.orgGovernance.promoteRepTitle')}
+              </h3>
+              <p style={{ fontSize: 12, color: 'var(--muted-foreground)', margin: '2px 0 0 0' }}>
+                {repName}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            disabled={loading}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--muted-foreground)',
+              cursor: 'pointer',
+              padding: 4
+            }}
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <div style={{ fontSize: 13, color: 'var(--muted-foreground)', marginBottom: 14 }}>
+          Actuellement commercial rattaché à : <strong>{currentManager.name || currentManager.email}</strong>.
+        </div>
+
+        {/* Champ Segment */}
+        <div style={{ marginBottom: 16 }}>
+          <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 6 }}>
+            {t('team.orgGovernance.promoteRepSegmentLabel')} <span style={{ color: '#ef4444' }}>*</span>
+          </label>
+          <input
+            type="text"
+            value={segment}
+            onChange={(e) => setSegment(e.target.value)}
+            disabled={loading}
+            placeholder="Ex: Pôle Nord, Grands Comptes..."
+            style={{
+              width: '100%',
+              height: 38,
+              padding: '0 10px',
+              borderRadius: 8,
+              border: '1px solid var(--border)',
+              background: 'var(--background)',
+              color: 'var(--foreground)',
+              fontSize: 13,
+              outline: 'none'
+            }}
+          />
+        </div>
+
+        <div
+          style={{
+            padding: '12px 14px',
+            borderRadius: 8,
+            background: 'var(--background)',
+            border: '1px solid var(--border)',
+            fontSize: 12,
+            color: 'var(--muted-foreground)',
+            marginBottom: 20,
+            lineHeight: 1.5
+          }}
+        >
+          {t('team.orgGovernance.promoteRepNotice')}
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+          <Button variant="ghost" onClick={onClose} disabled={loading}>
+            Annuler
+          </Button>
+          <Button
+            variant="primary"
+            onClick={handlePromote}
+            disabled={loading || !segment.trim()}
+          >
+            {loading ? (
+              <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Loader2 size={14} className="animate-spin" /> Promotion...
+              </span>
+            ) : (
+              t('team.orgGovernance.promoteRepConfirm')
             )}
           </Button>
         </div>
@@ -934,7 +1169,8 @@ function ManagerCard({
   availableTransferManagers,
   onRevoke,
   onRequestSmRevocation,
-  onTransferRep
+  onTransferRep,
+  onPromoteRep
 }: {
   manager: OrgManager
   orgStats?: OrgManagerStats
@@ -943,6 +1179,7 @@ function ManagerCard({
   onRevoke: (mgr: OrgManager) => void
   onRequestSmRevocation: (mgr: OrgManager) => void
   onTransferRep: (rep: TeamMemberRecord, currentMgr: OrgManager) => void
+  onPromoteRep: (rep: TeamMemberRecord, currentMgr: OrgManager) => void
 }) {
   const { t, lang } = useTranslation()
   const [expanded, setExpanded] = useState(false)
@@ -1269,13 +1506,40 @@ function ManagerCard({
                         )}
                       </div>
 
-                      {/* Bouton de transfert de commercial */}
-                      {availableTransferManagers.length > 0 && (
+                      {/* Actions sur le commercial : Transférer ou Promouvoir */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                        {availableTransferManagers.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              onTransferRep(rep, manager)
+                            }}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 5,
+                              fontSize: 11,
+                              fontWeight: 600,
+                              padding: '4px 8px',
+                              borderRadius: 6,
+                              border: '1px solid var(--border)',
+                              background: 'var(--card)',
+                              color: 'var(--foreground)',
+                              cursor: 'pointer'
+                            }}
+                            title={t('team.orgGovernance.transferRepTitle')}
+                          >
+                            <ArrowRightLeft size={11} style={{ color: 'var(--primary, #6366f1)' }} />
+                            <span>{t('team.orgGovernance.transferRepBtn')}</span>
+                          </button>
+                        )}
+
                         <button
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation()
-                            onTransferRep(rep, manager)
+                            onPromoteRep(rep, manager)
                           }}
                           style={{
                             display: 'inline-flex',
@@ -1285,17 +1549,17 @@ function ManagerCard({
                             fontWeight: 600,
                             padding: '4px 8px',
                             borderRadius: 6,
-                            border: '1px solid var(--border)',
-                            background: 'var(--card)',
-                            color: 'var(--foreground)',
+                            border: '1px solid rgba(16, 185, 129, 0.3)',
+                            background: 'rgba(16, 185, 129, 0.1)',
+                            color: '#10b981',
                             cursor: 'pointer'
                           }}
-                          title={t('team.orgGovernance.transferRepTitle')}
+                          title={t('team.orgGovernance.promoteRepTitle')}
                         >
-                          <ArrowRightLeft size={11} style={{ color: 'var(--primary, #6366f1)' }} />
-                          <span>{t('team.orgGovernance.transferRepBtn')}</span>
+                          <ShieldCheck size={11} style={{ color: '#10b981' }} />
+                          <span>{t('team.orgGovernance.promoteRepBtn')}</span>
                         </button>
-                      )}
+                      </div>
                     </div>
                   )
                 })}
@@ -1325,6 +1589,10 @@ export function OrgManagersSection({ managers, orgCode, onRefresh }: OrgManagers
   const [managerToRevoke, setManagerToRevoke] = useState<OrgManager | null>(null)
   const [smToRevokeRequest, setSmToRevokeRequest] = useState<OrgManager | null>(null)
   const [transferringRep, setTransferringRep] = useState<{
+    rep: TeamMemberRecord
+    manager: OrgManager
+  } | null>(null)
+  const [promotingRep, setPromotingRep] = useState<{
     rep: TeamMemberRecord
     manager: OrgManager
   } | null>(null)
@@ -1472,7 +1740,7 @@ export function OrgManagersSection({ managers, orgCode, onRefresh }: OrgManagers
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {otherSeniorManagers.map((mgr) => {
               const reps = membersByManagerUid[mgr.uid] || []
-              const otherManagers = managers.filter((m) => m.uid !== mgr.uid)
+              const otherManagers = teamManagers.filter((m) => m.uid !== mgr.uid)
               return (
                 <ManagerCard
                   key={mgr.uid}
@@ -1483,6 +1751,7 @@ export function OrgManagersSection({ managers, orgCode, onRefresh }: OrgManagers
                   onRevoke={(m) => setManagerToRevoke(m)}
                   onRequestSmRevocation={(m) => setSmToRevokeRequest(m)}
                   onTransferRep={(rep, currentMgr) => setTransferringRep({ rep, manager: currentMgr })}
+                  onPromoteRep={(rep, currentMgr) => setPromotingRep({ rep, manager: currentMgr })}
                 />
               )
             })}
@@ -1511,7 +1780,7 @@ export function OrgManagersSection({ managers, orgCode, onRefresh }: OrgManagers
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {teamManagers.map((mgr) => {
               const reps = membersByManagerUid[mgr.uid] || []
-              const otherManagers = managers.filter((m) => m.uid !== mgr.uid)
+              const otherManagers = teamManagers.filter((m) => m.uid !== mgr.uid)
               return (
                 <ManagerCard
                   key={mgr.uid}
@@ -1522,6 +1791,7 @@ export function OrgManagersSection({ managers, orgCode, onRefresh }: OrgManagers
                   onRevoke={(m) => setManagerToRevoke(m)}
                   onRequestSmRevocation={(m) => setSmToRevokeRequest(m)}
                   onTransferRep={(rep, currentMgr) => setTransferringRep({ rep, manager: currentMgr })}
+                  onPromoteRep={(rep, currentMgr) => setPromotingRep({ rep, manager: currentMgr })}
                 />
               )
             })}
@@ -1561,8 +1831,17 @@ export function OrgManagersSection({ managers, orgCode, onRefresh }: OrgManagers
         isOpen={transferringRep !== null}
         rep={transferringRep?.rep ?? null}
         currentManager={transferringRep?.manager ?? null}
-        availableManagers={managers.filter((m) => m.uid !== transferringRep?.manager.uid)}
+        availableManagers={teamManagers.filter((m) => m.uid !== transferringRep?.manager.uid)}
         onClose={() => setTransferringRep(null)}
+        onSuccess={handleActionSuccess}
+      />
+
+      {/* Modale de promotion d'un commercial en Team Manager */}
+      <PromoteMemberModal
+        isOpen={promotingRep !== null}
+        rep={promotingRep?.rep ?? null}
+        currentManager={promotingRep?.manager ?? null}
+        onClose={() => setPromotingRep(null)}
         onSuccess={handleActionSuccess}
       />
     </div>

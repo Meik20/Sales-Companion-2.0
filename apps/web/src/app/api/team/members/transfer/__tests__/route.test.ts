@@ -151,6 +151,19 @@ describe('POST /api/team/members/transfer', () => {
     expect(json.message).toContain('déjà rattaché')
   })
 
+  it('devrait rejeter (400) si le manager cible est un Senior Manager (le SM ne gère pas de commerciaux)', async () => {
+    const req = new NextRequest('http://localhost:3000/api/team/members/transfer', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer valid-sm-token' },
+      body: JSON.stringify({ memberUid: 'rep-1', targetManagerUid: 'sm-uid' })
+    })
+
+    const res = await POST(req)
+    expect(res.status).toBe(400)
+    const json = await res.json()
+    expect(json.message).toContain('ne gère pas de commerciaux')
+  })
+
   it('devrait transférer avec succès le commercial vers le nouveau Team Manager', async () => {
     const req = new NextRequest('http://localhost:3000/api/team/members/transfer', {
       method: 'POST',

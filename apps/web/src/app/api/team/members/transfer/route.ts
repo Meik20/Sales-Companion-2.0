@@ -121,9 +121,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'Team Manager cible introuvable' }, { status: 404 })
     }
 
-    if (targetData.orgCode !== orgCode || targetData.role !== 'manager') {
+    if (
+      targetData.orgCode !== orgCode ||
+      targetData.role !== 'manager' ||
+      targetData.orgRole === 'senior_manager'
+    ) {
       return NextResponse.json(
-        { message: "Le Team Manager cible n'appartient pas à votre organisation" },
+        {
+          message:
+            "Le destinataire doit être un Team Manager de votre organisation (un Senior Manager ne gère pas de commerciaux)"
+        },
         { status: 400 }
       )
     }

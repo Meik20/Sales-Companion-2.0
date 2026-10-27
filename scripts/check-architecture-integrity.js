@@ -360,10 +360,35 @@ try {
     if (!transferCode.includes("orgRole !== 'senior_manager'")) {
       errors.push("❌ SÉCURITÉ VIOLÉE DANS members/transfer : L'accès doit être réservé au Senior Manager.")
     }
-    if (!transferCode.includes("managerUid: targetManagerUid")) {
-      errors.push("❌ INTÉGRITÉ VIOLÉE DANS members/transfer : managerUid doit être mis à jour sur targetManagerUid.")
+    if (!transferCode.includes("targetData.orgRole === 'senior_manager'")) {
+      errors.push("❌ RÈGLE MÉTIER VIOLÉE DANS members/transfer : Le transfert vers un Senior Manager doit être formellement interdit (le SM ne gère pas de commerciaux).")
     }
-    console.log('✅ Route /api/team/members/transfer conforme (contrôle Senior Manager et transfert atomique)')
+    const orgManagersSectionPath = path.resolve(__dirname, '../apps/web/src/features/team/components/OrgManagersSection.tsx')
+    if (fs.existsSync(orgManagersSectionPath)) {
+      const omsCode = fs.readFileSync(orgManagersSectionPath, 'utf8')
+      if (omsCode.includes("availableManagers={managers.filter((m) => m.uid !== transferringRep?.manager.uid)}")) {
+        errors.push("❌ SÉLECTION VIOLÉE DANS OrgManagersSection : TransferMemberModal ne doit pas recevoir tous les managers, mais uniquement les Team Managers.")
+      }
+    }
+    console.log('✅ Route /api/team/members/transfer conforme (contrôle Senior Manager, exclusion SM cible et transfert atomique)')
+  }
+
+  // J. Vérifier la conformité de la route de promotion de commercial en Team Manager (Section 12 AGENTS.md)
+  const promoteMemberRoutePath = path.resolve(__dirname, '../apps/web/src/app/api/team/members/promote/route.ts')
+  if (!fs.existsSync(promoteMemberRoutePath)) {
+    errors.push("❌ ROUTE MANQUANTE : /api/team/members/promote/route.ts doit exister.")
+  } else {
+    const promoteCode = fs.readFileSync(promoteMemberRoutePath, 'utf8')
+    if (!promoteCode.includes("orgRole !== 'senior_manager'")) {
+      errors.push("❌ SÉCURITÉ VIOLÉE DANS members/promote : La promotion doit être réservée au Senior Manager.")
+    }
+    if (!promoteCode.includes("orgRole: 'team_manager'")) {
+      errors.push("❌ RÔLE VIOLÉ DANS members/promote : Le commercial doit être promu au rôle team_manager.")
+    }
+    if (promoteCode.includes("collection('clients')")) {
+      errors.push("❌ INTÉGRITÉ COMMERCIALE VIOLÉE : /api/team/members/promote ne doit JAMAIS toucher la collection 'clients'.")
+    }
+    console.log('✅ Route /api/team/members/promote conforme (contrôle Senior Manager, passage team_manager et isolation clients)')
   }
 
   // J. Vérifier la gouvernance de révocation des Senior Managers (Section 12 AGENTS.md)

@@ -253,6 +253,7 @@ Ne **jamais** utiliser un emoji cercle coloré (`🟢🔴🟡`) pour indiquer un
 > 3. **Préservation du Portefeuille Commercial & Règle du Portefeuille Actif Exclusif lors des Transferts :**  
 >    - Le transfert individuel d'un commercial vers un nouveau Team Manager réassigne la supervision managériale (`managerUid`), mais préserve intégralement le compte du commercial (`users/{memberUid}`) et ses opportunités actives en cours (`userId`).
 >    - **Portefeuille Actif Uniquement :** Seules les opportunités au statut **actif** (`prospection` et `negociation`) suivent le commercial vers le nouveau Team Manager.
+>    - **Exclusion Formelle du Senior Manager comme Destinataire :** Le transfert d'un commercial s'effectue exclusivement vers un **Team Manager** (`orgRole !== 'senior_manager'`). Le Senior Manager supervise l'organisation globale et ne gère aucun portefeuille opérationnel ni commercial de routine ; il ne peut **JAMAIS** figurer dans le formulaire de choix du gestionnaire destinataire ni recevoir de commerciaux.
 >    - **Intégrité de la Base Clients de l'Ancien TM :** Toutes les affaires **conclues** (`status === 'conclue'`) restent **définitivement enregistrées dans la base de données clients (`clients`) de l'ancien Team Manager**. La collection `clients` n'est JAMAIS altérée ni transférée lors d'un transfert individuel de commercial.
 > 4. **Garde-fous automatisés pré-build :**  
 >    - `scripts/check-architecture-integrity.js` valide systématiquement la présence et la conformité des routes `/api/team/managers/revoke` et `/api/team/members/transfer`, l'interdiction formelle de l'auto-révocation, et la restriction stricte du transfert au portefeuille actif (exclusion des affaires conclues et sanctification de la collection `clients`).
@@ -261,6 +262,11 @@ Ne **jamais** utiliser un emoji cercle coloré (`🟢🔴🟡`) pour indiquer un
 >    - Toute demande de révocation d'un Senior Manager fait obligatoirement l'objet d'une demande formelle auprès du **Support de SALES COMPANION 2.0** via la route `/api/support/sm-revocation`.
 >    - L'équipe Support étudie la demande et engage impérativement des vérifications avec la Direction Générale et les responsables statutaires de l'entreprise concernée avant toute validation ou rejet.
 >    - Aucune interruption de segment ne peut survenir sans accord formel entre la direction de l'entreprise cliente et Sales Companion 2.0.
+> 6. **Promotion Interne d'un Commercial en Team Manager (`/api/team/members/promote`) :**  
+>    - Le Senior Manager peut promouvoir un commercial de son segment au rôle de **Team Manager** (`role: 'manager'`, `orgRole: 'team_manager'`).
+>    - **Évolution in-place :** Le commercial conserve son compte utilisateur (`users/{uid}`), son adresse email, et ses opportunités actives en cours (qui passent sous son propre `managerUid`).
+>    - **Libération de quota :** L'ancien slot `team_accesses` du commercial chez son ancien TM est libéré (`status: 'promoted'`), restituant un quota disponible à son ancien Team Manager.
+>    - **Intégrité de la base clients :** Toutes les affaires conclues antérieures demeurent sous la supervision de l'ancien TM (la collection `clients` n'est jamais modifiée).
 
 ---
 
