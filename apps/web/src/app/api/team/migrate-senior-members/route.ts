@@ -49,10 +49,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Aucun code organisation associé' }, { status: 400 })
     }
 
-    // Récupérer les prospects rattachés au Senior Manager
-    const [pipelineByManagerSnap, pipelineByUserSnap] = await Promise.all([
+    // Récupérer les prospects rattachés au Senior Manager (pipeline et manager_prospects)
+    const [pipelineByManagerSnap, pipelineByUserSnap, managerProspectsSnap] = await Promise.all([
       adminDb.collection('pipeline').where('managerUid', '==', callerUid).get(),
-      adminDb.collection('pipeline').where('userId', '==', callerUid).get()
+      adminDb.collection('pipeline').where('userId', '==', callerUid).get(),
+      adminDb.collection('manager_prospects').where('managerId', '==', callerUid).get()
     ])
 
     const prospectsMap = new Map<string, any>()
@@ -80,8 +81,29 @@ export async function GET(request: NextRequest) {
       })
     }
 
+    const processManagerProspectDoc = (doc: FirebaseFirestore.QueryDocumentSnapshot) => {
+      const data = doc.data()
+      if (data.transferredToManagerUid && data.transferredToManagerUid !== callerUid) {
+        return
+      }
+      prospectsMap.set(doc.id, {
+        id: doc.id,
+        companyName: data.companyName || data.name || 'Entreprise sans nom',
+        companySector: data.companySector || data.sector || null,
+        companyCity: data.companyCity || data.city || data.region || null,
+        companyPhone: data.companyPhone || data.telephone || data.phone || null,
+        status: normalizeStatus(data.status),
+        amount: typeof data.amount === 'number' ? data.amount : Number(data.amount) || 0,
+        assignedTo: data.assignedTo || null,
+        createdAt: data.createdAt?.toDate
+          ? data.createdAt.toDate().toISOString()
+          : data.createdAt || null
+      })
+    }
+
     pipelineByManagerSnap.docs.forEach(processDoc)
     pipelineByUserSnap.docs.forEach(processDoc)
+    managerProspectsSnap.docs.forEach(processManagerProspectDoc)
 
     const prospects = Array.from(prospectsMap.values()).sort((a, b) => {
       const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0
@@ -195,43 +217,44 @@ export async function POST(request: NextRequest) {
       targetData.displayName || targetData.name || targetData.email || 'Team Manager'
     const targetManagerEmail = targetData.email || ''
 
-    // Récupérer les items pipeline à transférer
-    let pipelineDocsToTransfer: FirebaseFirestore.DocumentSnapshot[] = []
+    // Récupérer les items à transférer (pipeline et manager_prospects)
+    let prospectDocsToTransfer: FirebaseFirestore.DocumentSnapshot[] = []
+
+    const [byManagerSnap, byUserSnap, byManagerProspectsSnap] = await Promise.all([
+      adminDb.collection('pipeline').where('managerUid', '==', callerUid).get(),
+      adminDb.collection('pipeline').where('userId', '==', callerUid).get(),
+      adminDb.collection('manager_prospects').where('managerId', '==', callerUid).get()
+    ])
+
+    const candidateDocs = [...byManagerSnap.docs, ...byUserSnap.docs, ...byManagerProspectsSnap.docs]
+    const seen = new Set<string>()
 
     if (Array.isArray(prospectIds) && prospectIds.length > 0) {
       // 1. Transfert sélectif : uniquement les prospects choisis par le Senior Manager
       const selectedIdSet = new Set<string>(prospectIds)
-      const [byManagerSnap, byUserSnap] = await Promise.all([
-        adminDb.collection('pipeline').where('managerUid', '==', callerUid).get(),
-        adminDb.collection('pipeline').where('userId', '==', callerUid).get()
-      ])
-
-      const seen = new Set<string>()
-      const candidateDocs = [...byManagerSnap.docs, ...byUserSnap.docs]
-
       for (const d of candidateDocs) {
         if (selectedIdSet.has(d.id) && !seen.has(d.id)) {
           seen.add(d.id)
-          // Vérifier qu'il appartient bien au compte Senior
           const dData = d.data()
-          if (!dData.managerUid || dData.managerUid === callerUid) {
-            pipelineDocsToTransfer.push(d)
+          const isEligible =
+            (!dData.managerUid || dData.managerUid === callerUid) &&
+            (!dData.managerId || dData.managerId === callerUid)
+          if (isEligible) {
+            prospectDocsToTransfer.push(d)
           }
         }
       }
     } else {
       // 2. Transfert global de tous les prospects du compte Senior
-      const [byManagerSnap, byUserSnap] = await Promise.all([
-        adminDb.collection('pipeline').where('managerUid', '==', callerUid).get(),
-        adminDb.collection('pipeline').where('userId', '==', callerUid).get()
-      ])
-      const seen = new Set<string>()
-      for (const d of [...byManagerSnap.docs, ...byUserSnap.docs]) {
+      for (const d of candidateDocs) {
         if (!seen.has(d.id)) {
           seen.add(d.id)
           const dData = d.data()
-          if (!dData.managerUid || dData.managerUid === callerUid) {
-            pipelineDocsToTransfer.push(d)
+          const isEligible =
+            (!dData.managerUid || dData.managerUid === callerUid) &&
+            (!dData.managerId || dData.managerId === callerUid)
+          if (isEligible) {
+            prospectDocsToTransfer.push(d)
           }
         }
       }
@@ -270,25 +293,59 @@ export async function POST(request: NextRequest) {
 
     const now = new Date()
 
-    // Màj pipeline : TRANSFERT PROSPECT
-    // RÈGLE : C'est un TRANSFERT vers le Team Manager, pas une assignation.
-    // assignedTo doit être null. Le Team Manager n'est pas un commercial.
-    for (const doc of pipelineDocsToTransfer) {
-      batch.update(doc.ref, {
-        managerUid: targetManagerUid,
-        managerName: targetManagerName,
-        userId: targetManagerUid, // Le Team Manager devient détenteur du prospect en attente d'attribution
-        assignedTo: null, // EXPLICITEMENT NON ASSIGNÉ
-        assignedAt: null,
-        memberName: null,
-        memberAccessId: null,
+    // ── RÈGLE ARCHITECTURALE CANONIQUE ──
+    // Un transfert de prospect du Senior Manager vers un Team Manager doit ATTERRIR
+    // dans "Gestion d'équipe > Mes prospects importés" (collection manager_prospects).
+    // Il ne doit JAMAIS polluer la collection pipeline du TM avec des dossiers non assignés.
+    for (const doc of prospectDocsToTransfer) {
+      const dData = doc.data() || {}
+      const isFromPipeline = doc.ref.parent.id === 'pipeline'
+      const targetProspectRef = isFromPipeline
+        ? adminDb.collection('manager_prospects').doc(doc.id)
+        : doc.ref
+
+      const prospectPayload = {
+        managerId: targetManagerUid, // Le Team Manager devient propriétaire
+        orgCode,
+        segment: targetData.segment || callerData.segment || null,
+        name: dData.companyName || dData.name || 'Entreprise sans nom',
+        companyName: dData.companyName || dData.name || 'Entreprise sans nom',
+        companyId: dData.companyId || null,
+        originSource: dData.originSource || 'senior_transfer',
+        externalDirectoryId: dData.externalDirectoryId || dData.companyId || null,
+        phone: dData.companyPhone || dData.telephone || dData.phone || null,
+        email: dData.companyEmail || dData.email || null,
+        city: dData.companyCity || dData.city || dData.region || null,
+        sector: dData.companySector || dData.sector || null,
+        region: dData.companyRegion || dData.region || null,
+        quarter: dData.companyQuarter || dData.quarter || null,
+        country: dData.companyCountry || dData.country || 'CM',
+        notes: dData.note || dData.notes || '',
+        status: 'new',
+        assignedTo: null, // Non assigné à un commercial : le TM l'assignera
         transferredFromSeniorUid: callerUid,
-        migratedFromSeniorAt: now,
+        transferredToManagerUid: targetManagerUid,
+        transferredToManagerName: targetManagerName,
         transferredAt: now,
+        migratedFromSeniorAt: now,
         transferDeadline: deadline || null,
         assignmentDeadline: deadline || null,
+        importedBy: callerUid,
+        importedByRole: 'senior_manager',
         updatedAt: now
-      })
+      }
+
+      if (isFromPipeline) {
+        batch.set(targetProspectRef, {
+          ...prospectPayload,
+          createdAt: dData.createdAt || now
+        }, { merge: true })
+        // Supprimer définitivement de la collection pipeline pour ne pas polluer le pipeline opérationnel
+        batch.delete(doc.ref)
+      } else {
+        batch.update(doc.ref, prospectPayload)
+      }
+
       opCount++
       await commitBatchIfFull()
     }
@@ -355,11 +412,33 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Synchronisation miroir Supabase private_prospects
+    try {
+      const { isPrivateProspectsTableAvailable, transferPrivateProspects } = await import(
+        '@/lib/supabase-private-prospects'
+      )
+      if (await isPrivateProspectsTableAvailable()) {
+        const idsToSync = prospectDocsToTransfer.map((d) => d.id)
+        if (idsToSync.length > 0) {
+          await transferPrivateProspects({
+            prospectIds: idsToSync,
+            orgCode,
+            seniorUid: callerUid,
+            targetManagerUid,
+            targetManagerName,
+            deadline: deadline || null
+          })
+        }
+      }
+    } catch (sbErr) {
+      console.warn('[migrate-senior-members] Supabase transfer sync error:', sbErr)
+    }
+
     // Notification In-App automatique pour le Team Manager récepteur
     try {
       const { createUserNotification } = await import('@/lib/user-notifications')
       const senderName = callerData.displayName || callerData.name || 'Le Senior Manager'
-      const count = pipelineDocsToTransfer.length
+      const count = prospectDocsToTransfer.length
       const deadlineText = deadline
         ? ` avec une échéance fixée au ${new Date(deadline).toLocaleDateString('fr-FR', {
             day: 'numeric',
@@ -398,7 +477,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       migratedCount: {
-        pipeline: pipelineDocsToTransfer.length,
+        pipeline: prospectDocsToTransfer.length,
         teamAccesses: accessDocs.length,
         teamUsers: memberUserDocs.length,
         assignments: assignmentDocs.length,

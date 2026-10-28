@@ -404,6 +404,7 @@ export const fr = {
     companySavedToast: 'Entreprise enregistrée',
     companySavedDesc: 'Ajoutée à vos favoris avec succès.',
     prospectAddedToast: 'Opportunité ajoutée au pipeline',
+    prospectAddedToImportsToast: 'Prospect ajouté à vos prospects importés',
     prospectAddedDesc: 'Ajoutée à votre pipeline avec succès.',
     saveSearchSuccess: 'Recherche sauvegardée',
     saveSearchError: 'Sauvegarde impossible',

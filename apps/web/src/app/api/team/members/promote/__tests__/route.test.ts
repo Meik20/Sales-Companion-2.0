@@ -115,6 +115,13 @@ vi.mock('@/lib/user-notifications', () => ({
   createUserNotification: vi.fn().mockResolvedValue(undefined)
 }))
 
+vi.mock('firebase-admin/firestore', () => ({
+  FieldValue: {
+    delete: vi.fn(() => ({})),
+    serverTimestamp: vi.fn(() => new Date())
+  }
+}))
+
 describe('POST /api/team/members/promote', () => {
   beforeEach(() => {
     vi.clearAllMocks()

@@ -403,6 +403,7 @@ export const en = {
     companySavedToast: 'Company saved',
     companySavedDesc: 'Added to your favorites successfully.',
     prospectAddedToast: 'Opportunity added to pipeline',
+    prospectAddedToImportsToast: 'Prospect added to imported prospects',
     prospectAddedDesc: 'Added to your pipeline successfully.',
     saveSearchSuccess: 'Search saved',
     saveSearchError: 'Unable to save search',

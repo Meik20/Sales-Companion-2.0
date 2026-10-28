@@ -24,11 +24,15 @@ export function AddToPipelineButton({ company }: Props) {
   const [status, setStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
+  const isManager = user?.role === 'manager' || (!user?.role && !user?.managerUid)
+
   function notifySuccess() {
     setStatus('done')
     pushToast({
       type: 'success',
-      title: t('search.prospectAddedToast'),
+      title: isManager
+        ? t('search.prospectAddedToImportsToast')
+        : t('search.prospectAddedToast'),
       description: `${company.raisonSociale || 'Prospect'}`
     })
   }
@@ -41,7 +45,6 @@ export function AddToPipelineButton({ company }: Props) {
 
     const isOffline = isMobileRuntime() && typeof navigator !== 'undefined' && !navigator.onLine
 
-    const isManager = user.role === 'manager' || (!user.role && !user.managerUid)
     const targetCountry = (company.country as string) || prospectingCountry
     const pipelineData = {
       userId: user.uid,
@@ -68,11 +71,40 @@ export function AddToPipelineButton({ company }: Props) {
       updatedAt: serverTimestamp()
     }
 
+    const offlineData = isManager
+      ? {
+          managerId: user.uid,
+          orgCode: user.orgCode ?? null,
+          segment: user.segment ?? null,
+          seniorManagerUid:
+            user.seniorManagerUid ?? (user.orgRole === 'senior_manager' ? user.uid : null),
+          name: company.raisonSociale ?? '—',
+          companyName: company.raisonSociale ?? '—',
+          companyId: company.id,
+          phone: company.telephone ?? null,
+          email: company.email ?? null,
+          city: company.city ?? company.region ?? null,
+          sector: company.sector ?? null,
+          country: targetCountry,
+          notes: '',
+          status: 'new',
+          assignedTo: null,
+          importedBy: user.uid,
+          importedByRole: user.role ?? 'manager',
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        }
+      : pipelineData
+
+    const targetCol = isManager ? 'manager_prospects' : 'pipeline'
+
     if (isOffline) {
       try {
-        await addDoc(collection(firestore, 'pipeline'), pipelineData)
+        await addDoc(collection(firestore, targetCol), offlineData)
         await queryClient.invalidateQueries({ queryKey: ['pipeline'] })
         await queryClient.invalidateQueries({ queryKey: ['pipeline-stats'] })
+        await queryClient.invalidateQueries({ queryKey: ['manager-prospects'] })
+        await queryClient.invalidateQueries({ queryKey: ['imports'] })
         notifySuccess()
       } catch (err) {
         console.error('[AddToPipeline offline]', err)
@@ -126,6 +158,8 @@ export function AddToPipelineButton({ company }: Props) {
       }
       await queryClient.invalidateQueries({ queryKey: ['pipeline'] })
       await queryClient.invalidateQueries({ queryKey: ['pipeline-stats'] })
+      await queryClient.invalidateQueries({ queryKey: ['manager-prospects'] })
+      await queryClient.invalidateQueries({ queryKey: ['imports'] })
       notifySuccess()
     } catch (err) {
       if (!isMobileRuntime()) {
@@ -134,9 +168,11 @@ export function AddToPipelineButton({ company }: Props) {
         return
       }
       try {
-        await addDoc(collection(firestore, 'pipeline'), pipelineData)
+        await addDoc(collection(firestore, targetCol), offlineData)
         await queryClient.invalidateQueries({ queryKey: ['pipeline'] })
         await queryClient.invalidateQueries({ queryKey: ['pipeline-stats'] })
+        await queryClient.invalidateQueries({ queryKey: ['manager-prospects'] })
+        await queryClient.invalidateQueries({ queryKey: ['imports'] })
         notifySuccess()
       } catch (addErr) {
         console.error('[AddToPipeline]', addErr)
@@ -150,7 +186,11 @@ export function AddToPipelineButton({ company }: Props) {
     return (
       <span className="whitespace-nowrap text-[12px] font-semibold text-emerald-600 dark:text-emerald-400 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 shadow-2xs">
         <Check size={13} strokeWidth={2.5} className="text-emerald-600 dark:text-emerald-400" />
-        <span>{t('search.inPipeline')}</span>
+        <span>
+          {isManager
+            ? t('search.prospectAddedToImportsToast') || 'Dans vos prospects importés'
+            : t('search.inPipeline')}
+        </span>
       </span>
     )
   }

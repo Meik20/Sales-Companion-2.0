@@ -211,8 +211,96 @@ export async function POST(request: NextRequest) {
     //   - memberName = son propre nom
     const finalAssignedTo = assignedTo
     const finalMemberName = memberName
-
     const now = new Date()
+
+    // ── RÈGLE ARCHITECTURALE CANONIQUE ──
+    // Un manager qui ajoute un prospect depuis la recherche ou le formulaire :
+    // Le prospect est stocké dans "Mes prospects importés" (manager_prospects)
+    // en attente d'être assigné à un commercial de terrain. Il ne pollue pas le pipeline actif.
+    if (isManagerRole) {
+      const docRef = await adminDb.collection('manager_prospects').add({
+        managerId: userId,
+        orgCode: callerData.orgCode ?? null,
+        segment: callerData.segment ?? null,
+        seniorManagerUid:
+          callerData.seniorManagerUid ||
+          (callerData.orgRole === 'senior_manager' ? userId : null),
+        name: companyName,
+        companyName: companyName,
+        companyId: companyId ?? null,
+        originSource: companyId ? 'supabase_directory' : 'manual',
+        externalDirectoryId: companyId ?? null,
+        phone: finalPhone ?? null,
+        email: companyEmail ?? null,
+        city: companyCity ?? null,
+        sector: companySector ?? null,
+        region: companyRegion ?? null,
+        quarter: companyQuarter ?? null,
+        country: targetCountry,
+        notes: note || '',
+        status: 'new',
+        assignedTo: null,
+        importedBy: userId,
+        importedByRole: callerData.role,
+        createdAt: now,
+        updatedAt: now
+      })
+
+      // Propagation temps réel
+      const orgCode = callerData.orgCode as string | undefined
+      if (orgCode) {
+        adminDb
+          .collection('organisations')
+          .doc(orgCode)
+          .update({
+            lastImportsUpdate: now.toISOString(),
+            lastPipelineUpdate: now.toISOString()
+          })
+          .catch((orgErr: unknown) => {
+            console.warn('[pipeline/add] lastImportsUpdate write failed:', orgErr)
+          })
+      }
+
+      // Miroir de sauvegarde confidentiel sur Supabase private_prospects
+      try {
+        const { isPrivateProspectsTableAvailable, bulkInsertPrivateProspects } = await import(
+          '@/lib/supabase-private-prospects'
+        )
+        const isAvailable = await isPrivateProspectsTableAvailable()
+        if (isAvailable) {
+          await bulkInsertPrivateProspects([
+            {
+              id: docRef.id,
+              org_code: callerData.orgCode ?? null,
+              user_id: userId,
+              manager_uid: userId,
+              assigned_to: null,
+              assigned_member_name: null,
+              company_name: companyName,
+              country_code: targetCountry,
+              sector: companySector ?? null,
+              city: companyCity ?? null,
+              quarter: companyQuarter ?? null,
+              region: companyRegion ?? null,
+              phone: finalPhone ?? null,
+              email: companyEmail ?? null,
+              notes: note || null,
+              status: 'new',
+              transfer_deadline: null,
+              assignment_deadline: null,
+              transferred_to_manager_uid: null,
+              transferred_from_senior_uid: null,
+              pipeline_entry_id: null
+            }
+          ])
+        }
+      } catch (sbErr) {
+        console.warn('[pipeline/add] Non-blocking Supabase sync error:', sbErr)
+      }
+
+      return NextResponse.json({ success: true, id: docRef.id, target: 'imports' })
+    }
+
     const docRef = await adminDb.collection('pipeline').add({
       userId,
       managerUid: managerUid ?? null,
