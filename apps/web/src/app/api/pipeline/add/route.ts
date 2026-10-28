@@ -401,7 +401,8 @@ export async function POST(request: NextRequest) {
       }
 
       if (conflictingDoc) {
-        const cData = conflictingDoc.data() || {}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const cData: Record<string, any> = conflictingDoc.data() ?? {}
         const colName = conflictingDoc.ref.parent.id
         const isFromClients = colName === 'clients'
         const isFromPipeline = colName === 'pipeline'
@@ -541,7 +542,8 @@ export async function POST(request: NextRequest) {
         }
 
         if (foundIndDoc) {
-          const dData = foundIndDoc.data() || {}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const dData: Record<string, any> = foundIndDoc.data() ?? {}
           return NextResponse.json(
             {
               error: 'prospect_already_assigned',
