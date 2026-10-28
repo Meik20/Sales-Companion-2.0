@@ -376,12 +376,13 @@ export async function POST(request: NextRequest) {
         // segments sont définis, non vides ET différents (ex: 'Nord' vs 'Sud').
         // Si l'un ou les deux segments sont non renseignés (vivier commun d'organisation),
         // ou si les deux segments correspondent, il y a conflit bloquant au sein de l'organisation.
+        // Deux segments sont considérés distincts UNIQUEMENT SI les deux sont définis ET différents.
+        // Si l'un est absent (vivier commun), on traite comme même segment → conflit bloquant.
         const isDifferentSegment = Boolean(
           callerSegment && itemSegment && callerSegment.toLowerCase() !== itemSegment.toLowerCase()
         )
-        const isSameSegment = !isDifferentSegment
 
-        if (isSameTeam || isSameSegment) {
+        if (isSameTeam || !isDifferentSegment) {
           if (colName === 'pipeline') {
             if (activeStatuses.includes(itemStatus) || !dData.status) {
               conflictingDoc = doc
