@@ -1,6 +1,6 @@
 'use client'
 
-import { PropsWithChildren, useEffect, useState } from 'react'
+import { PropsWithChildren, useEffect, useState, useRef } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { auth } from '@/services/firebase/client'
 import { Mail, RefreshCw, Clock } from 'lucide-react'
@@ -17,6 +17,7 @@ export function AuthGuard({ children }: PropsWithChildren) {
   const [resendCooldown, setResendCooldown] = useState(0)
   const [resendLoading, setResendLoading] = useState(false)
   const [finalizing, setFinalizing] = useState(false)
+  const isVerifyingRef = useRef(false)
   const [status, setStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -56,9 +57,10 @@ export function AuthGuard({ children }: PropsWithChildren) {
     const isPending = (user as { emailVerificationPending?: boolean } | null)
       ?.emailVerificationPending
 
-    if (firebaseUser.emailVerified && isPending) {
+    if (firebaseUser.emailVerified && isPending && !isVerifyingRef.current) {
       if (typeof navigator !== 'undefined' && !navigator.onLine) return
 
+      isVerifyingRef.current = true
       setFinalizing(true)
       firebaseUser
         .getIdToken(true)
@@ -71,10 +73,18 @@ export function AuthGuard({ children }: PropsWithChildren) {
             // useCurrentUser récupère la mise à jour via onSnapshot — pas besoin de reload
           } catch {
             /* ignore */
+          } finally {
+            setFinalizing(false)
+            // Laisse un court délai pour que onSnapshot propage emailVerificationPending=false
+            setTimeout(() => {
+              isVerifyingRef.current = false
+            }, 3000)
           }
-          setFinalizing(false)
         })
-        .catch(() => setFinalizing(false))
+        .catch(() => {
+          setFinalizing(false)
+          isVerifyingRef.current = false
+        })
     }
   }, [user, loading])
 

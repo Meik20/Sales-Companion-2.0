@@ -36,6 +36,10 @@ export type CurrentUser = {
   dailyLimit: number
   dailyUsed: number
   active: boolean
+  activated?: boolean
+  emailVerified?: boolean
+  emailVerificationPending?: boolean
+  paymentPending?: boolean
   getIdToken: (forceRefresh?: boolean) => Promise<string>
 }
 
@@ -254,6 +258,10 @@ function useCurrentUserSource(): UserContextValue {
               seniorManagerUid: currentUserObj.seniorManagerUid,
               plan: currentUserObj.plan,
               active: currentUserObj.active,
+              activated: currentUserObj.activated,
+              emailVerified: currentUserObj.emailVerified,
+              emailVerificationPending: currentUserObj.emailVerificationPending,
+              paymentPending: currentUserObj.paymentPending,
               subscriptionExpired: currentUserObj.subscriptionExpired,
               subscriptionExpiresAt: currentUserObj.subscriptionExpiresAt,
               managerUid: currentUserObj.managerUid,
@@ -284,6 +292,10 @@ function useCurrentUserSource(): UserContextValue {
               dailyLimit: 10,
               dailyUsed: 0,
               active: true,
+              activated: true,
+              emailVerified: Boolean(firebaseUser.emailVerified),
+              emailVerificationPending: false,
+              paymentPending: false,
               getIdToken: (forceRefresh?: boolean) => firebaseUser.getIdToken(forceRefresh)
             }
             setUser(fallbackUser)

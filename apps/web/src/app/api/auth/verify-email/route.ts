@@ -61,9 +61,16 @@ export async function POST(request: NextRequest) {
     }
 
     const userData = userSnap.data() ?? {}
-    if (userData.activated === true && !userData.emailVerificationPending) {
-      // Already activated — idempotent OK
-      return NextResponse.json({ success: true, alreadyActivated: true })
+    if (
+      userData.emailVerificationPending === false ||
+      (userData.activated === true && !userData.emailVerificationPending)
+    ) {
+      // Déjà traité (idempotence) — évite les boucles d'appels et les notifications dupliquées
+      return NextResponse.json({
+        success: true,
+        alreadyProcessed: true,
+        alreadyActivated: Boolean(userData.activated)
+      })
     }
 
     // RÈGLE MÉTIER (AGENTS.md) :
@@ -159,7 +166,8 @@ export async function POST(request: NextRequest) {
         message: `${email} a vérifié son email et est en attente de choix de plan. Un paiement devrait arriver prochainement.`,
         userId: uid,
         userEmail: email,
-        link: '/admin/users'
+        link: '/admin/users',
+        deduplicate: true
       })
     }
 

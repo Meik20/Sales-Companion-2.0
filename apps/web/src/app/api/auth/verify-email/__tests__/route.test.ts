@@ -216,4 +216,36 @@ describe('POST /api/auth/verify-email', () => {
       })
     )
   })
+
+  it('court-circuite immédiatement si l\'email a déjà été vérifié (idempotence)', async () => {
+    const uid = 'manager-already-verified'
+
+    mocks.usersStore.set(uid, {
+      role: 'manager',
+      orgRole: 'senior_manager',
+      emailVerificationPending: false,
+      emailVerified: true,
+      active: false,
+      activated: false,
+      plan: 'free'
+    })
+
+    mocks.mockVerifyIdToken.mockResolvedValue({
+      uid,
+      email: 'manager@test.com',
+      email_verified: true
+    })
+
+    const req = new NextRequest('http://localhost/api/auth/verify-email', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer valid-token' }
+    })
+
+    const res = await POST(req)
+    expect(res.status).toBe(200)
+    const json = await res.json()
+    expect(json.alreadyProcessed).toBe(true)
+    expect(mocks.mockUserUpdate).not.toHaveBeenCalled()
+    expect(mocks.mockCreateAdminNotification).not.toHaveBeenCalled()
+  })
 })

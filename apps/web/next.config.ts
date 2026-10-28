@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next'
+import path from 'path'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://salescompanion2-0.com'
 
@@ -6,7 +7,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
 
   turbopack: {
-    root: '../../'
+    root: path.resolve(__dirname, '../../')
   },
 
   serverExternalPackages: ['firebase-admin'],

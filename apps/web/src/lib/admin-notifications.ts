@@ -11,6 +11,8 @@ interface CreateNotificationParams {
   reference?: string
   /** Route interne vers la page admin concernée (ex: '/admin/payments') */
   link?: string
+  /** Évite la création de doublon si une notification identique existe déjà pour cet utilisateur */
+  deduplicate?: boolean
 }
 
 /**
@@ -26,6 +28,20 @@ export async function createAdminNotification(params: CreateNotificationParams):
   try {
     // Import dynamique pour éviter les problèmes d'initialisation au chargement du module
     const { adminDb } = await import('@/lib/firebase-admin')
+
+    if (params.deduplicate) {
+      const existing = await adminDb
+        .collection('adminNotifications')
+        .where('type', '==', params.type)
+        .where('userId', '==', params.userId)
+        .limit(1)
+        .get()
+
+      if (!existing.empty) {
+        return
+      }
+    }
+
     await adminDb.collection('adminNotifications').add({
       type: params.type,
       title: params.title,
