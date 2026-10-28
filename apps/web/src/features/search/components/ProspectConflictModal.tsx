@@ -5,11 +5,13 @@ import { createPortal } from 'react-dom'
 import { useTranslation } from '@/providers/I18nProvider'
 import {
   ShieldAlert,
+  ShieldOff,
   Building2,
   Users,
   UserCheck,
   Layers,
   AlertTriangle,
+  BadgeCheck,
   X,
   CheckCircle2,
   TrendingUp,
@@ -28,6 +30,7 @@ export interface ProspectConflictInfo {
   isSameTeam?: boolean
   isSameUser?: boolean
   isFromManagerProspects?: boolean
+  isConcluded?: boolean
   updatedAt?: string | null
 }
 
@@ -70,11 +73,12 @@ export function ProspectConflictModal({ conflict, onClose }: ProspectConflictMod
   if (!conflict || !mounted) return null
 
   const isSameUser = conflict.isSameUser
+  const isConcluded = conflict.isConcluded === true
   const rawStatus = (conflict.status || '').toLowerCase().trim()
 
   // Configuration du badge de statut
   const getStatusBadge = () => {
-    if (rawStatus === 'conclue' || rawStatus === 'won') {
+    if (isConcluded || rawStatus === 'conclue' || rawStatus === 'won') {
       return {
         label: t('search.conflictStatusConclue') || 'Client conclu',
         icon: CheckCircle2,
@@ -102,7 +106,7 @@ export function ProspectConflictModal({ conflict, onClose }: ProspectConflictMod
       }
     }
     return {
-      label: t('search.conflictStatusNew') || 'En attente d’attribution',
+      label: t('search.conflictStatusNew') || "En attente d'attribution",
       icon: Clock,
       bg: 'bg-sky-500/15',
       text: 'text-sky-700 dark:text-sky-400',
@@ -112,6 +116,46 @@ export function ProspectConflictModal({ conflict, onClose }: ProspectConflictMod
 
   const statusBadge = getStatusBadge()
   const StatusIcon = statusBadge.icon
+
+  // Variante visuelle selon le type de conflit
+  const isConcludedConflict = isConcluded && !isSameUser
+  const headerIconBg = isConcludedConflict
+    ? 'bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400'
+    : 'bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400'
+  const haloColor = isConcludedConflict ? '#ef4444' : '#f59e0b'
+  const boxShadowColor = isConcludedConflict
+    ? '0 25px 50px -12px rgba(239, 68, 68, 0.22), 0 0 0 1px var(--border, rgba(0,0,0,0.08))'
+    : '0 25px 50px -12px rgba(245, 158, 11, 0.25), 0 0 0 1px var(--border, rgba(0,0,0,0.08))'
+  const warningBg = isConcludedConflict
+    ? 'border-red-500/20 bg-red-500/5'
+    : 'border-amber-500/20 bg-amber-500/5'
+  const warningTextColor = isConcludedConflict
+    ? 'text-red-900/90 dark:text-red-200/90'
+    : 'text-amber-900/90 dark:text-amber-200/90'
+  const warningIconColor = isConcludedConflict
+    ? 'text-red-600 dark:text-red-400'
+    : 'text-amber-600 dark:text-amber-400'
+
+  const HeaderIcon = isConcludedConflict ? ShieldOff : ShieldAlert
+
+  // Titre et sous-titre selon le contexte
+  const getTitle = () => {
+    if (isSameUser) return t('search.conflictModalSelfTitle')
+    if (isConcludedConflict) return t('search.conflictModalConcludedTitle') || 'Client existant dans votre organisation'
+    return t('search.conflictModalTitle')
+  }
+
+  const getSubtitle = () => {
+    if (isConcludedConflict) return t('search.conflictModalConcludedSubtitle') || 'Cette entreprise est déjà cliente dans votre organisation.'
+    return t('search.conflictModalSubtitle')
+  }
+
+  // Message d'avertissement
+  const getWarningDesc = () => {
+    if (isSameUser) return t('search.conflictSelfDesc')
+    if (isConcludedConflict) return t('search.conflictConcludedDesc') || "Cette entreprise est déjà enregistrée comme cliente dans votre organisation (affaire conclue). Pour éviter tout cannibalisme commercial, vous ne pouvez pas l'ajouter à nouveau comme prospect."
+    return t('search.conflictWarningDesc')
+  }
 
   const modalContent = (
     <div
@@ -142,14 +186,14 @@ export function ProspectConflictModal({ conflict, onClose }: ProspectConflictMod
           zIndex: 10,
           backgroundColor: 'var(--card, #ffffff)',
           borderColor: 'var(--border, rgba(255, 255, 255, 0.12))',
-          boxShadow: '0 25px 50px -12px rgba(245, 158, 11, 0.25), 0 0 0 1px var(--border, rgba(0,0,0,0.08))'
+          boxShadow: boxShadowColor
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Halo ambré élégant en arrière-plan */}
+        {/* Halo en arrière-plan (ambré ou rouge selon le type) */}
         <div
           className="pointer-events-none absolute -top-20 left-1/2 h-36 w-72 -translate-x-1/2 rounded-full blur-3xl opacity-20"
-          style={{ background: '#f59e0b' }}
+          style={{ background: haloColor }}
         />
 
         {/* Bouton Fermer */}
@@ -164,20 +208,18 @@ export function ProspectConflictModal({ conflict, onClose }: ProspectConflictMod
 
         {/* En-tête */}
         <div className="flex items-start gap-3.5 mb-5">
-          <div className="rounded-xl p-3 bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 shrink-0">
-            <ShieldAlert size={26} strokeWidth={2.2} />
+          <div className={`rounded-xl p-3 border shrink-0 ${headerIconBg}`}>
+            <HeaderIcon size={26} strokeWidth={2.2} />
           </div>
           <div>
             <h2
               id="conflict-dialog-title"
               className="text-lg font-bold text-foreground leading-snug"
             >
-              {isSameUser
-                ? t('search.conflictModalSelfTitle')
-                : t('search.conflictModalTitle')}
+              {getTitle()}
             </h2>
             <p className="text-xs text-muted-foreground mt-0.5">
-              {t('search.conflictModalSubtitle')}
+              {getSubtitle()}
             </p>
           </div>
         </div>
@@ -236,6 +278,23 @@ export function ProspectConflictModal({ conflict, onClose }: ProspectConflictMod
             </div>
           </div>
 
+          {/* Badge "Client conclu" si isConcluded */}
+          {isConcludedConflict && (
+            <div className="px-3.5 py-2.5 rounded-xl border border-emerald-500/20 bg-emerald-500/5 flex items-center gap-2">
+              <BadgeCheck size={15} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+              <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                {t('search.conflictStatusConclue') || 'Client conclu'} —&nbsp;
+                {conflict.updatedAt
+                  ? new Date(conflict.updatedAt).toLocaleDateString('fr-FR', {
+                      day: '2-digit',
+                      month: 'long',
+                      year: 'numeric'
+                    })
+                  : t('search.conflictDateUnknown') || 'Date inconnue'}
+              </span>
+            </div>
+          )}
+
           {/* Segment d'activité si renseigné */}
           {conflict.segment && (
             <div className="px-3.5 py-2.5 rounded-xl border border-border/60 bg-muted/20 flex items-center gap-2">
@@ -250,12 +309,10 @@ export function ProspectConflictModal({ conflict, onClose }: ProspectConflictMod
           )}
 
           {/* Message explicatif et conseil d'action */}
-          <div className="p-3.5 rounded-xl border border-amber-500/20 bg-amber-500/5 flex items-start gap-2.5">
-            <AlertTriangle size={16} className="text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-            <p className="text-xs text-amber-900/90 dark:text-amber-200/90 leading-relaxed">
-              {isSameUser
-                ? t('search.conflictSelfDesc')
-                : t('search.conflictWarningDesc')}
+          <div className={`p-3.5 rounded-xl border flex items-start gap-2.5 ${warningBg}`}>
+            <AlertTriangle size={16} className={`shrink-0 mt-0.5 ${warningIconColor}`} />
+            <p className={`text-xs leading-relaxed ${warningTextColor}`}>
+              {getWarningDesc()}
             </p>
           </div>
         </div>

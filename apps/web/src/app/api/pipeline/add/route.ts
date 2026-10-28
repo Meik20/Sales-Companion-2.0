@@ -161,10 +161,30 @@ export async function POST(request: NextRequest) {
     const callerOrgCode = (callerData.orgCode as string) || null
     const callerSegment = (callerData.segment as string)?.trim() || null
 
+    function normalizeCompanyName(str: unknown): string {
+      return String(str || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+    }
+
+    function normalizePhoneDigits(phone: unknown): string {
+      const digits = String(phone || '').replace(/\D/g, '')
+      return digits.length >= 8 ? digits.slice(-9) : ''
+    }
+
+    const phoneToTest = finalPhone || companyPhone || null
+    const targetNormalizedName = normalizeCompanyName(companyName)
+    const targetPhoneDigits = normalizePhoneDigits(phoneToTest)
+
     // ── VÉRIFICATION CANONIQUE ANTI-DOUBLONS & CANNIBALISME COMMERCIAL ──
     // Règle inviolable : Un prospect ne peut pas être dans le pipeline de deux membres
-    // d'une même équipe, ni même du même segment (ni dans les prospects importés du TM).
-    if (callerOrgCode && (companyId || companyName)) {
+    // d'une même équipe, ni même du même segment (ni dans les prospects importés du TM,
+    // ni dans la base des clients déjà conclus).
+    if (callerOrgCode && (companyId || companyName || phoneToTest)) {
       const activeStatuses = [
         'prospection',
         'negociation',
@@ -181,73 +201,94 @@ export async function POST(request: NextRequest) {
       const candidateDocs: FirebaseFirestore.DocumentSnapshot[] = []
       const seenDocIds = new Set<string>()
 
-      // 1. Recherche dans pipeline par companyId puis par companyName
-      const pipelineCol = adminDb.collection('pipeline')
-      if (companyId) {
-        try {
-          const snap = await pipelineCol
-            .where('orgCode', '==', callerOrgCode)
-            .where('companyId', '==', companyId)
-            .get()
-          snap.docs.forEach((d) => {
-            if (!seenDocIds.has(d.id)) {
-              seenDocIds.add(d.id)
-              candidateDocs.push(d)
-            }
-          })
-        } catch (err) {
-          console.warn('[pipeline/add] pipeline companyId check error:', err)
-        }
-      }
-      if (companyName) {
-        try {
-          const snap = await pipelineCol
-            .where('orgCode', '==', callerOrgCode)
-            .where('companyName', '==', companyName)
-            .get()
-          snap.docs.forEach((d) => {
-            if (!seenDocIds.has(d.id)) {
-              seenDocIds.add(d.id)
-              candidateDocs.push(d)
-            }
-          })
-        } catch (err) {
-          console.warn('[pipeline/add] pipeline companyName check error:', err)
+      const registerCandidateDoc = (d: FirebaseFirestore.DocumentSnapshot) => {
+        if (!seenDocIds.has(d.id)) {
+          seenDocIds.add(d.id)
+          candidateDocs.push(d)
         }
       }
 
-      // 2. Recherche dans manager_prospects par companyId puis par companyName
-      const managerProspectsCol = adminDb.collection('manager_prospects')
+      // 1. Requêtes ciblées indexées sur 'pipeline'
+      const pipelineCol = adminDb.collection('pipeline')
+      const pipelinePromises: Promise<any>[] = []
+
       if (companyId) {
-        try {
-          const snap = await managerProspectsCol
-            .where('orgCode', '==', callerOrgCode)
-            .where('companyId', '==', companyId)
-            .get()
-          snap.docs.forEach((d) => {
-            if (!seenDocIds.has(d.id)) {
-              seenDocIds.add(d.id)
-              candidateDocs.push(d)
-            }
-          })
-        } catch (err) {
-          console.warn('[pipeline/add] manager_prospects companyId check error:', err)
-        }
+        pipelinePromises.push(
+          pipelineCol.where('orgCode', '==', callerOrgCode).where('companyId', '==', companyId).get().catch(() => null)
+        )
       }
       if (companyName) {
-        try {
-          const snap = await managerProspectsCol
-            .where('orgCode', '==', callerOrgCode)
-            .where('companyName', '==', companyName)
-            .get()
-          snap.docs.forEach((d) => {
-            if (!seenDocIds.has(d.id)) {
-              seenDocIds.add(d.id)
-              candidateDocs.push(d)
-            }
-          })
-        } catch (err) {
-          console.warn('[pipeline/add] manager_prospects companyName check error:', err)
+        pipelinePromises.push(
+          pipelineCol.where('orgCode', '==', callerOrgCode).where('companyName', '==', companyName).get().catch(() => null),
+          pipelineCol.where('orgCode', '==', callerOrgCode).where('name', '==', companyName).get().catch(() => null)
+        )
+      }
+      if (phoneToTest) {
+        pipelinePromises.push(
+          pipelineCol.where('orgCode', '==', callerOrgCode).where('companyPhone', '==', phoneToTest).get().catch(() => null),
+          pipelineCol.where('orgCode', '==', callerOrgCode).where('phone', '==', phoneToTest).get().catch(() => null)
+        )
+      }
+
+      // 2. Requêtes ciblées indexées sur 'manager_prospects'
+      const managerProspectsCol = adminDb.collection('manager_prospects')
+      const mpPromises: Promise<any>[] = []
+
+      if (companyId) {
+        mpPromises.push(
+          managerProspectsCol.where('orgCode', '==', callerOrgCode).where('companyId', '==', companyId).get().catch(() => null)
+        )
+      }
+      if (companyName) {
+        mpPromises.push(
+          managerProspectsCol.where('orgCode', '==', callerOrgCode).where('companyName', '==', companyName).get().catch(() => null),
+          managerProspectsCol.where('orgCode', '==', callerOrgCode).where('name', '==', companyName).get().catch(() => null)
+        )
+      }
+      if (phoneToTest) {
+        mpPromises.push(
+          managerProspectsCol.where('orgCode', '==', callerOrgCode).where('phone', '==', phoneToTest).get().catch(() => null)
+        )
+      }
+
+      // 3. Requêtes ciblées indexées sur 'clients' (clients déjà conclus)
+      const clientsCol = adminDb.collection('clients')
+      const clientsPromises: Promise<any>[] = []
+
+      if (companyId) {
+        clientsPromises.push(
+          clientsCol.where('orgCode', '==', callerOrgCode).where('companyId', '==', companyId).get().catch(() => null)
+        )
+      }
+      if (companyName) {
+        clientsPromises.push(
+          clientsCol.where('orgCode', '==', callerOrgCode).where('companyName', '==', companyName).get().catch(() => null),
+          clientsCol.where('orgCode', '==', callerOrgCode).where('name', '==', companyName).get().catch(() => null)
+        )
+      }
+      if (phoneToTest) {
+        clientsPromises.push(
+          clientsCol.where('orgCode', '==', callerOrgCode).where('phone', '==', phoneToTest).get().catch(() => null)
+        )
+      }
+
+      // 4. Balayage élargi avec normalisation insensible à la casse / accents / espaces
+      const broadPipelinePromise = pipelineCol.where('orgCode', '==', callerOrgCode).limit(300).get().catch(() => null)
+      const broadMpPromise = managerProspectsCol.where('orgCode', '==', callerOrgCode).limit(200).get().catch(() => null)
+      const broadClientsPromise = clientsCol.where('orgCode', '==', callerOrgCode).limit(200).get().catch(() => null)
+
+      const allSnaps = await Promise.all([
+        ...pipelinePromises,
+        ...mpPromises,
+        ...clientsPromises,
+        broadPipelinePromise,
+        broadMpPromise,
+        broadClientsPromise
+      ])
+
+      for (const snap of allSnaps) {
+        if (snap && Array.isArray(snap.docs)) {
+          snap.docs.forEach(registerCandidateDoc)
         }
       }
 
@@ -258,25 +299,69 @@ export async function POST(request: NextRequest) {
         const dData = doc.data()
         if (!dData) continue
 
+        const itemCompanyId = (dData.companyId || dData.externalDirectoryId || null) as string | null
+        const itemDocName = (dData.companyName || dData.name || '') as string
+        const itemNormalizedName = normalizeCompanyName(itemDocName)
+        const itemPhone = (dData.companyPhone || dData.phone || dData.telephone || '') as string
+        const itemPhoneDigits = normalizePhoneDigits(itemPhone)
+
+        // Identification stricte de l'entreprise : ID, Nom normalisé ou Téléphone normalisé
+        const isExactId = Boolean(companyId && itemCompanyId && companyId === itemCompanyId)
+        const isExactName = Boolean(
+          targetNormalizedName &&
+          itemNormalizedName &&
+          (targetNormalizedName === itemNormalizedName ||
+            (targetNormalizedName.length >= 5 &&
+              itemNormalizedName.length >= 5 &&
+              (targetNormalizedName.includes(itemNormalizedName) || itemNormalizedName.includes(targetNormalizedName))))
+        )
+        const isSamePhone = Boolean(
+          targetPhoneDigits &&
+          itemPhoneDigits &&
+          targetPhoneDigits === itemPhoneDigits
+        )
+
+        if (!isExactId && !isExactName && !isSamePhone) {
+          continue
+        }
+
+        const colName = doc.ref.parent.id
+        const itemStatus = String(
+          dData.status || (colName === 'clients' ? 'conclue' : 'prospection')
+        ).toLowerCase().trim()
+
+        const isConcluded =
+          itemStatus === 'conclue' ||
+          itemStatus === 'won' ||
+          itemStatus === 'conclusion' ||
+          colName === 'clients'
+
+        // RÈGLE ABSOLUE 1 : Si l'entreprise est DÉJÀ CONCLUE (client actif ou conclu dans le pipeline/CRM),
+        // c'est un conflit bloquant pour TOUTE l'organisation (anti-cannibalisme de clients existants).
+        if (isConcluded) {
+          conflictingDoc = doc
+          break
+        }
+
+        // RÈGLE 2 : Pour les dossiers en cours (prospection, négociation, ou file d'attente manager_prospects),
+        // interdiction d'avoir le prospect dans deux membres d'une même équipe ou d'un même segment.
         const itemSegment = (dData.segment as string)?.trim() || null
         const itemManagerUid = (dData.managerUid || dData.managerId) as string | undefined
 
-        // Vérification d'équipe : même Team Manager
+        // Même équipe (même Team Manager)
         const isSameTeam = Boolean(
           managerUid && itemManagerUid && managerUid.toLowerCase() === itemManagerUid.toLowerCase()
         )
 
-        // Vérification de segment : même segment d'activité (ou segment non défini pour les deux)
+        // Même segment : conflit si les deux segments correspondent, ou si aucun des deux n'est défini
+        // (pool commun non segmenté). Si seulement l'un est défini, pas de conflit pour les actifs.
         const isSameSegment = Boolean(
           (callerSegment && itemSegment && callerSegment.toLowerCase() === itemSegment.toLowerCase()) ||
           (!callerSegment && !itemSegment)
         )
 
         if (isSameTeam || isSameSegment) {
-          const itemStatus = String(dData.status || 'prospection').toLowerCase().trim()
-          const isFromPipeline = doc.ref.parent.id === 'pipeline'
-
-          if (isFromPipeline) {
+          if (colName === 'pipeline') {
             if (activeStatuses.includes(itemStatus) || !dData.status) {
               conflictingDoc = doc
               break
@@ -293,7 +378,9 @@ export async function POST(request: NextRequest) {
 
       if (conflictingDoc) {
         const cData = conflictingDoc.data() || {}
-        const isFromPipeline = conflictingDoc.ref.parent.id === 'pipeline'
+        const colName = conflictingDoc.ref.parent.id
+        const isFromClients = colName === 'clients'
+        const isFromPipeline = colName === 'pipeline'
         const cTmUid = (cData.managerUid || cData.managerId || null) as string | null
         const cAssignedTo = (cData.assignedTo || null) as string | null
 
@@ -314,7 +401,7 @@ export async function POST(request: NextRequest) {
           resolvedTmName = 'Team Manager'
         }
 
-        let resolvedMemberName = (cData.memberName as string | null) || null
+        let resolvedMemberName = (cData.assignedName || cData.memberName || null) as string | null
         if (cAssignedTo && cAssignedTo !== cTmUid) {
           if (!resolvedMemberName) {
             try {
@@ -331,8 +418,11 @@ export async function POST(request: NextRequest) {
             resolvedMemberName = 'Commercial'
           }
         } else {
-          // Prospect non assigné à un commercial : sous la responsabilité directe du TM
-          resolvedMemberName = null
+          if (cData.assignedName && cData.assignedName !== 'Commercial terrain') {
+            resolvedMemberName = cData.assignedName
+          } else {
+            resolvedMemberName = null
+          }
         }
 
         const isSameUser = Boolean(
@@ -341,9 +431,11 @@ export async function POST(request: NextRequest) {
           (isManagerRole && (cData.managerId === userId || cData.managerUid === userId))
         )
 
-        const conflictStatus = isFromPipeline
-          ? (cData.status || 'prospection')
-          : (cData.status === 'assigned' ? 'assigned' : 'new')
+        const conflictStatus = isFromClients
+          ? 'conclue'
+          : isFromPipeline
+            ? (cData.status || 'prospection')
+            : (cData.status === 'assigned' ? 'assigned' : 'new')
 
         return NextResponse.json(
           {
@@ -351,7 +443,9 @@ export async function POST(request: NextRequest) {
             code: 'PROSPECT_ALREADY_EXISTS_IN_SEGMENT',
             message: isSameUser
               ? 'Vous suivez déjà ce prospect dans votre portefeuille.'
-              : 'Ce prospect est déjà pris en charge dans votre équipe ou votre segment.',
+              : isFromClients || conflictStatus === 'conclue'
+                ? 'Cette entreprise est déjà cliente de votre organisation (statut conclu).'
+                : 'Ce prospect est déjà pris en charge dans votre équipe ou votre segment.',
             conflict: {
               companyName: cData.companyName || cData.name || companyName,
               status: conflictStatus,
@@ -362,8 +456,10 @@ export async function POST(request: NextRequest) {
               segment: cData.segment || callerSegment || null,
               isSameTeam: Boolean(cTmUid && managerUid && cTmUid === managerUid),
               isSameUser,
-              isFromManagerProspects: !isFromPipeline,
+              isFromManagerProspects: colName === 'manager_prospects',
+              isConcluded: isFromClients || conflictStatus === 'conclue',
               updatedAt:
+                cData.concludedAt ||
                 cData.updatedAt?.toDate?.()?.toISOString() ||
                 cData.createdAt?.toDate?.()?.toISOString() ||
                 null
@@ -375,18 +471,53 @@ export async function POST(request: NextRequest) {
     }
 
     // Pour les indépendants (hors organisation) : vérification sur leur propre pipeline
-    if (!callerOrgCode && (companyId || companyName)) {
+    if (!callerOrgCode && (companyId || companyName || phoneToTest)) {
       try {
-        let query = adminDb.collection('pipeline').where('userId', '==', userId)
+        const indPipeline = adminDb.collection('pipeline').where('userId', '==', userId)
+        const indPromises: Promise<any>[] = []
         if (companyId) {
-          query = query.where('companyId', '==', companyId)
-        } else {
-          query = query.where('companyName', '==', companyName)
+          indPromises.push(indPipeline.where('companyId', '==', companyId).get().catch(() => null))
         }
-        const snap = await query.get()
-        const firstDoc = snap.docs?.[0]
-        if (firstDoc) {
-          const dData = firstDoc.data()
+        if (companyName) {
+          indPromises.push(indPipeline.where('companyName', '==', companyName).get().catch(() => null))
+          indPromises.push(indPipeline.where('name', '==', companyName).get().catch(() => null))
+        }
+        if (phoneToTest) {
+          indPromises.push(indPipeline.where('companyPhone', '==', phoneToTest).get().catch(() => null))
+          indPromises.push(indPipeline.where('phone', '==', phoneToTest).get().catch(() => null))
+        }
+        indPromises.push(indPipeline.limit(100).get().catch(() => null))
+
+        const indSnaps = await Promise.all(indPromises)
+        let foundIndDoc: FirebaseFirestore.DocumentSnapshot | null = null
+
+        for (const snap of indSnaps) {
+          if (!snap || !Array.isArray(snap.docs)) continue
+          for (const d of snap.docs) {
+            const dData = d.data()
+            if (!dData) continue
+            const itemCompanyId = dData.companyId || null
+            const itemDocName = dData.companyName || dData.name || null
+            const itemNormalizedName = normalizeCompanyName(itemDocName)
+            const itemPhone = dData.companyPhone || dData.phone || null
+            const itemPhoneDigits = normalizePhoneDigits(itemPhone)
+
+            const isMatch = Boolean(
+              (companyId && itemCompanyId && companyId === itemCompanyId) ||
+              (targetNormalizedName && itemNormalizedName && targetNormalizedName === itemNormalizedName) ||
+              (targetPhoneDigits && itemPhoneDigits && targetPhoneDigits === itemPhoneDigits)
+            )
+
+            if (isMatch) {
+              foundIndDoc = d
+              break
+            }
+          }
+          if (foundIndDoc) break
+        }
+
+        if (foundIndDoc) {
+          const dData = foundIndDoc.data() || {}
           return NextResponse.json(
             {
               error: 'prospect_already_assigned',
@@ -403,6 +534,7 @@ export async function POST(request: NextRequest) {
                 isSameTeam: true,
                 isSameUser: true,
                 isFromManagerProspects: false,
+                isConcluded: dData.status === 'conclue',
                 updatedAt: dData.updatedAt?.toDate?.()?.toISOString() || null
               }
             },
