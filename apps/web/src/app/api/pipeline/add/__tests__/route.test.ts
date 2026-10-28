@@ -8,14 +8,20 @@ const mocks = vi.hoisted(() => {
   const mockManagerProspectsAdd = vi.fn()
   const mockOrgDocUpdate = vi.fn()
   const mockQueryGet = vi.fn()
+
+  // Crée une query chainable supportant where(), limit() et get()
   const createQuery = (): any => ({
     where: () => createQuery(),
+    limit: () => createQuery(),
     get: mockQueryGet
   })
+
   const mockCollection = vi.fn((name: string) => {
     if (name === 'users') return { doc: () => ({ get: mockUserGet }) }
     if (name === 'organisations') return { doc: () => ({ update: mockOrgDocUpdate }) }
     if (name === 'manager_prospects') return { add: mockManagerProspectsAdd, where: () => createQuery() }
+    if (name === 'clients') return { where: () => createQuery() }
+    // pipeline (default)
     return { add: mockPipelineAdd, where: () => createQuery() }
   })
 
@@ -33,6 +39,12 @@ const mocks = vi.hoisted(() => {
 vi.mock('@/lib/firebase-admin', () => ({
   adminAuth: { verifyIdToken: mocks.mockVerifyIdToken },
   adminDb: { collection: mocks.mockCollection }
+}))
+
+// Neutralise le miroir Supabase (non bloquant dans la route, mais sans mock il lève une erreur d'import)
+vi.mock('@/lib/supabase-private-prospects', () => ({
+  isPrivateProspectsTableAvailable: vi.fn().mockResolvedValue(false),
+  bulkInsertPrivateProspects: vi.fn().mockResolvedValue(undefined)
 }))
 
 import { POST } from '../route'
