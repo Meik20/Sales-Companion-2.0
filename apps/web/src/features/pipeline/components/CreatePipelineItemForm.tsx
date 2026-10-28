@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/Input'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { getErrorMessage } from '@/lib/errors'
 import { useCreatePipelineItem } from '../hooks/useCreatePipelineItem'
+import { ProspectConflictModal, type ProspectConflictInfo } from '@/features/search/components/ProspectConflictModal'
 import { useTranslation } from '@/providers/I18nProvider'
 import { FileText } from 'lucide-react'
 import { getGeography } from '@sales-companion/shared'
@@ -41,6 +42,7 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
   const [nextAction, setNextAction] = useState('')
   const [status, setStatus] = useState<'prospection' | 'negociation' | 'conclue'>('prospection')
   const [error, setError] = useState<string | null>(null)
+  const [conflictData, setConflictData] = useState<ProspectConflictInfo | null>(null)
 
   // Villes dynamiques selon la région sélectionnée ou toute la liste
   const availableCities = useMemo(() => {
@@ -144,8 +146,12 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
       setNextAction('')
       setStatus('prospection')
       onSuccess?.()
-    } catch (err) {
-      setError(getErrorMessage(err))
+    } catch (err: any) {
+      if (err?.code === 'PROSPECT_ALREADY_EXISTS_IN_SEGMENT' && err.conflict) {
+        setConflictData(err.conflict)
+      } else {
+        setError(getErrorMessage(err))
+      }
     }
   }
 
@@ -367,6 +373,11 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
           {t('pipeline.addBtn')}
         </Button>
       </div>
+
+      <ProspectConflictModal
+        conflict={conflictData}
+        onClose={() => setConflictData(null)}
+      />
     </form>
   )
 }

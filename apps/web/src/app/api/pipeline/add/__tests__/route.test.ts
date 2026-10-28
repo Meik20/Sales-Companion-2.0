@@ -142,4 +142,114 @@ describe('POST /api/pipeline/add ownership', () => {
     expect(mocks.mockPipelineAdd).not.toHaveBeenCalled()
     expect(mocks.mockManagerProspectsAdd).not.toHaveBeenCalled()
   })
+
+  it('blocks addition with 409 conflict when a prospect is already assigned in the same team', async () => {
+    // 1. Caller is a member
+    mocks.mockUserGet.mockResolvedValueOnce({
+      data: () => ({
+        role: 'member',
+        active: true,
+        activated: true,
+        emailVerified: true,
+        orgCode: 'SC-CM-TEST1',
+        segment: 'Nord',
+        managerUid: 'tm-1',
+        name: 'Nouveau Rep'
+      })
+    })
+
+    // 2. Query finds an existing active prospect in pipeline under the same team
+    mocks.mockQueryGet.mockResolvedValue({
+      docs: [
+        {
+          id: 'pipe-existing-1',
+          ref: { id: 'pipe-existing-1', parent: { id: 'pipeline' } },
+          data: () => ({
+            companyName: 'Entreprise En Conflit',
+            status: 'negociation',
+            orgCode: 'SC-CM-TEST1',
+            segment: 'Nord',
+            managerUid: 'tm-1',
+            managerName: 'Alain Dupont',
+            assignedTo: 'rep-other',
+            memberName: 'Autre Rep'
+          })
+        }
+      ]
+    })
+
+    const request = new NextRequest('http://localhost/api/pipeline/add', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer valid-token' },
+      body: JSON.stringify({
+        companyName: 'Entreprise En Conflit',
+        companyPhone: '+237699112233'
+      })
+    })
+
+    const response = await POST(request)
+    expect(response.status).toBe(409)
+    const json = await response.json()
+    expect(json.error).toBe('prospect_already_assigned')
+    expect(json.conflict.companyName).toBe('Entreprise En Conflit')
+    expect(json.conflict.status).toBe('negociation')
+    expect(json.conflict.teamManagerName).toBe('Alain Dupont')
+    expect(json.conflict.assignedMemberName).toBe('Autre Rep')
+    expect(mocks.mockPipelineAdd).not.toHaveBeenCalled()
+  })
+
+  it('blocks addition with 409 conflict when a prospect is already held in manager_prospects in the same segment', async () => {
+    // 1. Caller is a manager in segment 'Littoral'
+    mocks.mockUserGet.mockResolvedValueOnce({
+      data: () => ({
+        role: 'manager',
+        orgRole: 'team_manager',
+        active: true,
+        activated: true,
+        emailVerified: true,
+        orgCode: 'SC-CM-TEST1',
+        segment: 'Littoral',
+        plan: 'pro',
+        subscriptionExpired: false,
+        subscriptionExpiresAt: new Date(Date.now() + 86400000).toISOString()
+      })
+    })
+
+    // 2. Query finds a prospect in manager_prospects belonging to another TM in Littoral
+    mocks.mockQueryGet.mockResolvedValue({
+      docs: [
+        {
+          id: 'prospect-imported-1',
+          ref: { id: 'prospect-imported-1', parent: { id: 'manager_prospects' } },
+          data: () => ({
+            companyName: 'Cameroun Telecom',
+            companyId: 'comp-100',
+            status: 'new',
+            orgCode: 'SC-CM-TEST1',
+            segment: 'Littoral',
+            managerId: 'tm-2',
+            managerName: 'Beatrice Manager',
+            assignedTo: null
+          })
+        }
+      ]
+    })
+
+    const request = new NextRequest('http://localhost/api/pipeline/add', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer valid-token' },
+      body: JSON.stringify({
+        companyId: 'comp-100',
+        companyName: 'Cameroun Telecom'
+      })
+    })
+
+    const response = await POST(request)
+    expect(response.status).toBe(409)
+    const json = await response.json()
+    expect(json.error).toBe('prospect_already_assigned')
+    expect(json.conflict.teamManagerName).toBe('Beatrice Manager')
+    expect(json.conflict.assignedMemberName).toBeNull()
+    expect(mocks.mockManagerProspectsAdd).not.toHaveBeenCalled()
+  })
 })

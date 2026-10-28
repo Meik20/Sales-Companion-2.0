@@ -12,6 +12,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { isMobileRuntime } from '@/lib/runtime'
 
 import { Plus, Check } from 'lucide-react'
+import { ProspectConflictModal, type ProspectConflictInfo } from './ProspectConflictModal'
 
 type Props = { company: Company }
 
@@ -23,6 +24,7 @@ export function AddToPipelineButton({ company }: Props) {
   const queryClient = useQueryClient()
   const [status, setStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [conflictData, setConflictData] = useState<ProspectConflictInfo | null>(null)
 
   const isManager = user?.role === 'manager' || (!user?.role && !user?.managerUid)
 
@@ -140,8 +142,14 @@ export function AddToPipelineButton({ company }: Props) {
         message?: string
         code?: string
         error?: string
+        conflict?: ProspectConflictInfo
       }
       if (!res.ok) {
+        if (res.status === 409 && json.error === 'prospect_already_assigned' && json.conflict) {
+          setStatus('idle')
+          setConflictData(json.conflict)
+          return
+        }
         if (
           json.code === 'CROSS_COUNTRY_REQUIRES_ENTERPRISE' ||
           json.error === 'cross_country_restricted'
@@ -184,47 +192,59 @@ export function AddToPipelineButton({ company }: Props) {
 
   if (status === 'done') {
     return (
-      <span className="whitespace-nowrap text-[12px] font-semibold text-emerald-600 dark:text-emerald-400 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 shadow-2xs">
-        <Check size={13} strokeWidth={2.5} className="text-emerald-600 dark:text-emerald-400" />
-        <span>
-          {isManager
-            ? t('search.prospectAddedToImportsToast') || 'Dans vos prospects importés'
-            : t('search.inPipeline')}
+      <>
+        <span className="whitespace-nowrap text-[12px] font-semibold text-emerald-600 dark:text-emerald-400 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 shadow-2xs">
+          <Check size={13} strokeWidth={2.5} className="text-emerald-600 dark:text-emerald-400" />
+          <span>
+            {isManager
+              ? t('search.prospectAddedToImportsToast') || 'Dans vos prospects importés'
+              : t('search.inPipeline')}
+          </span>
         </span>
-      </span>
+        <ProspectConflictModal
+          conflict={conflictData}
+          onClose={() => setConflictData(null)}
+        />
+      </>
     )
   }
 
   return (
-    <div className="flex flex-col items-end gap-1">
-      <button
-        onClick={handleAdd}
-        disabled={status === 'loading'}
-        className={`h-8 whitespace-nowrap rounded-lg px-3.5 text-[12px] font-semibold transition-all duration-150 inline-flex items-center gap-1.5 shadow-2xs ${
-          status === 'error'
-            ? 'border border-red-500/40 bg-red-500/8 text-red-600 dark:text-red-400'
-            : 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-2xs hover:shadow-xs active:scale-95'
-        } ${status === 'loading' ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
-      >
-        {status === 'loading' ? (
-          <>
-            <span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
-            <span>{t('search.adding')}</span>
-          </>
-        ) : status === 'error' ? (
-          t('search.retry')
-        ) : (
-          <>
-            <Plus size={13} strokeWidth={2.5} />
-            <span>{t('search.addPipeline')}</span>
-          </>
+    <>
+      <div className="flex flex-col items-end gap-1">
+        <button
+          onClick={handleAdd}
+          disabled={status === 'loading'}
+          className={`h-8 whitespace-nowrap rounded-lg px-3.5 text-[12px] font-semibold transition-all duration-150 inline-flex items-center gap-1.5 shadow-2xs ${
+            status === 'error'
+              ? 'border border-red-500/40 bg-red-500/8 text-red-600 dark:text-red-400'
+              : 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-2xs hover:shadow-xs active:scale-95'
+          } ${status === 'loading' ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
+        >
+          {status === 'loading' ? (
+            <>
+              <span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              <span>{t('search.adding')}</span>
+            </>
+          ) : status === 'error' ? (
+            t('search.retry')
+          ) : (
+            <>
+              <Plus size={13} strokeWidth={2.5} />
+              <span>{t('search.addPipeline')}</span>
+            </>
+          )}
+        </button>
+        {errorMsg && (
+          <span className="max-w-[120px] text-right text-[10.5px] leading-tight text-red-400">
+            {errorMsg}
+          </span>
         )}
-      </button>
-      {errorMsg && (
-        <span className="max-w-[120px] text-right text-[10.5px] leading-tight text-red-400">
-          {errorMsg}
-        </span>
-      )}
-    </div>
+      </div>
+      <ProspectConflictModal
+        conflict={conflictData}
+        onClose={() => setConflictData(null)}
+      />
+    </>
   )
 }

@@ -70,8 +70,18 @@ export function useCreatePipelineItem() {
             const data = await res.json()
             return { id: data.id }
           }
+          if (res.status === 409) {
+            const data = (await res.json().catch(() => ({}))) as { message?: string; conflict?: unknown }
+            const err = new Error(data.message || 'Ce prospect est déjà pris en charge dans votre segment.') as any
+            err.code = 'PROSPECT_ALREADY_EXISTS_IN_SEGMENT'
+            err.conflict = data.conflict
+            throw err
+          }
           console.warn('[useCreatePipelineItem] Server add failed, fallback to client firestore:', res.status)
-        } catch (apiErr) {
+        } catch (apiErr: any) {
+          if (apiErr?.code === 'PROSPECT_ALREADY_EXISTS_IN_SEGMENT') {
+            throw apiErr
+          }
           console.warn('[useCreatePipelineItem] Error calling server API, fallback to client firestore:', apiErr)
         }
       }

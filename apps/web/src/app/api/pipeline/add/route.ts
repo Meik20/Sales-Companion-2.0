@@ -159,8 +159,262 @@ export async function POST(request: NextRequest) {
     }
 
     const callerOrgCode = (callerData.orgCode as string) || null
+    const callerSegment = (callerData.segment as string)?.trim() || null
 
-    // ── Step: Find previous assignees (Strictement isolé par Organisation / Manager) ──
+    // ── VÉRIFICATION CANONIQUE ANTI-DOUBLONS & CANNIBALISME COMMERCIAL ──
+    // Règle inviolable : Un prospect ne peut pas être dans le pipeline de deux membres
+    // d'une même équipe, ni même du même segment (ni dans les prospects importés du TM).
+    if (callerOrgCode && (companyId || companyName)) {
+      const activeStatuses = [
+        'prospection',
+        'negociation',
+        'conclue',
+        'lead',
+        'prospect',
+        'negotiation',
+        'won',
+        'contact',
+        'to_contact',
+        'in_progress'
+      ]
+
+      const candidateDocs: FirebaseFirestore.DocumentSnapshot[] = []
+      const seenDocIds = new Set<string>()
+
+      // 1. Recherche dans pipeline par companyId puis par companyName
+      const pipelineCol = adminDb.collection('pipeline')
+      if (companyId) {
+        try {
+          const snap = await pipelineCol
+            .where('orgCode', '==', callerOrgCode)
+            .where('companyId', '==', companyId)
+            .get()
+          snap.docs.forEach((d) => {
+            if (!seenDocIds.has(d.id)) {
+              seenDocIds.add(d.id)
+              candidateDocs.push(d)
+            }
+          })
+        } catch (err) {
+          console.warn('[pipeline/add] pipeline companyId check error:', err)
+        }
+      }
+      if (companyName) {
+        try {
+          const snap = await pipelineCol
+            .where('orgCode', '==', callerOrgCode)
+            .where('companyName', '==', companyName)
+            .get()
+          snap.docs.forEach((d) => {
+            if (!seenDocIds.has(d.id)) {
+              seenDocIds.add(d.id)
+              candidateDocs.push(d)
+            }
+          })
+        } catch (err) {
+          console.warn('[pipeline/add] pipeline companyName check error:', err)
+        }
+      }
+
+      // 2. Recherche dans manager_prospects par companyId puis par companyName
+      const managerProspectsCol = adminDb.collection('manager_prospects')
+      if (companyId) {
+        try {
+          const snap = await managerProspectsCol
+            .where('orgCode', '==', callerOrgCode)
+            .where('companyId', '==', companyId)
+            .get()
+          snap.docs.forEach((d) => {
+            if (!seenDocIds.has(d.id)) {
+              seenDocIds.add(d.id)
+              candidateDocs.push(d)
+            }
+          })
+        } catch (err) {
+          console.warn('[pipeline/add] manager_prospects companyId check error:', err)
+        }
+      }
+      if (companyName) {
+        try {
+          const snap = await managerProspectsCol
+            .where('orgCode', '==', callerOrgCode)
+            .where('companyName', '==', companyName)
+            .get()
+          snap.docs.forEach((d) => {
+            if (!seenDocIds.has(d.id)) {
+              seenDocIds.add(d.id)
+              candidateDocs.push(d)
+            }
+          })
+        } catch (err) {
+          console.warn('[pipeline/add] manager_prospects companyName check error:', err)
+        }
+      }
+
+      // Filtrer les documents en conflit au sein de la même équipe ou du même segment
+      let conflictingDoc: FirebaseFirestore.DocumentSnapshot | null = null
+
+      for (const doc of candidateDocs) {
+        const dData = doc.data()
+        if (!dData) continue
+
+        const itemSegment = (dData.segment as string)?.trim() || null
+        const itemManagerUid = (dData.managerUid || dData.managerId) as string | undefined
+
+        // Vérification d'équipe : même Team Manager
+        const isSameTeam = Boolean(
+          managerUid && itemManagerUid && managerUid.toLowerCase() === itemManagerUid.toLowerCase()
+        )
+
+        // Vérification de segment : même segment d'activité (ou segment non défini pour les deux)
+        const isSameSegment = Boolean(
+          (callerSegment && itemSegment && callerSegment.toLowerCase() === itemSegment.toLowerCase()) ||
+          (!callerSegment && !itemSegment)
+        )
+
+        if (isSameTeam || isSameSegment) {
+          const itemStatus = String(dData.status || 'prospection').toLowerCase().trim()
+          const isFromPipeline = doc.ref.parent.id === 'pipeline'
+
+          if (isFromPipeline) {
+            if (activeStatuses.includes(itemStatus) || !dData.status) {
+              conflictingDoc = doc
+              break
+            }
+          } else {
+            // manager_prospects
+            if (itemStatus !== 'archived' && itemStatus !== 'rejected') {
+              conflictingDoc = doc
+              break
+            }
+          }
+        }
+      }
+
+      if (conflictingDoc) {
+        const cData = conflictingDoc.data() || {}
+        const isFromPipeline = conflictingDoc.ref.parent.id === 'pipeline'
+        const cTmUid = (cData.managerUid || cData.managerId || null) as string | null
+        const cAssignedTo = (cData.assignedTo || null) as string | null
+
+        // Résolution Règle 13 : Noms humains côté serveur, jamais d'identifiants bruts
+        let resolvedTmName = (cData.managerName as string | null) || null
+        if (cTmUid) {
+          try {
+            const tmSnap = await adminDb.collection('users').doc(cTmUid).get()
+            if (tmSnap.exists) {
+              const u = tmSnap.data()
+              resolvedTmName = u?.displayName || u?.name || u?.email || 'Team Manager'
+            }
+          } catch (err) {
+            console.warn('[pipeline/add] Erreur résolution nom TM:', err)
+          }
+        }
+        if (!resolvedTmName) {
+          resolvedTmName = 'Team Manager'
+        }
+
+        let resolvedMemberName = (cData.memberName as string | null) || null
+        if (cAssignedTo && cAssignedTo !== cTmUid) {
+          if (!resolvedMemberName) {
+            try {
+              const memSnap = await adminDb.collection('users').doc(cAssignedTo).get()
+              if (memSnap.exists) {
+                const u = memSnap.data()
+                resolvedMemberName = u?.displayName || u?.name || u?.email || 'Commercial'
+              }
+            } catch (err) {
+              console.warn('[pipeline/add] Erreur résolution nom commercial:', err)
+            }
+          }
+          if (!resolvedMemberName) {
+            resolvedMemberName = 'Commercial'
+          }
+        } else {
+          // Prospect non assigné à un commercial : sous la responsabilité directe du TM
+          resolvedMemberName = null
+        }
+
+        const isSameUser = Boolean(
+          cData.userId === userId ||
+          cData.assignedTo === userId ||
+          (isManagerRole && (cData.managerId === userId || cData.managerUid === userId))
+        )
+
+        const conflictStatus = isFromPipeline
+          ? (cData.status || 'prospection')
+          : (cData.status === 'assigned' ? 'assigned' : 'new')
+
+        return NextResponse.json(
+          {
+            error: 'prospect_already_assigned',
+            code: 'PROSPECT_ALREADY_EXISTS_IN_SEGMENT',
+            message: isSameUser
+              ? 'Vous suivez déjà ce prospect dans votre portefeuille.'
+              : 'Ce prospect est déjà pris en charge dans votre équipe ou votre segment.',
+            conflict: {
+              companyName: cData.companyName || cData.name || companyName,
+              status: conflictStatus,
+              teamManagerName: resolvedTmName,
+              teamManagerUid: cTmUid,
+              assignedMemberName: resolvedMemberName,
+              assignedMemberUid: cAssignedTo,
+              segment: cData.segment || callerSegment || null,
+              isSameTeam: Boolean(cTmUid && managerUid && cTmUid === managerUid),
+              isSameUser,
+              isFromManagerProspects: !isFromPipeline,
+              updatedAt:
+                cData.updatedAt?.toDate?.()?.toISOString() ||
+                cData.createdAt?.toDate?.()?.toISOString() ||
+                null
+            }
+          },
+          { status: 409 }
+        )
+      }
+    }
+
+    // Pour les indépendants (hors organisation) : vérification sur leur propre pipeline
+    if (!callerOrgCode && (companyId || companyName)) {
+      try {
+        let query = adminDb.collection('pipeline').where('userId', '==', userId)
+        if (companyId) {
+          query = query.where('companyId', '==', companyId)
+        } else {
+          query = query.where('companyName', '==', companyName)
+        }
+        const snap = await query.get()
+        const firstDoc = snap.docs?.[0]
+        if (firstDoc) {
+          const dData = firstDoc.data()
+          return NextResponse.json(
+            {
+              error: 'prospect_already_assigned',
+              code: 'PROSPECT_ALREADY_EXISTS_IN_SEGMENT',
+              message: 'Vous suivez déjà ce prospect dans votre pipeline.',
+              conflict: {
+                companyName: dData.companyName || dData.name || companyName,
+                status: dData.status || 'prospection',
+                teamManagerName: null,
+                teamManagerUid: null,
+                assignedMemberName: callerData.name || callerData.displayName || 'Vous-même',
+                assignedMemberUid: userId,
+                segment: null,
+                isSameTeam: true,
+                isSameUser: true,
+                isFromManagerProspects: false,
+                updatedAt: dData.updatedAt?.toDate?.()?.toISOString() || null
+              }
+            },
+            { status: 409 }
+          )
+        }
+      } catch (indErr) {
+        console.warn('[pipeline/add] independent duplicate check error:', indErr)
+      }
+    }
+
+    // ── Step: Find previous assignees (Historique des anciens commerciaux ayant traité ce prospect) ──
     const prevAssigneesMap = new Map<
       string,
       { userId: string; memberName: string; assignedAt: string }
