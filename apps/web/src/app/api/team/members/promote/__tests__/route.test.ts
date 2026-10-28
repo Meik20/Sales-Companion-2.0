@@ -5,8 +5,10 @@ import { POST } from '../route'
 const mocks = vi.hoisted(() => {
   const mockBatchCommit = vi.fn().mockResolvedValue(undefined)
   const mockBatchUpdate = vi.fn()
+  const mockBatchDelete = vi.fn()
   const mockBatch = vi.fn(() => ({
     update: mockBatchUpdate,
+    delete: mockBatchDelete,
     commit: mockBatchCommit
   }))
 
@@ -86,6 +88,7 @@ const mocks = vi.hoisted(() => {
   return {
     mockBatch,
     mockBatchUpdate,
+    mockBatchDelete,
     mockBatchCommit,
     mockCollection,
     mockDoc,
