@@ -175,8 +175,8 @@ export async function POST(request: NextRequest) {
     const collections = ['team_accesses', 'teamAccesses', 'accesses'] as const
     for (const col of collections) {
       const snap = await adminDb.collection(col).where('firebaseUid', '==', uid).limit(1).get()
-      if (!snap.empty) {
-        await snap.docs[0]!.ref.update({
+      if (!snap.empty && snap.docs[0]) {
+        await snap.docs[0].ref.update({
           activated: true,
           status: 'active',
           activatedAt: new Date(),

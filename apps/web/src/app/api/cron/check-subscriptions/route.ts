@@ -34,12 +34,13 @@ async function handleCron(request: NextRequest) {
       )
     }
 
+    // Sécurité stricte : secret accepté UNIQUEMENT via les en-têtes HTTP (Bearer ou x-cron-key).
+    // Interdiction formelle du passage par paramètre d'URL (?key=) pour éviter la fuite dans les logs d'accès.
     const providedSecret =
       request.headers.get('authorization')?.replace(/^Bearer\s+/i, '') ||
-      request.nextUrl.searchParams.get('key') ||
       request.headers.get('x-cron-key')
 
-    if (providedSecret !== cronSecret) {
+    if (!providedSecret || providedSecret !== cronSecret) {
       return NextResponse.json({ message: 'Non autorisé' }, { status: 401 })
     }
 

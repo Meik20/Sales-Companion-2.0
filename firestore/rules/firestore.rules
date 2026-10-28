@@ -146,10 +146,7 @@ service cloud.firestore {
     }
 
     function isSupportAgent() {
-      return isSignedIn() && (
-        request.auth.token.role == 'support_agent' ||
-        currentUserDoc().role == 'support_agent'
-      );
+      return isSignedIn() && currentUserDoc().role == 'support_agent';
     }
 
     match /pipeline/{pipelineId} {
