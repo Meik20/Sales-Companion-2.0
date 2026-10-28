@@ -294,6 +294,8 @@ export async function POST(request: NextRequest) {
 
       // Filtrer les documents en conflit au sein de la même équipe ou du même segment
       let conflictingDoc: FirebaseFirestore.DocumentSnapshot | null = null
+      let conflictingItemSegment: string | null = null
+      const managerSegmentCache = new Map<string, string | null>()
 
       for (const doc of candidateDocs) {
         const dData = doc.data()
@@ -345,31 +347,52 @@ export async function POST(request: NextRequest) {
 
         // RÈGLE 2 : Pour les dossiers en cours (prospection, négociation, ou file d'attente manager_prospects),
         // interdiction d'avoir le prospect dans deux membres d'une même équipe ou d'un même segment.
-        const itemSegment = (dData.segment as string)?.trim() || null
+        let itemSegment = (dData.segment as string)?.trim() || null
         const itemManagerUid = (dData.managerUid || dData.managerId) as string | undefined
+
+        // Résolution dynamique du segment depuis le profil manager si absent du document
+        if (!itemSegment && itemManagerUid) {
+          if (managerSegmentCache.has(itemManagerUid)) {
+            itemSegment = managerSegmentCache.get(itemManagerUid) || null
+          } else {
+            try {
+              const mgrSnap = await adminDb.collection('users').doc(itemManagerUid).get()
+              const seg = (mgrSnap.data()?.segment as string)?.trim() || null
+              managerSegmentCache.set(itemManagerUid, seg)
+              itemSegment = seg
+            } catch {
+              managerSegmentCache.set(itemManagerUid, null)
+            }
+          }
+        }
 
         // Même équipe (même Team Manager)
         const isSameTeam = Boolean(
           managerUid && itemManagerUid && managerUid.toLowerCase() === itemManagerUid.toLowerCase()
         )
 
-        // Même segment : conflit si les deux segments correspondent, ou si aucun des deux n'est défini
-        // (pool commun non segmenté). Si seulement l'un est défini, pas de conflit pour les actifs.
-        const isSameSegment = Boolean(
-          (callerSegment && itemSegment && callerSegment.toLowerCase() === itemSegment.toLowerCase()) ||
-          (!callerSegment && !itemSegment)
+        // Règle d'isolation par segment :
+        // Deux dossiers sont considérés comme dans des segments différents UNIQUEMENT SI les deux
+        // segments sont définis, non vides ET différents (ex: 'Nord' vs 'Sud').
+        // Si l'un ou les deux segments sont non renseignés (vivier commun d'organisation),
+        // ou si les deux segments correspondent, il y a conflit bloquant au sein de l'organisation.
+        const isDifferentSegment = Boolean(
+          callerSegment && itemSegment && callerSegment.toLowerCase() !== itemSegment.toLowerCase()
         )
+        const isSameSegment = !isDifferentSegment
 
         if (isSameTeam || isSameSegment) {
           if (colName === 'pipeline') {
             if (activeStatuses.includes(itemStatus) || !dData.status) {
               conflictingDoc = doc
+              conflictingItemSegment = itemSegment
               break
             }
           } else {
             // manager_prospects
             if (itemStatus !== 'archived' && itemStatus !== 'rejected') {
               conflictingDoc = doc
+              conflictingItemSegment = itemSegment
               break
             }
           }
@@ -453,8 +476,8 @@ export async function POST(request: NextRequest) {
               teamManagerUid: cTmUid,
               assignedMemberName: resolvedMemberName,
               assignedMemberUid: cAssignedTo,
-              segment: cData.segment || callerSegment || null,
-              isSameTeam: Boolean(cTmUid && managerUid && cTmUid === managerUid),
+              segment: cData.segment || conflictingItemSegment || callerSegment || null,
+              isSameTeam: Boolean(cTmUid && managerUid && cTmUid.toLowerCase() === managerUid.toLowerCase()),
               isSameUser,
               isFromManagerProspects: colName === 'manager_prospects',
               isConcluded: isFromClients || conflictStatus === 'conclue',

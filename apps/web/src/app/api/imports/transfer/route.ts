@@ -178,9 +178,13 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const targetSegment =
+      (targetData?.segment as string)?.trim() || (callerData?.segment as string)?.trim() || null
+
     for (const doc of prospectsToTransfer) {
       batch.update(doc.ref, {
         managerId: targetManagerUid, // Le Team Manager devient propriétaire
+        segment: targetSegment || doc.data()?.segment || null,
         transferredFromSeniorUid: callerUid,
         transferredToManagerUid: targetManagerUid,
         transferredToManagerName: targetManagerName,

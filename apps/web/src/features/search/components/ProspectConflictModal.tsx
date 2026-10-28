@@ -142,18 +142,35 @@ export function ProspectConflictModal({ conflict, onClose }: ProspectConflictMod
   const getTitle = () => {
     if (isSameUser) return t('search.conflictModalSelfTitle')
     if (isConcludedConflict) return t('search.conflictModalConcludedTitle') || 'Client existant dans votre organisation'
+    if (conflict.segment) return t('search.conflictModalSegmentTitle') || 'Prospect déjà pris en charge dans votre segment'
     return t('search.conflictModalTitle')
   }
 
   const getSubtitle = () => {
     if (isConcludedConflict) return t('search.conflictModalConcludedSubtitle') || 'Cette entreprise est déjà cliente dans votre organisation.'
+    if (!isSameUser && conflict.teamManagerName) {
+      return (
+        t('search.conflictModalPeerSubtitle') ||
+        'Ce prospect fait déjà l’objet d’un suivi actif par un autre Team Manager au sein de votre segment.'
+      )
+    }
     return t('search.conflictModalSubtitle')
   }
 
   // Message d'avertissement
   const getWarningDesc = () => {
     if (isSameUser) return t('search.conflictSelfDesc')
-    if (isConcludedConflict) return t('search.conflictConcludedDesc') || "Cette entreprise est déjà enregistrée comme cliente dans votre organisation (affaire conclue). Pour éviter tout cannibalisme commercial, vous ne pouvez pas l'ajouter à nouveau comme prospect."
+    if (isConcludedConflict)
+      return (
+        t('search.conflictConcludedDesc') ||
+        "Cette entreprise est déjà enregistrée comme cliente dans votre organisation (affaire conclue). Pour éviter tout cannibalisme commercial, vous ne pouvez pas l'ajouter à nouveau comme prospect."
+      )
+    if (!isSameUser && conflict.teamManagerName) {
+      const template =
+        t('search.conflictPeerWarningDesc') ||
+        'Afin d’éviter tout démarchage en doublon ou interférence commerciale au sein du segment, l’ajout est bloqué. Ce prospect est sous la responsabilité du Team Manager {managerName}.'
+      return template.replace('{managerName}', conflict.teamManagerName)
+    }
     return t('search.conflictWarningDesc')
   }
 

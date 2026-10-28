@@ -4,9 +4,6 @@ import { campayCollect } from '@/lib/campay'
 import { FieldValue } from 'firebase-admin/firestore'
 import { PLANS } from '@/lib/payment-plans'
 
-// Re-export pour compatibilité
-export { PLANS }
-
 /**
  * POST /api/payment/initiate
  * Body: { plan: 'pro' | 'starter' | 'enterprise', phone: '237XXXXXXXXX' }

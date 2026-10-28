@@ -17,7 +17,7 @@ const mocks = vi.hoisted(() => {
   })
 
   const mockCollection = vi.fn((name: string) => {
-    if (name === 'users') return { doc: () => ({ get: mockUserGet }) }
+    if (name === 'users') return { doc: (docId?: string) => ({ get: () => mockUserGet(docId) }) }
     if (name === 'organisations') return { doc: () => ({ update: mockOrgDocUpdate }) }
     if (name === 'manager_prospects') return { add: mockManagerProspectsAdd, where: () => createQuery() }
     if (name === 'clients') return { where: () => createQuery() }
@@ -262,6 +262,77 @@ describe('POST /api/pipeline/add ownership', () => {
     expect(json.error).toBe('prospect_already_assigned')
     expect(json.conflict.teamManagerName).toBe('Beatrice Manager')
     expect(json.conflict.assignedMemberName).toBeNull()
+    expect(mocks.mockManagerProspectsAdd).not.toHaveBeenCalled()
+  })
+
+  it('blocks addition with 409 conflict when a prospect in manager_prospects has missing segment but TM belongs to same segment', async () => {
+    // 1. Caller is TM in segment 'COMMERCIAL'
+    mocks.mockUserGet.mockImplementation((docId?: string) => {
+      if (docId === 'tm-owner-1') {
+        return Promise.resolve({
+          exists: true,
+          data: () => ({
+            name: 'Kevin Mbaye',
+            displayName: 'Kevin Mbaye',
+            role: 'manager',
+            segment: 'COMMERCIAL',
+            orgCode: 'SC-CM-TEST1'
+          })
+        })
+      }
+      return Promise.resolve({
+        exists: true,
+        data: () => ({
+          role: 'manager',
+          orgRole: 'team_manager',
+          active: true,
+          activated: true,
+          emailVerified: true,
+          orgCode: 'SC-CM-TEST1',
+          segment: 'COMMERCIAL',
+          plan: 'pro',
+          subscriptionExpired: false,
+          subscriptionExpiresAt: new Date(Date.now() + 86400000).toISOString()
+        })
+      })
+    })
+
+    // 2. Query finds prospect in manager_prospects with segment = undefined / null
+    mocks.mockQueryGet.mockResolvedValue({
+      docs: [
+        {
+          id: 'prospect-imported-no-segment',
+          ref: { id: 'prospect-imported-no-segment', parent: { id: 'manager_prospects' } },
+          data: () => ({
+            companyName: 'Cybersecurity Research Lab',
+            companyId: 'crl-100',
+            status: 'new',
+            orgCode: 'SC-CM-TEST1',
+            segment: null, // absent/non renseigné sur le document
+            managerId: 'tm-owner-1',
+            managerName: 'Kevin Mbaye',
+            assignedTo: null
+          })
+        }
+      ]
+    })
+
+    const request = new NextRequest('http://localhost/api/pipeline/add', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer valid-token' },
+      body: JSON.stringify({
+        companyId: 'crl-100',
+        companyName: 'Cybersecurity Research Lab'
+      })
+    })
+
+    const response = await POST(request)
+    expect(response.status).toBe(409)
+    const json = await response.json()
+    expect(json.error).toBe('prospect_already_assigned')
+    expect(json.conflict.teamManagerName).toBe('Kevin Mbaye')
+    expect(json.conflict.segment).toBe('COMMERCIAL')
+    expect(json.conflict.isSameUser).toBe(false)
     expect(mocks.mockManagerProspectsAdd).not.toHaveBeenCalled()
   })
 })

@@ -306,3 +306,25 @@ Ne **jamais** utiliser un emoji cercle coloré (`🟢🔴🟡`) pour indiquer un
 > 4. **Garde-fous automatisés pré-build :**  
 >    - `scripts/check-architecture-integrity.js` (Étape 14) bloque systématiquement tout build ou push si le confinement de l'Agent Support ou le périmètre d'isolation des imports de chaque utilisateur est altéré.
 
+---
+
+## 15. Règle Inviolable — Unicité des Prospects et Résolution Stricte du Détenteur en Cas de Conflit (Anti-Collision Multi-TM)
+
+> [!IMPORTANT]
+> **RÈGLE STRUCTURELLE D'UNICITÉ DES PROSPECTS & DÉTECTION HERMÉTIQUE DES CONFLITS :**  
+> 1. **Périmètre d'Unicité & Interdiction de Doublons au sein du Segment et de l'Organisation :**  
+>    - Une entreprise (identifiée par sa raison sociale normalisée, SIRET ou numéro de téléphone) ne peut avoir qu'**un seul et unique gestionnaire opérationnel à la fois** au sein d'un même segment d'organisation (qu'elle soit dans `manager_prospects`, le `pipeline`, ou les `clients` déjà conclus).
+>    - Deux Team Managers du même segment (ou du vivier commun non cloisonné de l'organisation) ne peuvent **JAMAIS** détenir la même entreprise en doublon.
+>    - Toute tentative d'ajout d'une entreprise déjà enregistrée est **rejetée de manière atomique par le backend avec un code HTTP 409 Conflict** (`PROSPECT_ALREADY_EXISTS_IN_SEGMENT`). Aucune ligne n'est persistée dans la base de données de l'appelant.
+> 2. **Résolution Dynamique du Segment :**  
+>    - Si le champ `segment` est absent ou non renseigné sur un prospect existant (ex: importé via CSV ou transféré par le Senior Manager), l'API `/api/pipeline/add` résout dynamiquement le segment du Team Manager détenteur (`users/{managerUid}.segment`) avant d'évaluer le conflit.
+> 3. **Propagations Obligatoires du Segment à l'Écriture :**  
+>    - Les imports CSV (`/api/imports`) et les transferts de prospects par le Senior Manager (`/api/imports/transfer`) DOIVENT systématiquement propager le champ `segment` sur le document `manager_prospects`.
+> 4. **Intégrité Sémantique de la Modale de Conflit (`ProspectConflictModal`) :**  
+>    - La modale de conflit doit afficher l'identité du **Team Manager détenteur réel** (`conflict.teamManagerName`) résolue côté serveur, et **JAMAIS** celle de l'utilisateur connecté.
+>    - Le titre *« Prospect déjà dans votre portefeuille »* est **strictement réservé au cas où l'utilisateur connecté est le propriétaire de la fiche** (`isSameUser === true`).
+>    - Si le prospect appartient à un autre Team Manager du même segment, le titre doit obligatoirement être *« Prospect déjà pris en charge dans votre segment »* et le message d'avertissement doit expliciter que le prospect est sous la responsabilité de ce collègue Team Manager.
+> 5. **Garde-fous automatisés pré-build :**  
+>    - `scripts/check-architecture-integrity.js` (Étape 15) valide systématiquement la présence de la résolution dynamique de segment dans `/api/pipeline/add/route.ts`, la propagation du segment dans `/api/imports/route.ts` et `/api/imports/transfer/route.ts`, ainsi que le traitement bilingue contextuel dans `ProspectConflictModal.tsx`.
+
+

@@ -594,6 +594,40 @@ try {
 
     console.log("✅ Gouvernance Senior Managers conforme (égalité opérationnelle de tous les SM et arbitrage par segment respectif)")
   }
+
+  // 17. Unicité des Prospects & Résolution Dynamique de Segment (Anti-Collision Multi-TM)
+  const pipelineAddRoutePath = path.resolve(__dirname, '../apps/web/src/app/api/pipeline/add/route.ts')
+  const importsTransferRoutePath = path.resolve(__dirname, '../apps/web/src/app/api/imports/transfer/route.ts')
+  const conflictModalPath = path.resolve(__dirname, '../apps/web/src/features/search/components/ProspectConflictModal.tsx')
+
+  if (fs.existsSync(pipelineAddRoutePath) && fs.existsSync(importsTransferRoutePath) && fs.existsSync(conflictModalPath)) {
+    const pipelineAddCode = fs.readFileSync(pipelineAddRoutePath, 'utf8')
+    const transferCode = fs.readFileSync(importsTransferRoutePath, 'utf8')
+    const conflictModalCode = fs.readFileSync(conflictModalPath, 'utf8')
+
+    // Contrôle A : Résolution dynamique de segment dans /api/pipeline/add
+    if (!pipelineAddCode.includes('managerSegmentCache') || !pipelineAddCode.includes('isDifferentSegment')) {
+      errors.push(
+        "❌ RÈGLE ANTI-COLLISION VIOLÉE : /api/pipeline/add/route.ts doit inclure managerSegmentCache et isDifferentSegment pour garantir la détection de conflit même si segment est non renseigné sur le document."
+      )
+    }
+
+    // Contrôle B : Propagation de segment lors du transfert Senior Manager
+    if (!transferCode.includes('targetSegment') || !transferCode.includes('segment: targetSegment')) {
+      errors.push(
+        "❌ PROPAGATION DE SEGMENT VIOLÉE : /api/imports/transfer/route.ts doit écrire le segment du destinataire cible sur les prospects transférés."
+      )
+    }
+
+    // Contrôle C : Contextualisation de la modale de conflit (titre et avertissement du segment)
+    if (!conflictModalCode.includes('conflictModalSegmentTitle') || !conflictModalCode.includes('conflictPeerWarningDesc')) {
+      errors.push(
+        "❌ CONTEXTUALISATION UI VIOLÉE : ProspectConflictModal.tsx doit utiliser conflictModalSegmentTitle et conflictPeerWarningDesc pour distinguer le vivier de l'utilisateur de celui d'un pair."
+      )
+    }
+
+    console.log("✅ Règle d'unicité des prospects et anti-collision multi-TM conforme (résolution dynamique + propagation + contextualisation UI)")
+  }
 } catch (e) {
   errors.push(`❌ Erreur lors du contrôle des règles de calcul de pipeline : ${e.message}`)
 }

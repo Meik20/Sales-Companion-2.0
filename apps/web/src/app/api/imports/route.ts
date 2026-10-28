@@ -478,6 +478,7 @@ export async function POST(request: NextRequest) {
       currentBatch.set(ref, {
         managerId,
         orgCode: callerData?.orgCode ?? null,
+        segment: callerData?.segment ?? null,
         name: (p.name ?? '').trim(),
         phone: (p.phone ?? '').trim(),
         email: (p.email ?? '').trim(),
