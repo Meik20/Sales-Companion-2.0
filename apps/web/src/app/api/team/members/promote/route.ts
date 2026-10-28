@@ -137,9 +137,9 @@ export async function POST(request: NextRequest) {
       adminDb.collection('pipeline').where('userId', '==', memberUid).get(),
       // Fiches assignées au commercial
       adminDb.collection('pipeline').where('assignedTo', '==', memberUid).get(),
-      // Assignations actives de ce commercial
+      // Toutes les assignations actives de ce commercial (à nettoyer lors de la promotion)
       adminDb.collection('team_assignments').where('memberId', '==', memberUid).get(),
-      // Fiches d'accès team_accesses du commercial
+      // Fiches d'accès team_accesses du commercial (à SUPPRIMER physiquement lors de la promotion)
       adminDb.collection('team_accesses').where('orgCode', '==', orgCode).get()
     ])
 
@@ -217,14 +217,23 @@ export async function POST(request: NextRequest) {
     opCount++
     await commitBatchIfFull()
 
-    // B. Mettre à jour les accès d'équipe (libération du slot commercial de l'ancien TM)
+    // B. Supprimer physiquement les accès team_accesses de l'ancien TM.
+    //    RÈGLE : une promotion retire complètement et immédiatement le commercial
+    //    de l'équipe précédente. Un batch.update('promoted') maintenait le document
+    //    dans la collection et le faisait encore apparaître dans l'UI de l'ancien TM.
+    //    batch.delete() est la seule garantie d'un retrait atomique et définitif.
     for (const d of matchingAccessDocs) {
-      batch.update(d.ref, {
-        status: 'promoted',
-        promotedAt: now,
-        active: false,
-        updatedAt: now
-      })
+      batch.delete(d.ref)
+      opCount++
+      await commitBatchIfFull()
+    }
+
+    // B2. Supprimer toutes les team_assignments de ce commercial chez l'ancien TM.
+    //     Un commercial promu TM ne doit plus apparaître dans aucune liste d'assignation
+    //     de son ancien équipe. Les assignations pipeline actives ont déjà été migrées
+    //     sous son propre managerUid à l'étape C.
+    for (const d of assignmentsSnap.docs) {
+      batch.delete(d.ref)
       opCount++
       await commitBatchIfFull()
     }

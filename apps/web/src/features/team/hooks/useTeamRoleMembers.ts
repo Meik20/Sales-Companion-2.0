@@ -150,6 +150,19 @@ export function useTeamRoleMembers(options: UseTeamRoleMembersOptions = {}) {
         snap.docs.forEach((d) => {
           const data = d.data()
 
+          // ✅ Garde-fou 1 : Exclure les statuts terminaux.
+          // Lorsqu'un commercial est promu TM, la route /api/team/members/promote supprime
+          // physiquement son document team_accesses (batch.delete). Ce filtre est une couche
+          // défensive supplémentaire contre tout document résiduel ou état de transition.
+          const TERMINAL_STATUSES = ['promoted', 'revoked', 'deleted', 'transferred']
+          if (TERMINAL_STATUSES.includes(data.status)) return
+
+          // ✅ Garde-fou 2 : Exclure les enregistrements dont le rôle est 'manager'.
+          // Un commercial promu TM a son role mis à 'manager' côté users/{uid}.
+          // Si un ancien team_accesses résiduel subsistait avec role='manager', il ne
+          // doit pas apparaître dans la liste des commerciaux de l'ancien TM.
+          if (data.role === 'manager') return
+
           // Exclude unwanted roles
           if (excludeRole && data.role === excludeRole) return
 
@@ -186,7 +199,7 @@ export function useTeamRoleMembers(options: UseTeamRoleMembersOptions = {}) {
       }
     )
 
-    // ── Listener 2 : users [onSnapshot — temps réel] ───────────────────────
+    // ── Listener 2 : users [onSnapshot — temps réel] ────────────────────────
     // Utilise onSnapshot (et non getDocs one-shot) pour garantir que les membres
     // nouvellement activés — dont le document users/{uid} est créé par
     // /api/team/activate — apparaissent immédiatement dans l'UI sans rechargement.
@@ -201,6 +214,12 @@ export function useTeamRoleMembers(options: UseTeamRoleMembersOptions = {}) {
         usersMap = {}
         snap.docs.forEach((d) => {
           const data = d.data()
+
+          // ✅ Garde-fou : Un commercial promu TM a son role mis à 'manager'.
+          // Son document users/{uid} subsiste avec managerUid de l'ancien TM
+          // jusqu'à la propagation Firestore (le champ est supprimé par FieldValue.delete()).
+          // Ce filtre empêche son affichage dans l'équipe de l'ancien TM après promotion.
+          if (data.role === 'manager') return
 
           // Exclude unwanted roles
           if (excludeRole && data.role === excludeRole) return
