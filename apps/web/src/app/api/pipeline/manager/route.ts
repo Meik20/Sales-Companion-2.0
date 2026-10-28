@@ -80,6 +80,15 @@ export async function GET(request: NextRequest) {
           .trim()
           .toLowerCase()
 
+        // RÈGLE D'OR ARCHITECTURALE (AGENTS.md) :
+        // Si la fiche a un managerUid explicitement attribué à un AUTRE manager (ex: l'ancien TM
+        // sous lequel ce commercial travaillait avant d'être promu), cette fiche n'appartient PAS
+        // à la supervision du manager connecté.
+        // En particulier, les opportunités conclues restent la propriété exclusive de l'ancien TM.
+        if (data.managerUid && data.managerUid !== managerUid) {
+          continue
+        }
+
         // Déduplication : si l'entreprise est déjà assignée à un membre terrain dans teamSnap,
         // la copie initiale non assignée est masquée.
         if (

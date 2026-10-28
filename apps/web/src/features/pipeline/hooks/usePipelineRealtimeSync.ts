@@ -127,7 +127,13 @@ function setupListeners(
         (snapshot: any) => {
           ownDocs.clear()
           snapshot.docs.forEach((doc: any) => {
-            ownDocs.set(doc.id, doc.data())
+            const data = doc.data()
+            // RÈGLE ARCHITECTURALE : Si la fiche a un managerUid explicitement attribué à un autre manager,
+            // elle ne doit jamais figurer dans le pipeline de ce manager.
+            if (data?.managerUid && data.managerUid !== user.uid) {
+              return
+            }
+            ownDocs.set(doc.id, data)
           })
           publish()
         },

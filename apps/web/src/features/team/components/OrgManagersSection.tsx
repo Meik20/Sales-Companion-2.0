@@ -1642,14 +1642,23 @@ export function OrgManagersSection({ managers, orgCode, onRefresh }: OrgManagers
   }
 
   // Grouper les commerciaux (role: 'member') par managerUid.
-  // RÈGLE INVIOLABLE : les support_agents (role: 'support_agent') sont
-  // EXPLICITEMENT EXCLUS — ils appartiennent au support CRM et ne font
-  // pas partie de l'équipe commerciale. Cette exclusion constitue une
-  // défense en profondeur indépendante du filtre API.
+  // RÈGLE INVIOLABLE : les support_agents (role: 'support_agent') ainsi que les
+  // collaborateurs déjà promus Team Managers (ou inactifs) sont EXPLICITEMENT EXCLUS
+  // de la liste des commerciaux supervisés.
+  const knownManagerUids = new Set(managers.map((mgr) => mgr.uid))
+  const knownManagerEmails = new Set(managers.map((mgr) => (mgr.email || '').toLowerCase()).filter(Boolean))
+
   const membersByManagerUid: Record<string, TeamMemberRecord[]> = {}
   for (const m of members) {
-    // Exclusion formelle des agents support de la liste commerciale
+    // 1. Exclusion formelle des agents support
     if (m.role === 'support_agent') continue
+    // 2. Exclusion des accès inactifs ou déjà promus
+    if (m.status === 'promoted' || m.status === 'revoked' || m.status === 'inactive') continue
+    // 3. Défense en profondeur : si le collaborateur est lui-même un Team Manager de l'organisation
+    const repUid = m.firebaseUid || m.id
+    if (repUid && knownManagerUids.has(repUid)) continue
+    if (m.email && knownManagerEmails.has(m.email.toLowerCase())) continue
+
     const mUid = m.managerUid || ''
     if (mUid) {
       if (!membersByManagerUid[mUid]) membersByManagerUid[mUid] = []

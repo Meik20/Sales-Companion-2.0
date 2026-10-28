@@ -43,11 +43,50 @@ export async function GET(request: NextRequest) {
 
     const snap = await query.get()
 
-    const members = snap.docs
-      // EXCLUSION FORMELLE : les support_agents ne font pas partie de l'équipe
-      // commerciale et ne doivent jamais figurer dans la liste des commerciaux.
-      // Filtre appliqué sur la donnée brute Firestore avant transformation.
-      .filter((doc) => doc.data().role !== 'support_agent')
+    const candidateDocs = snap.docs.filter((doc) => {
+      const data = doc.data()
+      // EXCLUSION FORMELLE : les support_agents ne font pas partie de l'équipe commerciale
+      if (data.role === 'support_agent') return false
+      // EXCLUSION FORMELLE : accès inactifs, révoqués ou déjà promus
+      if (['promoted', 'revoked', 'inactive', 'cancelled'].includes(data.status)) return false
+      return true
+    })
+
+    // Récupérer les UIDs pour vérifier leur rôle actuel dans `users`
+    const uidsToCheck = Array.from(
+      new Set(
+        candidateDocs
+          .map((d) => d.data().firebaseUid || d.data().activatedUid || d.data().memberId)
+          .filter(Boolean)
+      )
+    ) as string[]
+
+    const nonMemberUidSet = new Set<string>()
+    if (uidsToCheck.length > 0) {
+      const CHUNK_SIZE = 30
+      for (let i = 0; i < uidsToCheck.length; i += CHUNK_SIZE) {
+        const chunk = uidsToCheck.slice(i, i + CHUNK_SIZE)
+        const refs = chunk.map((uid) => adminDb.collection('users').doc(uid))
+        const userSnaps = await adminDb.getAll(...refs)
+        userSnaps.forEach((s) => {
+          if (s.exists) {
+            const ud = s.data()
+            // Si l'utilisateur est maintenant un manager, admin ou support, il n'est plus un commercial
+            if (ud?.role === 'manager' || ud?.role === 'admin' || ud?.role === 'support_agent') {
+              nonMemberUidSet.add(s.id)
+            }
+          }
+        })
+      }
+    }
+
+    const members = candidateDocs
+      .filter((doc) => {
+        const data = doc.data()
+        const uid = data.firebaseUid || data.activatedUid || data.memberId
+        if (uid && nonMemberUidSet.has(uid)) return false
+        return true
+      })
       .map((doc) => {
         const data = doc.data()
         return {

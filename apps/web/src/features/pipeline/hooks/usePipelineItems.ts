@@ -45,6 +45,7 @@ export function usePipelineItems() {
         seen.add(docSnap.id)
         const data = docSnap.data()
         if (data.archived === true) return
+        if (user?.role === 'manager' && data.managerUid && data.managerUid !== user.uid) return
         items.push({
           id: docSnap.id,
           ...data,

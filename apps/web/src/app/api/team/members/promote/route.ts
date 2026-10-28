@@ -22,7 +22,21 @@ async function getAdmin() {
  * 6. Synchronisation Auth : Le custom claim role est mis à jour sur 'manager'.
  */
 
-const ACTIVE_PIPELINE_STATUSES = ['prospection', 'negociation']
+const ACTIVE_PIPELINE_STATUSES = [
+  'prospection',
+  'negociation',
+  'prospect',
+  'negotiation',
+  'lead',
+  'in_progress',
+  'contact',
+  'to_contact'
+]
+
+function isCanonicalActiveStatus(status: unknown): boolean {
+  const s = String(status || '').trim().toLowerCase()
+  return ACTIVE_PIPELINE_STATUSES.includes(s)
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -126,12 +140,18 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // ── 4. Récupération des données associées ──────────────────────────────
+    // ── 4. Récupération des données associées (recherche multi-critères exhaustive) ─
     const [
       pipelineUserSnap,
       pipelineAssignedSnap,
       assignmentsSnap,
-      accessesSnap
+      assignmentsAssignedSnap,
+      accessesOrgSnap,
+      accessesUserSnap,
+      accessesActSnap,
+      accessesMemberSnap,
+      accessesManagerSnap,
+      accessesEmailSnap
     ] = await Promise.all([
       // Fiches dont le commercial est créateur
       adminDb.collection('pipeline').where('userId', '==', memberUid).get(),
@@ -139,29 +159,47 @@ export async function POST(request: NextRequest) {
       adminDb.collection('pipeline').where('assignedTo', '==', memberUid).get(),
       // Toutes les assignations actives de ce commercial (à nettoyer lors de la promotion)
       adminDb.collection('team_assignments').where('memberId', '==', memberUid).get(),
-      // Fiches d'accès team_accesses du commercial (à SUPPRIMER physiquement lors de la promotion)
-      adminDb.collection('team_accesses').where('orgCode', '==', orgCode).get()
+      adminDb.collection('team_assignments').where('assignedTo', '==', memberUid).get(),
+      // Fiches d'accès team_accesses du commercial (recherche par orgCode, UID, email, manager)
+      adminDb.collection('team_accesses').where('orgCode', '==', orgCode).get(),
+      adminDb.collection('team_accesses').where('firebaseUid', '==', memberUid).get(),
+      adminDb.collection('team_accesses').where('activatedUid', '==', memberUid).get(),
+      adminDb.collection('team_accesses').where('memberId', '==', memberUid).get(),
+      sourceManagerUid
+        ? adminDb.collection('team_accesses').where('managerUid', '==', sourceManagerUid).get()
+        : Promise.resolve({ docs: [] as FirebaseFirestore.DocumentSnapshot[] }),
+      memberData.email
+        ? adminDb.collection('team_accesses').where('email', '==', memberData.email).get()
+        : Promise.resolve({ docs: [] as FirebaseFirestore.DocumentSnapshot[] })
     ])
 
     // Agréger les fiches actives du commercial (prospection / négociation)
     const pipelineDocsMap = new Map<string, FirebaseFirestore.DocumentSnapshot>()
     for (const d of [...pipelineUserSnap.docs, ...pipelineAssignedSnap.docs]) {
       const data = d.data()
-      if (!data?.orgCode || data.orgCode === orgCode) {
-        if (ACTIVE_PIPELINE_STATUSES.includes(data?.status)) {
+      if (!data?.orgCode || String(data.orgCode).toLowerCase() === orgCode.toLowerCase()) {
+        if (isCanonicalActiveStatus(data?.status) || ACTIVE_PIPELINE_STATUSES.includes(data?.status)) {
           pipelineDocsMap.set(d.id, d)
         }
       }
     }
 
-    for (const aDoc of assignmentsSnap.docs) {
+    const allAssignmentDocsMap = new Map<string, FirebaseFirestore.DocumentSnapshot>()
+    for (const d of [...assignmentsSnap.docs, ...assignmentsAssignedSnap.docs]) {
+      allAssignmentDocsMap.set(d.id, d)
+    }
+
+    for (const [, aDoc] of allAssignmentDocsMap) {
       const pEntryId = aDoc.data()?.pipelineEntryId
       if (pEntryId && !pipelineDocsMap.has(pEntryId)) {
         try {
           const pDoc = await adminDb.collection('pipeline').doc(pEntryId).get()
           if (pDoc.exists) {
             const pData = pDoc.data()
-            if ((!pData?.orgCode || pData?.orgCode === orgCode) && ACTIVE_PIPELINE_STATUSES.includes(pData?.status)) {
+            if (
+              (!pData?.orgCode || String(pData.orgCode).toLowerCase() === orgCode.toLowerCase()) &&
+              (isCanonicalActiveStatus(pData?.status) || ACTIVE_PIPELINE_STATUSES.includes(pData?.status))
+            ) {
               pipelineDocsMap.set(pDoc.id, pDoc)
             }
           }
@@ -171,14 +209,32 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Trouver les accès team_accesses correspondant à ce commercial
-    const matchingAccessDocs = accessesSnap.docs.filter((d) => {
+    // Agréger tous les accès team_accesses découverts
+    const allAccessDocsMap = new Map<string, FirebaseFirestore.DocumentSnapshot>()
+    for (const snap of [
+      accessesOrgSnap,
+      accessesUserSnap,
+      accessesActSnap,
+      accessesMemberSnap,
+      accessesManagerSnap,
+      accessesEmailSnap
+    ]) {
+      snap.docs.forEach((doc) => allAccessDocsMap.set(doc.id, doc))
+    }
+
+    // Trouver les accès team_accesses correspondant avec certitude à ce commercial
+    const memberEmailLower = memberData.email ? String(memberData.email).toLowerCase().trim() : null
+    const memberAccessIdLower = memberData.accessId ? String(memberData.accessId).toLowerCase().trim() : null
+
+    const matchingAccessDocs = Array.from(allAccessDocsMap.values()).filter((d) => {
       const ad = d.data()
+      if (!ad) return false
       return (
         ad.firebaseUid === memberUid ||
+        ad.activatedUid === memberUid ||
         ad.memberId === memberUid ||
-        (memberData.accessId && d.id.toLowerCase() === String(memberData.accessId).toLowerCase()) ||
-        (memberData.email && ad.email && String(ad.email).toLowerCase() === String(memberData.email).toLowerCase())
+        (memberAccessIdLower && d.id.toLowerCase().trim() === memberAccessIdLower) ||
+        (memberEmailLower && ad.email && String(ad.email).toLowerCase().trim() === memberEmailLower)
       )
     })
 
@@ -204,6 +260,7 @@ export async function POST(request: NextRequest) {
       segment: targetSegment,
       seniorManagerUid: callerUid,
       managerUid: FieldValue.delete(),
+      managerId: FieldValue.delete(),
       previousManagerUid: sourceManagerUid,
       previousRole: 'member',
       promotedAt: now,
@@ -232,7 +289,7 @@ export async function POST(request: NextRequest) {
     //     Un commercial promu TM ne doit plus apparaître dans aucune liste d'assignation
     //     de son ancien équipe. Les assignations pipeline actives ont déjà été migrées
     //     sous son propre managerUid à l'étape C.
-    for (const d of assignmentsSnap.docs) {
+    for (const [, d] of allAssignmentDocsMap) {
       batch.delete(d.ref)
       opCount++
       await commitBatchIfFull()

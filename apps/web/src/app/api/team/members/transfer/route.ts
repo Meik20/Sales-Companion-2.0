@@ -25,7 +25,16 @@ async function getAdmin() {
  */
 
 /** Statuts considérés comme « actifs » (portefeuille en cours de traitement). */
-const ACTIVE_PIPELINE_STATUSES = ['prospection', 'negociation']
+const ACTIVE_PIPELINE_STATUSES = [
+  'prospection',
+  'negociation',
+  'prospect',
+  'negotiation',
+  'lead',
+  'in_progress',
+  'contact',
+  'to_contact'
+]
 export async function POST(request: NextRequest) {
   try {
     const { adminDb, adminAuth } = await getAdmin()
