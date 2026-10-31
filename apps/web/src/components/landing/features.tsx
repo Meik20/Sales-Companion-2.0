@@ -206,6 +206,7 @@ export function Features() {
   const complementaryFeatures = [
     {
       icon: Sparkles,
+      tag: lang === 'en' ? 'Smart AI' : 'IA Intelligente',
       title: lang === 'en' ? 'AI Sales Companion 2.0' : 'Companion IA Pro',
       description:
         lang === 'en'
@@ -214,6 +215,7 @@ export function Features() {
     },
     {
       icon: FileSpreadsheet,
+      tag: lang === 'en' ? 'Instant' : 'Instantané',
       title: lang === 'en' ? '1-Click Excel Export' : 'Export Excel 1-Click',
       description:
         lang === 'en'
@@ -222,6 +224,7 @@ export function Features() {
     },
     {
       icon: ShieldCheck,
+      tag: lang === 'en' ? 'Zero Leak' : '100% Privé',
       title: lang === 'en' ? 'Private & Secure Data' : 'Données Sécurisées & Privées',
       description:
         lang === 'en'
@@ -347,17 +350,26 @@ export function Features() {
             {complementaryFeatures.map((item) => (
               <div
                 key={item.title}
-                className="group rounded-2xl border border-border bg-card p-6 shadow-sm transition-all hover:border-primary/40 hover:bg-secondary/40"
+                className="group flex flex-col justify-between rounded-2xl border border-border/80 bg-card p-6 shadow-xs transition-all duration-200 hover:border-[#1B7A3E]/50 hover:shadow-md"
               >
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary transition-all group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground">
-                  <item.icon className="h-5 w-5" />
+                <div>
+                  {/* Top Row : Icon + Pill Badge */}
+                  <div className="flex items-center justify-between gap-2 mb-4">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary transition-all group-hover:scale-105 group-hover:bg-[#1B7A3E] group-hover:text-white">
+                      <item.icon className="h-5 w-5" />
+                    </div>
+                    <span className="inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-full bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60">
+                      {item.tag}
+                    </span>
+                  </div>
+
+                  <h4 className="font-heading text-base font-semibold text-foreground group-hover:text-[#1B7A3E] dark:group-hover:text-emerald-400 transition-colors">
+                    {item.title}
+                  </h4>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                    {item.description}
+                  </p>
                 </div>
-                <h4 className="mt-4 font-heading text-base font-semibold text-foreground group-hover:text-primary transition-colors">
-                  {item.title}
-                </h4>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                  {item.description}
-                </p>
               </div>
             ))}
           </div>

@@ -628,6 +628,41 @@ export function ManagerProspectsList({
     return teamManagers.filter((tm) => tm.uid && tm.name)
   }, [teamManagers])
 
+  // Compteurs d'état dynamiques pour filtres rapides en pills (style Turing)
+  const filterCounts = useMemo(() => {
+    let pendingCount = 0
+    let processedCount = 0
+
+    if (isSeniorManager) {
+      prospects.forEach((p) => {
+        const isTransferred = Boolean(
+          p.transferredToManagerUid ||
+            (p.transferredFromSeniorUid && p.transferredFromSeniorUid === managerId) ||
+            (p.managerId && p.managerId !== managerId && teamManagers.some((tm) => tm.uid === p.managerId))
+        )
+        if (isTransferred) {
+          processedCount++
+        } else {
+          pendingCount++
+        }
+      })
+    } else {
+      prospects.forEach((p) => {
+        if (!p.assignedTo) {
+          pendingCount++
+        } else {
+          processedCount++
+        }
+      })
+    }
+
+    return {
+      total: prospects.length,
+      pending: pendingCount,
+      processed: processedCount
+    }
+  }, [prospects, isSeniorManager, managerId, teamManagers])
+
   // Filtering
   const filtered = prospects.filter((p) => {
     const term = search.toLowerCase()
@@ -643,6 +678,8 @@ export function ManagerProspectsList({
       const targetTmUid = (p.transferredToManagerUid || (p.transferredFromSeniorUid ? p.managerId : undefined)) as string | undefined
       if (filterTm === '__untransferred') {
         if (isTransferred) return false
+      } else if (filterTm === '__transferred') {
+        if (!isTransferred) return false
       } else if (filterTm) {
         if (targetTmUid !== filterTm) return false
       }
@@ -652,7 +689,8 @@ export function ManagerProspectsList({
     const matchMember =
       !filterMember ||
       p.assignedTo === filterMember ||
-      (filterMember === '__unassigned' && !p.assignedTo)
+      (filterMember === '__unassigned' && !p.assignedTo) ||
+      (filterMember === '__assigned' && Boolean(p.assignedTo))
     return matchSearch && matchMember
   })
 
@@ -715,6 +753,92 @@ export function ManagerProspectsList({
   return (
     <>
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      {/* ── Filtres d'état rapides en Pills (Style Turing) ── */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+        {/* Pill Tous */}
+        <button
+          type="button"
+          onClick={() => {
+            if (isSeniorManager) setFilterTm('')
+            else setFilterMember('')
+          }}
+          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full font-semibold transition-all cursor-pointer ${
+            (isSeniorManager ? !filterTm : !filterMember)
+              ? 'bg-[#1B7A3E] text-white shadow-xs'
+              : 'bg-secondary/70 text-muted-foreground hover:bg-secondary hover:text-foreground border border-border/60'
+          }`}
+        >
+          <span>{lang === 'en' ? 'All' : 'Tous'}</span>
+          <span
+            className={`px-1.5 py-0.2 rounded-full text-[11px] ${
+              (isSeniorManager ? !filterTm : !filterMember)
+                ? 'bg-white/20 text-white'
+                : 'bg-muted text-muted-foreground'
+            }`}
+          >
+            {filterCounts.total}
+          </span>
+        </button>
+
+        {/* Pill En attente (À déléguer ou Non assignés) */}
+        <button
+          type="button"
+          onClick={() => {
+            if (isSeniorManager) setFilterTm(filterTm === '__untransferred' ? '' : '__untransferred')
+            else setFilterMember(filterMember === '__unassigned' ? '' : '__unassigned')
+          }}
+          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full font-semibold transition-all cursor-pointer ${
+            (isSeniorManager ? filterTm === '__untransferred' : filterMember === '__unassigned')
+              ? 'bg-[#1B7A3E] text-white shadow-xs'
+              : 'bg-secondary/70 text-muted-foreground hover:bg-secondary hover:text-foreground border border-border/60'
+          }`}
+        >
+          <span>
+            {isSeniorManager
+              ? (lang === 'en' ? 'To Delegate' : 'À déléguer')
+              : (lang === 'en' ? 'Unassigned' : 'Non assignés')}
+          </span>
+          <span
+            className={`px-1.5 py-0.2 rounded-full text-[11px] ${
+              (isSeniorManager ? filterTm === '__untransferred' : filterMember === '__unassigned')
+                ? 'bg-white/20 text-white'
+                : 'bg-amber-500/15 text-amber-600 dark:text-amber-400 font-bold'
+            }`}
+          >
+            {filterCounts.pending}
+          </span>
+        </button>
+
+        {/* Pill Traités (Délégués ou Assignés) */}
+        <button
+          type="button"
+          onClick={() => {
+            if (isSeniorManager) setFilterTm(filterTm === '__transferred' ? '' : '__transferred')
+            else setFilterMember(filterMember === '__assigned' ? '' : '__assigned')
+          }}
+          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full font-semibold transition-all cursor-pointer ${
+            (isSeniorManager ? filterTm === '__transferred' : filterMember === '__assigned')
+              ? 'bg-[#1B7A3E] text-white shadow-xs'
+              : 'bg-secondary/70 text-muted-foreground hover:bg-secondary hover:text-foreground border border-border/60'
+          }`}
+        >
+          <span>
+            {isSeniorManager
+              ? (lang === 'en' ? 'Delegated' : 'Délégués')
+              : (lang === 'en' ? 'Assigned' : 'Assignés')}
+          </span>
+          <span
+            className={`px-1.5 py-0.2 rounded-full text-[11px] ${
+              (isSeniorManager ? filterTm === '__transferred' : filterMember === '__assigned')
+                ? 'bg-white/20 text-white'
+                : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold'
+            }`}
+          >
+            {filterCounts.processed}
+          </span>
+        </button>
+      </div>
+
       {/* ── Barre de filtres ── */}
       <div className="imports-filter-sticky" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
         <input
