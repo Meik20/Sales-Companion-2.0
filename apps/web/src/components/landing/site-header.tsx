@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Menu, X } from 'lucide-react'
+import { Menu, X, Sun, Moon } from 'lucide-react'
+import { useTheme } from 'next-themes'
 import { ScIcon } from '@/components/ui/ScIcon'
 import { LanguageSwitcher } from '@/components/landing/LanguageSwitcher'
 import { useTranslation } from '@/providers/I18nProvider'
@@ -20,6 +21,13 @@ export function SiteHeader() {
   const { lang, t } = useTranslation()
   const { country, countries, setCountry } = useLandingCountry()
   const [mobileOpen, setMobileOpen] = useState(false)
+
+  const { theme, setTheme, resolvedTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+  const isDark = mounted ? (resolvedTheme || theme) === 'dark' : false
 
   const navLinks = [
     { label: t('landing.features'), href: '#fonctionnalites' },
@@ -112,6 +120,33 @@ export function SiteHeader() {
             <span className="hidden sm:inline">{t('landing.startFree')}</span>
           </Link>
 
+          {/* Toggle de thème (placé immédiatement à droite du CTA principal) */}
+          <button
+            type="button"
+            onClick={() => setTheme(isDark ? 'light' : 'dark')}
+            title={
+              isDark
+                ? lang === 'en'
+                  ? 'Switch to Light mode'
+                  : 'Passer en mode clair'
+                : lang === 'en'
+                  ? 'Switch to Dark mode'
+                  : 'Passer en mode sombre'
+            }
+            className="hidden sm:inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-secondary/60 text-muted-foreground transition-all hover:bg-secondary hover:text-foreground hover:border-border/80 cursor-pointer shrink-0"
+            aria-label={lang === 'en' ? 'Toggle theme' : 'Changer de thème'}
+          >
+            {mounted ? (
+              isDark ? (
+                <Sun className="h-4 w-4 text-amber-500" />
+              ) : (
+                <Moon className="h-4 w-4 text-blue-500" />
+              )
+            ) : (
+              <span className="h-4 w-4" />
+            )}
+          </button>
+
           {/* Toggle menu mobile */}
           <button
             onClick={() => setMobileOpen((v) => !v)}
@@ -167,6 +202,33 @@ export function SiteHeader() {
               <div className="shrink-0 sm:hidden">
                 <LanguageSwitcher />
               </div>
+
+              {/* Toggle de thème mobile */}
+              <button
+                type="button"
+                onClick={() => setTheme(isDark ? 'light' : 'dark')}
+                title={
+                  isDark
+                    ? lang === 'en'
+                      ? 'Switch to Light mode'
+                      : 'Passer en mode clair'
+                    : lang === 'en'
+                      ? 'Switch to Dark mode'
+                      : 'Passer en mode sombre'
+                }
+                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-secondary/60 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground shrink-0 sm:hidden"
+                aria-label={lang === 'en' ? 'Toggle theme' : 'Changer de thème'}
+              >
+                {mounted ? (
+                  isDark ? (
+                    <Sun className="h-4 w-4 text-amber-500" />
+                  ) : (
+                    <Moon className="h-4 w-4 text-blue-500" />
+                  )
+                ) : (
+                  <span className="h-4 w-4" />
+                )}
+              </button>
             </div>
 
             <Link
