@@ -2119,7 +2119,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              {isEndOfMonthPeriod && activeMemberSummary.conclueCount > 0 && (
+              {!isOrgView && isEndOfMonthPeriod && activeMemberSummary.conclueCount > 0 && (
                 <button
                   type="button"
                   onClick={() => handleOpenTransferModal(grouped.conclue ?? [])}
@@ -2596,7 +2596,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                   <Badge variant={statusVariant[status] ?? 'default'}>
                     {statusLabel[status]} ({groupItems.length})
                   </Badge>
-                  {status === 'conclue' && isEndOfMonthPeriod && groupItems.length > 0 && (
+                  {status === 'conclue' && !isOrgView && isEndOfMonthPeriod && groupItems.length > 0 && (
                     <button
                       type="button"
                       title={t('pipeline.transferToClients')}

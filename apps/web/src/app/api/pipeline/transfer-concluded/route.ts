@@ -9,8 +9,10 @@ async function getAdminModules() {
 
 /**
  * POST /api/pipeline/transfer-concluded
- * Permet au Team Manager (ou Senior Manager) de transférer manuellement les opportunités
+ * Permet au Team Manager de transférer manuellement les opportunités
  * conclues vers la base de données clients à la fin du mois.
+ * RÉSERVÉ AUX TEAM MANAGERS — les Senior Managers n'ont pas de portefeuille
+ * opérationnel et ne peuvent PAS accéder à cette fonctionnalité.
  *
  * Body :
  * - itemIds?: string[] (liste d'IDs spécifiques à transférer)
@@ -43,6 +45,15 @@ export async function POST(request: NextRequest) {
     const isManager = userData.role === 'manager'
     const isAdmin = userData.role === 'admin'
     const isSeniorManager = isManager && userData.orgRole === 'senior_manager'
+
+    // Guard : les Senior Managers n'ont pas de portefeuille opérationnel.
+    // Le transfert vers la base clients est exclusivement réservé aux Team Managers.
+    if (isSeniorManager) {
+      return NextResponse.json(
+        { message: 'Action réservée aux Team Managers. Le Senior Manager ne gère pas de portefeuille opérationnel de routine.' },
+        { status: 403 }
+      )
+    }
 
     if (!isManager && !isAdmin) {
       return NextResponse.json(
@@ -77,22 +88,12 @@ export async function POST(request: NextRequest) {
         .get()
       targetDocs = snap.docs
     } else {
-      // 3. Récupération globale pour le manager ou l'organisation
-      if (isSeniorManager && userData.orgCode) {
-        // En vue organisation SM : récupérer par orgCode ou seniorManagerUid
-        const snap = await adminDb
-          .collection('pipeline')
-          .where('orgCode', '==', userData.orgCode)
-          .get()
-        targetDocs = snap.docs
-      } else {
-        // Pour un Team Manager : récupérer ses fiches managées
-        const snap = await adminDb
-          .collection('pipeline')
-          .where('managerUid', '==', userId)
-          .get()
-        targetDocs = snap.docs
-      }
+      // 3. Récupération globale pour le Team Manager : ses fiches managées
+      const snap = await adminDb
+        .collection('pipeline')
+        .where('managerUid', '==', userId)
+        .get()
+      targetDocs = snap.docs
     }
 
     let transferredCount = 0
