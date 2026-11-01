@@ -867,20 +867,26 @@ function InfoRow({
   )
 }
 
-// ── Targets Panel ────────────────────────────────────────────────────────
-function TargetsPanel({ members }: { members?: Member[] }) {
+// ── Targets Button (compact trigger + modal) ─────────────────────────────────
+function TargetsButton({ members }: { members?: Member[] }) {
   const { t, lang } = useTranslation()
   const { currency } = useProspectingCountryDetails()
   const [open, setOpen] = useState(false)
-  const [selectedMemberId, setSelectedMemberId] = useState('')
-  const [period, setPeriod] = useState('')
+
+  // Multi-select: tableau d'UIDs sélectionnés
+  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([])
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+
+  // Période mois courant par défaut (format YYYY-MM)
+  const currentMonth = new Date().toISOString().slice(0, 7) // ex: "2026-11"
+  const [period, setPeriod] = useState(currentMonth)
   const [targetVolume, setTargetVolume] = useState('')
   const [targetValue, setTargetValue] = useState('')
 
   const { data: allTargets } = useTeamTargets()
   const saveMutation = useSaveTeamTarget()
 
-  // Récupérer l'objectif global (somme de tous les membres)
+  // Objectif global consolidé
   const globalVolume = (allTargets ?? []).reduce(
     (acc, t) => (t.targetVolume != null ? acc + t.targetVolume : acc),
     0
@@ -912,300 +918,451 @@ function TargetsPanel({ members }: { members?: Member[] }) {
     display: 'block'
   }
 
+  function toggleMember(uid: string) {
+    setSelectedMemberIds((prev) =>
+      prev.includes(uid) ? prev.filter((id) => id !== uid) : [...prev, uid]
+    )
+  }
+
   function handleSave() {
-    if (!selectedMemberId) return
-    const member = members?.find((m) => m.uid === selectedMemberId)
-    saveMutation.mutate({
-      memberId: selectedMemberId,
-      memberName: member?.name ?? member?.email ?? 'Commercial',
-      targetVolume: targetVolume ? parseFloat(targetVolume) : null,
-      targetValue: targetValue ? parseFloat(targetValue.replace(/\s+/g, '')) : null,
-      period: period.trim() || null
+    if (selectedMemberIds.length === 0) return
+    // Batch save: une mutation par membre sélectionné
+    selectedMemberIds.forEach((uid) => {
+      const member = members?.find((m) => m.uid === uid)
+      saveMutation.mutate({
+        memberId: uid,
+        memberName: member?.name ?? member?.email ?? 'Commercial',
+        targetVolume: targetVolume ? parseFloat(targetVolume) : null,
+        targetValue: targetValue ? parseFloat(targetValue.replace(/\s+/g, '')) : null,
+        period: period.trim() || null
+      })
     })
   }
 
+  // Label du bouton de sélection multiple
+  const selectionLabel =
+    selectedMemberIds.length === 0
+      ? t('pipeline.selectMembersPlaceholder')
+      : selectedMemberIds.length === 1
+        ? (() => {
+            const m = members?.find((mb) => mb.uid === selectedMemberIds[0])
+            return m?.name ?? m?.email ?? '1 membre'
+          })()
+        : lang === 'en'
+          ? `${selectedMemberIds.length} members selected`
+          : `${selectedMemberIds.length} membres sélectionnés`
+
   return (
-    <div style={{ marginBottom: 16 }}>
-      {/* Trigger */}
+    <>
+      {/* Compact trigger button — aligned with ExportButton */}
       <button
-        onClick={() => setOpen((v) => !v)}
+        type="button"
+        onClick={() => setOpen(true)}
         style={{
-          display: 'flex',
+          display: 'inline-flex',
           alignItems: 'center',
-          gap: 8,
+          gap: 6,
           background:
-            'linear-gradient(135deg, rgba(16,185,129,0.12) 0%, rgba(5,150,105,0.12) 100%)',
+            'linear-gradient(135deg, rgba(16,185,129,0.10) 0%, rgba(5,150,105,0.10) 100%)',
           border: '1px solid rgba(16,185,129,0.35)',
-          borderRadius: 10,
-          padding: '9px 16px',
+          borderRadius: 8,
+          padding: '6px 13px',
           cursor: 'pointer',
           color: 'var(--pipeline-concluded-color, #047857)',
           fontWeight: 700,
-          fontSize: 13,
+          fontSize: 12,
           fontFamily: "'Syne',sans-serif",
           transition: 'all 200ms ease',
-          width: '100%',
-          justifyContent: 'space-between'
+          whiteSpace: 'nowrap'
         }}
         onMouseEnter={(e) => {
           e.currentTarget.style.borderColor = 'rgba(16,185,129,0.6)'
           e.currentTarget.style.background =
-            'linear-gradient(135deg, rgba(16,185,129,0.2) 0%, rgba(5,150,105,0.2) 100%)'
+            'linear-gradient(135deg, rgba(16,185,129,0.18) 0%, rgba(5,150,105,0.18) 100%)'
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.borderColor = 'rgba(16,185,129,0.35)'
           e.currentTarget.style.background =
-            'linear-gradient(135deg, rgba(16,185,129,0.12) 0%, rgba(5,150,105,0.12) 100%)'
+            'linear-gradient(135deg, rgba(16,185,129,0.10) 0%, rgba(5,150,105,0.10) 100%)'
         }}
       >
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
-          <Target size={15} style={{ color: 'var(--pipeline-concluded-color, #059669)' }} />
-          {t('pipeline.setTeamTargets')}
-        </span>
-        <ChevronDown
-          size={14}
-          style={{
-            opacity: 0.85,
-            color: 'var(--pipeline-concluded-color, #047857)',
-            transform: open ? 'rotate(180deg)' : 'none',
-            transition: 'transform 200ms ease'
-          }}
-        />
+        <Target size={13} />
+        {t('pipeline.setTeamTargets')}
       </button>
 
+      {/* Modal overlay */}
       {open && (
         <div
           style={{
-            marginTop: 10,
-            background: 'var(--card, #131c2e)',
-            border: '1px solid var(--border, rgba(255,255,255,0.1))',
-            borderRadius: 12,
-            padding: '18px 20px',
+            position: 'fixed',
+            inset: 0,
+            zIndex: 1000,
+            background: 'rgba(0,0,0,0.55)',
             display: 'flex',
-            flexDirection: 'column',
-            gap: 16,
-            boxShadow: '0 8px 32px rgba(0,0,0,0.2)'
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16
           }}
+          onClick={(e) => { if (e.target === e.currentTarget) setOpen(false) }}
         >
-          {/* Objectif Global (R/O) */}
-          {(globalVolume > 0 || globalValue > 0) && (
-            <div
-              style={{
-                background: 'rgba(16,185,129,0.07)',
-                border: '1px solid rgba(16,185,129,0.2)',
-                borderRadius: 10,
-                padding: '12px 16px',
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: '8px 24px',
-                alignItems: 'center'
-              }}
-            >
+          <div
+            style={{
+              background: 'var(--card, #131c2e)',
+              border: '1px solid var(--border, rgba(255,255,255,0.12))',
+              borderRadius: 16,
+              padding: '24px 26px',
+              width: '100%',
+              maxWidth: 520,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 18,
+              boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
+              maxHeight: '90vh',
+              overflowY: 'auto'
+            }}
+          >
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span
                 style={{
-                  fontSize: 12,
-                  fontWeight: 700,
-                  color: 'var(--pipeline-concluded-color, #047857)',
-                  letterSpacing: '.04em',
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: 6
+                  gap: 8,
+                  fontSize: 15,
+                  fontWeight: 700,
+                  fontFamily: "'Syne',sans-serif",
+                  color: 'var(--foreground, #f1f5f9)'
                 }}
               >
-                <Globe size={13} />
-                {t('pipeline.globalTargetRo')}
+                <Target size={16} style={{ color: '#059669' }} />
+                {t('pipeline.setTeamTargets')}
               </span>
-              {globalVolume > 0 && (
-                <span style={{ fontSize: 13, color: 'var(--foreground, #1e293b)' }}>
-                  {t('pipeline.volLabel')} <strong>{globalVolume}</strong> {t('pipeline.leads')}
-                </span>
-              )}
-              {globalValue > 0 && (
-                <span
-                  style={{ fontSize: 13, color: 'var(--foreground, #1e293b)' }}
-                  title={`${formatFullAmount(globalValue, lang)} ${currency || 'XAF'}`}
-                >
-                  {t('pipeline.valLabel')} <strong>{formatCompactAmount(globalValue, lang)}</strong> {currency || 'XAF'}
-                </span>
-              )}
-              <span
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
                 style={{
-                  fontSize: 10,
-                  color: 'var(--muted-foreground, #64748b)',
-                  fontStyle: 'italic',
-                  marginLeft: 'auto'
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: 'var(--muted-foreground, #94a3b8)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: 4,
+                  borderRadius: 6
                 }}
               >
-                {t('pipeline.roCalculated')}
-              </span>
+                <X size={18} />
+              </button>
             </div>
-          )}
 
-          {/* Member selector */}
-          <div>
-            <label style={labelStyle}>{t('pipeline.teamMember')}</label>
-            <select
-              value={selectedMemberId}
-              onChange={(e) => {
-                setSelectedMemberId(e.target.value)
-                const existing = allTargets?.find((t) => t.memberId === e.target.value)
-                setTargetVolume(existing?.targetVolume != null ? String(existing.targetVolume) : '')
-                setTargetValue(existing?.targetValue != null ? String(existing.targetValue) : '')
-                setPeriod(existing?.period ?? '')
-              }}
-              style={inputStyle}
-            >
-              <option value="">{t('pipeline.selectMemberPlaceholder')}</option>
-              {members?.map((m) => (
-                <option key={m.uid} value={m.uid}>
-                  {m.name ?? m.email ?? m.uid}
-                  {m.accessId ? ` (${m.accessId.toLowerCase()})` : ''}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Period */}
-          <div>
-            <label style={labelStyle}>{t('pipeline.periodOptional')}</label>
-            <input
-              type="text"
-              placeholder={t('pipeline.periodPlaceholder')}
-              value={period}
-              onChange={(e) => setPeriod(e.target.value)}
-              style={inputStyle}
-            />
-          </div>
-
-          {/* Volume + Valeur */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <div>
-              <label style={labelStyle}>{t('pipeline.targetVolumeLabel')}</label>
-              <input
-                type="number"
-                min={0}
-                placeholder="ex : 50"
-                value={targetVolume}
-                onChange={(e) => setTargetVolume(e.target.value)}
-                style={inputStyle}
-              />
-            </div>
-            <div>
-              <label style={labelStyle}>{t('pipeline.targetValueLabel')}</label>
-              <input
-                type="number"
-                min={0}
-                placeholder="ex : 5000000"
-                value={targetValue}
-                onChange={(e) => setTargetValue(e.target.value)}
-                style={inputStyle}
-              />
-            </div>
-          </div>
-
-          {/* Existing targets summary */}
-          {allTargets && allTargets.length > 0 && (
-            <div
-              style={{
-                background: 'var(--secondary, #1e2a3b)',
-                borderRadius: 10,
-                padding: '12px 14px',
-                fontSize: 12
-              }}
-            >
+            {/* Objectif Global (R/O) */}
+            {(globalVolume > 0 || globalValue > 0) && (
               <div
                 style={{
-                  fontWeight: 700,
-                  fontSize: 11,
-                  textTransform: 'uppercase',
-                  letterSpacing: '.05em',
-                  color: 'var(--muted-foreground, #94a3b8)',
-                  marginBottom: 8
+                  background: 'rgba(16,185,129,0.07)',
+                  border: '1px solid rgba(16,185,129,0.2)',
+                  borderRadius: 10,
+                  padding: '10px 14px',
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '6px 20px',
+                  alignItems: 'center'
                 }}
               >
-                {t('pipeline.definedTargets')}
+                <span
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: 'var(--pipeline-concluded-color, #047857)',
+                    letterSpacing: '.04em',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 5
+                  }}
+                >
+                  <Globe size={12} />
+                  {t('pipeline.globalTargetRo')}
+                </span>
+                {globalVolume > 0 && (
+                  <span style={{ fontSize: 12, color: 'var(--foreground, #1e293b)' }}>
+                    {t('pipeline.volLabel')} <strong>{globalVolume}</strong> {t('pipeline.leads')}
+                  </span>
+                )}
+                {globalValue > 0 && (
+                  <span
+                    style={{ fontSize: 12, color: 'var(--foreground, #1e293b)' }}
+                    title={`${formatFullAmount(globalValue, lang)} ${currency || 'XAF'}`}
+                  >
+                    {t('pipeline.valLabel')} <strong>{formatCompactAmount(globalValue, lang)}</strong> {currency || 'XAF'}
+                  </span>
+                )}
+                <span
+                  style={{
+                    fontSize: 10,
+                    color: 'var(--muted-foreground, #64748b)',
+                    fontStyle: 'italic',
+                    marginLeft: 'auto'
+                  }}
+                >
+                  {t('pipeline.roCalculated')}
+                </span>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {allTargets.map((tItem) => {
-                  const member = members?.find((m) => m.uid === tItem.memberId)
-                  const name = member?.name ?? member?.email ?? 'Commercial'
-                  return (
-                    <div
-                      key={tItem.memberId}
-                      style={{
-                        display: 'flex',
-                        flexWrap: 'wrap',
-                        gap: '4px 12px',
-                        alignItems: 'center',
-                        padding: '6px 10px',
-                        background: 'var(--card, #131c2e)',
-                        borderRadius: 8,
-                        border: '1px solid var(--border, rgba(255,255,255,0.08))'
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontWeight: 600,
-                          color: 'var(--foreground, #f1f5f9)',
-                          minWidth: 120
-                        }}
-                      >
-                        {name}
-                      </span>
-                      {tItem.period && (
-                        <span
+            )}
+
+            {/* ── Multi-select membres ── */}
+            <div>
+              <label style={labelStyle}>{t('pipeline.teamMembers')}</label>
+              {/* Trigger du dropdown custom */}
+              <div style={{ position: 'relative' }}>
+                <button
+                  type="button"
+                  onClick={() => setDropdownOpen((v) => !v)}
+                  style={{
+                    ...inputStyle,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    cursor: 'pointer',
+                    textAlign: 'left'
+                  }}
+                >
+                  <span style={{ color: selectedMemberIds.length === 0 ? 'var(--muted-foreground, #94a3b8)' : 'var(--foreground, #f1f5f9)', fontSize: 13 }}>
+                    {selectionLabel}
+                  </span>
+                  <ChevronDown size={14} style={{ opacity: 0.7, flexShrink: 0, transform: dropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 200ms' }} />
+                </button>
+
+                {/* Dropdown list avec checkboxes */}
+                {dropdownOpen && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: 'calc(100% + 4px)',
+                      left: 0,
+                      right: 0,
+                      background: 'var(--card, #131c2e)',
+                      border: '1px solid var(--border, rgba(255,255,255,0.12))',
+                      borderRadius: 10,
+                      zIndex: 50,
+                      boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+                      maxHeight: 220,
+                      overflowY: 'auto'
+                    }}
+                  >
+                    {members && members.length > 0 ? members.map((m) => {
+                      const checked = selectedMemberIds.includes(m.uid)
+                      return (
+                        <div
+                          key={m.uid}
+                          onClick={() => toggleMember(m.uid)}
                           style={{
-                            color: 'var(--muted-foreground, #94a3b8)',
-                            fontSize: 11,
-                            display: 'inline-flex',
+                            display: 'flex',
                             alignItems: 'center',
-                            gap: 4
+                            gap: 10,
+                            padding: '9px 12px',
+                            cursor: 'pointer',
+                            background: checked ? 'rgba(16,185,129,0.08)' : 'transparent',
+                            borderBottom: '1px solid var(--border, rgba(255,255,255,0.06))',
+                            transition: 'background 120ms'
                           }}
+                          onMouseEnter={(e) => { if (!checked) e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
+                          onMouseLeave={(e) => { e.currentTarget.style.background = checked ? 'rgba(16,185,129,0.08)' : 'transparent' }}
                         >
-                          <Calendar size={11} />
-                          {tItem.period}
-                        </span>
-                      )}
-                      {tItem.targetVolume != null && (
-                        <span style={{ color: '#60a5fa' }}>
-                          {t('pipeline.volLabel')} <strong>{tItem.targetVolume}</strong>
-                        </span>
-                      )}
-                      {tItem.targetValue != null && (
-                        <span
-                          style={{ color: '#34d399' }}
-                          title={`${formatFullAmount(tItem.targetValue, lang)} ${currency || 'XAF'}`}
-                        >
-                          {t('pipeline.valLabel')}{' '}
-                          <strong>{formatCompactAmount(tItem.targetValue, lang)}</strong> {currency || 'XAF'}
-                        </span>
-                      )}
-                    </div>
-                  )
-                })}
+                          {/* Checkbox custom */}
+                          <span
+                            style={{
+                              width: 16,
+                              height: 16,
+                              borderRadius: 4,
+                              border: checked ? '2px solid #10b981' : '2px solid var(--border, rgba(255,255,255,0.2))',
+                              background: checked ? '#10b981' : 'transparent',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              flexShrink: 0,
+                              transition: 'all 120ms'
+                            }}
+                          >
+                            {checked && <Check size={10} color="#fff" strokeWidth={3} />}
+                          </span>
+                          <span style={{ fontSize: 13, color: 'var(--foreground, #f1f5f9)', fontWeight: checked ? 600 : 400 }}>
+                            {m.name ?? m.email ?? m.uid}
+                          </span>
+                          {/* Badge existant objectif */}
+                          {allTargets?.find((tg) => tg.memberId === m.uid) && (
+                            <span style={{ marginLeft: 'auto', fontSize: 10, color: '#10b981', fontWeight: 600, background: 'rgba(16,185,129,0.12)', padding: '1px 6px', borderRadius: 10 }}>
+                              {lang === 'en' ? 'has target' : 'objectif défini'}
+                            </span>
+                          )}
+                        </div>
+                      )
+                    }) : (
+                      <div style={{ padding: '12px', fontSize: 12, color: 'var(--muted-foreground)' }}>
+                        {lang === 'en' ? 'No members found' : 'Aucun membre trouvé'}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
-          )}
 
-          {/* Actions */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <Button
-              size="sm"
-              variant="primary"
-              loading={saveMutation.isPending}
-              onClick={handleSave}
-              style={{
-                background: 'linear-gradient(135deg, #10b981, #059669)',
-                border: 'none'
-              }}
-            >
-              <Save size={14} style={{ marginRight: 6 }} />
-              {t('pipeline.saveTargets')}
-            </Button>
+            {/* ── Période : input month pré-rempli mois M ── */}
+            <div>
+              <label style={labelStyle}>{t('pipeline.targetPeriod')}</label>
+              <input
+                type="month"
+                value={period}
+                onChange={(e) => setPeriod(e.target.value)}
+                style={{
+                  ...inputStyle,
+                  colorScheme: 'dark'
+                }}
+              />
+            </div>
+
+            {/* Volume + Valeur */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div>
+                <label style={labelStyle}>{t('pipeline.targetVolumeLabel')}</label>
+                <input
+                  type="number"
+                  min={0}
+                  placeholder={lang === 'en' ? 'e.g. 50' : 'ex : 50'}
+                  value={targetVolume}
+                  onChange={(e) => setTargetVolume(e.target.value)}
+                  style={inputStyle}
+                />
+              </div>
+              <div>
+                <label style={labelStyle}>{t('pipeline.targetValueLabel')}</label>
+                <input
+                  type="number"
+                  min={0}
+                  placeholder={lang === 'en' ? 'e.g. 5000000' : 'ex : 5 000 000'}
+                  value={targetValue}
+                  onChange={(e) => setTargetValue(e.target.value)}
+                  style={inputStyle}
+                />
+              </div>
+            </div>
+
+            {/* Objectifs déjà définis */}
+            {allTargets && allTargets.length > 0 && (
+              <div
+                style={{
+                  background: 'var(--secondary, #1e2a3b)',
+                  borderRadius: 10,
+                  padding: '12px 14px',
+                  fontSize: 12
+                }}
+              >
+                <div
+                  style={{
+                    fontWeight: 700,
+                    fontSize: 11,
+                    textTransform: 'uppercase',
+                    letterSpacing: '.05em',
+                    color: 'var(--muted-foreground, #94a3b8)',
+                    marginBottom: 8
+                  }}
+                >
+                  {t('pipeline.definedTargets')}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {allTargets.map((tItem) => {
+                    const member = members?.find((m) => m.uid === tItem.memberId)
+                    const name = member?.name ?? member?.email ?? 'Commercial'
+                    return (
+                      <div
+                        key={tItem.memberId}
+                        style={{
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          gap: '4px 12px',
+                          alignItems: 'center',
+                          padding: '6px 10px',
+                          background: 'var(--card, #131c2e)',
+                          borderRadius: 8,
+                          border: '1px solid var(--border, rgba(255,255,255,0.08))'
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontWeight: 600,
+                            color: 'var(--foreground, #f1f5f9)',
+                            minWidth: 120
+                          }}
+                        >
+                          {name}
+                        </span>
+                        {tItem.period && (
+                          <span
+                            style={{
+                              color: 'var(--muted-foreground, #94a3b8)',
+                              fontSize: 11,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 4
+                            }}
+                          >
+                            <Calendar size={11} />
+                            {tItem.period}
+                          </span>
+                        )}
+                        {tItem.targetVolume != null && (
+                          <span style={{ color: '#60a5fa' }}>
+                            {t('pipeline.volLabel')} <strong>{tItem.targetVolume}</strong>
+                          </span>
+                        )}
+                        {tItem.targetValue != null && (
+                          <span
+                            style={{ color: '#34d399' }}
+                            title={`${formatFullAmount(tItem.targetValue, lang)} ${currency || 'XAF'}`}
+                          >
+                            {t('pipeline.valLabel')}{' '}
+                            <strong>{formatCompactAmount(tItem.targetValue, lang)}</strong> {currency || 'XAF'}
+                          </span>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setOpen(false)}
+                style={{ fontSize: 12 }}
+              >
+                {lang === 'en' ? 'Cancel' : 'Annuler'}
+              </Button>
+              <Button
+                size="sm"
+                variant="primary"
+                loading={saveMutation.isPending}
+                onClick={() => { handleSave(); setOpen(false) }}
+                disabled={selectedMemberIds.length === 0 || saveMutation.isPending}
+                style={{
+                  background:
+                    selectedMemberIds.length === 0
+                      ? 'var(--secondary)'
+                      : 'linear-gradient(135deg, #10b981, #059669)',
+                  border: 'none',
+                  opacity: selectedMemberIds.length === 0 ? 0.5 : 1
+                }}
+              >
+                <Save size={14} style={{ marginRight: 6 }} />
+                {t('pipeline.saveTargets')}
+              </Button>
+            </div>
           </div>
         </div>
       )}
-    </div>
+    </>
   )
 }
 
@@ -1801,11 +1958,6 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
           managerUid={managerUid}
         />
       )}
-
-      {/* Targets panel — objectifs Volume/Valeur par membre (Team Manager uniquement) */}
-      {showTargets && <TargetsPanel members={members} />}
-
-
 
       {/* ── Panneau d'archivage — TM uniquement, s'affiche quand des leads sont sélectionnés ── */}
       {enableArchive && selectedForArchive.size > 0 && (
@@ -2610,7 +2762,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
         </div>
       )}
 
-      {/* ── Barre d'actions compacte (Export performances & Archives) ── */}
+      {/* ── Barre d'actions compacte (Objectifs, Export performances & Archives) ── */}
       <div
         style={{
           display: 'flex',
@@ -2620,6 +2772,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
           marginBottom: 12
         }}
       >
+        {showTargets && <TargetsButton members={members} />}
         <ExportButton members={members} managers={managers} isOrgView={isOrgView} />
         {enableArchive && <ArchivesDrawer />}
       </div>
