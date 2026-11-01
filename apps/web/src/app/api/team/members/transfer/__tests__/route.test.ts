@@ -5,8 +5,12 @@ import { POST } from '../route'
 const mocks = vi.hoisted(() => {
   const mockBatchCommit = vi.fn().mockResolvedValue(undefined)
   const mockBatchUpdate = vi.fn()
+  const mockBatchSet = vi.fn()
+  const mockBatchDelete = vi.fn()
   const mockBatch = vi.fn(() => ({
     update: mockBatchUpdate,
+    set: mockBatchSet,
+    delete: mockBatchDelete,
     commit: mockBatchCommit
   }))
 
@@ -44,6 +48,23 @@ const mocks = vi.hoisted(() => {
     }
   }
 
+  const currentMonth = new Date().toISOString().slice(0, 7)
+
+  const mockTargets: any[] = [
+    {
+      id: `tm-1_rep-1_${currentMonth}`,
+      ref: { id: `tm-1_rep-1_${currentMonth}` },
+      data: () => ({
+        managerUid: 'tm-1',
+        memberId: 'rep-1',
+        period: currentMonth,
+        targetVolume: 50,
+        targetValue: 3000000,
+        orgCode: 'SC-CM-TRANSFER'
+      })
+    }
+  ]
+
   const mockDoc = vi.fn((colName: string, id: string) => {
     if (colName === 'users') {
       const data = mockUsers[id]
@@ -66,6 +87,11 @@ const mocks = vi.hoisted(() => {
     return {
       doc: (id: string) => mockDoc(colName, id),
       where: vi.fn((field: string, op: string, val: string) => {
+        if (colName === 'teamTargets') {
+          return {
+            get: vi.fn().mockResolvedValue({ docs: mockTargets })
+          }
+        }
         return {
           get: vi.fn().mockResolvedValue({ docs: [] }),
           where: vi.fn(() => ({
@@ -74,7 +100,12 @@ const mocks = vi.hoisted(() => {
                 {
                   id: 'pipe-rep-1',
                   ref: { id: 'pipe-rep-1' },
-                  data: () => ({ userId: 'rep-1', managerUid: 'tm-1', orgCode: 'SC-CM-TRANSFER' })
+                  data: () => ({
+                    userId: 'rep-1',
+                    managerUid: 'tm-1',
+                    orgCode: 'SC-CM-TRANSFER',
+                    status: 'prospection'
+                  })
                 }
               ]
             })
@@ -87,10 +118,13 @@ const mocks = vi.hoisted(() => {
   return {
     mockBatch,
     mockBatchUpdate,
+    mockBatchSet,
+    mockBatchDelete,
     mockBatchCommit,
     mockCollection,
     mockDoc,
-    mockUsers
+    mockUsers,
+    mockTargets
   }
 })
 
@@ -177,6 +211,9 @@ describe('POST /api/team/members/transfer', () => {
     expect(json.success).toBe(true)
     expect(json.member.uid).toBe('rep-1')
     expect(json.targetManager.uid).toBe('tm-2')
+    expect(json.transferredTargetsCount).toBe(1)
+    expect(mocks.mockBatchSet).toHaveBeenCalled()
+    expect(mocks.mockBatchDelete).toHaveBeenCalled()
     expect(mocks.mockBatchCommit).toHaveBeenCalled()
   })
 })

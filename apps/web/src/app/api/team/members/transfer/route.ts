@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { hasActivePaidManagerAccess } from '@/lib/manager-access'
+import { isTargetPeriodExpired } from '@/lib/monthly-cycle'
 
 export const dynamic = 'force-dynamic'
 
@@ -180,7 +181,8 @@ export async function POST(request: NextRequest) {
       assignmentsSnap,
       accessesSnap,
       crmAssignedSnap,
-      crmOwnerSnap
+      crmOwnerSnap,
+      targetsSnap
     ] = await Promise.all([
       // Fiches de pipeline créées par ce commercial
       adminDb.collection('pipeline').where('userId', '==', memberUid).get(),
@@ -192,7 +194,9 @@ export async function POST(request: NextRequest) {
       adminDb.collection('team_accesses').where('orgCode', '==', orgCode).get(),
       // Fiches CRM dédiées assignées ou créées par ce commercial
       adminDb.collection('crm_clients').where('assignedTo', '==', memberUid).get(),
-      adminDb.collection('crm_clients').where('owner', '==', memberUid).get()
+      adminDb.collection('crm_clients').where('owner', '==', memberUid).get(),
+      // Objectifs d'équipe (teamTargets) définis pour ce commercial
+      adminDb.collection('teamTargets').where('memberId', '==', memberUid).get()
       // ⚠️ RÈGLE MÉTIER INVARIANTE : La collection 'clients' (base clients conclues) n'est JAMAIS
       // récupérée ici. Les affaires conclues restent définitivement sous la supervision de l'ANCIEN
       // Team Manager — elles constituent son bilan commercial et ne suivent pas le commercial.
@@ -348,6 +352,49 @@ export async function POST(request: NextRequest) {
       await commitBatchIfFull()
     }
 
+    // G. Transfert des objectifs d'équipe (teamTargets) — Option 1
+    // Les objectifs de l'équipe A diminuent de la part de ce commercial pour le mois en cours M
+    // (et périodes futures non échues), et sont transportés dans l'équipe B (nouveau Team Manager).
+    // Les périodes échues (mois passés) restent intactes pour préserver l'historique comptable de l'ancien TM.
+    let transferredTargetsCount = 0
+    for (const tDoc of targetsSnap.docs) {
+      const tData = tDoc.data()
+      const isFromSource = !sourceManagerUid || tData.managerUid === sourceManagerUid
+      const isExpired = isTargetPeriodExpired(tData.period, now)
+
+      if (isFromSource && !isExpired) {
+        const newDocId = `${targetManagerUid}_${memberUid}${tData.period ? `_${tData.period}` : ''}`
+
+        if (tDoc.id !== newDocId) {
+          batch.set(
+            adminDb.collection('teamTargets').doc(newDocId),
+            {
+              ...tData,
+              managerUid: targetManagerUid,
+              previousManagerUid: sourceManagerUid,
+              orgCode: orgCode,
+              updatedAt: now,
+              transferredAt: now
+            },
+            { merge: true }
+          )
+          batch.delete(tDoc.ref)
+        } else {
+          batch.update(tDoc.ref, {
+            managerUid: targetManagerUid,
+            previousManagerUid: sourceManagerUid,
+            orgCode: orgCode,
+            updatedAt: now,
+            transferredAt: now
+          })
+        }
+
+        transferredTargetsCount++
+        opCount++
+        await commitBatchIfFull()
+      }
+    }
+
     // Valider le batch restant
     if (opCount > 0) {
       await batch.commit()
@@ -383,7 +430,7 @@ export async function POST(request: NextRequest) {
         userId: targetManagerUid,
         type: 'general',
         title: 'Nouveau commercial dans votre équipe',
-        message: `Le commercial ${memberName} a été transféré dans votre équipe par le Senior Manager (${callerName}), avec ${transferredPipelineCount} opportunité(s) active(s) transférée(s). Les affaires conclues restent enregistrées dans la base clients de l'ancien Team Manager.`,
+        message: `Le commercial ${memberName} a été transféré dans votre équipe par le Senior Manager (${callerName}), avec ${transferredPipelineCount} opportunité(s) active(s) et ses objectifs en cours (${transferredTargetsCount > 0 ? `${transferredTargetsCount} objectif(s) transféré(s)` : 'non définis'}). Les affaires conclues antérieures restent dans la base clients de l'ancien Team Manager.`,
         link: '/team'
       })
 
@@ -393,7 +440,7 @@ export async function POST(request: NextRequest) {
           userId: sourceManagerUid,
           type: 'general',
           title: 'Réaffectation d’un commercial',
-          message: `Le commercial ${memberName} a été réaffecté vers l'équipe de ${targetManagerName} par le Senior Manager (${callerName}). Vos affaires conclues avec ce commercial restent intégralement dans votre base clients.`,
+          message: `Le commercial ${memberName} a été réaffecté vers l'équipe de ${targetManagerName} par le Senior Manager (${callerName}). Ses objectifs en cours ont été déduits de votre équipe et transférés vers le nouveau gestionnaire. Vos affaires conclues avec ce commercial restent intégralement dans votre base clients.`,
           link: '/team'
         })
       }
@@ -416,7 +463,9 @@ export async function POST(request: NextRequest) {
         name: targetManagerName
       },
       // Nombre d'opportunités ACTIVES transférées (conclues exclues — restent à l'ancien TM)
-      transferredActivePipelineCount: transferredPipelineCount
+      transferredActivePipelineCount: transferredPipelineCount,
+      // Nombre d'objectifs mensuels transférés vers le nouveau TM
+      transferredTargetsCount
     })
   } catch (error: any) {
     console.error('[POST /api/team/members/transfer] error:', error)
