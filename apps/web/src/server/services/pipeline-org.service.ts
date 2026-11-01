@@ -32,6 +32,7 @@ export interface ConsolidatedPipelineResult {
   hasMore: boolean
   totalFetched: number
   orgCode: string
+  totalSalespeopleCount?: number
 }
 
 export async function fetchOrgConsolidatedPipeline(
@@ -189,6 +190,36 @@ export async function fetchOrgConsolidatedPipeline(
   const teamManagersDocs = filteredManagersDocs.filter(
     (d) => (d.data().orgRole || 'team_manager') !== 'senior_manager'
   )
+  const teamManagerUids = teamManagersDocs.map((d) => d.id)
+
+  // Source de vérité : compter les commerciaux actifs sous contrat (team_accesses) pour chaque Team Manager
+  const activeSalespeopleByManager: Record<string, number> = {}
+  for (const uid of teamManagerUids) {
+    activeSalespeopleByManager[uid] = 0
+  }
+
+  for (let i = 0; i < teamManagerUids.length; i += CHUNK_SIZE) {
+    const chunk = teamManagerUids.slice(i, i + CHUNK_SIZE)
+    const accessSnap = await adminDb
+      .collection('team_accesses')
+      .where('managerUid', 'in', chunk)
+      .get()
+
+    accessSnap.docs.forEach((doc) => {
+      const data = doc.data()
+      if (data.role === 'support_agent' || data.status === 'promoted') return
+      const mUid = data.managerUid
+      if (mUid && activeSalespeopleByManager[mUid] != null) {
+        activeSalespeopleByManager[mUid]++
+      }
+    })
+  }
+
+  let totalSalespeopleCount = 0
+  for (const count of Object.values(activeSalespeopleByManager)) {
+    totalSalespeopleCount += count
+  }
+
   const managersWithStats = teamManagersDocs.map((d) => {
     const data = d.data()
     const managerItems = allItems.filter((i) => i.managerUid === d.id)
@@ -204,7 +235,8 @@ export async function fetchOrgConsolidatedPipeline(
         negociation: managerItems.filter((i) => i.status === 'negociation').length,
         conclue: managerItems.filter((i) => i.status === 'conclue').length,
         other: managerItems.filter((i) => i.status === 'other').length,
-        total: managerItems.length
+        total: managerItems.length,
+        salespeopleCount: activeSalespeopleByManager[d.id] ?? 0
       }
     }
   })
@@ -216,6 +248,7 @@ export async function fetchOrgConsolidatedPipeline(
     values,
     hasMore,
     totalFetched: allItems.length,
-    orgCode
+    orgCode,
+    totalSalespeopleCount
   }
 }

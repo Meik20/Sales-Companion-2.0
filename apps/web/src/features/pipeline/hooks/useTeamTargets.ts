@@ -61,7 +61,12 @@ export function useSaveTeamTarget() {
       return res.json()
     },
     onSuccess: () => {
+      // Invalidation réactive dynamique à tous les niveaux hiérarchiques (TM et SM)
       qc.invalidateQueries({ queryKey: ['teamTargets'] })
+      qc.invalidateQueries({ queryKey: ['orgPipeline'] })
+      qc.invalidateQueries({ queryKey: ['pipeline'] })
+      qc.invalidateQueries({ queryKey: ['reportingOrg'] })
+      qc.invalidateQueries({ queryKey: ['reporting'] })
       pushToast({ type: 'success', title: 'Objectifs enregistrés' })
     },
     onError: (err: Error) => {

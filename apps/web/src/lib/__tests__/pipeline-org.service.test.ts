@@ -83,6 +83,26 @@ describe('pipeline-org.service - fetchOrgConsolidatedPipeline', () => {
           })
         }
       }
+      if (collName === 'team_accesses') {
+        // Source de vérité : mock un commercial actif sous tm-1
+        return {
+          where: vi.fn().mockReturnValue({
+            get: vi.fn().mockResolvedValue({
+              docs: [
+                {
+                  id: 'member-access-1',
+                  data: () => ({
+                    managerUid: 'tm-1',
+                    role: 'member',
+                    firebaseUid: 'member-uid-1',
+                    status: 'active'
+                  })
+                }
+              ]
+            })
+          })
+        }
+      }
       return {}
     })
 

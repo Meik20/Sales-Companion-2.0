@@ -897,13 +897,12 @@ function TargetsButton({ members }: { members?: Member[] }) {
     return s
   }, [members])
 
-  // Filtre les objectifs actifs strictement par la période sélectionnée (mois M) et par l'effectif actuel
+  // Filtre les objectifs actifs strictement par la période sélectionnée (mois M) et par l'effectif actuel (règle de source de vérité)
   const activeTargets = useMemo(
     () =>
       (allTargets ?? []).filter((t) => {
         const matchesPeriod = t.period === period
-        const isCurrentMember =
-          activeMemberIds.size > 0 && t.memberId ? activeMemberIds.has(t.memberId) : true
+        const isCurrentMember = Boolean(t.memberId && activeMemberIds.has(t.memberId))
         return matchesPeriod && isCurrentMember
       }),
     [allTargets, period, activeMemberIds]

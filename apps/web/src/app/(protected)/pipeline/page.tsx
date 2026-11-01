@@ -86,8 +86,8 @@ export default function PipelinePage() {
     // 1. Filtrer strictement sur les membres actuellement actifs dans l'équipe
     // 2. Filtrer strictement sur la période active (mois M)
     const activeTargets = allTeamTargets.filter((t) => {
-      const isCurrentMember = t.memberId ? activeMemberIds.has(t.memberId) : true
-      const isCurrentPeriod = t.period ? t.period === currentMonthPeriod : false
+      const isCurrentMember = Boolean(t.memberId && activeMemberIds.has(t.memberId))
+      const isCurrentPeriod = t.period === currentMonthPeriod
       return isCurrentMember && isCurrentPeriod
     })
 
@@ -110,7 +110,7 @@ export default function PipelinePage() {
     }
   }, [isTeamManager, allTeamTargets, user?.uid, activeMemberIds, currentMonthPeriod])
 
-  // Synthèse consolidée pour le Senior Manager (vue globale : somme des objectifs de tous les Team Managers sur le mois M)
+  // Synthèse consolidée pour le Senior Manager (vue globale : somme des objectifs des Team Managers sur le mois M)
   const smGlobalTarget = useMemo(() => {
     if (!isSeniorManager || !allTeamTargets?.length) return null
     const managersList = orgPipelineQuery.data?.managers ?? []
@@ -119,11 +119,11 @@ export default function PipelinePage() {
       ? managersList
       : [{ uid: user?.uid ?? '', isSenior: true, orgRole: 'senior_manager' }]
 
-    // Ne retenir que les objectifs de la période active en cours
+    // Ne retenir strictement que les objectifs de la période active en cours
     const monthTargets = allTeamTargets.filter(
-      (t) => !t.period || t.period === currentMonthPeriod
+      (t) => t.period === currentMonthPeriod
     )
-    const aggregated = aggregateOrgSegmentTargets(effectiveManagers, monthTargets)
+    const aggregated = aggregateOrgSegmentTargets(effectiveManagers, monthTargets, currentMonthPeriod)
     if (!aggregated.targetVolume && !aggregated.targetValue) return null
 
     return {
@@ -139,7 +139,7 @@ export default function PipelinePage() {
   const smFilteredTarget = useMemo(() => {
     if (!isSeniorManager || !filterManagerUid || !allTeamTargets?.length) return null
     const specificTargets = allTeamTargets.filter(
-      (t) => t.managerUid === filterManagerUid && (!t.period || t.period === currentMonthPeriod)
+      (t) => t.managerUid === filterManagerUid && t.period === currentMonthPeriod
     )
     if (!specificTargets.length) return null
     const targetVolume = specificTargets.reduce(
@@ -622,6 +622,11 @@ export default function PipelinePage() {
                 }
                 onClear={() => setFilterManagerUid(undefined)}
                 targets={selectedManager ? smFilteredTarget : smGlobalTarget}
+                membersCount={
+                  selectedManager
+                    ? (selectedManager.stats?.salespeopleCount ?? 0)
+                    : (orgPipelineQuery.data?.totalSalespeopleCount ?? 0)
+                }
               />
             )}
             {!orgPipelineQuery.isLoading && !orgPipelineQuery.data?.items?.length ? (

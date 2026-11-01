@@ -144,6 +144,7 @@ export async function GET(request: NextRequest) {
     }
 
     // 5. Récupérer les objectifs (teamTargets) pour tous les Team Managers du segment (hors Senior Manager) sur le mois en cours
+    // RÈGLE PYRAMIDALE : La source de vérité est l'ensemble des commerciaux actifs sous contrat de chaque Team Manager
     const teamManagerUids = managerUids.filter((uid) => !managersMap[uid]?.isSenior)
     const targetsByManager: Record<string, { targetVolume: number; targetValue: number }> = {}
     let orgTargetVolume = 0
@@ -156,27 +157,51 @@ export async function GET(request: NextRequest) {
         targetChunks.push(teamManagerUids.slice(i, i + 30))
       }
 
+      // Récupérer les membres actifs sous contrat pour chaque Team Manager (exclure support_agent et promus)
+      const activeMemberIdsByManager: Record<string, Set<string>> = {}
+      for (const uid of teamManagerUids) {
+        activeMemberIdsByManager[uid] = new Set<string>()
+      }
+
+      await Promise.all(
+        targetChunks.map(async (c) => {
+          const snap = await adminDb.collection('team_accesses').where('managerUid', 'in', c).get()
+          snap.docs.forEach((d) => {
+            const data = d.data()
+            if (data.role === 'support_agent' || data.status === 'promoted') return
+            const mUid = data.managerUid
+            if (mUid && activeMemberIdsByManager[mUid]) {
+              activeMemberIdsByManager[mUid].add(d.id)
+              if (data.firebaseUid) activeMemberIdsByManager[mUid].add(data.firebaseUid)
+              if (data.activatedUid) activeMemberIdsByManager[mUid].add(data.activatedUid)
+              if (data.memberId) activeMemberIdsByManager[mUid].add(data.memberId)
+            }
+          })
+        })
+      )
+
       await Promise.all(
         targetChunks.map(async (c) => {
           const snap = await adminDb.collection('teamTargets').where('managerUid', 'in', c).get()
           snap.docs.forEach((doc) => {
             const d = doc.data()
-            // Filtre strict : ne retenir que les objectifs du mois actif M
-            if (d.period && d.period !== currentMonthPeriod) return
+            // Filtre strict : ne retenir que les objectifs correspondant strictement au mois actif M
+            if (!d.period || d.period !== currentMonthPeriod) return
 
             const mUid = d.managerUid
-            if (mUid) {
-              if (!targetsByManager[mUid]) {
-                targetsByManager[mUid] = { targetVolume: 0, targetValue: 0 }
-              }
-              if (typeof d.targetVolume === 'number') {
-                targetsByManager[mUid].targetVolume += d.targetVolume
-                orgTargetVolume += d.targetVolume
-              }
-              if (typeof d.targetValue === 'number') {
-                targetsByManager[mUid].targetValue += d.targetValue
-                orgTargetValue += d.targetValue
-              }
+            // Source de vérité : vérifier que le commercial fait partie des membres actifs sous contrat
+            if (!mUid || !d.memberId || !activeMemberIdsByManager[mUid]?.has(d.memberId)) return
+
+            if (!targetsByManager[mUid]) {
+              targetsByManager[mUid] = { targetVolume: 0, targetValue: 0 }
+            }
+            if (typeof d.targetVolume === 'number' && d.targetVolume > 0) {
+              targetsByManager[mUid].targetVolume += d.targetVolume
+              orgTargetVolume += d.targetVolume
+            }
+            if (typeof d.targetValue === 'number' && d.targetValue > 0) {
+              targetsByManager[mUid].targetValue += d.targetValue
+              orgTargetValue += d.targetValue
             }
           })
         })

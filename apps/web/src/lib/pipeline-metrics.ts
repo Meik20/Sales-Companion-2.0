@@ -187,14 +187,16 @@ export interface ConsolidatedTargetsResult {
 }
 
 /**
- * Consolide les objectifs au niveau Organisation / Segment.
+ * Consolide les objectifs au niveau Organisation / Segment selon l'architecture Bottom-Up :
  * APPLIQUE FORMELLEMENT LA RÈGLE INVIOLABLE :
- * Les objectifs du Senior Manager sont exclus de la consolidation segment.
- * Seuls les Team Managers opérationnels sont additionnés.
+ * 1. Les objectifs du Senior Manager sont exclus de la consolidation segment.
+ * 2. Seuls les Team Managers opérationnels sont additionnés.
+ * 3. Si activePeriod est spécifié, seuls les objectifs correspondant STRICTEMENT à cette période sont retenus.
  */
 export function aggregateOrgSegmentTargets(
   managers: ManagerEntryLike[],
-  targets: TargetEntryLike[]
+  targets: TargetEntryLike[],
+  activePeriod?: string | null
 ): ConsolidatedTargetsResult {
   const teamManagerUids = new Set(
     managers
@@ -203,7 +205,10 @@ export function aggregateOrgSegmentTargets(
   )
 
   const relevantTargets = targets.filter(
-    (t) => t.managerUid && teamManagerUids.has(t.managerUid)
+    (t) =>
+      t.managerUid &&
+      teamManagerUids.has(t.managerUid) &&
+      (!activePeriod || t.period === activePeriod)
   )
 
   const targetVolume = relevantTargets.reduce(
@@ -216,7 +221,7 @@ export function aggregateOrgSegmentTargets(
     0
   )
 
-  const period = relevantTargets.find((t) => Boolean(t.period))?.period ?? null
+  const period = activePeriod ?? relevantTargets.find((t) => Boolean(t.period))?.period ?? null
 
   return {
     targetVolume: targetVolume > 0 ? targetVolume : null,

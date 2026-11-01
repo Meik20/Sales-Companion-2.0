@@ -34,6 +34,7 @@ export interface OrgManagerStats {
     negociation: number
     conclue: number
     total: number
+    salespeopleCount?: number
   }
 }
 
@@ -47,6 +48,7 @@ export interface OrgPipelineResult {
     total: number
   }
   orgCode: string
+  totalSalespeopleCount?: number
 }
 
 interface UseOrgPipelineOptions {

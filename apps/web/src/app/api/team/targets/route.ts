@@ -44,6 +44,38 @@ export async function GET(request: NextRequest) {
 
     const userData = managerDoc.data() || {}
     const isSeniorManager = userData.orgRole === 'senior_manager' && Boolean(userData.orgCode)
+    const isIndependent = userData.role === 'independent'
+
+    // Helper pour récupérer les identifiants des commerciaux sous contrat actif pour chaque manager
+    async function getActiveMemberIdsByManager(uids: string[]): Promise<Record<string, Set<string>>> {
+      const map: Record<string, Set<string>> = {}
+      for (const u of uids) {
+        map[u] = new Set<string>()
+      }
+      if (isIndependent && managerUid) {
+        map[managerUid]?.add(managerUid)
+      }
+      for (let i = 0; i < uids.length; i += 30) {
+        const chunk = uids.slice(i, i + 30)
+        const teamAccessesSnap = await adminDb
+          .collection('team_accesses')
+          .where('managerUid', 'in', chunk)
+          .get()
+
+        for (const d of teamAccessesSnap.docs) {
+          const data = d.data()
+          if (data.role === 'support_agent' || data.status === 'promoted') continue
+          const mUid = data.managerUid
+          if (mUid && map[mUid]) {
+            map[mUid].add(d.id)
+            if (data.firebaseUid) map[mUid].add(data.firebaseUid)
+            if (data.activatedUid) map[mUid].add(data.activatedUid)
+            if (data.memberId) map[mUid].add(data.memberId)
+          }
+        }
+      }
+      return map
+    }
 
     let targets: Array<{ id: string; [key: string]: any }> = []
 
@@ -94,6 +126,14 @@ export async function GET(request: NextRequest) {
       )
 
       targets = snaps.flatMap((snap) => snap.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
+
+      // Source de vérité : filtrer strictement par les membres actifs sous contrat de chaque Team Manager
+      const activeMembersMap = await getActiveMemberIdsByManager(targetManagerUids)
+      targets = targets.filter((t) => {
+        if (!t.managerUid || !t.memberId) return false
+        const activeSet = activeMembersMap[t.managerUid]
+        return Boolean(activeSet && activeSet.has(t.memberId))
+      })
     } else {
       let query = adminDb
         .collection('teamTargets')
@@ -106,32 +146,16 @@ export async function GET(request: NextRequest) {
       const snap = await query.get()
       targets = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
 
-      // Récupérer les membres actifs de l'équipe pour éliminer les cibles orphelines (anciens membres partis ou supprimés)
-      const teamAccessesSnap = await adminDb
-        .collection('team_accesses')
-        .where('managerUid', '==', managerUid)
-        .get()
-
-      const activeTeamMemberIds = new Set<string>()
-      for (const d of teamAccessesSnap.docs) {
-        const data = d.data()
-        if (data.role === 'support_agent') continue
-        activeTeamMemberIds.add(d.id)
-        if (data.firebaseUid) activeTeamMemberIds.add(data.firebaseUid)
-        if (data.activatedUid) activeTeamMemberIds.add(data.activatedUid)
-        if (data.memberId) activeTeamMemberIds.add(data.memberId)
-      }
-
-      // Si l'équipe a des membres répertoriés, filtrer les objectifs pour ne garder que ceux des membres actifs
-      if (activeTeamMemberIds.size > 0) {
-        targets = targets.filter((t) => t.memberId && activeTeamMemberIds.has(t.memberId))
-      }
+      // Source de vérité : filtrer strictement par les membres actifs de l'équipe (élimine les orphelins)
+      const activeMembersMap = await getActiveMemberIdsByManager([managerUid])
+      const activeSet = activeMembersMap[managerUid] ?? new Set()
+      targets = targets.filter((t) => t.memberId && activeSet.has(t.memberId))
     }
 
-    // Réinitialisation automatique à 00 des objectifs dont la période mensuelle est échue
+    // Réinitialisation automatique à 00 des objectifs sans période ou dont la période mensuelle est échue
     const now = new Date()
     const sanitizedTargets = targets.map((t) => {
-      if (isTargetPeriodExpired(t.period, now)) {
+      if (!t.period || isTargetPeriodExpired(t.period, now)) {
         return { ...t, targetVolume: 0, targetValue: 0 }
       }
       return t
@@ -190,8 +214,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: 'memberId requis' }, { status: 400 })
     }
 
+    // Garantir une période mensuelle valide par défaut (mois civil en cours YYYY-MM)
+    const currentMonthPeriod = new Date().toISOString().slice(0, 7)
+    const activePeriod = period || currentMonthPeriod
+
     // Upsert : on crée un doc dont l'id est unique par managerUid + memberId + period
-    const docId = `${managerUid}_${memberId}${period ? `_${period}` : ''}`
+    const docId = `${managerUid}_${memberId}_${activePeriod}`
     const docRef = adminDb.collection('teamTargets').doc(docId)
 
     await docRef.set(
@@ -202,7 +230,7 @@ export async function POST(request: NextRequest) {
         memberName: memberName ?? null,
         targetVolume: typeof targetVolume === 'number' ? targetVolume : null,
         targetValue: typeof targetValue === 'number' ? targetValue : null,
-        period: period ?? null,
+        period: activePeriod,
         updatedAt: new Date()
       },
       { merge: true }

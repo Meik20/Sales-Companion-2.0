@@ -130,5 +130,17 @@ describe('pipeline-metrics canonical calculation rules', () => {
       expect(result.targetVolume).toBeNull()
       expect(result.targetValue).toBeNull()
     })
+
+    it('filters strictly by activePeriod when provided (bottom-up pyramidal rule)', () => {
+      const mixedTargets = [
+        { managerUid: 'tm-1', targetVolume: 50, targetValue: 300000, period: '2026-11' },
+        { managerUid: 'tm-1', targetVolume: 100, targetValue: 600000, period: '2026-10' }, // Mois passé
+        { managerUid: 'tm-2', targetVolume: 20, targetValue: 100000, period: '2026-10' }  // Mois passé
+      ]
+      const result = aggregateOrgSegmentTargets(managers, mixedTargets, '2026-11')
+      expect(result.targetVolume).toBe(50)
+      expect(result.targetValue).toBe(300000)
+      expect(result.period).toBe('2026-11')
+    })
   })
 })
