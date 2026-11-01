@@ -28,32 +28,7 @@ export async function GET(request: NextRequest) {
       .where('managerUid', '==', decoded.uid)
       .get()
 
-    // Get team targets for this manager
-    const targetsSnap = await adminDb
-      .collection('teamTargets')
-      .where('managerUid', '==', decoded.uid)
-      .get()
-
-    const targetsByMember: Record<string, { targetVolume: number | null; targetValue: number | null }> = {}
-    let totalTargetVolume = 0
-    let totalTargetValue = 0
-
-    targetsSnap.docs.forEach((doc) => {
-      const d = doc.data()
-      const mId = d.memberId
-      if (mId) {
-        targetsByMember[mId] = {
-          targetVolume: typeof d.targetVolume === 'number' ? d.targetVolume : null,
-          targetValue: typeof d.targetValue === 'number' ? d.targetValue : null
-        }
-        if (typeof d.targetVolume === 'number') totalTargetVolume += d.targetVolume
-        if (typeof d.targetValue === 'number') totalTargetValue += d.targetValue
-      }
-    })
-
-    const items = pipelineSnap.docs.map((d) => ({ id: d.id, ...d.data() })) as any[]
-
-    // Get team members for name resolution
+    // Get team members for name resolution and active team scope
     const membersSnap = await adminDb
       .collection('team_accesses')
       .where('managerUid', '==', decoded.uid)
@@ -64,6 +39,7 @@ export async function GET(request: NextRequest) {
     type MemberInfo = { name: string; accessId: string; canonicalUid: string }
     const membersMap: Record<string, MemberInfo> = {}
     const canonicalMembers: Array<{ uid: string; name: string; accessId: string }> = []
+    const activeMemberIds = new Set<string>()
 
     membersSnap.docs.forEach((d) => {
       const data = d.data()
@@ -80,11 +56,51 @@ export async function GET(request: NextRequest) {
       const info: MemberInfo = { name: fullName, accessId, canonicalUid }
       canonicalMembers.push({ uid: canonicalUid, name: fullName, accessId })
 
-      if (data.firebaseUid) membersMap[data.firebaseUid] = info
-      if (data.uid) membersMap[data.uid] = info
-      if (accessId) membersMap[accessId] = info
+      if (data.firebaseUid) {
+        membersMap[data.firebaseUid] = info
+        activeMemberIds.add(data.firebaseUid)
+      }
+      if (data.uid) {
+        membersMap[data.uid] = info
+        activeMemberIds.add(data.uid)
+      }
+      if (accessId) {
+        membersMap[accessId] = info
+        activeMemberIds.add(accessId)
+      }
       membersMap[d.id] = info
+      activeMemberIds.add(d.id)
     })
+
+    // Get team targets for this manager
+    const targetsSnap = await adminDb
+      .collection('teamTargets')
+      .where('managerUid', '==', decoded.uid)
+      .get()
+
+    const currentMonthPeriod = new Date().toISOString().slice(0, 7)
+    const targetsByMember: Record<string, { targetVolume: number | null; targetValue: number | null }> = {}
+    let totalTargetVolume = 0
+    let totalTargetValue = 0
+
+    targetsSnap.docs.forEach((doc) => {
+      const d = doc.data()
+      const mId = d.memberId
+      // Filtrage strict : ignorer les cibles hors-période ou des membres n'appartenant plus à l'équipe
+      if (d.period && d.period !== currentMonthPeriod) return
+      if (mId && activeMemberIds.size > 0 && !activeMemberIds.has(mId)) return
+
+      if (mId) {
+        targetsByMember[mId] = {
+          targetVolume: typeof d.targetVolume === 'number' ? d.targetVolume : null,
+          targetValue: typeof d.targetValue === 'number' ? d.targetValue : null
+        }
+        if (typeof d.targetVolume === 'number') totalTargetVolume += d.targetVolume
+        if (typeof d.targetValue === 'number') totalTargetValue += d.targetValue
+      }
+    })
+
+    const items = pipelineSnap.docs.map((d) => ({ id: d.id, ...d.data() })) as any[]
 
     // Global stats
     const totalProspection = items.filter((i) => normalizeStatus(i.status) === 'prospection').length

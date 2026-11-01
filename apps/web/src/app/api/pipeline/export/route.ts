@@ -499,6 +499,7 @@ export async function GET(request: NextRequest) {
       targetValue: number | null
       period: string | null
     }
+    const currentMonthPeriod = new Date().toISOString().slice(0, 7)
     const targetsMap = new Map<string, MemberTarget>()
     for (const chunk of chunkArray(orgManagerUids, 30)) {
       const targetsSnap = await adminDb
@@ -507,6 +508,7 @@ export async function GET(request: NextRequest) {
         .get()
       targetsSnap.docs.forEach((doc) => {
         const d = doc.data()
+        if (d.period && d.period !== currentMonthPeriod) return
         const key = d.memberId as string
         if (!targetsMap.has(key)) {
           targetsMap.set(key, {
@@ -661,6 +663,7 @@ export async function GET(request: NextRequest) {
           .get()
         targetsSnap.docs.forEach((doc) => {
           const d = doc.data()
+          if (d.period && d.period !== currentMonthPeriod) return
           const tmUid = d.managerUid as string
           if (!tmTargetsMap.has(tmUid)) {
             tmTargetsMap.set(tmUid, {

@@ -143,11 +143,12 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // 5. Récupérer les objectifs (teamTargets) pour tous les Team Managers du segment (hors Senior Manager)
+    // 5. Récupérer les objectifs (teamTargets) pour tous les Team Managers du segment (hors Senior Manager) sur le mois en cours
     const teamManagerUids = managerUids.filter((uid) => !managersMap[uid]?.isSenior)
     const targetsByManager: Record<string, { targetVolume: number; targetValue: number }> = {}
     let orgTargetVolume = 0
     let orgTargetValue = 0
+    const currentMonthPeriod = new Date().toISOString().slice(0, 7)
 
     try {
       const targetChunks: string[][] = []
@@ -160,6 +161,9 @@ export async function GET(request: NextRequest) {
           const snap = await adminDb.collection('teamTargets').where('managerUid', 'in', c).get()
           snap.docs.forEach((doc) => {
             const d = doc.data()
+            // Filtre strict : ne retenir que les objectifs du mois actif M
+            if (d.period && d.period !== currentMonthPeriod) return
+
             const mUid = d.managerUid
             if (mUid) {
               if (!targetsByManager[mUid]) {
