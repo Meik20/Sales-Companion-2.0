@@ -155,3 +155,21 @@ export function getMaxEligibleConcludedDate(now = new Date()): Date {
   }
 }
 
+/**
+ * Vérifie si la période d'un objectif est échue par rapport à une date de référence (now).
+ * Règle métier : Les objectifs mensuels sont réinitialisés et mis à 00 tous les derniers jours du mois M à 23:59:59.
+ */
+export function isTargetPeriodExpired(periodStr?: string | null, now = new Date()): boolean {
+  if (!periodStr) return false
+  const match = periodStr.match(/^(\d{4})-(\d{2})$/)
+  if (!match || !match[1] || !match[2]) return false
+  const year = parseInt(match[1], 10)
+  const month1Indexed = parseInt(match[2], 10)
+  const nowYear = now.getFullYear()
+  const nowMonth = now.getMonth() + 1
+  if (nowYear > year) return true
+  if (nowYear < year) return false
+  return nowMonth > month1Indexed
+}
+
+

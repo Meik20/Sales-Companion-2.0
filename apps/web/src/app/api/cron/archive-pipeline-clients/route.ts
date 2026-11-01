@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
-import { runMonthlyPipelineCycleAutoArchive } from '@/server/services/monthly-cycle-archive.service'
+import { runMonthlyPipelineCycleAutoArchive, resetMonthlyTargetsAtMonthEnd } from '@/server/services/monthly-cycle-archive.service'
 
 async function getAdmin() {
   const { adminDb } = await import('@/lib/firebase-admin')
@@ -69,10 +69,14 @@ async function handleArchiveCron(request: NextRequest) {
 
     const now = new Date()
 
+    // Réinitialisation automatique des objectifs mensuels échus (dernier jour du mois M à 23:59:59)
+    const targetsResetRes = await resetMonthlyTargetsAtMonthEnd(adminDb, now)
+
     return NextResponse.json({
       success: true,
-      message: `${totalArchived} prospect(s) conclu(s) archivé(s) vers la Base de données clients (${batchesRun} lot(s) traité(s))`,
+      message: `${totalArchived} prospect(s) conclu(s) archivé(s) vers la Base de données clients (${batchesRun} lot(s) traité(s)). ${targetsResetRes.resetCount} objectif(s) réinitialisé(s) à 00.`,
       archivedCount: totalArchived,
+      targetsResetCount: targetsResetRes.resetCount,
       batchesRun,
       hasMore,
       maxEligibleDate: lastEligibleDateIso,

@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { hasActivePaidManagerAccess } from '@/lib/manager-access'
+import { isTargetPeriodExpired } from '@/lib/monthly-cycle'
 
 async function getAdmin() {
   const { adminDb, adminAuth } = await import('@/lib/firebase-admin')
@@ -106,7 +107,16 @@ export async function GET(request: NextRequest) {
       targets = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
     }
 
-    return NextResponse.json({ targets }, { status: 200 })
+    // Réinitialisation automatique à 00 des objectifs dont la période mensuelle est échue
+    const now = new Date()
+    const sanitizedTargets = targets.map((t) => {
+      if (isTargetPeriodExpired(t.period, now)) {
+        return { ...t, targetVolume: 0, targetValue: 0 }
+      }
+      return t
+    })
+
+    return NextResponse.json({ targets: sanitizedTargets }, { status: 200 })
   } catch (error) {
     console.error('[team/targets GET]', error)
     return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 })

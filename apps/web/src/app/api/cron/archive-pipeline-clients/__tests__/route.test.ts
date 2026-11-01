@@ -3,7 +3,8 @@ import { NextRequest } from 'next/server'
 
 const mocks = vi.hoisted(() => {
   const mockRunArchive = vi.fn()
-  return { mockRunArchive }
+  const mockResetTargets = vi.fn().mockResolvedValue({ resetCount: 0 })
+  return { mockRunArchive, mockResetTargets }
 })
 
 vi.mock('@/lib/firebase-admin', () => ({
@@ -11,7 +12,8 @@ vi.mock('@/lib/firebase-admin', () => ({
 }))
 
 vi.mock('@/server/services/monthly-cycle-archive.service', () => ({
-  runMonthlyPipelineCycleAutoArchive: mocks.mockRunArchive
+  runMonthlyPipelineCycleAutoArchive: mocks.mockRunArchive,
+  resetMonthlyTargetsAtMonthEnd: mocks.mockResetTargets
 }))
 
 import { GET, POST } from '../route'
@@ -21,6 +23,7 @@ describe('CRON /api/cron/archive-pipeline-clients', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    mocks.mockResetTargets.mockResolvedValue({ resetCount: 0 })
     process.env = { ...originalEnv }
   })
 

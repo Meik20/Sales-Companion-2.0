@@ -886,15 +886,38 @@ function TargetsButton({ members }: { members?: Member[] }) {
   const { data: allTargets } = useTeamTargets()
   const saveMutation = useSaveTeamTarget()
 
-  // Objectif global consolidé
-  const globalVolume = (allTargets ?? []).reduce(
+  // Filtre les objectifs actifs strictement par la période sélectionnée (mois M)
+  const activeTargets = useMemo(
+    () => (allTargets ?? []).filter((t) => t.period === period),
+    [allTargets, period]
+  )
+
+  // Objectif global consolidé pour le mois M
+  const globalVolume = activeTargets.reduce(
     (acc, t) => (t.targetVolume != null ? acc + t.targetVolume : acc),
     0
   )
-  const globalValue = (allTargets ?? []).reduce(
+  const globalValue = activeTargets.reduce(
     (acc, t) => (t.targetValue != null ? acc + t.targetValue : acc),
     0
   )
+
+  // Pré-remplissage automatique des champs quand un seul membre est sélectionné
+  useEffect(() => {
+    if (selectedMemberIds.length === 1) {
+      const existing = activeTargets.find((t) => t.memberId === selectedMemberIds[0])
+      if (existing) {
+        setTargetVolume(existing.targetVolume != null ? String(existing.targetVolume) : '')
+        setTargetValue(existing.targetValue != null ? String(existing.targetValue) : '')
+      } else {
+        setTargetVolume('')
+        setTargetValue('')
+      }
+    } else if (selectedMemberIds.length === 0) {
+      setTargetVolume('')
+      setTargetValue('')
+    }
+  }, [selectedMemberIds, activeTargets])
 
   const inputStyle: React.CSSProperties = {
     background: 'var(--secondary, #1e2a3b)',
@@ -926,17 +949,23 @@ function TargetsButton({ members }: { members?: Member[] }) {
 
   function handleSave() {
     if (selectedMemberIds.length === 0) return
+    const volNum = targetVolume ? parseFloat(targetVolume) : null
+    const valNum = targetValue ? parseFloat(targetValue.replace(/\s+/g, '')) : null
     // Batch save: une mutation par membre sélectionné
     selectedMemberIds.forEach((uid) => {
       const member = members?.find((m) => m.uid === uid)
       saveMutation.mutate({
         memberId: uid,
         memberName: member?.name ?? member?.email ?? 'Commercial',
-        targetVolume: targetVolume ? parseFloat(targetVolume) : null,
-        targetValue: targetValue ? parseFloat(targetValue.replace(/\s+/g, '')) : null,
-        period: period.trim() || null
+        targetVolume: volNum,
+        targetValue: valNum,
+        period: period.trim() || currentMonth
       })
     })
+    setSelectedMemberIds([])
+    setTargetVolume('')
+    setTargetValue('')
+    setDropdownOpen(false)
   }
 
   // Label du bouton de sélection multiple
@@ -1056,58 +1085,68 @@ function TargetsButton({ members }: { members?: Member[] }) {
             </div>
 
             {/* Objectif Global (R/O) */}
-            {(globalVolume > 0 || globalValue > 0) && (
-              <div
+            <div
+              style={{
+                background: 'rgba(16,185,129,0.07)',
+                border: '1px solid rgba(16,185,129,0.2)',
+                borderRadius: 10,
+                padding: '10px 14px',
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '6px 20px',
+                alignItems: 'center'
+              }}
+            >
+              <span
                 style={{
-                  background: 'rgba(16,185,129,0.07)',
-                  border: '1px solid rgba(16,185,129,0.2)',
-                  borderRadius: 10,
-                  padding: '10px 14px',
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  gap: '6px 20px',
-                  alignItems: 'center'
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: 'var(--pipeline-concluded-color, #047857)',
+                  letterSpacing: '.04em',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 5
                 }}
               >
-                <span
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 700,
-                    color: 'var(--pipeline-concluded-color, #047857)',
-                    letterSpacing: '.04em',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 5
-                  }}
-                >
-                  <Globe size={12} />
-                  {t('pipeline.globalTargetRo')}
-                </span>
-                {globalVolume > 0 && (
-                  <span style={{ fontSize: 12, color: 'var(--foreground, #1e293b)' }}>
-                    {t('pipeline.volLabel')} <strong>{globalVolume}</strong> {globalVolume > 1 ? t('pipeline.targetLines') : t('pipeline.targetLine')}
-                  </span>
-                )}
-                {globalValue > 0 && (
-                  <span
-                    style={{ fontSize: 12, color: 'var(--foreground, #1e293b)' }}
-                    title={`${formatFullAmount(globalValue, lang)} ${currency || 'XAF'}`}
-                  >
-                    {t('pipeline.valLabel')} <strong>{formatCompactAmount(globalValue, lang)}</strong> {currency || 'XAF'}
-                  </span>
-                )}
-                <span
-                  style={{
-                    fontSize: 10,
-                    color: 'var(--muted-foreground, #64748b)',
-                    fontStyle: 'italic',
-                    marginLeft: 'auto'
-                  }}
-                >
-                  {t('pipeline.roCalculated')}
-                </span>
-              </div>
-            )}
+                <Globe size={12} />
+                {t('pipeline.globalTargetRo')}
+              </span>
+              <span style={{ fontSize: 12, color: 'var(--foreground, #1e293b)' }}>
+                {t('pipeline.volLabel')}{' '}
+                <strong>
+                  {globalVolume > 0
+                    ? globalVolume < 10
+                      ? `0${globalVolume}`
+                      : globalVolume
+                    : '00'}
+                </strong>{' '}
+                {globalVolume === 1 ? t('pipeline.targetLine') : t('pipeline.targetLines')}
+              </span>
+              <span
+                style={{ fontSize: 12, color: 'var(--foreground, #1e293b)' }}
+                title={
+                  globalValue > 0
+                    ? `${formatFullAmount(globalValue, lang)} ${currency || 'XAF'}`
+                    : undefined
+                }
+              >
+                {t('pipeline.valLabel')}{' '}
+                <strong>
+                  {globalValue > 0 ? formatCompactAmount(globalValue, lang) : '00'}
+                </strong>{' '}
+                {currency || 'XAF'}
+              </span>
+              <span
+                style={{
+                  fontSize: 10,
+                  color: 'var(--muted-foreground, #64748b)',
+                  fontStyle: 'italic',
+                  marginLeft: 'auto'
+                }}
+              >
+                {t('pipeline.roCalculated')}
+              </span>
+            </div>
 
             {/* ── Multi-select membres ── */}
             <div>
@@ -1189,7 +1228,7 @@ function TargetsButton({ members }: { members?: Member[] }) {
                             {m.name ?? m.email ?? m.uid}
                           </span>
                           {/* Badge existant objectif */}
-                          {allTargets?.find((tg) => tg.memberId === m.uid) && (
+                          {activeTargets.find((tg) => tg.memberId === m.uid) && (
                             <span style={{ marginLeft: 'auto', fontSize: 10, color: '#10b981', fontWeight: 600, background: 'rgba(16,185,129,0.12)', padding: '1px 6px', borderRadius: 10 }}>
                               {lang === 'en' ? 'has target' : 'objectif défini'}
                             </span>
@@ -1246,30 +1285,30 @@ function TargetsButton({ members }: { members?: Member[] }) {
               </div>
             </div>
 
-            {/* Objectifs déjà définis */}
-            {allTargets && allTargets.length > 0 && (
+            {/* Objectifs définis pour le mois sélectionné */}
+            <div
+              style={{
+                background: 'var(--secondary, #1e2a3b)',
+                borderRadius: 10,
+                padding: '12px 14px',
+                fontSize: 12
+              }}
+            >
               <div
                 style={{
-                  background: 'var(--secondary, #1e2a3b)',
-                  borderRadius: 10,
-                  padding: '12px 14px',
-                  fontSize: 12
+                  fontWeight: 700,
+                  fontSize: 11,
+                  textTransform: 'uppercase',
+                  letterSpacing: '.05em',
+                  color: 'var(--muted-foreground, #94a3b8)',
+                  marginBottom: 8
                 }}
               >
-                <div
-                  style={{
-                    fontWeight: 700,
-                    fontSize: 11,
-                    textTransform: 'uppercase',
-                    letterSpacing: '.05em',
-                    color: 'var(--muted-foreground, #94a3b8)',
-                    marginBottom: 8
-                  }}
-                >
-                  {t('pipeline.definedTargets')}
-                </div>
+                {t('pipeline.definedTargets')}
+              </div>
+              {activeTargets.length > 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  {allTargets.map((tItem) => {
+                  {activeTargets.map((tItem) => {
                     const member = members?.find((m) => m.uid === tItem.memberId)
                     const name = member?.name ?? member?.email ?? 'Commercial'
                     return (
@@ -1309,26 +1348,56 @@ function TargetsButton({ members }: { members?: Member[] }) {
                             {tItem.period}
                           </span>
                         )}
-                        {tItem.targetVolume != null && (
-                          <span style={{ color: '#60a5fa' }}>
-                            {t('pipeline.volLabel')} <strong>{tItem.targetVolume}</strong>
-                          </span>
-                        )}
-                        {tItem.targetValue != null && (
-                          <span
-                            style={{ color: '#34d399' }}
-                            title={`${formatFullAmount(tItem.targetValue, lang)} ${currency || 'XAF'}`}
-                          >
-                            {t('pipeline.valLabel')}{' '}
-                            <strong>{formatCompactAmount(tItem.targetValue, lang)}</strong> {currency || 'XAF'}
-                          </span>
-                        )}
+                        <span style={{ color: '#60a5fa' }}>
+                          {t('pipeline.volLabel')}{' '}
+                          <strong>
+                            {tItem.targetVolume != null && tItem.targetVolume > 0
+                              ? tItem.targetVolume < 10
+                                ? `0${tItem.targetVolume}`
+                                : tItem.targetVolume
+                              : '00'}
+                          </strong>{' '}
+                          {tItem.targetVolume === 1 ? t('pipeline.targetLine') : t('pipeline.targetLines')}
+                        </span>
+                        <span
+                          style={{ color: '#34d399' }}
+                          title={
+                            tItem.targetValue != null && tItem.targetValue > 0
+                              ? `${formatFullAmount(tItem.targetValue, lang)} ${currency || 'XAF'}`
+                              : undefined
+                          }
+                        >
+                          {t('pipeline.valLabel')}{' '}
+                          <strong>
+                            {tItem.targetValue != null && tItem.targetValue > 0
+                              ? formatCompactAmount(tItem.targetValue, lang)
+                              : '00'}
+                          </strong>{' '}
+                          {currency || 'XAF'}
+                        </span>
                       </div>
                     )
                   })}
                 </div>
-              </div>
-            )}
+              ) : (
+                <div
+                  style={{
+                    padding: '10px 12px',
+                    textAlign: 'center',
+                    color: 'var(--muted-foreground, #94a3b8)',
+                    fontSize: 12,
+                    fontStyle: 'italic',
+                    background: 'var(--card, #131c2e)',
+                    borderRadius: 8,
+                    border: '1px dashed var(--border, rgba(255,255,255,0.08))'
+                  }}
+                >
+                  {lang === 'en'
+                    ? 'No targets defined for this month (Vol. : 00 lines, Val. : 00 XAF)'
+                    : 'Aucun objectif défini pour ce mois (Vol. : 00 lignes, Val. : 00 XAF)'}
+                </div>
+              )}
+            </div>
 
             {/* Actions */}
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
@@ -2672,7 +2741,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                       >
                         <span style={{ color: 'var(--muted-foreground, #64748b)', fontWeight: 600 }}>{t('pipeline.volumeLabel')} :</span>
                         <span style={{ fontWeight: 700, color: 'var(--foreground, #f1f5f9)' }}>
-                          {activeMemberSummary.conclueCount} / {activeTarget.targetVolume ?? '—'}{' '}
+                          {activeMemberSummary.conclueCount} / {activeTarget.targetVolume != null && activeTarget.targetVolume > 0 ? (activeTarget.targetVolume < 10 ? `0${activeTarget.targetVolume}` : activeTarget.targetVolume) : '00'}{' '}
                           {pctVolume != null && (
                             <strong style={{ color: getScoreColor(pctVolume) }}>
                               ({pctVolume}%)
@@ -2729,7 +2798,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                             color: getScoreColor(roValue)
                           }}
                         >
-                          {roValue != null ? `${roValue}%` : '—'}
+                          {roValue != null ? `${roValue}%` : '0%'}
                         </span>
                       </div>
                     </div>

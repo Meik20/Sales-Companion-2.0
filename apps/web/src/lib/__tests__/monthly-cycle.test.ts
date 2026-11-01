@@ -4,7 +4,8 @@ import {
   getMonthPeriodLabel,
   isEligibleForAutoArchive,
   getCurrentCycleContext,
-  getMaxEligibleConcludedDate
+  getMaxEligibleConcludedDate,
+  isTargetPeriodExpired
 } from '../monthly-cycle'
 import { archivePipelineDealAtomically } from '../clients-sync'
 import { runMonthlyPipelineCycleAutoArchive } from '../../server/services/monthly-cycle-archive.service'
@@ -555,6 +556,27 @@ describe('monthly-cycle utility', () => {
     expect(getMonthPeriodLabel(period, 'en')).toBe('October 2026')
     expect(getMonthPeriodLabel(null, 'fr')).toBe('En cours')
     expect(getMonthPeriodLabel(null, 'en')).toBe('Current')
+  })
+
+  it('correctly detects expired target periods past month end (last day at 23:59)', () => {
+    // Period 2026-10 ends on 2026-10-31 23:59:59.999
+    const beforeEnd = new Date(2026, 9, 31, 23, 55, 0)
+    expect(isTargetPeriodExpired('2026-10', beforeEnd)).toBe(false)
+
+    // Right after month end (e.g. 2026-11-01 00:00:01): expired!
+    const afterEnd = new Date(2026, 10, 1, 0, 0, 1)
+    expect(isTargetPeriodExpired('2026-10', afterEnd)).toBe(true)
+
+    // Current month 2026-11 is not expired on Nov 15th
+    const midNov = new Date(2026, 10, 15, 12, 0, 0)
+    expect(isTargetPeriodExpired('2026-11', midNov)).toBe(false)
+
+    // Future month 2026-12 is not expired
+    expect(isTargetPeriodExpired('2026-12', midNov)).toBe(false)
+
+    // Invalid or empty period returns false safely
+    expect(isTargetPeriodExpired('', midNov)).toBe(false)
+    expect(isTargetPeriodExpired(null, midNov)).toBe(false)
   })
 })
 

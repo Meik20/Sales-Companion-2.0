@@ -6,7 +6,7 @@
 import type { Firestore } from 'firebase-admin/firestore'
 import { Timestamp } from 'firebase-admin/firestore'
 import { archivePipelineDealAtomically } from '../../lib/clients-sync'
-import { isEligibleForAutoArchive, getMaxEligibleConcludedDate } from '../../lib/monthly-cycle'
+import { isEligibleForAutoArchive, getMaxEligibleConcludedDate, isTargetPeriodExpired } from '../../lib/monthly-cycle'
 
 export interface ArchiveCycleCursors {
   q1LastDoc?: FirebaseFirestore.DocumentSnapshot
@@ -203,5 +203,52 @@ export async function runMonthlyPipelineCycleAutoArchive(
   } catch (err) {
     console.error('[runMonthlyPipelineCycleAutoArchive] error:', err)
     throw err
+  }
+}
+
+/**
+ * Réinitialise à 00 (0) les objectifs d'équipe dont la période est échue.
+ * Règle d'or : Les objectifs sont réinitialisés et mis à 00 tous les derniers jours du mois M à 23:59:59.
+ */
+export async function resetMonthlyTargetsAtMonthEnd(
+  adminDb: Firestore,
+  now = new Date()
+): Promise<{ resetCount: number }> {
+  try {
+    const snap = await adminDb.collection('teamTargets').get()
+    let resetCount = 0
+    let batch = adminDb.batch()
+    let batchOps = 0
+
+    for (const doc of snap.docs) {
+      const data = doc.data()
+      const period = data.period as string | undefined
+      if (isTargetPeriodExpired(period, now)) {
+        if ((data.targetVolume ?? 0) > 0 || (data.targetValue ?? 0) > 0) {
+          batch.update(doc.ref, {
+            targetVolume: 0,
+            targetValue: 0,
+            resetAt: Timestamp.fromDate(now),
+            updatedAt: Timestamp.fromDate(now)
+          })
+          resetCount++
+          batchOps++
+          if (batchOps >= 450) {
+            await batch.commit()
+            batch = adminDb.batch()
+            batchOps = 0
+          }
+        }
+      }
+    }
+
+    if (batchOps > 0) {
+      await batch.commit()
+    }
+
+    return { resetCount }
+  } catch (err) {
+    console.error('[resetMonthlyTargetsAtMonthEnd] error:', err)
+    return { resetCount: 0 }
   }
 }

@@ -25,7 +25,7 @@ import { AiFormattedMessage } from '@/components/ui/AiFormattedMessage'
 import { formatCompactAmount, formatFullAmount } from '@/lib/formatters'
 
 function formatFcfaCompact(amount: number, locale: string = 'fr'): string {
-  if (!amount || amount <= 0) return '—'
+  if (!amount || amount <= 0) return '0 XAF'
   return `${formatCompactAmount(amount, locale)} XAF`
 }
 
