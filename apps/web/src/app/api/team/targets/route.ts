@@ -105,6 +105,27 @@ export async function GET(request: NextRequest) {
 
       const snap = await query.get()
       targets = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+
+      // Récupérer les membres actifs de l'équipe pour éliminer les cibles orphelines (anciens membres partis ou supprimés)
+      const teamAccessesSnap = await adminDb
+        .collection('team_accesses')
+        .where('managerUid', '==', managerUid)
+        .get()
+
+      const activeTeamMemberIds = new Set<string>()
+      for (const d of teamAccessesSnap.docs) {
+        const data = d.data()
+        if (data.role === 'support_agent') continue
+        activeTeamMemberIds.add(d.id)
+        if (data.firebaseUid) activeTeamMemberIds.add(data.firebaseUid)
+        if (data.activatedUid) activeTeamMemberIds.add(data.activatedUid)
+        if (data.memberId) activeTeamMemberIds.add(data.memberId)
+      }
+
+      // Si l'équipe a des membres répertoriés, filtrer les objectifs pour ne garder que ceux des membres actifs
+      if (activeTeamMemberIds.size > 0) {
+        targets = targets.filter((t) => t.memberId && activeTeamMemberIds.has(t.memberId))
+      }
     }
 
     // Réinitialisation automatique à 00 des objectifs dont la période mensuelle est échue

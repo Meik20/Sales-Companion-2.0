@@ -886,10 +886,27 @@ function TargetsButton({ members }: { members?: Member[] }) {
   const { data: allTargets } = useTeamTargets()
   const saveMutation = useSaveTeamTarget()
 
-  // Filtre les objectifs actifs strictement par la période sélectionnée (mois M)
+  const activeMemberIds = useMemo(() => {
+    const s = new Set<string>()
+    for (const m of members ?? []) {
+      if ((m as any).role !== 'support_agent') {
+        if (m.uid) s.add(m.uid)
+        if (m.accessId) s.add(m.accessId)
+      }
+    }
+    return s
+  }, [members])
+
+  // Filtre les objectifs actifs strictement par la période sélectionnée (mois M) et par l'effectif actuel
   const activeTargets = useMemo(
-    () => (allTargets ?? []).filter((t) => t.period === period),
-    [allTargets, period]
+    () =>
+      (allTargets ?? []).filter((t) => {
+        const matchesPeriod = t.period === period
+        const isCurrentMember =
+          activeMemberIds.size > 0 && t.memberId ? activeMemberIds.has(t.memberId) : true
+        return matchesPeriod && isCurrentMember
+      }),
+    [allTargets, period, activeMemberIds]
   )
 
   // Objectif global consolidé pour le mois M

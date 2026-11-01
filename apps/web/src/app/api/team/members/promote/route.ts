@@ -295,6 +295,20 @@ export async function POST(request: NextRequest) {
       await commitBatchIfFull()
     }
 
+    // B3. Supprimer les teamTargets de ce commercial sous son ancien TM
+    if (sourceManagerUid) {
+      const oldTargetsSnap = await adminDb
+        .collection('teamTargets')
+        .where('managerUid', '==', sourceManagerUid)
+        .where('memberId', '==', memberUid)
+        .get()
+      for (const tDoc of oldTargetsSnap.docs) {
+        batch.delete(tDoc.ref)
+        opCount++
+        await commitBatchIfFull()
+      }
+    }
+
     // C. Mettre à jour les opportunités actives (le nouveau TM devient leur manager responsable)
     for (const [, pDoc] of pipelineDocsMap) {
       batch.update(pDoc.ref, {

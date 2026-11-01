@@ -118,6 +118,24 @@ export async function DELETE(
       }
     }
 
+    // 3b. Supprimer les objectifs d'équipe (teamTargets) associés à ce membre chez ce manager
+    let targetsDeleted = 0
+    const memberIdsToClean = [accessId]
+    if (memberFirebaseUid && !memberIdsToClean.includes(memberFirebaseUid)) {
+      memberIdsToClean.push(memberFirebaseUid)
+    }
+    for (const mId of memberIdsToClean) {
+      const targetsSnap = await adminDb
+        .collection('teamTargets')
+        .where('managerUid', '==', managerUid)
+        .where('memberId', '==', mId)
+        .get()
+      for (const doc of targetsSnap.docs) {
+        await doc.ref.delete()
+        targetsDeleted++
+      }
+    }
+
     // 4. Update the user document to detach from manager and downgrade role
     // and disable Firebase Auth user (do not delete — audit trail)
     if (memberFirebaseUid) {

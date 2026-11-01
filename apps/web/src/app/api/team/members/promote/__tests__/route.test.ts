@@ -69,19 +69,21 @@ const mocks = vi.hoisted(() => {
   })
 
   const mockCollection = vi.fn((colName: string) => {
+    const queryObj: any = {
+      get: vi.fn().mockResolvedValue({
+        docs: [
+          {
+            id: 'pipe-rep-1',
+            ref: { id: 'pipe-rep-1' },
+            data: () => ({ userId: 'rep-1', managerUid: 'tm-1', orgCode: 'SC-CM-PROMOTE', status: 'prospection' })
+          }
+        ]
+      })
+    }
+    queryObj.where = vi.fn(() => queryObj)
     return {
       doc: (id: string) => mockDoc(colName, id),
-      where: vi.fn(() => ({
-        get: vi.fn().mockResolvedValue({
-          docs: [
-            {
-              id: 'pipe-rep-1',
-              ref: { id: 'pipe-rep-1' },
-              data: () => ({ userId: 'rep-1', managerUid: 'tm-1', orgCode: 'SC-CM-PROMOTE', status: 'prospection' })
-            }
-          ]
-        })
-      }))
+      where: vi.fn(() => queryObj)
     }
   })
 
