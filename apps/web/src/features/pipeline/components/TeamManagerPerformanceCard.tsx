@@ -600,18 +600,18 @@ export function TeamManagerPerformanceCard({
                 <span
                   style={{
                     fontSize: 9,
-                    fontWeight: 800,
-                    color: roColor,
-                    background: roBg,
-                    border: `1px solid ${roBorder}`,
+                    fontWeight: 700,
+                    color: hasTargets ? 'var(--pipeline-warning-color, #b45309)' : 'var(--muted-foreground, #64748b)',
+                    background: hasTargets ? 'rgba(180, 83, 9, 0.1)' : 'rgba(255,255,255,0.05)',
+                    border: `1px solid ${hasTargets ? 'rgba(180, 83, 9, 0.25)' : 'rgba(255,255,255,0.08)'}`,
                     borderRadius: 5,
-                    padding: '1px 5px',
+                    padding: '1px 6px',
                     flexShrink: 0,
                     whiteSpace: 'nowrap'
                   }}
-                  title={hasTargets ? `${t('pipeline.roRateLabel')}: ${roRate}%` : `${t('pipeline.convRateLabel')}: ${roRate}%`}
+                  title={targets?.period ? `Période active : ${targets.period}` : (hasTargets ? 'Objectifs d’équipe actifs' : 'Aucun objectif fixé')}
                 >
-                  {`${roRate}%`}
+                  {targets?.period || (hasTargets ? (lang === 'en' ? 'Target' : 'Objectif') : (lang === 'en' ? 'No target' : 'Sans obj.'))}
                 </span>
               </div>
 
@@ -631,8 +631,14 @@ export function TeamManagerPerformanceCard({
                       fontWeight: 600,
                       color: 'var(--muted-foreground, #64748b)',
                       textTransform: 'uppercase',
-                      letterSpacing: '0.04em'
+                      letterSpacing: '0.04em',
+                      cursor: 'help'
                     }}
+                    title={
+                      lang === 'en'
+                        ? "Volume: Closed deals vs Volume target for the period (volume attainment rate)"
+                        : "Volume : Affaires conclues vs Objectif de volume sur la période (taux d'atteinte)"
+                    }
                   >
                     {t('pipeline.volumeLabel')}
                   </span>
@@ -702,8 +708,14 @@ export function TeamManagerPerformanceCard({
                       fontWeight: 700,
                       color: 'var(--muted-foreground, #64748b)',
                       textTransform: 'uppercase',
-                      letterSpacing: '0.04em'
+                      letterSpacing: '0.04em',
+                      cursor: 'help'
                     }}
+                    title={
+                      lang === 'en'
+                        ? "Value: Closed revenue vs Financial target for the period (value attainment rate)"
+                        : "Valeur : Chiffre d'affaires conclu vs Objectif financier sur la période (taux d'atteinte)"
+                    }
                   >
                     {t('pipeline.valueLabel')}
                   </span>
@@ -782,32 +794,66 @@ export function TeamManagerPerformanceCard({
               <div
                 style={{
                   display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  paddingTop: 2,
+                  flexDirection: 'column',
+                  gap: 3,
+                  paddingTop: 3,
                   borderTop: '1px solid rgba(255,255,255,0.05)'
                 }}
               >
-                <span
+                <div
                   style={{
-                    fontSize: 9.5,
-                    fontWeight: 700,
-                    color: 'var(--muted-foreground, #64748b)',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.04em'
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between'
                   }}
                 >
-                  {t('pipeline.roRateLabel')}
-                </span>
-                <span
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 800,
-                    color: roColor
-                  }}
-                >
-                  {roRate}%
-                </span>
+                  <span
+                    style={{
+                      fontSize: 9.5,
+                      fontWeight: 700,
+                      color: 'var(--muted-foreground, #64748b)',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
+                      cursor: 'help'
+                    }}
+                    title={
+                      lang === 'en'
+                        ? "R/O Rate (Realized / Objective): composite average of Volume and Value attainment rates"
+                        : "Taux R/O (Réalisé / Objectif) : moyenne composite des taux d'atteinte en volume et en valeur"
+                    }
+                  >
+                    {t('pipeline.roRateLabel')}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 800,
+                      color: roColor
+                    }}
+                  >
+                    {roRate}%
+                  </span>
+                </div>
+                {hasTargets && (
+                  <div
+                    style={{
+                      height: 3,
+                      borderRadius: 4,
+                      background: 'rgba(255,255,255,0.06)',
+                      overflow: 'hidden'
+                    }}
+                  >
+                    <div
+                      style={{
+                        height: '100%',
+                        width: `${Math.min(roRate, 100)}%`,
+                        borderRadius: 4,
+                        background: roColor,
+                        transition: 'width 600ms ease'
+                      }}
+                    />
+                  </div>
+                )}
               </div>
             </div>
           )

@@ -1208,8 +1208,8 @@ function TargetsPanel({ members }: { members?: Member[] }) {
   )
 }
 
-// ── Export Panel ────────────────────────────────────────────────────────
-function ExportPanel({ members }: { members?: Member[] }) {
+// ── Export Modal & Button ────────────────────────────────────────────────────────
+function ExportButton({ members }: { members?: Member[] }) {
   const { t } = useTranslation()
   const { exportPerformance, loading } = useExportTeamPerformance()
   const [open, setOpen] = useState(false)
@@ -1219,7 +1219,7 @@ function ExportPanel({ members }: { members?: Member[] }) {
 
   const inputStyle: React.CSSProperties = {
     background: 'var(--secondary, #1e2a3b)',
-    border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+    border: '1px solid var(--border, rgba(255,255,255,0.1))',
     borderRadius: 8,
     padding: '7px 10px',
     fontSize: 13,
@@ -1240,144 +1240,178 @@ function ExportPanel({ members }: { members?: Member[] }) {
   }
 
   return (
-    <div style={{ marginBottom: 20 }}>
-      {/* Trigger */}
+    <>
+      {/* Trigger compact */}
       <button
-        onClick={() => setOpen((v) => !v)}
+        type="button"
+        onClick={() => setOpen(true)}
         style={{
-          display: 'flex',
+          display: 'inline-flex',
           alignItems: 'center',
-          gap: 8,
-          background:
-            'linear-gradient(135deg, rgba(99,102,241,0.12) 0%, rgba(139,92,246,0.12) 100%)',
-          border: '1px solid rgba(99,102,241,0.35)',
-          borderRadius: 10,
-          padding: '9px 16px',
+          gap: 6,
+          padding: '6px 12px',
+          borderRadius: 8,
+          border: '1px solid var(--border, rgba(255,255,255,0.12))',
+          background: 'var(--secondary, #1e2a3b)',
+          color: 'var(--foreground, #f1f5f9)',
+          fontSize: 12,
+          fontWeight: 600,
           cursor: 'pointer',
-          color: '#4338ca',
-          fontWeight: 700,
-          fontSize: 13,
-          fontFamily: "'Syne',sans-serif",
-          transition: 'all 200ms ease',
-          width: '100%',
-          justifyContent: 'space-between'
+          transition: 'all 150ms ease'
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.borderColor = 'rgba(99,102,241,0.6)'
-          e.currentTarget.style.background =
-            'linear-gradient(135deg, rgba(99,102,241,0.2) 0%, rgba(139,92,246,0.2) 100%)'
+          e.currentTarget.style.borderColor = 'rgba(99,102,241,0.5)'
+          e.currentTarget.style.background = 'var(--card, #131c2e)'
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.borderColor = 'rgba(99,102,241,0.35)'
-          e.currentTarget.style.background =
-            'linear-gradient(135deg, rgba(99,102,241,0.12) 0%, rgba(139,92,246,0.12) 100%)'
+          e.currentTarget.style.borderColor = 'var(--border, rgba(255,255,255,0.12))'
+          e.currentTarget.style.background = 'var(--secondary, #1e2a3b)'
         }}
       >
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
-          <BarChart3 size={15} style={{ color: '#4f46e5' }} />
-          {t('pipeline.exportPerformances')}
-        </span>
-        <ChevronDown
-          size={14}
-          style={{
-            opacity: 0.85,
-            color: '#4338ca',
-            transform: open ? 'rotate(180deg)' : 'none',
-            transition: 'transform 200ms ease'
-          }}
-        />
+        <BarChart3 size={14} style={{ color: '#818cf8' }} />
+        <span>{t('pipeline.exportPerformances')}</span>
       </button>
 
-      {/* Collapsible form */}
+      {/* Modal 100% opaque */}
       {open && (
-        <div
-          style={{
-            marginTop: 10,
-            background: 'var(--card, #131c2e)',
-            border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
-            borderRadius: 12,
-            padding: '18px 20px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 14,
-            boxShadow: '0 8px 32px rgba(0,0,0,0.2)'
-          }}
-        >
-          {/* Header */}
-          <div style={{ fontSize: 13, color: 'var(--muted-foreground, #94a3b8)', lineHeight: 1.5 }}>
-            {t('pipeline.exportDesc')}
-          </div>
-
-          {/* Member filter */}
-          <div>
-            <label style={labelStyle}>{t('pipeline.filterMember')}</label>
-            <select
-              value={memberId}
-              onChange={(e) => setMemberId(e.target.value)}
-              style={inputStyle}
-            >
-              <option value="">{t('pipeline.allMembers')}</option>
-              {members?.map((m) => (
-                <option key={m.uid} value={m.uid}>
-                  {m.name ?? m.email ?? m.uid}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Date range */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <div>
-              <label style={labelStyle}>{t('pipeline.exportFrom')}</label>
-              <input
-                type="date"
-                value={from}
-                onChange={(e) => setFrom(e.target.value)}
-                style={inputStyle}
-              />
-            </div>
-            <div>
-              <label style={labelStyle}>{t('pipeline.exportTo')}</label>
-              <input
-                type="date"
-                value={to}
-                onChange={(e) => setTo(e.target.value)}
-                style={inputStyle}
-              />
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => {
-                setMemberId('')
-                setFrom('')
-                setTo('')
+        <>
+          <div
+            onClick={() => setOpen(false)}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 999,
+              background: 'rgba(0,0,0,0.65)',
+              backdropFilter: 'blur(3px)'
+            }}
+          />
+          <div
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 1000,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: 16,
+              pointerEvents: 'none'
+            }}
+          >
+            <div
+              style={{
+                background: 'var(--card, #131c2e)',
+                border: '1px solid var(--border, rgba(255,255,255,0.15))',
+                borderRadius: 14,
+                width: '100%',
+                maxWidth: 480,
+                padding: 24,
+                pointerEvents: 'auto',
+                boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 16
               }}
             >
-              {t('pipeline.exportReset')}
-            </Button>
-            <Button
-              size="sm"
-              variant="primary"
-              loading={loading}
-              onClick={() =>
-                void exportPerformance({
-                  memberId: memberId || undefined,
-                  from: from || undefined,
-                  to: to || undefined
-                })
-              }
-            >
-              <Download size={14} className="mr-1.5" /> {t('pipeline.exportDownload')}
-            </Button>
+              {/* Header */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <BarChart3 size={18} style={{ color: '#818cf8' }} />
+                  <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--foreground, #f1f5f9)' }}>
+                    {t('pipeline.exportPerformances')}
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setOpen(false)}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--muted-foreground, #94a3b8)',
+                    cursor: 'pointer',
+                    padding: 4
+                  }}
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div style={{ fontSize: 13, color: 'var(--muted-foreground, #94a3b8)', lineHeight: 1.5 }}>
+                {t('pipeline.exportDesc')}
+              </div>
+
+              {/* Member filter */}
+              <div>
+                <label style={labelStyle}>{t('pipeline.filterMember')}</label>
+                <select
+                  value={memberId}
+                  onChange={(e) => setMemberId(e.target.value)}
+                  style={inputStyle}
+                >
+                  <option value="">{t('pipeline.allMembers')}</option>
+                  {members?.map((m) => (
+                    <option key={m.uid} value={m.uid}>
+                      {m.name ?? m.email ?? m.uid}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Date range */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div>
+                  <label style={labelStyle}>{t('pipeline.exportFrom')}</label>
+                  <input
+                    type="date"
+                    value={from}
+                    onChange={(e) => setFrom(e.target.value)}
+                    style={inputStyle}
+                  />
+                </div>
+                <div>
+                  <label style={labelStyle}>{t('pipeline.exportTo')}</label>
+                  <input
+                    type="date"
+                    value={to}
+                    onChange={(e) => setTo(e.target.value)}
+                    style={inputStyle}
+                  />
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 4 }}>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => {
+                    setMemberId('')
+                    setFrom('')
+                    setTo('')
+                  }}
+                >
+                  {t('pipeline.exportReset')}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="primary"
+                  loading={loading}
+                  onClick={async () => {
+                    await exportPerformance({
+                      memberId: memberId || undefined,
+                      from: from || undefined,
+                      to: to || undefined
+                    })
+                    setOpen(false)
+                  }}
+                >
+                  <Download size={14} className="mr-1.5" /> {t('pipeline.exportDownload')}
+                </Button>
+              </div>
+            </div>
           </div>
-        </div>
+        </>
       )}
-    </div>
+    </>
   )
 }
 
@@ -1398,7 +1432,6 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
   const { pushToast } = useToast()
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [selectedItem, setSelectedItem] = useState<PipelineItem | null>(null)
-  const [columnPages, setColumnPages] = useState<Record<string, number>>({})
   const [itemToDelete, setItemToDelete] = useState<{ id: string; name: string } | null>(null)
 
   async function confirmDelete() {
@@ -1750,17 +1783,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
       {/* Targets panel — objectifs Volume/Valeur par membre (Team Manager uniquement) */}
       {showTargets && <TargetsPanel members={members} />}
 
-      {/* Export panel + Archives drawer (TM uniquement) */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, flexWrap: 'wrap' }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <ExportPanel members={members} />
-        </div>
-        {enableArchive && (
-          <div style={{ paddingTop: 4 }}>
-            <ArchivesDrawer />
-          </div>
-        )}
-      </div>
+
 
       {/* ── Panneau d'archivage — TM uniquement, s'affiche quand des leads sont sélectionnés ── */}
       {enableArchive && selectedForArchive.size > 0 && (
@@ -2565,6 +2588,20 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
         </div>
       )}
 
+      {/* ── Barre d'actions compacte (Export performances & Archives) ── */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'flex-end',
+          gap: 10,
+          marginBottom: 12
+        }}
+      >
+        <ExportButton members={members} />
+        {enableArchive && <ArchivesDrawer />}
+      </div>
+
       <div
         style={{
           display: 'grid',
@@ -2573,14 +2610,6 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
         }}
       >
         {Object.entries(grouped).map(([status, groupItems]) => {
-          const PAGE_SIZE = 10
-          const totalPages = Math.max(1, Math.ceil(groupItems.length / PAGE_SIZE))
-          const currentPage = Math.min(columnPages[status] || 1, totalPages)
-          const paginatedItems = groupItems.slice(
-            (currentPage - 1) * PAGE_SIZE,
-            currentPage * PAGE_SIZE
-          )
-
           return (
             <div key={status} style={{ display: 'flex', flexDirection: 'column' }}>
               <div
@@ -2622,21 +2651,22 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                     </button>
                   )}
                 </div>
-                {totalPages > 1 && (
-                  <span
-                    style={{
-                      fontSize: 11,
-                      color: 'var(--muted-foreground, #94a3b8)',
-                      fontWeight: 600
-                    }}
-                  >
-                    Page {currentPage} / {totalPages}
-                  </span>
-                )}
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flexGrow: 1 }}>
-                {paginatedItems.map((item) => (
+              {/* Conteneur vertical à défilement autonome */}
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 8,
+                  flexGrow: 1,
+                  maxHeight: 'calc(100vh - 300px)',
+                  minHeight: 450,
+                  overflowY: 'auto',
+                  paddingRight: 4
+                }}
+              >
+                {groupItems.map((item) => (
                 <div
                   key={item.id}
                   onClick={() => setSelectedItem(item)}
@@ -2925,12 +2955,12 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                 </div>
               ))}
 
-              {paginatedItems.length === 0 && (
+              {groupItems.length === 0 && (
                 <div
                   style={{
                     padding: '20px 14px',
                     background: 'var(--secondary, #1e2a3b)',
-                    border: `1px dashed ${'var(--border, rgba(255,255,255,0.1))'}`,
+                    border: '1px dashed var(--border, rgba(255,255,255,0.1))',
                     borderRadius: 10,
                     textAlign: 'center',
                     fontSize: 12,
@@ -2941,147 +2971,6 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                 </div>
               )}
             </div>
-
-            {/* Pagination controls for this column */}
-            {totalPages > 1 && (
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  marginTop: 12,
-                  padding: '8px 10px',
-                  borderRadius: 8,
-                  background: 'var(--card, #131c2e)',
-                  border: '1px solid var(--border, rgba(255,255,255,0.08))'
-                }}
-              >
-                <button
-                  type="button"
-                  disabled={currentPage <= 1}
-                  onClick={() =>
-                    setColumnPages((prev) => ({
-                      ...prev,
-                      [status]: Math.max(1, currentPage - 1)
-                    }))
-                  }
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 4,
-                    padding: '4px 8px',
-                    fontSize: 11,
-                    fontWeight: 600,
-                    borderRadius: 6,
-                    background: currentPage <= 1 ? 'transparent' : 'var(--secondary, #1e2a3b)',
-                    color:
-                      currentPage <= 1
-                        ? 'var(--muted-foreground, #64748b)'
-                        : 'var(--foreground, #f1f5f9)',
-                    border: '1px solid var(--border, rgba(255,255,255,0.1))',
-                    cursor: currentPage <= 1 ? 'not-allowed' : 'pointer',
-                    opacity: currentPage <= 1 ? 0.45 : 1,
-                    transition: 'all 120ms ease'
-                  }}
-                >
-                  <ChevronLeft size={13} />
-                  <span>{lang === 'en' ? 'Prev' : 'Préc.'}</span>
-                </button>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => {
-                    if (
-                      totalPages > 5 &&
-                      p !== 1 &&
-                      p !== totalPages &&
-                      Math.abs(p - currentPage) > 1
-                    ) {
-                      if (p === 2 || p === totalPages - 1) {
-                        return (
-                          <span
-                            key={p}
-                            style={{
-                              fontSize: 10,
-                              color: 'var(--muted-foreground, #64748b)',
-                              padding: '0 2px'
-                            }}
-                          >
-                            …
-                          </span>
-                        )
-                      }
-                      return null
-                    }
-                    const isActive = p === currentPage
-                    return (
-                      <button
-                        key={p}
-                        type="button"
-                        onClick={() =>
-                          setColumnPages((prev) => ({
-                            ...prev,
-                            [status]: p
-                          }))
-                        }
-                        style={{
-                          minWidth: 24,
-                          height: 24,
-                          padding: '0 4px',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: 11,
-                          fontWeight: isActive ? 700 : 500,
-                          borderRadius: 6,
-                          background: isActive ? '#6366f1' : 'var(--secondary, #1e2a3b)',
-                          color: isActive ? '#ffffff' : 'var(--foreground, #f1f5f9)',
-                          border: isActive
-                            ? '1px solid #6366f1'
-                            : '1px solid var(--border, rgba(255,255,255,0.08))',
-                          cursor: 'pointer',
-                          transition: 'all 120ms ease'
-                        }}
-                      >
-                        {p}
-                      </button>
-                    )
-                  })}
-                </div>
-
-                <button
-                  type="button"
-                  disabled={currentPage >= totalPages}
-                  onClick={() =>
-                    setColumnPages((prev) => ({
-                      ...prev,
-                      [status]: Math.min(totalPages, currentPage + 1)
-                    }))
-                  }
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 4,
-                    padding: '4px 8px',
-                    fontSize: 11,
-                    fontWeight: 600,
-                    borderRadius: 6,
-                    background:
-                      currentPage >= totalPages ? 'transparent' : 'var(--secondary, #1e2a3b)',
-                    color:
-                      currentPage >= totalPages
-                        ? 'var(--muted-foreground, #64748b)'
-                        : 'var(--foreground, #f1f5f9)',
-                    border: '1px solid var(--border, rgba(255,255,255,0.1))',
-                    cursor: currentPage >= totalPages ? 'not-allowed' : 'pointer',
-                    opacity: currentPage >= totalPages ? 0.45 : 1,
-                    transition: 'all 120ms ease'
-                  }}
-                >
-                  <span>{lang === 'en' ? 'Next' : 'Suiv.'}</span>
-                  <ChevronRight size={13} />
-                </button>
-              </div>
-            )}
           </div>
         )
       })}
