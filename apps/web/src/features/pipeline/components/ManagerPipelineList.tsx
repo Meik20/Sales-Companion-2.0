@@ -1085,7 +1085,7 @@ function TargetsButton({ members }: { members?: Member[] }) {
                 </span>
                 {globalVolume > 0 && (
                   <span style={{ fontSize: 12, color: 'var(--foreground, #1e293b)' }}>
-                    {t('pipeline.volLabel')} <strong>{globalVolume}</strong> {t('pipeline.leads')}
+                    {t('pipeline.volLabel')} <strong>{globalVolume}</strong> {globalVolume > 1 ? t('pipeline.targetLines') : t('pipeline.targetLine')}
                   </span>
                 )}
                 {globalValue > 0 && (
