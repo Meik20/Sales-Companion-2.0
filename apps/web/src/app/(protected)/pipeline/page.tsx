@@ -666,6 +666,7 @@ export default function PipelinePage() {
               }
               targets={tmTarget}
               context="team"
+              membersCount={members.filter((m) => (m as any).role !== 'support_agent').length}
             />
           )}
           {!managerPipelineQuery.isLoading && !managerPipelineQuery.data?.length ? (

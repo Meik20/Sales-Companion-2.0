@@ -23,6 +23,8 @@ interface TeamManagerPerformanceCardProps {
   targets?: MemberTarget | null
   /** 'org' = Senior Manager (défaut) | 'team' = Team Manager */
   context?: 'org' | 'team'
+  /** Effectif commercial actif réel de l'équipe (strictement issu de members) */
+  membersCount?: number
 }
 
 export function TeamManagerPerformanceCard({
@@ -31,7 +33,8 @@ export function TeamManagerPerformanceCard({
   items,
   onClear,
   targets,
-  context = 'org'
+  context = 'org',
+  membersCount
 }: TeamManagerPerformanceCardProps) {
   const { t, lang } = useTranslation()
   const { currency } = useProspectingCountryDetails()
@@ -39,11 +42,19 @@ export function TeamManagerPerformanceCard({
   const isGlobal = !manager
   const [showOverdueDrawer, setShowOverdueDrawer] = useState(false)
 
-  // Bornes du mois cible (ex: "2026-11" → du 01/11 au 30/11)
+  // Bornes inconditionnelles du mois actif M (du 1er à 00:00 au dernier jour à 23:59:59)
   const periodBounds = useMemo(() => {
-    if (!targets?.period) return null
-    const [year, month] = targets.period.split('-').map(Number)
-    if (!year || !month) return null
+    let year: number
+    let month: number
+    if (targets?.period) {
+      const parts = targets.period.split('-').map(Number)
+      year = parts[0]!
+      month = parts[1]!
+    } else {
+      const now = new Date()
+      year = now.getFullYear()
+      month = now.getMonth() + 1
+    }
     const start = new Date(year, month - 1, 1, 0, 0, 0, 0)
     const end = new Date(year, month, 0, 23, 59, 59, 999)
     return { start, end }
@@ -80,14 +91,15 @@ export function TeamManagerPerformanceCard({
         negociationCount++
         activePipelineAmount += amt
       } else if (['conclue', 'conclusion', 'won', 'closed', 'gagne', 'signe'].includes(st)) {
-        // Filtre par période active : seules les affaires conclues dans le mois M sont comptées
+        // Remise à zéro inconditionnelle au 1er du mois :
+        // Seules les affaires dont la date de conclusion tombe STRICTEMENT dans le mois actif sont comptées
         const rawDate = (item as Record<string, unknown>).concludedAt ?? item.updatedAt
         const concludedDate = rawDate ? new Date(rawDate as string) : null
         const inPeriod =
-          !periodBounds ||
-          !concludedDate ||
-          isNaN(concludedDate.getTime()) ||
-          (concludedDate >= periodBounds.start && concludedDate <= periodBounds.end)
+          Boolean(concludedDate) &&
+          !isNaN(concludedDate!.getTime()) &&
+          concludedDate! >= periodBounds.start &&
+          concludedDate! <= periodBounds.end
         if (inPeriod) {
           conclueCount++
           concludedAmount += amt
@@ -126,6 +138,7 @@ export function TeamManagerPerformanceCard({
 
   const initials = manager ? (manager.name || manager.email || 'TM').slice(0, 2).toUpperCase() : ''
   const isTeamContext = context === 'team'
+  const effectiveMemberCount = membersCount != null ? membersCount : stats.memberCount
 
   return (
     <div
@@ -242,8 +255,8 @@ export function TeamManagerPerformanceCard({
                   <span>•</span>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                     <Users size={11} />
-                    {stats.memberCount}{' '}
-                    {stats.memberCount > 1 ? t('pipeline.salespeople') : t('pipeline.salesperson')}
+                    {effectiveMemberCount}{' '}
+                    {effectiveMemberCount > 1 ? t('pipeline.salespeople') : t('pipeline.salesperson')}
                   </span>
                 </>
               ) : (
@@ -256,8 +269,8 @@ export function TeamManagerPerformanceCard({
                   <span>•</span>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                     <Users size={11} />
-                    {stats.memberCount}{' '}
-                    {stats.memberCount > 1 ? t('pipeline.salespeople') : t('pipeline.salesperson')}
+                    {effectiveMemberCount}{' '}
+                    {effectiveMemberCount > 1 ? t('pipeline.salespeople') : t('pipeline.salesperson')}
                   </span>
                 </>
               )}
@@ -628,9 +641,13 @@ export function TeamManagerPerformanceCard({
                     flexShrink: 0,
                     whiteSpace: 'nowrap'
                   }}
-                  title={targets?.period ? `Période active : ${targets.period}` : (hasTargets ? 'Objectifs d’équipe actifs' : 'Aucun objectif fixé')}
+                  title={
+                    targets?.period
+                      ? `Période active : ${targets.period}`
+                      : `Période active : ${todayStr.slice(0, 7)}${hasTargets ? '' : ' (Sans objectif défini)'}`
+                  }
                 >
-                  {targets?.period || (hasTargets ? (lang === 'en' ? 'Target' : 'Objectif') : (lang === 'en' ? 'No target' : 'Sans obj.'))}
+                  {targets?.period || todayStr.slice(0, 7)}
                 </span>
               </div>
 

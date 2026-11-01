@@ -1805,7 +1805,6 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
     name: string
     email?: string
     accessId?: string
-    isFormerMember?: boolean
     totalCount: number
     prospectionCount: number
     negociationCount: number
@@ -1877,10 +1876,10 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
           const rawDate = (item as any).concludedAt ?? item.updatedAt
           const concludedDate = rawDate ? new Date(rawDate as string) : null
           const inPeriod =
-            !periodBounds ||
-            !concludedDate ||
-            isNaN(concludedDate.getTime()) ||
-            (concludedDate >= periodBounds.start && concludedDate <= periodBounds.end)
+            Boolean(concludedDate) &&
+            !isNaN(concludedDate!.getTime()) &&
+            concludedDate! >= periodBounds.start &&
+            concludedDate! <= periodBounds.end
           if (inPeriod) {
             summary.conclueCount++
             summary.concludedAmount += amt
@@ -1914,7 +1913,6 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
         name: m.name || m.email || m.accessId || 'Commercial',
         email: m.email,
         accessId: m.accessId,
-        isFormerMember: false,
         totalCount: 0,
         prospectionCount: 0,
         negociationCount: 0,
@@ -1935,24 +1933,13 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
         continue
       }
 
-      let summary = map.get(item.assignedTo!)
+      // Seuls les membres ACTUELS de l'équipe sont comptabilisés dans les membres
+      const summary = map.get(item.assignedTo!)
       if (!summary) {
-        summary = {
-          uid: item.assignedTo!,
-          name: item.memberName || resolveMemberLabel(item, members) || (lang === 'en' ? 'Former Member' : 'Ancien membre'),
-          email: undefined,
-          accessId: item.memberAccessId || undefined,
-          isFormerMember: true,
-          totalCount: 0,
-          prospectionCount: 0,
-          negociationCount: 0,
-          conclueCount: 0,
-          overdueCount: 0,
-          activePipelineAmount: 0,
-          totalAmount: 0,
-          concludedAmount: 0
-        }
-        map.set(item.assignedTo!, summary)
+        // Le commercial assigné ne fait plus partie de l'équipe :
+        // Les opportunités actives basculent dans les non assignés à reprendre par l'équipe
+        unassigned++
+        continue
       }
 
       const amt = Number(item.amount) || 0
@@ -1968,10 +1955,10 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
         const rawDate = (item as any).concludedAt ?? item.updatedAt
         const concludedDate = rawDate ? new Date(rawDate as string) : null
         const inPeriod =
-          !periodBounds ||
-          !concludedDate ||
-          isNaN(concludedDate.getTime()) ||
-          (concludedDate >= periodBounds.start && concludedDate <= periodBounds.end)
+          Boolean(concludedDate) &&
+          !isNaN(concludedDate!.getTime()) &&
+          concludedDate! >= periodBounds.start &&
+          concludedDate! <= periodBounds.end
         if (inPeriod) {
           summary.conclueCount++
           summary.concludedAmount += amt
@@ -2331,38 +2318,14 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
 
                   </>
                 ) : (
-                  <>
-                    {/* 1. Commerciaux actifs de l'équipe */}
-                    {memberSummaries.filter((m) => !m.isFormerMember).length > 0 && (
-                      <optgroup label={lang === 'en' ? 'Active Team Members' : 'Commerciaux de l’équipe'}>
-                        {memberSummaries
-                          .filter((m) => !m.isFormerMember)
-                          .map((m) => {
-                            const warn = m.overdueCount > 0 ? ` (${t('pipeline.overdueBadge', { count: m.overdueCount })})` : ''
-                            return (
-                              <option key={m.uid} value={m.uid}>
-                                {m.name} — {m.totalCount} {m.totalCount > 1 ? t('pipeline.leads') : t('pipeline.lead')}{warn}
-                              </option>
-                            )
-                          })}
-                      </optgroup>
-                    )}
-
-                    {/* 2. Anciens membres / Réalisations passées (ex: commercial promu ayant laissé des conclues) */}
-                    {memberSummaries.filter((m) => m.isFormerMember).length > 0 && (
-                      <optgroup label={lang === 'en' ? 'Former Members (Past Achievements)' : 'Anciens membres (réalisations passées)'}>
-                        {memberSummaries
-                          .filter((m) => m.isFormerMember)
-                          .map((m) => {
-                            return (
-                              <option key={m.uid} value={m.uid}>
-                                {m.name} — {m.conclueCount} {lang === 'en' ? 'closed deal(s)' : 'affaire(s) conclue(s)'}
-                              </option>
-                            )
-                          })}
-                      </optgroup>
-                    )}
-                  </>
+                  memberSummaries.map((m) => {
+                    const warn = m.overdueCount > 0 ? ` (${t('pipeline.overdueBadge', { count: m.overdueCount })})` : ''
+                    return (
+                      <option key={m.uid} value={m.uid}>
+                        {m.name} — {m.totalCount} {m.totalCount > 1 ? t('pipeline.leads') : t('pipeline.lead')}{warn}
+                      </option>
+                    )
+                  })
                 )}
               </select>
               <span
