@@ -614,6 +614,7 @@ export default function PipelinePage() {
                 managerUid={user?.uid}
                 showTargets={false}
                 isOrgView
+                managers={orgPipelineQuery.data?.managers}
               />
             ) : null}
           </DataCard>

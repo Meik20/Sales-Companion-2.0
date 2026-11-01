@@ -541,7 +541,12 @@ export const fr = {
     exportPerformances: 'Exporter les performances',
     exportDesc:
       'Téléchargez un fichier Excel avec la synthèse et le détail des opportunités par membre.',
+    exportDescTM:
+      'Téléchargez un fichier Excel avec la synthèse et le détail des opportunités par Team Manager.',
     filterMember: 'Filtrer par membre',
+    filterTM: 'Filtrer par Team Manager',
+    filterSalesperson: 'Filtrer par commercial',
+    allSalespeople: 'Tous les commerciaux',
     allMembers: 'Tous les membres',
     exportFrom: 'Du',
     exportTo: 'Au',

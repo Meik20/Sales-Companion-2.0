@@ -36,6 +36,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const memberId = searchParams.get('memberId') || null
+    const managerId = searchParams.get('managerId') || null
     const fromDate = searchParams.get('from') ? new Date(searchParams.get('from')!) : null
     const toDate = searchParams.get('to') ? new Date(searchParams.get('to')! + 'T23:59:59Z') : null
 
@@ -238,7 +239,7 @@ export async function GET(request: NextRequest) {
       const colHeaders = [
         'Entreprise',
         'Statut',
-        'Montant (FCFA)',
+        'Montant (XAF)',
         'Ville',
         'Secteur',
         'Téléphone',
@@ -331,9 +332,10 @@ export async function GET(request: NextRequest) {
 
     // ── Résolution du/des managerUid(s) actif(s) ──────────────────────────
     // • Team Manager  → uniquement son propre UID
-    // • Senior Manager → tous les Team Managers de la même organisation
+    // • Senior Manager → les Team Managers de l'organisation (ou un TM précis si managerId)
     let orgManagerUids: string[] = [callerUid] // par défaut : soi-même
     let exportScopeLabel = 'ÉQUIPE' // libellé titre rapport
+    const tmMap = new Map<string, { uid: string; name: string; email: string }>()
 
     if (isSeniorManager) {
       const orgCode: string = callerData?.orgCode ?? ''
@@ -343,11 +345,25 @@ export async function GET(request: NextRequest) {
           .where('orgCode', '==', orgCode)
           .where('role', '==', 'manager')
           .get()
-        // Exclure le Senior Manager lui-même (il ne gère pas de membres directs)
-        orgManagerUids = orgManagersSnap.docs
-          .filter((d) => (d.data().orgRole || 'team_manager') !== 'senior_manager')
-          .map((d) => d.id)
-        exportScopeLabel = 'ORGANISATION'
+        // Référencer tous les Team Managers du segment (exclure le Senior Manager)
+        orgManagersSnap.docs.forEach((d) => {
+          const mData = d.data()
+          if ((mData.orgRole || 'team_manager') !== 'senior_manager') {
+            tmMap.set(d.id, {
+              uid: d.id,
+              name: mData.name || mData.displayName || mData.email || 'Team Manager',
+              email: mData.email || ''
+            })
+          }
+        })
+
+        if (managerId && tmMap.has(managerId)) {
+          orgManagerUids = [managerId]
+          exportScopeLabel = `TM — ${tmMap.get(managerId)!.name.toUpperCase()}`
+        } else {
+          orgManagerUids = Array.from(tmMap.keys())
+          exportScopeLabel = 'ORGANISATION'
+        }
       }
       // Si aucun Team Manager trouvé, on garde [callerUid] pour éviter un export vide silencieux
     }
@@ -511,6 +527,7 @@ export async function GET(request: NextRequest) {
       assignedTo?: string
       memberName?: string
       memberAccessId?: string
+      managerUid?: string
       companyCity?: string
       companySector?: string
       companyPhone?: string
@@ -536,6 +553,7 @@ export async function GET(request: NextRequest) {
             assignedTo: d.assignedTo,
             memberName: d.memberName,
             memberAccessId: d.memberAccessId,
+            managerUid: d.managerUid,
             companyCity: d.companyCity,
             companySector: d.companySector,
             companyPhone: d.companyPhone,
@@ -557,30 +575,38 @@ export async function GET(request: NextRequest) {
       pushItems(teamSnap)
     }
 
-    // Pipeline personnel du caller (entrées où userId == callerUid)
-    const ownSnap = await adminDb.collection('pipeline').where('userId', '==', managerUid).get()
-    pushItems(ownSnap)
+    // Pipeline personnel du Team Manager uniquement
+    if (!isSeniorManager) {
+      const ownSnap = await adminDb.collection('pipeline').where('userId', '==', managerUid).get()
+      pushItems(ownSnap)
+    }
 
     // ── Filters ──────────────────────────────────────────────────────────────
     let filtered = allItems
 
-    // Le Team Manager n'étant pas lui-même membre opérationnel de son équipe, il ne doit pas figurer sur le rapport de performance.
-    // Les prospects non encore assignés par lui dans le pipeline ne lui sont pas attribués : ils y sont en attente d'assignation
-    // et ne doivent pas figurer dans le rapport de performance de l'équipe.
-    filtered = filtered.filter((i) => {
-      if (!i.assignedTo) return false
-      if (
-        i.assignedTo === managerUid ||
-        orgManagerUids.includes(i.assignedTo) ||
-        supportAgentUids.has(i.assignedTo) ||
-        i.assignedTo === '__manager__'
-      ) {
-        return false
-      }
-      return true
-    })
-
-    if (memberId) filtered = filtered.filter((i) => i.assignedTo === memberId)
+    if (!isSeniorManager) {
+      // Pour le Team Manager : n'exporter que les opportunités assignées aux commerciaux
+      filtered = filtered.filter((i) => {
+        if (!i.assignedTo) return false
+        if (
+          i.assignedTo === managerUid ||
+          orgManagerUids.includes(i.assignedTo) ||
+          supportAgentUids.has(i.assignedTo) ||
+          i.assignedTo === '__manager__'
+        ) {
+          return false
+        }
+        return true
+      })
+      if (memberId) filtered = filtered.filter((i) => i.assignedTo === memberId)
+    } else {
+      // Pour le Senior Manager : exporter les opportunités rattachées aux Team Managers du scope
+      filtered = filtered.filter((i) => {
+        if (!i.managerUid || !orgManagerUids.includes(i.managerUid)) return false
+        if (i.assignedTo && supportAgentUids.has(i.assignedTo)) return false
+        return true
+      })
+    }
 
     if (fromDate) {
       filtered = filtered.filter((i) => {
@@ -605,7 +631,7 @@ export async function GET(request: NextRequest) {
       return s
     }
 
-    // ── Build per-member summary ──────────────────────────────────────────────
+    // ── Build summary: Team Managers (for SM) or Sales Reps (for TM) ─────────
     type MemberStat = {
       uid: string
       memberName: string
@@ -622,91 +648,160 @@ export async function GET(request: NextRequest) {
 
     const byMember: Record<string, MemberStat> = {}
 
-    // Pré-remplir avec les membres opérationnels connus de l'équipe
-    if (memberId) {
-      const m = membersMap.get(memberId)
-      if (
-        m &&
-        memberId !== managerUid &&
-        !orgManagerUids.includes(memberId) &&
-        !supportAgentUids.has(memberId)
-      ) {
-        const tgt = targetsMap.get(memberId)
-        byMember[memberId] = {
-          uid: memberId,
-          memberName: m.name,
-          total: 0,
-          prospection: 0,
-          negociation: 0,
-          conclue: 0,
-          conversionRate: 0,
-          revenue: 0,
-          targetVolume: tgt?.targetVolume ?? null,
-          targetValue: tgt?.targetValue ?? null,
-          period: formatPeriod(tgt?.period ?? null, fromDate, toDate)
-        }
+    if (isSeniorManager) {
+      // Récupérer les objectifs consolidés de chaque Team Manager
+      const tmTargetsMap = new Map<
+        string,
+        { targetVolume: number | null; targetValue: number | null; period: string | null }
+      >()
+      for (const chunk of chunkArray(orgManagerUids, 30)) {
+        const targetsSnap = await adminDb
+          .collection('teamTargets')
+          .where('managerUid', 'in', chunk)
+          .get()
+        targetsSnap.docs.forEach((doc) => {
+          const d = doc.data()
+          const tmUid = d.managerUid as string
+          if (!tmTargetsMap.has(tmUid)) {
+            tmTargetsMap.set(tmUid, {
+              targetVolume: 0,
+              targetValue: 0,
+              period: d.period ?? null
+            })
+          }
+          const cur = tmTargetsMap.get(tmUid)!
+          if (typeof d.targetVolume === 'number' && d.targetVolume > 0) {
+            cur.targetVolume = (cur.targetVolume ?? 0) + d.targetVolume
+          }
+          if (typeof d.targetValue === 'number' && d.targetValue > 0) {
+            cur.targetValue = (cur.targetValue ?? 0) + d.targetValue
+          }
+          if (d.period && !cur.period) cur.period = d.period
+        })
       }
-    } else {
-      membersMap.forEach((m, uid) => {
-        if (uid === managerUid || orgManagerUids.includes(uid) || supportAgentUids.has(uid)) return
-        const tgt = targetsMap.get(uid)
-        byMember[uid] = {
-          uid,
-          memberName: m.name,
+
+      // Initialiser chaque Team Manager dans la synthèse
+      orgManagerUids.forEach((tmUid) => {
+        const tm = tmMap.get(tmUid)
+        const tgt = tmTargetsMap.get(tmUid)
+        byMember[tmUid] = {
+          uid: tmUid,
+          memberName: tm?.name || 'Team Manager',
           total: 0,
           prospection: 0,
           negociation: 0,
           conclue: 0,
           conversionRate: 0,
           revenue: 0,
-          targetVolume: tgt?.targetVolume ?? null,
-          targetValue: tgt?.targetValue ?? null,
+          targetVolume: tgt?.targetVolume && tgt.targetVolume > 0 ? tgt.targetVolume : null,
+          targetValue: tgt?.targetValue && tgt.targetValue > 0 ? tgt.targetValue : null,
           period: formatPeriod(tgt?.period ?? null, fromDate, toDate)
         }
       })
-    }
 
-    for (const item of filtered) {
-      const uid = item.assignedTo!
+      // Agréger les opportunités de pipeline par Team Manager
+      for (const item of filtered) {
+        const tmUid = item.managerUid
+        if (!tmUid || !byMember[tmUid]) continue
 
-      // Ignorer si ce n'est pas un membre commercial
-      if (supportAgentUids.has(uid) || orgManagerUids.includes(uid) || uid === managerUid) {
-        continue
-      }
-
-      let name = item.memberName
-      if (!name) {
-        const m = membersMap.get(uid)
-        name = m?.name || 'Commercial'
-      }
-
-      if (!byMember[uid]) {
-        const tgt = targetsMap.get(uid)
-        byMember[uid] = {
-          uid,
-          memberName: name ?? '',
-          total: 0,
-          prospection: 0,
-          negociation: 0,
-          conclue: 0,
-          conversionRate: 0,
-          revenue: 0,
-          targetVolume: tgt?.targetVolume ?? null,
-          targetValue: tgt?.targetValue ?? null,
-          period: formatPeriod(tgt?.period ?? null, fromDate, toDate)
+        const stat = byMember[tmUid]
+        stat.total++
+        const itemAmount = item.amount ?? 0
+        const ns = normalizeStatus(item.status)
+        if (ns === 'Prospection') stat.prospection++
+        else if (ns === 'Négociation') stat.negociation++
+        else if (ns === 'Conclue') {
+          stat.conclue++
+          stat.revenue += itemAmount
         }
       }
+    } else {
+      // Pré-remplir avec les membres opérationnels connus de l'équipe
+      if (memberId) {
+        const m = membersMap.get(memberId)
+        if (
+          m &&
+          memberId !== managerUid &&
+          !orgManagerUids.includes(memberId) &&
+          !supportAgentUids.has(memberId)
+        ) {
+          const tgt = targetsMap.get(memberId)
+          byMember[memberId] = {
+            uid: memberId,
+            memberName: m.name,
+            total: 0,
+            prospection: 0,
+            negociation: 0,
+            conclue: 0,
+            conversionRate: 0,
+            revenue: 0,
+            targetVolume: tgt?.targetVolume ?? null,
+            targetValue: tgt?.targetValue ?? null,
+            period: formatPeriod(tgt?.period ?? null, fromDate, toDate)
+          }
+        }
+      } else {
+        membersMap.forEach((m, uid) => {
+          if (uid === managerUid || orgManagerUids.includes(uid) || supportAgentUids.has(uid)) return
+          const tgt = targetsMap.get(uid)
+          byMember[uid] = {
+            uid,
+            memberName: m.name,
+            total: 0,
+            prospection: 0,
+            negociation: 0,
+            conclue: 0,
+            conversionRate: 0,
+            revenue: 0,
+            targetVolume: tgt?.targetVolume ?? null,
+            targetValue: tgt?.targetValue ?? null,
+            period: formatPeriod(tgt?.period ?? null, fromDate, toDate)
+          }
+        })
+      }
 
-      const stat = byMember[uid]
-      stat.total++
+      for (const item of filtered) {
+        const uid = item.assignedTo!
 
-      const itemAmount = item.amount ?? 0
-      const ns = normalizeStatus(item.status)
-      if (ns === 'Prospection') stat.prospection++
-      else if (ns === 'Négociation') stat.negociation++
-      else if (ns === 'Conclue') {
-        stat.conclue++
-        stat.revenue += itemAmount
+        // Ignorer si ce n'est pas un membre commercial
+        if (supportAgentUids.has(uid) || orgManagerUids.includes(uid) || uid === managerUid) {
+          continue
+        }
+
+        let name = item.memberName
+        if (!name) {
+          const m = membersMap.get(uid)
+          name = m?.name || 'Commercial'
+        }
+
+        if (!byMember[uid]) {
+          const tgt = targetsMap.get(uid)
+          byMember[uid] = {
+            uid,
+            memberName: name ?? '',
+            total: 0,
+            prospection: 0,
+            negociation: 0,
+            conclue: 0,
+            conversionRate: 0,
+            revenue: 0,
+            targetVolume: tgt?.targetVolume ?? null,
+            targetValue: tgt?.targetValue ?? null,
+            period: formatPeriod(tgt?.period ?? null, fromDate, toDate)
+          }
+        }
+
+        const stat = byMember[uid]
+        stat.total++
+
+        const itemAmount = item.amount ?? 0
+        const ns = normalizeStatus(item.status)
+        if (ns === 'Prospection') stat.prospection++
+        else if (ns === 'Négociation') stat.negociation++
+        else if (ns === 'Conclue') {
+          stat.conclue++
+          stat.revenue += itemAmount
+        }
       }
     }
 
@@ -715,21 +810,28 @@ export async function GET(request: NextRequest) {
       stat.conversionRate = stat.total > 0 ? Math.round((stat.conclue / stat.total) * 100) : 0
     }
 
-    // ── Objectif Global du pipeline (membres opérationnels) ───────────────────
+    // ── Objectif Global du pipeline consolidé ─────────────────────────────────
     let globalTargetVolume: number | null = null
     let globalTargetValue: number | null = null
-    if (memberId) {
-      const t = targetsMap.get(memberId)
-      if (t) {
-        globalTargetVolume = t.targetVolume
-        globalTargetValue = t.targetValue
-      }
-    } else {
-      targetsMap.forEach((t, mid) => {
-        if (mid === managerUid || orgManagerUids.includes(mid) || supportAgentUids.has(mid)) return
-        if (t.targetVolume != null) globalTargetVolume = (globalTargetVolume ?? 0) + t.targetVolume
-        if (t.targetValue != null) globalTargetValue = (globalTargetValue ?? 0) + t.targetValue
+    if (isSeniorManager) {
+      Object.values(byMember).forEach((s) => {
+        if (s.targetVolume != null) globalTargetVolume = (globalTargetVolume ?? 0) + s.targetVolume
+        if (s.targetValue != null) globalTargetValue = (globalTargetValue ?? 0) + s.targetValue
       })
+    } else {
+      if (memberId) {
+        const t = targetsMap.get(memberId)
+        if (t) {
+          globalTargetVolume = t.targetVolume
+          globalTargetValue = t.targetValue
+        }
+      } else {
+        targetsMap.forEach((t, mid) => {
+          if (mid === managerUid || orgManagerUids.includes(mid) || supportAgentUids.has(mid)) return
+          if (t.targetVolume != null) globalTargetVolume = (globalTargetVolume ?? 0) + t.targetVolume
+          if (t.targetValue != null) globalTargetValue = (globalTargetValue ?? 0) + t.targetValue
+        })
+      }
     }
 
     const totalRealizedVolume = Object.values(byMember).reduce((acc, s) => acc + s.conclue, 0)
@@ -789,17 +891,17 @@ export async function GET(request: NextRequest) {
 
     // Colonnes header (ligne 4) — SANS "Access ID"
     const summaryHeaders = [
-      'Membre',
+      isSeniorManager ? 'Team Manager' : 'Membre',
       'Période',
       'Total Leads',
       'Prospection',
       'Négociation',
       'Conclue (Vol.)',
       'Taux Conversion',
-      'CA Réalisé (FCFA)',
+      'CA Réalisé (XAF)',
       'Obj. Volume',
       '% Réal. Volume',
-      'Obj. Valeur (FCFA)',
+      'Obj. Valeur (XAF)',
       '% Réal. Valeur',
       'R/O'
     ]
@@ -928,7 +1030,9 @@ export async function GET(request: NextRequest) {
       return null
     })()
 
-    const totalLabel = memberId ? 'TOTAL' : `TOTAL ${exportScopeLabel}`
+    const totalLabel = isSeniorManager
+      ? (managerId ? `TOTAL ${exportScopeLabel}` : 'TOTAL ORGANISATION')
+      : (memberId ? 'TOTAL' : `TOTAL ${exportScopeLabel}`)
 
     const totalCells: (string | number | null)[] = [
       totalLabel,
@@ -995,22 +1099,37 @@ export async function GET(request: NextRequest) {
       pageSetup: { fitToPage: true, orientation: 'landscape' }
     })
 
-    const detailHeaders = [
-      'Entreprise',
-      'Statut',
-      'Montant (FCFA)',
-      'Membre',
-      'Ville',
-      'Secteur',
-      'Téléphone',
-      'Email',
-      'Note',
-      'Prochain suivi',
-      "Date d'ajout"
-    ]
+    const detailHeaders = isSeniorManager
+      ? [
+          'Entreprise',
+          'Statut',
+          'Montant (XAF)',
+          'Team Manager',
+          'Commercial',
+          'Ville',
+          'Secteur',
+          'Téléphone',
+          'Email',
+          'Note',
+          'Prochain suivi',
+          "Date d'ajout"
+        ]
+      : [
+          'Entreprise',
+          'Statut',
+          'Montant (XAF)',
+          'Commercial',
+          'Ville',
+          'Secteur',
+          'Téléphone',
+          'Email',
+          'Note',
+          'Prochain suivi',
+          "Date d'ajout"
+        ]
 
     // Titre
-    detailSheet.mergeCells(`A1:${String.fromCharCode(64 + detailHeaders.length)}1`)
+    detailSheet.mergeCells(isSeniorManager ? 'A1:L1' : 'A1:K1')
     const detailTitleCell = detailSheet.getCell('A1')
     detailTitleCell.value = '📋 DÉTAIL DES PROSPECTS'
     detailTitleCell.font = {
@@ -1039,11 +1158,17 @@ export async function GET(request: NextRequest) {
 
     // Rows
     filtered.forEach((item, rowIdx) => {
+      const tm = item.managerUid ? tmMap.get(item.managerUid) : null
+      const tmName = tm?.name || 'Team Manager'
+
       const uid = item.assignedTo
       let name = item.memberName
       if (!name && uid) {
         const m = membersMap.get(uid)
         name = m?.name || 'Commercial'
+      }
+      if (!name || uid === '__manager__') {
+        name = isSeniorManager ? 'Non assigné' : 'Commercial'
       }
 
       const row = detailSheet.getRow(3 + rowIdx)
@@ -1054,19 +1179,34 @@ export async function GET(request: NextRequest) {
       const statusColor =
         statusNorm === 'Conclue' ? 'D5F5E3' : statusNorm === 'Négociation' ? 'FEF9E7' : 'EBF5FB'
 
-      const rowData = [
-        item.companyName ?? '',
-        statusNorm,
-        item.amount ?? '',
-        name ?? '',
-        item.companyCity ?? '',
-        item.companySector ?? '',
-        item.companyPhone ?? '',
-        item.companyEmail ?? '',
-        item.notes ?? item.note ?? '',
-        item.nextFollowUp ?? '',
-        item.createdAt ? new Date(item.createdAt).toLocaleDateString('fr-FR') : ''
-      ]
+      const rowData = isSeniorManager
+        ? [
+            item.companyName ?? '',
+            statusNorm,
+            item.amount ?? '',
+            tmName,
+            name,
+            item.companyCity ?? '',
+            item.companySector ?? '',
+            item.companyPhone ?? '',
+            item.companyEmail ?? '',
+            item.notes ?? item.note ?? '',
+            item.nextFollowUp ?? '',
+            item.createdAt ? new Date(item.createdAt).toLocaleDateString('fr-FR') : ''
+          ]
+        : [
+            item.companyName ?? '',
+            statusNorm,
+            item.amount ?? '',
+            name ?? '',
+            item.companyCity ?? '',
+            item.companySector ?? '',
+            item.companyPhone ?? '',
+            item.companyEmail ?? '',
+            item.notes ?? item.note ?? '',
+            item.nextFollowUp ?? '',
+            item.createdAt ? new Date(item.createdAt).toLocaleDateString('fr-FR') : ''
+          ]
 
       rowData.forEach((val, colIdx) => {
         const cell = row.getCell(colIdx + 1)
@@ -1080,7 +1220,7 @@ export async function GET(request: NextRequest) {
         cell.alignment = {
           vertical: 'middle',
           horizontal: colIdx === 2 ? 'right' : 'left',
-          wrapText: colIdx === 8 // notes
+          wrapText: colIdx === (isSeniorManager ? 9 : 8) // notes
         }
         if (colIdx === 2 && typeof val === 'number') cell.numFmt = '#,##0'
       })
@@ -1088,19 +1228,34 @@ export async function GET(request: NextRequest) {
       row.height = 20
     })
 
-    detailSheet.columns = [
-      { width: 24 }, // Entreprise
-      { width: 14 }, // Statut
-      { width: 16 }, // Montant
-      { width: 22 }, // Membre
-      { width: 16 }, // Ville
-      { width: 18 }, // Secteur
-      { width: 16 }, // Téléphone
-      { width: 24 }, // Email
-      { width: 30 }, // Note
-      { width: 14 }, // Prochain suivi
-      { width: 14 } // Date ajout
-    ]
+    detailSheet.columns = isSeniorManager
+      ? [
+          { width: 24 }, // Entreprise
+          { width: 14 }, // Statut
+          { width: 16 }, // Montant (XAF)
+          { width: 22 }, // Team Manager
+          { width: 22 }, // Commercial
+          { width: 16 }, // Ville
+          { width: 18 }, // Secteur
+          { width: 16 }, // Téléphone
+          { width: 24 }, // Email
+          { width: 30 }, // Note
+          { width: 14 }, // Prochain suivi
+          { width: 14 } // Date ajout
+        ]
+      : [
+          { width: 24 }, // Entreprise
+          { width: 14 }, // Statut
+          { width: 16 }, // Montant (XAF)
+          { width: 22 }, // Commercial
+          { width: 16 }, // Ville
+          { width: 18 }, // Secteur
+          { width: 16 }, // Téléphone
+          { width: 24 }, // Email
+          { width: 30 }, // Note
+          { width: 14 }, // Prochain suivi
+          { width: 14 } // Date ajout
+        ]
 
     detailSheet.views = [{ state: 'frozen', ySplit: 2, xSplit: 1 }]
 

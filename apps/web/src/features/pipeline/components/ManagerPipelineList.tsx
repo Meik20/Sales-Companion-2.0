@@ -91,6 +91,7 @@ type Props = {
   showTargets?: boolean
   enableArchive?: boolean  // N'activer que pour le pipeline Team Manager
   isOrgView?: boolean      // Vue Senior Manager : regrouper par TM au lieu de par commercial
+  managers?: { uid: string; name?: string; email?: string; isSenior?: boolean }[]
 }
 
 /** Résout le nom d'affichage d'un membre pour un item du pipeline */
@@ -1209,13 +1210,23 @@ function TargetsPanel({ members }: { members?: Member[] }) {
 }
 
 // ── Export Modal & Button ────────────────────────────────────────────────────────
-function ExportButton({ members }: { members?: Member[] }) {
+function ExportButton({
+  members,
+  managers,
+  isOrgView = false
+}: {
+  members?: Member[]
+  managers?: { uid: string; name?: string; email?: string; isSenior?: boolean }[]
+  isOrgView?: boolean
+}) {
   const { t } = useTranslation()
   const { exportPerformance, loading } = useExportTeamPerformance()
   const [open, setOpen] = useState(false)
-  const [memberId, setMemberId] = useState('')
+  const [selectedId, setSelectedId] = useState('')
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
+
+  const activeTeamManagers = managers?.filter((m) => !m.isSenior) ?? []
 
   const inputStyle: React.CSSProperties = {
     background: 'var(--secondary, #1e2a3b)',
@@ -1336,23 +1347,33 @@ function ExportButton({ members }: { members?: Member[] }) {
               </div>
 
               <div style={{ fontSize: 13, color: 'var(--muted-foreground, #94a3b8)', lineHeight: 1.5 }}>
-                {t('pipeline.exportDesc')}
+                {isOrgView ? t('pipeline.exportDescTM') : t('pipeline.exportDesc')}
               </div>
 
-              {/* Member filter */}
+              {/* Filter: Team Managers for SM, Salespeople for TM */}
               <div>
-                <label style={labelStyle}>{t('pipeline.filterMember')}</label>
+                <label style={labelStyle}>
+                  {isOrgView ? t('pipeline.filterTM') : t('pipeline.filterSalesperson')}
+                </label>
                 <select
-                  value={memberId}
-                  onChange={(e) => setMemberId(e.target.value)}
+                  value={selectedId}
+                  onChange={(e) => setSelectedId(e.target.value)}
                   style={inputStyle}
                 >
-                  <option value="">{t('pipeline.allMembers')}</option>
-                  {members?.map((m) => (
-                    <option key={m.uid} value={m.uid}>
-                      {m.name ?? m.email ?? m.uid}
-                    </option>
-                  ))}
+                  <option value="">
+                    {isOrgView ? t('pipeline.allTMs') : t('pipeline.allSalespeople')}
+                  </option>
+                  {isOrgView
+                    ? activeTeamManagers.map((m) => (
+                        <option key={m.uid} value={m.uid}>
+                          {m.name ?? m.email ?? m.uid}
+                        </option>
+                      ))
+                    : members?.map((m) => (
+                        <option key={m.uid} value={m.uid}>
+                          {m.name ?? m.email ?? m.uid}
+                        </option>
+                      ))}
                 </select>
               </div>
 
@@ -1384,7 +1405,7 @@ function ExportButton({ members }: { members?: Member[] }) {
                   size="sm"
                   variant="ghost"
                   onClick={() => {
-                    setMemberId('')
+                    setSelectedId('')
                     setFrom('')
                     setTo('')
                   }}
@@ -1397,7 +1418,8 @@ function ExportButton({ members }: { members?: Member[] }) {
                   loading={loading}
                   onClick={async () => {
                     await exportPerformance({
-                      memberId: memberId || undefined,
+                      managerId: isOrgView ? (selectedId || undefined) : undefined,
+                      memberId: !isOrgView ? (selectedId || undefined) : undefined,
                       from: from || undefined,
                       to: to || undefined
                     })
@@ -1415,7 +1437,7 @@ function ExportButton({ members }: { members?: Member[] }) {
   )
 }
 
-export function ManagerPipelineList({ items, members, managerUid, showTargets = true, enableArchive = false, isOrgView = false }: Props) {
+export function ManagerPipelineList({ items, members, managerUid, showTargets = true, enableArchive = false, isOrgView = false, managers }: Props) {
   const { t, lang } = useTranslation()
   const { currency } = useProspectingCountryDetails()
   const deleteMutation = useDeletePipelineItem()
@@ -2598,7 +2620,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
           marginBottom: 12
         }}
       >
-        <ExportButton members={members} />
+        <ExportButton members={members} managers={managers} isOrgView={isOrgView} />
         {enableArchive && <ArchivesDrawer />}
       </div>
 

@@ -22,16 +22,16 @@ import { useTranslation } from '@/providers/I18nProvider'
 import { routes } from '@/constants/routes'
 import { Send, Zap, RotateCcw, Sparkles } from 'lucide-react'
 import { AiFormattedMessage } from '@/components/ui/AiFormattedMessage'
+import { formatCompactAmount, formatFullAmount } from '@/lib/formatters'
 
-function formatFcfaCompact(amount: number): string {
+function formatFcfaCompact(amount: number, locale: string = 'fr'): string {
   if (!amount || amount <= 0) return '—'
-  if (amount >= 1_000_000) {
-    return `${(amount / 1_000_000).toLocaleString('fr-FR', { maximumFractionDigits: 1 })}M F`
-  }
-  if (amount >= 1_000) {
-    return `${(amount / 1_000).toLocaleString('fr-FR', { maximumFractionDigits: 0 })}k F`
-  }
-  return `${amount.toLocaleString('fr-FR')} F`
+  return `${formatCompactAmount(amount, locale)} XAF`
+}
+
+function formatFcfaFull(amount: number, locale: string = 'fr'): string {
+  if (!amount || amount <= 0) return '0 XAF'
+  return `${formatFullAmount(amount, locale)} XAF`
 }
 
 const COUNTRY_HIGHLIGHT_CITIES: Record<string, { btp: string; tech: string }> = {
@@ -721,17 +721,17 @@ function SearchContent() {
                     <div
                       style={{ width: `${pPercent}%` }}
                       className="bg-blue-600 transition-all duration-300"
-                      title={`${t('search.prospection')}: ${pCount} (${formatFcfaCompact(pAmt)})`}
+                      title={`${t('search.prospection')}: ${pCount} (${formatFcfaFull(pAmt, lang)})`}
                     />
                     <div
                       style={{ width: `${nPercent}%` }}
                       className="bg-amber-500 transition-all duration-300"
-                      title={`${t('search.negotiation')}: ${nCount} (${formatFcfaCompact(nAmt)})`}
+                      title={`${t('search.negotiation')}: ${nCount} (${formatFcfaFull(nAmt, lang)})`}
                     />
                     <div
                       style={{ width: `${cPercent}%` }}
                       className="bg-emerald-500 transition-all duration-300"
-                      title={`${t('search.conclusion')}: ${cCount} (${formatFcfaCompact(cAmt)})`}
+                      title={`${t('search.conclusion')}: ${cCount} (${formatFcfaFull(cAmt, lang)})`}
                     />
                   </div>
 
@@ -771,7 +771,7 @@ function SearchContent() {
                         type="button"
                         onClick={() => router.push(`/pipeline?stage=${stage}`)}
                         className={`rounded-xl border p-2 text-center transition-all cursor-pointer outline-none hover:scale-[1.02] active:scale-[0.98] ${bgClass}`}
-                        title={`${label}: ${count} (${formatFcfaCompact(amount)})`}
+                        title={`${label}: ${count} (${formatFcfaFull(amount, lang)})`}
                       >
                         <div className={`text-[17px] font-bold leading-tight ${textClass}`}>
                           {count}
@@ -780,7 +780,7 @@ function SearchContent() {
                           {label}
                         </div>
                         <div className="mt-1 text-[10px] font-semibold text-muted-foreground">
-                          {formatFcfaCompact(amount)}
+                          {formatFcfaCompact(amount, lang)}
                         </div>
                       </button>
                     ))}

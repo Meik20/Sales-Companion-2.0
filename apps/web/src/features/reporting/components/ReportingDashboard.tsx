@@ -825,9 +825,9 @@ function MonthlyTrendChart({
 // ── Format Currency Helper ────────────────────────────────────────────────────
 function formatFcfa(amount: number) {
   if (amount >= 1_000_000) {
-    return `${(amount / 1_000_000).toFixed(1)}M F`
+    return `${(amount / 1_000_000).toFixed(1)} M XAF`
   }
-  return `${new Intl.NumberFormat('fr-FR').format(amount)} F`
+  return `${new Intl.NumberFormat('fr-FR').format(amount)} XAF`
 }
 
 // ── Member Performance Detail Modal ──────────────────────────────────────────
