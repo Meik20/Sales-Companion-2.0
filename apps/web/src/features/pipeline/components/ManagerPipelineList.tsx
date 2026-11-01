@@ -1805,6 +1805,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
     name: string
     email?: string
     accessId?: string
+    isFormerMember?: boolean
     totalCount: number
     prospectionCount: number
     negociationCount: number
@@ -1913,6 +1914,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
         name: m.name || m.email || m.accessId || 'Commercial',
         email: m.email,
         accessId: m.accessId,
+        isFormerMember: false,
         totalCount: 0,
         prospectionCount: 0,
         negociationCount: 0,
@@ -1937,9 +1939,10 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
       if (!summary) {
         summary = {
           uid: item.assignedTo!,
-          name: item.memberName || resolveMemberLabel(item, members) || 'Commercial',
+          name: item.memberName || resolveMemberLabel(item, members) || (lang === 'en' ? 'Former Member' : 'Ancien membre'),
           email: undefined,
           accessId: item.memberAccessId || undefined,
+          isFormerMember: true,
           totalCount: 0,
           prospectionCount: 0,
           negociationCount: 0,
@@ -2328,14 +2331,38 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
 
                   </>
                 ) : (
-                  memberSummaries.map((m) => {
-                    const warn = m.overdueCount > 0 ? ` (${t('pipeline.overdueBadge', { count: m.overdueCount })})` : ''
-                    return (
-                      <option key={m.uid} value={m.uid}>
-                        {m.name} — {m.totalCount} {m.totalCount > 1 ? t('pipeline.leads') : t('pipeline.lead')}{warn}
-                      </option>
-                    )
-                  })
+                  <>
+                    {/* 1. Commerciaux actifs de l'équipe */}
+                    {memberSummaries.filter((m) => !m.isFormerMember).length > 0 && (
+                      <optgroup label={lang === 'en' ? 'Active Team Members' : 'Commerciaux de l’équipe'}>
+                        {memberSummaries
+                          .filter((m) => !m.isFormerMember)
+                          .map((m) => {
+                            const warn = m.overdueCount > 0 ? ` (${t('pipeline.overdueBadge', { count: m.overdueCount })})` : ''
+                            return (
+                              <option key={m.uid} value={m.uid}>
+                                {m.name} — {m.totalCount} {m.totalCount > 1 ? t('pipeline.leads') : t('pipeline.lead')}{warn}
+                              </option>
+                            )
+                          })}
+                      </optgroup>
+                    )}
+
+                    {/* 2. Anciens membres / Réalisations passées (ex: commercial promu ayant laissé des conclues) */}
+                    {memberSummaries.filter((m) => m.isFormerMember).length > 0 && (
+                      <optgroup label={lang === 'en' ? 'Former Members (Past Achievements)' : 'Anciens membres (réalisations passées)'}>
+                        {memberSummaries
+                          .filter((m) => m.isFormerMember)
+                          .map((m) => {
+                            return (
+                              <option key={m.uid} value={m.uid}>
+                                {m.name} — {m.conclueCount} {lang === 'en' ? 'closed deal(s)' : 'affaire(s) conclue(s)'}
+                              </option>
+                            )
+                          })}
+                      </optgroup>
+                    )}
+                  </>
                 )}
               </select>
               <span

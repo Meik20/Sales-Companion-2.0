@@ -115,6 +115,46 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // C. Résolution par lot des noms humains des membres assignés (AGENTS.md règle 13)
+    const uidsToResolve = new Set<string>()
+    for (const item of items) {
+      const assigned = item.assignedTo as string | undefined
+      if (assigned && assigned !== managerUid && !item.memberName) {
+        uidsToResolve.add(assigned)
+      }
+    }
+
+    if (uidsToResolve.size > 0) {
+      try {
+        const uidsArray = Array.from(uidsToResolve)
+        const docRefs = uidsArray.map((id) => adminDb.collection('users').doc(id))
+        const userNamesMap = new Map<string, string>()
+
+        for (let i = 0; i < docRefs.length; i += 100) {
+          const chunk = docRefs.slice(i, i + 100)
+          const snaps = await adminDb.getAll(...chunk)
+          for (const snap of snaps) {
+            if (snap.exists) {
+              const uData = snap.data()
+              const name = uData?.name || uData?.displayName || uData?.email || null
+              if (name) {
+                userNamesMap.set(snap.id, name)
+              }
+            }
+          }
+        }
+
+        for (const item of items) {
+          const assigned = item.assignedTo as string | undefined
+          if (assigned && !item.memberName && userNamesMap.has(assigned)) {
+            item.memberName = userNamesMap.get(assigned)
+          }
+        }
+      } catch (err) {
+        console.warn('[pipeline/manager] Batch memberName resolution warning:', err)
+      }
+    }
+
     // Tri chronologique antéchronologique
     items.sort((a, b) => {
       const ta = a.createdAt ? new Date(a.createdAt as string).getTime() : 0
