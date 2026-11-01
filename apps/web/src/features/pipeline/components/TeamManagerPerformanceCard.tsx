@@ -39,6 +39,15 @@ export function TeamManagerPerformanceCard({
   const isGlobal = !manager
   const [showOverdueDrawer, setShowOverdueDrawer] = useState(false)
 
+  // Bornes du mois cible (ex: "2026-11" → du 01/11 au 30/11)
+  const periodBounds = useMemo(() => {
+    if (!targets?.period) return null
+    const [year, month] = targets.period.split('-').map(Number)
+    if (!year || !month) return null
+    const start = new Date(year, month - 1, 1, 0, 0, 0, 0)
+    const end = new Date(year, month, 0, 23, 59, 59, 999)
+    return { start, end }
+  }, [targets?.period])
 
   const stats = useMemo(() => {
     let prospectionCount = 0
@@ -71,8 +80,18 @@ export function TeamManagerPerformanceCard({
         negociationCount++
         activePipelineAmount += amt
       } else if (['conclue', 'conclusion', 'won', 'closed', 'gagne', 'signe'].includes(st)) {
-        conclueCount++
-        concludedAmount += amt
+        // Filtre par période active : seules les affaires conclues dans le mois M sont comptées
+        const rawDate = (item as Record<string, unknown>).concludedAt ?? item.updatedAt
+        const concludedDate = rawDate ? new Date(rawDate as string) : null
+        const inPeriod =
+          !periodBounds ||
+          !concludedDate ||
+          isNaN(concludedDate.getTime()) ||
+          (concludedDate >= periodBounds.start && concludedDate <= periodBounds.end)
+        if (inPeriod) {
+          conclueCount++
+          concludedAmount += amt
+        }
       }
 
       const followUp =
@@ -103,7 +122,7 @@ export function TeamManagerPerformanceCard({
       unassignedCount,
       conversionRate: items.length > 0 ? Math.round((conclueCount / items.length) * 100) : 0
     }
-  }, [items, manager?.uid, isGlobal, managers, todayStr])
+  }, [items, manager?.uid, isGlobal, managers, todayStr, periodBounds])
 
   const initials = manager ? (manager.name || manager.email || 'TM').slice(0, 2).toUpperCase() : ''
   const isTeamContext = context === 'team'

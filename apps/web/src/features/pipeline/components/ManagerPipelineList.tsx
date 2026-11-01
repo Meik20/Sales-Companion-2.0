@@ -1798,6 +1798,16 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
     concludedAmount: number
   }
 
+  // Bornes du mois courant pour filtrer les réalisations (seules les affaires conclues dans le mois M comptent)
+  const periodBounds = useMemo(() => {
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = now.getMonth() + 1 // 1-indexed
+    const start = new Date(year, month - 1, 1, 0, 0, 0, 0)
+    const end = new Date(year, month, 0, 23, 59, 59, 999)
+    return { start, end }
+  }, [])
+
   const { memberSummaries, unassignedCount, activeMemberSummary } = useMemo(() => {
     const map = new Map<string, MemberSummary>()
 
@@ -1846,8 +1856,17 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
           summary.negociationCount++
           summary.activePipelineAmount += amt
         } else if (st === 'conclue') {
-          summary.conclueCount++
-          summary.concludedAmount += amt
+          const rawDate = (item as any).concludedAt ?? item.updatedAt
+          const concludedDate = rawDate ? new Date(rawDate as string) : null
+          const inPeriod =
+            !periodBounds ||
+            !concludedDate ||
+            isNaN(concludedDate.getTime()) ||
+            (concludedDate >= periodBounds.start && concludedDate <= periodBounds.end)
+          if (inPeriod) {
+            summary.conclueCount++
+            summary.concludedAmount += amt
+          }
         }
         summary.totalAmount += amt
         if (item.nextFollowUp && item.nextFollowUp < todayStr && st !== 'conclue') {
@@ -1926,8 +1945,17 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
         summary.negociationCount++
         summary.activePipelineAmount += amt
       } else if (st === 'conclue') {
-        summary.conclueCount++
-        summary.concludedAmount += amt
+        const rawDate = (item as any).concludedAt ?? item.updatedAt
+        const concludedDate = rawDate ? new Date(rawDate as string) : null
+        const inPeriod =
+          !periodBounds ||
+          !concludedDate ||
+          isNaN(concludedDate.getTime()) ||
+          (concludedDate >= periodBounds.start && concludedDate <= periodBounds.end)
+        if (inPeriod) {
+          summary.conclueCount++
+          summary.concludedAmount += amt
+        }
       }
 
       summary.totalAmount += amt
@@ -1948,7 +1976,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
       unassignedCount: unassigned,
       activeMemberSummary: active
     }
-  }, [items, members, managerUid, todayStr, selectedMemberId, isOrgView])
+  }, [items, members, managerUid, todayStr, selectedMemberId, isOrgView, periodBounds])
 
   // Fiches filtrées selon le TM (isOrgView) ou le commercial (TM view) sélectionné
   const displayedItems = useMemo(() => {
