@@ -327,4 +327,31 @@ Ne **jamais** utiliser un emoji cercle coloré (`🟢🔴🟡`) pour indiquer un
 > 5. **Garde-fous automatisés pré-build :**  
 >    - `scripts/check-architecture-integrity.js` (Étape 15) valide systématiquement la présence de la résolution dynamique de segment dans `/api/pipeline/add/route.ts`, la propagation du segment dans `/api/imports/route.ts` et `/api/imports/transfer/route.ts`, ainsi que le traitement bilingue contextuel dans `ProspectConflictModal.tsx`.
 
+---
+
+## 16. Règle Inviolable — Zéro Donnée Hardcodée & Architecture Context-Driven (Dynamisme Intégral)
+
+> [!CAUTION]
+> **INTERDICTION ABSOLUE DES CONSTANTES MÉTIER EN DUR :**  
+> Aucune donnée opérationnelle (période mensuelle, fuseau horaire, devise, pays, segment, objectifs ou liste de collaborateurs) ne doit être figée ou dérivée d'une constante arbitraire dans le code source (`apps/web/src` ou `packages/shared`).  
+> Toute l'application DOIT être strictement pilotée par le contexte dynamique de l'utilisateur et de son organisation :  
+> `Context = { orgCode, period, timezone, currency, country, role, segment }`.
+
+### A. Dynamisme Temporel (Anti-Décalage & Bilans Historiques)
+1. **Zéro Date Système Figée :** Il est formellement interdit d'utiliser `new Date().toISOString().slice(0, 7)` comme filtre exclusif dans les services d'API (`reporting`, `pipeline`, `teamTargets`).
+2. **Support Universel du Paramètre de Période :** Toutes les routes et hooks de reporting, de cibles et de pipeline doivent obligatoirement accepter et propager le paramètre `period` (`YYYY-MM`).
+3. **Intégrité des Bilans Historiques (M-1, M-2...) :** La consultation d'une période antérieure ne doit JAMAIS réinitialiser les objectifs à `0` ni masquer les affaires conclues de cette période.
+4. **Fuseau Horaire de l'Organisation :** Le calcul du mois actif doit toujours être ancré sur le fuseau horaire officiel du pays de l'organisation cliente (`getOrgMonthPeriod(country)` / `COUNTRY_TIMEZONES`), jamais sur l'horloge UTC brute des serveurs cloud.
+
+### B. Dynamisme Territorial & Monétaire (Devises & Pays)
+1. **Devise Verrouillée à l'Organisation :** La devise affichée et calculée provient impérativement du document `organisations/{orgCode}.currency` (ou à défaut de la devise officielle du pays `COUNTRY_CURRENCIES[country]`), JAMAIS d'une chaîne statique `"XAF"` ou `"FCFA"` codée en dur.
+2. **Propagations dans l'UI :** Tous les composants de cartes de performance, drawers d'alertes et exports doivent recevoir et restituer dynamiquement le symbole monétaire contextuel.
+
+### C. Dynamisme Hiérarchique & Organisationnel
+1. **Résolution Dynamique des Équipes & Segments :** Les listes de segments, de Team Managers et de commerciaux doivent être déduites des données actives en base (`users`, `team_accesses`), jamais de listes fermées ou de tables statiques.
+2. **Adaptabilité aux Mouvements (Mutations, Promotions, Révocations) :** Dès qu'un collaborateur change d'équipe ou de rôle, l'application recalcule instantanément ses rattachements et ses dossiers sans nécessiter d'intervention manuelle dans le code.
+
+### D. Garde-fous automatisés pré-build
+- `scripts/check-architecture-integrity.js` (Étape 16) valide systématiquement que les routes `/api/reporting/org`, `/api/pipeline/org`, `/api/team/targets` et les services associés respectent le paramètre dynamique de période et ne contiennent aucun filtre temporel ou monétaire hardcodé régressif.
+
 

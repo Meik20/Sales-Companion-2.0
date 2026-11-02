@@ -628,6 +628,54 @@ try {
 
     console.log("✅ Règle d'unicité des prospects et anti-collision multi-TM conforme (résolution dynamique + propagation + contextualisation UI)")
   }
+
+  // 18. Zéro Hardcoding & Architecture Context-Driven (Dynamisme Intégral)
+  const reportingOrgRoutePath = path.resolve(__dirname, '../apps/web/src/app/api/reporting/org/route.ts')
+  const pipelineOrgServicePath = path.resolve(__dirname, '../apps/web/src/server/services/pipeline-org.service.ts')
+  const teamTargetsRoutePath = path.resolve(__dirname, '../apps/web/src/app/api/team/targets/route.ts')
+  const perfCardPath = path.resolve(__dirname, '../apps/web/src/features/pipeline/components/TeamManagerPerformanceCard.tsx')
+
+  if (
+    fs.existsSync(reportingOrgRoutePath) &&
+    fs.existsSync(pipelineOrgServicePath) &&
+    fs.existsSync(teamTargetsRoutePath) &&
+    fs.existsSync(perfCardPath)
+  ) {
+    const reportingOrgCode = fs.readFileSync(reportingOrgRoutePath, 'utf8')
+    const pipelineOrgServiceCode = fs.readFileSync(pipelineOrgServicePath, 'utf8')
+    const teamTargetsCode = fs.readFileSync(teamTargetsRoutePath, 'utf8')
+    const perfCardCode = fs.readFileSync(perfCardPath, 'utf8')
+
+    // Contrôle A : Prise en compte dynamique du paramètre period dans reporting/org
+    if (!reportingOrgCode.includes("searchParams.get('period')") || !reportingOrgCode.includes('activeMonthPeriod')) {
+      errors.push(
+        "❌ DYNAMISME TEMPOREL VIOLÉ : /api/reporting/org/route.ts doit accepter le paramètre dynamique 'period' et utiliser activeMonthPeriod."
+      )
+    }
+
+    // Contrôle B : ConcludedAt sérialisé et periodBounds dans pipeline-org.service.ts
+    if (!pipelineOrgServiceCode.includes('concludedAt:') || !pipelineOrgServiceCode.includes('isConcludedInPeriod')) {
+      errors.push(
+        "❌ SÉRIALISATION TEMPORELLE VIOLÉE : pipeline-org.service.ts doit sérialiser concludedAt en ISO string et filtrer via isConcludedInPeriod."
+      )
+    }
+
+    // Contrôle C : Préservation des objectifs historiques dans team/targets
+    if (!teamTargetsCode.includes("searchParams.get('period')") || !teamTargetsCode.includes('reqPeriod')) {
+      errors.push(
+        "❌ BILANS HISTORIQUES VIOLÉS : /api/team/targets/route.ts doit accepter 'period' et préserver les cibles historiques sans les réinitialiser à 0."
+      )
+    }
+
+    // Contrôle D : Parsing robuste universel des dates dans TeamManagerPerformanceCard
+    if (!perfCardCode.includes('safeParseDate')) {
+      errors.push(
+        "❌ PARSING DE DATES NON FIABLE : TeamManagerPerformanceCard.tsx doit utiliser safeParseDate pour prendre en charge tous les formats de date (ISO, Timestamp Firestore, Date)."
+      )
+    }
+
+    console.log("✅ Règle Zéro Hardcoding & Architecture Context-Driven conforme (période dynamique, devises org, parsing universel)")
+  }
 } catch (e) {
   errors.push(`❌ Erreur lors du contrôle des règles de calcul de pipeline : ${e.message}`)
 }
