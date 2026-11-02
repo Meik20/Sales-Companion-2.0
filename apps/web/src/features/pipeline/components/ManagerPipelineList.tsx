@@ -1770,7 +1770,16 @@ function ExportButton({
                     variant="outline"
                     onClick={() => {
                       const activePeriod = orgReportData.monthlyCycle?.currentPeriod
-                      const periodLabel = lang === 'en' ? (activePeriod?.labelEn || 'Current') : (activePeriod?.labelFr || 'En cours')
+                      const buildDateLabel = (d: string, opts: Intl.DateTimeFormatOptions) =>
+                        new Date(d).toLocaleDateString(lang === 'en' ? 'en-GB' : 'fr-FR', opts)
+                      const monthYearOpts: Intl.DateTimeFormatOptions = { month: 'long', year: 'numeric' }
+                      const periodLabel = (from || to)
+                        ? from && to
+                          ? `${buildDateLabel(from, monthYearOpts)} – ${buildDateLabel(to, monthYearOpts)}`
+                          : from
+                            ? (lang === 'en' ? `From ${buildDateLabel(from, monthYearOpts)}` : `Depuis ${buildDateLabel(from, monthYearOpts)}`)
+                            : (lang === 'en' ? `Until ${buildDateLabel(to, monthYearOpts)}` : `Jusqu'à ${buildDateLabel(to, monthYearOpts)}`)
+                        : lang === 'en' ? (activePeriod?.labelEn || 'Current') : (activePeriod?.labelFr || 'En cours')
                       exportDashboardPdf({
                         data: orgReportData,
                         seniorManagerName: managers?.find((m) => m.isSenior)?.name,

@@ -223,7 +223,8 @@ export async function resetMonthlyTargetsAtMonthEnd(
     for (const doc of snap.docs) {
       const data = doc.data()
       const period = data.period as string | undefined
-      if (isTargetPeriodExpired(period, now)) {
+      // Règle d'intégrité : réinitialiser si la période est échue OU si le document n'a pas de période (cible obsolète)
+      if (!period || isTargetPeriodExpired(period, now)) {
         if ((data.targetVolume ?? 0) > 0 || (data.targetValue ?? 0) > 0) {
           batch.update(doc.ref, {
             targetVolume: 0,

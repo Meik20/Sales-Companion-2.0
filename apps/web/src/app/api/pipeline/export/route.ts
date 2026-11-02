@@ -480,14 +480,17 @@ export async function GET(request: NextRequest) {
       }
       // Fallback : construire depuis les dates de filtre
       if (from && to) {
-        const f = from.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })
-        const t = to.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })
+        if (from.getFullYear() === to.getFullYear() && from.getMonth() === to.getMonth()) {
+          return `${MONTHS_FR[from.getMonth()]} ${from.getFullYear()}`
+        }
+        const f = `${MONTHS_FR[from.getMonth()]} ${from.getFullYear()}`
+        const t = `${MONTHS_FR[to.getMonth()]} ${to.getFullYear()}`
         return f === t ? f : `${f} – ${t}`
       }
       if (from)
-        return `Depuis ${from.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })}`
+        return `Depuis ${MONTHS_FR[from.getMonth()]} ${from.getFullYear()}`
       if (to)
-        return `Jusqu'à ${to.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })}`
+        return `Jusqu'à ${MONTHS_FR[to.getMonth()]} ${to.getFullYear()}`
       // Aucune période : utiliser le mois courant
       const now = new Date()
       return `${MONTHS_FR[now.getMonth()]} ${now.getFullYear()}`
@@ -499,7 +502,17 @@ export async function GET(request: NextRequest) {
       targetValue: number | null
       period: string | null
     }
-    const currentMonthPeriod = new Date().toISOString().slice(0, 7)
+    // Dériver la période de référence depuis la plage de dates sélectionnée par l'utilisateur.
+    // Si from ou to est fourni, on extrait la période YYYY-MM correspondante (ex. "2026-10").
+    // Sinon, on retombe sur le mois courant (comportement par défaut sans filtre).
+    const rawFrom = searchParams.get('from')
+    const rawTo = searchParams.get('to')
+    const referencePeriod = rawFrom
+      ? rawFrom.slice(0, 7)
+      : rawTo
+        ? rawTo.slice(0, 7)
+        : new Date().toISOString().slice(0, 7)
+
     const targetsMap = new Map<string, MemberTarget>()
     for (const chunk of chunkArray(orgManagerUids, 30)) {
       const targetsSnap = await adminDb
@@ -508,12 +521,13 @@ export async function GET(request: NextRequest) {
         .get()
       targetsSnap.docs.forEach((doc) => {
         const d = doc.data()
-        if (d.period && d.period !== currentMonthPeriod) return
+        // Règle stricte d'intégrité : seuls les objectifs attribués à la période demandée sont pris en compte
+        if (d.period !== referencePeriod) return
         const key = d.memberId as string
         if (!targetsMap.has(key)) {
           targetsMap.set(key, {
-            targetVolume: typeof d.targetVolume === 'number' ? d.targetVolume : null,
-            targetValue: typeof d.targetValue === 'number' ? d.targetValue : null,
+            targetVolume: typeof d.targetVolume === 'number' && d.targetVolume > 0 ? d.targetVolume : null,
+            targetValue: typeof d.targetValue === 'number' && d.targetValue > 0 ? d.targetValue : null,
             period: d.period ?? null
           })
         }
@@ -663,7 +677,8 @@ export async function GET(request: NextRequest) {
           .get()
         targetsSnap.docs.forEach((doc) => {
           const d = doc.data()
-          if (d.period && d.period !== currentMonthPeriod) return
+          // Règle stricte : ignorer tout objectif n'appartenant pas à la période demandée
+          if (d.period !== referencePeriod) return
           const tmUid = d.managerUid as string
           if (!tmTargetsMap.has(tmUid)) {
             tmTargetsMap.set(tmUid, {
@@ -698,7 +713,8 @@ export async function GET(request: NextRequest) {
           revenue: 0,
           targetVolume: tgt?.targetVolume && tgt.targetVolume > 0 ? tgt.targetVolume : null,
           targetValue: tgt?.targetValue && tgt.targetValue > 0 ? tgt.targetValue : null,
-          period: formatPeriod(tgt?.period ?? null, fromDate, toDate)
+          // La colonne "Période" reflète uniformément la période du rapport pour l'ensemble des TM
+          period: formatPeriod(referencePeriod, fromDate, toDate)
         }
       })
 
@@ -740,7 +756,7 @@ export async function GET(request: NextRequest) {
             revenue: 0,
             targetVolume: tgt?.targetVolume ?? null,
             targetValue: tgt?.targetValue ?? null,
-            period: formatPeriod(tgt?.period ?? null, fromDate, toDate)
+            period: formatPeriod(referencePeriod, fromDate, toDate)
           }
         }
       } else {
@@ -758,7 +774,7 @@ export async function GET(request: NextRequest) {
             revenue: 0,
             targetVolume: tgt?.targetVolume ?? null,
             targetValue: tgt?.targetValue ?? null,
-            period: formatPeriod(tgt?.period ?? null, fromDate, toDate)
+            period: formatPeriod(referencePeriod, fromDate, toDate)
           }
         })
       }
@@ -790,7 +806,7 @@ export async function GET(request: NextRequest) {
             revenue: 0,
             targetVolume: tgt?.targetVolume ?? null,
             targetValue: tgt?.targetValue ?? null,
-            period: formatPeriod(tgt?.period ?? null, fromDate, toDate)
+            period: formatPeriod(referencePeriod, fromDate, toDate)
           }
         }
 
@@ -883,7 +899,8 @@ export async function GET(request: NextRequest) {
     summarySheet.mergeCells('A2:M2')
     const subTitleCell = summarySheet.getCell('A2')
     const today = new Date()
-    subTitleCell.value = `Exporté le ${today.toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`
+    const periodSubtitle = formatPeriod(referencePeriod, fromDate, toDate)
+    subTitleCell.value = `Exporté le ${today.toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} | Période : ${periodSubtitle}`
     subTitleCell.font = { name: 'Calibri', italic: true, size: 10, color: { argb: 'AAAAAA' } }
     subTitleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '0D1B2A' } }
     subTitleCell.alignment = { horizontal: 'center' }
