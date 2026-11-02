@@ -1065,62 +1065,94 @@ function ProspectModal({
 
           {/* Status Actions */}
           {onStatusChange && (
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-              {item.status !== 'prospection' && item.status !== 'prospect' && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => {
-                    onStatusChange(item.id, 'prospection')
-                    onClose()
-                  }}
-                >
-                  {t('pipeline.prospection')}
-                </Button>
-              )}
-              {item.status !== 'negociation' && item.status !== 'negotiation' && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => {
-                    onStatusChange(item.id, 'negociation')
-                    onClose()
-                  }}
-                >
-                  {t('pipeline.negotiation')}
-                </Button>
-              )}
-              {item.status !== 'conclue' && item.status !== 'conclusion' && (
-                <Button
-                  size="sm"
-                  variant="primary"
-                  onClick={() => {
-                    onStatusChange(item.id, 'conclue')
-                    onClose()
-                  }}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                >
-                  <Check size={14} />
-                  {t('pipeline.closed')}
-                </Button>
-              )}
-              {item.status !== 'perdue' && item.status !== 'lost' && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setShowLostModal(true)}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    color: '#ef4444',
-                    borderColor: 'rgba(239, 68, 68, 0.35)'
-                  }}
-                >
-                  <XCircle size={14} />
-                  {t('pipeline.lost') || (lang === 'en' ? 'Mark as Lost' : 'Marquer comme perdue')}
-                </Button>
-              )}
+            <div
+              style={{
+                marginTop: 24,
+                paddingTop: 16,
+                borderTop: '1px solid var(--border, rgba(255, 255, 255, 0.08))',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: 12
+              }}
+            >
+              {/* Option d'échec / Perte (Action négative à gauche, discrète et élégante) */}
+              <div>
+                {item.status !== 'perdue' && item.status !== 'lost' && (
+                  <button
+                    type="button"
+                    onClick={() => setShowLostModal(true)}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      padding: '7px 12px',
+                      borderRadius: 8,
+                      border: '1px solid rgba(239, 68, 68, 0.35)',
+                      background: 'rgba(239, 68, 68, 0.06)',
+                      color: '#ef4444',
+                      fontSize: 12,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      transition: 'all 150ms ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'rgba(239, 68, 68, 0.14)'
+                      e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.6)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'rgba(239, 68, 68, 0.06)'
+                      e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.35)'
+                    }}
+                  >
+                    <XCircle size={14} />
+                    <span>{lang === 'en' ? 'Mark as Lost' : 'Marquer comme perdue'}</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Progression du Pipeline (Actions d'avancement à droite) */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                {item.status !== 'prospection' && item.status !== 'prospect' && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      onStatusChange(item.id, 'prospection')
+                      onClose()
+                    }}
+                  >
+                    {t('pipeline.prospection')}
+                  </Button>
+                )}
+                {item.status !== 'negociation' && item.status !== 'negotiation' && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      onStatusChange(item.id, 'negociation')
+                      onClose()
+                    }}
+                  >
+                    {t('pipeline.negotiation')}
+                  </Button>
+                )}
+                {item.status !== 'conclue' && item.status !== 'conclusion' && (
+                  <Button
+                    size="sm"
+                    variant="primary"
+                    onClick={() => {
+                      onStatusChange(item.id, 'conclue')
+                      onClose()
+                    }}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                  >
+                    <Check size={14} />
+                    {t('pipeline.closed')}
+                  </Button>
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -1130,7 +1162,10 @@ function ProspectModal({
         open={showLostModal}
         item={item}
         onClose={() => setShowLostModal(false)}
-        onSuccess={() => onClose()}
+        onSuccess={() => {
+          setShowLostModal(false)
+          onClose()
+        }}
       />
     </>
   )

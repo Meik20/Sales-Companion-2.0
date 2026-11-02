@@ -811,103 +811,112 @@ function ProspectModal({
             </div>
           )}
 
+          {/* Bannière Lost Deal Intelligence (si déjà perdue) */}
+          {['perdue', 'lost'].includes((item.status || '').toLowerCase()) && item.lossReason && (
+            <div
+              style={{
+                marginBottom: 20,
+                padding: '14px 16px',
+                borderRadius: 12,
+                background: 'rgba(239,68,68,0.06)',
+                border: '1px solid rgba(239,68,68,0.2)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 6
+              }}
+            >
+              <div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', color: '#ef4444', display: 'flex', alignItems: 'center', gap: 5 }}>
+                <XCircle size={13} />
+                {lang === 'en' ? 'Lost Deal — Failure Analysis' : 'Affaire perdue — Analyse d\'échec'}
+              </div>
+              <div style={{ fontSize: 13, color: 'var(--foreground, #f1f5f9)', fontWeight: 500 }}>
+                {lang === 'en' ? 'Reason:' : 'Motif :'}{' '}
+                <strong>
+                  {(() => {
+                    const LOSS_REASONS_MAP: Record<string, { labelFr: string; labelEn: string }> = {
+                      price_too_high: { labelFr: 'Prix trop élevé', labelEn: 'Price too high' },
+                      competitor_chosen: { labelFr: 'Concurrent choisi', labelEn: 'Competitor chosen' },
+                      budget_cancelled: { labelFr: 'Budget annulé / reporté', labelEn: 'Budget cancelled / postponed' },
+                      unreachable: { labelFr: 'Injoignable / faux contact', labelEn: 'Unreachable / invalid contact' },
+                      no_need: { labelFr: 'Pas de besoin identifié', labelEn: 'No need identified' },
+                      other: { labelFr: 'Autre motif', labelEn: 'Other reason' },
+                    }
+                    const r = LOSS_REASONS_MAP[item.lossReason!]
+                    return r ? (lang === 'en' ? r.labelEn : r.labelFr) : item.lossReason
+                  })()}
+                </strong>
+              </div>
+              {item.lossNotes && (
+                <div style={{ fontSize: 12, color: 'var(--muted-foreground, #94a3b8)', lineHeight: 1.4 }}>
+                  "{item.lossNotes}"
+                </div>
+              )}
+              {item.reactivationDate && (
+                <div style={{ fontSize: 11, color: '#f59e0b', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <Calendar size={12} />
+                  {lang === 'en' ? 'Reactivation planned:' : 'Réactivation prévue :'}{' '}
+                  {new Date(item.reactivationDate).toLocaleDateString(lang === 'en' ? 'en-US' : 'fr-FR')}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Timeline d'activités & Journal terrain */}
           <PipelineActivityTimeline
             pipelineItemId={item.id}
             companyName={item.companyName}
           />
+
+          {/* Actions Footer (Clôture / Perte) */}
+          {!['perdue', 'lost', 'conclue', 'conclusion', 'won', 'closed'].includes((item.status || '').toLowerCase()) && (
+            <div
+              style={{
+                marginTop: 24,
+                paddingTop: 16,
+                borderTop: '1px solid var(--border, rgba(255, 255, 255, 0.08))',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: 10
+              }}
+            >
+              <span style={{ fontSize: 12, color: 'var(--muted-foreground, #94a3b8)' }}>
+                {lang === 'en' ? 'Close opportunity' : 'Clôture de l’opportunité'}
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowLostModal(true)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '7px 14px',
+                  borderRadius: 8,
+                  border: '1px solid rgba(239, 68, 68, 0.35)',
+                  background: 'rgba(239, 68, 68, 0.06)',
+                  color: '#ef4444',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 150ms ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(239, 68, 68, 0.14)';
+                  e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.6)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(239, 68, 68, 0.06)';
+                  e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.35)';
+                }}
+              >
+                <XCircle size={14} />
+                <span>{lang === 'en' ? 'Mark as Lost' : 'Marquer comme perdue'}</span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
-
-      {/* Bouton Marquer comme perdue (visible si pas déjà perdue/conclue) */}
-      {!['perdue', 'lost', 'conclue', 'conclusion', 'won', 'closed'].includes((item.status || '').toLowerCase()) && (
-        <div
-          style={{
-            position: 'fixed',
-            bottom: 24,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            zIndex: 1010,
-            display: 'flex',
-            justifyContent: 'center',
-            pointerEvents: 'auto'
-          }}
-        >
-          <button
-            type="button"
-            onClick={() => setShowLostModal(true)}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '8px 18px',
-              borderRadius: 10,
-              border: '1px solid rgba(239,68,68,0.4)',
-              background: 'rgba(239,68,68,0.08)',
-              color: '#ef4444',
-              fontSize: 12,
-              fontWeight: 700,
-              cursor: 'pointer',
-              transition: 'all 150ms ease'
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.18)' }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.08)' }}
-          >
-            <XCircle size={14} />
-            {lang === 'en' ? 'Mark as Lost' : 'Marquer comme perdue'}
-          </button>
-        </div>
-      )}
-
-      {/* Bannière Lost Deal Intelligence (si déjà perdue) */}
-      {['perdue', 'lost'].includes((item.status || '').toLowerCase()) && item.lossReason && (
-        <div
-          style={{
-            margin: '0 28px 16px',
-            padding: '12px 16px',
-            borderRadius: 10,
-            background: 'rgba(239,68,68,0.06)',
-            border: '1px solid rgba(239,68,68,0.2)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 6
-          }}
-        >
-          <div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', color: '#ef4444', display: 'flex', alignItems: 'center', gap: 5 }}>
-            <XCircle size={12} />
-            {lang === 'en' ? 'Lost Deal — Failure Analysis' : 'Affaire perdue — Analyse d\'échec'}
-          </div>
-          <div style={{ fontSize: 13, color: 'var(--foreground, #f1f5f9)', fontWeight: 500 }}>
-            {lang === 'en' ? 'Reason:' : 'Motif :'}{' '}
-            <strong>
-              {(() => {
-                const LOSS_REASONS_MAP: Record<string, { labelFr: string; labelEn: string }> = {
-                  price_too_high: { labelFr: 'Prix trop élevé', labelEn: 'Price too high' },
-                  competitor_chosen: { labelFr: 'Concurrent choisi', labelEn: 'Competitor chosen' },
-                  budget_cancelled: { labelFr: 'Budget annulé / reporté', labelEn: 'Budget cancelled / postponed' },
-                  unreachable: { labelFr: 'Injoignable / faux contact', labelEn: 'Unreachable / invalid contact' },
-                  no_need: { labelFr: 'Pas de besoin identifié', labelEn: 'No need identified' },
-                  other: { labelFr: 'Autre motif', labelEn: 'Other reason' },
-                }
-                const r = LOSS_REASONS_MAP[item.lossReason!]
-                return r ? (lang === 'en' ? r.labelEn : r.labelFr) : item.lossReason
-              })()}
-            </strong>
-          </div>
-          {item.lossNotes && (
-            <div style={{ fontSize: 12, color: 'var(--muted-foreground, #94a3b8)', lineHeight: 1.4 }}>
-              {item.lossNotes}
-            </div>
-          )}
-          {item.reactivationDate && (
-            <div style={{ fontSize: 11, color: '#f59e0b', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
-              <Calendar size={11} />
-              {lang === 'en' ? 'Reactivation planned:' : 'Réactivation prévue :'}{' '}
-              {new Date(item.reactivationDate).toLocaleDateString(lang === 'en' ? 'en-US' : 'fr-FR')}
-            </div>
-          )}
-        </div>
-      )}
 
       <MarkAsLostModal
         open={showLostModal}

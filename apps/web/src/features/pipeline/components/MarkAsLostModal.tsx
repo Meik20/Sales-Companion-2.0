@@ -99,15 +99,19 @@ export function MarkAsLostModal({
 
   return (
     <div
+      onClick={(e) => {
+        if (e.target === e.currentTarget && !isSubmitting) onClose()
+      }}
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 60,
+        zIndex: 1200,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         padding: 16,
-        backgroundColor: 'rgba(0, 0, 0, 0.65)'
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        backdropFilter: 'blur(3px)'
       }}
     >
       <div
