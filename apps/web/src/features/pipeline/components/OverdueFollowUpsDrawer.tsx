@@ -459,6 +459,8 @@ export function OverdueFollowUpsDrawer({
           zIndex: 1101,
           width: '100%',
           maxWidth: 680,
+          height: '100%',
+          maxHeight: '100vh',
           background: 'var(--card, #131c2e)',
           borderLeft: '1px solid var(--border, rgba(255,255,255,0.1))',
           boxShadow: '-20px 0 60px rgba(0,0,0,0.5)',
@@ -903,12 +905,15 @@ export function OverdueFollowUpsDrawer({
         {/* ── Contenu Scrollable : Liste des Groupes par Date ────────────── */}
         <div
           style={{
-            flex: 1,
+            flex: '1 1 0%',
+            minHeight: 0,
             overflowY: 'auto',
+            overflowX: 'hidden',
             padding: '16px 22px',
             display: 'flex',
             flexDirection: 'column',
-            gap: 16
+            gap: 16,
+            overscrollBehavior: 'contain'
           }}
         >
           {groupedByDate.length === 0 ? (
@@ -962,7 +967,8 @@ export function OverdueFollowUpsDrawer({
                       : group.daysOverdue >= 3
                         ? '1px solid rgba(239,68,68,0.35)'
                         : '1px solid rgba(245,158,11,0.25)',
-                    overflow: 'hidden'
+                    overflow: 'hidden',
+                    flexShrink: 0
                   }}
                 >
                   {/* ── En-tête du Groupe Date (Plusieurs leads le même jour) ── */}
