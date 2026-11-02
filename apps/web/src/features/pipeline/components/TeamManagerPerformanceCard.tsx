@@ -10,7 +10,8 @@ import type { MemberTarget } from '@/features/pipeline/hooks/useTeamTargets'
 import {
   getAvailableMonthPeriods,
   getOrgMonthPeriod,
-  getMonthPeriodLabel
+  getMonthPeriodLabel,
+  formatShortMonthPeriod
 } from '@/lib/monthly-cycle'
 import {
   calculatePipelineStats,
@@ -717,13 +718,12 @@ export function TeamManagerPerformanceCard({
                   >
                     {availablePeriods.map((p) => {
                       const isCurrent = p.key === currentMonthPeriod
-                      const label = isCurrent
-                        ? (lang === 'en' ? `${p.key} (Current)` : `${p.key} (En cours)`)
-                        : `${p.key} (${getMonthPeriodLabel(p, lang)})`
+                      const label = formatShortMonthPeriod(p.key, lang)
                       return (
                         <option
                           key={p.key}
                           value={p.key}
+                          title={isCurrent ? (lang === 'en' ? 'Current month' : 'Mois en cours') : undefined}
                           style={{
                             background: '#131c2e',
                             color: '#ffffff'
@@ -753,7 +753,7 @@ export function TeamManagerPerformanceCard({
                         : `Période active : ${activePeriod}${hasTargets ? '' : ' (Sans objectif défini)'}`
                     }
                   >
-                    {targets?.period || activePeriod}
+                    {formatShortMonthPeriod(targets?.period || activePeriod, lang)}
                   </span>
                 )}
               </div>

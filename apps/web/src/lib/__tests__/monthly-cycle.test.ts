@@ -8,7 +8,8 @@ import {
   isTargetPeriodExpired,
   getOrgTimezone,
   getOrgMonthPeriod,
-  getAvailableMonthPeriods
+  getAvailableMonthPeriods,
+  formatShortMonthPeriod
 } from '../monthly-cycle'
 import { archivePipelineDealAtomically } from '../clients-sync'
 import { runMonthlyPipelineCycleAutoArchive } from '../../server/services/monthly-cycle-archive.service'
@@ -606,6 +607,19 @@ describe('monthly-cycle utility', () => {
     expect(periods[3]!.key).toBe('2026-08') // M-3
     expect(periods[4]!.key).toBe('2026-07') // M-4
     expect(periods[5]!.key).toBe('2026-06') // M-5
+  })
+
+  it('formats month period into compact human-readable string (Nov 2026)', () => {
+    expect(formatShortMonthPeriod('2026-11', 'fr')).toBe('Nov 2026')
+    expect(formatShortMonthPeriod('2026-11', 'en')).toBe('Nov 2026')
+    expect(formatShortMonthPeriod('2026-10', 'fr')).toBe('Oct 2026')
+    expect(formatShortMonthPeriod('2026-10', 'en')).toBe('Oct 2026')
+    expect(formatShortMonthPeriod('2026-09', 'fr')).toBe('Sept 2026')
+    expect(formatShortMonthPeriod('2026-09', 'en')).toBe('Sep 2026')
+    expect(formatShortMonthPeriod('2026-08', 'fr')).toBe('Août 2026')
+    expect(formatShortMonthPeriod('2026-08', 'en')).toBe('Aug 2026')
+    expect(formatShortMonthPeriod(null)).toBe('')
+    expect(formatShortMonthPeriod('')).toBe('')
   })
 })
 

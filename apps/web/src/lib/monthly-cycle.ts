@@ -66,6 +66,31 @@ const MONTHS_EN = [
   'July', 'August', 'September', 'October', 'November', 'December'
 ]
 
+const SHORT_MONTHS_FR = [
+  'Janv', 'Févr', 'Mars', 'Avr', 'Mai', 'Juin',
+  'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc'
+]
+
+const SHORT_MONTHS_EN = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+]
+
+/**
+ * Formate une période mensuelle (ex: "2026-11") en format compact lisible (ex: "Nov 2026").
+ * Permet d'optimiser l'espace visuel dans les sélecteurs et cartes sans tronquer les libellés.
+ */
+export function formatShortMonthPeriod(periodKey?: string | null, lang: string = 'fr'): string {
+  if (!periodKey) return ''
+  const parts = periodKey.split('-').map(Number)
+  if (!parts[0] || !parts[1]) return periodKey
+  const year = parts[0]
+  const monthIdx = parts[1] - 1
+  if (monthIdx < 0 || monthIdx > 11) return periodKey
+  const monthList = lang === 'en' ? SHORT_MONTHS_EN : SHORT_MONTHS_FR
+  return `${monthList[monthIdx]} ${year}`
+}
+
 /**
  * Retourne les détails du cycle mensuel pour une date donnée.
  */
