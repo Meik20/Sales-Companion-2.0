@@ -16,7 +16,10 @@ import {
   ChevronDown,
   ChevronUp,
   CheckCircle2,
-  ArrowRight
+  ArrowRight,
+  Banknote,
+  Edit3,
+  AlertTriangle
 } from 'lucide-react'
 import type { PipelineActivityType, PipelineActivityItem } from '@sales-companion/shared'
 import {
@@ -25,10 +28,18 @@ import {
 } from '@/features/pipeline/hooks/usePipelineActivities'
 import { useTranslation } from '@/providers/I18nProvider'
 import { useToast } from '@/hooks/useToast'
+import { formatCompactAmount } from '@/lib/formatters'
 
 interface PipelineActivityTimelineProps {
   pipelineItemId: string
   companyName: string
+  readOnly?: boolean
+  amount?: number | null
+  currency?: string | null
+  agingWarning?: string | null
+  nextFollowUp?: string | null
+  notes?: string | null
+  onUpdateAmount?: (amount: number | null) => Promise<void>
 }
 
 const ACTIVITY_TYPES: {
@@ -91,7 +102,14 @@ const COMMON_OUTCOMES: { id: string; labelFr: string; labelEn: string }[] = [
 
 export function PipelineActivityTimeline({
   pipelineItemId,
-  companyName
+  companyName,
+  readOnly = false,
+  amount,
+  currency,
+  agingWarning,
+  nextFollowUp,
+  notes,
+  onUpdateAmount
 }: PipelineActivityTimelineProps) {
   const { lang, t } = useTranslation()
   const { pushToast } = useToast()
@@ -105,6 +123,10 @@ export function PipelineActivityTimeline({
   const [summary, setSummary] = useState('')
   const [outcome, setOutcome] = useState<string>('')
   const [nextFollowUpDate, setNextFollowUpDate] = useState('')
+
+  const [isEditingAmount, setIsEditingAmount] = useState(false)
+  const [tempAmount, setTempAmount] = useState(amount != null ? String(amount) : '')
+  const [savingAmount, setSavingAmount] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -156,7 +178,7 @@ export function PipelineActivityTimeline({
         marginTop: 18
       }}
     >
-      {/* Header */}
+      {/* Header avec Titre, Alerte Durée au survol, Valeur de l'offre et Action */}
       <div
         style={{
           display: 'flex',
@@ -164,35 +186,61 @@ export function PipelineActivityTimeline({
           justifyContent: 'space-between',
           marginBottom: 14,
           flexWrap: 'wrap',
-          gap: 10
+          gap: 12
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <div
             style={{
-              width: 28,
-              height: 28,
+              width: 30,
+              height: 30,
               borderRadius: 8,
               background: 'rgba(99, 102, 241, 0.14)',
               color: 'var(--primary, #6366f1)',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center'
+              justifyContent: 'center',
+              flexShrink: 0
             }}
           >
-            <Clock size={15} />
+            <Clock size={16} />
           </div>
           <div>
-            <h4
-              style={{
-                margin: 0,
-                fontSize: 13.5,
-                fontWeight: 700,
-                color: 'var(--foreground, #f1f5f9)'
-              }}
-            >
-              {isEn ? 'Activity Timeline & Field Log' : "Journal d'Activité & Historique Terrain"}
-            </h4>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <h4
+                style={{
+                  margin: 0,
+                  fontSize: 13.5,
+                  fontWeight: 700,
+                  color: 'var(--foreground, #f1f5f9)'
+                }}
+              >
+                {isEn ? 'Activity Timeline & Field Log' : "Journal d'Activité & Historique Terrain"}
+              </h4>
+              {/* Symbole rouge de la note d'alerte avec infobulle au survol */}
+              {agingWarning && (
+                <div
+                  title={agingWarning}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'help',
+                    color: '#ef4444',
+                    background: 'rgba(239, 68, 68, 0.12)',
+                    border: '1px solid rgba(239, 68, 68, 0.4)',
+                    borderRadius: 6,
+                    padding: '2px 7px',
+                    gap: 4
+                  }}
+                >
+                  <AlertTriangle size={13} style={{ color: '#ef4444' }} />
+                  <span style={{ fontSize: 10, fontWeight: 700, color: '#ef4444' }}>
+                    {isEn ? 'Stagnant' : 'Alerte stagnation'}
+                  </span>
+                </div>
+              )}
+            </div>
             <div style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)' }}>
               {activities.length}{' '}
               {activities.length > 1
@@ -206,36 +254,209 @@ export function PipelineActivityTimeline({
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setShowForm(!showForm)}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          {/* Valeur de l'offre intégrée */}
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              background: 'rgba(16, 185, 129, 0.08)',
+              border: '1px solid rgba(16, 185, 129, 0.25)',
+              borderRadius: 8,
+              padding: '4px 10px'
+            }}
+          >
+            <Banknote size={15} style={{ color: '#10b981' }} />
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span
+                style={{
+                  fontSize: 9.5,
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  color: '#6ee7b7',
+                  letterSpacing: '0.04em'
+                }}
+              >
+                {isEn ? 'Offer Value' : "Valeur de l'offre"}
+              </span>
+              {!isEditingAmount ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 13, fontWeight: 800, color: '#10b981' }}>
+                    {amount != null && amount > 0
+                      ? `${formatCompactAmount(amount, lang)} ${currency || 'XAF'}`
+                      : `0 ${currency || 'XAF'}`}
+                  </span>
+                  {!readOnly && onUpdateAmount && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTempAmount(amount != null ? String(amount) : '')
+                        setIsEditingAmount(true)
+                      }}
+                      title={isEn ? 'Edit amount' : 'Modifier le montant'}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: '#6ee7b7',
+                        cursor: 'pointer',
+                        padding: 2,
+                        display: 'inline-flex',
+                        alignItems: 'center'
+                      }}
+                    >
+                      <Edit3 size={11} />
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 2 }}>
+                  <input
+                    type="number"
+                    min="0"
+                    step="5000"
+                    value={tempAmount}
+                    onChange={(e) => setTempAmount(e.target.value)}
+                    placeholder="ex: 500000"
+                    style={{
+                      width: 90,
+                      background: 'var(--secondary, #1e2a3b)',
+                      border: '1px solid rgba(16, 185, 129, 0.5)',
+                      borderRadius: 4,
+                      padding: '2px 6px',
+                      fontSize: 11,
+                      color: '#10b981',
+                      fontWeight: 700,
+                      outline: 'none'
+                    }}
+                  />
+                  <button
+                    type="button"
+                    disabled={savingAmount}
+                    onClick={async () => {
+                      setSavingAmount(true)
+                      try {
+                        const val = tempAmount.trim() ? parseFloat(tempAmount) : null
+                        await onUpdateAmount?.(val)
+                        setIsEditingAmount(false)
+                      } finally {
+                        setSavingAmount(false)
+                      }
+                    }}
+                    style={{
+                      background: '#10b981',
+                      border: 'none',
+                      borderRadius: 4,
+                      color: '#fff',
+                      padding: '2px 6px',
+                      fontSize: 10,
+                      fontWeight: 700,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    ✓
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingAmount(false)}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: '#94a3b8',
+                      padding: '2px 4px',
+                      fontSize: 10,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Bouton Noter une interaction (uniquement pour les commerciaux actifs, masqué pour SM et TM) */}
+          {!readOnly && (
+            <button
+              type="button"
+              onClick={() => setShowForm(!showForm)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '6px 12px',
+                borderRadius: 8,
+                border: '1px solid rgba(99, 102, 241, 0.3)',
+                background: showForm ? 'rgba(99, 102, 241, 0.2)' : 'rgba(99, 102, 241, 0.1)',
+                color: 'var(--primary, #818cf8)',
+                fontSize: 11.5,
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all 150ms ease'
+              }}
+            >
+              {showForm ? <ChevronUp size={13} /> : <Plus size={13} />}
+              <span>
+                {showForm
+                  ? isEn
+                    ? 'Close form'
+                    : 'Fermer la saisie'
+                  : isEn
+                    ? '+ Log interaction'
+                    : '+ Noter une interaction'}
+              </span>
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Bandeau contextuel discret (prochaine relance / note initiale si existantes) */}
+      {(nextFollowUp || notes) && (
+        <div
           style={{
-            display: 'inline-flex',
+            display: 'flex',
             alignItems: 'center',
-            gap: 6,
-            padding: '6px 12px',
+            gap: 12,
+            flexWrap: 'wrap',
+            padding: '8px 12px',
             borderRadius: 8,
-            border: '1px solid rgba(99, 102, 241, 0.3)',
-            background: showForm ? 'rgba(99, 102, 241, 0.2)' : 'rgba(99, 102, 241, 0.1)',
-            color: 'var(--primary, #818cf8)',
-            fontSize: 11.5,
-            fontWeight: 700,
-            cursor: 'pointer',
-            transition: 'all 150ms ease'
+            background: 'rgba(255, 255, 255, 0.03)',
+            border: '1px solid var(--border, rgba(255, 255, 255, 0.06))',
+            marginBottom: 14,
+            fontSize: 12
           }}
         >
-          {showForm ? <ChevronUp size={13} /> : <Plus size={13} />}
-          <span>
-            {showForm
-              ? isEn
-                ? 'Close form'
-                : 'Fermer la saisie'
-              : isEn
-                ? '+ Log interaction'
-                : '+ Noter une interaction'}
-          </span>
-        </button>
-      </div>
+          {nextFollowUp && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5, color: '#f59e0b' }}>
+              <Calendar size={13} />
+              <span>
+                {isEn ? 'Next follow-up:' : 'Prochaine relance :'}{' '}
+                <strong>{nextFollowUp}</strong>
+              </span>
+            </div>
+          )}
+          {notes && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 5,
+                color: 'var(--muted-foreground, #94a3b8)',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                maxWidth: 400
+              }}
+            >
+              <FileText size={13} style={{ flexShrink: 0 }} />
+              <span title={notes}>
+                {isEn ? 'Note:' : 'Note :'}{' '}
+                <em style={{ color: 'var(--foreground, #f1f5f9)' }}>{notes}</em>
+              </span>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Quick Add Form */}
       {showForm && (

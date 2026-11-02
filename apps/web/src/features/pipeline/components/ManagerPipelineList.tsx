@@ -144,13 +144,15 @@ function ProspectModal({
   onClose,
   statusLabel,
   members,
-  managerUid
+  managerUid,
+  isOrgView = false
 }: {
   item: PipelineItem
   onClose: () => void
   statusLabel: Record<string, string>
   members?: Member[]
   managerUid?: string
+  isOrgView?: boolean
 }) {
   const { t, lang } = useTranslation()
   const { currency } = useProspectingCountryDetails()
@@ -273,6 +275,27 @@ function ProspectModal({
                   <Clock size={11} />
                   <span>{aging.badgeText}</span>
                 </div>
+                {aging.warningMessage && (
+                  <div
+                    title={aging.warningMessage}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      padding: '2px 8px',
+                      borderRadius: 20,
+                      fontSize: 11,
+                      fontWeight: 700,
+                      background: 'rgba(239, 68, 68, 0.12)',
+                      color: '#ef4444',
+                      border: '1px solid rgba(239, 68, 68, 0.35)',
+                      cursor: 'help'
+                    }}
+                  >
+                    <AlertTriangle size={12} style={{ color: '#ef4444' }} />
+                    <span>{aging.daysInPipeline}j</span>
+                  </div>
+                )}
                 <span style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)' }}>
                   {lang === 'en' ? 'Entered on' : 'Entré le'} {aging.enteredDateFormatted}
                 </span>
@@ -455,329 +478,7 @@ function ProspectModal({
             </div>
           </div>
 
-          {/* ── SUIVI COMMERCIAL & MÉTRIQUES (Consultation lecture seule pour le Manager) ── */}
-          <div
-            style={{
-              background: 'var(--pipeline-section-bg, #f8fafc)',
-              border: '1px solid var(--pipeline-section-border, #e2e8f0)',
-              borderRadius: 14,
-              padding: 18,
-              marginBottom: 20,
-              transition: 'all 250ms ease'
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: 16
-              }}
-            >
-              <div
-                style={{
-                  fontSize: 11,
-                  fontWeight: 800,
-                  color: 'var(--pipeline-metric-title, #1e40af)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '.1em',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6
-                }}
-              >
-                <TrendingUp size={13} strokeWidth={3} />
-                Suivi commercial & Métriques
-              </div>
-            </div>
 
-            {/* Read-only metrics — Manager cannot edit */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              {/* Visual metrics row */}
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-                  gap: 12
-                }}
-              >
-                {/* Amount display */}
-                <div
-                  style={{
-                    background: 'var(--pipeline-card-bg, #ffffff)',
-                    borderRadius: 10,
-                    padding: '10px 14px',
-                    border: '1px solid var(--pipeline-card-border, #e2e8f0)'
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 700,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em',
-                      color: 'var(--muted-foreground, #94a3b8)',
-                      marginBottom: 4
-                    }}
-                  >
-                    Valeur de l&apos;opportunité
-                  </div>
-                  <div
-                    title={`${formatFullAmount(item.amount, lang)} ${currency || 'XAF'}`}
-                    style={{
-                      fontSize: 15,
-                      fontWeight: 800,
-                      color: item.amount
-                        ? 'var(--pipeline-opportunity-color, #047857)'
-                        : 'var(--muted-foreground, #64748b)'
-                    }}
-                  >
-                    {item.amount != null && item.amount > 0
-                      ? `${formatCompactAmount(item.amount, lang)} ${currency || 'XAF'}`
-                      : `0 ${currency || 'XAF'}`}
-                  </div>
-                </div>
-
-                {/* Durée dans le pipeline */}
-                <div
-                  style={{
-                    background: 'var(--pipeline-card-bg, #ffffff)',
-                    borderRadius: 10,
-                    padding: '10px 14px',
-                    border: `1px solid ${aging.borderColor}`
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 700,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em',
-                      color: aging.color,
-                      marginBottom: 4,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 4
-                    }}
-                  >
-                    <Clock size={11} />
-                    {aging.isConclue ? 'Cycle de vente' : 'Temps dans pipeline'}
-                  </div>
-                  <div style={{ fontSize: 14, fontWeight: 800, color: aging.color }}>
-                    {aging.daysInPipeline === 0
-                      ? 'Aujourd’hui'
-                      : `${aging.daysInPipeline} jour${aging.daysInPipeline > 1 ? 's' : ''}`}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 10,
-                      color: 'var(--muted-foreground, #64748b)',
-                      marginTop: 2
-                    }}
-                  >
-                    {aging.relativeTimeFormatted}
-                  </div>
-                </div>
-
-                {/* Follow-up display — masqué si vente conclue */}
-                {!isConclue && (
-                  <div
-                    style={{
-                      background: 'var(--pipeline-card-bg, #ffffff)',
-                      borderRadius: 10,
-                      padding: '10px 14px',
-                      border: isOverdue
-                        ? '1px solid rgba(239,68,68,0.3)'
-                        : '1px solid var(--pipeline-card-border, #e2e8f0)'
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontSize: 10,
-                        fontWeight: 700,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.05em',
-                        color: isOverdue ? '#f87171' : 'var(--muted-foreground, #94a3b8)',
-                        marginBottom: 4,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 4
-                      }}
-                    >
-                      <Calendar size={12} />
-                      Prochaine relance
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 13,
-                        fontWeight: 700,
-                        color: isOverdue ? '#ef4444' : 'var(--foreground, #f1f5f9)'
-                      }}
-                    >
-                      {item.nextFollowUp ? (
-                        <span>
-                          {item.nextFollowUp}
-                          {isOverdue && (
-                            <span
-                              style={{
-                                marginLeft: 6,
-                                fontSize: 10,
-                                color: '#f87171',
-                                fontWeight: 800
-                              }}
-                            >
-                              (EN RETARD)
-                            </span>
-                          )}
-                        </span>
-                      ) : (
-                        <span
-                          style={{
-                            color: 'var(--muted-foreground, #64748b)',
-                            fontStyle: 'italic',
-                            fontSize: 12,
-                            fontWeight: 400
-                          }}
-                        >
-                          Aucune date
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {item.assignmentDeadline && (
-                  <div
-                    style={{
-                      background: 'var(--pipeline-card-bg, #ffffff)',
-                      borderRadius: 10,
-                      padding: '10px 14px',
-                      border: '1px solid var(--pipeline-card-border, #e2e8f0)'
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontSize: 10,
-                        fontWeight: 700,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.05em',
-                        color: 'var(--muted-foreground, #94a3b8)',
-                        marginBottom: 4,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 4
-                      }}
-                    >
-                      <Clock size={12} />
-                      Objectif premier contact
-                    </div>
-                    <div style={{ marginTop: 4 }}>
-                      <DeadlineBadge
-                        deadline={item.assignmentDeadline}
-                        status={item.status}
-                        firstActionAt={item.firstActionAt}
-                        size="md"
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Bannière d'alerte sur la durée en fonction de l'étape du parcours */}
-              {aging.warningMessage && (
-                <div
-                  style={{
-                    padding: '12px 14px',
-                    borderRadius: 10,
-                    background: aging.bgColor,
-                    border: `1px solid ${aging.borderColor}`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 10
-                  }}
-                >
-                  <AlertTriangle size={18} style={{ color: aging.color, flexShrink: 0 }} />
-                  <span
-                    style={{ fontSize: 12, color: aging.color, fontWeight: 600, lineHeight: 1.4 }}
-                  >
-                    {aging.warningMessage}
-                  </span>
-                </div>
-              )}
-
-              {/* Bannière de conclusion réussie */}
-              {aging.isConclue && (
-                <div
-                  style={{
-                    padding: '12px 14px',
-                    borderRadius: 10,
-                    background: 'var(--pipeline-concluded-bg, #ecfdf5)',
-                    border: '1px solid var(--pipeline-concluded-border, rgba(5, 150, 105, 0.25))',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 10
-                  }}
-                >
-                  <CheckCircle2
-                    size={18}
-                    style={{ color: 'var(--pipeline-concluded-color, #047857)', flexShrink: 0 }}
-                  />
-                  <span
-                    style={{
-                      fontSize: 12,
-                      color: 'var(--pipeline-concluded-color, #047857)',
-                      fontWeight: 700,
-                      lineHeight: 1.4
-                    }}
-                  >
-                    {aging.badgeText} ·{' '}
-                    {t('pipeline.saleSuccessBanner') ||
-                      (lang === 'en' ? 'Sale successfully closed!' : 'Vente finalisée avec succès !')}
-                  </span>
-                </div>
-              )}
-
-              {/* Notes display */}
-              <div
-                style={{
-                  background: 'var(--pipeline-card-bg, #ffffff)',
-                  borderRadius: 10,
-                  padding: '12px 14px',
-                  border: '1px solid var(--pipeline-card-border, #e2e8f0)'
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
-                    color: 'var(--muted-foreground, #94a3b8)',
-                    marginBottom: 6,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 4
-                  }}
-                >
-                  <MessageSquare size={12} />
-                  Notes & Commentaires
-                </div>
-                <div
-                  style={{
-                    fontSize: 13,
-                    color: originalNote
-                      ? 'var(--foreground, #f1f5f9)'
-                      : 'var(--muted-foreground, #64748b)',
-                    fontStyle: originalNote ? 'normal' : 'italic',
-                    lineHeight: 1.5,
-                    whiteSpace: 'pre-wrap'
-                  }}
-                >
-                  {originalNote || 'Aucune note pour le moment.'}
-                </div>
-              </div>
-            </div>
-          </div>
 
           {/* Déjà visité / assigné (excluant le Manager) */}
           {filteredPreviousAssignees.length > 0 && (
@@ -861,14 +562,20 @@ function ProspectModal({
             </div>
           )}
 
-          {/* Timeline d'activités & Journal terrain */}
+          {/* Timeline d'activités & Journal terrain (Lecture seule pour SM et TM) */}
           <PipelineActivityTimeline
             pipelineItemId={item.id}
             companyName={item.companyName}
+            readOnly={true}
+            amount={item.amount}
+            currency={currency}
+            agingWarning={aging.warningMessage}
+            nextFollowUp={item.nextFollowUp}
+            notes={originalNote}
           />
 
-          {/* Actions Footer (Clôture / Perte) */}
-          {!['perdue', 'lost', 'conclue', 'conclusion', 'won', 'closed'].includes((item.status || '').toLowerCase()) && (
+          {/* Actions Footer (Option B : Marquer comme perdue conservé pour le Team Manager, exclu pour le Senior Manager) */}
+          {!['perdue', 'lost', 'conclue', 'conclusion', 'won', 'closed'].includes((item.status || '').toLowerCase()) && !isOrgView && (
             <div
               style={{
                 marginTop: 24,
@@ -2208,6 +1915,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
           statusLabel={statusLabel}
           members={members}
           managerUid={managerUid}
+          isOrgView={isOrgView}
         />
       )}
 

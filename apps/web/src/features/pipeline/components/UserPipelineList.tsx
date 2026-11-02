@@ -277,6 +277,27 @@ function ProspectModal({
                   <Clock size={11} />
                   <span>{aging.badgeText}</span>
                 </div>
+                {aging.warningMessage && (
+                  <div
+                    title={aging.warningMessage}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      padding: '2px 8px',
+                      borderRadius: 20,
+                      fontSize: 11,
+                      fontWeight: 700,
+                      background: 'rgba(239, 68, 68, 0.12)',
+                      color: '#ef4444',
+                      border: '1px solid rgba(239, 68, 68, 0.35)',
+                      cursor: 'help'
+                    }}
+                  >
+                    <AlertTriangle size={12} style={{ color: '#ef4444' }} />
+                    <span>{aging.daysInPipeline}j</span>
+                  </div>
+                )}
                 {item.assignmentDeadline && (
                   <DeadlineBadge
                     deadline={item.assignmentDeadline}
@@ -454,508 +475,6 @@ function ProspectModal({
             </div>
           </div>
 
-          {/* ── SUIVI COMMERCIAL & MÉTRIQUES (Éditable) ── */}
-          <div
-            style={{
-              background: isEditing
-                ? 'rgba(59,130,246,0.03)'
-                : 'var(--pipeline-section-bg, #f8fafc)',
-              border: isEditing
-                ? '1px solid rgba(59,130,246,0.3)'
-                : '1px solid var(--pipeline-section-border, #e2e8f0)',
-              borderRadius: 14,
-              padding: 18,
-              marginBottom: 20,
-              transition: 'all 250ms ease'
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                gap: 10,
-                marginBottom: 16
-              }}
-            >
-              {/* Titre section */}
-              <div
-                style={{
-                  fontSize: 11,
-                  fontWeight: 800,
-                  color: isEditing ? '#60a5fa' : 'var(--pipeline-metric-title, #1e40af)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '.1em',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6
-                }}
-              >
-                <TrendingUp size={13} strokeWidth={3} />
-                {t('pipeline.salesTrackingMetrics') || 'Suivi commercial & Métriques'}
-              </div>
-
-              {/* Boutons d'action alignés à droite */}
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginLeft: 'auto' }}>
-                {!isEditing ? (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setIsEditing(true)}
-                    style={{
-                      fontSize: 11,
-                      padding: '4px 10px',
-                      minHeight: 26,
-                      color: '#60a5fa',
-                      borderColor: 'rgba(96,165,250,0.25)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 4
-                    }}
-                  >
-                    <Edit3 size={11} />
-                    {t('common.edit') || 'Modifier'}
-                  </Button>
-                ) : (
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => {
-                        setNoteText(originalNote)
-                        setAmountVal(originalAmount)
-                        setFollowUpVal(originalFollowUp)
-                        setIsEditing(false)
-                      }}
-                      style={{
-                        fontSize: 11,
-                        padding: '4px 10px',
-                        minHeight: 26,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 4
-                      }}
-                    >
-                      <RotateCcw size={11} />
-                      {t('common.cancel') || 'Annuler'}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="primary"
-                      loading={noteSaving}
-                      disabled={!isChanged || noteSaving}
-                      onClick={() => void handleSaveNote()}
-                      style={{
-                        fontSize: 11,
-                        padding: '4px 12px',
-                        minHeight: 26,
-                        background: '#2563eb',
-                        borderColor: '#2563eb',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 4
-                      }}
-                    >
-                      <Save size={11} />
-                      {t('common.save') || 'Enregistrer'}
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {isEditing ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-                    gap: 12
-                  }}
-                >
-                  {/* Montant estimé input */}
-                  <div>
-                    <label
-                      style={{
-                        display: 'block',
-                        fontSize: 11,
-                        fontWeight: 700,
-                        color: 'var(--muted-foreground, #94a3b8)',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.05em',
-                        marginBottom: 6
-                      }}
-                    >
-                      {t('pipeline.estimatedValue') || 'Valeur estimée (FCFA)'}
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="5000"
-                      value={amountVal}
-                      onChange={(e) => setAmountVal(e.target.value)}
-                      placeholder="ex: 1500000"
-                      style={{
-                        width: '100%',
-                        boxSizing: 'border-box',
-                        background: 'var(--secondary, #1e2a3b)',
-                        border: '1px solid rgba(52,211,153,0.3)',
-                        borderRadius: 8,
-                        padding: '8px 12px',
-                        fontSize: 13,
-                        color: '#34d399',
-                        fontWeight: 700,
-                        outline: 'none'
-                      }}
-                    />
-                  </div>
-
-                  {/* Date de relance input — masqué si vente conclue */}
-                  {!isConclue && (
-                    <div>
-                      <label
-                        style={{
-                          display: 'block',
-                          fontSize: 11,
-                          fontWeight: 700,
-                          color: 'var(--muted-foreground, #94a3b8)',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.05em',
-                          marginBottom: 6
-                        }}
-                      >
-                        {t('pipeline.nextFollowUpLabel') || 'Prochaine relance'}
-                      </label>
-                      <input
-                        type="date"
-                        value={followUpVal}
-                        onChange={(e) => setFollowUpVal(e.target.value)}
-                        style={{
-                          width: '100%',
-                          boxSizing: 'border-box',
-                          background: 'var(--secondary, #1e2a3b)',
-                          border: '1px solid rgba(96,165,250,0.3)',
-                          borderRadius: 8,
-                          padding: '8px 12px',
-                          fontSize: 13,
-                          color: 'var(--foreground, #f1f5f9)',
-                          outline: 'none'
-                        }}
-                      />
-                    </div>
-                  )}
-                </div>
-
-                {/* Notes input */}
-                <div>
-                  <label
-                    style={{
-                      display: 'block',
-                      fontSize: 11,
-                      fontWeight: 700,
-                      color: 'var(--muted-foreground, #94a3b8)',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em',
-                      marginBottom: 6
-                    }}
-                  >
-                    {t('pipeline.notesAndComments') || 'Notes & Commentaires'}
-                  </label>
-                  <textarea
-                    value={noteText}
-                    onChange={(e) => setNoteText(e.target.value)}
-                    placeholder={
-                      t('pipeline.placeholderNotes') || 'Ajouter des notes sur les échanges...'
-                    }
-                    rows={3}
-                    style={{
-                      width: '100%',
-                      boxSizing: 'border-box',
-                      background: 'var(--secondary, #1e2a3b)',
-                      border: '1px solid rgba(255,255,255,0.15)',
-                      borderRadius: 8,
-                      padding: '10px 12px',
-                      fontSize: 13,
-                      color: 'var(--foreground, #f1f5f9)',
-                      resize: 'vertical',
-                      outline: 'none',
-                      fontFamily: 'inherit',
-                      lineHeight: 1.5
-                    }}
-                  />
-                </div>
-
-                {isChanged && (
-                  <div
-                    style={{
-                      fontSize: 11,
-                      color: '#fbbf24',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 4
-                    }}
-                  >
-                    <AlertTriangle size={11} />
-                    {t('pipeline.unsavedChanges') || 'Modifications non enregistrées'}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                {/* Visual metrics row */}
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-                    gap: 12
-                  }}
-                >
-                  {/* Amount display */}
-                  <div
-                    style={{
-                      background: 'var(--pipeline-card-bg, #ffffff)',
-                      borderRadius: 10,
-                      padding: '10px 14px',
-                      border: '1px solid var(--pipeline-card-border, #e2e8f0)'
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontSize: 10,
-                        fontWeight: 700,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.05em',
-                        color: 'var(--muted-foreground, #94a3b8)',
-                        marginBottom: 4
-                      }}
-                    >
-                      {t('pipeline.opportunityValue') || "Valeur de l'opportunité"}
-                    </div>
-                    <div
-                      title={`${formatFullAmount(item.amount, lang)} ${currency || 'XAF'}`}
-                      style={{
-                        fontSize: 15,
-                        fontWeight: 800,
-                        color: item.amount
-                          ? 'var(--pipeline-opportunity-color, #047857)'
-                          : 'var(--muted-foreground, #64748b)'
-                      }}
-                    >
-                      {item.amount != null && item.amount > 0
-                        ? `${formatCompactAmount(item.amount, lang)} ${currency || 'XAF'}`
-                        : `0 ${currency || 'XAF'}`}
-                    </div>
-                  </div>
-
-                  {/* Durée dans le pipeline */}
-                  <div
-                    style={{
-                      background: 'var(--pipeline-card-bg, #ffffff)',
-                      borderRadius: 10,
-                      padding: '10px 14px',
-                      border: `1px solid ${aging.borderColor}`
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontSize: 10,
-                        fontWeight: 700,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.05em',
-                        color: aging.color,
-                        marginBottom: 4,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 4
-                      }}
-                    >
-                      <Clock size={11} />
-                      {aging.isConclue
-                        ? (t('pipeline.salesCycle') || 'Cycle de vente')
-                        : (t('pipeline.timeInPipeline') || 'Temps dans pipeline')}
-                    </div>
-                    <div style={{ fontSize: 14, fontWeight: 800, color: aging.color }}>
-                      {aging.daysInPipeline === 0
-                        ? (t('common.today') || 'Aujourd’hui')
-                        : `${aging.daysInPipeline} jour${aging.daysInPipeline > 1 ? 's' : ''}`}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 10,
-                        color: 'var(--muted-foreground, #64748b)',
-                        marginTop: 2
-                      }}
-                    >
-                      {aging.relativeTimeFormatted}
-                    </div>
-                  </div>
-
-                  {/* Follow-up display — masqué si vente conclue */}
-                  {!isConclue && (
-                    <div
-                      style={{
-                        background: 'var(--pipeline-card-bg, #ffffff)',
-                        borderRadius: 10,
-                        padding: '10px 14px',
-                        border: isOverdue
-                          ? '1px solid rgba(239,68,68,0.3)'
-                          : '1px solid var(--pipeline-card-border, #e2e8f0)'
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize: 10,
-                          fontWeight: 700,
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.05em',
-                          color: isOverdue ? '#f87171' : 'var(--muted-foreground, #94a3b8)',
-                          marginBottom: 4,
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 4
-                        }}
-                      >
-                        <Calendar size={12} />
-                        {t('pipeline.nextFollowUpLabel') || 'Prochaine relance'}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: 13,
-                          fontWeight: 700,
-                          color: isOverdue ? '#ef4444' : 'var(--foreground, #f1f5f9)'
-                        }}
-                      >
-                        {(item.nextFollowUp ?? item.nextDate) ? (
-                          <span>
-                            {item.nextFollowUp ?? item.nextDate}
-                            {isOverdue && (
-                              <span
-                                style={{
-                                  marginLeft: 6,
-                                  fontSize: 10,
-                                  color: '#f87171',
-                                  fontWeight: 800
-                                }}
-                              >
-                                {t('pipeline.overdueTag') || '(EN RETARD)'}
-                              </span>
-                            )}
-                          </span>
-                        ) : (
-                          <span
-                            style={{
-                              color: 'var(--muted-foreground, #64748b)',
-                              fontStyle: 'italic',
-                              fontSize: 12,
-                              fontWeight: 400
-                            }}
-                          >
-                            {t('pipeline.noDate') || 'Aucune date'}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Bannière d'alerte sur la durée en fonction de l'étape du parcours */}
-                {aging.warningMessage && (
-                  <div
-                    style={{
-                      padding: '12px 14px',
-                      borderRadius: 10,
-                      background: aging.bgColor,
-                      border: `1px solid ${aging.borderColor}`,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 10
-                    }}
-                  >
-                    <AlertTriangle size={18} style={{ color: aging.color, flexShrink: 0 }} />
-                    <span
-                      style={{ fontSize: 12, color: aging.color, fontWeight: 600, lineHeight: 1.4 }}
-                    >
-                      {aging.warningMessage}
-                    </span>
-                  </div>
-                )}
-
-                {/* Bannière de conclusion réussie */}
-                {aging.isConclue && (
-                  <div
-                    style={{
-                      padding: '12px 14px',
-                      borderRadius: 10,
-                      background: 'var(--pipeline-concluded-bg, #ecfdf5)',
-                      border: '1px solid var(--pipeline-concluded-border, rgba(5, 150, 105, 0.25))',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 10
-                    }}
-                  >
-                    <CheckCircle2
-                      size={18}
-                      style={{ color: 'var(--pipeline-concluded-color, #047857)', flexShrink: 0 }}
-                    />
-                    <span
-                      style={{
-                        fontSize: 12,
-                        color: 'var(--pipeline-concluded-color, #047857)',
-                        fontWeight: 700,
-                        lineHeight: 1.4
-                      }}
-                    >
-                      {aging.badgeText} ·{' '}
-                      {t('pipeline.saleSuccessBanner') ||
-                        (lang === 'en' ? 'Sale successfully closed!' : 'Vente finalisée avec succès !')}
-                    </span>
-                  </div>
-                )}
-
-                {/* Notes display */}
-                <div
-                  style={{
-                    background: 'var(--pipeline-card-bg, #ffffff)',
-                    borderRadius: 10,
-                    padding: '12px 14px',
-                    border: '1px solid var(--pipeline-card-border, #e2e8f0)'
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 700,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em',
-                      color: 'var(--muted-foreground, #94a3b8)',
-                      marginBottom: 6,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 4
-                    }}
-                  >
-                    <MessageSquare size={12} />
-                    {t('pipeline.notesAndComments') || 'Notes & Commentaires'}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 13,
-                      color: noteText
-                        ? 'var(--foreground, #f1f5f9)'
-                        : 'var(--muted-foreground, #64748b)',
-                      fontStyle: noteText ? 'normal' : 'italic',
-                      lineHeight: 1.5,
-                      whiteSpace: 'pre-wrap'
-                    }}
-                  >
-                    {noteText || (t('pipeline.noNotesYet') || 'Aucune note pour le moment.')}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
           {/* Assigné par */}
           {item.assignedByName && (
             <div
@@ -1057,10 +576,26 @@ function ProspectModal({
             </div>
           )}
 
-          {/* Timeline d'activités & Journal terrain */}
+          {/* Timeline d'activités & Journal terrain (Intègre la valeur de l'offre et l'alerte de durée) */}
           <PipelineActivityTimeline
             pipelineItemId={item.id}
             companyName={item.companyName}
+            readOnly={false}
+            amount={item.amount}
+            currency={currency}
+            agingWarning={aging.warningMessage}
+            nextFollowUp={item.nextFollowUp ?? item.nextDate}
+            notes={item.notes ?? item.note}
+            onUpdateAmount={async (newAmount) => {
+              await updateMutation.mutateAsync({
+                id: item.id,
+                data: { amount: newAmount }
+              })
+              pushToast({
+                type: 'success',
+                title: lang === 'en' ? 'Offer value updated' : "Valeur de l'offre mise à jour"
+              })
+            }}
           />
 
           {/* Status Actions */}
