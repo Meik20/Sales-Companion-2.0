@@ -8,6 +8,7 @@ import { useUpdatePipelineItem } from '@/features/pipeline/hooks/useUpdatePipeli
 import { getWhatsAppUrl } from '@/utils/whatsapp'
 import { WhatsAppActionMenu } from './WhatsAppActionMenu'
 import { MarkAsLostModal } from './MarkAsLostModal'
+import { PipelineActivityTimeline } from './PipelineActivityTimeline'
 import { LOSS_REASONS } from '@sales-companion/shared'
 import { useToast } from '@/hooks/useToast'
 import { useTranslation } from '@/providers/I18nProvider'
@@ -1055,6 +1056,12 @@ function ProspectModal({
               )}
             </div>
           )}
+
+          {/* Timeline d'activités & Journal terrain */}
+          <PipelineActivityTimeline
+            pipelineItemId={item.id}
+            companyName={item.companyName}
+          />
 
           {/* Status Actions */}
           {onStatusChange && (

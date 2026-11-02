@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { isMobileRuntime } from '@/lib/runtime'
+import { getQueuedMutations, processOfflineQueue } from '@/lib/offline-sync'
 
 export interface NetworkStatus {
   isOnline: boolean
@@ -12,6 +13,9 @@ export interface NetworkStatus {
   checkConnectivity: () => Promise<boolean>
   wasOffline: boolean
   dismissReconnected: () => void
+  pendingCount: number
+  isSyncing: boolean
+  syncNow: () => Promise<void>
 }
 
 const MANUAL_OFFLINE_KEY = 'sc_manual_offline'
@@ -38,6 +42,25 @@ export function useNetworkStatus(): NetworkStatus {
   }, [mobileRuntime])
 
   const [wasOffline, setWasOffline] = useState<boolean>(false)
+  const [pendingCount, setPendingCount] = useState<number>(0)
+  const [isSyncing, setIsSyncing] = useState<boolean>(false)
+
+  const updateQueueCount = useCallback(() => {
+    setPendingCount(getQueuedMutations().length)
+  }, [])
+
+  const syncNow = useCallback(async () => {
+    if (isSyncing) return
+    setIsSyncing(true)
+    try {
+      await processOfflineQueue()
+      updateQueueCount()
+    } catch (e) {
+      console.warn('[useNetworkStatus] syncNow failed:', e)
+    } finally {
+      setIsSyncing(false)
+    }
+  }, [isSyncing, updateQueueCount])
 
   // Overall effective online state: must have browser connection, working internet data, and not be in manual offline mode
   const isOnline = isBrowserOnline && hasRealInternet && !isManualOffline
@@ -85,14 +108,20 @@ export function useNetworkStatus(): NetworkStatus {
 
     // Run active probe on mount to detect current data status
     checkConnectivity()
+    updateQueueCount()
 
     const handleOnline = () => {
       setIsBrowserOnline(true)
       checkConnectivity().then((ok) => {
         if (ok && !isManualOffline) {
           setWasOffline(true)
+          void syncNow()
         }
       })
+    }
+
+    const handleQueueChanged = () => {
+      updateQueueCount()
     }
 
     const handleOffline = () => {
@@ -124,6 +153,8 @@ export function useNetworkStatus(): NetworkStatus {
     window.addEventListener('offline', handleOffline)
     window.addEventListener('visibilitychange', handleVisibilityChange)
     window.addEventListener('sc_manual_offline_changed', handleManualOfflineEvent)
+    window.addEventListener('sc-offline-queue-changed', handleQueueChanged)
+    window.addEventListener('storage', handleQueueChanged)
 
     return () => {
       clearInterval(interval)
@@ -131,8 +162,10 @@ export function useNetworkStatus(): NetworkStatus {
       window.removeEventListener('offline', handleOffline)
       window.removeEventListener('visibilitychange', handleVisibilityChange)
       window.removeEventListener('sc_manual_offline_changed', handleManualOfflineEvent)
+      window.removeEventListener('sc-offline-queue-changed', handleQueueChanged)
+      window.removeEventListener('storage', handleQueueChanged)
     }
-  }, [checkConnectivity, isManualOffline])
+  }, [checkConnectivity, isManualOffline, syncNow, updateQueueCount])
 
   useEffect(() => {
     if (wasOffline && isOnline) {
@@ -174,6 +207,9 @@ export function useNetworkStatus(): NetworkStatus {
     setManualOffline,
     checkConnectivity,
     wasOffline,
-    dismissReconnected
+    dismissReconnected,
+    pendingCount,
+    isSyncing,
+    syncNow
   }
 }

@@ -13,6 +13,7 @@ export interface OrgReportManager {
     prospection: number
     negociation: number
     conclue: number
+    perdue?: number
     total: number
     concludedAmount?: number
   }
@@ -47,11 +48,14 @@ export interface OrgReportResult {
     prospection: number
     negociation: number
     conclue: number
+    perdue?: number
     total: number
   }
   conversionRate: number
   totalConcludedAmount?: number
   totalPipelineValue?: number
+  totalLostAmount?: number
+  lossReasonsSummary?: Record<string, number>
   targets?: OrgReportTargets
   monthlyCycle?: {
     currentPeriod: { key: string; labelFr: string; labelEn: string; isGracePeriod: boolean; isClosed: boolean }

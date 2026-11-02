@@ -8,9 +8,12 @@ import { useToast } from '@/hooks/useToast'
 import { useTranslation } from '@/providers/I18nProvider'
 import { WhatsAppActionMenu } from './WhatsAppActionMenu'
 import { MarkAsLostModal } from './MarkAsLostModal'
+import { PipelineActivityTimeline } from './PipelineActivityTimeline'
 import { LOSS_REASONS } from '@sales-companion/shared'
 import { useUpdatePipelineItem } from '@/features/pipeline/hooks/useUpdatePipelineItem'
 import { useExportTeamPerformance } from '@/features/pipeline/hooks/useExportTeamPerformance'
+import { exportDashboardPdf } from '../utils/exportDashboardPdf'
+import { useOrgReport } from '../hooks/useOrgReport'
 import { useTeamTargets, useSaveTeamTarget } from '@/features/pipeline/hooks/useTeamTargets'
 import { useArchiveLeads } from '@/features/pipeline/hooks/useArchivePipeline'
 import { ArchivesDrawer } from '@/features/pipeline/components/ArchivesDrawer'
@@ -41,7 +44,8 @@ import {
   Users,
   Download,
   FolderArchive,
-  XCircle
+  XCircle,
+  FileText
 } from 'lucide-react'
 import { getPipelineAging } from '@/lib/pipelineAging'
 import { formatCompactAmount, formatFullAmount } from '@/lib/formatters'
@@ -806,6 +810,12 @@ function ProspectModal({
               </div>
             </div>
           )}
+
+          {/* Timeline d'activités & Journal terrain */}
+          <PipelineActivityTimeline
+            pipelineItemId={item.id}
+            companyName={item.companyName}
+          />
         </div>
       </div>
 
@@ -1550,8 +1560,10 @@ function ExportButton({
   managers?: { uid: string; name?: string; email?: string; isSenior?: boolean }[]
   isOrgView?: boolean
 }) {
-  const { t } = useTranslation()
+  const { t, lang } = useTranslation()
+  const { currency } = useProspectingCountryDetails()
   const { exportPerformance, loading } = useExportTeamPerformance()
+  const { data: orgReportData } = useOrgReport()
   const [open, setOpen] = useState(false)
   const [selectedId, setSelectedId] = useState('')
   const [from, setFrom] = useState('')
@@ -1743,6 +1755,34 @@ function ExportButton({
                 >
                   {t('pipeline.exportReset')}
                 </Button>
+                {isOrgView && orgReportData && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      const activePeriod = orgReportData.monthlyCycle?.currentPeriod
+                      const periodLabel = lang === 'en' ? (activePeriod?.labelEn || 'Current') : (activePeriod?.labelFr || 'En cours')
+                      exportDashboardPdf({
+                        data: orgReportData,
+                        seniorManagerName: managers?.find((m) => m.isSenior)?.name,
+                        periodLabel,
+                        currency,
+                        lang
+                      })
+                      setOpen(false)
+                    }}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      borderColor: '#10b981',
+                      color: '#10b981'
+                    }}
+                  >
+                    <FileText size={14} />
+                    <span>{lang === 'en' ? 'Executive PDF (Board)' : 'Rapport Bilan PDF (DG)'}</span>
+                  </Button>
+                )}
                 <Button
                   size="sm"
                   variant="primary"

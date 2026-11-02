@@ -40,3 +40,33 @@ export type PipelineDoc = {
   createdAt: FirestoreTimestampLike
   updatedAt: FirestoreTimestampLike
 }
+
+export type PipelineActivityType = 'call' | 'visit' | 'whatsapp' | 'email' | 'note' | 'status_change'
+
+export interface PipelineActivityDoc {
+  pipelineItemId: string
+  type: PipelineActivityType
+  title?: string
+  summary: string
+  outcome?: string | null
+  performedBy: string
+  performedByName: string
+  performedByRole?: string | null
+  nextFollowUpDate?: string | null
+  createdAt: FirestoreTimestampLike
+}
+
+export interface PipelineActivityItem {
+  id: string
+  pipelineItemId: string
+  type: PipelineActivityType
+  title?: string
+  summary: string
+  outcome?: string | null
+  performedBy: string
+  performedByName: string
+  performedByRole?: string | null
+  nextFollowUpDate?: string | null
+  createdAt: string
+}
+

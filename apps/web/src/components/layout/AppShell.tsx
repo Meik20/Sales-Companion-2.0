@@ -6,12 +6,15 @@ import { AppSidebar } from './AppSidebar'
 import { MobileNav } from './MobileNav'
 import { AuthGuard } from '@/components/auth/AuthGuard'
 import { CrossCountryModal } from './CrossCountryModal'
+import { OfflineSyncBanner } from '@/components/ui/OfflineSyncBanner'
 
 export function AppShell({ children }: PropsWithChildren) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
 
   return (
     <AuthGuard>
+      {/* Bannière de synchronisation et indicateur réseau hors-ligne */}
+      <OfflineSyncBanner />
       {/* Modal globale Cross-Country : écoute l'event 'sc_cross_country_locked' */}
       <CrossCountryModal />
       <div className="flex h-[100dvh] flex-col overflow-hidden bg-background">

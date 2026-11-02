@@ -134,9 +134,11 @@ export async function GET(request: NextRequest) {
     )
 
     // 3. Comptes globaux et montants
-    const globalCounts = { prospection: 0, negociation: 0, conclue: 0, total: allItems.length }
+    const globalCounts = { prospection: 0, negociation: 0, conclue: 0, perdue: 0, total: allItems.length }
     let totalConcludedAmount = 0
     let totalPipelineValue = 0
+    let totalLostAmount = 0
+    const lossReasonsSummary: Record<string, number> = {}
 
     for (const item of allItems) {
       const ns = normalizeStatus(item.status ?? '')
@@ -152,16 +154,21 @@ export async function GET(request: NextRequest) {
       } else if (ns === 'negociation') {
         globalCounts.negociation++
         totalPipelineValue += amt
+      } else if (ns === 'perdue') {
+        globalCounts.perdue++
+        totalLostAmount += amt
+        const r = (item.lossReason as string) || 'other'
+        lossReasonsSummary[r] = (lossReasonsSummary[r] || 0) + 1
       }
     }
 
     // 4. Stats et CA par manager
     const statsByManager: Record<
       string,
-      { prospection: number; negociation: number; conclue: number; total: number; concludedAmount: number }
+      { prospection: number; negociation: number; conclue: number; perdue: number; total: number; concludedAmount: number }
     > = {}
     for (const uid of managerUids) {
-      statsByManager[uid] = { prospection: 0, negociation: 0, conclue: 0, total: 0, concludedAmount: 0 }
+      statsByManager[uid] = { prospection: 0, negociation: 0, conclue: 0, perdue: 0, total: 0, concludedAmount: 0 }
     }
     for (const item of allItems) {
       const uid = item.managerUid
@@ -174,7 +181,7 @@ export async function GET(request: NextRequest) {
             const amt = typeof item.amount === 'number' ? item.amount : Number(item.amount) || 0
             statsByManager[uid].concludedAmount += amt
           }
-        } else if (ns === 'prospection' || ns === 'negociation') {
+        } else if (ns === 'prospection' || ns === 'negociation' || ns === 'perdue') {
           statsByManager[uid][ns]++
         }
       }
@@ -304,6 +311,8 @@ export async function GET(request: NextRequest) {
       conversionRate,
       totalConcludedAmount,
       totalPipelineValue,
+      totalLostAmount,
+      lossReasonsSummary,
       targets: {
         targetVolume: orgTargetVolume > 0 ? orgTargetVolume : null,
         targetValue: orgTargetValue > 0 ? orgTargetValue : null,
