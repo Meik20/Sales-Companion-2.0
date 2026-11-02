@@ -40,6 +40,34 @@ interface TeamManagerPerformanceCardProps {
   countryCode?: string
 }
 
+function safeParseDate(val: unknown): Date | null {
+  if (!val) return null
+  if (val instanceof Date) return isNaN(val.getTime()) ? null : val
+  if (typeof val === 'string') {
+    const d = new Date(val)
+    return isNaN(d.getTime()) ? null : d
+  }
+  if (typeof val === 'number') {
+    const d = new Date(val)
+    return isNaN(d.getTime()) ? null : d
+  }
+  if (typeof val === 'object' && val !== null) {
+    if ('toDate' in val && typeof (val as { toDate?: () => unknown }).toDate === 'function') {
+      const d = (val as { toDate: () => unknown }).toDate()
+      if (d instanceof Date && !isNaN(d.getTime())) return d
+    }
+    if ('_seconds' in val && typeof (val as { _seconds?: unknown })._seconds === 'number') {
+      const d = new Date((val as { _seconds: number })._seconds * 1000)
+      return isNaN(d.getTime()) ? null : d
+    }
+    if ('seconds' in val && typeof (val as { seconds?: unknown }).seconds === 'number') {
+      const d = new Date((val as { seconds: number }).seconds * 1000)
+      return isNaN(d.getTime()) ? null : d
+    }
+  }
+  return null
+}
+
 export function TeamManagerPerformanceCard({
   manager,
   managers,
@@ -112,32 +140,24 @@ export function TeamManagerPerformanceCard({
         prospectionCount++
         activePipelineAmount += amt
         // Détection de stagnation (> 14 jours sans avancement)
-        const refDateStr = (item as Record<string, unknown>).assignedAt || item.createdAt
-        if (refDateStr) {
-          const d = new Date(refDateStr as string).getTime()
-          if (!isNaN(d) && Date.now() - d > 14 * 24 * 3600 * 1000) {
-            stagnantCount++
-          }
+        const refDate = safeParseDate((item as Record<string, unknown>).assignedAt || item.createdAt)
+        if (refDate && Date.now() - refDate.getTime() > 14 * 24 * 3600 * 1000) {
+          stagnantCount++
         }
       } else if (['negociation', 'negotiation', 'in_progress', 'en_cours'].includes(st)) {
         negociationCount++
         activePipelineAmount += amt
         // Détection de stagnation (> 30 jours sans closing)
-        const refDateStr = (item as Record<string, unknown>).assignedAt || item.createdAt
-        if (refDateStr) {
-          const d = new Date(refDateStr as string).getTime()
-          if (!isNaN(d) && Date.now() - d > 30 * 24 * 3600 * 1000) {
-            stagnantCount++
-          }
+        const refDate = safeParseDate((item as Record<string, unknown>).assignedAt || item.createdAt)
+        if (refDate && Date.now() - refDate.getTime() > 30 * 24 * 3600 * 1000) {
+          stagnantCount++
         }
       } else if (['conclue', 'conclusion', 'won', 'closed', 'gagne', 'signe'].includes(st)) {
         // Remise à zéro inconditionnelle au 1er du mois :
         // Seules les affaires dont la date de conclusion tombe STRICTEMENT dans le mois actif sont comptées
-        const rawDate = (item as Record<string, unknown>).concludedAt ?? item.updatedAt
-        const concludedDate = rawDate ? new Date(rawDate as string) : null
+        const concludedDate = safeParseDate((item as Record<string, unknown>).concludedAt ?? item.updatedAt)
         const inPeriod =
           Boolean(concludedDate) &&
-          !isNaN(concludedDate!.getTime()) &&
           concludedDate! >= periodBounds.start &&
           concludedDate! <= periodBounds.end
         if (inPeriod) {

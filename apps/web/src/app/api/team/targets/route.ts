@@ -41,6 +41,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const memberId = searchParams.get('memberId') || null
     const reqManagerUid = searchParams.get('managerUid') || null
+    const reqPeriod = searchParams.get('period') || null
 
     const userData = managerDoc.data() || {}
     const isSeniorManager = userData.orgRole === 'senior_manager' && Boolean(userData.orgCode)
@@ -152,9 +153,18 @@ export async function GET(request: NextRequest) {
       targets = targets.filter((t) => t.memberId && activeSet.has(t.memberId))
     }
 
+    // Filtrage par période explicite si fournie
+    if (reqPeriod) {
+      targets = targets.filter((t) => t.period === reqPeriod)
+    }
+
     // Réinitialisation automatique à 00 des objectifs sans période ou dont la période mensuelle est échue
+    // Sauf si une période explicite a été demandée (consultation historique M-1, M-2... pour bilan)
     const now = new Date()
     const sanitizedTargets = targets.map((t) => {
+      if (reqPeriod) {
+        return t
+      }
       if (!t.period || isTargetPeriodExpired(t.period, now)) {
         return { ...t, targetVolume: 0, targetValue: 0 }
       }

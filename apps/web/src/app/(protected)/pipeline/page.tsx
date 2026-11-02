@@ -34,9 +34,31 @@ export default function PipelinePage() {
   const isSeniorManager = user?.role === 'manager' && user?.orgRole === 'senior_manager'
   const isTeamManager = user?.role === 'manager' && user?.orgRole !== 'senior_manager'
 
+  // Détermination du pays de l'organisation pour le fuseau horaire officiel
+  const orgCountry = useMemo(() => {
+    return (user?.country || 'CM') as string
+  }, [user?.country])
+
+  // Période courante du mois ancrée sur la timezone locale de l'organisation (anti-décalage UTC)
+  const currentMonthPeriod = useMemo(() => {
+    return getOrgMonthPeriod(orgCountry)
+  }, [orgCountry])
+
+  // Sélecteur de période mensuelle (par défaut mois M en cours, modifiable pour bilans M-1, M-2...)
+  const [selectedPeriod, setSelectedPeriod] = useState<string>(currentMonthPeriod)
+
+  // Synchronisation si le fuseau ou le mois courant change
+  useEffect(() => {
+    if (!selectedPeriod) {
+      setSelectedPeriod(currentMonthPeriod)
+    }
+  }, [currentMonthPeriod, selectedPeriod])
+
+  const activePeriod = selectedPeriod || currentMonthPeriod
+
   // ── Org pipeline (Senior Manager uniquement) ─────────────────────────
   const [filterManagerUid, setFilterManagerUid] = useState<string | undefined>(undefined)
-  const orgPipelineQuery = useOrgPipeline({ managerUid: filterManagerUid })
+  const orgPipelineQuery = useOrgPipeline({ managerUid: filterManagerUid, period: activePeriod })
   const selectedManager = filterManagerUid && orgPipelineQuery.data?.managers
     ? orgPipelineQuery.data.managers.find((m: OrgManagerStats) => m.uid === filterManagerUid)
     : undefined
@@ -58,34 +80,12 @@ export default function PipelinePage() {
   const [tgtPeriod, setTgtPeriod] = useState('')
   const isIndependent = user?.role === 'independent'
   const isFree = (user?.plan ?? 'free') === 'free'
-  const { data: myTargets } = useTeamTargets(isIndependent ? user?.uid : undefined)
+  const { data: myTargets } = useTeamTargets(isIndependent ? user?.uid : undefined, undefined, activePeriod)
 
   // Objectifs d'équipe (TM) ou d'organisation (SM) :
-  // - Pour le Team Manager : retourne les objectifs des membres de son équipe
-  // - Pour le Senior Manager : retourne les objectifs de tous les managers de l'organisation
-  const { data: allTeamTargets } = useTeamTargets()
-
-  // Détermination du pays de l'organisation pour le fuseau horaire officiel
-  const orgCountry = useMemo(() => {
-    return ((orgPipelineQuery.data as any)?.country || user?.country || 'CM') as string
-  }, [orgPipelineQuery.data, user?.country])
-
-  // Période courante du mois ancrée sur la timezone locale de l'organisation (anti-décalage UTC)
-  const currentMonthPeriod = useMemo(() => {
-    return getOrgMonthPeriod(orgCountry)
-  }, [orgCountry])
-
-  // Sélecteur de période mensuelle (par défaut mois M en cours, modifiable pour bilans M-1, M-2...)
-  const [selectedPeriod, setSelectedPeriod] = useState<string>(currentMonthPeriod)
-
-  // Synchronisation si le fuseau ou le mois courant change
-  useEffect(() => {
-    if (!selectedPeriod) {
-      setSelectedPeriod(currentMonthPeriod)
-    }
-  }, [currentMonthPeriod, selectedPeriod])
-
-  const activePeriod = selectedPeriod || currentMonthPeriod
+  // - Pour le Team Manager : retourne les objectifs des membres de son équipe sur la période active
+  // - Pour le Senior Manager : retourne les objectifs de tous les managers de l'organisation sur la période active
+  const { data: allTeamTargets } = useTeamTargets(undefined, undefined, activePeriod)
 
   // UIDs des commerciaux actuellement membres de l'équipe (exclut support_agent)
   const activeMemberIds = useMemo(() => {

@@ -9,6 +9,7 @@ export interface OrgPipelineQueryParams {
   filterManagerUid?: string | null
   filterStatus?: string | null
   limit?: number
+  period?: string | null
 }
 
 import {
@@ -41,9 +42,28 @@ export async function fetchOrgConsolidatedPipeline(
   params: OrgPipelineQueryParams
 ): Promise<ConsolidatedPipelineResult> {
   const { adminDb } = await import('@/lib/firebase-admin')
-  const { orgCode, callerUid, callerSegment, filterManagerUid, filterStatus, limit = 500 } = params
+  const { orgCode, callerUid, callerSegment, filterManagerUid, filterStatus, limit = 500, period } = params
 
   const maxLimit = Math.min(Math.max(limit || 500, 1), 2000)
+
+  // Résolution des bornes de la période mensuelle pour le calcul exact des affaires conclues
+  let periodBounds: { start: Date; end: Date } | null = null
+  if (period) {
+    const parts = period.split('-').map(Number)
+    if (parts[0] && parts[1]) {
+      periodBounds = {
+        start: new Date(parts[0], parts[1] - 1, 1, 0, 0, 0, 0),
+        end: new Date(parts[0], parts[1], 0, 23, 59, 59, 999)
+      }
+    }
+  }
+
+  const isConcludedInPeriod = (rawDate: unknown): boolean => {
+    if (!periodBounds) return true
+    if (!rawDate) return false
+    const d = new Date(rawDate as string)
+    return !isNaN(d.getTime()) && d >= periodBounds.start && d <= periodBounds.end
+  }
 
   // 1. Récupérer tous les managers de l'organisation
   const orgManagersSnap = await adminDb
@@ -152,7 +172,12 @@ export async function fetchOrgConsolidatedPipeline(
             : data.createdAt || null,
           updatedAt: data.updatedAt?.toDate
             ? data.updatedAt.toDate().toISOString()
-            : data.updatedAt || null
+            : data.updatedAt || null,
+          concludedAt: data.concludedAt?.toDate
+            ? data.concludedAt.toDate().toISOString()
+            : typeof data.concludedAt === 'string'
+              ? data.concludedAt
+              : null
         })
       }
     })
@@ -171,8 +196,10 @@ export async function fetchOrgConsolidatedPipeline(
       counts.negociation++
       values.negociation += amt
     } else if (st === 'conclue') {
-      counts.conclue++
-      values.conclue += amt
+      if (isConcludedInPeriod(it.concludedAt ?? it.updatedAt)) {
+        counts.conclue++
+        values.conclue += amt
+      }
     } else {
       counts.other++
       values.other += amt
@@ -248,7 +275,9 @@ export async function fetchOrgConsolidatedPipeline(
       stats: {
         prospection: managerItems.filter((i) => i.status === 'prospection').length,
         negociation: managerItems.filter((i) => i.status === 'negociation').length,
-        conclue: managerItems.filter((i) => i.status === 'conclue').length,
+        conclue: managerItems.filter(
+          (i) => i.status === 'conclue' && isConcludedInPeriod(i.concludedAt ?? i.updatedAt)
+        ).length,
         other: managerItems.filter((i) => i.status === 'other').length,
         total: managerItems.length,
         salespeopleCount: activeSalespeopleByManager[d.id] ?? 0

@@ -36,6 +36,33 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Aucun code organisation trouvé' }, { status: 404 })
     }
 
+    const { searchParams } = new URL(request.url)
+    const reqPeriod = searchParams.get('period')
+    const activeMonthPeriod = reqPeriod || new Date().toISOString().slice(0, 7)
+
+    let periodBounds: { start: Date; end: Date } | null = null
+    if (activeMonthPeriod) {
+      const parts = activeMonthPeriod.split('-').map(Number)
+      if (parts[0] && parts[1]) {
+        periodBounds = {
+          start: new Date(parts[0], parts[1] - 1, 1, 0, 0, 0, 0),
+          end: new Date(parts[0], parts[1], 0, 23, 59, 59, 999)
+        }
+      }
+    }
+
+    const isConcludedInPeriod = (item: any): boolean => {
+      if (!periodBounds) return true
+      const rawDate =
+        item.concludedAt?.toDate?.() ??
+        (item.concludedAt ? new Date(item.concludedAt) : null) ??
+        item.updatedAt?.toDate?.() ??
+        (item.updatedAt ? new Date(item.updatedAt) : null)
+      if (!rawDate) return false
+      const d = rawDate instanceof Date ? rawDate : new Date(rawDate)
+      return !isNaN(d.getTime()) && d >= periodBounds.start && d <= periodBounds.end
+    }
+
     // 1. Récupérer tous les managers de l'org
     const managersSnap = await adminDb
       .collection('users')
@@ -113,11 +140,17 @@ export async function GET(request: NextRequest) {
 
     for (const item of allItems) {
       const ns = normalizeStatus(item.status ?? '')
-      if (ns !== 'other') globalCounts[ns]++
       const amt = typeof item.amount === 'number' ? item.amount : Number(item.amount) || 0
       if (ns === 'conclue') {
-        totalConcludedAmount += amt
-      } else if (ns === 'prospection' || ns === 'negociation') {
+        if (isConcludedInPeriod(item)) {
+          globalCounts.conclue++
+          totalConcludedAmount += amt
+        }
+      } else if (ns === 'prospection') {
+        globalCounts.prospection++
+        totalPipelineValue += amt
+      } else if (ns === 'negociation') {
+        globalCounts.negociation++
         totalPipelineValue += amt
       }
     }
@@ -135,10 +168,14 @@ export async function GET(request: NextRequest) {
       if (uid && statsByManager[uid]) {
         statsByManager[uid].total++
         const ns = normalizeStatus(item.status ?? '')
-        if (ns !== 'other') statsByManager[uid][ns]++
         if (ns === 'conclue') {
-          const amt = typeof item.amount === 'number' ? item.amount : Number(item.amount) || 0
-          statsByManager[uid].concludedAmount += amt
+          if (isConcludedInPeriod(item)) {
+            statsByManager[uid].conclue++
+            const amt = typeof item.amount === 'number' ? item.amount : Number(item.amount) || 0
+            statsByManager[uid].concludedAmount += amt
+          }
+        } else if (ns === 'prospection' || ns === 'negociation') {
+          statsByManager[uid][ns]++
         }
       }
     }
@@ -149,7 +186,8 @@ export async function GET(request: NextRequest) {
     const targetsByManager: Record<string, { targetVolume: number; targetValue: number }> = {}
     let orgTargetVolume = 0
     let orgTargetValue = 0
-    const currentMonthPeriod = new Date().toISOString().slice(0, 7)
+    // Période active ciblée (par défaut mois civil M en cours, ou période historique demandée)
+    const currentMonthPeriod = activeMonthPeriod
 
     try {
       const targetChunks: string[][] = []

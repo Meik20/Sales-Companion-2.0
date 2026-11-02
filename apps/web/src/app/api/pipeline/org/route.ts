@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const filterManagerUid = searchParams.get('managerUid')
     const filterStatus = searchParams.get('status')
+    const period = searchParams.get('period')
     const limit = parseInt(searchParams.get('limit') || '500', 10)
 
     // 3. Appel du service métier pur
@@ -30,7 +31,8 @@ export async function GET(request: NextRequest) {
       callerSegment: session.segment,
       filterManagerUid,
       filterStatus,
-      limit
+      limit,
+      period
     })
 
     return NextResponse.json(result)
