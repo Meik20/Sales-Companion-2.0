@@ -19,7 +19,8 @@ import {
   Banknote,
   Calendar,
   AlertTriangle,
-  Clock
+  Clock,
+  XCircle
 } from 'lucide-react'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { getPipelineAging } from '@/lib/pipelineAging'
@@ -61,9 +62,9 @@ type PipelineItem = {
 
 type Props = {
   items: PipelineItem[]
-  onStatusChange: (id: string, status: 'prospection' | 'negociation' | 'conclue') => void
+  onStatusChange: (id: string, status: 'prospection' | 'negociation' | 'conclue' | 'perdue') => void
   onItemClick: (item: PipelineItem) => void
-  activeStage?: 'prospection' | 'negociation' | 'conclue' | null
+  activeStage?: 'prospection' | 'negociation' | 'conclue' | 'perdue' | null
 }
 
 const COLUMNS = [
@@ -105,6 +106,19 @@ const COLUMNS = [
     emptyIcon: Trophy,
     emptyKey: 'pipeline.emptyConcluded',
     emptyText: 'Aucune vente conclue'
+  },
+  {
+    id: 'perdue',
+    labelKey: 'pipeline.lost',
+    label: 'Perdues',
+    color: '#ef4444',
+    gradient: 'linear-gradient(135deg, rgba(239,68,68,0.15) 0%, rgba(220,38,38,0.08) 100%)',
+    border: 'rgba(239,68,68,0.25)',
+    accent: '#ef4444',
+    icon: XCircle,
+    emptyIcon: XCircle,
+    emptyKey: 'pipeline.emptyLost',
+    emptyText: 'Aucune affaire perdue'
   }
 ]
 
@@ -112,6 +126,7 @@ const normalizeStatus = (status: string) => {
   if (['prospection', 'prospect'].includes(status)) return 'prospection'
   if (['negociation', 'negotiation'].includes(status)) return 'negociation'
   if (['conclue', 'conclusion'].includes(status)) return 'conclue'
+  if (['perdue', 'perdu', 'lost', 'abandon', 'abandonne', 'abandonnee'].includes(status)) return 'perdue'
   return 'prospection'
 }
 
@@ -399,19 +414,19 @@ function MobileKanban({
   activeStage
 }: {
   columns: Record<string, PipelineItem[]>
-  onStatusChange: (id: string, status: 'prospection' | 'negociation' | 'conclue') => void
+  onStatusChange: (id: string, status: 'prospection' | 'negociation' | 'conclue' | 'perdue') => void
   onItemClick: (item: PipelineItem) => void
   t: (key: string) => string
-  activeStage?: 'prospection' | 'negociation' | 'conclue' | null
+  activeStage?: 'prospection' | 'negociation' | 'conclue' | 'perdue' | null
 }) {
-  const [activeTab, setActiveTab] = useState<'prospection' | 'negociation' | 'conclue'>(
+  const [activeTab, setActiveTab] = useState<'prospection' | 'negociation' | 'conclue' | 'perdue'>(
     (activeStage as any) || 'prospection'
   )
   const [mobilePages, setMobilePages] = useState<Record<string, number>>({})
   const [touchStart, setTouchStart] = useState<number | null>(null)
 
   useEffect(() => {
-    if (activeStage && ['prospection', 'negociation', 'conclue'].includes(activeStage)) {
+    if (activeStage && ['prospection', 'negociation', 'conclue', 'perdue'].includes(activeStage)) {
       setActiveTab(activeStage)
     }
   }, [activeStage])
@@ -723,7 +738,8 @@ export function UserPipelineKanban({ items, onStatusChange, onItemClick, activeS
   const [columns, setColumns] = useState<Record<string, PipelineItem[]>>({
     prospection: [],
     negociation: [],
-    conclue: []
+    conclue: [],
+    perdue: []
   })
   const [columnPages, setColumnPages] = useState<Record<string, number>>({})
   const [isMounted, setIsMounted] = useState(false)
@@ -733,7 +749,8 @@ export function UserPipelineKanban({ items, onStatusChange, onItemClick, activeS
     const newCols: Record<string, PipelineItem[]> = {
       prospection: [],
       negociation: [],
-      conclue: []
+      conclue: [],
+      perdue: []
     }
     items.forEach((item) => {
       const status = normalizeStatus(item.status)
@@ -784,7 +801,7 @@ export function UserPipelineKanban({ items, onStatusChange, onItemClick, activeS
       movedItem.status = finishColId
       finishItems.splice(realDestIndex, 0, movedItem)
       setColumns({ ...columns, [startColId]: startItems, [finishColId]: finishItems })
-      onStatusChange(draggableId, finishColId as 'prospection' | 'negociation' | 'conclue')
+      onStatusChange(draggableId, finishColId as 'prospection' | 'negociation' | 'conclue' | 'perdue')
     }
   }
 
@@ -793,8 +810,8 @@ export function UserPipelineKanban({ items, onStatusChange, onItemClick, activeS
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: 20,
+          gridTemplateColumns: 'repeat(4, minmax(260px, 1fr))',
+          gap: 16,
           overflowX: 'auto',
           paddingBottom: 16,
           minHeight: 600

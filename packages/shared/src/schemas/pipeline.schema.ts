@@ -21,6 +21,11 @@ export const pipelineSchema = z.object({
   note: z.string().optional(),
   nextAction: z.string().optional(),
   nextDate: z.string().nullable().optional(),
+  concludedAt: z.unknown().optional(),
+  lostAt: z.unknown().optional(),
+  lossReason: z.string().nullable().optional(),
+  lossNotes: z.string().nullable().optional(),
+  reactivationDate: z.string().nullable().optional(),
   createdAt: z.unknown(),
   updatedAt: z.unknown()
 })

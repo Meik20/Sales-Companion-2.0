@@ -16,12 +16,16 @@ export function useUpdatePipelineItem() {
     mutationFn: async (input: UpdateInput) => {
       const docRef = doc(firestore, 'pipeline', input.id)
       const isConclue = input.data.status === 'conclue' || input.data.status === 'conclusion'
+      const isPerdue = input.data.status === 'perdue' || input.data.status === 'lost'
       const updatePayload: Record<string, unknown> = {
         ...input.data,
         updatedAt: serverTimestamp()
       }
       if (isConclue && !input.data.concludedAt) {
         updatePayload.concludedAt = serverTimestamp()
+      }
+      if (isPerdue && !input.data.lostAt) {
+        updatePayload.lostAt = serverTimestamp()
       }
 
       await updateDoc(docRef, updatePayload)

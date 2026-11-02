@@ -22,6 +22,7 @@ export interface PipelineStatusBucket {
   prospection: number
   negociation: number
   conclue: number
+  perdue?: number
   other: number
   total: number
 }
@@ -184,8 +185,8 @@ export async function fetchOrgConsolidatedPipeline(
   }
 
   // 5. Calcul des totaux par statut + sommes des montants par statut (values)
-  const counts: PipelineStatusBucket = { prospection: 0, negociation: 0, conclue: 0, other: 0, total: 0 }
-  const values: PipelineStatusBucket = { prospection: 0, negociation: 0, conclue: 0, other: 0, total: 0 }
+  const counts: PipelineStatusBucket = { prospection: 0, negociation: 0, conclue: 0, perdue: 0, other: 0, total: 0 }
+  const values: PipelineStatusBucket = { prospection: 0, negociation: 0, conclue: 0, perdue: 0, other: 0, total: 0 }
   allItems.forEach((it) => {
     const st = (it.status as CanonicalPipelineStatus) || 'other'
     const amt = typeof it.amount === 'number' ? it.amount : Number(it.amount) || 0
@@ -200,6 +201,9 @@ export async function fetchOrgConsolidatedPipeline(
         counts.conclue++
         values.conclue += amt
       }
+    } else if (st === 'perdue') {
+      counts.perdue = (counts.perdue || 0) + 1
+      values.perdue = (values.perdue || 0) + amt
     } else {
       counts.other++
       values.other += amt

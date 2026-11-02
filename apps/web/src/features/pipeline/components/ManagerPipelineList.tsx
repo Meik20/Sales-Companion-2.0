@@ -6,7 +6,10 @@ import { Button } from '@/components/ui/Button'
 import { useDeletePipelineItem } from '@/features/pipeline/hooks/useDeletePipelineItem'
 import { useToast } from '@/hooks/useToast'
 import { useTranslation } from '@/providers/I18nProvider'
-import { getWhatsAppUrl } from '@/utils/whatsapp'
+import { WhatsAppActionMenu } from './WhatsAppActionMenu'
+import { MarkAsLostModal } from './MarkAsLostModal'
+import { LOSS_REASONS } from '@sales-companion/shared'
+import { useUpdatePipelineItem } from '@/features/pipeline/hooks/useUpdatePipelineItem'
 import { useExportTeamPerformance } from '@/features/pipeline/hooks/useExportTeamPerformance'
 import { useTeamTargets, useSaveTeamTarget } from '@/features/pipeline/hooks/useTeamTargets'
 import { useArchiveLeads } from '@/features/pipeline/hooks/useArchivePipeline'
@@ -37,7 +40,8 @@ import {
   Check,
   Users,
   Download,
-  FolderArchive
+  FolderArchive,
+  XCircle
 } from 'lucide-react'
 import { getPipelineAging } from '@/lib/pipelineAging'
 import { formatCompactAmount, formatFullAmount } from '@/lib/formatters'
@@ -80,6 +84,12 @@ type PipelineItem = {
   assignedAt?: any
   enteredAt?: any
   concludedAt?: any
+  country?: string | null
+  companyCountry?: string | null
+  lossReason?: string | null
+  lossNotes?: string | null
+  lostAt?: string | null
+  reactivationDate?: string | null
 }
 
 type Member = { uid: string; name?: string; email?: string; accessId?: string }
@@ -112,13 +122,15 @@ function resolveMemberLabel(item: PipelineItem, members?: Member[]): string | nu
   return null
 }
 
-const statusVariant: Record<string, 'info' | 'warning' | 'success'> = {
+const statusVariant: Record<string, 'info' | 'warning' | 'success' | 'danger'> = {
   prospection: 'info',
   prospect: 'info',
   negociation: 'warning',
   negotiation: 'warning',
   conclue: 'success',
-  conclusion: 'success'
+  conclusion: 'success',
+  perdue: 'danger',
+  lost: 'danger'
 }
 
 // ── Prospect detail modal ───────────────────────────────────────────────
@@ -138,6 +150,9 @@ function ProspectModal({
 }) {
   const { t, lang } = useTranslation()
   const { currency } = useProspectingCountryDetails()
+  const updateMutation = useUpdatePipelineItem()
+  const { pushToast } = useToast()
+  const [showLostModal, setShowLostModal] = useState(false)
 
   const originalNote = item.notes ?? item.note ?? ''
 
@@ -378,34 +393,11 @@ function ProspectModal({
                       >
                         {item.companyPhone}
                       </a>
-                      <a
-                        href={getWhatsAppUrl(
-                          item.companyPhone,
-                          `Bonjour, je vous contacte suite à...`
-                        )}
-                        target="_blank"
-                        rel="noreferrer"
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 6,
-                          background: '#25D366',
-                          color: '#fff',
-                          padding: '4px 8px',
-                          borderRadius: 6,
-                          fontSize: 11,
-                          fontWeight: 700,
-                          textDecoration: 'none',
-                          transition: 'opacity 0.2s ease'
-                        }}
-                        onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.85')}
-                        onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z" />
-                        </svg>
-                        WhatsApp
-                      </a>
+                      <WhatsAppActionMenu
+                        phone={item.companyPhone ?? undefined}
+                        companyName={item.companyName}
+                        countryCode={item.country ?? item.companyCountry ?? undefined}
+                      />
                     </div>
                   ) : (
                     <span
@@ -816,6 +808,103 @@ function ProspectModal({
           )}
         </div>
       </div>
+
+      {/* Bouton Marquer comme perdue (visible si pas déjà perdue/conclue) */}
+      {!['perdue', 'lost', 'conclue', 'conclusion', 'won', 'closed'].includes((item.status || '').toLowerCase()) && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: 24,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 1010,
+            display: 'flex',
+            justifyContent: 'center',
+            pointerEvents: 'auto'
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => setShowLostModal(true)}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '8px 18px',
+              borderRadius: 10,
+              border: '1px solid rgba(239,68,68,0.4)',
+              background: 'rgba(239,68,68,0.08)',
+              color: '#ef4444',
+              fontSize: 12,
+              fontWeight: 700,
+              cursor: 'pointer',
+              transition: 'all 150ms ease'
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.18)' }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.08)' }}
+          >
+            <XCircle size={14} />
+            {lang === 'en' ? 'Mark as Lost' : 'Marquer comme perdue'}
+          </button>
+        </div>
+      )}
+
+      {/* Bannière Lost Deal Intelligence (si déjà perdue) */}
+      {['perdue', 'lost'].includes((item.status || '').toLowerCase()) && item.lossReason && (
+        <div
+          style={{
+            margin: '0 28px 16px',
+            padding: '12px 16px',
+            borderRadius: 10,
+            background: 'rgba(239,68,68,0.06)',
+            border: '1px solid rgba(239,68,68,0.2)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 6
+          }}
+        >
+          <div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', color: '#ef4444', display: 'flex', alignItems: 'center', gap: 5 }}>
+            <XCircle size={12} />
+            {lang === 'en' ? 'Lost Deal — Failure Analysis' : 'Affaire perdue — Analyse d\'échec'}
+          </div>
+          <div style={{ fontSize: 13, color: 'var(--foreground, #f1f5f9)', fontWeight: 500 }}>
+            {lang === 'en' ? 'Reason:' : 'Motif :'}{' '}
+            <strong>
+              {(() => {
+                const LOSS_REASONS_MAP: Record<string, { labelFr: string; labelEn: string }> = {
+                  price_too_high: { labelFr: 'Prix trop élevé', labelEn: 'Price too high' },
+                  competitor_chosen: { labelFr: 'Concurrent choisi', labelEn: 'Competitor chosen' },
+                  budget_cancelled: { labelFr: 'Budget annulé / reporté', labelEn: 'Budget cancelled / postponed' },
+                  unreachable: { labelFr: 'Injoignable / faux contact', labelEn: 'Unreachable / invalid contact' },
+                  no_need: { labelFr: 'Pas de besoin identifié', labelEn: 'No need identified' },
+                  other: { labelFr: 'Autre motif', labelEn: 'Other reason' },
+                }
+                const r = LOSS_REASONS_MAP[item.lossReason!]
+                return r ? (lang === 'en' ? r.labelEn : r.labelFr) : item.lossReason
+              })()}
+            </strong>
+          </div>
+          {item.lossNotes && (
+            <div style={{ fontSize: 12, color: 'var(--muted-foreground, #94a3b8)', lineHeight: 1.4 }}>
+              {item.lossNotes}
+            </div>
+          )}
+          {item.reactivationDate && (
+            <div style={{ fontSize: 11, color: '#f59e0b', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+              <Calendar size={11} />
+              {lang === 'en' ? 'Reactivation planned:' : 'Réactivation prévue :'}{' '}
+              {new Date(item.reactivationDate).toLocaleDateString(lang === 'en' ? 'en-US' : 'fr-FR')}
+            </div>
+          )}
+        </div>
+      )}
+
+      <MarkAsLostModal
+        open={showLostModal}
+        item={item}
+        onClose={() => setShowLostModal(false)}
+        onSuccess={() => { setShowLostModal(false); onClose() }}
+      />
     </>
   )
 }
@@ -1691,7 +1780,9 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
     negociation: t('pipeline.negotiation'),
     negotiation: t('pipeline.negotiation'),
     conclue: t('pipeline.closed'),
-    conclusion: t('pipeline.closed')
+    conclusion: t('pipeline.closed'),
+    perdue: lang === 'en' ? 'Lost' : 'Perdue',
+    lost: lang === 'en' ? 'Lost' : 'Perdue'
   }
   const { pushToast } = useToast()
   const [deletingId, setDeletingId] = useState<string | null>(null)

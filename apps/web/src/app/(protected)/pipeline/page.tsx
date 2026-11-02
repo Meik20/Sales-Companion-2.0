@@ -229,7 +229,7 @@ export default function PipelinePage() {
           ? 'conclue'
           : null
 
-  async function handleStatusChange(id: string, status: 'prospection' | 'negociation' | 'conclue') {
+  async function handleStatusChange(id: string, status: 'prospection' | 'negociation' | 'conclue' | 'perdue') {
     await updateMutation.mutateAsync({ id, data: { status } })
   }
 
@@ -711,7 +711,7 @@ export default function PipelinePage() {
           ) : null}
           {managerPipelineQuery.data?.length ? (
             <ManagerPipelineList
-              items={managerPipelineQuery.data}
+              items={managerPipelineQuery.data as any[]}
               members={members}
               managerUid={user?.uid}
               enableArchive
@@ -1026,7 +1026,7 @@ export default function PipelinePage() {
             ) : null}
             {filteredItems.length > 0 ? (
               <UserPipelineList
-                items={filteredItems}
+                items={filteredItems as any[]}
                 onStatusChange={handleStatusChange}
                 activeStage={activeStage}
               />

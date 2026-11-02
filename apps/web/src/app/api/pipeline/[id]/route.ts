@@ -106,7 +106,11 @@ const pipelineUpdateSchema = z
     probability: z.number().min(0).max(100).nullable().optional(),
     priority: z.enum(['low', 'medium', 'high']).optional(),
     stage: z.number().nullable().optional(),
-    tags: z.array(z.string()).optional()
+    tags: z.array(z.string()).optional(),
+    lossReason: z.string().nullable().optional(),
+    lossNotes: z.string().nullable().optional(),
+    reactivationDate: z.string().nullable().optional(),
+    lostAt: z.unknown().optional()
   })
   .strict()
 
@@ -153,6 +157,10 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const isConcluded = cleanData.status === 'conclue' || cleanData.status === 'conclusion'
     if (isConcluded && !data.concludedAt) {
       cleanData.concludedAt = new Date()
+    }
+    const isLost = cleanData.status === 'perdue' || cleanData.status === 'lost'
+    if (isLost && !data.lostAt) {
+      cleanData.lostAt = new Date()
     }
 
     await doc.ref.update({ ...cleanData, updatedAt: new Date() })

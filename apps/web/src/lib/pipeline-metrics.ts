@@ -13,7 +13,7 @@
  *    ses cibles résiduelles sont formellement exclues des quotas consolidés du segment.
  */
 
-export type CanonicalPipelineStatus = 'prospection' | 'negociation' | 'conclue' | 'other'
+export type CanonicalPipelineStatus = 'prospection' | 'negociation' | 'conclue' | 'perdue' | 'other'
 
 const PROSPECTION_STATUSES = new Set([
   'prospection',
@@ -40,8 +40,21 @@ const CONCLUE_STATUSES = new Set([
   'signe'
 ])
 
+const PERDUE_STATUSES = new Set([
+  'perdue',
+  'perdu',
+  'lost',
+  'abandon',
+  'abandonne',
+  'abandonnee',
+  'annule',
+  'annulee',
+  'echec',
+  'failed'
+])
+
 /**
- * Normalise un statut pipeline vers les 3 statuts canoniques du CRM.
+ * Normalise un statut pipeline vers les 4 statuts canoniques du CRM.
  */
 export function normalizePipelineStatus(rawStatus: unknown): CanonicalPipelineStatus {
   const st = String(rawStatus ?? '')
@@ -50,6 +63,7 @@ export function normalizePipelineStatus(rawStatus: unknown): CanonicalPipelineSt
   if (PROSPECTION_STATUSES.has(st)) return 'prospection'
   if (NEGOCIATION_STATUSES.has(st)) return 'negociation'
   if (CONCLUE_STATUSES.has(st)) return 'conclue'
+  if (PERDUE_STATUSES.has(st)) return 'perdue'
   return 'other'
 }
 
@@ -84,6 +98,12 @@ export interface PipelineStatsSummary {
   conclueCount: number
   /** Chiffre d'affaires conclu / encaissé */
   concludedAmount: number
+  /** Opportunités perdues / sans suite */
+  perdueCount: number
+  /** Montant total des opportunités perdues */
+  lostAmount: number
+  /** Taux de perte global en % (perdues / total) */
+  lossRate: number
   /** Taux de conversion global en % (conclues / total) */
   conversionRate: number
 }
@@ -98,6 +118,8 @@ export function calculatePipelineStats(items: PipelineItemLike[]): PipelineStats
   let negociationAmount = 0
   let conclueCount = 0
   let concludedAmount = 0
+  let perdueCount = 0
+  let lostAmount = 0
 
   for (const item of items) {
     const status = normalizePipelineStatus(item.status)
@@ -112,6 +134,9 @@ export function calculatePipelineStats(items: PipelineItemLike[]): PipelineStats
     } else if (status === 'conclue') {
       conclueCount++
       concludedAmount += amount
+    } else if (status === 'perdue') {
+      perdueCount++
+      lostAmount += amount
     }
   }
 
@@ -119,6 +144,7 @@ export function calculatePipelineStats(items: PipelineItemLike[]): PipelineStats
   const activeCount = prospectionCount + negociationCount
   const activePipelineAmount = prospectionAmount + negociationAmount
   const conversionRate = totalCount > 0 ? Math.round((conclueCount / totalCount) * 100) : 0
+  const lossRate = totalCount > 0 ? Math.round((perdueCount / totalCount) * 100) : 0
 
   return {
     totalCount,
@@ -130,6 +156,9 @@ export function calculatePipelineStats(items: PipelineItemLike[]): PipelineStats
     negociationAmount,
     conclueCount,
     concludedAmount,
+    perdueCount,
+    lostAmount,
+    lossRate,
     conversionRate
   }
 }

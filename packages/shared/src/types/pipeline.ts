@@ -33,6 +33,10 @@ export type PipelineDoc = {
   amount?: number | null // Montant de la transaction en devise locale
   currency?: string | null // Devise (ex: FCFA, EUR, USD)
   concludedAt?: FirestoreTimestampLike | null
+  lostAt?: FirestoreTimestampLike | null
+  lossReason?: string | null
+  lossNotes?: string | null
+  reactivationDate?: string | null
   createdAt: FirestoreTimestampLike
   updatedAt: FirestoreTimestampLike
 }
