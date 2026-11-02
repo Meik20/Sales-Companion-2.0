@@ -103,6 +103,16 @@ describe('pipeline-org.service - fetchOrgConsolidatedPipeline', () => {
           })
         }
       }
+      if (collName === 'organisations') {
+        return {
+          doc: vi.fn().mockReturnValue({
+            get: vi.fn().mockResolvedValue({
+              exists: true,
+              data: () => ({ country: 'CM', currency: 'XAF' })
+            })
+          })
+        }
+      }
       return {}
     })
 
@@ -110,6 +120,9 @@ describe('pipeline-org.service - fetchOrgConsolidatedPipeline', () => {
       orgCode: 'SC-CM-TEST1',
       callerUid: 'sm-test-uid'
     })
+
+    // Vérifier la devise d'organisation
+    expect(result.currency).toBe('XAF')
 
     // Vérifier les comptes globaux
     expect(result.counts.prospection).toBe(1)

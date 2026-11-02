@@ -15,6 +15,7 @@ import {
   normalizePipelineStatus,
   type CanonicalPipelineStatus
 } from '@/lib/pipeline-metrics'
+import { COUNTRY_CURRENCIES, type CountryCode } from '@sales-companion/shared'
 
 export interface PipelineStatusBucket {
   prospection: number
@@ -33,6 +34,7 @@ export interface ConsolidatedPipelineResult {
   totalFetched: number
   orgCode: string
   totalSalespeopleCount?: number
+  currency?: string
 }
 
 export async function fetchOrgConsolidatedPipeline(
@@ -220,6 +222,19 @@ export async function fetchOrgConsolidatedPipeline(
     totalSalespeopleCount += count
   }
 
+  // Verrouillage de la devise officielle de l'organisation
+  let orgCurrency = 'XAF'
+  try {
+    const orgDocSnap = await adminDb.collection('organisations').doc(orgCode).get()
+    if (orgDocSnap.exists) {
+      const orgData = orgDocSnap.data()
+      const orgCountry = ((orgData?.country as string) || 'CM').toUpperCase() as CountryCode
+      orgCurrency = (orgData?.currency as string) || COUNTRY_CURRENCIES[orgCountry] || 'XAF'
+    }
+  } catch (err) {
+    console.warn('[pipeline-org.service] Impossible de lire la devise org:', err)
+  }
+
   const managersWithStats = teamManagersDocs.map((d) => {
     const data = d.data()
     const managerItems = allItems.filter((i) => i.managerUid === d.id)
@@ -249,6 +264,7 @@ export async function fetchOrgConsolidatedPipeline(
     hasMore,
     totalFetched: allItems.length,
     orgCode,
-    totalSalespeopleCount
+    totalSalespeopleCount,
+    currency: orgCurrency
   }
 }

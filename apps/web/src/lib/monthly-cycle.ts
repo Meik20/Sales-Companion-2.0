@@ -1,3 +1,5 @@
+import { COUNTRY_TIMEZONES, type CountryCode } from '@sales-companion/shared'
+
 /**
  * monthly-cycle.ts
  * Gestion du cycle de vie mensuel des pipelines et tableaux de bord.
@@ -12,6 +14,34 @@
  * - Les opportunités en cours ('prospection', 'negociation') restent dans le pipeline
  *   et sont automatiquement reconduites pour le nouveau mois.
  */
+
+/**
+ * Résout le fuseau horaire officiel pour un pays donné (par défaut Africa/Douala).
+ */
+export function getOrgTimezone(countryCode?: string | null): string {
+  if (countryCode && typeof COUNTRY_TIMEZONES === 'object' && COUNTRY_TIMEZONES !== null && countryCode.toUpperCase() in COUNTRY_TIMEZONES) {
+    return COUNTRY_TIMEZONES[countryCode.toUpperCase() as CountryCode]
+  }
+  return 'Africa/Douala' // Timezone par défaut du siège (GMT+1)
+}
+
+/**
+ * Retourne la période YYYY-MM active selon le fuseau horaire de l'organisation.
+ * Empêche le décalage UTC au changement de mois.
+ */
+export function getOrgMonthPeriod(countryCode?: string | null, now = new Date()): string {
+  const timeZone = getOrgTimezone(countryCode)
+  try {
+    const formatter = new Intl.DateTimeFormat('en-CA', {
+      timeZone,
+      year: 'numeric',
+      month: '2-digit'
+    })
+    return formatter.format(now) // Format strict: "YYYY-MM"
+  } catch {
+    return now.toISOString().slice(0, 7)
+  }
+}
 
 export interface MonthPeriodInfo {
   key: string // e.g. "2026-10"
@@ -66,6 +96,40 @@ export function getMonthPeriodInfo(year: number, month1Indexed: number, now = ne
     isGracePeriod,
     isClosed
   }
+}
+
+/**
+ * Retourne la liste des N derniers mois historiques disponibles pour les réunions de bilan (ex: M, M-1, M-2...).
+ * Ancré sur le fuseau horaire de l'organisation pour éliminer tout décalage temporel.
+ */
+export function getAvailableMonthPeriods(
+  count = 6,
+  countryCode?: string | null,
+  now = new Date()
+): MonthPeriodInfo[] {
+  const timeZone = getOrgTimezone(countryCode)
+  let currentYear = now.getFullYear()
+  let currentMonth = now.getMonth() + 1
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone,
+      year: 'numeric',
+      month: 'numeric'
+    }).formatToParts(now)
+    for (const p of parts) {
+      if (p.type === 'year') currentYear = Number(p.value)
+      if (p.type === 'month') currentMonth = Number(p.value)
+    }
+  } catch {
+    // fallback
+  }
+
+  const periods: MonthPeriodInfo[] = []
+  for (let i = 0; i < count; i++) {
+    const d = new Date(currentYear, currentMonth - 1 - i, 1)
+    periods.push(getMonthPeriodInfo(d.getFullYear(), d.getMonth() + 1, now))
+  }
+  return periods
 }
 
 /**

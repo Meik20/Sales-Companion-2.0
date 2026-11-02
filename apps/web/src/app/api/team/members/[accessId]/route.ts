@@ -71,27 +71,54 @@ export async function DELETE(
     // 1. Delete the team_accesses document
     await accessDoc.ref.delete()
 
-    // 2. Delete pipeline items belonging to this member under this manager
-    let pipelineDeleted = 0
-    if (memberFirebaseUid) {
-      const pipelineSnap = await adminDb
-        .collection('pipeline')
-        .where('userId', '==', memberFirebaseUid)
-        .where('managerUid', '==', managerUid)
-        .get()
-      for (const doc of pipelineSnap.docs) {
-        await doc.ref.delete()
-        pipelineDeleted++
-      }
-    }
-    // Also clean up email-like userId (before repair was run)
+    // 2. Sécurisation patrimoniale anti-perte de données :
+    // RÈGLE MÉTIER INVIOLABLE : En cas de révocation, le commercial n'emporte pas ses dossiers.
+    // Les opportunités actives restent chez le Team Manager et sont DÉSASSIGNÉES (sas "Non assignées")
+    // pour être réattribuées immédiatement aux autres commerciaux de l'équipe.
+    // Les affaires conclues restent définitivement intactes dans l'historique et la base clients du manager.
+    let pipelineUnassigned = 0
+    const queryActiveByUser = memberFirebaseUid
+      ? await adminDb
+          .collection('pipeline')
+          .where('managerUid', '==', managerUid)
+          .where('userId', '==', memberFirebaseUid)
+          .get()
+      : { docs: [] }
+
+    const queryActiveByAssigned = memberFirebaseUid
+      ? await adminDb
+          .collection('pipeline')
+          .where('managerUid', '==', managerUid)
+          .where('assignedTo', '==', memberFirebaseUid)
+          .get()
+      : { docs: [] }
+
     const emailPipelineSnap = await adminDb
       .collection('pipeline')
+      .where('managerUid', '==', managerUid)
       .where('userId', '==', accessId)
       .get()
-    for (const doc of emailPipelineSnap.docs) {
-      await doc.ref.delete()
-      pipelineDeleted++
+
+    const allMemberDeals = new Map<string, FirebaseFirestore.QueryDocumentSnapshot>()
+    for (const d of queryActiveByUser.docs) allMemberDeals.set(d.id, d)
+    for (const d of queryActiveByAssigned.docs) allMemberDeals.set(d.id, d)
+    for (const d of emailPipelineSnap.docs) allMemberDeals.set(d.id, d)
+
+    for (const doc of allMemberDeals.values()) {
+      const data = doc.data()
+      const st = String(data.status || '').toLowerCase().trim()
+      // Si l'affaire n'est pas conclue, la désassigner pour reprise par le Team Manager
+      if (!['conclue', 'conclusion', 'closed', 'won'].includes(st)) {
+        await doc.ref.update({
+          assignedTo: null,
+          assignedName: null,
+          previousAssignedTo: memberFirebaseUid || accessId,
+          unassignedReason: 'member_revoked',
+          unassignedAt: new Date(),
+          updatedAt: new Date()
+        })
+        pipelineUnassigned++
+      }
     }
 
     // 3. Delete team_assignments for this member
@@ -154,7 +181,8 @@ export async function DELETE(
 
     return NextResponse.json({
       success: true,
-      pipelineDeleted,
+      pipelineDeleted: 0,
+      pipelineUnassigned,
       assignmentsDeleted
     })
   } catch (error) {

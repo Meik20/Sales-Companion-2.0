@@ -242,6 +242,17 @@ export const COUNTRY_CURRENCIES: Record<CountryCode, string> = {
   CF: 'XAF'
 }
 
+/** Fuseaux horaires officiels par pays */
+export const COUNTRY_TIMEZONES: Record<CountryCode, string> = {
+  CM: 'Africa/Douala',
+  SN: 'Africa/Dakar',
+  CI: 'Africa/Abidjan',
+  BJ: 'Africa/Porto-Novo',
+  TG: 'Africa/Lome',
+  TD: 'Africa/Ndjamena',
+  CF: 'Africa/Bangui'
+}
+
 /** Configuration UI et tokens d'ambiance visuelle par pays */
 export interface CountryThemeConfig {
   primaryColor: string

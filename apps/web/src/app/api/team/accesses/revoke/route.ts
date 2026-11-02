@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
       revokedAt: FieldValue.serverTimestamp()
     })
 
-    // 5. Si le membre est actif, le détacher de l'équipe
+    // 5. Si le membre est actif, le détacher de l'équipe et sécuriser ses opportunités actives
     const memberFirebaseUid = accessData.firebaseUid
     if (memberFirebaseUid) {
       try {
@@ -80,6 +80,26 @@ export async function POST(request: NextRequest) {
         })
         // Désactiver son compte Auth également pour forcer la reconnexion/blocage
         await adminAuth.updateUser(memberFirebaseUid, { disabled: true })
+
+        // Sécurisation patrimoniale : les opportunités actives restent chez le TM et sont désassignées
+        const activeSnap = await adminDb
+          .collection('pipeline')
+          .where('managerUid', '==', managerUid)
+          .where('assignedTo', '==', memberFirebaseUid)
+          .get()
+
+        for (const doc of activeSnap.docs) {
+          const st = String(doc.data().status || '').toLowerCase().trim()
+          if (!['conclue', 'conclusion', 'closed', 'won'].includes(st)) {
+            await doc.ref.update({
+              assignedTo: null,
+              assignedName: null,
+              previousAssignedTo: memberFirebaseUid,
+              unassignedReason: 'member_revoked',
+              unassignedAt: new Date()
+            })
+          }
+        }
       } catch (err) {
         console.error('[revoke API] erreur lors du détachement utilisateur:', err)
       }

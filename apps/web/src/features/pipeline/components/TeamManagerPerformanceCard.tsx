@@ -8,6 +8,11 @@ import { useProspectingCountryDetails } from '@/hooks/useProspectingCountry'
 import type { OrgManagerStats, OrgPipelineItem } from '@/features/pipeline/hooks/useOrgPipeline'
 import type { MemberTarget } from '@/features/pipeline/hooks/useTeamTargets'
 import {
+  getAvailableMonthPeriods,
+  getOrgMonthPeriod,
+  getMonthPeriodLabel
+} from '@/lib/monthly-cycle'
+import {
   calculatePipelineStats,
   calculateAttainmentRate,
   calculateRoRate
@@ -25,6 +30,14 @@ interface TeamManagerPerformanceCardProps {
   context?: 'org' | 'team'
   /** Effectif commercial actif réel de l'équipe (strictement issu de members) */
   membersCount?: number
+  /** Devise officielle de l'organisation */
+  currency?: string
+  /** Période mensuelle sélectionnée (ex: '2026-11', '2026-10') pour les bilans */
+  selectedPeriod?: string
+  /** Callback lors du changement de période historique */
+  onSelectPeriod?: (period: string) => void
+  /** Code pays pour la timezone officielle (ex: 'CM') */
+  countryCode?: string
 }
 
 export function TeamManagerPerformanceCard({
@@ -34,20 +47,30 @@ export function TeamManagerPerformanceCard({
   onClear,
   targets,
   context = 'org',
-  membersCount
+  membersCount,
+  currency: orgCurrency,
+  selectedPeriod,
+  onSelectPeriod,
+  countryCode
 }: TeamManagerPerformanceCardProps) {
   const { t, lang } = useTranslation()
-  const { currency } = useProspectingCountryDetails()
+  const { currency: fallbackCurrency } = useProspectingCountryDetails()
+  const currency = orgCurrency || fallbackCurrency || 'XAF'
   const todayStr = useMemo(() => new Date().toISOString().slice(0, 10), [])
   const isGlobal = !manager
   const [showOverdueDrawer, setShowOverdueDrawer] = useState(false)
 
-  // Bornes inconditionnelles du mois actif M (du 1er à 00:00 au dernier jour à 23:59:59)
+  // Résolution de la période active (avec timezone organisation) et liste des 6 derniers mois pour les bilans
+  const currentMonthPeriod = useMemo(() => getOrgMonthPeriod(countryCode), [countryCode])
+  const activePeriod = selectedPeriod || targets?.period || currentMonthPeriod
+  const availablePeriods = useMemo(() => getAvailableMonthPeriods(6, countryCode), [countryCode])
+
+  // Bornes inconditionnelles de la période sélectionnée (du 1er à 00:00 au dernier jour à 23:59:59)
   const periodBounds = useMemo(() => {
     let year: number
     let month: number
-    if (targets?.period) {
-      const parts = targets.period.split('-').map(Number)
+    if (activePeriod) {
+      const parts = activePeriod.split('-').map(Number)
       year = parts[0]!
       month = parts[1]!
     } else {
@@ -58,7 +81,7 @@ export function TeamManagerPerformanceCard({
     const start = new Date(year, month - 1, 1, 0, 0, 0, 0)
     const end = new Date(year, month, 0, 23, 59, 59, 999)
     return { start, end }
-  }, [targets?.period])
+  }, [activePeriod])
 
   const stats = useMemo(() => {
     let prospectionCount = 0
@@ -67,6 +90,7 @@ export function TeamManagerPerformanceCard({
     let concludedAmount = 0
     let activePipelineAmount = 0
     let overdueCount = 0
+    let stagnantCount = 0
     let unassignedCount = 0
     const memberIds = new Set<string>()
 
@@ -87,9 +111,25 @@ export function TeamManagerPerformanceCard({
       if (['prospection', 'prospect', 'to_contact', 'contact', 'nouveau', 'lead'].includes(st)) {
         prospectionCount++
         activePipelineAmount += amt
+        // Détection de stagnation (> 14 jours sans avancement)
+        const refDateStr = (item as Record<string, unknown>).assignedAt || item.createdAt
+        if (refDateStr) {
+          const d = new Date(refDateStr as string).getTime()
+          if (!isNaN(d) && Date.now() - d > 14 * 24 * 3600 * 1000) {
+            stagnantCount++
+          }
+        }
       } else if (['negociation', 'negotiation', 'in_progress', 'en_cours'].includes(st)) {
         negociationCount++
         activePipelineAmount += amt
+        // Détection de stagnation (> 30 jours sans closing)
+        const refDateStr = (item as Record<string, unknown>).assignedAt || item.createdAt
+        if (refDateStr) {
+          const d = new Date(refDateStr as string).getTime()
+          if (!isNaN(d) && Date.now() - d > 30 * 24 * 3600 * 1000) {
+            stagnantCount++
+          }
+        }
       } else if (['conclue', 'conclusion', 'won', 'closed', 'gagne', 'signe'].includes(st)) {
         // Remise à zéro inconditionnelle au 1er du mois :
         // Seules les affaires dont la date de conclusion tombe STRICTEMENT dans le mois actif sont comptées
@@ -129,6 +169,7 @@ export function TeamManagerPerformanceCard({
       concludedAmount,
       activePipelineAmount,
       overdueCount,
+      stagnantCount,
       memberCount: memberIds.size,
       teamManagersCount,
       unassignedCount,
@@ -422,7 +463,7 @@ export function TeamManagerPerformanceCard({
             borderRadius: 12,
             padding: '12px 14px',
             border:
-              stats.overdueCount > 0
+              stats.overdueCount > 0 || stats.stagnantCount > 0
                 ? '1px solid rgba(239,68,68,0.4)'
                 : '1px solid var(--border, rgba(255,255,255,0.08))',
             boxShadow: 'var(--shadow-elevation-1)',
@@ -436,8 +477,8 @@ export function TeamManagerPerformanceCard({
             overflow: 'hidden'
           }}
           title={
-            stats.overdueCount > 0
-              ? (t('pipeline.overdueRequiresAttention') || 'Relances nécessitant attention')
+            stats.overdueCount > 0 || stats.stagnantCount > 0
+              ? (t('pipeline.overdueRequiresAttention') || 'Relances ou leads stagnants nécessitant attention')
               : (t('pipeline.upToDate') || 'À jour')
           }
         >
@@ -446,7 +487,7 @@ export function TeamManagerPerformanceCard({
               fontSize: 10,
               fontWeight: 700,
               textTransform: 'uppercase',
-              color: stats.overdueCount > 0 ? 'var(--pipeline-alert-color, #b91c1c)' : 'var(--pipeline-progress-color, #1d4ed8)',
+              color: stats.overdueCount > 0 || stats.stagnantCount > 0 ? 'var(--pipeline-alert-color, #b91c1c)' : 'var(--pipeline-progress-color, #1d4ed8)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
@@ -460,7 +501,7 @@ export function TeamManagerPerformanceCard({
                 {t('pipeline.followUpAndAlerts')}
               </span>
             </div>
-            {stats.overdueCount > 0 && (
+            {(stats.overdueCount > 0 || stats.stagnantCount > 0) && (
               <span
                 style={{
                   fontSize: 9,
@@ -481,7 +522,7 @@ export function TeamManagerPerformanceCard({
             style={{
               fontSize: 17,
               fontWeight: 800,
-              color: stats.overdueCount > 0 ? 'var(--pipeline-alert-color, #b91c1c)' : 'var(--pipeline-concluded-color, #047857)',
+              color: stats.overdueCount > 0 || stats.stagnantCount > 0 ? 'var(--pipeline-alert-color, #b91c1c)' : 'var(--pipeline-concluded-color, #047857)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
@@ -489,10 +530,12 @@ export function TeamManagerPerformanceCard({
               fontFamily: 'var(--font-heading, inherit)'
             }}
           >
-            {stats.overdueCount > 0 ? (
+            {stats.overdueCount > 0 || stats.stagnantCount > 0 ? (
               <>
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 14 }}>
-                  {stats.overdueCount} {t('pipeline.overdueAlert')}
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13 }}>
+                  {stats.overdueCount > 0 ? `${stats.overdueCount} ${t('pipeline.overdueAlert')}` : ''}
+                  {stats.overdueCount > 0 && stats.stagnantCount > 0 ? ' · ' : ''}
+                  {stats.stagnantCount > 0 ? `${stats.stagnantCount} ${lang === 'en' ? 'stagnant' : 'stagnant(s)'}` : ''}
                 </span>
                 <span
                   style={{
@@ -536,10 +579,10 @@ export function TeamManagerPerformanceCard({
             )}
           </div>
           <div style={{ fontSize: 10.5, color: 'var(--muted-foreground, #94a3b8)', lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {stats.overdueCount > 0
+            {stats.overdueCount > 0 || stats.stagnantCount > 0
               ? (isGlobal && !isTeamContext
-                  ? t('pipeline.allOrgOverdueRequiresAttention')
-                  : t('pipeline.overdueRequiresAttention'))
+                  ? (lang === 'en' ? 'Follow-ups or stagnant leads requiring action' : 'Relances ou leads stagnants nécessitant attention')
+                  : (lang === 'en' ? 'Follow-ups or stagnant leads on team' : "Relances expirées ou leads stagnants sur l'équipe"))
               : (isGlobal && !isTeamContext
                   ? t('pipeline.noOverdueOnOrg')
                   : t('pipeline.noOverdueOnTeam'))}
@@ -629,26 +672,70 @@ export function TeamManagerPerformanceCard({
                     {t('pipeline.achievements')}
                   </span>
                 </span>
-                <span
-                  style={{
-                    fontSize: 9,
-                    fontWeight: 700,
-                    color: hasTargets ? 'var(--pipeline-warning-color, #b45309)' : 'var(--muted-foreground, #64748b)',
-                    background: hasTargets ? 'rgba(180, 83, 9, 0.1)' : 'rgba(255,255,255,0.05)',
-                    border: `1px solid ${hasTargets ? 'rgba(180, 83, 9, 0.25)' : 'rgba(255,255,255,0.08)'}`,
-                    borderRadius: 5,
-                    padding: '1px 6px',
-                    flexShrink: 0,
-                    whiteSpace: 'nowrap'
-                  }}
-                  title={
-                    targets?.period
-                      ? `Période active : ${targets.period}`
-                      : `Période active : ${todayStr.slice(0, 7)}${hasTargets ? '' : ' (Sans objectif défini)'}`
-                  }
-                >
-                  {targets?.period || todayStr.slice(0, 7)}
-                </span>
+                {onSelectPeriod ? (
+                  <select
+                    value={activePeriod}
+                    onChange={(e) => onSelectPeriod(e.target.value)}
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 700,
+                      color: hasTargets ? '#f59e0b' : 'var(--foreground, #f1f5f9)',
+                      background: 'var(--card, #131c2e)',
+                      border: `1px solid ${hasTargets ? 'rgba(245, 158, 11, 0.4)' : 'var(--border, rgba(255,255,255,0.12))'}`,
+                      borderRadius: 6,
+                      padding: '1px 6px',
+                      cursor: 'pointer',
+                      outline: 'none',
+                      flexShrink: 0,
+                      fontFamily: 'inherit'
+                    }}
+                    title={
+                      lang === 'en'
+                        ? 'Select historical month for performance review'
+                        : 'Sélectionner un mois pour la réunion de bilan'
+                    }
+                  >
+                    {availablePeriods.map((p) => {
+                      const isCurrent = p.key === currentMonthPeriod
+                      const label = isCurrent
+                        ? (lang === 'en' ? `${p.key} (Current)` : `${p.key} (En cours)`)
+                        : `${p.key} (${getMonthPeriodLabel(p, lang)})`
+                      return (
+                        <option
+                          key={p.key}
+                          value={p.key}
+                          style={{
+                            background: '#131c2e',
+                            color: '#ffffff'
+                          }}
+                        >
+                          {label}
+                        </option>
+                      )
+                    })}
+                  </select>
+                ) : (
+                  <span
+                    style={{
+                      fontSize: 9,
+                      fontWeight: 700,
+                      color: hasTargets ? 'var(--pipeline-warning-color, #b45309)' : 'var(--muted-foreground, #64748b)',
+                      background: hasTargets ? 'rgba(180, 83, 9, 0.1)' : 'rgba(255,255,255,0.05)',
+                      border: `1px solid ${hasTargets ? 'rgba(180, 83, 9, 0.25)' : 'rgba(255,255,255,0.08)'}`,
+                      borderRadius: 5,
+                      padding: '1px 6px',
+                      flexShrink: 0,
+                      whiteSpace: 'nowrap'
+                    }}
+                    title={
+                      targets?.period
+                        ? `Période active : ${targets.period}`
+                        : `Période active : ${activePeriod}${hasTargets ? '' : ' (Sans objectif défini)'}`
+                    }
+                  >
+                    {targets?.period || activePeriod}
+                  </span>
+                )}
               </div>
 
               {/* Volume */}

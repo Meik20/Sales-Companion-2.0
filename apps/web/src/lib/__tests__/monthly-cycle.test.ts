@@ -5,7 +5,10 @@ import {
   isEligibleForAutoArchive,
   getCurrentCycleContext,
   getMaxEligibleConcludedDate,
-  isTargetPeriodExpired
+  isTargetPeriodExpired,
+  getOrgTimezone,
+  getOrgMonthPeriod,
+  getAvailableMonthPeriods
 } from '../monthly-cycle'
 import { archivePipelineDealAtomically } from '../clients-sync'
 import { runMonthlyPipelineCycleAutoArchive } from '../../server/services/monthly-cycle-archive.service'
@@ -577,6 +580,32 @@ describe('monthly-cycle utility', () => {
     // Invalid or empty period returns false safely
     expect(isTargetPeriodExpired('', midNov)).toBe(false)
     expect(isTargetPeriodExpired(null, midNov)).toBe(false)
+  })
+
+  it('resolves correct organization timezone and prevents end-of-month UTC shift', () => {
+    expect(getOrgTimezone('CM')).toBe('Africa/Douala')
+    expect(getOrgTimezone('SN')).toBe('Africa/Dakar')
+    expect(getOrgTimezone('CI')).toBe('Africa/Abidjan')
+    expect(getOrgTimezone('BJ')).toBe('Africa/Porto-Novo')
+    expect(getOrgTimezone(null)).toBe('Africa/Douala')
+
+    // At 2026-11-01T00:30:00+01:00 (which is 2026-10-31T23:30:00Z in UTC):
+    // In UTC, it is October 31 ("2026-10")
+    // In Douala, it is November 1st ("2026-11")!
+    const doualaLateNight = new Date('2026-10-31T23:30:00Z')
+    expect(getOrgMonthPeriod('CM', doualaLateNight)).toBe('2026-11')
+  })
+
+  it('generates available historical month periods for review meetings', () => {
+    const fixedNow = new Date('2026-11-15T12:00:00Z')
+    const periods = getAvailableMonthPeriods(6, 'CM', fixedNow)
+    expect(periods).toHaveLength(6)
+    expect(periods[0]!.key).toBe('2026-11') // M (en cours)
+    expect(periods[1]!.key).toBe('2026-10') // M-1
+    expect(periods[2]!.key).toBe('2026-09') // M-2
+    expect(periods[3]!.key).toBe('2026-08') // M-3
+    expect(periods[4]!.key).toBe('2026-07') // M-4
+    expect(periods[5]!.key).toBe('2026-06') // M-5
   })
 })
 

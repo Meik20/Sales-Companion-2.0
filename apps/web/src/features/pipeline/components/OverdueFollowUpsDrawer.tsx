@@ -46,6 +46,8 @@ interface OverdueLead {
   dueDate: string // YYYY-MM-DD
   daysOverdue: number
   isToday: boolean
+  isStagnant?: boolean
+  stagnantDays?: number
   nextAction: string
   memberName: string | null
   assignedTo: string | null
@@ -132,7 +134,7 @@ export function OverdueFollowUpsDrawer({
   const [search, setSearch] = useState('')
   const [selectedCommercial, setSelectedCommercial] = useState<string>('all')
   const [selectedManager, setSelectedManager] = useState<string>('all')
-  const [tab, setTab] = useState<'overdue' | 'today' | 'all'>('overdue')
+  const [tab, setTab] = useState<'overdue' | 'today' | 'stagnant' | 'all'>('overdue')
   const [collapsedDates, setCollapsedDates] = useState<Record<string, boolean>>({})
 
   // Fermer avec la touche Echap
@@ -157,14 +159,42 @@ export function OverdueFollowUpsDrawer({
         continue
       }
 
+      // Détection de stagnation (> 14j en prospection, > 30j en négociation)
+      const refDateStr = (item as Record<string, unknown>).assignedAt || item.createdAt
+      let isStagnant = false
+      let stagnantDays = 0
+      if (refDateStr) {
+        const d = new Date(refDateStr as string).getTime()
+        if (!isNaN(d)) {
+          const diffDays = Math.round((Date.now() - d) / (1000 * 3600 * 24))
+          if (['prospection', 'prospect', 'to_contact', 'contact', 'nouveau', 'lead'].includes(st) && diffDays > 14) {
+            isStagnant = true
+            stagnantDays = diffDays
+          } else if (['negociation', 'negotiation', 'in_progress', 'en_cours'].includes(st) && diffDays > 30) {
+            isStagnant = true
+            stagnantDays = diffDays
+          }
+        }
+      }
+
       const dueDate = parseDueDate(item)
-      if (!dueDate) continue
+      let effectiveDueDate = dueDate
+      let days = 0
+      let isOverdue = false
+      let isToday = false
 
-      const days = calculateDaysDiff(dueDate, todayStr)
-      const isOverdue = dueDate < todayStr
-      const isToday = dueDate === todayStr
+      if (dueDate) {
+        days = calculateDaysDiff(dueDate, todayStr)
+        isOverdue = dueDate < todayStr
+        isToday = dueDate === todayStr
+      } else if (isStagnant && refDateStr) {
+        effectiveDueDate = String(refDateStr).slice(0, 10)
+        days = stagnantDays
+        isOverdue = true
+      }
 
-      if (!isOverdue && !isToday) continue
+      if (!isOverdue && !isToday && !isStagnant) continue
+      if (!effectiveDueDate) continue
 
       const company =
         (item.companyName as string | undefined) ||
@@ -201,10 +231,11 @@ export function OverdueFollowUpsDrawer({
         (item.sector as string | undefined) ||
         null
 
-      const action =
-        (item.nextAction as string | undefined) ||
-        (item.followUpType as string | undefined) ||
-        'Relance commerciale'
+      const action = isStagnant && !item.nextAction
+        ? (lang === 'en' ? `Stagnant lead (${stagnantDays}d without movement)` : `Lead stagnant (${stagnantDays}j sans avancement)`)
+        : ((item.nextAction as string | undefined) ||
+           (item.followUpType as string | undefined) ||
+           'Relance commerciale')
 
       list.push({
         raw: item,
@@ -213,9 +244,11 @@ export function OverdueFollowUpsDrawer({
         status: st,
         amount: Number(item.amount) || 0,
         currency: (item.currency as string | undefined) || currency,
-        dueDate,
+        dueDate: effectiveDueDate,
         daysOverdue: Math.max(days, 0),
         isToday,
+        isStagnant,
+        stagnantDays,
         nextAction: action,
         memberName: member,
         assignedTo: (item.assignedTo as string | undefined) || null,
@@ -232,15 +265,18 @@ export function OverdueFollowUpsDrawer({
     // Trier par date d'échéance : les plus anciennes en premier (urgence maximale)
     list.sort((a, b) => a.dueDate.localeCompare(b.dueDate))
     return list
-  }, [items, todayStr, currency])
+  }, [items, todayStr, currency, lang])
 
-  // Filtrage selon l'onglet (overdue, today, all)
+  // Filtrage selon l'onglet (overdue, today, stagnant, all)
   const tabFilteredLeads = useMemo(() => {
     if (tab === 'overdue') {
-      return allAlertLeads.filter((l) => !l.isToday)
+      return allAlertLeads.filter((l) => !l.isToday && !l.isStagnant)
     }
     if (tab === 'today') {
       return allAlertLeads.filter((l) => l.isToday)
+    }
+    if (tab === 'stagnant') {
+      return allAlertLeads.filter((l) => Boolean(l.isStagnant))
     }
     return allAlertLeads
   }, [allAlertLeads, tab])
@@ -367,8 +403,9 @@ export function OverdueFollowUpsDrawer({
 
   // Statistiques globales de l'alerte
   const stats = useMemo(() => {
-    const overdueLeads = allAlertLeads.filter((l) => !l.isToday)
+    const overdueLeads = allAlertLeads.filter((l) => !l.isToday && !l.isStagnant)
     const todayLeads = allAlertLeads.filter((l) => l.isToday)
+    const stagnantLeads = allAlertLeads.filter((l) => Boolean(l.isStagnant))
     const totalAmount = allAlertLeads.reduce((acc, l) => acc + l.amount, 0)
     const distinctDates = new Set(allAlertLeads.map((l) => l.dueDate)).size
     const unassignedTotal = allAlertLeads.filter((l) => !l.assignedTo).length
@@ -376,6 +413,7 @@ export function OverdueFollowUpsDrawer({
     return {
       overdueCount: overdueLeads.length,
       todayCount: todayLeads.length,
+      stagnantCount: stagnantLeads.length,
       totalCount: allAlertLeads.length,
       totalAmount,
       distinctDates,
@@ -681,6 +719,41 @@ export function OverdueFollowUpsDrawer({
                   }}
                 >
                   {stats.todayCount}
+                </span>
+              </button>
+            )}
+
+            {stats.stagnantCount > 0 && (
+              <button
+                type="button"
+                onClick={() => setTab('stagnant')}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: 20,
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  border: tab === 'stagnant' ? '1px solid #d97706' : '1px solid var(--border, rgba(0,0,0,0.1))',
+                  background: tab === 'stagnant' ? '#d97706' : 'var(--card, #ffffff)',
+                  color: tab === 'stagnant' ? '#ffffff' : 'var(--foreground, #0f172a)',
+                  transition: 'all 150ms ease'
+                }}
+              >
+                <span>{lang === 'en' ? 'Stagnant leads' : 'Leads stagnants'}</span>
+                <span
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 900,
+                    padding: '1px 6px',
+                    borderRadius: 10,
+                    background: tab === 'stagnant' ? 'rgba(0,0,0,0.25)' : 'rgba(217,119,6,0.12)',
+                    color: tab === 'stagnant' ? '#ffffff' : '#b45309'
+                  }}
+                >
+                  {stats.stagnantCount}
                 </span>
               </button>
             )}
