@@ -16,14 +16,14 @@ export type MemberTarget = {
 }
 
 /** Fetches targets defined by the manager (or all org managers if senior manager).
- * @param period — période YYYY-MM à charger ; si fourni, désactive la sanitisation
- *                 automatique des objectifs expirés (lecture historique M-1, M-2...)
+ * @param period - periode YYYY-MM a charger ; si fourni, desactive la sanitisation
+ *                 automatique des objectifs expires (lecture historique M-1, M-2...)
  */
 export function useTeamTargets(memberId?: string, managerUid?: string, period?: string) {
   const { user } = useCurrentUser()
 
   return useQuery({
-    // La période fait partie de la queryKey : changement de mois ? refetch
+    // La periode fait partie de la queryKey : changement de mois -> refetch
     queryKey: ['teamTargets', memberId ?? 'all', managerUid ?? 'all', period ?? 'current'],
     enabled: !!user,
     queryFn: async () => {
@@ -31,7 +31,7 @@ export function useTeamTargets(memberId?: string, managerUid?: string, period?: 
       const params = new URLSearchParams()
       if (memberId) params.set('memberId', memberId)
       if (managerUid) params.set('managerUid', managerUid)
-      // Transmettre la période pour désactiver la sanitisation des mois historiques côté API
+      // Transmettre la periode pour desactiver la sanitisation des mois historiques cote API
       if (period) params.set('period', period)
       const res = await fetch(`/api/team/targets${params.toString() ? `?${params}` : ''}`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -67,13 +67,13 @@ export function useSaveTeamTarget() {
       return res.json()
     },
     onSuccess: () => {
-      // Invalidation rÃ©active dynamique Ã  tous les niveaux hiÃ©rarchiques (TM et SM)
+      // Invalidation reactive dynamique a tous les niveaux hierarchiques (TM et SM)
       qc.invalidateQueries({ queryKey: ['teamTargets'] })
       qc.invalidateQueries({ queryKey: ['orgPipeline'] })
       qc.invalidateQueries({ queryKey: ['pipeline'] })
       qc.invalidateQueries({ queryKey: ['reportingOrg'] })
       qc.invalidateQueries({ queryKey: ['reporting'] })
-      pushToast({ type: 'success', title: 'Objectifs enregistrÃ©s' })
+      pushToast({ type: 'success', title: 'Objectifs enregistres' })
     },
     onError: (err: Error) => {
       pushToast({ type: 'error', title: 'Erreur', description: err.message })
