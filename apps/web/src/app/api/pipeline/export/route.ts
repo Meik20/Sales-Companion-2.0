@@ -554,6 +554,7 @@ export async function GET(request: NextRequest) {
       amount?: number
       createdAt?: string | null
       updatedAt?: string | null
+      concludedAt?: string | null
     }
     const allItems: RawItem[] = []
 
@@ -579,7 +580,10 @@ export async function GET(request: NextRequest) {
             nextFollowUp: d.nextFollowUp,
             amount: typeof d.amount === 'number' ? d.amount : undefined,
             createdAt: d.createdAt?.toDate?.()?.toISOString() ?? null,
-            updatedAt: d.updatedAt?.toDate?.()?.toISOString() ?? null
+            updatedAt: d.updatedAt?.toDate?.()?.toISOString() ?? null,
+            concludedAt:
+              d.concludedAt?.toDate?.()?.toISOString?.() ??
+              (d.concludedAt ? new Date(d.concludedAt).toISOString() : null)
           })
         }
       })
@@ -626,15 +630,19 @@ export async function GET(request: NextRequest) {
 
     if (fromDate) {
       filtered = filtered.filter((i) => {
-        if (!i.createdAt) return false
-        return new Date(i.createdAt) >= fromDate
+        const itemDate =
+          i.status === 'conclue' && i.concludedAt ? i.concludedAt : i.createdAt || i.updatedAt
+        if (!itemDate) return false
+        return new Date(itemDate) >= fromDate
       })
     }
 
     if (toDate) {
       filtered = filtered.filter((i) => {
-        if (!i.createdAt) return false
-        return new Date(i.createdAt) <= toDate
+        const itemDate =
+          i.status === 'conclue' && i.concludedAt ? i.concludedAt : i.createdAt || i.updatedAt
+        if (!itemDate) return false
+        return new Date(itemDate) <= toDate
       })
     }
 

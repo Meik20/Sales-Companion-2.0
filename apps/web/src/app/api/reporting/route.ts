@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { adminDb, adminAuth } from '@/lib/firebase-admin'
 import { hasActivePaidManagerAccess } from '@/lib/manager-access'
-import { getCurrentCycleContext } from '@/lib/monthly-cycle'
+import { getCurrentCycleContext, getMonthPeriodInfo } from '@/lib/monthly-cycle'
 import { normalizePipelineStatus as normalizeStatus } from '@/lib/pipeline-metrics'
 
 function getMonthKey(date: Date): string {
@@ -72,13 +72,42 @@ export async function GET(request: NextRequest) {
       activeMemberIds.add(d.id)
     })
 
+    // Parse optional period query param (defaults to current month YYYY-MM)
+    const { searchParams } = new URL(request.url)
+    const reqPeriod = searchParams.get('period')
+    const activeMonthPeriod = reqPeriod || new Date().toISOString().slice(0, 7)
+
+    let periodBounds: { start: Date; end: Date } | null = null
+    if (activeMonthPeriod) {
+      const parts = activeMonthPeriod.split('-').map(Number)
+      if (parts[0] && parts[1]) {
+        periodBounds = {
+          start: new Date(parts[0], parts[1] - 1, 1, 0, 0, 0, 0),
+          end: new Date(parts[0], parts[1], 0, 23, 59, 59, 999)
+        }
+      }
+    }
+
+    const isConcludedInPeriod = (item: any): boolean => {
+      if (!periodBounds) return true
+      const rawDate =
+        item.concludedAt?.toDate?.() ??
+        (item.concludedAt ? new Date(item.concludedAt) : null) ??
+        item.updatedAt?.toDate?.() ??
+        (item.updatedAt ? new Date(item.updatedAt) : null) ??
+        item.createdAt?.toDate?.() ??
+        (item.createdAt ? new Date(item.createdAt) : null)
+      if (!rawDate) return false
+      const d = rawDate instanceof Date ? rawDate : new Date(rawDate)
+      return !isNaN(d.getTime()) && d >= periodBounds.start && d <= periodBounds.end
+    }
+
     // Get team targets for this manager
     const targetsSnap = await adminDb
       .collection('teamTargets')
       .where('managerUid', '==', decoded.uid)
       .get()
 
-    const currentMonthPeriod = new Date().toISOString().slice(0, 7)
     const targetsByMember: Record<string, { targetVolume: number | null; targetValue: number | null }> = {}
     let totalTargetVolume = 0
     let totalTargetValue = 0
@@ -87,7 +116,7 @@ export async function GET(request: NextRequest) {
       const d = doc.data()
       const mId = d.memberId
       // Filtrage strict : ignorer les cibles hors-période ou des membres n'appartenant plus à l'équipe
-      if (d.period && d.period !== currentMonthPeriod) return
+      if (d.period && d.period !== activeMonthPeriod) return
       if (mId && activeMemberIds.size > 0 && !activeMemberIds.has(mId)) return
 
       if (mId) {
@@ -102,20 +131,23 @@ export async function GET(request: NextRequest) {
 
     const items = pipelineSnap.docs.map((d) => ({ id: d.id, ...d.data() })) as any[]
 
-    // Global stats
+    // Global stats: prospection and negociation represent ongoing active pipeline
     const totalProspection = items.filter((i) => normalizeStatus(i.status) === 'prospection').length
     const totalNegociation = items.filter((i) => normalizeStatus(i.status) === 'negociation').length
-    const totalConclue = items.filter((i) => normalizeStatus(i.status) === 'conclue').length
-    const totalItems = items.length
+
+    // Concluded deals are strictly filtered by the selected period
+    const periodConcludedItems = items.filter(
+      (i) => normalizeStatus(i.status) === 'conclue' && isConcludedInPeriod(i)
+    )
+    const totalConclue = periodConcludedItems.length
+    const totalItems = totalProspection + totalNegociation + totalConclue
     const overallConversionRate = totalItems > 0 ? Math.round((totalConclue / totalItems) * 100) : 0
 
-    // Financial revenue stats (Total revenue from closed deals & pipeline value)
-    const totalRevenue = items
-      .filter((i) => normalizeStatus(i.status) === 'conclue')
-      .reduce(
-        (acc, i) => acc + (typeof i.amount === 'number' ? i.amount : Number(i.amount) || 0),
-        0
-      )
+    // Financial revenue stats (Total revenue from closed deals in selected period)
+    const totalRevenue = periodConcludedItems.reduce(
+      (acc, i) => acc + (typeof i.amount === 'number' ? i.amount : Number(i.amount) || 0),
+      0
+    )
 
     const pipelineValue = items
       .filter(
@@ -166,15 +198,16 @@ export async function GET(request: NextRequest) {
         const memberItems = memberGroups[m.uid] ?? []
         const p = memberItems.filter((i) => normalizeStatus(i.status) === 'prospection').length
         const n = memberItems.filter((i) => normalizeStatus(i.status) === 'negociation').length
-        const c = memberItems.filter((i) => normalizeStatus(i.status) === 'conclue').length
-        const total = memberItems.length
+        const memberConcluded = memberItems.filter(
+          (i) => normalizeStatus(i.status) === 'conclue' && isConcludedInPeriod(i)
+        )
+        const c = memberConcluded.length
+        const total = p + n + c
 
-        const memberRevenue = memberItems
-          .filter((i) => normalizeStatus(i.status) === 'conclue')
-          .reduce(
-            (acc, i) => acc + (typeof i.amount === 'number' ? i.amount : Number(i.amount) || 0),
-            0
-          )
+        const memberRevenue = memberConcluded.reduce(
+          (acc, i) => acc + (typeof i.amount === 'number' ? i.amount : Number(i.amount) || 0),
+          0
+        )
 
         const memberPipelineValue = memberItems
           .filter(
@@ -421,6 +454,11 @@ export async function GET(request: NextRequest) {
     const valueAttainmentRate =
       totalTargetValue > 0 ? Math.round((totalRevenue / totalTargetValue) * 100) : null
 
+    const cycleContext = getCurrentCycleContext()
+    const [selYear, selMonth] = activeMonthPeriod.split('-').map(Number)
+    const selectedPeriodInfo =
+      selYear && selMonth ? getMonthPeriodInfo(selYear, selMonth) : cycleContext.currentPeriod
+
     return NextResponse.json({
       totalItems,
       totalProspection,
@@ -439,7 +477,10 @@ export async function GET(request: NextRequest) {
         volumeAttainmentRate,
         valueAttainmentRate
       },
-      monthlyCycle: getCurrentCycleContext(),
+      monthlyCycle: {
+        ...cycleContext,
+        currentPeriod: selectedPeriodInfo
+      },
       memberStats,
       monthlyTrend,
       supportStats: {

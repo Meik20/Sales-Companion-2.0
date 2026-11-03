@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { routes } from '@/constants/routes'
 import { AppShell } from '@/components/layout/AppShell'
@@ -26,7 +26,8 @@ export default function ReportingPage() {
     }
   }, [isSeniorManager, router])
 
-  const { data, isLoading, isError, error, refetch, isFetching } = useReportingData()
+  const [selectedPeriod, setSelectedPeriod] = useState<string>('')
+  const { data, isLoading, isError, error, refetch, isFetching } = useReportingData(selectedPeriod || undefined)
 
   if (isSeniorManager) {
     return (
@@ -115,7 +116,13 @@ export default function ReportingPage() {
         />
       )}
 
-      {data && <ReportingDashboard data={data} />}
+      {data && (
+        <ReportingDashboard
+          data={data}
+          selectedPeriod={selectedPeriod || data.monthlyCycle?.currentPeriod?.key}
+          onSelectPeriod={setSelectedPeriod}
+        />
+      )}
     </AppShell>
   )
 }

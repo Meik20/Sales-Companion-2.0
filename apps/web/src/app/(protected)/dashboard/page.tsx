@@ -32,7 +32,8 @@ import {
   ArrowUpRight,
   ChevronDown,
   FileSpreadsheet,
-  FileText
+  FileText,
+  Calendar
 } from 'lucide-react'
 import { useExportTeamPerformance } from '@/features/pipeline/hooks/useExportTeamPerformance'
 import { formatCompactAmount } from '@/lib/formatters'
@@ -363,8 +364,12 @@ export default function DashboardPage() {
     }
   }, [user, isSeniorManager, router])
 
-  const orgReportQuery = useOrgReport()
+  const [selectedPeriod, setSelectedPeriod] = useState<string>('')
+  const orgReportQuery = useOrgReport(selectedPeriod || undefined)
   const data = orgReportQuery.data
+
+  const activePeriodKey =
+    selectedPeriod || data?.monthlyCycle?.currentPeriod?.key || new Date().toISOString().slice(0, 7)
 
   const handleExportPdf = () => {
     if (!data) return
@@ -381,7 +386,12 @@ export default function DashboardPage() {
 
   const handleExportExcel = () => {
     setExportMenuOpen(false)
-    void exportPerformance()
+    const [yStr, mStr] = activePeriodKey.split('-')
+    const lastDay = new Date(Number(yStr), Number(mStr), 0).getDate()
+    void exportPerformance({
+      from: `${yStr}-${mStr}-01`,
+      to: `${yStr}-${mStr}-${String(lastDay).padStart(2, '0')}`
+    })
   }
 
   if (!user || !isSeniorManager) return null
@@ -668,19 +678,33 @@ export default function DashboardPage() {
                   </p>
                 </div>
               </div>
-              <div
-                style={{
-                  fontSize: 11,
-                  fontWeight: 600,
-                  padding: '3px 10px',
-                  borderRadius: 14,
-                  background: 'rgba(99,102,241,0.08)',
-                  color: 'var(--primary, #4338ca)',
-                  border: '1px solid rgba(99,102,241,0.2)'
-                }}
-              >
-                {t('dashboard.activeMonth') || (lang === 'en' ? 'Active month' : 'Mois actif')} :{' '}
-                {getMonthPeriodLabel(data?.monthlyCycle?.currentPeriod, lang)}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Calendar size={13} style={{ color: 'var(--primary, #4338ca)' }} />
+                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted-foreground, #64748b)' }}>
+                  {t('dashboard.activeMonth') || (lang === 'en' ? 'Active month' : 'Mois actif')} :
+                </span>
+                <select
+                  value={activePeriodKey}
+                  onChange={(e) => setSelectedPeriod(e.target.value)}
+                  style={{
+                    fontSize: 11.5,
+                    fontWeight: 700,
+                    padding: '4px 10px',
+                    borderRadius: 10,
+                    background: 'var(--card, #ffffff)',
+                    color: 'var(--primary, #4338ca)',
+                    border: '1.5px solid rgba(99,102,241,0.3)',
+                    cursor: 'pointer',
+                    outline: 'none',
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
+                  }}
+                >
+                  {(data?.monthlyCycle?.availablePeriods || []).map((p) => (
+                    <option key={p.key} value={p.key} style={{ background: '#ffffff', color: '#0f172a' }}>
+                      {lang === 'en' ? p.labelEn : p.labelFr} {p.key === new Date().toISOString().slice(0, 7) ? (lang === 'en' ? '(Current)' : '(En cours)') : ''}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 

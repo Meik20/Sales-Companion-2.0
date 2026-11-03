@@ -109,20 +109,21 @@ export type ReportingData = {
   }
 }
 
-export function useReportingData() {
+export function useReportingData(period?: string) {
   const { user } = useCurrentUser()
 
   return useQuery<ReportingData>({
-    queryKey: ['reporting', user?.uid],
+    queryKey: ['reporting', user?.uid, period],
     queryFn: async () => {
       const token = await user?.getIdToken()
-      const res = await fetch('/api/reporting', {
+      const url = period ? `/api/reporting?period=${encodeURIComponent(period)}` : '/api/reporting'
+      const res = await fetch(url, {
         headers: { Authorization: `Bearer ${token || ''}` }
       })
       if (!res.ok) throw new Error('Impossible de charger les données de reporting')
       return res.json()
     },
     enabled: !!user?.uid && user?.role === 'manager',
-    staleTime: 5 * 60 * 1000 // 5 min cache
+    staleTime: 60 * 1000 // 1 min cache
   })
 }

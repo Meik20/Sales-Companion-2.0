@@ -72,16 +72,17 @@ export interface OrgReportResult {
  * Hook — KPIs consolidés de l'organisation (Senior Manager uniquement).
  * Consomme GET /api/reporting/org.
  */
-export function useOrgReport() {
+export function useOrgReport(period?: string) {
   const { user } = useCurrentUser()
   const isSeniorManager = user?.role === 'manager' && user?.orgRole === 'senior_manager'
 
   return useQuery<OrgReportResult>({
-    queryKey: ['org-report', user?.uid],
+    queryKey: ['org-report', user?.uid, period],
     queryFn: async (): Promise<OrgReportResult> => {
       if (!user) throw new Error('Non authentifié')
       const token = await user.getIdToken()
-      const res = await fetch('/api/reporting/org', {
+      const url = period ? `/api/reporting/org?period=${encodeURIComponent(period)}` : '/api/reporting/org'
+      const res = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (!res.ok) {

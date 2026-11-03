@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { hasActivePaidManagerAccess } from '@/lib/manager-access'
-import { getCurrentCycleContext } from '@/lib/monthly-cycle'
+import { getCurrentCycleContext, getMonthPeriodInfo } from '@/lib/monthly-cycle'
 import { normalizePipelineStatus as normalizeStatus, calculateAttainmentRate } from '@/lib/pipeline-metrics'
 
 export const dynamic = 'force-dynamic'
@@ -304,6 +304,11 @@ export async function GET(request: NextRequest) {
         updatedAt: i.updatedAt?.toDate?.()?.toISOString?.() ?? i.updatedAt ?? null
       }))
 
+    const cycleContext = getCurrentCycleContext()
+    const [selYear, selMonth] = activeMonthPeriod.split('-').map(Number)
+    const selectedPeriodInfo =
+      selYear && selMonth ? getMonthPeriodInfo(selYear, selMonth) : cycleContext.currentPeriod
+
     return NextResponse.json({
       orgCode,
       managers: topPerformers,
@@ -321,7 +326,10 @@ export async function GET(request: NextRequest) {
         volumeAttainmentRate: orgVolumeAttainment,
         valueAttainmentRate: orgValueAttainment
       },
-      monthlyCycle: getCurrentCycleContext(),
+      monthlyCycle: {
+        ...cycleContext,
+        currentPeriod: selectedPeriodInfo
+      },
       recentActivity,
       totalManagers: teamManagerUids.length
     })

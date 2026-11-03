@@ -1,9 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import type { ReportingData, MemberStat, SupportAgentStat } from '../hooks/useReportingData'
 import { useTranslation } from '@/providers/I18nProvider'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { useProspectingCountryDetails } from '@/hooks/useProspectingCountry'
+import { exportTeamDashboardPdf } from '../utils/exportTeamDashboardPdf'
+import { getMonthPeriodLabel } from '@/lib/monthly-cycle'
 import {
   Target,
   Handshake,
@@ -26,7 +30,10 @@ import {
   Medal,
   ChevronRight,
   Check,
-  Download
+  Download,
+  ChevronDown,
+  FileSpreadsheet,
+  FileText
 } from 'lucide-react'
 import { useExportTeamPerformance } from '@/features/pipeline/hooks/useExportTeamPerformance'
 
@@ -2198,8 +2205,18 @@ function SupportActivitySection({
 }
 
 // ── Main Dashboard Component ──────────────────────────────────────────────────
-export function ReportingDashboard({ data }: { data: ReportingData }) {
+export function ReportingDashboard({
+  data,
+  selectedPeriod,
+  onSelectPeriod
+}: {
+  data: ReportingData
+  selectedPeriod?: string
+  onSelectPeriod?: (period: string) => void
+}) {
   const { t, lang } = useTranslation()
+  const { user } = useCurrentUser()
+  const { currency } = useProspectingCountryDetails()
   const { exportPerformance, loading: isExporting } = useExportTeamPerformance()
   const searchParams = useSearchParams()
   const tabParam = searchParams.get('tab')
@@ -2207,6 +2224,45 @@ export function ReportingDashboard({ data }: { data: ReportingData }) {
   const [section, setSection] = useState<'sales' | 'support'>(
     tabParam === 'support' ? 'support' : 'sales'
   )
+
+  const [exportMenuOpen, setExportMenuOpen] = useState(false)
+  const exportMenuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(event.target as Node)) {
+        setExportMenuOpen(false)
+      }
+    }
+    if (exportMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [exportMenuOpen])
+
+  const activePeriodKey = selectedPeriod || data.monthlyCycle?.currentPeriod?.key || new Date().toISOString().slice(0, 7)
+
+  const handleExportPdf = () => {
+    setExportMenuOpen(false)
+    exportTeamDashboardPdf({
+      data,
+      managerName: user?.name,
+      companyName: user?.companyName,
+      periodLabel: getMonthPeriodLabel(data.monthlyCycle?.currentPeriod, lang),
+      currency: currency || 'XAF',
+      lang
+    })
+  }
+
+  const handleExportExcel = () => {
+    setExportMenuOpen(false)
+    const [yStr, mStr] = activePeriodKey.split('-')
+    const lastDay = new Date(Number(yStr), Number(mStr), 0).getDate()
+    void exportPerformance({
+      from: `${yStr}-${mStr}-01`,
+      to: `${yStr}-${mStr}-${String(lastDay).padStart(2, '0')}`
+    })
+  }
 
   const targetVol = data.targets?.targetVolume ?? null
   const realVol = data.targets?.volumeRealized ?? data.totalConclue ?? 0
@@ -2272,10 +2328,11 @@ export function ReportingDashboard({ data }: { data: ReportingData }) {
           )}
         </div>
 
-        {/* Bouton Export Excel */}
-        <div style={{ marginLeft: 'auto', paddingBottom: 6 }}>
+        {/* Export Dropdown Menu (Excel & PDF) */}
+        <div ref={exportMenuRef} style={{ marginLeft: 'auto', paddingBottom: 6, position: 'relative' }}>
           <button
-            onClick={() => void exportPerformance()}
+            type="button"
+            onClick={() => setExportMenuOpen(!exportMenuOpen)}
             disabled={isExporting}
             style={{
               display: 'inline-flex',
@@ -2292,11 +2349,107 @@ export function ReportingDashboard({ data }: { data: ReportingData }) {
               boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
               transition: 'all 0.15s ease'
             }}
-            title="Exporter le tableau de bord complet en Excel (.xlsx)"
+            title={lang === 'en' ? 'Export team dashboard' : 'Exporter le tableau de bord'}
           >
             <Download size={13} className={isExporting ? 'animate-bounce' : ''} />
-            {isExporting ? 'Exportation...' : (t('reporting.exportDashboard') || 'Exporter le rapport')}
+            <span>
+              {isExporting
+                ? (lang === 'en' ? 'Exporting...' : 'Exportation...')
+                : (t('reporting.exportDashboard') || (lang === 'en' ? 'Export dashboard' : 'Exporter le tableau de bord'))}
+            </span>
+            <ChevronDown
+              size={12}
+              style={{
+                transform: exportMenuOpen ? 'rotate(180deg)' : 'none',
+                transition: 'transform 0.2s ease'
+              }}
+            />
           </button>
+
+          {exportMenuOpen && (
+            <div
+              className="popover-panel dropdown-menu"
+              style={{
+                position: 'absolute',
+                top: 'calc(100% + 6px)',
+                right: 0,
+                width: 220,
+                borderRadius: 10,
+                border: '1px solid var(--border)',
+                backgroundColor: 'var(--card, #ffffff)',
+                opacity: 1,
+                boxShadow: '0 10px 25px -5px rgba(0,0,0,0.15), 0 8px 10px -6px rgba(0,0,0,0.1)',
+                zIndex: 60,
+                padding: '6px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 4
+              }}
+            >
+              <button
+                type="button"
+                onClick={handleExportExcel}
+                disabled={isExporting}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  padding: '8px 10px',
+                  borderRadius: 6,
+                  border: 'none',
+                  backgroundColor: 'transparent',
+                  color: 'var(--foreground)',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  width: '100%',
+                  transition: 'background-color 0.15s ease'
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--muted, #f1f5f9)')}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+              >
+                <FileSpreadsheet size={15} style={{ color: '#10b981', flexShrink: 0 }} />
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span>{lang === 'en' ? 'Excel Workbook (.xlsx)' : 'Classeur Excel (.xlsx)'}</span>
+                  <span style={{ fontSize: 10, color: 'var(--muted-foreground)', fontWeight: 400 }}>
+                    {lang === 'en' ? 'Detailed multi-sheet workbook' : 'Classeur multi-onglets complet'}
+                  </span>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleExportPdf}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  padding: '8px 10px',
+                  borderRadius: 6,
+                  border: 'none',
+                  backgroundColor: 'transparent',
+                  color: 'var(--foreground)',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  width: '100%',
+                  transition: 'background-color 0.15s ease'
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--muted, #f1f5f9)')}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+              >
+                <FileText size={15} style={{ color: '#ef4444', flexShrink: 0 }} />
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span>{lang === 'en' ? 'PDF Summary (.pdf)' : 'Synthèse PDF (.pdf)'}</span>
+                  <span style={{ fontSize: 10, color: 'var(--muted-foreground)', fontWeight: 400 }}>
+                    {lang === 'en' ? 'Executive PDF report for team' : "Rapport PDF imprimable d'équipe"}
+                  </span>
+                </div>
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -2416,21 +2569,33 @@ export function ReportingDashboard({ data }: { data: ReportingData }) {
                   </p>
                 </div>
               </div>
-              <div
-                style={{
-                  fontSize: 11,
-                  fontWeight: 600,
-                  padding: '3px 10px',
-                  borderRadius: 14,
-                  background: 'rgba(99,102,241,0.08)',
-                  color: 'var(--primary, #4338ca)',
-                  border: '1px solid rgba(99,102,241,0.2)'
-                }}
-              >
-                {t('reporting.activeMonth') || (lang === 'en' ? 'Month' : 'Mois')} :{' '}
-                {(lang === 'en'
-                  ? data.monthlyCycle?.currentPeriod?.labelEn
-                  : data.monthlyCycle?.currentPeriod?.labelFr) || (lang === 'en' ? 'Current' : 'En cours')}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Calendar size={13} style={{ color: 'var(--primary, #4338ca)' }} />
+                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted-foreground, #64748b)' }}>
+                  {t('reporting.activeMonth') || (lang === 'en' ? 'Month' : 'Mois')} :
+                </span>
+                <select
+                  value={activePeriodKey}
+                  onChange={(e) => onSelectPeriod?.(e.target.value)}
+                  style={{
+                    fontSize: 11.5,
+                    fontWeight: 700,
+                    padding: '4px 10px',
+                    borderRadius: 10,
+                    background: 'var(--card, #ffffff)',
+                    color: 'var(--primary, #4338ca)',
+                    border: '1.5px solid rgba(99,102,241,0.3)',
+                    cursor: 'pointer',
+                    outline: 'none',
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
+                  }}
+                >
+                  {(data.monthlyCycle?.availablePeriods || []).map((p) => (
+                    <option key={p.key} value={p.key} style={{ background: '#ffffff', color: '#0f172a' }}>
+                      {lang === 'en' ? p.labelEn : p.labelFr} {p.key === new Date().toISOString().slice(0, 7) ? (lang === 'en' ? '(Current)' : '(En cours)') : ''}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 
