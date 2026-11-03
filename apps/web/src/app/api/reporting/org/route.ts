@@ -134,7 +134,8 @@ export async function GET(request: NextRequest) {
     )
 
     // 3. Comptes globaux et montants
-    const globalCounts = { prospection: 0, negociation: 0, conclue: 0, perdue: 0, total: allItems.length }
+    // total est recalculé après la boucle (prospection + négociation + conclues filtrées par période)
+    const globalCounts = { prospection: 0, negociation: 0, conclue: 0, perdue: 0, total: 0 }
     let totalConcludedAmount = 0
     let totalPipelineValue = 0
     let totalLostAmount = 0
@@ -162,6 +163,10 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Recalcul du total : prospection + négociation + conclues filtrées par période
+    // (exclut les conclues hors-période encore en Firestore pendant le J+3)
+    globalCounts.total = globalCounts.prospection + globalCounts.negociation + globalCounts.conclue
+
     // 4. Stats et CA par manager
     const statsByManager: Record<
       string,
@@ -173,7 +178,6 @@ export async function GET(request: NextRequest) {
     for (const item of allItems) {
       const uid = item.managerUid
       if (uid && statsByManager[uid]) {
-        statsByManager[uid].total++
         const ns = normalizeStatus(item.status ?? '')
         if (ns === 'conclue') {
           if (isConcludedInPeriod(item)) {
@@ -185,6 +189,11 @@ export async function GET(request: NextRequest) {
           statsByManager[uid][ns]++
         }
       }
+    }
+    // Recalcul du total par manager : cohérent avec globalCounts.total
+    for (const uid of managerUids) {
+      const s = statsByManager[uid]
+      if (s) s.total = s.prospection + s.negociation + s.conclue
     }
 
     // 5. Récupérer les objectifs (teamTargets) pour tous les Team Managers du segment (hors Senior Manager) sur le mois en cours
