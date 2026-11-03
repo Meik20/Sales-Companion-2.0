@@ -27,6 +27,9 @@ export async function GET(request: NextRequest) {
     }
 
     const { adminDb } = await import('@/lib/firebase-admin')
+    const { runOpportunisticAutoArchive } = await import('@/server/services/monthly-cycle-archive.service')
+    await runOpportunisticAutoArchive(adminDb)
+
     const managerUid = session.uid
 
     // 1. Opportunités assignées à l'équipe du manager (managerUid === managerUid)

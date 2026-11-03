@@ -276,6 +276,8 @@ export function isPendingMigrationDeal(
   },
   now = new Date()
 ): boolean {
+  // Passé le 3e jour du mois (période de grâce J+3 échue), le marqueur n'est plus actif
+  if (now.getDate() > 3) return false
   if (item.pendingMigration === true) return true
   const st = (item.status || '').toLowerCase().trim()
   if (!['conclue', 'conclusion', 'won', 'closed', 'gagne', 'signe'].includes(st)) return false

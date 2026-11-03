@@ -29,6 +29,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: 'Token invalide' }, { status: 401 })
     }
 
+    const { runOpportunisticAutoArchive } = await import('@/server/services/monthly-cycle-archive.service')
+    await runOpportunisticAutoArchive(adminDb)
+
     // Fetch owned items plus any explicitly assigned items.
     const ownedSnap = await adminDb.collection('pipeline').where('userId', '==', userId).get()
 

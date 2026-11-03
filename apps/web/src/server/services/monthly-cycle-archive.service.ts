@@ -253,3 +253,28 @@ export async function resetMonthlyTargetsAtMonthEnd(
     return { resetCount: 0 }
   }
 }
+
+let lastOpportunisticCheck = 0
+
+/**
+ * Exécution opportuniste (Just-In-Time) de l'archivage automatique.
+ * Se déclenche automatiquement lors des requêtes au pipeline si la période de grâce J+3 est échue (jour >= 4)
+ * pour éviter de dépendre exclusivement d'un CRON externe et garantir la synchronisation immédiate.
+ */
+export async function runOpportunisticAutoArchive(
+  adminDb: Firestore,
+  now = new Date(),
+  forceCheck = false
+): Promise<void> {
+  // En période de grâce (jours 1 à 3 du mois), aucune purge automatique
+  if (now.getDate() <= 3) return
+  // Éviter de solliciter Firestore sur chaque requête concurrente (fréquence max : 1 fois par minute)
+  if (!forceCheck && Date.now() - lastOpportunisticCheck < 60_000) return
+  lastOpportunisticCheck = Date.now()
+  try {
+    await runMonthlyPipelineCycleAutoArchive(adminDb, undefined, 300)
+    await resetMonthlyTargetsAtMonthEnd(adminDb, now)
+  } catch (err: any) {
+    console.warn('[runOpportunisticAutoArchive] Repli silencieux:', err?.message || err)
+  }
+}

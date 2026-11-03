@@ -37,6 +37,9 @@ export async function GET(request: NextRequest) {
     const orgRole = userData?.orgRole || null
     const orgCode = userData?.orgCode || null
 
+    const { runOpportunisticAutoArchive } = await import('@/server/services/monthly-cycle-archive.service')
+    await runOpportunisticAutoArchive(adminDb)
+
     let docs: Array<import('firebase-admin/firestore').QueryDocumentSnapshot> = []
 
     if (role === 'manager' && orgRole === 'senior_manager' && orgCode) {
