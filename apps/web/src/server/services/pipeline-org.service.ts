@@ -16,6 +16,7 @@ import {
   normalizePipelineStatus,
   type CanonicalPipelineStatus
 } from '@/lib/pipeline-metrics'
+import { isPendingMigrationDeal } from '@/lib/monthly-cycle'
 import { COUNTRY_CURRENCIES, type CountryCode } from '@sales-companion/shared'
 
 export interface PipelineStatusBucket {
@@ -161,9 +162,11 @@ export async function fetchOrgConsolidatedPipeline(
 
         seen.add(d.id)
         const mgr = managersMap[data.managerUid as string]
+        const isPending = (data.pendingMigration === true) || isPendingMigrationDeal(data)
         allItems.push({
           id: d.id,
           ...data,
+          pendingMigration: isPending,
           orgCode: data.orgCode || orgCode,
           status: normalizePipelineStatus(data.status),
           managerName: mgr?.name ?? (data.managerName as string) ?? '',
@@ -185,6 +188,8 @@ export async function fetchOrgConsolidatedPipeline(
   }
 
   // 5. Calcul des totaux par statut + sommes des montants par statut (values)
+  // RÈGLE §7A : total = prospection + négociation + conclues filtrées par période
+  // Les conclues hors-période (encore en Firestore pendant J+3) ne comptent pas dans le total
   const counts: PipelineStatusBucket = { prospection: 0, negociation: 0, conclue: 0, perdue: 0, other: 0, total: 0 }
   const values: PipelineStatusBucket = { prospection: 0, negociation: 0, conclue: 0, perdue: 0, other: 0, total: 0 }
   allItems.forEach((it) => {
@@ -201,6 +206,7 @@ export async function fetchOrgConsolidatedPipeline(
         counts.conclue++
         values.conclue += amt
       }
+      // Les conclues hors-période sont exclues du total (elles sont en attente de migration J+3)
     } else if (st === 'perdue') {
       counts.perdue = (counts.perdue || 0) + 1
       values.perdue = (values.perdue || 0) + amt
@@ -208,9 +214,10 @@ export async function fetchOrgConsolidatedPipeline(
       counts.other++
       values.other += amt
     }
-    counts.total++
-    values.total += amt
   })
+  // Recalcul du total : somme des statuts actifs + conclues filtrées par période (+ other)
+  counts.total = counts.prospection + counts.negociation + counts.conclue + counts.other
+  values.total = values.prospection + values.negociation + values.conclue + values.other
 
   // Tri plus récent en premier
   allItems.sort((a, b) => {
@@ -283,7 +290,17 @@ export async function fetchOrgConsolidatedPipeline(
           (i) => i.status === 'conclue' && isConcludedInPeriod(i.concludedAt ?? i.updatedAt)
         ).length,
         other: managerItems.filter((i) => i.status === 'other').length,
-        total: managerItems.length,
+        // total = somme des statuts actifs + conclues filtrées par période (+ other)
+        get total() {
+          return (
+            managerItems.filter((i) => i.status === 'prospection').length +
+            managerItems.filter((i) => i.status === 'negociation').length +
+            managerItems.filter(
+              (i) => i.status === 'conclue' && isConcludedInPeriod(i.concludedAt ?? i.updatedAt)
+            ).length +
+            managerItems.filter((i) => i.status === 'other').length
+          )
+        },
         salespeopleCount: activeSalespeopleByManager[d.id] ?? 0
       }
     }

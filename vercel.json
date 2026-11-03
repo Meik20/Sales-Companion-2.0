@@ -5,6 +5,10 @@
       "schedule": "0 1 * * *"
     },
     {
+      "path": "/api/cron/mark-pending-migration",
+      "schedule": "1 0 1 * *"
+    },
+    {
       "path": "/api/cron/archive-pipeline-clients",
       "schedule": "0 2 * * *"
     }

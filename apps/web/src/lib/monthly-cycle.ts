@@ -261,4 +261,39 @@ export function isTargetPeriodExpired(periodStr?: string | null, now = new Date(
   return nowMonth > month1Indexed
 }
 
+/**
+ * Vérifie si une opportunité conclue est en attente de migration vers la base clients (période de grâce J+3).
+ * Règle d'or : Dès le 1er du nouveau mois M, les deals conclus en M-1 reçoivent un marqueur spécifique
+ * en attente de leur archivage automatique au 3e jour du mois à 23:59:59.
+ */
+export function isPendingMigrationDeal(
+  item: {
+    status?: string | null
+    pendingMigration?: boolean | null
+    concludedAt?: any
+    updatedAt?: any
+    createdAt?: any
+  },
+  now = new Date()
+): boolean {
+  if (item.pendingMigration === true) return true
+  const st = (item.status || '').toLowerCase().trim()
+  if (!['conclue', 'conclusion', 'won', 'closed', 'gagne', 'signe'].includes(st)) return false
+
+  let date: Date | null = null
+  if (item.concludedAt) {
+    date = item.concludedAt.toDate ? item.concludedAt.toDate() : new Date(item.concludedAt)
+  } else if (item.updatedAt) {
+    date = item.updatedAt.toDate ? item.updatedAt.toDate() : new Date(item.updatedAt)
+  } else if (item.createdAt) {
+    date = item.createdAt.toDate ? item.createdAt.toDate() : new Date(item.createdAt)
+  }
+  if (!date || isNaN(date.getTime())) return false
+
+  // Conclu strictement avant le 1er jour du mois courant = affaire conclue en M-1 ou avant
+  const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0)
+  return date < startOfCurrentMonth
+}
+
+
 

@@ -299,6 +299,30 @@ function ProspectModal({
                 <span style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)' }}>
                   {lang === 'en' ? 'Entered on' : 'Entré le'} {aging.enteredDateFormatted}
                 </span>
+                {(item as any).pendingMigration === true && (
+                  <div
+                    title={
+                      lang === "en"
+                        ? "This deal was closed last month and will be automatically archived to the clients database on the 3rd of this month at 23:59."
+                        : "Cette affaire a ete conclue le mois dernier et sera automatiquement archivee dans la base clients le 3 de ce mois a 23h59."
+                    }
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 4,
+                      padding: "2px 8px",
+                      borderRadius: 20,
+                      fontSize: 11,
+                      fontWeight: 700,
+                      background: "rgba(217, 119, 6, 0.12)",
+                      color: "#d97706",
+                      border: "1px solid rgba(217, 119, 6, 0.35)"
+                    }}
+                  >
+                    <Clock size={11} />
+                    <span>{lang === "en" ? "Pending migration J+3" : "Migration J+3 en attente"}</span>
+                  </div>
+                )}
               </div>
             </div>
             <button
@@ -2950,6 +2974,31 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                             status={item.status}
                             firstActionAt={item.firstActionAt}
                           />
+                          {/* Badge Migration J+3 : deals conclus en M-1 en attente d'archivage clients */}
+                          {(item as any).pendingMigration === true && (
+                            <span
+                              title={
+                                lang === 'en'
+                                  ? 'This deal was closed last month and will be automatically archived to the clients database on the 3rd of this month at 23:59.'
+                                  : 'Cette affaire a \u00e9t\u00e9 conclue le mois dernier et sera automatiquement archiv\u00e9e dans la base clients le 3 de ce mois \u00e0 23h59.'
+                              }
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: 4,
+                                fontWeight: 700,
+                                color: '#d97706',
+                                background: 'rgba(217, 119, 6, 0.10)',
+                                border: '1px solid rgba(217, 119, 6, 0.30)',
+                                borderRadius: 4,
+                                padding: '1px 6px',
+                                fontSize: 10.5
+                              }}
+                            >
+                              <Clock size={10} />
+                              {lang === 'en' ? 'Pending migration J+3' : 'Migration J+3'}
+                            </span>
+                          )}
                           {(() => {
                             const filtered = (item.previousAssignees || []).filter(
                               (pa) =>

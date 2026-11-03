@@ -46,7 +46,8 @@ export function usePipelineStats() {
       // ── Senior Manager : statistiques consolidées de l'organisation ──────────
       if (isSeniorManager) {
         const token = await user.getIdToken()
-        const res = await fetch('/api/pipeline/org', {
+        const currentPeriod = new Date().toISOString().slice(0, 7)
+        const res = await fetch(`/api/pipeline/org?period=${currentPeriod}`, {
           headers: { Authorization: `Bearer ${token}` }
         })
         if (!res.ok) {
