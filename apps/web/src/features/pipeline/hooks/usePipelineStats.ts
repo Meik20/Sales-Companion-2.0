@@ -86,7 +86,8 @@ export function usePipelineStats() {
       if (user.role === 'manager' && !isSeniorManager) {
         try {
           const token = await user.getIdToken()
-          const res = await fetch('/api/pipeline/stats', {
+          const currentPeriod = new Date().toISOString().slice(0, 7)
+          const res = await fetch(`/api/pipeline/stats?period=${currentPeriod}`, {
             headers: { Authorization: `Bearer ${token}` }
           })
           if (res.ok) {
@@ -101,7 +102,7 @@ export function usePipelineStats() {
       // ── Autres rôles / Fallback : requêtes Firestore directes ────────────────
       const isManager = user.role === 'manager'
       const seen = new Set<string>()
-      const docs: { status: string; amount: number }[] = []
+      const docs: { status: string; amount: number; concludedAt?: any; updatedAt?: any; createdAt?: any }[] = []
 
       if (isManager) {
         const q = query(collection(firestore, 'pipeline'), where('managerUid', '==', user.uid))
@@ -112,7 +113,10 @@ export function usePipelineStats() {
           seen.add(d.id)
           docs.push({
             status: (data.status || '') as string,
-            amount: typeof data.amount === 'number' ? data.amount : Number(data.amount) || 0
+            amount: typeof data.amount === 'number' ? data.amount : Number(data.amount) || 0,
+            concludedAt: data.concludedAt,
+            updatedAt: data.updatedAt,
+            createdAt: data.createdAt
           })
         })
       } else {
@@ -124,7 +128,10 @@ export function usePipelineStats() {
           seen.add(d.id)
           docs.push({
             status: (data.status || '') as string,
-            amount: typeof data.amount === 'number' ? data.amount : Number(data.amount) || 0
+            amount: typeof data.amount === 'number' ? data.amount : Number(data.amount) || 0,
+            concludedAt: data.concludedAt,
+            updatedAt: data.updatedAt,
+            createdAt: data.createdAt
           })
         })
 
@@ -141,7 +148,10 @@ export function usePipelineStats() {
               seen.add(d.id)
               docs.push({
                 status: (data.status || '') as string,
-                amount: typeof data.amount === 'number' ? data.amount : Number(data.amount) || 0
+                amount: typeof data.amount === 'number' ? data.amount : Number(data.amount) || 0,
+                concludedAt: data.concludedAt,
+                updatedAt: data.updatedAt,
+                createdAt: data.createdAt
               })
             }
           })
@@ -150,23 +160,68 @@ export function usePipelineStats() {
         }
       }
 
-      const metrics = calculatePipelineStats(docs)
+      const currentPeriod = new Date().toISOString().slice(0, 7)
+      const [pYear, pMonth] = currentPeriod.split('-').map(Number)
+      const periodBounds = pYear && pMonth ? {
+        start: new Date(pYear, pMonth - 1, 1, 0, 0, 0, 0),
+        end: new Date(pYear, pMonth, 0, 23, 59, 59, 999)
+      } : null
+
+      const isConcludedInPeriod = (data: any): boolean => {
+        if (!periodBounds) return true
+        let d: Date | null = null
+        if (data.concludedAt) {
+          d = data.concludedAt?.toDate ? data.concludedAt.toDate() : new Date(data.concludedAt)
+        } else if (data.updatedAt) {
+          d = data.updatedAt?.toDate ? data.updatedAt.toDate() : new Date(data.updatedAt)
+        } else if (data.createdAt) {
+          d = data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt)
+        }
+        if (!data.concludedAt && !data.updatedAt && !data.createdAt) return true
+        if (!d || isNaN(d.getTime())) return false
+        return d >= periodBounds.start && d <= periodBounds.end
+      }
+
+      let prospectionCount = 0
+      let prospectionAmount = 0
+      let negociationCount = 0
+      let negociationAmount = 0
+      let conclueCount = 0
+      let concludedAmount = 0
       let lostCount = 0
-      docs.forEach((doc) => {
-        const st = (doc.status || '').toLowerCase().trim()
-        if (st === 'lost' || st === 'perdu') lostCount++
-      })
+
+      for (const d of docs) {
+        const st = (d.status || '').toLowerCase().trim()
+        const amt = d.amount
+        if (['prospection', 'prospect', 'to_contact', 'contact', 'nouveau', 'lead'].includes(st)) {
+          prospectionCount++
+          prospectionAmount += amt
+        } else if (['negociation', 'negotiation', 'in_progress', 'en_cours'].includes(st)) {
+          negociationCount++
+          negociationAmount += amt
+        } else if (['conclue', 'conclusion', 'won', 'closed', 'gagne', 'signe'].includes(st)) {
+          if (isConcludedInPeriod(d)) {
+            conclueCount++
+            concludedAmount += amt
+          }
+        } else if (st === 'lost' || st === 'perdu' || st === 'perdue') {
+          lostCount++
+        }
+      }
+
+      const totalCount = prospectionCount + negociationCount + conclueCount
+      const conversionRate = totalCount > 0 ? Math.round((conclueCount / totalCount) * 100) : 0
 
       return {
-        total: metrics.totalCount,
-        prospection: metrics.prospectionCount,
-        negotiation: metrics.negociationCount,
-        conclusion: metrics.conclueCount,
+        total: totalCount,
+        prospection: prospectionCount,
+        negotiation: negociationCount,
+        conclusion: conclueCount,
         lost: lostCount,
-        conversionRate: metrics.conversionRate,
-        prospectionAmount: metrics.prospectionAmount,
-        negotiationAmount: metrics.negociationAmount,
-        conclusionAmount: metrics.concludedAmount
+        conversionRate,
+        prospectionAmount,
+        negotiationAmount: negociationAmount,
+        conclusionAmount: concludedAmount
       }
     },
     enabled: !!user?.uid,

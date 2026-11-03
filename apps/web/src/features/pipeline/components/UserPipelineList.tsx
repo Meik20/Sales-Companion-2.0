@@ -44,6 +44,7 @@ import { useProspectingCountryDetails } from '@/hooks/useProspectingCountry'
 
 import { UserPipelineKanban } from './UserPipelineKanban'
 import { DeadlineBadge } from '@/components/ui/DeadlineBadge'
+import { isPendingMigrationDeal } from '@/lib/monthly-cycle'
 
 type PipelineItem = {
   id: string
@@ -308,6 +309,30 @@ function ProspectModal({
                 <span style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)' }}>
                   {lang === 'en' ? 'Entered on' : 'Entré le'} {aging.enteredDateFormatted}
                 </span>
+                {((item as any).pendingMigration === true || isPendingMigrationDeal(item)) && (
+                  <div
+                    title={
+                      lang === 'en'
+                        ? 'This deal was closed last month and will be automatically archived to the clients database on the 3rd of this month at 23:59.'
+                        : 'Cette affaire a été conclue le mois dernier et sera automatiquement archivée dans la base clients le 3 de ce mois à 23h59.'
+                    }
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      padding: '2px 8px',
+                      borderRadius: 20,
+                      fontSize: 11,
+                      fontWeight: 700,
+                      background: 'rgba(217, 119, 6, 0.12)',
+                      color: '#d97706',
+                      border: '1px solid rgba(217, 119, 6, 0.35)'
+                    }}
+                  >
+                    <Clock size={11} />
+                    <span>{lang === 'en' ? 'Pending migration J+3' : 'Migration J+3 en attente'}</span>
+                  </div>
+                )}
               </div>
             </div>
             <button
@@ -972,6 +997,30 @@ export function UserPipelineList({ items, onStatusChange, activeStage }: Props) 
                         </span>
                       )
                     })()}
+                    {((item as any).pendingMigration === true || isPendingMigrationDeal(item)) && (
+                      <span
+                        title={
+                          lang === 'en'
+                            ? 'This deal was closed last month and will be automatically archived to the clients database on the 3rd of this month at 23:59.'
+                            : 'Cette affaire a été conclue le mois dernier et sera automatiquement archivée dans la base clients le 3 de ce mois à 23h59.'
+                        }
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 4,
+                          fontSize: 11,
+                          fontWeight: 700,
+                          color: '#d97706',
+                          background: 'rgba(217, 119, 6, 0.10)',
+                          border: '1px solid rgba(217, 119, 6, 0.30)',
+                          borderRadius: 6,
+                          padding: '2px 8px'
+                        }}
+                      >
+                        <Clock size={10} />
+                        {lang === 'en' ? 'Pending migration J+3' : 'Migration J+3'}
+                      </span>
+                    )}
                     {item.companySector && (
                       <span
                         style={{

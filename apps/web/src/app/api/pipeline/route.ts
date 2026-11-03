@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { FieldValue } from 'firebase-admin/firestore'
+import { isPendingMigrationDeal } from '@/lib/monthly-cycle'
 
 async function getAdmin() {
   const { adminDb, adminAuth } = await import('@/lib/firebase-admin')
@@ -46,9 +47,11 @@ export async function GET(request: NextRequest) {
           // Exclure les leads archivés du pipeline actif
           if (data.archived === true) return
           seen.add(doc.id)
+          const isPending = (data.pendingMigration === true) || isPendingMigrationDeal(data)
           items.push({
             id: doc.id,
             ...data,
+            pendingMigration: isPending,
             createdAt: data.createdAt?.toDate?.()?.toISOString() ?? null,
             updatedAt: data.updatedAt?.toDate?.()?.toISOString() ?? null
           })

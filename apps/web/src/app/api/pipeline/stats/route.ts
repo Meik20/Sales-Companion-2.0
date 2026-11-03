@@ -97,25 +97,78 @@ export async function GET(request: NextRequest) {
     // Exclure les leads archivés des statistiques du pipeline actif
     docs = docs.filter((doc) => doc.data().archived !== true)
 
-    const pipelineItems = docs.map((doc) => doc.data())
-    const metrics = calculatePipelineStats(pipelineItems)
+    // Résolution des bornes de la période mensuelle pour le calcul exact des affaires conclues
+    const { searchParams } = new URL(request.url)
+    const reqPeriod = searchParams.get('period')
+    const activePeriod = reqPeriod || new Date().toISOString().slice(0, 7)
+    const [pYear, pMonth] = activePeriod.split('-').map(Number)
+    const periodBounds =
+      pYear && pMonth
+        ? {
+          start: new Date(pYear, pMonth - 1, 1, 0, 0, 0, 0),
+          end: new Date(pYear, pMonth, 0, 23, 59, 59, 999)
+        }
+        : null
 
-    let lostCount = 0
-    for (const doc of docs) {
-      const st = String(doc.data().status || '').toLowerCase().trim()
-      if (st === 'lost' || st === 'perdu') lostCount++
+    const isConcludedInPeriod = (data: any): boolean => {
+      if (!periodBounds) return true
+      let d: Date | null = null
+      if (data.concludedAt) {
+        d = data.concludedAt.toDate ? data.concludedAt.toDate() : new Date(data.concludedAt)
+      } else if (data.updatedAt) {
+        d = data.updatedAt.toDate ? data.updatedAt.toDate() : new Date(data.updatedAt)
+      } else if (data.createdAt) {
+        d = data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt)
+      }
+      if (!data.concludedAt && !data.updatedAt && !data.createdAt) return true
+      if (!d || isNaN(d.getTime())) return false
+      return d >= periodBounds.start && d <= periodBounds.end
     }
 
+    let prospectionCount = 0
+    let prospectionAmount = 0
+    let negociationCount = 0
+    let negociationAmount = 0
+    let conclueCount = 0
+    let concludedAmount = 0
+    let lostCount = 0
+
+    for (const doc of docs) {
+      const data = doc.data()
+      const st = String(data.status || '').toLowerCase().trim()
+      const amt = typeof data.amount === 'number' ? data.amount : Number(data.amount) || 0
+
+      if (['prospection', 'prospect', 'to_contact', 'contact', 'nouveau', 'lead'].includes(st)) {
+        prospectionCount++
+        prospectionAmount += amt
+      } else if (['negociation', 'negotiation', 'in_progress', 'en_cours'].includes(st)) {
+        negociationCount++
+        negociationAmount += amt
+      } else if (['conclue', 'conclusion', 'won', 'closed', 'gagne', 'signe'].includes(st)) {
+        if (isConcludedInPeriod(data)) {
+          conclueCount++
+          concludedAmount += amt
+        }
+      } else if (st === 'lost' || st === 'perdu' || st === 'perdue') {
+        lostCount++
+      }
+    }
+
+    // RÈGLE §7A : Portefeuille Actif = prospection + négociation (+ conclues du mois actif)
+    // Les conclues hors-période (en sursis J+3) ne comptent pas dans le total
+    const totalCount = prospectionCount + negociationCount + conclueCount
+    const conversionRate = totalCount > 0 ? Math.round((conclueCount / totalCount) * 100) : 0
+
     const stats = {
-      total: metrics.totalCount,
-      prospection: metrics.prospectionCount,
-      negotiation: metrics.negociationCount,
-      conclusion: metrics.conclueCount,
+      total: totalCount,
+      prospection: prospectionCount,
+      negotiation: negociationCount,
+      conclusion: conclueCount,
       lost: lostCount,
-      conversionRate: metrics.conversionRate,
-      prospectionAmount: metrics.prospectionAmount,
-      negotiationAmount: metrics.negociationAmount,
-      conclusionAmount: metrics.concludedAmount
+      conversionRate,
+      prospectionAmount,
+      negotiationAmount: negociationAmount,
+      conclusionAmount: concludedAmount
     }
 
     return NextResponse.json(stats)

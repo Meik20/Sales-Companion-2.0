@@ -18,6 +18,7 @@ import { useTeamTargets, useSaveTeamTarget } from '@/features/pipeline/hooks/use
 import { useArchiveLeads } from '@/features/pipeline/hooks/useArchivePipeline'
 import { ArchivesDrawer } from '@/features/pipeline/components/ArchivesDrawer'
 import { useTransferConcludedDeals } from '@/features/pipeline/hooks/useTransferConcludedDeals'
+import { isPendingMigrationDeal } from '@/lib/monthly-cycle'
 import {
   Building2,
   MapPin,
@@ -299,7 +300,7 @@ function ProspectModal({
                 <span style={{ fontSize: 11, color: 'var(--muted-foreground, #64748b)' }}>
                   {lang === 'en' ? 'Entered on' : 'Entré le'} {aging.enteredDateFormatted}
                 </span>
-                {(item as any).pendingMigration === true && (
+                {((item as any).pendingMigration === true || isPendingMigrationDeal(item)) && (
                   <div
                     title={
                       lang === "en"
@@ -2975,7 +2976,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                             firstActionAt={item.firstActionAt}
                           />
                           {/* Badge Migration J+3 : deals conclus en M-1 en attente d'archivage clients */}
-                          {(item as any).pendingMigration === true && (
+                          {((item as any).pendingMigration === true || isPendingMigrationDeal(item)) && (
                             <span
                               title={
                                 lang === 'en'

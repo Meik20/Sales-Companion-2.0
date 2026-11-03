@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { authenticateServerRequest, AuthGuardError } from '@/server/guards/auth.guard'
+import { isPendingMigrationDeal } from '@/lib/monthly-cycle'
 
 function normalizeStatus(s: string) {
   const st = (s || '').toLowerCase().trim()
@@ -57,9 +58,11 @@ export async function GET(request: NextRequest) {
         assignedCompanies.add(compName)
       }
 
+      const isPending = (data.pendingMigration === true) || isPendingMigrationDeal(data)
       items.push({
         id: doc.id,
         ...data,
+        pendingMigration: isPending,
         companyName: (data.companyName || data.name || '') as string,
         companyId: (data.companyId || doc.id) as string,
         status: normalizeStatus(data.status as string),
@@ -100,10 +103,12 @@ export async function GET(request: NextRequest) {
           continue
         }
 
+        const isPending = (data.pendingMigration === true) || isPendingMigrationDeal(data)
         seen.add(doc.id)
         items.push({
           id: doc.id,
           ...data,
+          pendingMigration: isPending,
           companyName: (data.companyName || data.name || '') as string,
           companyId: (data.companyId || doc.id) as string,
           status: normalizeStatus(data.status as string),
