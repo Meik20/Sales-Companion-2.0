@@ -80,3 +80,51 @@ export function useSaveTeamTarget() {
     }
   })
 }
+
+export type RenewTargetsPayload = {
+  fromPeriod: string
+  toPeriod: string
+  overwrite?: boolean
+}
+
+/** Reconduit les objectifs d'une période source vers une période cible */
+export function useRenewTeamTargets() {
+  const { user } = useCurrentUser()
+  const { pushToast } = useToast()
+  const qc = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (payload: RenewTargetsPayload) => {
+      const token = await user!.getIdToken()
+      const res = await fetch('/api/team/targets/renew', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ message: 'Erreur serveur' }))
+        throw new Error(err.message ?? 'Erreur reconduction')
+      }
+      return res.json()
+    },
+    onSuccess: (data) => {
+      qc.invalidateQueries({ queryKey: ['teamTargets'] })
+      qc.invalidateQueries({ queryKey: ['orgPipeline'] })
+      qc.invalidateQueries({ queryKey: ['pipeline'] })
+      qc.invalidateQueries({ queryKey: ['reportingOrg'] })
+      qc.invalidateQueries({ queryKey: ['reporting'] })
+      pushToast({
+        type: 'success',
+        title: 'Objectifs reconduits',
+        description: `${data.renewed || 0} objectif(s) reconduit(s) pour ${data.period}.`
+      })
+    },
+    onError: (err: Error) => {
+      pushToast({ type: 'error', title: 'Erreur', description: err.message })
+    }
+  })
+}
+

@@ -4,12 +4,20 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type { PipelineActivityItem, PipelineActivityType } from '@sales-companion/shared'
 import { enqueueOfflineMutation } from '@/lib/offline-sync'
 
+export interface ActivityLocation {
+  latitude: number
+  longitude: number
+  accuracy?: number | null
+  address?: string | null
+}
+
 export interface CreateActivityInput {
   type: PipelineActivityType
   summary: string
   title?: string
   outcome?: string | null
   nextFollowUpDate?: string | null
+  location?: ActivityLocation | null
 }
 
 export function usePipelineActivities(pipelineItemId?: string | null) {

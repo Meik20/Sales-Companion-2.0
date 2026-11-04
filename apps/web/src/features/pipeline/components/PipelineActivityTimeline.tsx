@@ -19,12 +19,16 @@ import {
   ArrowRight,
   Banknote,
   Edit3,
-  AlertTriangle
+  AlertTriangle,
+  Navigation,
+  Check,
+  X
 } from 'lucide-react'
 import type { PipelineActivityType, PipelineActivityItem } from '@sales-companion/shared'
 import {
   usePipelineActivities,
-  useAddPipelineActivity
+  useAddPipelineActivity,
+  type ActivityLocation
 } from '@/features/pipeline/hooks/usePipelineActivities'
 import { useTranslation } from '@/providers/I18nProvider'
 import { useToast } from '@/hooks/useToast'
@@ -123,10 +127,50 @@ export function PipelineActivityTimeline({
   const [summary, setSummary] = useState('')
   const [outcome, setOutcome] = useState<string>('')
   const [nextFollowUpDate, setNextFollowUpDate] = useState('')
+  const [location, setLocation] = useState<ActivityLocation | null>(null)
+  const [isLocating, setIsLocating] = useState(false)
 
   const [isEditingAmount, setIsEditingAmount] = useState(false)
   const [tempAmount, setTempAmount] = useState(amount != null ? String(amount) : '')
   const [savingAmount, setSavingAmount] = useState(false)
+
+  const handleGetLocation = () => {
+    if (typeof window === 'undefined' || !navigator.geolocation) {
+      pushToast({
+        type: 'error',
+        title: isEn ? 'Geolocation unavailable' : 'Géolocalisation indisponible',
+        description: isEn
+          ? 'Your device does not support geolocation.'
+          : 'Votre appareil ne supporte pas la géolocalisation.'
+      })
+      return
+    }
+    setIsLocating(true)
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setIsLocating(false)
+        setLocation({
+          latitude: Number(pos.coords.latitude.toFixed(6)),
+          longitude: Number(pos.coords.longitude.toFixed(6)),
+          accuracy: Math.round(pos.coords.accuracy)
+        })
+        pushToast({
+          type: 'success',
+          title: isEn ? 'GPS check-in verified' : 'Check-in GPS certifié',
+          description: `Lat: ${pos.coords.latitude.toFixed(4)}, Lng: ${pos.coords.longitude.toFixed(4)} (±${Math.round(pos.coords.accuracy)}m)`
+        })
+      },
+      (err) => {
+        setIsLocating(false)
+        pushToast({
+          type: 'error',
+          title: isEn ? 'GPS error' : 'Erreur GPS',
+          description: err.message || (isEn ? 'Could not acquire position' : 'Position non acquise')
+        })
+      },
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 }
+    )
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -143,7 +187,8 @@ export function PipelineActivityTimeline({
         type: selectedType,
         summary: summary.trim(),
         outcome: outcome.trim() || null,
-        nextFollowUpDate: nextFollowUpDate.trim() || null
+        nextFollowUpDate: nextFollowUpDate.trim() || null,
+        location: location || null
       })
 
       pushToast({
@@ -154,6 +199,7 @@ export function PipelineActivityTimeline({
       setSummary('')
       setOutcome('')
       setNextFollowUpDate('')
+      setLocation(null)
       setShowForm(false)
     } catch (err) {
       pushToast({
@@ -351,10 +397,13 @@ export function PipelineActivityTimeline({
                       padding: '2px 6px',
                       fontSize: 10,
                       fontWeight: 700,
-                      cursor: 'pointer'
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
                     }}
                   >
-                    ✓
+                    <Check size={11} strokeWidth={3} />
                   </button>
                   <button
                     type="button"
@@ -365,10 +414,13 @@ export function PipelineActivityTimeline({
                       color: '#94a3b8',
                       padding: '2px 4px',
                       fontSize: 10,
-                      cursor: 'pointer'
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
                     }}
                   >
-                    ✕
+                    <X size={11} />
                   </button>
                 </div>
               )}
@@ -516,6 +568,81 @@ export function PipelineActivityTimeline({
               })}
             </div>
           </div>
+
+          {/* Field Mobility — GPS Check-in for visits */}
+          {selectedType === 'visit' && (
+            <div
+              style={{
+                marginBottom: 12,
+                padding: '8px 12px',
+                borderRadius: 8,
+                background: location ? 'rgba(16, 185, 129, 0.08)' : 'rgba(59, 130, 246, 0.06)',
+                border: location
+                  ? '1px solid rgba(16, 185, 129, 0.3)'
+                  : '1px dashed rgba(59, 130, 246, 0.25)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: 8
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Navigation
+                  size={14}
+                  style={{ color: location ? '#10b981' : '#60a5fa' }}
+                />
+                <span style={{ fontSize: 11.5, color: 'var(--foreground, #f1f5f9)' }}>
+                  {location ? (
+                    <>
+                      <strong>{isEn ? 'GPS Verified' : 'Check-in certifié'} :</strong>{' '}
+                      {location.latitude.toFixed(4)}, {location.longitude.toFixed(4)}
+                      {location.accuracy ? ` (±${location.accuracy}m)` : ''}
+                    </>
+                  ) : (
+                    <span>
+                      {isEn
+                        ? 'Field visit: verify your location on site'
+                        : 'Visite terrain : certifiez votre passage sur place'}
+                    </span>
+                  )}
+                </span>
+              </div>
+              <button
+                type="button"
+                disabled={isLocating}
+                onClick={handleGetLocation}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 5,
+                  padding: '4px 10px',
+                  borderRadius: 6,
+                  border: 'none',
+                  background: location ? 'rgba(16, 185, 129, 0.2)' : '#3b82f6',
+                  color: location ? '#10b981' : '#ffffff',
+                  fontSize: 11,
+                  fontWeight: 600,
+                  cursor: isLocating ? 'not-allowed' : 'pointer'
+                }}
+              >
+                {isLocating ? (
+                  <Loader2 size={12} className="animate-spin" />
+                ) : (
+                  <MapPin size={12} />
+                )}
+                <span>
+                  {location
+                    ? isEn
+                      ? 'Update GPS'
+                      : 'Actualiser GPS'
+                    : isEn
+                      ? 'GPS Check-in'
+                      : 'Check-in GPS'}
+                </span>
+              </button>
+            </div>
+          )}
 
           {/* Quick Outcome pills */}
           <div style={{ marginBottom: 12 }}>
@@ -820,6 +947,39 @@ export function PipelineActivityTimeline({
                         {isEn ? 'Follow-up planned:' : 'Relance prévue :'}{' '}
                         {new Date(act.nextFollowUpDate).toLocaleDateString(isEn ? 'en-US' : 'fr-FR')}
                       </span>
+                    </div>
+                  )}
+
+                  {(act as any).location && (
+                    <div style={{ marginTop: 6 }}>
+                      <a
+                        href={`https://www.google.com/maps?q=${(act as any).location.latitude},${(act as any).location.longitude}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 4,
+                          fontSize: 10.5,
+                          color: '#10b981',
+                          textDecoration: 'none',
+                          background: 'rgba(16, 185, 129, 0.08)',
+                          border: '1px solid rgba(16, 185, 129, 0.25)',
+                          padding: '2px 8px',
+                          borderRadius: 6,
+                          fontWeight: 600,
+                          transition: 'all 150ms'
+                        }}
+                        title={isEn ? 'Open in Google Maps' : 'Ouvrir dans Google Maps'}
+                      >
+                        <Navigation size={10} />
+                        <span>
+                          {isEn ? 'Field GPS Check-in' : 'Check-in GPS certifié'}{' '}
+                          <span style={{ opacity: 0.75, fontWeight: 400 }}>
+                            ({(act as any).location.latitude.toFixed(4)}, {(act as any).location.longitude.toFixed(4)})
+                          </span>
+                        </span>
+                      </a>
                     </div>
                   )}
                 </div>

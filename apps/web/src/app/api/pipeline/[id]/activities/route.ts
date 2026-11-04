@@ -53,7 +53,16 @@ const activityCreateSchema = z.object({
   title: z.string().optional(),
   summary: z.string().min(1, 'Le compte-rendu ou résumé est requis'),
   outcome: z.string().optional().nullable(),
-  nextFollowUpDate: z.string().optional().nullable()
+  nextFollowUpDate: z.string().optional().nullable(),
+  location: z
+    .object({
+      latitude: z.number(),
+      longitude: z.number(),
+      accuracy: z.number().optional().nullable(),
+      address: z.string().optional().nullable()
+    })
+    .optional()
+    .nullable()
 })
 
 /**
@@ -109,6 +118,7 @@ export async function GET(
         title: d.title ?? '',
         summary: d.summary ?? '',
         outcome: d.outcome ?? null,
+        location: d.location ?? null,
         performedBy: d.performedBy ?? '',
         performedByName: d.performedByName ?? 'Collaborateur',
         performedByRole: d.performedByRole ?? null,
@@ -172,7 +182,7 @@ export async function POST(
       )
     }
 
-    const { type, title, summary, outcome, nextFollowUpDate } = parsed.data
+    const { type, title, summary, outcome, nextFollowUpDate, location } = parsed.data
     const authorName =
       userData.name ||
       userData.displayName ||
@@ -186,6 +196,7 @@ export async function POST(
       title: title || null,
       summary,
       outcome: outcome || null,
+      location: location || null,
       performedBy: userId,
       performedByName: authorName,
       performedByRole: authorRole,
@@ -205,6 +216,12 @@ export async function POST(
     }
     if (nextFollowUpDate) {
       parentUpdates.nextFollowUp = nextFollowUpDate
+    }
+    if (location) {
+      parentUpdates.lastVisitLocation = {
+        ...location,
+        visitedAt: now.toISOString()
+      }
     }
 
     await itemRef.update(parentUpdates)

@@ -181,5 +181,47 @@ describe('Pipeline Activities Route (/api/pipeline/[id]/activities)', () => {
       })
     )
   })
+
+  it('POST enregistre le Check-in GPS terrain et met à jour lastVisitLocation', async () => {
+    mocks.mockActivitiesAdd.mockResolvedValueOnce({ id: 'gps-act-id' })
+
+    const req = new NextRequest('http://localhost/api/pipeline/deal-123/activities', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer valid-token',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        type: 'visit',
+        summary: 'Visite client sur site avec vérification GPS.',
+        location: {
+          latitude: 4.0511,
+          longitude: 9.7679,
+          accuracy: 15
+        }
+      })
+    })
+
+    const res = await POST(req, { params: Promise.resolve({ id: 'deal-123' }) })
+    expect(res.status).toBe(201)
+    const json = await res.json()
+    expect(json.id).toBe('gps-act-id')
+    expect(json.location).toEqual({
+      latitude: 4.0511,
+      longitude: 9.7679,
+      accuracy: 15
+    })
+
+    expect(mocks.mockPipelineUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        lastVisitLocation: expect.objectContaining({
+          latitude: 4.0511,
+          longitude: 9.7679,
+          accuracy: 15,
+          visitedAt: expect.any(String)
+        })
+      })
+    )
+  })
 })
 

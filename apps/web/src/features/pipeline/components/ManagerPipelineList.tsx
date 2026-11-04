@@ -14,7 +14,7 @@ import { useUpdatePipelineItem } from '@/features/pipeline/hooks/useUpdatePipeli
 import { useExportTeamPerformance } from '@/features/pipeline/hooks/useExportTeamPerformance'
 import { exportDashboardPdf } from '../utils/exportDashboardPdf'
 import { useOrgReport } from '../hooks/useOrgReport'
-import { useTeamTargets, useSaveTeamTarget } from '@/features/pipeline/hooks/useTeamTargets'
+import { useTeamTargets, useSaveTeamTarget, useRenewTeamTargets } from '@/features/pipeline/hooks/useTeamTargets'
 import { useArchiveLeads } from '@/features/pipeline/hooks/useArchivePipeline'
 import { ArchivesDrawer } from '@/features/pipeline/components/ArchivesDrawer'
 import { useTransferConcludedDeals } from '@/features/pipeline/hooks/useTransferConcludedDeals'
@@ -46,7 +46,8 @@ import {
   Download,
   FolderArchive,
   XCircle,
-  FileText
+  FileText,
+  RotateCcw
 } from 'lucide-react'
 import { getPipelineAging } from '@/lib/pipelineAging'
 import { formatCompactAmount, formatFullAmount } from '@/lib/formatters'
@@ -725,6 +726,24 @@ function TargetsButton({ members }: { members?: Member[] }) {
 
   const { data: allTargets } = useTeamTargets()
   const saveMutation = useSaveTeamTarget()
+  const renewMutation = useRenewTeamTargets()
+
+  const previousPeriod = useMemo(() => {
+    const p = (period || currentMonth).trim()
+    const parts = p.split('-')
+    const yStr = parts[0]
+    const mStr = parts[1]
+    if (!yStr || !mStr) return ''
+    let y = parseInt(yStr, 10)
+    let m = parseInt(mStr, 10)
+    if (isNaN(y) || isNaN(m)) return ''
+    m -= 1
+    if (m === 0) {
+      m = 12
+      y -= 1
+    }
+    return `${y}-${String(m).padStart(2, '0')}`
+  }, [period, currentMonth])
 
   const activeMemberIds = useMemo(() => {
     const s = new Set<string>()
@@ -1152,15 +1171,63 @@ function TargetsButton({ members }: { members?: Member[] }) {
             >
               <div
                 style={{
-                  fontWeight: 700,
-                  fontSize: 11,
-                  textTransform: 'uppercase',
-                  letterSpacing: '.05em',
-                  color: 'var(--muted-foreground, #94a3b8)',
-                  marginBottom: 8
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: 8,
+                  gap: 8,
+                  flexWrap: 'wrap'
                 }}
               >
-                {t('pipeline.definedTargets')}
+                <span
+                  style={{
+                    fontWeight: 700,
+                    fontSize: 11,
+                    textTransform: 'uppercase',
+                    letterSpacing: '.05em',
+                    color: 'var(--muted-foreground, #94a3b8)'
+                  }}
+                >
+                  {t('pipeline.definedTargets')}
+                </span>
+                {previousPeriod && (
+                  <button
+                    type="button"
+                    disabled={renewMutation.isPending}
+                    onClick={() => {
+                      renewMutation.mutate({
+                        fromPeriod: previousPeriod,
+                        toPeriod: period || currentMonth,
+                        overwrite: true
+                      })
+                    }}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 5,
+                      background: 'rgba(59,130,246,0.12)',
+                      border: '1px solid rgba(59,130,246,0.3)',
+                      borderRadius: 6,
+                      padding: '3px 8px',
+                      fontSize: 11,
+                      fontWeight: 600,
+                      color: '#60a5fa',
+                      cursor: renewMutation.isPending ? 'not-allowed' : 'pointer',
+                      opacity: renewMutation.isPending ? 0.6 : 1,
+                      transition: 'all 150ms'
+                    }}
+                    title={
+                      lang === 'en'
+                        ? `Duplicate targets from ${previousPeriod} to ${period || currentMonth}`
+                        : `Reconduire les objectifs de ${previousPeriod} vers ${period || currentMonth}`
+                    }
+                  >
+                    <RotateCcw size={11} className={renewMutation.isPending ? 'animate-spin' : ''} />
+                    {lang === 'en'
+                      ? `Renew from M-1 (${previousPeriod})`
+                      : `Reconduire depuis M-1 (${previousPeriod})`}
+                  </button>
+                )}
               </div>
               {activeTargets.length > 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
