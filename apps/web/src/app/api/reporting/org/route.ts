@@ -109,8 +109,9 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // 2. Agréger les pipelines (par batch de 10 pour Firestore)
+    // 2. Agréger les opportunités (pipeline actif + clients archivés) par batch de 10 pour Firestore
     const allItems: any[] = []
+    const seenOrgItemIds = new Set<string>()
     const chunks: string[][] = []
     for (let i = 0; i < managerUids.length; i += 10) {
       chunks.push(managerUids.slice(i, i + 10))
@@ -118,7 +119,11 @@ export async function GET(request: NextRequest) {
 
     await Promise.all(
       chunks.map(async (chunk) => {
-        const snap = await adminDb.collection('pipeline').where('managerUid', 'in', chunk).get()
+        const [snap, clientSnap] = await Promise.all([
+          adminDb.collection('pipeline').where('managerUid', 'in', chunk).get(),
+          adminDb.collection('clients').where('managerUid', 'in', chunk).get().catch(() => ({ docs: [] as any[] }))
+        ])
+
         snap.docs.forEach((d) => {
           const data = d.data()
           // Strict multi-tenant guard: si la fiche a un orgCode explicite, il doit correspondre à celui de l'organisation
@@ -128,7 +133,32 @@ export async function GET(request: NextRequest) {
           if (callerSegment && data.segment && data.segment !== callerSegment) {
             return
           }
-          allItems.push({ id: d.id, ...data, orgCode: data.orgCode || orgCode })
+          if (!seenOrgItemIds.has(d.id)) {
+            seenOrgItemIds.add(d.id)
+            allItems.push({ id: d.id, ...data, orgCode: data.orgCode || orgCode })
+          }
+        })
+
+        clientSnap.docs.forEach((d) => {
+          const data = d.data()
+          if (data.orgCode && data.orgCode !== orgCode) {
+            return
+          }
+          if (callerSegment && data.segment && data.segment !== callerSegment) {
+            return
+          }
+          const origId = data.pipelineItemId || d.id.replace(/^client_/, '')
+          if (!seenOrgItemIds.has(origId)) {
+            seenOrgItemIds.add(origId)
+            allItems.push({
+              id: origId,
+              ...data,
+              status: 'conclue',
+              concludedAt: data.concludedAt,
+              amount: typeof data.amount === 'number' ? data.amount : Number(data.amount) || 0,
+              orgCode: data.orgCode || orgCode
+            })
+          }
         })
       })
     )

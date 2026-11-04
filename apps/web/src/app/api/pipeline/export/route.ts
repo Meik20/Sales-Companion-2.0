@@ -70,8 +70,11 @@ export async function GET(request: NextRequest) {
         'Décembre'
       ]
 
-      // Fetch du pipeline personnel
-      const ownSnap = await adminDb.collection('pipeline').where('userId', '==', callerUid).get()
+      // Fetch du pipeline personnel et des clients archivés
+      const [ownSnap, ownClientsSnap] = await Promise.all([
+        adminDb.collection('pipeline').where('userId', '==', callerUid).get(),
+        adminDb.collection('clients').where('assignedTo', '==', callerUid).get()
+      ])
 
       type IndItem = {
         id: string
@@ -88,9 +91,13 @@ export async function GET(request: NextRequest) {
         createdAt?: string | null
       }
 
-      let ownItems: IndItem[] = ownSnap.docs.map((doc) => {
+      const seenInd = new Set<string>()
+      let ownItems: IndItem[] = []
+
+      ownSnap.docs.forEach((doc) => {
+        seenInd.add(doc.id)
         const d = doc.data()
-        return {
+        ownItems.push({
           id: doc.id,
           companyName: d.companyName,
           status: d.status,
@@ -103,6 +110,27 @@ export async function GET(request: NextRequest) {
           nextFollowUp: d.nextFollowUp,
           amount: typeof d.amount === 'number' ? d.amount : undefined,
           createdAt: d.createdAt?.toDate?.()?.toISOString() ?? null
+        })
+      })
+
+      ownClientsSnap.docs.forEach((doc) => {
+        const d = doc.data()
+        const origId = d.pipelineItemId || doc.id.replace(/^client_/, '')
+        if (!seenInd.has(origId)) {
+          seenInd.add(origId)
+          ownItems.push({
+            id: origId,
+            companyName: d.companyName,
+            status: 'conclue',
+            companyCity: d.companyCity,
+            companySector: d.companySector,
+            companyPhone: d.companyPhone,
+            companyEmail: d.companyEmail,
+            note: d.note || d.notes,
+            notes: d.notes,
+            amount: typeof d.amount === 'number' ? d.amount : undefined,
+            createdAt: d.concludedAt?.toDate?.()?.toISOString() ?? d.createdAt?.toDate?.()?.toISOString() ?? null
+          })
         }
       })
 
@@ -589,16 +617,78 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Pipeline des membres d'équipe (par managerUid)
+    // Pipeline des membres d'équipe (pipeline actif + clients archivés)
     for (const chunk of chunkArray(orgManagerUids, 30)) {
-      const teamSnap = await adminDb.collection('pipeline').where('managerUid', 'in', chunk).get()
+      const [teamSnap, clientsSnap] = await Promise.all([
+        adminDb.collection('pipeline').where('managerUid', 'in', chunk).get(),
+        adminDb.collection('clients').where('managerUid', 'in', chunk).get()
+      ])
       pushItems(teamSnap)
+      clientsSnap.docs.forEach((doc) => {
+        const d = doc.data()
+        const origId = d.pipelineItemId || doc.id.replace(/^client_/, '')
+        if (!seen.has(origId)) {
+          seen.add(origId)
+          allItems.push({
+            id: origId,
+            companyName: d.companyName,
+            status: 'conclue',
+            assignedTo: d.assignedTo,
+            memberName: d.assignedName || d.memberName,
+            memberAccessId: d.memberAccessId,
+            managerUid: d.managerUid,
+            companyCity: d.companyCity,
+            companySector: d.companySector,
+            companyPhone: d.companyPhone,
+            companyEmail: d.companyEmail,
+            note: d.notes || d.note,
+            notes: d.notes,
+            amount: typeof d.amount === 'number' ? d.amount : Number(d.amount) || undefined,
+            createdAt: d.createdAt?.toDate?.()?.toISOString() ?? null,
+            updatedAt: d.updatedAt?.toDate?.()?.toISOString() ?? null,
+            concludedAt:
+              d.concludedAt?.toDate?.()?.toISOString?.() ??
+              (d.concludedAt ? new Date(d.concludedAt).toISOString() : null)
+          })
+        }
+      })
     }
 
-    // Pipeline personnel du Team Manager uniquement
+    // Pipeline personnel du Team Manager uniquement (pipeline actif + clients)
     if (!isSeniorManager) {
-      const ownSnap = await adminDb.collection('pipeline').where('userId', '==', managerUid).get()
+      const [ownSnap, ownClientsSnap] = await Promise.all([
+        adminDb.collection('pipeline').where('userId', '==', managerUid).get(),
+        adminDb.collection('clients').where('managerUid', '==', managerUid).get()
+      ])
       pushItems(ownSnap)
+      ownClientsSnap.docs.forEach((doc) => {
+        const d = doc.data()
+        const origId = d.pipelineItemId || doc.id.replace(/^client_/, '')
+        if (!seen.has(origId)) {
+          seen.add(origId)
+          allItems.push({
+            id: origId,
+            companyName: d.companyName,
+            status: 'conclue',
+            assignedTo: d.assignedTo,
+            memberName: d.assignedName || d.memberName,
+            memberAccessId: d.memberAccessId,
+            managerUid: d.managerUid,
+            companyCity: d.companyCity,
+            companySector: d.companySector,
+            companyPhone: d.companyPhone,
+            companyEmail: d.companyEmail,
+            note: d.notes || d.note,
+            notes: d.notes,
+            amount: typeof d.amount === 'number' ? d.amount : Number(d.amount) || undefined,
+            createdAt: d.createdAt?.toDate?.()?.toISOString() ?? null,
+            updatedAt: d.updatedAt?.toDate?.()?.toISOString() ?? null,
+            concludedAt:
+              d.concludedAt?.toDate?.()?.toISOString?.() ??
+              (d.concludedAt ? new Date(d.concludedAt).toISOString() : null)
+          })
+        }
+      })
     }
 
     // ── Filters ──────────────────────────────────────────────────────────────

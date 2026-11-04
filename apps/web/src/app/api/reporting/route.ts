@@ -22,11 +22,11 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Get all pipeline items for this manager's team
-    const pipelineSnap = await adminDb
-      .collection('pipeline')
-      .where('managerUid', '==', decoded.uid)
-      .get()
+    // Get both pipeline items and archived clients for this manager's team
+    const [pipelineSnap, clientsSnap] = await Promise.all([
+      adminDb.collection('pipeline').where('managerUid', '==', decoded.uid).get(),
+      adminDb.collection('clients').where('managerUid', '==', decoded.uid).get()
+    ])
 
     // Get team members for name resolution and active team scope
     const membersSnap = await adminDb
@@ -129,7 +129,28 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    const items = pipelineSnap.docs.map((d) => ({ id: d.id, ...d.data() })) as any[]
+    const seenItemIds = new Set<string>()
+    const items: any[] = []
+
+    pipelineSnap.docs.forEach((d) => {
+      seenItemIds.add(d.id)
+      items.push({ id: d.id, ...d.data() })
+    })
+
+    clientsSnap.docs.forEach((d) => {
+      const data = d.data()
+      const originalId = data.pipelineItemId || d.id.replace(/^client_/, '')
+      if (!seenItemIds.has(originalId)) {
+        seenItemIds.add(originalId)
+        items.push({
+          id: originalId,
+          ...data,
+          status: 'conclue',
+          concludedAt: data.concludedAt,
+          amount: typeof data.amount === 'number' ? data.amount : Number(data.amount) || 0
+        })
+      }
+    })
 
     // Global stats: prospection and negociation represent ongoing active pipeline
     const totalProspection = items.filter((i) => normalizeStatus(i.status) === 'prospection').length
