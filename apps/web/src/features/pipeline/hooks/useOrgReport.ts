@@ -68,20 +68,37 @@ export interface OrgReportResult {
   totalManagers: number
 }
 
+export type OrgReportQueryOptions = string | { period?: string; from?: string; to?: string }
+
 /**
  * Hook — KPIs consolidés de l'organisation (Senior Manager uniquement).
- * Consomme GET /api/reporting/org.
+ * Consomme GET /api/reporting/org avec support des filtres journaliers Day-by-Day.
  */
-export function useOrgReport(period?: string) {
+export function useOrgReport(options?: OrgReportQueryOptions) {
   const { user } = useCurrentUser()
   const isSeniorManager = user?.role === 'manager' && user?.orgRole === 'senior_manager'
 
+  const queryKey = typeof options === 'string'
+    ? ['org-report', user?.uid, options]
+    : ['org-report', user?.uid, options?.period, options?.from, options?.to]
+
   return useQuery<OrgReportResult>({
-    queryKey: ['org-report', user?.uid, period],
+    queryKey,
     queryFn: async (): Promise<OrgReportResult> => {
       if (!user) throw new Error('Non authentifié')
       const token = await user.getIdToken()
-      const url = period ? `/api/reporting/org?period=${encodeURIComponent(period)}` : '/api/reporting/org'
+
+      const params = new URLSearchParams()
+      if (typeof options === 'string' && options) {
+        params.set('period', options)
+      } else if (typeof options === 'object' && options) {
+        if (options.period) params.set('period', options.period)
+        if (options.from) params.set('from', options.from)
+        if (options.to) params.set('to', options.to)
+      }
+
+      const qs = params.toString()
+      const url = qs ? `/api/reporting/org?${qs}` : '/api/reporting/org'
       const res = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` }
       })

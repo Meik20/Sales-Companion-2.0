@@ -13,7 +13,7 @@ import { LOSS_REASONS } from '@sales-companion/shared'
 import { useUpdatePipelineItem } from '@/features/pipeline/hooks/useUpdatePipelineItem'
 import { useExportTeamPerformance } from '@/features/pipeline/hooks/useExportTeamPerformance'
 import { exportDashboardPdf } from '../utils/exportDashboardPdf'
-import { useOrgReport } from '../hooks/useOrgReport'
+import { useOrgReport, type OrgReportResult } from '../hooks/useOrgReport'
 import { useTeamTargets, useSaveTeamTarget, useRenewTeamTargets } from '@/features/pipeline/hooks/useTeamTargets'
 import { useArchiveLeads } from '@/features/pipeline/hooks/useArchivePipeline'
 import { ArchivesDrawer } from '@/features/pipeline/components/ArchivesDrawer'
@@ -47,7 +47,8 @@ import {
   FolderArchive,
   XCircle,
   FileText,
-  RotateCcw
+  RotateCcw,
+  Loader2
 } from 'lucide-react'
 import { getPipelineAging } from '@/lib/pipelineAging'
 import { formatCompactAmount, formatFullAmount } from '@/lib/formatters'
@@ -1358,6 +1359,63 @@ function TargetsButton({ members }: { members?: Member[] }) {
   )
 }
 
+function buildPrecisePeriodLabel(fromDateStr: string, toDateStr: string, fallbackLabel: string, lang: string): string {
+  if (!fromDateStr && !toDateStr) return fallbackLabel
+
+  const isEn = lang === 'en'
+  const formatDate = (iso: string) => {
+    const parts = iso.split('-').map(Number)
+    const y = parts[0]
+    const m = parts[1]
+    const d = parts[2]
+    if (!y || !m || !d) return iso
+    const date = new Date(y, m - 1, d)
+    return date.toLocaleDateString(isEn ? 'en-GB' : 'fr-FR', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    })
+  }
+
+  const formatMonthYear = (iso: string) => {
+    const parts = iso.split('-').map(Number)
+    const y = parts[0]
+    const m = parts[1]
+    if (!y || !m) return iso
+    const date = new Date(y, m - 1, 1)
+    return date.toLocaleDateString(isEn ? 'en-GB' : 'fr-FR', {
+      month: 'long',
+      year: 'numeric'
+    })
+  }
+
+  if (fromDateStr && toDateStr) {
+    if (fromDateStr === toDateStr) {
+      return formatDate(fromDateStr)
+    }
+
+    const [y1, m1, d1] = fromDateStr.split('-').map(Number)
+    const [y2, m2, d2] = toDateStr.split('-').map(Number)
+
+    // Mois civil entier complet ? (ex: du 1er au dernier jour du même mois)
+    if (y1 && m1 && d1 === 1 && y2 && m2 && y1 === y2 && m1 === m2) {
+      const lastDay = new Date(y1, m1, 0).getDate()
+      if (d2 === lastDay) {
+        const my = formatMonthYear(fromDateStr)
+        return my.charAt(0).toUpperCase() + my.slice(1)
+      }
+    }
+
+    return `${formatDate(fromDateStr)} – ${formatDate(toDateStr)}`
+  }
+
+  if (fromDateStr) {
+    return isEn ? `From ${formatDate(fromDateStr)}` : `Depuis le ${formatDate(fromDateStr)}`
+  }
+
+  return isEn ? `Until ${formatDate(toDateStr)}` : `Jusqu'au ${formatDate(toDateStr)}`
+}
+
 // ── Export Modal & Button ────────────────────────────────────────────────────────
 function ExportButton({
   members,
@@ -1372,10 +1430,58 @@ function ExportButton({
   const { currency } = useProspectingCountryDetails()
   const { exportPerformance, loading } = useExportTeamPerformance()
   const { data: orgReportData } = useOrgReport()
+  const { pushToast } = useToast()
   const [open, setOpen] = useState(false)
   const [selectedId, setSelectedId] = useState('')
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
+  const [pdfLoading, setPdfLoading] = useState(false)
+
+  const handleExportPdf = async () => {
+    setPdfLoading(true)
+    try {
+      const { auth } = await import('@/services/firebase/client')
+      const token = await auth.currentUser?.getIdToken()
+      if (!token) throw new Error(lang === 'en' ? 'Authentication required' : 'Authentification requise')
+
+      const params = new URLSearchParams()
+      if (from) params.set('from', from)
+      if (to) params.set('to', to)
+
+      const res = await fetch(`/api/reporting/org?${params.toString()}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ message: 'Erreur serveur' }))
+        throw new Error(err.message || (lang === 'en' ? 'Failed to fetch report data' : 'Impossible de récupérer les données du rapport'))
+      }
+
+      const freshOrgData: OrgReportResult = await res.json()
+
+      const activePeriod = freshOrgData.monthlyCycle?.currentPeriod
+      const defaultLabel = lang === 'en' ? (activePeriod?.labelEn || 'Current') : (activePeriod?.labelFr || 'En cours')
+      const periodLabel = buildPrecisePeriodLabel(from, to, defaultLabel, lang)
+
+      exportDashboardPdf({
+        data: freshOrgData,
+        seniorManagerName: managers?.find((m) => m.isSenior)?.name,
+        periodLabel,
+        currency,
+        lang
+      })
+
+      setOpen(false)
+    } catch (err: any) {
+      pushToast({
+        type: 'error',
+        title: lang === 'en' ? 'PDF Export Error' : "Erreur d'export PDF",
+        description: err?.message || (lang === 'en' ? 'An unexpected error occurred' : 'Une erreur inattendue est survenue')
+      })
+    } finally {
+      setPdfLoading(false)
+    }
+  }
 
   const activeTeamManagers = managers?.filter((m) => !m.isSenior) ?? []
 
@@ -1550,8 +1656,18 @@ function ExportButton({
                 </div>
               </div>
 
-              {/* Actions */}
-              <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 4 }}>
+              {/* Actions Footer */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 10,
+                  marginTop: 8,
+                  paddingTop: 12,
+                  borderTop: '1px solid var(--border, rgba(255,255,255,0.08))'
+                }}
+              >
                 <Button
                   size="sm"
                   variant="ghost"
@@ -1560,62 +1676,72 @@ function ExportButton({
                     setFrom('')
                     setTo('')
                   }}
+                  style={{
+                    height: 36,
+                    padding: '0 12px',
+                    fontSize: 12,
+                    color: 'var(--muted-foreground, #94a3b8)'
+                  }}
                 >
                   {t('pipeline.exportReset')}
                 </Button>
-                {isOrgView && orgReportData && (
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {isOrgView && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      loading={pdfLoading}
+                      disabled={loading || pdfLoading}
+                      onClick={handleExportPdf}
+                      style={{
+                        height: 36,
+                        padding: '0 14px',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        fontSize: 13,
+                        fontWeight: 600,
+                        whiteSpace: 'nowrap',
+                        borderColor: 'rgba(16, 185, 129, 0.4)',
+                        backgroundColor: 'rgba(16, 185, 129, 0.08)',
+                        color: '#10b981'
+                      }}
+                    >
+                      <FileText size={15} />
+                      <span>{lang === 'en' ? 'PDF Report' : 'Rapport PDF'}</span>
+                    </Button>
+                  )}
+
                   <Button
                     size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      const activePeriod = orgReportData.monthlyCycle?.currentPeriod
-                      const buildDateLabel = (d: string, opts: Intl.DateTimeFormatOptions) =>
-                        new Date(d).toLocaleDateString(lang === 'en' ? 'en-GB' : 'fr-FR', opts)
-                      const monthYearOpts: Intl.DateTimeFormatOptions = { month: 'long', year: 'numeric' }
-                      const periodLabel = (from || to)
-                        ? from && to
-                          ? `${buildDateLabel(from, monthYearOpts)} – ${buildDateLabel(to, monthYearOpts)}`
-                          : from
-                            ? (lang === 'en' ? `From ${buildDateLabel(from, monthYearOpts)}` : `Depuis ${buildDateLabel(from, monthYearOpts)}`)
-                            : (lang === 'en' ? `Until ${buildDateLabel(to, monthYearOpts)}` : `Jusqu'à ${buildDateLabel(to, monthYearOpts)}`)
-                        : lang === 'en' ? (activePeriod?.labelEn || 'Current') : (activePeriod?.labelFr || 'En cours')
-                      exportDashboardPdf({
-                        data: orgReportData,
-                        seniorManagerName: managers?.find((m) => m.isSenior)?.name,
-                        periodLabel,
-                        currency,
-                        lang
+                    variant="primary"
+                    loading={loading}
+                    disabled={pdfLoading || loading}
+                    onClick={async () => {
+                      await exportPerformance({
+                        managerId: isOrgView ? (selectedId || undefined) : undefined,
+                        memberId: !isOrgView ? (selectedId || undefined) : undefined,
+                        from: from || undefined,
+                        to: to || undefined
                       })
                       setOpen(false)
                     }}
                     style={{
+                      height: 36,
+                      padding: '0 14px',
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: 6,
-                      borderColor: '#10b981',
-                      color: '#10b981'
+                      fontSize: 13,
+                      fontWeight: 600,
+                      whiteSpace: 'nowrap'
                     }}
                   >
-                    <FileText size={14} />
-                    <span>{lang === 'en' ? 'Executive PDF (Board)' : 'Rapport Bilan PDF (DG)'}</span>
+                    <Download size={15} />
+                    <span>{t('pipeline.exportDownload')}</span>
                   </Button>
-                )}
-                <Button
-                  size="sm"
-                  variant="primary"
-                  loading={loading}
-                  onClick={async () => {
-                    await exportPerformance({
-                      managerId: isOrgView ? (selectedId || undefined) : undefined,
-                      memberId: !isOrgView ? (selectedId || undefined) : undefined,
-                      from: from || undefined,
-                      to: to || undefined
-                    })
-                    setOpen(false)
-                  }}
-                >
-                  <Download size={14} className="mr-1.5" /> {t('pipeline.exportDownload')}
-                </Button>
+                </div>
               </div>
             </div>
           </div>

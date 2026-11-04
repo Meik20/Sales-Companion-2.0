@@ -38,10 +38,28 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const reqPeriod = searchParams.get('period')
-    const activeMonthPeriod = reqPeriod || new Date().toISOString().slice(0, 7)
+    const reqFrom = searchParams.get('from')
+    const reqTo = searchParams.get('to')
 
+    let activeMonthPeriod = reqPeriod || new Date().toISOString().slice(0, 7)
     let periodBounds: { start: Date; end: Date } | null = null
-    if (activeMonthPeriod) {
+
+    if (reqFrom || reqTo) {
+      const start = reqFrom
+        ? new Date(reqFrom.length === 10 ? `${reqFrom}T00:00:00.000` : reqFrom)
+        : new Date('1970-01-01T00:00:00.000')
+      const end = reqTo
+        ? new Date(reqTo.length === 10 ? `${reqTo}T23:59:59.999` : reqTo)
+        : new Date('2099-12-31T23:59:59.999')
+      if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+        periodBounds = { start, end }
+      }
+      if (reqFrom && reqFrom.length >= 7) {
+        activeMonthPeriod = reqFrom.slice(0, 7)
+      } else if (reqTo && reqTo.length >= 7) {
+        activeMonthPeriod = reqTo.slice(0, 7)
+      }
+    } else if (activeMonthPeriod) {
       const parts = activeMonthPeriod.split('-').map(Number)
       if (parts[0] && parts[1]) {
         periodBounds = {
@@ -325,8 +343,8 @@ export async function GET(request: NextRequest) {
     const orgVolumeAttainment = calculateAttainmentRate(globalCounts.conclue, orgTargetVolume)
     const orgValueAttainment = calculateAttainmentRate(totalConcludedAmount, orgTargetValue)
 
-    // 9. Activité récente (10 derniers prospects conclus)
-    const recentActivity = allItems
+    // 9. Activité récente (10 derniers prospects conclus avec résolution des noms)
+    const recentCandidates = allItems
       .filter((i) => normalizeStatus(i.status ?? '') === 'conclue')
       .sort((a, b) => {
         const tA = a.updatedAt?.toDate?.()?.getTime?.() ?? a.updatedAt ?? 0
@@ -334,14 +352,55 @@ export async function GET(request: NextRequest) {
         return tB - tA
       })
       .slice(0, 10)
-      .map((i) => ({
+
+    // Résolution par lot des noms humains des membres assignés (AGENTS.md règle 13)
+    const uidsToResolve = new Set<string>()
+    for (const item of recentCandidates) {
+      const assigned = item.assignedTo as string | undefined
+      if (assigned && !item.memberName && !managersMap[assigned]) {
+        uidsToResolve.add(assigned)
+      }
+    }
+
+    const memberNamesMap = new Map<string, string>()
+    if (uidsToResolve.size > 0) {
+      try {
+        const uidsArray = Array.from(uidsToResolve)
+        const docRefs = uidsArray.map((id) => adminDb.collection('users').doc(id))
+        for (let i = 0; i < docRefs.length; i += 100) {
+          const chunk = docRefs.slice(i, i + 100)
+          const snaps = await adminDb.getAll(...chunk)
+          for (const snap of snaps) {
+            if (snap.exists) {
+              const uData = snap.data()
+              const name = uData?.name || uData?.displayName || uData?.email || null
+              if (name) {
+                memberNamesMap.set(snap.id, name)
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('[reporting/org] member name resolution fallback:', err)
+      }
+    }
+
+    const recentActivity = recentCandidates.map((i) => {
+      const assignedUid = i.assignedTo as string | undefined
+      const resolvedName =
+        i.memberName ||
+        (assignedUid ? memberNamesMap.get(assignedUid) || managersMap[assignedUid]?.name : null) ||
+        'Commercial'
+
+      return {
         id: i.id,
         companyName: i.companyName || i.name || 'Prospect',
         managerUid: i.managerUid,
-        managerName: managersMap[i.managerUid]?.name ?? i.managerUid,
-        memberName: i.memberName || i.assignedTo || null,
+        managerName: managersMap[i.managerUid]?.name ?? 'Team Manager',
+        memberName: resolvedName,
         updatedAt: i.updatedAt?.toDate?.()?.toISOString?.() ?? i.updatedAt ?? null
-      }))
+      }
+    })
 
     const cycleContext = getCurrentCycleContext()
     const [selYear, selMonth] = activeMonthPeriod.split('-').map(Number)

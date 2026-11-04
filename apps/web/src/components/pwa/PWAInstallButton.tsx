@@ -75,3 +75,4 @@ export function PWAInstallButton({ compact = false }: { compact?: boolean }) {
     </button>
   )
 }
+

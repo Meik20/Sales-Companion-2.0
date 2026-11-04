@@ -147,17 +147,35 @@ export async function GET(request: NextRequest) {
         return s
       }
 
-      // Période lisible
+      // Période lisible Day-by-Day fidèle
       const now = new Date()
       let periodLabel = `${MONTHS_FR_IND[now.getMonth()]} ${now.getFullYear()}`
       if (fromDate && toDate) {
-        const f = fromDate.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })
-        const t2 = toDate.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })
-        periodLabel = f === t2 ? f : `${f} – ${t2}`
+        const fDay = String(fromDate.getDate()).padStart(2, '0')
+        const tDay = String(toDate.getDate()).padStart(2, '0')
+        const fMonth = MONTHS_FR_IND[fromDate.getMonth()]
+        const tMonth = MONTHS_FR_IND[toDate.getMonth()]
+        const fYear = fromDate.getFullYear()
+        const tYear = toDate.getFullYear()
+
+        if (fromDate.toDateString() === toDate.toDateString()) {
+          periodLabel = `${fDay} ${fMonth} ${fYear}`
+        } else if (
+          fromDate.getDate() === 1 &&
+          toDate.getDate() === new Date(fYear, fromDate.getMonth() + 1, 0).getDate() &&
+          fromDate.getMonth() === toDate.getMonth() &&
+          fYear === tYear
+        ) {
+          periodLabel = `${fMonth} ${fYear}`
+        } else if (fYear === tYear) {
+          periodLabel = `${fDay} ${fMonth} – ${tDay} ${tMonth} ${fYear}`
+        } else {
+          periodLabel = `${fDay} ${fMonth} ${fYear} – ${tDay} ${tMonth} ${tYear}`
+        }
       } else if (fromDate) {
-        periodLabel = `Depuis ${fromDate.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })}`
+        periodLabel = `Depuis le ${String(fromDate.getDate()).padStart(2, '0')} ${MONTHS_FR_IND[fromDate.getMonth()]} ${fromDate.getFullYear()}`
       } else if (toDate) {
-        periodLabel = `Jusqu'à ${toDate.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })}`
+        periodLabel = `Jusqu'au ${String(toDate.getDate()).padStart(2, '0')} ${MONTHS_FR_IND[toDate.getMonth()]} ${toDate.getFullYear()}`
       }
 
       // Statistiques globales
@@ -483,6 +501,58 @@ export async function GET(request: NextRequest) {
       'Décembre'
     ]
     function formatPeriod(raw: string | null, from: Date | null, to: Date | null): string {
+      // 1. Priorité absolue : si des dates de début et/ou de fin ont été explicitement choisies
+      if (from && to) {
+        const fDay = String(from.getDate()).padStart(2, '0')
+        const tDay = String(to.getDate()).padStart(2, '0')
+        const fMonth = MONTHS_FR[from.getMonth()]
+        const tMonth = MONTHS_FR[to.getMonth()]
+        const fYear = from.getFullYear()
+        const tYear = to.getFullYear()
+
+        // Jour unique (ex. "01 Oct 2026")
+        if (from.toDateString() === to.toDateString()) {
+          return `${fDay} ${fMonth} ${fYear}`
+        }
+
+        // Mois civil entier complet (1er au dernier jour du mois)
+        const lastDayOfMonth = new Date(fYear, from.getMonth() + 1, 0).getDate()
+        if (
+          from.getDate() === 1 &&
+          to.getDate() === lastDayOfMonth &&
+          from.getMonth() === to.getMonth() &&
+          fYear === tYear
+        ) {
+          return `${fMonth} ${fYear}`
+        }
+
+        // Plage au sein du même mois (ex. "01 Oct – 02 Oct 2026")
+        if (fYear === tYear && from.getMonth() === to.getMonth()) {
+          return `${fDay} ${fMonth} – ${tDay} ${tMonth} ${fYear}`
+        }
+
+        // Plage sur des mois différents de la même année
+        if (fYear === tYear) {
+          return `${fDay} ${fMonth} – ${tDay} ${tMonth} ${fYear}`
+        }
+
+        // Années différentes
+        return `${fDay} ${fMonth} ${fYear} – ${tDay} ${tMonth} ${tYear}`
+      }
+
+      if (from) {
+        const fDay = String(from.getDate()).padStart(2, '0')
+        const fMonth = MONTHS_FR[from.getMonth()]
+        return `Depuis le ${fDay} ${fMonth} ${from.getFullYear()}`
+      }
+
+      if (to) {
+        const tDay = String(to.getDate()).padStart(2, '0')
+        const tMonth = MONTHS_FR[to.getMonth()]
+        return `Jusqu'au ${tDay} ${tMonth} ${to.getFullYear()}`
+      }
+
+      // 2. Si aucune borne journalière n'est fournie, formater la période mensuelle raw
       if (raw) {
         // "2026-10" → "Octobre 2026"
         const monthMatch = raw.match(/^(\d{4})-(\d{2})$/)
@@ -506,20 +576,8 @@ export async function GET(request: NextRequest) {
         // Retourner tel quel si format inconnu
         return raw
       }
-      // Fallback : construire depuis les dates de filtre
-      if (from && to) {
-        if (from.getFullYear() === to.getFullYear() && from.getMonth() === to.getMonth()) {
-          return `${MONTHS_FR[from.getMonth()]} ${from.getFullYear()}`
-        }
-        const f = `${MONTHS_FR[from.getMonth()]} ${from.getFullYear()}`
-        const t = `${MONTHS_FR[to.getMonth()]} ${to.getFullYear()}`
-        return f === t ? f : `${f} – ${t}`
-      }
-      if (from)
-        return `Depuis ${MONTHS_FR[from.getMonth()]} ${from.getFullYear()}`
-      if (to)
-        return `Jusqu'à ${MONTHS_FR[to.getMonth()]} ${to.getFullYear()}`
-      // Aucune période : utiliser le mois courant
+
+      // 3. Fallback : utiliser le mois courant
       const now = new Date()
       return `${MONTHS_FR[now.getMonth()]} ${now.getFullYear()}`
     }
