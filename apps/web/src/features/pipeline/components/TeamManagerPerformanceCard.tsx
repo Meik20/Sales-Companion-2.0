@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { TrendingUp, Calendar, X, Users, Users2, Building2, Check, AlertTriangle, Trophy, Banknote, ArrowRight } from 'lucide-react'
+import { TrendingUp, Calendar, X, Users, Users2, Building2, Check, AlertTriangle, Trophy, Banknote, ArrowRight, Loader2 } from 'lucide-react'
 import { useTranslation } from '@/providers/I18nProvider'
 import { formatCompactAmount } from '@/lib/formatters'
 import { useProspectingCountryDetails } from '@/hooks/useProspectingCountry'
@@ -19,6 +19,8 @@ import {
   calculateRoRate
 } from '@/lib/pipeline-metrics'
 import { OverdueFollowUpsDrawer } from './OverdueFollowUpsDrawer'
+import { useOrgReport } from '../hooks/useOrgReport'
+import { useReportingData } from '@/features/reporting/hooks/useReportingData'
 
 interface TeamManagerPerformanceCardProps {
   manager?: OrgManagerStats
@@ -93,6 +95,25 @@ export function TeamManagerPerformanceCard({
   const currentMonthPeriod = useMemo(() => getOrgMonthPeriod(countryCode), [countryCode])
   const activePeriod = selectedPeriod || targets?.period || currentMonthPeriod
   const availablePeriods = useMemo(() => getAvailableMonthPeriods(6, countryCode), [countryCode])
+
+  // ── Données RÉALISATIONS synchronisées sur la période choisie ──────────
+  // Senior Manager : on recharge les données consolidées de l'org pour le mois sélectionné
+  const { data: orgPeriodReport, isFetching: orgReportLoading } = useOrgReport(
+    onSelectPeriod && context === 'org' ? activePeriod : undefined
+  )
+  // Team Manager : on recharge les données d'équipe pour le mois sélectionné
+  const { data: tmPeriodReport, isFetching: tmReportLoading } = useReportingData(
+    onSelectPeriod && context === 'team' ? activePeriod : undefined
+  )
+
+  const realisationsLoading = orgReportLoading || tmReportLoading
+
+  // Objectifs : priorité aux données API de la période sélectionnée
+  const periodTargets = onSelectPeriod
+    ? (context === 'org'
+        ? (orgPeriodReport?.targets ?? targets)
+        : (tmPeriodReport?.targets ?? targets))
+    : targets
 
   // Bornes inconditionnelles de la période sélectionnée (du 1er à 00:00 au dernier jour à 23:59:59)
   const periodBounds = useMemo(() => {
@@ -197,6 +218,28 @@ export function TeamManagerPerformanceCard({
       conversionRate: items.length > 0 ? Math.round((conclueCount / items.length) * 100) : 0
     }
   }, [items, manager?.uid, isGlobal, managers, todayStr, periodBounds])
+
+  // Valeurs de réalisations : priorité aux données API (couvrent pipeline + clients archivés)
+  // Fallback sur les stats in-memory uniquement quand pas de sélecteur de période ou données API en cours de chargement sur le mois courant
+  const isHistoricalPeriod = activePeriod !== currentMonthPeriod
+
+  const periodConclueCount: number | null = onSelectPeriod
+    ? (context === 'org'
+        ? (orgPeriodReport?.globalCounts?.conclue ?? (isHistoricalPeriod ? (orgReportLoading ? null : 0) : stats.conclueCount))
+        : (tmPeriodReport?.totalConclue ?? (isHistoricalPeriod ? (tmReportLoading ? null : 0) : stats.conclueCount)))
+    : stats.conclueCount
+
+  const periodConcludedAmount: number | null = onSelectPeriod
+    ? (context === 'org'
+        ? (orgPeriodReport?.totalConcludedAmount ?? (isHistoricalPeriod ? (orgReportLoading ? null : 0) : stats.concludedAmount))
+        : (tmPeriodReport?.totalRevenue ?? (isHistoricalPeriod ? (tmReportLoading ? null : 0) : stats.concludedAmount)))
+    : stats.concludedAmount
+
+  const periodConversionRate = onSelectPeriod
+    ? (context === 'org'
+        ? (orgPeriodReport?.conversionRate ?? stats.conversionRate)
+        : (tmPeriodReport?.overallConversionRate ?? stats.conversionRate))
+    : stats.conversionRate
 
   const initials = manager ? (manager.name || manager.email || 'TM').slice(0, 2).toUpperCase() : ''
   const isTeamContext = context === 'team'
@@ -612,13 +655,15 @@ export function TeamManagerPerformanceCard({
 
         {/* 4. Réalisations — Volume / Valeur / Taux R/O */}
         {(() => {
-          const tgtVol = targets?.targetVolume ?? null
-          const tgtVal = targets?.targetValue ?? null
-          const volPct = calculateAttainmentRate(stats.conclueCount, tgtVol)
-          const valPct = calculateAttainmentRate(stats.concludedAmount, tgtVal)
+          const tgtVol = periodTargets?.targetVolume ?? null
+          const tgtVal = periodTargets?.targetValue ?? null
+          const displayConclue = periodConclueCount ?? 0
+          const displayAmount = periodConcludedAmount ?? 0
+          const volPct = calculateAttainmentRate(displayConclue, tgtVol)
+          const valPct = calculateAttainmentRate(displayAmount, tgtVal)
 
           const hasTargets = tgtVol != null || tgtVal != null
-          const roRate = calculateRoRate(volPct, valPct, stats.conversionRate)
+          const roRate = calculateRoRate(volPct, valPct, periodConversionRate)
 
           const roColor = hasTargets
             ? roRate >= 100
@@ -692,6 +737,9 @@ export function TeamManagerPerformanceCard({
                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {t('pipeline.achievements')}
                   </span>
+                  {realisationsLoading && onSelectPeriod && (
+                    <Loader2 size={10} className="animate-spin" style={{ flexShrink: 0, opacity: 0.6 }} />
+                  )}
                 </span>
                 {onSelectPeriod ? (
                   <select
@@ -793,7 +841,9 @@ export function TeamManagerPerformanceCard({
                       whiteSpace: 'nowrap'
                     }}
                   >
-                    {stats.conclueCount}
+                    {realisationsLoading && onSelectPeriod
+                      ? <Loader2 size={12} className="animate-spin" style={{ display: 'inline' }} />
+                      : displayConclue}
                     {tgtVol != null && (
                       <span
                         style={{
@@ -871,13 +921,13 @@ export function TeamManagerPerformanceCard({
                     }}
                     title={
                       tgtVal != null
-                        ? `${new Intl.NumberFormat(lang === 'en' ? 'en-US' : 'fr-FR').format(stats.concludedAmount)} / ${new Intl.NumberFormat(lang === 'en' ? 'en-US' : 'fr-FR').format(tgtVal)} ${currency || 'XAF'}${valPct !== null ? ` (${valPct}%)` : ''}`
-                        : `${new Intl.NumberFormat(lang === 'en' ? 'en-US' : 'fr-FR').format(stats.concludedAmount)} ${currency || 'XAF'}`
+                        ? `${new Intl.NumberFormat(lang === 'en' ? 'en-US' : 'fr-FR').format(displayAmount)} / ${new Intl.NumberFormat(lang === 'en' ? 'en-US' : 'fr-FR').format(tgtVal)} ${currency || 'XAF'}${valPct !== null ? ` (${valPct}%)` : ''}`
+                        : `${new Intl.NumberFormat(lang === 'en' ? 'en-US' : 'fr-FR').format(displayAmount)} ${currency || 'XAF'}`
                     }
                   >
                     {tgtVal != null ? (
                       <>
-                        <span>{formatCompactAmount(stats.concludedAmount, lang)}</span>
+                        <span>{realisationsLoading && onSelectPeriod ? <Loader2 size={12} className="animate-spin" style={{ display: 'inline' }} /> : formatCompactAmount(displayAmount, lang)}</span>
                         <span
                           style={{
                             fontWeight: 500,
@@ -891,7 +941,7 @@ export function TeamManagerPerformanceCard({
                       </>
                     ) : (
                       <>
-                        <span>{formatCompactAmount(stats.concludedAmount, lang)}</span>
+                        <span>{realisationsLoading && onSelectPeriod ? <Loader2 size={12} className="animate-spin" style={{ display: 'inline' }} /> : formatCompactAmount(displayAmount, lang)}</span>
                         <span
                           style={{
                             fontWeight: 500,
