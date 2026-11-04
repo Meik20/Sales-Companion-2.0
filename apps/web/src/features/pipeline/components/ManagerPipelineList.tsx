@@ -1410,10 +1410,10 @@ function buildPrecisePeriodLabel(fromDateStr: string, toDateStr: string, fallbac
   }
 
   if (fromDateStr) {
-    return isEn ? `From ${formatDate(fromDateStr)}` : `Depuis le ${formatDate(fromDateStr)}`
+    return formatDate(fromDateStr)
   }
 
-  return isEn ? `Until ${formatDate(toDateStr)}` : `Jusqu'au ${formatDate(toDateStr)}`
+  return formatDate(toDateStr)
 }
 
 // ── Export Modal & Button ────────────────────────────────────────────────────────

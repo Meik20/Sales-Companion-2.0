@@ -173,9 +173,9 @@ export async function GET(request: NextRequest) {
           periodLabel = `${fDay} ${fMonth} ${fYear} – ${tDay} ${tMonth} ${tYear}`
         }
       } else if (fromDate) {
-        periodLabel = `Depuis le ${String(fromDate.getDate()).padStart(2, '0')} ${MONTHS_FR_IND[fromDate.getMonth()]} ${fromDate.getFullYear()}`
+        periodLabel = `${String(fromDate.getDate()).padStart(2, '0')} ${MONTHS_FR_IND[fromDate.getMonth()]} ${fromDate.getFullYear()}`
       } else if (toDate) {
-        periodLabel = `Jusqu'au ${String(toDate.getDate()).padStart(2, '0')} ${MONTHS_FR_IND[toDate.getMonth()]} ${toDate.getFullYear()}`
+        periodLabel = `${String(toDate.getDate()).padStart(2, '0')} ${MONTHS_FR_IND[toDate.getMonth()]} ${toDate.getFullYear()}`
       }
 
       // Statistiques globales
@@ -543,13 +543,13 @@ export async function GET(request: NextRequest) {
       if (from) {
         const fDay = String(from.getDate()).padStart(2, '0')
         const fMonth = MONTHS_FR[from.getMonth()]
-        return `Depuis le ${fDay} ${fMonth} ${from.getFullYear()}`
+        return `${fDay} ${fMonth} ${from.getFullYear()}`
       }
 
       if (to) {
         const tDay = String(to.getDate()).padStart(2, '0')
         const tMonth = MONTHS_FR[to.getMonth()]
-        return `Jusqu'au ${tDay} ${tMonth} ${to.getFullYear()}`
+        return `${tDay} ${tMonth} ${to.getFullYear()}`
       }
 
       // 2. Si aucune borne journalière n'est fournie, formater la période mensuelle raw
