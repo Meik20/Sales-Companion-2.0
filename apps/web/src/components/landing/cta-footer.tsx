@@ -8,6 +8,7 @@ import { useTranslation } from '@/providers/I18nProvider'
 import { routes } from '@/constants/routes'
 import { useLandingCountry } from '@/features/landing/landing-country'
 import { CountryFlag } from '@/components/ui/CountrySelect'
+import { openAppInstallModal } from '@/components/pwa/AppInstallModal'
 
 const LinkedInIcon = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="currentColor">
@@ -37,7 +38,7 @@ export function CtaFooter() {
       },
       { label: isEn ? 'CRM Sales Pipeline' : 'Pipeline Commercial CRM', href: '#fonctionnalites' },
       { label: isEn ? 'Companion AI Pro' : 'Companion IA Pro', href: '#fonctionnalites' },
-      { label: isEn ? 'Mobile App (PWA)' : 'Application Mobile (PWA)', href: '#pwa-install' },
+      { label: isEn ? 'Mobile & Field App' : 'Application Mobile & Terrain', href: '#download-app' },
       { label: isEn ? 'Pricing & Plans' : 'Tarifs & Abonnements', href: '#tarifs' }
     ],
     resources:
@@ -73,7 +74,7 @@ export function CtaFooter() {
 
   return (
     <>
-      <section id="pwa-install" className="mx-auto max-w-6xl px-5 pb-20 md:pb-28">
+      <section id="download-app" className="mx-auto max-w-6xl px-5 pb-20 md:pb-28">
         <div className="relative overflow-hidden rounded-3xl border border-[#1B7A3E]/40 bg-gradient-to-br from-[#135A2E] via-[#1B7A3E] to-[#0D3B1E] px-6 py-14 text-center md:px-12 md:py-20 shadow-2xl">
           {/* Subtle background glow */}
           <div
@@ -99,13 +100,14 @@ export function CtaFooter() {
               {t('landing.startFree') || (isEn ? 'Start for free' : 'Commencer gratuitement')}
               <ArrowRight className="h-4 w-4 text-[#1B7A3E]" />
             </Link>
-            <Link
-              href={routes.register}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/30 bg-white/10 px-5 py-3.5 text-sm font-semibold text-white backdrop-blur-md transition-all hover:bg-white/20 hover:border-white/50"
+            <button
+              type="button"
+              onClick={() => openAppInstallModal()}
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/30 bg-white/10 px-5 py-3.5 text-sm font-semibold text-white backdrop-blur-md transition-all hover:bg-white/20 hover:border-white/50 cursor-pointer"
             >
               <Smartphone className="h-4 w-4 text-white" />
-              {isEn ? 'Install on mobile (PWA)' : 'Installer sur mobile (PWA)'}
-            </Link>
+              {isEn ? 'Download App (Android & iOS)' : "Télécharger l'application (Android & iOS)"}
+            </button>
           </div>
           <p className="relative z-10 mx-auto mt-4 text-xs text-emerald-200/90 font-medium">
             {isEn
@@ -164,12 +166,22 @@ export function CtaFooter() {
               <ul className="mt-3 space-y-2 text-xs">
                 {footerLinks.product.map((link) => (
                   <li key={link.label}>
-                    <a
-                      href={link.href}
-                      className="text-muted-foreground transition-colors hover:text-foreground"
-                    >
-                      {link.label}
-                    </a>
+                    {link.href === '#download-app' ? (
+                      <button
+                        type="button"
+                        onClick={() => openAppInstallModal()}
+                        className="text-muted-foreground transition-colors hover:text-foreground text-left cursor-pointer"
+                      >
+                        {link.label}
+                      </button>
+                    ) : (
+                      <a
+                        href={link.href}
+                        className="text-muted-foreground transition-colors hover:text-foreground"
+                      >
+                        {link.label}
+                      </a>
+                    )}
                   </li>
                 ))}
               </ul>

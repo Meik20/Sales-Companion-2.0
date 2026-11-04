@@ -13,6 +13,7 @@ import { Pricing } from '@/components/landing/pricing'
 import { BlogSection } from '@/components/landing/blog-section'
 import { Faq } from '@/components/landing/faq'
 import { CtaFooter } from '@/components/landing/cta-footer'
+import { AppInstallModal } from '@/components/pwa/AppInstallModal'
 import { LandingCountryProvider } from '../landing-country'
 
 export function LandingPage() {
@@ -34,6 +35,7 @@ export function LandingPage() {
           <Faq />
           <CtaFooter />
         </main>
+        <AppInstallModal />
       </div>
     </LandingCountryProvider>
   )

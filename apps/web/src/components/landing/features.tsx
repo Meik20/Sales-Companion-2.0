@@ -17,6 +17,7 @@ import {
 import { useTranslation } from '@/providers/I18nProvider'
 import { routes } from '@/constants/routes'
 import { useLandingCountry } from '@/features/landing/landing-country'
+import { openAppInstallModal } from '@/components/pwa/AppInstallModal'
 
 interface DeepDiveFeature {
   tag: string
@@ -183,22 +184,22 @@ export function Features() {
       bullets:
         lang === 'en'
           ? [
-              '1-click installable PWA for Android and iPhone (no app store required)',
+              'Instant install on Android and iPhone (no store required)',
               'Browse and record prospects and pipeline updates offline',
               'Automatic and seamless synchronization as soon as you reconnect'
             ]
           : [
-              'Application PWA installable en 1 clic sur Android et iPhone (sans store)',
+              'Installation immédiate sur Android et iPhone (sans passer par un store)',
               'Consultation et saisie de vos prospects et opportunités en mode déconnecté',
               'Synchronisation automatique et transparente dès le retour de votre connexion'
             ],
       illustration: '/illustrations/landing/offline-pwa.png',
       alt:
         lang === 'en'
-          ? `Offline-ready mobile PWA application ${country.englishFor}`
-          : `Application mobile PWA fonctionnant 100% hors-ligne ${country.frenchIn}`,
-      ctaText: lang === 'en' ? 'Install mobile app' : 'Installer sur mobile',
-      ctaLink: '#pwa-install',
+          ? `Offline-ready mobile application ${country.englishFor}`
+          : `Application mobile fonctionnant 100% hors-ligne ${country.frenchIn}`,
+      ctaText: lang === 'en' ? 'Download application' : "Télécharger l'application",
+      ctaLink: '#download-app',
       reverse: false
     }
   ]
@@ -318,13 +319,24 @@ export function Features() {
 
                 {/* Call to action link */}
                 <div className="mt-8">
-                  <Link
-                    href={feature.ctaLink}
-                    className="inline-flex items-center gap-2 rounded-xl bg-secondary px-5 py-2.5 text-sm font-semibold text-foreground transition-all hover:bg-primary hover:text-primary-foreground hover:scale-[1.02] active:scale-[0.98] border border-border hover:border-primary"
-                  >
-                    {feature.ctaText}
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
+                  {feature.ctaLink === '#download-app' ? (
+                    <button
+                      type="button"
+                      onClick={() => openAppInstallModal()}
+                      className="inline-flex items-center gap-2 rounded-xl bg-secondary px-5 py-2.5 text-sm font-semibold text-foreground transition-all hover:bg-primary hover:text-primary-foreground hover:scale-[1.02] active:scale-[0.98] border border-border hover:border-primary cursor-pointer"
+                    >
+                      {feature.ctaText}
+                      <ArrowRight className="h-4 w-4" />
+                    </button>
+                  ) : (
+                    <Link
+                      href={feature.ctaLink}
+                      className="inline-flex items-center gap-2 rounded-xl bg-secondary px-5 py-2.5 text-sm font-semibold text-foreground transition-all hover:bg-primary hover:text-primary-foreground hover:scale-[1.02] active:scale-[0.98] border border-border hover:border-primary"
+                    >
+                      {feature.ctaText}
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>

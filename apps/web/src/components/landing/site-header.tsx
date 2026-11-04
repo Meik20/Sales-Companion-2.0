@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Menu, X, Sun, Moon } from 'lucide-react'
+import { Menu, X, Sun, Moon, Download, Smartphone } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { ScIcon } from '@/components/ui/ScIcon'
 import { LanguageSwitcher } from '@/components/landing/LanguageSwitcher'
@@ -10,6 +10,7 @@ import { useTranslation } from '@/providers/I18nProvider'
 import { routes } from '@/constants/routes'
 import { useLandingCountry } from '@/features/landing/landing-country'
 import { CountryFlag } from '@/components/ui/CountrySelect'
+import { openAppInstallModal } from '@/components/pwa/AppInstallModal'
 
 const LinkedInIcon = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="currentColor">
@@ -104,6 +105,16 @@ export function SiteHeader() {
             <LinkedInIcon className="h-3.5 w-3.5 text-[#0A66C2]" />
             <span>LinkedIn</span>
           </a>
+
+          <button
+            type="button"
+            onClick={() => openAppInstallModal()}
+            className="hidden lg:inline-flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/10 px-2.5 py-1.5 text-xs font-semibold text-primary transition-all hover:bg-primary/20 active:scale-95"
+            title={lang === 'en' ? 'Download Mobile Application' : "Télécharger l'application mobile"}
+          >
+            <Download className="h-3.5 w-3.5" />
+            <span>{lang === 'en' ? 'App' : "App mobile"}</span>
+          </button>
 
           <Link
             href={routes.login}
@@ -230,6 +241,18 @@ export function SiteHeader() {
                 )}
               </button>
             </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                setMobileOpen(false)
+                openAppInstallModal()
+              }}
+              className="flex items-center justify-center gap-2 w-full rounded-lg border border-primary/40 bg-primary/10 px-4 py-2.5 text-center text-sm font-semibold text-primary transition-colors hover:bg-primary/20"
+            >
+              <Smartphone className="h-4 w-4" />
+              <span>{lang === 'en' ? 'Download Mobile App' : "Télécharger l'application mobile"}</span>
+            </button>
 
             <Link
               href={routes.login}

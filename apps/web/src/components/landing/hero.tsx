@@ -13,12 +13,14 @@ import {
   CheckCircle2,
   KanbanSquare,
   Sparkles,
-  Plus
+  Plus,
+  Smartphone
 } from 'lucide-react'
 import { useTranslation } from '@/providers/I18nProvider'
 import { routes } from '@/constants/routes'
 import { useLandingCountry } from '@/features/landing/landing-country'
 import { ScIcon } from '@/components/ui/ScIcon'
+import { openAppInstallModal } from '@/components/pwa/AppInstallModal'
 
 export function Hero() {
   const { lang, t } = useTranslation()
@@ -92,12 +94,20 @@ export function Hero() {
               {t('landing.startFree') || (isEn ? 'Start for free' : 'Commencer gratuitement')}
               <ArrowRight className="h-4 w-4" />
             </Link>
+            <button
+              type="button"
+              onClick={() => openAppInstallModal()}
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-5 py-3.5 text-sm font-semibold text-foreground transition-all hover:bg-secondary hover:border-primary/40 active:scale-[0.98]"
+            >
+              <Smartphone className="h-4 w-4 text-[#1B7A3E]" />
+              {isEn ? 'Get Mobile App' : "Télécharger l'application"}
+            </button>
             <a
               href="#fonctionnalites"
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-5 py-3.5 text-sm font-semibold text-foreground transition-all hover:bg-secondary hover:border-primary/40"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-transparent px-4 py-3.5 text-sm font-medium text-muted-foreground transition-all hover:text-foreground"
             >
               <Play className="h-4 w-4 text-primary fill-primary/20" />
-              {isEn ? 'See how it works' : 'Voir comment ça marche'}
+              {isEn ? 'Demo' : 'Démo'}
             </a>
           </div>
 
@@ -122,7 +132,7 @@ export function Hero() {
                   : 'Entreprises vérifiées',
               isEn ? 'Advanced search' : 'Recherche avancée',
               isEn ? 'Sales pipeline' : 'Pipeline commercial',
-              isEn ? 'Field mode (PWA)' : 'Mode terrain (PWA)'
+              isEn ? 'Mobile & Offline App' : 'App mobile & terrain'
             ].map((feature, i) => (
               <span
                 key={feature}
@@ -318,16 +328,16 @@ export function Hero() {
           </div>
 
           {/* Floating Mobile Indicator */}
-          <div className="absolute -bottom-4 -left-4 hidden rounded-xl border border-border bg-card/95 p-3 shadow-lg backdrop-blur-md sm:flex items-center gap-2.5">
+          <div className="absolute -bottom-4 -left-4 hidden rounded-xl border border-border bg-card p-3 shadow-lg sm:flex items-center gap-2.5">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10 text-[#1B7A3E]">
-              <Sparkles className="h-4 w-4" />
+              <Smartphone className="h-4 w-4" />
             </div>
             <div>
               <p className="text-xs font-bold text-foreground">
-                {isEn ? 'Field Mode (PWA)' : 'Mode Terrain (PWA)'}
+                {isEn ? 'Mobile & Field App' : 'Application Mobile & Terrain'}
               </p>
               <p className="text-[10px] text-muted-foreground">
-                {isEn ? 'Offline cache & fast visits' : 'Accès fluide même sans réseau'}
+                {isEn ? '100% Offline mode on Android & iOS' : '100% Hors-ligne sur Android & iPhone'}
               </p>
             </div>
           </div>

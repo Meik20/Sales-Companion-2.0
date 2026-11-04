@@ -37,8 +37,8 @@ export function Faq() {
         ? 'Can I use Sales Companion 2.0 on my smartphone?'
         : 'Puis-je utiliser Sales Companion 2.0 sur mon téléphone ?',
       answer: isEn
-        ? 'Yes. Sales Companion 2.0 is designed as a Progressive Web App (PWA). You can install it directly onto your Android or iPhone home screen without needing an app store, perfectly suited for mobile sales reps.'
-        : 'Oui. Sales Companion 2.0 est conçu comme une Progressive Web App (PWA). Vous pouvez l’installer directement sur l’écran d’accueil de votre téléphone (Android ou iPhone) sans passer par un store, idéal pour les commerciaux sur le terrain.'
+        ? 'Yes. Sales Companion 2.0 is fully optimized for smartphones. You can install it directly onto your Android or iPhone home screen without needing an app store, perfectly suited for mobile sales reps.'
+        : 'Oui. Sales Companion 2.0 est pleinement optimisé pour smartphone. Vous pouvez l’installer directement sur l’écran d’accueil de votre téléphone (Android ou iPhone) sans passer par un store, idéal pour prospecter sur le terrain.'
     },
     {
       question: isEn
