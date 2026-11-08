@@ -13,7 +13,7 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'sw
 export const metadata: Metadata = {
   // ── Core ──────────────────────────────────────────────────────────────
   title: {
-    default: 'Sales Companion 2.0 — Base de Données Entreprises Cameroun | Annuaire B2B N°1',
+    default: 'SALES COMPANION 2.0',
     template: '%s | Sales Companion 2.0'
   },
   description:
@@ -60,7 +60,7 @@ export const metadata: Metadata = {
 
   // ── Open Graph ────────────────────────────────────────────────────────
   openGraph: {
-    title: 'Sales Companion 2.0 — Base de Données Entreprises Cameroun',
+    title: 'SALES COMPANION 2.0',
     description:
       'Accédez à la base de données la plus complète des entreprises camerounaises. 50 000+ sociétés vérifiées.',
     url: '/',
@@ -72,7 +72,7 @@ export const metadata: Metadata = {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Sales Companion 2.0 — Annuaire B2B Cameroun'
+        alt: 'Sales Companion 2.0'
       }
     ]
   },
@@ -80,7 +80,7 @@ export const metadata: Metadata = {
   // ── Twitter / X Card ─────────────────────────────────────────────────
   twitter: {
     card: 'summary_large_image',
-    title: 'Sales Companion 2.0 — Base de Données Entreprises Cameroun',
+    title: 'SALES COMPANION 2.0',
     description: 'La plateforme B2B de référence pour la prospection commerciale au Cameroun.',
     creator: '@SalesCompanion20',
     images: ['/og-image.png']
