@@ -469,18 +469,23 @@ function MobileKanban({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-      {/* Active column header with step indicator and prev/next navigation */}
+      {/* Active column header with step indicator and prev/next navigation - Sticky on mobile scroll */}
       <div
         style={{
+          position: 'sticky',
+          top: '-12px',
+          zIndex: 15,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           gap: 8,
           padding: '10px 14px',
-          background: activeCol.gradient,
+          backgroundColor: 'var(--card, #131c2e)',
+          backgroundImage: activeCol.gradient,
           border: `1px solid ${activeCol.border}`,
           borderRadius: '14px 14px 0 0',
-          borderBottom: 'none'
+          borderBottom: 'none',
+          boxShadow: '0 4px 14px -2px rgba(0, 0, 0, 0.25)'
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0, flexWrap: 'wrap' }}>

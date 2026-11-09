@@ -469,22 +469,22 @@ export function OverdueFollowUpsDrawer({
           overflow: 'hidden'
         }}
       >
-        {/* ── Header ────────────────────────────────────────────────────── */}
+        {/* ── Header fixe compact ───────────────────────────────────────── */}
         <div
+          className="p-3 sm:p-5"
           style={{
-            padding: '18px 22px',
             borderBottom: '1px solid var(--border, rgba(255,255,255,0.08))',
             background: 'linear-gradient(135deg, rgba(239,68,68,0.12) 0%, rgba(220,38,38,0.04) 100%)',
             flexShrink: 0
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <div
                 style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 12,
+                  width: 36,
+                  height: 36,
+                  borderRadius: 10,
                   background: 'rgba(239,68,68,0.18)',
                   border: '1px solid rgba(239,68,68,0.4)',
                   display: 'flex',
@@ -495,15 +495,15 @@ export function OverdueFollowUpsDrawer({
                   flexShrink: 0
                 }}
               >
-                <AlertTriangle size={20} strokeWidth={2.4} />
+                <AlertTriangle size={18} strokeWidth={2.4} />
               </div>
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                   <h2
                     id="overdue-drawer-title"
                     style={{
                       margin: 0,
-                      fontSize: 17,
+                      fontSize: 16,
                       fontWeight: 800,
                       color: 'var(--foreground, #0f172a)',
                       fontFamily: "'Syne', sans-serif"
@@ -513,9 +513,9 @@ export function OverdueFollowUpsDrawer({
                   </h2>
                   <span
                     style={{
-                      fontSize: 11,
+                      fontSize: 10.5,
                       fontWeight: 700,
-                      padding: '2px 8px',
+                      padding: '2px 7px',
                       borderRadius: 20,
                       background: 'rgba(239,68,68,0.12)',
                       color: '#b91c1c',
@@ -527,9 +527,9 @@ export function OverdueFollowUpsDrawer({
                   {context === 'org' && (
                     <span
                       style={{
-                        fontSize: 10.5,
+                        fontSize: 10,
                         fontWeight: 700,
-                        padding: '2px 8px',
+                        padding: '2px 7px',
                         borderRadius: 20,
                         background: 'rgba(99,102,241,0.12)',
                         color: '#4338ca',
@@ -540,7 +540,7 @@ export function OverdueFollowUpsDrawer({
                     </span>
                   )}
                 </div>
-                <p style={{ margin: '3px 0 0 0', fontSize: 12, color: 'var(--muted-foreground, #64748b)' }}>
+                <p className="hidden sm:block" style={{ margin: '2px 0 0 0', fontSize: 11.5, color: 'var(--muted-foreground, #64748b)' }}>
                   {t('pipeline.overdueAlertsSubtitle')}
                 </p>
               </div>
@@ -551,9 +551,9 @@ export function OverdueFollowUpsDrawer({
               onClick={onClose}
               aria-label="Fermer le panneau"
               style={{
-                width: 34,
-                height: 34,
-                borderRadius: 9,
+                width: 32,
+                height: 32,
+                borderRadius: 8,
                 border: '1px solid var(--border, rgba(255,255,255,0.1))',
                 background: 'var(--secondary, rgba(255,255,255,0.05))',
                 color: 'var(--muted-foreground, #94a3b8)',
@@ -573,17 +573,186 @@ export function OverdueFollowUpsDrawer({
                 e.currentTarget.style.background = 'var(--secondary, rgba(255,255,255,0.05))'
               }}
             >
-              <X size={18} />
+              <X size={17} />
             </button>
           </div>
+        </div>
 
-          {/* ── Bandeau de synthèse des KPI ─────────────────────────────── */}
+        {/* ── Onglets de filtrage rapide (Fixe sous l'en-tête, défilement horizontal fluide sur mobile) ── */}
+        <div
+          className="px-3 py-2 sm:px-5 sm:py-2.5"
+          style={{
+            borderBottom: '1px solid var(--border, rgba(255,255,255,0.06))',
+            background: 'var(--card, #131c2e)',
+            flexShrink: 0,
+            overflowX: 'auto',
+            WebkitOverflowScrolling: 'touch',
+            scrollbarWidth: 'none'
+          }}
+        >
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'nowrap', width: 'max-content' }}>
+            <button
+              type="button"
+              onClick={() => setTab('overdue')}
+              style={{
+                padding: '5px 12px',
+                borderRadius: 20,
+                fontSize: 11.5,
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 5,
+                whiteSpace: 'nowrap',
+                border: tab === 'overdue' ? '1px solid #dc2626' : '1px solid var(--border, rgba(0,0,0,0.1))',
+                background: tab === 'overdue' ? '#dc2626' : 'var(--card, #ffffff)',
+                color: tab === 'overdue' ? '#ffffff' : 'var(--foreground, #0f172a)',
+                transition: 'all 150ms ease'
+              }}
+            >
+              <span>{t('pipeline.overdueAlert')}</span>
+              <span
+                style={{
+                  fontSize: 10,
+                  fontWeight: 900,
+                  padding: '1px 6px',
+                  borderRadius: 10,
+                  background: tab === 'overdue' ? 'rgba(0,0,0,0.25)' : 'rgba(239,68,68,0.12)',
+                  color: tab === 'overdue' ? '#ffffff' : '#b91c1c'
+                }}
+              >
+                {stats.overdueCount}
+              </span>
+            </button>
+
+            {stats.todayCount > 0 && (
+              <button
+                type="button"
+                onClick={() => setTab('today')}
+                style={{
+                  padding: '5px 12px',
+                  borderRadius: 20,
+                  fontSize: 11.5,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 5,
+                  whiteSpace: 'nowrap',
+                  border: tab === 'today' ? '1px solid #2563eb' : '1px solid var(--border, rgba(0,0,0,0.1))',
+                  background: tab === 'today' ? '#2563eb' : 'var(--card, #ffffff)',
+                  color: tab === 'today' ? '#ffffff' : 'var(--foreground, #0f172a)',
+                  transition: 'all 150ms ease'
+                }}
+              >
+                <span>{t('common.today')}</span>
+                <span
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 900,
+                    padding: '1px 6px',
+                    borderRadius: 10,
+                    background: tab === 'today' ? 'rgba(0,0,0,0.25)' : 'rgba(37,99,235,0.12)',
+                    color: tab === 'today' ? '#ffffff' : '#1d4ed8'
+                  }}
+                >
+                  {stats.todayCount}
+                </span>
+              </button>
+            )}
+
+            {stats.stagnantCount > 0 && (
+              <button
+                type="button"
+                onClick={() => setTab('stagnant')}
+                style={{
+                  padding: '5px 12px',
+                  borderRadius: 20,
+                  fontSize: 11.5,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 5,
+                  whiteSpace: 'nowrap',
+                  border: tab === 'stagnant' ? '1px solid #d97706' : '1px solid var(--border, rgba(0,0,0,0.1))',
+                  background: tab === 'stagnant' ? '#d97706' : 'var(--card, #ffffff)',
+                  color: tab === 'stagnant' ? '#ffffff' : 'var(--foreground, #0f172a)',
+                  transition: 'all 150ms ease'
+                }}
+              >
+                <span>{lang === 'en' ? 'Stagnant leads' : 'Leads stagnants'}</span>
+                <span
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 900,
+                    padding: '1px 6px',
+                    borderRadius: 10,
+                    background: tab === 'stagnant' ? 'rgba(0,0,0,0.25)' : 'rgba(217,119,6,0.12)',
+                    color: tab === 'stagnant' ? '#ffffff' : '#b45309'
+                  }}
+                >
+                  {stats.stagnantCount}
+                </span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setTab('all')}
+              style={{
+                padding: '5px 12px',
+                borderRadius: 20,
+                fontSize: 11.5,
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 5,
+                whiteSpace: 'nowrap',
+                border: tab === 'all' ? '1px solid #4f46e5' : '1px solid var(--border, rgba(0,0,0,0.1))',
+                background: tab === 'all' ? '#4f46e5' : 'var(--card, #ffffff)',
+                color: tab === 'all' ? '#ffffff' : 'var(--foreground, #0f172a)',
+                transition: 'all 150ms ease'
+              }}
+            >
+              <span>{t('pipeline.allAlerts')}</span>
+              <span
+                style={{
+                  fontSize: 10,
+                  fontWeight: 900,
+                  padding: '1px 6px',
+                  borderRadius: 10,
+                  background: tab === 'all' ? 'rgba(0,0,0,0.25)' : 'rgba(99,102,241,0.12)',
+                  color: tab === 'all' ? '#ffffff' : '#4338ca'
+                }}
+              >
+                {stats.totalCount}
+              </span>
+            </button>
+          </div>
+        </div>
+
+        {/* ── Contenu Scrollable : KPIs + Filtres recherche + Liste des Fiches ── */}
+        <div
+          className="p-3 sm:p-5"
+          style={{
+            flex: '1 1 0%',
+            minHeight: 0,
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 14,
+            overscrollBehavior: 'contain'
+          }}
+        >
+          {/* ── 1. Bandeau de synthèse des KPI (défile avec le contenu sur mobile) ── */}
           <div
             style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
-              gap: 8,
-              marginTop: 14
+              gap: 8
             }}
           >
             <div
@@ -641,160 +810,8 @@ export function OverdueFollowUpsDrawer({
               </div>
             )}
           </div>
-        </div>
 
-        {/* ── Onglets & Filtres ───────────────────────────────────────────── */}
-        <div
-          style={{
-            padding: '14px 22px',
-            borderBottom: '1px solid var(--border, rgba(255,255,255,0.06))',
-            background: 'var(--card, #131c2e)',
-            flexShrink: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 10
-          }}
-        >
-          {/* Onglets : En retard / Aujourd'hui / Tous */}
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            <button
-              type="button"
-              onClick={() => setTab('overdue')}
-              style={{
-                padding: '6px 14px',
-                borderRadius: 20,
-                fontSize: 12,
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                border: tab === 'overdue' ? '1px solid #dc2626' : '1px solid var(--border, rgba(0,0,0,0.1))',
-                background: tab === 'overdue' ? '#dc2626' : 'var(--card, #ffffff)',
-                color: tab === 'overdue' ? '#ffffff' : 'var(--foreground, #0f172a)',
-                transition: 'all 150ms ease'
-              }}
-            >
-              <span>{t('pipeline.overdueAlert')}</span>
-              <span
-                style={{
-                  fontSize: 10,
-                  fontWeight: 900,
-                  padding: '1px 6px',
-                  borderRadius: 10,
-                  background: tab === 'overdue' ? 'rgba(0,0,0,0.25)' : 'rgba(239,68,68,0.12)',
-                  color: tab === 'overdue' ? '#ffffff' : '#b91c1c'
-                }}
-              >
-                {stats.overdueCount}
-              </span>
-            </button>
-
-            {stats.todayCount > 0 && (
-              <button
-                type="button"
-                onClick={() => setTab('today')}
-                style={{
-                  padding: '6px 14px',
-                  borderRadius: 20,
-                  fontSize: 12,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  border: tab === 'today' ? '1px solid #2563eb' : '1px solid var(--border, rgba(0,0,0,0.1))',
-                  background: tab === 'today' ? '#2563eb' : 'var(--card, #ffffff)',
-                  color: tab === 'today' ? '#ffffff' : 'var(--foreground, #0f172a)',
-                  transition: 'all 150ms ease'
-                }}
-              >
-                <span>{t('common.today')}</span>
-                <span
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 900,
-                    padding: '1px 6px',
-                    borderRadius: 10,
-                    background: tab === 'today' ? 'rgba(0,0,0,0.25)' : 'rgba(37,99,235,0.12)',
-                    color: tab === 'today' ? '#ffffff' : '#1d4ed8'
-                  }}
-                >
-                  {stats.todayCount}
-                </span>
-              </button>
-            )}
-
-            {stats.stagnantCount > 0 && (
-              <button
-                type="button"
-                onClick={() => setTab('stagnant')}
-                style={{
-                  padding: '6px 14px',
-                  borderRadius: 20,
-                  fontSize: 12,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  border: tab === 'stagnant' ? '1px solid #d97706' : '1px solid var(--border, rgba(0,0,0,0.1))',
-                  background: tab === 'stagnant' ? '#d97706' : 'var(--card, #ffffff)',
-                  color: tab === 'stagnant' ? '#ffffff' : 'var(--foreground, #0f172a)',
-                  transition: 'all 150ms ease'
-                }}
-              >
-                <span>{lang === 'en' ? 'Stagnant leads' : 'Leads stagnants'}</span>
-                <span
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 900,
-                    padding: '1px 6px',
-                    borderRadius: 10,
-                    background: tab === 'stagnant' ? 'rgba(0,0,0,0.25)' : 'rgba(217,119,6,0.12)',
-                    color: tab === 'stagnant' ? '#ffffff' : '#b45309'
-                  }}
-                >
-                  {stats.stagnantCount}
-                </span>
-              </button>
-            )}
-
-            <button
-              type="button"
-              onClick={() => setTab('all')}
-              style={{
-                padding: '6px 14px',
-                borderRadius: 20,
-                fontSize: 12,
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                border: tab === 'all' ? '1px solid #4f46e5' : '1px solid var(--border, rgba(0,0,0,0.1))',
-                background: tab === 'all' ? '#4f46e5' : 'var(--card, #ffffff)',
-                color: tab === 'all' ? '#ffffff' : 'var(--foreground, #0f172a)',
-                transition: 'all 150ms ease'
-              }}
-            >
-              <span>{t('pipeline.allAlerts')}</span>
-              <span
-                style={{
-                  fontSize: 10,
-                  fontWeight: 900,
-                  padding: '1px 6px',
-                  borderRadius: 10,
-                  background: tab === 'all' ? 'rgba(0,0,0,0.25)' : 'rgba(99,102,241,0.12)',
-                  color: tab === 'all' ? '#ffffff' : '#4338ca'
-                }}
-              >
-                {stats.totalCount}
-              </span>
-            </button>
-          </div>
-
-          {/* Recherche & Filtres Déroulants */}
+          {/* ── 2. Recherche & Filtres Déroulants (défilent avec le contenu) ── */}
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <div style={{ position: 'relative', flex: 1, minWidth: 200 }}>
               <Search
@@ -900,22 +917,8 @@ export function OverdueFollowUpsDrawer({
               </select>
             )}
           </div>
-        </div>
 
-        {/* ── Contenu Scrollable : Liste des Groupes par Date ────────────── */}
-        <div
-          style={{
-            flex: '1 1 0%',
-            minHeight: 0,
-            overflowY: 'auto',
-            overflowX: 'hidden',
-            padding: '16px 22px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 16,
-            overscrollBehavior: 'contain'
-          }}
-        >
+          {/* ── Liste des Groupes par Date ── */}
           {groupedByDate.length === 0 ? (
             <div
               style={{
