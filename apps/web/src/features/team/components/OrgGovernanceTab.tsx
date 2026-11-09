@@ -456,12 +456,7 @@ export function OrgGovernanceTab() {
       {/* ── 1. Carte Identité & Gouvernance ────────────────────────── */}
       <DataCard
         title={t('team.orgGovernance.cardTitle')}
-        actions={
-          <InfoTooltip
-            placement="left"
-            content={t('team.orgGovernance.cardTooltip')}
-          />
-        }
+        subtitle={t('team.orgGovernance.cardTooltip')}
       >
         <div className="flex flex-col gap-6">
           {/* Entreprise & Badges */}
@@ -682,17 +677,11 @@ export function OrgGovernanceTab() {
       {isSeniorManager && (
         <DataCard
           title={t('team.orgGovernance.transferCardTitle')}
-          subtitle={t('team.orgGovernance.transferCardSubtitle')}
-          actions={
-            <InfoTooltip
-              placement="left"
-              content={
-                <>
-                  <strong className="block mb-1">{t('team.orgGovernance.transferTooltipTitle')}</strong>
-                  {t('team.orgGovernance.transferTooltipDesc')}
-                </>
-              }
-            />
+          subtitle={
+            <>
+              <strong className="block mb-1">{t('team.orgGovernance.transferTooltipTitle')}</strong>
+              {t('team.orgGovernance.transferTooltipDesc')}
+            </>
           }
         >
           <div className="flex flex-col gap-5">
@@ -909,13 +898,15 @@ export function OrgGovernanceTab() {
             {teamManagers.length > 0 ? (
               <div className="flex flex-col gap-3 rounded-xl border border-primary/20 bg-primary/5 p-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <label className="text-[13px] font-bold text-foreground block">
+                  <div className="flex items-center gap-1.5">
+                    <label className="text-[13px] font-bold text-foreground">
                       {t('team.orgGovernance.receiverLabel')}
                     </label>
-                    <p className="m-0 text-[11.5px] text-muted-foreground">
-                      {t('team.orgGovernance.receiverDesc')}
-                    </p>
+                    <InfoTooltip
+                      content={t('team.orgGovernance.receiverDesc')}
+                      size={13}
+                      placement="right"
+                    />
                   </div>
 
                   {selectedProspectIds.length > 0 && (

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useTranslation } from '@/providers/I18nProvider'
 import { Button } from '@/components/ui/Button'
 import { Inbox, AlertTriangle } from 'lucide-react'
+import { InfoTooltip } from '@/components/ui/InfoTooltip'
 
 type LoadingProps = { title?: string; description?: string }
 
@@ -97,12 +98,12 @@ export function EmptyState({
         icon
       )}
 
-      <p className="m-0 text-[16px] font-semibold tracking-tight text-foreground">{title}</p>
-      {description ? (
-        <p className="m-0 max-w-md text-[13px] leading-relaxed text-muted-foreground">
-          {description}
-        </p>
-      ) : null}
+      <div className="flex items-center justify-center gap-1.5 flex-wrap">
+        <p className="m-0 text-[16px] font-semibold tracking-tight text-foreground">{title}</p>
+        {description ? (
+          <InfoTooltip content={description} size={14} placement="top" />
+        ) : null}
+      </div>
 
       {/* Actions (CTA) */}
       {action || secondaryAction ? (
