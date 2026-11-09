@@ -368,56 +368,54 @@ function ProspectModal({
             style={{
               display: 'flex',
               flexDirection: 'column',
-              gap: 12,
+              gap: 8,
               background: 'var(--secondary, #1e2a3b)',
-              borderRadius: 12,
-              padding: 20,
-              marginBottom: 20,
+              borderRadius: 10,
+              padding: '10px 14px',
+              marginBottom: 14,
               border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
               boxShadow: 'inset 0 0 20px rgba(0,0,0,0.1)'
             }}
           >
             <div
               style={{
-                fontSize: 11,
+                fontSize: 10,
                 fontWeight: 800,
                 textTransform: 'uppercase',
                 letterSpacing: '.1em',
                 color: 'var(--muted-foreground, #94a3b8)',
-                marginBottom: 4,
+                marginBottom: 2,
                 display: 'flex',
                 alignItems: 'center',
-                gap: 6
+                gap: 5
               }}
             >
-              <User size={12} strokeWidth={3} />
+              <User size={11} strokeWidth={3} />
               {t('pipeline.contactInfo')}
             </div>
 
             {item.companySector && (
               <div
                 style={{
-                  fontSize: 13,
+                  fontSize: 12,
                   color: 'var(--foreground, #f1f5f9)',
                   fontWeight: 500,
                   background: 'rgba(96, 165, 250, 0.08)',
-                  padding: '12px 14px',
-                  borderRadius: '10px',
+                  padding: '5px 10px',
+                  borderRadius: '8px',
                   border: '1px solid rgba(96, 165, 250, 0.15)',
-                  lineHeight: 1.5,
-                  marginTop: 4,
-                  marginBottom: 4,
+                  lineHeight: 1.4,
                   display: 'flex',
-                  gap: 12,
-                  alignItems: 'flex-start'
+                  gap: 8,
+                  alignItems: 'center'
                 }}
               >
-                <Building2 size={16} style={{ color: '#60a5fa', flexShrink: 0, marginTop: 2 }} />
+                <Building2 size={13} style={{ color: '#60a5fa', flexShrink: 0 }} />
                 <span>{item.companySector}</span>
               </div>
             )}
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 4 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 7, marginTop: 2 }}>
               {(item.companyQuarter || item.quarter) && (
                 <InfoRow
                   icon={<MapPin size={15} />}
@@ -741,16 +739,16 @@ function InfoRow({
   value: React.ReactNode
 }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, fontSize: 14 }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5 }}>
       <span
         style={{
-          width: 28,
-          height: 28,
+          width: 22,
+          height: 22,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           background: 'var(--card, #131c2e)',
-          borderRadius: 8,
+          borderRadius: 6,
           color: 'var(--muted-foreground, #94a3b8)',
           flexShrink: 0,
           border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`
@@ -758,19 +756,20 @@ function InfoRow({
       >
         {icon}
       </span>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, flexWrap: 'wrap' }}>
         <span
           style={{
             color: 'var(--muted-foreground, #64748b)',
-            fontSize: 11,
+            fontSize: 10,
             fontWeight: 700,
             textTransform: 'uppercase',
-            letterSpacing: '0.05em'
+            letterSpacing: '0.05em',
+            flexShrink: 0
           }}
         >
           {label}
         </span>
-        <span style={{ color: 'var(--foreground, #f1f5f9)', fontWeight: 500, lineHeight: 1.4 }}>
+        <span style={{ color: 'var(--foreground, #f1f5f9)', fontWeight: 500, lineHeight: 1.3 }}>
           {value}
         </span>
       </div>

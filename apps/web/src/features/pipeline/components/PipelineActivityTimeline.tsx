@@ -219,9 +219,9 @@ export function PipelineActivityTimeline({
       style={{
         background: 'var(--card, #131c2e)',
         border: '1px solid var(--border, rgba(255,255,255,0.08))',
-        borderRadius: 14,
-        padding: 18,
-        marginTop: 18
+        borderRadius: 12,
+        padding: '12px 14px',
+        marginTop: 14
       }}
     >
       {/* Header avec Titre, Alerte Durée au survol, Valeur de l'offre et Action */}
@@ -230,17 +230,17 @@ export function PipelineActivityTimeline({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          marginBottom: 14,
+          marginBottom: 10,
           flexWrap: 'wrap',
-          gap: 12
+          gap: 8
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
           <div
             style={{
-              width: 30,
-              height: 30,
-              borderRadius: 8,
+              width: 24,
+              height: 24,
+              borderRadius: 6,
               background: 'rgba(99, 102, 241, 0.14)',
               color: 'var(--primary, #6366f1)',
               display: 'flex',
@@ -249,14 +249,14 @@ export function PipelineActivityTimeline({
               flexShrink: 0
             }}
           >
-            <Clock size={16} />
+            <Clock size={13} />
           </div>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <h4
                 style={{
                   margin: 0,
-                  fontSize: 13.5,
+                  fontSize: 12,
                   fontWeight: 700,
                   color: 'var(--foreground, #f1f5f9)'
                 }}
@@ -300,35 +300,35 @@ export function PipelineActivityTimeline({
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
           {/* Valeur de l'offre intégrée */}
           <div
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: 8,
+              gap: 6,
               background: 'rgba(16, 185, 129, 0.08)',
               border: '1px solid rgba(16, 185, 129, 0.25)',
-              borderRadius: 8,
-              padding: '4px 10px'
+              borderRadius: 6,
+              padding: '3px 8px'
             }}
           >
-            <Banknote size={15} style={{ color: '#10b981' }} />
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <Banknote size={12} style={{ color: '#10b981' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
               <span
                 style={{
-                  fontSize: 9.5,
+                  fontSize: 9,
                   fontWeight: 700,
                   textTransform: 'uppercase',
                   color: '#6ee7b7',
                   letterSpacing: '0.04em'
                 }}
               >
-                {isEn ? 'Offer Value' : "Valeur de l'offre"}
+                {isEn ? 'Offer' : 'Offre'}
               </span>
               {!isEditingAmount ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ fontSize: 13, fontWeight: 800, color: '#10b981' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <span style={{ fontSize: 11.5, fontWeight: 800, color: '#10b981' }}>
                     {amount != null && amount > 0
                       ? `${formatCompactAmount(amount, lang)} ${currency || 'XAF'}`
                       : `0 ${currency || 'XAF'}`}
