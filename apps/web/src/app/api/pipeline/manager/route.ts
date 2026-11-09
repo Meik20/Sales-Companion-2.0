@@ -2,15 +2,7 @@ export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { authenticateServerRequest, AuthGuardError } from '@/server/guards/auth.guard'
 import { isPendingMigrationDeal } from '@/lib/monthly-cycle'
-
-function normalizeStatus(s: string) {
-  const st = (s || '').toLowerCase().trim()
-  if (['prospection', 'prospect', 'to_contact', 'contact', 'nouveau', 'lead'].includes(st))
-    return 'prospection'
-  if (['negociation', 'negotiation', 'in_progress', 'en_cours'].includes(st)) return 'negociation'
-  if (['conclue', 'conclusion', 'won', 'closed', 'gagne', 'signe'].includes(st)) return 'conclue'
-  return 'prospection'
-}
+import { normalizePipelineStatus } from '@/lib/pipeline-metrics'
 
 /**
  * GET /api/pipeline/manager
@@ -68,11 +60,12 @@ export async function GET(request: NextRequest) {
         pendingMigration: isPending,
         companyName: (data.companyName || data.name || '') as string,
         companyId: (data.companyId || doc.id) as string,
-        status: normalizeStatus(data.status as string),
+        status: normalizePipelineStatus(data.status),
         userId: (data.userId || managerUid) as string,
         createdAt: data.createdAt?.toDate?.()?.toISOString() ?? (typeof data.createdAt === 'string' ? data.createdAt : new Date().toISOString()),
         updatedAt: data.updatedAt?.toDate?.()?.toISOString() ?? (typeof data.updatedAt === 'string' ? data.updatedAt : new Date().toISOString()),
-        concludedAt: data.concludedAt?.toDate?.()?.toISOString() ?? (typeof data.concludedAt === 'string' ? data.concludedAt : null)
+        concludedAt: data.concludedAt?.toDate?.()?.toISOString() ?? (typeof data.concludedAt === 'string' ? data.concludedAt : null),
+        lostAt: data.lostAt?.toDate?.()?.toISOString() ?? (typeof data.lostAt === 'string' ? data.lostAt : null)
       })
     })
 
@@ -114,11 +107,12 @@ export async function GET(request: NextRequest) {
           pendingMigration: isPending,
           companyName: (data.companyName || data.name || '') as string,
           companyId: (data.companyId || doc.id) as string,
-          status: normalizeStatus(data.status as string),
+          status: normalizePipelineStatus(data.status),
           userId: (data.userId || managerUid) as string,
           createdAt: data.createdAt?.toDate?.()?.toISOString() ?? (typeof data.createdAt === 'string' ? data.createdAt : new Date().toISOString()),
           updatedAt: data.updatedAt?.toDate?.()?.toISOString() ?? (typeof data.updatedAt === 'string' ? data.updatedAt : new Date().toISOString()),
-          concludedAt: data.concludedAt?.toDate?.()?.toISOString() ?? (typeof data.concludedAt === 'string' ? data.concludedAt : null)
+          concludedAt: data.concludedAt?.toDate?.()?.toISOString() ?? (typeof data.concludedAt === 'string' ? data.concludedAt : null),
+          lostAt: data.lostAt?.toDate?.()?.toISOString() ?? (typeof data.lostAt === 'string' ? data.lostAt : null)
         })
       }
     }

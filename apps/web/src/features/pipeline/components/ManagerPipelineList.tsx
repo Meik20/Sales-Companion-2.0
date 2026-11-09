@@ -1791,12 +1791,13 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
   }
 
   // Group by normalized status
-  const normalize = (s: string) => {
+  const normalize = (s: string): string => {
     const st = (s || '').toLowerCase().trim()
     if (['prospection', 'prospect', 'to_contact', 'contact', 'nouveau', 'lead'].includes(st))
       return 'prospection'
     if (['negociation', 'negotiation', 'in_progress', 'en_cours'].includes(st)) return 'negociation'
     if (['conclue', 'conclusion', 'won', 'closed', 'gagne', 'signe'].includes(st)) return 'conclue'
+    if (['perdue', 'lost', 'perdu'].includes(st)) return 'perdue'
     return 'prospection'
   }
 
@@ -1958,7 +1959,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
           }
         }
         summary.totalAmount += amt
-        if (item.nextFollowUp && item.nextFollowUp < todayStr && st !== 'conclue') {
+        if (item.nextFollowUp && item.nextFollowUp < todayStr && st !== 'conclue' && st !== 'perdue') {
           summary.overdueCount++
         }
       }
@@ -2039,7 +2040,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
 
       summary.totalAmount += amt
 
-      if (item.nextFollowUp && item.nextFollowUp < todayStr && st !== 'conclue') {
+      if (item.nextFollowUp && item.nextFollowUp < todayStr && st !== 'conclue' && st !== 'perdue') {
         summary.overdueCount++
       }
     }
@@ -2092,10 +2093,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
   }, [items, selectedMemberId, managerUid, isOrgView])
 
   const grouped: Record<string, PipelineItem[]> = useMemo(() => {
-    const lostItems = displayedItems.filter((i) => {
-      const st = String(i.status || '').toLowerCase().trim()
-      return st === 'perdue' || st === 'lost'
-    })
+    const lostItems = displayedItems.filter((i) => normalize(i.status) === 'perdue')
     const base: Record<string, PipelineItem[]> = {
       prospection: displayedItems.filter((i) => normalize(i.status) === 'prospection'),
       negociation: displayedItems.filter((i) => normalize(i.status) === 'negociation'),
