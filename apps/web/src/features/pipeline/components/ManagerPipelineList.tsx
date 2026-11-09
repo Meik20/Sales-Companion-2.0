@@ -2091,11 +2091,22 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
     return items.filter((i) => i.assignedTo === selectedMemberId)
   }, [items, selectedMemberId, managerUid, isOrgView])
 
-  const grouped: Record<string, PipelineItem[]> = useMemo(() => ({
-    prospection: displayedItems.filter((i) => normalize(i.status) === 'prospection'),
-    negociation: displayedItems.filter((i) => normalize(i.status) === 'negociation'),
-    conclue: displayedItems.filter((i) => normalize(i.status) === 'conclue')
-  }), [displayedItems])
+  const grouped: Record<string, PipelineItem[]> = useMemo(() => {
+    const lostItems = displayedItems.filter((i) => {
+      const st = String(i.status || '').toLowerCase().trim()
+      return st === 'perdue' || st === 'lost'
+    })
+    const base: Record<string, PipelineItem[]> = {
+      prospection: displayedItems.filter((i) => normalize(i.status) === 'prospection'),
+      negociation: displayedItems.filter((i) => normalize(i.status) === 'negociation'),
+      conclue: displayedItems.filter((i) => normalize(i.status) === 'conclue')
+    }
+    // Colonne Perdue : n'apparaît que si au moins un prospect est perdu
+    if (lostItems.length > 0) {
+      base.perdue = lostItems
+    }
+    return base
+  }, [displayedItems])
 
   const activeTarget = useMemo(() => {
     if (!activeMemberSummary) return null

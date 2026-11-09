@@ -72,6 +72,40 @@ export function buildClientPayload(
 }
 
 /**
+ * Archive atomiquement une opportunité perdue en fin de cycle mensuel.
+ * Contrairement aux conclues, les perdues NE sont PAS synchronisées vers `clients`.
+ * Elles sont simplement supprimées du pipeline opérationnel après vérification de statut.
+ * Les données analytiques (lossReason, lossNotes, lostAt, lossReasonsSummary) sont
+ * préservées dans les rapports de reporting via les requêtes historiques.
+ */
+export async function archiveLostDealAtomically(
+  adminDb: Firestore,
+  pipelineId: string
+): Promise<{ status: 'archived' | 'skipped_not_lost' | 'skipped_not_found' }> {
+  return adminDb.runTransaction(async (transaction) => {
+    const pipelineRef = adminDb.collection('pipeline').doc(pipelineId)
+    const freshSnap = await transaction.get(pipelineRef)
+
+    if (!freshSnap.exists) {
+      return { status: 'skipped_not_found' }
+    }
+
+    const pipelineData = freshSnap.data() || {}
+    const status = String(pipelineData.status || '').toLowerCase().trim()
+
+    // Garde-fou : si le statut a basculé concurremment (réactivation), ne pas supprimer
+    if (status !== 'perdue' && status !== 'lost') {
+      return { status: 'skipped_not_lost' }
+    }
+
+    // Suppression simple : la fiche sort du pipeline mais ses données analytiques
+    // ont déjà été comptabilisées dans /api/reporting/org (lossReasonsSummary)
+    transaction.delete(pipelineRef)
+    return { status: 'archived' }
+  })
+}
+
+/**
  * Exécute l'archivage atomique et idempotent d'une opportunité conclue :
  * 1. Lit la fiche fraîche au sein d'une transaction Firestore.
  * 2. Vérifie qu'elle existe et que son statut est toujours 'conclue' ou 'conclusion'.

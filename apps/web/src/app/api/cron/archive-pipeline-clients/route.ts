@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
-import { runMonthlyPipelineCycleAutoArchive, resetMonthlyTargetsAtMonthEnd } from '@/server/services/monthly-cycle-archive.service'
+import { runMonthlyPipelineCycleAutoArchive, resetMonthlyTargetsAtMonthEnd, archiveLostDealsAtMonthEnd } from '@/server/services/monthly-cycle-archive.service'
 
 async function getAdmin() {
   const { adminDb } = await import('@/lib/firebase-admin')
@@ -72,10 +72,14 @@ async function handleArchiveCron(request: NextRequest) {
     // Réinitialisation automatique des objectifs mensuels échus (dernier jour du mois M à 23:59:59)
     const targetsResetRes = await resetMonthlyTargetsAtMonthEnd(adminDb, now)
 
+    // Archivage des fiches perdues en fin de cycle (suppression du pipeline uniquement)
+    const lostRes = await archiveLostDealsAtMonthEnd(adminDb)
+
     return NextResponse.json({
       success: true,
-      message: `${totalArchived} prospect(s) conclu(s) archivé(s) vers la Base de données clients (${batchesRun} lot(s) traité(s)). ${targetsResetRes.resetCount} objectif(s) réinitialisé(s) à 00.`,
+      message: `${totalArchived} prospect(s) conclu(s) archivé(s) vers la Base de données clients (${batchesRun} lot(s) traité(s)). ${lostRes.lostArchivedCount} fiche(s) perdue(s) archivée(s). ${targetsResetRes.resetCount} objectif(s) réinitialisé(s) à 00.`,
       archivedCount: totalArchived,
+      lostArchivedCount: lostRes.lostArchivedCount,
       targetsResetCount: targetsResetRes.resetCount,
       batchesRun,
       hasMore,

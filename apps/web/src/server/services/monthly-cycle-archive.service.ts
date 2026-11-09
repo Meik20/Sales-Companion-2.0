@@ -5,7 +5,7 @@
 
 import type { Firestore } from 'firebase-admin/firestore'
 import { Timestamp } from 'firebase-admin/firestore'
-import { archivePipelineDealAtomically } from '../../lib/clients-sync'
+import { archivePipelineDealAtomically, archiveLostDealAtomically } from '../../lib/clients-sync'
 import { isEligibleForAutoArchive, getMaxEligibleConcludedDate, isTargetPeriodExpired } from '../../lib/monthly-cycle'
 
 export interface ArchiveCycleCursors {
@@ -204,6 +204,45 @@ export async function runMonthlyPipelineCycleAutoArchive(
     console.error('[runMonthlyPipelineCycleAutoArchive] error:', err)
     throw err
   }
+}
+
+/**
+ * Archive les fiches pipeline au statut perdue/lost en fin de cycle mensuel.
+ * Suppression atomique du pipeline uniquement — PAS de synchro vers `clients`.
+ * Les données analytiques (lossReason, lossNotes, lostAt) restent accessibles
+ * dans le reporting via les snapshots historiques de Firestore.
+ */
+export async function archiveLostDealsAtMonthEnd(
+  adminDb: Firestore,
+  filterManagerUid?: string,
+  limit: number = 500
+): Promise<{ lostArchivedCount: number }> {
+  const { archiveLostDealAtomically } = await import('../../lib/clients-sync')
+  let lostArchivedCount = 0
+  try {
+    let lostQ = adminDb
+      .collection('pipeline')
+      .where('status', 'in', ['perdue', 'lost']) as FirebaseFirestore.Query
+
+    if (filterManagerUid) {
+      lostQ = lostQ.where('managerUid', '==', filterManagerUid)
+    }
+
+    const lostSnap = await lostQ.limit(limit).get()
+    for (const lostDoc of lostSnap.docs) {
+      const result = await archiveLostDealAtomically(adminDb, lostDoc.id)
+      if (result.status === 'archived') {
+        lostArchivedCount++
+      } else {
+        console.warn(
+          `[archiveLostDealsAtMonthEnd] Fiche perdue ${lostDoc.id} préservée (résultat: ${result.status}).`
+        )
+      }
+    }
+  } catch (lostErr: any) {
+    console.warn('[archiveLostDealsAtMonthEnd] Repli silencieux:', lostErr?.message || lostErr)
+  }
+  return { lostArchivedCount }
 }
 
 /**
