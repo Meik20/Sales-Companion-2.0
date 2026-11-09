@@ -1908,6 +1908,12 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
       let unassigned = 0
 
       for (const item of items) {
+        const st = normalize(item.status)
+        // RÈGLE MÉTIER : Le pipeline comptabilise seulement les opportunités actives et conclues
+        if (st === 'perdue') {
+          continue
+        }
+
         const tmUid = (item as any).managerUid as string | undefined
         const isSeniorLead =
           (item as any).managerOrgRole === 'senior_manager' ||
@@ -1937,12 +1943,12 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
           map.set(tmUid, summary)
         }
         const amt = Number(item.amount) || 0
-        summary.totalCount++
-        const st = normalize(item.status)
         if (st === 'prospection') {
+          summary.totalCount++
           summary.prospectionCount++
           summary.activePipelineAmount += amt
         } else if (st === 'negociation') {
+          summary.totalCount++
           summary.negociationCount++
           summary.activePipelineAmount += amt
         } else if (st === 'conclue') {
@@ -1954,6 +1960,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
             concludedDate! >= periodBounds.start &&
             concludedDate! <= periodBounds.end
           if (inPeriod) {
+            summary.totalCount++
             summary.conclueCount++
             summary.concludedAmount += amt
           }
@@ -2000,6 +2007,12 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
     let unassigned = 0
 
     for (const item of items) {
+      const st = normalize(item.status)
+      // RÈGLE MÉTIER : Le pipeline comptabilise seulement les opportunités actives et conclues
+      if (st === 'perdue') {
+        continue
+      }
+
       const isAssigned = item.assignedTo && item.assignedTo !== managerUid
       if (!isAssigned) {
         unassigned++
@@ -2016,12 +2029,12 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
       }
 
       const amt = Number(item.amount) || 0
-      summary.totalCount++
-      const st = normalize(item.status)
       if (st === 'prospection') {
+        summary.totalCount++
         summary.prospectionCount++
         summary.activePipelineAmount += amt
       } else if (st === 'negociation') {
+        summary.totalCount++
         summary.negociationCount++
         summary.activePipelineAmount += amt
       } else if (st === 'conclue') {
@@ -2033,6 +2046,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
           concludedDate! >= periodBounds.start &&
           concludedDate! <= periodBounds.end
         if (inPeriod) {
+          summary.totalCount++
           summary.conclueCount++
           summary.concludedAmount += amt
         }
@@ -2078,12 +2092,15 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
         // Vue SM : les leads du SM lui-même + leads sans TM assigné
         return items.filter(
           (i) =>
-            (i as any).managerOrgRole === 'senior_manager' ||
-            Boolean(managerUid && (i as any).managerUid === managerUid) ||
-            !(i as any).managerUid
+            normalize(i.status) !== 'perdue' &&
+            ((i as any).managerOrgRole === 'senior_manager' ||
+              Boolean(managerUid && (i as any).managerUid === managerUid) ||
+              !(i as any).managerUid)
         )
       }
-      return items.filter((i) => !i.assignedTo || i.assignedTo === managerUid)
+      return items.filter(
+        (i) => normalize(i.status) !== 'perdue' && (!i.assignedTo || i.assignedTo === managerUid)
+      )
     }
     if (isOrgView) {
       // En vue SM : filtrer par managerUid (Team Manager)
@@ -2290,7 +2307,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                   fontWeight: 700
                 }}
               >
-                {items.length}
+                {items.filter((i) => normalize(i.status) !== 'perdue').length}
               </span>
             )}
           </button>

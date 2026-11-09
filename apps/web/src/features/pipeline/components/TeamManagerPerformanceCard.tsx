@@ -147,6 +147,11 @@ export function TeamManagerPerformanceCard({
 
     for (const item of items) {
       const st = (item.status || '').toLowerCase().trim()
+      // RÈGLE MÉTIER : Le pipeline comptabilise seulement les opportunités actives et conclues
+      if (['perdue', 'lost', 'perdu'].includes(st)) {
+        continue
+      }
+
       const isAssigned = isGlobal
         ? Boolean(item.assignedTo)
         : Boolean(item.assignedTo && item.assignedTo !== manager?.uid)
