@@ -73,13 +73,17 @@ async function handleArchiveCron(request: NextRequest) {
     const targetsResetRes = await resetMonthlyTargetsAtMonthEnd(adminDb, now)
 
     // Archivage des fiches perdues en fin de cycle (suppression du pipeline uniquement)
-    const lostRes = await archiveLostDealsAtMonthEnd(adminDb)
+    let lostArchivedCount = 0
+    if (typeof archiveLostDealsAtMonthEnd === 'function') {
+      const lostRes = await archiveLostDealsAtMonthEnd(adminDb)
+      lostArchivedCount = lostRes?.lostArchivedCount ?? 0
+    }
 
     return NextResponse.json({
       success: true,
-      message: `${totalArchived} prospect(s) conclu(s) archivé(s) vers la Base de données clients (${batchesRun} lot(s) traité(s)). ${lostRes.lostArchivedCount} fiche(s) perdue(s) archivée(s). ${targetsResetRes.resetCount} objectif(s) réinitialisé(s) à 00.`,
+      message: `${totalArchived} prospect(s) conclu(s) archivé(s) vers la Base de données clients (${batchesRun} lot(s) traité(s)). ${lostArchivedCount} fiche(s) perdue(s) archivée(s). ${targetsResetRes.resetCount} objectif(s) réinitialisé(s) à 00.`,
       archivedCount: totalArchived,
-      lostArchivedCount: lostRes.lostArchivedCount,
+      lostArchivedCount,
       targetsResetCount: targetsResetRes.resetCount,
       batchesRun,
       hasMore,
