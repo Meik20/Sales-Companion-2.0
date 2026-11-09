@@ -1,6 +1,7 @@
 // ─── Badge ───────────────────────────────────────────────────────────────────
 
 import { CSSProperties, PropsWithChildren, ReactNode } from 'react'
+import { InfoTooltip } from './InfoTooltip'
 
 type BadgeVariant = 'default' | 'success' | 'warning' | 'danger' | 'info' | 'gold'
 
@@ -167,12 +168,16 @@ export function Stack({ children, gap = 12 }: StackProps) {
 
 type DataCardProps = PropsWithChildren<{
   title: ReactNode
-  subtitle?: string
+  subtitle?: ReactNode
   actions?: ReactNode
   style?: CSSProperties
 }>
 
 export function DataCard({ title, subtitle, actions, children, style }: DataCardProps) {
+  const isCountBadge =
+    typeof subtitle === 'string' &&
+    (/^\d/.test(subtitle.trim()) || (subtitle.length <= 25 && !subtitle.includes('.')))
+
   return (
     <Panel style={style}>
       <Stack gap={14}>
@@ -180,12 +185,12 @@ export function DataCard({ title, subtitle, actions, children, style }: DataCard
           style={{
             display: 'flex',
             justifyContent: 'space-between',
-            alignItems: 'flex-start',
+            alignItems: 'center',
             gap: 12,
             flexWrap: 'wrap'
           }}
         >
-          <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
             <h2
               style={{
                 margin: 0,
@@ -198,15 +203,23 @@ export function DataCard({ title, subtitle, actions, children, style }: DataCard
               {title}
             </h2>
             {subtitle ? (
-              <p
-                style={{
-                  margin: '3px 0 0',
-                  fontSize: 12,
-                  color: 'var(--muted-foreground, #475467)'
-                }}
-              >
-                {subtitle}
-              </p>
+              isCountBadge ? (
+                <span
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 500,
+                    color: 'var(--muted-foreground)',
+                    background: 'var(--secondary)',
+                    border: '1px solid var(--border)',
+                    padding: '1px 7px',
+                    borderRadius: 10
+                  }}
+                >
+                  {subtitle}
+                </span>
+              ) : (
+                <InfoTooltip content={subtitle} size={13} placement="right" />
+              )
             ) : null}
           </div>
           {actions ? <div>{actions}</div> : null}

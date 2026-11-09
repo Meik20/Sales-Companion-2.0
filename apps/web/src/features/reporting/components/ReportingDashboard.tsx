@@ -36,6 +36,7 @@ import {
   FileText
 } from 'lucide-react'
 import { useExportTeamPerformance } from '@/features/pipeline/hooks/useExportTeamPerformance'
+import { InfoTooltip } from '@/components/ui/InfoTooltip'
 
 // ── KPI Card ──────────────────────────────────────────────────────────────────
 interface KpiCardProps {
@@ -467,10 +468,10 @@ function PipelineFunnel({
                           gap: 6
                         }}
                       >
-                        {stage.label}
-                      </div>
-                      <div style={{ fontSize: 10.5, color: 'var(--muted-foreground, #64748b)' }}>
-                        {stage.subtitle}
+                        <span>{stage.label}</span>
+                        {stage.subtitle && (
+                          <InfoTooltip content={stage.subtitle} size={12} placement="top" />
+                        )}
                       </div>
                     </div>
                   </div>

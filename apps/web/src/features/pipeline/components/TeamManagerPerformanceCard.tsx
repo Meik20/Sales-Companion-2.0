@@ -21,6 +21,7 @@ import {
 import { OverdueFollowUpsDrawer } from './OverdueFollowUpsDrawer'
 import { useOrgReport } from '../hooks/useOrgReport'
 import { useReportingData } from '@/features/reporting/hooks/useReportingData'
+import { InfoTooltip } from '@/components/ui/InfoTooltip'
 
 interface TeamManagerPerformanceCardProps {
   manager?: OrgManagerStats
@@ -327,6 +328,19 @@ export function TeamManagerPerformanceCard({
                       : (t('pipeline.orgConsolidated') || 'Vue Consolidée'))
                   : 'Team Manager'}
               </span>
+              <InfoTooltip
+                content={
+                  isGlobal
+                    ? (isTeamContext
+                        ? (t('pipeline.globalTeamSubtitle') || "Synthèse consolidée du chiffre d'affaires et du portefeuille de l'équipe")
+                        : (t('pipeline.globalOrgSubtitle') || "Synthèse consolidée du chiffre d'affaires et du portefeuille du segment"))
+                    : (manager?.isSenior
+                        ? t('pipeline.seniorStagingDesc')
+                        : (t('pipeline.teamManagerSubtitle') || "Portefeuille opérationnel et métriques de l'équipe managée"))
+                }
+                size={13}
+                placement="right"
+              />
             </div>
             <div
               style={{
@@ -341,23 +355,17 @@ export function TeamManagerPerformanceCard({
             >
               {isGlobal ? (
                 <>
-                  <span>
-                    {isTeamContext
-                      ? (t('pipeline.globalTeamSubtitle') || "Synthèse consolidée du chiffre d'affaires et du portefeuille de l'équipe")
-                      : (t('pipeline.globalOrgSubtitle') || "Synthèse consolidée du chiffre d'affaires et du portefeuille du segment")}
-                  </span>
                   {!isTeamContext && (
                     <>
-                      <span>•</span>
                       <span>
                         {stats.teamManagersCount}{' '}
                         {stats.teamManagersCount > 1
                           ? t('pipeline.teamManagerCount_other')
                           : t('pipeline.teamManagerCount_one')}
                       </span>
+                      <span>•</span>
                     </>
                   )}
-                  <span>•</span>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                     <Users size={11} />
                     {effectiveMemberCount}{' '}
@@ -366,12 +374,6 @@ export function TeamManagerPerformanceCard({
                 </>
               ) : (
                 <>
-                  <span>
-                    {manager?.isSenior
-                      ? t('pipeline.seniorStagingDesc')
-                      : (t('pipeline.teamManagerSubtitle') || "Portefeuille opérationnel et métriques de l'équipe managée")}
-                  </span>
-                  <span>•</span>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                     <Users size={11} />
                     {effectiveMemberCount}{' '}
