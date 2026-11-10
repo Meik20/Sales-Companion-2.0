@@ -806,13 +806,13 @@ export function UserPipelineKanban({ items, onStatusChange, onItemClick, activeS
     if (!destination) return
     if (source.droppableId === destination.droppableId && source.index === destination.index) return
 
-    const PAGE_SIZE = 10
+    const KANBAN_PAGE_SIZE = 25
     const startColId = source.droppableId
     const finishColId = destination.droppableId
     const srcPage = columnPages[startColId] || 1
     const destPage = columnPages[finishColId] || 1
-    const realSourceIndex = (srcPage - 1) * PAGE_SIZE + source.index
-    const realDestIndex = (destPage - 1) * PAGE_SIZE + destination.index
+    const realSourceIndex = (srcPage - 1) * KANBAN_PAGE_SIZE + source.index
+    const realDestIndex = (destPage - 1) * KANBAN_PAGE_SIZE + destination.index
 
     const startItems = Array.from(columns[startColId] || [])
     const finishItems =
@@ -839,20 +839,22 @@ export function UserPipelineKanban({ items, onStatusChange, onItemClick, activeS
           gridTemplateColumns: 'repeat(4, minmax(260px, 1fr))',
           gap: 16,
           overflowX: 'auto',
-          paddingBottom: 16,
-          minHeight: 600
+          paddingBottom: 8,
+          height: 'calc(100vh - 215px)',
+          maxHeight: 'calc(100vh - 215px)',
+          minHeight: 520
         }}
       >
         {COLUMNS.map((col) => {
           const colItems = columns[col.id] || []
           const colAmount = colItems.reduce((acc, it) => acc + (Number(it.amount) || 0), 0)
           const ColIcon = col.icon
-          const PAGE_SIZE = 10
-          const totalPages = Math.max(1, Math.ceil(colItems.length / PAGE_SIZE))
+          const KANBAN_PAGE_SIZE = 25
+          const totalPages = Math.max(1, Math.ceil(colItems.length / KANBAN_PAGE_SIZE))
           const currentPage = Math.min(columnPages[col.id] || 1, totalPages)
           const paginatedColItems = colItems.slice(
-            (currentPage - 1) * PAGE_SIZE,
-            currentPage * PAGE_SIZE
+            (currentPage - 1) * KANBAN_PAGE_SIZE,
+            currentPage * KANBAN_PAGE_SIZE
           )
 
           return (
@@ -860,10 +862,14 @@ export function UserPipelineKanban({ items, onStatusChange, onItemClick, activeS
               key={col.id}
               className="flex flex-col rounded-2xl overflow-hidden border border-border/80 shadow-elevation-1 transition-all duration-200"
               style={{
-                background: 'var(--secondary, rgba(0,0,0,0.02))'
+                background: 'var(--secondary, rgba(0,0,0,0.02))',
+                height: '100%',
+                maxHeight: '100%',
+                display: 'flex',
+                flexDirection: 'column'
               }}
             >
-              {/* Column Header */}
+              {/* Column Header — Fixe au sommet de la colonne */}
               <div
                 style={{
                   padding: '14px 18px',
@@ -871,7 +877,8 @@ export function UserPipelineKanban({ items, onStatusChange, onItemClick, activeS
                   borderBottom: `1px solid ${col.border}`,
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'space-between'
+                  justifyContent: 'space-between',
+                  flexShrink: 0
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -945,7 +952,7 @@ export function UserPipelineKanban({ items, onStatusChange, onItemClick, activeS
                 </div>
               </div>
 
-              {/* Droppable */}
+              {/* Droppable — Défilement vertical interne exclusif à cette colonne */}
               <Droppable droppableId={col.id}>
                 {(provided, snapshot) => (
                   <div
@@ -953,8 +960,10 @@ export function UserPipelineKanban({ items, onStatusChange, onItemClick, activeS
                     {...provided.droppableProps}
                     style={{
                       padding: 14,
-                      flexGrow: 1,
-                      minHeight: 200,
+                      flex: '1 1 0%',
+                      overflowY: 'auto',
+                      overflowX: 'hidden',
+                      scrollbarWidth: 'thin',
                       transition: 'background-color 0.2s ease',
                       backgroundColor: snapshot.isDraggingOver ? `${col.accent}08` : 'transparent',
                       borderRadius: totalPages > 1 ? '0' : '0 0 20px 20px'
@@ -1023,7 +1032,7 @@ export function UserPipelineKanban({ items, onStatusChange, onItemClick, activeS
                 )}
               </Droppable>
 
-              {/* Column pagination footer */}
+              {/* Column pagination footer — Fixe au bas de la colonne */}
               {totalPages > 1 && (
                 <div
                   style={{
@@ -1032,7 +1041,8 @@ export function UserPipelineKanban({ items, onStatusChange, onItemClick, activeS
                     justifyContent: 'space-between',
                     padding: '10px 14px',
                     borderTop: `1px solid ${col.border}`,
-                    background: 'var(--card, #131c2e)'
+                    background: 'var(--card, #131c2e)',
+                    flexShrink: 0
                   }}
                 >
                   <button
