@@ -103,6 +103,8 @@ const pipelineUpdateSchema = z
     nextAction: z.string().optional(),
     nextDate: z.string().nullable().optional(),
     estimatedDeal: z.number().nullable().optional(),
+    amount: z.number().nullable().optional(),
+    currency: z.string().optional(),
     probability: z.number().min(0).max(100).nullable().optional(),
     priority: z.enum(['low', 'medium', 'high']).optional(),
     stage: z.number().nullable().optional(),
@@ -178,7 +180,9 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         })
     }
 
-    if (isConcluded) {
+    // Si l'opportunité est conclue (ou l'était déjà et qu'on modifie son montant / informations),
+    // on synchronise immédiatement la base clients
+    if (isConcluded || data.status === 'conclue' || data.status === 'conclusion') {
       try {
         const { syncPipelineItemToClient } = await import('@/lib/clients-sync')
         await syncPipelineItemToClient(adminDb, id, { ...data, ...cleanData })

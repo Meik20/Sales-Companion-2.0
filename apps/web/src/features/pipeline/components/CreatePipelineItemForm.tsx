@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useRef } from 'react'
 import { FormField } from '@/components/forms/FormField'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -52,10 +52,43 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
     accuracy?: number
   } | null>(null)
   const [isLocating, setIsLocating] = useState(false)
+  const [liveAccuracy, setLiveAccuracy] = useState<number | null>(null)
   const [geoError, setGeoError] = useState<string | null>(null)
+
+  // Seuils de qualité GPS (en mètres)
+  const GPS_ACCEPT_THRESHOLD = 100   // ≤100m : on accepte immédiatement
+  const GPS_MAX_THRESHOLD    = 500   // >500m au timeout : on refuse (IP-only)
+  const GPS_TIMEOUT_MS       = 20000 // 20s max
+
+  const watchIdRef = useRef<number | null>(null)
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const bestPosRef = useRef<GeolocationPosition | null>(null)
+
+  function stopWatch() {
+    if (watchIdRef.current !== null) {
+      navigator.geolocation.clearWatch(watchIdRef.current)
+      watchIdRef.current = null
+    }
+    if (timeoutRef.current !== null) {
+      clearTimeout(timeoutRef.current)
+      timeoutRef.current = null
+    }
+  }
+
+  function acceptPosition(pos: GeolocationPosition) {
+    stopWatch()
+    setIsLocating(false)
+    setLiveAccuracy(null)
+    setLocation({
+      latitude: Number(pos.coords.latitude.toFixed(6)),
+      longitude: Number(pos.coords.longitude.toFixed(6)),
+      accuracy: Math.round(pos.coords.accuracy)
+    })
+  }
 
   function handleGetLocation() {
     setGeoError(null)
+    setLiveAccuracy(null)
     if (typeof window === 'undefined' || !navigator.geolocation) {
       setGeoError(
         isEn
@@ -65,19 +98,32 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
       return
     }
 
+    stopWatch()
     setIsLocating(true)
-    navigator.geolocation.getCurrentPosition(
+    bestPosRef.current = null
+
+    // watchPosition : mise à jour progressive jusqu'à une précision suffisante
+    watchIdRef.current = navigator.geolocation.watchPosition(
       (pos) => {
-        setIsLocating(false)
-        setLocation({
-          latitude: Number(pos.coords.latitude.toFixed(6)),
-          longitude: Number(pos.coords.longitude.toFixed(6)),
-          accuracy: Math.round(pos.coords.accuracy)
-        })
+        setLiveAccuracy(Math.round(pos.coords.accuracy))
+
+        // Mémorise la meilleure position vue jusqu'ici
+        if (
+          bestPosRef.current === null ||
+          pos.coords.accuracy < bestPosRef.current.coords.accuracy
+        ) {
+          bestPosRef.current = pos
+        }
+
+        // Acceptation immédiate si précision suffisante
+        if (pos.coords.accuracy <= GPS_ACCEPT_THRESHOLD) {
+          acceptPosition(pos)
+        }
       },
       (err) => {
+        stopWatch()
         setIsLocating(false)
-        // Codes W3C GeolocationPositionError : 1=PERMISSION_DENIED, 2=POSITION_UNAVAILABLE, 3=TIMEOUT
+        setLiveAccuracy(null)
         let msg: string
         if (err.code === 1) {
           msg = isEn
@@ -96,8 +142,25 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
         }
         setGeoError(msg)
       },
-      { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 }
+      { enableHighAccuracy: true, timeout: GPS_TIMEOUT_MS, maximumAge: 0 }
     )
+
+    // Timeout global : on accepte la meilleure position si ≤500m, sinon on refuse
+    timeoutRef.current = setTimeout(() => {
+      stopWatch()
+      setIsLocating(false)
+      setLiveAccuracy(null)
+      const best = bestPosRef.current
+      if (best && best.coords.accuracy <= GPS_MAX_THRESHOLD) {
+        acceptPosition(best)
+      } else {
+        setGeoError(
+          isEn
+            ? `GPS signal too imprecise (±${best ? Math.round(best.coords.accuracy) : '?'}m). Move to an open area and try again.`
+            : `Signal GPS trop imprécis (±${best ? Math.round(best.coords.accuracy) : '?'}m). Déplacez-vous et réessayez.`
+        )
+      }
+    }, GPS_TIMEOUT_MS)
   }
 
   // Villes dynamiques selon la région sélectionnée ou toute la liste
@@ -356,8 +419,26 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
                 <strong>{isEn ? 'Certified:' : 'Certifié :'}</strong>{' '}
                 {location.latitude.toFixed(4)}, {location.longitude.toFixed(4)}
                 {location.accuracy ? (
-                  <span style={{ opacity: 0.7 }}> (±{location.accuracy}m)</span>
+                  <span
+                    style={{
+                      marginLeft: 4,
+                      fontWeight: 600,
+                      color: location.accuracy <= 50 ? '#10b981' : location.accuracy <= 150 ? '#f59e0b' : '#94a3b8'
+                    }}
+                  >
+                    ±{location.accuracy}m
+                  </span>
                 ) : null}
+              </div>
+            ) : isLocating && liveAccuracy !== null ? (
+              <div style={{ fontSize: 11.5, color: '#f59e0b' }}>
+                {isEn ? 'Improving precision…' : 'Amélioration de la précision…'}{' '}
+                <span style={{ fontWeight: 700 }}>±{liveAccuracy}m</span>
+                {liveAccuracy > 500 && (
+                  <span style={{ marginLeft: 5, opacity: 0.7, fontSize: 10.5 }}>
+                    ({isEn ? 'searching GPS signal' : 'recherche signal GPS'})
+                  </span>
+                )}
               </div>
             ) : (
               <div style={{ fontSize: 11.5, color: 'var(--muted-foreground, #94a3b8)' }}>
@@ -376,8 +457,30 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
           {location && (
             <button
               type="button"
-              onClick={() => { setLocation(null); setGeoError(null) }}
+              onClick={() => { stopWatch(); setLocation(null); setGeoError(null); setLiveAccuracy(null) }}
               title={isEn ? 'Remove GPS check-in' : 'Retirer le check-in GPS'}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 26,
+                height: 26,
+                borderRadius: 6,
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                background: 'rgba(239, 68, 68, 0.08)',
+                color: '#f87171',
+                cursor: 'pointer'
+              }}
+            >
+              <X size={12} />
+            </button>
+          )}
+          {/* Bouton Annuler pendant l'acquisition */}
+          {isLocating && (
+            <button
+              type="button"
+              onClick={() => { stopWatch(); setIsLocating(false); setLiveAccuracy(null) }}
+              title={isEn ? 'Cancel GPS acquisition' : "Annuler l'acquisition GPS"}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -407,12 +510,12 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
               border: 'none',
               background: location
                 ? 'rgba(16, 185, 129, 0.15)'
-                : '#3b82f6',
+                : isLocating ? 'rgba(59,130,246,0.3)' : '#3b82f6',
               color: location ? '#10b981' : '#ffffff',
               fontSize: 11.5,
               fontWeight: 600,
               cursor: isLocating ? 'not-allowed' : 'pointer',
-              opacity: isLocating ? 0.7 : 1,
+              opacity: isLocating ? 0.85 : 1,
               whiteSpace: 'nowrap'
             }}
           >

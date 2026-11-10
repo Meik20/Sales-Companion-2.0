@@ -14,6 +14,32 @@ export function useUpdatePipelineItem() {
 
   return useMutation({
     mutationFn: async (input: UpdateInput) => {
+      // 1. Tenter la mise à jour via la route serveur API (Firebase Admin + sync clients)
+      try {
+        const authMod = await import('@/services/firebase/client')
+        const currentFirebaseUser = authMod.auth.currentUser
+        if (currentFirebaseUser) {
+          const token = await currentFirebaseUser.getIdToken()
+          const res = await fetch(`/api/pipeline/${input.id}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify(input.data)
+          })
+
+          if (res.ok) {
+            const json = await res.json()
+            return { id: input.id, ...input.data, ...json }
+          }
+          console.warn('[useUpdatePipelineItem] Server PUT failed, fallback to client firestore:', res.status)
+        }
+      } catch (apiErr) {
+        console.warn('[useUpdatePipelineItem] Server PUT error, fallback to client firestore:', apiErr)
+      }
+
+      // 2. Fallback direct client Firestore (mode dégradé / offline)
       const docRef = doc(firestore, 'pipeline', input.id)
       const isConclue = input.data.status === 'conclue' || input.data.status === 'conclusion'
       const isPerdue = input.data.status === 'perdue' || input.data.status === 'lost'

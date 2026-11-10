@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Badge, ConfirmDialog } from '@/components/ui/index'
 import { Button } from '@/components/ui/Button'
 import { useDeletePipelineItem } from '@/features/pipeline/hooks/useDeletePipelineItem'
@@ -118,20 +118,28 @@ const statusVariant: Record<string, 'info' | 'warning' | 'success' | 'danger'> =
 // ── Contact Detail Modal ────────────────────────────────────────────────
 // ── Contact Detail Modal ────────────────────────────────────────────────
 function ProspectModal({
-  item,
+  item: initialItem,
   onClose,
   onStatusChange,
-  statusLabel
+  statusLabel,
+  onItemUpdate
 }: {
   item: PipelineItem
   onClose: () => void
   onStatusChange?: (id: string, status: 'prospection' | 'negociation' | 'conclue' | 'perdue') => void
   statusLabel: Record<string, string>
+  onItemUpdate?: (updated: PipelineItem) => void
 }) {
   const { t, lang } = useTranslation()
   const { currency } = useProspectingCountryDetails()
   const updateMutation = useUpdatePipelineItem()
   const { pushToast } = useToast()
+
+  const [item, setItem] = useState(initialItem)
+
+  useEffect(() => {
+    setItem(initialItem)
+  }, [initialItem])
 
   const [noteText, setNoteText] = useState(item.notes ?? item.note ?? '')
   const [amountVal, setAmountVal] = useState<string>(item.amount != null ? String(item.amount) : '')
@@ -140,18 +148,35 @@ function ProspectModal({
   const [isEditing, setIsEditing] = useState(false)
   const [showLostModal, setShowLostModal] = useState(false)
 
+  useEffect(() => {
+    setNoteText(item.notes ?? item.note ?? '')
+    setAmountVal(item.amount != null ? String(item.amount) : '')
+    setFollowUpVal(item.nextFollowUp ?? item.nextDate ?? '')
+  }, [item])
+
   async function handleSaveNote() {
     setNoteSaving(true)
     try {
       const parsedAmount = amountVal.trim() ? parseFloat(amountVal.replace(/\s+/g, '')) : null
+      const validAmount = parsedAmount && !isNaN(parsedAmount) ? parsedAmount : null
       await updateMutation.mutateAsync({
         id: item.id,
         data: {
           notes: noteText,
-          amount: parsedAmount && !isNaN(parsedAmount) ? parsedAmount : null,
+          amount: validAmount,
           nextFollowUp: followUpVal.trim() || null
         }
       })
+      const updated: PipelineItem = {
+        ...item,
+        notes: noteText,
+        note: noteText,
+        amount: validAmount ?? undefined,
+        nextFollowUp: followUpVal.trim() || undefined,
+        nextDate: followUpVal.trim() || undefined
+      }
+      setItem(updated)
+      onItemUpdate?.(updated)
       pushToast({
         type: 'success',
         title: t('pipeline.notesSaved') || 'Modifications enregistrées'
@@ -657,6 +682,10 @@ function ProspectModal({
                 id: item.id,
                 data: { amount: newAmount }
               })
+              const updated: PipelineItem = { ...item, amount: newAmount ?? undefined }
+              setItem(updated)
+              setAmountVal(newAmount != null ? String(newAmount) : '')
+              onItemUpdate?.(updated)
               pushToast({
                 type: 'success',
                 title: lang === 'en' ? 'Offer value updated' : "Valeur de l'offre mise à jour"
@@ -876,10 +905,11 @@ export function UserPipelineList({ items, onStatusChange, activeStage }: Props) 
       {/* Prospect Detail Modal */}
       {selectedItem && (
         <ProspectModal
-          item={selectedItem}
+          item={items.find((i) => i.id === selectedItem.id) ?? selectedItem}
           onClose={() => setSelectedItem(null)}
           onStatusChange={onStatusChange}
           statusLabel={statusLabel}
+          onItemUpdate={(updated) => setSelectedItem(updated)}
         />
       )}
 

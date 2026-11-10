@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import {
   Phone,
   MapPin,
@@ -130,9 +130,54 @@ export function PipelineActivityTimeline({
   const [location, setLocation] = useState<ActivityLocation | null>(null)
   const [isLocating, setIsLocating] = useState(false)
 
+  // Montant d'offre local : synchronisé avec props mais mis à jour immédiatement en local
+  const [currentAmount, setCurrentAmount] = useState<number | null | undefined>(amount)
   const [isEditingAmount, setIsEditingAmount] = useState(false)
   const [tempAmount, setTempAmount] = useState(amount != null ? String(amount) : '')
   const [savingAmount, setSavingAmount] = useState(false)
+
+  useEffect(() => {
+    setCurrentAmount(amount)
+    setTempAmount(amount != null ? String(amount) : '')
+  }, [amount])
+
+  // Précision et seuils de qualité GPS
+  const [liveAccuracyTimeline, setLiveAccuracyTimeline] = useState<number | null>(null)
+  const GPS_ACCEPT_THRESHOLD = 100
+  const GPS_MAX_THRESHOLD = 500
+  const GPS_TIMEOUT_MS = 20000
+
+  const watchIdTimelineRef = useRef<number | null>(null)
+  const timeoutTimelineRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const bestPosTimelineRef = useRef<GeolocationPosition | null>(null)
+
+  function stopWatchTimeline() {
+    if (watchIdTimelineRef.current !== null) {
+      navigator.geolocation.clearWatch(watchIdTimelineRef.current)
+      watchIdTimelineRef.current = null
+    }
+    if (timeoutTimelineRef.current !== null) {
+      clearTimeout(timeoutTimelineRef.current)
+      timeoutTimelineRef.current = null
+    }
+  }
+
+  function acceptPositionTimeline(pos: GeolocationPosition) {
+    stopWatchTimeline()
+    setIsLocating(false)
+    setLiveAccuracyTimeline(null)
+    const loc = {
+      latitude: Number(pos.coords.latitude.toFixed(6)),
+      longitude: Number(pos.coords.longitude.toFixed(6)),
+      accuracy: Math.round(pos.coords.accuracy)
+    }
+    setLocation(loc)
+    pushToast({
+      type: 'success',
+      title: isEn ? 'GPS check-in verified' : 'Check-in GPS certifié',
+      description: `Lat: ${loc.latitude.toFixed(4)}, Lng: ${loc.longitude.toFixed(4)} (±${loc.accuracy}m)`
+    })
+  }
 
   const handleGetLocation = () => {
     if (typeof window === 'undefined' || !navigator.geolocation) {
@@ -145,23 +190,29 @@ export function PipelineActivityTimeline({
       })
       return
     }
+
+    stopWatchTimeline()
     setIsLocating(true)
-    navigator.geolocation.getCurrentPosition(
+    setLiveAccuracyTimeline(null)
+    bestPosTimelineRef.current = null
+
+    watchIdTimelineRef.current = navigator.geolocation.watchPosition(
       (pos) => {
-        setIsLocating(false)
-        setLocation({
-          latitude: Number(pos.coords.latitude.toFixed(6)),
-          longitude: Number(pos.coords.longitude.toFixed(6)),
-          accuracy: Math.round(pos.coords.accuracy)
-        })
-        pushToast({
-          type: 'success',
-          title: isEn ? 'GPS check-in verified' : 'Check-in GPS certifié',
-          description: `Lat: ${pos.coords.latitude.toFixed(4)}, Lng: ${pos.coords.longitude.toFixed(4)} (±${Math.round(pos.coords.accuracy)}m)`
-        })
+        setLiveAccuracyTimeline(Math.round(pos.coords.accuracy))
+        if (
+          bestPosTimelineRef.current === null ||
+          pos.coords.accuracy < bestPosTimelineRef.current.coords.accuracy
+        ) {
+          bestPosTimelineRef.current = pos
+        }
+        if (pos.coords.accuracy <= GPS_ACCEPT_THRESHOLD) {
+          acceptPositionTimeline(pos)
+        }
       },
       (err) => {
+        stopWatchTimeline()
         setIsLocating(false)
+        setLiveAccuracyTimeline(null)
         let description: string
         if (err.code === 1) {
           description = isEn
@@ -180,8 +231,26 @@ export function PipelineActivityTimeline({
         }
         pushToast({ type: 'error', title: isEn ? 'GPS error' : 'Erreur GPS', description })
       },
-      { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 }
+      { enableHighAccuracy: true, timeout: GPS_TIMEOUT_MS, maximumAge: 0 }
     )
+
+    timeoutTimelineRef.current = setTimeout(() => {
+      stopWatchTimeline()
+      setIsLocating(false)
+      setLiveAccuracyTimeline(null)
+      const best = bestPosTimelineRef.current
+      if (best && best.coords.accuracy <= GPS_MAX_THRESHOLD) {
+        acceptPositionTimeline(best)
+      } else {
+        pushToast({
+          type: 'error',
+          title: isEn ? 'GPS signal too imprecise' : 'Signal GPS trop imprécis',
+          description: isEn
+            ? `Precision: ±${best ? Math.round(best.coords.accuracy) : '?'}m. Move to an open area and try again.`
+            : `Précision : ±${best ? Math.round(best.coords.accuracy) : '?'}m. Déplacez-vous et réessayez.`
+        })
+      }
+    }, GPS_TIMEOUT_MS)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -341,15 +410,15 @@ export function PipelineActivityTimeline({
               {!isEditingAmount ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                   <span style={{ fontSize: 11.5, fontWeight: 800, color: '#10b981' }}>
-                    {amount != null && amount > 0
-                      ? `${formatCompactAmount(amount, lang)} ${currency || 'XAF'}`
+                    {currentAmount != null && currentAmount > 0
+                      ? `${formatCompactAmount(currentAmount, lang)} ${currency || 'XAF'}`
                       : `0 ${currency || 'XAF'}`}
                   </span>
                   {!readOnly && onUpdateAmount && (
                     <button
                       type="button"
                       onClick={() => {
-                        setTempAmount(amount != null ? String(amount) : '')
+                        setTempAmount(currentAmount != null ? String(currentAmount) : '')
                         setIsEditingAmount(true)
                       }}
                       title={isEn ? 'Edit amount' : 'Modifier le montant'}
@@ -396,7 +465,14 @@ export function PipelineActivityTimeline({
                       try {
                         const val = tempAmount.trim() ? parseFloat(tempAmount) : null
                         await onUpdateAmount?.(val)
+                        setCurrentAmount(val)
                         setIsEditingAmount(false)
+                      } catch (saveErr) {
+                        pushToast({
+                          type: 'error',
+                          title: isEn ? 'Save error' : "Erreur d'enregistrement",
+                          description: saveErr instanceof Error ? saveErr.message : 'Erreur inconnue'
+                        })
                       } finally {
                         setSavingAmount(false)
                       }
@@ -609,8 +685,28 @@ export function PipelineActivityTimeline({
                     <>
                       <strong>{isEn ? 'GPS Verified' : 'Check-in certifié'} :</strong>{' '}
                       {location.latitude.toFixed(4)}, {location.longitude.toFixed(4)}
-                      {location.accuracy ? ` (±${location.accuracy}m)` : ''}
+                      {location.accuracy ? (
+                        <span
+                          style={{
+                            marginLeft: 4,
+                            fontWeight: 600,
+                            color: location.accuracy <= 50 ? '#10b981' : location.accuracy <= 150 ? '#f59e0b' : '#94a3b8'
+                          }}
+                        >
+                          ±{location.accuracy}m
+                        </span>
+                      ) : null}
                     </>
+                  ) : isLocating && liveAccuracyTimeline !== null ? (
+                    <span style={{ color: '#f59e0b' }}>
+                      {isEn ? 'Improving…' : 'Amélioration…'}{' '}
+                      <strong>±{liveAccuracyTimeline}m</strong>
+                      {liveAccuracyTimeline > 500 && (
+                        <span style={{ marginLeft: 4, opacity: 0.7, fontSize: 10.5 }}>
+                          ({isEn ? 'searching GPS' : 'recherche GPS'})
+                        </span>
+                      )}
+                    </span>
                   ) : (
                     <span>
                       {isEn
@@ -620,39 +716,63 @@ export function PipelineActivityTimeline({
                   )}
                 </span>
               </div>
-              <button
-                type="button"
-                disabled={isLocating}
-                onClick={handleGetLocation}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 5,
-                  padding: '4px 10px',
-                  borderRadius: 6,
-                  border: 'none',
-                  background: location ? 'rgba(16, 185, 129, 0.2)' : '#3b82f6',
-                  color: location ? '#10b981' : '#ffffff',
-                  fontSize: 11,
-                  fontWeight: 600,
-                  cursor: isLocating ? 'not-allowed' : 'pointer'
-                }}
-              >
-                {isLocating ? (
-                  <Loader2 size={12} className="animate-spin" />
-                ) : (
-                  <MapPin size={12} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                {isLocating && (
+                  <button
+                    type="button"
+                    onClick={() => { stopWatchTimeline(); setIsLocating(false); setLiveAccuracyTimeline(null) }}
+                    title={isEn ? 'Cancel GPS' : 'Annuler GPS'}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: 24,
+                      height: 24,
+                      borderRadius: 5,
+                      border: '1px solid rgba(239,68,68,0.3)',
+                      background: 'rgba(239,68,68,0.08)',
+                      color: '#f87171',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <X size={11} />
+                  </button>
                 )}
-                <span>
-                  {location
-                    ? isEn
-                      ? 'Update GPS'
-                      : 'Actualiser GPS'
-                    : isEn
-                      ? 'GPS Check-in'
-                      : 'Check-in GPS'}
-                </span>
-              </button>
+                <button
+                  type="button"
+                  disabled={isLocating}
+                  onClick={handleGetLocation}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 5,
+                    padding: '4px 10px',
+                    borderRadius: 6,
+                    border: 'none',
+                    background: location ? 'rgba(16, 185, 129, 0.2)' : isLocating ? 'rgba(59,130,246,0.3)' : '#3b82f6',
+                    color: location ? '#10b981' : '#ffffff',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    cursor: isLocating ? 'not-allowed' : 'pointer',
+                    opacity: isLocating ? 0.85 : 1
+                  }}
+                >
+                  {isLocating ? (
+                    <Loader2 size={12} className="animate-spin" />
+                  ) : location ? (
+                    <CheckCircle2 size={12} />
+                  ) : (
+                    <MapPin size={12} />
+                  )}
+                  <span>
+                    {isLocating
+                      ? (isEn ? 'Acquiring…' : 'Acquisition…')
+                      : location
+                        ? isEn ? 'Update GPS' : 'Actualiser GPS'
+                        : isEn ? 'GPS Check-in' : 'Check-in GPS'}
+                  </span>
+                </button>
+              </div>
             </div>
           )}
 
