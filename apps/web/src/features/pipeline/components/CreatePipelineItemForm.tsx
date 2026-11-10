@@ -9,7 +9,7 @@ import { getErrorMessage } from '@/lib/errors'
 import { useCreatePipelineItem } from '../hooks/useCreatePipelineItem'
 import { ProspectConflictModal, type ProspectConflictInfo } from '@/features/search/components/ProspectConflictModal'
 import { useTranslation } from '@/providers/I18nProvider'
-import { FileText } from 'lucide-react'
+import { FileText, Navigation, MapPin, Loader2, CheckCircle2, X } from 'lucide-react'
 import { getGeography } from '@sales-companion/shared'
 import { useProspectingCountryDetails } from '@/hooks/useProspectingCountry'
 
@@ -18,7 +18,8 @@ type Props = {
 }
 
 export function CreatePipelineItemForm({ onSuccess }: Props) {
-  const { t } = useTranslation()
+  const { t, lang } = useTranslation()
+  const isEn = lang === 'en'
   const { user } = useCurrentUser()
   const { code: countryCode, examplePhone, currency } = useProspectingCountryDetails()
 
@@ -43,6 +44,47 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
   const [status, setStatus] = useState<'prospection' | 'negociation' | 'conclue'>('prospection')
   const [error, setError] = useState<string | null>(null)
   const [conflictData, setConflictData] = useState<ProspectConflictInfo | null>(null)
+
+  // Géolocalisation certifiée sur site (Check-in GPS terrain)
+  const [location, setLocation] = useState<{
+    latitude: number
+    longitude: number
+    accuracy?: number
+  } | null>(null)
+  const [isLocating, setIsLocating] = useState(false)
+  const [geoError, setGeoError] = useState<string | null>(null)
+
+  function handleGetLocation() {
+    setGeoError(null)
+    if (typeof window === 'undefined' || !navigator.geolocation) {
+      setGeoError(
+        isEn
+          ? 'Geolocation is not supported on this device.'
+          : 'Votre appareil ne supporte pas la géolocalisation.'
+      )
+      return
+    }
+
+    setIsLocating(true)
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setIsLocating(false)
+        setLocation({
+          latitude: Number(pos.coords.latitude.toFixed(6)),
+          longitude: Number(pos.coords.longitude.toFixed(6)),
+          accuracy: Math.round(pos.coords.accuracy)
+        })
+      },
+      (err) => {
+        setIsLocating(false)
+        setGeoError(
+          err.message ||
+            (isEn ? 'Could not acquire GPS position' : 'Position GPS non acquise')
+        )
+      },
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 }
+    )
+  }
 
   // Villes dynamiques selon la région sélectionnée ou toute la liste
   const availableCities = useMemo(() => {
@@ -131,6 +173,14 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
         note: note.trim() || undefined,
         nextAction: nextAction.trim() || undefined,
         nextDate: null,
+        lastVisitLocation: location
+          ? {
+              latitude: location.latitude,
+              longitude: location.longitude,
+              accuracy: location.accuracy,
+              visitedAt: new Date().toISOString()
+            }
+          : undefined,
         createdAt: null,
         updatedAt: null
       })
@@ -145,6 +195,8 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
       setNote('')
       setNextAction('')
       setStatus('prospection')
+      setLocation(null)
+      setGeoError(null)
       onSuccess?.()
     } catch (err: any) {
       if (err?.code === 'PROSPECT_ALREADY_EXISTS_IN_SEGMENT' && err.conflict) {
@@ -246,6 +298,126 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
             onChange={(e) => setCompanySector(e.target.value)}
           />
         </FormField>
+      </div>
+
+      {/* ── 2b. CHECK-IN GPS TERRAIN (optionnel) ── */}
+      <div
+        style={{
+          background: location
+            ? 'rgba(16, 185, 129, 0.06)'
+            : 'rgba(59, 130, 246, 0.04)',
+          border: `1px ${location ? 'solid' : 'dashed'} ${location ? 'rgba(16, 185, 129, 0.35)' : 'rgba(59, 130, 246, 0.25)'}`,
+          borderRadius: 12,
+          padding: '12px 16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 12,
+          flexWrap: 'wrap'
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+          <Navigation
+            size={15}
+            style={{
+              color: location ? '#10b981' : '#60a5fa',
+              flexShrink: 0
+            }}
+          />
+          <div style={{ minWidth: 0 }}>
+            <div
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '.06em',
+                color: location ? '#10b981' : '#60a5fa',
+                marginBottom: 2
+              }}
+            >
+              {isEn ? 'On-site GPS check-in' : 'Check-in GPS terrain'}
+            </div>
+            {location ? (
+              <div style={{ fontSize: 11.5, color: 'var(--foreground, #f1f5f9)' }}>
+                <strong>{isEn ? 'Certified:' : 'Certifié :'}</strong>{' '}
+                {location.latitude.toFixed(4)}, {location.longitude.toFixed(4)}
+                {location.accuracy ? (
+                  <span style={{ opacity: 0.7 }}> (±{location.accuracy}m)</span>
+                ) : null}
+              </div>
+            ) : (
+              <div style={{ fontSize: 11.5, color: 'var(--muted-foreground, #94a3b8)' }}>
+                {isEn
+                  ? "Certify your on-site visit at this prospect's location"
+                  : 'Certifiez votre présence sur site chez ce prospect'}
+              </div>
+            )}
+            {geoError && (
+              <div style={{ fontSize: 11, color: '#f87171', marginTop: 3 }}>{geoError}</div>
+            )}
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+          {location && (
+            <button
+              type="button"
+              onClick={() => { setLocation(null); setGeoError(null) }}
+              title={isEn ? 'Remove GPS check-in' : 'Retirer le check-in GPS'}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 26,
+                height: 26,
+                borderRadius: 6,
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                background: 'rgba(239, 68, 68, 0.08)',
+                color: '#f87171',
+                cursor: 'pointer'
+              }}
+            >
+              <X size={12} />
+            </button>
+          )}
+          <button
+            type="button"
+            disabled={isLocating}
+            onClick={handleGetLocation}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 5,
+              padding: '5px 12px',
+              borderRadius: 7,
+              border: 'none',
+              background: location
+                ? 'rgba(16, 185, 129, 0.15)'
+                : '#3b82f6',
+              color: location ? '#10b981' : '#ffffff',
+              fontSize: 11.5,
+              fontWeight: 600,
+              cursor: isLocating ? 'not-allowed' : 'pointer',
+              opacity: isLocating ? 0.7 : 1,
+              whiteSpace: 'nowrap'
+            }}
+          >
+            {isLocating ? (
+              <Loader2 size={12} className="animate-spin" />
+            ) : location ? (
+              <CheckCircle2 size={12} />
+            ) : (
+              <MapPin size={12} />
+            )}
+            <span>
+              {isLocating
+                ? (isEn ? 'Acquiring…' : 'Acquisition…')
+                : location
+                  ? (isEn ? 'Update GPS' : 'Actualiser GPS')
+                  : (isEn ? 'GPS Check-in' : 'Check-in GPS')}
+            </span>
+          </button>
+        </div>
       </div>
 
       {/* ── 3. STATUT, ACTION & MONTANT ── */}

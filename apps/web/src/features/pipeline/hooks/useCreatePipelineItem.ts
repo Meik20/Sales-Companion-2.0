@@ -25,6 +25,12 @@ type PipelineItemInput = {
   note?: string
   nextAction?: string
   nextDate: string | null
+  lastVisitLocation?: {
+    latitude: number
+    longitude: number
+    accuracy?: number
+    visitedAt?: string
+  } | null
   enteredAt?: string | null
   assignedAt?: string | null
   createdAt: null
@@ -62,7 +68,8 @@ export function useCreatePipelineItem() {
               currency: input.currency || 'FCFA',
               note: input.note || '',
               nextAction: input.nextAction || null,
-              nextDate: input.nextDate || null
+              nextDate: input.nextDate || null,
+              lastVisitLocation: input.lastVisitLocation || null
             })
           })
 
@@ -94,6 +101,7 @@ export function useCreatePipelineItem() {
         email: input.companyEmail || null,
         region: input.companyRegion || null,
         quarter: input.companyQuarter || null,
+        lastVisitLocation: input.lastVisitLocation || null,
         enteredAt: input.enteredAt || nowIso,
         assignedAt: input.assignedAt || (input.assignedTo ? nowIso : null),
         createdAt: serverTimestamp(),

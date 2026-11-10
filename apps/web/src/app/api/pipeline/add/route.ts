@@ -86,7 +86,8 @@ export async function POST(request: NextRequest) {
       currency,
       note,
       nextAction,
-      nextDate
+      nextDate,
+      lastVisitLocation
     } = body as {
       companyId?: string
       companyName?: string
@@ -105,6 +106,12 @@ export async function POST(request: NextRequest) {
       note?: string | null
       nextAction?: string | null
       nextDate?: string | null
+      lastVisitLocation?: {
+        latitude: number
+        longitude: number
+        accuracy?: number
+        visitedAt?: string
+      } | null
     }
 
     const callerHomeCountry = ((callerData.country as string) || 'CM').toUpperCase().trim()
@@ -625,6 +632,20 @@ export async function POST(request: NextRequest) {
     const finalMemberName = memberName
     const now = new Date()
 
+    // Validation et assainissement des coordonnées GPS éventuelles (Check-in sur site)
+    const sanitizedVisitLocation =
+      lastVisitLocation &&
+      typeof lastVisitLocation.latitude === 'number' &&
+      typeof lastVisitLocation.longitude === 'number'
+        ? {
+            latitude: Number(lastVisitLocation.latitude.toFixed(6)),
+            longitude: Number(lastVisitLocation.longitude.toFixed(6)),
+            accuracy:
+              typeof lastVisitLocation.accuracy === 'number' ? Math.round(lastVisitLocation.accuracy) : null,
+            visitedAt: lastVisitLocation.visitedAt || now.toISOString()
+          }
+        : null
+
     // ── RÈGLE ARCHITECTURALE CANONIQUE ──
     // Un manager qui ajoute un prospect depuis la recherche ou le formulaire :
     // Le prospect est stocké dans "Mes prospects importés" (manager_prospects)
@@ -650,6 +671,7 @@ export async function POST(request: NextRequest) {
         quarter: companyQuarter ?? null,
         country: targetCountry,
         notes: note || '',
+        lastVisitLocation: sanitizedVisitLocation,
         status: 'new',
         assignedTo: null,
         importedBy: userId,
@@ -747,12 +769,38 @@ export async function POST(request: NextRequest) {
       nextAction: nextAction || null,
       nextDate: nextDate || null,
       note: note || '',
+      lastVisitLocation: sanitizedVisitLocation,
       previousAssignees,
       enteredAt: now.toISOString(),
       assignedAt: finalAssignedTo ? now.toISOString() : null,
       createdAt: now,
       updatedAt: now
     })
+
+    // Si une position GPS certifiée a été renseignée lors de l'enregistrement sur site,
+    // on consigne automatiquement la première visite terrain dans l'historique d'activités
+    if (sanitizedVisitLocation) {
+      try {
+        await adminDb
+          .collection('pipeline')
+          .doc(docRef.id)
+          .collection('activities')
+          .add({
+            type: 'visit',
+            title: 'Check-in GPS initial (Enregistrement sur site)',
+            summary: note?.trim()
+              ? `Enregistrement sur site : ${note.trim()}`
+              : "Enregistrement de l'opportunité sur site avec géolocalisation certifiée.",
+            outcome: 'positive',
+            location: sanitizedVisitLocation,
+            performedBy: userId,
+            performedByName: callerData.name || callerData.displayName || callerData.email || 'Commercial',
+            createdAt: now.toISOString()
+          })
+      } catch (actErr) {
+        console.warn('[pipeline/add] Auto-creation of initial visit activity failed:', actErr)
+      }
+    }
 
     // Propagation temps réel vers le Senior Manager :
     // on met à jour lastPipelineUpdate sur le document organisation.

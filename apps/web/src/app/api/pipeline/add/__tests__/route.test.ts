@@ -22,7 +22,15 @@ const mocks = vi.hoisted(() => {
     if (name === 'manager_prospects') return { add: mockManagerProspectsAdd, where: () => createQuery() }
     if (name === 'clients') return { where: () => createQuery() }
     // pipeline (default)
-    return { add: mockPipelineAdd, where: () => createQuery() }
+    return {
+      add: mockPipelineAdd,
+      where: () => createQuery(),
+      doc: () => ({
+        collection: () => ({
+          add: vi.fn().mockResolvedValue({ id: 'activity-1' })
+        })
+      })
+    }
   })
 
   return {
