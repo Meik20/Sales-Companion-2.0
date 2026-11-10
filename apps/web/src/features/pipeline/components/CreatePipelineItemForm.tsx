@@ -77,10 +77,24 @@ export function CreatePipelineItemForm({ onSuccess }: Props) {
       },
       (err) => {
         setIsLocating(false)
-        setGeoError(
-          err.message ||
-            (isEn ? 'Could not acquire GPS position' : 'Position GPS non acquise')
-        )
+        // Codes W3C GeolocationPositionError : 1=PERMISSION_DENIED, 2=POSITION_UNAVAILABLE, 3=TIMEOUT
+        let msg: string
+        if (err.code === 1) {
+          msg = isEn
+            ? 'GPS access denied. Please allow location in your browser settings.'
+            : 'Accès GPS refusé. Autorisez la localisation dans les paramètres de votre navigateur.'
+        } else if (err.code === 2) {
+          msg = isEn
+            ? 'GPS position unavailable. Try moving to an open area.'
+            : 'Position GPS indisponible. Déplacez-vous vers un espace ouvert.'
+        } else if (err.code === 3) {
+          msg = isEn
+            ? 'GPS acquisition timed out. Please try again.'
+            : 'Délai GPS dépassé. Veuillez réessayer.'
+        } else {
+          msg = isEn ? 'Could not acquire GPS position.' : 'Position GPS non acquise.'
+        }
+        setGeoError(msg)
       },
       { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 }
     )

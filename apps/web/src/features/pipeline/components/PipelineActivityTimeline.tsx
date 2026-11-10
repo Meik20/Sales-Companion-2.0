@@ -162,11 +162,23 @@ export function PipelineActivityTimeline({
       },
       (err) => {
         setIsLocating(false)
-        pushToast({
-          type: 'error',
-          title: isEn ? 'GPS error' : 'Erreur GPS',
-          description: err.message || (isEn ? 'Could not acquire position' : 'Position non acquise')
-        })
+        let description: string
+        if (err.code === 1) {
+          description = isEn
+            ? 'GPS access denied. Please allow location in your browser settings.'
+            : 'Accès GPS refusé. Autorisez la localisation dans les paramètres de votre navigateur.'
+        } else if (err.code === 2) {
+          description = isEn
+            ? 'GPS position unavailable. Try moving to an open area.'
+            : 'Position GPS indisponible. Déplacez-vous vers un espace ouvert.'
+        } else if (err.code === 3) {
+          description = isEn
+            ? 'GPS acquisition timed out. Please try again.'
+            : 'Délai GPS dépassé. Veuillez réessayer.'
+        } else {
+          description = isEn ? 'Could not acquire GPS position.' : 'Position non acquise.'
+        }
+        pushToast({ type: 'error', title: isEn ? 'GPS error' : 'Erreur GPS', description })
       },
       { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 }
     )
