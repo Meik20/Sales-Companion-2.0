@@ -17,6 +17,7 @@ import { useOrgReport, type OrgReportResult } from '../hooks/useOrgReport'
 import { useTeamTargets, useSaveTeamTarget, useRenewTeamTargets } from '@/features/pipeline/hooks/useTeamTargets'
 import { useArchiveLeads } from '@/features/pipeline/hooks/useArchivePipeline'
 import { ArchivesDrawer } from '@/features/pipeline/components/ArchivesDrawer'
+import { FieldVisitsDrawer } from '@/features/pipeline/components/FieldVisitsDrawer'
 import { useTransferConcludedDeals } from '@/features/pipeline/hooks/useTransferConcludedDeals'
 import { isPendingMigrationDeal } from '@/lib/monthly-cycle'
 import {
@@ -48,7 +49,9 @@ import {
   XCircle,
   FileText,
   RotateCcw,
-  Loader2
+  Loader2,
+  Route,
+  Navigation
 } from 'lucide-react'
 import { getPipelineAging } from '@/lib/pipelineAging'
 import { formatCompactAmount, formatFullAmount } from '@/lib/formatters'
@@ -97,6 +100,13 @@ type PipelineItem = {
   lossNotes?: string | null
   lostAt?: string | null
   reactivationDate?: string | null
+  lastVisitLocation?: {
+    latitude: number
+    longitude: number
+    accuracy?: number | null
+    address?: string | null
+    visitedAt?: string | null
+  } | null
 }
 
 type Member = { uid: string; name?: string; email?: string; accessId?: string }
@@ -500,6 +510,41 @@ function ProspectModal({
                     />
                   ) : null
                 })()}
+
+              {/* Action itinéraire GPS */}
+              <div style={{ marginTop: 4, paddingTop: 8, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                <a
+                  href={item.lastVisitLocation
+                    ? `https://www.google.com/maps/dir/?api=1&destination=${item.lastVisitLocation.latitude},${item.lastVisitLocation.longitude}`
+                    : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent([item.companyName, item.companyQuarter || item.quarter, item.companyCity].filter(Boolean).join(', '))}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '5px 10px',
+                    borderRadius: 6,
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: '#10b981',
+                    background: 'rgba(16, 185, 129, 0.1)',
+                    border: '1px solid rgba(16, 185, 129, 0.3)',
+                    textDecoration: 'none',
+                    transition: 'all 150ms ease'
+                  }}
+                >
+                  <Navigation size={12} />
+                  <span>
+                    {item.lastVisitLocation
+                      ? (lang === 'en' ? 'Open GPS Location' : 'Ouvrir position GPS certifiée')
+                      : (lang === 'en' ? 'Navigate (Google Maps)' : 'Itinéraire GPS (Google Maps)')}
+                  </span>
+                  {item.lastVisitLocation?.accuracy && (
+                    <span style={{ fontSize: 9.5, opacity: 0.8 }}>(±{item.lastVisitLocation.accuracy}m)</span>
+                  )}
+                </a>
+              </div>
             </div>
           </div>
 
@@ -1809,6 +1854,11 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
 
   // ── Sélection pour archivage ──────────────────────────────────────────────
   const [selectedForArchive, setSelectedForArchive] = useState<Set<string>>(new Set())
+  const [showFieldVisitsDrawer, setShowFieldVisitsDrawer] = useState(false)
+
+  const visitedCount = useMemo(() => {
+    return items.filter((i) => Boolean(i.lastVisitLocation?.latitude && i.lastVisitLocation?.longitude)).length
+  }, [items])
 
   const toggleArchiveSelect = useCallback((id: string) => {
     setSelectedForArchive((prev) => {
@@ -2965,20 +3015,66 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
         </div>
       )}
 
-      {/* ── Barre d'actions compacte (Objectifs, Export performances & Archives) ── */}
+      {/* ── Barre d'actions compacte (Objectifs, Export performances, Visites GPS & Archives) ── */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'flex-end',
+          flexWrap: 'wrap',
           gap: 10,
           marginBottom: 12
         }}
       >
+        <button
+          type="button"
+          onClick={() => setShowFieldVisitsDrawer(true)}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '6px 12px',
+            fontSize: 12,
+            fontWeight: 700,
+            borderRadius: 8,
+            background: 'rgba(16, 185, 129, 0.12)',
+            border: '1px solid rgba(16, 185, 129, 0.35)',
+            color: '#10b981',
+            cursor: 'pointer',
+            transition: 'all 150ms ease'
+          }}
+          title={lang === 'en' ? 'Field tours and GPS check-ins' : 'Tournées et visites vérifiées par GPS'}
+        >
+          <Route size={14} />
+          <span>{lang === 'en' ? 'Field Tours & GPS' : 'Tournées & Visites GPS'}</span>
+          {visitedCount > 0 && (
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 800,
+                padding: '1px 6px',
+                borderRadius: 10,
+                background: '#10b981',
+                color: '#ffffff'
+              }}
+            >
+              {visitedCount}
+            </span>
+          )}
+        </button>
         {showTargets && <TargetsButton members={members} />}
         <ExportButton members={members} managers={managers} isOrgView={isOrgView} />
         {enableArchive && <ArchivesDrawer />}
       </div>
+
+      <FieldVisitsDrawer
+        open={showFieldVisitsDrawer}
+        onClose={() => setShowFieldVisitsDrawer(false)}
+        items={items as any}
+        members={members}
+        isOrgView={isOrgView}
+        currency={currency}
+      />
 
       <div
         style={{
@@ -3107,6 +3203,31 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                               <MapPin size={10} style={{ opacity: 0.7 }} />
                               {[item.companyQuarter || item.quarter, item.companyCity].filter(Boolean).join(', ') || item.companyCity}
                             </span>
+                          )}
+                          {item.lastVisitLocation && (
+                            <a
+                              href={`https://www.google.com/maps?q=${item.lastVisitLocation.latitude},${item.lastVisitLocation.longitude}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              title={lang === 'en' ? 'Verified GPS visit on site' : 'Visite terrain vérifiée par GPS'}
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: 3.5,
+                                fontWeight: 700,
+                                color: '#10b981',
+                                background: 'rgba(16, 185, 129, 0.1)',
+                                border: '1px solid rgba(16, 185, 129, 0.3)',
+                                borderRadius: 4,
+                                padding: '1px 6px',
+                                fontSize: 10.5,
+                                textDecoration: 'none'
+                              }}
+                            >
+                              <Navigation size={10} style={{ color: '#10b981' }} />
+                              <span>{lang === 'en' ? 'GPS Checked' : 'Visité (GPS)'}</span>
+                            </a>
                           )}
                           {item.amount != null && item.amount > 0 && (
                             <span

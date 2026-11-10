@@ -20,7 +20,8 @@ import {
   Calendar,
   AlertTriangle,
   Clock,
-  XCircle
+  XCircle,
+  Navigation
 } from 'lucide-react'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { getPipelineAging } from '@/lib/pipelineAging'
@@ -53,6 +54,13 @@ type PipelineItem = {
   transferDeadline?: string | null
   assignmentDeadline?: string | null
   firstActionAt?: string | null
+  lastVisitLocation?: {
+    latitude: number
+    longitude: number
+    accuracy?: number | null
+    address?: string | null
+    visitedAt?: string | null
+  } | null
   createdAt?: any
   updatedAt?: any
   assignedAt?: any
@@ -279,6 +287,19 @@ function KanbanCard({
                 <MapPin size={11} className="opacity-70 text-muted-foreground shrink-0" />
                 <span>{[item.companyQuarter || item.quarter, item.companyCity].filter(Boolean).join(', ') || item.companyCity}</span>
               </span>
+            )}
+            {item.lastVisitLocation && (
+              <a
+                href={`https://www.google.com/maps?q=${item.lastVisitLocation.latitude},${item.lastVisitLocation.longitude}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                title={lang === 'en' ? 'Verified GPS visit on site' : 'Visite terrain vérifiée par GPS'}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/20 transition-colors"
+              >
+                <Navigation size={11} className="shrink-0 text-emerald-500" />
+                <span>{lang === 'en' ? 'GPS Checked' : 'Visité (GPS)'}</span>
+              </a>
             )}
             {item.amount != null && item.amount > 0 && (
               <span

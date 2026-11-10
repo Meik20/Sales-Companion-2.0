@@ -36,7 +36,8 @@ import {
   Trash2,
   Clock,
   CheckCircle2,
-  XCircle
+  XCircle,
+  Navigation
 } from 'lucide-react'
 import { getPipelineAging } from '@/lib/pipelineAging'
 import { formatCompactAmount, formatFullAmount } from '@/lib/formatters'
@@ -79,6 +80,13 @@ type PipelineItem = {
   lossNotes?: string | null
   lostAt?: string | null
   reactivationDate?: string | null
+  lastVisitLocation?: {
+    latitude: number
+    longitude: number
+    accuracy?: number | null
+    address?: string | null
+    visitedAt?: string | null
+  } | null
   previousAssignees?: {
     userId: string
     memberName: string
@@ -495,6 +503,41 @@ function ProspectModal({
                   )
                 }
               />
+
+              {/* Action itinéraire GPS */}
+              <div style={{ marginTop: 4, paddingTop: 8, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                <a
+                  href={item.lastVisitLocation
+                    ? `https://www.google.com/maps/dir/?api=1&destination=${item.lastVisitLocation.latitude},${item.lastVisitLocation.longitude}`
+                    : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent([item.companyName, item.companyQuarter || item.quarter, item.companyCity].filter(Boolean).join(', '))}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '5px 10px',
+                    borderRadius: 6,
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: '#10b981',
+                    background: 'rgba(16, 185, 129, 0.1)',
+                    border: '1px solid rgba(16, 185, 129, 0.3)',
+                    textDecoration: 'none',
+                    transition: 'all 150ms ease'
+                  }}
+                >
+                  <Navigation size={12} />
+                  <span>
+                    {item.lastVisitLocation
+                      ? (lang === 'en' ? 'Open GPS Location' : 'Ouvrir position GPS certifiée')
+                      : (lang === 'en' ? 'Navigate (Google Maps)' : 'Itinéraire GPS (Google Maps)')}
+                  </span>
+                  {item.lastVisitLocation?.accuracy && (
+                    <span style={{ fontSize: 9.5, opacity: 0.8 }}>(±{item.lastVisitLocation.accuracy}m)</span>
+                  )}
+                </a>
+              </div>
             </div>
           </div>
 
