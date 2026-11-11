@@ -271,6 +271,17 @@ function SearchContent() {
     return combined
   })()
 
+  // ── Pagination côté client en mode GPS ──────────────────────────────────────
+  // Les résultats OSM sont récupérés en bloc (sans pagination serveur).
+  // On applique une fenêtre glissante de PAGE_SIZE éléments pour respecter
+  // la configuration de pagination de l'application (10 résultats par page).
+  const GPS_PAGE_SIZE = 10
+  const gpsTotalPages = isGpsMode ? Math.max(1, Math.ceil(mergedResults.length / GPS_PAGE_SIZE)) : 0
+  const gpsPageStart = isGpsMode ? (currentPage - 1) * GPS_PAGE_SIZE : 0
+  const pagedResults = isGpsMode
+    ? mergedResults.slice(gpsPageStart, gpsPageStart + GPS_PAGE_SIZE)
+    : mergedResults
+
   return (
     <AppShell>
       {/* Barre de recherche — fixe sur Desktop (sticky), défile normalement sur Mobile */}
@@ -315,6 +326,7 @@ function SearchContent() {
                     ? `0 ${t('search.companiesFound')}`
                     : undefined
               }
+              // pagedResults utilisé dans le rendu ci-dessous pour respecter PAGE_SIZE=10
               actions={<SaveCurrentSearchButton filters={filters} results={mergedResults} />}
             >
               {searchQuery.isLoading && mergedResults.length === 0 ? (
@@ -364,7 +376,9 @@ function SearchContent() {
               ) : null}
               {mergedResults.length > 0 ? (
                 <>
-                  <CompaniesSearchResults items={mergedResults} />
+                  {/* En mode GPS, on affiche la tranche paginée (10 / page) ;
+                      En mode classique, mergedResults === pagedResults (pas de slice GPS) */}
+                  <CompaniesSearchResults items={pagedResults} />
 
                   {/* Indicateur de chargement OSM en mode GPS */}
                   {isGpsMode && osmSearch.isLoading && (
@@ -399,8 +413,10 @@ function SearchContent() {
                     </div>
                   )}
 
-                  {/* Pagination Controls */}
-                  {totalPages > 1 && (
+                  {/* Pagination Controls
+                      - Mode GPS : pagination côté client sur mergedResults (tranche de GPS_PAGE_SIZE)
+                      - Mode classique : pagination côté serveur (totalPages depuis l'API) */}
+                  {(isGpsMode ? gpsTotalPages > 1 : totalPages > 1) && (
                     <div
                       style={{
                         marginTop: 24,
@@ -434,13 +450,13 @@ function SearchContent() {
                           fontWeight: 600
                         }}
                       >
-                        Page {currentPage} / {totalPages} • 10 / page
+                        Page {currentPage} / {isGpsMode ? gpsTotalPages : totalPages} • 10 / page
                       </span>
 
                       <Button
                         variant="primary"
                         size="sm"
-                        disabled={currentPage >= totalPages || searchQuery.isLoading}
+                        disabled={currentPage >= (isGpsMode ? gpsTotalPages : totalPages) || searchQuery.isLoading}
                         onClick={() => {
                           setIsBackAction(false)
                           setCurrentPage((p) => p + 1)
