@@ -2,7 +2,10 @@ import { describe, it, expect } from 'vitest'
 import {
   osmTagsToSector,
   osmNodeToCompany,
-  buildOverpassQuery
+  buildOverpassQuery,
+  buildPhotonBbox,
+  photonFeatureToCompany,
+  type PhotonFeature
 } from '../useOverpassSearch'
 
 describe('useOverpassSearch helpers', () => {
@@ -57,5 +60,45 @@ describe('useOverpassSearch helpers', () => {
     expect(query).toContain('[out:json]')
     expect(query).toContain('(around:5000,4.05,9.7)')
     expect(query).toContain('out center 60;')
+  })
+
+  it('builds a bounding box for Photon around GPS position and radius', () => {
+    const bbox = buildPhotonBbox(4.05, 9.7, 5)
+    const parts = bbox.split(',')
+    expect(parts).toHaveLength(4)
+    const [minLon, minLat, maxLon, maxLat] = parts.map(Number)
+    expect(minLon).toBeLessThan(9.7)
+    expect(maxLon).toBeGreaterThan(9.7)
+    expect(minLat).toBeLessThan(4.05)
+    expect(maxLat).toBeGreaterThan(4.05)
+  })
+
+  it('converts a Photon feature to a valid Company object with accurate distance', () => {
+    const feature: PhotonFeature = {
+      type: 'Feature',
+      properties: {
+        osm_id: 998877,
+        osm_type: 'N',
+        osm_key: 'amenity',
+        osm_value: 'bank',
+        name: 'Société Générale Cameroun Bonanjo',
+        street: 'Rue Joss',
+        city: 'Douala',
+        state: 'Littoral'
+      },
+      geometry: {
+        type: 'Point',
+        coordinates: [9.689, 4.045] // [lon, lat]
+      }
+    }
+
+    const company = photonFeatureToCompany(feature, 4.05, 9.7)
+    expect(company).not.toBeNull()
+    expect(company?.id).toBe('osm_N_998877')
+    expect(company?.raisonSociale).toBe('Société Générale Cameroun Bonanjo')
+    expect(company?.sector).toBe('Finance & Banque')
+    expect(company?._source).toBe('osm_live')
+    expect(company?.distanceKm).toBeGreaterThan(0)
+    expect(company?.distanceFormatted).toBeDefined()
   })
 })

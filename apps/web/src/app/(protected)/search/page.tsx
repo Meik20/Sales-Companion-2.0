@@ -219,18 +219,24 @@ function SearchContent() {
   const totalResults = searchData?.total ?? 0
   const totalPages = searchData?.totalPages ?? 0
 
-  // ── OSM Overpass (client-side, navigateur → Overpass API) ──────────────────
+  // ── Recherche OpenStreetMap en direct (ancrée sur la position GPS exacte) ──
   // Actif uniquement en mode "Autour de moi" (lat + lng présents), page 1
   const isGpsMode = Boolean(filters.lat && filters.lng)
+  const rawRadius = filters.radius ? parseFloat(filters.radius) : 10
+  // Normalisation du rayon : si > 100, la valeur reçue est en mètres (ex: 5000), sinon en km
+  const parsedRadiusKm = rawRadius > 100 ? rawRadius / 1000 : rawRadius
+
   const osmSearch = useOverpassSearch({
     lat: isGpsMode ? parseFloat(filters.lat!) : null,
     lng: isGpsMode ? parseFloat(filters.lng!) : null,
-    radiusKm: filters.radius ? parseFloat(filters.radius) : 10,
-    enabled: isGpsMode && currentPage === 1
+    radiusKm: parsedRadiusKm,
+    enabled: isGpsMode && currentPage === 1,
+    sector: filters.sector
   })
 
-  // Fusion résultats Supabase + OSM — les résultats OSM sont ajoutés après,
-  // dédoublonnés par nom normalisé vs résultats Supabase existants, et triés par distance
+  // Fusion des résultats Supabase + OpenStreetMap
+  // Les établissements sont dédoublonnés et strictement ordonnés par distance croissante
+  // partant du point GPS exact de l'utilisateur.
   const mergedResults = (() => {
     if (!isGpsMode || osmSearch.items.length === 0) return results
     const existingNames = new Set(
@@ -241,8 +247,16 @@ function SearchContent() {
       return key.length > 0 && !existingNames.has(key)
     })
     const combined = [...results, ...osmNew]
-    if (!filters.query) {
+
+    if (isGpsMode && !filters.query) {
       combined.sort((a, b) => {
+        // 1. Priorité absolue aux fiches avec distance métrique vérifiée
+        const aHasExact = Boolean(a.distanceFormatted)
+        const bHasExact = Boolean(b.distanceFormatted)
+        if (aHasExact && !bHasExact) return -1
+        if (!aHasExact && bHasExact) return 1
+
+        // 2. Tri strictement croissant par distance (du plus proche au plus lointain)
         if (typeof a.distanceKm === 'number' && typeof b.distanceKm === 'number') {
           return a.distanceKm - b.distanceKm
         }
