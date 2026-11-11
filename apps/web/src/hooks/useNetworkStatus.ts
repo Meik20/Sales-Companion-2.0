@@ -75,7 +75,9 @@ export function useNetworkStatus(): NetworkStatus {
     try {
       setIsChecking(true)
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 3500)
+      // Timeout généreux (8s) pour absorber les latences mobiles africaines
+      // et les cold-starts Vercel, sans faussement déclarer l'appareil hors-ligne.
+      const timeoutId = setTimeout(() => controller.abort(), 8000)
 
       const res = await fetch(`/api/health?t=${Date.now()}`, {
         method: 'GET',
@@ -86,16 +88,48 @@ export function useNetworkStatus(): NetworkStatus {
 
       clearTimeout(timeoutId)
 
-      if (res.ok && res.status === 200) {
+      // /api/health répond toujours 200 si le serveur est atteignable.
+      // On considère l'appareil en ligne dès que le serveur répond avec un code < 500.
+      if (res.status < 500) {
         setHasRealInternet(true)
         return true
       } else {
-        // Status 503 from Service Worker or non-200 from server = no data
+        // 503+ = serveur indisponible (crash Vercel, maintenance) ≠ pas de connexion
+        // On effectue un 2ème essai après 1s avant de déclarer hors-ligne
+        await new Promise((r) => setTimeout(r, 1000))
+        try {
+          const retry = await fetch(`/api/health?t=${Date.now()}&retry=1`, {
+            method: 'GET',
+            cache: 'no-store',
+            signal: AbortSignal.timeout(5000)
+          })
+          if (retry.status < 500) {
+            setHasRealInternet(true)
+            return true
+          }
+        } catch {
+          // 2ème tentative aussi échouée
+        }
         setHasRealInternet(false)
         return false
       }
     } catch {
-      // Failed to fetch or timeout = no data / out of credit / offline
+      // Timeout AbortController ou erreur réseau réelle
+      // On tente un fallback sur une ressource statique publique déjà en cache SW
+      try {
+        const fallback = await fetch('/favicon.svg', {
+          method: 'HEAD',
+          cache: 'force-cache',
+          signal: AbortSignal.timeout(3000)
+        })
+        if (fallback.ok) {
+          // La ressource statique est atteignable (depuis cache ou réseau) → online
+          setHasRealInternet(true)
+          return true
+        }
+      } catch {
+        // Réellement hors ligne
+      }
       setHasRealInternet(false)
       return false
     } finally {
@@ -142,12 +176,14 @@ export function useNetworkStatus(): NetworkStatus {
       } catch {}
     }
 
-    // Ping every 25 seconds while tab is active to detect data exhaustion or drops in real time
+    // Ping every 60 seconds while tab is active.
+    // 25s was too aggressive on mobile: wasted battery and caused false-offline
+    // triggers during momentary network transitions (WiFi handover, 4G→3G, etc.)
     const interval = setInterval(() => {
       if (document.visibilityState === 'visible' && !isManualOffline) {
         checkConnectivity()
       }
-    }, 25000)
+    }, 60000)
 
     window.addEventListener('online', handleOnline)
     window.addEventListener('offline', handleOffline)
