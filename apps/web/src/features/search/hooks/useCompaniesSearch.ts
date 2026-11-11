@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { auth } from '@/services/firebase/client'
 import { useProspectingCountry } from '@/hooks/useProspectingCountry'
 import { getCachedSearchResults, saveSearchResults } from '@/lib/search-cache'
 import { isMobileRuntime } from '@/lib/runtime'
@@ -105,7 +106,27 @@ export function useCompaniesSearch(filters: SearchFilters & { page?: number; cha
       if (filters.charge === false) params.append('charge', 'false')
 
       // Passer le token pour déduire un crédit côté serveur
-      let token = user ? await user.getIdToken() : null
+      let token: string | null = null
+      try {
+        if (auth.currentUser) {
+          token = await auth.currentUser.getIdToken()
+        } else if (user) {
+          token = await user.getIdToken()
+        }
+      } catch (tokenErr) {
+        console.warn('[useCompaniesSearch] Token attempt 1 warning:', tokenErr)
+      }
+
+      if (!token && typeof (auth as any).authStateReady === 'function') {
+        try {
+          await (auth as any).authStateReady()
+          if (auth.currentUser) {
+            token = await auth.currentUser.getIdToken()
+          }
+        } catch (readyErr) {
+          console.warn('[useCompaniesSearch] authStateReady warning:', readyErr)
+        }
+      }
 
       try {
         let response = await fetch(`/api/search/companies?${params}`, {
@@ -113,18 +134,40 @@ export function useCompaniesSearch(filters: SearchFilters & { page?: number; cha
         })
 
         // En cas de token expiré ou désynchronisé (401), rafraîchir le token Firebase et réessayer
-        if (response.status === 401 && user) {
+        if (response.status === 401 && (auth.currentUser || user)) {
           try {
-            token = await user.getIdToken(true)
-            response = await fetch(`/api/search/companies?${params}`, {
-              headers: token ? { Authorization: `Bearer ${token}` } : {}
-            })
+            let refreshedToken: string | null = null
+            if (auth.currentUser) {
+              refreshedToken = await auth.currentUser.getIdToken(true)
+            } else if (user) {
+              refreshedToken = await user.getIdToken(true)
+            }
+            if (refreshedToken) {
+              token = refreshedToken
+              response = await fetch(`/api/search/companies?${params}`, {
+                headers: { Authorization: `Bearer ${refreshedToken}` }
+              })
+            }
           } catch {
             // Continuer vers le traitement standard des erreurs
           }
         }
 
         if (!response.ok) {
+          // Mode GPS ("Autour de moi") : si la base interne répond en 401 ou indisponible,
+          // on ne bloque pas l'écran pour permettre à OpenStreetMap (moteur local/live)
+          // d'afficher les entreprises réelles trouvées autour de l'utilisateur.
+          if (filters.lat && filters.lng) {
+            console.warn('[useCompaniesSearch] Erreur recherche interne en mode GPS (statut ' + response.status + '), repli gracieux vers OSM.')
+            return {
+              items: [],
+              total: 0,
+              page: filters.page || 1,
+              pageSize: 10,
+              totalPages: 0
+            }
+          }
+
           let errMessage = 'Failed to search companies'
           try {
             const errData = await response.json()

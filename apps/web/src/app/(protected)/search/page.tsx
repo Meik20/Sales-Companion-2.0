@@ -207,6 +207,9 @@ function SearchContent() {
     const lat = searchParams.get('lat') || undefined
     const lng = searchParams.get('lng') || undefined
     const radius = searchParams.get('radius') || undefined
+    const pageParam = searchParams.get('page')
+    const pageNum = pageParam ? parseInt(pageParam, 10) : 1
+    setCurrentPage(isNaN(pageNum) || pageNum < 1 ? 1 : pageNum)
     if (sector || region || city || query || lat || lng) {
       setFilters({ sector, region, city, query, lat, lng, radius })
       setHasSearched(true)
@@ -306,13 +309,15 @@ function SearchContent() {
             <DataCard
               title={t('search.results')}
               subtitle={
-                !searchQuery.isLoading && !searchQuery.isError
+                mergedResults.length > 0
                   ? `${isGpsMode ? mergedResults.length : totalResults} ${t('search.companiesFound')}${searchData?.fromCache ? ` • 💾 ${t('offline.cachedResults')}` : ''}${isGpsMode && osmSearch.items.length > 0 ? ` • ${osmSearch.items.length} OSM` : ''}`
-                  : undefined
+                  : !searchQuery.isLoading && !searchQuery.isError
+                    ? `0 ${t('search.companiesFound')}`
+                    : undefined
               }
               actions={<SaveCurrentSearchButton filters={filters} results={mergedResults} />}
             >
-              {searchQuery.isLoading ? (
+              {searchQuery.isLoading && mergedResults.length === 0 ? (
                 <div
                   style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '6px 0' }}
                 >
@@ -321,7 +326,7 @@ function SearchContent() {
                   ))}
                 </div>
               ) : null}
-              {searchQuery.isError ? (
+              {searchQuery.isError && mergedResults.length === 0 ? (
                 <div
                   style={{
                     padding: '12px 16px',
@@ -342,7 +347,7 @@ function SearchContent() {
                 </div>
               ) : null}
 
-              {!searchQuery.isLoading && !searchQuery.isError && results.length === 0 ? (
+              {!searchQuery.isLoading && !osmSearch.isLoading && mergedResults.length === 0 && !searchQuery.isError ? (
                 <EmptyState
                   illustration="/illustrations/empty-states/empty-search.png"
                   title={t('search.noResult')}
@@ -357,7 +362,7 @@ function SearchContent() {
                   }}
                 />
               ) : null}
-              {!searchQuery.isLoading && !searchQuery.isError && mergedResults.length > 0 ? (
+              {mergedResults.length > 0 ? (
                 <>
                   <CompaniesSearchResults items={mergedResults} />
 
