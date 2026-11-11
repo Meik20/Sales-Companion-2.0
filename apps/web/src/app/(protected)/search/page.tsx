@@ -12,6 +12,7 @@ import {
 } from '@/features/search/components/CompaniesSearchResults'
 import { SaveCurrentSearchButton } from '@/features/search/components/SaveCurrentSearchButton'
 import { useCompaniesSearch } from '@/features/search/hooks/useCompaniesSearch'
+import { useOverpassSearch } from '@/features/search/hooks/useOverpassSearch'
 import { usePipelineStats } from '@/features/pipeline/hooks/usePipelineStats'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useProspectingCountry } from '@/hooks/useProspectingCountry'
@@ -218,6 +219,41 @@ function SearchContent() {
   const totalResults = searchData?.total ?? 0
   const totalPages = searchData?.totalPages ?? 0
 
+  // ── OSM Overpass (client-side, navigateur → Overpass API) ──────────────────
+  // Actif uniquement en mode "Autour de moi" (lat + lng présents), page 1
+  const isGpsMode = Boolean(filters.lat && filters.lng)
+  const osmSearch = useOverpassSearch({
+    lat: isGpsMode ? parseFloat(filters.lat!) : null,
+    lng: isGpsMode ? parseFloat(filters.lng!) : null,
+    radiusKm: filters.radius ? parseFloat(filters.radius) : 10,
+    enabled: isGpsMode && currentPage === 1
+  })
+
+  // Fusion résultats Supabase + OSM — les résultats OSM sont ajoutés après,
+  // dédoublonnés par nom normalisé vs résultats Supabase existants, et triés par distance
+  const mergedResults = (() => {
+    if (!isGpsMode || osmSearch.items.length === 0) return results
+    const existingNames = new Set(
+      results.map((c) => (c.raisonSociale || c.name || '').toLowerCase().replace(/\s+/g, ''))
+    )
+    const osmNew = osmSearch.items.filter((c) => {
+      const key = (c.raisonSociale || c.name || '').toLowerCase().replace(/\s+/g, '')
+      return key.length > 0 && !existingNames.has(key)
+    })
+    const combined = [...results, ...osmNew]
+    if (!filters.query) {
+      combined.sort((a, b) => {
+        if (typeof a.distanceKm === 'number' && typeof b.distanceKm === 'number') {
+          return a.distanceKm - b.distanceKm
+        }
+        if (typeof a.distanceKm === 'number') return -1
+        if (typeof b.distanceKm === 'number') return 1
+        return 0
+      })
+    }
+    return combined
+  })()
+
   return (
     <AppShell>
       {/* Barre de recherche — fixe sur Desktop (sticky), défile normalement sur Mobile */}
@@ -257,10 +293,10 @@ function SearchContent() {
               title={t('search.results')}
               subtitle={
                 !searchQuery.isLoading && !searchQuery.isError
-                  ? `${totalResults} ${t('search.companiesFound')}${searchData?.fromCache ? ` • 💾 ${t('offline.cachedResults')}` : ''}`
+                  ? `${isGpsMode ? mergedResults.length : totalResults} ${t('search.companiesFound')}${searchData?.fromCache ? ` • 💾 ${t('offline.cachedResults')}` : ''}${isGpsMode && osmSearch.items.length > 0 ? ` • ${osmSearch.items.length} OSM` : ''}`
                   : undefined
               }
-              actions={<SaveCurrentSearchButton filters={filters} results={results} />}
+              actions={<SaveCurrentSearchButton filters={filters} results={mergedResults} />}
             >
               {searchQuery.isLoading ? (
                 <div
@@ -307,9 +343,42 @@ function SearchContent() {
                   }}
                 />
               ) : null}
-              {!searchQuery.isLoading && !searchQuery.isError && results.length > 0 ? (
+              {!searchQuery.isLoading && !searchQuery.isError && mergedResults.length > 0 ? (
                 <>
-                  <CompaniesSearchResults items={results} />
+                  <CompaniesSearchResults items={mergedResults} />
+
+                  {/* Indicateur de chargement OSM en mode GPS */}
+                  {isGpsMode && osmSearch.isLoading && (
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        padding: '10px 14px',
+                        borderRadius: 8,
+                        background: 'rgba(20,184,166,0.07)',
+                        border: '1px solid rgba(20,184,166,0.2)',
+                        fontSize: 12,
+                        color: 'var(--muted-foreground)'
+                      }}
+                    >
+                      <span
+                        style={{
+                          display: 'inline-block',
+                          width: 14,
+                          height: 14,
+                          borderRadius: '50%',
+                          border: '2px solid currentColor',
+                          borderTopColor: 'transparent',
+                          animation: 'spin 0.8s linear infinite',
+                          flexShrink: 0
+                        }}
+                      />
+                      {lang === 'en'
+                        ? 'Searching OpenStreetMap nearby businesses…'
+                        : 'Recherche des établissements OpenStreetMap à proximité…'}
+                    </div>
+                  )}
 
                   {/* Pagination Controls */}
                   {totalPages > 1 && (

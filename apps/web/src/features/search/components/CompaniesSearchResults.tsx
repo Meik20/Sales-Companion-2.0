@@ -174,6 +174,15 @@ export function CompaniesSearchResults({ items }: Props) {
                         Live Map
                       </span>
                     )}
+
+                    {(company._source as string) === 'osm_live' && (
+                      <span
+                        className="inline-flex items-center gap-0.5 text-[10px] font-bold text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/40 px-1.5 py-0.5 rounded border border-teal-200 dark:border-teal-800/40 shrink-0"
+                        title="Établissement trouvé via OpenStreetMap dans votre rayon"
+                      >
+                        OSM Live
+                      </span>
+                    )}
                   </div>
 
                   {/* Ligne 2 : Ville/Région + Téléphone + Email */}

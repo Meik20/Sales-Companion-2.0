@@ -24,7 +24,7 @@ export type Company = {
   capital?: string
   verified?: boolean
   // For google maps / live results:
-  _source?: 'google_places' | 'live_places'
+  _source?: 'google_places' | 'live_places' | 'osm_live'
   googlePlaceId?: string
   rating?: number
   distanceKm?: number
