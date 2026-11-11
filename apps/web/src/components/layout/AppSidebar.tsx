@@ -233,6 +233,18 @@ export function AppSidebar({
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  // Écoute de l'événement global de réinitialisation de recherche
+  useEffect(() => {
+    const handleReset = () => {
+      setRegion('')
+      setCity('')
+      setSector('')
+      setGeoState('idle')
+    }
+    window.addEventListener('sc_search_reset', handleReset)
+    return () => window.removeEventListener('sc_search_reset', handleReset)
+  }, [])
   const isDark = mounted ? (resolvedTheme || theme) === 'dark' : false
 
   // Pipeline stats for badge

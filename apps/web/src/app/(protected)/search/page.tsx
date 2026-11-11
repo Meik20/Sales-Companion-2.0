@@ -215,6 +215,13 @@ function SearchContent() {
     if (sector || region || city || query || lat || lng || ts) {
       setFilters({ sector, region, city, query, lat, lng, radius, ts })
       setHasSearched(true)
+    } else {
+      // Aucun paramètre dans l'URL = retour strict à l'accueil neutre de prospection
+      setFilters({})
+      setHasSearched(false)
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('sc_search_reset'))
+      }
     }
   }, [searchParams])
 
@@ -292,16 +299,27 @@ function SearchContent() {
         <SearchFiltersForm
           initialValues={filters}
           onSubmit={(v) => {
+            const hasAny = Boolean(v.query || v.sector || v.region || v.city || v.lat || v.lng)
             setFilters(v)
             setCurrentPage(1)
             setIsBackAction(false)
-            setHasSearched(true)
+            setHasSearched(hasAny)
+            if (!hasAny) {
+              router.replace('/search')
+              if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('sc_search_reset'))
+              }
+            }
           }}
           onHome={() => {
             setFilters({})
             setCurrentPage(1)
             setIsBackAction(false)
             setHasSearched(false)
+            router.replace('/search')
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new CustomEvent('sc_search_reset'))
+            }
           }}
         />
       </div>
@@ -372,6 +390,11 @@ function SearchContent() {
                     onClick: () => {
                       setFilters({})
                       setCurrentPage(1)
+                      setHasSearched(false)
+                      router.replace('/search')
+                      if (typeof window !== 'undefined') {
+                        window.dispatchEvent(new CustomEvent('sc_search_reset'))
+                      }
                     },
                     variant: 'outline'
                   }}

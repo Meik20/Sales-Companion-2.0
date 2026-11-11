@@ -109,7 +109,31 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit, onHome }: Prop
     setSector(initialValues.sector ?? '')
     setRegion(initialValues.region ?? '')
     setCity(initialValues.city ?? '')
-  }, [initialValues.query, initialValues.sector, initialValues.region, initialValues.city])
+    if (!initialValues.lat && !initialValues.lng) {
+      setGeoState('idle')
+      setGeoMsg('')
+    }
+  }, [
+    initialValues.query,
+    initialValues.sector,
+    initialValues.region,
+    initialValues.city,
+    initialValues.lat,
+    initialValues.lng
+  ])
+
+  useEffect(() => {
+    const onReset = () => {
+      setQuery('')
+      setSector('')
+      setRegion('')
+      setCity('')
+      setGeoState('idle')
+      setGeoMsg('')
+    }
+    window.addEventListener('sc_search_reset', onReset)
+    return () => window.removeEventListener('sc_search_reset', onReset)
+  }, [])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
