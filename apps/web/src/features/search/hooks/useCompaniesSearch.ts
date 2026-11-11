@@ -105,12 +105,24 @@ export function useCompaniesSearch(filters: SearchFilters & { page?: number; cha
       if (filters.charge === false) params.append('charge', 'false')
 
       // Passer le token pour déduire un crédit côté serveur
-      const token = user ? await user.getIdToken() : null
+      let token = user ? await user.getIdToken() : null
 
       try {
-        const response = await fetch(`/api/search/companies?${params}`, {
+        let response = await fetch(`/api/search/companies?${params}`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {}
         })
+
+        // En cas de token expiré ou désynchronisé (401), rafraîchir le token Firebase et réessayer
+        if (response.status === 401 && user) {
+          try {
+            token = await user.getIdToken(true)
+            response = await fetch(`/api/search/companies?${params}`, {
+              headers: token ? { Authorization: `Bearer ${token}` } : {}
+            })
+          } catch {
+            // Continuer vers le traitement standard des erreurs
+          }
+        }
 
         if (!response.ok) {
           let errMessage = 'Failed to search companies'
@@ -159,7 +171,7 @@ export function useCompaniesSearch(filters: SearchFilters & { page?: number; cha
         throw err
       }
     },
-    enabled: hasFilters,
+    enabled: hasFilters && Boolean(user),
     staleTime: 1000 * 60 * 2
   })
 }

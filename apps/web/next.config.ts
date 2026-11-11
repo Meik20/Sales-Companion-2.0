@@ -51,7 +51,7 @@ const nextConfig: NextConfig = {
               `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
               `font-src 'self' https://fonts.gstatic.com`,
               `img-src 'self' data: blob: https://maps.googleapis.com https://maps.gstatic.com https://api.qrserver.com https://www.google-analytics.com https://www.googletagmanager.com https://*.google.com https://*.google.cm https://*.googleadservices.com https://*.doubleclick.net`,
-              `connect-src 'self' ${APP_URL} https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com https://*.firebaseio.com https://*.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com wss://*.firebaseio.com https://apis.google.com https://auth.salescompanion2-0.com https://*.google.com https://*.google.cm https://*.googleadservices.com https://*.doubleclick.net`,
+              `connect-src 'self' ${APP_URL} https://photon.komoot.io https://*.openstreetmap.org https://overpass-api.de https://nominatim.openstreetmap.org https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com https://region1.google-analytics.com https://*.firebaseio.com https://*.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com wss://*.firebaseio.com https://apis.google.com https://auth.salescompanion2-0.com https://*.google.com https://*.google.cm https://*.googleadservices.com https://*.doubleclick.net`,
               `frame-src 'self' https://apis.google.com https://*.firebaseapp.com https://auth.salescompanion2-0.com https://*.doubleclick.net https://*.google.com`,
               `object-src 'none'`,
               `base-uri 'self'`,

@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ notifications })
   } catch (error) {
     console.error('[GET /api/notifications] Error:', error)
-    return NextResponse.json({ message: 'Erreur serveur' }, { status: 500 })
+    return NextResponse.json({ notifications: [] })
   }
 }
 

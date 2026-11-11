@@ -335,22 +335,56 @@ export function useOverpassSearch(params: {
     const controller = new AbortController()
     abortRef.current = controller
 
+    const userLat = lat
+    const userLng = lng
+
     // Normalisation : radiusKm doit être en kilomètres (ex: 5 pour 5km)
     const effectiveRadiusKm = radiusKm > 100 ? radiusKm / 1000 : radiusKm
-    const bbox = buildPhotonBbox(lat, lng, effectiveRadiusKm)
+    const bbox = buildPhotonBbox(userLat, userLng, effectiveRadiusKm)
     const terms = getSearchTermsForSector(sector)
 
     setState((s) => ({ ...s, isLoading: true, error: null }))
 
     async function fetchOsmPlaces() {
       try {
+        // ── 1. Tentative via l'endpoint interne /api/search/osm (Same-Origin, CSP & Ad-Blocker Safe) ──
+        try {
+          const apiParams = new URLSearchParams()
+          apiParams.set('lat', userLat.toString())
+          apiParams.set('lng', userLng.toString())
+          apiParams.set('radius', effectiveRadiusKm.toString())
+          if (sector) apiParams.set('sector', sector)
+
+          const apiResp = await fetch(`/api/search/osm?${apiParams.toString()}`, {
+            signal: controller.signal
+          })
+
+          if (apiResp.ok) {
+            const apiData = await apiResp.json()
+            if (Array.isArray(apiData.items) && apiData.items.length > 0) {
+              if (!controller.signal.aborted) {
+                setState({
+                  items: apiData.items,
+                  isLoading: false,
+                  error: null,
+                  source: 'OpenStreetMap (OSM Local Engine)'
+                })
+              }
+              return
+            }
+          }
+        } catch (apiErr: any) {
+          if (apiErr?.name === 'AbortError') return
+          // Repli direct client-side ci-dessous
+        }
+
         const seenIds = new Set<string>()
         const seenNames = new Set<string>()
         const collectedCompanies: Company[] = []
 
-        // ── 1. Interrogation Photon (OpenStreetMap Elasticsearch) ────────────
+        // ── 2. Repli direct vers Photon (OpenStreetMap Elasticsearch) ────────
         const photonFetches = terms.map(async (term) => {
-          const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(term)}&lat=${lat}&lon=${lng}&limit=8&bbox=${bbox}`
+          const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(term)}&lat=${userLat}&lon=${userLng}&limit=8&bbox=${bbox}`
           try {
             const resp = await fetch(url, { signal: controller.signal })
             if (!resp.ok) return []
@@ -367,7 +401,7 @@ export function useOverpassSearch(params: {
 
         for (const features of resultsArrays) {
           for (const feat of features) {
-            const company = photonFeatureToCompany(feat, lat, lng)
+            const company = photonFeatureToCompany(feat, userLat, userLng)
             if (!company) continue
 
             // Vérification stricte du rayon demandé (avec tolérance de 15% pour les limites de quartier)
@@ -387,7 +421,7 @@ export function useOverpassSearch(params: {
           }
         }
 
-        // ── 2. Tri strict par distance croissante (du plus proche au plus lointain) ──
+        // ── 3. Tri strict par distance croissante (du plus proche au plus lointain) ──
         collectedCompanies.sort((a, b) => {
           const distA = typeof a.distanceKm === 'number' ? a.distanceKm : 9999
           const distB = typeof b.distanceKm === 'number' ? b.distanceKm : 9999
