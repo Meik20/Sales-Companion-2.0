@@ -23,10 +23,12 @@ export type Company = {
   formeJuridique?: string
   capital?: string
   verified?: boolean
-  // For google maps results:
-  _source?: 'google_places'
+  // For google maps / live results:
+  _source?: 'google_places' | 'live_places'
   googlePlaceId?: string
   rating?: number
+  distanceKm?: number
+  distanceFormatted?: string
   // Champs additionnels dynamiques
   [key: string]: unknown
 }
@@ -127,14 +129,14 @@ export function useCompaniesSearch(filters: SearchFilters & { page?: number; cha
               }
             }
             if (errData?.message) errMessage = errData.message
-          } catch (e) {}
+          } catch (e) { }
           throw new Error(errMessage)
         }
 
         const data = (await response.json()) as SearchResponse
         if (mobileRuntime && data.items) {
           // Asynchronously save results in IndexedDB for offline retrieval
-          saveSearchResults(cacheFilters, data.items, data.total).catch(() => {})
+          saveSearchResults(cacheFilters, data.items, data.total).catch(() => { })
         }
         return data
       } catch (err: any) {

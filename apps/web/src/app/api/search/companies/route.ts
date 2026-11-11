@@ -4,6 +4,11 @@ import { getClientIp, checkRateLimit, checkRateLimitByUser } from '@/lib/rate-li
 import { PLAN_LIMITS, COUNTRY_NAMES } from '@sales-companion/shared'
 import { isSupabaseCompaniesConfigured, searchSupabaseCompanies } from '@/lib/supabase-companies'
 import {
+  calculateDistanceKm,
+  formatDistance,
+  resolveCompanyCoordinates
+} from '@/lib/geo-zones'
+import {
   hasCrossCountryAccess,
   CROSS_COUNTRY_ERROR_CODE,
   CROSS_COUNTRY_ERROR_MESSAGE
@@ -198,19 +203,34 @@ export async function GET(request: NextRequest) {
                   ? isWithinCountry(Number(location.lat), Number(location.lng), userCountry)
                   : normalize(place.formatted_address || '').includes(normalize(countryName))
               })
-              .map((place: any) => ({
-                id: place.place_id,
-                raisonSociale: place.name,
-                adresse: place.formatted_address || place.vicinity || '',
-                city: place.vicinity || '',
-                sector: place.types?.join(', ') || sector || '',
-                region: region || '',
-                country: userCountry,
-                _source: 'google_places',
-                googlePlaceId: place.place_id,
-                rating: place.rating,
-                telephone: ''
-              }))
+              .map((place: any) => {
+                const loc = place.geometry?.location
+                const pLat = loc?.lat ? Number(loc.lat) : undefined
+                const pLng = loc?.lng ? Number(loc.lng) : undefined
+                let distKm: number | undefined = undefined
+                let distFormatted: string | undefined = undefined
+                if (pLat && pLng && lat && lng) {
+                  distKm = calculateDistanceKm(Number(lat), Number(lng), pLat, pLng)
+                  distFormatted = formatDistance(distKm)
+                }
+                return {
+                  id: place.place_id,
+                  raisonSociale: place.name,
+                  adresse: place.formatted_address || place.vicinity || '',
+                  city: place.vicinity || '',
+                  sector: place.types?.join(', ') || sector || '',
+                  region: region || '',
+                  country: userCountry,
+                  _source: 'google_places',
+                  googlePlaceId: place.place_id,
+                  rating: place.rating,
+                  telephone: place.formatted_phone_number || '',
+                  lat: pLat,
+                  lng: pLng,
+                  distanceKm: distKm ? Math.round(distKm * 10) / 10 : undefined,
+                  distanceFormatted: distFormatted
+                }
+              })
           }
         }
       } catch (err) {
@@ -562,18 +582,52 @@ export async function GET(request: NextRequest) {
       return kws.some((kw) => nData.includes(kw))
     }
 
-    if (region) {
-      internalCompanies = internalCompanies.filter((c) =>
-        matchLocationKeywords(c.region as string, region)
-      )
-    }
     if (city) {
       internalCompanies = internalCompanies.filter((c) =>
         matchLocationKeywords(c.city as string, city)
       )
+    } else if (region) {
+      internalCompanies = internalCompanies.filter((c) =>
+        matchLocationKeywords(c.region as string, region)
+      )
     }
     if (sector) {
       internalCompanies = internalCompanies.filter((c) => matchesSector(c.sector as string, sector))
+    }
+
+    // ── 4.bis Annotation géospatiale & filtrage par rayon ──
+    const userLat = lat ? Number(lat) : undefined
+    const userLng = lng ? Number(lng) : undefined
+    const radiusMeters = radius ? Number(radius) : 10000
+
+    if (userLat && userLng) {
+      const radiusKm = radiusMeters / 1000
+      const geoAnnotated: any[] = []
+
+      for (const comp of internalCompanies) {
+        const coords = resolveCompanyCoordinates(comp)
+        if (coords) {
+          const distKm = calculateDistanceKm(userLat, userLng, coords.lat, coords.lng)
+          // Si un rayon précis est demandé (ex: 5 km), et que le quartier résolu est hors rayon (ex: Bekoko à 14km),
+          // on l'exclut pour respecter rigoureusement le périmètre du commercial
+          if (radiusKm > 0 && distKm > radiusKm * 1.25) {
+            continue
+          }
+          geoAnnotated.push({
+            ...comp,
+            distanceKm: Math.round(distKm * 10) / 10,
+            distanceFormatted: formatDistance(distKm)
+          })
+        } else {
+          // Entreprise sans quartier repéré : on l'inclut avec distance estimée
+          geoAnnotated.push({
+            ...comp,
+            distanceKm: radiusKm > 0 ? Math.round(radiusKm * 0.7 * 10) / 10 : undefined,
+            distanceFormatted: undefined
+          })
+        }
+      }
+      internalCompanies = geoAnnotated
     }
 
     const normQuery = query ? normalize(query) : ''
@@ -613,6 +667,13 @@ export async function GET(request: NextRequest) {
       allCompanies.sort(
         (a, b) => ((b._searchScore as number) ?? 0) - ((a._searchScore as number) ?? 0)
       )
+    } else if (userLat && userLng) {
+      // Tri prioritaire par proximité géographique croissante (les plus proches en premier)
+      allCompanies.sort((a, b) => {
+        const distA = a.distanceKm ?? 999
+        const distB = b.distanceKm ?? 999
+        return distA - distB
+      })
     }
 
     // ── 5.bis Diversification sectorielle (anti-saturation en prospection généraliste) ──
@@ -691,7 +752,11 @@ export async function GET(request: NextRequest) {
     }
 
     const totalCount =
-      sbResult.total > 0 ? Math.max(sbResult.total, allCompanies.length) : allCompanies.length
+      userLat && userLng
+        ? allCompanies.length
+        : sbResult.total > 0
+          ? Math.max(sbResult.total, allCompanies.length)
+          : allCompanies.length
 
     return NextResponse.json({
       items: paginatedCompanies,

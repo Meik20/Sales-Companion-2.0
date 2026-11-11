@@ -283,8 +283,16 @@ export async function searchSupabaseCompanies(params: {
     //    Solution : and=(country_code.eq.CM, city..., region..., or(sector...), or(token1...), or(token2...)...)
     const andParts: string[] = []
     andParts.push(`country_code.eq.${country.toUpperCase()}`)
-    if (city) andParts.push(`city.ilike.*${city}*`)
-    if (region) andParts.push(`region.ilike.*${region}*`)
+    if (city && region) {
+      // Tolérance pour les données sans région explicite (97% des entreprises ont city='Douala' avec region=NULL).
+      // Si la ville correspond, la fiche est incluse quelle que soit la valeur de 'region'.
+      // Si la ville n'est pas renseignée sur la fiche, on utilise la région comme critère de repli.
+      andParts.push(`or(city.ilike.*${city}*,and(city.is.null,region.ilike.*${region}*))`)
+    } else if (city) {
+      andParts.push(`city.ilike.*${city}*`)
+    } else if (region) {
+      andParts.push(`region.ilike.*${region}*`)
+    }
 
     if (sectorOrClause) {
       const sectorInner = sectorOrClause.slice(1, -1)

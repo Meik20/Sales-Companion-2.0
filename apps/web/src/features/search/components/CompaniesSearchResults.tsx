@@ -153,6 +153,27 @@ export function CompaniesSearchResults({ items }: Props) {
                         {String(company.sigle)}
                       </span>
                     )}
+
+                    {Boolean(company.distanceFormatted) && (
+                      <span
+                        className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 dark:bg-emerald-950/50 dark:text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800/60 shrink-0"
+                        title="Distance par rapport à votre position actuelle"
+                      >
+                        <MapPin size={10} className="text-emerald-600 dark:text-emerald-400" />
+                        <span>{String(company.distanceFormatted)}</span>
+                      </span>
+                    )}
+
+                    {Boolean(
+                      company._source === 'google_places' || company._source === 'live_places'
+                    ) && (
+                      <span
+                        className="inline-flex items-center text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 px-1.5 py-0.5 rounded border border-blue-200 dark:border-blue-800/40 shrink-0"
+                        title="Établissement découvert en direct sur la carte"
+                      >
+                        Live Map
+                      </span>
+                    )}
                   </div>
 
                   {/* Ligne 2 : Ville/Région + Téléphone + Email */}

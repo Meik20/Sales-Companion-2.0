@@ -133,3 +133,125 @@ export function findNearestGeoZone(lat: number, lng: number, countryCode = 'CM')
   return best
 }
 
+/**
+ * Coordonnées des quartiers majeurs des métropoles (Douala, Yaoundé, etc.)
+ * Utilisées pour estimer précisément la distance des entreprises de l'annuaire
+ * et appliquer le filtre de rayon géographique (ex: 5 km, 10 km).
+ */
+export const CITY_QUARTERS_COORDINATES: Record<string, { lat: number; lng: number }> = {
+  // ── Douala ──
+  akwa: { lat: 4.051, lng: 9.695 },
+  bonanjo: { lat: 4.043, lng: 9.689 },
+  bali: { lat: 4.038, lng: 9.693 },
+  deido: { lat: 4.065, lng: 9.711 },
+  bonapriso: { lat: 4.032, lng: 9.697 },
+  bepanda: { lat: 4.062, lng: 9.731 },
+  'new bell': { lat: 4.03, lng: 9.715 },
+  makea: { lat: 4.03, lng: 9.715 },
+  makepe: { lat: 4.083, lng: 9.742 },
+  bonamoussadi: { lat: 4.088, lng: 9.735 },
+  kotto: { lat: 4.095, lng: 9.755 },
+  logpom: { lat: 4.081, lng: 9.771 },
+  logbessou: { lat: 4.098, lng: 9.789 },
+  ndogbong: { lat: 4.058, lng: 9.748 },
+  bassa: { lat: 4.048, lng: 9.745 },
+  'pk 8': { lat: 4.048, lng: 9.745 },
+  pk8: { lat: 4.048, lng: 9.745 },
+  'pk 9': { lat: 4.052, lng: 9.752 },
+  'pk 10': { lat: 4.056, lng: 9.76 },
+  'pk 12': { lat: 4.065, lng: 9.775 },
+  'pk 14': { lat: 4.075, lng: 9.79 },
+  ndogpassi: { lat: 4.015, lng: 9.765 },
+  nyalla: { lat: 4.028, lng: 9.775 },
+  yassa: { lat: 3.998, lng: 9.805 },
+  bonaberi: { lat: 4.075, lng: 9.665 },
+  bonaneri: { lat: 4.075, lng: 9.665 },
+  'mbanga bakoko': { lat: 4.005, lng: 9.815 },
+  bekoko: { lat: 4.145, lng: 9.615 },
+  bomono: { lat: 4.152, lng: 9.605 },
+  yabassi: { lat: 4.042, lng: 9.712 },
+
+  // ── Yaoundé ──
+  bastos: { lat: 3.895, lng: 11.512 },
+  mokolo: { lat: 3.878, lng: 11.498 },
+  tsinga: { lat: 3.885, lng: 11.502 },
+  biyem: { lat: 3.838, lng: 11.485 },
+  'biyem-assi': { lat: 3.838, lng: 11.485 },
+  mendong: { lat: 3.825, lng: 11.472 },
+  mvan: { lat: 3.815, lng: 11.515 },
+  nsam: { lat: 3.832, lng: 11.505 },
+  etoudi: { lat: 3.91, lng: 11.53 },
+  omnisports: { lat: 3.875, lng: 11.535 },
+  essos: { lat: 3.872, lng: 11.54 },
+  emana: { lat: 3.925, lng: 11.528 },
+  messassi: { lat: 3.945, lng: 11.535 },
+  olembe: { lat: 3.955, lng: 11.542 }
+}
+
+/**
+ * Calcule la distance orthodromique (Haversine) en kilomètres entre deux coordonnées GPS.
+ */
+export function calculateDistanceKm(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+): number {
+  const R = 6371
+  const dLat = ((lat2 - lat1) * Math.PI) / 180
+  const dLon = ((lon2 - lon1) * Math.PI) / 180
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  return R * c
+}
+
+/**
+ * Formate une distance pour affichage utilisateur (ex: "850 m", "2.4 km").
+ */
+export function formatDistance(distanceKm: number): string {
+  if (distanceKm < 1) {
+    return `${Math.max(50, Math.round(distanceKm * 1000))} m`
+  }
+  return `${distanceKm.toFixed(1)} km`
+}
+
+/**
+ * Tente d'estimer les coordonnées d'une entreprise à partir de son adresse ou nom de quartier.
+ */
+export function resolveCompanyCoordinates(company: {
+  adresse?: string | null
+  city?: string | null
+  region?: string | null
+  raisonSociale?: string | null
+}): { lat: number; lng: number } | null {
+  const text = `${company.adresse || ''} ${company.raisonSociale || ''}`
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+
+  for (const [quarter, coords] of Object.entries(CITY_QUARTERS_COORDINATES)) {
+    const regex = new RegExp(`\\b${quarter}\\b`, 'i')
+    if (regex.test(text)) {
+      return coords
+    }
+  }
+
+  // Fallback si la ville est connue dans le référentiel urbain
+  if (company.city) {
+    const normCity = company.city.toLowerCase().trim()
+    for (const zones of Object.values(COUNTRY_GEO_ZONES)) {
+      const match = zones.find((z) => z.city.toLowerCase() === normCity)
+      if (match) {
+        return { lat: match.lat, lng: match.lng }
+      }
+    }
+  }
+
+  return null
+}
+
