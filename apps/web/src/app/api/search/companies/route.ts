@@ -173,7 +173,13 @@ export async function GET(request: NextRequest) {
 
         if (lat && lng && isWithinCountry(Number(lat), Number(lng), userCountry)) {
           url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&key=${googleApiKey}`
-          if (keyword) url += `&keyword=${encodeURIComponent(keyword)}`
+          if (keyword) {
+            url += `&keyword=${encodeURIComponent(keyword)}`
+          } else {
+            // En prospection B2B sans mot-clé spécifique, cibler les établissements d'activités commerciales
+            // pour éviter d'être saturé uniquement par les POIs de santé d'urgence / pharmacies de garde
+            url += `&type=establishment&keyword=${encodeURIComponent('commerce OR entreprise OR societe OR agence OR magasin')}`
+          }
         } else if (query) {
           const finalQuery = query.toLowerCase().includes(countryName.toLowerCase())
             ? query
@@ -601,12 +607,56 @@ export async function GET(request: NextRequest) {
     }
 
     // ── 5. Fusion et tri par pertinence ──
-    const allCompanies = [...internalCompanies, ...googleResults]
+    let allCompanies = [...internalCompanies, ...googleResults]
 
     if (queryTokens.length > 0) {
       allCompanies.sort(
         (a, b) => ((b._searchScore as number) ?? 0) - ((a._searchScore as number) ?? 0)
       )
+    }
+
+    // ── 5.bis Diversification sectorielle (anti-saturation en prospection généraliste) ──
+    // Quand l'utilisateur n'a pas sélectionné de secteur spécifique et n'a pas tapé de recherche
+    // ciblant la santé (ex: "Autour de moi" avec tous secteurs), on empêche qu'une seule catégorie
+    // (notamment pharmacies/santé) ne monopolise 100% des résultats affichés.
+    const userSearchedHealth = Boolean(
+      query && /pharmaci|officine|dispensaire|sante|clinique|medical|hopital/i.test(query)
+    )
+    if (!sector && !userSearchedHealth) {
+      const isHealth = (c: any) => {
+        const text = `${c.raisonSociale || ''} ${c.sector || ''}`.toLowerCase()
+        return /pharmaci|officine|dispensaire|sante|clinique|medical|hopital/i.test(text)
+      }
+
+      const healthList: any[] = []
+      const otherList: any[] = []
+
+      for (const comp of allCompanies) {
+        if (isHealth(comp)) {
+          healthList.push(comp)
+        } else {
+          otherList.push(comp)
+        }
+      }
+
+      // S'il existe des entreprises d'autres secteurs disponibles, on intercale :
+      // Au maximum 2 établissements de santé par tranche de 10 résultats, complétés par
+      // des entreprises des autres filières (BTP, Commerce, Services, Transport, Agro, etc.).
+      if (otherList.length > 0 && healthList.length > 0) {
+        const balanced: any[] = []
+        let hIdx = 0
+        let oIdx = 0
+
+        while (oIdx < otherList.length || hIdx < healthList.length) {
+          for (let i = 0; i < 4 && oIdx < otherList.length; i++) {
+            balanced.push(otherList[oIdx++])
+          }
+          if (hIdx < healthList.length) {
+            balanced.push(healthList[hIdx++])
+          }
+        }
+        allCompanies = balanced
+      }
     }
 
     // ── 6. Pagination (Plafond factuel fixé à 10 résultats par requête) ──

@@ -189,30 +189,7 @@ const SECTOR_KEYS: Record<string, string> = {
   'Finance & Assurance': 'finance',
   'Énergie & Mines': 'energie'
 }
-const CAMEROON_ZONES = [
-  { region: 'Littoral', city: 'Douala', lat: 4.05, lng: 9.7 },
-  { region: 'Centre', city: 'Yaoundé', lat: 3.87, lng: 11.52 },
-  { region: 'Ouest', city: 'Bafoussam', lat: 5.48, lng: 10.42 },
-  { region: 'Nord-Ouest', city: 'Bamenda', lat: 5.96, lng: 10.16 },
-  { region: 'Sud-Ouest', city: 'Buea', lat: 4.15, lng: 9.24 },
-  { region: 'Adamaoua', city: 'Ngaoundéré', lat: 7.33, lng: 13.58 },
-  { region: 'Nord', city: 'Garoua', lat: 9.3, lng: 13.4 },
-  { region: 'Extrême-Nord', city: 'Maroua', lat: 10.6, lng: 14.33 },
-  { region: 'Est', city: 'Bertoua', lat: 4.58, lng: 13.68 },
-  { region: 'Sud', city: 'Ebolowa', lat: 2.9, lng: 11.15 }
-]
-function nearestZone(lat: number, lng: number) {
-  let best = CAMEROON_ZONES[0]
-  let bestDist = Infinity
-  for (const z of CAMEROON_ZONES) {
-    const d = Math.hypot(lat - z.lat, lng - z.lng)
-    if (d < bestDist) {
-      bestDist = d
-      best = z
-    }
-  }
-  return best!
-}
+import { findNearestGeoZone } from '@/lib/geo-zones'
 
 // ── Section label separator ─────────────────────────────────────────────
 function SectionLabel({ children, collapsed }: { children: string; collapsed?: boolean }) {
@@ -282,30 +259,34 @@ export function AppSidebar({
   const prospectingCountry = useProspectingCountry()
 
   function handleLocateMe() {
-    if (prospectingCountry !== 'CM') return
     if (!navigator.geolocation) return
     setGeoState('loading')
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        const z = nearestZone(pos.coords.latitude, pos.coords.longitude)
+        const { latitude, longitude } = pos.coords
+        const z = findNearestGeoZone(latitude, longitude, prospectingCountry)
         setRegion(z.region)
         setCity(z.city)
         setGeoState('done')
 
         const rValue = radius === 'National' ? 50000 : parseInt(radius) * 1000
         const params = new URLSearchParams()
+        params.set('lat', latitude.toString())
+        params.set('lng', longitude.toString())
+        params.set('radius', rValue.toString())
         params.set('region', z.region)
         params.set('city', z.city)
-        params.set('lat', pos.coords.latitude.toString())
-        params.set('lng', pos.coords.longitude.toString())
-        params.set('radius', rValue.toString())
         if (sector) params.set('sector', sector)
 
         router.push(`/search?${params.toString()}`)
         onCloseAction?.()
       },
       () => setGeoState('idle'),
-      { timeout: 8000, maximumAge: 60000 }
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 10000
+      }
     )
   }
 

@@ -71,31 +71,7 @@ const QUICK_SECTORS = [
   { labelKey: 'search.sante', value: 'Santé', icon: Stethoscope, count: 46 }
 ]
 
-const CAMEROON_ZONES = [
-  { region: 'Littoral', city: 'Douala', lat: 4.05, lng: 9.7 },
-  { region: 'Centre', city: 'Yaoundé', lat: 3.87, lng: 11.52 },
-  { region: 'Ouest', city: 'Bafoussam', lat: 5.48, lng: 10.42 },
-  { region: 'Nord-Ouest', city: 'Bamenda', lat: 5.96, lng: 10.16 },
-  { region: 'Sud-Ouest', city: 'Buea', lat: 4.15, lng: 9.24 },
-  { region: 'Adamaoua', city: 'Ngaoundéré', lat: 7.33, lng: 13.58 },
-  { region: 'Nord', city: 'Garoua', lat: 9.3, lng: 13.4 },
-  { region: 'Extrême-Nord', city: 'Maroua', lat: 10.6, lng: 14.33 },
-  { region: 'Est', city: 'Bertoua', lat: 4.58, lng: 13.68 },
-  { region: 'Sud', city: 'Ebolowa', lat: 2.9, lng: 11.15 }
-]
-
-function nearestZone(lat: number, lng: number) {
-  let best = CAMEROON_ZONES[0]
-  let bestDist = Infinity
-  for (const z of CAMEROON_ZONES) {
-    const d = Math.hypot(lat - z.lat, lng - z.lng)
-    if (d < bestDist) {
-      bestDist = d
-      best = z
-    }
-  }
-  return best!
-}
+import { findNearestGeoZone } from '@/lib/geo-zones'
 
 type Filters = {
   sector?: string
@@ -189,11 +165,6 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit, onHome }: Prop
   }
 
   function handleLocateMe() {
-    if (userCountry !== 'CM') {
-      setGeoState('error')
-      setGeoMsg(t('search.locationUnavailable'))
-      return
-    }
     if (!navigator.geolocation) {
       setGeoState('error')
       setGeoMsg(t('search.locationNotSupported'))
@@ -203,7 +174,8 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit, onHome }: Prop
     setGeoMsg('')
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        const z = nearestZone(pos.coords.latitude, pos.coords.longitude)
+        const { latitude, longitude } = pos.coords
+        const z = findNearestGeoZone(latitude, longitude, userCountry)
         setRegion(z.region)
         setCity(z.city)
         setGeoState('done')
@@ -213,8 +185,8 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit, onHome }: Prop
           sector: sector || undefined,
           region: z.region,
           city: z.city,
-          lat: pos.coords.latitude.toString(),
-          lng: pos.coords.longitude.toString(),
+          lat: latitude.toString(),
+          lng: longitude.toString(),
           radius: '10000' // Default 10km radius
         })
       },
@@ -222,7 +194,11 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit, onHome }: Prop
         setGeoState('error')
         setGeoMsg(err.code === 1 ? t('search.locationDenied') : t('search.locationUnavailable'))
       },
-      { timeout: 8000, maximumAge: 60000 }
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 10000
+      }
     )
   }
 
