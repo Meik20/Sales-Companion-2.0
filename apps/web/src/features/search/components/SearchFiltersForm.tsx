@@ -81,6 +81,7 @@ type Filters = {
   lat?: string
   lng?: string
   radius?: string
+  ts?: string
 }
 type Props = { initialValues?: Filters; onSubmit: (v: Filters) => void; onHome?: () => void }
 
@@ -170,34 +171,59 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit, onHome }: Prop
       setGeoMsg(t('search.locationNotSupported'))
       return
     }
+    // Réinitialiser avant chaque tentative pour débloquer les re-clics successifs
+    setGeoState('idle')
     setGeoState('loading')
     setGeoMsg('')
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const { latitude, longitude } = pos.coords
-        const z = findNearestGeoZone(latitude, longitude, userCountry)
-        setRegion(z.region)
-        setCity(z.city)
-        setGeoState('done')
-        setGeoMsg(`${z.city} (${z.region})`)
-        onSubmit({
-          query: query || undefined,
-          sector: sector || undefined,
-          region: z.region,
-          city: z.city,
-          lat: latitude.toString(),
-          lng: longitude.toString(),
-          radius: '10000' // Default 10km radius
-        })
-      },
-      (err) => {
+
+    const onPosSuccess = (pos: GeolocationPosition) => {
+      const { latitude, longitude } = pos.coords
+      const z = findNearestGeoZone(latitude, longitude, userCountry)
+      setRegion(z.region)
+      setCity(z.city)
+      setGeoState('done')
+      setGeoMsg(`${z.city} (${z.region})`)
+      onSubmit({
+        query: query || undefined,
+        sector: sector || undefined,
+        region: z.region,
+        city: z.city,
+        lat: latitude.toString(),
+        lng: longitude.toString(),
+        radius: '10000', // Default 10km radius
+        ts: Date.now().toString()
+      })
+    }
+
+    const onPosError = (err: GeolocationPositionError) => {
+      if (err.code === 1) {
         setGeoState('error')
-        setGeoMsg(err.code === 1 ? t('search.locationDenied') : t('search.locationUnavailable'))
-      },
+        setGeoMsg(t('search.locationDenied'))
+        return
+      }
+
+      // Repli immédiat en basse précision (Wi-Fi / antenne cellulaire) si GPS satellite a expiré
+      navigator.geolocation.getCurrentPosition(
+        onPosSuccess,
+        () => {
+          setGeoState('error')
+          setGeoMsg(t('search.locationUnavailable'))
+        },
+        {
+          enableHighAccuracy: false,
+          timeout: 8000,
+          maximumAge: 30000
+        }
+      )
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      onPosSuccess,
+      onPosError,
       {
         enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 10000
+        timeout: 6000,
+        maximumAge: 0 // Toujours solliciter une position fraîche
       }
     )
   }

@@ -64,6 +64,7 @@ function SearchContent() {
     lat?: string
     lng?: string
     radius?: string
+    ts?: string
   }>({})
   const [hasSearched, setHasSearched] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
@@ -207,11 +208,12 @@ function SearchContent() {
     const lat = searchParams.get('lat') || undefined
     const lng = searchParams.get('lng') || undefined
     const radius = searchParams.get('radius') || undefined
+    const ts = searchParams.get('ts') || undefined
     const pageParam = searchParams.get('page')
     const pageNum = pageParam ? parseInt(pageParam, 10) : 1
     setCurrentPage(isNaN(pageNum) || pageNum < 1 ? 1 : pageNum)
-    if (sector || region || city || query || lat || lng) {
-      setFilters({ sector, region, city, query, lat, lng, radius })
+    if (sector || region || city || query || lat || lng || ts) {
+      setFilters({ sector, region, city, query, lat, lng, radius, ts })
       setHasSearched(true)
     }
   }, [searchParams])
@@ -234,7 +236,8 @@ function SearchContent() {
     lng: isGpsMode ? parseFloat(filters.lng!) : null,
     radiusKm: parsedRadiusKm,
     enabled: isGpsMode && currentPage === 1,
-    sector: filters.sector
+    sector: filters.sector,
+    refreshKey: filters.ts ? parseInt(filters.ts, 10) : undefined
   })
 
   // Fusion des résultats Supabase + OpenStreetMap

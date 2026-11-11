@@ -51,6 +51,13 @@ export type SearchFilters = {
   lat?: string
   lng?: string
   radius?: string
+  /**
+   * Timestamp anti-cache (ms depuis epoch) — injecté par AppSidebar dans l'URL (?ts=...)
+   * pour forcer React Query à considérer ce GPS re-clic comme une nouvelle recherche,
+   * même si lat/lng sont identiques au précédent appel.
+   * NON envoyé à l'API /api/search/companies.
+   */
+  ts?: string
 }
 
 export function useCompaniesSearch(filters: SearchFilters & { page?: number; charge?: boolean }) {

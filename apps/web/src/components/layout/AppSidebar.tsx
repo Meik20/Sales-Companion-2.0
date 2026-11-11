@@ -259,33 +259,76 @@ export function AppSidebar({
   const prospectingCountry = useProspectingCountry()
 
   function handleLocateMe() {
-    if (!navigator.geolocation) return
+    if (!navigator.geolocation) {
+      pushToast({
+        type: 'error',
+        title: t('search.locationNotSupported' as any) || 'Géolocalisation non supportée par votre navigateur.'
+      })
+      return
+    }
+
     setGeoState('loading')
+
+    const onPosSuccess = (pos: GeolocationPosition) => {
+      const { latitude, longitude } = pos.coords
+      const z = findNearestGeoZone(latitude, longitude, prospectingCountry)
+      setRegion(z.region)
+      setCity(z.city)
+      setGeoState('done')
+
+      const rValue = radius === 'National' ? 50000 : parseInt(radius) * 1000
+      const params = new URLSearchParams()
+      params.set('lat', latitude.toString())
+      params.set('lng', longitude.toString())
+      params.set('radius', rValue.toString())
+      params.set('region', z.region)
+      params.set('city', z.city)
+      if (sector) params.set('sector', sector)
+      // Timestamp anti-cache : garantit que Next.js navigue et que React Query
+      // déclenche un nouveau fetch même si lat/lng sont identiques au précédent.
+      params.set('ts', Date.now().toString())
+
+      router.push(`/search?${params.toString()}`)
+      onCloseAction?.()
+    }
+
+    const onPosError = (err: GeolocationPositionError) => {
+      if (err.code === 1) {
+        // Permission explicitement refusée par l'utilisateur
+        setGeoState('idle')
+        pushToast({
+          type: 'error',
+          title: t('search.locationDenied' as any) || 'Accès à la position refusé. Veuillez autoriser la géolocalisation.'
+        })
+        return
+      }
+
+      // Si haute précision satellite (GPS pur) a expiré ou indisponible en intérieur,
+      // on tente immédiatement un repli en basse précision (Wi-Fi / triangulation réseau)
+      navigator.geolocation.getCurrentPosition(
+        onPosSuccess,
+        () => {
+          setGeoState('idle')
+          pushToast({
+            type: 'error',
+            title: t('search.locationUnavailable' as any) || 'Position géographique temporairement indisponible.'
+          })
+        },
+        {
+          enableHighAccuracy: false,
+          timeout: 8000,
+          maximumAge: 30000
+        }
+      )
+    }
+
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const { latitude, longitude } = pos.coords
-        const z = findNearestGeoZone(latitude, longitude, prospectingCountry)
-        setRegion(z.region)
-        setCity(z.city)
-        setGeoState('done')
-
-        const rValue = radius === 'National' ? 50000 : parseInt(radius) * 1000
-        const params = new URLSearchParams()
-        params.set('lat', latitude.toString())
-        params.set('lng', longitude.toString())
-        params.set('radius', rValue.toString())
-        params.set('region', z.region)
-        params.set('city', z.city)
-        if (sector) params.set('sector', sector)
-
-        router.push(`/search?${params.toString()}`)
-        onCloseAction?.()
-      },
-      () => setGeoState('idle'),
+      onPosSuccess,
+      onPosError,
       {
         enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 10000
+        timeout: 6000,
+        maximumAge: 0 // Toujours solliciter une mesure fraîche
       }
     )
   }

@@ -313,8 +313,14 @@ export function useOverpassSearch(params: {
   radiusKm: number
   enabled: boolean
   sector?: string
+  /**
+   * Clé de rafraîchissement anti-cache (ex: Date.now() parsé depuis le param URL ?ts=...).
+   * Permet de re-déclencher la recherche OSM même si lat/lng/rayon n'ont pas changé
+   * (cas : utilisateur reclique "Autour de moi" depuis la même position).
+   */
+  refreshKey?: number
 }): OverpassSearchState {
-  const { lat, lng, radiusKm, enabled, sector } = params
+  const { lat, lng, radiusKm, enabled, sector, refreshKey } = params
 
   const [state, setState] = useState<OverpassSearchState>({
     items: [],
@@ -452,7 +458,7 @@ export function useOverpassSearch(params: {
     return () => {
       controller.abort()
     }
-  }, [lat, lng, radiusKm, enabled, sector])
+  }, [lat, lng, radiusKm, enabled, sector, refreshKey])
 
   return state
 }
