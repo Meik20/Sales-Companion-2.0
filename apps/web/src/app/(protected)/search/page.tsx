@@ -11,7 +11,7 @@ import {
   CompanyCardSkeleton
 } from '@/features/search/components/CompaniesSearchResults'
 import { SaveCurrentSearchButton } from '@/features/search/components/SaveCurrentSearchButton'
-import { useCompaniesSearch } from '@/features/search/hooks/useCompaniesSearch'
+import { useCompaniesSearch, type Company } from '@/features/search/hooks/useCompaniesSearch'
 import { useOverpassSearch } from '@/features/search/hooks/useOverpassSearch'
 import { usePipelineStats } from '@/features/pipeline/hooks/usePipelineStats'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
@@ -232,7 +232,8 @@ function SearchContent() {
   const totalPages = searchData?.totalPages ?? 0
 
   // ── Recherche OpenStreetMap en direct (ancrée sur la position GPS exacte) ──
-  // Actif uniquement en mode "Autour de moi" (lat + lng présents), page 1
+  // Actif en continu en mode "Autour de moi" (lat + lng présents) pour conserver
+  // les établissements OSM en mémoire quelle que soit la page consultée.
   const isGpsMode = Boolean(filters.lat && filters.lng)
   const rawRadius = filters.radius ? parseFloat(filters.radius) : 10
   // Normalisation du rayon : si > 100, la valeur reçue est en mètres (ex: 5000), sinon en km
@@ -242,24 +243,49 @@ function SearchContent() {
     lat: isGpsMode ? parseFloat(filters.lat!) : null,
     lng: isGpsMode ? parseFloat(filters.lng!) : null,
     radiusKm: parsedRadiusKm,
-    enabled: isGpsMode && currentPage === 1,
+    enabled: isGpsMode,
     sector: filters.sector,
     refreshKey: filters.ts ? parseInt(filters.ts, 10) : undefined
   })
+
+  // Pool accumulé des fiches issues de la base interne (Supabase/PostgreSQL)
+  // Permet de supporter la pagination transparente de 1 jusqu'à 1000+ résultats
+  const [dbItemsPool, setDbItemsPool] = useState<Map<string, Company>>(new Map())
+
+  // Réinitialisation du pool dès que les critères de recherche changent
+  useEffect(() => {
+    setDbItemsPool(new Map())
+  }, [filters.lat, filters.lng, filters.query, filters.sector, filters.city, filters.region, filters.ts])
+
+  // Accumulation des fiches serveur au fur et à mesure de la navigation
+  useEffect(() => {
+    if (results.length > 0) {
+      setDbItemsPool((prev) => {
+        const next = new Map(prev)
+        for (const item of results) {
+          next.set(item.id, item)
+        }
+        return next
+      })
+    }
+  }, [results])
 
   // Fusion des résultats Supabase + OpenStreetMap
   // Les établissements sont dédoublonnés et strictement ordonnés par distance croissante
   // partant du point GPS exact de l'utilisateur.
   const mergedResults = (() => {
-    if (!isGpsMode || osmSearch.items.length === 0) return results
+    const dbList = Array.from(dbItemsPool.values())
+    const baseList = dbList.length > 0 ? dbList : results
+    if (!isGpsMode || osmSearch.items.length === 0) return baseList
+
     const existingNames = new Set(
-      results.map((c) => (c.raisonSociale || c.name || '').toLowerCase().replace(/\s+/g, ''))
+      baseList.map((c) => (c.raisonSociale || c.name || '').toLowerCase().replace(/\s+/g, ''))
     )
     const osmNew = osmSearch.items.filter((c) => {
       const key = (c.raisonSociale || c.name || '').toLowerCase().replace(/\s+/g, '')
       return key.length > 0 && !existingNames.has(key)
     })
-    const combined = [...results, ...osmNew]
+    const combined = [...baseList, ...osmNew]
 
     if (isGpsMode && !filters.query) {
       combined.sort((a, b) => {
@@ -281,16 +307,24 @@ function SearchContent() {
     return combined
   })()
 
-  // ── Pagination côté client en mode GPS ──────────────────────────────────────
-  // Les résultats OSM sont récupérés en bloc (sans pagination serveur).
-  // On applique une fenêtre glissante de PAGE_SIZE éléments pour respecter
-  // la configuration de pagination de l'application (10 résultats par page).
-  const GPS_PAGE_SIZE = 10
-  const gpsTotalPages = isGpsMode ? Math.max(1, Math.ceil(mergedResults.length / GPS_PAGE_SIZE)) : 0
-  const gpsPageStart = isGpsMode ? (currentPage - 1) * GPS_PAGE_SIZE : 0
+  // ── Pagination universelle (valable pour 10, 100, 1000+ résultats) ───────────
+  const PAGE_SIZE = 10
+  const totalOsmCount = osmSearch.items.length
+  const effectiveTotalResults = isGpsMode
+    ? Math.max(totalResults + totalOsmCount, mergedResults.length)
+    : totalResults
+
+  const effectiveTotalPages = Math.max(
+    1,
+    isGpsMode
+      ? Math.ceil(effectiveTotalResults / PAGE_SIZE)
+      : (totalPages || Math.ceil(effectiveTotalResults / PAGE_SIZE))
+  )
+
+  const pageStart = (currentPage - 1) * PAGE_SIZE
   const pagedResults = isGpsMode
-    ? mergedResults.slice(gpsPageStart, gpsPageStart + GPS_PAGE_SIZE)
-    : mergedResults
+    ? mergedResults.slice(pageStart, pageStart + PAGE_SIZE)
+    : results
 
   return (
     <AppShell>
@@ -341,14 +375,13 @@ function SearchContent() {
             <DataCard
               title={t('search.results')}
               subtitle={
-                mergedResults.length > 0
-                  ? `${isGpsMode ? mergedResults.length : totalResults} ${t('search.companiesFound')}${searchData?.fromCache ? ` • 💾 ${t('offline.cachedResults')}` : ''}${isGpsMode && osmSearch.items.length > 0 ? ` • ${osmSearch.items.length} OSM` : ''}`
+                (isGpsMode ? mergedResults.length > 0 : (totalResults > 0 || results.length > 0))
+                  ? `${effectiveTotalResults} ${t('search.companiesFound')}${searchData?.fromCache ? ` • 💾 ${t('offline.cachedResults')}` : ''}${isGpsMode && osmSearch.items.length > 0 ? ` • ${osmSearch.items.length} OSM` : ''}`
                   : !searchQuery.isLoading && !searchQuery.isError
                     ? `0 ${t('search.companiesFound')}`
                     : undefined
               }
-              // pagedResults utilisé dans le rendu ci-dessous pour respecter PAGE_SIZE=10
-              actions={<SaveCurrentSearchButton filters={filters} results={mergedResults} />}
+              actions={<SaveCurrentSearchButton filters={filters} results={isGpsMode ? mergedResults : results} />}
             >
               {searchQuery.isLoading && mergedResults.length === 0 ? (
                 <div
@@ -400,10 +433,8 @@ function SearchContent() {
                   }}
                 />
               ) : null}
-              {mergedResults.length > 0 ? (
+              {pagedResults.length > 0 ? (
                 <>
-                  {/* En mode GPS, on affiche la tranche paginée (10 / page) ;
-                      En mode classique, mergedResults === pagedResults (pas de slice GPS) */}
                   <CompaniesSearchResults items={pagedResults} />
 
                   {/* Indicateur de chargement OSM en mode GPS */}
@@ -439,10 +470,8 @@ function SearchContent() {
                     </div>
                   )}
 
-                  {/* Pagination Controls
-                      - Mode GPS : pagination côté client sur mergedResults (tranche de GPS_PAGE_SIZE)
-                      - Mode classique : pagination côté serveur (totalPages depuis l'API) */}
-                  {(isGpsMode ? gpsTotalPages > 1 : totalPages > 1) && (
+                  {/* Contrôles de pagination universelle (valable pour 1 à 1000+ résultats) */}
+                  {effectiveTotalPages > 1 && (
                     <div
                       style={{
                         marginTop: 24,
@@ -476,13 +505,13 @@ function SearchContent() {
                           fontWeight: 600
                         }}
                       >
-                        Page {currentPage} / {isGpsMode ? gpsTotalPages : totalPages} • 10 / page
+                        Page {currentPage} / {effectiveTotalPages} • 10 / page
                       </span>
 
                       <Button
                         variant="primary"
                         size="sm"
-                        disabled={currentPage >= (isGpsMode ? gpsTotalPages : totalPages) || searchQuery.isLoading}
+                        disabled={currentPage >= effectiveTotalPages || searchQuery.isLoading}
                         onClick={() => {
                           setIsBackAction(false)
                           setCurrentPage((p) => p + 1)
