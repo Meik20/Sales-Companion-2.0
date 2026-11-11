@@ -353,93 +353,51 @@ export function useOverpassSearch(params: {
 
     async function fetchOsmPlaces() {
       try {
-        // ── 1. Tentative via l'endpoint interne /api/search/osm (Same-Origin, CSP & Ad-Blocker Safe) ──
-        try {
-          const apiParams = new URLSearchParams()
-          apiParams.set('lat', userLat.toString())
-          apiParams.set('lng', userLng.toString())
-          apiParams.set('radius', effectiveRadiusKm.toString())
-          if (sector) apiParams.set('sector', sector)
+        // ── 1. Appel du proxy serveur /api/search/osm (Same-Origin, SSL vérifié, anti-blocage réseau) ──
+        const apiParams = new URLSearchParams()
+        apiParams.set('lat', userLat.toString())
+        apiParams.set('lng', userLng.toString())
+        apiParams.set('radius', effectiveRadiusKm.toString())
+        if (sector) apiParams.set('sector', sector)
 
+        let itemsFound: Company[] = []
+
+        try {
           const apiResp = await fetch(`/api/search/osm?${apiParams.toString()}`, {
             signal: controller.signal
           })
 
           if (apiResp.ok) {
             const apiData = await apiResp.json()
-            if (Array.isArray(apiData.items) && apiData.items.length > 0) {
-              if (!controller.signal.aborted) {
-                setState({
-                  items: apiData.items,
-                  isLoading: false,
-                  error: null,
-                  source: 'OpenStreetMap (OSM Local Engine)'
-                })
-              }
-              return
+            if (Array.isArray(apiData.items)) {
+              itemsFound = apiData.items
             }
           }
         } catch (apiErr: any) {
           if (apiErr?.name === 'AbortError') return
-          // Repli direct client-side ci-dessous
-        }
-
-        const seenIds = new Set<string>()
-        const seenNames = new Set<string>()
-        const collectedCompanies: Company[] = []
-
-        // ── 2. Repli direct vers Photon (OpenStreetMap Elasticsearch) ────────
-        const photonFetches = terms.map(async (term) => {
-          const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(term)}&lat=${userLat}&lon=${userLng}&limit=8&bbox=${bbox}`
+          // Tentative de réessai après 1 seconde si le premier appel a échoué (cold start serveur)
           try {
-            const resp = await fetch(url, { signal: controller.signal })
-            if (!resp.ok) return []
-            const data = await resp.json()
-            return (data.features || []) as PhotonFeature[]
-          } catch {
-            return []
-          }
-        })
-
-        const resultsArrays = await Promise.all(photonFetches)
-
-        if (controller.signal.aborted) return
-
-        for (const features of resultsArrays) {
-          for (const feat of features) {
-            const company = photonFeatureToCompany(feat, userLat, userLng)
-            if (!company) continue
-
-            // Vérification stricte du rayon demandé (avec tolérance de 15% pour les limites de quartier)
-            if (
-              typeof company.distanceKm === 'number' &&
-              company.distanceKm > effectiveRadiusKm * 1.15
-            ) {
-              continue
+            await new Promise((r) => setTimeout(r, 1000))
+            if (!controller.signal.aborted) {
+              const retryResp = await fetch(`/api/search/osm?${apiParams.toString()}&retry=1`, {
+                signal: controller.signal
+              })
+              if (retryResp.ok) {
+                const retryData = await retryResp.json()
+                if (Array.isArray(retryData.items)) {
+                  itemsFound = retryData.items
+                }
+              }
             }
-
-            const nameKey = (company.raisonSociale || '').toLowerCase().replace(/\s+/g, '')
-            if (seenIds.has(company.id) || seenNames.has(nameKey)) continue
-
-            seenIds.add(company.id)
-            seenNames.add(nameKey)
-            collectedCompanies.push(company)
-          }
+          } catch {}
         }
-
-        // ── 3. Tri strict par distance croissante (du plus proche au plus lointain) ──
-        collectedCompanies.sort((a, b) => {
-          const distA = typeof a.distanceKm === 'number' ? a.distanceKm : 9999
-          const distB = typeof b.distanceKm === 'number' ? b.distanceKm : 9999
-          return distA - distB
-        })
 
         if (!controller.signal.aborted) {
           setState({
-            items: collectedCompanies,
+            items: itemsFound,
             isLoading: false,
             error: null,
-            source: 'OpenStreetMap (Photon Engine)'
+            source: 'OpenStreetMap (OSM Local Engine)'
           })
         }
       } catch (err: any) {

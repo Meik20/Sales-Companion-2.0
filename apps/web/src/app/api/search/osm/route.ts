@@ -4,7 +4,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import {
   buildPhotonBbox,
   photonFeatureToCompany,
-  type PhotonFeature
+  osmNodeToCompany,
+  type PhotonFeature,
+  type OsmNode
 } from '@/features/search/hooks/useOverpassSearch'
 import type { Company } from '@/features/search/hooks/useCompaniesSearch'
 
@@ -67,12 +69,13 @@ export async function GET(request: NextRequest) {
     const seenNames = new Set<string>()
     const collectedCompanies: Company[] = []
 
+    // ── 1. Moteur Primaire : Photon (OpenStreetMap Elasticsearch) ──────────
     const fetches = terms.map(async (term) => {
       const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(term)}&lat=${lat}&lon=${lng}&limit=8&bbox=${bbox}`
       try {
         const resp = await fetch(url, {
           headers: { 'User-Agent': 'SalesCompanion/2.0' },
-          signal: AbortSignal.timeout(4000)
+          signal: AbortSignal.timeout(8000)
         })
         if (!resp.ok) return []
         const data = await resp.json()
@@ -103,6 +106,36 @@ export async function GET(request: NextRequest) {
         seenIds.add(company.id)
         seenNames.add(nameKey)
         collectedCompanies.push(company)
+      }
+    }
+
+    // ── 2. Moteur Secondaire (Repli) : Overpass API direct si Photon est restreint ou vide ──
+    if (collectedCompanies.length === 0) {
+      try {
+        const radiusMeters = Math.min(Math.round(effectiveRadiusKm * 1000), 20000)
+        const overpassQuery = `[out:json][timeout:10];(node["amenity"](around:${radiusMeters},${lat},${lng});node["shop"](around:${radiusMeters},${lat},${lng});node["office"](around:${radiusMeters},${lat},${lng});node["craft"](around:${radiusMeters},${lat},${lng});node["healthcare"](around:${radiusMeters},${lat},${lng}););out center 40;`
+        
+        const overpassUrl = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(overpassQuery)}`
+        const overpassResp = await fetch(overpassUrl, {
+          headers: { 'User-Agent': 'SalesCompanion/2.0' },
+          signal: AbortSignal.timeout(9000)
+        })
+
+        if (overpassResp.ok) {
+          const overpassData = await overpassResp.json()
+          const elements = (overpassData.elements || []) as OsmNode[]
+          for (const el of elements) {
+            const comp = osmNodeToCompany(el, lat, lng)
+            if (!comp || !comp.raisonSociale || comp.raisonSociale === 'Établissement OSM') continue
+            const nameKey = comp.raisonSociale.toLowerCase().replace(/\s+/g, '')
+            if (seenIds.has(comp.id) || seenNames.has(nameKey)) continue
+            seenIds.add(comp.id)
+            seenNames.add(nameKey)
+            collectedCompanies.push(comp)
+          }
+        }
+      } catch (overpassErr) {
+        console.warn('[/api/search/osm] Overpass fallback warning:', overpassErr)
       }
     }
 

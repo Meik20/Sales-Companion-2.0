@@ -115,41 +115,43 @@ export function useCompaniesSearch(filters: SearchFilters & { page?: number; cha
       // Passer le token pour déduire un crédit côté serveur
       let token: string | null = null
       try {
+        if (!auth.currentUser && typeof (auth as any).authStateReady === 'function') {
+          await (auth as any).authStateReady()
+        }
         if (auth.currentUser) {
           token = await auth.currentUser.getIdToken()
         } else if (user) {
           token = await user.getIdToken()
         }
       } catch (tokenErr) {
-        console.warn('[useCompaniesSearch] Token attempt 1 warning:', tokenErr)
+        console.warn('[useCompaniesSearch] Token error:', tokenErr)
       }
 
-      if (!token && typeof (auth as any).authStateReady === 'function') {
+      // Si le token est vide ou non initialisé, forcer le rafraîchissement
+      if ((!token || token.length < 20) && auth.currentUser) {
         try {
-          await (auth as any).authStateReady()
-          if (auth.currentUser) {
-            token = await auth.currentUser.getIdToken()
-          }
-        } catch (readyErr) {
-          console.warn('[useCompaniesSearch] authStateReady warning:', readyErr)
-        }
+          token = await auth.currentUser.getIdToken(true)
+        } catch {}
       }
 
       try {
         let response = await fetch(`/api/search/companies?${params}`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {}
+          headers: token && token.length > 20 ? { Authorization: `Bearer ${token}` } : {}
         })
 
         // En cas de token expiré ou désynchronisé (401), rafraîchir le token Firebase et réessayer
-        if (response.status === 401 && (auth.currentUser || user)) {
+        if (response.status === 401) {
           try {
+            if (!auth.currentUser && typeof (auth as any).authStateReady === 'function') {
+              await (auth as any).authStateReady()
+            }
             let refreshedToken: string | null = null
             if (auth.currentUser) {
               refreshedToken = await auth.currentUser.getIdToken(true)
             } else if (user) {
               refreshedToken = await user.getIdToken(true)
             }
-            if (refreshedToken) {
+            if (refreshedToken && refreshedToken.length > 20) {
               token = refreshedToken
               response = await fetch(`/api/search/companies?${params}`, {
                 headers: { Authorization: `Bearer ${refreshedToken}` }
