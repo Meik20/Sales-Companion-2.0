@@ -489,7 +489,13 @@ function SearchContent() {
                         disabled={currentPage <= 1 || searchQuery.isLoading}
                         onClick={() => {
                           setIsBackAction(true)
-                          setCurrentPage((p) => Math.max(1, p - 1))
+                          const prevPage = Math.max(1, currentPage - 1)
+                          setCurrentPage(prevPage)
+                          if (typeof window !== 'undefined') {
+                            const params = new URLSearchParams(window.location.search)
+                            params.set('page', String(prevPage))
+                            window.history.replaceState(null, '', `?${params.toString()}`)
+                          }
                           document
                             .getElementById('main-scroll-container')
                             ?.scrollTo({ top: 0, behavior: 'smooth' })
@@ -514,7 +520,13 @@ function SearchContent() {
                         disabled={currentPage >= effectiveTotalPages || searchQuery.isLoading}
                         onClick={() => {
                           setIsBackAction(false)
-                          setCurrentPage((p) => p + 1)
+                          const nextPage = currentPage + 1
+                          setCurrentPage(nextPage)
+                          if (typeof window !== 'undefined') {
+                            const params = new URLSearchParams(window.location.search)
+                            params.set('page', String(nextPage))
+                            window.history.replaceState(null, '', `?${params.toString()}`)
+                          }
                           document
                             .getElementById('main-scroll-container')
                             ?.scrollTo({ top: 0, behavior: 'smooth' })

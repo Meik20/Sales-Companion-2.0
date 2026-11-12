@@ -32,7 +32,7 @@ const nextConfig: NextConfig = {
           // Restrict browser feature access
           {
             key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=(self), interest-cohort=()'
+            value: 'camera=(), microphone=(), geolocation=(self)'
           },
           // Autoriser l'indexation SEO par défaut (surchargé par route ci-dessous)
           // { key: 'X-Robots-Tag', value: 'noindex' }, // <-- Supprimé volontairement
