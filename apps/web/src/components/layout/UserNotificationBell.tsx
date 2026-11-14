@@ -260,7 +260,7 @@ export function UserNotificationBell() {
 
         {/* Liste */}
         <div className="flex-1 overflow-y-auto divide-y divide-border/60"
-          style={{ maxHeight: 380, backgroundColor: 'var(--card, #ffffff)' }}>
+          style={{ maxHeight: 'min(380px, calc(100vh - 180px))', backgroundColor: 'var(--card, #ffffff)' }}>
           {notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center p-8 text-center">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary/80 text-muted-foreground mb-2">
@@ -380,12 +380,12 @@ export function UserNotificationBell() {
           <>
             <div onClick={() => setIsOpen(false)} className="fixed inset-0 z-[490]" aria-hidden="true" />
             <div
-              className="absolute right-0 top-[48px] z-[500] flex w-[370px] max-w-[calc(100vw-24px)] flex-col overflow-hidden rounded-2xl border border-border shadow-2xl"
+              className="fixed inset-x-3 top-[66px] sm:absolute sm:inset-x-auto sm:right-0 sm:top-[48px] z-[500] flex sm:w-[370px] max-w-[420px] mx-auto sm:mx-0 flex-col overflow-hidden rounded-2xl border border-border shadow-2xl"
               style={{
                 backgroundColor: 'var(--card, #ffffff)',
                 boxShadow: '0 20px 45px -10px rgba(0,0,0,0.28), 0 0 0 1px var(--border, rgba(0,0,0,0.1))',
                 animation: 'notifSlide 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-                maxHeight: '520px'
+                maxHeight: 'min(520px, calc(100vh - 80px))'
               }}>
               {selectedNotif ? renderDetailView(selectedNotif) : renderListView()}
             </div>

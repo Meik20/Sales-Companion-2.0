@@ -110,10 +110,12 @@ export function AdminNotificationBell() {
 
         {/* Notification panel */}
         {isOpen && (
-          <div
-            className="absolute right-0 top-[46px] z-[300] flex max-h-[480px] w-[340px] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-[0_20px_60px_rgba(0,0,0,0.5)]"
-            style={{ animation: 'notifSlide 200ms ease' }}
-          >
+          <>
+            <div onClick={() => setIsOpen(false)} className="fixed inset-0 z-[290]" aria-hidden="true" />
+            <div
+              className="fixed inset-x-3 top-[66px] sm:absolute sm:inset-x-auto sm:right-0 sm:top-[46px] z-[300] flex max-h-[min(480px,calc(100vh-80px))] sm:w-[340px] max-w-[420px] mx-auto sm:mx-0 flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-[0_20px_60px_rgba(0,0,0,0.5)]"
+              style={{ animation: 'notifSlide 200ms ease' }}
+            >
             {/* Panel header */}
             <div className="flex items-center justify-between border-b border-border px-4 py-3.5">
               <div className="flex items-center gap-2">
@@ -192,8 +194,9 @@ export function AdminNotificationBell() {
               )}
             </div>
           </div>
-        )}
-      </div>
-    </>
-  )
+        </>
+      )}
+    </div>
+  </>
+)
 }
