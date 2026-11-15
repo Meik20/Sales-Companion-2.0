@@ -629,7 +629,7 @@ export default function PipelinePage() {
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                 <span>
                   {selectedManager
-                    ? `Pipeline — ${selectedManager.name || 'Team Manager'}`
+                    ? `Pipeline : ${selectedManager.name || 'Team Manager'}`
                     : (t('pipeline.orgPipeline') || 'Pipeline du Segment')}
                 </span>
                 {filterManagerUid && (
@@ -640,11 +640,15 @@ export default function PipelinePage() {
                       color: 'var(--primary)',
                       background: 'rgba(99, 102, 241, 0.12)',
                       border: '1px solid rgba(99, 102, 241, 0.28)',
-                      padding: '1px 8px',
-                      borderRadius: 12
+                      padding: '2px 8px',
+                      borderRadius: 12,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4
                     }}
                   >
-                    {t('pipeline.filteredByManager') || 'Filtré par manager'}
+                    <Filter size={10} className="shrink-0 opacity-80" />
+                    <span>{t('pipeline.filteredByTeamManager') || t('pipeline.filteredByManager') || 'Filtré par Team Manager'}</span>
                   </span>
                 )}
               </div>

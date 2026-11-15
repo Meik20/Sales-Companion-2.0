@@ -138,13 +138,13 @@ export const fr = {
       title3: 'utilisateurs',
       t1Text:
         '"En quelques minutes, j\'ai trouvé 30 entreprises BTP à Douala avec numéros et dirigeants. Avant, je passais des heures à compiler ces infos manuellement."',
-      t1Role: 'Commercial BTP — Douala',
+      t1Role: 'Commercial BTP · Douala',
       t2Text:
         '"Le mode manager change tout. Je vois le pipeline de toute mon équipe en temps réel et j\'assigne les prospects directement depuis mon téléphone."',
-      t2Role: 'Directrice commerciale — Yaoundé',
+      t2Role: 'Directrice commerciale · Yaoundé',
       t3Text:
         "\"L'app fonctionne même en zone avec signal faible. Pour les tournées terrain dans les régions, c'est indispensable. La PWA s'installe comme une vraie app.\"",
-      t3Role: 'Commercial terrain — Bafoussam'
+      t3Role: 'Commercial terrain · Bafoussam'
     },
     useCasesSection: {
       title1: "Ils l'utilisent",
@@ -465,7 +465,8 @@ export const fr = {
     all: 'Tous',
     orgPipeline: 'Pipeline du Segment',
     orgPipelineSubtitle: 'Toutes les opportunités de votre segment',
-    filteredByManager: ' — filtré par manager',
+    filteredByManager: 'Filtré par Team Manager',
+    filteredByTeamManager: 'Filtré par Team Manager',
     globalOrgPerformance: 'Performance Globale du Segment',
     orgConsolidated: 'Vue Consolidée',
     globalOrgSubtitle: "Synthèse consolidée du chiffre d'affaires et du portefeuille du segment",
@@ -528,7 +529,7 @@ export const fr = {
     notesSaveBtn: 'Sauvegarder',
     notesSaved: 'Notes sauvegardées',
     notesSaveError: 'Impossible de sauvegarder les notes',
-    notesUnsaved: 'Modifications non sauvegardées — cliquez sur Sauvegarder',
+    notesUnsaved: 'Modifications non sauvegardées (cliquez sur Sauvegarder)',
     nextFollowUpLabel: 'Prochain suivi',
     assignedBy: 'Assigné par',
     clickForDetails: 'Cliquer pour voir les détails',
@@ -745,14 +746,14 @@ export const fr = {
     niuLabel: "Numéro d'Identification Unique (NIU)",
     niuPlaceholder: 'Ex: M051212345678A (optionnel)',
     niuHint:
-      'Optionnel — Numéro fiscal officiel DGI (carte de contribuable). Active le badge Segment vérifié 🛡️',
+      'Optionnel : Numéro fiscal officiel DGI (carte de contribuable). Active le badge Segment vérifié 🛡️',
     country: 'Pays',
     selectCountry: 'Sélectionner votre pays...',
     countryLockedNote:
       "Votre pays est défini une seule fois à l'inscription pour filtrer vos données.",
     phone: 'Numéro de téléphone',
     phonePlaceholder: 'Ex: 6XX XXX XXX',
-    phoneHint: 'Obligatoire — utilisé pour valider et confirmer votre pays.',
+    phoneHint: 'Obligatoire : utilisé pour valider et confirmer votre pays.',
     invalidPhone:
       "Le numéro de téléphone ne correspond pas au format ou à l'indicatif du pays sélectionné.",
     errorFillAll: 'Veuillez remplir tous les champs.',
@@ -1240,7 +1241,7 @@ export const fr = {
     repairDuplicatesDeleted: 'doublons supprimés',
     repairStaleRemoved: 'éléments obsolètes retirés',
     repairSkipped: 'Tous les pipelines sont déjà synchronisés.',
-    repairProtected: 'prospect(s) protégé(s) — phases Négociation / Conclue conservées',
+    repairProtected: 'prospect(s) protégé(s) : phases Négociation / Conclue conservées',
     repairErrors: 'erreur(s)',
     noAssignmentCreated: "Aucune assignation n'a encore été créée.",
     date: 'Date',
@@ -1271,7 +1272,7 @@ export const fr = {
       'Les clients issus du pipeline du manager ne peuvent pas être supprimés par un agent support.',
     actionsCol: 'Actions',
     crossTeamSupport: {
-      title: 'Agents Support — Accès Cross-Équipe',
+      title: 'Agents Support : Accès Cross-Équipe',
       descPrefix: "Invitez un agent support d'une autre équipe (même organisation) à accéder aux clients conclus de votre équipe. L'agent doit vous fournir son",
       accessId: 'Access ID',
       accessIdExample: '(ex : jdupont@monentreprise).',
@@ -1537,10 +1538,10 @@ export const fr = {
     importAnother: 'Importer un autre fichier',
     retry: 'Réessayer',
     autoColumns: 'Colonnes reconnues automatiquement :',
-    autoColumnsDesc1: "— Nom de l'entreprise (obligatoire)",
-    autoColumnsDesc2: "— Numéro d'identification unique (optionnel, clé dédoublonnage)",
-    autoColumnsDesc3: '— Secteur auto-détecté',
-    autoColumnsDesc4: '— Région / Ville auto-détectées',
+    autoColumnsDesc1: "Nom de l'entreprise (obligatoire)",
+    autoColumnsDesc2: "Numéro d'identification unique (optionnel, clé dédoublonnage)",
+    autoColumnsDesc3: 'Secteur auto-détecté',
+    autoColumnsDesc4: 'Région / Ville auto-détectées',
     autoColumnsDesc5: '+ SIGLE, TELEPHONE, EMAIL, DIRIGEANT, RCCM (si disponibles)',
     errorFormat: 'Format non pris en charge. Utilisez .xlsx, .xls ou .csv',
     errorServer: 'Erreur serveur',
@@ -1939,8 +1940,8 @@ export const fr = {
     currentPeriod: 'En cours'
   },
   offline: {
-    banner: 'Vous êtes hors ligne — Les données en cache restent accessibles',
-    reconnected: 'Connexion rétablie — Synchronisation en cours…',
+    banner: 'Vous êtes hors ligne : les données en cache restent accessibles',
+    reconnected: 'Connexion rétablie : synchronisation en cours…',
     searchUnavailable: 'Recherche indisponible hors ligne',
     cachedResults: 'Résultats en cache (mode hors ligne)',
     aiUnavailable: "L'assistant IA nécessite une connexion internet",
