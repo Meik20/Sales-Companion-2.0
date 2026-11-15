@@ -25,7 +25,7 @@ import { useTranslation } from '@/providers/I18nProvider'
 import { FileDown, Loader2, Target, Users2, Building2, TrendingUp, Filter, X, Handshake, CheckCircle2 } from 'lucide-react'
 
 export default function PipelinePage() {
-  const { t } = useTranslation()
+  const { t, lang } = useTranslation()
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user } = useCurrentUser()
@@ -482,7 +482,9 @@ export default function PipelinePage() {
                 },
                 {
                   id: 'total',
-                  label: t('pipeline.totalOrg') || 'Total Segment',
+                  label: selectedManager
+                    ? `Total (${selectedManager.name || 'Team Manager'})`
+                    : (t('pipeline.totalOrg') || 'Total Segment'),
                   count: orgPipelineQuery.data.counts.total,
                   color: '#a78bfa',
                   icon: <Users2 size={16} />
@@ -625,7 +627,11 @@ export default function PipelinePage() {
           <DataCard
             title={
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                <span>{t('pipeline.orgPipeline') || 'Pipeline du Segment'}</span>
+                <span>
+                  {selectedManager
+                    ? `Pipeline — ${selectedManager.name || 'Team Manager'}`
+                    : (t('pipeline.orgPipeline') || 'Pipeline du Segment')}
+                </span>
                 {filterManagerUid && (
                   <span
                     style={{
@@ -643,7 +649,13 @@ export default function PipelinePage() {
                 )}
               </div>
             }
-            subtitle={t('pipeline.orgPipelineSubtitle') || 'Tous les prospects de votre segment'}
+            subtitle={
+              selectedManager
+                ? (lang === 'en'
+                    ? `Opportunities managed by ${selectedManager.name || 'this Team Manager'}`
+                    : `Opportunités gérées par ${selectedManager.name || 'ce Team Manager'}`)
+                : (t('pipeline.orgPipelineSubtitle') || 'Tous les prospects de votre segment')
+            }
           >
             {orgPipelineQuery.isLoading ? <LoadingState /> : null}
             {!orgPipelineQuery.isLoading && (

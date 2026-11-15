@@ -109,12 +109,28 @@ export function TeamManagerPerformanceCard({
 
   const realisationsLoading = orgReportLoading || tmReportLoading
 
-  // Objectifs : priorité aux données API de la période sélectionnée
-  const periodTargets = onSelectPeriod
-    ? (context === 'org'
-        ? (orgPeriodReport?.targets ?? targets)
-        : (tmPeriodReport?.targets ?? targets))
-    : targets
+  // Données de reporting spécifiques au Team Manager sélectionné (au sein du rapport consolidé org)
+  const selectedManagerReport = useMemo(() => {
+    if (!manager?.uid || !orgPeriodReport?.managers) return null
+    return orgPeriodReport.managers.find((m) => m.uid === manager.uid) ?? null
+  }, [manager?.uid, orgPeriodReport?.managers])
+
+  // Objectifs :
+  // - Si un Team Manager spécifique est sélectionné (!isGlobal) : priorité à ses objectifs ciblés
+  // - Si vue globale (isGlobal) : objectifs consolidés du segment (orgPeriodReport) ou de l'équipe (tmPeriodReport)
+  const periodTargets = !isGlobal
+    ? (targets ?? (selectedManagerReport
+        ? {
+            targetVolume: selectedManagerReport.targetVolume ?? null,
+            targetValue: selectedManagerReport.targetValue ?? null,
+            period: activePeriod
+          }
+        : null))
+    : onSelectPeriod
+      ? (context === 'org'
+          ? (orgPeriodReport?.targets ?? targets)
+          : (tmPeriodReport?.targets ?? targets))
+      : targets
 
   // Bornes inconditionnelles de la période sélectionnée (du 1er à 00:00 au dernier jour à 23:59:59)
   const periodBounds = useMemo(() => {
@@ -231,19 +247,27 @@ export function TeamManagerPerformanceCard({
 
   const periodConclueCount: number | null = onSelectPeriod
     ? (context === 'org'
-        ? (orgPeriodReport?.globalCounts?.conclue ?? (isHistoricalPeriod ? (orgReportLoading ? null : 0) : stats.conclueCount))
+        ? (isGlobal
+            ? (orgPeriodReport?.globalCounts?.conclue ?? (isHistoricalPeriod ? (orgReportLoading ? null : 0) : stats.conclueCount))
+            : (selectedManagerReport?.stats?.conclue ?? (isHistoricalPeriod ? (orgReportLoading ? null : 0) : stats.conclueCount)))
         : (tmPeriodReport?.totalConclue ?? (isHistoricalPeriod ? (tmReportLoading ? null : 0) : stats.conclueCount)))
     : stats.conclueCount
 
   const periodConcludedAmount: number | null = onSelectPeriod
     ? (context === 'org'
-        ? (orgPeriodReport?.totalConcludedAmount ?? (isHistoricalPeriod ? (orgReportLoading ? null : 0) : stats.concludedAmount))
+        ? (isGlobal
+            ? (orgPeriodReport?.totalConcludedAmount ?? (isHistoricalPeriod ? (orgReportLoading ? null : 0) : stats.concludedAmount))
+            : (selectedManagerReport?.stats?.concludedAmount != null
+                ? selectedManagerReport.stats.concludedAmount
+                : (isHistoricalPeriod ? (orgReportLoading ? null : 0) : stats.concludedAmount)))
         : (tmPeriodReport?.totalRevenue ?? (isHistoricalPeriod ? (tmReportLoading ? null : 0) : stats.concludedAmount)))
     : stats.concludedAmount
 
   const periodConversionRate = onSelectPeriod
     ? (context === 'org'
-        ? (orgPeriodReport?.conversionRate ?? stats.conversionRate)
+        ? (isGlobal
+            ? (orgPeriodReport?.conversionRate ?? stats.conversionRate)
+            : stats.conversionRate)
         : (tmPeriodReport?.overallConversionRate ?? stats.conversionRate))
     : stats.conversionRate
 
