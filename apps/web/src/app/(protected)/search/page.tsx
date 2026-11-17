@@ -21,7 +21,7 @@ import { ShortcutCard } from '@/components/ui/ShortcutCard'
 import { Button } from '@/components/ui/Button'
 import { useTranslation } from '@/providers/I18nProvider'
 import { routes } from '@/constants/routes'
-import { Send, Zap, RotateCcw, Sparkles } from 'lucide-react'
+import { Send, Zap, RotateCcw, Sparkles, ArrowRight, Maximize2, Minimize2 } from 'lucide-react'
 import { AiFormattedMessage } from '@/components/ui/AiFormattedMessage'
 import { formatCompactAmount, formatFullAmount } from '@/lib/formatters'
 
@@ -87,6 +87,7 @@ function SearchContent() {
   ])
   const [chatInput, setChatInput] = useState('')
   const [isSendingChat, setIsSendingChat] = useState(false)
+  const [isChatExpanded, setIsChatExpanded] = useState(false)
   const chatMessagesContainerRef = useRef<HTMLDivElement>(null)
   const chatTextareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -546,9 +547,9 @@ function SearchContent() {
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: '16px 0',
+                padding: '8px 0',
                 textAlign: 'center',
-                gap: 16,
+                gap: 12,
                 width: '100%',
                 maxWidth: 600,
                 margin: '0 auto',
@@ -560,23 +561,23 @@ function SearchContent() {
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  gap: 12,
+                  gap: 10,
                   width: '100%',
                   boxSizing: 'border-box'
                 }}
               >
-                {/* Illustration Desktop (Premium) */}
+                {/* Illustration Desktop (Premium) — réduite de 10% */}
                 <div
                   className="desktop-illustration"
                   style={{
                     position: 'relative',
                     width: '100%',
-                    maxWidth: 420,
-                    height: 320,
+                    maxWidth: 375,
+                    height: 275,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    marginBottom: 16,
+                    marginBottom: 8,
                     background: 'transparent'
                   }}
                 >
@@ -703,7 +704,7 @@ function SearchContent() {
                   style={{
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: 8,
+                    gap: 6,
                     width: '100%',
                     paddingLeft: 8,
                     paddingRight: 8
@@ -711,7 +712,7 @@ function SearchContent() {
                 >
                   <h2
                     style={{
-                      fontSize: 'clamp(18px, 5vw, 24px)',
+                      fontSize: 'clamp(18px, 4.5vw, 22px)',
                       fontWeight: 700,
                       color: 'var(--foreground, #f1f5f9)',
                       margin: 0,
@@ -724,8 +725,8 @@ function SearchContent() {
                   <p
                     style={{
                       color: 'var(--muted-foreground, #94a3b8)',
-                      fontSize: 'clamp(13px, 3.5vw, 15px)',
-                      maxWidth: 400,
+                      fontSize: 'clamp(12.5px, 3.2vw, 14px)',
+                      maxWidth: 420,
                       margin: '0 auto',
                       wordBreak: 'break-word'
                     }}
@@ -733,37 +734,6 @@ function SearchContent() {
                     {t('search.findIdealProspectsDesc')}
                   </p>
                 </div>
-
-                <Button
-                  variant="primary"
-                  size="md"
-                  disabled={searchQuery.isLoading}
-                  onClick={() => {
-                    const input = document.getElementById(
-                      'main-search-input'
-                    ) as HTMLInputElement | null
-                    const form = input?.closest('form')
-                    if (input) {
-                      input.focus()
-                    }
-                    if (
-                      form &&
-                      (input?.value.trim() || filters.sector || filters.city || filters.region)
-                    ) {
-                      form.requestSubmit()
-                    }
-                  }}
-                  style={{ marginTop: 8, display: 'inline-flex', alignItems: 'center', gap: 8 }}
-                >
-                  {searchQuery.isLoading ? (
-                    <>
-                      <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                      {t('search.searchingProspects')}
-                    </>
-                  ) : (
-                    t('search.findProspectsCta')
-                  )}
-                </Button>
               </div>
 
               <style
@@ -808,6 +778,7 @@ function SearchContent() {
                   sector="btp"
                   title={`${t('search.btp')} ${highlightCities.btp}`}
                   subtitle={t('search.newCompanies')}
+                  count={86}
                   onClick={() => {
                     setFilters({ sector: 'BTP & Construction', city: highlightCities.btp })
                     setHasSearched(true)
@@ -817,6 +788,7 @@ function SearchContent() {
                   sector="tech"
                   title={`${t('search.tech')} ${highlightCities.tech}`}
                   subtitle={t('search.startupsPme')}
+                  count={94}
                   onClick={() => {
                     setFilters({ sector: 'Technologies & Numérique', city: highlightCities.tech })
                     setHasSearched(true)
@@ -826,6 +798,7 @@ function SearchContent() {
                   sector="agro"
                   title={t('search.agro')}
                   subtitle={countryName}
+                  count={78}
                   onClick={() => {
                     setFilters({ sector: 'Agriculture & Agroalimentaire' })
                     setHasSearched(true)
@@ -835,6 +808,7 @@ function SearchContent() {
                   sector="transport"
                   title={t('search.transport')}
                   subtitle={countryName}
+                  count={124}
                   onClick={() => {
                     setFilters({ sector: 'Transport & Logistique' })
                     setHasSearched(true)
@@ -961,8 +935,10 @@ function SearchContent() {
                     variant="outline"
                     style={{ width: '100%', borderRadius: 8, height: 36, fontSize: 13 }}
                     onClick={() => router.push('/pipeline')}
+                    className="group inline-flex items-center justify-center gap-2 transition-all hover:border-primary/50"
                   >
-                    {t('search.myPipelineFull')}
+                    <span>{t('search.myPipelineFull')}</span>
+                    <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
                   </Button>
                 </div>
               </DataCard>
@@ -980,24 +956,42 @@ function SearchContent() {
               </div>
             }
             actions={
-              chatMessages.some((m) => m.role === 'user') ? (
+              <div className="flex items-center gap-1.5">
+                {chatMessages.some((m) => m.role === 'user') ? (
+                  <button
+                    type="button"
+                    onClick={resetChat}
+                    className="flex items-center gap-1.5 rounded-lg border border-border bg-secondary/60 hover:bg-secondary hover:border-primary/40 px-2 py-1 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-all cursor-pointer shadow-2xs"
+                    title={lang === 'en' ? 'Reset conversation' : 'Nouvelle conversation'}
+                  >
+                    <RotateCcw size={12} className="transition-transform active:-rotate-45" />
+                    <span className="hidden sm:inline">{lang === 'en' ? 'New chat' : 'Nouveau'}</span>
+                  </button>
+                ) : null}
                 <button
                   type="button"
-                  onClick={resetChat}
-                  className="flex items-center gap-1.5 rounded-lg border border-border bg-secondary/60 hover:bg-secondary hover:border-primary/40 px-2.5 py-1 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-all cursor-pointer shadow-2xs"
-                  title={lang === 'en' ? 'Reset conversation' : 'Nouvelle conversation'}
+                  onClick={() => setIsChatExpanded(!isChatExpanded)}
+                  className="flex h-7 w-7 items-center justify-center rounded-lg border border-border bg-secondary/60 hover:bg-secondary hover:border-primary/40 text-muted-foreground hover:text-foreground transition-all cursor-pointer shadow-2xs"
+                  title={isChatExpanded ? (lang === 'en' ? 'Minimize' : 'Réduire') : (lang === 'en' ? 'Expand' : 'Agrandir')}
                 >
-                  <RotateCcw size={12} className="transition-transform active:-rotate-45" />
-                  <span>{lang === 'en' ? 'New chat' : 'Nouvelle conversation'}</span>
+                  {isChatExpanded ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
                 </button>
-              ) : null
+              </div>
             }
             style={{
               boxShadow: '0 1px 3px rgba(16,24,40,0.05)',
               border: '1px solid var(--border)'
             }}
           >
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, height: 380 }}>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 12,
+                height: isChatExpanded ? 520 : 395,
+                transition: 'height 200ms ease'
+              }}
+            >
               {/* conversationStarted: true once user has sent at least one message */}
               {(() => {
                 const conversationStarted = chatMessages.some((m) => m.role === 'user')
@@ -1007,13 +1001,13 @@ function SearchContent() {
                       ref={chatMessagesContainerRef}
                       style={{
                         flex: 1,
+                        minHeight: 120,
                         overflowY: 'auto',
                         overscrollBehavior: 'contain',
                         display: 'flex',
                         flexDirection: 'column',
                         gap: 10,
-                        paddingRight: 4,
-                        maxHeight: conversationStarted ? 320 : 260
+                        paddingRight: 4
                       }}
                     >
                       {chatMessages.map((msg, i) => (
@@ -1140,7 +1134,7 @@ function SearchContent() {
                     )}
 
                     {/* Zone de saisie */}
-                    <div style={{ position: 'relative' }}>
+                    <div style={{ position: 'relative', marginTop: 'auto', paddingTop: 4 }}>
                       <textarea
                         ref={chatTextareaRef}
                         value={chatInput}
@@ -1151,9 +1145,9 @@ function SearchContent() {
                         rows={1}
                         style={{
                           width: '100%',
-                          minHeight: 36,
+                          minHeight: 40,
                           maxHeight: 110,
-                          padding: isFreePlan ? '9px 104px 9px 12px' : '9px 44px 9px 12px',
+                          padding: isFreePlan ? '10px 104px 10px 12px' : '10px 44px 10px 12px',
                           borderRadius: 10,
                           border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
                           outline: 'none',

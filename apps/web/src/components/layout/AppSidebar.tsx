@@ -202,7 +202,7 @@ function SectionLabel({ children, collapsed }: { children: string; collapsed?: b
 }
 
 function SectionDivider({ collapsed }: { collapsed?: boolean }) {
-  return <hr className={`my-2 border-0 border-t border-border/70 ${collapsed ? 'mx-1' : ''}`} />
+  return <hr className={`my-2 border-0 border-t border-border/60 ${collapsed ? 'mx-1' : ''}`} />
 }
 
 export function AppSidebar({
@@ -791,7 +791,21 @@ export function AppSidebar({
         {isNavCollapsed ? (
           <div
             className="mb-1.5 flex justify-center py-1 cursor-default"
-            title={`${user.name || user.email} (${(user.plan || 'free').toUpperCase()})`}
+            title={`${user.name || user.email || t('sidebar.user')} — ${
+              user.role === 'admin'
+                ? t('sidebar.adminRole')
+                : user.role === 'manager'
+                  ? user.orgRole === 'senior_manager'
+                    ? t('sidebar.seniorManagerRole')
+                    : user.orgRole === 'team_manager'
+                      ? t('sidebar.teamManagerRole')
+                      : t('sidebar.managerRole')
+                  : user.role === 'independent'
+                    ? t('sidebar.independentRole')
+                    : user.role === 'support_agent'
+                      ? t('sidebar.supportAgentRole')
+                      : t('sidebar.memberRole')
+            } · ${(user.plan || 'free').toUpperCase()}`}
           >
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-sm border border-primary/20">
               {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || '?'}
@@ -799,51 +813,71 @@ export function AppSidebar({
           </div>
         ) : (
           <div className="mb-2 flex items-center gap-2.5 rounded-xl border border-border/70 bg-secondary/30 p-2.5">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[15px] font-bold text-primary border border-primary/20">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[14px] font-bold text-primary border border-primary/20">
               {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || '?'}
             </div>
-            <div className="flex min-w-0 flex-col">
-              <span className="truncate text-[13px] font-semibold text-foreground">
+            <div className="flex min-w-0 flex-1 flex-col">
+              <span
+                className="truncate text-[13px] font-semibold text-foreground"
+                title={user.name || user.email || ''}
+              >
                 {user.name || t('sidebar.user')}
               </span>
-              <span className="text-[11px] text-muted-foreground flex items-center gap-1.5 truncate">
+              <div className="mt-1 flex items-center gap-1.5 flex-wrap">
                 <span
-                  className="h-1.5 w-1.5 rounded-full shrink-0"
+                  className="inline-flex items-center gap-1 rounded-full px-1.5 py-[1px] text-[9.5px] font-bold uppercase tracking-[.05em] text-foreground border border-border/40"
                   style={{
                     backgroundColor:
                       user.role === 'admin'
-                        ? '#ef4444'
+                        ? 'rgba(239,68,68,0.18)'
                         : user.role === 'manager'
                           ? user.orgRole === 'senior_manager'
-                            ? '#8b5cf6'
-                            : '#eab308'
+                            ? 'rgba(139,92,246,0.18)'
+                            : 'rgba(234,179,8,0.18)'
                           : user.role === 'independent'
-                            ? '#22c55e'
+                            ? 'rgba(34,197,94,0.18)'
                             : user.role === 'support_agent'
-                              ? '#eb8512'
-                              : '#3b82f6'
+                              ? 'rgba(235,133,18,0.18)'
+                              : 'rgba(96,165,250,0.18)'
                   }}
-                />
-                <span className="truncate">
-                  {user.role === 'admin'
-                    ? t('sidebar.adminRole')
-                    : user.role === 'manager'
-                      ? user.orgRole === 'senior_manager'
-                        ? t('sidebar.seniorManagerRole')
-                        : user.orgRole === 'team_manager'
-                          ? t('sidebar.teamManagerRole')
-                          : t('sidebar.managerRole')
-                      : user.role === 'independent'
-                        ? t('sidebar.independentRole')
-                        : user.role === 'support_agent'
-                          ? t('sidebar.supportAgentRole')
-                          : t('sidebar.memberRole')}
+                >
+                  <span
+                    className="h-1.5 w-1.5 rounded-full shrink-0"
+                    style={{
+                      backgroundColor:
+                        user.role === 'admin'
+                          ? '#ef4444'
+                          : user.role === 'manager'
+                            ? user.orgRole === 'senior_manager'
+                              ? '#8b5cf6'
+                              : '#eab308'
+                            : user.role === 'independent'
+                              ? '#22c55e'
+                              : user.role === 'support_agent'
+                                ? '#eb8512'
+                                : '#3b82f6'
+                    }}
+                  />
+                  <span>
+                    {user.role === 'admin'
+                      ? t('sidebar.adminRole')
+                      : user.role === 'manager'
+                        ? user.orgRole === 'senior_manager'
+                          ? t('sidebar.seniorManagerRole')
+                          : user.orgRole === 'team_manager'
+                            ? t('sidebar.teamManagerRole')
+                            : t('sidebar.managerRole')
+                        : user.role === 'independent'
+                          ? t('sidebar.independentRole')
+                          : user.role === 'support_agent'
+                            ? t('sidebar.supportAgentRole')
+                            : t('sidebar.memberRole')}
+                  </span>
                 </span>
-                <span>·</span>
-                <span className="uppercase font-semibold">
+                <span className="rounded-full px-1.5 py-[1px] text-[9.5px] font-bold uppercase tracking-[.05em] bg-primary/10 text-primary border border-primary/25">
                   {(user.plan || 'free') === 'free' ? t('header.planFree') : user.plan}
                 </span>
-              </span>
+              </div>
             </div>
           </div>
         )}

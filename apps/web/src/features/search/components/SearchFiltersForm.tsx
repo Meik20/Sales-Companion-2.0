@@ -390,32 +390,36 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit, onHome }: Prop
           min-width: 100%;
         }
         .sc-pill {
-          display: inline-flex; align-items: center; gap: 6px;
-          height: 30px; padding: 0 12px;
+          display: inline-flex; align-items: center; gap: 7px;
+          height: 34px; padding: 0 14px;
           border-radius: 9999px;
           border: 1px solid var(--border);
           background: var(--card);
           color: var(--foreground);
-          font-size: 12px; font-weight: 500;
+          font-size: 12.5px; font-weight: 500;
           cursor: pointer; font-family: inherit;
           transition: all 150ms ease; white-space: nowrap;
-          box-shadow: 0 1px 2px rgba(16, 24, 40, 0.03);
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
         }
-        .sc-pill:hover { border-color: #2F5BEA; color: #2F5BEA; }
+        .sc-pill:hover {
+          border-color: var(--primary, #2F5BEA);
+          color: var(--primary, #2F5BEA);
+          background: var(--secondary);
+        }
         .sc-pill.active {
-          border-color: #2F5BEA;
-          background: #2F5BEA;
+          border-color: var(--primary, #2F5BEA);
+          background: var(--primary, #2F5BEA);
           color: #fff;
           font-weight: 600;
-          box-shadow: 0 2px 6px rgba(47, 91, 234, 0.25);
+          box-shadow: 0 2px 8px rgba(47, 91, 234, 0.28);
         }
         .sc-pill-counter {
           font-size: 11px;
-          opacity: 0.65;
-          font-weight: 500;
+          opacity: 0.75;
+          font-weight: 600;
         }
         .sc-pill.active .sc-pill-counter {
-          opacity: 0.9;
+          opacity: 0.95;
           color: #fff;
         }
         /* ── Bouton Accueil ── */

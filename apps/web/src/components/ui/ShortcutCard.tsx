@@ -101,14 +101,14 @@ export function ShortcutCard({
           {subtitle}
         </span>
         {(count != null || updatedAt) && (
-          <div className="mt-1 flex gap-2 text-[10px] font-medium text-muted-foreground/80">
+          <div className="mt-1 flex items-center gap-2 text-[10px] font-semibold">
             {count != null && (
-              <span>
+              <span className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 ${cfg.bgClass} ${cfg.textClass}`}>
                 {count.toLocaleString()} {t('search.companies')}
               </span>
             )}
             {updatedAt && (
-              <span>
+              <span className="text-muted-foreground/80">
                 {t('search.updatedAt')} : {updatedAt}
               </span>
             )}
