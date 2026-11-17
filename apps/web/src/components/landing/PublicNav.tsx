@@ -25,11 +25,11 @@ export function PublicNav({ activePage, backLink }: PublicNavProps) {
 
   return (
     <header className="sticky top-0 z-[100] border-b border-border/70 bg-background/85 backdrop-blur-md transition-all">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5">
-        {/* Brand */}
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5 sm:px-6">
+        {/* Zone logo — isolée visuellement */}
         <Link
           href="/"
-          className="flex items-center gap-2.5 group shrink-0"
+          className="flex items-center gap-2.5 group shrink-0 pr-5 sm:pr-6 border-r border-border/60"
           aria-label="Sales Companion 2.0 — Accueil"
         >
           <ScIcon size={34} interactive className="group-hover:scale-105 transition-transform" />

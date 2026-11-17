@@ -40,10 +40,11 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-[100] border-b border-border/70 bg-background/85 backdrop-blur-md transition-all">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:px-5">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-5 sm:px-6">
+        {/* Zone logo — isolée visuellement du reste de la navbar */}
         <Link
           href="/"
-          className="flex items-center gap-2 sm:gap-2.5 group shrink-0 min-w-0"
+          className="flex items-center gap-2 sm:gap-2.5 group shrink-0 min-w-0 pr-5 sm:pr-6 border-r border-border/60"
           aria-label="Sales Companion 2.0, accueil"
         >
           <ScIcon size={32} interactive className="group-hover:scale-105 transition-transform shrink-0 sm:w-[34px] sm:h-[34px]" />
@@ -53,7 +54,7 @@ export function SiteHeader() {
         </Link>
 
         <nav
-          className="hidden flex-1 items-center justify-center gap-6 md:flex"
+          className="hidden flex-1 items-center justify-center gap-7 md:flex"
           aria-label="Navigation principale"
         >
           {navLinks.map((link) => (
