@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { adminDb } from '@/lib/firebase-admin'
 import { FieldValue } from 'firebase-admin/firestore'
-import { PLANS } from '@/lib/payment-plans'
+import { PLANS, lookupPlan } from '@/lib/payment-plans'
 import { sendEmail } from '@/utils/email'
 import { verifyAdminCached } from '@/lib/api-admin-auth'
 import { syncTeamMemberPlans } from '@/lib/sync-team-plan'
@@ -41,7 +41,7 @@ export async function PATCH(
     }
 
     if (action === 'validate') {
-      const planInfo = PLANS[paymentData.plan]
+      const planInfo = lookupPlan(paymentData.plan)
       const expiresAt = calculateSubscriptionExpiry()
 
       // ✅ Activer le compte, appliquer le plan et fixer l'échéance à 30 jours à minuit

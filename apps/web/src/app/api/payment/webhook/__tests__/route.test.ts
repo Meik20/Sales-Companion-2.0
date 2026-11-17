@@ -60,6 +60,29 @@ vi.mock('@/lib/subscription', () => ({
   calculateSubscriptionExpiry: () => new Date('2026-11-06T00:00:00.000Z')
 }))
 
+vi.mock('@/lib/payment-plans', () => ({
+  PLANS: {
+    free: { label: 'Free', amount: 0, dailyLimit: 10 },
+    starter: { label: 'Starter', amount: 5000, dailyLimit: 10 },
+    pro: { label: 'Pro', amount: 15000, dailyLimit: 20 },
+    enterprise: { label: 'Enterprise', amount: 50000, dailyLimit: 50 }
+  },
+  PAID_PLANS: ['starter', 'pro', 'enterprise'],
+  lookupPlan: (plan: unknown) => {
+    const plans: Record<string, { label: string; amount: number; dailyLimit: number }> = {
+      free: { label: 'Free', amount: 0, dailyLimit: 10 },
+      starter: { label: 'Starter', amount: 5000, dailyLimit: 10 },
+      pro: { label: 'Pro', amount: 15000, dailyLimit: 20 },
+      enterprise: { label: 'Enterprise', amount: 50000, dailyLimit: 50 }
+    }
+    return typeof plan === 'string' && plan in plans ? plans[plan] : undefined
+  },
+  resolvePlanAmount: (plan: string) => {
+    const amounts: Record<string, number> = { starter: 5000, pro: 15000, enterprise: 50000 }
+    return amounts[plan] ?? undefined
+  }
+}))
+
 import { POST } from '../route'
 
 describe('POST /api/payment/webhook', () => {

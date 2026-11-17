@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createHmac, timingSafeEqual } from 'crypto'
 import { adminDb } from '@/lib/firebase-admin'
 import { FieldValue } from 'firebase-admin/firestore'
-import { PLANS } from '@/lib/payment-plans'
+import { PLANS, lookupPlan } from '@/lib/payment-plans'
 import { PLAN_LIMITS } from '@sales-companion/shared'
 import { syncTeamMemberPlans } from '@/lib/sync-team-plan'
 
@@ -137,7 +137,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ received: true })
       }
 
-      const planInfo = PLANS[paymentData.plan]
+      const planInfo = lookupPlan(paymentData.plan)
       if (!planInfo) {
         console.error('[webhook/campay] plan inconnu:', paymentData.plan)
         return NextResponse.json({ received: true })

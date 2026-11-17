@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { adminDb, adminAuth } from '@/lib/firebase-admin'
 import { campayGetTransaction } from '@/lib/campay'
 import { FieldValue } from 'firebase-admin/firestore'
-import { PLANS } from '@/lib/payment-plans'
+import { PLANS, lookupPlan } from '@/lib/payment-plans'
 import { PLAN_LIMITS } from '@sales-companion/shared'
 
 /**
@@ -72,7 +72,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         )
       }
 
-      const planInfo = PLANS[paymentData.plan]
+      const planInfo = lookupPlan(paymentData.plan)
       const { calculateSubscriptionExpiry } = await import('@/lib/subscription')
       const expiresAt = calculateSubscriptionExpiry()
 
