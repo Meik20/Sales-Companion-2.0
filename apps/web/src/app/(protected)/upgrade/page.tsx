@@ -244,8 +244,40 @@ export default function UpgradePage() {
     (user?.role === 'manager' && user?.orgRole === 'senior_manager') ||
     (user?.role === 'manager' && Boolean(user?.orgCode) && !user?.seniorManagerUid)
 
+  // ── Team Manager avec plan actif : rediriger directement vers son espace ──
+  // Un TM avec plan enterprise/pro hérité de son SM est pleinement opérationnel
+  // même si active===false (désynchronisation transitoire). On le renvoie
+  // immédiatement vers son espace sans l'afficher la page upgrade.
+  const isTeamManagerWithActivePlan =
+    !isBillingOwner &&
+    user?.role === 'manager' &&
+    (user as any)?.orgRole === 'team_manager' &&
+    user?.plan &&
+    user.plan !== 'free'
+
+  useEffect(() => {
+    if (!userLoading && user && isTeamManagerWithActivePlan) {
+      const destination =
+        searchParams.get('redirect') || routes.search
+      router.replace(destination)
+    }
+  }, [userLoading, user, isTeamManagerWithActivePlan, router, searchParams])
+
   // ── Écran d'avertissement informatif pour les non-gestionnaires de facturation ──
   if (!userLoading && user && !isBillingOwner) {
+    // Si le TM a un plan actif, on affiche un spinner le temps de la redirection
+    if (isTeamManagerWithActivePlan) {
+      return (
+        <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background text-muted-foreground">
+          <span
+            className="inline-block h-8 w-8 rounded-full border-[3px] border-white/10"
+            style={{ borderTopColor: 'hsl(var(--primary))', animation: 'spin 0.8s linear infinite' }}
+          />
+          <p className="m-0 text-[14px]">Redirection vers votre espace…</p>
+        </div>
+      )
+    }
+
     return (
       <main>
         <AppShell>

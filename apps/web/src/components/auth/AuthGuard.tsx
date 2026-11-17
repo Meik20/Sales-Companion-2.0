@@ -57,7 +57,14 @@ export function AuthGuard({ children }: PropsWithChildren) {
     const isPending = (user as { emailVerificationPending?: boolean } | null)
       ?.emailVerificationPending
 
-    if (firebaseUser.emailVerified && isPending && !isVerifyingRef.current) {
+    // Auto-guérison pour les Team Managers dont le compte n'est pas encore marqué actif
+    // alors que leur Senior Manager dispose d'un forfait payant actif (Enterprise / Pro).
+    const isTeamManager =
+      user?.role === 'manager' &&
+      ((user as any).orgRole === 'team_manager' || Boolean((user as any).seniorManagerUid))
+    const needsTMActivation = isTeamManager && !user?.active
+
+    if (firebaseUser.emailVerified && (isPending || needsTMActivation) && !isVerifyingRef.current) {
       if (typeof navigator !== 'undefined' && !navigator.onLine) return
 
       isVerifyingRef.current = true
@@ -90,10 +97,21 @@ export function AuthGuard({ children }: PropsWithChildren) {
 
   // ─────────────────────────────────────────────────────────────────────────
   // ✅ Rédirection automatique manager → /upgrade après vérification email
+  // Les Team Managers (orgRole === 'team_manager' ou seniorManagerUid défini)
+  // héritent du plan de leur Senior Manager : ils ne gèrent jamais la
+  // facturation et ne doivent JAMAIS être redirigés vers /upgrade.
   // ─────────────────────────────────────────────────────────────────────────
   useEffect(() => {
     if (loading || finalizing || !user) return
     if (user.role !== 'manager') return
+
+    // Un Team Manager est identifiable soit par orgRole, soit par la présence
+    // de seniorManagerUid (compte joint via code organisation).
+    const isTeamManager =
+      (user as any).orgRole === 'team_manager' || Boolean((user as any).seniorManagerUid)
+
+    // Les TM ne gèrent jamais la facturation — ne jamais les envoyer vers /upgrade.
+    if (isTeamManager) return
 
     const emailVerificationPending = (user as any).emailVerificationPending
     const paymentPending = (user as any).paymentPending

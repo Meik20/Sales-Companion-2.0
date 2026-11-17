@@ -248,4 +248,49 @@ describe('POST /api/auth/verify-email', () => {
     expect(mocks.mockUserUpdate).not.toHaveBeenCalled()
     expect(mocks.mockCreateAdminNotification).not.toHaveBeenCalled()
   })
+
+  it('auto-active un Team Manager avec email déjà vérifié mais active: false quand son SM est payant', async () => {
+    const smUid = 'sm-active-888'
+    const tmUid = 'tm-kevin-999'
+
+    mocks.usersStore.set(smUid, {
+      role: 'manager',
+      orgRole: 'senior_manager',
+      plan: 'enterprise',
+      active: true,
+      emailVerified: true,
+      subscriptionExpiresAt: new Date(Date.now() + 86400000).toISOString()
+    })
+
+    // Team Manager avec email déjà vérifié mais active: false (désynchronisation initiale)
+    mocks.usersStore.set(tmUid, {
+      role: 'manager',
+      orgRole: 'team_manager',
+      seniorManagerUid: smUid,
+      emailVerificationPending: false,
+      emailVerified: true,
+      active: false,
+      activated: false,
+      plan: 'enterprise'
+    })
+
+    mocks.mockVerifyIdToken.mockResolvedValue({
+      uid: tmUid,
+      email: 'tm.kevin@test.com',
+      email_verified: true
+    })
+
+    const req = new NextRequest('http://localhost/api/auth/verify-email', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer valid-token' }
+    })
+
+    const res = await POST(req)
+    expect(res.status).toBe(200)
+
+    const updatedTm = mocks.usersStore.get(tmUid)
+    expect(updatedTm.active).toBe(true)
+    expect(updatedTm.activated).toBe(true)
+    expect(updatedTm.plan).toBe('enterprise')
+  })
 })

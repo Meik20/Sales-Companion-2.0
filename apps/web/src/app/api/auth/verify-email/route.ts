@@ -61,9 +61,15 @@ export async function POST(request: NextRequest) {
     }
 
     const userData = userSnap.data() ?? {}
+    const isManagerRole = userData.role === 'manager'
+    const isKnownTeamManager =
+      isManagerRole && (userData.orgRole === 'team_manager' || Boolean(userData.seniorManagerUid))
+    const needsTeamManagerActivation = isKnownTeamManager && !userData.active
+
     if (
-      userData.emailVerificationPending === false ||
-      (userData.activated === true && !userData.emailVerificationPending)
+      !needsTeamManagerActivation &&
+      (userData.emailVerificationPending === false ||
+        (userData.activated === true && !userData.emailVerificationPending))
     ) {
       // Déjà traité (idempotence) — évite les boucles d'appels et les notifications dupliquées
       return NextResponse.json({
