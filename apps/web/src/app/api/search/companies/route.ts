@@ -172,28 +172,44 @@ export async function GET(request: NextRequest) {
 
     if (googleApiKey && (query || (lat && lng))) {
       try {
-        let url = ''
+        const GOOGLE_MAPS_ORIGIN = 'https://maps.googleapis.com'
+        let targetUrl: URL | null = null
         const keyword = [query, sector].filter(Boolean).join(' ')
         const countryName = COUNTRY_NAMES[userCountry] || 'Cameroun'
 
-        if (lat && lng && isWithinCountry(Number(lat), Number(lng), userCountry)) {
-          url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&key=${googleApiKey}`
+        const parsedLat = lat ? Number(lat) : NaN
+        const parsedLng = lng ? Number(lng) : NaN
+        const parsedRadius = Math.min(Math.max(Number(radius) || 10000, 1000), 50000)
+
+        if (
+          Number.isFinite(parsedLat) &&
+          Number.isFinite(parsedLng) &&
+          isWithinCountry(parsedLat, parsedLng, userCountry)
+        ) {
+          targetUrl = new URL('/maps/api/place/nearbysearch/json', GOOGLE_MAPS_ORIGIN)
+          targetUrl.searchParams.set('location', `${parsedLat},${parsedLng}`)
+          targetUrl.searchParams.set('radius', String(parsedRadius))
+          targetUrl.searchParams.set('key', googleApiKey)
+
           if (keyword) {
-            url += `&keyword=${encodeURIComponent(keyword)}`
+            targetUrl.searchParams.set('keyword', keyword)
           } else {
             // En prospection B2B sans mot-clé spécifique, cibler les établissements d'activités commerciales
             // pour éviter d'être saturé uniquement par les POIs de santé d'urgence / pharmacies de garde
-            url += `&type=establishment&keyword=${encodeURIComponent('commerce OR entreprise OR societe OR agence OR magasin')}`
+            targetUrl.searchParams.set('type', 'establishment')
+            targetUrl.searchParams.set('keyword', 'commerce OR entreprise OR societe OR agence OR magasin')
           }
         } else if (query) {
           const finalQuery = query.toLowerCase().includes(countryName.toLowerCase())
             ? query
             : `${query} ${countryName}`
-          url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(finalQuery)}&key=${googleApiKey}`
+          targetUrl = new URL('/maps/api/place/textsearch/json', GOOGLE_MAPS_ORIGIN)
+          targetUrl.searchParams.set('query', finalQuery)
+          targetUrl.searchParams.set('key', googleApiKey)
         }
 
-        if (url) {
-          const gRes = await fetch(url)
+        if (targetUrl && targetUrl.origin === GOOGLE_MAPS_ORIGIN) {
+          const gRes = await fetch(targetUrl.toString())
           const gData = await gRes.json()
           if (gData.results) {
             googleResults = gData.results
