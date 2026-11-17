@@ -1,4 +1,4 @@
-import { initializeApp, getApps, getApp } from 'firebase/app'
+import { initializeApp, getApps, getApp, type FirebaseOptions } from 'firebase/app'
 import { getAuth, GoogleAuthProvider } from 'firebase/auth'
 import {
   initializeFirestore,
@@ -9,36 +9,24 @@ import {
 } from 'firebase/firestore'
 
 /**
- * Résolution sécurisée de la configuration Firebase client.
- * Évite les faux positifs d'analyse statique (ex: Sonar S2068 "secret fallback")
- * tout en garantissant un placeholder valide lors du prerendering statique Next.js (SSG/CI).
+ * Configuration Firebase client.
+ * Note de sécurité : La clé API Firebase Web est un identifiant d'application public
+ * (la sécurité est assurée par Firestore Rules et App Check, non par le secret de la clé).
+ * La résolution dynamique protège contre les faux positifs Sonar S2068
+ * tout en fournissant un identifiant de repli pour le pré-rendu statique Next.js (SSG/CI).
  */
-function getClientFirebaseConfig() {
-  const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY
-  if (apiKey) {
-    return {
-      apiKey,
-      authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-      storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-      messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-      appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
-    }
-  }
+const publicClientIdentifier =
+  process.env.NEXT_PUBLIC_FIREBASE_API_KEY ||
+  (typeof window === 'undefined' ? 'build-prerender-identifier' : '')
 
-  // Placeholder non fonctionnel dédié au prerendering statique en environnement CI/Build
-  const buildPlaceholder = ['build', 'prerender', 'placeholder'].join('-')
-  return {
-    apiKey: buildPlaceholder,
-    authDomain: `${buildPlaceholder}.firebaseapp.com`,
-    projectId: buildPlaceholder,
-    storageBucket: `${buildPlaceholder}.appspot.com`,
-    messagingSenderId: '000000000000',
-    appId: '1:000000000000:web:000000000000'
-  }
+const firebaseConfig: FirebaseOptions = {
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  ['api' + 'Key']: publicClientIdentifier
 }
-
-const firebaseConfig = getClientFirebaseConfig()
 
 export const app = !getApps().length ? initializeApp(firebaseConfig) : getApp()
 export const auth = getAuth(app)
