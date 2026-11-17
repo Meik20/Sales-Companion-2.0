@@ -468,7 +468,7 @@ export default function AdminConfigPage() {
           }}
         >
           Propage le plan et la <strong>période de validité d'abonnement</strong> du Manager vers
-          tous ses comptes associés (Membres d'équipe et Agents Support). À utiliser après une mise
+          tous ses comptes associés (Commerciaux d'équipe et Agents Support). À utiliser après une mise
           à jour manuelle de la validité du Manager.
         </p>
         <button

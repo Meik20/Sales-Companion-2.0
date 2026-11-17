@@ -895,11 +895,11 @@ function TargetsButton({ members }: { members?: Member[] }) {
       : selectedMemberIds.length === 1
         ? (() => {
             const m = members?.find((mb) => mb.uid === selectedMemberIds[0])
-            return m?.name ?? m?.email ?? '1 membre'
+            return m?.name ?? m?.email ?? (lang === 'en' ? '1 sales rep' : '1 commercial')
           })()
         : lang === 'en'
-          ? `${selectedMemberIds.length} members selected`
-          : `${selectedMemberIds.length} membres sélectionnés`
+          ? `${selectedMemberIds.length} sales reps selected`
+          : `${selectedMemberIds.length} commerciaux sélectionnés`
 
   return (
     <>

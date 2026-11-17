@@ -8,7 +8,7 @@ import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useAuthActions } from '@/features/auth/hooks/useAuthActions'
 import { routes } from '@/constants/routes'
 import { ScIcon } from '@/components/ui/ScIcon'
-import { Settings, User, LogOut, Menu, ChevronDown, WifiOff } from 'lucide-react'
+import { Settings, User, LogOut, Menu, WifiOff } from 'lucide-react'
 import { useTranslation } from '@/providers/I18nProvider'
 import { AdminNotificationBell } from '@/features/admin/components/AdminNotificationBell'
 import { UserNotificationBell } from '@/components/layout/UserNotificationBell'
@@ -16,6 +16,24 @@ import { useNetworkStatus } from '@/hooks/useNetworkStatus'
 import { useProspectingCountry } from '@/hooks/useProspectingCountry'
 import { getCountryName } from '@sales-companion/shared'
 import { PWAInstallButton } from '@/components/pwa/PWAInstallButton'
+
+function getUserInitials(user?: { name?: string | null; email?: string | null } | null): string {
+  if (!user) return '?'
+  const name = user.name?.trim()
+  if (name) {
+    const parts = name.split(/\s+/).filter(Boolean)
+    const first = parts[0]
+    const second = parts[1]
+    if (first && second) {
+      return (first.charAt(0) + second.charAt(0)).toUpperCase()
+    }
+    return name.slice(0, 2).toUpperCase()
+  }
+  if (user.email) {
+    return user.email.slice(0, 2).toUpperCase()
+  }
+  return '?'
+}
 
 export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void }) {
   const { t, lang } = useTranslation()
@@ -38,11 +56,11 @@ export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void 
   }
 
   const roleBadge: Record<string, { label: string; bg: string }> = {
-    admin: { label: t('sidebar.admin'), bg: 'rgba(239,68,68,0.25)' },
-    manager: { label: t('sidebar.manager'), bg: 'rgba(251,191,36,0.22)' },
-    member: { label: t('sidebar.member'), bg: 'rgba(96,165,250,0.22)' },
-    independent: { label: t('sidebar.independent'), bg: 'rgba(34,197,94,0.22)' },
-    support_agent: { label: t('sidebar.support'), bg: 'rgba(235,133,18,0.25)' }
+    admin: { label: t('sidebar.adminRole') || t('sidebar.admin'), bg: 'rgba(239,68,68,0.25)' },
+    manager: { label: t('sidebar.managerRole') || t('sidebar.manager'), bg: 'rgba(251,191,36,0.22)' },
+    member: { label: t('sidebar.memberRole') || 'Commercial', bg: 'rgba(96,165,250,0.22)' },
+    independent: { label: t('sidebar.independentRole') || t('sidebar.independent'), bg: 'rgba(34,197,94,0.22)' },
+    support_agent: { label: t('sidebar.supportAgentRole') || t('sidebar.support'), bg: 'rgba(235,133,18,0.25)' }
   }
 
   // Senior Manager has a distinct badge (purple tint) vs Team Manager (yellow)
@@ -68,11 +86,7 @@ export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void 
         dangerouslySetInnerHTML={{
           __html: `
         @media (max-width: 640px) {
-          .hdr-name-block { display: none !important; }
-          .hdr-logo-sub   { display: none !important; }
-        }
-        @media (min-width: 641px) {
-          .hdr-name-block { display: flex !important; }
+          .hdr-logo-sub { display: none !important; }
         }
       `
         }}
@@ -83,7 +97,7 @@ export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void 
           {onOpenMenuAction && (
             <button
               onClick={onOpenMenuAction}
-              className="flex lg:hidden items-center justify-center rounded-lg border border-border/60 bg-secondary/40 p-1.5 text-foreground transition-all duration-150 hover:bg-secondary hover:shadow-elevation-1"
+              className="flex lg:hidden items-center justify-center rounded-lg border border-border/60 bg-secondary/40 p-1.5 text-foreground transition-all duration-150 hover:bg-secondary hover:shadow-elevation-1 cursor-pointer"
               aria-label="Ouvrir le menu"
             >
               <Menu size={18} />
@@ -101,8 +115,8 @@ export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void 
                 Sales <em className="not-italic font-normal opacity-75">Companion</em>{' '}
                 <em className="text-[12px] not-italic font-normal opacity-55">2.0</em>
               </span>
-              <span className="hdr-logo-sub text-[9.5px] uppercase tracking-[.12em] text-muted-foreground">
-                B2B {countryLabel}
+              <span className="hdr-logo-sub text-[9.5px] uppercase tracking-[.15em] font-medium text-muted-foreground">
+                {countryLabel}
               </span>
             </div>
           </Link>
@@ -133,38 +147,16 @@ export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void 
           {user ? (
             <div className="relative">
               <button
+                type="button"
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
-                className="flex items-center gap-2.5 rounded-xl border border-border/80 bg-secondary/40 py-1.5 pl-1.5 pr-2.5 text-foreground shadow-elevation-1 transition-all duration-150 hover:border-primary/50 hover:bg-secondary/70 hover:shadow-elevation-2 active:scale-[0.99] dark:border-white/20 dark:hover:border-primary/50"
+                className="group relative flex items-center justify-center rounded-full transition-transform duration-150 hover:scale-105 active:scale-95 focus:outline-hidden cursor-pointer"
+                aria-label={t('header.myProfile') || 'Menu profil utilisateur'}
+                aria-expanded={isProfileOpen}
               >
-                {/* Avatar */}
-                <div className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-full border-2 border-primary/60 bg-primary/20 text-[13px] font-bold text-primary shadow-elevation-1 ring-2 ring-primary/15 dark:border-primary/70 dark:bg-primary/25">
-                  {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || '?'}
+                {/* Avatar avec initiales */}
+                <div className="flex h-[36px] w-[36px] shrink-0 items-center justify-center rounded-full border-2 border-primary/60 bg-primary/20 text-[13px] font-bold text-primary shadow-elevation-1 ring-2 ring-primary/15 transition-all duration-150 group-hover:border-primary group-hover:ring-primary/30 dark:border-primary/70 dark:bg-primary/25">
+                  {getUserInitials(user)}
                 </div>
-
-                {/* Name + Role — hidden on mobile */}
-                <div className="hdr-name-block flex flex-col text-left leading-[1.2]">
-                  <span className="text-[13px] font-semibold">
-                    {user.name || user.email?.split('@')[0] || t('sidebar.user')}
-                  </span>
-                  <div className="mt-[2px] flex items-center gap-1.5">
-                    {badge && (
-                      <span
-                        style={{ backgroundColor: badge.bg }}
-                        className="rounded-full px-1.5 py-[1px] text-[9px] font-bold uppercase tracking-[.06em] text-foreground"
-                      >
-                        {badge.label}
-                      </span>
-                    )}
-                    <span className="text-[10px] uppercase text-muted-foreground">
-                      {(user.plan || 'free') === 'free' ? t('header.planFree') : user.plan}
-                    </span>
-                  </div>
-                </div>
-
-                <ChevronDown
-                  size={14}
-                  className={`shrink-0 opacity-60 transition-transform duration-200 ${isProfileOpen ? 'rotate-180' : 'rotate-0'}`}
-                />
               </button>
 
               {/* Dropdown */}
@@ -176,17 +168,41 @@ export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void 
                       backgroundColor: 'var(--card, #ffffff)',
                       boxShadow: '0 16px 36px -6px rgba(0,0,0,0.25), 0 0 0 1px var(--border)'
                     }}
-                    className="popover-panel absolute right-0 top-[48px] z-[200] flex w-[240px] animate-scale-in flex-col overflow-hidden rounded-xl border border-border"
+                    className="popover-panel absolute right-0 top-[48px] z-[200] flex w-[260px] animate-scale-in flex-col overflow-hidden rounded-xl border border-border"
                   >
-                    {/* User Info */}
+                    {/* User Info Header */}
                     <div
-                      className="border-b border-border px-4 pb-3 pt-3.5"
+                      className="border-b border-border p-3.5"
                       style={{ backgroundColor: 'var(--secondary, #f8fafc)' }}
                     >
-                      <div className="text-[14px] font-semibold text-foreground">
-                        {user.name || t('sidebar.user')}
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-primary/60 bg-primary/20 text-[14px] font-bold text-primary shadow-elevation-1 ring-2 ring-primary/15 dark:border-primary/70 dark:bg-primary/25">
+                          {getUserInitials(user)}
+                        </div>
+                        <div className="flex min-w-0 flex-1 flex-col">
+                          <span className="truncate text-[13.5px] font-semibold text-foreground">
+                            {user.name || t('sidebar.user')}
+                          </span>
+                          <span className="truncate text-[11px] text-muted-foreground">
+                            {user.email}
+                          </span>
+                        </div>
                       </div>
-                      <div className="mt-0.5 text-[11px] text-muted-foreground">{user.email}</div>
+
+                      {/* Statut (SM, TM, Commercial, etc.) et Plan Actif */}
+                      <div className="mt-3 flex items-center gap-1.5 flex-wrap">
+                        {badge && (
+                          <span
+                            style={{ backgroundColor: badge.bg }}
+                            className="rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[.06em] text-foreground border border-border/40"
+                          >
+                            {badge.label}
+                          </span>
+                        )}
+                        <span className="rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[.06em] bg-primary/10 text-primary border border-primary/25">
+                          {(user.plan || 'free') === 'free' ? t('header.planFree') : user.plan}
+                        </span>
+                      </div>
                     </div>
 
                     {/* Menu Items */}
@@ -215,7 +231,7 @@ export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void 
                         <button
                           key={label}
                           onClick={action}
-                          className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[13px] text-foreground transition-all hover:bg-secondary"
+                          className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[13px] text-foreground transition-all hover:bg-secondary cursor-pointer"
                         >
                           <Icon
                             size={15}
@@ -230,7 +246,7 @@ export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void 
 
                       <button
                         onClick={handleLogout}
-                        className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[13px] font-medium text-destructive transition-all hover:bg-destructive/10"
+                        className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-[13px] font-medium text-destructive transition-all hover:bg-destructive/10 cursor-pointer"
                       >
                         <LogOut size={15} strokeWidth={1.8} className="shrink-0" />
                         {t('header.logout')}

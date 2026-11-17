@@ -119,7 +119,7 @@ export function TeamMembersSection() {
           title={t('team.emptyTeam' as any) || 'Équipe vide'}
           description={
             t('team.noMemberAssigned') ||
-            'Invitez des membres pour collaborer et suivre les performances.'
+            'Invitez des commerciaux pour collaborer et suivre les performances.'
           }
           illustrationSize="sm"
         />

@@ -395,7 +395,7 @@ export default function AdminDashboardPage() {
   const roleData = [
     {
       label: t('admin.members'),
-      fullLabel: 'Membres',
+      fullLabel: 'Commerciaux',
       value: stats?.roleDistribution?.member || 0,
       color: '#60a5fa'
     },

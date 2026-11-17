@@ -117,7 +117,7 @@ export function TeamAccessManager() {
     if (activeOrPendingCount >= maxMembers) {
       pushToast({
         type: 'error',
-        title: `Limite atteinte: Le plan ${currentPlan.toUpperCase()} ne permet que ${maxMembers} membres.`
+        title: `Limite atteinte: Le plan ${currentPlan.toUpperCase()} ne permet que ${maxMembers} commerciaux.`
       })
       return
     }
@@ -206,7 +206,7 @@ export function TeamAccessManager() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Erreur lors de la révocation')
 
-      pushToast({ type: 'success', title: 'Accès révoqué et membre détaché' })
+      pushToast({ type: 'success', title: 'Accès révoqué et commercial détaché' })
       setRevokeId(null)
     } catch (e: any) {
       pushToast({ type: 'error', title: `Erreur: ${e.message}` })
@@ -228,7 +228,7 @@ export function TeamAccessManager() {
       if (!res.ok) throw new Error((json as any).message ?? `Erreur ${res.status}`)
       pushToast({
         type: 'success',
-        title: `Membre supprimé (${json.pipelineDeleted ?? 0} items pipeline retirés)`
+        title: `Commercial supprimé (${json.pipelineDeleted ?? 0} items pipeline retirés)`
       })
       setConfirmDeleteId(null)
       // Real-time listener updates the list automatically
@@ -523,7 +523,7 @@ export function TeamAccessManager() {
               {activeOrPendingCount >= maxMembers && (
                 <span style={{ fontSize: 11.5, color: '#ef4444', fontWeight: 700 }}>
                   {t('team.quotaReached') ||
-                    'Limite atteinte. Passez au plan supérieur pour ajouter plus de membres.'}
+                    'Limite atteinte. Passez au plan supérieur pour ajouter plus de commerciaux.'}
                 </span>
               )}
             </div>
@@ -898,7 +898,7 @@ export function TeamAccessManager() {
       <ConfirmDialog
         isOpen={Boolean(revokeId)}
         title={t('team.revokeAccess') || 'Révoquer cet accès'}
-        description="Le membre ne pourra plus se connecter avec cet identifiant d'accès tant qu'il ne sera pas réactivé."
+        description="Le commercial ne pourra plus se connecter avec cet identifiant d'accès tant qu'il ne sera pas réactivé."
         confirmText={t('team.revoke') || 'Révoquer'}
         cancelText={t('team.cancel') || 'Annuler'}
         variant="warning"

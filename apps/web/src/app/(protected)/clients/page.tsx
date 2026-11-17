@@ -96,7 +96,7 @@ export default function ClientDatabasePage() {
       if (c.assignedTo) {
         map.set(c.assignedTo, {
           id: c.assignedTo,
-          name: c.assignedName || 'Membre de l’équipe',
+          name: c.assignedName || 'Commercial de l’équipe',
           email: c.assignedEmail ?? undefined
         })
       }
