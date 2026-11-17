@@ -100,7 +100,7 @@ export function SiteHeader() {
             href="https://www.linkedin.com/company/sales-companion-2-0/"
             target="_blank"
             rel="noopener noreferrer"
-            className="hidden items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-all hover:border-[#0A66C2] hover:text-[#0A66C2] sm:inline-flex"
+            className="hidden items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-all hover:border-[#0A66C2] hover:text-[#0A66C2] xl:inline-flex"
             aria-label="Page Officielle LinkedIn Sales Companion 2.0"
           >
             <LinkedInIcon className="h-3.5 w-3.5 text-[#0A66C2]" />
@@ -145,7 +145,7 @@ export function SiteHeader() {
                   ? 'Switch to Dark mode'
                   : 'Passer en mode sombre'
             }
-            className="hidden sm:inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-secondary/60 text-muted-foreground transition-all hover:bg-secondary hover:text-foreground hover:border-border/80 cursor-pointer shrink-0"
+            className="hidden sm:inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-secondary/60 text-muted-foreground transition-all hover:bg-secondary hover:text-foreground hover:border-border/80 cursor-pointer shrink-0 flex-none"
             aria-label={lang === 'en' ? 'Toggle theme' : 'Changer de thème'}
           >
             {mounted ? (
