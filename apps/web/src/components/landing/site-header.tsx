@@ -40,7 +40,7 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-[100] border-b border-border/70 bg-background/85 backdrop-blur-md transition-all">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-5 sm:px-6">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-5 sm:px-6">
         {/* Zone logo — isolée visuellement du reste de la navbar */}
         <Link
           href="/"
