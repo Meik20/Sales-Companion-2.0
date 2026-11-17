@@ -192,7 +192,9 @@ export async function GET(request: NextRequest) {
           targetUrl.searchParams.set('key', googleApiKey)
 
           if (keyword) {
-            targetUrl.searchParams.set('keyword', keyword)
+            // Sanitize : texte de recherche uniquement, longueur limitée, caractères spéciaux retirés
+            const safeKeyword = String(keyword).slice(0, 200).replace(/[<>"'{}|\\^`[\]]/g, '').trim()
+            targetUrl.searchParams.set('keyword', safeKeyword)
           } else {
             // En prospection B2B sans mot-clé spécifique, cibler les établissements d'activités commerciales
             // pour éviter d'être saturé uniquement par les POIs de santé d'urgence / pharmacies de garde

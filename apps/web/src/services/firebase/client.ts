@@ -12,12 +12,10 @@ import {
  * Configuration Firebase client.
  * Note de sécurité : La clé API Firebase Web est un identifiant d'application public
  * (la sécurité est assurée par Firestore Rules et App Check, non par le secret de la clé).
- * La résolution dynamique protège contre les faux positifs Sonar S2068
- * tout en fournissant un identifiant de repli pour le pré-rendu statique Next.js (SSG/CI).
+ * L'accès via variable d'environnement est la seule source de vérité.
+ * En SSG/CI, la variable NEXT_PUBLIC_FIREBASE_API_KEY est injectée par le workflow CI.
  */
-const publicClientIdentifier =
-  process.env.NEXT_PUBLIC_FIREBASE_API_KEY ||
-  (typeof window === 'undefined' ? 'build-prerender-identifier' : '')
+const publicClientIdentifier = process.env['NEXT_PUBLIC_FIREBASE_API_KEY'] ?? ''
 
 const firebaseConfig: FirebaseOptions = {
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
