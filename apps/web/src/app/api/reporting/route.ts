@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { adminDb, adminAuth } from '@/lib/firebase-admin'
-import { hasActivePaidManagerAccess } from '@/lib/manager-access'
+import { hasActivePaidManagerAccess, verifyAndSyncManagerAccess } from '@/lib/manager-access'
 import { getCurrentCycleContext, getMonthPeriodInfo } from '@/lib/monthly-cycle'
 import { normalizePipelineStatus as normalizeStatus } from '@/lib/pipeline-metrics'
 
@@ -15,7 +15,12 @@ export async function GET(request: NextRequest) {
 
     const decoded = await adminAuth.verifyIdToken(token)
     const managerDoc = await adminDb.collection('users').doc(decoded.uid).get()
-    if (!hasActivePaidManagerAccess(managerDoc.data())) {
+    const { hasAccess } = await verifyAndSyncManagerAccess(
+      adminDb,
+      decoded.uid,
+      managerDoc.data()
+    )
+    if (!hasAccess) {
       return NextResponse.json(
         { error: 'Un abonnement Manager actif et vérifié est requis.' },
         { status: 403 }

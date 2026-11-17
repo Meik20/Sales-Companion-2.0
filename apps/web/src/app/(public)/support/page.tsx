@@ -1057,8 +1057,8 @@ function AuthenticatedSupportView() {
         isOpen={Boolean(threadToDelete)}
         title={t('support.confirmDelete')}
         description={t('support.confirmDeleteDesc')}
-        confirmText={t('common.delete') || (lang === 'en' ? 'Delete' : 'Supprimer')}
-        cancelText={t('common.cancel') || (lang === 'en' ? 'Cancel' : 'Annuler')}
+        confirmText={t('common.delete') !== 'common.delete' ? t('common.delete') : (lang === 'en' ? 'Delete' : 'Supprimer')}
+        cancelText={t('common.cancel') !== 'common.cancel' ? t('common.cancel') : (lang === 'en' ? 'Cancel' : 'Annuler')}
         variant="danger"
         isLoading={isDeleting}
         onConfirm={executeDeleteThread}
@@ -1071,8 +1071,8 @@ function AuthenticatedSupportView() {
         isOpen={Boolean(messageToDelete)}
         title={t('support.confirmDeleteMessage')}
         description={t('support.confirmDeleteMessageDesc')}
-        confirmText={t('common.delete') || (lang === 'en' ? 'Delete' : 'Supprimer')}
-        cancelText={t('common.cancel') || (lang === 'en' ? 'Cancel' : 'Annuler')}
+        confirmText={t('common.delete') !== 'common.delete' ? t('common.delete') : (lang === 'en' ? 'Delete' : 'Supprimer')}
+        cancelText={t('common.cancel') !== 'common.cancel' ? t('common.cancel') : (lang === 'en' ? 'Cancel' : 'Annuler')}
         variant="danger"
         isLoading={isDeleting}
         onConfirm={executeDeleteMessage}

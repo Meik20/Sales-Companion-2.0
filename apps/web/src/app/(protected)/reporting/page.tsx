@@ -9,7 +9,7 @@ import { LoadingState, EmptyState } from '@/components/feedback/index'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useReportingData } from '@/features/reporting/hooks/useReportingData'
 import { ReportingDashboard } from '@/features/reporting/components/ReportingDashboard'
-import { BarChart2, RefreshCw } from 'lucide-react'
+import { BarChart2, RefreshCw, ShieldAlert, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useTranslation } from '@/providers/I18nProvider'
 
@@ -92,18 +92,58 @@ export default function ReportingPage() {
       {isLoading && <LoadingState />}
 
       {isError && (
-        <div
-          style={{
-            background: 'rgba(239,68,68,0.06)',
-            border: '1px solid rgba(239,68,68,0.2)',
-            borderRadius: 12,
-            padding: '20px 24px',
-            color: '#f87171',
-            fontSize: 14
-          }}
-        >
-          <strong>Erreur :</strong>{' '}
-          {error instanceof Error ? error.message : t('reporting.errorLoading')}
+        <div className="mx-auto my-8 max-w-xl rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20">
+            <ShieldAlert size={28} />
+          </div>
+          <h3 className="mb-2 text-lg font-bold text-foreground">
+            {user?.plan === 'free'
+              ? 'Accès au tableau de bord réservé aux forfaits payants'
+              : 'Synchronisation des données en cours'}
+          </h3>
+          <p className="mb-6 text-sm leading-relaxed text-muted-foreground">
+            {user?.orgRole === 'team_manager'
+              ? "En tant que Team Manager, votre accès est rattaché au plan de votre organisation. Si votre Senior Manager a activé le forfait Enterprise, la synchronisation est automatique. Cliquez sur Réessayer ou retournez à votre pipeline commercial."
+              : user?.plan === 'free'
+                ? "Le suivi de performance et les statistiques d'équipe nécessitent un abonnement actif (Pro ou Enterprise). Activez votre plan pour débloquer votre tableau de bord."
+                : "Une indisponibilité temporaire empêche de charger les statistiques. Vos données restent en sécurité. Vous pouvez réessayer l'actualisation."}
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => void refetch()}
+              disabled={isFetching}
+              className="flex items-center gap-2"
+            >
+              <RefreshCw
+                size={14}
+                className={isFetching ? 'animate-spin' : ''}
+              />
+              Réessayer l&apos;actualisation
+            </Button>
+            {user?.orgRole === 'team_manager' ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => router.push(routes.pipeline)}
+                className="flex items-center gap-2"
+              >
+                Retourner à mon pipeline
+                <ArrowRight size={14} />
+              </Button>
+            ) : user?.plan === 'free' ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => router.push(routes.upgrade)}
+                className="flex items-center gap-2"
+              >
+                Voir les forfaits
+                <ArrowRight size={14} />
+              </Button>
+            ) : null}
+          </div>
         </div>
       )}
 

@@ -1351,7 +1351,7 @@ export const en = {
     typeMessage: 'Type your message… (Enter to send)',
     confirmDelete: 'Are you sure you want to delete this conversation?',
     confirmDeleteDesc:
-      'This action cannot be undone. All messages in this conversation will be permanently deleted.',
+      'This conversation and all of its messages will be permanently deleted.',
     confirmDeleteMessage: 'Are you sure you want to delete this message?',
     confirmDeleteMessageDesc: 'This message will be permanently removed from the conversation.',
     deleteMessage: 'Delete this message',
@@ -1938,6 +1938,7 @@ export const en = {
     next: 'Next',
     previous: 'Previous',
     edit: 'Edit',
+    delete: 'Delete',
     cancel: 'Cancel',
     reset: 'Reset',
     retry: 'Retry',

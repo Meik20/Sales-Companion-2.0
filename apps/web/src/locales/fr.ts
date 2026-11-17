@@ -1364,7 +1364,7 @@ export const fr = {
     typeMessage: 'Écrivez votre message… (Entrée pour envoyer)',
     confirmDelete: 'Voulez-vous vraiment supprimer cette conversation ?',
     confirmDeleteDesc:
-      'Cette action est irréversible. L’ensemble des messages de cet échange seront définitivement effacés.',
+      'Cette conversation et l’ensemble de ses messages seront définitivement supprimés.',
     confirmDeleteMessage: 'Voulez-vous vraiment supprimer ce message ?',
     confirmDeleteMessageDesc: 'Ce message sera retiré définitivement de la conversation.',
     deleteMessage: 'Supprimer ce message',
@@ -1952,6 +1952,7 @@ export const fr = {
     next: 'Suivant',
     previous: 'Précédent',
     edit: 'Modifier',
+    delete: 'Supprimer',
     cancel: 'Annuler',
     reset: 'Réinitialiser',
     retry: 'Réessayer',

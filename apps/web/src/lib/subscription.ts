@@ -14,6 +14,7 @@ import { adminDb } from '@/lib/firebase-admin'
 import { FieldValue } from 'firebase-admin/firestore'
 import { PLAN_LIMITS } from '@sales-companion/shared'
 import { syncTeamMemberPlans } from '@/lib/sync-team-plan'
+import { verifyAndSyncManagerAccess } from '@/lib/manager-access'
 
 /**
  * Calcule la date d'expiration d'un abonnement de 30 jours se terminant à minuit (23:59:59.999).
@@ -60,6 +61,18 @@ export async function downgradeUserToFree(
     // Si déjà free, rien à faire
     if (oldPlan === 'free') {
       return true
+    }
+
+    // RÈGLE MÉTIER (AGENTS.md) : Un Team Manager rattaché à un Senior Manager actif
+    // ne doit JAMAIS être rétrogradé de manière autonome.
+    if (
+      userData.role === 'manager' &&
+      (userData.orgRole === 'team_manager' || Boolean(userData.seniorManagerUid))
+    ) {
+      const { hasAccess } = await verifyAndSyncManagerAccess(adminDb, uid, userData)
+      if (hasAccess) {
+        return true
+      }
     }
 
     const freeDailyLimit = PLAN_LIMITS.free ?? 10
@@ -128,6 +141,23 @@ export async function checkAndExpireUser(
   if (!snap.exists) return { expired: false, plan: 'free' }
 
   const data = snap.data()!
+
+  // RÈGLE MÉTIER (AGENTS.md) : Un Team Manager dépend du forfait de son Senior Manager.
+  // Si le Senior Manager est actif, resynchroniser le Team Manager au lieu de l'expirer.
+  if (
+    data.role === 'manager' &&
+    (data.orgRole === 'team_manager' || Boolean(data.seniorManagerUid))
+  ) {
+    const { hasAccess, data: syncedData } = await verifyAndSyncManagerAccess(adminDb, uid, data)
+    if (hasAccess && syncedData?.plan && syncedData.plan !== 'free') {
+      return {
+        expired: false,
+        plan: syncedData.plan,
+        expiresAt: syncedData.subscriptionExpiresAt ?? null
+      }
+    }
+  }
+
   const currentPlan = data.plan ?? 'free'
   const expiresAt = data.subscriptionExpiresAt ?? data.planExpiresAt ?? null
 

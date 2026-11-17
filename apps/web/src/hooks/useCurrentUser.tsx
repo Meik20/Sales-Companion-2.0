@@ -157,12 +157,30 @@ function useCurrentUserSource(): UserContextValue {
               !isNaN(new Date(rawExpiresAt!).getTime()) &&
               Date.now() >= new Date(rawExpiresAt!).getTime()
 
+            const isTeamManager =
+              data.role === 'manager' &&
+              (data.orgRole === 'team_manager' || Boolean(data.seniorManagerUid))
+
             let effectivePlan = (data.plan || 'free') as keyof typeof PLAN_LIMITS
 
-            if (hasExpired && effectivePlan !== 'free') {
+            if (!isTeamManager && hasExpired && effectivePlan !== 'free') {
               // Rétrogradation immédiate côté client vers "free"
               effectivePlan = 'free'
               // Déclencher la persistance Firestore côté serveur
+              firebaseUser
+                .getIdToken()
+                .then((token) => {
+                  fetch('/api/subscription/check-expiry', {
+                    method: 'POST',
+                    headers: { Authorization: `Bearer ${token}` }
+                  }).catch(() => {})
+                })
+                .catch(() => {})
+            }
+
+            // Auto-guérison pour les Team Managers dont le plan est encore 'free' ou inactif
+            // alors qu'ils sont rattachés à un Senior Manager de leur organisation
+            if (isTeamManager && (effectivePlan === 'free' || !data.active)) {
               firebaseUser
                 .getIdToken()
                 .then((token) => {

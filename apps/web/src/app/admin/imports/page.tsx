@@ -804,7 +804,7 @@ export default function AdminImportsPage() {
         variant="danger"
         title={t('admin.confirmClearHistoryTitle') || "Effacer l'historique ?"}
         description={t('admin.confirmClearHistory') || "Êtes-vous sûr de vouloir effacer tout l'historique des imports ?"}
-        confirmText={t('common.delete') || 'Effacer'}
+        confirmText={t('common.delete') !== 'common.delete' ? t('common.delete') : 'Effacer'}
         cancelText={t('common.cancel') || 'Annuler'}
         isLoading={clearing}
         onConfirm={executeClearHistory}
