@@ -24,6 +24,7 @@ import {
 import { Button } from '@/components/ui/Button'
 import { useTranslation } from '@/providers/I18nProvider'
 import { formatCompactAmount, formatFullAmount } from '@/lib/formatters'
+import { safeParseDate, parseDueDate } from '@/lib/pipeline-metrics'
 import { getWhatsAppUrl } from '@/utils/whatsapp'
 import type { OrgPipelineItem, OrgManagerStats } from '@/features/pipeline/hooks/useOrgPipeline'
 
@@ -34,6 +35,7 @@ interface OverdueFollowUpsDrawerProps {
   currency?: string
   context?: 'org' | 'team'
   managers?: OrgManagerStats[]
+  managerName?: string | null
 }
 
 interface OverdueLead {
@@ -45,6 +47,7 @@ interface OverdueLead {
   currency: string
   dueDate: string // YYYY-MM-DD
   daysOverdue: number
+  isOverdue: boolean
   isToday: boolean
   isStagnant?: boolean
   stagnantDays?: number
@@ -58,20 +61,6 @@ interface OverdueLead {
   city: string | null
   quarter: string | null
   sector: string | null
-}
-
-function parseDueDate(item: OrgPipelineItem): string | null {
-  const raw =
-    (item.nextFollowUp as string | undefined) ||
-    (item.nextActionDate as string | undefined) ||
-    (item.reminderDate as string | undefined)
-
-  if (!raw) return null
-  // Format YYYY-MM-DD
-  if (typeof raw === 'string' && raw.length >= 10) {
-    return raw.slice(0, 10)
-  }
-  return null
 }
 
 function calculateDaysDiff(dateStr: string, todayStr: string): number {
@@ -127,7 +116,8 @@ export function OverdueFollowUpsDrawer({
   items,
   currency = 'FCFA',
   context = 'org',
-  managers
+  managers,
+  managerName
 }: OverdueFollowUpsDrawerProps) {
   const { t, lang } = useTranslation()
   const todayStr = useMemo(() => new Date().toISOString().slice(0, 10), [])
@@ -154,30 +144,28 @@ export function OverdueFollowUpsDrawer({
 
     for (const item of items) {
       const st = (item.status || '').toLowerCase().trim()
-      // Ignorer les affaires gagnées/conclues
-      if (['conclue', 'conclusion', 'won', 'closed', 'gagne', 'signe'].includes(st)) {
+      // Ignorer les affaires gagnées/conclues et perdues
+      if (['conclue', 'conclusion', 'won', 'closed', 'gagne', 'signe', 'perdue', 'lost', 'perdu'].includes(st)) {
         continue
       }
 
       // Détection de stagnation (> 14j en prospection, > 30j en négociation)
-      const refDateStr = (item as Record<string, unknown>).assignedAt || item.createdAt
+      const refDateRaw = (item as Record<string, unknown>).assignedAt || item.createdAt
+      const refDate = safeParseDate(refDateRaw)
       let isStagnant = false
       let stagnantDays = 0
-      if (refDateStr) {
-        const d = new Date(refDateStr as string).getTime()
-        if (!isNaN(d)) {
-          const diffDays = Math.round((Date.now() - d) / (1000 * 3600 * 24))
-          if (['prospection', 'prospect', 'to_contact', 'contact', 'nouveau', 'lead'].includes(st) && diffDays > 14) {
-            isStagnant = true
-            stagnantDays = diffDays
-          } else if (['negociation', 'negotiation', 'in_progress', 'en_cours'].includes(st) && diffDays > 30) {
-            isStagnant = true
-            stagnantDays = diffDays
-          }
+      if (refDate) {
+        const diffDays = Math.round((Date.now() - refDate.getTime()) / (1000 * 3600 * 24))
+        if (['prospection', 'prospect', 'to_contact', 'contact', 'nouveau', 'lead'].includes(st) && diffDays > 14) {
+          isStagnant = true
+          stagnantDays = diffDays
+        } else if (['negociation', 'negotiation', 'in_progress', 'en_cours'].includes(st) && diffDays > 30) {
+          isStagnant = true
+          stagnantDays = diffDays
         }
       }
 
-      const dueDate = parseDueDate(item)
+      const dueDate = parseDueDate(item as Record<string, unknown>)
       let effectiveDueDate = dueDate
       let days = 0
       let isOverdue = false
@@ -187,10 +175,9 @@ export function OverdueFollowUpsDrawer({
         days = calculateDaysDiff(dueDate, todayStr)
         isOverdue = dueDate < todayStr
         isToday = dueDate === todayStr
-      } else if (isStagnant && refDateStr) {
-        effectiveDueDate = String(refDateStr).slice(0, 10)
+      } else if (isStagnant && refDate) {
+        effectiveDueDate = refDate.toISOString().slice(0, 10)
         days = stagnantDays
-        isOverdue = true
       }
 
       if (!isOverdue && !isToday && !isStagnant) continue
@@ -246,6 +233,7 @@ export function OverdueFollowUpsDrawer({
         currency: (item.currency as string | undefined) || currency,
         dueDate: effectiveDueDate,
         daysOverdue: Math.max(days, 0),
+        isOverdue,
         isToday,
         isStagnant,
         stagnantDays,
@@ -270,7 +258,7 @@ export function OverdueFollowUpsDrawer({
   // Filtrage selon l'onglet (overdue, today, stagnant, all)
   const tabFilteredLeads = useMemo(() => {
     if (tab === 'overdue') {
-      return allAlertLeads.filter((l) => !l.isToday && !l.isStagnant)
+      return allAlertLeads.filter((l) => l.isOverdue)
     }
     if (tab === 'today') {
       return allAlertLeads.filter((l) => l.isToday)
@@ -369,6 +357,7 @@ export function OverdueFollowUpsDrawer({
       dateLabel: string
       daysOverdue: number
       isToday: boolean
+      hasOverdue: boolean
       totalAmount: number
       leads: OverdueLead[]
     }[] = []
@@ -384,6 +373,7 @@ export function OverdueFollowUpsDrawer({
     for (const [date, leads] of map.entries()) {
       const days = calculateDaysDiff(date, todayStr)
       const isToday = date === todayStr
+      const hasOverdue = leads.some((l) => l.isOverdue)
       const totalAmount = leads.reduce((sum, l) => sum + l.amount, 0)
 
       groups.push({
@@ -391,6 +381,7 @@ export function OverdueFollowUpsDrawer({
         dateLabel: formatFollowUpDate(date, lang),
         daysOverdue: Math.max(days, 0),
         isToday,
+        hasOverdue,
         totalAmount,
         leads
       })
@@ -403,7 +394,7 @@ export function OverdueFollowUpsDrawer({
 
   // Statistiques globales de l'alerte
   const stats = useMemo(() => {
-    const overdueLeads = allAlertLeads.filter((l) => !l.isToday && !l.isStagnant)
+    const overdueLeads = allAlertLeads.filter((l) => l.isOverdue)
     const todayLeads = allAlertLeads.filter((l) => l.isToday)
     const stagnantLeads = allAlertLeads.filter((l) => Boolean(l.isStagnant))
     const totalAmount = allAlertLeads.reduce((acc, l) => acc + l.amount, 0)
@@ -524,7 +515,21 @@ export function OverdueFollowUpsDrawer({
                   >
                     {stats.overdueCount} {t('pipeline.overdueAlert')}
                   </span>
-                  {context === 'org' && (
+                  {managerName ? (
+                    <span
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 700,
+                        padding: '2px 7px',
+                        borderRadius: 20,
+                        background: 'rgba(99,102,241,0.12)',
+                        color: '#4338ca',
+                        border: '1px solid rgba(99,102,241,0.28)'
+                      }}
+                    >
+                      {managerName}
+                    </span>
+                  ) : context === 'org' ? (
                     <span
                       style={{
                         fontSize: 10,
@@ -538,7 +543,7 @@ export function OverdueFollowUpsDrawer({
                     >
                       {t('pipeline.orgViewBadge')}
                     </span>
-                  )}
+                  ) : null}
                 </div>
                 <p className="hidden sm:block" style={{ margin: '2px 0 0 0', fontSize: 11.5, color: 'var(--muted-foreground, #64748b)' }}>
                   {t('pipeline.overdueAlertsSubtitle')}
@@ -1015,7 +1020,7 @@ export function OverdueFollowUpsDrawer({
                         {group.dateLabel}
                       </span>
 
-                      {/* Badge de retard */}
+                      {/* Badge de retard / stagnation */}
                       {group.isToday ? (
                         <span
                           style={{
@@ -1029,6 +1034,22 @@ export function OverdueFollowUpsDrawer({
                           }}
                         >
                           {t('common.today')}
+                        </span>
+                      ) : !group.hasOverdue && group.leads.every((l) => l.isStagnant) ? (
+                        <span
+                          style={{
+                            fontSize: 10.5,
+                            fontWeight: 700,
+                            padding: '2px 8px',
+                            borderRadius: 12,
+                            background: 'rgba(217,119,6,0.12)',
+                            color: '#b45309',
+                            border: '1px solid rgba(217,119,6,0.28)'
+                          }}
+                        >
+                          {lang === 'en'
+                            ? `Stagnant for ${group.daysOverdue}d`
+                            : `Stagnant depuis ${group.daysOverdue}j`}
                         </span>
                       ) : (
                         <span
@@ -1141,26 +1162,44 @@ export function OverdueFollowUpsDrawer({
                                   ? `${formatCompactAmount(lead.amount, lang)} ${lead.currency}`
                                   : t('pipeline.amountUndefined')}
                               </div>
-                              <span
-                                style={{
-                                  fontSize: 10,
-                                  fontWeight: 800,
-                                  textTransform: 'uppercase',
-                                  padding: '2px 8px',
-                                  borderRadius: 4,
-                                  display: 'inline-block',
-                                  marginTop: 3,
-                                  background: lead.status.includes('nego')
-                                    ? 'rgba(245,158,11,0.14)'
-                                    : 'rgba(59,130,246,0.12)',
-                                  color: lead.status.includes('nego') ? '#92400e' : '#1d4ed8',
-                                  border: lead.status.includes('nego')
-                                    ? '1px solid rgba(245,158,11,0.3)'
-                                    : '1px solid rgba(59,130,246,0.3)'
-                                }}
-                              >
-                                {getStatusLabel(lead.status, t)}
-                              </span>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 5, marginTop: 3 }}>
+                                {lead.isOverdue && lead.isStagnant && (
+                                  <span
+                                    style={{
+                                      fontSize: 10,
+                                      fontWeight: 800,
+                                      textTransform: 'uppercase',
+                                      padding: '2px 7px',
+                                      borderRadius: 4,
+                                      display: 'inline-block',
+                                      background: 'rgba(217,119,6,0.14)',
+                                      color: '#b45309',
+                                      border: '1px solid rgba(217,119,6,0.3)'
+                                    }}
+                                  >
+                                    {lang === 'en' ? `Stagnant ${lead.stagnantDays}d` : `Stagnant ${lead.stagnantDays}j`}
+                                  </span>
+                                )}
+                                <span
+                                  style={{
+                                    fontSize: 10,
+                                    fontWeight: 800,
+                                    textTransform: 'uppercase',
+                                    padding: '2px 8px',
+                                    borderRadius: 4,
+                                    display: 'inline-block',
+                                    background: lead.status.includes('nego')
+                                      ? 'rgba(245,158,11,0.14)'
+                                      : 'rgba(59,130,246,0.12)',
+                                    color: lead.status.includes('nego') ? '#92400e' : '#1d4ed8',
+                                    border: lead.status.includes('nego')
+                                      ? '1px solid rgba(245,158,11,0.3)'
+                                      : '1px solid rgba(59,130,246,0.3)'
+                                  }}
+                                >
+                                  {getStatusLabel(lead.status, t)}
+                                </span>
+                              </div>
                             </div>
                           </div>
 

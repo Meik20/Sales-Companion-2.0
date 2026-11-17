@@ -259,3 +259,50 @@ export function aggregateOrgSegmentTargets(
     teamManagersCount: teamManagerUids.size
   }
 }
+
+/**
+ * Parse de manière robuste toute valeur de date (string ISO, Date, timestamp numérique, Firestore Timestamp { seconds, _seconds, toDate }).
+ */
+export function safeParseDate(val: unknown): Date | null {
+  if (!val) return null
+  if (val instanceof Date) return isNaN(val.getTime()) ? null : val
+  if (typeof val === 'string') {
+    const d = new Date(val)
+    return isNaN(d.getTime()) ? null : d
+  }
+  if (typeof val === 'number') {
+    const d = new Date(val)
+    return isNaN(d.getTime()) ? null : d
+  }
+  if (typeof val === 'object' && val !== null) {
+    if ('toDate' in val && typeof (val as { toDate?: () => unknown }).toDate === 'function') {
+      const d = (val as { toDate: () => unknown }).toDate()
+      if (d instanceof Date && !isNaN(d.getTime())) return d
+    }
+    if ('_seconds' in val && typeof (val as { _seconds?: unknown })._seconds === 'number') {
+      const d = new Date((val as { _seconds: number })._seconds * 1000)
+      return isNaN(d.getTime()) ? null : d
+    }
+    if ('seconds' in val && typeof (val as { seconds?: unknown }).seconds === 'number') {
+      const d = new Date((val as { seconds: number }).seconds * 1000)
+      return isNaN(d.getTime()) ? null : d
+    }
+  }
+  return null
+}
+
+/**
+ * Extrait et normalise la date d'échéance d'une opportunité en format YYYY-MM-DD.
+ */
+export function parseDueDate(item: Record<string, unknown>): string | null {
+  const raw = item.nextFollowUp || item.nextActionDate || item.reminderDate
+  if (!raw) return null
+  if (typeof raw === 'string' && raw.length >= 10) {
+    return raw.slice(0, 10)
+  }
+  const d = safeParseDate(raw)
+  if (d) {
+    return d.toISOString().slice(0, 10)
+  }
+  return null
+}

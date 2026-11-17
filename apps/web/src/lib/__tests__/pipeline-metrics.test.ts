@@ -5,7 +5,9 @@ import {
   calculatePipelineStats,
   calculateAttainmentRate,
   calculateRoRate,
-  aggregateOrgSegmentTargets
+  aggregateOrgSegmentTargets,
+  safeParseDate,
+  parseDueDate
 } from '../pipeline-metrics'
 
 describe('pipeline-metrics canonical calculation rules', () => {
@@ -149,6 +151,27 @@ describe('pipeline-metrics canonical calculation rules', () => {
       expect(result.targetVolume).toBe(50)
       expect(result.targetValue).toBe(300000)
       expect(result.period).toBe('2026-11')
+    })
+  })
+
+  describe('safeParseDate and parseDueDate', () => {
+    it('safely parses strings, numbers, Dates, and Firestore timestamp objects', () => {
+      expect(safeParseDate('2026-11-13T10:00:00Z')).toBeInstanceOf(Date)
+      expect(safeParseDate(1700000000000)).toBeInstanceOf(Date)
+      expect(safeParseDate(new Date())).toBeInstanceOf(Date)
+      expect(safeParseDate({ _seconds: 1700000000 })).toBeInstanceOf(Date)
+      expect(safeParseDate({ seconds: 1700000000 })).toBeInstanceOf(Date)
+      expect(safeParseDate({ toDate: () => new Date('2026-11-13') })).toBeInstanceOf(Date)
+      expect(safeParseDate(null)).toBeNull()
+      expect(safeParseDate(undefined)).toBeNull()
+      expect(safeParseDate('not-a-date')).toBeNull()
+    })
+
+    it('extracts YYYY-MM-DD from various follow up fields in an item', () => {
+      expect(parseDueDate({ nextFollowUp: '2026-11-13T10:00:00Z' })).toBe('2026-11-13')
+      expect(parseDueDate({ nextActionDate: '2026-11-15' })).toBe('2026-11-15')
+      expect(parseDueDate({ reminderDate: { _seconds: 1763164800 } })).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+      expect(parseDueDate({})).toBeNull()
     })
   })
 })

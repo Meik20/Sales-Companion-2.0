@@ -16,7 +16,9 @@ import {
 import {
   calculatePipelineStats,
   calculateAttainmentRate,
-  calculateRoRate
+  calculateRoRate,
+  safeParseDate,
+  parseDueDate
 } from '@/lib/pipeline-metrics'
 import { OverdueFollowUpsDrawer } from './OverdueFollowUpsDrawer'
 import { useOrgReport } from '../hooks/useOrgReport'
@@ -42,34 +44,6 @@ interface TeamManagerPerformanceCardProps {
   onSelectPeriod?: (period: string) => void
   /** Code pays pour la timezone officielle (ex: 'CM') */
   countryCode?: string
-}
-
-function safeParseDate(val: unknown): Date | null {
-  if (!val) return null
-  if (val instanceof Date) return isNaN(val.getTime()) ? null : val
-  if (typeof val === 'string') {
-    const d = new Date(val)
-    return isNaN(d.getTime()) ? null : d
-  }
-  if (typeof val === 'number') {
-    const d = new Date(val)
-    return isNaN(d.getTime()) ? null : d
-  }
-  if (typeof val === 'object' && val !== null) {
-    if ('toDate' in val && typeof (val as { toDate?: () => unknown }).toDate === 'function') {
-      const d = (val as { toDate: () => unknown }).toDate()
-      if (d instanceof Date && !isNaN(d.getTime())) return d
-    }
-    if ('_seconds' in val && typeof (val as { _seconds?: unknown })._seconds === 'number') {
-      const d = new Date((val as { _seconds: number })._seconds * 1000)
-      return isNaN(d.getTime()) ? null : d
-    }
-    if ('seconds' in val && typeof (val as { seconds?: unknown }).seconds === 'number') {
-      const d = new Date((val as { seconds: number }).seconds * 1000)
-      return isNaN(d.getTime()) ? null : d
-    }
-  }
-  return null
 }
 
 export function TeamManagerPerformanceCard({
@@ -210,12 +184,8 @@ export function TeamManagerPerformanceCard({
         }
       }
 
-      const followUp =
-        (item.nextFollowUp as string | undefined) ||
-        (item.nextActionDate as string | undefined) ||
-        (item.reminderDate as string | undefined)
-
-      if (followUp && followUp < todayStr && !['conclue', 'conclusion', 'won', 'closed'].includes(st)) {
+      const dueDate = parseDueDate(item as Record<string, unknown>)
+      if (dueDate && dueDate < todayStr && !['conclue', 'conclusion', 'won', 'closed'].includes(st)) {
         overdueCount++
       }
     }
@@ -1092,6 +1062,7 @@ export function TeamManagerPerformanceCard({
         currency={currency || 'FCFA'}
         context={context}
         managers={managers}
+        managerName={manager?.name}
       />
     </div>
   )
