@@ -102,24 +102,10 @@ function getDarkRectoHtml() {
     .baseline {
       font-size: 15px;
       font-weight: 500;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.16em;
       text-transform: uppercase;
       color: #94A3B8;
-      margin-bottom: 24px;
-    }
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 16px;
-      background: rgba(27, 122, 62, 0.18);
-      border: 1px solid rgba(27, 122, 62, 0.45);
-      border-radius: 9999px;
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: #34D399;
+      margin-top: 4px;
     }
   </style>
 </head>
@@ -130,8 +116,7 @@ function getDarkRectoHtml() {
   <div class="content">
     <div class="logo-wrap">${svgScLogo(100)}</div>
     <h1 class="brand-title">Sales Companion <span class="version">2.0</span></h1>
-    <p class="baseline">Sales Intelligence Workspace</p>
-    <div class="badge">Workspace Commercial & Prospection</div>
+    <p class="baseline">Workspace Commercial & Prospection</p>
   </div>
 </body>
 </html>
@@ -363,36 +348,20 @@ function getLightRectoHtml() {
     }
     .baseline {
       font-size: 15px;
-      font-weight: 600;
-      letter-spacing: 0.12em;
+      font-weight: 500;
+      letter-spacing: 0.16em;
       text-transform: uppercase;
-      color: #475467;
-      margin-bottom: 24px;
-    }
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 16px;
-      background: #F0FDF4;
-      border: 1px solid #BBF7D0;
-      border-radius: 9999px;
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: #166534;
+      color: #64748B;
+      margin-top: 4px;
     }
   </style>
 </head>
 <body>
-  <div class="top-strip"></div>
   <div class="card-border"></div>
   <div class="content">
     <div class="logo-wrap">${svgScLogo(100)}</div>
     <h1 class="brand-title">Sales Companion <span class="version">2.0</span></h1>
-    <p class="baseline">Sales Intelligence Workspace</p>
-    <div class="badge">Workspace Commercial & Prospection</div>
+    <p class="baseline">Workspace Commercial & Prospection</p>
   </div>
 </body>
 </html>
@@ -627,25 +596,11 @@ function getExecutiveRectoHtml() {
     }
     .baseline {
       font-size: 15px;
-      font-weight: 600;
-      letter-spacing: 0.12em;
+      font-weight: 500;
+      letter-spacing: 0.16em;
       text-transform: uppercase;
       color: #DCFCE7;
-      margin-bottom: 24px;
-    }
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 18px;
-      background: rgba(255, 255, 255, 0.15);
-      border: 1px solid rgba(255, 255, 255, 0.35);
-      border-radius: 9999px;
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: #FFFFFF;
+      margin-top: 4px;
     }
   </style>
 </head>
@@ -655,8 +610,7 @@ function getExecutiveRectoHtml() {
   <div class="content">
     <div class="logo-wrap">${svgScLogo(110, '#0F5128')}</div>
     <h1 class="brand-title">Sales Companion <span class="version">2.0</span></h1>
-    <p class="baseline">Sales Intelligence Workspace</p>
-    <div class="badge">Workspace Commercial & Prospection</div>
+    <p class="baseline">Workspace Commercial & Prospection</p>
   </div>
 </body>
 </html>

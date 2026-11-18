@@ -62,15 +62,12 @@ const darkRectoInner = `
 <div style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; color: #FFFFFF; position: relative;">
   <div style="position: absolute; inset: 10px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;"></div>
   <div style="margin-bottom: 12px;">${svgScLogo(60)}</div>
-  <h1 style="font-family: 'Outfit', sans-serif; font-size: 22px; font-weight: 600; letter-spacing: -0.02em; color: #FFFFFF; margin-bottom: 4px;">
+  <h1 style="font-family: 'Outfit', sans-serif; font-size: 22px; font-weight: 600; letter-spacing: -0.02em; color: #FFFFFF; margin-bottom: 6px;">
     Sales Companion <span style="color: #1B7A3E;">2.0</span>
   </h1>
-  <p style="font-size: 8px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #94A3B8; margin-bottom: 10px;">
-    Sales Intelligence Workspace
-  </p>
-  <div style="padding: 3px 10px; background: rgba(27,122,62,0.2); border: 1px solid rgba(27,122,62,0.5); border-radius: 9999px; font-size: 7px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #34D399;">
+  <p style="font-size: 8px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; color: #94A3B8; margin-top: 4px;">
     Workspace Commercial & Prospection
-  </div>
+  </p>
 </div>
 `;
 
@@ -118,19 +115,15 @@ const darkVersoInner = `
 
 // 2. Modèle Clair Recto
 const lightRectoInner = `
-<div style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; color: #101828; position: relative;">
-  <div style="position: absolute; top: 0; left: 0; right: 0; height: 3px; background: #1B7A3E;"></div>
+<div style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; color: #101828; position: relative; background: #FFFFFF;">
   <div style="position: absolute; inset: 10px; border: 1px solid #E6E8EC; border-radius: 8px;"></div>
-  <div style="margin-bottom: 12px;">${svgScLogo(60)}</div>
-  <h1 style="font-family: 'Outfit', sans-serif; font-size: 22px; font-weight: 600; letter-spacing: -0.02em; color: #101828; margin-bottom: 4px;">
+  <div style="margin-bottom: 14px;">${svgScLogo(60)}</div>
+  <h1 style="font-family: 'Outfit', sans-serif; font-size: 22px; font-weight: 600; letter-spacing: -0.02em; color: #101828; margin-bottom: 6px;">
     Sales Companion <span style="color: #1B7A3E;">2.0</span>
   </h1>
-  <p style="font-size: 8px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #475467; margin-bottom: 10px;">
-    Sales Intelligence Workspace
-  </p>
-  <div style="padding: 3px 10px; background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 9999px; font-size: 7px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #166534;">
+  <p style="font-size: 8px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; color: #64748B; margin-top: 2px;">
     Workspace Commercial & Prospection
-  </div>
+  </p>
 </div>
 `;
 
@@ -181,15 +174,12 @@ const executiveRectoInner = `
 <div style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; color: #FFFFFF; position: relative;">
   <div style="position: absolute; inset: 10px; border: 1px solid rgba(255,255,255,0.25); border-radius: 8px;"></div>
   <div style="margin-bottom: 12px;">${svgScLogo(64, '#0F5128')}</div>
-  <h1 style="font-family: 'Outfit', sans-serif; font-size: 22px; font-weight: 600; letter-spacing: -0.02em; color: #FFFFFF; margin-bottom: 4px;">
+  <h1 style="font-family: 'Outfit', sans-serif; font-size: 22px; font-weight: 600; letter-spacing: -0.02em; color: #FFFFFF; margin-bottom: 6px;">
     Sales Companion <span style="color: #BBF7D0;">2.0</span>
   </h1>
-  <p style="font-size: 8px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #DCFCE7; margin-bottom: 10px;">
-    Sales Intelligence Workspace
-  </p>
-  <div style="padding: 3px 10px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.35); border-radius: 9999px; font-size: 7px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #FFFFFF;">
+  <p style="font-size: 8px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; color: #DCFCE7; margin-top: 4px;">
     Workspace Commercial & Prospection
-  </div>
+  </p>
 </div>
 `;
 
