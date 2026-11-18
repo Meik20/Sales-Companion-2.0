@@ -15,7 +15,6 @@ import { UserNotificationBell } from '@/components/layout/UserNotificationBell'
 import { useNetworkStatus } from '@/hooks/useNetworkStatus'
 import { useProspectingCountry } from '@/hooks/useProspectingCountry'
 import { getCountryName } from '@sales-companion/shared'
-import { PWAInstallButton } from '@/components/pwa/PWAInstallButton'
 
 function getUserInitials(user?: { name?: string | null; email?: string | null } | null): string {
   if (!user) return '?'
@@ -140,8 +139,6 @@ export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void 
           ) : user ? (
             <UserNotificationBell />
           ) : null}
-
-          <PWAInstallButton compact />
 
           {/* ── RIGHT: User Profile ──────────────────────────────────── */}
           {user ? (
