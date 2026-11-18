@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { adminAuth, adminDb } from '@/lib/firebase-admin'
 import { ensureDailyReset } from '@/lib/quota-utils'
 import { getClientIp, checkRateLimit, checkRateLimitByUser } from '@/lib/rate-limit'
