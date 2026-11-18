@@ -109,13 +109,13 @@ export function CrossCountryModal({
         <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
           {lang === 'en' ? (
             <>
-              Access to foreign B2B databases ({targetCountryName}) and cross-border pipeline development
+              Access to foreign company databases ({targetCountryName}) and cross-border pipeline development
               are exclusively reserved for{' '}
               <strong className="text-foreground font-semibold">Enterprise</strong> plan subscribers.
             </>
           ) : (
             <>
-              L&apos;accès aux bases de données B2B de pays tiers ({targetCountryName}) et le développement de
+              L&apos;accès aux bases d&apos;entreprises de pays tiers ({targetCountryName}) et le développement de
               pipelines transfrontaliers sont exclusivement réservés aux abonnés du forfait{' '}
               <strong className="text-foreground font-semibold">Enterprise</strong>.
             </>
@@ -129,7 +129,7 @@ export function CrossCountryModal({
               <div className="flex items-start gap-2.5 text-foreground">
                 <Globe size={16} className="text-purple-500 shrink-0 mt-0.5" />
                 <span>
-                  <strong>7 Pan-African B2B Markets:</strong> Cameroon, Senegal, Ivory Coast, Benin,
+                  <strong>7 Pan-African Commercial Markets:</strong> Cameroon, Senegal, Ivory Coast, Benin,
                   Togo, Chad, Central African Republic.
                 </span>
               </div>
@@ -153,7 +153,7 @@ export function CrossCountryModal({
               <div className="flex items-start gap-2.5 text-foreground">
                 <Globe size={16} className="text-purple-500 shrink-0 mt-0.5" />
                 <span>
-                  <strong>7 Marchés B2B Panafricains :</strong> Cameroun, Sénégal, Côte d&apos;Ivoire, Bénin,
+                  <strong>7 Marchés Commerciaux Panafricains :</strong> Cameroun, Sénégal, Côte d&apos;Ivoire, Bénin,
                   Togo, Tchad, Centrafrique.
                 </span>
               </div>

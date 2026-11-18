@@ -17,11 +17,11 @@ export const metadata: Metadata = {
     template: '%s | Sales Companion 2.0'
   },
   description:
-    'Accédez à la base de données la plus complète des entreprises camerounaises. 50 000+ sociétés vérifiées à Douala, Yaoundé et dans tout le Cameroun. Prospection B2B, contacts dirigeants.',
+    'Accédez à la base de données la plus complète des entreprises camerounaises. 50 000+ sociétés vérifiées à Douala, Yaoundé et dans tout le Cameroun. Prospection commerciale, contacts dirigeants.',
   keywords: [
     'base de données entreprises Cameroun',
     'annuaire entreprises Cameroun',
-    'prospection B2B Cameroun',
+    'prospection commerciale Cameroun',
     'liste entreprises Douala',
     'liste entreprises Yaoundé',
     'intelligence commerciale Cameroun',
@@ -81,7 +81,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'SALES COMPANION 2.0',
-    description: 'La plateforme B2B de référence pour la prospection commerciale au Cameroun.',
+    description: 'Le Workspace commercial de référence pour la prospection commerciale au Cameroun.',
     creator: '@SalesCompanion20',
     images: ['/og-image.png']
   }

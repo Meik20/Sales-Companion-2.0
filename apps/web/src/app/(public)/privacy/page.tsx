@@ -43,7 +43,7 @@ const SECTIONS = [
     title: '3. Finalités du traitement',
     content: `Vos données sont traitées pour les finalités suivantes :`,
     bullets: [
-      'Fourniture et amélioration des services de la plateforme (annuaire B2B, CRM, IA).',
+      'Fourniture et amélioration des services de la plateforme (Workspace, CRM, IA).',
       'Gestion de votre compte et authentification sécurisée.',
       'Communication relative à votre abonnement (factures, confirmations).',
       'Assistance technique et support client.',
@@ -124,7 +124,7 @@ export default function PrivacyPage() {
                 <Link href="/">Accueil</Link>
               </li>
               <li>
-                <Link href="/annuaire">Annuaire B2B</Link>
+                <Link href="/annuaire">Répertoire d'Entreprises</Link>
               </li>
               <li>
                 <Link href="/blog">Blog</Link>
@@ -392,7 +392,7 @@ export default function PrivacyPage() {
           </Link>
         </div>
         <p style={{ color: 'var(--tx3)', fontSize: '0.875rem', margin: 0 }}>
-          © {new Date().getFullYear()} Sales Companion 2.0 · 🇨🇲 Intelligence B2B Cameroun
+          © {new Date().getFullYear()} Sales Companion 2.0 · 🇨🇲 Workspace Commercial Cameroun
         </p>
       </footer>
     </div>

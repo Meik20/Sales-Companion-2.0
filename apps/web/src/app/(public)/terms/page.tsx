@@ -8,7 +8,7 @@ const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://salescompanion2-0.co
 export const metadata: Metadata = {
   title: "Conditions Générales d'Utilisation | Sales Companion 2.0",
   description:
-    "Conditions Générales d'Utilisation de Sales Companion 2.0 : droits, obligations, abonnements et règles d'utilisation de la plateforme B2B au Cameroun.",
+    "Conditions Générales d'Utilisation de Sales Companion 2.0 : droits, obligations, abonnements et règles d'utilisation du Workspace commercial au Cameroun.",
   alternates: { canonical: `${baseUrl}/terms` },
   openGraph: {
     title: "CGU — Conditions Générales d'Utilisation — Sales Companion 2.0",
@@ -43,7 +43,7 @@ const SECTIONS = [
     title: '3. Description des services',
     content: `Sales Companion 2.0 propose les services suivants selon votre plan d'abonnement :`,
     bullets: [
-      "Annuaire B2B : accès à une base de données d'entreprises camerounaises vérifiées (RCCM, NIU, contacts).",
+      "Répertoire d'Entreprises : accès à une base de données d'entreprises camerounaises vérifiées (RCCM, NIU, contacts).",
       'CRM Pipeline : gestion et suivi de vos prospects commerciaux.',
       "Gestion d'équipe : création et management d'équipes commerciales (plans Manager et Enterprise).",
       'Export de données : téléchargement des résultats en format Excel (plans payants).',
@@ -83,7 +83,7 @@ const SECTIONS = [
   },
   {
     id: 'donnees-annuaire',
-    title: "7. Données de l'annuaire B2B",
+    title: "7. Données du répertoire d'entreprises",
     content: `Les données d'entreprises disponibles dans l'annuaire Sales Companion 2.0 proviennent de sources officielles (RCCM, bases publiques) et sont compilées à des fins professionnelles. L'utilisation de ces données est autorisée exclusivement dans le cadre d'une prospection commerciale légale et éthique. Toute utilisation à des fins de spam, harcèlement ou activité illégale est formellement interdite.`
   },
   {
@@ -132,7 +132,7 @@ export default function TermsPage() {
                 <Link href="/">Accueil</Link>
               </li>
               <li>
-                <Link href="/annuaire">Annuaire B2B</Link>
+                <Link href="/annuaire">Répertoire d'Entreprises</Link>
               </li>
               <li>
                 <Link href="/blog">Blog</Link>
@@ -467,7 +467,7 @@ export default function TermsPage() {
           </Link>
         </div>
         <p style={{ color: 'var(--tx3)', fontSize: '0.875rem', margin: 0 }}>
-          © {new Date().getFullYear()} Sales Companion 2.0 · 🇨🇲 Intelligence B2B Cameroun
+          © {new Date().getFullYear()} Sales Companion 2.0 · 🇨🇲 Workspace Commercial Cameroun
         </p>
       </footer>
     </div>

@@ -420,7 +420,7 @@ export function exportDashboardPdf({
   </table>
 
   <div class="footer">
-    <div>SALES COMPANION 2.0 · Plateforme de Pilotage Commercial B2B</div>
+    <div>SALES COMPANION 2.0 · Workspace de Pilotage Commercial</div>
     <div>${isEn ? 'Certified Segment Performance Document · Page 1 of 1' : 'Document Certifié de Performance de Segment · Page 1 sur 1'}</div>
   </div>
 

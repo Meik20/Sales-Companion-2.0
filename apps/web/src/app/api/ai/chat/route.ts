@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 import { adminAuth, adminDb } from '@/lib/firebase-admin'
 import { ensureDailyReset } from '@/lib/quota-utils'
 import { getClientIp, checkRateLimit, checkRateLimitByUser } from '@/lib/rate-limit'
@@ -185,8 +185,8 @@ ${preFetchedCompanies
   .join('\n')}`
       : ''
 
-  return `Tu es le Companion IA de Sales Companion 2.0, l'assistant commercial B2B ultra-rapide et expert en prospection ${countryIn}.
-You are the AI Companion for Sales Companion 2.0, the ultra-fast B2B sales and prospecting assistant in ${countryName}.
+  return `Tu es le Companion IA de Sales Companion 2.0, l'assistant commercial ultra-rapide et expert en prospection ${countryIn}.
+You are the AI Companion for Sales Companion 2.0, the ultra-fast sales and prospecting assistant in ${countryName}.
 
 ${contextBlock}
 ${preFetchedBlock}
@@ -212,7 +212,7 @@ ${preFetchedBlock}
      • **Secteur & Localisation / Sector & Location** (Ville, Région, Adresse)
      • **Contacts vérifiés / Verified Contacts** (Dirigeant, Téléphone, Email, ${taxLabel})
      • **Angle d'approche commercial / Recommended Sales Angle** (pourquoi et comment l'approcher efficacement avec le style d'affaires local)
-   - Sois direct, structuré et orienté closing B2B.
+   - Sois direct, structuré et orienté closing commercial.
 
 2. **Recherches avancées / Advanced custom queries** :
    - Tu disposes aussi des outils (\`search_companies\`, \`get_company_details\`, \`get_market_overview\`) si l'utilisateur demande un secteur ou une ville différente de la sélection ci-dessus.

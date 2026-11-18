@@ -54,8 +54,8 @@ export function UseCasesSection() {
       icon: Building,
       role: isEn ? 'SME & Business Leader' : 'PME / Dirigeant',
       headline: isEn
-        ? 'Structure your B2B sales without multiplying complex tools.'
-        : 'Construisez votre prospection B2B sans multiplier les outils.',
+        ? 'Structure your sales pipeline in a single Workspace.'
+        : 'Structurez votre prospection commerciale dans un seul Workspace.',
       bullets: isEn
         ? [
             'No need to pay for 4 different software subscriptions or complex CRMs',
@@ -80,8 +80,8 @@ export function UseCasesSection() {
           </span>
           <h2 className="mt-3 font-heading text-2xl font-bold tracking-tight text-foreground sm:text-3xl md:text-4xl text-balance">
             {isEn
-              ? `Built for teams driving B2B sales ${country.englishIn}.`
-              : 'Pensé pour ceux qui vivent de la prospection B2B.'}
+              ? `Built for teams driving commercial sales ${country.englishIn}.`
+              : 'Pensé pour ceux qui vivent de la vente et de la prospection commerciale.'}
           </h2>
           <p className="mt-4 text-base text-muted-foreground text-pretty">
             {isEn

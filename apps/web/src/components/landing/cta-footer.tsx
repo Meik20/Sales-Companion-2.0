@@ -33,7 +33,7 @@ export function CtaFooter() {
   const footerLinks = {
     product: [
       {
-        label: isEn ? `${country.nameEn ?? country.name} B2B Directory` : `Annuaire B2B ${country.name}`,
+        label: isEn ? `${country.nameEn ?? country.name} Company Directory` : `Répertoire Entreprises ${country.name}`,
         href: '#fonctionnalites'
       },
       { label: isEn ? 'CRM Sales Pipeline' : 'Pipeline Commercial CRM', href: '#fonctionnalites' },
@@ -50,11 +50,11 @@ export function CtaFooter() {
               href: '/blog/niu-rccm-identifier-entreprise-camerounaise'
             },
             { label: 'Annuaire BTP Douala', href: '/blog/annuaire-entreprises-btp-douala' },
-            { label: 'Prospection B2B 2026', href: '/blog/trouver-clients-b2b-cameroun-2026' }
+            { label: 'Prospection Commerciale 2026', href: '/blog/trouver-clients-b2b-cameroun-2026' }
           ]
         : [
             {
-              label: isEn ? `${country.nameEn ?? country.name} B2B Blog` : `Blog B2B ${country.name}`,
+              label: isEn ? `${country.nameEn ?? country.name} Sales Blog` : `Blog Vente & Prospection ${country.name}`,
               href: '/blog'
             },
             { label: isEn ? 'Prospecting guides' : 'Guides de prospection', href: '/blog' }
@@ -84,8 +84,8 @@ export function CtaFooter() {
 
           <h2 className="relative z-10 mx-auto max-w-2xl font-heading text-3xl font-bold tracking-tight text-white text-balance sm:text-4xl">
             {isEn
-              ? 'Start your next B2B prospecting campaign.'
-              : 'Commencez votre prochaine campagne de prospection.'}
+              ? 'Start accelerating your sales in your Workspace.'
+              : 'Développez vos ventes dès aujourd’hui dans votre Workspace.'}
           </h2>
           <p className="relative z-10 mx-auto mt-4 max-w-xl text-base font-normal leading-relaxed text-emerald-100 text-pretty">
             {isEn
@@ -142,8 +142,8 @@ export function CtaFooter() {
               </div>
               <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
                 {isEn
-                  ? `B2B sales intelligence ${country.englishFor}. ${country.code === 'CM' ? `${country.companyCount} companies` : 'A growing database of verified companies'} across ${country.cities.join(', ')} and the main regions.`
-                  : `Intelligence commerciale B2B ${country.frenchIn}. ${country.code === 'CM' ? `${country.companyCount} entreprises` : 'Une base en expansion d’entreprises'} à ${country.cities.join(', ')} et dans les principales régions.`}
+                  ? `Sales Workspace & commercial intelligence ${country.englishFor}. ${country.code === 'CM' ? `${country.companyCount} companies` : 'A growing database of verified companies'} across ${country.cities.join(', ')} and the main regions.`
+                  : `Workspace de prospection commerciale ${country.frenchIn}. ${country.code === 'CM' ? `${country.companyCount} entreprises` : 'Une base en expansion d’entreprises'} à ${country.cities.join(', ')} et dans les principales régions.`}
               </p>
               <div className="mt-4">
                 <a

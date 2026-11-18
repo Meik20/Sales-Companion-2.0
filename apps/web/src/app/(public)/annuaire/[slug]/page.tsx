@@ -176,14 +176,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!data) {
     return {
-      title: 'Annuaire B2B Camerounais',
+      title: 'Répertoire d\'Entreprises Camerounaises',
       description: "Parcourez l'annuaire des entreprises au Cameroun."
     }
   }
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://salescompanion2-0.com'
   const prefix = data.type === 'city' ? 'à' : 'du secteur'
-  const titleText = `Entreprises B2B ${prefix} ${data.title} — Annuaire Cameroun`
+  const titleText = `Entreprises ${prefix} ${data.title} — Annuaire Cameroun`
   const descText = `${data.description} Accédez à plus de ${data.count} profils vérifiés avec contacts des dirigeants.`
 
   return {

@@ -42,8 +42,8 @@ export function ProblemSection() {
           </span>
           <h2 className="mt-3 font-heading text-2xl font-bold tracking-tight text-foreground sm:text-3xl md:text-4xl text-balance">
             {isEn
-              ? 'B2B sales prospecting shouldn’t start with an Excel spreadsheet.'
-              : 'La prospection B2B ne devrait pas commencer par un fichier Excel.'}
+              ? 'Commercial sales prospecting shouldn’t start with an Excel spreadsheet.'
+              : 'La prospection commerciale ne devrait pas commencer par un fichier Excel.'}
           </h2>
           <p className="mt-4 text-base text-muted-foreground text-pretty">
             {isEn

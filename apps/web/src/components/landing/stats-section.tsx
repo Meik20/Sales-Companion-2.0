@@ -14,7 +14,7 @@ export function StatsSection() {
       icon: Building2,
       value: country.code === 'CM' ? country.companyCount : isEn ? 'Growing' : 'En expansion',
       label: isEn ? 'Listed companies' : 'Entreprises référencées',
-      desc: isEn ? 'Structured & updated B2B data' : 'Données B2B structurées et à jour'
+      desc: isEn ? 'Structured & updated company data' : 'Données d\'entreprises structurées et à jour'
     },
     {
       icon: Layers,
@@ -44,8 +44,8 @@ export function StatsSection() {
         <div className="text-center max-w-2xl mx-auto mb-10">
           <h2 className="font-heading text-xl font-bold tracking-tight text-foreground sm:text-2xl md:text-3xl">
             {isEn
-              ? 'Everything you need to kickstart your B2B sales'
-              : 'Tout ce qu’il faut pour démarrer votre prospection B2B'}
+              ? 'Everything you need in your commercial Sales Workspace'
+              : 'Tout ce qu’il faut pour développer vos ventes dans votre Workspace'}
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
             {isEn

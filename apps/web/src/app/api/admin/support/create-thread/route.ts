@@ -164,7 +164,7 @@ export async function POST(request: NextRequest) {
           </tr>
           <tr>
             <td style="padding:20px 32px;background-color:#0d1527;border-top:1px solid #1e293b;text-align:center;font-size:12px;color:#64748b;">
-              © ${new Date().getFullYear()} Sales Companion 2.0 · B2B Cameroun · Tous droits réservés.
+              © ${new Date().getFullYear()} Sales Companion 2.0 · Workspace Commercial Cameroun · Tous droits réservés.
             </td>
           </tr>
         </table>

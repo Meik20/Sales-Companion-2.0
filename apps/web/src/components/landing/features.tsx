@@ -39,7 +39,7 @@ export function Features() {
   const cities = country.cities.join(', ')
   const deepDiveFeatures: DeepDiveFeature[] = [
     {
-      tag: lang === 'en' ? `${country.nameEn ?? country.name} B2B Directory` : `Annuaire B2B ${country.name}`,
+      tag: lang === 'en' ? `${country.nameEn ?? country.name} Company Directory` : `Répertoire Entreprises ${country.name}`,
       icon: Building2,
       title:
         lang === 'en'
@@ -51,8 +51,8 @@ export function Features() {
             : `Base en expansion d’entreprises ${country.frenchAdjective} répertoriées et vérifiées`,
       description:
         lang === 'en'
-          ? `Direct access to the B2B directory ${country.englishIn}. Filter by city (${cities}), business sector and company type to identify and reach decision-makers directly.`
-          : `Accédez en direct à l’annuaire B2B ${country.frenchIn}. Filtrez par ville (${cities}), secteur d’activité et type de structure pour identifier et contacter directement les bons décideurs.`,
+          ? `Direct access to the company directory ${country.englishIn}. Filter by city (${cities}), business sector and company type to identify and reach decision-makers directly.`
+          : `Accédez en direct au répertoire d'entreprises ${country.frenchIn}. Filtrez par ville (${cities}), secteur d’activité et type de structure pour identifier et contacter directement les bons décideurs.`,
       bullets:
         lang === 'en'
           ? [
@@ -255,8 +255,8 @@ export function Features() {
           </h2>
           <p className="mt-4 text-base sm:text-lg leading-relaxed text-muted-foreground text-pretty">
             {lang === 'en'
-              ? 'Discover an all-in-one platform combining verified B2B intelligence, an interactive CRM pipeline, and mobile tools built for African field sales.'
-              : 'Découvrez une plateforme tout-en-un alliant la puissance d’un annuaire B2B vérifié, un pipeline commercial réactif et des outils conçus pour la réalité du terrain africain.'}
+              ? 'Discover a complete Sales Workspace combining verified company intelligence, an interactive CRM pipeline, and mobile tools built for African field sales.'
+              : 'Découvrez un Workspace commercial complet alliant la puissance d’une base d’entreprises qualifiée, un pipeline réactif et des outils conçus pour la réalité du terrain africain.'}
           </p>
         </div>
 

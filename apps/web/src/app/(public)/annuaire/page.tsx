@@ -10,24 +10,24 @@ const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://salescompanion2-0.co
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'Base de Données Entreprises Cameroun — 50 000+ Sociétés | Annuaire B2B',
+  title: 'Base de Données Entreprises Cameroun — 50 000+ Sociétés | Répertoire & Workspace',
   description:
-    'Accédez à la base de données la plus complète des entreprises camerounaises. 50 000+ sociétés vérifiées (RCCM/NIU) à Douala, Yaoundé, Bafoussam et dans toute la CEMAC. Filtrez par secteur et exportez vos listes de prospection B2B.',
+    'Accédez à la base de données la plus complète des entreprises camerounaises. 50 000+ sociétés vérifiées (RCCM/NIU) à Douala, Yaoundé, Bafoussam et dans toute la CEMAC. Filtrez par secteur et exportez vos listes de prospection commerciale.',
   keywords: [
     'base de données entreprises Cameroun',
     'annuaire entreprises Cameroun',
     'liste entreprises Douala',
     'liste entreprises Yaoundé',
-    'annuaire B2B Cameroun',
-    'prospection B2B Cameroun',
+    'répertoire entreprises Cameroun',
+    'prospection commerciale Cameroun',
     'RCCM Cameroun',
     'NIU Cameroun'
   ],
   alternates: { canonical: `${baseUrl}/annuaire` },
   openGraph: {
-    title: 'Base de Données Entreprises Cameroun — Annuaire B2B 50 000+ Sociétés',
+    title: 'Base de Données Entreprises Cameroun — 50 000+ Sociétés | Workspace Commercial',
     description:
-      '50 000+ entreprises camerounaises vérifiées. Filtrez par ville et secteur. La référence pour la prospection B2B au Cameroun.',
+      '50 000+ entreprises camerounaises vérifiées. Filtrez par ville et secteur. La référence pour la prospection commerciale au Cameroun.',
     url: `${baseUrl}/annuaire`,
     siteName: 'Sales Companion 2.0',
     type: 'website'
@@ -96,7 +96,7 @@ export default async function AnnuaireHub() {
     spatialCoverage: 'Cameroun',
     temporalCoverage: '2026',
     license: `${baseUrl}/terms`,
-    keywords: 'entreprises cameroun, RCCM, NIU, prospection B2B, Douala, Yaoundé'
+    keywords: 'entreprises cameroun, RCCM, NIU, prospection commerciale, Douala, Yaoundé'
   }
 
   const regions = [
@@ -151,7 +151,7 @@ export default async function AnnuaireHub() {
             Base de Données <span className="text-[#1B7A3E]">Entreprises Cameroun</span>
           </h1>
           <p className="mt-4 text-base leading-relaxed text-muted-foreground">
-            L&apos;annuaire B2B le plus complet du Cameroun.{' '}
+            Le répertoire d&apos;entreprises le plus complet du Cameroun.{' '}
             <strong className="text-foreground">50 000+ sociétés vérifiées</strong> à Douala,
             Yaoundé et dans toute la CEMAC. Filtrez par ville et secteur, accédez aux contacts des
             dirigeants et exportez vos listes de prospection.
@@ -225,7 +225,7 @@ export default async function AnnuaireHub() {
               base de données d&apos;entreprises au Cameroun
             </strong>{' '}
             fiable et à jour est le premier défi de tout commercial ou directeur des ventes. Sales
-            Companion 2.0 a été conçu pour y répondre : notre annuaire B2B centralise plus de{' '}
+            Companion 2.0 a été conçu pour y répondre : notre Workspace centralise plus de{' '}
             <strong className="text-[#1B7A3E]">50 000 entreprises camerounaises</strong> vérifiées à
             partir des sources officielles (RCCM, Direction Générale des Impôts).
           </p>
@@ -241,8 +241,8 @@ export default async function AnnuaireHub() {
             Que vous cherchiez une{' '}
             <strong className="text-foreground">liste d&apos;entreprises à Douala</strong>, un
             annuaire des sociétés de Yaoundé, ou une vue complète d&apos;un secteur précis comme le
-            BTP, la finance ou la logistique, cet annuaire est votre point de départ pour une
-            prospection B2B efficace au Cameroun.
+            BTP, la finance ou la logistique, ce répertoire est votre point de départ pour une
+            prospection commerciale efficace au Cameroun.
           </p>
         </section>
 
@@ -279,7 +279,7 @@ export default async function AnnuaireHub() {
           </h3>
           <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-emerald-100">
             Inscrivez-vous gratuitement pour accéder aux contacts des dirigeants, exporter vos
-            listes de prospection B2B et gérer votre pipeline directement dans le CRM intégré.
+            listes de prospection et gérer votre pipeline directement dans le Workspace intégré.
           </p>
           <Link
             href="/register"

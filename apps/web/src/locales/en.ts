@@ -6,14 +6,14 @@ export const en = {
     testimonials: 'Testimonials',
     login: 'Log In',
     startFree: 'Start for free',
-    heroBadge: 'B2B Intelligence Cameroon',
+    heroBadge: 'Commercial Sales Workspace',
     heroTitle1: 'Cameroon',
     heroTitle2: 'business',
     heroTitle3: 'database',
     heroTitle4: 'Prospect faster,',
     heroTitle5: 'sell better',
     heroSub:
-      'Sales Companion 2.0 is the leading B2B Directory that centralizes your database of Cameroonian companies, your CRM pipeline and team management in one tool accessible everywhere.',
+      'Sales Companion 2.0 is the leading commercial Sales Workspace that centralizes your company database, CRM pipeline and team management in one tool accessible everywhere.',
     freeToStart: 'Free to start',
     discoverFeatures: 'Discover features',
     installApp: 'Install app',
@@ -35,7 +35,7 @@ export const en = {
       offline: 'offline PWA mode'
     },
     featuresSection: {
-      title1: 'B2B',
+      title1: 'Sales Workspace &',
       title2: 'prospecting tools',
       title3: 'in Cameroon',
       sub: 'Optimize your sales with Sales Companion 2.0: official database, lightweight CRM and sales intelligence for the Cameroonian market.',
@@ -71,7 +71,7 @@ export const en = {
       sub: 'Whether you are an independent agent or a sales director in Douala or Yaoundé, our tool adapts to your needs.',
       indepTitle: 'Independent Sales Rep',
       indepDesc:
-        'Gain efficiency in your daily prospecting. Access the best B2B database in the country.',
+        'Gain efficiency in your daily prospecting. Access the premier commercial Sales Workspace and the most qualified company database in the country.',
       indepPerk1: 'Unlimited company search',
       indepPerk2: 'Personal pipeline management',
       indepPerk3: 'Prospect saving',
@@ -138,7 +138,7 @@ export const en = {
       title3: 'their sales',
       t1Text:
         "Thanks to Sales Companion 2.0, I was able to identify dozens of SMEs in my region that I didn't know about. The pipeline helps me never miss a follow-up.",
-      t1Role: 'Independent B2B Sales Rep',
+      t1Role: 'Independent Commercial Sales Rep',
       t2Text:
         'As a manager, I save precious time. I can assign prospects to my team in two clicks and see their progress in real time.',
       t2Role: 'Sales Director',
@@ -150,11 +150,11 @@ export const en = {
       title1: 'They use it',
       title2: 'to',
       title3: 'accelerate their sales',
-      sub: 'Discover how our users transform their daily B2B prospecting with Sales Companion 2.0.',
+      sub: 'Discover how our users transform their daily commercial prospecting with Sales Companion 2.0.',
       uc1Title: 'Construction & Real Estate',
       uc1Desc:
         'Identify new construction companies, find real estate developers and material suppliers. Export contacts for your tenders in one click.',
-      uc2Title: 'Tech & B2B Services',
+      uc2Title: 'Tech & Professional Services',
       uc2Desc:
         'Target technology SMEs or consulting firms. Use the AI assistant to personalize your approach and qualify your opportunities before the very first call.',
       uc3Title: 'Banking & Insurance',
@@ -191,7 +191,7 @@ export const en = {
       },
       purposes: {
         title: 'Purposes of processing',
-        item1: 'Provide and improve our B2B prospecting services',
+        item1: 'Provide and improve our commercial prospecting services and Workspace',
         item2: 'Personalize your experience (sector suggestions)',
         item3: 'Manage your account, subscription, and billing',
         item4: 'Contact you for support or important updates',
@@ -238,7 +238,7 @@ export const en = {
       note: 'No credit card required · Free to start'
     },
     footer: {
-      desc: 'The B2B platform dedicated to Cameroonian sales reps and managers. Field intelligence, offline PWA, official database.',
+      desc: 'The commercial Sales Workspace dedicated to sales teams, consultants, and managers. Field intelligence, offline PWA, official database.',
       madeIn: 'Made in Cameroon 🇨🇲',
       product: 'Product',
       app: 'Application',

@@ -258,7 +258,7 @@ export function Hero() {
                   <div className="flex items-center gap-1.5 text-muted-foreground">
                     <Phone className="h-3.5 w-3.5 text-blue-500 shrink-0" />
                     <span className="font-mono text-foreground font-medium truncate">
-                      {country.mockPhone} · B2B
+                      {country.mockPhone} · Entreprise
                     </span>
                   </div>
                   <div className="flex items-center gap-1.5 text-muted-foreground">

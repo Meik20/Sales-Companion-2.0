@@ -16,7 +16,7 @@ interface PublicNavProps {
 
 const navLinks = [
   { label: 'Accueil', href: '/' },
-  { label: 'Annuaire B2B', href: '/annuaire', id: 'annuaire' },
+  { label: 'Annuaire des Entreprises', href: '/annuaire', id: 'annuaire' },
   { label: 'Blog', href: '/blog', id: 'blog' }
 ] as const
 

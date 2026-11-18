@@ -77,7 +77,7 @@ export function WorkflowSection() {
           </h2>
           <p className="mt-4 text-base text-muted-foreground text-pretty">
             {isEn
-              ? 'A frictionless workflow built to accelerate your B2B sales cycle from day one.'
+              ? 'A frictionless Sales Workspace built to accelerate your commercial sales cycle from day one.'
               : 'Un parcours fluide pensé pour transformer chaque recherche en opportunité commerciale concrète.'}
           </p>
 

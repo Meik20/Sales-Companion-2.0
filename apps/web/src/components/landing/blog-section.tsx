@@ -14,13 +14,13 @@ export function BlogSection() {
       slug: country.code === 'CM' ? 'trouver-clients-b2b-cameroun-2026' : 'blog',
       title:
         lang === 'en'
-          ? `How to find B2B clients ${country.englishIn} in 2026`
-          : `Comment trouver des clients B2B ${country.frenchIn} en 2026`,
+          ? `How to find business clients ${country.englishIn} in 2026`
+          : `Comment trouver des clients professionnels ${country.frenchIn} en 2026`,
       desc:
         lang === 'en'
-          ? `Complete guide to identify, prospect and close B2B clients on ${country.englishMarket}.`
-          : `Guide complet pour identifier, prospecter et signer des clients B2B sur le marché ${country.frenchMarketAdjective}.`,
-      badge: lang === 'en' ? 'B2B Prospecting' : 'Prospection B2B',
+          ? `Complete guide to identify, prospect and close clients on ${country.englishMarket}.`
+          : `Guide complet pour identifier, prospecter et signer des clients professionnels sur le marché ${country.frenchMarketAdjective}.`,
+      badge: lang === 'en' ? 'Sales Strategy' : 'Prospection Commerciale',
       readTime: '8 min',
       icon: BookOpen
     },
@@ -67,8 +67,8 @@ export function BlogSection() {
           </p>
           <h2 className="mt-3 font-heading text-3xl font-semibold tracking-tight text-foreground text-balance sm:text-4xl">
             {lang === 'en'
-              ? `Tips & B2B Sales ${country.englishIn}`
-              : `Conseils & Vente B2B ${country.frenchIn}`}
+              ? `Tips & Commercial Sales ${country.englishIn}`
+              : `Conseils & Vente Commerciale ${country.frenchIn}`}
           </h2>
         </div>
         <Link

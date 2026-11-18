@@ -233,7 +233,7 @@ export function exportTeamDashboardPdf({
       </svg>
       <div>
         <h1 class="brand-title">SALES COMPANION 2.0</h1>
-        <p class="brand-subtitle">${isEn ? 'B2B Sales Management Platform' : 'Plateforme de Pilotage Commercial B2B'}</p>
+        <p class="brand-subtitle">${isEn ? 'Commercial Sales Workspace' : 'Workspace de Pilotage Commercial'}</p>
       </div>
     </div>
     <div class="meta-box">
@@ -357,7 +357,7 @@ export function exportTeamDashboardPdf({
   </table>
 
   <div class="footer">
-    <div>SALES COMPANION 2.0 · Plateforme de Pilotage Commercial B2B</div>
+    <div>SALES COMPANION 2.0 · Workspace de Pilotage Commercial</div>
     <div>${isEn ? 'Certified Team Performance Document · Page 1 of 1' : "Document Certifié de Performance d'Équipe · Page 1 sur 1"}</div>
   </div>
 

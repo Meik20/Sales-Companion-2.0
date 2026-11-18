@@ -13,8 +13,8 @@ export function Faq() {
     {
       question: isEn ? 'What is Sales Companion 2.0?' : 'Qu’est-ce que Sales Companion 2.0 ?',
       answer: isEn
-        ? `Sales Companion 2.0 is a B2B sales intelligence platform tailored for ${country.englishMarket}. It allows you to search local companies, qualify prospects with legal and contact data, and manage your deals in an intuitive CRM pipeline.`
-        : `Sales Companion 2.0 est une plateforme de prospection B2B conçue pour le marché ${country.frenchMarketAdjective}. Elle permet de rechercher des entreprises locales, d’identifier des prospects qualifiés et de suivre vos opportunités commerciales dans un CRM intégré.`
+        ? `Sales Companion 2.0 is a commercial Sales Workspace tailored for ${country.englishMarket}. It allows you to search local companies, qualify prospects with legal and contact data, and manage your deals in an intuitive CRM pipeline.`
+        : `Sales Companion 2.0 est un Workspace de prospection commerciale conçu pour le marché ${country.frenchMarketAdjective}. Il permet de rechercher des entreprises locales, d’identifier des prospects qualifiés et de suivre vos opportunités commerciales dans un CRM intégré.`
     },
     {
       question: isEn

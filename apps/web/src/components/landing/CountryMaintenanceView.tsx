@@ -27,12 +27,12 @@ export function CountryMaintenanceView({
   const sectionLabel =
     pageType === 'blog'
       ? isEn
-        ? 'The B2B Blog'
-        : 'Le Blog B2B'
+        ? 'The Sales Blog'
+        : 'Le Blog Commercial'
       : pageType === 'annuaire'
         ? isEn
-          ? 'The B2B Directory'
-          : "L'Annuaire B2B"
+          ? 'The Company Directory'
+          : "Le Répertoire d'Entreprises"
         : isEn
           ? 'This section'
           : 'Cette rubrique'

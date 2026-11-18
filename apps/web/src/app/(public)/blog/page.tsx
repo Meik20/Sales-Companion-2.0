@@ -10,12 +10,12 @@ const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://salescompanion2-0.co
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'Blog — Prospection B2B & CRM au Cameroun | Sales Companion 2.0',
+  title: 'Blog — Prospection Commerciale & CRM au Cameroun | Sales Companion 2.0',
   description:
-    'Conseils, guides et stratégies pour les commerciaux et managers au Cameroun. Prospection B2B, utilisation des données entreprises, CRM et développement des ventes.',
+    'Conseils, guides et stratégies pour les commerciaux et managers au Cameroun. Prospection commerciale, utilisation des données entreprises, CRM et développement des ventes.',
   alternates: { canonical: `${baseUrl}/blog` },
   openGraph: {
-    title: 'Blog Sales Companion 2.0 — Conseils B2B Cameroun',
+    title: 'Blog Sales Companion 2.0 — Conseils Commerciaux Cameroun',
     description: 'Guides pratiques pour booster votre prospection commerciale au Cameroun.',
     url: `${baseUrl}/blog`,
     siteName: 'Sales Companion 2.0',
@@ -37,9 +37,9 @@ const ARTICLES = [
   },
   {
     slug: 'trouver-clients-b2b-cameroun-2026',
-    title: 'Comment trouver des clients B2B au Cameroun en 2026 : guide complet',
+    title: 'Comment trouver des clients professionnels au Cameroun en 2026 : guide complet',
     excerpt:
-      'Secteurs porteurs, méthodes terrain, réseaux et outils digitaux : le guide définitif pour identifier, contacter et convertir des prospects B2B à Douala, Yaoundé et dans tout le Cameroun.',
+      'Secteurs porteurs, méthodes terrain, réseaux et outils digitaux : le guide définitif pour identifier, contacter et convertir des prospects professionnels à Douala, Yaoundé et dans tout le Cameroun.',
     category: 'Prospection',
     date: '14 juin 2026',
     readTime: '12 min',
@@ -61,7 +61,7 @@ const ARTICLES = [
     slug: 'niu-rccm-identifier-entreprise-camerounaise',
     title: 'NIU et RCCM : comment identifier une entreprise camerounaise',
     excerpt:
-      'Comprendre le NIU et le RCCM est essentiel pour tout commercial B2B. Ce guide vous explique comment les utiliser pour vérifier et qualifier vos prospects.',
+      'Comprendre le NIU et le RCCM est essentiel pour tout commercial. Ce guide vous explique comment les utiliser pour vérifier et qualifier vos prospects.',
     category: 'Guide',
     date: '11 juin 2026',
     readTime: '5 min',
@@ -105,7 +105,7 @@ const ARTICLES = [
     slug: 'top-10-secteurs-prospecter-douala-2026',
     title: 'Top 10 secteurs à prospecter à Douala en 2026',
     excerpt:
-      "Pour chacun des 10 secteurs clés de Douala : pourquoi il est prioritaire, les opportunités B2B concrètes, les acteurs clés à cibler et la stratégie d'approche.",
+      "Pour chacun des 10 secteurs clés de Douala : pourquoi il est prioritaire, les opportunités commerciales concrètes, les acteurs clés à cibler et la stratégie d'approche.",
     category: 'Marché',
     date: '14 juin 2026',
     readTime: '10 min',
@@ -127,7 +127,7 @@ const ARTICLES = [
     slug: 'prospection-terrain-vs-digital-cameroun',
     title: 'Prospection terrain vs digital au Cameroun : ce qui marche vraiment en 2026',
     excerpt:
-      'Comparatif complet entre prospection terrain et prospection digitale pour les commerciaux B2B au Cameroun. Stratégie hybride gagnante pour Douala et Yaoundé.',
+      'Comparatif complet entre prospection terrain et prospection digitale pour les commerciaux au Cameroun. Stratégie hybride gagnante pour Douala et Yaoundé.',
     category: 'Stratégie',
     date: '15 juin 2026',
     readTime: '8 min',
@@ -193,14 +193,14 @@ export default async function BlogPage() {
         <div className="mx-auto max-w-3xl px-5">
           <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-1 text-xs font-medium text-muted-foreground shadow-sm">
             <span className="h-2 w-2 rounded-full bg-[#1B7A3E] animate-pulse" />
-            Ressources &amp; Conseils B2B
+            Ressources &amp; Conseils Commerciaux
           </span>
           <h1 className="mt-5 font-heading text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
             Le Blog <span className="text-[#1B7A3E]">Sales Companion 2.0</span>
           </h1>
           <p className="mt-4 text-base leading-relaxed text-muted-foreground">
             Stratégies, guides et outils pour les commerciaux et managers qui veulent développer
-            leur activité B2B au Cameroun.
+            leur activité commerciale au Cameroun.
           </p>
         </div>
       </section>

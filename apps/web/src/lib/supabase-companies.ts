@@ -1,5 +1,5 @@
 /**
- * Connecteur Supabase pour l'annuaire des entreprises B2B.
+ * Connecteur Supabase pour l'annuaire des entreprises.
  * Utilise l'API REST PostgREST native (0 dépendance supplémentaire, 100% CJS/ESM safe pour Vercel).
  */
 

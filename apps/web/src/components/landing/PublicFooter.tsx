@@ -16,7 +16,7 @@ export function PublicFooter() {
     ressources:
       country.code === 'CM'
         ? [
-            { label: isEn ? 'B2B Blog' : 'Blog B2B Cameroun', href: '/blog' },
+            { label: isEn ? 'Sales & Prospecting Blog' : 'Blog Commercial Cameroun', href: '/blog' },
             { label: isEn ? 'Company directory' : 'Annuaire entreprises', href: '/annuaire' },
             {
               label: isEn ? 'Companies in Douala' : 'Entreprises à Douala',
@@ -28,13 +28,13 @@ export function PublicFooter() {
               href: '/blog/niu-rccm-identifier-entreprise-camerounaise'
             },
             {
-              label: isEn ? 'B2B Database' : 'Base de données Cameroun',
+              label: isEn ? 'Company Database' : 'Base de données Cameroun',
               href: '/blog/base-de-donnees-entreprises-cameroun-2026'
             }
           ]
         : [
             {
-              label: isEn ? `B2B Blog (${country.nameEn})` : `Blog B2B (${country.nameFr})`,
+              label: isEn ? `Sales Blog (${country.nameEn})` : `Blog Commercial (${country.nameFr})`,
               href: '/blog'
             },
             { label: isEn ? 'Company directory' : 'Annuaire entreprises', href: '/annuaire' },
@@ -50,8 +50,8 @@ export function PublicFooter() {
             },
             {
               label: isEn
-                ? `B2B Database (${country.nameEn})`
-                : `Base de données (${country.nameFr})`,
+                ? `Company Database (${country.nameEn})`
+                : `Base d'entreprises (${country.nameFr})`,
               href: '/blog'
             }
           ],
@@ -90,8 +90,8 @@ export function PublicFooter() {
             </Link>
             <p className="mt-3 text-xs leading-relaxed text-muted-foreground max-w-[220px]">
               {isEn
-                ? 'The leading B2B directory to prospect and manage your sales.'
-                : 'La plateforme B2B de référence pour prospecter et gérer vos ventes.'}
+                ? 'The premier commercial Sales Workspace to prospect, convert and manage your deals.'
+                : 'Le Workspace commercial de référence pour prospecter, convertir et piloter vos ventes.'}
             </p>
           </div>
 

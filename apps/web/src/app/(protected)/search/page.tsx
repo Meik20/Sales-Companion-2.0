@@ -613,7 +613,7 @@ function SearchContent() {
 
                   <img
                     src="/illustrations/search-prospects.png?v=20260919b"
-                    alt={`Prospection B2B ${countryIn} — Trouvez vos clients avec Sales Companion 2.0`}
+                    alt={`Prospection commerciale ${countryIn} — Trouvez vos clients avec Sales Companion 2.0`}
                     className="illustration-refined"
                     style={{
                       width: '100%',
@@ -945,7 +945,7 @@ function SearchContent() {
             )
           })()}
 
-          {/* Assistant B2B IA */}
+          {/* Assistant Commercial IA */}
           <DataCard
             title={
               <div className="flex items-center gap-2">
@@ -1050,7 +1050,7 @@ function SearchContent() {
                               chips = [
                                 `Call script for these ${results.length} prospects`,
                                 sector ? `Pitch for ${sector}` : 'Personalized outreach email',
-                                'B2B qualification questions'
+                                'Qualification questions'
                               ]
                             } else if (sector && city) {
                               chips = [
@@ -1066,7 +1066,7 @@ function SearchContent() {
                               ]
                             } else if (city) {
                               chips = [
-                                `B2B market in ${city}`,
+                                `Market in ${city}`,
                                 `Outreach email in ${city}`,
                                 `How to approach a CEO in ${city}`
                               ]
@@ -1084,7 +1084,7 @@ function SearchContent() {
                                 sector
                                   ? `Pitch d'accroche ${sector}`
                                   : "Email d'approche personnalisé",
-                                'Questions de qualification B2B'
+                                'Questions de qualification commerciale'
                               ]
                             } else if (sector && city) {
                               chips = [
@@ -1100,7 +1100,7 @@ function SearchContent() {
                               ]
                             } else if (city) {
                               chips = [
-                                `Marché B2B à ${city}`,
+                                `Marché commercial à ${city}`,
                                 `Email prospection ${city}`,
                                 `Comment aborder un DG à ${city}`
                               ]

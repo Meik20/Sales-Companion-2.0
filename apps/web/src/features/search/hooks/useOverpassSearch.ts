@@ -17,7 +17,7 @@ import { useState, useEffect, useRef } from 'react'
 import type { Company } from './useCompaniesSearch'
 import { calculateDistanceKm, formatDistance } from '@/lib/geo-zones'
 
-// Tags OSM à interroger pour les entreprises B2B
+// Tags OSM à interroger pour les entreprises
 const OSM_BUSINESS_TAGS = [
   'amenity',
   'shop',

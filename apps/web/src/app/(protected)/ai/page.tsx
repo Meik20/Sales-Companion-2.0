@@ -52,8 +52,8 @@ export default function AIAssistantPage() {
       role: 'assistant',
       content:
         lang === 'en'
-          ? '👋 Hello! I am your AI Sales Companion 2.0. I can help you with B2B prospecting, finding companies in our database, and drafting outreach pitches. How can I help you today?'
-          : `👋 Bonjour ! Je suis votre Companion IA. Je peux vous aider avec des conseils commerciaux, la recherche d'entreprises dans la base et la prospection B2B ${countryIn}. Comment puis-je vous aider ?`,
+          ? '👋 Hello! I am your AI Sales Companion 2.0. I can help you with prospecting, finding companies in our database, and drafting outreach pitches. How can I help you today?'
+          : `👋 Bonjour ! Je suis votre Companion IA. Je peux vous aider avec des conseils commerciaux, la recherche d'entreprises dans la base et la prospection commerciale ${countryIn}. Comment puis-je vous aider ?`,
       timestamp: new Date()
     }),
     [lang, countryIn]

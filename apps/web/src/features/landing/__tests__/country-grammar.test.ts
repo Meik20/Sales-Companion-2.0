@@ -47,9 +47,9 @@ describe('Country Grammar & Adjectives Concordance', () => {
   })
 
   it('verifies Chad (TD) specifically satisfies "marché tchadien" and "équipes commerciales tchadiennes"', () => {
-    const marketText = `Guide complet pour identifier, prospecter et signer des clients B2B sur le marché ${COUNTRY_FRENCH_MARKET_ADJECTIVE.TD}.`
+    const marketText = `Guide complet pour identifier, prospecter et signer des clients professionnels sur le marché ${COUNTRY_FRENCH_MARKET_ADJECTIVE.TD}.`
     expect(marketText).toBe(
-      'Guide complet pour identifier, prospecter et signer des clients B2B sur le marché tchadien.'
+      'Guide complet pour identifier, prospecter et signer des clients professionnels sur le marché tchadien.'
     )
     expect(marketText).not.toContain('marché tchadiennes')
 

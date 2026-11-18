@@ -52,8 +52,8 @@ export function DataTrustSection() {
           </span>
           <h2 className="mt-3 font-heading text-2xl font-bold tracking-tight text-foreground sm:text-3xl md:text-4xl text-balance">
             {isEn
-              ? 'Structured data designed for your B2B sales.'
-              : 'Des données structurées pour votre prospection.'}
+              ? 'Structured data designed for your commercial growth.'
+              : 'Des données structurées pour votre prospection commerciale.'}
           </h2>
           <p className="mt-4 text-base text-muted-foreground text-pretty">
             {isEn

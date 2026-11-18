@@ -76,7 +76,7 @@ export function Badge({
   )
 }
 
-/** Composant Pilule Badge style Landing Hero ("Intelligence B2B Cameroun") */
+/** Composant Pilule Badge style Landing Hero ("Workspace Commercial") */
 export function PillBadge({
   children,
   ping = true,

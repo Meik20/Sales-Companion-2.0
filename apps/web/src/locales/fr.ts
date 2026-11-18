@@ -6,14 +6,14 @@ export const fr = {
     testimonials: 'Témoignages',
     login: 'Connexion',
     startFree: 'Commencer gratuitement',
-    heroBadge: 'Intelligence B2B Cameroun',
+    heroBadge: 'Workspace Commercial & Prospection',
     heroTitle1: 'Base de données des',
     heroTitle2: 'entreprises',
     heroTitle3: 'Camerounaises',
     heroTitle4: 'Prospectez plus vite,',
     heroTitle5: 'vendez mieux',
     heroSub:
-      "Sales Companion 2.0 est l'annuaire B2B de référence qui centralise votre base d'entreprises camerounaises, votre pipeline CRM et la gestion d'équipe en un seul outil accessible partout.",
+      "Sales Companion 2.0 est le Workspace commercial de référence qui centralise votre base d'entreprises, votre pipeline CRM et la gestion d'équipe en un seul outil accessible partout.",
     freeToStart: 'Gratuit au démarrage',
     discoverFeatures: 'Découvrir les fonctionnalités',
     installApp: "Installer l'app",
@@ -35,8 +35,8 @@ export const fr = {
       offline: 'mode hors-ligne PWA'
     },
     featuresSection: {
-      title1: 'Outils de',
-      title2: 'prospection B2B',
+      title1: 'Workspace de',
+      title2: 'prospection commerciale',
       title3: 'au Cameroun',
       sub: 'Optimisez vos ventes avec Sales Companion 2.0 : base de données officielle, CRM léger et intelligence commerciale pour le terrain camerounais.',
       f1Title: 'Annuaire des entreprises',
@@ -71,7 +71,7 @@ export const fr = {
       sub: "Que vous soyez un agent indépendant ou un directeur commercial à Douala ou Yaoundé, notre outil s'adapte à vos besoins.",
       indepTitle: 'Commercial Indépendant',
       indepDesc:
-        'Gagnez en efficacité dans votre prospection quotidienne. Accédez à la meilleure base de données B2B du pays.',
+        'Gagnez en efficacité dans votre prospection quotidienne. Accédez au meilleur Workspace commercial et à la base d\'entreprises la plus qualifiée du pays.',
       indepPerk1: 'Recherche entreprises illimitée',
       indepPerk2: 'Gestion de pipeline personnelle',
       indepPerk3: 'Sauvegarde de prospects',
@@ -154,7 +154,7 @@ export const fr = {
       uc1Title: 'BTP & Construction',
       uc1Desc:
         "Identifiez les nouvelles entreprises de BTP, trouvez les promoteurs immobiliers et fournisseurs de matériaux. Exportez les contacts pour vos appels d'offres en un clic.",
-      uc2Title: 'Tech & Services B2B',
+      uc2Title: 'Technologies & Services aux Entreprises',
       uc2Desc:
         "Ciblez les PME technologiques ou les cabinets de conseil. Utilisez l'assistant IA pour personnaliser votre approche et qualifier vos opportunités avant même le premier appel.",
       uc3Title: 'Banque & Assurance',
@@ -191,7 +191,7 @@ export const fr = {
       },
       purposes: {
         title: 'Finalités du traitement',
-        item1: 'Fournir et améliorer nos services de prospection B2B',
+        item1: 'Fournir et améliorer nos services de prospection commerciale et notre Workspace',
         item2: 'Personnaliser votre expérience (suggestions de secteurs)',
         item3: 'Gérer votre compte, abonnement et facturation',
         item4: 'Vous contacter en cas de support ou mises à jour importantes',
@@ -238,7 +238,7 @@ export const fr = {
       note: 'Aucune carte bancaire requise · Gratuit au démarrage'
     },
     footer: {
-      desc: 'La plateforme B2B dédiée aux commerciaux et managers camerounais. Intelligence terrain, PWA hors-ligne, base de données officielle.',
+      desc: 'Le Workspace commercial dédié aux forces de vente, consultants et managers. Intelligence terrain, PWA hors-ligne et base de données officielle.',
       madeIn: 'Made in Cameroun 🇨🇲',
       product: 'Produit',
       app: 'Application',

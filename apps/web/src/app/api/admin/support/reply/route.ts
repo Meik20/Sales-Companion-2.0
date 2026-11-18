@@ -182,7 +182,7 @@ export async function POST(request: NextRequest) {
           <!-- Footer -->
           <tr>
             <td style="padding:16px 32px 24px;text-align:center;background-color:#0f172a;border-top:1px solid #1e293b;font-size:11px;color:#64748b;line-height:1.5;">
-              © ${new Date().getFullYear()} Sales Companion 2.0 — Plateforme d'Intelligence Commerciale B2B.<br>
+              © ${new Date().getFullYear()} Sales Companion 2.0 — Workspace Commercial & Prospection.<br>
               <em>Cet email a été envoyé automatiquement depuis l'adresse de notification noreply@salescompanion2-0.com. Merci de ne pas y répondre directement par courriel.</em>
             </td>
           </tr>
