@@ -1,7 +1,7 @@
 {
   "name": "Sales Companion 2.0",
   "short_name": "SC 2.0",
-  "description": "Intelligence B2B Cameroun — Prospection, CRM pipeline et gestion d'équipe",
+  "description": "Workspace Commercial & Prospection au Cameroun — Prospection, CRM pipeline et gestion d'équipe",
   "start_url": "/search?source=pwa",
   "scope": "/",
   "display": "standalone",
@@ -39,7 +39,7 @@
   "screenshots": [],
   "shortcuts": [
     {
-      "name": "Recherche B2B",
+      "name": "Recherche d'Entreprises",
       "short_name": "Recherche",
       "description": "Rechercher des entreprises camerounaises",
       "url": "/search",
