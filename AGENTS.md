@@ -354,4 +354,29 @@ Ne **jamais** utiliser un emoji cercle coloré (`🟢🔴🟡`) pour indiquer un
 ### D. Garde-fous automatisés pré-build
 - `scripts/check-architecture-integrity.js` (Étape 16) valide systématiquement que les routes `/api/reporting/org`, `/api/pipeline/org`, `/api/team/targets` et les services associés respectent le paramètre dynamique de période et ne contiennent aucun filtre temporel ou monétaire hardcodé régressif.
 
+---
 
+## 17. Règle Inviolable — Consultation Préalable Obligatoire de la Charte Graphique & des Règles d'Intégrité (Règle de Blocage Absolue)
+
+> [!CAUTION]
+> **RÈGLE DE BLOCAGE ABSOLUE PRÉ-MODIFICATION :**  
+> **TOUTE MODIFICATION DE L'APPLICATION (Code source, composants UI, bannières, visuels, branding, styles, scripts de génération, API ou base de données) DOIT OBLIGATOIREMENT ÊTRE PRÉCÉDÉE D'UNE CONSULTATION COMPLÈTE DES RÈGLES D'INTÉGRITÉ ARCHITECTURALE ET DE LA CHARTE GRAPHIQUE.**  
+> Il est strictement interdit d'effectuer des modifications directes « à l'aveugle » ou fondées sur des approximations stylistiques sans avoir vérifié et validé chaque contrainte métier et visuelle.
+
+### A. Protocole de Blocage & Consultation Préalable
+Avant d'écrire ou de modifier la moindre ligne de code ou de générer un asset :
+1. **Consultation de la Charte Graphique (docs/CHARTE_GRAPHIQUE.md) :**
+   - **Logotype & Titrage :** <ScIcon /> avec centrage optique parfait du monogramme SC ; Titrage Sales Companion  en couleur de texte principal (	ext-foreground ou #FFFFFF en dark) suivi de 2.0 en vert institutionnel solide (#1B7A3E). Typographie Outfit Semi-Bold (graisse **600** impérative, pas de 800 ou d'effets néon/glow non chartés).
+   - **Palette Officielle :** Vert institutionnel Cameroun #1B7A3E, Bleu technologique primaire #2F5BEA, Surfaces sombres #0B0F17 / #121826, surfaces claires #F7F8FA / #FFFFFF. Interdiction formelle des verts arbitraires (ex: #4ADE80 en couleur de marque) ou de dégradés non approuvés.
+   - **Politique Zéro Emoji (Règle 6) :** 100% vectoriel (Lucide React ou SVG vectoriels équivalents). Strictement aucun emoji Unicode (🇨🇲, 🔥, 🥇, ⚠️, etc.), y compris dans les bannières ou assets promotionnels.
+   - **Terminologie de Marque :** Bannissement total du terme obsolète « B2B » dans les titres et badges utilisateur (désignation officielle : *Workspace Commercial & Prospection*).
+2. **Consultation des Règles d'Intégrité (AGENTS.md) :**
+   - Modèle hiérarchique à 4 niveaux (Senior Managers, Team Managers, Commerciaux, Support restreint).
+   - Confinement de l'Agent Support (Règle 14) et désignation explicite des Team Managers (Règle 9).
+   - Pas d'UID brut dans l'interface (Règle 13).
+   - Zéro hardcoding et architecture pilotée par le contexte dynamique (Règle 16).
+3. **Émission d'un Bilan Préalable :**
+   - L'agent doit formellement identifier et énoncer les règles applicables avant d'exécuter la modification demandée.
+
+### B. Garde-fous automatisés pré-build
+- scripts/check-architecture-integrity.js (Étape 17) valide systématiquement que la Règle 17 de consultation préalable obligatoire est gravée dans AGENTS.md et que le skill d'intégrité pre-modification-check est présent et opérationnel.

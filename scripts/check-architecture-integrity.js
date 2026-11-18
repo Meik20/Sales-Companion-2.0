@@ -680,6 +680,38 @@ try {
   errors.push(`❌ Erreur lors du contrôle des règles de calcul de pipeline : ${e.message}`)
 }
 
+
+// --- Contrôle 17 : Règle Inviolable de Blocage Pré-Modification (Charte Graphique & Intégrité) ---
+try {
+  const projectRoot = path.resolve(__dirname, '..')
+  const agentsMdPath = path.resolve(projectRoot, 'AGENTS.md')
+  const charteMdPath = path.resolve(projectRoot, 'docs/CHARTE_GRAPHIQUE.md')
+  const skillMdPath = path.resolve(projectRoot, '.agents/skills/pre-modification-check/SKILL.md')
+
+  if (!fs.existsSync(agentsMdPath)) {
+    errors.push("❌ RÈGLE DE BLOCAGE VIOLÉE : Le fichier AGENTS.md est introuvable à la racine du projet.")
+  } else {
+    const agentsContent = fs.readFileSync(agentsMdPath, 'utf8')
+    if (!agentsContent.includes('## 17. Règle Inviolable — Consultation Préalable Obligatoire')) {
+      errors.push("❌ RÈGLE DE BLOCAGE VIOLÉE : AGENTS.md doit comporter la Section 17 imposant la consultation préalable obligatoire de la charte et des règles d'intégrité.")
+    }
+  }
+
+  if (!fs.existsSync(charteMdPath)) {
+    errors.push("❌ RÉFÉRENCE CHARTE MANQUANTE : docs/CHARTE_GRAPHIQUE.md doit exister pour servir de référence officielle immutable.")
+  }
+
+  if (!fs.existsSync(skillMdPath)) {
+    errors.push("❌ SKILL DE BLOCAGE MANQUANT : .agents/skills/pre-modification-check/SKILL.md doit être présent pour outiller et bloquer l'agent avant toute modification.")
+  }
+
+  if (errors.length === 0 || !errors.some(e => e.includes('RÈGLE DE BLOCAGE'))) {
+    console.log("✅ Règle de Blocage Pré-Modification conforme (AGENTS.md R17, docs/CHARTE_GRAPHIQUE.md et skill pre-modification-check validés)")
+  }
+} catch (e) {
+  errors.push("Erreur lors du contrôle de blocage pré-modification : " + e.message)
+}
+
 // Affichage du bilan
 if (warnings.length > 0) {
   console.warn("\n⚠️ AVERTISSEMENTS D'INTÉGRITÉ :")
