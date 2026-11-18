@@ -63,12 +63,12 @@ export function Hero() {
           <h1 className="mt-5 font-heading text-3xl font-extrabold leading-[1.12] tracking-tight text-foreground text-balance sm:text-4xl lg:text-5xl">
             {isEn ? (
               <>
-                Find your next <span className="text-[#1B7A3E]">B2B prospects</span>{' '}
+                Find your next <span className="text-[#1B7A3E]">prospects</span>{' '}
                 {country.englishIn}.
               </>
             ) : (
               <>
-                Trouvez vos prochains <span className="text-[#1B7A3E]">prospects B2B</span>{' '}
+                Trouvez vos prochains <span className="text-[#1B7A3E]">prospects</span>{' '}
                 {country.frenchIn}.
               </>
             )}
@@ -217,8 +217,8 @@ export function Hero() {
                     type="button"
                     onClick={() => setAddedToPipeline(true)}
                     className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition-all shadow-xs shrink-0 ${addedToPipeline
-                        ? 'bg-blue-600 text-white cursor-default'
-                        : 'bg-[#1B7A3E] text-white hover:bg-[#135A2E] hover:scale-105 active:scale-95'
+                      ? 'bg-blue-600 text-white cursor-default'
+                      : 'bg-[#1B7A3E] text-white hover:bg-[#135A2E] hover:scale-105 active:scale-95'
                       }`}
                   >
                     {addedToPipeline ? (

@@ -37,7 +37,7 @@ export default function Home() {
       priceCurrency: 'XAF'
     },
     description:
-      'La plateforme de prospection B2B conçue pour le marché camerounais. Recherchez parmi plus de 50 000 entreprises et suivez vos opportunités commerciales.'
+      'Le Workspace conçu pour le marché camerounais. Recherchez parmi plus de 50 000 entreprises et suivez vos opportunités commerciales.'
   }
 
   return (
