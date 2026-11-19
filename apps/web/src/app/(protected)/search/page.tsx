@@ -67,8 +67,58 @@ function SearchContent() {
     ts?: string
   }>({})
   const [hasSearched, setHasSearched] = useState(false)
+  const hasSearchedRef = useRef(false)
+  useEffect(() => {
+    hasSearchedRef.current = hasSearched
+  }, [hasSearched])
   const [currentPage, setCurrentPage] = useState(1)
   const [isBackAction, setIsBackAction] = useState(false)
+
+  function applySearchFilters(
+    newFilters: {
+      sector?: string
+      region?: string
+      city?: string
+      query?: string
+      lat?: string
+      lng?: string
+      radius?: string
+      ts?: string
+    },
+    newPage: number = 1
+  ) {
+    const hasAny = Boolean(
+      newFilters.query ||
+      newFilters.sector ||
+      newFilters.region ||
+      newFilters.city ||
+      newFilters.lat ||
+      newFilters.lng ||
+      newFilters.ts
+    )
+    setFilters(newFilters)
+    setCurrentPage(newPage)
+    setHasSearched(hasAny)
+
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams()
+      if (newFilters.query) params.set('query', newFilters.query)
+      if (newFilters.sector) params.set('sector', newFilters.sector)
+      if (newFilters.region) params.set('region', newFilters.region)
+      if (newFilters.city) params.set('city', newFilters.city)
+      if (newFilters.lat) params.set('lat', newFilters.lat)
+      if (newFilters.lng) params.set('lng', newFilters.lng)
+      if (newFilters.radius) params.set('radius', newFilters.radius)
+      if (newFilters.ts) params.set('ts', newFilters.ts)
+      if (newPage > 1) params.set('page', String(newPage))
+
+      const qs = params.toString()
+      window.history.replaceState(null, '', qs ? `?${qs}` : window.location.pathname)
+      if (!hasAny) {
+        window.dispatchEvent(new CustomEvent('sc_search_reset'))
+      }
+    }
+  }
 
   // Pipeline stats
   const pipelineStats = usePipelineStats()
@@ -216,6 +266,10 @@ function SearchContent() {
     if (sector || region || city || query || lat || lng || ts) {
       setFilters({ sector, region, city, query, lat, lng, radius, ts })
       setHasSearched(true)
+    } else if (pageParam && hasSearchedRef.current) {
+      // Si seul le paramètre "page" est présent alors qu'une recherche est active,
+      // on préserve la recherche et on ne réinitialise pas à l'accueil
+      return
     } else {
       // Aucun paramètre dans l'URL = retour strict à l'accueil neutre de prospection
       setFilters({})
@@ -334,17 +388,8 @@ function SearchContent() {
         <SearchFiltersForm
           initialValues={filters}
           onSubmit={(v) => {
-            const hasAny = Boolean(v.query || v.sector || v.region || v.city || v.lat || v.lng)
-            setFilters(v)
-            setCurrentPage(1)
             setIsBackAction(false)
-            setHasSearched(hasAny)
-            if (!hasAny) {
-              router.replace('/search')
-              if (typeof window !== 'undefined') {
-                window.dispatchEvent(new CustomEvent('sc_search_reset'))
-              }
-            }
+            applySearchFilters(v, 1)
           }}
           onHome={() => {
             setFilters({})
@@ -491,12 +536,7 @@ function SearchContent() {
                         onClick={() => {
                           setIsBackAction(true)
                           const prevPage = Math.max(1, currentPage - 1)
-                          setCurrentPage(prevPage)
-                          if (typeof window !== 'undefined') {
-                            const params = new URLSearchParams(window.location.search)
-                            params.set('page', String(prevPage))
-                            window.history.replaceState(null, '', `?${params.toString()}`)
-                          }
+                          applySearchFilters(filters, prevPage)
                           document
                             .getElementById('main-scroll-container')
                             ?.scrollTo({ top: 0, behavior: 'smooth' })
@@ -522,12 +562,7 @@ function SearchContent() {
                         onClick={() => {
                           setIsBackAction(false)
                           const nextPage = currentPage + 1
-                          setCurrentPage(nextPage)
-                          if (typeof window !== 'undefined') {
-                            const params = new URLSearchParams(window.location.search)
-                            params.set('page', String(nextPage))
-                            window.history.replaceState(null, '', `?${params.toString()}`)
-                          }
+                          applySearchFilters(filters, nextPage)
                           document
                             .getElementById('main-scroll-container')
                             ?.scrollTo({ top: 0, behavior: 'smooth' })
@@ -780,8 +815,7 @@ function SearchContent() {
                   subtitle={t('search.newCompanies')}
                   count={86}
                   onClick={() => {
-                    setFilters({ sector: 'BTP & Construction', city: highlightCities.btp })
-                    setHasSearched(true)
+                    applySearchFilters({ sector: 'BTP & Construction', city: highlightCities.btp }, 1)
                   }}
                 />
                 <ShortcutCard
@@ -790,8 +824,7 @@ function SearchContent() {
                   subtitle={t('search.startupsPme')}
                   count={94}
                   onClick={() => {
-                    setFilters({ sector: 'Technologies & Numérique', city: highlightCities.tech })
-                    setHasSearched(true)
+                    applySearchFilters({ sector: 'Technologies & Numérique', city: highlightCities.tech }, 1)
                   }}
                 />
                 <ShortcutCard
@@ -800,8 +833,7 @@ function SearchContent() {
                   subtitle={countryName}
                   count={78}
                   onClick={() => {
-                    setFilters({ sector: 'Agriculture & Agroalimentaire' })
-                    setHasSearched(true)
+                    applySearchFilters({ sector: 'Agriculture & Agroalimentaire' }, 1)
                   }}
                 />
                 <ShortcutCard
@@ -810,8 +842,7 @@ function SearchContent() {
                   subtitle={countryName}
                   count={124}
                   onClick={() => {
-                    setFilters({ sector: 'Transport & Logistique' })
-                    setHasSearched(true)
+                    applySearchFilters({ sector: 'Transport & Logistique' }, 1)
                   }}
                 />
               </div>
