@@ -182,12 +182,24 @@ export async function POST(request: NextRequest) {
     for (const col of collections) {
       const snap = await adminDb.collection(col).where('firebaseUid', '==', uid).limit(1).get()
       if (!snap.empty && snap.docs[0]) {
-        await snap.docs[0].ref.update({
-          activated: true,
-          status: 'active',
-          activatedAt: new Date(),
-          emailVerificationPending: false
-        })
+        const docData = snap.docs[0].data()
+        const isPromotedOrTerminal =
+          Boolean(docData?.promotedAt) ||
+          ['promoted', 'revoked', 'deleted'].includes(docData?.status) ||
+          isManager
+
+        if (!isPromotedOrTerminal) {
+          await snap.docs[0].ref.update({
+            activated: true,
+            status: 'active',
+            activatedAt: new Date(),
+            emailVerificationPending: false
+          })
+        } else {
+          await snap.docs[0].ref.update({
+            emailVerificationPending: false
+          })
+        }
         break
       }
     }

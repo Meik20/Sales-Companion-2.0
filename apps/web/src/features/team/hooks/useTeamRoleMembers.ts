@@ -157,6 +157,9 @@ export function useTeamRoleMembers(options: UseTeamRoleMembersOptions = {}) {
           const TERMINAL_STATUSES = ['promoted', 'revoked', 'deleted', 'transferred']
           if (TERMINAL_STATUSES.includes(data.status)) return
 
+          // ✅ Garde-fou 1b : Exclure formellement tout document d'accès ayant un horodatage de promotion
+          if (data.promotedAt) return
+
           // ✅ Garde-fou 2 : Exclure les enregistrements dont le rôle est 'manager'.
           // Un commercial promu TM a son role mis à 'manager' côté users/{uid}.
           // Si un ancien team_accesses résiduel subsistait avec role='manager', il ne
