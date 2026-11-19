@@ -6,6 +6,7 @@ import { AppShell } from '@/components/layout/AppShell'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useToast } from '@/hooks/useToast'
+import { DEPLOYMENT_CONFIG } from '@/lib/deployment-config'
 import {
   Check,
   Zap,
@@ -110,6 +111,13 @@ export default function UpgradePage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const prevPlanRef = useRef<string | null>(null)
+
+  // En mode instance entreprise dédiée, redirection immédiate vers l'espace de travail
+  useEffect(() => {
+    if (DEPLOYMENT_CONFIG.isEnterprise) {
+      router.replace(routes.search)
+    }
+  }, [router])
 
   // Détecte si l'utilisateur arrive depuis la page d'inscription (nouveau manager)
   const isNewManager = searchParams.get('from') === 'register' && user?.role === 'manager'

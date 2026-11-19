@@ -15,6 +15,7 @@ import { UserNotificationBell } from '@/components/layout/UserNotificationBell'
 import { useNetworkStatus } from '@/hooks/useNetworkStatus'
 import { useProspectingCountry } from '@/hooks/useProspectingCountry'
 import { getCountryName } from '@sales-companion/shared'
+import { DEPLOYMENT_CONFIG } from '@/lib/deployment-config'
 
 function getUserInitials(user?: { name?: string | null; email?: string | null } | null): string {
   if (!user) return '?'
@@ -114,9 +115,15 @@ export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void 
                 Sales <em className="not-italic font-normal opacity-75">Companion</em>{' '}
                 <em className="text-[12px] not-italic font-normal opacity-55">2.0</em>
               </span>
-              <span className="hdr-logo-sub text-[9.5px] uppercase tracking-[.15em] font-medium text-muted-foreground">
-                {countryLabel}
-              </span>
+              {DEPLOYMENT_CONFIG.isEnterprise && DEPLOYMENT_CONFIG.enterpriseName ? (
+                <span className="hdr-logo-sub text-[9.5px] uppercase tracking-[.15em] font-semibold text-primary">
+                  {DEPLOYMENT_CONFIG.enterpriseName}
+                </span>
+              ) : (
+                <span className="hdr-logo-sub text-[9.5px] uppercase tracking-[.15em] font-medium text-muted-foreground">
+                  {countryLabel}
+                </span>
+              )}
             </div>
           </Link>
         </div>

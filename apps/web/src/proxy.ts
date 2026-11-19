@@ -111,6 +111,14 @@ export function proxy(req: NextRequest) {
   const ua = req.headers.get('user-agent') ?? ''
   const ip = getClientIp(req)
 
+  // ── Redirection immédiate au niveau Edge en mode instance entreprise dédiée ──
+  const isEnterpriseMode = process.env.NEXT_PUBLIC_DEPLOYMENT_MODE === 'enterprise'
+  if (isEnterpriseMode) {
+    if (pathname === '/' || pathname.startsWith('/blog') || pathname.startsWith('/annuaire')) {
+      return NextResponse.redirect(new URL('/login', req.url))
+    }
+  }
+
   // ── 1. Always allow legitimate search engine crawlers ONLY for public pages (NEVER for API routes) ─────────────────────
   const isAllowedBot = ALLOWED_BOTS.some((pattern) => pattern.test(ua))
   if (isAllowedBot && !pathname.startsWith('/api/')) return NextResponse.next()

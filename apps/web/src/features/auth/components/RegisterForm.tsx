@@ -23,6 +23,7 @@ import { ShieldCheck, Lock, HelpCircle, ArrowRight, ArrowLeft, Crown, Users2, Ta
 import { detectClientCountry } from '@/features/landing/landing-country'
 import { setProspectingCountryCookie } from '@/hooks/useProspectingCountry'
 import type { CountryCode } from '@sales-companion/shared'
+import { DEPLOYMENT_CONFIG } from '@/lib/deployment-config'
 
 type RoleOption = 'independent' | 'manager'
 
@@ -51,7 +52,9 @@ export function RegisterForm() {
 
   const [name, setName] = useState(nameParam || '')
   const [role, setRole] = useState<RoleOption>(
-    roleParam === 'manager' || exemptionParam || orgParam || isOrgInvite ? 'manager' : 'independent'
+    DEPLOYMENT_CONFIG.isEnterprise || roleParam === 'manager' || exemptionParam || orgParam || isOrgInvite
+      ? 'manager'
+      : 'independent'
   )
   const [country, setCountry] = useState<string>(() => {
     if (typeof document !== 'undefined') {
@@ -64,11 +67,15 @@ export function RegisterForm() {
   const [phone, setPhone] = useState('')
   const [email, setEmail] = useState(emailParam || '')
   const [password, setPassword] = useState('')
-  const [companyName, setCompanyName] = useState(companyParam || '')
+  const [companyName, setCompanyName] = useState(
+    companyParam || (DEPLOYMENT_CONFIG.isEnterprise ? DEPLOYMENT_CONFIG.enterpriseName : '')
+  )
   const [sector, setSector] = useState<string>(sectorParam || '')
   const [segment, setSegment] = useState('')
   const [niu, setNiu] = useState('')
-  const [joinOrgCode, setJoinOrgCode] = useState(orgParam || '')
+  const [joinOrgCode, setJoinOrgCode] = useState(
+    orgParam || (DEPLOYMENT_CONFIG.isEnterprise ? DEPLOYMENT_CONFIG.dedicatedOrgCode : '')
+  )
   const [joinOrgInfo, setJoinOrgInfo] = useState<{
     companyName: string
     sector?: string
@@ -224,6 +231,12 @@ export function RegisterForm() {
       setError(t('auth.emailRequired'))
       return
     }
+    if (DEPLOYMENT_CONFIG.isEnterprise && !DEPLOYMENT_CONFIG.isDomainAllowed(email.trim())) {
+      setError(
+        `Seules les adresses professionnelles autorisées (@${DEPLOYMENT_CONFIG.allowedEmailDomains.join(', @')}) sont acceptées sur cette instance.`
+      )
+      return
+    }
     if (!password) {
       setError(t('auth.errorFillAll'))
       return
@@ -343,6 +356,18 @@ export function RegisterForm() {
       {/* Header */}
       <div className="mb-5 text-center">
         <ScIcon size={44} interactive style={{ marginBottom: 12 }} />
+
+        {DEPLOYMENT_CONFIG.isEnterprise && (
+          <div className="mb-3.5 rounded-xl border border-primary/25 bg-primary/10 px-3.5 py-2 text-center">
+            <p className="text-[12px] font-bold text-primary uppercase tracking-wider">
+              {DEPLOYMENT_CONFIG.enterpriseName || 'Workspace Métier Entreprise'}
+            </p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
+              Création de compte collaborateur
+            </p>
+          </div>
+        )}
+
         <h1 className="mb-1.5 mt-0 font-['Syne',sans-serif] text-[21px] font-extrabold tracking-[-0.03em] text-foreground">
           {orgInviteInfo
             ? orgInviteInfo.type === 'senior_manager'
@@ -568,7 +593,42 @@ export function RegisterForm() {
       {step === 2 && (
         <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-col gap-4">
           {/* Type de compte */}
-          {!orgInviteInfo ? (
+          {orgInviteInfo ? (
+            <div className="rounded-xl border border-border bg-secondary/30 p-3.5 flex items-center justify-between">
+              <div>
+                <span className="text-[11px] uppercase tracking-wider font-bold text-muted-foreground">Rôle assigné</span>
+                <div className="flex items-center gap-1.5 text-[14px] font-bold text-foreground mt-0.5">
+                  {orgInviteInfo.type === 'senior_manager' ? (
+                    <>
+                      <Crown size={15} className="text-violet-600 dark:text-violet-400 shrink-0" />
+                      <span>Senior Manager</span>
+                    </>
+                  ) : (
+                    <>
+                      <Users2 size={15} className="text-primary shrink-0" />
+                      <span>Team Manager</span>
+                    </>
+                  )}
+                </div>
+              </div>
+              <span className="text-[11.5px] font-semibold bg-primary/15 text-primary px-2.5 py-1 rounded-md">
+                Invitation validée
+              </span>
+            </div>
+          ) : DEPLOYMENT_CONFIG.isEnterprise ? (
+            <div className="rounded-xl border border-primary/20 bg-primary/5 p-3.5 flex items-center justify-between">
+              <div>
+                <span className="text-[11px] uppercase tracking-wider font-bold text-primary">Espace Entreprise</span>
+                <div className="flex items-center gap-1.5 text-[13.5px] font-bold text-foreground mt-0.5">
+                  <Users2 size={15} className="text-primary shrink-0" />
+                  <span>Compte Collaborateur / Manager</span>
+                </div>
+              </div>
+              <span className="text-[11px] font-semibold bg-primary/15 text-primary px-2.5 py-1 rounded-md">
+                {DEPLOYMENT_CONFIG.enterpriseName || 'Dédié'}
+              </span>
+            </div>
+          ) : (
             <FormField label={t('auth.accountType')}>
               <div className="grid grid-cols-2 gap-2">
                 {roleOptions.map((opt) => (
@@ -608,28 +668,6 @@ export function RegisterForm() {
                 </p>
               )}
             </FormField>
-          ) : (
-            <div className="rounded-xl border border-border bg-secondary/30 p-3.5 flex items-center justify-between">
-              <div>
-                <span className="text-[11px] uppercase tracking-wider font-bold text-muted-foreground">Rôle assigné</span>
-                <div className="flex items-center gap-1.5 text-[14px] font-bold text-foreground mt-0.5">
-                  {orgInviteInfo.type === 'senior_manager' ? (
-                    <>
-                      <Crown size={15} className="text-violet-600 dark:text-violet-400 shrink-0" />
-                      <span>Senior Manager</span>
-                    </>
-                  ) : (
-                    <>
-                      <Users2 size={15} className="text-primary shrink-0" />
-                      <span>Team Manager</span>
-                    </>
-                  )}
-                </div>
-              </div>
-              <span className="text-[11.5px] font-semibold bg-primary/15 text-primary px-2.5 py-1 rounded-md">
-                Invitation validée
-              </span>
-            </div>
           )}
 
           {/* Nom entreprise */}

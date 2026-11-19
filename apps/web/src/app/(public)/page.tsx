@@ -1,5 +1,7 @@
 import { Metadata } from 'next'
+import { redirect } from 'next/navigation'
 import { HomeClient } from './HomeClient'
+import { DEPLOYMENT_CONFIG } from '@/lib/deployment-config'
 
 export const metadata: Metadata = {
   title: 'SALES COMPANION 2.0',
@@ -19,6 +21,11 @@ export const metadata: Metadata = {
 }
 
 export default function Home() {
+  // En mode instance entreprise dédiée, redirection immédiate vers la page de connexion sécurisée
+  if (DEPLOYMENT_CONFIG.isEnterprise) {
+    redirect('/login')
+  }
+
   // Schema.org Structured Data
   const jsonLd = {
     '@context': 'https://schema.org',

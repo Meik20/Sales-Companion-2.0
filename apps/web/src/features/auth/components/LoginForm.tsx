@@ -12,6 +12,7 @@ import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { mapAuthError } from '../utils/error-mapper'
 import { routes } from '@/constants/routes'
 import { useTranslation } from '@/providers/I18nProvider'
+import { DEPLOYMENT_CONFIG } from '@/lib/deployment-config'
 
 export function LoginForm() {
   const { t } = useTranslation()
@@ -109,6 +110,13 @@ export function LoginForm() {
       setError(t('auth.errorFillAll'))
       return
     }
+
+    if (DEPLOYMENT_CONFIG.isEnterprise && !DEPLOYMENT_CONFIG.isDomainAllowed(email)) {
+      setError(
+        `Accès restreint : Seules les adresses professionnelles (@${DEPLOYMENT_CONFIG.allowedEmailDomains.join(', @')}) sont autorisées sur cette instance.`
+      )
+      return
+    }
     setLoading(true)
     setError(null)
     try {
@@ -143,6 +151,18 @@ export function LoginForm() {
       {/* Header */}
       <div className="mb-8 text-center">
         <ScIcon size={48} interactive style={{ marginBottom: 16 }} />
+
+        {DEPLOYMENT_CONFIG.isEnterprise && (
+          <div className="mb-4 rounded-xl border border-primary/25 bg-primary/10 px-3.5 py-2 text-center">
+            <p className="text-[12px] font-bold text-primary uppercase tracking-wider">
+              {DEPLOYMENT_CONFIG.enterpriseName || 'Workspace Métier Entreprise'}
+            </p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
+              Accès réservé aux collaborateurs autorisés
+            </p>
+          </div>
+        )}
+
         <h1 className="mb-2 mt-0 font-['Syne',sans-serif] text-[22px] font-extrabold tracking-[-0.03em] text-foreground">
           {isResetMode
             ? 'Réinitialiser le mot de passe'
@@ -348,10 +368,21 @@ export function LoginForm() {
 
       {!isActivationMode && !isResetMode && (
         <p className="mt-6 text-center text-[13px] text-muted-foreground">
-          {t('auth.noAccount')}{' '}
-          <Link href={routes.register} className="font-semibold text-primary">
-            {t('auth.createAccount')}
-          </Link>
+          {DEPLOYMENT_CONFIG.isEnterprise ? (
+            <span>
+              Nouveau collaborateur ?{' '}
+              <Link href={routes.register} className="font-semibold text-primary">
+                Créer ou rejoindre mon espace
+              </Link>
+            </span>
+          ) : (
+            <>
+              {t('auth.noAccount')}{' '}
+              <Link href={routes.register} className="font-semibold text-primary">
+                {t('auth.createAccount')}
+              </Link>
+            </>
+          )}
         </p>
       )}
     </div>
