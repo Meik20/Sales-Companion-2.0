@@ -1,6 +1,7 @@
 const { chromium } = require('playwright');
 const fs = require('fs');
 const path = require('path');
+const QRCode = require('qrcode');
 
 // Monogramme SVG vectoriel officiel centré (<ScIcon />)
 const svgScLogo = (size = 80, bgFill = "#1B7A3E") => `
@@ -27,6 +28,17 @@ const icons = {
     </g>
   </svg>`
 };
+
+// Generation QR code ISO/IEC 18004 scannable (ECL H)
+async function getQrCodeSvg(width) {
+  return QRCode.toString('https://salescompanion2-0.com', {
+    type: 'svg',
+    width: width,
+    margin: 1,
+    errorCorrectionLevel: 'H',
+    color: { dark: '#0F172A', light: '#FFFFFF' }
+  });
+}
 
 function getCardPageHtml(contentHtml, bgColor = "#0B0F17") {
   return `
@@ -79,8 +91,9 @@ const darkRectoInner = `
 </div>
 `;
 
-// 1. Modèle Sombre Verso
-const darkVersoInner = `
+// 1. Modele Sombre Verso
+function getDarkVersoInner(qrSvg) {
+  return `
 <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; color: #FFFFFF; position: relative;">
   <div style="position: absolute; inset: 8px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;"></div>
   <div style="position: absolute; left: 8px; top: 16px; bottom: 16px; width: 3px; background: #1B7A3E; border-radius: 2px;"></div>
@@ -114,14 +127,15 @@ const darkVersoInner = `
   </div>
 
   <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 6px 8px; background: #121826; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; z-index: 10;">
-    <div style="color: #FFFFFF; display: flex; align-items: center; justify-content: center;">${icons.qrCode}</div>
+    <div style="display: flex; align-items: center; justify-content: center; border-radius:4px; overflow:hidden;">${qrSvg}</div>
     <div style="font-size: 6px; font-weight: 600; line-height: 1.2; color: #94A3B8; text-transform: uppercase; margin-top: 1px;">Accès Workspace</div>
     <div style="font-family: 'JetBrains Mono', monospace; font-size: 6px; line-height: 1.2; color: #34D399;">salescompanion2-0.com</div>
   </div>
 </div>
 `;
+}
 
-// 2. Modèle Clair Recto
+// 2. Modele Clair Recto
 const lightRectoInner = `
 <div style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; color: #101828; position: relative; background: #FFFFFF;">
   <div style="position: absolute; inset: 10px; border: 1px solid #E6E8EC; border-radius: 8px;"></div>
@@ -135,8 +149,9 @@ const lightRectoInner = `
 </div>
 `;
 
-// 2. Modèle Clair Verso
-const lightVersoInner = `
+// 2. Modele Clair Verso
+function getLightVersoInner(qrSvg) {
+  return `
 <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; color: #101828; position: relative; background: #FFFFFF;">
   <div style="position: absolute; inset: 8px; border: 1px solid #E6E8EC; border-radius: 8px;"></div>
   <div style="position: absolute; left: 8px; top: 16px; bottom: 16px; width: 3px; background: #2F5BEA; border-radius: 2px;"></div>
@@ -170,14 +185,15 @@ const lightVersoInner = `
   </div>
 
   <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 6px 8px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; z-index: 10;">
-    <div style="color: #0F172A; display: flex; align-items: center; justify-content: center;">${icons.qrCode}</div>
+    <div style="display: flex; align-items: center; justify-content: center; border-radius:4px; overflow:hidden;">${qrSvg}</div>
     <div style="font-size: 6px; font-weight: 600; line-height: 1.2; color: #64748B; text-transform: uppercase; margin-top: 1px;">Accès Workspace</div>
     <div style="font-family: 'JetBrains Mono', monospace; font-size: 6px; line-height: 1.2; color: #1B7A3E; font-weight: 600;">salescompanion2-0.com</div>
   </div>
 </div>
 `;
+}
 
-// 3. Modèle Signature Vert Recto
+// 3. Modele Signature Vert Recto
 const executiveRectoInner = `
 <div style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; color: #FFFFFF; position: relative;">
   <div style="position: absolute; inset: 10px; border: 1px solid rgba(255,255,255,0.25); border-radius: 8px;"></div>
@@ -278,18 +294,25 @@ async function generatePdfForModel(browser, name, fileName, rectoInner, versoInn
 }
 
 async function run() {
-  console.log('🚀 Démarrage de la génération des PDF Vectoriels éditables pour Canva...');
   const browser = await chromium.launch({ headless: true });
+  const qrSvg = await getQrCodeSvg(72);
+  const darkVerso = getDarkVersoInner(qrSvg);
+  const lightVerso = getLightVersoInner(qrSvg);
 
-  await generatePdfForModel(browser, 'Modèle Sombre (Obsidian Deep)', 'canva-business-card-dark.pdf', darkRectoInner, darkVersoInner, '#0B0F17', '#0B0F17');
-  await generatePdfForModel(browser, 'Modèle Clair (Fintech Nette)', 'canva-business-card-light.pdf', lightRectoInner, lightVersoInner, '#FFFFFF', '#FFFFFF');
-  await generatePdfForModel(browser, 'Modèle Signature Vert (#1B7A3E)', 'canva-business-card-executive.pdf', executiveRectoInner, darkVersoInner, '#1B7A3E', '#0B0F17');
+  const publicDir = path.resolve(__dirname, '../apps/web/public/cards');
+  if (!fs.existsSync(publicDir)) {
+    fs.mkdirSync(publicDir, { recursive: true });
+  }
+
+  await generatePdfForModel(browser, 'Modele Sombre', 'canva-business-card-dark.pdf', darkRectoInner, darkVerso, '#0B0F17', '#0B0F17');
+  await generatePdfForModel(browser, 'Modele Clair', 'canva-business-card-light.pdf', lightRectoInner, lightVerso, '#FFFFFF', '#FFFFFF');
+  await generatePdfForModel(browser, 'Modele Signature Vert', 'canva-business-card-executive.pdf', executiveRectoInner, darkVerso, '#1B7A3E', '#0B0F17');
 
   await browser.close();
-  console.log('\n✨ Tous les fichiers vectoriels pour Canva ont été créés avec succès !');
+  console.log('Tous les PDF Canva ont ete generes avec succes.');
 }
 
 run().catch((err) => {
-  console.error('❌ Erreur :', err);
+  console.error('Erreur:', err);
   process.exit(1);
 });
