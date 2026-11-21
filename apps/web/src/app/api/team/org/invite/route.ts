@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
+import { DEPLOYMENT_CONFIG } from '@/lib/deployment-config'
 
 async function getAdmin() {
   const { adminDb, adminAuth } = await import('@/lib/firebase-admin')
@@ -68,7 +69,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       valid: true,
       token,
-      type: data.type || 'team_manager', // 'senior_manager' | 'team_manager'
+      type: data.type || 'team_manager', // 'senior_manager' | 'team_manager' | 'executive'
       orgCode: data.orgCode,
       companyName: data.companyName,
       segment: data.segment || null,
@@ -123,15 +124,35 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json().catch(() => ({}))
-    const inviteType: 'team_manager' | 'senior_manager' =
-      body.type === 'senior_manager' ? 'senior_manager' : 'team_manager'
+    const inviteType: 'team_manager' | 'senior_manager' | 'executive' =
+      body.type === 'senior_manager'
+        ? 'senior_manager'
+        : body.type === 'executive'
+          ? 'executive'
+          : 'team_manager'
 
-    // Seul un Senior Manager peut inviter un autre Senior Manager
+    // Seul un Senior Manager peut inviter un autre Senior Manager ou un profil Direction
     if (inviteType === 'senior_manager' && userData.orgRole !== 'senior_manager') {
       return NextResponse.json(
         { error: 'Seul un Senior Manager peut inviter un autre Senior Manager.' },
         { status: 403 }
       )
+    }
+
+    if (inviteType === 'executive') {
+      const isEnt = userData.plan === 'enterprise' || DEPLOYMENT_CONFIG.isEnterprise
+      if (!isEnt) {
+        return NextResponse.json(
+          { error: "L'invitation d'un membre de la Direction requiert le forfait ENTERPRISE." },
+          { status: 403 }
+        )
+      }
+      if (userData.orgRole !== 'senior_manager') {
+        return NextResponse.json(
+          { error: 'Seul un Senior Manager peut inviter un membre de la Direction.' },
+          { status: 403 }
+        )
+      }
     }
 
     // Récupérer le nom de l'entreprise

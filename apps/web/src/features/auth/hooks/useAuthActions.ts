@@ -30,7 +30,7 @@ type RegisterInput = {
   joinOrgCode?: string // Code ORG fourni par un Senior Manager pour rejoindre son organisation
   segment?: string // Segment commercial (ex: "BTP", "Tech")
   inviteToken?: string // Jeton sécurisé d'invitation Team Manager ou Senior Manager
-  inviteType?: 'senior_manager' | 'team_manager'
+  inviteType?: 'senior_manager' | 'team_manager' | 'executive'
 }
 
 /** Upsert the Firestore user document after any Google sign-in */

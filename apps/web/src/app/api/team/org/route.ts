@@ -383,6 +383,10 @@ export async function PATCH(request: NextRequest) {
         updates.orgRole = 'senior_manager'
         updates.segment = body.segment?.trim() || 'Principal'
         updates.seniorManagerUid = null
+      } else if (inviteData.type === 'executive') {
+        updates.orgRole = 'executive'
+        updates.segment = 'Direction'
+        updates.seniorManagerUid = null
       } else {
         updates.orgRole = 'team_manager'
         updates.segment = inviteData.segment || 'Principal'

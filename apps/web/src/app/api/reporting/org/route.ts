@@ -27,8 +27,14 @@ export async function GET(request: NextRequest) {
     const callerData = callerDoc.data()
     if (!callerDoc.exists || !callerData)
       return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 })
-    if (callerData.role !== 'manager' || callerData.orgRole !== 'senior_manager') {
-      return NextResponse.json({ error: 'Accès réservé au Senior Manager' }, { status: 403 })
+    if (
+      callerData.role !== 'manager' ||
+      (callerData.orgRole !== 'senior_manager' && callerData.orgRole !== 'executive')
+    ) {
+      return NextResponse.json(
+        { error: 'Accès réservé au Senior Manager ou à la Direction' },
+        { status: 403 }
+      )
     }
 
     const orgCode = callerData.orgCode

@@ -88,7 +88,7 @@ export function RegisterForm() {
 
   const [orgInviteInfo, setOrgInviteInfo] = useState<{
     valid: boolean
-    type: 'senior_manager' | 'team_manager'
+    type: 'senior_manager' | 'team_manager' | 'executive'
     orgCode: string
     companyName: string
     segment?: string | null
@@ -114,7 +114,7 @@ export function RegisterForm() {
     if (!authLoading && user) router.replace(routes.search)
   }, [user, authLoading, router])
 
-  // Vérifier et appliquer le jeton d'invitation d'organisation (Multi-SM / Team Manager)
+  // Vérifier et appliquer le jeton d'invitation d'organisation (Multi-SM / Team Manager / Direction)
   useEffect(() => {
     if (!tokenParam || !isOrgInvite) return
     setOrgInviteLoading(true)
@@ -128,6 +128,8 @@ export function RegisterForm() {
           if (data.orgCode) setJoinOrgCode(data.orgCode)
           if (data.type === 'team_manager' && data.segment) {
             setSegment(data.segment)
+          } else if (data.type === 'executive') {
+            setSegment('Direction')
           }
         } else {
           setError(data.error || "Lien d'invitation invalide ou expiré.")
@@ -372,7 +374,9 @@ export function RegisterForm() {
           {orgInviteInfo
             ? orgInviteInfo.type === 'senior_manager'
               ? 'Rejoindre en tant que Senior Manager'
-              : "Rejoindre l'équipe Manager"
+              : orgInviteInfo.type === 'executive'
+                ? "Rejoindre la Direction de l'Organisation"
+                : "Rejoindre l'équipe Manager"
             : t('auth.registerTitle')}
         </h1>
         <p className="m-0 text-[12.5px] text-muted-foreground">
@@ -715,20 +719,26 @@ export function RegisterForm() {
               hint={
                 orgInviteInfo?.type === 'team_manager'
                   ? 'Hérité automatiquement de votre Senior Manager'
-                  : orgInviteInfo?.type === 'senior_manager'
-                    ? "Indiquez la division / secteur que vous dirigez (ex: BTP, IT, Agro, Retail)"
-                    : "Optionnel — Segment ou division commerciale (ex: BTP, Tech, Services)"
+                  : orgInviteInfo?.type === 'executive'
+                    ? 'Poste de direction générale / supervision stratégique'
+                    : orgInviteInfo?.type === 'senior_manager'
+                      ? "Indiquez la division / secteur que vous dirigez (ex: BTP, IT, Agro, Retail)"
+                      : "Optionnel — Segment ou division commerciale (ex: BTP, Tech, Services)"
               }
             >
               <div className="relative">
                 <Input
                   placeholder="Ex: BTP, Technologies, Grande Distribution…"
                   value={segment}
-                  readOnly={Boolean(orgInviteInfo?.type === 'team_manager')}
+                  readOnly={Boolean(orgInviteInfo?.type === 'team_manager' || orgInviteInfo?.type === 'executive')}
                   onChange={(e) => setSegment(e.target.value)}
-                  className={orgInviteInfo?.type === 'team_manager' ? 'bg-muted/40 cursor-not-allowed opacity-90 pl-8' : ''}
+                  className={
+                    orgInviteInfo?.type === 'team_manager' || orgInviteInfo?.type === 'executive'
+                      ? 'bg-muted/40 cursor-not-allowed opacity-90 pl-8'
+                      : ''
+                  }
                 />
-                {orgInviteInfo?.type === 'team_manager' && (
+                {(orgInviteInfo?.type === 'team_manager' || orgInviteInfo?.type === 'executive') && (
                   <Lock size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 )}
               </div>

@@ -9,6 +9,7 @@ import { InfoTooltip } from '@/components/ui/InfoTooltip'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useToast } from '@/hooks/useToast'
 import { useTranslation } from '@/providers/I18nProvider'
+import { DEPLOYMENT_CONFIG } from '@/lib/deployment-config'
 import { OrgManagersSection } from './OrgManagersSection'
 import {
   ShieldCheck,
@@ -95,7 +96,8 @@ export function OrgGovernanceTab() {
   const [copiedCode, setCopiedCode] = useState(false)
   const [copiedTmInvite, setCopiedTmInvite] = useState(false)
   const [copiedSmInvite, setCopiedSmInvite] = useState(false)
-  const [generatingInvite, setGeneratingInvite] = useState<'tm' | 'sm' | null>(null)
+  const [copiedExecutiveInvite, setCopiedExecutiveInvite] = useState(false)
+  const [generatingInvite, setGeneratingInvite] = useState<'tm' | 'sm' | 'executive' | null>(null)
 
   // Prospect selection & transfer tool
   const [seniorProspects, setSeniorProspects] = useState<SeniorProspect[]>([])
@@ -227,6 +229,35 @@ export function OrgGovernanceTab() {
         type: 'success',
         title: t('team.orgGovernance.tmInviteSuccessTitle'),
         description: t('team.orgGovernance.tmInviteSuccessDesc').replace('{segment}', data.segment || t('team.orgGovernance.segmentDefault'))
+      })
+    } catch (err: any) {
+      pushToast({
+        type: 'error',
+        title: t('team.orgGovernance.inviteErrorTitle'),
+        description: err.message || t('team.orgGovernance.inviteErrorFallback')
+      })
+    } finally {
+      setGeneratingInvite(null)
+    }
+  }
+
+  const generateAndCopyExecutiveInvite = async () => {
+    setGeneratingInvite('executive')
+    try {
+      const token = await user?.getIdToken()
+      const res = await fetch('/api/team/org/invite-executive', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Erreur génération lien Direction')
+      await navigator.clipboard.writeText(data.inviteUrl)
+      setCopiedExecutiveInvite(true)
+      setTimeout(() => setCopiedExecutiveInvite(false), 2500)
+      pushToast({
+        type: 'success',
+        title: 'Lien Direction généré !',
+        description: "Le lien d'invitation Direction (lecture seule & super-exports) a été copié."
       })
     } catch (err: any) {
       pushToast({
@@ -636,6 +667,35 @@ export function OrgGovernanceTab() {
                   {copiedSmInvite ? t('team.orgGovernance.smLinkCopied') : generatingInvite === 'sm' ? t('team.orgGovernance.generating') : t('team.orgGovernance.copySmLink')}
                 </button>
               </div>
+
+              {/* 3. Inviter un membre de la Direction / Observateur Exécutif (Enterprise uniquement) */}
+              {(user?.plan === 'enterprise' || DEPLOYMENT_CONFIG.isEnterprise) && (
+                <div className="flex flex-col justify-between rounded-xl border border-blue-500/30 bg-blue-50/20 dark:bg-blue-500/10 p-4 md:col-span-2">
+                  <div>
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <span className="font-bold text-[13.5px] text-foreground flex items-center gap-2">
+                        <Briefcase size={16} className="text-blue-600 dark:text-blue-400 shrink-0" />
+                        <span>Inviter un membre de la Direction / Observateur</span>
+                      </span>
+                      <span className="text-[11px] font-bold text-blue-800 dark:text-blue-300 bg-blue-100 dark:bg-blue-500/20 border border-blue-300 dark:border-blue-500/30 px-2 py-0.5 rounded-md">
+                        Option Enterprise · Lecture Seule
+                      </span>
+                    </div>
+                    <p className="mt-1.5 mb-0 text-[12px] text-muted-foreground leading-relaxed">
+                      Génère un lien d'accès sécurisé pour la Direction Générale (DG, DAF, Auditeur). Donne accès au tableau de bord multi-segments en lecture seule et aux fonctionnalités avancées de super-export.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => void generateAndCopyExecutiveInvite()}
+                    disabled={generatingInvite === 'executive'}
+                    className="mt-3 inline-flex items-center justify-center gap-2 rounded-lg border border-blue-500/50 bg-blue-600 px-3.5 py-2 text-[12.5px] font-bold text-white transition-colors hover:bg-blue-700 cursor-pointer disabled:opacity-50 shadow-xs"
+                  >
+                    {copiedExecutiveInvite ? <Check size={14} className="text-emerald-300" /> : <Link2 size={14} className="shrink-0" />}
+                    {copiedExecutiveInvite ? 'Lien Direction copié !' : generatingInvite === 'executive' ? t('team.orgGovernance.generating') : 'Copier le lien Direction'}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 

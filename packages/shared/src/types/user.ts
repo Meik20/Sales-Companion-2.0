@@ -13,7 +13,7 @@ export type UserDoc = {
   company?: string | null
   companyName?: string | null
   orgCode?: string | null
-  orgRole?: 'senior_manager' | 'team_manager' | null
+  orgRole?: 'senior_manager' | 'team_manager' | 'executive' | null
   niu?: string | null
   sector?: string | null
   region?: string | null

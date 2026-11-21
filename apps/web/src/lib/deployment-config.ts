@@ -25,6 +25,18 @@ const allowedEmailDomains = rawDomains
   .map((d) => d.trim().toLowerCase().replace(/^@/, ''))
   .filter(Boolean)
 
+/**
+ * Libellés personnalisés des rôles pour les instances entreprises dédiées.
+ * Permet à chaque client de renommer les postes selon sa nomenclature interne.
+ */
+const roleLabels = {
+  executive: (process.env.NEXT_PUBLIC_ROLE_LABEL_EXECUTIVE || '').trim(),
+  seniorManager: (process.env.NEXT_PUBLIC_ROLE_LABEL_SM || '').trim(),
+  teamManager: (process.env.NEXT_PUBLIC_ROLE_LABEL_TM || '').trim(),
+  member: (process.env.NEXT_PUBLIC_ROLE_LABEL_MEMBER || '').trim(),
+  supportAgent: (process.env.NEXT_PUBLIC_ROLE_LABEL_SUPPORT || '').trim()
+} as const
+
 export const DEPLOYMENT_CONFIG = {
   mode,
   isEnterprise,
@@ -32,6 +44,7 @@ export const DEPLOYMENT_CONFIG = {
   enterpriseLogoUrl,
   dedicatedOrgCode,
   allowedEmailDomains,
+  roleLabels,
 
   /**
    * Vérifie si une adresse e-mail appartient aux domaines autorisés en mode entreprise.

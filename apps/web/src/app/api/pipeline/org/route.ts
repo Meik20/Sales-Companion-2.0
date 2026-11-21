@@ -2,20 +2,20 @@
 // Façade HTTP du pipeline consolidé pour le Senior Manager.
 // Rôle : Guard d'authentification + appel au service métier isolé.
 import { NextRequest, NextResponse } from 'next/server'
-import { authenticateServerRequest, assertSeniorManagerRole, AuthGuardError } from '@/server/guards/auth.guard'
+import { authenticateServerRequest, assertSeniorManagerOrExecutive, AuthGuardError } from '@/server/guards/auth.guard'
 import { fetchOrgConsolidatedPipeline } from '@/server/services/pipeline-org.service'
 
 export const dynamic = 'force-dynamic'
 
 /**
  * GET /api/pipeline/org
- * Pipeline consolidé de toute l'organisation — Senior Manager (accessible en consultation même en plan FREE).
+ * Pipeline consolidé de toute l'organisation — Senior Manager & Direction (accessible en consultation même en plan FREE).
  */
 export async function GET(request: NextRequest) {
   try {
-    // 1. Guard de sécurité et d'autorisation (rôle Senior Manager)
+    // 1. Guard de sécurité et d'autorisation (rôle Senior Manager ou Direction)
     const session = await authenticateServerRequest(request)
-    assertSeniorManagerRole(session)
+    assertSeniorManagerOrExecutive(session)
 
     // 2. Extraction des paramètres de filtrage
     const { searchParams } = new URL(request.url)

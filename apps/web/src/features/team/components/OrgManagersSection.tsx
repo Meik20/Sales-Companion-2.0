@@ -391,9 +391,9 @@ function TransferMemberModal({
   const [targetManagerUid, setTargetManagerUid] = useState<string>('')
   const [loading, setLoading] = useState(false)
 
-  // Défense en profondeur : les Senior Managers ne gèrent aucun commercial et ne peuvent JAMAIS recevoir un transfert
+  // Défense en profondeur : les Senior Managers et la Direction ne gèrent aucun commercial et ne peuvent JAMAIS recevoir un transfert
   const filteredAvailableManagers = useMemo(() => {
-    return availableManagers.filter((m) => !m.isSenior && m.orgRole !== 'senior_manager')
+    return availableManagers.filter((m) => !m.isSenior && m.orgRole !== 'senior_manager' && m.orgRole !== 'executive')
   }, [availableManagers])
 
   useEffect(() => {

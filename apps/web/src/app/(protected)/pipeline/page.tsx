@@ -31,8 +31,10 @@ export default function PipelinePage() {
   const { user } = useCurrentUser()
 
   // ── Rôles org ───────────────────────────────────────────────────────────
+  const isExecutive = user?.role === 'manager' && user?.orgRole === 'executive'
   const isSeniorManager = user?.role === 'manager' && user?.orgRole === 'senior_manager'
-  const isTeamManager = user?.role === 'manager' && user?.orgRole !== 'senior_manager'
+  const isTeamManager = user?.role === 'manager' && user?.orgRole !== 'senior_manager' && user?.orgRole !== 'executive'
+  const isOrgSupervisor = isSeniorManager || isExecutive
 
   // Détermination du pays de l'organisation pour le fuseau horaire officiel
   const orgCountry = useMemo(() => {
@@ -130,9 +132,9 @@ export default function PipelinePage() {
     }
   }, [isTeamManager, allTeamTargets, user?.uid, activeMemberIds, activePeriod])
 
-  // Synthèse consolidée pour le Senior Manager (vue globale : somme des objectifs des Team Managers sur la période active)
+  // Synthèse consolidée pour la supervision (vue globale : somme des objectifs des Team Managers sur la période active)
   const smGlobalTarget = useMemo(() => {
-    if (!isSeniorManager || !allTeamTargets?.length) return null
+    if (!isOrgSupervisor || !allTeamTargets?.length) return null
     const managersList = orgPipelineQuery.data?.managers ?? []
     // Si managersList n'est pas encore dispo, on fallback sur l'exclusion directe du Senior Manager
     const effectiveManagers = managersList.length > 0
@@ -153,11 +155,11 @@ export default function PipelinePage() {
       targetValue: aggregated.targetValue,
       period: aggregated.period ?? activePeriod
     }
-  }, [isSeniorManager, allTeamTargets, orgPipelineQuery.data?.managers, user?.uid, activePeriod])
+  }, [isOrgSupervisor, allTeamTargets, orgPipelineQuery.data?.managers, user?.uid, activePeriod])
 
-  // Synthèse ciblée pour le Senior Manager (lorsqu'un Team Manager précis est filtré sur la période active)
+  // Synthèse ciblée pour la supervision (lorsqu'un Team Manager précis est filtré sur la période active)
   const smFilteredTarget = useMemo(() => {
-    if (!isSeniorManager || !filterManagerUid || !allTeamTargets?.length) return null
+    if (!isOrgSupervisor || !filterManagerUid || !allTeamTargets?.length) return null
     const specificTargets = allTeamTargets.filter(
       (t) => t.managerUid === filterManagerUid && t.period === activePeriod
     )
@@ -177,7 +179,7 @@ export default function PipelinePage() {
       targetValue: targetValue > 0 ? targetValue : null,
       period: activePeriod
     }
-  }, [isSeniorManager, filterManagerUid, allTeamTargets, selectedManager?.name, activePeriod])
+  }, [isOrgSupervisor, filterManagerUid, allTeamTargets, selectedManager?.name, activePeriod])
 
   const saveTarget = useSaveTeamTarget()
   const prevFreeRef = useRef<boolean>(isFree)
@@ -451,9 +453,9 @@ export default function PipelinePage() {
       ) : null}
 
       {/* ═══════════════════════════════════════════════════════════════
-           Vue SENIOR MANAGER — Pipeline consolidé de l'organisation
+           Vue SUPERVISION (Senior Manager & Direction) — Pipeline consolidé de l'organisation
       ═══════════════════════════════════════════════════════════════ */}
-      {isSeniorManager ? (
+      {isOrgSupervisor ? (
         <>
           {/* KPI Org globaux */}
           {orgPipelineQuery.data && (

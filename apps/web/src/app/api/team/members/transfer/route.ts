@@ -134,12 +134,13 @@ export async function POST(request: NextRequest) {
     if (
       targetData.orgCode !== orgCode ||
       targetData.role !== 'manager' ||
-      targetData.orgRole === 'senior_manager'
+      targetData.orgRole === 'senior_manager' ||
+      targetData.orgRole === 'executive'
     ) {
       return NextResponse.json(
         {
           message:
-            "Le destinataire doit être un Team Manager de votre organisation (un Senior Manager ne gère pas de commerciaux)"
+            "Le destinataire doit être un Team Manager de votre organisation (un Senior Manager ou membre de la Direction ne gère pas de commerciaux)"
         },
         { status: 400 }
       )

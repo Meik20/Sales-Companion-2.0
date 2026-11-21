@@ -16,7 +16,7 @@ export type CurrentUser = {
   companyId?: string | null
   companyName?: string | null
   orgCode?: string | null
-  orgRole?: 'senior_manager' | 'team_manager' | null
+  orgRole?: 'senior_manager' | 'team_manager' | 'executive' | null
   segment?: string | null
   seniorManagerUid?: string | null
   niu?: string | null

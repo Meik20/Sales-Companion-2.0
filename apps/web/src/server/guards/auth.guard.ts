@@ -7,7 +7,7 @@ export interface ServerSession {
   uid: string
   email?: string
   role: 'independent' | 'manager' | 'member' | 'support_agent' | 'admin'
-  orgRole?: 'senior_manager' | 'team_manager'
+  orgRole?: 'senior_manager' | 'team_manager' | 'executive'
   orgCode?: string | null
   seniorManagerUid?: string | null
   managerUid?: string | null
@@ -94,6 +94,22 @@ export function assertSeniorManagerRole(session: ServerSession): void {
   }
   if (session.orgRole !== 'senior_manager') {
     throw new AuthGuardError("Accès réservé au Senior Manager de l'organisation", 403)
+  }
+  if (!session.orgCode) {
+    throw new AuthGuardError('Aucun code organisation rattaché', 400)
+  }
+}
+
+/**
+ * Garantit que l'utilisateur est le Senior Manager ou un membre de la Direction (Observateur Exécutif).
+ * Permet la consultation du pipeline consolidé de l'organisation.
+ */
+export function assertSeniorManagerOrExecutive(session: ServerSession): void {
+  if (session.role !== 'manager') {
+    throw new AuthGuardError('Accès réservé aux managers', 403)
+  }
+  if (session.orgRole !== 'senior_manager' && session.orgRole !== 'executive') {
+    throw new AuthGuardError("Accès réservé au Senior Manager ou à la Direction de l'organisation", 403)
   }
   if (!session.orgCode) {
     throw new AuthGuardError('Aucun code organisation rattaché', 400)
