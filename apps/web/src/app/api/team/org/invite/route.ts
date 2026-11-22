@@ -74,7 +74,8 @@ export async function GET(request: NextRequest) {
       companyName: data.companyName,
       segment: data.segment || null,
       seniorManagerName: data.createdByName || null,
-      seniorManagerUid: data.seniorManagerUid || data.createdByUid || null
+      seniorManagerUid: data.seniorManagerUid || data.createdByUid || null,
+      customRoleLabel: data.customRoleLabel || null
     })
   } catch (error: any) {
     console.error('[GET /api/team/org/invite] error:', error)
@@ -184,6 +185,8 @@ export async function POST(request: NextRequest) {
       seniorManagerUid:
         userData.orgRole === 'senior_manager' ? callerUid : userData.seniorManagerUid || callerUid,
       segment: assignedSegment,
+      // Libellé personnalisé pour le rôle executive (ex: "Directeur Général", "PDG")
+      customRoleLabel: inviteType === 'executive' ? (body.customRoleLabel?.trim() || null) : null,
       used: false,
       usedByUid: null,
       createdAt: new Date(),

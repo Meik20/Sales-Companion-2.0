@@ -792,7 +792,7 @@ export function AppSidebar({
 
         {/* User Profile Card en bas de sidebar */}
         {(() => {
-          const roleLabel = getRoleDisplayLabel({ role: user.role, orgRole: user.orgRole, lang })
+          const roleLabel = getRoleDisplayLabel({ role: user.role, orgRole: user.orgRole, lang, customRoleLabel: user.customRoleLabel })
           const badgeStyle = getRoleBadgeStyle(user.role, user.orgRole)
 
           return isNavCollapsed ? (

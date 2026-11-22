@@ -20,6 +20,7 @@ export type CurrentUser = {
   segment?: string | null
   seniorManagerUid?: string | null
   niu?: string | null
+  customRoleLabel?: string | null
   company?: string | null
   sector?: string | null
   industry?: string | null
@@ -283,7 +284,8 @@ function useCurrentUserSource(): UserContextValue {
               subscriptionExpired: currentUserObj.subscriptionExpired,
               subscriptionExpiresAt: currentUserObj.subscriptionExpiresAt,
               managerUid: currentUserObj.managerUid,
-              companyId: currentUserObj.companyId
+              companyId: currentUserObj.companyId,
+              customRoleLabel: currentUserObj.customRoleLabel
             })
             if (structuralFingerprint === prevUserSnapshot) {
               // Seuls des champs volatiles (dailyUsed, dailyLimit) ont changé —

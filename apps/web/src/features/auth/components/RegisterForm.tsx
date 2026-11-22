@@ -94,6 +94,7 @@ export function RegisterForm() {
     segment?: string | null
     seniorManagerName?: string | null
     seniorManagerUid?: string | null
+    customRoleLabel?: string | null
   } | null>(null)
   const [orgInviteLoading, setOrgInviteLoading] = useState(false)
 
@@ -407,7 +408,7 @@ export function RegisterForm() {
               {orgInviteInfo.type === 'senior_manager' ? (
                 <><Crown size={13} className="text-violet-600 dark:text-violet-400 shrink-0" /> Invitation Senior Manager — Nouveau Segment</>
               ) : orgInviteInfo.type === 'executive' ? (
-                <><Building2 size={13} className="text-amber-500 shrink-0" /> Invitation Direction — Rôle Stratégique</>
+                <><Building2 size={13} className="text-amber-500 shrink-0" /> Invitation — {orgInviteInfo.customRoleLabel?.trim() || 'Direction Générale'}</>
               ) : (
                 <><Users2 size={13} className="text-indigo-600 dark:text-indigo-400 shrink-0" /> Invitation Team Manager</>
               )}
@@ -429,7 +430,10 @@ export function RegisterForm() {
               {orgInviteInfo.type === 'executive' && (
                 <div className="flex items-center gap-1 mt-0.5 text-amber-700 dark:text-amber-300/90">
                   <Building2 size={10} className="shrink-0" />
-                  Rôle : <strong>Direction de l'Organisation (Supervision Globale)</strong>
+                  {orgInviteInfo.customRoleLabel?.trim()
+                    ? <>Fonction : <strong>{orgInviteInfo.customRoleLabel}</strong></>
+                    : <>Rôle : <strong>Direction Générale (Supervision Globale)</strong></>
+                  }
                 </div>
               )}
             </div>
@@ -618,7 +622,7 @@ export function RegisterForm() {
                   ) : orgInviteInfo.type === 'executive' ? (
                     <>
                       <Building2 size={15} className="text-amber-500 shrink-0" />
-                      <span>Direction (Executive)</span>
+                      <span>{orgInviteInfo.customRoleLabel?.trim() || 'Direction Générale'}</span>
                     </>
                   ) : (
                     <>

@@ -391,6 +391,10 @@ export async function PATCH(request: NextRequest) {
         updates.orgRole = 'executive'
         updates.segment = 'Direction'
         updates.seniorManagerUid = null
+        // Propager le libellé personnalisé du rôle executive (ex: "Directeur Général", "PDG")
+        if (inviteData.customRoleLabel?.trim()) {
+          updates.customRoleLabel = inviteData.customRoleLabel.trim()
+        }
       } else {
         updates.orgRole = 'team_manager'
         updates.segment = inviteData.segment || 'Principal'

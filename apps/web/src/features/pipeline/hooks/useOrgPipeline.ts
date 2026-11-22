@@ -60,21 +60,22 @@ interface UseOrgPipelineOptions {
 }
 
 /**
- * Hook — Pipeline consolidé de l'organisation (Senior Manager uniquement).
+ * Hook — Pipeline consolidé de l'organisation (Senior Manager + Executive).
  *
  * Consomme GET /api/pipeline/org avec filtres optionnels.
- * Désactivé si l'utilisateur n'est pas senior_manager.
+ * Activé pour senior_manager ET executive (Direction / Observateur stratégique).
  *
  * Synchronisation en temps réel (deux couches) :
  * 1. Polling automatique toutes les 15 secondes (filet de sécurité universel).
  * 2. Listener onSnapshot sur organisations/{orgCode}.lastPipelineUpdate :
- *    lorsque le serveur écrit ce champ après une mutation pipeline, le SM
- *    reçoit l'événement instantanément et invalide le cache org-pipeline.
- *    Le SM a read access sur organisations/{orgCode} (Firestore rules L505-506).
+ *    lorsque le serveur écrit ce champ après une mutation pipeline, le SM ou
+ *    l'Executive reçoit l'événement instantanément et invalide le cache org-pipeline.
  */
 export function useOrgPipeline(options: UseOrgPipelineOptions = {}) {
   const { user } = useCurrentUser()
   const isSeniorManager = user?.role === 'manager' && user?.orgRole === 'senior_manager'
+  const isExecutive = user?.role === 'manager' && user?.orgRole === 'executive'
+  const hasOrgAccess = isSeniorManager || isExecutive
 
   const params = new URLSearchParams()
   if (options.managerUid) params.set('managerUid', options.managerUid)
@@ -98,7 +99,7 @@ export function useOrgPipeline(options: UseOrgPipelineOptions = {}) {
       }
       return res.json() as Promise<OrgPipelineResult>
     },
-    enabled: !!user?.uid && isSeniorManager,
+    enabled: !!user?.uid && hasOrgAccess,
     // staleTime à 0 : le cache est immédiatement considéré périmé après chaque
     // fetch, ce qui garantit que les invalidations déclenchent un refetch réel.
     staleTime: 0,

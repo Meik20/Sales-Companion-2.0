@@ -4,6 +4,8 @@ export interface RoleLabelParams {
   role?: string | null
   orgRole?: string | null
   lang?: 'fr' | 'en'
+  /** Libellé personnalisé attribué à l'invitation (ex: "Directeur Général", "Président"). */
+  customRoleLabel?: string | null
 }
 
 /**
@@ -14,7 +16,8 @@ export interface RoleLabelParams {
 export function getRoleDisplayLabel({
   role,
   orgRole,
-  lang = 'fr'
+  lang = 'fr',
+  customRoleLabel
 }: RoleLabelParams): string {
   const isEn = lang === 'en'
 
@@ -24,10 +27,14 @@ export function getRoleDisplayLabel({
 
   if (role === 'manager') {
     if (orgRole === 'executive') {
+      // Libellé personnalisé défini à l'invitation (ex: "Directeur Général", "PDG")
+      if (customRoleLabel?.trim()) {
+        return customRoleLabel.trim()
+      }
       if (DEPLOYMENT_CONFIG.roleLabels.executive) {
         return DEPLOYMENT_CONFIG.roleLabels.executive
       }
-      return isEn ? 'Executive / Director' : 'Direction / Observateur'
+      return isEn ? 'Executive / Director' : 'Direction Générale'
     }
 
     if (orgRole === 'senior_manager') {

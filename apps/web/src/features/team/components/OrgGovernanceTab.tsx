@@ -98,6 +98,8 @@ export function OrgGovernanceTab() {
   const [copiedSmInvite, setCopiedSmInvite] = useState(false)
   const [copiedExecutiveInvite, setCopiedExecutiveInvite] = useState(false)
   const [generatingInvite, setGeneratingInvite] = useState<'tm' | 'sm' | 'executive' | null>(null)
+  // Libellé personnalisé du rôle executive saisi par le SM1 (ex: "Directeur Général", "Président")
+  const [executiveCustomLabel, setExecutiveCustomLabel] = useState('')
 
   // Prospect selection & transfer tool
   const [seniorProspects, setSeniorProspects] = useState<SeniorProspect[]>([])
@@ -247,17 +249,19 @@ export function OrgGovernanceTab() {
       const token = await user?.getIdToken()
       const res = await fetch('/api/team/org/invite-executive', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ customRoleLabel: executiveCustomLabel.trim() || null })
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Erreur génération lien Direction')
       await navigator.clipboard.writeText(data.inviteUrl)
       setCopiedExecutiveInvite(true)
       setTimeout(() => setCopiedExecutiveInvite(false), 2500)
+      const labelDisplay = executiveCustomLabel.trim() || 'Direction Générale'
       pushToast({
         type: 'success',
-        title: 'Lien Direction généré !',
-        description: "Le lien d'invitation Direction (lecture seule & super-exports) a été copié."
+        title: `Lien ${labelDisplay} généré !`,
+        description: `Le lien d'invitation pour ${labelDisplay} a été copié dans le presse-papier.`
       })
     } catch (err: any) {
       pushToast({
@@ -675,15 +679,34 @@ export function OrgGovernanceTab() {
                       <div className="flex items-center justify-between gap-2 flex-wrap">
                         <span className="font-bold text-[13.5px] text-foreground flex items-center gap-2">
                           <Briefcase size={16} className="text-blue-600 dark:text-blue-400 shrink-0" />
-                          <span>Inviter un membre de la Direction / Observateur</span>
+                          <span>Inviter un Responsable Exécutif</span>
                         </span>
                         <span className="text-[11px] font-bold text-blue-800 dark:text-blue-300 bg-blue-100 dark:bg-blue-500/20 border border-blue-300 dark:border-blue-500/30 px-2 py-0.5 rounded-md">
                           Option Enterprise · Lecture Seule
                         </span>
                       </div>
                       <p className="mt-1.5 mb-0 text-[12px] text-muted-foreground leading-relaxed">
-                        Génère un lien d'accès sécurisé pour la Direction Générale (DG, DAF, Auditeur). Donne accès au tableau de bord multi-segments en lecture seule et aux fonctionnalités avancées de super-export.
+                        Génère un lien d'accès sécurisé pour un responsable de haut niveau (DG, DAF, Président, Auditeur…). Donne accès au tableau de bord consolidé en lecture seule et aux super-exports.
                       </p>
+                      {/* Champ : Titre / Fonction personnalisée */}
+                      <div className="mt-3">
+                        <label className="block text-[11px] font-semibold text-muted-foreground mb-1">
+                          Titre / Fonction de la personne invitée
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="ex: Directeur Général, Président, DAF, Associé…"
+                          value={executiveCustomLabel}
+                          onChange={(e) => setExecutiveCustomLabel(e.target.value)}
+                          maxLength={60}
+                          className="w-full rounded-lg border border-blue-300/50 dark:border-blue-500/30 bg-white dark:bg-blue-950/20 px-3 py-2 text-[12.5px] text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                        />
+                        {executiveCustomLabel.trim() && (
+                          <p className="mt-1 text-[11px] text-blue-700 dark:text-blue-300">
+                            Ce titre apparaîtra dans la bannière d'inscription et comme badge de rôle dans la sidebar.
+                          </p>
+                        )}
+                      </div>
                     </div>
                     <button
                       type="button"
@@ -692,7 +715,11 @@ export function OrgGovernanceTab() {
                       className="mt-3 inline-flex items-center justify-center gap-2 rounded-lg border border-blue-500/50 bg-blue-600 px-3.5 py-2 text-[12.5px] font-bold text-white transition-colors hover:bg-blue-700 cursor-pointer disabled:opacity-50 shadow-xs"
                     >
                       {copiedExecutiveInvite ? <Check size={14} className="text-emerald-300" /> : <Link2 size={14} className="shrink-0" />}
-                      {copiedExecutiveInvite ? 'Lien Direction copié !' : generatingInvite === 'executive' ? t('team.orgGovernance.generating') : 'Copier le lien Direction'}
+                      {copiedExecutiveInvite
+                        ? `Lien ${executiveCustomLabel.trim() || 'Exécutif'} copié !`
+                        : generatingInvite === 'executive'
+                          ? t('team.orgGovernance.generating')
+                          : `Générer le lien — ${executiveCustomLabel.trim() || 'Responsable Exécutif'}`}
                     </button>
                   </div>
                 )}
