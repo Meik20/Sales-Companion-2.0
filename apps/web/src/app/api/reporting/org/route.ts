@@ -95,21 +95,26 @@ export async function GET(request: NextRequest) {
       .get()
 
     const callerSegment = callerData.segment || null
-    const filteredManagersDocs = callerSegment
-      ? managersSnap.docs.filter((d) => {
-          const mData = d.data()
-          return (
-            d.id === decoded.uid ||
-            mData.seniorManagerUid === decoded.uid ||
-            mData.segment === callerSegment
-          )
-        })
-      : managersSnap.docs
+    const callerOrgRole = callerData.orgRole || 'team_manager'
+    const isCallerExecutive = callerOrgRole === 'executive'
+
+    // RÈGLE ABSOLUE : Un profil Executive ne figure JAMAIS dans les managers opérationnels de l'organisation
+    const filteredManagersDocs = managersSnap.docs.filter((d) => {
+      const mData = d.data()
+      const mRole = mData.orgRole || 'team_manager'
+      if (mRole === 'executive') return false
+      if (isCallerExecutive || !callerSegment) return true
+      return (
+        d.id === decoded.uid ||
+        mData.seniorManagerUid === decoded.uid ||
+        mData.segment === callerSegment
+      )
+    })
 
     const managerUids = filteredManagersDocs.map((d) => d.id)
     const managersMap: Record<
       string,
-      { name: string; email: string; orgRole: string; isSenior: boolean; segment?: string | null }
+      { name: string; email: string; orgRole: string; isSenior: boolean; segment?: string | null; seniorManagerUid?: string | null }
     > = {}
     filteredManagersDocs.forEach((d) => {
       const m = d.data()
@@ -118,7 +123,8 @@ export async function GET(request: NextRequest) {
         email: m.email || '',
         orgRole: m.orgRole || 'team_manager',
         isSenior: m.orgRole === 'senior_manager',
-        segment: m.segment || null
+        segment: m.segment || null,
+        seniorManagerUid: m.seniorManagerUid || null
       }
     })
 
@@ -252,7 +258,7 @@ export async function GET(request: NextRequest) {
 
     // 5. Récupérer les objectifs (teamTargets) pour tous les Team Managers du segment (hors Senior Manager) sur le mois en cours
     // RÈGLE PYRAMIDALE : La source de vérité est l'ensemble des commerciaux actifs sous contrat de chaque Team Manager
-    const teamManagerUids = managerUids.filter((uid) => !managersMap[uid]?.isSenior)
+    const teamManagerUids = managerUids.filter((uid) => !managersMap[uid]?.isSenior && managersMap[uid]?.orgRole !== 'executive')
     const targetsByManager: Record<string, { targetVolume: number; targetValue: number }> = {}
     let orgTargetVolume = 0
     let orgTargetValue = 0

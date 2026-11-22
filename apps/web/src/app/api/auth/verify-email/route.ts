@@ -157,11 +157,11 @@ export async function POST(request: NextRequest) {
       updatedAt: new Date(),
       ...(shouldActivateNow
         ? {
-            activated: true,
-            active: true,
-            activatedAt: new Date(),
-            ...inheritedPlanData
-          }
+          activated: true,
+          active: true,
+          activatedAt: new Date(),
+          ...inheritedPlanData
+        }
         : {})
     })
 

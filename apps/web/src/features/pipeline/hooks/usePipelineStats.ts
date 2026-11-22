@@ -25,9 +25,11 @@ export function usePipelineStats() {
   usePipelineRealtimeSync()
 
   const isSeniorManager = user?.role === 'manager' && user?.orgRole === 'senior_manager'
+  const isExecutive = user?.role === 'manager' && user?.orgRole === 'executive'
+  const hasOrgAccess = isSeniorManager || isExecutive
 
   return useQuery({
-    queryKey: ['pipeline-stats', user?.uid, isSeniorManager],
+    queryKey: ['pipeline-stats', user?.uid, hasOrgAccess],
     queryFn: async (): Promise<PipelineStats> => {
       if (!user?.uid) {
         return {
@@ -43,8 +45,8 @@ export function usePipelineStats() {
         }
       }
 
-      // ── Senior Manager : statistiques consolidées de l'organisation ──────────
-      if (isSeniorManager) {
+      // ── Senior Manager & Direction : statistiques consolidées de l'organisation ──────────
+      if (hasOrgAccess) {
         const token = await user.getIdToken()
         const currentPeriod = new Date().toISOString().slice(0, 7)
         const res = await fetch(`/api/pipeline/org?period=${currentPeriod}`, {

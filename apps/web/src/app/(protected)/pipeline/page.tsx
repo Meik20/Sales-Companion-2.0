@@ -136,10 +136,12 @@ export default function PipelinePage() {
   const smGlobalTarget = useMemo(() => {
     if (!isOrgSupervisor || !allTeamTargets?.length) return null
     const managersList = orgPipelineQuery.data?.managers ?? []
-    // Si managersList n'est pas encore dispo, on fallback sur l'exclusion directe du Senior Manager
+    // Si managersList n'est pas encore dispo, fallback sur l'exclusion directe du Senior Manager
     const effectiveManagers = managersList.length > 0
       ? managersList
-      : [{ uid: user?.uid ?? '', isSenior: true, orgRole: 'senior_manager' }]
+      : (user?.orgRole === 'senior_manager'
+          ? [{ uid: user.uid, isSenior: true, orgRole: 'senior_manager' }]
+          : [])
 
     // Ne retenir strictement que les objectifs de la période active sélectionnée
     const monthTargets = allTeamTargets.filter(
@@ -539,10 +541,9 @@ export default function PipelinePage() {
             </div>
           )}
 
-          {/* Filtre par Team Manager */}
+          {/* Filtre par Senior Manager ou Team Manager */}
           {orgPipelineQuery.data?.managers &&
-            orgPipelineQuery.data.managers.filter((m: OrgManagerStats) => !m.isSenior).length >
-              0 && (
+            orgPipelineQuery.data.managers.length > 0 && (
               <div className="pipeline-tm-filter-sticky flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-4">
                 <div className="flex items-center gap-1.5 shrink-0">
                   <span
@@ -587,10 +588,14 @@ export default function PipelinePage() {
                     <span>{t('pipeline.all') || 'Tous'}</span>
                   </button>
                   {orgPipelineQuery.data.managers
-                    .filter((m: OrgManagerStats) => isExecutive || !m.isSenior)
+                    .filter((m: OrgManagerStats) => {
+                      if (m.uid === user?.uid) return false
+                      if ((m as any).orgRole === 'executive') return false
+                      return isExecutive ? true : !m.isSenior
+                    })
                     .map((mgr: OrgManagerStats) => {
                       const isSelected = filterManagerUid === mgr.uid
-                      const roleTag = isExecutive && mgr.isSenior ? ' (SM)' : ''
+                      const roleTag = mgr.isSenior ? ' (Senior Manager)' : ''
                       return (
                         <button
                           key={mgr.uid}
@@ -675,10 +680,17 @@ export default function PipelinePage() {
                 managers={orgPipelineQuery.data?.managers}
                 items={
                   ((selectedManager
-                    ? orgPipelineQuery.data?.items?.filter((i) => (i as any).managerUid === selectedManager.uid)
+                    ? (selectedManager.isSenior
+                        ? orgPipelineQuery.data?.items?.filter((i) => {
+                            const smUid = selectedManager.uid
+                            const mgr = (orgPipelineQuery.data?.managers || []).find((m) => m.uid === (i as any).managerUid)
+                            return (i as any).managerUid === smUid || (i as any).seniorManagerUid === smUid || (mgr && (mgr as any).seniorManagerUid === smUid)
+                          })
+                        : orgPipelineQuery.data?.items?.filter((i) => (i as any).managerUid === selectedManager.uid))
                     : orgPipelineQuery.data?.items?.filter(
                         (i) =>
                           (i as any).managerOrgRole !== 'senior_manager' &&
+                          (i as any).managerOrgRole !== 'executive' &&
                           (i as any).managerUid !== user?.uid
                       )) ?? []) as Parameters<typeof TeamManagerPerformanceCard>[0]['items']
                 }

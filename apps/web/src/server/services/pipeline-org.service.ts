@@ -5,6 +5,7 @@
 export interface OrgPipelineQueryParams {
   orgCode: string
   callerUid: string
+  callerOrgRole?: 'senior_manager' | 'team_manager' | 'executive' | null
   callerSegment?: string | null
   filterManagerUid?: string | null
   filterStatus?: string | null
@@ -47,7 +48,7 @@ export async function fetchOrgConsolidatedPipeline(
   const { runOpportunisticAutoArchive } = await import('@/server/services/monthly-cycle-archive.service')
   await runOpportunisticAutoArchive(adminDb)
 
-  const { orgCode, callerUid, callerSegment, filterManagerUid, filterStatus, limit = 500, period } = params
+  const { orgCode, callerUid, callerOrgRole, callerSegment, filterManagerUid, filterStatus, limit = 500, period } = params
 
   const maxLimit = Math.min(Math.max(limit || 500, 1), 2000)
 
@@ -85,8 +86,8 @@ export async function fetchOrgConsolidatedPipeline(
   const filteredManagersDocs = orgManagersSnap.docs
 
   const orgManagerUids = filteredManagersDocs.map((d) => d.id)
-  const managersMap: Record<string, { name: string; orgRole: string; segment?: string | null }> = {}
-  const managersList: { uid: string; name: string; orgRole: string; segment?: string | null }[] = []
+  const managersMap: Record<string, { name: string; orgRole: string; segment?: string | null; seniorManagerUid?: string | null }> = {}
+  const managersList: { uid: string; name: string; orgRole: string; segment?: string | null; seniorManagerUid?: string | null }[] = []
 
   filteredManagersDocs.forEach((d) => {
     const data = d.data()
@@ -94,7 +95,8 @@ export async function fetchOrgConsolidatedPipeline(
       uid: d.id,
       name: data.displayName || data.name || data.email || d.id,
       orgRole: data.orgRole || 'team_manager',
-      segment: data.segment || null
+      segment: data.segment || null,
+      seniorManagerUid: data.seniorManagerUid || null
     }
     managersMap[d.id] = entry
     managersList.push(entry)
@@ -184,6 +186,7 @@ export async function fetchOrgConsolidatedPipeline(
           status: normalizePipelineStatus(data.status),
           managerName: mgr?.name ?? (data.managerName as string) ?? '',
           managerOrgRole: mgr?.orgRole ?? 'team_manager',
+          seniorManagerUid: mgr?.seniorManagerUid ?? (data.seniorManagerUid as string) ?? null,
           createdAt: data.createdAt?.toDate
             ? data.createdAt.toDate().toISOString()
             : data.createdAt || null,
@@ -239,9 +242,9 @@ export async function fetchOrgConsolidatedPipeline(
     return tb - ta
   })
 
-  // Liste des managers avec leurs stats — uniquement les Team Managers (le Senior Manager n'en fait pas partie)
+  // Liste des Team Managers opérationnels pour le décompte des commerciaux actifs
   const teamManagersDocs = filteredManagersDocs.filter(
-    (d) => (d.data().orgRole || 'team_manager') !== 'senior_manager'
+    (d) => (d.data().orgRole || 'team_manager') === 'team_manager'
   )
   const teamManagerUids = teamManagersDocs.map((d) => d.id)
 
@@ -286,16 +289,43 @@ export async function fetchOrgConsolidatedPipeline(
     console.warn('[pipeline-org.service] Impossible de lire la devise org:', err)
   }
 
-  const managersWithStats = teamManagersDocs.map((d) => {
+  // Liste des managers retournés pour la navigation et le filtrage :
+  // - Pour un Executive : afficher les Senior Managers (isSenior: true) et les Team Managers (isSenior: false).
+  //   L'Executive lui-même (et tout profil executive) ne figure JAMAIS dans cette liste.
+  // - Pour un Senior Manager : afficher uniquement les Team Managers de l'organisation.
+  const isCallerExecutive = callerOrgRole === 'executive'
+
+  const relevantManagersDocs = filteredManagersDocs.filter((d) => {
+    const mRole = d.data().orgRole || 'team_manager'
+    // RÈGLE ABSOLUE : Un Executive ne figure JAMAIS dans la liste des managers opérationnels
+    if (mRole === 'executive' || d.id === callerUid) return false
+    if (isCallerExecutive) {
+      return mRole === 'senior_manager' || mRole === 'team_manager'
+    }
+    return mRole !== 'senior_manager'
+  })
+
+  const managersWithStats = relevantManagersDocs.map((d) => {
     const data = d.data()
-    const managerItems = allItems.filter((i) => i.managerUid === d.id)
+    const mRole = data.orgRole || 'team_manager'
+    const isSm = mRole === 'senior_manager'
+
+    // Pour un Senior Manager, son pipeline regroupe ses Team Managers subordonnés
+    const managerItems = isSm
+      ? allItems.filter((i) => {
+          const itemMgr = managersMap[i.managerUid as string]
+          return i.managerUid === d.id || (itemMgr && itemMgr.seniorManagerUid === d.id)
+        })
+      : allItems.filter((i) => i.managerUid === d.id)
+
     return {
       uid: d.id,
       name: data.displayName || data.name || data.email || d.id,
       email: data.email || '',
-      orgRole: data.orgRole || 'team_manager',
-      isSenior: false,
-      isCurrent: d.id === callerUid,
+      orgRole: mRole,
+      isSenior: isSm,
+      isCurrent: false,
+      seniorManagerUid: data.seniorManagerUid || null,
       stats: {
         prospection: managerItems.filter((i) => i.status === 'prospection').length,
         negociation: managerItems.filter((i) => i.status === 'negociation').length,
@@ -303,7 +333,6 @@ export async function fetchOrgConsolidatedPipeline(
           (i) => i.status === 'conclue' && isConcludedInPeriod(i.concludedAt ?? i.updatedAt)
         ).length,
         other: managerItems.filter((i) => i.status === 'other').length,
-        // total = somme des statuts actifs + conclues filtrées par période (+ other)
         get total() {
           return (
             managerItems.filter((i) => i.status === 'prospection').length +
@@ -314,7 +343,11 @@ export async function fetchOrgConsolidatedPipeline(
             managerItems.filter((i) => i.status === 'other').length
           )
         },
-        salespeopleCount: activeSalespeopleByManager[d.id] ?? 0
+        salespeopleCount: isSm
+          ? filteredManagersDocs
+              .filter((tm) => tm.data().seniorManagerUid === d.id)
+              .reduce((sum, tm) => sum + (activeSalespeopleByManager[tm.id] ?? 0), 0)
+          : (activeSalespeopleByManager[d.id] ?? 0)
       }
     }
   })

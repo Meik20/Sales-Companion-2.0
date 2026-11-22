@@ -162,7 +162,14 @@ export async function GET(request: NextRequest) {
           smSegmentMap.set(managerUid, userData.segment)
         }
 
-        managers = orgManagersSnap.docs.map((d) => {
+        managers = orgManagersSnap.docs
+          .filter((d) => {
+            const resolvedOrgRole = d.id === managerUid ? orgRole : d.data().orgRole || 'team_manager'
+            // RÈGLE ABSOLUE : Un Executive a un rôle purement stratégique et ne figure JAMAIS
+            // dans la liste des managers opérationnels (Team Managers / Senior Managers).
+            return resolvedOrgRole !== 'executive'
+          })
+          .map((d) => {
           const mData = d.data()
           const resolvedOrgRole = d.id === managerUid ? orgRole : mData.orgRole || 'team_manager'
           const resolvedSegment =

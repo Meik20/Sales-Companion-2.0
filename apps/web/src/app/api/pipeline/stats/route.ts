@@ -42,8 +42,8 @@ export async function GET(request: NextRequest) {
 
     let docs: Array<import('firebase-admin/firestore').QueryDocumentSnapshot> = []
 
-    if (role === 'manager' && orgRole === 'senior_manager' && orgCode) {
-      // 1. Senior Manager : agrégation consolidée de tous les managers de l'organisation
+    if (role === 'manager' && (orgRole === 'senior_manager' || orgRole === 'executive') && orgCode) {
+      // 1. Senior Manager & Direction : agrégation consolidée de tous les managers de l'organisation
       const orgManagersSnap = await adminDb
         .collection('users')
         .where('orgCode', '==', orgCode)

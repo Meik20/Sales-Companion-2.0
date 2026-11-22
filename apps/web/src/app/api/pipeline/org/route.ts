@@ -28,6 +28,7 @@ export async function GET(request: NextRequest) {
     const result = await fetchOrgConsolidatedPipeline({
       orgCode: session.orgCode!,
       callerUid: session.uid,
+      callerOrgRole: session.orgRole,
       callerSegment: session.segment,
       filterManagerUid,
       filterStatus,

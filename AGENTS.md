@@ -40,6 +40,12 @@ Le système repose sur une hiérarchie stricte à 4 niveaux :
          - Rôle strictement limité : gèrent l'assistance, le SAV et les clients convertis (statut conclu)
          - Ne sont PAS des Team Managers : ne pilotent pas de commerciaux et ne reçoivent pas de prospects délégués
          - Ne figurent JAMAIS dans les formulaires, sélecteurs ou colonnes de Team Managers
+
+[Responsables Exécutifs / Direction] (rôle 'manager', orgRole 'executive' - Option Enterprise)
+         - Rattachés à l'organisation globale (`orgCode`) ou à un segment
+         - Rôle purement stratégique et d'audit : consultent le pipeline consolidé de tous les SM de l'organisation et accèdent au dashboard global et aux super-exports
+         - Ne sont NI des Senior Managers NI des Team Managers : ne gèrent aucun commercial, aucun portefeuille opérationnel direct, aucune base clients, aucune gestion d'équipe
+         - Ne figurent JAMAIS dans les listes ou filtres de sélection de Team Managers ou de Senior Managers
 ```
 
 ---
@@ -52,6 +58,8 @@ Le système repose sur une hiérarchie stricte à 4 niveaux :
 - **`orgRole`** (managers uniquement) :
   - `'senior_manager'` : Senior Manager (initiateur SM1 ou nommé sur un segment distinct).
   - `'team_manager'` : manager ayant rejoint une organisation existante via `joinOrgCode`.
+  - `'executive'` : Responsable exécutif / Direction (supervision stratégique en lecture seule, Option Enterprise).
+- **`customRoleLabel`** (optionnel, managers / executives) : Libellé de rôle ou de fonction personnalisé défini lors de l'invitation par le SM1 (ex. "Directeur Général", "Président", "DAF").
 - **`segment`** : segment d'activité rattaché (ex. 'Pôle Nord', 'Grands Comptes', 'Banque').
 - **`orgCode`** : code unique de l'organisation (format `SC-[PAYS]-[5CARACTÈRES]`, ex: `SC-CM-GE9GQ`).
 - **Synchronisation Auth Claims** :
@@ -380,3 +388,24 @@ Avant d'écrire ou de modifier la moindre ligne de code ou de générer un asset
 
 ### B. Garde-fous automatisés pré-build
 - scripts/check-architecture-integrity.js (Étape 17) valide systématiquement que la Règle 17 de consultation préalable obligatoire est gravée dans AGENTS.md et que le skill d'intégrité pre-modification-check est présent et opérationnel.
+
+---
+
+## 18. Règle Inviolable — Confinement Stratégique & Non-Opérationnel du Rôle Exécutif (`orgRole: 'executive'`)
+
+> [!CAUTION]
+> **CONFINEMENT STRICT DU RÔLE EXÉCUTIF / DIRECTION :**  
+> L'invité Direction / Responsable Exécutif (`role: 'manager'`, `orgRole: 'executive'`) possède un rôle purement stratégique de supervision et d'audit pour l'entreprise (Option Enterprise). Il n'est en aucun cas un Senior Manager ni un Team Manager opérationnel.
+>
+> 1. **Accès Consolidé et Lecture Seule :**  
+>    - L'Executive accède au pipeline consolidé de l'ensemble des Senior Managers de son organisation (`/api/pipeline/org`) et au tableau de bord multi-segments (`/dashboard`, `/api/reporting/org`).
+>    - Il bénéficie des fonctionnalités avancées d'audit et de super-exports (PDF / Excel).
+> 2. **Interdiction Formelle d'Apparence dans les Listes & Filtres de Managers :**  
+>    - L'Executive ne doit **JAMAIS** figurer dans les tableaux, listes, formulaires, sélecteurs ou colonnes dédiés aux « Team Managers » ou « Senior Managers » (`/api/team/org`, `/api/reporting/org`, `/api/pipeline/org`).
+>    - L'Executive ne peut jamais figurer dans ses propres boutons de filtrage ou dans les classements Top Performers.
+> 3. **Absence de Portefeuille Opérationnel, de Gestion d'Équipe et de Base Clients :**  
+>    - L'Executive ne pilote aucun commercial de terrain, ne reçoit pas de prospects délégués et ne crée pas de fiches opérationnelles.
+>    - Les rubriques « Base de données clients » et « Gestion d'équipe » sont strictement masquées dans le menu de navigation pour ce rôle.
+> 4. **Personnalisation Structurée du Libellé de Fonction :**  
+>    - Le SM1 initiateur de l'invitation peut spécifier un libellé de fonction personnalisé (`customRoleLabel`, ex: « Directeur Général », « Président », « DAF », « Associé »).
+>    - Ce libellé est stocké de manière canonique sur le document utilisateur et restitué fidèlement via `getRoleDisplayLabel`.
