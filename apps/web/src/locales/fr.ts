@@ -544,7 +544,7 @@ export const fr = {
     exportDesc:
       'Téléchargez un fichier Excel avec la synthèse et le détail des opportunités par commercial.',
     exportDescTM:
-      'Téléchargez un fichier Excel avec la synthèse et le détail des opportunités par Team Manager.',
+      'Téléchargez un fichier Excel avec la synthèse et le détail des opportunités par Superviseur.',
     filterMember: 'Filtrer par commercial',
     filterTM: 'Filtrer par Superviseur',
     filterSalesperson: 'Filtrer par commercial',
@@ -1162,7 +1162,7 @@ export const fr = {
     selected: 'sélectionné(s)',
     assignSelection: 'Assigner la sélection',
     smImportsSubtitle:
-      "Sélectionnez vos opportunités importées et transférez-les aux Team Managers de votre segment pour qu'ils les attribuent à leurs commerciaux.",
+      "Sélectionnez vos opportunités importées et transférez-les aux Superviseurs de votre segment pour qu'ils les attribuent à leurs commerciaux.",
     colTeamManager: 'Superviseur',
     allProspects: 'Toutes les opportunités',
     untransferred: 'Non transférées',

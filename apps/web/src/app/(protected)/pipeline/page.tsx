@@ -662,7 +662,7 @@ export default function PipelinePage() {
                     }}
                   >
                     <Filter size={10} className="shrink-0 opacity-80" />
-                    <span>{t('pipeline.filteredByTeamManager') || t('pipeline.filteredByManager') || 'Filtré par Team Manager'}</span>
+                    <span>{t('pipeline.filteredByTeamManager') || t('pipeline.filteredByManager') || (lang === 'en' ? 'Filtered by Supervisor' : 'Filtré par Superviseur')}</span>
                   </span>
                 )}
               </div>
@@ -670,8 +670,8 @@ export default function PipelinePage() {
             subtitle={
               selectedManager
                 ? (lang === 'en'
-                    ? `Opportunities managed by ${selectedManager.name || 'this Team Manager'}`
-                    : `Opportunités gérées par ${selectedManager.name || 'ce Team Manager'}`)
+                    ? `Opportunities managed by ${selectedManager.name || 'this Supervisor'}`
+                    : `Opportunités gérées par ${selectedManager.name || 'ce Superviseur'}`)
                 : (t('pipeline.orgPipelineSubtitle') || 'Tous les prospects de votre segment')
             }
           >
@@ -716,8 +716,12 @@ export default function PipelinePage() {
                 title={t('pipeline.noProspect')}
                 description={
                   selectedManager
-                    ? "Ce Team Manager n'a pas encore d'opportunités enregistrées."
-                    : "Vos Team Managers n'ont pas encore d'opportunités enregistrées."
+                    ? (lang === 'en'
+                        ? "This Supervisor doesn't have any registered opportunities yet."
+                        : "Ce Superviseur n'a pas encore d'opportunités enregistrées.")
+                    : (lang === 'en'
+                        ? "Your Supervisors don't have any registered opportunities yet."
+                        : "Vos Superviseurs n'ont pas encore d'opportunités enregistrées.")
                 }
               />
             ) : null}

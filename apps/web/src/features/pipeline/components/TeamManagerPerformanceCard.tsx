@@ -328,7 +328,7 @@ export function TeamManagerPerformanceCard({
                   ? (isTeamContext
                       ? (t('pipeline.teamConsolidated') || 'Vue Équipe')
                       : (t('pipeline.orgConsolidated') || 'Vue Consolidée'))
-                  : 'Team Manager'}
+                  : (t('sidebar.teamManagerRole') || 'Superviseur')}
               </span>
               <InfoTooltip
                 content={

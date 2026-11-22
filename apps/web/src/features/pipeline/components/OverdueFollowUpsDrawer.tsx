@@ -275,7 +275,9 @@ export function OverdueFollowUpsDrawer({
     let unassignedCount = 0
 
     for (const lead of allAlertLeads) {
-      if (lead.assignedTo) {
+      // RÈGLE MÉTIER INVIOLABLE : Un lead n'est considéré assigné à un commercial que s'il a un assignedTo
+      // ET que celui-ci n'est PAS le Superviseur lui-même (qui en est le manager responsable)
+      if (lead.assignedTo && lead.assignedTo !== lead.managerUid) {
         const key = lead.assignedTo
         const label = lead.memberName || `${t('pipeline.salesperson')} (${lead.assignedTo.slice(0, 6)})`
         const prev = map.get(key)
@@ -295,7 +297,7 @@ export function OverdueFollowUpsDrawer({
     }
   }, [allAlertLeads])
 
-  // Liste des Team Managers uniques (vue organisation)
+  // Liste des Superviseurs uniques (vue organisation)
   const availableManagers = useMemo(() => {
     if (context !== 'org') return []
     const map = new Map<string, { label: string; count: number }>()
@@ -303,7 +305,7 @@ export function OverdueFollowUpsDrawer({
     for (const lead of allAlertLeads) {
       if (lead.managerUid) {
         const key = lead.managerUid
-        const label = lead.managerName || `Manager (${lead.managerUid.slice(0, 6)})`
+        const label = lead.managerName || `${t('sidebar.teamManagerRole') || 'Superviseur'} (${lead.managerUid.slice(0, 6)})`
         const prev = map.get(key)
         if (prev) {
           prev.count++
@@ -320,11 +322,11 @@ export function OverdueFollowUpsDrawer({
   const filteredLeads = useMemo(() => {
     let list = tabFilteredLeads
 
-    // Filtre commercial
+    // Filtre commercial (exclut les managers gérant leur propre deal qui sont dans unassigned)
     if (selectedCommercial === 'unassigned') {
-      list = list.filter((l) => !l.assignedTo)
+      list = list.filter((l) => !l.assignedTo || l.assignedTo === l.managerUid)
     } else if (selectedCommercial !== 'all') {
-      list = list.filter((l) => l.assignedTo === selectedCommercial)
+      list = list.filter((l) => l.assignedTo === selectedCommercial && l.assignedTo !== l.managerUid)
     }
 
     // Filtre manager
@@ -399,7 +401,7 @@ export function OverdueFollowUpsDrawer({
     const stagnantLeads = allAlertLeads.filter((l) => Boolean(l.isStagnant))
     const totalAmount = allAlertLeads.reduce((acc, l) => acc + l.amount, 0)
     const distinctDates = new Set(allAlertLeads.map((l) => l.dueDate)).size
-    const unassignedTotal = allAlertLeads.filter((l) => !l.assignedTo).length
+    const unassignedTotal = allAlertLeads.filter((l) => !l.assignedTo || l.assignedTo === l.managerUid).length
 
     return {
       overdueCount: overdueLeads.length,
@@ -913,7 +915,7 @@ export function OverdueFollowUpsDrawer({
                   maxWidth: 160
                 }}
               >
-                <option value="all">{t('pipeline.allTeams')}</option>
+                <option value="all">{t('pipeline.allTMs') || 'Tous les Superviseurs'}</option>
                 {availableManagers.map((m) => (
                   <option key={m.id} value={m.id}>
                     {m.label} ({m.count})
@@ -1218,47 +1220,54 @@ export function OverdueFollowUpsDrawer({
                             }}
                           >
                             {/* Commercial responsable */}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                              <div
-                                style={{
-                                  width: 24,
-                                  height: 24,
-                                  borderRadius: 6,
-                                  background: lead.assignedTo
-                                    ? 'rgba(79,70,229,0.12)'
-                                    : 'rgba(239,68,68,0.12)',
-                                  color: lead.assignedTo ? '#4338ca' : '#b91c1c',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  fontSize: 11,
-                                  fontWeight: 800
-                                }}
-                              >
-                                <User size={13} />
-                              </div>
-                              <div>
-                                <div style={{ fontSize: 10, color: 'var(--muted-foreground, #64748b)', textTransform: 'uppercase', fontWeight: 600 }}>
-                                  {t('pipeline.commercialInCharge')}
+                            {(() => {
+                              const isLeadAssigned = Boolean(lead.assignedTo && lead.assignedTo !== lead.managerUid)
+                              return (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                                  <div
+                                    style={{
+                                      width: 24,
+                                      height: 24,
+                                      borderRadius: 6,
+                                      background: isLeadAssigned
+                                        ? 'rgba(79,70,229,0.12)'
+                                        : 'rgba(239,68,68,0.12)',
+                                      color: isLeadAssigned ? '#4338ca' : '#b91c1c',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      fontSize: 11,
+                                      fontWeight: 800
+                                    }}
+                                  >
+                                    <User size={13} />
+                                  </div>
+                                  <div>
+                                    <div style={{ fontSize: 10, color: 'var(--muted-foreground, #64748b)', textTransform: 'uppercase', fontWeight: 600 }}>
+                                      {t('pipeline.commercialInCharge')}
+                                    </div>
+                                    <div style={{ fontSize: 12, fontWeight: 700, color: isLeadAssigned ? 'var(--foreground, #0f172a)' : '#b91c1c' }}>
+                                      {isLeadAssigned ? (
+                                        lead.memberName || `${t('pipeline.salesperson')} (${lead.assignedTo!.slice(0, 6)})`
+                                      ) : (
+                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                          <AlertTriangle size={12} className="text-red-600 shrink-0" />
+                                          <span>{t('pipeline.unassignedActionRequired')}</span>
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
                                 </div>
-                                <div style={{ fontSize: 12, fontWeight: 700, color: lead.assignedTo ? 'var(--foreground, #0f172a)' : '#b91c1c' }}>
-                                  {lead.memberName || (lead.assignedTo ? `${t('pipeline.salesperson')} (${lead.assignedTo.slice(0, 6)})` : (
-                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                                      <AlertTriangle size={12} className="text-red-600 shrink-0" />
-                                      <span>{t('pipeline.unassignedActionRequired')}</span>
-                                    </span>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
+                              )
+                            })()}
 
-                            {/* Team Manager de rattachement (si vue organisation) */}
+                            {/* Superviseur de rattachement (si vue organisation) */}
                             {context === 'org' && lead.managerName && (
                               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                                 <Crown size={13} className="text-amber-600 dark:text-amber-400" />
                                 <div>
                                   <div style={{ fontSize: 10, color: 'var(--muted-foreground, #64748b)', textTransform: 'uppercase', fontWeight: 600 }}>
-                                    Team Manager
+                                    {lang === 'en' ? 'Supervisor' : 'Superviseur'}
                                   </div>
                                   <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--foreground, #0f172a)' }}>
                                     {lead.managerName}

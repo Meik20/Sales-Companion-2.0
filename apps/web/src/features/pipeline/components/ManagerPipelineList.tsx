@@ -894,9 +894,9 @@ function TargetsButton({ members }: { members?: Member[] }) {
       ? t('pipeline.selectMembersPlaceholder')
       : selectedMemberIds.length === 1
         ? (() => {
-            const m = members?.find((mb) => mb.uid === selectedMemberIds[0])
-            return m?.name ?? m?.email ?? (lang === 'en' ? '1 sales rep' : '1 commercial')
-          })()
+          const m = members?.find((mb) => mb.uid === selectedMemberIds[0])
+          return m?.name ?? m?.email ?? (lang === 'en' ? '1 sales rep' : '1 commercial')
+        })()
         : lang === 'en'
           ? `${selectedMemberIds.length} sales reps selected`
           : `${selectedMemberIds.length} commerciaux sélectionnés`
@@ -1666,15 +1666,15 @@ function ExportButton({
                   </option>
                   {isOrgView
                     ? activeTeamManagers.map((m) => (
-                        <option key={m.uid} value={m.uid}>
-                          {m.name ?? m.email ?? m.uid}
-                        </option>
-                      ))
+                      <option key={m.uid} value={m.uid}>
+                        {m.name ?? m.email ?? m.uid}
+                      </option>
+                    ))
                     : members?.map((m) => (
-                        <option key={m.uid} value={m.uid}>
-                          {m.name ?? m.email ?? m.uid}
-                        </option>
-                      ))}
+                      <option key={m.uid} value={m.uid}>
+                        {m.name ?? m.email ?? m.uid}
+                      </option>
+                    ))}
                 </select>
               </div>
 
@@ -2258,115 +2258,72 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
             boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
           }}
         >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: 10,
-            gap: 8,
-            flexWrap: 'wrap'
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Users size={14} style={{ color: '#818cf8' }} />
-            <span
-              style={{
-                fontSize: 11,
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                letterSpacing: '.06em',
-                color: 'var(--foreground, #f1f5f9)'
-              }}
-            >
-              {isOrgView ? t('pipeline.pipelineByTM') : t('pipeline.pipelineByMember')}
-            </span>
-            <span style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)' }}>
-              ({isOrgView
-                ? t('pipeline.teamManagerCount', { count: memberSummaries.length })
-                : t('pipeline.memberCount', { count: memberSummaries.length })})
-            </span>
-
-          </div>
-
-          {selectedMemberId !== 'all' && (
-            <button
-              onClick={() => setSelectedMemberId('all')}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: '#818cf8',
-                fontSize: 11,
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 4,
-                padding: '2px 6px'
-              }}
-            >
-              <X size={11} />
-              {isOrgView ? t('pipeline.seeAllTMs') : t('pipeline.seeAllTeam')}
-            </button>
-          )}
-        </div>
-
-        {/* ── Barre de filtre membres ─────────────────────────────────── */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            flexWrap: 'wrap'
-          }}
-        >
-          {/* Pill : Toute l'équipe / Tous les TMs */}
-          <button
-            type="button"
-            onClick={() => setSelectedMemberId('all')}
+          <div
             style={{
-              padding: '6px 14px',
-              borderRadius: 20,
-              fontSize: 12,
-              fontWeight: 600,
-              cursor: 'pointer',
-              border:
-                selectedMemberId === 'all'
-                  ? '1px solid #6366f1'
-                  : '1px solid var(--border, rgba(255,255,255,0.1))',
-              background: selectedMemberId === 'all' ? '#6366f1' : 'var(--secondary, #1e2a3b)',
-              color: selectedMemberId === 'all' ? '#ffffff' : 'var(--foreground, #f1f5f9)',
-              transition: 'all 150ms ease',
-              display: 'inline-flex',
+              display: 'flex',
               alignItems: 'center',
-              gap: 6,
-              flexShrink: 0
+              justifyContent: 'space-between',
+              marginBottom: 10,
+              gap: 8,
+              flexWrap: 'wrap'
             }}
           >
-            <span>{isOrgView ? t('pipeline.allTMs') : t('pipeline.allTeam')}</span>
-            {!isOrgView && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Users size={14} style={{ color: '#818cf8' }} />
               <span
                 style={{
-                  fontSize: 10.5,
-                  padding: '1px 6px',
-                  borderRadius: 10,
-                  background:
-                    selectedMemberId === 'all'
-                      ? 'rgba(255,255,255,0.25)'
-                      : 'rgba(255,255,255,0.08)',
-                  fontWeight: 700
+                  fontSize: 11,
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '.06em',
+                  color: 'var(--foreground, #f1f5f9)'
                 }}
               >
-                {items.filter((i) => normalize(i.status) !== 'perdue').length}
+                {isOrgView ? t('pipeline.pipelineByTM') : t('pipeline.pipelineByMember')}
               </span>
-            )}
-          </button>
+              <span style={{ fontSize: 11, color: 'var(--muted-foreground, #94a3b8)' }}>
+                ({isOrgView
+                  ? t('pipeline.teamManagerCount', { count: memberSummaries.length })
+                  : t('pipeline.memberCount', { count: memberSummaries.length })})
+              </span>
 
-          {/* Pill : Non assignés */}
-          {unassignedCount > 0 && (
+            </div>
+
+            {selectedMemberId !== 'all' && (
+              <button
+                onClick={() => setSelectedMemberId('all')}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#818cf8',
+                  fontSize: 11,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  padding: '2px 6px'
+                }}
+              >
+                <X size={11} />
+                {isOrgView ? t('pipeline.seeAllTMs') : t('pipeline.seeAllTeam')}
+              </button>
+            )}
+          </div>
+
+          {/* ── Barre de filtre membres ─────────────────────────────────── */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              flexWrap: 'wrap'
+            }}
+          >
+            {/* Pill : Toute l'équipe / Tous les TMs */}
             <button
               type="button"
-              onClick={() => setSelectedMemberId('unassigned')}
+              onClick={() => setSelectedMemberId('all')}
               style={{
                 padding: '6px 14px',
                 borderRadius: 20,
@@ -2374,13 +2331,11 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                 fontWeight: 600,
                 cursor: 'pointer',
                 border:
-                  selectedMemberId === 'unassigned'
-                    ? '1px solid #f59e0b'
+                  selectedMemberId === 'all'
+                    ? '1px solid #6366f1'
                     : '1px solid var(--border, rgba(255,255,255,0.1))',
-                background:
-                  selectedMemberId === 'unassigned' ? '#f59e0b' : 'var(--secondary, #1e2a3b)',
-                color:
-                  selectedMemberId === 'unassigned' ? '#ffffff' : 'var(--foreground, #f1f5f9)',
+                background: selectedMemberId === 'all' ? '#6366f1' : 'var(--secondary, #1e2a3b)',
+                color: selectedMemberId === 'all' ? '#ffffff' : 'var(--foreground, #f1f5f9)',
                 transition: 'all 150ms ease',
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -2388,116 +2343,161 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                 flexShrink: 0
               }}
             >
-              <span>{t('pipeline.unassigned')}</span>
-              <span
-                style={{
-                  fontSize: 10.5,
-                  padding: '1px 6px',
-                  borderRadius: 10,
-                  background:
-                    selectedMemberId === 'unassigned'
-                      ? 'rgba(255,255,255,0.25)'
-                      : 'rgba(255,255,255,0.08)',
-                  fontWeight: 700
-                }}
-              >
-                {unassignedCount}
-              </span>
+              <span>{isOrgView ? t('pipeline.allTMs') : t('pipeline.allTeam')}</span>
+              {!isOrgView && (
+                <span
+                  style={{
+                    fontSize: 10.5,
+                    padding: '1px 6px',
+                    borderRadius: 10,
+                    background:
+                      selectedMemberId === 'all'
+                        ? 'rgba(255,255,255,0.25)'
+                        : 'rgba(255,255,255,0.08)',
+                    fontWeight: 700
+                  }}
+                >
+                  {items.filter((i) => normalize(i.status) !== 'perdue').length}
+                </span>
+              )}
             </button>
-          )}
 
-          {/* Dropdown : Filtrer par TM (SM) ou par commercial (TM) */}
-          {memberSummaries.length > 0 && (
-            <div style={{ position: 'relative', flexShrink: 0 }}>
-              <select
-                value={
-                  selectedMemberId === 'all' || selectedMemberId === 'unassigned'
-                    ? ''
-                    : selectedMemberId
-                }
-                onChange={(e) => {
-                  if (e.target.value) setSelectedMemberId(e.target.value)
-                }}
+            {/* Pill : Non assignés */}
+            {unassignedCount > 0 && (
+              <button
+                type="button"
+                onClick={() => setSelectedMemberId('unassigned')}
                 style={{
-                  appearance: 'none',
-                  WebkitAppearance: 'none',
-                  height: 34,
-                  paddingLeft: 12,
-                  paddingRight: 32,
+                  padding: '6px 14px',
                   borderRadius: 20,
-                  border:
-                    selectedMemberId !== 'all' && selectedMemberId !== 'unassigned'
-                      ? '1px solid #6366f1'
-                      : '1px solid var(--border, rgba(255,255,255,0.12))',
-                  background:
-                    selectedMemberId !== 'all' && selectedMemberId !== 'unassigned'
-                      ? '#6366f1'
-                      : 'var(--secondary, #1e2a3b)',
-                  color:
-                    selectedMemberId !== 'all' && selectedMemberId !== 'unassigned'
-                      ? '#ffffff'
-                      : 'var(--foreground, #f1f5f9)',
                   fontSize: 12,
                   fontWeight: 600,
                   cursor: 'pointer',
-                  outline: 'none',
-                  minWidth: 200,
-                  transition: 'all 150ms ease'
-                }}
-              >
-                {(selectedMemberId === 'all' || selectedMemberId === 'unassigned') && (
-                  <option value="" disabled>
-                    {isOrgView ? t('pipeline.filterByTM') : t('pipeline.filterByMember')}
-                  </option>
-                )}
-                {isOrgView ? (
-                  <>
-                    {memberSummaries.length > 0 && (
-                      <optgroup label={t('pipeline.orgTeamManagers')}>
-                        {memberSummaries.map((m) => {
-                          const warn = m.overdueCount > 0 ? ` (${t('pipeline.overdueBadge', { count: m.overdueCount })})` : ''
-                          return (
-                            <option key={m.uid} value={m.uid}>
-                              {m.name}{warn}
-                            </option>
-                          )
-                        })}
-                      </optgroup>
-                    )}
-
-                  </>
-                ) : (
-                  memberSummaries.map((m) => {
-                    const warn = m.overdueCount > 0 ? ` (${t('pipeline.overdueBadge', { count: m.overdueCount })})` : ''
-                    return (
-                      <option key={m.uid} value={m.uid}>
-                        {m.name} — {m.totalCount} {m.totalCount > 1 ? t('pipeline.leads') : t('pipeline.lead')}{warn}
-                      </option>
-                    )
-                  })
-                )}
-              </select>
-              <span
-                style={{
-                  position: 'absolute',
-                  right: 10,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  pointerEvents: 'none',
+                  border:
+                    selectedMemberId === 'unassigned'
+                      ? '1px solid #f59e0b'
+                      : '1px solid var(--border, rgba(255,255,255,0.1))',
+                  background:
+                    selectedMemberId === 'unassigned' ? '#f59e0b' : 'var(--secondary, #1e2a3b)',
                   color:
-                    selectedMemberId !== 'all' && selectedMemberId !== 'unassigned'
-                      ? 'rgba(255,255,255,0.8)'
-                      : 'var(--muted-foreground, #94a3b8)',
-                  fontSize: 11,
-                  lineHeight: 1
+                    selectedMemberId === 'unassigned' ? '#ffffff' : 'var(--foreground, #f1f5f9)',
+                  transition: 'all 150ms ease',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  flexShrink: 0
                 }}
               >
-                ▾
-              </span>
-            </div>
-          )}
+                <span>{t('pipeline.unassigned')}</span>
+                <span
+                  style={{
+                    fontSize: 10.5,
+                    padding: '1px 6px',
+                    borderRadius: 10,
+                    background:
+                      selectedMemberId === 'unassigned'
+                        ? 'rgba(255,255,255,0.25)'
+                        : 'rgba(255,255,255,0.08)',
+                    fontWeight: 700
+                  }}
+                >
+                  {unassignedCount}
+                </span>
+              </button>
+            )}
+
+            {/* Dropdown : Filtrer par TM (SM) ou par commercial (TM) */}
+            {memberSummaries.length > 0 && (
+              <div style={{ position: 'relative', flexShrink: 0 }}>
+                <select
+                  value={
+                    selectedMemberId === 'all' || selectedMemberId === 'unassigned'
+                      ? ''
+                      : selectedMemberId
+                  }
+                  onChange={(e) => {
+                    if (e.target.value) setSelectedMemberId(e.target.value)
+                  }}
+                  style={{
+                    appearance: 'none',
+                    WebkitAppearance: 'none',
+                    height: 34,
+                    paddingLeft: 12,
+                    paddingRight: 32,
+                    borderRadius: 20,
+                    border:
+                      selectedMemberId !== 'all' && selectedMemberId !== 'unassigned'
+                        ? '1px solid #6366f1'
+                        : '1px solid var(--border, rgba(255,255,255,0.12))',
+                    background:
+                      selectedMemberId !== 'all' && selectedMemberId !== 'unassigned'
+                        ? '#6366f1'
+                        : 'var(--secondary, #1e2a3b)',
+                    color:
+                      selectedMemberId !== 'all' && selectedMemberId !== 'unassigned'
+                        ? '#ffffff'
+                        : 'var(--foreground, #f1f5f9)',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    outline: 'none',
+                    minWidth: 200,
+                    transition: 'all 150ms ease'
+                  }}
+                >
+                  {(selectedMemberId === 'all' || selectedMemberId === 'unassigned') && (
+                    <option value="" disabled>
+                      {isOrgView ? t('pipeline.filterByTM') : t('pipeline.filterByMember')}
+                    </option>
+                  )}
+                  {isOrgView ? (
+                    <>
+                      {memberSummaries.length > 0 && (
+                        <optgroup label={t('pipeline.orgTeamManagers')}>
+                          {memberSummaries.map((m) => {
+                            const warn = m.overdueCount > 0 ? ` (${t('pipeline.overdueBadge', { count: m.overdueCount })})` : ''
+                            return (
+                              <option key={m.uid} value={m.uid}>
+                                {m.name}{warn}
+                              </option>
+                            )
+                          })}
+                        </optgroup>
+                      )}
+
+                    </>
+                  ) : (
+                    memberSummaries.map((m) => {
+                      const warn = m.overdueCount > 0 ? ` (${t('pipeline.overdueBadge', { count: m.overdueCount })})` : ''
+                      return (
+                        <option key={m.uid} value={m.uid}>
+                          {m.name} — {m.totalCount} {m.totalCount > 1 ? t('pipeline.leads') : t('pipeline.lead')}{warn}
+                        </option>
+                      )
+                    })
+                  )}
+                </select>
+                <span
+                  style={{
+                    position: 'absolute',
+                    right: 10,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    pointerEvents: 'none',
+                    color:
+                      selectedMemberId !== 'all' && selectedMemberId !== 'unassigned'
+                        ? 'rgba(255,255,255,0.8)'
+                        : 'var(--muted-foreground, #94a3b8)',
+                    fontSize: 11,
+                    lineHeight: 1
+                  }}
+                >
+                  ▾
+                </span>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
       )}
 
       {/* ── Bannière d'activité détaillée du membre sélectionné ─────────── */}
@@ -2897,13 +2897,12 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                               : roValue >= 75
                                 ? 'rgba(217,119,6,0.12)'
                                 : 'rgba(239,68,68,0.12)',
-                          border: `1px solid ${
-                            roValue >= 100
+                          border: `1px solid ${roValue >= 100
                               ? 'rgba(16,185,129,0.35)'
                               : roValue >= 75
                                 ? 'rgba(217,119,6,0.35)'
                                 : 'rgba(239,68,68,0.35)'
-                          }`,
+                            }`,
                           color: getScoreColor(roValue)
                         }}
                       >
@@ -3141,399 +3140,399 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                 }}
               >
                 {groupItems.map((item) => (
-                <div
-                  key={item.id}
-                  onClick={() => setSelectedItem(item)}
-                  style={{
-                    padding: '12px 14px',
-                    background: 'var(--secondary, #1e2a3b)',
-                    border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
-                    borderRadius: 10,
-                    cursor: 'pointer',
-                    transition: 'all 200ms ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = 'rgba(99,102,241,0.4)'
-                    e.currentTarget.style.background = 'var(--card, #131c2e)'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = 'var(--border, rgba(255,255,255,0.1))'
-                    e.currentTarget.style.background = 'var(--secondary, #1e2a3b)'
-                  }}
-                >
                   <div
+                    key={item.id}
+                    onClick={() => setSelectedItem(item)}
                     style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'flex-start',
-                      gap: 8
+                      padding: '12px 14px',
+                      background: 'var(--secondary, #1e2a3b)',
+                      border: `1px solid ${'var(--border, rgba(255,255,255,0.1))'}`,
+                      borderRadius: 10,
+                      cursor: 'pointer',
+                      transition: 'all 200ms ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = 'rgba(99,102,241,0.4)'
+                      e.currentTarget.style.background = 'var(--card, #131c2e)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = 'var(--border, rgba(255,255,255,0.1))'
+                      e.currentTarget.style.background = 'var(--secondary, #1e2a3b)'
                     }}
                   >
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div
-                        style={{
-                          fontWeight: 600,
-                          fontSize: 13,
-                          color: 'var(--foreground, #f1f5f9)',
-                          marginBottom: 4
-                        }}
-                      >
-                        {item.companyName}
-                      </div>
-                      <div
-                        style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4 }}
-                      >
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'flex-start',
+                        gap: 8
+                      }}
+                    >
+                      <div style={{ flex: 1, minWidth: 0 }}>
                         <div
                           style={{
-                            fontSize: 11,
-                            color: 'var(--muted-foreground, #94a3b8)',
-                            display: 'flex',
-                            flexWrap: 'wrap',
-                            gap: '4px 10px'
+                            fontWeight: 600,
+                            fontSize: 13,
+                            color: 'var(--foreground, #f1f5f9)',
+                            marginBottom: 4
                           }}
                         >
-                          {item.companySector && (
-                            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                              <Building2 size={10} style={{ opacity: 0.7 }} />
-                              {item.companySector}
-                            </span>
-                          )}
-                          {item.companyCity && (
-                            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                              <MapPin size={10} style={{ opacity: 0.7 }} />
-                              {[item.companyQuarter || item.quarter, item.companyCity].filter(Boolean).join(', ') || item.companyCity}
-                            </span>
-                          )}
-                          {item.lastVisitLocation && (
-                            <a
-                              href={`https://www.google.com/maps?q=${item.lastVisitLocation.latitude},${item.lastVisitLocation.longitude}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              onClick={(e) => e.stopPropagation()}
-                              title={lang === 'en' ? 'Verified GPS visit on site' : 'Visite terrain vérifiée par GPS'}
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: 3.5,
-                                fontWeight: 700,
-                                color: '#10b981',
-                                background: 'rgba(16, 185, 129, 0.1)',
-                                border: '1px solid rgba(16, 185, 129, 0.3)',
-                                borderRadius: 4,
-                                padding: '1px 6px',
-                                fontSize: 10.5,
-                                textDecoration: 'none'
-                              }}
-                            >
-                              <Navigation size={10} style={{ color: '#10b981' }} />
-                              <span>{lang === 'en' ? 'GPS Checked' : 'Visité (GPS)'}</span>
-                            </a>
-                          )}
-                          {item.amount != null && item.amount > 0 && (
-                            <span
-                              title={`${formatFullAmount(item.amount, lang)} ${currency || 'XAF'}`}
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: 4,
-                                fontWeight: 700,
-                                color: 'var(--pipeline-opportunity-color, #047857)',
-                                background: 'var(--pipeline-fresh-bg, #ecfdf5)',
-                                border:
-                                  '1px solid var(--pipeline-fresh-border, rgba(5, 150, 105, 0.25))',
-                                borderRadius: 4,
-                                padding: '1px 6px',
-                                fontSize: 10.5
-                              }}
-                            >
-                              <Banknote size={11} />
-                              {formatCompactAmount(item.amount, lang)} {currency || 'XAF'}
-                            </span>
-                          )}
-                          {item.nextFollowUp &&
-                            item.status !== 'conclue' &&
-                            item.status !== 'conclusion' && (
-                              <span
+                          {item.companyName}
+                        </div>
+                        <div
+                          style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4 }}
+                        >
+                          <div
+                            style={{
+                              fontSize: 11,
+                              color: 'var(--muted-foreground, #94a3b8)',
+                              display: 'flex',
+                              flexWrap: 'wrap',
+                              gap: '4px 10px'
+                            }}
+                          >
+                            {item.companySector && (
+                              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                <Building2 size={10} style={{ opacity: 0.7 }} />
+                                {item.companySector}
+                              </span>
+                            )}
+                            {item.companyCity && (
+                              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                <MapPin size={10} style={{ opacity: 0.7 }} />
+                                {[item.companyQuarter || item.quarter, item.companyCity].filter(Boolean).join(', ') || item.companyCity}
+                              </span>
+                            )}
+                            {item.lastVisitLocation && (
+                              <a
+                                href={`https://www.google.com/maps?q=${item.lastVisitLocation.latitude},${item.lastVisitLocation.longitude}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                title={lang === 'en' ? 'Verified GPS visit on site' : 'Visite terrain vérifiée par GPS'}
                                 style={{
                                   display: 'inline-flex',
                                   alignItems: 'center',
-                                  gap: 4,
-                                  fontWeight: 600,
-                                  color:
-                                    item.nextFollowUp < new Date().toISOString().slice(0, 10)
-                                      ? '#ef4444'
-                                      : '#60a5fa',
-                                  background:
-                                    item.nextFollowUp < new Date().toISOString().slice(0, 10)
-                                      ? 'rgba(239,68,68,0.08)'
-                                      : 'rgba(96,165,250,0.08)',
-                                  border:
-                                    item.nextFollowUp < new Date().toISOString().slice(0, 10)
-                                      ? '1px solid rgba(239,68,68,0.25)'
-                                      : '1px solid rgba(96,165,250,0.2)',
+                                  gap: 3.5,
+                                  fontWeight: 700,
+                                  color: '#10b981',
+                                  background: 'rgba(16, 185, 129, 0.1)',
+                                  border: '1px solid rgba(16, 185, 129, 0.3)',
                                   borderRadius: 4,
                                   padding: '1px 6px',
-                                  fontSize: 10.5
+                                  fontSize: 10.5,
+                                  textDecoration: 'none'
                                 }}
                               >
-                                <Calendar size={10} />
-                                {item.nextFollowUp}
-                              </span>
+                                <Navigation size={10} style={{ color: '#10b981' }} />
+                                <span>{lang === 'en' ? 'GPS Checked' : 'Visité (GPS)'}</span>
+                              </a>
                             )}
-                          {(() => {
-                            const aging = getPipelineAging(
-                              item.createdAt || (item as any).enteredAt,
-                              item.status,
-                              (item as any).assignedAt,
-                              (item as any).updatedAt,
-                              lang
-                            )
-                            return (
+                            {item.amount != null && item.amount > 0 && (
                               <span
-                                title={`${lang === 'en' ? 'Entered on' : 'Entré le'} ${aging.enteredDateFormatted} (${aging.relativeTimeFormatted})`}
+                                title={`${formatFullAmount(item.amount, lang)} ${currency || 'XAF'}`}
                                 style={{
                                   display: 'inline-flex',
                                   alignItems: 'center',
                                   gap: 4,
                                   fontWeight: 700,
-                                  color: aging.color,
-                                  background: aging.bgColor,
-                                  border: `1px solid ${aging.borderColor}`,
+                                  color: 'var(--pipeline-opportunity-color, #047857)',
+                                  background: 'var(--pipeline-fresh-bg, #ecfdf5)',
+                                  border:
+                                    '1px solid var(--pipeline-fresh-border, rgba(5, 150, 105, 0.25))',
+                                  borderRadius: 4,
+                                  padding: '1px 6px',
+                                  fontSize: 10.5
+                                }}
+                              >
+                                <Banknote size={11} />
+                                {formatCompactAmount(item.amount, lang)} {currency || 'XAF'}
+                              </span>
+                            )}
+                            {item.nextFollowUp &&
+                              item.status !== 'conclue' &&
+                              item.status !== 'conclusion' && (
+                                <span
+                                  style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: 4,
+                                    fontWeight: 600,
+                                    color:
+                                      item.nextFollowUp < new Date().toISOString().slice(0, 10)
+                                        ? '#ef4444'
+                                        : '#60a5fa',
+                                    background:
+                                      item.nextFollowUp < new Date().toISOString().slice(0, 10)
+                                        ? 'rgba(239,68,68,0.08)'
+                                        : 'rgba(96,165,250,0.08)',
+                                    border:
+                                      item.nextFollowUp < new Date().toISOString().slice(0, 10)
+                                        ? '1px solid rgba(239,68,68,0.25)'
+                                        : '1px solid rgba(96,165,250,0.2)',
+                                    borderRadius: 4,
+                                    padding: '1px 6px',
+                                    fontSize: 10.5
+                                  }}
+                                >
+                                  <Calendar size={10} />
+                                  {item.nextFollowUp}
+                                </span>
+                              )}
+                            {(() => {
+                              const aging = getPipelineAging(
+                                item.createdAt || (item as any).enteredAt,
+                                item.status,
+                                (item as any).assignedAt,
+                                (item as any).updatedAt,
+                                lang
+                              )
+                              return (
+                                <span
+                                  title={`${lang === 'en' ? 'Entered on' : 'Entré le'} ${aging.enteredDateFormatted} (${aging.relativeTimeFormatted})`}
+                                  style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: 4,
+                                    fontWeight: 700,
+                                    color: aging.color,
+                                    background: aging.bgColor,
+                                    border: `1px solid ${aging.borderColor}`,
+                                    borderRadius: 4,
+                                    padding: '1px 6px',
+                                    fontSize: 10.5
+                                  }}
+                                >
+                                  <Clock size={10} />
+                                  {aging.badgeText}
+                                </span>
+                              )
+                            })()}
+                            <DeadlineBadge
+                              deadline={item.assignmentDeadline}
+                              status={item.status}
+                              firstActionAt={item.firstActionAt}
+                            />
+                            {/* Badge Migration J+3 : deals conclus en M-1 en attente d'archivage clients */}
+                            {((item as any).pendingMigration === true || isPendingMigrationDeal(item)) && (
+                              <span
+                                title={
+                                  lang === 'en'
+                                    ? 'This deal was closed last month and will be automatically archived to the clients database on the 3rd of this month at 23:59.'
+                                    : 'Cette affaire a \u00e9t\u00e9 conclue le mois dernier et sera automatiquement archiv\u00e9e dans la base clients le 3 de ce mois \u00e0 23h59.'
+                                }
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: 4,
+                                  fontWeight: 700,
+                                  color: '#d97706',
+                                  background: 'rgba(217, 119, 6, 0.10)',
+                                  border: '1px solid rgba(217, 119, 6, 0.30)',
                                   borderRadius: 4,
                                   padding: '1px 6px',
                                   fontSize: 10.5
                                 }}
                               >
                                 <Clock size={10} />
-                                {aging.badgeText}
+                                {lang === 'en' ? 'Pending migration J+3' : 'Migration J+3'}
                               </span>
-                            )
-                          })()}
-                          <DeadlineBadge
-                            deadline={item.assignmentDeadline}
-                            status={item.status}
-                            firstActionAt={item.firstActionAt}
-                          />
-                          {/* Badge Migration J+3 : deals conclus en M-1 en attente d'archivage clients */}
-                          {((item as any).pendingMigration === true || isPendingMigrationDeal(item)) && (
-                            <span
-                              title={
-                                lang === 'en'
-                                  ? 'This deal was closed last month and will be automatically archived to the clients database on the 3rd of this month at 23:59.'
-                                  : 'Cette affaire a \u00e9t\u00e9 conclue le mois dernier et sera automatiquement archiv\u00e9e dans la base clients le 3 de ce mois \u00e0 23h59.'
-                              }
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: 4,
-                                fontWeight: 700,
-                                color: '#d97706',
-                                background: 'rgba(217, 119, 6, 0.10)',
-                                border: '1px solid rgba(217, 119, 6, 0.30)',
-                                borderRadius: 4,
-                                padding: '1px 6px',
-                                fontSize: 10.5
-                              }}
-                            >
-                              <Clock size={10} />
-                              {lang === 'en' ? 'Pending migration J+3' : 'Migration J+3'}
-                            </span>
-                          )}
-                          {(() => {
-                            const filtered = (item.previousAssignees || []).filter(
-                              (pa) =>
-                                !(managerUid && pa.userId === managerUid) &&
-                                !(item.assignedByName && pa.memberName === item.assignedByName)
-                            )
-                            return filtered.length > 0 ? (
-                              <span
-                                style={{
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: 4,
-                                  fontWeight: 600,
-                                  color: '#f87171',
-                                  background: 'rgba(239,68,68,0.08)',
-                                  border: '1px solid rgba(239,68,68,0.2)',
-                                  borderRadius: 4,
-                                  padding: '1px 6px',
-                                  fontSize: 10.5
-                                }}
-                              >
-                                <AlertTriangle size={10} />
-                                {lang === 'en' ? 'Already visited' : 'Déjà visité'}
-                              </span>
-                            ) : null
-                          })()}
-                        </div>
-                        {(item.notes ?? item.note) && (
-                          <div
-                            style={{
-                              fontSize: 11,
-                              color: '#fbbf24',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 4
-                            }}
-                          >
-                            <MessageSquare size={10} />
-                            {t('pipeline.hasNotes')}
+                            )}
+                            {(() => {
+                              const filtered = (item.previousAssignees || []).filter(
+                                (pa) =>
+                                  !(managerUid && pa.userId === managerUid) &&
+                                  !(item.assignedByName && pa.memberName === item.assignedByName)
+                              )
+                              return filtered.length > 0 ? (
+                                <span
+                                  style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: 4,
+                                    fontWeight: 600,
+                                    color: '#f87171',
+                                    background: 'rgba(239,68,68,0.08)',
+                                    border: '1px solid rgba(239,68,68,0.2)',
+                                    borderRadius: 4,
+                                    padding: '1px 6px',
+                                    fontSize: 10.5
+                                  }}
+                                >
+                                  <AlertTriangle size={10} />
+                                  {lang === 'en' ? 'Already visited' : 'Déjà visité'}
+                                </span>
+                              ) : null
+                            })()}
                           </div>
-                        )}
-                      </div>
-                      {isOrgView ? (
-                        (() => {
-                          const isSeniorLead =
-                            (item as any).managerOrgRole === 'senior_manager' ||
-                            Boolean(managerUid && (item as any).managerUid === managerUid)
-                          if (isSeniorLead) {
-                            return null
-                          }
-                          return (
+                          {(item.notes ?? item.note) && (
                             <div
                               style={{
                                 fontSize: 11,
-                                color: 'rgba(99,102,241,0.85)',
+                                color: '#fbbf24',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 4
+                              }}
+                            >
+                              <MessageSquare size={10} />
+                              {t('pipeline.hasNotes')}
+                            </div>
+                          )}
+                        </div>
+                        {isOrgView ? (
+                          (() => {
+                            const isSeniorLead =
+                              (item as any).managerOrgRole === 'senior_manager' ||
+                              Boolean(managerUid && (item as any).managerUid === managerUid)
+                            if (isSeniorLead) {
+                              return null
+                            }
+                            return (
+                              <div
+                                style={{
+                                  fontSize: 11,
+                                  color: 'rgba(99,102,241,0.85)',
+                                  marginTop: 3,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 4,
+                                  fontWeight: 500
+                                }}
+                              >
+                                <Users size={11} />
+                                <span>{lang === 'en' ? 'Supervisor' : 'Superviseur'} : {(item as any).managerName || (lang === 'en' ? 'Supervisor' : 'Superviseur')}</span>
+                                {item.assignedTo && item.assignedTo !== (item as any).managerUid && (
+                                  <span style={{ opacity: 0.75 }}>
+                                    → {resolveMemberLabel(item, members) ?? (lang === 'en' ? 'Sales Rep' : 'Commercial')}
+                                  </span>
+                                )}
+                              </div>
+                            )
+                          })()
+                        ) : (
+                          item.assignedTo && item.assignedTo !== managerUid && (
+                            <div
+                              style={{
+                                fontSize: 11,
+                                color: 'rgba(99,102,241,0.7)',
                                 marginTop: 3,
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: 4,
-                                fontWeight: 500
+                                gap: 4
                               }}
                             >
-                              <Users size={11} />
-                              <span>TM : {(item as any).managerName || 'Team Manager'}</span>
-                              {item.assignedTo && item.assignedTo !== (item as any).managerUid && (
-                                <span style={{ opacity: 0.75 }}>
-                                  → {resolveMemberLabel(item, members) ?? (lang === 'en' ? 'Sales Rep' : 'Commercial')}
-                                </span>
-                              )}
+                              <User size={10} />
+                              {resolveMemberLabel(item, members) ?? t('sidebar.member')}
                             </div>
                           )
-                        })()
-                      ) : (
-                        item.assignedTo && item.assignedTo !== managerUid && (
-                          <div
+                        )}
+                      </div>
+                      <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                        {/* Bouton archivage (TM uniquement, leads non conclus) */}
+                        {enableArchive && normalize(item.status) !== 'conclue' && (
+                          <button
+                            type="button"
+                            title={selectedForArchive.has(item.id) ? 'Désélectionner' : 'Sélectionner pour archiver'}
+                            onClick={(e) => { e.stopPropagation(); toggleArchiveSelect(item.id) }}
                             style={{
-                              fontSize: 11,
-                              color: 'rgba(99,102,241,0.7)',
-                              marginTop: 3,
-                              display: 'flex',
+                              flexShrink: 0,
+                              padding: '0 8px',
+                              minHeight: 28,
+                              borderRadius: 6,
+                              border: selectedForArchive.has(item.id)
+                                ? '1px solid #f59e0b'
+                                : '1px solid var(--border, rgba(255,255,255,0.1))',
+                              background: selectedForArchive.has(item.id)
+                                ? 'rgba(251,191,36,0.15)'
+                                : 'transparent',
+                              color: selectedForArchive.has(item.id) ? '#fbbf24' : 'var(--muted-foreground, #94a3b8)',
+                              cursor: 'pointer',
+                              display: 'inline-flex',
                               alignItems: 'center',
-                              gap: 4
+                              transition: 'all 120ms ease'
                             }}
                           >
-                            <User size={10} />
-                            {resolveMemberLabel(item, members) ?? t('sidebar.member')}
-                          </div>
-                        )
-                      )}
-                    </div>
-                    <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-                      {/* Bouton archivage (TM uniquement, leads non conclus) */}
-                      {enableArchive && normalize(item.status) !== 'conclue' && (
-                        <button
-                          type="button"
-                          title={selectedForArchive.has(item.id) ? 'Désélectionner' : 'Sélectionner pour archiver'}
-                          onClick={(e) => { e.stopPropagation(); toggleArchiveSelect(item.id) }}
-                          style={{
-                            flexShrink: 0,
-                            padding: '0 8px',
-                            minHeight: 28,
-                            borderRadius: 6,
-                            border: selectedForArchive.has(item.id)
-                              ? '1px solid #f59e0b'
-                              : '1px solid var(--border, rgba(255,255,255,0.1))',
-                            background: selectedForArchive.has(item.id)
-                              ? 'rgba(251,191,36,0.15)'
-                              : 'transparent',
-                            color: selectedForArchive.has(item.id) ? '#fbbf24' : 'var(--muted-foreground, #94a3b8)',
-                            cursor: 'pointer',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            transition: 'all 120ms ease'
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="21 8 21 21 3 21 3 8" />
+                              <rect x="1" y="3" width="22" height="5" />
+                              <line x1="10" y1="12" x2="14" y2="12" />
+                            </svg>
+                          </button>
+                        )}
+                        <Button
+                          size="sm"
+                          variant="danger"
+                          loading={deletingId === item.id}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setItemToDelete({ id: item.id, name: item.companyName })
                           }}
+                          style={{ flexShrink: 0, padding: '0 8px', minHeight: 28 }}
+                          title={lang === 'en' ? 'Delete' : 'Supprimer'}
                         >
-                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="21 8 21 21 3 21 3 8" />
-                            <rect x="1" y="3" width="22" height="5" />
-                            <line x1="10" y1="12" x2="14" y2="12" />
-                          </svg>
-                        </button>
-                      )}
-                      <Button
-                        size="sm"
-                        variant="danger"
-                        loading={deletingId === item.id}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setItemToDelete({ id: item.id, name: item.companyName })
-                        }}
-                        style={{ flexShrink: 0, padding: '0 8px', minHeight: 28 }}
-                        title={lang === 'en' ? 'Delete' : 'Supprimer'}
-                      >
-                        <Trash2 size={13} />
-                      </Button>
+                          <Trash2 size={13} />
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
 
-              {groupItems.length === 0 && (
-                <div
-                  style={{
-                    padding: '20px 14px',
-                    background: 'var(--secondary, #1e2a3b)',
-                    border: '1px dashed var(--border, rgba(255,255,255,0.1))',
-                    borderRadius: 10,
-                    textAlign: 'center',
-                    fontSize: 12,
-                    color: 'var(--muted-foreground, #94a3b8)'
-                  }}
-                >
-                  {t('pipeline.noProspect')}
-                </div>
-              )}
+                {groupItems.length === 0 && (
+                  <div
+                    style={{
+                      padding: '20px 14px',
+                      background: 'var(--secondary, #1e2a3b)',
+                      border: '1px dashed var(--border, rgba(255,255,255,0.1))',
+                      borderRadius: 10,
+                      textAlign: 'center',
+                      fontSize: 12,
+                      color: 'var(--muted-foreground, #94a3b8)'
+                    }}
+                  >
+                    {t('pipeline.noProspect')}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        )
-      })}
-    </div>
+          )
+        })}
+      </div>
 
-    <ConfirmDialog
-      isOpen={Boolean(itemToDelete)}
-      title={t('pipeline.confirmDeleteTitle')}
-      description={t('pipeline.confirmDeleteDesc', {
-        companyName: itemToDelete?.name || ''
-      })}
-      confirmText={lang === 'en' ? 'Delete' : 'Supprimer'}
-      cancelText={lang === 'en' ? 'Cancel' : 'Annuler'}
-      variant="danger"
-      isLoading={Boolean(deletingId && itemToDelete && deletingId === itemToDelete.id)}
-      onConfirm={confirmDelete}
-      onCancel={() => {
-        if (!deletingId) setItemToDelete(null)
-      }}
-    />
+      <ConfirmDialog
+        isOpen={Boolean(itemToDelete)}
+        title={t('pipeline.confirmDeleteTitle')}
+        description={t('pipeline.confirmDeleteDesc', {
+          companyName: itemToDelete?.name || ''
+        })}
+        confirmText={lang === 'en' ? 'Delete' : 'Supprimer'}
+        cancelText={lang === 'en' ? 'Cancel' : 'Annuler'}
+        variant="danger"
+        isLoading={Boolean(deletingId && itemToDelete && deletingId === itemToDelete.id)}
+        onConfirm={confirmDelete}
+        onCancel={() => {
+          if (!deletingId) setItemToDelete(null)
+        }}
+      />
 
-    <ConfirmDialog
-      isOpen={isTransferModalOpen}
-      title={t('pipeline.transferToClientsConfirmTitle')}
-      description={t('pipeline.transferToClientsConfirmMsg', {
-        count: transferringItems?.length ?? 0
-      })}
-      confirmText={lang === 'en' ? 'Confirm Transfer' : 'Confirmer le transfert'}
-      cancelText={lang === 'en' ? 'Cancel' : 'Annuler'}
-      variant="info"
-      isLoading={transferMutation.isPending}
-      onConfirm={handleConfirmTransfer}
-      onCancel={() => {
-        if (!transferMutation.isPending) {
-          setIsTransferModalOpen(false)
-          setTransferringItems(null)
-        }
-      }}
-    />
+      <ConfirmDialog
+        isOpen={isTransferModalOpen}
+        title={t('pipeline.transferToClientsConfirmTitle')}
+        description={t('pipeline.transferToClientsConfirmMsg', {
+          count: transferringItems?.length ?? 0
+        })}
+        confirmText={lang === 'en' ? 'Confirm Transfer' : 'Confirmer le transfert'}
+        cancelText={lang === 'en' ? 'Cancel' : 'Annuler'}
+        variant="info"
+        isLoading={transferMutation.isPending}
+        onConfirm={handleConfirmTransfer}
+        onCancel={() => {
+          if (!transferMutation.isPending) {
+            setIsTransferModalOpen(false)
+            setTransferringItems(null)
+          }
+        }}
+      />
     </>
   )
 }

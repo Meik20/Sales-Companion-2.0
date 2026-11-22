@@ -617,7 +617,7 @@ export function RegisterForm() {
                   {orgInviteInfo.type === 'senior_manager' ? (
                     <>
                       <Crown size={15} className="text-violet-600 dark:text-violet-400 shrink-0" />
-                      <span>Senior Manager</span>
+                      <span>Coordinateur</span>
                     </>
                   ) : orgInviteInfo.type === 'executive' ? (
                     <>
@@ -627,7 +627,7 @@ export function RegisterForm() {
                   ) : (
                     <>
                       <Users2 size={15} className="text-primary shrink-0" />
-                      <span>Team Manager</span>
+                      <span>Superviseur</span>
                     </>
                   )}
                 </div>
@@ -735,7 +735,7 @@ export function RegisterForm() {
               required={Boolean(orgInviteInfo?.type === 'senior_manager')}
               hint={
                 orgInviteInfo?.type === 'team_manager'
-                  ? 'Hérité automatiquement de votre Senior Manager'
+                  ? 'Hérité automatiquement de votre Coordinateur'
                   : orgInviteInfo?.type === 'executive'
                     ? 'Poste de direction générale / supervision stratégique'
                     : orgInviteInfo?.type === 'senior_manager'
@@ -783,8 +783,8 @@ export function RegisterForm() {
               }
               hint={
                 lang === 'en'
-                  ? 'Optional — Provided by your Senior Manager via email invitation'
-                  : "Optionnel — Fourni par votre Senior Manager via lien ou email d'invitation"
+                  ? 'Optional — Provided by your Coordinator via email invitation'
+                  : "Optionnel — Fourni par votre Coordinateur via lien ou email d'invitation"
               }
             >
               <div className="flex flex-col gap-2">
@@ -818,14 +818,14 @@ export function RegisterForm() {
                       </p>
                       {joinOrgInfo.seniorManagerName && (
                         <p className="mt-0.5 text-green-400/80">
-                          {lang === 'en' ? 'Senior Manager:' : 'Senior Manager :'}{' '}
+                          {lang === 'en' ? 'Coordinator:' : 'Coordinateur :'}{' '}
                           {joinOrgInfo.seniorManagerName}
                         </p>
                       )}
                       <p className="mt-0.5 text-muted-foreground">
                         {lang === 'en'
-                          ? 'You will join this organisation as a Team Manager.'
-                          : "Vous rejoindrez cette organisation en tant que Manager d'équipe."}
+                          ? 'You will join this organisation as a Supervisor.'
+                          : 'Vous rejoindrez cette organisation en tant que Superviseur.'}
                       </p>
                     </div>
                   </div>

@@ -1096,7 +1096,7 @@ export const en = {
       requestSmRevocationBtn: 'Request via Support',
       smRevocationModalTitle: 'Coordinator Revocation Request',
       smRevocationPolicyNotice:
-        'In accordance with SALES COMPANION 2.0 enterprise governance policies, revoking a Senior Manager is subject to an investigation by our Support team and formal confirmation with company executives.',
+        'In accordance with SALES COMPANION 2.0 enterprise governance policies, revoking a Coordinator is subject to an investigation by our Support team and formal confirmation with company executives.',
       smRevocationReasonLabel: 'Official reason for request (departure, reorganization, etc.)',
       smRevocationReasonPlaceholder: 'Describe in detail the context justifying the termination of this Coordinator...',
       smRevocationExecTitle: 'Executive / Legal Representative Contact (for verification)',
@@ -1150,7 +1150,7 @@ export const en = {
     selected: 'selected',
     assignSelection: 'Assign selection',
     smImportsSubtitle:
-      'Select your imported opportunities and transfer them to Team Managers in your segment so they can assign them to their field reps.',
+      'Select your imported opportunities and transfer them to Supervisors in your segment so they can assign them to their field reps.',
     colTeamManager: 'Supervisor',
     allProspects: 'All opportunities',
     untransferred: 'Not transferred',

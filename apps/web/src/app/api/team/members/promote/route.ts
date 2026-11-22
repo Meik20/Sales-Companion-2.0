@@ -145,7 +145,9 @@ export async function POST(request: NextRequest) {
       pipelineUserSnap,
       pipelineAssignedSnap,
       assignmentsSnap,
+      assignmentsUidSnap,
       assignmentsAssignedSnap,
+      sourceAssignmentsSnap,
       accessesOrgSnap,
       accessesUserSnap,
       accessesActSnap,
@@ -159,7 +161,11 @@ export async function POST(request: NextRequest) {
       adminDb.collection('pipeline').where('assignedTo', '==', memberUid).get(),
       // Toutes les assignations actives de ce commercial (à nettoyer lors de la promotion)
       adminDb.collection('team_assignments').where('memberId', '==', memberUid).get(),
+      adminDb.collection('team_assignments').where('memberUid', '==', memberUid).get(),
       adminDb.collection('team_assignments').where('assignedTo', '==', memberUid).get(),
+      sourceManagerUid
+        ? adminDb.collection('team_assignments').where('managerUid', '==', sourceManagerUid).get()
+        : Promise.resolve({ docs: [] as FirebaseFirestore.DocumentSnapshot[] }),
       // Fiches d'accès team_accesses du commercial (recherche par orgCode, UID, email, manager)
       adminDb.collection('team_accesses').where('orgCode', '==', orgCode).get(),
       adminDb.collection('team_accesses').where('firebaseUid', '==', memberUid).get(),
@@ -185,8 +191,26 @@ export async function POST(request: NextRequest) {
     }
 
     const allAssignmentDocsMap = new Map<string, FirebaseFirestore.DocumentSnapshot>()
-    for (const d of [...assignmentsSnap.docs, ...assignmentsAssignedSnap.docs]) {
+    for (const d of [
+      ...assignmentsSnap.docs,
+      ...assignmentsUidSnap.docs,
+      ...assignmentsAssignedSnap.docs
+    ]) {
       allAssignmentDocsMap.set(d.id, d)
+    }
+
+    // Inclure aussi les assignations de l'ancien manager qui référencent ce membre par nom
+    const memberNameLower = memberName ? memberName.toLowerCase().trim() : null
+    if (memberNameLower) {
+      sourceAssignmentsSnap.docs.forEach((d) => {
+        const ad = d.data()
+        if (
+          ad?.memberName &&
+          String(ad.memberName).toLowerCase().trim() === memberNameLower
+        ) {
+          allAssignmentDocsMap.set(d.id, d)
+        }
+      })
     }
 
     for (const [, aDoc] of allAssignmentDocsMap) {
@@ -309,11 +333,21 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // C. Mettre à jour les opportunités actives (le nouveau TM devient leur manager responsable)
+    // C. Mettre à jour les opportunités actives (le nouveau Superviseur devient leur manager responsable)
+    // RÈGLE MÉTIER INVIOLABLE (AGENTS.md & Directive Utilisateur) :
+    // Lors d'une promotion, toutes les opportunités emportées par le promu passent automatiquement
+    // au statut "NON ASSIGNÉES" (assignedTo = delete(), memberName = delete(), etc.), car elles constituent
+    // désormais le portefeuille managérial propre du nouveau Superviseur, en attente d'attribution à ses futurs commerciaux.
     for (const [, pDoc] of pipelineDocsMap) {
       batch.update(pDoc.ref, {
-        managerUid: memberUid, // Le nouveau TM est désormais le manager responsable de ses propres affaires en cours
+        managerUid: memberUid, // Le nouveau Superviseur est désormais le manager responsable
+        managerName: memberName, // Résolution immédiate du nom du Superviseur
         previousManagerUid: sourceManagerUid,
+        assignedTo: FieldValue.delete(),
+        assignedName: FieldValue.delete(),
+        assignedMemberName: FieldValue.delete(),
+        memberName: FieldValue.delete(),
+        assignedAt: FieldValue.delete(),
         promotedMemberAt: now,
         updatedAt: now
       })
