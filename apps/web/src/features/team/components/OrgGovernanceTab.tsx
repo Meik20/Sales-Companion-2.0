@@ -256,7 +256,8 @@ export function OrgGovernanceTab() {
     setGeneratingInvite('executive')
     try {
       const token = await user?.getIdToken()
-      const chosenSegment = executiveSegmentInput.trim() || orgData?.segment || user?.segment || 'COMMERCIAL'
+      // RÈGLE ARCHITECTURALE : segment exclusivement saisi par l'utilisateur dans le champ dédié — jamais de fallback hardcodé
+      const chosenSegment = executiveSegmentInput.trim() || null
       const res = await fetch('/api/team/org/invite-executive', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -274,7 +275,7 @@ export function OrgGovernanceTab() {
       pushToast({
         type: 'success',
         title: `Lien ${labelDisplay} généré !`,
-        description: `Le lien d'invitation pour ${labelDisplay} (Segment : ${chosenSegment}) a été copié dans le presse-papier.`
+        description: `Le lien d'invitation pour ${labelDisplay}${chosenSegment ? ` (Segment : ${chosenSegment})` : ''} a été copié dans le presse-papier.`
       })
     } catch (err: any) {
       pushToast({
@@ -741,8 +742,8 @@ export function OrgGovernanceTab() {
                           </label>
                           <input
                             type="text"
-                            placeholder={`ex: ${orgData?.segment || user?.segment || 'COMMERCIAL'}`}
-                            value={executiveSegmentInput || orgData?.segment || user?.segment || 'COMMERCIAL'}
+                            placeholder="ex: Finance, Direction Générale, Région Nord..."
+                            value={executiveSegmentInput}
                             onChange={(e) => setExecutiveSegmentInput(e.target.value)}
                             maxLength={50}
                             className="w-full rounded-lg border border-blue-300/50 dark:border-blue-500/30 bg-white dark:bg-blue-950/20 px-3 py-2 text-[12.5px] text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
