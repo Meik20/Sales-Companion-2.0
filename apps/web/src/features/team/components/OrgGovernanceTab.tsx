@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { DataCard, ConfirmDialog } from '@/components/ui/index'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -105,8 +105,43 @@ export function OrgGovernanceTab() {
   const [executiveCustomLabel, setExecutiveCustomLabel] = useState('')
   // Segment personnalisé pour le nouveau Coordinateur
   const [smSegmentInput, setSmSegmentInput] = useState('')
-  // Segment d'affectation pour le Responsable Exécutif (défaut sur segment actuel)
-  const [executiveSegmentInput, setExecutiveSegmentInput] = useState('')
+  // Segment d'affectation pour le Responsable Exécutif (défaut sur ALL = Tous les segments)
+  const [executiveSegmentInput, setExecutiveSegmentInput] = useState('ALL')
+
+  // Liste dynamique des segments des Coordinateurs existants dans l'organisation
+  const coordinatorSegments = useMemo(() => {
+    const list: { segment: string; coordinatorName: string; isCurrent: boolean }[] = []
+    const seenSegments = new Set<string>()
+
+    // Inclure le segment du Coordinateur connecté s'il existe
+    const currentSmSegment = orgData?.segment || user?.segment
+    if (currentSmSegment?.trim()) {
+      const clean = currentSmSegment.trim()
+      seenSegments.add(clean.toLowerCase())
+      list.push({
+        segment: clean,
+        coordinatorName: user?.name || user?.email || (lang === 'en' ? 'Me' : 'Moi-même'),
+        isCurrent: true
+      })
+    }
+
+    // Parcourir les managers pour trouver les autres Coordinateurs (isSenior)
+    (orgData?.managers || []).forEach((m) => {
+      if (m.isSenior && m.segment?.trim()) {
+        const clean = m.segment.trim()
+        if (!seenSegments.has(clean.toLowerCase())) {
+          seenSegments.add(clean.toLowerCase())
+          list.push({
+            segment: clean,
+            coordinatorName: m.name || m.email,
+            isCurrent: m.isCurrent
+          })
+        }
+      }
+    })
+
+    return list
+  }, [orgData?.segment, orgData?.managers, user?.segment, user?.name, user?.email, lang])
 
   // Prospect selection & transfer tool
   const [seniorProspects, setSeniorProspects] = useState<SeniorProspect[]>([])
@@ -257,8 +292,11 @@ export function OrgGovernanceTab() {
     setGeneratingInvite('executive')
     try {
       const token = await user?.getIdToken()
-      // RÈGLE ARCHITECTURALE : segment exclusivement saisi par l'utilisateur dans le champ dédié — jamais de fallback hardcodé
-      const chosenSegment = executiveSegmentInput.trim() || null
+      // RÈGLE ARCHITECTURALE : Si 'ALL' ou non spécifié, le segment vaut null (Supervision Globale transverse)
+      const chosenSegment =
+        !executiveSegmentInput || executiveSegmentInput === 'ALL'
+          ? null
+          : executiveSegmentInput.trim()
       const res = await fetch('/api/team/org/invite-executive', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -273,10 +311,13 @@ export function OrgGovernanceTab() {
       setCopiedExecutiveInvite(true)
       setTimeout(() => setCopiedExecutiveInvite(false), 2500)
       const labelDisplay = executiveCustomLabel.trim() || 'Direction Générale'
+      const scopeDisplay = chosenSegment
+        ? ` (Segment : ${chosenSegment})`
+        : ' (Supervision Globale — Tous les segments)'
       pushToast({
         type: 'success',
         title: `Lien ${labelDisplay} généré !`,
-        description: `Le lien d'invitation pour ${labelDisplay}${chosenSegment ? ` (Segment : ${chosenSegment})` : ''} a été copié dans le presse-papier.`
+        description: `Le lien d'invitation pour ${labelDisplay}${scopeDisplay} a été copié dans le presse-papier.`
       })
     } catch (err: any) {
       pushToast({
@@ -741,24 +782,42 @@ export function OrgGovernanceTab() {
                             className="w-full rounded-lg border border-blue-300/50 dark:border-blue-500/30 bg-white dark:bg-blue-950/20 px-3 py-2 text-[12.5px] text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
                           />
                         </div>
-                        {/* Champ : Segment d'affectation */}
+                        {/* Champ : Segment d'affectation (Dropdown dynamique des Coordinateurs existants) */}
                         <div>
                           <label className="block text-[11px] font-semibold text-muted-foreground mb-1">
                             Segment d'affectation
                           </label>
-                          <input
-                            type="text"
-                            placeholder="ex: Finance, Direction Générale, Région Nord..."
+                          <select
                             value={executiveSegmentInput}
                             onChange={(e) => setExecutiveSegmentInput(e.target.value)}
-                            maxLength={50}
-                            className="w-full rounded-lg border border-blue-300/50 dark:border-blue-500/30 bg-white dark:bg-blue-950/20 px-3 py-2 text-[12.5px] text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
-                          />
+                            className="w-full rounded-lg border border-blue-300/50 dark:border-blue-500/30 bg-white dark:bg-blue-950/20 px-3 py-2 text-[12.5px] text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/40 cursor-pointer"
+                          >
+                            <option value="ALL">
+                              {lang === 'en'
+                                ? 'All organization segments (Global Oversight)'
+                                : 'Tous les segments de l’organisation (Supervision Globale)'}
+                            </option>
+                            {coordinatorSegments.map((c) => (
+                              <option key={c.segment} value={c.segment}>
+                                {lang === 'en'
+                                  ? `Segment: ${c.segment} (Coordinator: ${c.coordinatorName})`
+                                  : `Segment : ${c.segment} (Coordinateur : ${c.coordinatorName})`}
+                              </option>
+                            ))}
+                          </select>
                         </div>
                       </div>
-                      {executiveCustomLabel.trim() && (
+                      {executiveSegmentInput === 'ALL' ? (
                         <p className="mt-1.5 text-[11px] text-blue-700 dark:text-blue-300">
-                          Ce titre apparaîtra dans la bannière d'inscription et comme badge de rôle dans la sidebar.
+                          {lang === 'en'
+                            ? 'This executive will have global read-only oversight across all coordinators and segments.'
+                            : 'Cet exécutif disposera d’une visibilité transverse en lecture seule sur tous les coordinateurs et segments.'}
+                        </p>
+                      ) : (
+                        <p className="mt-1.5 text-[11px] text-blue-700 dark:text-blue-300">
+                          {lang === 'en'
+                            ? `This executive will be restricted to the "${executiveSegmentInput}" segment.`
+                            : `Cet exécutif sera restreint à la supervision du segment « ${executiveSegmentInput} ».`}
                         </p>
                       )}
                     </div>
