@@ -81,28 +81,31 @@ export async function POST(request: NextRequest) {
 
     // RÈGLE MÉTIER (AGENTS.md) :
     // - Les utilisateurs non-managers (independent, member, support_agent) sont activés directement.
-    // - Les Team Managers (role === 'manager' && orgRole === 'team_manager') rattachés à un Senior Manager
-    //   ayant un forfait actif payant passent directement au statut actif et héritent de son plan.
+    // - Les Team Managers (orgRole === 'team_manager') et Executives (orgRole === 'executive') rattachés à une organisation
+    //   ayant un Senior Manager au forfait actif payant passent directement au statut actif et héritent de son plan.
     // - Les Senior Managers (orgRole === 'senior_manager') et managers indépendants gèrent leur propre plan
     //   et ne sont activés qu'après souscription et validation de paiement.
     const isManager = userData.role === 'manager'
+    const isExecutive = isManager && userData.orgRole === 'executive'
     let isTeamManager = isManager && userData.orgRole === 'team_manager'
     let smUid = userData.seniorManagerUid || null
-    let shouldActivateTeamManager = false
+    let shouldActivateManager = false
     let inheritedPlanData: Record<string, unknown> = {}
 
     // Vérification de sécurité / fallback si orgRole n'est pas encore sur users/{uid}
-    if (isManager && !isTeamManager) {
+    if (isManager && !isTeamManager && !isExecutive) {
       try {
         const inviteQuery = await adminDb
           .collection('orgInvites')
           .where('usedByUid', '==', uid)
-          .where('type', '==', 'team_manager')
+          .where('type', 'in', ['team_manager', 'executive'])
           .limit(1)
           .get()
         if (!inviteQuery.empty) {
-          isTeamManager = true
           const invData = inviteQuery.docs[0]?.data()
+          if (invData?.type === 'team_manager') {
+            isTeamManager = true
+          }
           smUid = invData?.seniorManagerUid || invData?.createdByUid || smUid
         }
       } catch (err) {
@@ -110,7 +113,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (isTeamManager) {
+    if (isTeamManager || isExecutive) {
       if (!smUid && userData.orgCode) {
         try {
           const orgSnap = await adminDb.collection('organisations').doc(userData.orgCode).get()
@@ -126,10 +129,10 @@ export async function POST(request: NextRequest) {
           if (smDoc.exists) {
             const smData = smDoc.data()
             if (hasActivePaidManagerAccess(smData)) {
-              shouldActivateTeamManager = true
+              shouldActivateManager = true
               const plan = smData?.plan || 'enterprise'
               inheritedPlanData = {
-                orgRole: 'team_manager',
+                orgRole: isExecutive ? 'executive' : 'team_manager',
                 seniorManagerUid: smUid,
                 plan,
                 dailyLimit: PLAN_LIMITS[plan as keyof typeof PLAN_LIMITS] ?? 50,
@@ -146,7 +149,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const shouldActivateNow = !isManager || shouldActivateTeamManager
+    const shouldActivateNow = !isManager || shouldActivateManager
 
     await userRef.update({
       emailVerificationPending: false,
@@ -164,8 +167,8 @@ export async function POST(request: NextRequest) {
 
     // ✅ Notification admin quand un manager autonome ou SM vérifie son email
     // (il va bientôt soumettre un paiement — l'admin peut anticiper).
-    // Les Team Managers déjà activés par le forfait de leur SM n'ont pas besoin de notification d'attente de paiement.
-    if (isManager && !shouldActivateTeamManager) {
+    // Les Team Managers ou Executives déjà activés par le forfait de leur SM n'ont pas besoin de notification d'attente de paiement.
+    if (isManager && !shouldActivateManager) {
       await createAdminNotification({
         type: 'new_manager',
         title: 'Nouveau Manager inscrit',

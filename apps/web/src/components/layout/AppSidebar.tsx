@@ -581,19 +581,21 @@ export function AppSidebar({
           <SectionLabel collapsed={isNavCollapsed}>{t('sidebar.team')}</SectionLabel>
           {user.orgRole === 'senior_manager' || user.orgRole === 'executive' ? (
             <>
-              {/* Senior Manager & Direction : Gestion de l'Organisation + Dashboard Organisation */}
-              <SidebarLink
-                href={routes.team}
-                label={t('sidebar.orgManagement')}
-                icon={Building2}
-                collapsed={isNavCollapsed}
-                onClick={(e) => {
-                  if (user.plan === 'free') {
-                    e.preventDefault()
-                    router.push('/upgrade?redirect=' + encodeURIComponent(routes.team))
-                  }
-                }}
-              />
+              {/* Senior Manager : Gestion de l'Organisation (exclu pour la Direction/Executive qui a un rôle purement stratégique) */}
+              {user.orgRole !== 'executive' && (
+                <SidebarLink
+                  href={routes.team}
+                  label={t('sidebar.orgManagement')}
+                  icon={Building2}
+                  collapsed={isNavCollapsed}
+                  onClick={(e) => {
+                    if (user.plan === 'free') {
+                      e.preventDefault()
+                      router.push('/upgrade?redirect=' + encodeURIComponent(routes.team))
+                    }
+                  }}
+                />
+              )}
               <SidebarLink
                 href={routes.dashboard}
                 label={t('sidebar.orgDashboard')}

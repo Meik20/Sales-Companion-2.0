@@ -113,11 +113,21 @@ export async function fetchOrgConsolidatedPipeline(
   }
 
   // 3. Appliquer le filtre manager si demandé
-  const targetManagerUids = filterManagerUid
-    ? orgManagerUids.includes(filterManagerUid)
-      ? [filterManagerUid]
-      : []
-    : orgManagerUids
+  // Si le manager ciblé est un Senior Manager, on inclut le SM et tous les Team Managers rattachés à son segment.
+  let targetManagerUids = orgManagerUids
+  if (filterManagerUid) {
+    const targetMgr = managersMap[filterManagerUid]
+    if (targetMgr && targetMgr.orgRole === 'senior_manager') {
+      const subordinateTmUids = filteredManagersDocs
+        .filter((d) => d.id === filterManagerUid || d.data().seniorManagerUid === filterManagerUid)
+        .map((d) => d.id)
+      targetManagerUids = subordinateTmUids.length > 0 ? subordinateTmUids : [filterManagerUid]
+    } else if (orgManagerUids.includes(filterManagerUid)) {
+      targetManagerUids = [filterManagerUid]
+    } else {
+      targetManagerUids = []
+    }
+  }
 
   if (targetManagerUids.length === 0) {
     throw new Error('Manager non trouvé dans cette organisation')

@@ -483,634 +483,630 @@ export function OrgGovernanceTab() {
 
   return (
     <>
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      {/* ── 1. Carte Identité & Gouvernance ────────────────────────── */}
-      <DataCard
-        title={t('team.orgGovernance.cardTitle')}
-        subtitle={t('team.orgGovernance.cardTooltip')}
-      >
-        <div className="flex flex-col gap-6">
-          {/* Entreprise & Badges */}
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-6">
-            <div>
-              <span className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">
-                {t('team.orgGovernance.companyLabel')}
-              </span>
-              <h4 className="mt-1 text-[17px] font-bold text-foreground flex items-center gap-2">
-                <Building2 size={18} className="text-primary" />
-                {orgData?.companyName || user?.companyName || user?.company || t('team.orgGovernance.defaultOrgName')}
-              </h4>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-300 dark:border-violet-500/30 bg-violet-100 dark:bg-violet-500/15 px-3 py-1 text-[12px] font-bold text-violet-800 dark:text-violet-300 shadow-xs">
-                <Crown size={12} className="text-violet-700 dark:text-violet-400" />
-                Senior Manager
-              </span>
-              {orgData?.isVerified || Boolean(user?.niu) ? (
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300 dark:border-emerald-500/30 bg-emerald-100 dark:bg-emerald-500/15 px-3 py-1 text-[12px] font-bold text-emerald-800 dark:text-emerald-300 shadow-xs">
-                  <ShieldCheck size={14} className="text-emerald-700 dark:text-emerald-400" />
-                  {t('team.orgGovernance.verifiedBadge')}
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-300 dark:border-amber-500/30 bg-amber-100 dark:bg-amber-500/15 px-3 py-1 text-[12px] font-bold text-amber-900 dark:text-amber-300 shadow-xs">
-                  <ShieldAlert size={14} className="text-amber-700 dark:text-amber-400" />
-                  {t('team.orgGovernance.standardBadge')}
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Segment Commercial Actuel & Édition */}
-          <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
-            <div className="flex flex-wrap items-center justify-between gap-4">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+        {/* ── 1. Carte Identité & Gouvernance ────────────────────────── */}
+        <DataCard
+          title={t('team.orgGovernance.cardTitle')}
+          subtitle={t('team.orgGovernance.cardTooltip')}
+        >
+          <div className="flex flex-col gap-6">
+            {/* Entreprise & Badges */}
+            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-6">
               <div>
-                <div className="text-[12px] font-semibold text-muted-foreground flex items-center gap-1.5">
-                  <Tag size={13} className="text-primary shrink-0" /> {t('team.orgGovernance.segmentLabel')}
+                <span className="text-[12px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {t('team.orgGovernance.companyLabel')}
+                </span>
+                <h4 className="mt-1 text-[17px] font-bold text-foreground flex items-center gap-2">
+                  <Building2 size={18} className="text-primary" />
+                  {orgData?.companyName || user?.companyName || user?.company || t('team.orgGovernance.defaultOrgName')}
+                </h4>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-300 dark:border-violet-500/30 bg-violet-100 dark:bg-violet-500/15 px-3 py-1 text-[12px] font-bold text-violet-800 dark:text-violet-300 shadow-xs">
+                  <Crown size={12} className="text-violet-700 dark:text-violet-400" />
+                  Senior Manager
+                </span>
+                {orgData?.isVerified || Boolean(user?.niu) ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300 dark:border-emerald-500/30 bg-emerald-100 dark:bg-emerald-500/15 px-3 py-1 text-[12px] font-bold text-emerald-800 dark:text-emerald-300 shadow-xs">
+                    <ShieldCheck size={14} className="text-emerald-700 dark:text-emerald-400" />
+                    {t('team.orgGovernance.verifiedBadge')}
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-300 dark:border-amber-500/30 bg-amber-100 dark:bg-amber-500/15 px-3 py-1 text-[12px] font-bold text-amber-900 dark:text-amber-300 shadow-xs">
+                    <ShieldAlert size={14} className="text-amber-700 dark:text-amber-400" />
+                    {t('team.orgGovernance.standardBadge')}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Segment Commercial Actuel & Édition */}
+            <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <div className="text-[12px] font-semibold text-muted-foreground flex items-center gap-1.5">
+                    <Tag size={13} className="text-primary shrink-0" /> {t('team.orgGovernance.segmentLabel')}
+                  </div>
+                  {!editingSegment ? (
+                    <div className="mt-1 flex items-center gap-2">
+                      <span className="text-[16px] font-bold text-foreground">
+                        {orgData?.segment || user?.segment || t('team.orgGovernance.segmentDefault')}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSegmentInput(orgData?.segment || user?.segment || '')
+                          setEditingSegment(true)
+                        }}
+                        className="ml-2 text-[12px] text-primary hover:underline font-semibold cursor-pointer"
+                      >
+                        {t('team.orgGovernance.editSegment')}
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="mt-2 flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={segmentInput}
+                        onChange={(e) => setSegmentInput(e.target.value)}
+                        placeholder={t('team.orgGovernance.segmentPlaceholder')}
+                        className="h-8 rounded-lg border border-border bg-card px-2.5 text-[13px] text-foreground focus:border-primary focus:outline-none"
+                      />
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="primary"
+                        loading={segmentSaving}
+                        onClick={() => void handleUpdateSegment()}
+                      >
+                        {t('team.orgGovernance.saveSegment')}
+                      </Button>
+                      <button
+                        type="button"
+                        onClick={() => setEditingSegment(false)}
+                        className="text-[12px] text-muted-foreground hover:text-foreground cursor-pointer px-2"
+                      >
+                        {t('team.orgGovernance.cancelSegment')}
+                      </button>
+                    </div>
+                  )}
                 </div>
-                {!editingSegment ? (
-                  <div className="mt-1 flex items-center gap-2">
-                    <span className="text-[16px] font-bold text-foreground">
-                      {orgData?.segment || user?.segment || t('team.orgGovernance.segmentDefault')}
-                    </span>
+                <InfoTooltip
+                  placement="left"
+                  content={t('team.orgGovernance.segmentTooltip')}
+                />
+              </div>
+            </div>
+
+            {/* Code Organisation unique + Actions d'invitation */}
+            <div className="rounded-xl border border-border bg-secondary/30 p-5 flex flex-col gap-4">
+              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border/50 pb-4">
+                <div>
+                  <div className="flex items-center gap-1.5 text-[12px] font-semibold text-muted-foreground">
+                    <span>{t('team.orgGovernance.orgCodeLabel')}</span>
+                    <InfoTooltip
+                      placement="top"
+                      content={t('team.orgGovernance.orgCodeTooltip')}
+                    />
+                  </div>
+                  <div className="mt-1.5 flex items-center gap-2.5">
+                    <code className="rounded-md bg-primary/10 px-3 py-1 font-mono text-[16px] font-extrabold text-primary">
+                      {orgData?.orgCode || user?.orgCode || t('team.orgGovernance.orgCodeLoading')}
+                    </code>
                     <button
                       type="button"
-                      onClick={() => {
-                        setSegmentInput(orgData?.segment || user?.segment || '')
-                        setEditingSegment(true)
-                      }}
-                      className="ml-2 text-[12px] text-primary hover:underline font-semibold cursor-pointer"
+                      onClick={() => void copyOrgCode()}
+                      className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1 text-[12px] font-semibold text-foreground transition-colors hover:bg-secondary"
                     >
-                      {t('team.orgGovernance.editSegment')}
+                      {copiedCode ? (
+                        <Check size={13} className="text-green-400" />
+                      ) : (
+                        <Copy size={13} />
+                      )}
+                      {copiedCode ? t('team.orgGovernance.codeCopied') : t('team.orgGovernance.copyCode')}
                     </button>
                   </div>
-                ) : (
-                  <div className="mt-2 flex items-center gap-2">
-                    <input
-                      type="text"
-                      value={segmentInput}
-                      onChange={(e) => setSegmentInput(e.target.value)}
-                      placeholder={t('team.orgGovernance.segmentPlaceholder')}
-                      className="h-8 rounded-lg border border-border bg-card px-2.5 text-[13px] text-foreground focus:border-primary focus:outline-none"
+                </div>
+              </div>
+
+              {/* Deux boutons d'invitations distincts */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
+                {/* 1. Inviter un Team Manager dans mon segment */}
+                <div className="flex flex-col justify-between rounded-xl border border-border bg-card/60 p-4">
+                  <div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-bold text-[13.5px] text-foreground flex items-center gap-2">
+                        <Users2 size={16} className="text-primary shrink-0" />
+                        <span>{t('team.orgGovernance.tmInviteTitle')}</span>
+                      </span>
+                      <span className="text-[11px] font-bold text-primary bg-primary/10 border border-primary/25 px-2 py-0.5 rounded-md">
+                        {t('team.orgGovernance.tmSegmentBadge').replace('{segment}', orgData?.segment || user?.segment || t('team.orgGovernance.segmentDefault'))}
+                      </span>
+                    </div>
+                    <InfoTooltip
+                      placement="top"
+                      content={t('team.orgGovernance.tmInviteTooltip')}
                     />
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="primary"
-                      loading={segmentSaving}
-                      onClick={() => void handleUpdateSegment()}
-                    >
-                      {t('team.orgGovernance.saveSegment')}
-                    </Button>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => void generateAndCopyTmInvite()}
+                    disabled={generatingInvite === 'tm'}
+                    className="mt-3 inline-flex items-center justify-center gap-2 rounded-lg border border-primary/40 bg-primary/10 dark:bg-primary/20 px-3 py-2 text-[12.5px] font-bold text-primary transition-colors hover:bg-primary/20 dark:hover:bg-primary/30 cursor-pointer disabled:opacity-50 shadow-xs"
+                  >
+                    {copiedTmInvite ? <Check size={14} className="text-emerald-600 dark:text-emerald-400" /> : <Link2 size={14} className="shrink-0" />}
+                    {copiedTmInvite ? t('team.orgGovernance.tmLinkCopied') : generatingInvite === 'tm' ? t('team.orgGovernance.generating') : t('team.orgGovernance.copyTmLink')}
+                  </button>
+                </div>
+
+                {/* 2. Inviter un Senior Manager pour un nouveau segment */}
+                <div className="flex flex-col justify-between rounded-xl border border-border bg-card/60 p-4">
+                  <div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-bold text-[13.5px] text-foreground flex items-center gap-2">
+                        <Crown size={16} className="text-violet-600 dark:text-violet-400 shrink-0" />
+                        <span>{t('team.orgGovernance.smInviteTitle')}</span>
+                      </span>
+                      <span className="text-[11px] font-bold text-violet-800 dark:text-violet-300 bg-violet-100 dark:bg-violet-500/20 border border-violet-300 dark:border-violet-500/30 px-2 py-0.5 rounded-md">
+                        {t('team.orgGovernance.smNewSegmentBadge')}
+                      </span>
+                    </div>
+                    <InfoTooltip
+                      placement="top"
+                      content={t('team.orgGovernance.smInviteTooltip')}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => void generateAndCopySmInvite()}
+                    disabled={generatingInvite === 'sm'}
+                    className="mt-3 inline-flex items-center justify-center gap-2 rounded-lg border border-violet-400 dark:border-violet-500/50 bg-violet-100 dark:bg-violet-500/20 px-3 py-2 text-[12.5px] font-bold text-violet-800 dark:text-violet-200 transition-colors hover:bg-violet-200 dark:hover:bg-violet-500/30 cursor-pointer disabled:opacity-50 shadow-xs"
+                  >
+                    {copiedSmInvite ? <Check size={14} className="text-emerald-600 dark:text-emerald-400" /> : <Link2 size={14} className="shrink-0" />}
+                    {copiedSmInvite ? t('team.orgGovernance.smLinkCopied') : generatingInvite === 'sm' ? t('team.orgGovernance.generating') : t('team.orgGovernance.copySmLink')}
+                  </button>
+                </div>
+
+                {/* 3. Inviter un membre de la Direction / Observateur Exécutif (Enterprise uniquement) */}
+                {(user?.plan === 'enterprise' || DEPLOYMENT_CONFIG.isEnterprise) && (
+                  <div className="flex flex-col justify-between rounded-xl border border-blue-500/30 bg-blue-50/20 dark:bg-blue-500/10 p-4 md:col-span-2">
+                    <div>
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <span className="font-bold text-[13.5px] text-foreground flex items-center gap-2">
+                          <Briefcase size={16} className="text-blue-600 dark:text-blue-400 shrink-0" />
+                          <span>Inviter un membre de la Direction / Observateur</span>
+                        </span>
+                        <span className="text-[11px] font-bold text-blue-800 dark:text-blue-300 bg-blue-100 dark:bg-blue-500/20 border border-blue-300 dark:border-blue-500/30 px-2 py-0.5 rounded-md">
+                          Option Enterprise · Lecture Seule
+                        </span>
+                      </div>
+                      <p className="mt-1.5 mb-0 text-[12px] text-muted-foreground leading-relaxed">
+                        Génère un lien d'accès sécurisé pour la Direction Générale (DG, DAF, Auditeur). Donne accès au tableau de bord multi-segments en lecture seule et aux fonctionnalités avancées de super-export.
+                      </p>
+                    </div>
                     <button
                       type="button"
-                      onClick={() => setEditingSegment(false)}
-                      className="text-[12px] text-muted-foreground hover:text-foreground cursor-pointer px-2"
+                      onClick={() => void generateAndCopyExecutiveInvite()}
+                      disabled={generatingInvite === 'executive'}
+                      className="mt-3 inline-flex items-center justify-center gap-2 rounded-lg border border-blue-500/50 bg-blue-600 px-3.5 py-2 text-[12.5px] font-bold text-white transition-colors hover:bg-blue-700 cursor-pointer disabled:opacity-50 shadow-xs"
                     >
-                      {t('team.orgGovernance.cancelSegment')}
+                      {copiedExecutiveInvite ? <Check size={14} className="text-emerald-300" /> : <Link2 size={14} className="shrink-0" />}
+                      {copiedExecutiveInvite ? 'Lien Direction copié !' : generatingInvite === 'executive' ? t('team.orgGovernance.generating') : 'Copier le lien Direction'}
                     </button>
                   </div>
                 )}
               </div>
-              <InfoTooltip
-                placement="left"
-                content={t('team.orgGovernance.segmentTooltip')}
-              />
-            </div>
-          </div>
-
-          {/* Code Organisation unique + Actions d'invitation */}
-          <div className="rounded-xl border border-border bg-secondary/30 p-5 flex flex-col gap-4">
-            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border/50 pb-4">
-              <div>
-                <div className="flex items-center gap-1.5 text-[12px] font-semibold text-muted-foreground">
-                  <span>{t('team.orgGovernance.orgCodeLabel')}</span>
-                  <InfoTooltip
-                    placement="top"
-                    content={t('team.orgGovernance.orgCodeTooltip')}
-                  />
-                </div>
-                <div className="mt-1.5 flex items-center gap-2.5">
-                  <code className="rounded-md bg-primary/10 px-3 py-1 font-mono text-[16px] font-extrabold text-primary">
-                    {orgData?.orgCode || user?.orgCode || t('team.orgGovernance.orgCodeLoading')}
-                  </code>
-                  <button
-                    type="button"
-                    onClick={() => void copyOrgCode()}
-                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1 text-[12px] font-semibold text-foreground transition-colors hover:bg-secondary"
-                  >
-                    {copiedCode ? (
-                      <Check size={13} className="text-green-400" />
-                    ) : (
-                      <Copy size={13} />
-                    )}
-                    {copiedCode ? t('team.orgGovernance.codeCopied') : t('team.orgGovernance.copyCode')}
-                  </button>
-                </div>
-              </div>
             </div>
 
-            {/* Deux boutons d'invitations distincts */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
-              {/* 1. Inviter un Team Manager dans mon segment */}
-              <div className="flex flex-col justify-between rounded-xl border border-border bg-card/60 p-4">
-                <div>
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="font-bold text-[13.5px] text-foreground flex items-center gap-2">
-                      <Users2 size={16} className="text-primary shrink-0" />
-                      <span>{t('team.orgGovernance.tmInviteTitle')}</span>
-                    </span>
-                    <span className="text-[11px] font-bold text-primary bg-primary/10 border border-primary/25 px-2 py-0.5 rounded-md">
-                      {t('team.orgGovernance.tmSegmentBadge').replace('{segment}', orgData?.segment || user?.segment || t('team.orgGovernance.segmentDefault'))}
-                    </span>
-                  </div>
-                  <InfoTooltip
-                    placement="top"
-                    content={t('team.orgGovernance.tmInviteTooltip')}
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={() => void generateAndCopyTmInvite()}
-                  disabled={generatingInvite === 'tm'}
-                  className="mt-3 inline-flex items-center justify-center gap-2 rounded-lg border border-primary/40 bg-primary/10 dark:bg-primary/20 px-3 py-2 text-[12.5px] font-bold text-primary transition-colors hover:bg-primary/20 dark:hover:bg-primary/30 cursor-pointer disabled:opacity-50 shadow-xs"
-                >
-                  {copiedTmInvite ? <Check size={14} className="text-emerald-600 dark:text-emerald-400" /> : <Link2 size={14} className="shrink-0" />}
-                  {copiedTmInvite ? t('team.orgGovernance.tmLinkCopied') : generatingInvite === 'tm' ? t('team.orgGovernance.generating') : t('team.orgGovernance.copyTmLink')}
-                </button>
-              </div>
-
-              {/* 2. Inviter un Senior Manager pour un nouveau segment */}
-              <div className="flex flex-col justify-between rounded-xl border border-border bg-card/60 p-4">
-                <div>
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="font-bold text-[13.5px] text-foreground flex items-center gap-2">
-                      <Crown size={16} className="text-violet-600 dark:text-violet-400 shrink-0" />
-                      <span>{t('team.orgGovernance.smInviteTitle')}</span>
-                    </span>
-                    <span className="text-[11px] font-bold text-violet-800 dark:text-violet-300 bg-violet-100 dark:bg-violet-500/20 border border-violet-300 dark:border-violet-500/30 px-2 py-0.5 rounded-md">
-                      {t('team.orgGovernance.smNewSegmentBadge')}
-                    </span>
-                  </div>
-                  <InfoTooltip
-                    placement="top"
-                    content={t('team.orgGovernance.smInviteTooltip')}
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={() => void generateAndCopySmInvite()}
-                  disabled={generatingInvite === 'sm'}
-                  className="mt-3 inline-flex items-center justify-center gap-2 rounded-lg border border-violet-400 dark:border-violet-500/50 bg-violet-100 dark:bg-violet-500/20 px-3 py-2 text-[12.5px] font-bold text-violet-800 dark:text-violet-200 transition-colors hover:bg-violet-200 dark:hover:bg-violet-500/30 cursor-pointer disabled:opacity-50 shadow-xs"
-                >
-                  {copiedSmInvite ? <Check size={14} className="text-emerald-600 dark:text-emerald-400" /> : <Link2 size={14} className="shrink-0" />}
-                  {copiedSmInvite ? t('team.orgGovernance.smLinkCopied') : generatingInvite === 'sm' ? t('team.orgGovernance.generating') : t('team.orgGovernance.copySmLink')}
-                </button>
-              </div>
-
-              {/* 3. Inviter un membre de la Direction / Observateur Exécutif (Enterprise uniquement) */}
-              {(user?.plan === 'enterprise' || DEPLOYMENT_CONFIG.isEnterprise) && (
-                <div className="flex flex-col justify-between rounded-xl border border-blue-500/30 bg-blue-50/20 dark:bg-blue-500/10 p-4 md:col-span-2">
-                  <div>
-                    <div className="flex items-center justify-between gap-2 flex-wrap">
-                      <span className="font-bold text-[13.5px] text-foreground flex items-center gap-2">
-                        <Briefcase size={16} className="text-blue-600 dark:text-blue-400 shrink-0" />
-                        <span>Inviter un membre de la Direction / Observateur</span>
-                      </span>
-                      <span className="text-[11px] font-bold text-blue-800 dark:text-blue-300 bg-blue-100 dark:bg-blue-500/20 border border-blue-300 dark:border-blue-500/30 px-2 py-0.5 rounded-md">
-                        Option Enterprise · Lecture Seule
-                      </span>
-                    </div>
-                    <p className="mt-1.5 mb-0 text-[12px] text-muted-foreground leading-relaxed">
-                      Génère un lien d'accès sécurisé pour la Direction Générale (DG, DAF, Auditeur). Donne accès au tableau de bord multi-segments en lecture seule et aux fonctionnalités avancées de super-export.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => void generateAndCopyExecutiveInvite()}
-                    disabled={generatingInvite === 'executive'}
-                    className="mt-3 inline-flex items-center justify-center gap-2 rounded-lg border border-blue-500/50 bg-blue-600 px-3.5 py-2 text-[12.5px] font-bold text-white transition-colors hover:bg-blue-700 cursor-pointer disabled:opacity-50 shadow-xs"
-                  >
-                    {copiedExecutiveInvite ? <Check size={14} className="text-emerald-300" /> : <Link2 size={14} className="shrink-0" />}
-                    {copiedExecutiveInvite ? 'Lien Direction copié !' : generatingInvite === 'executive' ? t('team.orgGovernance.generating') : 'Copier le lien Direction'}
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* NIU Fiscal Section */}
-          <div className="flex flex-col gap-3 border-t border-border pt-6">
-            <h4 className="m-0 text-[14px] font-bold text-foreground flex items-center gap-1.5">
-              {t('team.orgGovernance.niuTitle')}
-              <InfoTooltip
-                placement="right"
-                content={t('team.orgGovernance.niuTooltip')}
-              />
-            </h4>
-
-            <form onSubmit={handleUpdateNiu} className="flex max-w-[440px] flex-col gap-2.5">
-              <div className="flex gap-2">
-                <Input
-                  type="text"
-                  placeholder="Ex: M051212345678A"
-                  value={niuInput}
-                  onChange={(e) => setNiuInput(e.target.value.toUpperCase())}
+            {/* NIU Fiscal Section */}
+            <div className="flex flex-col gap-3 border-t border-border pt-6">
+              <h4 className="m-0 text-[14px] font-bold text-foreground flex items-center gap-1.5">
+                {t('team.orgGovernance.niuTitle')}
+                <InfoTooltip
+                  placement="right"
+                  content={t('team.orgGovernance.niuTooltip')}
                 />
-                <Button
-                  type="submit"
-                  variant="primary"
-                  loading={niuLoading}
-                  style={{ flexShrink: 0 }}
-                >
-                  {t('team.orgGovernance.niuSave')}
-                </Button>
-              </div>
-              {niuError && <div className="text-[12px] text-red-600 dark:text-red-400 font-semibold">{niuError}</div>}
-              {niuSuccess && <div className="text-[12px] text-emerald-700 dark:text-emerald-400 font-bold">{niuSuccess}</div>}
-            </form>
-          </div>
-        </div>
-      </DataCard>
+              </h4>
 
-      {/* ── 2. Outil de Sélection & Transfert de Prospects vers un Team Manager ── */}
-      {isSeniorManager && (
-        <DataCard
-          title={t('team.orgGovernance.transferCardTitle')}
-          subtitle={
-            <>
-              <strong className="block mb-1">{t('team.orgGovernance.transferTooltipTitle')}</strong>
-              {t('team.orgGovernance.transferTooltipDesc')}
-            </>
-          }
-        >
-          <div className="flex flex-col gap-5">
-
-            {/* Outils de filtre & recherche */}
-            <div className="flex flex-col gap-3 rounded-xl border border-border bg-card/60 p-4">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  <h5 className="m-0 text-[14px] font-bold text-foreground flex items-center gap-2">
-                    <Briefcase size={16} className="text-primary" />
-                    {t('team.orgGovernance.seniorProspectsTitle').replace('{count}', String(seniorProspects.length))}
-                  </h5>
-                  {selectedProspectIds.length > 0 && (
-                    <span className="rounded-full bg-primary/20 px-2.5 py-0.5 text-[11.5px] font-bold text-primary">
-                      {t('team.orgGovernance.selectedCount')
-                        .replace('{count}', String(selectedProspectIds.length))
-                        .replace('{plural}', selectedProspectIds.length > 1 ? 's' : '')}
-                    </span>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => void fetchSeniorProspects()}
-                    disabled={loadingProspects}
-                    title={t('team.orgGovernance.refreshBtn')}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1 text-[12px] font-semibold text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
-                  >
-                    <RefreshCw size={12} className={loadingProspects ? 'animate-spin' : ''} />
-                    {t('team.orgGovernance.refreshBtn')}
-                  </button>
-
-                  {filteredProspects.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={toggleSelectAll}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/10 px-3 py-1 text-[12px] font-semibold text-primary hover:bg-primary/20 transition-colors"
-                    >
-                      {allFilteredSelected ? <Square size={13} /> : <CheckSquare size={13} />}
-                      {allFilteredSelected ? t('team.orgGovernance.deselectAllBtn') : t('team.orgGovernance.selectAllBtn')}
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Barre de recherche et filtres de statut */}
-              <div className="flex flex-wrap items-center gap-3 pt-2">
-                <div className="relative flex-1 min-w-[220px]">
-                  <Search
-                    size={14}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                  />
-                  <input
+              <form onSubmit={handleUpdateNiu} className="flex max-w-[440px] flex-col gap-2.5">
+                <div className="flex gap-2">
+                  <Input
                     type="text"
-                    placeholder={t('team.orgGovernance.filterPlaceholder')}
-                    value={prospectSearch}
-                    onChange={(e) => setProspectSearch(e.target.value)}
-                    className="h-9 w-full rounded-lg border border-border bg-card pl-9 pr-3 text-[12.5px] text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+                    placeholder="Ex: M051212345678A"
+                    value={niuInput}
+                    onChange={(e) => setNiuInput(e.target.value.toUpperCase())}
                   />
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    loading={niuLoading}
+                    style={{ flexShrink: 0 }}
+                  >
+                    {t('team.orgGovernance.niuSave')}
+                  </Button>
                 </div>
+                {niuError && <div className="text-[12px] text-red-600 dark:text-red-400 font-semibold">{niuError}</div>}
+                {niuSuccess && <div className="text-[12px] text-emerald-700 dark:text-emerald-400 font-bold">{niuSuccess}</div>}
+              </form>
+            </div>
+          </div>
+        </DataCard>
 
-                {/* Filtres par statut */}
-                <div className="flex items-center gap-1 rounded-lg border border-border bg-secondary/30 p-0.5 text-[12px]">
-                  {(['all', 'prospection', 'negociation', 'conclue'] as const).map((st) => (
-                    <button
-                      key={st}
-                      type="button"
-                      onClick={() => setProspectStatusFilter(st)}
-                      className={`rounded-md px-2.5 py-1 font-semibold transition-colors ${
-                        prospectStatusFilter === st
-                          ? 'bg-primary text-white shadow-xs'
-                          : 'text-muted-foreground hover:text-foreground'
-                      }`}
-                    >
-                      {st === 'all'
-                        ? t('team.orgGovernance.statusAll')
-                        : st === 'prospection'
-                          ? t('team.orgGovernance.statusProspection')
-                          : st === 'negociation'
-                            ? t('team.orgGovernance.statusNegociation')
-                            : t('team.orgGovernance.statusConclue')}
-                    </button>
-                  ))}
-                </div>
-              </div>
+        {/* ── 2. Outil de Sélection & Transfert de Prospects vers un Team Manager ── */}
+        {isSeniorManager && (
+          <DataCard
+            title={t('team.orgGovernance.transferCardTitle')}
+            subtitle={
+              <>
+                <strong className="block mb-1">{t('team.orgGovernance.transferTooltipTitle')}</strong>
+                {t('team.orgGovernance.transferTooltipDesc')}
+              </>
+            }
+          >
+            <div className="flex flex-col gap-5">
 
-              {/* Table / Liste des prospects sélectionnables */}
-              <div className="mt-2 max-h-[360px] overflow-y-auto rounded-lg border border-border bg-background/50">
-                {loadingProspects ? (
-                  <div className="p-8 text-center text-[13px] text-muted-foreground">
-                    {t('team.orgGovernance.loadingProspects')}
+              {/* Outils de filtre & recherche */}
+              <div className="flex flex-col gap-3 rounded-xl border border-border bg-card/60 p-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <h5 className="m-0 text-[14px] font-bold text-foreground flex items-center gap-2">
+                      <Briefcase size={16} className="text-primary" />
+                      {t('team.orgGovernance.seniorProspectsTitle').replace('{count}', String(seniorProspects.length))}
+                    </h5>
+                    {selectedProspectIds.length > 0 && (
+                      <span className="rounded-full bg-primary/20 px-2.5 py-0.5 text-[11.5px] font-bold text-primary">
+                        {t('team.orgGovernance.selectedCount')
+                          .replace('{count}', String(selectedProspectIds.length))
+                          .replace('{plural}', selectedProspectIds.length > 1 ? 's' : '')}
+                      </span>
+                    )}
                   </div>
-                ) : filteredProspects.length === 0 ? (
-                  <div className="py-6">
-                    <EmptyState
-                      illustration="/illustrations/empty-states/empty-prospects.png"
-                      illustrationSize="sm"
-                      title={
-                        seniorProspects.length === 0
-                          ? t('team.orgGovernance.noProspectsTitle')
-                          : t('team.orgGovernance.noResultsTitle')
-                      }
-                      description={
-                        seniorProspects.length === 0
-                          ? t('team.orgGovernance.noProspectsDesc')
-                          : t('team.orgGovernance.noResultsDesc')
-                      }
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => void fetchSeniorProspects()}
+                      disabled={loadingProspects}
+                      title={t('team.orgGovernance.refreshBtn')}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1 text-[12px] font-semibold text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+                    >
+                      <RefreshCw size={12} className={loadingProspects ? 'animate-spin' : ''} />
+                      {t('team.orgGovernance.refreshBtn')}
+                    </button>
+
+                    {filteredProspects.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={toggleSelectAll}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/10 px-3 py-1 text-[12px] font-semibold text-primary hover:bg-primary/20 transition-colors"
+                      >
+                        {allFilteredSelected ? <Square size={13} /> : <CheckSquare size={13} />}
+                        {allFilteredSelected ? t('team.orgGovernance.deselectAllBtn') : t('team.orgGovernance.selectAllBtn')}
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Barre de recherche et filtres de statut */}
+                <div className="flex flex-wrap items-center gap-3 pt-2">
+                  <div className="relative flex-1 min-w-[220px]">
+                    <Search
+                      size={14}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                    />
+                    <input
+                      type="text"
+                      placeholder={t('team.orgGovernance.filterPlaceholder')}
+                      value={prospectSearch}
+                      onChange={(e) => setProspectSearch(e.target.value)}
+                      className="h-9 w-full rounded-lg border border-border bg-card pl-9 pr-3 text-[12.5px] text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
                     />
                   </div>
-                ) : (
-                  <table className="w-full text-left text-[12.5px] border-collapse">
-                    <thead>
-                      <tr className="border-b border-border bg-secondary/40 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                        <th className="py-2.5 pl-3 pr-2 w-10 text-center">
-                          <input
-                            type="checkbox"
-                            checked={allFilteredSelected}
-                            onChange={toggleSelectAll}
-                            className="cursor-pointer accent-primary"
-                            aria-label={t('team.orgGovernance.selectAllAriaLabel')}
-                          />
-                        </th>
-                        <th className="py-2.5 px-3">{t('team.orgGovernance.colCompany')}</th>
-                        <th className="py-2.5 px-3">{t('team.orgGovernance.colCityAndSector')}</th>
-                        <th className="py-2.5 px-3">{t('team.orgGovernance.colPipelineStatus')}</th>
-                        <th className="py-2.5 pr-3 text-right">{t('team.orgGovernance.colAddedDate')}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredProspects.map((p) => {
-                        const isSelected = selectedProspectIds.includes(p.id)
-                        return (
-                          <tr
-                            key={p.id}
-                            onClick={() => toggleSelectProspect(p.id)}
-                            className={`cursor-pointer border-b border-border/50 transition-colors hover:bg-secondary/40 ${
-                              isSelected ? 'bg-primary/10' : ''
-                            }`}
-                          >
-                            <td
-                              className="py-3 pl-3 pr-2 text-center"
-                              onClick={(e) => e.stopPropagation()}
+
+                  {/* Filtres par statut */}
+                  <div className="flex items-center gap-1 rounded-lg border border-border bg-secondary/30 p-0.5 text-[12px]">
+                    {(['all', 'prospection', 'negociation', 'conclue'] as const).map((st) => (
+                      <button
+                        key={st}
+                        type="button"
+                        onClick={() => setProspectStatusFilter(st)}
+                        className={`rounded-md px-2.5 py-1 font-semibold transition-colors ${prospectStatusFilter === st
+                          ? 'bg-primary text-white shadow-xs'
+                          : 'text-muted-foreground hover:text-foreground'
+                          }`}
+                      >
+                        {st === 'all'
+                          ? t('team.orgGovernance.statusAll')
+                          : st === 'prospection'
+                            ? t('team.orgGovernance.statusProspection')
+                            : st === 'negociation'
+                              ? t('team.orgGovernance.statusNegociation')
+                              : t('team.orgGovernance.statusConclue')}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Table / Liste des prospects sélectionnables */}
+                <div className="mt-2 max-h-[360px] overflow-y-auto rounded-lg border border-border bg-background/50">
+                  {loadingProspects ? (
+                    <div className="p-8 text-center text-[13px] text-muted-foreground">
+                      {t('team.orgGovernance.loadingProspects')}
+                    </div>
+                  ) : filteredProspects.length === 0 ? (
+                    <div className="py-6">
+                      <EmptyState
+                        illustration="/illustrations/empty-states/empty-prospects.png"
+                        illustrationSize="sm"
+                        title={
+                          seniorProspects.length === 0
+                            ? t('team.orgGovernance.noProspectsTitle')
+                            : t('team.orgGovernance.noResultsTitle')
+                        }
+                        description={
+                          seniorProspects.length === 0
+                            ? t('team.orgGovernance.noProspectsDesc')
+                            : t('team.orgGovernance.noResultsDesc')
+                        }
+                      />
+                    </div>
+                  ) : (
+                    <table className="w-full text-left text-[12.5px] border-collapse">
+                      <thead>
+                        <tr className="border-b border-border bg-secondary/40 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                          <th className="py-2.5 pl-3 pr-2 w-10 text-center">
+                            <input
+                              type="checkbox"
+                              checked={allFilteredSelected}
+                              onChange={toggleSelectAll}
+                              className="cursor-pointer accent-primary"
+                              aria-label={t('team.orgGovernance.selectAllAriaLabel')}
+                            />
+                          </th>
+                          <th className="py-2.5 px-3">{t('team.orgGovernance.colCompany')}</th>
+                          <th className="py-2.5 px-3">{t('team.orgGovernance.colCityAndSector')}</th>
+                          <th className="py-2.5 px-3">{t('team.orgGovernance.colPipelineStatus')}</th>
+                          <th className="py-2.5 pr-3 text-right">{t('team.orgGovernance.colAddedDate')}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredProspects.map((p) => {
+                          const isSelected = selectedProspectIds.includes(p.id)
+                          return (
+                            <tr
+                              key={p.id}
+                              onClick={() => toggleSelectProspect(p.id)}
+                              className={`cursor-pointer border-b border-border/50 transition-colors hover:bg-secondary/40 ${isSelected ? 'bg-primary/10' : ''
+                                }`}
                             >
-                              <input
-                                type="checkbox"
-                                checked={isSelected}
-                                onChange={() => toggleSelectProspect(p.id)}
-                                className="cursor-pointer accent-primary"
-                                aria-label={t('team.orgGovernance.selectProspectAriaLabel').replace('{name}', p.companyName)}
-                              />
-                            </td>
-                            <td className="py-3 px-3">
-                              <div className="font-semibold text-foreground flex items-center gap-1.5">
-                                <Building2 size={13} className="text-primary/70 shrink-0" />
-                                {p.companyName}
-                              </div>
-                              {p.companyPhone && (
-                                <div className="text-[11px] text-muted-foreground flex items-center gap-1 mt-0.5">
-                                  <Phone size={10} />
-                                  {p.companyPhone}
+                              <td
+                                className="py-3 pl-3 pr-2 text-center"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={() => toggleSelectProspect(p.id)}
+                                  className="cursor-pointer accent-primary"
+                                  aria-label={t('team.orgGovernance.selectProspectAriaLabel').replace('{name}', p.companyName)}
+                                />
+                              </td>
+                              <td className="py-3 px-3">
+                                <div className="font-semibold text-foreground flex items-center gap-1.5">
+                                  <Building2 size={13} className="text-primary/70 shrink-0" />
+                                  {p.companyName}
                                 </div>
-                              )}
-                            </td>
-                            <td className="py-3 px-3">
-                              <div className="flex flex-col gap-0.5">
-                                {p.companyCity && (
-                                  <span className="text-[11.5px] text-foreground/90 flex items-center gap-1">
-                                    <MapPin size={11} className="text-muted-foreground" />
-                                    {p.companyCity}
-                                  </span>
+                                {p.companyPhone && (
+                                  <div className="text-[11px] text-muted-foreground flex items-center gap-1 mt-0.5">
+                                    <Phone size={10} />
+                                    {p.companyPhone}
+                                  </div>
                                 )}
-                                {p.companySector && (
-                                  <span className="text-[11px] text-muted-foreground">
-                                    {p.companySector}
-                                  </span>
-                                )}
-                              </div>
-                            </td>
-                            <td className="py-3 px-3">
-                              <span
-                                className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-bold ${
-                                  p.status === 'conclue'
+                              </td>
+                              <td className="py-3 px-3">
+                                <div className="flex flex-col gap-0.5">
+                                  {p.companyCity && (
+                                    <span className="text-[11.5px] text-foreground/90 flex items-center gap-1">
+                                      <MapPin size={11} className="text-muted-foreground" />
+                                      {p.companyCity}
+                                    </span>
+                                  )}
+                                  {p.companySector && (
+                                    <span className="text-[11px] text-muted-foreground">
+                                      {p.companySector}
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="py-3 px-3">
+                                <span
+                                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-bold ${p.status === 'conclue'
                                     ? 'bg-emerald-100 dark:bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/30'
                                     : p.status === 'negociation'
                                       ? 'bg-amber-100 dark:bg-amber-500/15 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-500/30'
                                       : 'bg-blue-100 dark:bg-blue-500/15 text-blue-800 dark:text-blue-300 border border-blue-300 dark:border-blue-500/30'
-                                }`}
-                              >
-                                {p.status === 'conclue'
-                                  ? t('team.orgGovernance.statusConclue')
-                                  : p.status === 'negociation'
-                                    ? t('team.orgGovernance.statusNegociation')
-                                    : t('team.orgGovernance.statusProspection')}
-                              </span>
-                            </td>
-                            <td className="py-3 pr-3 text-right text-[11.5px] text-muted-foreground">
-                              {p.createdAt
-                                ? new Date(p.createdAt).toLocaleDateString(
+                                    }`}
+                                >
+                                  {p.status === 'conclue'
+                                    ? t('team.orgGovernance.statusConclue')
+                                    : p.status === 'negociation'
+                                      ? t('team.orgGovernance.statusNegociation')
+                                      : t('team.orgGovernance.statusProspection')}
+                                </span>
+                              </td>
+                              <td className="py-3 pr-3 text-right text-[11.5px] text-muted-foreground">
+                                {p.createdAt
+                                  ? new Date(p.createdAt).toLocaleDateString(
                                     t('team.orgGovernance.statusAll') === 'All' ? 'en-US' : 'fr-FR'
                                   )
-                                : '—'}
-                            </td>
-                          </tr>
-                        )
-                      })}
-                    </tbody>
-                  </table>
-                )}
-              </div>
-            </div>
-
-            {/* Barre de sélection du Team Manager et d'action de Transfert */}
-            {teamManagers.length > 0 ? (
-              <div className="flex flex-col gap-3 rounded-xl border border-primary/20 bg-primary/5 p-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex items-center gap-1.5">
-                    <label className="text-[13px] font-bold text-foreground">
-                      {t('team.orgGovernance.receiverLabel')}
-                    </label>
-                    <InfoTooltip
-                      content={t('team.orgGovernance.receiverDesc')}
-                      size={13}
-                      placement="right"
-                    />
-                  </div>
-
-                  {selectedProspectIds.length > 0 && (
-                    <div className="text-[12.5px] font-bold text-primary">
-                      {selectedProspectIds.length} prospect
-                      {selectedProspectIds.length > 1 ? 's' : ''} sélectionné
-                      {selectedProspectIds.length > 1 ? 's' : ''}
-                    </div>
+                                  : '—'}
+                              </td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
                   )}
                 </div>
+              </div>
 
-                {/* Sélecteur de Délai d'intervention / Dateline */}
-                <div className="flex flex-col gap-2 pt-2 border-t border-border/40">
-                  <div className="flex items-center gap-1.5 text-[12px] font-bold text-foreground">
-                    <Clock size={13} className="text-primary" />
-                    <span>Délai d'intervention accordé au Team Manager :</span>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    {[
-                      { id: '24h', label: '24 heures' },
-                      { id: '48h', label: '48 heures (Recommandé)' },
-                      { id: '7d', label: '7 jours' },
-                      { id: 'custom', label: 'Personnalisé' },
-                      { id: 'none', label: 'Sans échéance' }
-                    ].map((opt) => (
-                      <button
-                        key={opt.id}
-                        type="button"
-                        onClick={() => setDeadlineOption(opt.id as any)}
-                        className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-all cursor-pointer ${
-                          deadlineOption === opt.id
-                            ? 'bg-primary text-white shadow-sm'
-                            : 'bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-secondary'
-                        }`}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
-
-                  {deadlineOption === 'custom' && (
-                    <div className="flex items-center gap-2 pt-1">
-                      <input
-                        type="datetime-local"
-                        value={customDeadlineDate}
-                        onChange={(e) => setCustomDeadlineDate(e.target.value)}
-                        min={new Date().toISOString().slice(0, 16)}
-                        className="h-8 rounded-lg border border-border bg-card px-2.5 text-[11.5px] text-foreground focus:border-primary focus:outline-none"
+              {/* Barre de sélection du Team Manager et d'action de Transfert */}
+              {teamManagers.length > 0 ? (
+                <div className="flex flex-col gap-3 rounded-xl border border-primary/20 bg-primary/5 p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex items-center gap-1.5">
+                      <label className="text-[13px] font-bold text-foreground">
+                        {t('team.orgGovernance.receiverLabel')}
+                      </label>
+                      <InfoTooltip
+                        content={t('team.orgGovernance.receiverDesc')}
+                        size={13}
+                        placement="right"
                       />
                     </div>
-                  )}
-                </div>
 
-                <div className="flex flex-wrap items-center gap-3 pt-1">
-                  <select
-                    value={selectedTargetUid}
-                    onChange={(e) => setSelectedTargetUid(e.target.value)}
-                    className="h-10 rounded-lg border border-border bg-card px-3 text-[13px] text-foreground focus:border-primary focus:outline-none"
-                    style={{ minWidth: 280 }}
-                  >
-                    <option value="">{t('team.orgGovernance.selectManagerPlaceholder')}</option>
-                    {teamManagers.map((mgr) => (
-                      <option key={mgr.uid} value={mgr.uid}>
-                        {mgr.name} ({mgr.email})
-                      </option>
-                    ))}
-                  </select>
+                    {selectedProspectIds.length > 0 && (
+                      <div className="text-[12.5px] font-bold text-primary">
+                        {selectedProspectIds.length} prospect
+                        {selectedProspectIds.length > 1 ? 's' : ''} sélectionné
+                        {selectedProspectIds.length > 1 ? 's' : ''}
+                      </div>
+                    )}
+                  </div>
 
-                  <Button
-                    type="button"
-                    variant="primary"
-                    loading={migrating}
-                    disabled={selectedProspectIds.length === 0 || !selectedTargetUid || migrating}
-                    onClick={() => void handleTransfer()}
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}
-                  >
-                    <ArrowRightLeft size={14} />
-                    {selectedProspectIds.length > 0
-                      ? t('team.orgGovernance.transferBtnCount')
+                  {/* Sélecteur de Délai d'intervention / Dateline */}
+                  <div className="flex flex-col gap-2 pt-2 border-t border-border/40">
+                    <div className="flex items-center gap-1.5 text-[12px] font-bold text-foreground">
+                      <Clock size={13} className="text-primary" />
+                      <span>Délai d'intervention accordé au Team Manager :</span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {[
+                        { id: '24h', label: '24 heures' },
+                        { id: '48h', label: '48 heures (Recommandé)' },
+                        { id: '7d', label: '7 jours' },
+                        { id: 'custom', label: 'Personnalisé' },
+                        { id: 'none', label: 'Sans échéance' }
+                      ].map((opt) => (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          onClick={() => setDeadlineOption(opt.id as any)}
+                          className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-all cursor-pointer ${deadlineOption === opt.id
+                            ? 'bg-primary text-white shadow-sm'
+                            : 'bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-secondary'
+                            }`}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {deadlineOption === 'custom' && (
+                      <div className="flex items-center gap-2 pt-1">
+                        <input
+                          type="datetime-local"
+                          value={customDeadlineDate}
+                          onChange={(e) => setCustomDeadlineDate(e.target.value)}
+                          min={new Date().toISOString().slice(0, 16)}
+                          className="h-8 rounded-lg border border-border bg-card px-2.5 text-[11.5px] text-foreground focus:border-primary focus:outline-none"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-3 pt-1">
+                    <select
+                      value={selectedTargetUid}
+                      onChange={(e) => setSelectedTargetUid(e.target.value)}
+                      className="h-10 rounded-lg border border-border bg-card px-3 text-[13px] text-foreground focus:border-primary focus:outline-none"
+                      style={{ minWidth: 280 }}
+                    >
+                      <option value="">{t('team.orgGovernance.selectManagerPlaceholder')}</option>
+                      {teamManagers.map((mgr) => (
+                        <option key={mgr.uid} value={mgr.uid}>
+                          {mgr.name} ({mgr.email})
+                        </option>
+                      ))}
+                    </select>
+
+                    <Button
+                      type="button"
+                      variant="primary"
+                      loading={migrating}
+                      disabled={selectedProspectIds.length === 0 || !selectedTargetUid || migrating}
+                      onClick={() => void handleTransfer()}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}
+                    >
+                      <ArrowRightLeft size={14} />
+                      {selectedProspectIds.length > 0
+                        ? t('team.orgGovernance.transferBtnCount')
                           .replace('{count}', String(selectedProspectIds.length))
                           .replace('{plural}', selectedProspectIds.length > 1 ? 's' : '')
-                      : t('team.orgGovernance.transferBtn')}
-                  </Button>
+                        : t('team.orgGovernance.transferBtn')}
+                    </Button>
+                  </div>
+
+                  {migrationResult && (
+                    <div className="rounded-lg border border-emerald-300 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 p-3 text-[13px] text-emerald-800 dark:text-emerald-300 font-semibold">
+                      {migrationResult}
+                    </div>
+                  )}
+                  {migrationError && (
+                    <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-[13px] text-red-400 font-medium">
+                      {migrationError}
+                    </div>
+                  )}
                 </div>
+              ) : (
+                <div className="text-[13px] text-muted-foreground italic">
+                  {t('team.orgGovernance.noTeamManagerYet')}
+                </div>
+              )}
+            </div>
+          </DataCard>
+        )}
 
-                {migrationResult && (
-                  <div className="rounded-lg border border-emerald-300 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 p-3 text-[13px] text-emerald-800 dark:text-emerald-300 font-semibold">
-                    {migrationResult}
-                  </div>
-                )}
-                {migrationError && (
-                  <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-[13px] text-red-400 font-medium">
-                    {migrationError}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="text-[13px] text-muted-foreground italic">
-                {t('team.orgGovernance.noTeamManagerYet')}
-              </div>
-            )}
-          </div>
+        {/* ── 3. Supervision des Team Managers ────────────────────────── */}
+        <DataCard
+          title={t('team.orgGovernance.orgTeamCardTitle')}
+          subtitle={t('team.orgGovernance.orgTeamCardSubtitle')}
+          actions={
+            <button
+              type="button"
+              onClick={() => void fetchOrg(true)}
+              disabled={refreshing}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 5,
+                fontSize: 12,
+                fontWeight: 600,
+                color: 'var(--muted-foreground)',
+                background: 'transparent',
+                border: '1px solid var(--border)',
+                borderRadius: 8,
+                padding: '4px 10px',
+                cursor: refreshing ? 'not-allowed' : 'pointer',
+                opacity: refreshing ? 0.6 : 1
+              }}
+            >
+              <RefreshCw
+                size={12}
+                style={{ animation: refreshing ? 'spin 1s linear infinite' : 'none' }}
+              />
+              {refreshing ? t('team.orgGovernance.refreshing') : t('team.orgGovernance.refresh')}
+            </button>
+          }
+        >
+          <OrgManagersSection
+            managers={(orgData?.managers || []) as any}
+            orgCode={orgData?.orgCode || ''}
+            onRefresh={() => void fetchOrg(true)}
+          />
         </DataCard>
-      )}
-
-      {/* ── 3. Supervision des Team Managers ────────────────────────── */}
-      <DataCard
-        title={t('team.orgGovernance.orgTeamCardTitle')}
-        subtitle={t('team.orgGovernance.orgTeamCardSubtitle')}
-        actions={
-          <button
-            type="button"
-            onClick={() => void fetchOrg(true)}
-            disabled={refreshing}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 5,
-              fontSize: 12,
-              fontWeight: 600,
-              color: 'var(--muted-foreground)',
-              background: 'transparent',
-              border: '1px solid var(--border)',
-              borderRadius: 8,
-              padding: '4px 10px',
-              cursor: refreshing ? 'not-allowed' : 'pointer',
-              opacity: refreshing ? 0.6 : 1
-            }}
-          >
-            <RefreshCw
-              size={12}
-              style={{ animation: refreshing ? 'spin 1s linear infinite' : 'none' }}
-            />
-            {refreshing ? t('team.orgGovernance.refreshing') : t('team.orgGovernance.refresh')}
-          </button>
-        }
-      >
-        <OrgManagersSection
-          managers={(orgData?.managers || []) as any}
-          orgCode={orgData?.orgCode || ''}
-          onRefresh={() => void fetchOrg(true)}
-        />
-      </DataCard>
-    </div>
+      </div>
 
       <ConfirmDialog
         isOpen={pendingTransferConfirm !== null}

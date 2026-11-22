@@ -90,13 +90,15 @@ export async function GET(request: NextRequest) {
       const orgDocRef = adminDb.collection('organisations').doc(orgCode)
       const orgDocSnap = await orgDocRef.get()
 
-      let expectedOrgRole: 'senior_manager' | 'team_manager' = 'team_manager'
+      let expectedOrgRole: 'senior_manager' | 'team_manager' | 'executive' = 'team_manager'
       if (orgDocSnap.exists) {
         const orgData = orgDocSnap.data()
         expectedOrgRole =
           orgData?.seniorManagerUid === managerUid || userData.orgRole === 'senior_manager'
             ? 'senior_manager'
-            : 'team_manager'
+            : userData.orgRole === 'executive'
+              ? 'executive'
+              : 'team_manager'
       } else {
         // Protection P1 contre l'auto-promotion :
         // Seul un utilisateur déjà explicitement senior_manager peut rétablir le document organisation
@@ -117,6 +119,8 @@ export async function GET(request: NextRequest) {
               { merge: true }
             )
             .catch((err) => console.error('[GET /api/team/org] orgDoc create error:', err))
+        } else if (userData.orgRole === 'executive') {
+          expectedOrgRole = 'executive'
         } else {
           // Un Team Manager reste team_manager et ne peut pas devenir propriétaire
           expectedOrgRole = 'team_manager'
