@@ -40,7 +40,7 @@ interface ProspectConflictModalProps {
 }
 
 export function ProspectConflictModal({ conflict, onClose }: ProspectConflictModalProps) {
-  const { t } = useTranslation()
+  const { t, lang } = useTranslation()
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -151,7 +151,7 @@ export function ProspectConflictModal({ conflict, onClose }: ProspectConflictMod
     if (!isSameUser && conflict.teamManagerName) {
       return (
         t('search.conflictModalPeerSubtitle') ||
-        'Ce prospect fait déjà l’objet d’un suivi actif par un autre Team Manager au sein de votre segment.'
+        'Ce prospect fait déjà l’objet d’un suivi actif par un autre Superviseur au sein de votre segment.'
       )
     }
     return t('search.conflictModalSubtitle')
@@ -168,7 +168,7 @@ export function ProspectConflictModal({ conflict, onClose }: ProspectConflictMod
     if (!isSameUser && conflict.teamManagerName) {
       const template =
         t('search.conflictPeerWarningDesc') ||
-        'Afin d’éviter tout démarchage en doublon ou interférence commerciale au sein du segment, l’ajout est bloqué. Ce prospect est sous la responsabilité du Team Manager {managerName}.'
+        'Afin d’éviter tout démarchage en doublon ou interférence commerciale au sein du segment, l’ajout est bloqué. Ce prospect est sous la responsabilité du Superviseur {managerName}.'
       return template.replace('{managerName}', conflict.teamManagerName)
     }
     return t('search.conflictWarningDesc')
@@ -273,7 +273,7 @@ export function ProspectConflictModal({ conflict, onClose }: ProspectConflictMod
                 <span className="font-medium">{t('search.conflictTeamManager')}</span>
               </div>
               <p className="text-sm font-bold text-foreground truncate">
-                {conflict.teamManagerName || 'Team Manager'}
+                {conflict.teamManagerName || (lang === 'en' ? 'Supervisor' : 'Superviseur')}
               </p>
             </div>
 

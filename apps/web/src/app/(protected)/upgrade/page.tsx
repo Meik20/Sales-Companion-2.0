@@ -25,6 +25,7 @@ import {
   KeyRound
 } from 'lucide-react'
 import { routes } from '@/constants/routes'
+import { useTranslation } from '@/providers/I18nProvider'
 
 import { PLAN_LIMITS, PLAN_PRICES } from '@sales-companion/shared'
 
@@ -108,6 +109,7 @@ const PLANS = [
 export default function UpgradePage() {
   const { user, loading: userLoading } = useCurrentUser()
   const { pushToast } = useToast()
+  const { t, lang } = useTranslation()
   const router = useRouter()
   const searchParams = useSearchParams()
   const prevPlanRef = useRef<string | null>(null)
@@ -329,7 +331,7 @@ export default function UpgradePage() {
                 color: 'var(--foreground, #f1f5f9)'
               }}
             >
-              Abonnement géré par votre Senior Manager
+              {lang === 'en' ? 'Subscription managed by your Coordinator' : 'Abonnement géré par votre Coordinateur'}
             </h2>
             <p
               style={{
@@ -340,8 +342,12 @@ export default function UpgradePage() {
               }}
             >
               {user?.orgRole === 'team_manager'
-                ? "En tant que Team Manager, l'abonnement et la facturation de votre organisation sont centralisés et gérés exclusivement par votre Senior Manager. Votre forfait actuel ne vous permet pas de bénéficier de ce service. Veuillez vous rapprocher de votre Senior Manager pour mettre à niveau le plan de l'organisation."
-                : "Votre compte est rattaché à une organisation. Le forfait actuel ne permet pas d'accéder à ce service. Veuillez contacter votre Team Manager ou votre Senior Manager pour mettre à niveau l'abonnement."}
+                ? (lang === 'en'
+                    ? "As a Supervisor, subscription and billing for your organization are centralized and managed exclusively by your Coordinator. Your current plan does not allow access to this service. Please contact your Coordinator to upgrade the organization's plan."
+                    : "En tant que Superviseur, l'abonnement et la facturation de votre organisation sont centralisés et gérés exclusivement par votre Coordinateur. Votre forfait actuel ne vous permet pas de bénéficier de ce service. Veuillez vous rapprocher de votre Coordinateur pour mettre à niveau le plan de l'organisation.")
+                : (lang === 'en'
+                    ? "Your account is linked to an organization. The current plan does not allow access to this service. Please contact your Supervisor or Coordinator to upgrade the subscription."
+                    : "Votre compte est rattaché à une organisation. Le forfait actuel ne permet pas d'accéder à ce service. Veuillez contacter votre Superviseur ou votre Coordinateur pour mettre à niveau l'abonnement.")}
             </p>
             <button
               onClick={() => router.push(routes.pipeline)}

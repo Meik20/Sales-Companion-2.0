@@ -624,7 +624,7 @@ export function AppSidebar({
                       type: 'error',
                       title: 'Gestion d’équipe verrouillée',
                       description:
-                        'Le plan actuel de votre organisation ne vous permet pas de gérer l’équipe. Veuillez contacter votre Senior Manager pour la mise à niveau.'
+                        'Le plan actuel de votre organisation ne vous permet pas de gérer l’équipe. Veuillez contacter votre Coordinateur pour la mise à niveau.'
                     })
                   }
                 }}

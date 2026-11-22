@@ -2994,7 +2994,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                           color: 'var(--muted-foreground, #64748b)'
                         }}
                       >
-                        {isOrgView ? 'Aucun objectif fixé par ce Team Manager' : 'Non configuré'}
+                        {isOrgView ? (lang === 'en' ? 'No target set by this Supervisor' : 'Aucun objectif fixé par ce Superviseur') : (lang === 'en' ? 'Not configured' : 'Non configuré')}
                       </div>
                       <div
                         style={{
@@ -3003,7 +3003,7 @@ export function ManagerPipelineList({ items, members, managerUid, showTargets = 
                           marginTop: 2
                         }}
                       >
-                        {isOrgView ? 'Les objectifs d\'équipe sont définis dans le panneau du Team Manager' : 'Définir dans le panneau ci-dessus'}
+                        {isOrgView ? (lang === 'en' ? "Team targets are defined in the Supervisor panel" : "Les objectifs d'équipe sont définis dans le panneau du Superviseur") : (lang === 'en' ? 'Define in panel above' : 'Définir dans le panneau ci-dessus')}
                       </div>
                     </>
                   )}

@@ -196,7 +196,7 @@ export default function TeamPage() {
             }}
           >
             Votre organisation est actuellement sur le plan Gratuit. Les fonctionnalités de
-            gouvernance, de transfert d'opportunités et d'invitation de Team Managers sont réservées
+            gouvernance, de transfert d'opportunités et d'invitation de Superviseurs sont réservées
             aux forfaits Pro et Enterprise.
           </p>
           <button

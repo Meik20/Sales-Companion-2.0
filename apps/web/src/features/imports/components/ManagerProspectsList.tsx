@@ -194,7 +194,7 @@ function getProspectAgingStatus(
     return {
       label: isEn ? 'To assign' : 'À assigner',
       color: '#2563eb',
-      subtext: isEn ? 'From Senior Manager' : 'Reçu du Senior Manager'
+      subtext: isEn ? 'From Coordinator' : 'Reçu du Coordinateur'
     }
   }
 
@@ -507,7 +507,7 @@ export function ManagerProspectsList({
     }
     const targetTm = teamManagers.find((tm) => tm.uid === selectedTargetTmUid)
     const targetName =
-      targetTm?.name || targetTm?.email || (lang === 'en' ? 'Team Manager' : 'Team Manager')
+      targetTm?.name || targetTm?.email || (lang === 'en' ? 'Supervisor' : 'Superviseur')
     const confirmMsg = t('team.confirmTransferSm')
       .replace('{count}', String(selected.size))
       .replace('{name}', targetName)
@@ -519,7 +519,7 @@ export function ManagerProspectsList({
     if (!user || selected.size === 0 || !selectedTargetTmUid) return
     const targetTm = teamManagers.find((tm) => tm.uid === selectedTargetTmUid)
     const targetName =
-      targetTm?.name || targetTm?.email || (lang === 'en' ? 'Team Manager' : 'Team Manager')
+      targetTm?.name || targetTm?.email || (lang === 'en' ? 'Supervisor' : 'Superviseur')
     setTransferring(true)
     try {
       const token = await user.getIdToken()
@@ -562,7 +562,7 @@ export function ManagerProspectsList({
     if (!user || !targetTmUid) return
     const targetTm = teamManagers.find((tm) => tm.uid === targetTmUid)
     const targetName =
-      targetTm?.name || targetTm?.email || (lang === 'en' ? 'Team Manager' : 'Team Manager')
+      targetTm?.name || targetTm?.email || (lang === 'en' ? 'Supervisor' : 'Superviseur')
 
     setAssigning(prospectId)
     try {
@@ -619,7 +619,7 @@ export function ManagerProspectsList({
     }
 
     // 3. Garde-fou strict : un agent support ou non-TM ne doit JAMAIS être affiché comme TM
-    return lang === 'en' ? 'Team Manager' : 'Team Manager'
+    return lang === 'en' ? 'Supervisor' : 'Superviseur'
   }
 
   // Managers disponibles pour le filtre : Team Managers déclarés uniquement.
@@ -1174,7 +1174,7 @@ export function ManagerProspectsList({
                   cursor: 'pointer',
                   outline: 'none'
                 }}
-                title={lang === 'en' ? 'Deadline granted to Team Manager for handling prospects' : "Délai accordé au Team Manager pour traiter et attribuer les prospects"}
+                title={lang === 'en' ? 'Deadline granted to Supervisor for handling prospects' : "Délai accordé au Superviseur pour traiter et attribuer les prospects"}
               >
                 <option value="24h">24h ({lang === 'en' ? 'Urgent' : 'Urgent'})</option>
                 <option value="48h">48h ({lang === 'en' ? 'Default' : 'Standard'})</option>

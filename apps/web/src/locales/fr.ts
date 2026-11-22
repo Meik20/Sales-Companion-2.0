@@ -1108,7 +1108,7 @@ export const fr = {
       requestSmRevocationBtn: 'Demande Support',
       smRevocationModalTitle: 'Demande de Révocation de Coordinateur',
       smRevocationPolicyNotice:
-        "Conformément aux règles de gouvernance d'entreprise de SALES COMPANION 2.0, la révocation d'un Senior Manager fait obligatoirement l'objet d'une étude par notre équipe Support et d'une vérification auprès des mandataires sociaux de votre entreprise.",
+        "Conformément aux règles de gouvernance d'entreprise de SALES COMPANION 2.0, la révocation d'un Coordinateur fait obligatoirement l'objet d'une étude par notre équipe Support et d'une vérification auprès des mandataires sociaux de votre entreprise.",
       smRevocationReasonLabel: 'Motif officiel de la demande (départ, restructuration, etc.)',
       smRevocationReasonPlaceholder: 'Décrivez précisément le contexte justifiant la fin de mandat de ce Coordinateur...',
       smRevocationExecTitle: 'Contact Direction Générale / Mandataire Social (pour vérification)',

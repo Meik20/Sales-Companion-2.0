@@ -176,7 +176,7 @@ export default function PipelinePage() {
     )
     return {
       memberId: filterManagerUid,
-      memberName: selectedManager?.name ?? 'Team Manager',
+      memberName: selectedManager?.name ?? (lang === 'en' ? 'Supervisor' : 'Superviseur'),
       targetVolume: targetVolume > 0 ? targetVolume : null,
       targetValue: targetValue > 0 ? targetValue : null,
       period: activePeriod
@@ -487,7 +487,7 @@ export default function PipelinePage() {
                 {
                   id: 'total',
                   label: selectedManager
-                    ? `Total (${selectedManager.name || 'Team Manager'})`
+                    ? `Total (${selectedManager.name || (lang === 'en' ? 'Supervisor' : 'Superviseur')})`
                     : (t('pipeline.totalOrg') || 'Total Segment'),
                   count: orgPipelineQuery.data.counts.total,
                   color: '#a78bfa',

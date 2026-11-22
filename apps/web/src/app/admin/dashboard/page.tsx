@@ -406,8 +406,8 @@ export default function AdminDashboardPage() {
       color: '#34d399'
     },
     {
-      label: t('admin.seniorManager') || 'Sr. Mgr',
-      fullLabel: 'Senior Managers',
+      label: t('admin.seniorManager') || 'Coord.',
+      fullLabel: 'Coordinateurs',
       value: stats?.roleDistribution?.senior_manager || 0,
       color: '#8b5cf6'
     },

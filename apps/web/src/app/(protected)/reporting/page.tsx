@@ -16,7 +16,7 @@ import { useTranslation } from '@/providers/I18nProvider'
 export default function ReportingPage() {
   const { user } = useCurrentUser()
   const router = useRouter()
-  const { t } = useTranslation()
+  const { t, lang } = useTranslation()
   const isSeniorManager = user?.role === 'manager' && user?.orgRole === 'senior_manager'
   const isExecutive = user?.role === 'manager' && user?.orgRole === 'executive'
 
@@ -107,10 +107,16 @@ export default function ReportingPage() {
           </h3>
           <p className="mb-6 text-sm leading-relaxed text-muted-foreground">
             {user?.orgRole === 'team_manager'
-              ? "En tant que Team Manager, votre accès est rattaché au plan de votre organisation. Si votre Senior Manager a activé le forfait Enterprise, la synchronisation est automatique. Cliquez sur Réessayer ou retournez à votre pipeline commercial."
+              ? (lang === 'en'
+                  ? "As a Supervisor, your access is linked to your organization's plan. If your Coordinator has activated the Enterprise plan, synchronization is automatic. Click Retry or return to your sales pipeline."
+                  : "En tant que Superviseur, votre accès est rattaché au plan de votre organisation. Si votre Coordinateur a activé le forfait Enterprise, la synchronisation est automatique. Cliquez sur Réessayer ou retournez à votre pipeline commercial.")
               : user?.plan === 'free'
-                ? "Le suivi de performance et les statistiques d'équipe nécessitent un abonnement actif (Pro ou Enterprise). Activez votre plan pour débloquer votre tableau de bord."
-                : "Une indisponibilité temporaire empêche de charger les statistiques. Vos données restent en sécurité. Vous pouvez réessayer l'actualisation."}
+                ? (lang === 'en'
+                    ? "Performance tracking and team statistics require an active subscription (Pro or Enterprise). Activate your plan to unlock your dashboard."
+                    : "Le suivi de performance et les statistiques d'équipe nécessitent un abonnement actif (Pro ou Enterprise). Activez votre plan pour débloquer votre tableau de bord.")
+                : (lang === 'en'
+                    ? "A temporary unavailability prevents loading statistics. Your data remains safe. You can try refreshing."
+                    : "Une indisponibilité temporaire empêche de charger les statistiques. Vos données restent en sécurité. Vous pouvez réessayer l'actualisation.")}
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             <Button

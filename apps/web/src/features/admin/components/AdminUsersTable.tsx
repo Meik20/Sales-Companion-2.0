@@ -233,7 +233,7 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
                               : {})
                         }}
                       >
-                        {isSenior ? 'Senior Manager' : isTeamManager ? 'Team Manager' : user.role}
+                        {isSenior ? 'Coordinateur' : isTeamManager ? 'Superviseur' : user.role}
                       </Badge>
                     )
                   })()}
@@ -252,7 +252,7 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
                     Boolean(user.managerId)
                   if (isInheritedAccount) {
                     const tooltipText = isTeamManager
-                      ? 'Plan synchronisé et hérité du Senior Manager'
+                      ? 'Plan synchronisé et hérité du Coordinateur'
                       : 'Plan synchronisé et géré par le compte Manager'
                     return (
                       <div
@@ -380,7 +380,7 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
                           <span
                             title={
                               isTeamManager
-                                ? 'Quota synchronisé depuis le compte Senior Manager'
+                                ? 'Quota synchronisé depuis le compte Coordinateur'
                                 : isInheritedAccount
                                   ? 'Quota synchronisé depuis le compte Manager'
                                   : undefined

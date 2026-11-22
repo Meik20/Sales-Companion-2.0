@@ -335,7 +335,7 @@ export default function CrmPage() {
             </p>
             <div className="mt-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-[12px] text-emerald-700 dark:text-emerald-300 flex items-start gap-2">
               <ShieldCheck size={14} className="text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0" />
-              <span><strong>Garantie d’indépendance :</strong> Cette action n’affecte en aucun cas la <strong>Base de données clients</strong> du Team Manager ni les ventes conclues de l’entreprise.</span>
+              <span><strong>Garantie d’indépendance :</strong> Cette action n’affecte en aucun cas la <strong>Base de données clients</strong> du Superviseur ni les ventes conclues de l’entreprise.</span>
             </div>
             <div className="mt-6 flex justify-end gap-3">
               <button

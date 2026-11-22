@@ -50,7 +50,7 @@ const planDetails: Record<string, { labelKey: string; featureKeys: string[] }> =
 }
 
 export default function SettingsPage() {
-  const { t } = useTranslation()
+  const { t, lang } = useTranslation()
   const { user } = useCurrentUser()
   const { pushToast } = useToast()
   const router = useRouter()
@@ -158,7 +158,7 @@ export default function SettingsPage() {
                     <Lock size={13} className="shrink-0 text-amber-700 dark:text-amber-400" />
                     <span>
                       La gestion de l&apos;abonnement est réservée au{' '}
-                      <strong>Senior Manager</strong> de votre organisation.
+                      <strong>{lang === 'en' ? 'Coordinator' : 'Coordinateur'}</strong> de votre organisation.
                     </span>
                   </div>
                 ) : null}

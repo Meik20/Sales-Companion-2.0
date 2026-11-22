@@ -1041,7 +1041,7 @@ export function PipelineActivityTimeline({
                             textTransform: 'capitalize'
                           }}
                         >
-                          ({act.performedByRole === 'team_manager' ? 'Team Manager' : act.performedByRole})
+                          ({act.performedByRole === 'team_manager' ? 'Superviseur' : act.performedByRole})
                         </span>
                       )}
                     </div>

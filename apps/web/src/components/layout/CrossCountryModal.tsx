@@ -206,13 +206,13 @@ export function CrossCountryModal({
                   {lang === 'en' ? (
                     <>
                       Your account is attached to an organization. Please contact your{' '}
-                      <strong>Senior Manager</strong> to upgrade your company subscription to the{' '}
+                      <strong>Coordinator</strong> to upgrade your company subscription to the{' '}
                       <strong>Enterprise</strong> plan and unlock Multi-Country prospection for your team.
                     </>
                   ) : (
                     <>
                       Votre compte est rattaché à une organisation. Veuillez vous rapprocher de votre{' '}
-                      <strong>Senior Manager</strong> pour faire évoluer le forfait de l&apos;entreprise
+                      <strong>Coordinateur</strong> pour faire évoluer le forfait de l&apos;entreprise
                       vers le plan <strong>Enterprise</strong> afin de débloquer la prospection Multi-Pays pour
                       l&apos;équipe.
                     </>

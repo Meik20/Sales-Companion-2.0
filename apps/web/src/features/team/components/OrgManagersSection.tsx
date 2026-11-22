@@ -77,7 +77,7 @@ function ManagerStatsRow({
   manager: OrgManager
   stats?: OrgManagerStats['stats']
 }) {
-  const { t } = useTranslation()
+  const { t, lang } = useTranslation()
   return (
     <div
       style={{
@@ -142,7 +142,7 @@ function RevokeManagerModal({
   onClose: () => void
   onSuccess: () => void
 }) {
-  const { t } = useTranslation()
+  const { t, lang } = useTranslation()
   const { user } = useCurrentUser()
   const { pushToast } = useToast()
 
@@ -289,12 +289,12 @@ function RevokeManagerModal({
             >
               {otherManagers.map((tm) => (
                 <option key={tm.uid} value={tm.uid}>
-                  {tm.name || tm.email} (Team Manager{tm.segment ? ` — ${tm.segment}` : ''})
+                  {tm.name || tm.email} ({lang === 'en' ? 'Supervisor' : 'Superviseur'}{tm.segment ? ` — ${tm.segment}` : ''})
                 </option>
               ))}
               {user && (
                 <option value={user.uid}>
-                  {user.name || user.email || 'Senior Manager'} (Moi-même — Rapatriement par intérim)
+                  {user.name || user.email || (lang === 'en' ? 'Coordinator' : 'Coordinateur')} (Moi-même — Rapatriement par intérim)
                 </option>
               )}
             </select>
@@ -309,7 +309,9 @@ function RevokeManagerModal({
                 color: 'var(--foreground)'
               }}
             >
-              Aucun autre Team Manager dans l'organisation. L'ensemble des dossiers et commerciaux sera <strong>automatiquement rapatrié sous votre supervision directe (Senior Manager)</strong>.
+              {lang === 'en'
+                ? "No other Supervisor in the organization. All files and sales reps will be automatically reassigned under your direct supervision (Coordinator)."
+                : "Aucun autre Superviseur dans l'organisation. L'ensemble des dossiers et commerciaux sera automatiquement rapatrié sous votre supervision directe (Coordinateur)."}
             </div>
           )}
         </div>
@@ -384,7 +386,7 @@ function TransferMemberModal({
   onClose: () => void
   onSuccess: () => void
 }) {
-  const { t } = useTranslation()
+  const { t, lang } = useTranslation()
   const { user } = useCurrentUser()
   const { pushToast } = useToast()
 
@@ -514,7 +516,7 @@ function TransferMemberModal({
         </div>
 
         <div style={{ fontSize: 13, color: 'var(--muted-foreground)', marginBottom: 14 }}>
-          Actuellement rattaché à : <strong>{currentManager.name || currentManager.email}</strong> (Team Manager).
+          Actuellement rattaché à : <strong>{currentManager.name || currentManager.email}</strong> ({lang === 'en' ? 'Supervisor' : 'Superviseur'}).
         </div>
 
         {/* Sélecteur du nouveau manager */}
@@ -558,7 +560,7 @@ function TransferMemberModal({
             >
               {filteredAvailableManagers.map((tm) => (
                 <option key={tm.uid} value={tm.uid}>
-                  {tm.name || tm.email} (Team Manager{tm.segment ? ` — ${tm.segment}` : ''})
+                  {tm.name || tm.email} ({lang === 'en' ? 'Supervisor' : 'Superviseur'}{tm.segment ? ` — ${tm.segment}` : ''})
                 </option>
               ))}
             </select>
@@ -576,7 +578,9 @@ function TransferMemberModal({
             marginBottom: 20
           }}
         >
-          Le commercial conservera son compte et l'ensemble de ses opportunités de prospection en cours. La supervision managériale basculera vers le nouveau Team Manager.
+          {lang === 'en'
+            ? "The sales rep will keep their account and all active prospecting opportunities. Managerial supervision will switch to the new Supervisor."
+            : "Le commercial conservera son compte et l'ensemble de ses opportunités de prospection en cours. La supervision managériale basculera vers le nouveau Superviseur."}
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
@@ -838,7 +842,7 @@ function RequestSmRevocationModal({
   onClose,
   onSuccess
 }: RequestSmRevocationModalProps) {
-  const { t } = useTranslation()
+  const { t, lang } = useTranslation()
   const { user } = useCurrentUser()
   const { pushToast } = useToast()
 
@@ -1135,7 +1139,7 @@ function RequestSmRevocationModal({
               <option value="">{t('team.orgGovernance.smRevocationSuccessorPlaceholder')}</option>
               {availableSuccessors.map((tm) => (
                 <option key={tm.uid} value={tm.uid}>
-                  {tm.name || tm.email} ({tm.isSenior ? 'Senior Manager' : 'Team Manager'}{tm.segment ? ` — ${tm.segment}` : ''})
+                  {tm.name || tm.email} ({tm.isSenior ? (lang === 'en' ? 'Coordinator' : 'Coordinateur') : (lang === 'en' ? 'Supervisor' : 'Superviseur')}{tm.segment ? ` — ${tm.segment}` : ''})
                 </option>
               ))}
             </select>
@@ -1259,8 +1263,8 @@ function ManagerCard({
             >
               {manager.name || manager.email}
             </span>
-            {manager.isSenior && <Badge variant="info">Senior Manager</Badge>}
-            {!manager.isSenior && <Badge variant="default">Team Manager</Badge>}
+            {manager.isSenior && <Badge variant="info">{lang === 'en' ? 'Coordinator' : 'Coordinateur'}</Badge>}
+            {!manager.isSenior && <Badge variant="default">{lang === 'en' ? 'Supervisor' : 'Superviseur'}</Badge>}
             {manager.segment && (
               <span
                 style={{
@@ -1590,7 +1594,7 @@ function ManagerCard({
  * et permet la passation/révocation et le transfert de commerciaux.
  */
 export function OrgManagersSection({ managers, orgCode, onRefresh }: OrgManagersSectionProps) {
-  const { t } = useTranslation()
+  const { t, lang } = useTranslation()
   const { user } = useCurrentUser()
   const orgPipelineQuery = useOrgPipeline()
 
@@ -1756,7 +1760,7 @@ export function OrgManagersSection({ managers, orgCode, onRefresh }: OrgManagers
               gap: 6
             }}
           >
-            <Crown size={12} style={{ color: '#fbbf24' }} /> Autres Senior Managers ({otherSeniorManagers.length})
+            <Crown size={12} style={{ color: '#fbbf24' }} /> {lang === 'en' ? 'Other Coordinators' : 'Autres Coordinateurs'} ({otherSeniorManagers.length})
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {otherSeniorManagers.map((mgr) => {

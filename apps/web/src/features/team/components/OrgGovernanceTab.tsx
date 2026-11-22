@@ -438,7 +438,7 @@ export function OrgGovernanceTab() {
 
     const targetMgr = orgData?.managers?.find((m) => m.uid === selectedTargetUid)
     const targetName =
-      targetMgr?.name || targetMgr?.email || (lang === 'en' ? 'Team Manager' : 'Team Manager')
+      targetMgr?.name || targetMgr?.email || (lang === 'en' ? 'Supervisor' : 'Superviseur')
     const confirmMsg = t('team.orgGovernance.transferConfirm')
       .replace('{count}', String(count))
       .replace('{plural}', count > 1 ? 's' : '')
@@ -450,7 +450,7 @@ export function OrgGovernanceTab() {
     const count = selectedProspectIds.length
     const targetMgr = orgData?.managers?.find((m) => m.uid === selectedTargetUid)
     const targetName =
-      targetMgr?.name || targetMgr?.email || (lang === 'en' ? 'Team Manager' : 'Team Manager')
+      targetMgr?.name || targetMgr?.email || (lang === 'en' ? 'Supervisor' : 'Superviseur')
     setMigrating(true)
     setMigrationError(null)
     setMigrationResult(null)
@@ -1060,7 +1060,7 @@ export function OrgGovernanceTab() {
                   <div className="flex flex-col gap-2 pt-2 border-t border-border/40">
                     <div className="flex items-center gap-1.5 text-[12px] font-bold text-foreground">
                       <Clock size={13} className="text-primary" />
-                      <span>Délai d'intervention accordé au Team Manager :</span>
+                      <span>Délai d'intervention accordé au Superviseur :</span>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
                       {[
