@@ -127,10 +127,10 @@ export function RegisterForm() {
           setRole('manager')
           if (data.companyName) setCompanyName(data.companyName)
           if (data.orgCode) setJoinOrgCode(data.orgCode)
-          if (data.type === 'team_manager' && data.segment) {
+          // RÈGLE UNIVERSELLE : Tout compte invité (Coordinateur, Superviseur, Exécutif)
+          // s'aligne strictement sur le segment renseigné dans le lien d'invitation
+          if (data.segment) {
             setSegment(data.segment)
-          } else if (data.type === 'executive') {
-            setSegment('Direction')
           }
         } else {
           setError(data.error || "Lien d'invitation invalide ou expiré.")

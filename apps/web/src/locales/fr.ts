@@ -313,6 +313,7 @@ export const fr = {
     managerRole: 'Manager',
     seniorManagerRole: 'Coordinateur',
     teamManagerRole: 'Superviseur',
+    executiveRole: 'Direction Générale',
     independentRole: 'Indépendant',
     memberRole: 'Commercial',
     supportRole: 'Support',

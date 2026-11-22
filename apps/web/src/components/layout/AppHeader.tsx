@@ -16,6 +16,7 @@ import { useNetworkStatus } from '@/hooks/useNetworkStatus'
 import { useProspectingCountry } from '@/hooks/useProspectingCountry'
 import { getCountryName } from '@sales-companion/shared'
 import { DEPLOYMENT_CONFIG } from '@/lib/deployment-config'
+import { getRoleDisplayLabel, getRoleBadgeStyle } from '@/lib/role-labels'
 
 function getUserInitials(user?: { name?: string | null; email?: string | null } | null): string {
   if (!user) return '?'
@@ -55,26 +56,17 @@ export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void 
     }
   }
 
-  const roleBadge: Record<string, { label: string; bg: string }> = {
-    admin: { label: t('sidebar.adminRole') || t('sidebar.admin'), bg: 'rgba(239,68,68,0.25)' },
-    manager: { label: t('sidebar.managerRole') || t('sidebar.manager'), bg: 'rgba(251,191,36,0.22)' },
-    member: { label: t('sidebar.memberRole') || 'Commercial', bg: 'rgba(96,165,250,0.22)' },
-    independent: { label: t('sidebar.independentRole') || t('sidebar.independent'), bg: 'rgba(34,197,94,0.22)' },
-    support_agent: { label: t('sidebar.supportAgentRole') || t('sidebar.support'), bg: 'rgba(235,133,18,0.25)' }
-  }
-
-  // Senior Manager has a distinct badge (purple tint) vs Team Manager (yellow) vs Executive (blue)
-  const isSeniorManager = user?.role === 'manager' && user?.orgRole === 'senior_manager'
-  const isTeamManager = user?.role === 'manager' && user?.orgRole === 'team_manager'
-  const isExecutive = user?.role === 'manager' && user?.orgRole === 'executive'
+  // Résolution canonique officielle du badge de rôle (role-labels.ts)
   const badge = user?.role
-    ? isSeniorManager
-      ? { label: t('sidebar.seniorManagerRole') || 'Senior Manager', bg: 'rgba(139,92,246,0.22)' }
-      : isExecutive
-        ? { label: user.customRoleLabel?.trim() || t('sidebar.executiveRole') || 'Direction Générale', bg: 'rgba(59,130,246,0.22)' }
-        : isTeamManager
-          ? { label: t('sidebar.teamManagerRole') || 'Team Manager', bg: 'rgba(251,191,36,0.22)' }
-          : (roleBadge[user.role] ?? null)
+    ? {
+        label: getRoleDisplayLabel({
+          role: user.role,
+          orgRole: user.orgRole,
+          lang,
+          customRoleLabel: user.customRoleLabel
+        }),
+        bg: getRoleBadgeStyle(user.role, user.orgRole).bg
+      }
     : null
 
   return (

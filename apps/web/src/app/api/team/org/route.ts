@@ -145,6 +145,18 @@ export async function GET(request: NextRequest) {
       const orgDoc = await adminDb.collection('organisations').doc(orgCode).get()
       if (orgDoc.exists) {
         primarySeniorManagerUid = orgDoc.data()?.seniorManagerUid || null
+        // RÈGLE UNIVERSELLE : Un compte manager ne doit jamais avoir un segment fictif
+        // tel que 'Direction' (qui est un rôle et non un segment commercial).
+        // S'il a été affecté par erreur, réaligner immédiatement sur le segment de l'organisation.
+        const orgSegment = orgDoc.data()?.segment || 'COMMERCIAL'
+        if (
+          !userData.segment ||
+          userData.segment.toLowerCase() === 'direction' ||
+          userData.segment.toLowerCase() === 'direction générale'
+        ) {
+          userData.segment = orgSegment
+          await userDocRef.update({ segment: orgSegment }).catch(() => {})
+        }
       }
     }
     const isPrimarySeniorManager =

@@ -345,9 +345,9 @@ export async function fetchOrgConsolidatedPipeline(
     // Pour un Senior Manager, son pipeline regroupe ses Team Managers subordonnés
     const managerItems = isSm
       ? allItems.filter((i) => {
-          const itemMgr = managersMap[i.managerUid as string]
-          return i.managerUid === d.id || (itemMgr && itemMgr.seniorManagerUid === d.id)
-        })
+        const itemMgr = managersMap[i.managerUid as string]
+        return i.managerUid === d.id || (itemMgr && itemMgr.seniorManagerUid === d.id)
+      })
       : allItems.filter((i) => i.managerUid === d.id)
 
     return {
@@ -377,8 +377,8 @@ export async function fetchOrgConsolidatedPipeline(
         },
         salespeopleCount: isSm
           ? filteredManagersDocs
-              .filter((tm) => tm.data().seniorManagerUid === d.id)
-              .reduce((sum, tm) => sum + (activeSalespeopleByManager[tm.id] ?? 0), 0)
+            .filter((tm) => tm.data().seniorManagerUid === d.id)
+            .reduce((sum, tm) => sum + (activeSalespeopleByManager[tm.id] ?? 0), 0)
           : (activeSalespeopleByManager[d.id] ?? 0)
       }
     }

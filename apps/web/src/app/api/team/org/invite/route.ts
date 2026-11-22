@@ -184,11 +184,18 @@ export async function POST(request: NextRequest) {
     // • Superviseur (team_manager) : hérité du créateur (ou spécifié dans le body)
     // • Responsable Exécutif (executive) : spécifié dans le body ou hérité du segment du Coordinateur
     // • Coordinateur (senior_manager) : défini dans le body par le SM1 (ex: COMMERCIAL, NORD, etc.)
+    const fallbackSegment =
+      userData.segment &&
+      userData.segment.toLowerCase() !== 'direction' &&
+      userData.segment.toLowerCase() !== 'direction générale'
+        ? userData.segment
+        : 'COMMERCIAL'
+
     let assignedSegment: string | null = null
     if (inviteType === 'team_manager') {
-      assignedSegment = body.segment?.trim() || userData.segment || 'COMMERCIAL'
+      assignedSegment = body.segment?.trim() || fallbackSegment
     } else if (inviteType === 'executive') {
-      assignedSegment = body.segment?.trim() || userData.segment || 'COMMERCIAL'
+      assignedSegment = body.segment?.trim() || fallbackSegment
     } else if (inviteType === 'senior_manager') {
       assignedSegment = body.segment?.trim() || null
     }
