@@ -284,11 +284,10 @@ export function ProspectConflictModal({ conflict, onClose }: ProspectConflictMod
                 <span className="font-medium">{t('search.conflictAssignedMember')}</span>
               </div>
               <p
-                className={`text-sm font-bold truncate ${
-                  conflict.assignedMemberName
-                    ? 'text-foreground'
-                    : 'text-muted-foreground/90 font-normal italic'
-                }`}
+                className={`text-sm font-bold truncate ${conflict.assignedMemberName
+                  ? 'text-foreground'
+                  : 'text-muted-foreground/90 font-normal italic'
+                  }`}
               >
                 {conflict.assignedMemberName || t('search.conflictUnassigned')}
               </p>
@@ -303,10 +302,10 @@ export function ProspectConflictModal({ conflict, onClose }: ProspectConflictMod
                 {t('search.conflictStatusConclue') || 'Client conclu'} —&nbsp;
                 {conflict.updatedAt
                   ? new Date(conflict.updatedAt).toLocaleDateString('fr-FR', {
-                      day: '2-digit',
-                      month: 'long',
-                      year: 'numeric'
-                    })
+                    day: '2-digit',
+                    month: 'long',
+                    year: 'numeric'
+                  })
                   : t('search.conflictDateUnknown') || 'Date inconnue'}
               </span>
             </div>

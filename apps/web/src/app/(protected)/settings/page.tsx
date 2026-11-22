@@ -145,7 +145,7 @@ export default function SettingsPage() {
                 </div>
 
                 {plan !== 'enterprise' &&
-                (user?.role === 'independent' || (user?.role === 'manager' && isSeniorManager)) ? (
+                  (user?.role === 'independent' || (user?.role === 'manager' && isSeniorManager)) ? (
                   <button
                     onClick={() => router.push(routes.upgrade)}
                     className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-[13px] font-semibold text-primary-foreground transition-colors hover:bg-primary/90"

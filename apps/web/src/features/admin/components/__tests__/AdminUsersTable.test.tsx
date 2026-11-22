@@ -25,7 +25,7 @@ const mockUser: UserRow = {
 
 describe('AdminUsersTable', () => {
   it('should render empty state when no users', () => {
-    render(<AdminUsersTable users={[]} onDelete={() => {}} />)
+    render(<AdminUsersTable users={[]} onDelete={() => { }} />)
 
     expect(
       screen.getByText(/Aucun utilisateur|admin\.noUserMatch|team\.noUserMatch/i)
@@ -33,7 +33,7 @@ describe('AdminUsersTable', () => {
   })
 
   it('should render users table with data', () => {
-    render(<AdminUsersTable users={[mockUser]} onDelete={() => {}} />)
+    render(<AdminUsersTable users={[mockUser]} onDelete={() => { }} />)
 
     expect(screen.getByText(/user1@example.com/)).toBeInTheDocument()
     expect(screen.getByText(/User One/)).toBeInTheDocument()
@@ -41,13 +41,13 @@ describe('AdminUsersTable', () => {
   })
 
   it('should show action buttons', () => {
-    render(<AdminUsersTable users={[mockUser]} onDelete={() => {}} onUpdate={() => {}} />)
+    render(<AdminUsersTable users={[mockUser]} onDelete={() => { }} onUpdate={() => { }} />)
 
     // Look for action buttons (Désactiver, Delete)
     expect(screen.getByRole('table')).toBeInTheDocument()
   })
 
-  it('renders Team Manager role badge and locks plan/quota in read-only mode', () => {
+  it('renders Superviseur role badge and locks plan/quota in read-only mode', () => {
     const mockTm: UserRow = {
       uid: 'tm-1',
       email: 'tm@company.com',
@@ -63,20 +63,20 @@ describe('AdminUsersTable', () => {
       updatedAt: new Date().toISOString()
     }
 
-    render(<AdminUsersTable users={[mockTm]} onDelete={() => {}} onUpdate={() => {}} />)
+    render(<AdminUsersTable users={[mockTm]} onDelete={() => { }} onUpdate={() => { }} />)
 
-    // Role badge should be 'Team Manager'
-    expect(screen.getByText('Team Manager')).toBeInTheDocument()
+    // Role badge should be 'Superviseur'
+    expect(screen.getByText('Superviseur')).toBeInTheDocument()
 
     // Plan should be rendered as read-only badge with title, not a select
     expect(screen.queryByRole('combobox')).toBeNull()
-    expect(screen.getByTitle('Plan synchronisé et hérité du Senior Manager')).toBeInTheDocument()
+    expect(screen.getByTitle('Plan synchronisé et hérité du Coordinateur')).toBeInTheDocument()
 
     // Quota should not have number input
     expect(screen.queryByRole('spinbutton')).toBeNull()
   })
 
-  it('renders editable plan select for an independent manager or Senior Manager', () => {
+  it('renders editable plan select for an independent manager or Coordinateur', () => {
     const mockSm: UserRow = {
       uid: 'sm-1',
       email: 'sm@company.com',
@@ -91,10 +91,10 @@ describe('AdminUsersTable', () => {
       updatedAt: new Date().toISOString()
     }
 
-    render(<AdminUsersTable users={[mockSm]} onDelete={() => {}} onUpdate={() => {}} />)
+    render(<AdminUsersTable users={[mockSm]} onDelete={() => { }} onUpdate={() => { }} />)
 
-    // Role badge should be 'Senior Manager'
-    expect(screen.getByText('Senior Manager')).toBeInTheDocument()
+    // Role badge should be 'Coordinateur'
+    expect(screen.getByText('Coordinateur')).toBeInTheDocument()
 
     // Plan should have an editable select
     expect(screen.getByRole('combobox')).toBeInTheDocument()

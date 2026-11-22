@@ -141,7 +141,7 @@ export default function UpgradePage() {
       })
 
       // Rafraîchir immédiatement le token Firebase Auth
-      user?.getIdToken(true).catch(() => {})
+      user?.getIdToken(true).catch(() => { })
 
       setTimeout(() => {
         router.replace(destination)
@@ -173,7 +173,7 @@ export default function UpgradePage() {
           description: 'Votre plan a été activé avec succès ! Redirection vers votre espace...'
         })
 
-        user.getIdToken(true).catch(() => {})
+        user.getIdToken(true).catch(() => { })
         router.replace(destination)
         return
       }
@@ -343,11 +343,11 @@ export default function UpgradePage() {
             >
               {user?.orgRole === 'team_manager'
                 ? (lang === 'en'
-                    ? "As a Supervisor, subscription and billing for your organization are centralized and managed exclusively by your Coordinator. Your current plan does not allow access to this service. Please contact your Coordinator to upgrade the organization's plan."
-                    : "En tant que Superviseur, l'abonnement et la facturation de votre organisation sont centralisés et gérés exclusivement par votre Coordinateur. Votre forfait actuel ne vous permet pas de bénéficier de ce service. Veuillez vous rapprocher de votre Coordinateur pour mettre à niveau le plan de l'organisation.")
+                  ? "As a Supervisor, subscription and billing for your organization are centralized and managed exclusively by your Coordinator. Your current plan does not allow access to this service. Please contact your Coordinator to upgrade the organization's plan."
+                  : "En tant que Superviseur, l'abonnement et la facturation de votre organisation sont centralisés et gérés exclusivement par votre Coordinateur. Votre forfait actuel ne vous permet pas de bénéficier de ce service. Veuillez vous rapprocher de votre Coordinateur pour mettre à niveau le plan de l'organisation.")
                 : (lang === 'en'
-                    ? "Your account is linked to an organization. The current plan does not allow access to this service. Please contact your Supervisor or Coordinator to upgrade the subscription."
-                    : "Votre compte est rattaché à une organisation. Le forfait actuel ne permet pas d'accéder à ce service. Veuillez contacter votre Superviseur ou votre Coordinateur pour mettre à niveau l'abonnement.")}
+                  ? "Your account is linked to an organization. The current plan does not allow access to this service. Please contact your Supervisor or Coordinator to upgrade the subscription."
+                  : "Votre compte est rattaché à une organisation. Le forfait actuel ne permet pas d'accéder à ce service. Veuillez contacter votre Superviseur ou votre Coordinateur pour mettre à niveau l'abonnement.")}
             </p>
             <button
               onClick={() => router.push(routes.pipeline)}
@@ -412,7 +412,7 @@ export default function UpgradePage() {
               onClick={() =>
                 router.push(
                   searchParams.get('redirect') ||
-                    (user.role === 'independent' ? routes.pipeline : routes.search)
+                  (user.role === 'independent' ? routes.pipeline : routes.search)
                 )
               }
               className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-xs font-bold text-primary-foreground hover:bg-primary/90 transition-all cursor-pointer shrink-0 shadow-sm"

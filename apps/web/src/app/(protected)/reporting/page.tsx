@@ -108,15 +108,15 @@ export default function ReportingPage() {
           <p className="mb-6 text-sm leading-relaxed text-muted-foreground">
             {user?.orgRole === 'team_manager'
               ? (lang === 'en'
-                  ? "As a Supervisor, your access is linked to your organization's plan. If your Coordinator has activated the Enterprise plan, synchronization is automatic. Click Retry or return to your sales pipeline."
-                  : "En tant que Superviseur, votre accès est rattaché au plan de votre organisation. Si votre Coordinateur a activé le forfait Enterprise, la synchronisation est automatique. Cliquez sur Réessayer ou retournez à votre pipeline commercial.")
+                ? "As a Supervisor, your access is linked to your organization's plan. If your Coordinator has activated the Enterprise plan, synchronization is automatic. Click Retry or return to your sales pipeline."
+                : "En tant que Superviseur, votre accès est rattaché au plan de votre organisation. Si votre Coordinateur a activé le forfait Enterprise, la synchronisation est automatique. Cliquez sur Réessayer ou retournez à votre pipeline commercial.")
               : user?.plan === 'free'
                 ? (lang === 'en'
-                    ? "Performance tracking and team statistics require an active subscription (Pro or Enterprise). Activate your plan to unlock your dashboard."
-                    : "Le suivi de performance et les statistiques d'équipe nécessitent un abonnement actif (Pro ou Enterprise). Activez votre plan pour débloquer votre tableau de bord.")
+                  ? "Performance tracking and team statistics require an active subscription (Pro or Enterprise). Activate your plan to unlock your dashboard."
+                  : "Le suivi de performance et les statistiques d'équipe nécessitent un abonnement actif (Pro ou Enterprise). Activez votre plan pour débloquer votre tableau de bord.")
                 : (lang === 'en'
-                    ? "A temporary unavailability prevents loading statistics. Your data remains safe. You can try refreshing."
-                    : "Une indisponibilité temporaire empêche de charger les statistiques. Vos données restent en sécurité. Vous pouvez réessayer l'actualisation.")}
+                  ? "A temporary unavailability prevents loading statistics. Your data remains safe. You can try refreshing."
+                  : "Une indisponibilité temporaire empêche de charger les statistiques. Vos données restent en sécurité. Vous pouvez réessayer l'actualisation.")}
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             <Button
