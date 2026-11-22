@@ -121,9 +121,7 @@ export async function fetchOrgConsolidatedPipeline(
   let targetManagerUids = orgManagerUids
   if (callerOrgRole === 'executive' && callerSegment && !filterManagerUid) {
     const isDirectionSegment =
-      callerSegment.toLowerCase() === 'direction' ||
-      callerSegment.toLowerCase() === 'direction générale' ||
-      callerSegment.toUpperCase() === 'ALL'
+      callerSegment.toLowerCase() === 'direction' || callerSegment.toLowerCase() === 'direction générale'
     const segmentSmDocs = filteredManagersDocs.filter(
       (d) =>
         (d.data().orgRole || 'team_manager') === 'senior_manager' &&
@@ -331,8 +329,7 @@ export async function fetchOrgConsolidatedPipeline(
       if (mRole !== 'senior_manager') return false
       const isDirectionSegment =
         callerSegment?.toLowerCase() === 'direction' ||
-        callerSegment?.toLowerCase() === 'direction générale' ||
-        callerSegment?.toUpperCase() === 'ALL'
+        callerSegment?.toLowerCase() === 'direction générale'
       if (callerSegment && !isDirectionSegment && d.data().segment && d.data().segment !== callerSegment)
         return false
       return true

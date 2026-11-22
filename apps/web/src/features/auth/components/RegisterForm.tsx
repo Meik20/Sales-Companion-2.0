@@ -408,7 +408,7 @@ export function RegisterForm() {
               {orgInviteInfo.type === 'senior_manager' ? (
                 <><Crown size={13} className="text-violet-600 dark:text-violet-400 shrink-0" /> Invitation Coordinateur — Segment : {orgInviteInfo.segment || 'Nouveau Segment'}</>
               ) : orgInviteInfo.type === 'executive' ? (
-                <><Building2 size={13} className="text-amber-500 shrink-0" /> Invitation — {orgInviteInfo.customRoleLabel?.trim() || 'Responsable Exécutif'}{orgInviteInfo.segment ? ` — Segment : ${orgInviteInfo.segment}` : ' — Supervision Globale (Tous les segments)'}</>
+                <><Building2 size={13} className="text-amber-500 shrink-0" /> Invitation — {orgInviteInfo.customRoleLabel?.trim() || 'Responsable Exécutif'}{orgInviteInfo.segment ? ` — Segment : ${orgInviteInfo.segment}` : ''}</>
               ) : (
                 <><Users2 size={13} className="text-indigo-600 dark:text-indigo-400 shrink-0" /> Invitation Superviseur{orgInviteInfo.segment ? ` — Segment : ${orgInviteInfo.segment}` : ''}</>
               )}
@@ -421,17 +421,12 @@ export function RegisterForm() {
                   Invité par : <strong>{orgInviteInfo.seniorManagerName}</strong>
                 </div>
               )}
-              {orgInviteInfo.segment ? (
+              {orgInviteInfo.segment && (
                 <div className="flex items-center gap-1 mt-0.5">
                   <Tag size={10} className="text-indigo-600 dark:text-indigo-400/70 shrink-0" />
                   Segment rattaché : <strong>{orgInviteInfo.segment}</strong>
                 </div>
-              ) : orgInviteInfo.type === 'executive' ? (
-                <div className="flex items-center gap-1 mt-0.5">
-                  <Tag size={10} className="text-indigo-600 dark:text-indigo-400/70 shrink-0" />
-                  Périmètre de supervision : <strong>Tous les segments (Supervision Globale)</strong>
-                </div>
-              ) : null}
+              )}
               {orgInviteInfo.type === 'executive' && (
                 <div className="flex items-center gap-1 mt-0.5 text-amber-700 dark:text-amber-300/90">
                   <Building2 size={10} className="shrink-0" />
@@ -751,11 +746,7 @@ export function RegisterForm() {
               <div className="relative">
                 <Input
                   placeholder="Ex: BTP, Technologies, Grande Distribution…"
-                  value={
-                    orgInviteInfo?.type === 'executive' && !segment
-                      ? 'Tous les segments (Supervision Globale)'
-                      : segment
-                  }
+                  value={segment}
                   readOnly={Boolean(orgInviteInfo?.type === 'team_manager' || orgInviteInfo?.type === 'executive')}
                   onChange={(e) => setSegment(e.target.value)}
                   className={
