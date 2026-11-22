@@ -97,13 +97,16 @@ export async function GET(request: NextRequest) {
     const callerSegment = callerData.segment || null
     const callerOrgRole = callerData.orgRole || 'team_manager'
     const isCallerExecutive = callerOrgRole === 'executive'
+    const isDirectionSegment =
+      callerSegment?.toLowerCase() === 'direction' ||
+      callerSegment?.toLowerCase() === 'direction générale'
 
     // RÈGLE ABSOLUE : Un profil Executive ne figure JAMAIS dans les managers opérationnels de l'organisation
     const filteredManagersDocs = managersSnap.docs.filter((d) => {
       const mData = d.data()
       const mRole = mData.orgRole || 'team_manager'
       if (mRole === 'executive') return false
-      if (isCallerExecutive || !callerSegment) return true
+      if (isCallerExecutive || !callerSegment || isDirectionSegment) return true
       return (
         d.id === decoded.uid ||
         mData.seniorManagerUid === decoded.uid ||
@@ -160,7 +163,7 @@ export async function GET(request: NextRequest) {
           if (data.orgCode && data.orgCode !== orgCode) {
             return
           }
-          if (callerSegment && data.segment && data.segment !== callerSegment) {
+          if (callerSegment && !isDirectionSegment && data.segment && data.segment !== callerSegment) {
             return
           }
           if (!seenOrgItemIds.has(d.id)) {
@@ -174,7 +177,7 @@ export async function GET(request: NextRequest) {
           if (data.orgCode && data.orgCode !== orgCode) {
             return
           }
-          if (callerSegment && data.segment && data.segment !== callerSegment) {
+          if (callerSegment && !isDirectionSegment && data.segment && data.segment !== callerSegment) {
             return
           }
           const origId = data.pipelineItemId || d.id.replace(/^client_/, '')
@@ -324,28 +327,84 @@ export async function GET(request: NextRequest) {
       console.warn('[reporting/org targets lookup]', e)
     }
 
-    // 6. Top performers (Team Managers uniquement, triés par nombre de conclus)
-    const topPerformers = teamManagerUids
-      .map((uid) => {
-        const mStats = statsByManager[uid] ?? { prospection: 0, negociation: 0, conclue: 0, total: 0, concludedAmount: 0 }
-        const mTgt = targetsByManager[uid] ?? { targetVolume: 0, targetValue: 0 }
-        const volRate = calculateAttainmentRate(mStats.conclue, mTgt.targetVolume)
-        const valRate = calculateAttainmentRate(mStats.concludedAmount, mTgt.targetValue)
+    // 6. Top performers
+    // - Pour un Responsable Exécutif : répertorier les Coordinateurs (Senior Managers) du segment avec stats et cibles consolidées
+    // - Pour un Coordinateur : répertorier les Superviseurs (Team Managers) subordonnés
+    const seniorManagerUids = managerUids.filter((uid) => managersMap[uid]?.isSenior)
+    const topPerformers = isCallerExecutive
+      ? seniorManagerUids
+          .map((smUid) => {
+            const subordinateTmUids = teamManagerUids.filter(
+              (tmUid) => managersMap[tmUid]?.seniorManagerUid === smUid || tmUid === smUid
+            )
+            const smStats = {
+              prospection: statsByManager[smUid]?.prospection ?? 0,
+              negociation: statsByManager[smUid]?.negociation ?? 0,
+              conclue: statsByManager[smUid]?.conclue ?? 0,
+              perdue: statsByManager[smUid]?.perdue ?? 0,
+              total: statsByManager[smUid]?.total ?? 0,
+              concludedAmount: statsByManager[smUid]?.concludedAmount ?? 0
+            }
+            let smTargetVolume = 0
+            let smTargetValue = 0
 
-        return {
-          uid,
-          name: managersMap[uid]?.name || managersMap[uid]?.email || 'Team Manager',
-          email: managersMap[uid]?.email ?? '',
-          orgRole: managersMap[uid]?.orgRole ?? 'team_manager',
-          isSenior: false,
-          stats: mStats,
-          targetVolume: mTgt.targetVolume > 0 ? mTgt.targetVolume : null,
-          targetValue: mTgt.targetValue > 0 ? mTgt.targetValue : null,
-          volumeAttainmentRate: volRate,
-          valueAttainmentRate: valRate
-        }
-      })
-      .sort((a, b) => b.stats.conclue - a.stats.conclue || b.stats.concludedAmount - a.stats.concludedAmount)
+            subordinateTmUids.forEach((tmUid) => {
+              if (tmUid !== smUid) {
+                const tmStats = statsByManager[tmUid]
+                if (tmStats) {
+                  smStats.prospection += tmStats.prospection
+                  smStats.negociation += tmStats.negociation
+                  smStats.conclue += tmStats.conclue
+                  smStats.perdue += tmStats.perdue
+                  smStats.total += tmStats.total
+                  smStats.concludedAmount += tmStats.concludedAmount
+                }
+              }
+              const tmTgt = targetsByManager[tmUid]
+              if (tmTgt) {
+                smTargetVolume += tmTgt.targetVolume
+                smTargetValue += tmTgt.targetValue
+              }
+            })
+
+            const volRate = calculateAttainmentRate(smStats.conclue, smTargetVolume)
+            const valRate = calculateAttainmentRate(smStats.concludedAmount, smTargetValue)
+
+            return {
+              uid: smUid,
+              name: managersMap[smUid]?.name || managersMap[smUid]?.email || 'Coordinateur',
+              email: managersMap[smUid]?.email ?? '',
+              orgRole: 'senior_manager',
+              isSenior: true,
+              stats: smStats,
+              targetVolume: smTargetVolume > 0 ? smTargetVolume : null,
+              targetValue: smTargetValue > 0 ? smTargetValue : null,
+              volumeAttainmentRate: volRate,
+              valueAttainmentRate: valRate
+            }
+          })
+          .sort((a, b) => b.stats.conclue - a.stats.conclue || b.stats.concludedAmount - a.stats.concludedAmount)
+      : teamManagerUids
+          .map((uid) => {
+            const mStats = statsByManager[uid] ?? { prospection: 0, negociation: 0, conclue: 0, total: 0, concludedAmount: 0 }
+            const mTgt = targetsByManager[uid] ?? { targetVolume: 0, targetValue: 0 }
+            const volRate = calculateAttainmentRate(mStats.conclue, mTgt.targetVolume)
+            const valRate = calculateAttainmentRate(mStats.concludedAmount, mTgt.targetValue)
+
+            return {
+              uid,
+              name: managersMap[uid]?.name || managersMap[uid]?.email || 'Superviseur',
+              email: managersMap[uid]?.email ?? '',
+              orgRole: managersMap[uid]?.orgRole ?? 'team_manager',
+              isSenior: false,
+              stats: mStats,
+              targetVolume: mTgt.targetVolume > 0 ? mTgt.targetVolume : null,
+              targetValue: mTgt.targetValue > 0 ? mTgt.targetValue : null,
+              volumeAttainmentRate: volRate,
+              valueAttainmentRate: valRate
+            }
+          })
+          .sort((a, b) => b.stats.conclue - a.stats.conclue || b.stats.concludedAmount - a.stats.concludedAmount)
 
     // 7. Taux de conversion global (conclus / total)
     const conversionRate =

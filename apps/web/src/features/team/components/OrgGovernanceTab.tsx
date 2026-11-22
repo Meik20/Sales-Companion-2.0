@@ -64,6 +64,8 @@ interface OrgData {
   orgCode: string
   orgRole: 'senior_manager' | 'team_manager'
   isSeniorManager: boolean
+  isPrimarySeniorManager?: boolean
+  primarySeniorManagerUid?: string | null
   segment?: string | null
   seniorManagerUid?: string | null
   niu: string | null
@@ -100,6 +102,10 @@ export function OrgGovernanceTab() {
   const [generatingInvite, setGeneratingInvite] = useState<'tm' | 'sm' | 'executive' | null>(null)
   // Libellé personnalisé du rôle executive saisi par le SM1 (ex: "Directeur Général", "Président")
   const [executiveCustomLabel, setExecutiveCustomLabel] = useState('')
+  // Segment personnalisé pour le nouveau Coordinateur
+  const [smSegmentInput, setSmSegmentInput] = useState('')
+  // Segment d'affectation pour le Responsable Exécutif (défaut sur segment actuel)
+  const [executiveSegmentInput, setExecutiveSegmentInput] = useState('')
 
   // Prospect selection & transfer tool
   const [seniorProspects, setSeniorProspects] = useState<SeniorProspect[]>([])
@@ -142,6 +148,9 @@ export function OrgGovernanceTab() {
   }
 
   const isSeniorManager = user?.orgRole === 'senior_manager'
+  const isPrimarySeniorManager =
+    Boolean(orgData?.isPrimarySeniorManager) ||
+    (!orgData?.seniorManagerUid ? isSeniorManager : orgData?.seniorManagerUid === user?.uid)
 
   const fetchSeniorProspects = async () => {
     if (!user || user.orgRole !== 'senior_manager') return
@@ -247,10 +256,14 @@ export function OrgGovernanceTab() {
     setGeneratingInvite('executive')
     try {
       const token = await user?.getIdToken()
+      const chosenSegment = executiveSegmentInput.trim() || orgData?.segment || user?.segment || 'COMMERCIAL'
       const res = await fetch('/api/team/org/invite-executive', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ customRoleLabel: executiveCustomLabel.trim() || null })
+        body: JSON.stringify({
+          customRoleLabel: executiveCustomLabel.trim() || null,
+          segment: chosenSegment
+        })
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Erreur génération lien Direction')
@@ -261,7 +274,7 @@ export function OrgGovernanceTab() {
       pushToast({
         type: 'success',
         title: `Lien ${labelDisplay} généré !`,
-        description: `Le lien d'invitation pour ${labelDisplay} a été copié dans le presse-papier.`
+        description: `Le lien d'invitation pour ${labelDisplay} (Segment : ${chosenSegment}) a été copié dans le presse-papier.`
       })
     } catch (err: any) {
       pushToast({
@@ -278,19 +291,21 @@ export function OrgGovernanceTab() {
     setGeneratingInvite('sm')
     try {
       const token = await user?.getIdToken()
+      const chosenSegment = smSegmentInput.trim() || undefined
       const res = await fetch('/api/team/org/invite-sm', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ segment: chosenSegment })
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Erreur génération lien Senior Manager')
+      if (!res.ok) throw new Error(data.error || 'Erreur génération lien Coordinateur')
       await navigator.clipboard.writeText(data.inviteUrl)
       setCopiedSmInvite(true)
       setTimeout(() => setCopiedSmInvite(false), 2500)
       pushToast({
         type: 'success',
-        title: t('team.orgGovernance.smInviteSuccessTitle'),
-        description: t('team.orgGovernance.smInviteSuccessDesc')
+        title: t('team.orgGovernance.smInviteSuccessTitle') || 'Lien Coordinateur copié !',
+        description: t('team.orgGovernance.smInviteSuccessDesc') || 'Le lien d\'invitation pour le Coordinateur a été copié dans le presse-papier.'
       })
     } catch (err: any) {
       pushToast({
@@ -614,9 +629,9 @@ export function OrgGovernanceTab() {
                 </div>
               </div>
 
-              {/* Deux boutons d'invitations distincts */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
-                {/* 1. Inviter un Team Manager dans mon segment */}
+              {/* Boutons d'invitations selon le niveau de gouvernance */}
+              <div className={`grid grid-cols-1 ${isPrimarySeniorManager ? 'md:grid-cols-2' : ''} gap-3.5 pt-1`}>
+                {/* 1. Inviter un Superviseur dans mon segment (accessible à TOUS les Coordinateurs) */}
                 <div className="flex flex-col justify-between rounded-xl border border-border bg-card/60 p-4">
                   <div>
                     <div className="flex items-center justify-between gap-2">
@@ -644,36 +659,52 @@ export function OrgGovernanceTab() {
                   </button>
                 </div>
 
-                {/* 2. Inviter un Senior Manager pour un nouveau segment */}
-                <div className="flex flex-col justify-between rounded-xl border border-border bg-card/60 p-4">
-                  <div>
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="font-bold text-[13.5px] text-foreground flex items-center gap-2">
-                        <Crown size={16} className="text-violet-600 dark:text-violet-400 shrink-0" />
-                        <span>{t('team.orgGovernance.smInviteTitle')}</span>
-                      </span>
-                      <span className="text-[11px] font-bold text-violet-800 dark:text-violet-300 bg-violet-100 dark:bg-violet-500/20 border border-violet-300 dark:border-violet-500/30 px-2 py-0.5 rounded-md">
-                        {t('team.orgGovernance.smNewSegmentBadge')}
-                      </span>
+                {/* 2. Inviter un Coordinateur pour un nouveau segment (réservé au SM1 initiateur de l'organisation) */}
+                {isPrimarySeniorManager && (
+                  <div className="flex flex-col justify-between rounded-xl border border-border bg-card/60 p-4">
+                    <div>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-bold text-[13.5px] text-foreground flex items-center gap-2">
+                          <Crown size={16} className="text-violet-600 dark:text-violet-400 shrink-0" />
+                          <span>{t('team.orgGovernance.smInviteTitle')}</span>
+                        </span>
+                        <span className="text-[11px] font-bold text-violet-800 dark:text-violet-300 bg-violet-100 dark:bg-violet-500/20 border border-violet-300 dark:border-violet-500/30 px-2 py-0.5 rounded-md">
+                          {t('team.orgGovernance.smNewSegmentBadge')}
+                        </span>
+                      </div>
+                      <InfoTooltip
+                        placement="top"
+                        content={t('team.orgGovernance.smInviteTooltip')}
+                      />
+                      {/* Champ : Définir le segment du Coordinateur */}
+                      <div className="mt-3">
+                        <label className="block text-[11px] font-semibold text-muted-foreground mb-1">
+                          Nom du nouveau segment à coordonner
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="ex: Pôle Nord, Grands Comptes, Distribution…"
+                          value={smSegmentInput}
+                          onChange={(e) => setSmSegmentInput(e.target.value)}
+                          maxLength={50}
+                          className="w-full rounded-lg border border-violet-300/50 dark:border-violet-500/30 bg-white dark:bg-violet-950/20 px-3 py-1.5 text-[12px] text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-violet-500/40"
+                        />
+                      </div>
                     </div>
-                    <InfoTooltip
-                      placement="top"
-                      content={t('team.orgGovernance.smInviteTooltip')}
-                    />
+                    <button
+                      type="button"
+                      onClick={() => void generateAndCopySmInvite()}
+                      disabled={generatingInvite === 'sm'}
+                      className="mt-3 inline-flex items-center justify-center gap-2 rounded-lg border border-violet-400 dark:border-violet-500/50 bg-violet-100 dark:bg-violet-500/20 px-3 py-2 text-[12.5px] font-bold text-violet-800 dark:text-violet-200 transition-colors hover:bg-violet-200 dark:hover:bg-violet-500/30 cursor-pointer disabled:opacity-50 shadow-xs"
+                    >
+                      {copiedSmInvite ? <Check size={14} className="text-emerald-600 dark:text-emerald-400" /> : <Link2 size={14} className="shrink-0" />}
+                      {copiedSmInvite ? t('team.orgGovernance.smLinkCopied') : generatingInvite === 'sm' ? t('team.orgGovernance.generating') : t('team.orgGovernance.copySmLink')}
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => void generateAndCopySmInvite()}
-                    disabled={generatingInvite === 'sm'}
-                    className="mt-3 inline-flex items-center justify-center gap-2 rounded-lg border border-violet-400 dark:border-violet-500/50 bg-violet-100 dark:bg-violet-500/20 px-3 py-2 text-[12.5px] font-bold text-violet-800 dark:text-violet-200 transition-colors hover:bg-violet-200 dark:hover:bg-violet-500/30 cursor-pointer disabled:opacity-50 shadow-xs"
-                  >
-                    {copiedSmInvite ? <Check size={14} className="text-emerald-600 dark:text-emerald-400" /> : <Link2 size={14} className="shrink-0" />}
-                    {copiedSmInvite ? t('team.orgGovernance.smLinkCopied') : generatingInvite === 'sm' ? t('team.orgGovernance.generating') : t('team.orgGovernance.copySmLink')}
-                  </button>
-                </div>
+                )}
 
-                {/* 3. Inviter un membre de la Direction / Observateur Exécutif (Enterprise uniquement) */}
-                {(user?.plan === 'enterprise' || DEPLOYMENT_CONFIG.isEnterprise) && (
+                {/* 3. Inviter un membre de la Direction / Observateur Exécutif (Enterprise uniquement, réservé au SM1) */}
+                {isPrimarySeniorManager && (user?.plan === 'enterprise' || DEPLOYMENT_CONFIG.isEnterprise) && (
                   <div className="flex flex-col justify-between rounded-xl border border-blue-500/30 bg-blue-50/20 dark:bg-blue-500/10 p-4 md:col-span-2">
                     <div>
                       <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -688,25 +719,41 @@ export function OrgGovernanceTab() {
                       <p className="mt-1.5 mb-0 text-[12px] text-muted-foreground leading-relaxed">
                         Génère un lien d'accès sécurisé pour un responsable de haut niveau (DG, DAF, Président, Auditeur…). Donne accès au tableau de bord consolidé en lecture seule et aux super-exports.
                       </p>
-                      {/* Champ : Titre / Fonction personnalisée */}
-                      <div className="mt-3">
-                        <label className="block text-[11px] font-semibold text-muted-foreground mb-1">
-                          Titre / Fonction de la personne invitée
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="ex: Directeur Général, Président, DAF, Associé…"
-                          value={executiveCustomLabel}
-                          onChange={(e) => setExecutiveCustomLabel(e.target.value)}
-                          maxLength={60}
-                          className="w-full rounded-lg border border-blue-300/50 dark:border-blue-500/30 bg-white dark:bg-blue-950/20 px-3 py-2 text-[12.5px] text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
-                        />
-                        {executiveCustomLabel.trim() && (
-                          <p className="mt-1 text-[11px] text-blue-700 dark:text-blue-300">
-                            Ce titre apparaîtra dans la bannière d'inscription et comme badge de rôle dans la sidebar.
-                          </p>
-                        )}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                        {/* Champ : Titre / Fonction personnalisée */}
+                        <div>
+                          <label className="block text-[11px] font-semibold text-muted-foreground mb-1">
+                            Titre / Fonction de la personne invitée
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="ex: Directeur Général, Président, DAF, Associé…"
+                            value={executiveCustomLabel}
+                            onChange={(e) => setExecutiveCustomLabel(e.target.value)}
+                            maxLength={60}
+                            className="w-full rounded-lg border border-blue-300/50 dark:border-blue-500/30 bg-white dark:bg-blue-950/20 px-3 py-2 text-[12.5px] text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                          />
+                        </div>
+                        {/* Champ : Segment d'affectation */}
+                        <div>
+                          <label className="block text-[11px] font-semibold text-muted-foreground mb-1">
+                            Segment d'affectation
+                          </label>
+                          <input
+                            type="text"
+                            placeholder={`ex: ${orgData?.segment || user?.segment || 'COMMERCIAL'}`}
+                            value={executiveSegmentInput || orgData?.segment || user?.segment || 'COMMERCIAL'}
+                            onChange={(e) => setExecutiveSegmentInput(e.target.value)}
+                            maxLength={50}
+                            className="w-full rounded-lg border border-blue-300/50 dark:border-blue-500/30 bg-white dark:bg-blue-950/20 px-3 py-2 text-[12.5px] text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                          />
+                        </div>
                       </div>
+                      {executiveCustomLabel.trim() && (
+                        <p className="mt-1.5 text-[11px] text-blue-700 dark:text-blue-300">
+                          Ce titre apparaîtra dans la bannière d'inscription et comme badge de rôle dans la sidebar.
+                        </p>
+                      )}
                     </div>
                     <button
                       type="button"

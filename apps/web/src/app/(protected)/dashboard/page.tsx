@@ -236,7 +236,7 @@ function TopPerformerRow({ rank, manager, lang }: { rank: number; manager: OrgRe
           {manager.name || manager.email}
         </div>
         <div style={{ fontSize: 11, color: 'var(--muted-foreground)' }}>
-          {manager.isSenior ? 'Senior Manager' : 'Team Manager'}
+          {manager.isSenior ? (lang === 'en' ? 'Coordinator' : 'Coordinateur') : (lang === 'en' ? 'Supervisor' : 'Superviseur')}
         </div>
       </div>
 
@@ -676,7 +676,10 @@ export default function DashboardPage() {
                       color: 'var(--muted-foreground, #64748b)'
                     }}
                   >
-                    {t('dashboard.targetsSubtitle') || 'Cycle mensuel · Consolidation de tous les Team Managers du segment'}
+                    {t('dashboard.targetsSubtitle') ||
+                      (lang === 'en'
+                        ? 'Monthly cycle · Consolidation of all Supervisors in the segment'
+                        : 'Cycle mensuel · Consolidation de tous les Superviseurs du segment')}
                   </p>
                 </div>
               </div>

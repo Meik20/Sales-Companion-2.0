@@ -139,6 +139,17 @@ export async function GET(request: NextRequest) {
     const isVerified = Boolean(niu)
     const isSeniorManager = orgRole === 'senior_manager'
 
+    // Récupérer le propriétaire initial de l'organisation (SM1)
+    let primarySeniorManagerUid: string | null = null
+    if (orgCode) {
+      const orgDoc = await adminDb.collection('organisations').doc(orgCode).get()
+      if (orgDoc.exists) {
+        primarySeniorManagerUid = orgDoc.data()?.seniorManagerUid || null
+      }
+    }
+    const isPrimarySeniorManager =
+      isSeniorManager && (primarySeniorManagerUid === managerUid || !primarySeniorManagerUid)
+
     // Récupérer tous les managers de la même organisation.
     // Requiert un index composite Firestore : (orgCode ASC, role ASC)
     let managers: any[] = []
@@ -204,8 +215,10 @@ export async function GET(request: NextRequest) {
       orgCode,
       orgRole,
       isSeniorManager,
+      isPrimarySeniorManager,
+      primarySeniorManagerUid,
       segment: userData.segment || null,
-      seniorManagerUid: userData.seniorManagerUid || null,
+      seniorManagerUid: userData.seniorManagerUid || primarySeniorManagerUid || null,
       niu,
       isVerified,
       companyName: userData.companyName || userData.company || 'Mon Organisation',
@@ -392,11 +405,11 @@ export async function PATCH(request: NextRequest) {
 
       if (inviteData.type === 'senior_manager') {
         updates.orgRole = 'senior_manager'
-        updates.segment = body.segment?.trim() || 'Principal'
+        updates.segment = inviteData.segment || body.segment?.trim() || 'Principal'
         updates.seniorManagerUid = null
       } else if (inviteData.type === 'executive') {
         updates.orgRole = 'executive'
-        updates.segment = 'Direction'
+        updates.segment = inviteData.segment || body.segment?.trim() || userData.segment || 'COMMERCIAL'
         updates.seniorManagerUid = null
         // Propager le libellé personnalisé du rôle executive (ex: "Directeur Général", "PDG")
         if (inviteData.customRoleLabel?.trim()) {
@@ -404,7 +417,7 @@ export async function PATCH(request: NextRequest) {
         }
       } else {
         updates.orgRole = 'team_manager'
-        updates.segment = inviteData.segment || 'Principal'
+        updates.segment = inviteData.segment || 'COMMERCIAL'
         updates.seniorManagerUid =
           inviteData.seniorManagerUid || inviteData.createdByUid || null
       }

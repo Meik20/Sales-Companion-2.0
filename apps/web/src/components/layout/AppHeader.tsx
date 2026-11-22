@@ -210,6 +210,14 @@ export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void 
                           {(user.plan || 'free') === 'free' ? t('header.planFree') : user.plan}
                         </span>
                       </div>
+
+                      {/* Segment Commercial */}
+                      {user.segment && (
+                        <div className="mt-2.5 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                          <span className="font-semibold text-foreground/70 uppercase tracking-wider text-[10px]">Segment :</span>
+                          <span className="font-bold text-foreground">{user.segment}</span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Menu Items */}

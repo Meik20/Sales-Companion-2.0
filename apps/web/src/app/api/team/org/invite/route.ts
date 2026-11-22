@@ -132,10 +132,34 @@ export async function POST(request: NextRequest) {
           ? 'executive'
           : 'team_manager'
 
-    // Seul un Senior Manager peut inviter un autre Senior Manager ou un profil Direction
+    // Récupérer le nom de l'entreprise et le propriétaire fondateur (SM1)
+    let companyName = userData.companyName || userData.company || 'Organisation'
+    const orgDoc = await adminDb.collection('organisations').doc(orgCode).get()
+    const primarySmUid = orgDoc.exists ? orgDoc.data()?.seniorManagerUid : null
+    const isPrimarySeniorManager =
+      primarySmUid === callerUid || (!primarySmUid && userData.orgRole === 'senior_manager')
+
+    if (orgDoc.exists && orgDoc.data()?.companyName) {
+      companyName = orgDoc.data()!.companyName
+    }
+
+    // RÈGLE HIÉRARCHIQUE STRUCTURALE (AGENTS.md §1) :
+    // Seul le Coordinateur principal (fondateur de l'organisation) peut initier
+    // les invitations de Coordinateurs et de Responsables Exécutifs.
+    if ((inviteType === 'senior_manager' || inviteType === 'executive') && !isPrimarySeniorManager) {
+      return NextResponse.json(
+        {
+          error:
+            "Seul le Coordinateur principal (fondateur de l'organisation) est habilité à inviter des Coordinateurs ou des Responsables Exécutifs."
+        },
+        { status: 403 }
+      )
+    }
+
+    // Seul un Coordinateur peut inviter un autre Coordinateur
     if (inviteType === 'senior_manager' && userData.orgRole !== 'senior_manager') {
       return NextResponse.json(
-        { error: 'Seul un Senior Manager peut inviter un autre Senior Manager.' },
+        { error: 'Seul un Coordinateur peut inviter un autre Coordinateur.' },
         { status: 403 }
       )
     }
@@ -144,31 +168,29 @@ export async function POST(request: NextRequest) {
       const isEnt = userData.plan === 'enterprise' || DEPLOYMENT_CONFIG.isEnterprise
       if (!isEnt) {
         return NextResponse.json(
-          { error: "L'invitation d'un membre de la Direction requiert le forfait ENTERPRISE." },
+          { error: "L'invitation d'un Responsable Exécutif requiert le forfait ENTERPRISE." },
           { status: 403 }
         )
       }
       if (userData.orgRole !== 'senior_manager') {
         return NextResponse.json(
-          { error: 'Seul un Senior Manager peut inviter un membre de la Direction.' },
+          { error: 'Seul un Coordinateur peut inviter un Responsable Exécutif.' },
           { status: 403 }
         )
       }
     }
 
-    // Récupérer le nom de l'entreprise
-    let companyName = userData.companyName || userData.company || 'Organisation'
-    const orgDoc = await adminDb.collection('organisations').doc(orgCode).get()
-    if (orgDoc.exists && orgDoc.data()?.companyName) {
-      companyName = orgDoc.data()!.companyName
-    }
-
-    // Déterminer le segment
-    // Pour un TM : hérité du créateur (ou spécifié dans le body si le manager le modifie)
-    // Pour un SM : null (l'invité choisira son propre segment dans son formulaire)
+    // Déterminer le segment rattaché
+    // • Superviseur (team_manager) : hérité du créateur (ou spécifié dans le body)
+    // • Responsable Exécutif (executive) : spécifié dans le body ou hérité du segment du Coordinateur
+    // • Coordinateur (senior_manager) : défini dans le body par le SM1 (ex: COMMERCIAL, NORD, etc.)
     let assignedSegment: string | null = null
     if (inviteType === 'team_manager') {
-      assignedSegment = body.segment?.trim() || userData.segment || 'Principal'
+      assignedSegment = body.segment?.trim() || userData.segment || 'COMMERCIAL'
+    } else if (inviteType === 'executive') {
+      assignedSegment = body.segment?.trim() || userData.segment || 'COMMERCIAL'
+    } else if (inviteType === 'senior_manager') {
+      assignedSegment = body.segment?.trim() || null
     }
 
     // Générer un token sécurisé

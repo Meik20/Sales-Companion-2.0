@@ -703,6 +703,7 @@ export default function PipelinePage() {
                     ? (selectedManager.stats?.salespeopleCount ?? 0)
                     : (orgPipelineQuery.data?.totalSalespeopleCount ?? 0)
                 }
+                supervisorsCount={orgPipelineQuery.data?.totalSupervisorsCount}
                 currency={orgPipelineQuery.data?.currency}
                 selectedPeriod={activePeriod}
                 onSelectPeriod={setSelectedPeriod}

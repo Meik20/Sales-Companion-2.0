@@ -374,10 +374,10 @@ export function RegisterForm() {
         <h1 className="mb-1.5 mt-0 font-['Syne',sans-serif] text-[21px] font-extrabold tracking-[-0.03em] text-foreground">
           {orgInviteInfo
             ? orgInviteInfo.type === 'senior_manager'
-              ? 'Rejoindre en tant que Senior Manager'
+              ? 'Rejoindre en tant que Coordinateur'
               : orgInviteInfo.type === 'executive'
                 ? "Rejoindre la Direction de l'Organisation"
-                : "Rejoindre l'équipe Manager"
+                : "Rejoindre l'équipe Superviseur"
             : t('auth.registerTitle')}
         </h1>
         <p className="m-0 text-[12.5px] text-muted-foreground">
@@ -406,11 +406,11 @@ export function RegisterForm() {
           <div className="flex-1">
             <div className="font-bold text-indigo-900 dark:text-indigo-300 text-[12.5px] flex items-center gap-1.5">
               {orgInviteInfo.type === 'senior_manager' ? (
-                <><Crown size={13} className="text-violet-600 dark:text-violet-400 shrink-0" /> Invitation Senior Manager — Nouveau Segment</>
+                <><Crown size={13} className="text-violet-600 dark:text-violet-400 shrink-0" /> Invitation Coordinateur — Segment : {orgInviteInfo.segment || 'Nouveau Segment'}</>
               ) : orgInviteInfo.type === 'executive' ? (
-                <><Building2 size={13} className="text-amber-500 shrink-0" /> Invitation — {orgInviteInfo.customRoleLabel?.trim() || 'Direction Générale'}</>
+                <><Building2 size={13} className="text-amber-500 shrink-0" /> Invitation — {orgInviteInfo.customRoleLabel?.trim() || 'Responsable Exécutif'}{orgInviteInfo.segment ? ` — Segment : ${orgInviteInfo.segment}` : ''}</>
               ) : (
-                <><Users2 size={13} className="text-indigo-600 dark:text-indigo-400 shrink-0" /> Invitation Team Manager</>
+                <><Users2 size={13} className="text-indigo-600 dark:text-indigo-400 shrink-0" /> Invitation Superviseur{orgInviteInfo.segment ? ` — Segment : ${orgInviteInfo.segment}` : ''}</>
               )}
             </div>
             <div className="text-[11.5px] text-indigo-800 dark:text-indigo-200/90 mt-1 leading-relaxed">
@@ -421,7 +421,7 @@ export function RegisterForm() {
                   Invité par : <strong>{orgInviteInfo.seniorManagerName}</strong>
                 </div>
               )}
-              {orgInviteInfo.type === 'team_manager' && orgInviteInfo.segment && (
+              {orgInviteInfo.segment && (
                 <div className="flex items-center gap-1 mt-0.5">
                   <Tag size={10} className="text-indigo-600 dark:text-indigo-400/70 shrink-0" />
                   Segment rattaché : <strong>{orgInviteInfo.segment}</strong>

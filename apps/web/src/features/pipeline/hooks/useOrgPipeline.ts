@@ -49,6 +49,7 @@ export interface OrgPipelineResult {
   }
   orgCode: string
   totalSalespeopleCount?: number
+  totalSupervisorsCount?: number
   currency?: string
 }
 

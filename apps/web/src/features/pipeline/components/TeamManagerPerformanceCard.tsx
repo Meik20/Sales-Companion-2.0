@@ -36,6 +36,8 @@ interface TeamManagerPerformanceCardProps {
   context?: 'org' | 'team'
   /** Effectif commercial actif réel de l'équipe (strictement issu de members) */
   membersCount?: number
+  /** Nombre total de Superviseurs du segment (pour les vues consolidées) */
+  supervisorsCount?: number
   /** Devise officielle de l'organisation */
   currency?: string
   /** Période mensuelle sélectionnée (ex: '2026-11', '2026-10') pour les bilans */
@@ -54,6 +56,7 @@ export function TeamManagerPerformanceCard({
   targets,
   context = 'org',
   membersCount,
+  supervisorsCount,
   currency: orgCurrency,
   selectedPeriod,
   onSelectPeriod,
@@ -190,9 +193,9 @@ export function TeamManagerPerformanceCard({
       }
     }
 
-    const teamManagersCount = managers
-      ? managers.filter((m) => !m.isSenior).length
-      : 0
+    const teamManagersCount = supervisorsCount != null
+      ? supervisorsCount
+      : (managers ? managers.filter((m) => !m.isSenior).length : 0)
 
     return {
       totalCount: items.length,
@@ -209,7 +212,7 @@ export function TeamManagerPerformanceCard({
       unassignedCount,
       conversionRate: items.length > 0 ? Math.round((conclueCount / items.length) * 100) : 0
     }
-  }, [items, manager?.uid, isGlobal, managers, todayStr, periodBounds])
+  }, [items, manager?.uid, isGlobal, managers, todayStr, periodBounds, supervisorsCount])
 
   // Valeurs de réalisations : priorité aux données API (couvrent pipeline + clients archivés)
   // Fallback sur les stats in-memory uniquement quand pas de sélecteur de période ou données API en cours de chargement sur le mois courant

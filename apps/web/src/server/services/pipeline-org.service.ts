@@ -38,6 +38,7 @@ export interface ConsolidatedPipelineResult {
   totalFetched: number
   orgCode: string
   totalSalespeopleCount?: number
+  totalSupervisorsCount?: number
   currency?: string
 }
 
@@ -119,12 +120,20 @@ export async function fetchOrgConsolidatedPipeline(
   // L'Executive a la visibilité uniquement sur les pipelines consolidés des Coordinateurs (Senior Managers) de son segment.
   let targetManagerUids = orgManagerUids
   if (callerOrgRole === 'executive' && callerSegment && !filterManagerUid) {
+    const isDirectionSegment =
+      callerSegment.toLowerCase() === 'direction' || callerSegment.toLowerCase() === 'direction générale'
     const segmentSmDocs = filteredManagersDocs.filter(
-      (d) => (d.data().orgRole || 'team_manager') === 'senior_manager' && d.data().segment === callerSegment
+      (d) =>
+        (d.data().orgRole || 'team_manager') === 'senior_manager' &&
+        (isDirectionSegment || !d.data().segment || d.data().segment === callerSegment)
     )
     const segmentSmUids = new Set(segmentSmDocs.map((d) => d.id))
     const relevantUids = filteredManagersDocs
-      .filter((d) => segmentSmUids.has(d.id) || (d.data().seniorManagerUid && segmentSmUids.has(d.data().seniorManagerUid)))
+      .filter(
+        (d) =>
+          segmentSmUids.has(d.id) ||
+          (d.data().seniorManagerUid && segmentSmUids.has(d.data().seniorManagerUid))
+      )
       .map((d) => d.id)
     if (relevantUids.length > 0) {
       targetManagerUids = relevantUids
@@ -318,7 +327,11 @@ export async function fetchOrgConsolidatedPipeline(
     if (mRole === 'executive' || d.id === callerUid) return false
     if (isCallerExecutive) {
       if (mRole !== 'senior_manager') return false
-      if (callerSegment && d.data().segment && d.data().segment !== callerSegment) return false
+      const isDirectionSegment =
+        callerSegment?.toLowerCase() === 'direction' ||
+        callerSegment?.toLowerCase() === 'direction générale'
+      if (callerSegment && !isDirectionSegment && d.data().segment && d.data().segment !== callerSegment)
+        return false
       return true
     }
     return mRole !== 'senior_manager'
@@ -380,6 +393,7 @@ export async function fetchOrgConsolidatedPipeline(
     totalFetched: allItems.length,
     orgCode,
     totalSalespeopleCount,
+    totalSupervisorsCount: teamManagersDocs.length,
     currency: orgCurrency
   }
 }
