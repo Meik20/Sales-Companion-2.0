@@ -19,7 +19,7 @@ import {
 import { useTranslation } from '@/providers/I18nProvider'
 import { isCorporateEmail } from '../utils/email-validator'
 import { CountrySelect } from '@/components/ui/CountrySelect'
-import { ShieldCheck, Lock, HelpCircle, ArrowRight, ArrowLeft, Crown, Users2, Tag, UserCheck, Check } from 'lucide-react'
+import { ShieldCheck, Lock, HelpCircle, ArrowRight, ArrowLeft, Crown, Users2, Tag, UserCheck, Check, Building2 } from 'lucide-react'
 import { detectClientCountry } from '@/features/landing/landing-country'
 import { setProspectingCountryCookie } from '@/hooks/useProspectingCountry'
 import type { CountryCode } from '@sales-companion/shared'
@@ -36,7 +36,7 @@ export function RegisterForm() {
   const searchParams = useSearchParams()
   const { user, loading: authLoading } = useCurrentUser()
 
-  const inviteTypeParam = searchParams.get('inviteType') as 'senior_manager' | 'team_manager' | null
+  const inviteTypeParam = searchParams.get('inviteType') as 'senior_manager' | 'team_manager' | 'executive' | null
   const tokenParam = searchParams.get('token')
   const isOrgInvite = Boolean(inviteTypeParam || (tokenParam && tokenParam.startsWith('inv_')))
   const exemptionParam = !isOrgInvite ? (searchParams.get('exemption') || tokenParam) : searchParams.get('exemption')
@@ -406,6 +406,8 @@ export function RegisterForm() {
             <div className="font-bold text-indigo-900 dark:text-indigo-300 text-[12.5px] flex items-center gap-1.5">
               {orgInviteInfo.type === 'senior_manager' ? (
                 <><Crown size={13} className="text-violet-600 dark:text-violet-400 shrink-0" /> Invitation Senior Manager — Nouveau Segment</>
+              ) : orgInviteInfo.type === 'executive' ? (
+                <><Building2 size={13} className="text-amber-500 shrink-0" /> Invitation Direction — Rôle Stratégique</>
               ) : (
                 <><Users2 size={13} className="text-indigo-600 dark:text-indigo-400 shrink-0" /> Invitation Team Manager</>
               )}
@@ -422,6 +424,12 @@ export function RegisterForm() {
                 <div className="flex items-center gap-1 mt-0.5">
                   <Tag size={10} className="text-indigo-600 dark:text-indigo-400/70 shrink-0" />
                   Segment rattaché : <strong>{orgInviteInfo.segment}</strong>
+                </div>
+              )}
+              {orgInviteInfo.type === 'executive' && (
+                <div className="flex items-center gap-1 mt-0.5 text-amber-700 dark:text-amber-300/90">
+                  <Building2 size={10} className="shrink-0" />
+                  Rôle : <strong>Direction de l'Organisation (Supervision Globale)</strong>
                 </div>
               )}
             </div>
@@ -606,6 +614,11 @@ export function RegisterForm() {
                     <>
                       <Crown size={15} className="text-violet-600 dark:text-violet-400 shrink-0" />
                       <span>Senior Manager</span>
+                    </>
+                  ) : orgInviteInfo.type === 'executive' ? (
+                    <>
+                      <Building2 size={15} className="text-amber-500 shrink-0" />
+                      <span>Direction (Executive)</span>
                     </>
                   ) : (
                     <>
