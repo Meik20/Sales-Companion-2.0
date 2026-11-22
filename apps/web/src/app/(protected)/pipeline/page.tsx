@@ -556,8 +556,8 @@ export default function PipelinePage() {
                     }}
                   >
                     {isExecutive
-                      ? (lang === 'en' ? 'Filter by Senior Manager or Team Manager :' : 'Filtrer par Senior Manager ou Team Manager :')
-                      : (t('pipeline.filterByTeamManager') || 'Filtrer par Team Manager :')}
+                      ? (lang === 'en' ? 'Filter by Coordinator :' : 'Filtrer par Coordinateur :')
+                      : (t('pipeline.filterByTeamManager') || 'Filtrer par Superviseur :')}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
@@ -591,11 +591,13 @@ export default function PipelinePage() {
                     .filter((m: OrgManagerStats) => {
                       if (m.uid === user?.uid) return false
                       if ((m as any).orgRole === 'executive') return false
-                      return isExecutive ? true : !m.isSenior
+                      return isExecutive ? m.isSenior : !m.isSenior
                     })
                     .map((mgr: OrgManagerStats) => {
                       const isSelected = filterManagerUid === mgr.uid
-                      const roleTag = mgr.isSenior ? ' (Senior Manager)' : ''
+                      const roleTag = mgr.isSenior
+                        ? (lang === 'en' ? ' (Coordinator)' : ' (Coordinateur)')
+                        : ''
                       return (
                         <button
                           key={mgr.uid}
@@ -639,7 +641,7 @@ export default function PipelinePage() {
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                 <span>
                   {selectedManager
-                    ? `Pipeline : ${selectedManager.name || 'Team Manager'}${isExecutive && selectedManager.isSenior ? ' (Senior Manager)' : ''}`
+                    ? `Pipeline : ${selectedManager.name || (lang === 'en' ? 'Supervisor' : 'Superviseur')}${isExecutive && selectedManager.isSenior ? (lang === 'en' ? ' (Coordinator)' : ' (Coordinateur)') : ''}`
                     : (isExecutive
                         ? (lang === 'en' ? "Consolidated Organization Pipeline" : "Pipeline Consolidé de l'Organisation")
                         : (t('pipeline.orgPipeline') || 'Pipeline du Segment'))}

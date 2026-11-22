@@ -13,13 +13,15 @@ describe('role-labels', () => {
   it('utilise les libellés par défaut quand aucune personnalisation n’est définie', async () => {
     const { getRoleDisplayLabel } = await import('../role-labels')
 
-    expect(getRoleDisplayLabel({ role: 'manager', orgRole: 'senior_manager', lang: 'fr' })).toBe('Senior Manager')
-    expect(getRoleDisplayLabel({ role: 'manager', orgRole: 'team_manager', lang: 'fr' })).toBe('Team Manager')
+    expect(getRoleDisplayLabel({ role: 'manager', orgRole: 'senior_manager', lang: 'fr' })).toBe('Coordinateur')
+    expect(getRoleDisplayLabel({ role: 'manager', orgRole: 'team_manager', lang: 'fr' })).toBe('Superviseur')
     expect(getRoleDisplayLabel({ role: 'manager', orgRole: 'executive', lang: 'fr' })).toBe('Direction Générale')
     expect(getRoleDisplayLabel({ role: 'member', lang: 'fr' })).toBe('Commercial')
     expect(getRoleDisplayLabel({ role: 'support_agent', lang: 'fr' })).toBe('Agent Support')
 
     // En anglais
+    expect(getRoleDisplayLabel({ role: 'manager', orgRole: 'senior_manager', lang: 'en' })).toBe('Coordinator')
+    expect(getRoleDisplayLabel({ role: 'manager', orgRole: 'team_manager', lang: 'en' })).toBe('Supervisor')
     expect(getRoleDisplayLabel({ role: 'manager', orgRole: 'executive', lang: 'en' })).toBe('Executive / Director')
     expect(getRoleDisplayLabel({ role: 'member', lang: 'en' })).toBe('Sales Rep')
   })

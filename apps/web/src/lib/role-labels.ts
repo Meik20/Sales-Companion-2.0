@@ -41,14 +41,14 @@ export function getRoleDisplayLabel({
       if (DEPLOYMENT_CONFIG.roleLabels.seniorManager) {
         return DEPLOYMENT_CONFIG.roleLabels.seniorManager
       }
-      return 'Senior Manager'
+      return isEn ? 'Coordinator' : 'Coordinateur'
     }
 
     if (orgRole === 'team_manager') {
       if (DEPLOYMENT_CONFIG.roleLabels.teamManager) {
         return DEPLOYMENT_CONFIG.roleLabels.teamManager
       }
-      return 'Team Manager'
+      return isEn ? 'Supervisor' : 'Superviseur'
     }
 
     return isEn ? 'Manager' : 'Manager'

@@ -277,17 +277,19 @@ try {
     console.log('✅ TeamManagerPerformanceCard.tsx conforme (Portefeuille Actif affiche activeCount)')
   }
 
-  // D. Vérifier la désignation explicite "Team Managers" sur la vue Senior Manager
+  // D. Vérifier la désignation explicite "Superviseurs" (ex-Team Managers) sur la vue Coordinateur (Senior Manager)
   const frLocale = fs.readFileSync(
     path.resolve(__dirname, '../apps/web/src/locales/fr.ts'),
     'utf8'
   )
-  if (!frLocale.includes("kpiManagers: 'Team Managers'") || !frLocale.includes("topPerformersTooltip: 'Team Managers")) {
+  const hasSupervisorsKpi = frLocale.includes("kpiManagers: 'Superviseurs'") || frLocale.includes("kpiManagers: 'Team Managers'")
+  const hasSupervisorsTooltip = frLocale.includes("topPerformersTooltip: 'Superviseurs") || frLocale.includes("topPerformersTooltip: 'Team Managers")
+  if (!hasSupervisorsKpi || !hasSupervisorsTooltip) {
     errors.push(
-      "❌ RÈGLE MÉTIER VIOLÉE : Sur la vue du Senior Manager, les managers managés doivent être explicitement désignés comme 'Team Managers' (kpiManagers et tooltips)."
+      "❌ RÈGLE MÉTIER VIOLÉE : Sur la vue du Coordinateur (Senior Manager), les managers managés doivent être explicitement désignés comme 'Superviseurs' (kpiManagers et tooltips)."
     )
   } else {
-    console.log('✅ Locales conformes (désignation explicite "Team Managers" sur la vue Senior Manager)')
+    console.log('✅ Locales conformes (désignation explicite "Superviseurs" sur la vue Coordinateur)')
   }
 
   // E. Vérifier l'opacité 100% des popovers (prévention de la superposition de caractères)

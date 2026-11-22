@@ -397,7 +397,7 @@ export async function GET(request: NextRequest) {
           if ((mData.orgRole || 'team_manager') !== 'senior_manager') {
             tmMap.set(d.id, {
               uid: d.id,
-              name: mData.name || mData.displayName || mData.email || 'Team Manager',
+              name: mData.name || mData.displayName || mData.email || 'Superviseur',
               email: mData.email || ''
             })
           }
@@ -860,7 +860,7 @@ export async function GET(request: NextRequest) {
         const tgt = tmTargetsMap.get(tmUid)
         byMember[tmUid] = {
           uid: tmUid,
-          memberName: tm?.name || 'Team Manager',
+          memberName: tm?.name || 'Superviseur',
           total: 0,
           prospection: 0,
           negociation: 0,
@@ -1067,7 +1067,7 @@ export async function GET(request: NextRequest) {
 
     // Colonnes header (ligne 4) — SANS "Access ID"
     const summaryHeaders = [
-      isSeniorManager ? 'Team Manager' : 'Membre',
+      isSeniorManager ? 'Superviseur' : 'Membre',
       'Période',
       'Total Leads',
       'Prospection',
@@ -1280,7 +1280,7 @@ export async function GET(request: NextRequest) {
           'Entreprise',
           'Statut',
           'Montant (XAF)',
-          'Team Manager',
+          'Superviseur',
           'Commercial',
           'Ville',
           'Secteur',
@@ -1335,7 +1335,7 @@ export async function GET(request: NextRequest) {
     // Rows
     filtered.forEach((item, rowIdx) => {
       const tm = item.managerUid ? tmMap.get(item.managerUid) : null
-      const tmName = tm?.name || 'Team Manager'
+      const tmName = tm?.name || 'Superviseur'
 
       const uid = item.assignedTo
       let name = item.memberName

@@ -272,7 +272,7 @@ export function exportDashboardPdf({
   </div>
   <div class="grid-4">
     <div class="card">
-      <div class="card-label">${isEn ? 'Team Managers' : 'Team Managers'}</div>
+      <div class="card-label">${isEn ? 'Supervisors' : 'Superviseurs'}</div>
       <div class="card-value">${data.totalManagers || 0}</div>
       <div class="card-sub">${isEn ? 'managed operational teams' : 'équipes opérationnelles'}</div>
     </div>
@@ -293,15 +293,15 @@ export function exportDashboardPdf({
     </div>
   </div>
 
-  <!-- Performance des Team Managers -->
+  <!-- Performance des Superviseurs -->
   <div class="section-title">
-    👥 ${isEn ? 'Performance by Team Manager' : 'Performance par Team Manager'}
+    👥 ${isEn ? 'Performance by Supervisor' : 'Performance par Superviseur'}
   </div>
   <table>
     <thead>
       <tr>
         <th style="width: 35px; text-align: center;">#</th>
-        <th>${isEn ? 'Team Manager' : 'Team Manager'}</th>
+        <th>${isEn ? 'Supervisor' : 'Superviseur'}</th>
         <th>Email</th>
         <th style="text-align: center;">${isEn ? 'Active' : 'Actif'}</th>
         <th style="text-align: center;">${isEn ? 'Closed' : 'Conclus'}</th>
@@ -312,13 +312,13 @@ export function exportDashboardPdf({
     <tbody>
       ${
         !data.managers?.length
-          ? `<tr><td colspan="7" style="text-align: center; color: #64748b; padding: 12px;">${isEn ? 'No Team Managers found' : 'Aucun Team Manager rattaché'}</td></tr>`
+          ? `<tr><td colspan="7" style="text-align: center; color: #64748b; padding: 12px;">${isEn ? 'No Supervisors found' : 'Aucun Superviseur rattaché'}</td></tr>`
           : data.managers
               .map(
                 (mgr, idx) => `
         <tr>
           <td style="text-align: center; font-weight: 700;">${idx + 1}</td>
-          <td><strong>${mgr.name || '—'}</strong> ${mgr.isSenior ? '<span style="font-size: 9px; color: #6366f1;">(Senior)</span>' : ''}</td>
+          <td><strong>${mgr.name || '—'}</strong> ${mgr.isSenior ? '<span style="font-size: 9px; color: #6366f1;">(Coord.)</span>' : ''}</td>
           <td style="color: #64748b;">${mgr.email || '—'}</td>
           <td style="text-align: center; color: #3b82f6; font-weight: 600;">${(mgr.stats.prospection || 0) + (mgr.stats.negociation || 0)}</td>
           <td style="text-align: center; color: #10b981; font-weight: 700;">${mgr.stats.conclue}</td>
@@ -394,7 +394,7 @@ export function exportDashboardPdf({
     <thead>
       <tr>
         <th>${isEn ? 'Company / Lead' : 'Entreprise / Prospect'}</th>
-        <th>${isEn ? 'Team Manager' : 'Team Manager'}</th>
+        <th>${isEn ? 'Supervisor' : 'Superviseur'}</th>
         <th>${isEn ? 'Commercial' : 'Commercial'}</th>
         <th style="text-align: right;">${isEn ? 'Date' : 'Date'}</th>
       </tr>

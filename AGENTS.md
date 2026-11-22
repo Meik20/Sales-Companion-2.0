@@ -211,10 +211,13 @@ Ne **jamais** utiliser un emoji cercle coloré (`🟢🔴🟡`) pour indiquer un
 
 ---
 
-## 9. Règle Terminologique — Désignation Explicite des « Team Managers » sur la Vue Senior Manager
+## 9. Règle Terminologique — Désignation Explicite des Rôles : « Superviseurs » et « Coordinateurs »
 
 > [!IMPORTANT]
-> Sur toute la vue du Senior Manager (Dashboard de Segment, Cartes KPIs, Tooltips, Tableaux de bord), les managers opérationnels managés doivent être **clairement et explicitement désignés sous l'appellation "Team Manager(s)"** (jamais simplement "Managers"), afin d'éliminer toute ambiguïté avec le Senior Manager lui-même.
+> Conformément à l'évolution des dénominations officielles de l'application :
+> - Le **Senior Manager** est désigné sous le titre de **« Coordinateur »** (en charge de la coordination et du pilotage d'un segment).
+> - Le **Team Manager** est désigné sous le titre de **« Superviseur »** (en charge de la supervision directe de son équipe commerciale terrain).
+> Sur toute la vue du Coordinateur (Dashboard de Segment, Cartes KPIs, Tooltips, Tableaux de bord), les managers opérationnels supervisés doivent être **clairement et explicitement désignés sous l'appellation "Superviseurs"** (ou "Team Managers" à titre d'alias technique), afin d'éliminer toute ambiguïté avec le Coordinateur lui-même.
 
 ---
 
@@ -395,13 +398,14 @@ Avant d'écrire ou de modifier la moindre ligne de code ou de générer un asset
 
 > [!CAUTION]
 > **CONFINEMENT STRICT DU RÔLE EXÉCUTIF / DIRECTION :**  
-> L'invité Direction / Responsable Exécutif (`role: 'manager'`, `orgRole: 'executive'`) possède un rôle purement stratégique de supervision et d'audit pour l'entreprise (Option Enterprise). Il n'est en aucun cas un Senior Manager ni un Team Manager opérationnel.
+> L'invité Direction / Responsable Exécutif (`role: 'manager'`, `orgRole: 'executive'`) possède un rôle purement stratégique de supervision et d'audit pour l'entreprise (Option Enterprise). Il n'est en aucun cas un Coordinateur (Senior Manager) ni un Superviseur (Team Manager) opérationnel.
 >
-> 1. **Accès Consolidé et Lecture Seule :**  
->    - L'Executive accède au pipeline consolidé de l'ensemble des Senior Managers de son organisation (`/api/pipeline/org`) et au tableau de bord multi-segments (`/dashboard`, `/api/reporting/org`).
+> 1. **Accès Consolidé et Périmètre de Visibilité Restreint aux Coordinateurs :**  
+>    - L'Executive accède au pipeline consolidé **uniquement des Coordinateurs (Senior Managers) de son segment** (`/api/pipeline/org`) et au tableau de bord multi-segments (`/dashboard`, `/api/reporting/org`).
+>    - Il **ne filtre pas les Superviseurs (Team Managers)** avec lesquels il n'a aucun lien direct.
 >    - Il bénéficie des fonctionnalités avancées d'audit et de super-exports (PDF / Excel).
 > 2. **Interdiction Formelle d'Apparence dans les Listes & Filtres de Managers :**  
->    - L'Executive ne doit **JAMAIS** figurer dans les tableaux, listes, formulaires, sélecteurs ou colonnes dédiés aux « Team Managers » ou « Senior Managers » (`/api/team/org`, `/api/reporting/org`, `/api/pipeline/org`).
+>    - L'Executive ne doit **JAMAIS** figurer dans les tableaux, listes, formulaires, sélecteurs ou colonnes dédiés aux « Superviseurs » ou « Coordinateurs » (`/api/team/org`, `/api/reporting/org`, `/api/pipeline/org`).
 >    - L'Executive ne peut jamais figurer dans ses propres boutons de filtrage ou dans les classements Top Performers.
 > 3. **Absence de Portefeuille Opérationnel, de Gestion d'Équipe et de Base Clients :**  
 >    - L'Executive ne pilote aucun commercial de terrain, ne reçoit pas de prospects délégués et ne crée pas de fiches opérationnelles.
