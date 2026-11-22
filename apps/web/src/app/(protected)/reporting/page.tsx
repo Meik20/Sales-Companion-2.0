@@ -18,18 +18,22 @@ export default function ReportingPage() {
   const router = useRouter()
   const { t } = useTranslation()
   const isSeniorManager = user?.role === 'manager' && user?.orgRole === 'senior_manager'
+  const isExecutive = user?.role === 'manager' && user?.orgRole === 'executive'
 
   // Rediriger le Senior Manager vers le Dashboard Organisation consolidé (/dashboard)
+  // Rediriger l'Executive vers le Pipeline consolidé (/pipeline)
   useEffect(() => {
-    if (isSeniorManager) {
+    if (isSeniorManager || isExecutive) {
       router.replace(routes.dashboard)
+    } else if (isExecutive) {
+      router.replace(routes.pipeline)
     }
-  }, [isSeniorManager, router])
+  }, [isSeniorManager, isExecutive, router])
 
   const [selectedPeriod, setSelectedPeriod] = useState<string>('')
   const { data, isLoading, isError, error, refetch, isFetching } = useReportingData(selectedPeriod || undefined)
 
-  if (isSeniorManager) {
+  if (isSeniorManager || isExecutive) {
     return (
       <AppShell>
         <LoadingState />

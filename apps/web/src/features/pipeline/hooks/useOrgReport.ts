@@ -71,12 +71,14 @@ export interface OrgReportResult {
 export type OrgReportQueryOptions = string | { period?: string; from?: string; to?: string }
 
 /**
- * Hook — KPIs consolidés de l'organisation (Senior Manager uniquement).
+ * Hook — KPIs consolidés de l'organisation (Senior Manager + Executive).
  * Consomme GET /api/reporting/org avec support des filtres journaliers Day-by-Day.
  */
 export function useOrgReport(options?: OrgReportQueryOptions) {
   const { user } = useCurrentUser()
   const isSeniorManager = user?.role === 'manager' && user?.orgRole === 'senior_manager'
+  const isExecutive = user?.role === 'manager' && user?.orgRole === 'executive'
+  const hasOrgAccess = isSeniorManager || isExecutive
 
   const queryKey = typeof options === 'string'
     ? ['org-report', user?.uid, options]
@@ -108,7 +110,7 @@ export function useOrgReport(options?: OrgReportQueryOptions) {
       }
       return res.json() as Promise<OrgReportResult>
     },
-    enabled: !!user?.uid && isSeniorManager,
+    enabled: !!user?.uid && hasOrgAccess,
     staleTime: 0,
     refetchInterval: 15 * 1000,
     refetchOnWindowFocus: true

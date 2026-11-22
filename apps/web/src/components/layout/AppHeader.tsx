@@ -63,15 +63,18 @@ export function AppHeader({ onOpenMenuAction }: { onOpenMenuAction?: () => void 
     support_agent: { label: t('sidebar.supportAgentRole') || t('sidebar.support'), bg: 'rgba(235,133,18,0.25)' }
   }
 
-  // Senior Manager has a distinct badge (purple tint) vs Team Manager (yellow)
+  // Senior Manager has a distinct badge (purple tint) vs Team Manager (yellow) vs Executive (blue)
   const isSeniorManager = user?.role === 'manager' && user?.orgRole === 'senior_manager'
   const isTeamManager = user?.role === 'manager' && user?.orgRole === 'team_manager'
+  const isExecutive = user?.role === 'manager' && user?.orgRole === 'executive'
   const badge = user?.role
     ? isSeniorManager
       ? { label: t('sidebar.seniorManagerRole') || 'Senior Manager', bg: 'rgba(139,92,246,0.22)' }
-      : isTeamManager
-        ? { label: t('sidebar.teamManagerRole') || 'Team Manager', bg: 'rgba(251,191,36,0.22)' }
-        : (roleBadge[user.role] ?? null)
+      : isExecutive
+        ? { label: user.customRoleLabel?.trim() || t('sidebar.executiveRole') || 'Direction Générale', bg: 'rgba(59,130,246,0.22)' }
+        : isTeamManager
+          ? { label: t('sidebar.teamManagerRole') || 'Team Manager', bg: 'rgba(251,191,36,0.22)' }
+          : (roleBadge[user.role] ?? null)
     : null
 
   return (

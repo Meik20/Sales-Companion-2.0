@@ -8,21 +8,35 @@ describe('role-labels', () => {
     delete process.env.NEXT_PUBLIC_ROLE_LABEL_TM
     delete process.env.NEXT_PUBLIC_ROLE_LABEL_MEMBER
     delete process.env.NEXT_PUBLIC_ROLE_LABEL_SUPPORT
+    it('utilise le customRoleLabel pour executive si fourni', async () => {
+    const { getRoleDisplayLabel } = await import('../role-labels')
+    expect(getRoleDisplayLabel({ role: 'manager', orgRole: 'executive', customRoleLabel: 'Directeur Général' })).toBe('Directeur Général')
+    expect(getRoleDisplayLabel({ role: 'manager', orgRole: 'executive', customRoleLabel: '  PDG  ' })).toBe('PDG')
+    expect(getRoleDisplayLabel({ role: 'manager', orgRole: 'executive', customRoleLabel: '' })).toBe('Direction Générale')
+    expect(getRoleDisplayLabel({ role: 'manager', orgRole: 'executive', customRoleLabel: null })).toBe('Direction Générale')
   })
+})
 
   it('utilise les libellés par défaut quand aucune personnalisation n’est définie', async () => {
     const { getRoleDisplayLabel } = await import('../role-labels')
 
     expect(getRoleDisplayLabel({ role: 'manager', orgRole: 'senior_manager', lang: 'fr' })).toBe('Senior Manager')
     expect(getRoleDisplayLabel({ role: 'manager', orgRole: 'team_manager', lang: 'fr' })).toBe('Team Manager')
-    expect(getRoleDisplayLabel({ role: 'manager', orgRole: 'executive', lang: 'fr' })).toBe('Direction / Observateur')
+    expect(getRoleDisplayLabel({ role: 'manager', orgRole: 'executive', lang: 'fr' })).toBe('Direction Générale')
     expect(getRoleDisplayLabel({ role: 'member', lang: 'fr' })).toBe('Commercial')
     expect(getRoleDisplayLabel({ role: 'support_agent', lang: 'fr' })).toBe('Agent Support')
 
     // En anglais
     expect(getRoleDisplayLabel({ role: 'manager', orgRole: 'executive', lang: 'en' })).toBe('Executive / Director')
     expect(getRoleDisplayLabel({ role: 'member', lang: 'en' })).toBe('Sales Rep')
+    it('utilise le customRoleLabel pour executive si fourni', async () => {
+    const { getRoleDisplayLabel } = await import('../role-labels')
+    expect(getRoleDisplayLabel({ role: 'manager', orgRole: 'executive', customRoleLabel: 'Directeur Général' })).toBe('Directeur Général')
+    expect(getRoleDisplayLabel({ role: 'manager', orgRole: 'executive', customRoleLabel: '  PDG  ' })).toBe('PDG')
+    expect(getRoleDisplayLabel({ role: 'manager', orgRole: 'executive', customRoleLabel: '' })).toBe('Direction Générale')
+    expect(getRoleDisplayLabel({ role: 'manager', orgRole: 'executive', customRoleLabel: null })).toBe('Direction Générale')
   })
+})
 
   it('applique les libellés personnalisés pour l’instance entreprise', async () => {
     process.env.NEXT_PUBLIC_ROLE_LABEL_EXECUTIVE = 'Directeur Général'
@@ -38,5 +52,19 @@ describe('role-labels', () => {
     expect(getRoleDisplayLabel({ role: 'manager', orgRole: 'team_manager' })).toBe('Superviseur de Zone')
     expect(getRoleDisplayLabel({ role: 'member' })).toBe('Délégué Commercial')
     expect(getRoleDisplayLabel({ role: 'support_agent' })).toBe('Assistant Commercial')
+    it('utilise le customRoleLabel pour executive si fourni', async () => {
+    const { getRoleDisplayLabel } = await import('../role-labels')
+    expect(getRoleDisplayLabel({ role: 'manager', orgRole: 'executive', customRoleLabel: 'Directeur Général' })).toBe('Directeur Général')
+    expect(getRoleDisplayLabel({ role: 'manager', orgRole: 'executive', customRoleLabel: '  PDG  ' })).toBe('PDG')
+    expect(getRoleDisplayLabel({ role: 'manager', orgRole: 'executive', customRoleLabel: '' })).toBe('Direction Générale')
+    expect(getRoleDisplayLabel({ role: 'manager', orgRole: 'executive', customRoleLabel: null })).toBe('Direction Générale')
+  })
+})
+  it('utilise le customRoleLabel pour executive si fourni', async () => {
+    const { getRoleDisplayLabel } = await import('../role-labels')
+    expect(getRoleDisplayLabel({ role: 'manager', orgRole: 'executive', customRoleLabel: 'Directeur Général' })).toBe('Directeur Général')
+    expect(getRoleDisplayLabel({ role: 'manager', orgRole: 'executive', customRoleLabel: '  PDG  ' })).toBe('PDG')
+    expect(getRoleDisplayLabel({ role: 'manager', orgRole: 'executive', customRoleLabel: '' })).toBe('Direction Générale')
+    expect(getRoleDisplayLabel({ role: 'manager', orgRole: 'executive', customRoleLabel: null })).toBe('Direction Générale')
   })
 })

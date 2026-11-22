@@ -340,6 +340,8 @@ export default function DashboardPage() {
   const { currency } = useProspectingCountryDetails()
   const { exportPerformance, loading: isExporting } = useExportTeamPerformance()
   const isSeniorManager = user?.role === 'manager' && user?.orgRole === 'senior_manager'
+  const isExecutive = user?.role === 'manager' && user?.orgRole === 'executive'
+  const hasOrgDashboardAccess = isSeniorManager || isExecutive
 
   const [exportMenuOpen, setExportMenuOpen] = useState(false)
   const exportMenuRef = useRef<HTMLDivElement>(null)
@@ -357,12 +359,12 @@ export default function DashboardPage() {
     }
   }, [exportMenuOpen])
 
-  // Rediriger si pas Senior Manager
+  // Rediriger si pas Senior Manager ni Executive
   useEffect(() => {
-    if (user && !isSeniorManager) {
+    if (user && !hasOrgDashboardAccess) {
       router.replace('/reporting')
     }
-  }, [user, isSeniorManager, router])
+  }, [user, hasOrgDashboardAccess, router])
 
   const [selectedPeriod, setSelectedPeriod] = useState<string>('')
   const orgReportQuery = useOrgReport(selectedPeriod || undefined)
@@ -394,7 +396,7 @@ export default function DashboardPage() {
     })
   }
 
-  if (!user || !isSeniorManager) return null
+  if (!user || !hasOrgDashboardAccess) return null
 
   const targetVol = data?.targets?.targetVolume ?? null
   const realVol = data?.targets?.volumeRealized ?? data?.globalCounts.conclue ?? 0
