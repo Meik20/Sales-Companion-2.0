@@ -180,23 +180,29 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Déterminer le segment rattaché
-    // • Superviseur (team_manager) : hérité du créateur (ou spécifié dans le body)
-    // • Responsable Exécutif (executive) : spécifié dans le body ou hérité du segment du Coordinateur
-    // • Coordinateur (senior_manager) : défini dans le body par le SM1 (ex: COMMERCIAL, NORD, etc.)
-    const fallbackSegment =
+    // Déterminer le segment rattaché — RÈGLE ARCHITECTURALE (AGENTS.md §7 Zero Hardcoding)
+    // • Superviseur (team_manager)   : segment du body → segment légitime du créateur → null
+    // • Exécutif (executive)         : segment du body uniquement → null (jamais de fallback hardcodé)
+    // • Coordinateur (senior_manager): segment du body uniquement → null (SM1 le définit explicitement)
+    // INTERDIT : tout fallback hardcodé ('COMMERCIAL', 'Principal', etc.) — données TEST uniquement
+
+    // Segment légitime du créateur : uniquement si ce n'est pas un libellé de rôle fictif
+    const creatorSegment =
       userData.segment &&
       userData.segment.toLowerCase() !== 'direction' &&
       userData.segment.toLowerCase() !== 'direction générale'
         ? userData.segment
-        : 'COMMERCIAL'
+        : null
 
     let assignedSegment: string | null = null
     if (inviteType === 'team_manager') {
-      assignedSegment = body.segment?.trim() || fallbackSegment
+      // Le Superviseur hérite du segment de son Coordinateur créateur si absent du body
+      assignedSegment = body.segment?.trim() || creatorSegment || null
     } else if (inviteType === 'executive') {
-      assignedSegment = body.segment?.trim() || fallbackSegment
+      // L'Exécutif reçoit uniquement le segment explicitement renseigné dans le formulaire
+      assignedSegment = body.segment?.trim() || null
     } else if (inviteType === 'senior_manager') {
+      // Le Coordinateur reçoit le segment défini par le SM1 dans le formulaire d'invitation
       assignedSegment = body.segment?.trim() || null
     }
 

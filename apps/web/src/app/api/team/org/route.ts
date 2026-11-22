@@ -64,14 +64,17 @@ export async function GET(request: NextRequest) {
         )
       }
       orgRole = 'senior_manager'
-      const initialSegment = userData.segment || userData.sector || 'Principal'
+      // RÈGLE ARCHITECTURALE (AGENTS.md §7) : segment issu du profil utilisateur uniquement.
+      // userData.sector est utilisé comme fallback sémantique (renseigné à l'inscription).
+      // Aucune valeur hardcodée ne peut servir de segment par défaut.
+      const initialSegment = userData.segment || userData.sector || null
 
       // Batch : mettre à jour le user + créer le document Organisation
       const batch = adminDb.batch()
       batch.update(userDocRef, {
         orgCode,
         orgRole,
-        segment: userData.segment || initialSegment
+        segment: initialSegment
       })
       const orgDocRef = adminDb.collection('organisations').doc(orgCode)
       batch.set(orgDocRef, {
@@ -145,17 +148,17 @@ export async function GET(request: NextRequest) {
       const orgDoc = await adminDb.collection('organisations').doc(orgCode).get()
       if (orgDoc.exists) {
         primarySeniorManagerUid = orgDoc.data()?.seniorManagerUid || null
-        // RÈGLE UNIVERSELLE : Un compte manager ne doit jamais avoir un segment fictif
-        // tel que 'Direction' (qui est un rôle et non un segment commercial).
-        // S'il a été affecté par erreur, réaligner immédiatement sur le segment de l'organisation.
-        const orgSegment = orgDoc.data()?.segment || 'COMMERCIAL'
+        // RÈGLE ARCHITECTURALE (AGENTS.md §7 Zero Hardcoding) :
+        // Si le segment est un libellé de rôle fictif ('Direction', 'direction générale'),
+        // on le nettoie vers null — on ne substitue JAMAIS par une valeur hardcodée.
+        // Le segment est une donnée métier propre à chaque organisation cliente.
         if (
-          !userData.segment ||
-          userData.segment.toLowerCase() === 'direction' ||
-          userData.segment.toLowerCase() === 'direction générale'
+          userData.segment &&
+          (userData.segment.toLowerCase() === 'direction' ||
+            userData.segment.toLowerCase() === 'direction générale')
         ) {
-          userData.segment = orgSegment
-          await userDocRef.update({ segment: orgSegment }).catch(() => {})
+          userData.segment = null
+          await userDocRef.update({ segment: null }).catch(() => {})
         }
       }
     }
@@ -417,11 +420,12 @@ export async function PATCH(request: NextRequest) {
 
       if (inviteData.type === 'senior_manager') {
         updates.orgRole = 'senior_manager'
-        updates.segment = inviteData.segment || body.segment?.trim() || 'Principal'
+        updates.segment = inviteData.segment || body.segment?.trim() || null
         updates.seniorManagerUid = null
       } else if (inviteData.type === 'executive') {
         updates.orgRole = 'executive'
-        updates.segment = inviteData.segment || body.segment?.trim() || userData.segment || 'COMMERCIAL'
+        // RÈGLE ARCHITECTURALE : segment exclusivement issu du jeton d'invitation — jamais de fallback hardcodé
+        updates.segment = inviteData.segment || body.segment?.trim() || null
         updates.seniorManagerUid = null
         // Propager le libellé personnalisé du rôle executive (ex: "Directeur Général", "PDG")
         if (inviteData.customRoleLabel?.trim()) {
@@ -429,7 +433,8 @@ export async function PATCH(request: NextRequest) {
         }
       } else {
         updates.orgRole = 'team_manager'
-        updates.segment = inviteData.segment || 'COMMERCIAL'
+        // RÈGLE ARCHITECTURALE : segment exclusivement issu du jeton d'invitation — jamais de fallback hardcodé
+        updates.segment = inviteData.segment || null
         updates.seniorManagerUid =
           inviteData.seniorManagerUid || inviteData.createdByUid || null
       }
