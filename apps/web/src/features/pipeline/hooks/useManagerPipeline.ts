@@ -40,8 +40,8 @@ export const useManagerPipeline = () => {
       return items
     },
     enabled: !loading && !!user?.uid && user.role === 'manager',
-    staleTime: 0,
-    refetchInterval: 15 * 1000,
+    staleTime: 60 * 1000,
+    refetchInterval: 5 * 60 * 1000, // 5 min au lieu de 15s — la sync temps réel via usePipelineRealtimeSync invalide déjà le cache à chaque écriture
     refetchOnWindowFocus: true
   })
 }

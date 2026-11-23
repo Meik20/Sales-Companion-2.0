@@ -75,7 +75,7 @@ export function useUserNotifications() {
     }
   }, [])
 
-  // 2. Chargement initial via API + rafraîchissement doux
+  // 2. Chargement initial via API
   useEffect(() => {
     if (!user?.uid) {
       setNotifications([])
@@ -85,13 +85,6 @@ export function useUserNotifications() {
 
     // Appel initial immédiat
     void fetchFromApi()
-
-    // Polling doux toutes les 30 secondes en cas de problème de connexion Firestore
-    const interval = setInterval(() => {
-      void fetchFromApi()
-    }, 30000)
-
-    return () => clearInterval(interval)
   }, [user?.uid, fetchFromApi])
 
   // 3. Écoute Firestore temps réel (onSnapshot)

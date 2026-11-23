@@ -101,11 +101,9 @@ export function useOrgPipeline(options: UseOrgPipelineOptions = {}) {
       return res.json() as Promise<OrgPipelineResult>
     },
     enabled: !!user?.uid && hasOrgAccess,
-    // staleTime à 0 : le cache est immédiatement considéré périmé après chaque
-    // fetch, ce qui garantit que les invalidations déclenchent un refetch réel.
-    staleTime: 0,
-    // Polling toutes les 15 secondes — filet de sécurité pour la sync cross-browser.
-    refetchInterval: 15 * 1000,
+    staleTime: 60 * 1000,
+    // Polling toutes les 5 minutes au lieu de 15 secondes — useOrgPipelineRealtimeSync invalide déjà le cache instantanément lors d'une mutation.
+    refetchInterval: 5 * 60 * 1000,
     // Refetch immédiat au retour sur l'onglet.
     refetchOnWindowFocus: true
   })

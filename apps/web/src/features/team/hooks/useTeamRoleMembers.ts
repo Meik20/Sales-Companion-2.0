@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { db } from '@/lib/firebase'
-import { collection, query, where, onSnapshot } from 'firebase/firestore'
+import { collection, query, where, getDocs } from 'firebase/firestore'
 import { PLAN_LIMITS } from '@sales-companion/shared'
 
 /**
@@ -41,22 +41,10 @@ export type UseTeamRoleMembersOptions = {
 }
 
 /**
- * Real-time hook — listens to TWO Firestore sources in real-time:
+ * Optimised hook — fetches team records via one-shot getDocs instead of continuous onSnapshot listeners.
+ * Drastically reduces Firestore read quota consumption while providing a refetch method.
  *
- *  1. `team_accesses` where managerUid == currentUser.uid  [onSnapshot]
- *     → Primary source of truth for ALL members (created by manager).
- *     → A member is "active" when `activated === true`.
- *
- *  2. `users` where managerUid == currentUser.uid           [onSnapshot — temps réel]
- *     → Enrichit les données (dailyUsed, dailyLimit, name) en continu.
- *     → Utilise onSnapshot pour garantir que les membres nouvellement activés
- *       (qui créent leur document `users` via /api/team/activate) apparaissent
- *       immédiatement dans l'UI sans rechargement de page.
- *
- * Les deux listes sont fusionnées par email, évitant tout doublon.
- *
- * Tout changement de `activated` dans Firestore est reflété dans l'UI
- * en quelques millisecondes sans rechargement de page.
+ * Automatically refetches when a 'sc:team-refresh' CustomEvent is dispatched on window.
  */
 export function useTeamRoleMembers(options: UseTeamRoleMembersOptions = {}) {
   const { role, excludeRole } = options
@@ -64,32 +52,119 @@ export function useTeamRoleMembers(options: UseTeamRoleMembersOptions = {}) {
   const [members, setMembers] = useState<TeamRoleMember[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [isError, setIsError] = useState(false)
+  const isMountedRef = useRef(true)
 
   useEffect(() => {
+    isMountedRef.current = true
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [])
+
+  const fetchMembers = useCallback(async () => {
     if (!user?.uid) {
-      setMembers([])
-      setIsError(false)
-      setIsLoading(false)
+      if (isMountedRef.current) {
+        setMembers([])
+        setIsError(false)
+        setIsLoading(false)
+      }
       return
     }
 
-    // Guard : uid must be a non-empty string before firing Firestore queries
     const managerUid = user.uid
     if (!managerUid || typeof managerUid !== 'string' || managerUid.trim() === '') {
-      setMembers([])
-      setIsLoading(false)
+      if (isMountedRef.current) {
+        setMembers([])
+        setIsLoading(false)
+      }
       return
     }
 
-    setIsLoading(true)
-    setIsError(false)
+    if (isMountedRef.current) {
+      setIsLoading(true)
+      setIsError(false)
+    }
 
-    let accessesMap: Record<string, TeamRoleMember> = {}
-    let usersMap: Record<string, Partial<TeamRoleMember>> = {}
-    let settled = false
+    try {
+      const accessesBaseQuery = query(
+        collection(db, 'team_accesses'),
+        where('managerUid', '==', managerUid),
+        ...(role ? [where('role', '==', role)] : [])
+      )
 
-    function merge() {
-      if (!managerUid) return
+      const usersBaseQuery = query(
+        collection(db, 'users'),
+        where('managerUid', '==', managerUid),
+        ...(role ? [where('role', '==', role)] : [])
+      )
+
+      const [accessesSnap, usersSnap] = await Promise.all([
+        getDocs(accessesBaseQuery),
+        getDocs(usersBaseQuery).catch((err) => {
+          console.warn('[useTeamRoleMembers] users getDocs error:', err)
+          return null
+        })
+      ])
+
+      const accessesMap: Record<string, TeamRoleMember> = {}
+      const TERMINAL_STATUSES = ['promoted', 'revoked', 'deleted', 'transferred']
+
+      accessesSnap.docs.forEach((d) => {
+        const data = d.data()
+        if (TERMINAL_STATUSES.includes(data.status)) return
+        if (data.promotedAt) return
+        if (data.role === 'manager') return
+        if (excludeRole && data.role === excludeRole) return
+
+        const isActive =
+          data.activated === true || data.status === 'active' || data.active === true
+
+        const fullName =
+          [data.firstname, data.lastname].filter(Boolean).join(' ') || data.name || ''
+
+        const uid = data.firebaseUid || d.id
+        const today = new Date().toISOString().slice(0, 10)
+        const currentDailyUsed = data.lastResetDate === today ? (data.dailyUsed ?? 0) : 0
+
+        accessesMap[uid] = {
+          docId: d.id,
+          uid,
+          accessId: data.accessId || d.id,
+          email: data.email ?? '',
+          name: fullName,
+          role: data.role ?? role ?? 'member',
+          managerUid,
+          active: isActive,
+          dailyUsed: currentDailyUsed,
+          dailyLimit: data.dailyLimit ?? PLAN_LIMITS.enterprise,
+          magicCode: data.magicCode
+        }
+      })
+
+      const usersMap: Record<string, Partial<TeamRoleMember>> = {}
+      if (usersSnap) {
+        usersSnap.docs.forEach((d) => {
+          const data = d.data()
+          if (data.role === 'manager') return
+          if (excludeRole && data.role === excludeRole) return
+
+          const isActive =
+            data.activated === true || data.active === true || data.status === 'active'
+
+          const today = new Date().toISOString().slice(0, 10)
+          const currentDailyUsed = data.lastResetDate === today ? (data.dailyUsed ?? 0) : 0
+
+          usersMap[d.id] = {
+            uid: d.id,
+            email: data.email ?? '',
+            name: data.name ?? '',
+            active: isActive,
+            dailyUsed: currentDailyUsed,
+            dailyLimit: data.dailyLimit ?? PLAN_LIMITS.enterprise,
+            managerUid: data.managerUid ?? managerUid
+          }
+        })
+      }
 
       const byEmail: Record<string, TeamRoleMember> = {}
 
@@ -130,132 +205,36 @@ export function useTeamRoleMembers(options: UseTeamRoleMembersOptions = {}) {
         return (a.name || a.email).localeCompare(b.name || b.email, 'fr')
       })
 
-      setMembers(list)
-      if (!settled) {
-        settled = true
+      if (isMountedRef.current) {
+        setMembers(list)
         setIsLoading(false)
       }
-    }
-
-    // ── Listener 1 : team_accesses [onSnapshot — temps réel] ───────────────
-    const accessesBaseQuery = query(
-      collection(db, 'team_accesses'),
-      where('managerUid', '==', managerUid),
-      ...(role ? [where('role', '==', role)] : [])
-    )
-    const unsubAccesses = onSnapshot(
-      accessesBaseQuery,
-      (snap) => {
-        accessesMap = {}
-        snap.docs.forEach((d) => {
-          const data = d.data()
-
-          // ✅ Garde-fou 1 : Exclure les statuts terminaux.
-          // Lorsqu'un commercial est promu TM, la route /api/team/members/promote supprime
-          // physiquement son document team_accesses (batch.delete). Ce filtre est une couche
-          // défensive supplémentaire contre tout document résiduel ou état de transition.
-          const TERMINAL_STATUSES = ['promoted', 'revoked', 'deleted', 'transferred']
-          if (TERMINAL_STATUSES.includes(data.status)) return
-
-          // ✅ Garde-fou 1b : Exclure formellement tout document d'accès ayant un horodatage de promotion
-          if (data.promotedAt) return
-
-          // ✅ Garde-fou 2 : Exclure les enregistrements dont le rôle est 'manager'.
-          // Un commercial promu TM a son role mis à 'manager' côté users/{uid}.
-          // Si un ancien team_accesses résiduel subsistait avec role='manager', il ne
-          // doit pas apparaître dans la liste des commerciaux de l'ancien TM.
-          if (data.role === 'manager') return
-
-          // Exclude unwanted roles
-          if (excludeRole && data.role === excludeRole) return
-
-          const isActive =
-            data.activated === true || data.status === 'active' || data.active === true
-
-          const fullName =
-            [data.firstname, data.lastname].filter(Boolean).join(' ') || data.name || ''
-
-          const uid = data.firebaseUid || d.id
-          const today = new Date().toISOString().slice(0, 10)
-          const currentDailyUsed = data.lastResetDate === today ? (data.dailyUsed ?? 0) : 0
-
-          accessesMap[uid] = {
-            docId: d.id,
-            uid,
-            accessId: data.accessId || d.id,
-            email: data.email ?? '',
-            name: fullName,
-            role: data.role ?? role ?? 'member',
-            managerUid,
-            active: isActive,
-            dailyUsed: currentDailyUsed,
-            dailyLimit: data.dailyLimit ?? PLAN_LIMITS.enterprise,
-            magicCode: data.magicCode
-          }
-        })
-        merge()
-      },
-      (error) => {
-        console.error('[useTeamRoleMembers] team_accesses error:', error)
+    } catch (error) {
+      console.error('[useTeamRoleMembers] fetch error:', error)
+      if (isMountedRef.current) {
         setIsError(true)
         setIsLoading(false)
       }
-    )
-
-    // ── Listener 2 : users [onSnapshot — temps réel] ────────────────────────
-    // Utilise onSnapshot (et non getDocs one-shot) pour garantir que les membres
-    // nouvellement activés — dont le document users/{uid} est créé par
-    // /api/team/activate — apparaissent immédiatement dans l'UI sans rechargement.
-    const usersBaseQuery = query(
-      collection(db, 'users'),
-      where('managerUid', '==', managerUid),
-      ...(role ? [where('role', '==', role)] : [])
-    )
-    const unsubUsers = onSnapshot(
-      usersBaseQuery,
-      (snap) => {
-        usersMap = {}
-        snap.docs.forEach((d) => {
-          const data = d.data()
-
-          // ✅ Garde-fou : Un commercial promu TM a son role mis à 'manager'.
-          // Son document users/{uid} subsiste avec managerUid de l'ancien TM
-          // jusqu'à la propagation Firestore (le champ est supprimé par FieldValue.delete()).
-          // Ce filtre empêche son affichage dans l'équipe de l'ancien TM après promotion.
-          if (data.role === 'manager') return
-
-          // Exclude unwanted roles
-          if (excludeRole && data.role === excludeRole) return
-
-          const isActive =
-            data.activated === true || data.active === true || data.status === 'active'
-
-          const today = new Date().toISOString().slice(0, 10)
-          const currentDailyUsed = data.lastResetDate === today ? (data.dailyUsed ?? 0) : 0
-
-          usersMap[d.id] = {
-            uid: d.id,
-            email: data.email ?? '',
-            name: data.name ?? '',
-            active: isActive,
-            dailyUsed: currentDailyUsed,
-            dailyLimit: data.dailyLimit ?? PLAN_LIMITS.enterprise,
-            managerUid: data.managerUid ?? managerUid
-          }
-        })
-        merge()
-      },
-      (error) => {
-        // Non-fatal — users collection may not have records yet
-        console.warn('[useTeamRoleMembers] users onSnapshot error:', error)
-      }
-    )
-
-    return () => {
-      unsubAccesses()
-      unsubUsers()
     }
   }, [user?.uid, role, excludeRole])
 
-  return { data: members, isLoading, isError }
+  useEffect(() => {
+    void fetchMembers()
+
+    const handleRefresh = () => {
+      void fetchMembers()
+    }
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('sc:team-refresh', handleRefresh)
+    }
+
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('sc:team-refresh', handleRefresh)
+      }
+    }
+  }, [fetchMembers])
+
+  return { data: members, isLoading, isError, refetch: fetchMembers }
 }

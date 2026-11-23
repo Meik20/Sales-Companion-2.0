@@ -111,8 +111,8 @@ export function useOrgReport(options?: OrgReportQueryOptions) {
       return res.json() as Promise<OrgReportResult>
     },
     enabled: !!user?.uid && hasOrgAccess,
-    staleTime: 0,
-    refetchInterval: 15 * 1000,
+    staleTime: 60 * 1000,
+    refetchInterval: 5 * 60 * 1000, // 5 min au lieu de 15s
     refetchOnWindowFocus: true
   })
 }
