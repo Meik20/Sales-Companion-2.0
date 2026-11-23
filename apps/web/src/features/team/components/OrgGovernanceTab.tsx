@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { DataCard, ConfirmDialog } from '@/components/ui/index'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -33,7 +33,8 @@ import {
   Calendar,
   Filter,
   RefreshCw,
-  Clock
+  Clock,
+  ChevronDown
 } from 'lucide-react'
 
 interface SeniorProspect {
@@ -108,6 +109,38 @@ export function OrgGovernanceTab() {
   // Multi-sélection des segments pour le Responsable Exécutif (défaut sur Supervision Globale)
   const [isExecutiveAllSegments, setIsExecutiveAllSegments] = useState(true)
   const [selectedExecutiveSegments, setSelectedExecutiveSegments] = useState<string[]>([])
+  const [executiveSegmentsDropdownOpen, setExecutiveSegmentsDropdownOpen] = useState(false)
+  const executiveSegmentsDropdownRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        executiveSegmentsDropdownRef.current &&
+        !executiveSegmentsDropdownRef.current.contains(event.target as Node)
+      ) {
+        setExecutiveSegmentsDropdownOpen(false)
+      }
+    }
+    if (executiveSegmentsDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [executiveSegmentsDropdownOpen])
+
+  const executiveSegmentsButtonLabel = useMemo(() => {
+    if (isExecutiveAllSegments) {
+      return lang === 'en'
+        ? 'All segments (Global Oversight)'
+        : 'Tous les segments (Supervision Globale)'
+    }
+    if (selectedExecutiveSegments.length === 0) {
+      return lang === 'en' ? 'Select segments…' : 'Sélectionner les segments…'
+    }
+    if (selectedExecutiveSegments.length === 1) {
+      return `Segment : ${selectedExecutiveSegments[0]}`
+    }
+    return `${selectedExecutiveSegments.length} ${lang === 'en' ? 'segments selected' : 'segments sélectionnés'}`
+  }, [isExecutiveAllSegments, selectedExecutiveSegments, lang])
 
   // Liste dynamique des segments des Coordinateurs existants dans l'organisation
   const coordinatorSegments = useMemo(() => {
@@ -784,74 +817,94 @@ export function OrgGovernanceTab() {
                             className="w-full rounded-lg border border-blue-300/50 dark:border-blue-500/30 bg-white dark:bg-blue-950/20 px-3 py-2 text-[12.5px] text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
                           />
                         </div>
-                        {/* Champ : Segments d'affectation (Multi-sélection par cases à cocher) */}
-                        <div>
-                          <label className="block text-[11px] font-semibold text-muted-foreground mb-1.5">
+                        {/* Champ : Segments d'affectation (Dropdown compact avec cases à cocher) */}
+                        <div className="relative" ref={executiveSegmentsDropdownRef}>
+                          <label className="block text-[11px] font-semibold text-muted-foreground mb-1">
                             {lang === 'en' ? 'Observed Segments' : 'Segments sous observation'}
                           </label>
-                          <div className="rounded-lg border border-blue-300/50 dark:border-blue-500/30 bg-white dark:bg-blue-950/20 p-2.5 space-y-2">
-                            {/* Option 1 : Supervision Globale */}
-                            <label className="flex items-center gap-2.5 cursor-pointer text-[12px] font-medium text-foreground hover:text-blue-600 transition-colors">
-                              <input
-                                type="checkbox"
-                                checked={isExecutiveAllSegments}
-                                onChange={(e) => {
-                                  setIsExecutiveAllSegments(e.target.checked)
-                                  if (e.target.checked) {
-                                    setSelectedExecutiveSegments([])
-                                  } else if (coordinatorSegments.length > 0 && coordinatorSegments[0]?.segment) {
-                                    setSelectedExecutiveSegments([coordinatorSegments[0].segment])
-                                  }
-                                }}
-                                className="rounded border-blue-400 text-blue-600 focus:ring-blue-500 h-3.5 w-3.5 cursor-pointer"
-                              />
-                              <span>
-                                {lang === 'en'
-                                  ? 'All organization segments (Global Oversight)'
-                                  : 'Tous les segments de l’organisation (Supervision Globale)'}
-                              </span>
-                            </label>
+                          <button
+                            type="button"
+                            onClick={() => setExecutiveSegmentsDropdownOpen((prev) => !prev)}
+                            className="w-full flex items-center justify-between gap-2 rounded-lg border border-blue-300/50 dark:border-blue-500/30 bg-white dark:bg-blue-950/20 px-3 py-2 text-[12.5px] text-foreground focus:outline-none focus:ring-2 focus:ring-blue-500/40 cursor-pointer h-[38px] text-left"
+                          >
+                            <span className="truncate font-medium">{executiveSegmentsButtonLabel}</span>
+                            <ChevronDown
+                              size={14}
+                              className={`text-muted-foreground shrink-0 transition-transform duration-150 ${
+                                executiveSegmentsDropdownOpen ? 'rotate-180' : ''
+                              }`}
+                            />
+                          </button>
 
-                            {/* Option 2 : Liste des segments individuels avec cases à cocher */}
-                            {coordinatorSegments.length > 0 && (
-                              <div className="border-t border-blue-200/40 dark:border-blue-800/40 pt-2 space-y-1.5 pl-1">
-                                <span className="block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                                  {lang === 'en' ? 'Or select specific segments :' : 'Ou sélectionnez des segments spécifiques :'}
+                          {/* Menu déroulant Popover - 100% Opaque (Règle 8 AGENTS.md) */}
+                          {executiveSegmentsDropdownOpen && (
+                            <div
+                              className="absolute left-0 right-0 top-[calc(100%+4px)] z-50 rounded-xl border border-blue-300/60 dark:border-blue-500/40 shadow-xl p-2.5 space-y-2 max-h-60 overflow-y-auto"
+                              style={{ backgroundColor: 'var(--card, #121826)' }}
+                            >
+                              {/* Option 1 : Supervision Globale */}
+                              <label className="flex items-center gap-2.5 cursor-pointer text-[12px] font-semibold text-foreground hover:text-blue-600 transition-colors p-1.5 rounded-lg hover:bg-blue-500/10">
+                                <input
+                                  type="checkbox"
+                                  checked={isExecutiveAllSegments}
+                                  onChange={(e) => {
+                                    setIsExecutiveAllSegments(e.target.checked)
+                                    if (e.target.checked) {
+                                      setSelectedExecutiveSegments([])
+                                    } else if (coordinatorSegments.length > 0 && coordinatorSegments[0]?.segment) {
+                                      setSelectedExecutiveSegments([coordinatorSegments[0].segment])
+                                    }
+                                  }}
+                                  className="rounded border-blue-400 text-blue-600 focus:ring-blue-500 h-3.5 w-3.5 cursor-pointer"
+                                />
+                                <span>
+                                  {lang === 'en'
+                                    ? 'All organization segments (Global Oversight)'
+                                    : 'Tous les segments de l’organisation (Supervision Globale)'}
                                 </span>
-                                {coordinatorSegments.map((c) => {
-                                  const isChecked = !isExecutiveAllSegments && selectedExecutiveSegments.includes(c.segment)
-                                  return (
-                                    <label
-                                      key={c.segment}
-                                      className="flex items-center gap-2.5 cursor-pointer text-[11.5px] text-foreground hover:text-blue-600 transition-colors"
-                                    >
-                                      <input
-                                        type="checkbox"
-                                        checked={isChecked}
-                                        onChange={(e) => {
-                                          if (e.target.checked) {
-                                            setIsExecutiveAllSegments(false)
-                                            setSelectedExecutiveSegments((prev) => [...prev, c.segment])
-                                          } else {
-                                            const next = selectedExecutiveSegments.filter((s) => s !== c.segment)
-                                            if (next.length === 0) {
-                                              setIsExecutiveAllSegments(true)
+                              </label>
+
+                              {/* Option 2 : Liste des segments individuels */}
+                              {coordinatorSegments.length > 0 && (
+                                <div className="border-t border-border/60 pt-2 space-y-1">
+                                  <span className="block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-1 pb-1">
+                                    {lang === 'en' ? 'Or select specific segments :' : 'Ou sélectionnez des segments spécifiques :'}
+                                  </span>
+                                  {coordinatorSegments.map((c) => {
+                                    const isChecked = !isExecutiveAllSegments && selectedExecutiveSegments.includes(c.segment)
+                                    return (
+                                      <label
+                                        key={c.segment}
+                                        className="flex items-center gap-2.5 cursor-pointer text-[11.5px] text-foreground hover:text-blue-600 transition-colors p-1.5 rounded-lg hover:bg-blue-500/10"
+                                      >
+                                        <input
+                                          type="checkbox"
+                                          checked={isChecked}
+                                          onChange={(e) => {
+                                            if (e.target.checked) {
+                                              setIsExecutiveAllSegments(false)
+                                              setSelectedExecutiveSegments((prev) => [...prev, c.segment])
+                                            } else {
+                                              const next = selectedExecutiveSegments.filter((s) => s !== c.segment)
+                                              if (next.length === 0) {
+                                                setIsExecutiveAllSegments(true)
+                                              }
+                                              setSelectedExecutiveSegments(next)
                                             }
-                                            setSelectedExecutiveSegments(next)
-                                          }
-                                        }}
-                                        className="rounded border-blue-400 text-blue-600 focus:ring-blue-500 h-3.5 w-3.5 cursor-pointer"
-                                      />
-                                      <span className="truncate">
-                                        <span className="font-semibold">{c.segment}</span>
-                                        <span className="text-muted-foreground ml-1.5">— {c.coordinatorName}</span>
-                                      </span>
-                                    </label>
-                                  )
-                                })}
-                              </div>
-                            )}
-                          </div>
+                                          }}
+                                          className="rounded border-blue-400 text-blue-600 focus:ring-blue-500 h-3.5 w-3.5 cursor-pointer"
+                                        />
+                                        <span className="truncate">
+                                          <span className="font-semibold">{c.segment}</span>
+                                          <span className="text-muted-foreground ml-1.5">— {c.coordinatorName}</span>
+                                        </span>
+                                      </label>
+                                    )
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
                       {isExecutiveAllSegments ? (
