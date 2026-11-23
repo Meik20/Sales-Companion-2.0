@@ -73,6 +73,7 @@ export async function GET(request: NextRequest) {
       orgCode: data.orgCode,
       companyName: data.companyName,
       segment: data.segment || null,
+      segments: Array.isArray(data.segments) ? data.segments : data.segment ? [data.segment] : [],
       seniorManagerName: data.createdByName || null,
       seniorManagerUid: data.seniorManagerUid || data.createdByUid || null,
       customRoleLabel: data.customRoleLabel || null
@@ -195,15 +196,28 @@ export async function POST(request: NextRequest) {
         : null
 
     let assignedSegment: string | null = null
+    let assignedSegments: string[] = []
+
     if (inviteType === 'team_manager') {
       // Le Superviseur hérite du segment de son Coordinateur créateur si absent du body
-      assignedSegment = body.segment?.trim() || creatorSegment || null
+      const tmSeg = typeof body.segment === 'string' ? body.segment.trim() : null
+      assignedSegment = tmSeg || creatorSegment || null
+      if (assignedSegment) assignedSegments = [assignedSegment]
     } else if (inviteType === 'executive') {
-      // L'Exécutif reçoit uniquement le segment explicitement renseigné dans le formulaire
-      assignedSegment = body.segment?.trim() || null
+      // L'Exécutif peut avoir plusieurs segments ou aucun (Supervision globale si vide ou 'ALL')
+      if (Array.isArray(body.segments) && body.segments.length > 0) {
+        assignedSegments = body.segments.map((s: any) => String(s).trim()).filter(Boolean)
+        assignedSegment = assignedSegments.length === 1 ? (assignedSegments[0] ?? null) : null
+      } else if (typeof body.segment === 'string' && body.segment.trim() && body.segment.trim().toUpperCase() !== 'ALL') {
+        const seg = body.segment.trim()
+        assignedSegment = seg
+        assignedSegments = [seg]
+      }
     } else if (inviteType === 'senior_manager') {
       // Le Coordinateur reçoit le segment défini par le SM1 dans le formulaire d'invitation
-      assignedSegment = body.segment?.trim() || null
+      const smSeg = typeof body.segment === 'string' ? body.segment.trim() : null
+      assignedSegment = smSeg || null
+      if (assignedSegment) assignedSegments = [assignedSegment]
     }
 
     // Générer un token sécurisé
@@ -220,6 +234,7 @@ export async function POST(request: NextRequest) {
       seniorManagerUid:
         userData.orgRole === 'senior_manager' ? callerUid : userData.seniorManagerUid || callerUid,
       segment: assignedSegment,
+      segments: assignedSegments,
       // Libellé personnalisé pour le rôle executive (ex: "Directeur Général", "PDG")
       customRoleLabel: inviteType === 'executive' ? (body.customRoleLabel?.trim() || null) : null,
       used: false,

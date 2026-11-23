@@ -66,13 +66,14 @@ export interface OrgReportResult {
   }
   recentActivity: OrgRecentActivity[]
   totalManagers: number
+  availableSegments?: string[]
 }
 
-export type OrgReportQueryOptions = string | { period?: string; from?: string; to?: string }
+export type OrgReportQueryOptions = string | { period?: string; from?: string; to?: string; segment?: string }
 
 /**
  * Hook — KPIs consolidés de l'organisation (Senior Manager + Executive).
- * Consomme GET /api/reporting/org avec support des filtres journaliers Day-by-Day.
+ * Consomme GET /api/reporting/org avec support des filtres journaliers Day-by-Day et du cloisonnement par segment.
  */
 export function useOrgReport(options?: OrgReportQueryOptions) {
   const { user } = useCurrentUser()
@@ -82,7 +83,7 @@ export function useOrgReport(options?: OrgReportQueryOptions) {
 
   const queryKey = typeof options === 'string'
     ? ['org-report', user?.uid, options]
-    : ['org-report', user?.uid, options?.period, options?.from, options?.to]
+    : ['org-report', user?.uid, options?.period, options?.from, options?.to, options?.segment]
 
   return useQuery<OrgReportResult>({
     queryKey,
@@ -97,6 +98,7 @@ export function useOrgReport(options?: OrgReportQueryOptions) {
         if (options.period) params.set('period', options.period)
         if (options.from) params.set('from', options.from)
         if (options.to) params.set('to', options.to)
+        if (options.segment) params.set('segment', options.segment)
       }
 
       const qs = params.toString()

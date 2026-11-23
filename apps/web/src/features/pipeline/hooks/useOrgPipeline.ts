@@ -48,6 +48,7 @@ export interface OrgPipelineResult {
     total: number
   }
   orgCode: string
+  availableSegments?: string[]
   totalSalespeopleCount?: number
   totalSupervisorsCount?: number
   currency?: string
@@ -58,6 +59,8 @@ interface UseOrgPipelineOptions {
   status?: 'prospection' | 'negociation' | 'conclue'
   /** Période mensuelle YYYY-MM à charger (M en cours si absent) */
   period?: string
+  /** Segment spécifique à charger pour l'Exécutif */
+  segment?: string
 }
 
 /**
@@ -83,11 +86,12 @@ export function useOrgPipeline(options: UseOrgPipelineOptions = {}) {
   if (options.status) params.set('status', options.status)
   // Transmettre la période sélectionnée pour le filtrage historique côté serveur
   if (options.period) params.set('period', options.period)
+  if (options.segment) params.set('segment', options.segment)
   const qs = params.toString()
 
   return useQuery<OrgPipelineResult>({
-    // La période fait partie de la queryKey : un changement de mois provoque un refetch réel
-    queryKey: ['org-pipeline', user?.uid, options.managerUid, options.status, options.period ?? 'current'],
+    // La période et le segment font partie de la queryKey : un changement provoque un refetch réel
+    queryKey: ['org-pipeline', user?.uid, options.managerUid, options.status, options.period ?? 'current', options.segment ?? 'all'],
     queryFn: async (): Promise<OrgPipelineResult> => {
       if (!user) throw new Error('Non authentifié')
       const token = await user.getIdToken()

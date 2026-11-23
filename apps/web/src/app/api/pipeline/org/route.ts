@@ -22,14 +22,40 @@ export async function GET(request: NextRequest) {
     const filterManagerUid = searchParams.get('managerUid')
     const filterStatus = searchParams.get('status')
     const period = searchParams.get('period')
+    const requestedSegment = searchParams.get('segment')
     const limit = parseInt(searchParams.get('limit') || '500', 10)
+
+    // Vérification et isolation stricte du segment pour l'Exécutif
+    let effectiveSegment = requestedSegment || session.segment
+    if (session.orgRole === 'executive') {
+      const allowedSegments = Array.isArray(session.segments) && session.segments.length > 0
+        ? session.segments
+        : session.segment && session.segment.toUpperCase() !== 'ALL'
+          ? [session.segment]
+          : null // null = Supervision globale (tous les segments)
+
+      if (allowedSegments && allowedSegments.length > 0) {
+        if (requestedSegment) {
+          if (!allowedSegments.includes(requestedSegment)) {
+            return NextResponse.json(
+              { error: `Accès non autorisé au segment « ${requestedSegment} »` },
+              { status: 403 }
+            )
+          }
+          effectiveSegment = requestedSegment
+        } else {
+          // Si aucun segment spécifique n'est demandé par l'exécutif, on se positionne sur son premier segment autorisé
+          effectiveSegment = allowedSegments[0]
+        }
+      }
+    }
 
     // 3. Appel du service métier pur
     const result = await fetchOrgConsolidatedPipeline({
       orgCode: session.orgCode!,
       callerUid: session.uid,
       callerOrgRole: session.orgRole,
-      callerSegment: session.segment,
+      callerSegment: effectiveSegment,
       filterManagerUid,
       filterStatus,
       limit,

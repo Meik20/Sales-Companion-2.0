@@ -18,6 +18,7 @@ export type CurrentUser = {
   orgCode?: string | null
   orgRole?: 'senior_manager' | 'team_manager' | 'executive' | null
   segment?: string | null
+  segments?: string[] | null
   seniorManagerUid?: string | null
   niu?: string | null
   customRoleLabel?: string | null

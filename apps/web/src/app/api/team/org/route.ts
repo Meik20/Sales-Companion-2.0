@@ -233,6 +233,7 @@ export async function GET(request: NextRequest) {
       isPrimarySeniorManager,
       primarySeniorManagerUid,
       segment: userData.segment || null,
+      segments: Array.isArray(userData.segments) ? userData.segments : (userData.segment ? [userData.segment] : []),
       seniorManagerUid: userData.seniorManagerUid || primarySeniorManagerUid || null,
       niu,
       isVerified,
@@ -424,8 +425,14 @@ export async function PATCH(request: NextRequest) {
         updates.seniorManagerUid = null
       } else if (inviteData.type === 'executive') {
         updates.orgRole = 'executive'
-        // RÈGLE ARCHITECTURALE : segment exclusivement issu du jeton d'invitation — jamais de fallback hardcodé
-        updates.segment = inviteData.segment || body.segment?.trim() || null
+        // RÈGLE ARCHITECTURALE : segment et segments exclusivement issus du jeton d'invitation — jamais de fallback hardcodé
+        const resolvedSegments: string[] = Array.isArray(inviteData.segments)
+          ? inviteData.segments.filter(Boolean)
+          : inviteData.segment
+            ? [inviteData.segment]
+            : []
+        updates.segments = resolvedSegments
+        updates.segment = resolvedSegments.length === 1 ? resolvedSegments[0] : (inviteData.segment || null)
         updates.seniorManagerUid = null
         // Propager le libellé personnalisé du rôle executive (ex: "Directeur Général", "PDG")
         if (inviteData.customRoleLabel?.trim()) {

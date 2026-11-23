@@ -37,6 +37,7 @@ export interface ConsolidatedPipelineResult {
   hasMore: boolean
   totalFetched: number
   orgCode: string
+  availableSegments?: string[]
   totalSalespeopleCount?: number
   totalSupervisorsCount?: number
   currency?: string
@@ -116,28 +117,29 @@ export async function fetchOrgConsolidatedPipeline(
   }
 
   // 3. Appliquer le filtre manager si demandé
-  // Si aucun filtre spécifique n'est passé et que l'appelant est un Executive rattaché à un segment :
-  // L'Executive a la visibilité uniquement sur les pipelines consolidés des Coordinateurs (Senior Managers) de son segment.
+  // Si aucun filtre spécifique n'est passé et qu'un segment spécifique est demandé :
+  // Le pipeline consolidé isole strictement les Coordinateurs (Senior Managers) et Superviseurs de ce segment.
   let targetManagerUids = orgManagerUids
-  if (callerOrgRole === 'executive' && callerSegment && !filterManagerUid) {
+  if (callerSegment && !filterManagerUid) {
     const isDirectionSegment =
       callerSegment.toLowerCase() === 'direction' ||
       callerSegment.toLowerCase() === 'direction générale' ||
       callerSegment.toUpperCase() === 'ALL'
-    const segmentSmDocs = filteredManagersDocs.filter(
-      (d) =>
-        (d.data().orgRole || 'team_manager') === 'senior_manager' &&
-        (isDirectionSegment || !d.data().segment || d.data().segment === callerSegment)
-    )
-    const segmentSmUids = new Set(segmentSmDocs.map((d) => d.id))
-    const relevantUids = filteredManagersDocs
-      .filter(
+    if (!isDirectionSegment) {
+      const segmentSmDocs = filteredManagersDocs.filter(
         (d) =>
-          segmentSmUids.has(d.id) ||
-          (d.data().seniorManagerUid && segmentSmUids.has(d.data().seniorManagerUid))
+          (d.data().orgRole || 'team_manager') === 'senior_manager' &&
+          d.data().segment === callerSegment
       )
-      .map((d) => d.id)
-    if (relevantUids.length > 0) {
+      const segmentSmUids = new Set(segmentSmDocs.map((d) => d.id))
+      const relevantUids = filteredManagersDocs
+        .filter(
+          (d) =>
+            segmentSmUids.has(d.id) ||
+            (d.data().seniorManagerUid && segmentSmUids.has(d.data().seniorManagerUid)) ||
+            d.data().segment === callerSegment
+        )
+        .map((d) => d.id)
       targetManagerUids = relevantUids
     }
   }
@@ -387,6 +389,15 @@ export async function fetchOrgConsolidatedPipeline(
     }
   })
 
+  const allSegmentsSet = new Set<string>()
+  filteredManagersDocs.forEach((d) => {
+    const s = d.data().segment
+    if (s && typeof s === 'string' && s.trim()) {
+      allSegmentsSet.add(s.trim())
+    }
+  })
+  const availableSegments = Array.from(allSegmentsSet).sort((a, b) => a.localeCompare(b, 'fr'))
+
   return {
     items: allItems,
     managers: managersWithStats,
@@ -395,6 +406,7 @@ export async function fetchOrgConsolidatedPipeline(
     hasMore,
     totalFetched: allItems.length,
     orgCode,
+    availableSegments,
     totalSalespeopleCount,
     totalSupervisorsCount: teamManagersDocs.length,
     currency: orgCurrency

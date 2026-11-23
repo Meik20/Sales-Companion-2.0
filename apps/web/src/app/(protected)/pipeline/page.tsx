@@ -22,7 +22,7 @@ import { getOrgMonthPeriod } from '@/lib/monthly-cycle'
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslation } from '@/providers/I18nProvider'
-import { FileDown, Loader2, Target, Users2, Building2, TrendingUp, Filter, X, Handshake, CheckCircle2 } from 'lucide-react'
+import { FileDown, Loader2, Target, Users2, Building2, TrendingUp, Filter, X, Handshake, CheckCircle2, Layers } from 'lucide-react'
 
 export default function PipelinePage() {
   const { t, lang } = useTranslation()
@@ -58,9 +58,29 @@ export default function PipelinePage() {
 
   const activePeriod = selectedPeriod || currentMonthPeriod
 
-  // ── Org pipeline (Senior Manager uniquement) ─────────────────────────
+  // ── Org pipeline (Senior Manager & Executive) ─────────────────────────
   const [filterManagerUid, setFilterManagerUid] = useState<string | undefined>(undefined)
-  const orgPipelineQuery = useOrgPipeline({ managerUid: filterManagerUid, period: activePeriod })
+  const [executiveSelectedSegment, setExecutiveSelectedSegment] = useState<string | undefined>(undefined)
+
+  // Segments supervisés par le Responsable Exécutif (restreints ou tous)
+  const executiveSegments = useMemo(() => {
+    if (!isExecutive) return []
+    if (Array.isArray(user?.segments) && user.segments.length > 0) {
+      return user.segments
+    }
+    if (user?.segment && user.segment.toUpperCase() !== 'ALL') {
+      return [user.segment]
+    }
+    return []
+  }, [isExecutive, user?.segments, user?.segment])
+
+  const activeSegment = isExecutive ? (executiveSelectedSegment || executiveSegments[0]) : undefined
+
+  const orgPipelineQuery = useOrgPipeline({
+    managerUid: filterManagerUid,
+    period: activePeriod,
+    segment: activeSegment
+  })
   const selectedManager = filterManagerUid && orgPipelineQuery.data?.managers
     ? orgPipelineQuery.data.managers.find((m: OrgManagerStats) => m.uid === filterManagerUid)
     : undefined
@@ -541,6 +561,40 @@ export default function PipelinePage() {
             </div>
           )}
 
+          {/* ── Commutateur de Segment exclusif pour le Responsable Exécutif ───────────────── */}
+          {isExecutive && executiveSegments.length > 0 && (
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-3 p-3 rounded-xl bg-blue-500/10 border border-blue-500/20">
+              <div className="flex items-center gap-2 shrink-0">
+                <Layers size={14} className="text-blue-500 shrink-0" />
+                <span className="text-[11px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
+                  {lang === 'en' ? 'Observed Segment :' : 'Segment sous observation :'}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                {executiveSegments.map((seg: string) => {
+                  const isSelected = (executiveSelectedSegment || executiveSegments[0]) === seg
+                  return (
+                    <button
+                      key={seg}
+                      type="button"
+                      onClick={() => {
+                        setExecutiveSelectedSegment(seg)
+                        setFilterManagerUid(undefined)
+                      }}
+                      className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                        isSelected
+                          ? 'bg-blue-600 text-white shadow-xs'
+                          : 'bg-card text-foreground hover:bg-secondary border border-border'
+                      }`}
+                    >
+                      {seg}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Filtre par Senior Manager ou Team Manager */}
           {orgPipelineQuery.data?.managers &&
             orgPipelineQuery.data.managers.length > 0 && (
@@ -640,7 +694,9 @@ export default function PipelinePage() {
                   {selectedManager
                     ? `Pipeline : ${selectedManager.name || (lang === 'en' ? 'Supervisor' : 'Superviseur')}`
                     : (isExecutive
-                        ? (lang === 'en' ? "Consolidated Organization Pipeline" : "Pipeline Consolidé de l'Organisation")
+                        ? (lang === 'en'
+                            ? `Consolidated Pipeline — Segment : ${activeSegment || 'All'}`
+                            : `Pipeline Consolidé — Segment : ${activeSegment || 'Tous'}`)
                         : (t('pipeline.orgPipeline') || 'Pipeline du Segment'))}
                 </span>
                 {filterManagerUid && (

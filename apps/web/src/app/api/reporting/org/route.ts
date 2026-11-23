@@ -46,6 +46,7 @@ export async function GET(request: NextRequest) {
     const reqPeriod = searchParams.get('period')
     const reqFrom = searchParams.get('from')
     const reqTo = searchParams.get('to')
+    const reqSegment = searchParams.get('segment')
 
     let activeMonthPeriod = reqPeriod || new Date().toISOString().slice(0, 7)
     let periodBounds: { start: Date; end: Date } | null = null
@@ -97,20 +98,58 @@ export async function GET(request: NextRequest) {
     const callerSegment = callerData.segment || null
     const callerOrgRole = callerData.orgRole || 'team_manager'
     const isCallerExecutive = callerOrgRole === 'executive'
+
+    const allSegmentsSet = new Set<string>()
+    managersSnap.docs.forEach((d) => {
+      const s = d.data().segment
+      if (s && typeof s === 'string' && s.trim()) {
+        allSegmentsSet.add(s.trim())
+      }
+    })
+    const availableSegments = Array.from(allSegmentsSet).sort((a, b) => a.localeCompare(b, 'fr'))
+
+    // Résolution et contrôle strict du segment d'observation
+    let targetSegment = reqSegment || (isCallerExecutive ? null : callerSegment)
+    if (isCallerExecutive) {
+      const allowedSegments = Array.isArray(callerData.segments) && callerData.segments.length > 0
+        ? callerData.segments
+        : callerData.segment && callerData.segment.toUpperCase() !== 'ALL'
+          ? [callerData.segment]
+          : null
+
+      if (allowedSegments && allowedSegments.length > 0) {
+        if (reqSegment) {
+          if (!allowedSegments.includes(reqSegment)) {
+            return NextResponse.json(
+              { error: `Accès non autorisé au segment « ${reqSegment} »` },
+              { status: 403 }
+            )
+          }
+          targetSegment = reqSegment
+        } else {
+          targetSegment = allowedSegments[0]
+        }
+      }
+    }
+
     const isDirectionSegment =
-      callerSegment?.toLowerCase() === 'direction' ||
-      callerSegment?.toLowerCase() === 'direction générale'
+      !targetSegment ||
+      targetSegment.toLowerCase() === 'direction' ||
+      targetSegment.toLowerCase() === 'direction générale' ||
+      targetSegment.toUpperCase() === 'ALL'
 
     // RÈGLE ABSOLUE : Un profil Executive ne figure JAMAIS dans les managers opérationnels de l'organisation
     const filteredManagersDocs = managersSnap.docs.filter((d) => {
       const mData = d.data()
       const mRole = mData.orgRole || 'team_manager'
       if (mRole === 'executive') return false
-      if (isCallerExecutive || !callerSegment || isDirectionSegment) return true
+      if (isDirectionSegment) return true
       return (
-        d.id === decoded.uid ||
-        mData.seniorManagerUid === decoded.uid ||
-        mData.segment === callerSegment
+        mData.segment === targetSegment ||
+        (mData.seniorManagerUid &&
+          managersSnap.docs.some(
+            (sm) => sm.id === mData.seniorManagerUid && sm.data().segment === targetSegment
+          ))
       )
     })
 
@@ -499,6 +538,7 @@ export async function GET(request: NextRequest) {
         ...cycleContext,
         currentPeriod: selectedPeriodInfo
       },
+      availableSegments,
       recentActivity,
       totalManagers: teamManagerUids.length
     })

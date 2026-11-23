@@ -13,7 +13,7 @@ import {
 } from '@/features/pipeline/hooks/useOrgReport'
 import { useTranslation } from '@/providers/I18nProvider'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useMemo } from 'react'
 import {
   Crown,
   Users2,
@@ -33,7 +33,8 @@ import {
   ChevronDown,
   FileSpreadsheet,
   FileText,
-  Calendar
+  Calendar,
+  Layers
 } from 'lucide-react'
 import { useExportTeamPerformance } from '@/features/pipeline/hooks/useExportTeamPerformance'
 import { formatCompactAmount } from '@/lib/formatters'
@@ -367,7 +368,25 @@ export default function DashboardPage() {
   }, [user, hasOrgDashboardAccess, router])
 
   const [selectedPeriod, setSelectedPeriod] = useState<string>('')
-  const orgReportQuery = useOrgReport(selectedPeriod || undefined)
+  const [executiveSelectedSegment, setExecutiveSelectedSegment] = useState<string | undefined>(undefined)
+
+  const executiveSegments = useMemo(() => {
+    if (!isExecutive) return []
+    if (Array.isArray(user?.segments) && user.segments.length > 0) {
+      return user.segments
+    }
+    if (user?.segment && user.segment.toUpperCase() !== 'ALL') {
+      return [user.segment]
+    }
+    return []
+  }, [isExecutive, user?.segments, user?.segment])
+
+  const activeSegment = isExecutive ? (executiveSelectedSegment || executiveSegments[0]) : undefined
+
+  const orgReportQuery = useOrgReport({
+    period: selectedPeriod || undefined,
+    segment: activeSegment
+  })
   const data = orgReportQuery.data
 
   const activePeriodKey =
@@ -559,6 +578,37 @@ export default function DashboardPage() {
           </div>
         }
       />
+
+      {/* ── Commutateur de Segment exclusif pour le Responsable Exécutif ───────────────── */}
+      {isExecutive && executiveSegments.length > 0 && (
+        <div className="mb-4 p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2 shrink-0">
+            <Layers size={14} className="text-blue-500 shrink-0" />
+            <span className="text-[11px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
+              {lang === 'en' ? 'Observed Segment :' : 'Segment sous observation :'}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            {executiveSegments.map((seg: string) => {
+              const isSelected = (executiveSelectedSegment || executiveSegments[0]) === seg
+              return (
+                <button
+                  key={seg}
+                  type="button"
+                  onClick={() => setExecutiveSelectedSegment(seg)}
+                  className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                    isSelected
+                      ? 'bg-blue-600 text-white shadow-xs'
+                      : 'bg-card text-foreground hover:bg-secondary border border-border'
+                  }`}
+                >
+                  {seg}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {orgReportQuery.isLoading ? (
         <LoadingState />
