@@ -799,9 +799,7 @@ export function OrgGovernanceTab() {
                             </option>
                             {coordinatorSegments.map((c) => (
                               <option key={c.segment} value={c.segment}>
-                                {lang === 'en'
-                                  ? `Segment: ${c.segment} (Coordinator: ${c.coordinatorName})`
-                                  : `Segment : ${c.segment} (Coordinateur : ${c.coordinatorName})`}
+                                {`Segment : ${c.segment} — ${c.coordinatorName}`}
                               </option>
                             ))}
                           </select>

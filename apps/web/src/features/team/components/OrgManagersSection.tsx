@@ -289,7 +289,7 @@ function RevokeManagerModal({
             >
               {otherManagers.map((tm) => (
                 <option key={tm.uid} value={tm.uid}>
-                  {tm.name || tm.email} ({lang === 'en' ? 'Supervisor' : 'Superviseur'}{tm.segment ? ` — ${tm.segment}` : ''})
+                  {tm.name || tm.email}{tm.segment ? ` — ${tm.segment}` : ''}
                 </option>
               ))}
               {user && (
@@ -310,8 +310,8 @@ function RevokeManagerModal({
               }}
             >
               {lang === 'en'
-                ? "No other Supervisor in the organization. All files and sales reps will be automatically reassigned under your direct supervision (Coordinator)."
-                : "Aucun autre Superviseur dans l'organisation. L'ensemble des dossiers et commerciaux sera automatiquement rapatrié sous votre supervision directe (Coordinateur)."}
+                ? "No other Supervisor in the organization. All files and sales reps will be automatically reassigned under your direct supervision."
+                : "Aucun autre Superviseur dans l'organisation. L'ensemble des dossiers et commerciaux sera automatiquement rapatrié sous votre supervision directe."}
             </div>
           )}
         </div>
@@ -516,7 +516,7 @@ function TransferMemberModal({
         </div>
 
         <div style={{ fontSize: 13, color: 'var(--muted-foreground)', marginBottom: 14 }}>
-          Actuellement rattaché à : <strong>{currentManager.name || currentManager.email}</strong> ({lang === 'en' ? 'Supervisor' : 'Superviseur'}).
+          Actuellement rattaché à : <strong>{currentManager.name || currentManager.email}</strong>.
         </div>
 
         {/* Sélecteur du nouveau manager */}
@@ -560,7 +560,7 @@ function TransferMemberModal({
             >
               {filteredAvailableManagers.map((tm) => (
                 <option key={tm.uid} value={tm.uid}>
-                  {tm.name || tm.email} ({lang === 'en' ? 'Supervisor' : 'Superviseur'}{tm.segment ? ` — ${tm.segment}` : ''})
+                  {tm.name || tm.email}{tm.segment ? ` — ${tm.segment}` : ''}
                 </option>
               ))}
             </select>
@@ -1139,7 +1139,7 @@ function RequestSmRevocationModal({
               <option value="">{t('team.orgGovernance.smRevocationSuccessorPlaceholder')}</option>
               {availableSuccessors.map((tm) => (
                 <option key={tm.uid} value={tm.uid}>
-                  {tm.name || tm.email} ({tm.isSenior ? (lang === 'en' ? 'Coordinator' : 'Coordinateur') : (lang === 'en' ? 'Supervisor' : 'Superviseur')}{tm.segment ? ` — ${tm.segment}` : ''})
+                  {tm.name || tm.email}{tm.segment ? ` — ${tm.segment}` : ''}
                 </option>
               ))}
             </select>

@@ -595,9 +595,6 @@ export default function PipelinePage() {
                     })
                     .map((mgr: OrgManagerStats) => {
                       const isSelected = filterManagerUid === mgr.uid
-                      const roleTag = mgr.isSenior
-                        ? (lang === 'en' ? ' (Coordinator)' : ' (Coordinateur)')
-                        : ''
                       return (
                         <button
                           key={mgr.uid}
@@ -626,7 +623,7 @@ export default function PipelinePage() {
                             transition: 'all 150ms ease'
                           }}
                         >
-                          <span>{(mgr.name || mgr.email) + roleTag}</span>
+                          <span>{mgr.name || mgr.email}</span>
                         </button>
                       )
                     })}
@@ -641,7 +638,7 @@ export default function PipelinePage() {
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                 <span>
                   {selectedManager
-                    ? `Pipeline : ${selectedManager.name || (lang === 'en' ? 'Supervisor' : 'Superviseur')}${isExecutive && selectedManager.isSenior ? (lang === 'en' ? ' (Coordinator)' : ' (Coordinateur)') : ''}`
+                    ? `Pipeline : ${selectedManager.name || (lang === 'en' ? 'Supervisor' : 'Superviseur')}`
                     : (isExecutive
                         ? (lang === 'en' ? "Consolidated Organization Pipeline" : "Pipeline Consolidé de l'Organisation")
                         : (t('pipeline.orgPipeline') || 'Pipeline du Segment'))}
