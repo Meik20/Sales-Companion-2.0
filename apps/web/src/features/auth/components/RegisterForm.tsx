@@ -92,6 +92,7 @@ export function RegisterForm() {
     orgCode: string
     companyName: string
     segment?: string | null
+    segments?: string[]
     seniorManagerName?: string | null
     seniorManagerUid?: string | null
     customRoleLabel?: string | null
@@ -421,7 +422,12 @@ export function RegisterForm() {
                   Invité par : <strong>{orgInviteInfo.seniorManagerName}</strong>
                 </div>
               )}
-              {orgInviteInfo.segment ? (
+              {orgInviteInfo.segments && orgInviteInfo.segments.length > 1 ? (
+                <div className="flex items-center gap-1 mt-0.5">
+                  <Tag size={10} className="text-indigo-600 dark:text-indigo-400/70 shrink-0" />
+                  Segments sous observation : <strong>{orgInviteInfo.segments.join(', ')}</strong>
+                </div>
+              ) : orgInviteInfo.segment ? (
                 <div className="flex items-center gap-1 mt-0.5">
                   <Tag size={10} className="text-indigo-600 dark:text-indigo-400/70 shrink-0" />
                   Segment rattaché : <strong>{orgInviteInfo.segment}</strong>
@@ -752,8 +758,10 @@ export function RegisterForm() {
                 <Input
                   placeholder="Ex: BTP, Technologies, Grande Distribution…"
                   value={
-                    orgInviteInfo?.type === 'executive' && !segment
-                      ? 'Tous les segments (Supervision Globale)'
+                    orgInviteInfo?.type === 'executive'
+                      ? orgInviteInfo.segments && orgInviteInfo.segments.length > 1
+                        ? orgInviteInfo.segments.join(', ')
+                        : (segment || 'Tous les segments (Supervision Globale)')
                       : segment
                   }
                   readOnly={Boolean(orgInviteInfo?.type === 'team_manager' || orgInviteInfo?.type === 'executive')}
