@@ -49,11 +49,25 @@ export function mapAuthError(error: unknown): string {
   if (errorString.includes('auth/account-exists-with-different-credential')) {
     return 'Un compte existe déjà avec cet email. Connectez-vous via email/mot de passe.'
   }
-
-  // Fallback for generic firebase errors
-  if (errorString.includes('firebase')) {
-    return "Une erreur d'authentification est survenue. Veuillez réessayer."
+  if (
+    errorString.includes('resource_exhausted') ||
+    errorString.includes('quota exceeded') ||
+    errorString.includes('resource-exhausted')
+  ) {
+    return 'Service temporairement indisponible. Veuillez réessayer dans quelques instants.'
+  }
+  if (errorString.includes('auth/requires-recent-login')) {
+    return 'Pour des raisons de sécurité, veuillez vous reconnecter avant de continuer.'
+  }
+  if (errorString.includes('auth/user-disabled')) {
+    return 'Ce compte a été désactivé. Veuillez contacter le support.'
   }
 
-  return error.message
+  // Fallback : ne jamais exposer un message technique brut au client
+  if (errorString.includes('firebase') || errorString.includes('google') || /^\d+ [A-Z_]+:/.test(error.message)) {
+    return "Une erreur est survenue. Veuillez réessayer ou contacter le support si le problème persiste."
+  }
+
+  // Dernier recours : message court et non technique
+  return "Une erreur inattendue est survenue. Veuillez réessayer."
 }
