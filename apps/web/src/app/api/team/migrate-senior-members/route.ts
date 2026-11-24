@@ -437,7 +437,7 @@ export async function POST(request: NextRequest) {
     // Notification In-App automatique pour le Team Manager récepteur
     try {
       const { createUserNotification } = await import('@/lib/user-notifications')
-      const senderName = callerData.displayName || callerData.name || 'Le Senior Manager'
+      const senderName = callerData.displayName || callerData.name || 'Le Coordinateur'
       const count = prospectDocsToTransfer.length
       const deadlineText = deadline
         ? ` avec une échéance fixée au ${new Date(deadline).toLocaleDateString('fr-FR', {

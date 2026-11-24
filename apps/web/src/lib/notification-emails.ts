@@ -54,7 +54,7 @@ export async function sendProspectTransferEmail(params: ProspectTransferEmailPar
 
   const plural = count > 1
   const countLabel = `${count} prospect${plural ? 's' : ''}`
-  const subject = `Sales Companion 2.0 — ${countLabel} transféré${plural ? 's' : ''} par votre Senior Manager`
+  const subject = `Sales Companion 2.0 — ${countLabel} transféré${plural ? 's' : ''} par votre Coordinateur`
 
   const html = `
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 580px; margin: 0 auto; padding: 28px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; color: #1e293b; line-height: 1.6;">
@@ -67,7 +67,7 @@ export async function sendProspectTransferEmail(params: ProspectTransferEmailPar
           Nouveaux prospects transférés
         </h2>
         <p style="margin: 0; font-size: 14px; color: #334155;">
-          Votre Senior Manager <strong>${senderName}</strong> vous a transféré <strong>${countLabel}</strong>.
+          Votre Coordinateur <strong>${senderName}</strong> vous a transféré <strong>${countLabel}</strong>.
         </p>
       </div>
 

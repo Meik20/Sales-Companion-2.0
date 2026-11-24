@@ -230,7 +230,7 @@ export async function POST(request: NextRequest) {
       orgCode,
       companyName,
       createdByUid: callerUid,
-      createdByName: userData.displayName || userData.name || userData.email || 'Senior Manager',
+      createdByName: userData.displayName || userData.name || userData.email || 'Coordinateur',
       seniorManagerUid:
         userData.orgRole === 'senior_manager' ? callerUid : userData.seniorManagerUid || callerUid,
       segment: assignedSegment,

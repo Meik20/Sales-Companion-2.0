@@ -222,7 +222,7 @@ export async function POST(request: NextRequest) {
       const { createUserNotification } = await import('@/lib/user-notifications')
       const { sendProspectTransferEmail } = await import('@/lib/notification-emails')
       const callerName =
-        callerData.displayName || callerData.name || callerData.email || 'Senior Manager'
+        callerData.displayName || callerData.name || callerData.email || 'Coordinateur'
       const deadlineText = deadline
         ? ` avec une échéance fixée au ${new Date(deadline).toLocaleDateString('fr-FR', {
             day: 'numeric',
@@ -234,7 +234,7 @@ export async function POST(request: NextRequest) {
         userId: targetManagerUid,
         type: 'prospect_transfer',
         title: 'Nouveaux prospects transférés',
-        message: `Le Senior Manager (${callerName}) vous a transféré ${transferredCount} prospect(s)${deadlineText}. Retrouvez-les dans "Gestion d'équipe > Mes prospects importés" pour les attribuer à votre équipe.`,
+        message: `Le Coordinateur (${callerName}) vous a transféré ${transferredCount} prospect(s)${deadlineText}. Retrouvez-les dans "Gestion d'équipe > Mes prospects importés" pour les attribuer à votre équipe.`,
         link: '/team?tab=imports',
         metadata: {
           count: transferredCount,

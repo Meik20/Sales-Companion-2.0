@@ -463,7 +463,7 @@ export async function PATCH(request: NextRequest) {
         if (query.empty && !orgDoc.exists) {
           return NextResponse.json(
             {
-              error: `Aucune organisation trouvée avec le code "${targetCode}". Vérifiez le code partagé par votre Senior Manager.`
+              error: `Aucune organisation trouvée avec le code "${targetCode}". Vérifiez le code partagé par votre Coordinateur.`
             },
             { status: 404 }
           )

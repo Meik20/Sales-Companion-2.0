@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         valid: false,
-        error: `Aucune organisation trouvée avec le code "${code}". Vérifiez le code partagé par votre Senior Manager.`
+        error: `Aucune organisation trouvée avec le code "${code}". Vérifiez le code partagé par votre Coordinateur.`
       },
       { status: 404 }
     )

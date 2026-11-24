@@ -226,7 +226,7 @@ export function exportDashboardPdf({
         <h1 class="brand-title">SALES COMPANION 2.0</h1>
         <p class="brand-subtitle">${isEn ? 'EXECUTIVE SEGMENT PERFORMANCE REPORT' : 'RAPPORT DE BILAN EXÉCUTIF — DIRECTION GÉNÉRALE'}</p>
         <div style="font-size: 10.5px; color: #475569; margin-top: 2px;">
-          ${companyName ? `<strong>${companyName}</strong> · ` : ''}Segment : <strong>${data.orgCode}</strong> · Senior Manager : <strong>${seniorManagerName || '—'}</strong>
+          ${companyName ? `<strong>${companyName}</strong> · ` : ''}Segment : <strong>${data.orgCode}</strong> · ${isEn ? 'Coordinator' : 'Coordinateur'} : <strong>${seniorManagerName || '—'}</strong>
         </div>
       </div>
     </div>
