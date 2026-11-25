@@ -4,6 +4,7 @@ import { FormEvent, useState, useEffect } from 'react'
 import { useTranslation } from '@/providers/I18nProvider'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useProspectingCountry } from '@/hooks/useProspectingCountry'
+import { useShortcutCounts } from '@/features/search/hooks/useShortcutCounts'
 import { GEOGRAPHY } from '@sales-companion/shared'
 import {
   Search,
@@ -62,13 +63,13 @@ const SECTOR_KEYS: Record<string, string> = {
 }
 
 const QUICK_SECTORS = [
-  { labelKey: 'search.quickAll', value: '', icon: LayoutGrid, count: null as number | null },
-  { labelKey: 'search.btp', value: 'BTP & Construction', icon: HardHat, count: null as number | null },
-  { labelKey: 'search.commerce', value: 'Commerce', icon: ShoppingBag, count: null as number | null },
-  { labelKey: 'search.tech', value: 'Technologies & Numérique', icon: Laptop, count: null as number | null },
-  { labelKey: 'search.agro', value: 'Agriculture & Agroalimentaire', icon: Sprout, count: null as number | null },
-  { labelKey: 'search.transport', value: 'Transport & Logistique', icon: Truck, count: null as number | null },
-  { labelKey: 'search.sante', value: 'Santé', icon: Stethoscope, count: null as number | null }
+  { key: null as null | 'btp' | 'commerce' | 'tech' | 'agro' | 'transport' | 'sante', labelKey: 'search.quickAll', value: '', icon: LayoutGrid },
+  { key: 'btp' as const, labelKey: 'search.btp', value: 'BTP & Construction', icon: HardHat },
+  { key: 'commerce' as const, labelKey: 'search.commerce', value: 'Commerce', icon: ShoppingBag },
+  { key: 'tech' as const, labelKey: 'search.tech', value: 'Technologies & Numérique', icon: Laptop },
+  { key: 'agro' as const, labelKey: 'search.agro', value: 'Agriculture & Agroalimentaire', icon: Sprout },
+  { key: 'transport' as const, labelKey: 'search.transport', value: 'Transport & Logistique', icon: Truck },
+  { key: 'sante' as const, labelKey: 'search.sante', value: 'Santé', icon: Stethoscope }
 ]
 
 import { findNearestGeoZone } from '@/lib/geo-zones'
@@ -91,6 +92,7 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit, onHome }: Prop
   const { user } = useCurrentUser()
   // Pays de prospection actif : cookie sc_country (landing) > user.country (Firestore)
   const userCountry = useProspectingCountry()
+  const { data: shortcutCounts } = useShortcutCounts()
   const geography = GEOGRAPHY[userCountry] ?? GEOGRAPHY.CM!
   const regions = geography.regions
   const [query, setQuery] = useState(initialValues.query ?? '')
@@ -595,6 +597,7 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit, onHome }: Prop
                     </button>
                   )}
                   {QUICK_SECTORS.map((s) => {
+                    const pillCount = s.key ? (shortcutCounts?.pills?.[s.key] ?? 0) : 0
                     return (
                       <button
                         key={s.value}
@@ -604,7 +607,7 @@ export function SearchFiltersForm({ initialValues = {}, onSubmit, onHome }: Prop
                       >
                         {s.icon && <s.icon size={14} style={{ flexShrink: 0 }} />}
                         {t(s.labelKey as any)}
-                        {s.count !== null && <span className="sc-pill-counter"> · {s.count}</span>}
+                        {pillCount > 0 && <span className="sc-pill-counter"> · {pillCount}</span>}
                       </button>
                     )
                   })}

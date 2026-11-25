@@ -12,6 +12,7 @@ import {
 } from '@/features/search/components/CompaniesSearchResults'
 import { SaveCurrentSearchButton } from '@/features/search/components/SaveCurrentSearchButton'
 import { useCompaniesSearch, type Company } from '@/features/search/hooks/useCompaniesSearch'
+import { useShortcutCounts } from '@/features/search/hooks/useShortcutCounts'
 import { useOverpassSearch } from '@/features/search/hooks/useOverpassSearch'
 import { usePipelineStats } from '@/features/pipeline/hooks/usePipelineStats'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
@@ -53,6 +54,7 @@ function SearchContent() {
   const isFreePlan = !user?.plan || user?.plan === 'free'
   // Pays de prospection actif : cookie sc_country (landing) > user.country (Firestore)
   const userCountry = useProspectingCountry()
+  const { data: shortcutCounts } = useShortcutCounts()
   const countryName = getCountryName(userCountry, lang)
   const countryIn = COUNTRY_FRENCH_IN[userCountry] || 'au Cameroun'
   const highlightCities = COUNTRY_HIGHLIGHT_CITIES[userCountry] ?? COUNTRY_HIGHLIGHT_CITIES.CM!
@@ -813,6 +815,7 @@ function SearchContent() {
                   sector="btp"
                   title={`${t('search.btp')} ${highlightCities.btp}`}
                   subtitle={t('search.newCompanies')}
+                  count={shortcutCounts?.cards.btpCity || undefined}
                   onClick={() => {
                     applySearchFilters({ sector: 'BTP & Construction', city: highlightCities.btp }, 1)
                   }}
@@ -821,6 +824,7 @@ function SearchContent() {
                   sector="tech"
                   title={`${t('search.tech')} ${highlightCities.tech}`}
                   subtitle={t('search.startupsPme')}
+                  count={shortcutCounts?.cards.techCity || undefined}
                   onClick={() => {
                     applySearchFilters({ sector: 'Technologies & Numérique', city: highlightCities.tech }, 1)
                   }}
@@ -829,6 +833,7 @@ function SearchContent() {
                   sector="agro"
                   title={t('search.agro')}
                   subtitle={countryName}
+                  count={shortcutCounts?.cards.agro || undefined}
                   onClick={() => {
                     applySearchFilters({ sector: 'Agriculture & Agroalimentaire' }, 1)
                   }}
@@ -837,6 +842,7 @@ function SearchContent() {
                   sector="transport"
                   title={t('search.transport')}
                   subtitle={countryName}
+                  count={shortcutCounts?.cards.transport || undefined}
                   onClick={() => {
                     applySearchFilters({ sector: 'Transport & Logistique' }, 1)
                   }}

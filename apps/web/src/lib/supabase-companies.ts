@@ -141,16 +141,74 @@ export async function getSupabaseCompanyById(id: string): Promise<SupabaseCompan
 }
 
 export async function countSupabaseCompanies(filter?: {
+  countryCode?: string
   sector?: string
   city?: string
 }): Promise<number> {
-  const searchParams = new URLSearchParams({ select: 'id', limit: '0' })
+  const searchParams = new URLSearchParams({ select: 'id', limit: '0', active: 'eq.true' })
+  if (filter?.countryCode) searchParams.set('country_code', `eq.${filter.countryCode.toUpperCase()}`)
   if (filter?.sector) searchParams.set('sector', `eq.${filter.sector}`)
   if (filter?.city) searchParams.set('city', `eq.${filter.city}`)
   const response = await supabaseRequest(`companies?${searchParams}`, {
+    method: 'HEAD',
     headers: { Prefer: 'count=exact' }
   })
   return parseExactCount(response)
+}
+
+export interface ShortcutCountsResult {
+  pills: {
+    btp: number
+    commerce: number
+    tech: number
+    agro: number
+    transport: number
+    sante: number
+  }
+  cards: {
+    btpCity: number
+    techCity: number
+    agro: number
+    transport: number
+  }
+}
+
+/**
+ * Compte exclusivement les entreprises réellement présentes en base Supabase
+ * pour le pays donné (zéro estimation, zéro fallback).
+ */
+export async function getSupabaseShortcutCounts(params: {
+  countryCode: string
+  btpCity?: string
+  techCity?: string
+}): Promise<ShortcutCountsResult> {
+  if (!isSupabaseCompaniesConfigured()) {
+    return {
+      pills: { btp: 0, commerce: 0, tech: 0, agro: 0, transport: 0, sante: 0 },
+      cards: { btpCity: 0, techCity: 0, agro: 0, transport: 0 }
+    }
+  }
+
+  const cc = params.countryCode.toUpperCase()
+  const [btp, commerce, tech, agro, transport, sante, btpCity, techCity] = await Promise.all([
+    countSupabaseCompanies({ countryCode: cc, sector: 'BTP & Construction' }),
+    countSupabaseCompanies({ countryCode: cc, sector: 'Commerce' }),
+    countSupabaseCompanies({ countryCode: cc, sector: 'Technologies & Numérique' }),
+    countSupabaseCompanies({ countryCode: cc, sector: 'Agriculture & Agroalimentaire' }),
+    countSupabaseCompanies({ countryCode: cc, sector: 'Transport & Logistique' }),
+    countSupabaseCompanies({ countryCode: cc, sector: 'Santé' }),
+    params.btpCity
+      ? countSupabaseCompanies({ countryCode: cc, sector: 'BTP & Construction', city: params.btpCity })
+      : Promise.resolve(0),
+    params.techCity
+      ? countSupabaseCompanies({ countryCode: cc, sector: 'Technologies & Numérique', city: params.techCity })
+      : Promise.resolve(0)
+  ])
+
+  return {
+    pills: { btp, commerce, tech, agro, transport, sante },
+    cards: { btpCity, techCity, agro, transport }
+  }
 }
 
 export async function deleteSupabaseCompany(id: string): Promise<void> {

@@ -428,8 +428,20 @@ export default function DashboardPage() {
   return (
     <AppShell>
       <PageHeader
-        title={t('dashboard.title')}
-        subtitle={`${t('dashboard.subtitlePrefix')} · ${data?.orgCode ?? '…'}`}
+        title={
+          isExecutive
+            ? t('dashboard.title')
+            : lang === 'en'
+              ? 'Team Dashboard'
+              : "Tableau de Bord d'Équipe"
+        }
+        subtitle={`${
+          isExecutive
+            ? t('dashboard.subtitlePrefix')
+            : lang === 'en'
+              ? 'Consolidated view of your team'
+              : 'Vue consolidée de votre équipe'
+        } · ${data?.orgCode ?? '…'}`}
         actions={
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             <div ref={exportMenuRef} style={{ position: 'relative' }}>
@@ -726,10 +738,14 @@ export default function DashboardPage() {
                       color: 'var(--muted-foreground, #64748b)'
                     }}
                   >
-                    {t('dashboard.targetsSubtitle') ||
-                      (lang === 'en'
-                        ? 'Monthly cycle · Consolidation of all Supervisors in the segment'
-                        : 'Cycle mensuel · Consolidation de tous les Superviseurs du segment')}
+                    {isExecutive
+                      ? t('dashboard.targetsSubtitle') ||
+                        (lang === 'en'
+                          ? 'Monthly cycle · Consolidation of all Supervisors in the segment'
+                          : 'Cycle mensuel · Consolidation de tous les Superviseurs du segment')
+                      : lang === 'en'
+                        ? 'Monthly cycle · Consolidation of all Supervisors in your team'
+                        : 'Cycle mensuel · Consolidation de tous les Superviseurs de votre équipe'}
                   </p>
                 </div>
               </div>
@@ -902,7 +918,13 @@ export default function DashboardPage() {
               value={data?.totalManagers ?? 0}
               color="#8b5cf6"
               icon={<Users2 size={16} />}
-              subtitle={t('dashboard.kpiManagersSub')}
+              subtitle={
+                isExecutive
+                  ? t('dashboard.kpiManagersSub')
+                  : lang === 'en'
+                    ? 'under your supervision'
+                    : 'sous votre supervision'
+              }
             />
             <KpiCard
               label={t('dashboard.kpiProspection')}
@@ -949,7 +971,13 @@ export default function DashboardPage() {
               actions={
                 <InfoTooltip
                   placement="left"
-                  content={t('dashboard.topPerformersTooltip')}
+                  content={
+                    isExecutive
+                      ? t('dashboard.topPerformersTooltip')
+                      : lang === 'en'
+                        ? 'Supervisors ranked by number of closed prospects in your team.'
+                        : 'Superviseurs classés par nombre de prospects conclus dans votre équipe.'
+                  }
                 />
               }
             >
@@ -979,7 +1007,13 @@ export default function DashboardPage() {
               actions={
                 <InfoTooltip
                   placement="left"
-                  content={t('dashboard.recentActivityTooltip')}
+                  content={
+                    isExecutive
+                      ? t('dashboard.recentActivityTooltip')
+                      : lang === 'en'
+                        ? 'The last 10 closed prospects across your entire team.'
+                        : 'Les 10 derniers prospects conclus dans votre équipe.'
+                  }
                 />
               }
             >
