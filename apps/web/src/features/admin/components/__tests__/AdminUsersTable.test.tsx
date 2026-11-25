@@ -70,7 +70,7 @@ describe('AdminUsersTable', () => {
 
     // Plan should be rendered as read-only badge with title, not a select
     expect(screen.queryByRole('combobox')).toBeNull()
-    expect(screen.getByTitle('Plan synchronisé et hérité du Coordinateur')).toBeInTheDocument()
+    expect(screen.getByTitle('Plan synchronisé et hérité du SM1')).toBeInTheDocument()
 
     // Quota should not have number input
     expect(screen.queryByRole('spinbutton')).toBeNull()

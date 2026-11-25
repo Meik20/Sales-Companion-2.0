@@ -242,17 +242,21 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
               {/* Plan */}
               <td style={{ padding: '11px 12px' }}>
                 {(() => {
-                  const isTeamManager =
+                  const isManagedOrgSubordinate =
                     user.role === 'manager' &&
-                    (user.orgRole === 'team_manager' || Boolean(user.seniorManagerUid))
+                    (user.orgRole === 'team_manager' ||
+                      user.orgRole === 'executive' ||
+                      (user as any).isPrimarySeniorManager === false ||
+                      Boolean((user as any).invitedByUid) ||
+                      Boolean(user.seniorManagerUid))
                   const isInheritedAccount =
                     user.role === 'member' ||
                     user.role === 'support_agent' ||
-                    isTeamManager ||
+                    isManagedOrgSubordinate ||
                     Boolean(user.managerId)
                   if (isInheritedAccount) {
-                    const tooltipText = isTeamManager
-                      ? 'Plan synchronisé et hérité du Coordinateur'
+                    const tooltipText = isManagedOrgSubordinate
+                      ? 'Plan synchronisé et hérité du SM1'
                       : 'Plan synchronisé et géré par le compte Manager'
                     return (
                       <div
@@ -306,13 +310,17 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
               {/* Quota */}
               <td style={{ padding: '16px 12px', minWidth: 140 }}>
                 {(() => {
-                  const isTeamManager =
+                  const isManagedOrgSubordinate =
                     user.role === 'manager' &&
-                    (user.orgRole === 'team_manager' || Boolean(user.seniorManagerUid))
+                    (user.orgRole === 'team_manager' ||
+                      user.orgRole === 'executive' ||
+                      (user as any).isPrimarySeniorManager === false ||
+                      Boolean((user as any).invitedByUid) ||
+                      Boolean(user.seniorManagerUid))
                   const isInheritedAccount =
                     user.role === 'member' ||
                     user.role === 'support_agent' ||
-                    isTeamManager ||
+                    isManagedOrgSubordinate ||
                     Boolean(user.managerId)
                   if (user.role === 'support_agent') {
                     return (
@@ -379,8 +387,8 @@ export function AdminUsersTable({ users, onDelete, onUpdate }: Props) {
                         ) : (
                           <span
                             title={
-                              isTeamManager
-                                ? 'Quota synchronisé depuis le compte Coordinateur'
+                              isManagedOrgSubordinate
+                                ? 'Quota synchronisé depuis le compte SM1'
                                 : isInheritedAccount
                                   ? 'Quota synchronisé depuis le compte Manager'
                                   : undefined

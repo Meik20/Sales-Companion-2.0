@@ -22,6 +22,26 @@ export async function GET(request: NextRequest) {
       .offset((page - 1) * pageSize)
       .get()
 
+    // Résolution en lot des SM1 par organisation pour identifier les comptes hérités
+    const orgCodes = Array.from(
+      new Set(
+        usersSnap.docs
+          .map((d) => d.data().orgCode as string | undefined)
+          .filter((c): c is string => Boolean(c))
+      )
+    )
+    const orgSm1Map = new Map<string, string>()
+    if (orgCodes.length > 0) {
+      const orgRefs = orgCodes.map((code) => adminDb.collection('organisations').doc(code))
+      const orgSnaps = await adminDb.getAll(...orgRefs)
+      orgSnaps.forEach((s) => {
+        if (s.exists) {
+          const smUid = s.data()?.seniorManagerUid as string | undefined
+          if (smUid) orgSm1Map.set(s.id, smUid)
+        }
+      })
+    }
+
     const items = usersSnap.docs.map((doc) => {
       const data = doc.data()
       const today = new Date().toISOString().slice(0, 10)
@@ -33,6 +53,17 @@ export async function GET(request: NextRequest) {
           : false
         : data.lastResetDate === today
       const currentDailyUsed = isSamePeriod ? (data.dailyUsed ?? 0) : 0
+      const orgCode = (data.orgCode as string | undefined) ?? null
+      const orgSm1Uid = orgCode ? orgSm1Map.get(orgCode) : undefined
+      const isPrimarySeniorManager =
+        data.role === 'manager' &&
+        data.orgRole !== 'team_manager' &&
+        data.orgRole !== 'executive' &&
+        data.isPrimarySeniorManager !== false &&
+        !data.invitedByUid &&
+        !data.seniorManagerUid &&
+        (!orgSm1Uid || orgSm1Uid === doc.id)
+
       return {
         uid: doc.id,
         name: data.name ?? null,
@@ -50,7 +81,11 @@ export async function GET(request: NextRequest) {
         lastLoginAt: data.lastLoginAt?.toDate?.()?.toISOString() ?? null,
         subscriptionExpiresAt: data.subscriptionExpiresAt ?? data.planExpiresAt ?? null,
         managerId: data.managerId ?? data.managerUid ?? null,
-        orgRole: data.orgRole ?? null
+        orgCode,
+        orgRole: data.orgRole ?? null,
+        seniorManagerUid: data.seniorManagerUid ?? null,
+        invitedByUid: data.invitedByUid ?? null,
+        isPrimarySeniorManager
       }
     })
 

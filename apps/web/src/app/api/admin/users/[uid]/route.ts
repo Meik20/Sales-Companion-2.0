@@ -27,16 +27,31 @@ export async function PATCH(
     const oldSnap = await userDocRef.get()
     const oldData = oldSnap.data()
 
-    // ── Protection : les profils member, support_agent et team_manager héritent de leur manager / SM ──
+    // ── Protection : seul le SM1 (ou un indépendant) a un plan modifiable ; tous les autres héritent du SM1 ──
+    let isNonPrimaryOrgManager = false
+    if (oldData?.role === 'manager' && oldData?.orgCode) {
+      const orgSnap = await adminDb.collection('organisations').doc(oldData.orgCode).get()
+      const sm1Uid = orgSnap.data()?.seniorManagerUid
+      if (sm1Uid && sm1Uid !== uid) {
+        isNonPrimaryOrgManager = true
+      }
+    }
+
     const isInheritedAccount =
       oldData?.role === 'member' ||
       oldData?.role === 'support_agent' ||
-      (oldData?.role === 'manager' && oldData?.orgRole === 'team_manager') ||
-      Boolean(oldData?.seniorManagerUid)
+      (oldData?.role === 'manager' &&
+        (oldData?.orgRole === 'team_manager' ||
+          oldData?.orgRole === 'executive' ||
+          oldData?.isPrimarySeniorManager === false ||
+          Boolean(oldData?.invitedByUid))) ||
+      Boolean(oldData?.seniorManagerUid) ||
+      isNonPrimaryOrgManager
 
     if (isInheritedAccount) {
       if (safeFields.plan !== undefined) delete safeFields.plan
       if (safeFields.dailyLimit !== undefined) delete safeFields.dailyLimit
+      if (safeFields.subscriptionExpiresAt !== undefined) delete safeFields.subscriptionExpiresAt
     }
 
     const updatePayload: Record<string, unknown> = {
