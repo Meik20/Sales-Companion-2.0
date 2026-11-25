@@ -534,7 +534,9 @@ export default function PipelinePage() {
                   id: 'total',
                   label: selectedManager
                     ? `Total (${selectedManager.name || (lang === 'en' ? 'Supervisor' : 'Superviseur')})`
-                    : (t('pipeline.totalOrg') || 'Total Segment'),
+                    : isExecutive
+                      ? 'Total Segment'
+                      : (t('pipeline.totalOrg') || (lang === 'en' ? 'Total Teams' : 'Total Équipes')),
                   count: orgPipelineQuery.data.counts.total,
                   color: '#a78bfa',
                   icon: <Users2 size={16} />
@@ -769,7 +771,7 @@ export default function PipelinePage() {
                         ? (lang === 'en'
                           ? `Consolidated Pipeline – Segment : ${activeSegment || 'All'}`
                           : `Pipeline Consolidé – Segment : ${activeSegment || 'Tous'}`)
-                        : (t('pipeline.orgPipeline') || 'Pipeline du Segment')}
+                        : (t('pipeline.orgPipeline') || (lang === 'en' ? 'Teams Pipeline' : 'Pipeline des Équipes'))}
                     </span>
                   </div>
                 )
@@ -777,7 +779,9 @@ export default function PipelinePage() {
             subtitle={
               selectedManager
                 ? undefined
-                : (t('pipeline.orgPipelineSubtitle') || 'Tous les prospects de votre segment')
+                : isExecutive
+                  ? (lang === 'en' ? 'All opportunities in the segment' : 'Toutes les opportunités du segment')
+                  : (t('pipeline.orgPipelineSubtitle') || (lang === 'en' ? 'All opportunities across your teams' : 'Toutes les opportunités de vos équipes'))
             }
           >
             {orgPipelineQuery.isLoading ? <LoadingState /> : null}

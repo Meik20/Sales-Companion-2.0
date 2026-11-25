@@ -321,7 +321,9 @@ export function TeamManagerPerformanceCard({
                 {isGlobal
                   ? (isTeamContext
                       ? (t('pipeline.globalTeamPerformance') || "Performance Globale de l'Équipe")
-                      : (t('pipeline.globalOrgPerformance') || 'Performance Globale du Segment'))
+                      : observedSegment
+                        ? (lang === 'en' ? 'Global Segment Performance' : 'Performance Globale du Segment')
+                        : (t('pipeline.globalOrgPerformance') || 'Performance Globale des Équipes'))
                   : (manager?.name || manager?.email)}
               </h4>
               <span
@@ -348,7 +350,11 @@ export function TeamManagerPerformanceCard({
                   isGlobal
                     ? (isTeamContext
                         ? (t('pipeline.globalTeamSubtitle') || "Synthèse consolidée du chiffre d'affaires et du portefeuille de l'équipe")
-                        : (t('pipeline.globalOrgSubtitle') || "Synthèse consolidée du chiffre d'affaires et du portefeuille du segment"))
+                        : observedSegment
+                          ? (lang === 'en'
+                              ? 'Consolidated revenue and pipeline overview across the segment'
+                              : "Synthèse consolidée du chiffre d'affaires et du portefeuille du segment")
+                          : (t('pipeline.globalOrgSubtitle') || "Synthèse consolidée du chiffre d'affaires et du portefeuille de vos équipes"))
                     : (manager?.isSenior
                         ? t('pipeline.seniorStagingDesc')
                         : (t('pipeline.teamManagerSubtitle') || "Portefeuille opérationnel et métriques de l'équipe managée"))
@@ -418,10 +424,10 @@ export function TeamManagerPerformanceCard({
               gap: 5,
               transition: 'all 150ms ease'
             }}
-            title={t('pipeline.viewAllOrg') || "Voir toute l'organisation"}
+            title={t('pipeline.viewAllOrg') || 'Voir toutes les équipes'}
           >
             <X size={12} />
-            <span>{t('pipeline.viewAllOrg') || "Voir toute l'organisation"}</span>
+            <span>{t('pipeline.viewAllOrg') || 'Voir toutes les équipes'}</span>
           </button>
         )}
       </div>
