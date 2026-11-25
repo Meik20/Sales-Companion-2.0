@@ -46,6 +46,9 @@ interface TeamManagerPerformanceCardProps {
   onSelectPeriod?: (period: string) => void
   /** Code pays pour la timezone officielle (ex: 'CM') */
   countryCode?: string
+  /** Segment observé par le Responsable Exécutif — garantit que la carte Réalisations
+   *  se réinitialise correctement lors d'un changement de segment dans la vue Executive */
+  observedSegment?: string
 }
 
 export function TeamManagerPerformanceCard({
@@ -60,7 +63,8 @@ export function TeamManagerPerformanceCard({
   currency: orgCurrency,
   selectedPeriod,
   onSelectPeriod,
-  countryCode
+  countryCode,
+  observedSegment
 }: TeamManagerPerformanceCardProps) {
   const { t, lang } = useTranslation()
   const { currency: fallbackCurrency } = useProspectingCountryDetails()
@@ -76,9 +80,16 @@ export function TeamManagerPerformanceCard({
 
   // ── Données RÉALISATIONS synchronisées sur la période choisie ──────────
   // Senior Manager : on recharge les données consolidées de l'org pour le mois sélectionné
-  const { data: orgPeriodReport, isFetching: orgReportLoading } = useOrgReport(
-    onSelectPeriod && context === 'org' ? activePeriod : undefined
-  )
+  // Le segment observé (Executive) est transmis pour éviter que la carte Réalisations
+  // conserve le cache du segment précédent lors d'un changement de segment.
+  const orgReportOptions = useMemo(() => {
+    if (!onSelectPeriod || context !== 'org') return undefined
+    return observedSegment
+      ? { period: activePeriod, segment: observedSegment }
+      : activePeriod
+  }, [onSelectPeriod, context, activePeriod, observedSegment])
+
+  const { data: orgPeriodReport, isFetching: orgReportLoading } = useOrgReport(orgReportOptions)
   // Team Manager : on recharge les données d'équipe pour le mois sélectionné
   const { data: tmPeriodReport, isFetching: tmReportLoading } = useReportingData(
     onSelectPeriod && context === 'team' ? activePeriod : undefined
@@ -709,10 +720,10 @@ export function TeamManagerPerformanceCard({
             <div
               className="transition-all duration-200 ease-smooth hover:-translate-y-0.5 hover:shadow-elevation-2"
               style={{
-                background: 'var(--card, #131c2e)',
+                background: 'var(--card)',
                 borderRadius: 12,
                 padding: '12px 14px',
-                border: '1px solid var(--border, rgba(255,255,255,0.08))',
+                border: '1px solid var(--border)',
                 boxShadow: 'var(--shadow-elevation-1)',
                 display: 'flex',
                 flexDirection: 'column',
@@ -752,9 +763,9 @@ export function TeamManagerPerformanceCard({
                     style={{
                       fontSize: 10,
                       fontWeight: 700,
-                      color: hasTargets ? '#f59e0b' : 'var(--foreground, #f1f5f9)',
-                      background: 'var(--card, #131c2e)',
-                      border: `1px solid ${hasTargets ? 'rgba(245, 158, 11, 0.4)' : 'var(--border, rgba(255,255,255,0.12))'}`,
+                      color: hasTargets ? 'var(--pipeline-warning-color, #b45309)' : 'var(--foreground)',
+                      background: 'var(--card)',
+                      border: `1px solid ${hasTargets ? 'rgba(245, 158, 11, 0.4)' : 'var(--border)'}`,
                       borderRadius: 6,
                       padding: '1px 6px',
                       cursor: 'pointer',
@@ -777,8 +788,8 @@ export function TeamManagerPerformanceCard({
                           value={p.key}
                           title={isCurrent ? (lang === 'en' ? 'Current month' : 'Mois en cours') : undefined}
                           style={{
-                            background: '#131c2e',
-                            color: '#ffffff'
+                            background: 'var(--card)',
+                            color: 'var(--foreground)'
                           }}
                         >
                           {label}

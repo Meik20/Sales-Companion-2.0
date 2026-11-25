@@ -698,8 +698,8 @@ export default function PipelinePage() {
                     ? `Pipeline : ${selectedManager.name || (lang === 'en' ? 'Supervisor' : 'Superviseur')}`
                     : (isExecutive
                       ? (lang === 'en'
-                        ? `Consolidated Pipeline — Segment : ${activeSegment || 'All'}`
-                        : `Pipeline Consolidé — Segment : ${activeSegment || 'Tous'}`)
+                        ? `Consolidated Pipeline – Segment : ${activeSegment || 'All'}`
+                        : `Pipeline Consolidé – Segment : ${activeSegment || 'Tous'}`)
                       : (t('pipeline.orgPipeline') || 'Pipeline du Segment'))}
                 </span>
                 {filterManagerUid && (
@@ -764,6 +764,7 @@ export default function PipelinePage() {
                 selectedPeriod={activePeriod}
                 onSelectPeriod={setSelectedPeriod}
                 countryCode={orgCountry}
+                observedSegment={isExecutive ? activeSegment : undefined}
               />
             )}
             {!orgPipelineQuery.isLoading && !orgPipelineQuery.data?.items?.length ? (
