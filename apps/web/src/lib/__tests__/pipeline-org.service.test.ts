@@ -38,6 +38,7 @@ describe('pipeline-org.service - fetchOrgConsolidatedPipeline', () => {
           data: () => ({
             displayName: 'Team Manager 1',
             orgRole: 'team_manager',
+            seniorManagerUid: 'sm-test-uid',
             orgCode: 'SC-CM-TEST1',
             role: 'manager'
           })
