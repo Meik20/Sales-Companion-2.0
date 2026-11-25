@@ -885,168 +885,12 @@ export function OrgGovernanceTab() {
                   )}
                 </div>
 
-                {/* Sélecteur de gestion des Coordinateurs (SM1 uniquement) */}
-                {isPrimarySeniorManager && (orgData?.coordinators || []).length > 0 && (
-                  <div className="relative" ref={coordinatorDropdownRef}>
-                    <button
-                      type="button"
-                      onClick={() => setCoordinatorDropdownOpen((prev) => !prev)}
-                      className="inline-flex items-center gap-2 rounded-lg border border-violet-400/50 bg-violet-50 dark:bg-violet-950/30 px-3 py-1.5 text-[12px] font-bold text-violet-800 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-900/40 cursor-pointer shadow-xs transition-colors"
-                    >
-                      <Crown size={14} className="text-violet-600 dark:text-violet-400" />
-                      <span>
-                        {lang === 'en'
-                          ? `Manage Coordinators (${orgData?.coordinators?.length})`
-                          : `Gérer les Coordinateurs (${orgData?.coordinators?.length})`}
-                      </span>
-                      <ChevronDown size={13} className="opacity-70" />
-                    </button>
-
-                    {/* Menu déroulant des Coordinateurs (100% opaque) */}
-                    {coordinatorDropdownOpen && (
-                      <div className="dropdown-menu absolute right-0 z-30 mt-2 w-72 rounded-xl border border-border bg-card p-2 shadow-elevation-3">
-                        <div className="px-2.5 py-1.5 text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground border-b border-border mb-1">
-                          {lang === 'en' ? 'Active Coordinators' : 'Coordinateurs actifs'}
-                        </div>
-                        <div className="max-h-60 overflow-y-auto space-y-1">
-                          {(orgData?.coordinators || []).map((coord) => (
-                            <button
-                              key={coord.uid}
-                              type="button"
-                              onClick={() => {
-                                setSelectedCoordinator(coord)
-                                setCoordNewSegment(coord.segment?.split('(')[0]?.trim() || '')
-                                setCoordNewZone(coord.zone || '')
-                                setCoordinatorDropdownOpen(false)
-                              }}
-                              className="w-full flex items-center justify-between gap-2 rounded-lg p-2 text-left hover:bg-secondary cursor-pointer transition-colors"
-                            >
-                              <div className="min-w-0">
-                                <div className="text-[12.5px] font-bold text-foreground truncate flex items-center gap-1.5">
-                                  <span>{coord.name}</span>
-                                  {coord.isPrimary && (
-                                    <span className="text-[9.5px] px-1 py-0.2 rounded bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 font-extrabold">
-                                      SM1
-                                    </span>
-                                  )}
-                                </div>
-                                <div className="text-[11px] text-muted-foreground truncate">{coord.email}</div>
-                              </div>
-                              <span className="shrink-0 text-[10.5px] font-semibold px-2 py-0.5 rounded-full border border-primary/30 bg-primary/10 text-primary">
-                                {coord.displaySegment || coord.segment || 'N/D'}
-                              </span>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
                 <InfoTooltip
                   placement="left"
                   content={t('team.orgGovernance.segmentTooltip')}
                 />
               </div>
             </div>
-
-            {/* Carte Popover / Modal de gestion du profil du Coordinateur sélectionné (100% OPAQUE) */}
-            {selectedCoordinator && (
-              <div className="rounded-xl border-2 border-violet-500/40 bg-card p-5 shadow-elevation-2 flex flex-col gap-4">
-                <div className="flex items-center justify-between border-b border-border pb-3">
-                  <div className="flex items-center gap-2">
-                    <Crown size={16} className="text-violet-600 dark:text-violet-400" />
-                    <h5 className="m-0 text-[14px] font-bold text-foreground">
-                      {lang === 'en' ? 'Manage Coordinator Profile' : 'Gérer le profil du Coordinateur'} :{' '}
-                      <span className="text-violet-600 dark:text-violet-400">{selectedCoordinator.name}</span>
-                    </h5>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedCoordinator(null)}
-                    className="text-[12px] font-bold text-muted-foreground hover:text-foreground cursor-pointer px-2 py-1 rounded-md hover:bg-secondary"
-                  >
-                    ✕
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[12px]">
-                  <div className="rounded-lg border border-border bg-secondary/20 p-2.5">
-                    <span className="text-muted-foreground block text-[11px] font-semibold">{t('team.members.email')}</span>
-                    <span className="font-bold text-foreground truncate block">{selectedCoordinator.email}</span>
-                  </div>
-                  <div className="rounded-lg border border-border bg-secondary/20 p-2.5">
-                    <span className="text-muted-foreground block text-[11px] font-semibold">
-                      {lang === 'en' ? 'Current Segment & Zone' : 'Segment & Zone actuels'}
-                    </span>
-                    <span className="font-bold text-foreground truncate block">
-                      {selectedCoordinator.displaySegment || selectedCoordinator.segment || 'N/D'}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Formulaire de modification du segment */}
-                <div className="rounded-lg border border-border p-3.5 bg-secondary/10 flex flex-col gap-3">
-                  <div className="text-[12px] font-bold text-foreground">
-                    {lang === 'en' ? 'Modify Segment & Zone' : 'Modifier le segment et la zone'}
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    <div>
-                      <label className="text-[11px] font-semibold text-muted-foreground block mb-1">
-                        {lang === 'en' ? 'Segment Name (e.g. SOHO, PME)' : 'Nom du segment (ex: SOHO, PME)'}
-                      </label>
-                      <input
-                        type="text"
-                        value={coordNewSegment}
-                        onChange={(e) => setCoordNewSegment(e.target.value)}
-                        placeholder="Ex: PME, BTP..."
-                        className="h-8.5 w-full rounded-lg border border-border bg-card px-2.5 text-[12.5px] text-foreground focus:border-primary focus:outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[11px] font-semibold text-muted-foreground block mb-1">
-                        {lang === 'en' ? 'Geographic Zone (e.g. Ouest, Centre)' : 'Zone géographique (ex: Ouest, Centre)'}
-                      </label>
-                      <input
-                        type="text"
-                        value={coordNewZone}
-                        onChange={(e) => setCoordNewZone(e.target.value)}
-                        placeholder="Ex: Littoral, Nord..."
-                        className="h-8.5 w-full rounded-lg border border-border bg-card px-2.5 text-[12.5px] text-foreground focus:border-primary focus:outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-1 flex-wrap gap-2">
-                    <div className="text-[11px] text-muted-foreground">
-                      {lang === 'en'
-                        ? 'Will automatically propagate to all subordinates and pipeline deals.'
-                        : 'Propagé automatiquement aux superviseurs, commerciaux et fiches associées.'}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setSelectedCoordinator(null)}
-                        disabled={savingCoordinator}
-                        className="rounded-lg px-3 py-1.5 text-[12px] font-semibold text-muted-foreground hover:text-foreground cursor-pointer"
-                      >
-                        {lang === 'en' ? 'Cancel' : 'Annuler'}
-                      </button>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="primary"
-                        loading={savingCoordinator}
-                        disabled={!coordNewSegment.trim()}
-                        onClick={() => void handleUpdateCoordinatorSegment()}
-                      >
-                        {lang === 'en' ? 'Save Changes' : 'Enregistrer les modifications'}
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
 
             {/* Code Organisation unique + Actions d'invitation */}
             <div className="rounded-xl border border-border bg-secondary/30 p-5 flex flex-col gap-4">
@@ -1181,6 +1025,170 @@ export function OrgGovernanceTab() {
                       {copiedSmInvite ? <Check size={14} className="text-emerald-600 dark:text-emerald-400" /> : <Link2 size={14} className="shrink-0" />}
                       {copiedSmInvite ? t('team.orgGovernance.smLinkCopied') : generatingInvite === 'sm' ? t('team.orgGovernance.generating') : t('team.orgGovernance.copySmLink')}
                     </button>
+
+                    {/* Menu déroulant de Gestion des Coordinateurs existants (distinct de l'invitation et du segment propre) */}
+                    {(orgData?.coordinators || []).length > 0 && (
+                      <div className="mt-4 pt-3.5 border-t border-violet-400/30">
+                        <div className="flex items-center justify-between gap-2 flex-wrap mb-2">
+                          <span className="text-[11.5px] font-bold text-foreground flex items-center gap-1.5">
+                            <Crown size={13} className="text-violet-600 dark:text-violet-400" />
+                            <span>
+                              {lang === 'en'
+                                ? `Active Coordinators (${orgData?.coordinators?.length})`
+                                : `Coordinateurs de l’organisation (${orgData?.coordinators?.length})`}
+                            </span>
+                          </span>
+
+                          <div className="relative" ref={coordinatorDropdownRef}>
+                            <button
+                              type="button"
+                              onClick={() => setCoordinatorDropdownOpen((prev) => !prev)}
+                              className="inline-flex items-center gap-1.5 rounded-md border border-violet-400/50 bg-violet-50 dark:bg-violet-950/30 px-2.5 py-1 text-[11px] font-bold text-violet-800 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-900/40 cursor-pointer shadow-xs transition-colors"
+                            >
+                              <span>{lang === 'en' ? 'Manage Coordinator' : 'Gérer un profil'}</span>
+                              <ChevronDown size={12} className="opacity-70" />
+                            </button>
+
+                            {/* Dropdown 100% opaque (Règle 8) */}
+                            {coordinatorDropdownOpen && (
+                              <div className="dropdown-menu absolute right-0 z-30 mt-1.5 w-72 rounded-xl border border-border bg-card p-2 shadow-elevation-3">
+                                <div className="px-2.5 py-1 text-[10.5px] font-extrabold uppercase tracking-wider text-muted-foreground border-b border-border mb-1">
+                                  {lang === 'en' ? 'Select a Coordinator' : 'Sélectionner un Coordinateur'}
+                                </div>
+                                <div className="max-h-56 overflow-y-auto space-y-1">
+                                  {(orgData?.coordinators || []).map((coord) => (
+                                    <button
+                                      key={coord.uid}
+                                      type="button"
+                                      onClick={() => {
+                                        setSelectedCoordinator(coord)
+                                        setCoordNewSegment(coord.segment?.split('(')[0]?.trim() || '')
+                                        setCoordNewZone(coord.zone || '')
+                                        setCoordinatorDropdownOpen(false)
+                                      }}
+                                      className="w-full flex items-center justify-between gap-2 rounded-lg p-2 text-left hover:bg-secondary cursor-pointer transition-colors"
+                                    >
+                                      <div className="min-w-0">
+                                        <div className="text-[12px] font-bold text-foreground truncate flex items-center gap-1.5">
+                                          <span>{coord.name}</span>
+                                          {coord.isPrimary && (
+                                            <span className="text-[9px] px-1 py-0.2 rounded bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 font-extrabold">
+                                              SM1
+                                            </span>
+                                          )}
+                                        </div>
+                                        <div className="text-[10.5px] text-muted-foreground truncate">{coord.email}</div>
+                                      </div>
+                                      <span className="shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full border border-violet-400/30 bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-300">
+                                        {coord.displaySegment || coord.segment || 'N/D'}
+                                      </span>
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Carte Popover / Fiche de gestion du Coordinateur sélectionné (100% OPAQUE) */}
+                        {selectedCoordinator && (
+                          <div className="mt-3 rounded-xl border-2 border-violet-500/40 bg-card p-4 shadow-elevation-2 flex flex-col gap-3">
+                            <div className="flex items-center justify-between border-b border-border pb-2.5">
+                              <div className="flex items-center gap-1.5">
+                                <Crown size={14} className="text-violet-600 dark:text-violet-400" />
+                                <span className="text-[13px] font-bold text-foreground">
+                                  {lang === 'en' ? 'Edit Profile' : 'Profil'} :{' '}
+                                  <span className="text-violet-600 dark:text-violet-400">{selectedCoordinator.name}</span>
+                                </span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => setSelectedCoordinator(null)}
+                                className="text-[11px] font-bold text-muted-foreground hover:text-foreground cursor-pointer px-2 py-0.5 rounded-md hover:bg-secondary"
+                              >
+                                ✕
+                              </button>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11.5px]">
+                              <div className="rounded-lg border border-border bg-secondary/20 p-2">
+                                <span className="text-muted-foreground block text-[10.5px] font-semibold">{t('team.members.email')}</span>
+                                <span className="font-bold text-foreground truncate block">{selectedCoordinator.email}</span>
+                              </div>
+                              <div className="rounded-lg border border-border bg-secondary/20 p-2">
+                                <span className="text-muted-foreground block text-[10.5px] font-semibold">
+                                  {lang === 'en' ? 'Current Segment & Zone' : 'Segment & Zone actuels'}
+                                </span>
+                                <span className="font-bold text-foreground truncate block">
+                                  {selectedCoordinator.displaySegment || selectedCoordinator.segment || 'N/D'}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Formulaire de modification */}
+                            <div className="rounded-lg border border-border p-3 bg-secondary/10 flex flex-col gap-2.5">
+                              <div className="text-[11.5px] font-bold text-foreground">
+                                {lang === 'en' ? 'Modify Segment & Zone' : 'Modifier le segment et la zone'}
+                              </div>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <div>
+                                  <label className="text-[10.5px] font-semibold text-muted-foreground block mb-0.5">
+                                    {lang === 'en' ? 'Segment Name (Market) *' : 'Nom du segment (Marché) *'}
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={coordNewSegment}
+                                    onChange={(e) => setCoordNewSegment(e.target.value)}
+                                    placeholder="Ex: PME, SOHO, BTP…"
+                                    className="h-8 w-full rounded-lg border border-border bg-card px-2.5 text-[12px] text-foreground focus:border-violet-500 focus:outline-none uppercase"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-[10.5px] font-semibold text-muted-foreground block mb-0.5">
+                                    {lang === 'en' ? 'Geographic Zone *' : 'Zone géographique *'}
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={coordNewZone}
+                                    onChange={(e) => setCoordNewZone(e.target.value)}
+                                    placeholder="Ex: Littoral, Ouest, Centre…"
+                                    className="h-8 w-full rounded-lg border border-border bg-card px-2.5 text-[12px] text-foreground focus:border-violet-500 focus:outline-none"
+                                  />
+                                </div>
+                              </div>
+
+                              <div className="flex items-center justify-between pt-1 flex-wrap gap-2">
+                                <span className="text-[10.5px] text-muted-foreground leading-tight">
+                                  {lang === 'en'
+                                    ? 'Propagates to subordinates and pipeline.'
+                                    : 'Propagé automatiquement aux superviseurs et fiches.'}
+                                </span>
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => setSelectedCoordinator(null)}
+                                    disabled={savingCoordinator}
+                                    className="rounded-lg px-2.5 py-1 text-[11.5px] font-semibold text-muted-foreground hover:text-foreground cursor-pointer"
+                                  >
+                                    {lang === 'en' ? 'Cancel' : 'Annuler'}
+                                  </button>
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="primary"
+                                    loading={savingCoordinator}
+                                    disabled={!coordNewSegment.trim()}
+                                    onClick={() => void handleUpdateCoordinatorSegment()}
+                                  >
+                                    {lang === 'en' ? 'Save' : 'Enregistrer'}
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
 
