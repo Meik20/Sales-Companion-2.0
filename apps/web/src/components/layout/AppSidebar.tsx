@@ -578,7 +578,9 @@ export function AppSidebar({
       {user.role === 'manager' && (
         <>
           <SectionDivider collapsed={isNavCollapsed} />
-          <SectionLabel collapsed={isNavCollapsed}>{t('sidebar.team')}</SectionLabel>
+          <SectionLabel collapsed={isNavCollapsed}>
+            {user.orgRole === 'executive' ? 'SEGMENT' : t('sidebar.team')}
+          </SectionLabel>
           {user.orgRole === 'senior_manager' || user.orgRole === 'executive' ? (
             <>
               {/* Senior Manager : Gestion de l'Organisation (exclu pour la Direction/Executive qui a un rôle purement stratégique) */}
@@ -598,7 +600,13 @@ export function AppSidebar({
               )}
               <SidebarLink
                 href={routes.dashboard}
-                label={t('sidebar.orgDashboard')}
+                label={
+                  user.orgRole === 'executive'
+                    ? lang === 'en'
+                      ? 'Segment Dashboard'
+                      : 'Dashboard Segment'
+                    : t('sidebar.orgDashboard')
+                }
                 icon={LayoutDashboard}
                 collapsed={isNavCollapsed}
                 onClick={(e) => {

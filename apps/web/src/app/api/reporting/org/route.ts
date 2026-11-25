@@ -549,7 +549,7 @@ export async function GET(request: NextRequest) {
       },
       availableSegments,
       recentActivity,
-      totalManagers: teamManagerUids.length
+      totalManagers: isCallerExecutive ? seniorManagerUids.length : teamManagerUids.length
     })
   } catch (err: any) {
     console.error('GET /api/reporting/org error:', err)

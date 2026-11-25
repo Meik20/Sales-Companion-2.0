@@ -739,10 +739,9 @@ export default function DashboardPage() {
                     }}
                   >
                     {isExecutive
-                      ? t('dashboard.targetsSubtitle') ||
-                        (lang === 'en'
-                          ? 'Monthly cycle · Consolidation of all Supervisors in the segment'
-                          : 'Cycle mensuel · Consolidation de tous les Superviseurs du segment')
+                      ? lang === 'en'
+                        ? 'Monthly cycle · Consolidation of all Coordinators in the segment'
+                        : 'Cycle mensuel · Consolidation de tous les Coordinateurs du segment'
                       : lang === 'en'
                         ? 'Monthly cycle · Consolidation of all Supervisors in your team'
                         : 'Cycle mensuel · Consolidation de tous les Superviseurs de votre équipe'}
@@ -914,7 +913,13 @@ export default function DashboardPage() {
             }}
           >
             <KpiCard
-              label={t('dashboard.kpiManagers')}
+              label={
+                isExecutive
+                  ? lang === 'en'
+                    ? 'Coordinators'
+                    : 'Coordinateurs'
+                  : t('dashboard.kpiManagers')
+              }
               value={data?.totalManagers ?? 0}
               color="#8b5cf6"
               icon={<Users2 size={16} />}
@@ -973,7 +978,9 @@ export default function DashboardPage() {
                   placement="left"
                   content={
                     isExecutive
-                      ? t('dashboard.topPerformersTooltip')
+                      ? lang === 'en'
+                        ? 'Coordinators ranked by number of closed prospects in your segment.'
+                        : 'Coordinateurs classés par nombre de prospects conclus dans votre segment.'
                       : lang === 'en'
                         ? 'Supervisors ranked by number of closed prospects in your team.'
                         : 'Superviseurs classés par nombre de prospects conclus dans votre équipe.'
